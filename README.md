@@ -195,6 +195,43 @@ Ou utilise directement ce lien en remplaçant `CLIENT_ID` par ton `APPLICATION_I
 https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot+applications.commands&permissions=1099780074054
 ```
 
+### Compléter la fiche Developer Portal
+
+Sur `https://discord.com/developers/applications/<APP_ID>/information` (onglet **General Information**), tu peux remplir :
+
+| Champ | Valeur recommandée |
+|---|---|
+| **Name** | `Shenron` |
+| **Description** (≤ 400) | `Bot Discord thématique Dragon Ball — modération, niveaux (unités de ki), économie en zéni, tickets, vocaux tempo, cartes canvas, wiki DBZ. Bun-only.` |
+| **Tags** (5 max) | `Moderation` · `Levels` · `Economy` · `Games` · `Utility` |
+| **App Icon** | Upload depuis `assets/logo.webp` |
+| **Cover Image** | Upload depuis `assets/backgrounds/galaxy/spiral-galaxy-m83.webp` (optionnel, régénère via `bun run bg:fetch` si gitignoré) |
+| **Privacy Policy URL** | `https://github.com/aphrody-code/shenron/blob/main/PRIVACY.md` |
+| **Terms of Service URL** | `https://github.com/aphrody-code/shenron/blob/main/TERMS.md` |
+| **Interactions Endpoint URL** | **Laisser vide** — Shenron passe par la Gateway WebSocket, pas les webhooks HTTP |
+| **Install Link** | `Discord Provided Link` (utilise celui du header ci-dessus) |
+
+Onglets connexes :
+- **Bot** → activer `Presence Intent`, `Server Members Intent`, `Message Content Intent`
+- **OAuth2** → URL Generator pour régénérer le lien d'invitation si tu changes de permissions
+- **Installation** → `User Install` désactivé (Shenron est guild-install uniquement)
+
+### Docs Discord utiles
+
+- [Developer Portal](https://discord.com/developers/applications) — créer/gérer l'app
+- [Documentation API Discord](https://discord.com/developers/docs/intro) — ref complète
+- [Gateway Intents](https://discord.com/developers/docs/topics/gateway#gateway-intents) — explique les Privileged Intents
+- [OAuth2 Scopes](https://discord.com/developers/docs/topics/oauth2#shared-resources-oauth2-scopes) — scopes disponibles
+- [Permissions Bitwise](https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags) — calculer le permissions integer
+- [Slash Commands](https://discord.com/developers/docs/interactions/application-commands#slash-commands) — spec des commandes
+- [Rate Limits](https://discord.com/developers/docs/topics/rate-limits) — éviter les 429
+
+Libs utilisées par Shenron :
+- [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
+- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
+- [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
+
 ### Structure Discord à préparer (optionnel mais recommandé)
 
 Les IDs suivants sont **optionnels** dans `.env` — la feature associée reste inactive si l'ID est vide, rien ne crashe. Crée-les au fur et à mesure quand tu en as besoin :
