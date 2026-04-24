@@ -98,7 +98,24 @@ Le bot tourne exclusivement sur **[Bun](https://bun.com)** — pas de Node requi
 
 ## Démarrage rapide (2 minutes)
 
-Tout est automatisé par trois scripts bash. Si tu n'as jamais utilisé Bun ni Discord.dev, suis juste ça dans l'ordre.
+### One-liner (recommandé)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh | bash
+```
+
+Installe Bun si absent, clone dans `./shenron`, applique les migrations, check santé, et te dit où remplir `.env`. Variables facultatives :
+
+```bash
+# dossier cible
+curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh \
+  | SHENRON_DIR=/opt/shenron bash
+
+# branche alternative
+curl -fsSL .../install.sh | SHENRON_BRANCH=dev bash
+```
+
+### Pas à pas (équivalent)
 
 ```bash
 git clone https://github.com/aphrody-code/shenron.git
@@ -546,6 +563,7 @@ L'ordre de bootstrap dans `src/index.ts` est critique :
 
 | Script | Usage | Notes |
 |---|---|---|
+| `curl -fsSL .../install.sh \| bash` | Installer one-liner | Clone le repo + lance setup + doctor. Variables : `SHENRON_DIR`, `SHENRON_BRANCH`. |
 | `bash scripts/setup.sh` | Setup de A à Z | Installe Bun si absent, `bun install`, `.env` depuis l'exemple, migrations, seeds. Idempotent. |
 | `bash scripts/doctor.sh` | Health check | Vérifie Bun, deps, `.env`, DB, **ping le token via REST Discord**, détecte instances en cours. Code retour non-zéro si problème. |
 | `bash scripts/start.sh` | Launcher | Flags : `--prod` (pas de watch), `--compiled` (binaire `dist/shenron`), `--bg` (détaché, logs dans `logs/`) |
