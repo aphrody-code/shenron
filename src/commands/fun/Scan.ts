@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, Guard } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   AttachmentBuilder,
@@ -7,10 +8,11 @@ import {
   type CommandInteraction,
   type User,
 } from "discord.js";
-import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
+import { createCanvas } from "@napi-rs/canvas";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { LevelService } from "~/services/LevelService";
 import { formatXP } from "~/lib/xp";
+import { drawScanlines, rgba } from "~/lib/canvas-kit";
 
 function kiComment(xp: number): { line: string; accent: string } {
   if (xp >= 10_000_000) return { line: "**IT'S OVER 9'000'000 !** ⚡", accent: "#f59e0b" };
@@ -39,14 +41,7 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
   ctx.fillRect(0, 0, 500, 200);
 
   // Scanlines horizontales
-  ctx.strokeStyle = `${accent}22`;
-  ctx.lineWidth = 1;
-  for (let y = 0; y < 200; y += 4) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(500, y);
-    ctx.stroke();
-  }
+  drawScanlines(ctx, 0, 0, 500, 200, rgba(accent, 0.13));
 
   // Bordure + glow
   ctx.shadowColor = accent;
@@ -79,20 +74,13 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
 
   // Sous-label
   ctx.font = "11px 'Inter Bold', sans-serif";
-  ctx.fillStyle = `${accent}99`;
+  ctx.fillStyle = rgba(accent, 0.6);
   ctx.fillText("POWER LEVEL", 500 - textWidth - 20, 175);
 
   return canvas.toBuffer("image/png");
 }
 
-// Réenregistre les fonts au cas où CardService n'a pas encore tourné
-const FONT_DIR = `${import.meta.dir}/../../../assets/fonts/`;
-try {
-  GlobalFonts.registerFromPath(`${FONT_DIR}Inter-Bold.ttf`, "Inter Bold");
-  GlobalFonts.registerFromPath(`${FONT_DIR}SaiyanSans.ttf`, "Saiyan Sans");
-  GlobalFonts.registerFromPath(`${FONT_DIR}InterDisplay-Black.ttf`, "Inter Display Black");
-  GlobalFonts.registerFromPath(`${FONT_DIR}DBSScouter.ttf`, "DBS Scouter");
-} catch {}
+// Fonts : enregistrées par canvas-kit au chargement du module ci-dessus.
 
 @Discord()
 @Guard(GuildOnly)
@@ -102,7 +90,7 @@ export class ScanCommand {
 
   @Slash({ name: "scan", description: "Scanne le ki d'un membre avec ton scouter" })
   async scan(
-    @SlashOption({ name: "membre", description: "Cible du scan", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Cible du scan", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     target: User | undefined,
     interaction: CommandInteraction,
   ) {

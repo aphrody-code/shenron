@@ -131,7 +131,7 @@ export class EconomyService {
   }
 
   async createFusion(a: string, b: string) {
-    const [userA, userB] = [a, b].sort();
+    const [userA, userB] = [a, b].toSorted();
     await this.db.insert(fusions).values({ userA, userB }).onConflictDoNothing();
   }
 

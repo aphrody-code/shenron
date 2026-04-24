@@ -2,6 +2,7 @@
 // Regénérer avec: bun scripts/gen-entries.ts
 
 import "./commands/admin/Achievements";
+import "./commands/admin/Ids";
 import "./commands/economy/Economy";
 import "./commands/fun/Fun";
 import "./commands/fun/Scan";

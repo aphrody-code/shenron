@@ -1,12 +1,15 @@
+import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, Guard } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
-  EmbedBuilder,
+  AttachmentBuilder,
   type CommandInteraction,
   type User,
 } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { env } from "~/lib/env";
+import { GaugeService } from "~/services/GaugeService";
 
 /**
  * Helper: % aléatoire stable par jour et par user (déterministe dans la journée).
@@ -24,39 +27,52 @@ function stablePercent(userId: string, salt: string): number {
 
 @Discord()
 @Guard(GuildOnly)
+@injectable()
 export class FunCommands {
+  constructor(@inject(GaugeService) private gauge: GaugeService) {}
+
   @Slash({ name: "gay", description: "% aléatoire de gaytitude (fun)" })
   async gay(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     interaction: CommandInteraction,
   ) {
+    await interaction.deferReply();
     const pct = target.id === env.OWNER_ID ? 0 : stablePercent(target.id, "gay");
-    const bar = "█".repeat(Math.round(pct / 10)) + "░".repeat(10 - Math.round(pct / 10));
-    const embed = new EmbedBuilder()
-      .setTitle("🌈 Gaydar de Bulma")
-      .setDescription(`${target} est gay à **${pct}%**\n\`${bar}\``)
-      .setColor(0xec4899)
-      .setFooter({ text: "Scanner calibré sur Master Roshi" });
-    await interaction.reply({ embeds: [embed] });
+    const buf = await this.gauge.render({
+      user: target,
+      title: "GAYDAR DE BULMA",
+      subtitle: "Scanner calibré sur Master Roshi",
+      pct,
+      accent: "#ec4899",
+      accentDark: "#3a0420",
+    });
+    await interaction.editReply({
+      content: `${target}`,
+      files: [new AttachmentBuilder(buf, { name: "gaydar.png" })],
+    });
   }
 
   @Slash({ name: "raciste", description: "% aléatoire de racisme (fun)" })
   async raciste(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     interaction: CommandInteraction,
   ) {
-    // Spec: si utilisée sur l'owner → 101%
+    await interaction.deferReply();
+    // Spec : si utilisée sur l'owner → 101 % (overflow rouge)
     const pct = target.id === env.OWNER_ID ? 101 : stablePercent(target.id, "raciste");
-    const bar = pct >= 100
-      ? "██████████"
-      : "█".repeat(Math.round(pct / 10)) + "░".repeat(10 - Math.round(pct / 10));
-    const embed = new EmbedBuilder()
-      .setTitle("🔥 Racism-o-mètre de Mr. Popo")
-      .setDescription(`${target} est raciste à **${pct}%**\n\`${bar}\``)
-      .setColor(0x991b1b)
-      .setFooter({ text: "Scanner calibré sur Commander Red" });
-    await interaction.reply({ embeds: [embed] });
+    const buf = await this.gauge.render({
+      user: target,
+      title: "RACISM-O-MÈTRE",
+      subtitle: "Scanner calibré sur Commander Red",
+      pct,
+      accent: "#dc2626",
+      accentDark: "#4a0000",
+    });
+    await interaction.editReply({
+      content: `${target}`,
+      files: [new AttachmentBuilder(buf, { name: "racism-o-metre.png" })],
+    });
   }
 }
