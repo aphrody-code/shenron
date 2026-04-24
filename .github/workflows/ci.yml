@@ -38,9 +38,11 @@ jobs:
           restore-keys: bun-${{ matrix.os }}-
 
       - name: Auth GitHub Packages (@rpbey/*)
+        env:
+          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          echo "@rpbey:registry=https://npm.pkg.github.com" >> ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          printf "@rpbey:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
+          printf "@rpbey:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > ~/.npmrc
 
       - name: Install
         run: bun install --frozen-lockfile
@@ -70,9 +72,10 @@ jobs:
         with:
           bun-version: latest
       - name: Auth GitHub Packages
+        env:
+          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          echo "@rpbey:registry=https://npm.pkg.github.com" >> ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          printf "@rpbey:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
       - run: bun install --frozen-lockfile
       - run: bun run gen:entries
       - run: bun run compile
