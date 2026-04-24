@@ -17,3 +17,22 @@ data/*.db-shm
 
 # n2b audit reports
 bun/reports/
+
+# AI assistants — configs, instructions, caches
+.claude/
+.cursor/
+.cursorrules
+.aider*
+.continue/
+.windsurf/
+.codeium/
+.sourcegraph/
+.anthropic/
+.openai/
+.github/copilot-instructions.md
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+COPILOT.md
+.ai/
+*.ai.md
