@@ -18,8 +18,7 @@ Bot Discord thémé Dragon Ball pour un serveur communautaire — modération av
 - [Aperçu](#aperçu)
 - [Fonctionnalités](#fonctionnalités)
 - [Stack technique](#stack-technique)
-- [Prérequis](#prérequis)
-- [Installation](#installation)
+- [Démarrage rapide (2 minutes)](#démarrage-rapide-2-minutes)
 - [Configuration](#configuration)
 - [Mise en route](#mise-en-route)
 - [Commandes](#commandes)
@@ -29,6 +28,7 @@ Bot Discord thémé Dragon Ball pour un serveur communautaire — modération av
 - [Architecture](#architecture)
 - [Scripts](#scripts)
 - [Déploiement](#déploiement)
+- [Dépannage](#dépannage)
 - [FAQ](#faq)
 - [Licence](#licence)
 
@@ -93,46 +93,128 @@ Le bot tourne exclusivement sur **[Bun](https://bun.com)** — pas de Node requi
 | Logging | `pino` + `pino-pretty` |
 | Canvas | `@napi-rs/canvas` (rendu des cartes profil) |
 
-## Prérequis
+## Démarrage rapide (2 minutes)
 
-1. **Bun** ≥ 1.3 installé localement : `curl -fsSL https://bun.com/install | bash`
-2. Une **application Discord** sur le [portail développeur](https://discord.com/developers/applications) avec un bot créé, et les **Privileged Gateway Intents** suivants activés :
-   - `Presence Intent` (détection URL en bio)
-   - `Server Members Intent` (join/leave, URL en bio)
-   - `Message Content Intent` (XP texte, anti-lien, succès regex)
-3. Un **serveur Discord** sur lequel le bot est invité avec ces permissions (permissions integer recommandé : `1099780074054`) :
-   - Manage Roles, Manage Channels, Kick Members, Ban Members
-   - Moderate Members (timeout)
-   - Manage Messages, Read Message History, Embed Links, Attach Files, Add Reactions
-   - Connect, Move Members, Mute Members (vocaux temporaires)
-
-   Lien d'invitation prêt à l'emploi (Application ID `1497194276025663680`) :
-
-   ```
-   https://discord.com/oauth2/authorize?client_id=1497194276025663680&scope=bot+applications.commands&permissions=1099780074054
-   ```
-4. Côté Discord, créer à l'avance :
-   - Un **rôle jail** (permissions refusées partout sauf salon ticket-de-déblocage)
-   - Un **rôle "URL en bio"** (optionnel, décoratif)
-   - Une **catégorie "Tickets"**
-   - Un **salon vocal "hub"** pour les vocaux temporaires
-   - 7 **salons de logs** (message, sanction, économie, join/leave, niveau/rôle, ticket, notifs mods)
-
-## Installation
+Tout est automatisé par trois scripts bash. Si tu n'as jamais utilisé Bun ni Discord.dev, suis juste ça dans l'ordre.
 
 ```bash
 git clone <url-du-repo> shenron
 cd shenron
-bun install
-cp .env.example .env
-# édite .env — voir section Configuration
-bun run db:migrate
-bun run db:seed-all       # wiki DBZ + 15 triggers de succès
-bun run dev               # lance en mode watch
+bash scripts/setup.sh        # installe Bun si absent, deps, .env, migrations, seeds
+bash scripts/doctor.sh       # check santé (token, DB, perms)
+bash scripts/start.sh        # lance en mode watch
 ```
 
-> [!NOTE]
-> Le seed du wiki fait des requêtes HTTP vers `dragonball-api.com` et peut prendre 30–60 secondes.
+Le `setup.sh` s'arrêtera en te demandant d'ouvrir `.env` si tu n'as pas encore tes identifiants Discord. Les sections ci-dessous expliquent **où les trouver**.
+
+> [!TIP]
+> Si tu préfères tout faire à la main : voir [Installation manuelle](#installation-manuelle).
+
+### Où récupérer les 3 identifiants obligatoires
+
+**1. `DISCORD_TOKEN`** — le secret qui authentifie ton bot.
+
+1. Va sur [discord.com/developers/applications](https://discord.com/developers/applications)
+2. **New Application** → donne un nom → **Create**
+3. Onglet **Bot** à gauche → **Reset Token** → copie la valeur
+4. Toujours dans **Bot**, active les trois _Privileged Gateway Intents_ :
+   - `Presence Intent` (détection URL en bio)
+   - `Server Members Intent` (join/leave)
+   - `Message Content Intent` (XP texte, anti-lien, succès regex)
+
+> [!WARNING]
+> Ne commit **jamais** le token. Le fichier `.env` est ignoré par git et créé en `chmod 600` par `setup.sh`.
+
+**2. `GUILD_ID`** — l'ID de ton serveur Discord.
+
+1. Dans Discord : **Paramètres utilisateur** → **Avancé** → active **Mode développeur**
+2. Clic droit sur l'icône de ton serveur → **Copier l'identifiant du serveur**
+
+**3. `OWNER_ID`** — ton propre ID Discord.
+
+- Clic droit sur ton pseudo → **Copier l'identifiant utilisateur**
+
+### Inviter le bot sur ton serveur
+
+Dans le portail dev : **OAuth2** → **URL Generator** → coche `bot` + `applications.commands`, puis permissions :
+`Manage Roles, Manage Channels, Kick Members, Ban Members, Moderate Members, Manage Messages, Read Message History, Embed Links, Attach Files, Add Reactions, Connect, Move Members, Mute Members`.
+
+Ou utilise directement ce lien en remplaçant `CLIENT_ID` par ton `APPLICATION_ID` (portail dev → **General Information** → Application ID) :
+
+```
+https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot+applications.commands&permissions=1099780074054
+```
+
+### Structure Discord à préparer (optionnel mais recommandé)
+
+Les IDs suivants sont **optionnels** dans `.env` — la feature associée reste inactive si l'ID est vide, rien ne crashe. Crée-les au fur et à mesure quand tu en as besoin :
+
+- Un **rôle "Jail"** (permissions refusées partout sauf un salon dédié) → `JAIL_ROLE_ID`
+- Un **rôle "URL en bio"** (décoratif) → `URL_IN_BIO_ROLE_ID`
+- Une **catégorie "Tickets"** → `TICKET_CATEGORY_ID`
+- Un **salon vocal "Hub"** → `VOCAL_TEMPO_HUB_ID`
+- Jusqu'à **7 salons de logs** → `LOG_*_CHANNEL_ID` + `MOD_NOTIFY_CHANNEL_ID`
+
+### Auto-détection des IDs
+
+Plutôt que copier-coller chaque ID à la main, deux chemins automatiques :
+
+**Depuis le terminal** — scanne la guild via REST et peut patcher `.env` en place :
+
+```bash
+bun run ids                  # liste rôles + salons + bloc .env (heuristique nom → clé)
+bun run ids -- --patch       # écrit directement dans .env les clés vides matchées
+bun run ids -- --json        # sortie brute JSON (pipe, automation)
+```
+
+L'heuristique reconnaît des noms courants (insensible à la casse/accents) :
+- Rôles : `jail`, `prison`, `mute` → `JAIL_ROLE_ID` · `bio`, `url`, `vip`, `pub` → `URL_IN_BIO_ROLE_ID`
+- Salons : `log-messages`, `log-sanctions`, `log-eco`, `log-join-leave`, `log-level`, `log-tickets`, `mod-notif`, `ticket` (catégorie), `hub`/`tempo` (vocal)
+
+**Depuis Discord** — commande admin :
+
+```
+/ids quoi:tout            # rôles + salons en ephemeral
+/ids quoi:roles
+/ids quoi:salons
+```
+
+Les IDs non reconnus par l'heuristique s'affichent quand même, il suffit de copier la ligne correspondante dans `.env`.
+
+### Scripts bash disponibles
+
+| Script | Usage | Fait quoi |
+|---|---|---|
+| `bash scripts/setup.sh` | One-shot setup | Vérifie Bun, installe les deps, copie `.env.example` → `.env`, applique les migrations, seed les triggers, (optionnel) seed du wiki |
+| `bash scripts/doctor.sh` | Health check | Vérifie Bun, `node_modules`, `.env` (3 champs requis, valeurs masquées), DB + migrations, **valide le token** via REST Discord, détecte process en cours |
+| `bash scripts/start.sh` | Launcher | `--prod` (pas de watch) / `--compiled` (binaire `dist/shenron`) / `--bg` (détaché + logs datés dans `logs/`) |
+| `bun scripts/deploy.ts --help` | Pipeline de déploiement | Build + type-check + lint + migrations + restart systemd avec options granulaires |
+
+### Installation manuelle
+
+Si tu préfères ne pas utiliser les scripts :
+
+```bash
+# 1. Bun ≥ 1.3
+curl -fsSL https://bun.com/install | bash
+bun --version   # doit afficher ≥ 1.3
+
+# 2. Deps + config
+bun install
+cp .env.example .env
+# édite .env : DISCORD_TOKEN, GUILD_ID, OWNER_ID au minimum
+
+# 3. DB
+mkdir -p data
+bun run db:migrate
+bun run db:seed-triggers        # 15 succès (instantané, offline)
+bun run db:seed-wiki            # wiki DBZ (~60 s, fetch dragonball-api.com)
+
+# 4. Run
+bun run dev                     # hot reload
+# ou : bun run start            # sans watch
+# ou : bun run compile && ./dist/shenron   # binaire standalone
+```
 
 ## Configuration
 
@@ -449,20 +531,33 @@ L'ordre de bootstrap dans `src/index.ts` est critique :
 
 ## Scripts
 
+### Bash (wrappers one-shot)
+
+| Script | Usage | Notes |
+|---|---|---|
+| `bash scripts/setup.sh` | Setup de A à Z | Installe Bun si absent, `bun install`, `.env` depuis l'exemple, migrations, seeds. Idempotent. |
+| `bash scripts/doctor.sh` | Health check | Vérifie Bun, deps, `.env`, DB, **ping le token via REST Discord**, détecte instances en cours. Code retour non-zéro si problème. |
+| `bash scripts/start.sh` | Launcher | Flags : `--prod` (pas de watch), `--compiled` (binaire `dist/shenron`), `--bg` (détaché, logs dans `logs/`) |
+
+### Bun (tâches granulaires)
+
 | Script | Usage |
 |---|---|
 | `bun run dev` | Mode watch (hot reload) |
 | `bun run start` | Démarrage prod |
+| `bun run deploy -- --help` | Pipeline de déploiement composable (build, type-check, lint, migrate, seed, restart systemd) |
+| `bun run test` | Smoke tests — un test par slash command, DB isolée |
+| `bun run lint` / `lint:fix` | oxlint |
+| `bun run type-check` | `tsc --noEmit` |
 | `bun run build` | Bundle → `dist/index.js` |
 | `bun run compile` | Binaire standalone → `dist/shenron` |
-| `bun run type-check` | `tsc --noEmit` |
 | `bun run gen:entries` | Régénère `src/_entries.ts` (à lancer après ajout de commande/event) |
 | `bun run db:migrate` | Applique les migrations SQL |
 | `bun run db:generate` | Génère une migration depuis `schema.ts` |
 | `bun run db:push` | Sync direct du schema sans migration (dev only) |
 | `bun run db:studio` | UI Drizzle |
-| `bun run db:seed-wiki` | Peuple le wiki depuis dragonball-api.com |
-| `bun run db:seed-triggers` | Seed les 15 triggers de succès |
+| `bun run db:seed-wiki` | Peuple le wiki depuis dragonball-api.com (~60 s) |
+| `bun run db:seed-triggers` | Seed les 15 triggers de succès (offline, instantané) |
 | `bun run db:seed-all` | Les deux |
 
 ## Déploiement
@@ -513,6 +608,29 @@ CMD ["bun", "src/index.ts"]
 # Snapshot à chaud (SQLite avec VACUUM INTO)
 bun -e "import {Database} from 'bun:sqlite'; new Database('./data/bot.db').exec(\"VACUUM INTO './data/bot.bak.db'\")"
 ```
+
+## Dépannage
+
+**`bun: command not found` après `setup.sh`**
+Ouvre un nouveau shell (ou `source ~/.bashrc`) — l'installeur Bun ajoute `~/.bun/bin` au `PATH` au prochain login. Sinon : `export PATH="$HOME/.bun/bin:$PATH"`.
+
+**`doctor.sh` dit "Token refusé (HTTP 401)"**
+Le token dans `.env` n'est plus valide. Régénère-le sur le portail dev (**Bot → Reset Token**), remplace la ligne `DISCORD_TOKEN=…` dans `.env`, relance.
+
+**`Used disallowed intents` au démarrage**
+Les _Privileged Gateway Intents_ ne sont pas activés : portail dev → **Bot** → active `Presence`, `Server Members` et `Message Content`.
+
+**Les slash commands n'apparaissent pas sur le serveur**
+Vérifie que `GUILD_ID` correspond bien au serveur où tu as invité le bot. Les commandes sont enregistrées **par guild** (propagation instantanée) et non globalement.
+
+**`Missing Permissions` sur `/jail`, `/ban`, etc.**
+Le rôle du bot doit être **au-dessus** des rôles qu'il veut gérer dans la hiérarchie Discord (serveur → Paramètres → Rôles → glisse le rôle du bot vers le haut).
+
+**Le seed wiki échoue / timeout**
+L'API `dragonball-api.com` peut être temporairement down. Relance `bun run db:seed-wiki` plus tard ou skip : tout le reste fonctionne sans le wiki, seules les commandes `/wiki /races /planete` seront vides.
+
+**Arrêter le bot lancé avec `start.sh --bg`**
+`pkill -f 'bun src/index.ts'` (watch) ou `pkill -f 'bun.*index.ts'` (prod).
 
 ## FAQ
 
