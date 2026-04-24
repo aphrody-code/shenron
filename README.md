@@ -30,7 +30,7 @@ Bot Discord thémé Dragon Ball pour un serveur communautaire — modération av
 - [Succès](#succès)
 - [Architecture](#architecture)
 - [Scripts](#scripts)
-- [Déploiement](#déploiement)
+- [Déploiement](#déploiement) — voir aussi [DEPLOY.md](DEPLOY.md) (guide complet)
 - [Dépannage](#dépannage)
 - [FAQ](#faq)
 - [Licence](#licence)
