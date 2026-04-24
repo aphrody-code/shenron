@@ -1,8 +1,10 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent, ModalComponent } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   ActionRowBuilder,
+  AttachmentBuilder,
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
@@ -21,6 +23,7 @@ import { Pagination } from "@rpbey/pagination";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { EconomyService } from "~/services/EconomyService";
+import { FusionService } from "~/services/FusionService";
 import { formatXP } from "~/lib/xp";
 import { fusionName } from "~/lib/fusion-names";
 
@@ -28,7 +31,10 @@ import { fusionName } from "~/lib/fusion-names";
 @Guard(GuildOnly)
 @injectable()
 export class EconomyCommands {
-  constructor(@inject(EconomyService) private eco: EconomyService) {}
+  constructor(
+    @inject(EconomyService) private eco: EconomyService,
+    @inject(FusionService) private fusionCanvas: FusionService,
+  ) {}
 
   // /shop
   @Slash({ name: "shop", description: "Voir et acheter des objets" })
@@ -55,7 +61,8 @@ export class EconomyCommands {
               : "— Rien en vente —",
           )
           .setFooter({ text: "Utilise /buy <clé> pour acheter." })
-          .setColor(0xfbbf24),
+          .setColor(0xfbbf24)
+          .toJSON(), // Pagination fait structuredClone() qui casse les instances
       ],
     });
 
@@ -150,7 +157,7 @@ export class EconomyCommands {
   // /fusion
   @Slash({ name: "fusion", description: "Proposer une fusion (mariage) à un membre" })
   async fusion(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     interaction: CommandInteraction,
   ) {
@@ -168,15 +175,21 @@ export class EconomyCommands {
       return;
     }
 
-    const embed = new EmbedBuilder()
-      .setTitle("💫 Proposition de fusion")
-      .setDescription(`${interaction.user} propose une fusion à ${target}.\n${target}, acceptes-tu ?`)
-      .setColor(0xec4899);
+    await interaction.deferReply();
+    const buf = await this.fusionCanvas.render({
+      a: interaction.user,
+      b: target,
+      state: "propose",
+    });
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId(`fusion:accept:${interaction.user.id}:${target.id}`).setLabel("Accepter").setStyle(ButtonStyle.Success),
       new ButtonBuilder().setCustomId(`fusion:refuse:${interaction.user.id}:${target.id}`).setLabel("Refuser").setStyle(ButtonStyle.Danger),
     );
-    await interaction.reply({ content: `${target}`, embeds: [embed], components: [row] });
+    await interaction.editReply({
+      content: `${target}, ${interaction.user} te propose une fusion !`,
+      files: [new AttachmentBuilder(buf, { name: "fusion-propose.png" })],
+      components: [row],
+    });
   }
 
   @ButtonComponent({ id: /^fusion:(accept|refuse):\d+:\d+$/ })
@@ -199,11 +212,28 @@ export class EconomyCommands {
     const b = target?.displayName || target?.username || "B";
     const fused = fusionName(a, b);
 
-    await interaction.update({
-      content: `💫 **FUSION RÉUSSIE** 💫\n<@${proposerId}> et <@${targetId}> sont désormais **${fused}** !\n_+10% XP & zéni partagés sur toute activité._`,
-      embeds: [],
-      components: [],
-    });
+    // Canvas fusion réussie
+    if (proposer && target) {
+      const buf = await this.fusionCanvas.render({
+        a: proposer,
+        b: target,
+        state: "success",
+        fusedName: fused,
+      });
+      await interaction.update({
+        content: `<@${proposerId}> et <@${targetId}> sont désormais **${fused}** !\n_+10 % XP & zéni partagés sur toute activité._`,
+        embeds: [],
+        files: [new AttachmentBuilder(buf, { name: "fusion-success.png" })],
+        components: [],
+      });
+    } else {
+      // Fallback texte si l'un des users a quitté Discord
+      await interaction.update({
+        content: `💫 **FUSION RÉUSSIE** 💫\n<@${proposerId}> et <@${targetId}> sont désormais **${fused}** !`,
+        embeds: [],
+        components: [],
+      });
+    }
   }
 
   @Slash({ name: "defusion", description: "Annuler votre fusion" })
@@ -218,7 +248,7 @@ export class EconomyCommands {
   // /solde
   @Slash({ name: "solde", description: "Voir votre solde de zéni" })
   async solde(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     target: User | undefined,
     interaction: CommandInteraction,
   ) {
@@ -237,7 +267,7 @@ export class EconomyCommands {
     action: "give" | "remove",
     @SlashOption({ name: "montant", description: "Montant", type: ApplicationCommandOptionType.Integer, required: true, minValue: 1 })
     amount: number,
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     user: User | undefined,
     @SlashOption({ name: "role", description: "Rôle (tous les membres avec ce rôle)", type: ApplicationCommandOptionType.Role, required: false })
     role: Role | undefined,
@@ -297,7 +327,7 @@ export class EconomyCommands {
     type: "card" | "badge" | "color" | "title" | "succes",
     @SlashOption({ name: "cle", description: "Clé", type: ApplicationCommandOptionType.String, required: true })
     key: string,
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     user: User | undefined,
     @SlashOption({ name: "role", description: "Rôle", type: ApplicationCommandOptionType.Role, required: false })
     role: Role | undefined,

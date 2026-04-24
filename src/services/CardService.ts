@@ -2,7 +2,6 @@ import { singleton } from "tsyringe";
 import {
 	createCanvas,
 	loadImage,
-	GlobalFonts,
 	type Image,
 	type SKRSContext2D,
 } from "@napi-rs/canvas";
@@ -10,47 +9,25 @@ import type { User } from "discord.js";
 import { formatXP, levelForXP, nextThresholdFrom } from "~/lib/xp";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
 import { logger } from "~/lib/logger";
-
-const FONT_DIR = `${import.meta.dir}/../../assets/fonts/`;
-try {
-	GlobalFonts.registerFromPath(`${FONT_DIR}Inter-Medium.ttf`, "Inter");
-	GlobalFonts.registerFromPath(
-		`${FONT_DIR}Inter-SemiBold.ttf`,
-		"Inter SemiBold",
-	);
-	GlobalFonts.registerFromPath(`${FONT_DIR}Inter-Bold.ttf`, "Inter Bold");
-	GlobalFonts.registerFromPath(
-		`${FONT_DIR}Inter-ExtraBold.ttf`,
-		"Inter ExtraBold",
-	);
-	GlobalFonts.registerFromPath(
-		`${FONT_DIR}InterDisplay-Black.ttf`,
-		"Inter Display Black",
-	);
-	GlobalFonts.registerFromPath(`${FONT_DIR}Teko-SemiBold.ttf`, "Teko SemiBold");
-	GlobalFonts.registerFromPath(`${FONT_DIR}Teko-Bold.ttf`, "Teko Bold");
-	GlobalFonts.registerFromPath(`${FONT_DIR}SaiyanSans.ttf`, "Saiyan Sans");
-	GlobalFonts.registerFromPath(
-		`${FONT_DIR}SaiyanSans-LeftOblique.ttf`,
-		"Saiyan Sans Oblique",
-	);
-	GlobalFonts.registerFromPath(`${FONT_DIR}DBSScouter.ttf`, "DBS Scouter");
-	GlobalFonts.registerFromPath(
-		`${FONT_DIR}NotoColorEmoji.ttf`,
-		"Noto Color Emoji",
-	);
-} catch (err) {
-	logger.warn(
-		{ err },
-		"Une ou plusieurs fonts n'ont pas pu être chargées, fallback sans-serif",
-	);
-}
+import {
+	drawDragonBall,
+	drawImageCover,
+	drawStar,
+	fillRadialGlow,
+	hexToRgb,
+	kiScouterLabel,
+	rgba,
+	roundRectPath,
+	textStroked,
+	textWithShadow,
+} from "~/lib/canvas-kit";
 
 interface CardTheme {
 	name: string;
 	accent: string; // couleur principale (ring, highlights)
 	aura: string; // couleur de l'aura avatar + barre XP
 	bgGrad: readonly [string, string, string]; // dégradé de fond si pas d'image
+	bgFile?: string; // chemin relatif (assets/backgrounds/...) — overlay obscurci en top
 	textShadow: string;
 }
 
@@ -59,58 +36,70 @@ interface CardTheme {
 const CARDS: Record<string, CardTheme> = {
 	default: {
 		name: "DB Classic",
-		accent: "#F3E603", // jaune officiel DB
-		aura: "#D67711", // orange officiel DB
-		bgGrad: ["#550000", "#D67711", "#1a0a00"], // maroon → orange → noir
+		accent: "#F3E603",
+		aura: "#D67711",
+		bgGrad: ["#550000", "#D67711", "#1a0a00"],
+		bgFile:
+			"assets/backgrounds/sun/close-up-view-of-an-active-region-of-the.webp",
 		textShadow: "rgba(0,0,0,0.8)",
 	},
 	goku: {
 		name: "Goku",
-		accent: "#F85B1A", // gi orange
+		accent: "#F85B1A",
 		aura: "#FA5A1E",
-		bgGrad: ["#3b0d00", "#F85B1A", "#072083"], // gi → undershirt bleu
+		bgGrad: ["#3b0d00", "#F85B1A", "#072083"],
+		bgFile:
+			"assets/backgrounds/earth/earth-observation-from-the-international.webp",
 		textShadow: "rgba(7,32,131,0.8)",
 	},
 	vegeta: {
 		name: "Vegeta",
-		accent: "#2955DC", // armure bleue
+		accent: "#2955DC",
 		aura: "#4169E1",
 		bgGrad: ["#0a0f3d", "#2955DC", "#181463"],
+		bgFile: "assets/backgrounds/galaxy/hubble-peeks-at-a-spiral-galaxy.webp",
 		textShadow: "rgba(24,20,99,0.9)",
 	},
 	kaio: {
 		name: "Kaio-ken",
-		accent: "#FA0011", // rouge officiel DB
+		accent: "#FA0011",
 		aura: "#FF3030",
 		bgGrad: ["#4a0000", "#FA0011", "#1a0000"],
+		bgFile: "assets/backgrounds/nebula/weighing-in-on-the-dumbbell-nebula.webp",
 		textShadow: "rgba(74,0,0,0.9)",
 	},
 	ssj: {
 		name: "Super Saiyan",
-		accent: "#F9EE54", // cheveux dorés
+		accent: "#F9EE54",
 		aura: "#FFD700",
-		bgGrad: ["#422006", "#F3A903", "#0f0800"], // palette Vegeta jaune/or
+		bgGrad: ["#422006", "#F3A903", "#0f0800"],
+		bgFile:
+			"assets/backgrounds/sun/full-disk-image-of-the-sun-march-26-2007.webp",
 		textShadow: "rgba(66,32,6,0.9)",
 	},
 	blue: {
 		name: "Super Saiyan Blue",
-		accent: "#00E5FF", // cyan intense
+		accent: "#00E5FF",
 		aura: "#00B8FF",
 		bgGrad: ["#001a3d", "#0369a1", "#00091f"],
+		bgFile:
+			"assets/backgrounds/aurora/aurora-borealis-at-kennedy-space-center.webp",
 		textShadow: "rgba(0,26,61,0.9)",
 	},
 	rose: {
 		name: "Super Saiyan Rosé",
-		accent: "#FF4FB0", // magenta
+		accent: "#FF4FB0",
 		aura: "#FF1493",
 		bgGrad: ["#3a0420", "#9d174d", "#0a0208"],
+		bgFile: "assets/backgrounds/nebula/ant-nebula.webp",
 		textShadow: "rgba(58,4,32,0.9)",
 	},
 	ultra: {
 		name: "Ultra Instinct",
-		accent: "#E5E9F0", // argent Migatte
+		accent: "#E5E9F0",
 		aura: "#B4C4DD",
 		bgGrad: ["#000814", "#475569", "#000000"],
+		bgFile: "assets/backgrounds/galaxy/spiral-galaxy-m83.webp",
 		textShadow: "rgba(0,8,20,0.95)",
 	},
 };
@@ -126,218 +115,6 @@ export interface CardInput {
 	color?: string | null;
 	fused?: boolean;
 	rank?: number | null;
-}
-
-// Formate un nombre de ki pour l'afficher en style scouter.
-function kiScouterLabel(xp: number): string {
-	// Compression du nombre en K / M / B / T
-	if (xp >= 1e12) return `${(xp / 1e12).toFixed(1).replace(/\.0$/, "")}T`;
-	if (xp >= 1e9) return `${(xp / 1e9).toFixed(1).replace(/\.0$/, "")}B`;
-	if (xp >= 1e6) return `${(xp / 1e6).toFixed(1).replace(/\.0$/, "")}M`;
-	if (xp >= 1e3) return `${(xp / 1e3).toFixed(1).replace(/\.0$/, "")}K`;
-	return String(xp);
-}
-
-function roundRectPath(
-	ctx: SKRSContext2D,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	r: number,
-) {
-	const radius = Math.min(r, w / 2, h / 2);
-	ctx.beginPath();
-	ctx.moveTo(x + radius, y);
-	ctx.lineTo(x + w - radius, y);
-	ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
-	ctx.lineTo(x + w, y + h - radius);
-	ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
-	ctx.lineTo(x + radius, y + h);
-	ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
-	ctx.lineTo(x, y + radius);
-	ctx.quadraticCurveTo(x, y, x + radius, y);
-	ctx.closePath();
-}
-
-function fillRadialGlow(
-	ctx: SKRSContext2D,
-	cx: number,
-	cy: number,
-	r: number,
-	color: string,
-	opacity = 0.8,
-) {
-	const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-	grad.addColorStop(
-		0,
-		color.replace(")", `, ${opacity})`).replace("rgb", "rgba"),
-	);
-	grad.addColorStop(1, color.replace(")", `, 0)`).replace("rgb", "rgba"));
-	ctx.fillStyle = grad;
-	ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
-}
-
-// hex → rgb object
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
-	const clean = hex.replace("#", "");
-	const bigint = parseInt(
-		clean.length === 3
-			? clean
-					.split("")
-					.map((c) => c + c)
-					.join("")
-			: clean,
-		16,
-	);
-	return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
-}
-
-function rgba(hex: string, a: number): string {
-	const { r, g, b } = hexToRgb(hex);
-	return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-function drawStar(
-	ctx: SKRSContext2D,
-	cx: number,
-	cy: number,
-	r: number,
-	points = 5,
-	color = "#ffffff",
-) {
-	ctx.save();
-	ctx.beginPath();
-	for (let i = 0; i < points * 2; i++) {
-		const angle = (i * Math.PI) / points - Math.PI / 2;
-		const radius = i % 2 === 0 ? r : r / 2.2;
-		const x = cx + Math.cos(angle) * radius;
-		const y = cy + Math.sin(angle) * radius;
-		if (i === 0) ctx.moveTo(x, y);
-		else ctx.lineTo(x, y);
-	}
-	ctx.closePath();
-	ctx.fillStyle = color;
-	ctx.fill();
-	ctx.restore();
-}
-
-function drawDragonBall(
-	ctx: SKRSContext2D,
-	cx: number,
-	cy: number,
-	r: number,
-	starCount: number,
-) {
-	// Dégradé orange de la sphère
-	const grad = ctx.createRadialGradient(
-		cx - r / 3,
-		cy - r / 3,
-		r / 8,
-		cx,
-		cy,
-		r,
-	);
-	grad.addColorStop(0, "#fef3c7");
-	grad.addColorStop(0.35, "#f59e0b");
-	grad.addColorStop(1, "#c2410c");
-	ctx.fillStyle = grad;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.fill();
-
-	// Bord intérieur
-	ctx.strokeStyle = "rgba(124, 45, 18, 0.5)";
-	ctx.lineWidth = 1.5;
-	ctx.stroke();
-
-	// Stars
-	const starR = r * 0.18;
-	const ring = r * 0.45;
-	if (starCount === 1) {
-		drawStar(ctx, cx, cy, starR, 5, "#b91c1c");
-	} else {
-		for (let i = 0; i < starCount; i++) {
-			const angle = (i * 2 * Math.PI) / starCount - Math.PI / 2;
-			drawStar(
-				ctx,
-				cx + Math.cos(angle) * ring,
-				cy + Math.sin(angle) * ring,
-				starR,
-				5,
-				"#b91c1c",
-			);
-		}
-	}
-
-	// Reflet brillant
-	const shine = ctx.createRadialGradient(
-		cx - r / 2.2,
-		cy - r / 2.2,
-		0,
-		cx - r / 3,
-		cy - r / 3,
-		r / 2.5,
-	);
-	shine.addColorStop(0, "rgba(255, 255, 255, 0.6)");
-	shine.addColorStop(1, "rgba(255, 255, 255, 0)");
-	ctx.fillStyle = shine;
-	ctx.beginPath();
-	ctx.arc(cx, cy, r, 0, Math.PI * 2);
-	ctx.fill();
-}
-
-function textWithShadow(
-	ctx: SKRSContext2D,
-	text: string,
-	x: number,
-	y: number,
-	options: {
-		color: string;
-		font: string;
-		shadow?: string;
-		blur?: number;
-		offsetY?: number;
-		align?: CanvasTextAlign;
-	},
-) {
-	ctx.save();
-	ctx.font = options.font;
-	if (options.align) ctx.textAlign = options.align;
-	if (options.shadow) {
-		ctx.shadowColor = options.shadow;
-		ctx.shadowBlur = options.blur ?? 8;
-		ctx.shadowOffsetY = options.offsetY ?? 2;
-	}
-	ctx.fillStyle = options.color;
-	ctx.fillText(text, x, y);
-	ctx.restore();
-}
-
-function textStroked(
-	ctx: SKRSContext2D,
-	text: string,
-	x: number,
-	y: number,
-	options: {
-		color: string;
-		stroke: string;
-		strokeWidth: number;
-		font: string;
-		align?: CanvasTextAlign;
-	},
-) {
-	ctx.save();
-	ctx.font = options.font;
-	if (options.align) ctx.textAlign = options.align;
-	ctx.lineWidth = options.strokeWidth;
-	ctx.strokeStyle = options.stroke;
-	ctx.lineJoin = "round";
-	ctx.miterLimit = 2;
-	ctx.strokeText(text, x, y);
-	ctx.fillStyle = options.color;
-	ctx.fillText(text, x, y);
-	ctx.restore();
 }
 
 @singleton()
@@ -364,6 +141,18 @@ export class CardService {
 
 	private async loadBackground(key: string): Promise<Image | null> {
 		if (this.bgCache.has(key)) return this.bgCache.get(key) ?? null;
+		// 1) bgFile explicite du thème (assets/backgrounds/...)
+		const theme = CARDS[key];
+		if (theme?.bgFile) {
+			try {
+				const img = await loadImage(`./${theme.bgFile}`);
+				this.bgCache.set(key, img);
+				return img;
+			} catch {
+				/* fallback vers convention assets/cards/ */
+			}
+		}
+		// 2) convention legacy assets/cards/<key>.(webp|png|jpg) — backgrounds achetables via shop
 		for (const ext of ["webp", "png", "jpg"]) {
 			try {
 				const img = await loadImage(`./assets/cards/${key}.${ext}`);
@@ -414,12 +203,17 @@ export class CardService {
 
 		const bg = await this.loadBackground(cardKey);
 		if (bg) {
-			ctx.drawImage(bg, 0, 0, width, height);
+			// object-fit: cover — préserve le ratio, crop ce qui dépasse
+			drawImageCover(ctx, bg, 0, 0, width, height);
+			// Overlay dégradé : obscurci à gauche pour lisibilité de l'avatar/texte
 			const overlay = ctx.createLinearGradient(0, 0, width, 0);
-			overlay.addColorStop(0, "rgba(0,0,0,0.70)");
-			overlay.addColorStop(0.55, "rgba(0,0,0,0.40)");
-			overlay.addColorStop(1, "rgba(0,0,0,0.15)");
+			overlay.addColorStop(0, "rgba(0,0,0,0.78)");
+			overlay.addColorStop(0.55, "rgba(0,0,0,0.45)");
+			overlay.addColorStop(1, "rgba(0,0,0,0.22)");
 			ctx.fillStyle = overlay;
+			ctx.fillRect(0, 0, width, height);
+			// Teinte thématique légère pour marier bg + palette
+			ctx.fillStyle = rgba(theme.aura, 0.08);
 			ctx.fillRect(0, 0, width, height);
 		} else {
 			// Multi-stop linear gradient

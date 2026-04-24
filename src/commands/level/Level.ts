@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, SlashChoice, Guard } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   EmbedBuilder,
@@ -16,7 +17,8 @@ import { AdminOnly } from "~/guards/AdminOnly";
 import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";
 import { CardService } from "~/services/CardService";
-import { formatXP, levelForXP, xpRequiredForLevel } from "~/lib/xp";
+import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
+import { levelForXP, xpRequiredForLevel } from "~/lib/xp";
 
 @Discord()
 @Guard(GuildOnly)
@@ -26,11 +28,12 @@ export class LevelCommands {
     @inject(LevelService) private levels: LevelService,
     @inject(EconomyService) private eco: EconomyService,
     @inject(CardService) private cards: CardService,
+    @inject(LeaderboardService) private leaderboard: LeaderboardService,
   ) {}
 
   @Slash({ name: "profil", description: "Voir le profil d'un membre (carte image)" })
   async profil(
-    @SlashOption({ name: "membre", description: "Membre (défaut: vous)", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Membre (défaut: vous)", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     target: User | undefined,
     interaction: CommandInteraction,
   ) {
@@ -58,34 +61,66 @@ export class LevelCommands {
 
   @Slash({ name: "top", description: "Classement des membres par XP" })
   async top(interaction: CommandInteraction) {
+    if (!interaction.inCachedGuild()) return;
+    await interaction.deferReply();
+
     const total = await this.levels.totalUsers();
     if (total === 0) {
-      await interaction.reply({ content: "Aucun membre enregistré.", flags: MessageFlags.Ephemeral });
+      await interaction.editReply({ content: "Aucun membre enregistré." });
       return;
     }
     const pageSize = 10;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const guildName = interaction.guild.name;
 
+    // Résout un user Discord → entry leaderboard (avatar + username)
+    const toEntry = async (row: { id: string; xp: number; zeni: number }): Promise<LeaderboardEntry> => {
+      let username = `Saiyan #${row.id.slice(-4)}`;
+      let avatarURL = "https://cdn.discordapp.com/embed/avatars/0.png";
+      try {
+        const user = await interaction.client.users.fetch(row.id);
+        username = user.displayName ?? user.username;
+        avatarURL = user.displayAvatarURL({ extension: "png", size: 256, forceStatic: true });
+      } catch {
+        /* user left Discord ou fetch failed — garde les placeholders */
+      }
+      return { id: row.id, username, avatarURL, xp: row.xp, zeni: row.zeni };
+    };
+
+    // Rend un buffer PNG par page à la volée (pagination lazy via resolver)
     const pages = await Promise.all(
       Array.from({ length: totalPages }, async (_, i) => {
         const rows = await this.levels.top(pageSize, i * pageSize);
-        const lines = rows.map((r, idx) => {
-          const rank = i * pageSize + idx + 1;
-          return `**#${rank}** <@${r.id}> — ${formatXP(r.xp)} unités · ${formatXP(r.zeni)} z`;
+        const entries = await Promise.all(rows.map(toEntry));
+        const buffer = await this.leaderboard.render(entries, {
+          title: "CLASSEMENT",
+          subtitle: guildName,
+          page: i + 1,
+          totalPages,
         });
         return {
-          embeds: [
-            new EmbedBuilder()
-              .setTitle("🏆 Classement")
-              .setDescription(lines.join("\n") || "—")
-              .setFooter({ text: `Page ${i + 1}/${totalPages}` })
-              .setColor(0xfbbf24),
-          ],
+          content: "",
+          files: [new AttachmentBuilder(buffer, { name: `top-p${i + 1}.png` })],
         };
       }),
     );
 
-    const pagination = new Pagination(interaction, pages, { time: 120_000 });
+    // 1 page → envoi direct, pas de pagination
+    if (totalPages === 1) {
+      await interaction.editReply(pages[0]!);
+      return;
+    }
+
+    // Plusieurs pages → Pagination avec labels FR
+    const pagination = new Pagination(interaction, pages, {
+      time: 120_000,
+      buttons: {
+        previous: { label: "Précédent" },
+        next: { label: "Suivant" },
+        exit: { label: "Fermer" },
+      },
+      selectMenu: { disabled: true }, // pas pertinent pour un ranking
+    });
     await pagination.send();
   }
 
@@ -103,7 +138,7 @@ export class LevelCommands {
     kind: "niveau" | "exp",
     @SlashOption({ name: "montant", description: "Montant", type: ApplicationCommandOptionType.Integer, required: true, minValue: 1 })
     amount: number,
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     user: User | undefined,
     @SlashOption({ name: "role", description: "Rôle", type: ApplicationCommandOptionType.Role, required: false })
     role: Role | undefined,
