@@ -2,7 +2,7 @@
  * Test setup — isolate DB et env.
  * Importer ce module **en premier**, avant toute classe du bot.
  */
-import { unlinkSync, existsSync } from "node:fs";
+import { mkdirSync, unlinkSync, existsSync } from "node:fs";
 
 process.env.NODE_ENV = "test";
 process.env.DISCORD_TOKEN ??= "test-token";
@@ -10,6 +10,9 @@ process.env.GUILD_ID ??= "1497167233280118896";
 process.env.OWNER_ID ??= "11111111111111111";
 process.env.DATABASE_PATH = "./data/test.db";
 process.env.LOG_LEVEL = "error"; // silence pino pendant les tests
+
+// Créé ./data/ si absent (CI fresh clone)
+mkdirSync("./data", { recursive: true });
 
 const dbPath = "./data/test.db";
 for (const ext of ["", "-journal", "-wal", "-shm"]) {

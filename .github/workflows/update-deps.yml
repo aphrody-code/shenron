@@ -25,9 +25,10 @@ jobs:
         with:
           bun-version: latest
       - name: Auth GitHub Packages
+        env:
+          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          echo "@rpbey:registry=https://npm.pkg.github.com" >> ~/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          printf "@rpbey:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
 
       - name: Capture état avant
         id: before
