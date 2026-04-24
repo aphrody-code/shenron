@@ -30,7 +30,7 @@ jobs:
         # l'import statique → faux échec. On ne teste donc que linux.
         os: [ubuntu-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
         with:
           # Match the VPS Bun that writes bun.lock (lockfileVersion 2 +
