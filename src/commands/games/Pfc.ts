@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   ActionRowBuilder,
@@ -34,7 +35,7 @@ export class PfcCommand {
     @SlashChoice({ name: "joueur", value: "joueur" })
     @SlashOption({ name: "mode", description: "bot ou joueur", type: ApplicationCommandOptionType.String, required: true })
     mode: "bot" | "joueur",
-    @SlashOption({ name: "adversaire", description: "Adversaire (si mode=joueur)", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "adversaire", description: "Adversaire (si mode=joueur)", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     opponent: User | undefined,
     interaction: CommandInteraction,
   ) {

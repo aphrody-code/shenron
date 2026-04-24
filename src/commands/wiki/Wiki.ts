@@ -5,6 +5,7 @@ import {
   AttachmentBuilder,
   EmbedBuilder,
   MessageFlags,
+  type APIEmbed,
   type CommandInteraction,
   type AutocompleteInteraction,
 } from "discord.js";
@@ -122,12 +123,13 @@ export class WikiCommands {
     }
 
     // Pages: [fiche, ...transfo embeds]
-    const pages: Array<{ embeds: EmbedBuilder[]; files?: AttachmentBuilder[] }> = [];
+    // .toJSON() nécessaire : Pagination fait structuredClone() qui casse les instances EmbedBuilder
+    const pages: Array<{ embeds: APIEmbed[]; files?: AttachmentBuilder[] }> = [];
     const main = this.charEmbed(char);
-    pages.push({ embeds: [main.embed], files: main.attachment ? [main.attachment] : [] });
+    pages.push({ embeds: [main.embed.toJSON()], files: main.attachment ? [main.attachment] : [] });
     char.transformations.forEach((t, i) => {
       const e = this.transformationEmbed(char!, t, i);
-      pages.push({ embeds: [e.embed], files: e.attachment ? [e.attachment] : [] });
+      pages.push({ embeds: [e.embed.toJSON()], files: e.attachment ? [e.attachment] : [] });
     });
 
     if (pages.length === 1) {

@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent, ModalComponent } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   ActionRowBuilder,
@@ -148,7 +149,7 @@ export class TicketCommands {
     @SlashChoice({ name: "remove", value: "remove" })
     @SlashOption({ name: "action", description: "add/remove", type: ApplicationCommandOptionType.String, required: true })
     action: "add" | "remove",
-    @SlashOption({ name: "utilisateur", description: "Utilisateur", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "utilisateur", description: "Utilisateur", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     user: User | undefined,
     @SlashOption({ name: "role", description: "Rôle", type: ApplicationCommandOptionType.Role, required: false })
     role: Role | undefined,

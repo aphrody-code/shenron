@@ -62,7 +62,7 @@ if (existsSync("./src/db/migrations")) {
   }
 }
 
-client.once("ready", async () => {
+client.once("clientReady", async () => {
   await client.initApplicationCommands();
   logger.info(`✓ Logged in as ${client.user?.username} (${client.guilds.cache.size} guilds)`);
 });

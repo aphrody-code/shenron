@@ -15,7 +15,7 @@ export class JailExpiryEvent {
     @inject(ModerationService) private mod: ModerationService,
   ) {}
 
-  @Once({ event: "ready" })
+  @Once({ event: "clientReady" })
   async start([client]: [Client]) {
     setInterval(() => this.tick(client).catch(() => {}), 60_000).unref();
   }

@@ -43,7 +43,7 @@ export class BioRoleEvent {
     }
   }
 
-  @Once({ event: "ready" })
+  @Once({ event: "clientReady" })
   async onReady([client]: [Client]) {
     // Scan complet toutes les heures
     setInterval(() => this.scanAll(client).catch(() => {}), 3_600_000).unref();
