@@ -25,7 +25,7 @@ export class VoiceXPEvent {
     @inject(VocalTempoService) private vts: VocalTempoService,
   ) {}
 
-  @Once({ event: "ready" })
+  @Once({ event: "clientReady" })
   async startTicker([client]: [Client]) {
     setInterval(() => this.tickXP(client).catch(() => {}), XP_VOICE_TICK_MS).unref();
   }

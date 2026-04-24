@@ -16,7 +16,7 @@ export class JoinLeaveEvent {
     @inject(DatabaseService) private dbs: DatabaseService,
   ) {}
 
-  @Once({ event: "ready" })
+  @Once({ event: "clientReady" })
   async init([client]: [Client]) {
     for (const g of client.guilds.cache.values()) {
       await this.invites.sync(g);

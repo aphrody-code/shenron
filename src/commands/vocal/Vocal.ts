@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, SlashChoice, Guard } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   MessageFlags,
@@ -23,7 +24,7 @@ export class VocalCommands {
     @SlashChoice({ name: "unban", value: "unban" })
     @SlashOption({ name: "action", description: "kick/ban/unban", type: ApplicationCommandOptionType.String, required: true })
     action: "kick" | "ban" | "unban",
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     interaction: CommandInteraction,
   ) {

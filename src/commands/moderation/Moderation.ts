@@ -1,5 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Discord, Slash, SlashOption, SlashChoice, Guard } from "@rpbey/discordx";
+import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
   type CommandInteraction,
@@ -40,7 +41,7 @@ export class ModerationCommands {
   @Slash({ name: "warn", description: "Avertir un membre", defaultMemberPermissions: PermissionFlagsBits.ModerateMembers })
   @Guard(ModOnly)
   async warn(
-    @SlashOption({ name: "membre", description: "Membre à avertir", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre à avertir", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
     reason: string | undefined,
@@ -64,7 +65,7 @@ export class ModerationCommands {
   @Slash({ name: "unwarn", description: "Retirer le dernier warn d'un membre", defaultMemberPermissions: PermissionFlagsBits.ModerateMembers })
   @Guard(ModOnly)
   async unwarn(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     interaction: CommandInteraction,
   ) {
@@ -79,7 +80,7 @@ export class ModerationCommands {
   @Slash({ name: "mute", description: "Mute (timeout) un membre", defaultMemberPermissions: PermissionFlagsBits.ModerateMembers })
   @Guard(ModOnly)
   async mute(
-    @SlashOption({ name: "membre", description: "Membre à mute", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre à mute", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "duree", description: "Durée (ex: 10m, 1h, 1d)", type: ApplicationCommandOptionType.String, required: true })
     duration: string,
@@ -115,7 +116,7 @@ export class ModerationCommands {
   @Slash({ name: "unmute", description: "Retirer le mute d'un membre", defaultMemberPermissions: PermissionFlagsBits.ModerateMembers })
   @Guard(ModOnly)
   async unmute(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
     reason: string | undefined,
@@ -136,7 +137,7 @@ export class ModerationCommands {
   @Slash({ name: "jail", description: "Envoyer un membre en jail", defaultMemberPermissions: PermissionFlagsBits.ModerateMembers })
   @Guard(ModOnly)
   async jail(
-    @SlashOption({ name: "membre", description: "Membre à jail", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre à jail", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "duree", description: "Durée optionnelle (ex: 1h)", type: ApplicationCommandOptionType.String, required: false })
     duration: string | undefined,
@@ -172,7 +173,7 @@ export class ModerationCommands {
   @Slash({ name: "unjail", description: "Libérer un membre de jail", defaultMemberPermissions: PermissionFlagsBits.ModerateMembers })
   @Guard(ModOnly)
   async unjail(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
     reason: string | undefined,
@@ -189,7 +190,7 @@ export class ModerationCommands {
   // /ban
   @Slash({ name: "ban", description: "Bannir un membre", defaultMemberPermissions: PermissionFlagsBits.BanMembers })
   async ban(
-    @SlashOption({ name: "membre", description: "Membre à ban", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre à ban", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
     reason: string | undefined,
@@ -239,7 +240,7 @@ export class ModerationCommands {
   // /kick
   @Slash({ name: "kick", description: "Expulser un membre", defaultMemberPermissions: PermissionFlagsBits.KickMembers })
   async kick(
-    @SlashOption({ name: "membre", description: "Membre à kick", type: ApplicationCommandOptionType.User, required: true })
+    @SlashOption({ name: "membre", description: "Membre à kick", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,
     @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
     reason: string | undefined,
@@ -265,7 +266,7 @@ export class ModerationCommands {
   async clear(
     @SlashOption({ name: "nombre", description: "Nombre (1-100)", type: ApplicationCommandOptionType.Integer, required: true, minValue: 1, maxValue: 100 })
     amount: number,
-    @SlashOption({ name: "membre", description: "Filtrer par auteur", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Filtrer par auteur", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     target: User | undefined,
     interaction: CommandInteraction,
   ) {
@@ -286,7 +287,7 @@ export class ModerationCommands {
   // /stats
   @Slash({ name: "stats", description: "Voir les stats d'un membre" })
   async stats(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     target: User | undefined,
     interaction: CommandInteraction,
   ) {
@@ -333,7 +334,7 @@ export class ModerationCommands {
     action: "give" | "remove",
     @SlashOption({ name: "role", description: "Rôle", type: ApplicationCommandOptionType.Role, required: true })
     role: import("discord.js").Role,
-    @SlashOption({ name: "membre", description: "Cible (vide = @everyone si Administrator)", type: ApplicationCommandOptionType.User, required: false })
+    @SlashOption({ name: "membre", description: "Cible (vide = @everyone si Administrator)", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     target: User | undefined,
     interaction: CommandInteraction,
   ) {

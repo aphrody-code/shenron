@@ -105,7 +105,7 @@ import type { Client } from "discord.js";
 export class GiveawayTicker {
   constructor(@inject(DatabaseService) private dbs: DatabaseService) {}
 
-  @Once({ event: "ready" })
+  @Once({ event: "clientReady" })
   async start([client]: [Client]) {
     setInterval(() => this.tick(client).catch(() => {}), 60_000).unref();
   }
