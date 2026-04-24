@@ -1,0 +1,23 @@
+name: Feature request
+description: Proposer une nouvelle fonctionnalité
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème / besoin
+      description: Quel cas d'usage / frustration cette feature résout ?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solution proposée
+      description: À quoi ressemblerait l'implémentation côté user (nouvelle commande ? option ? rendu canvas ?).
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives envisagées
+      description: Autres approches considérées, et pourquoi tu préfères celle proposée.
