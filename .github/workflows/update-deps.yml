@@ -24,6 +24,10 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+      - name: Auth GitHub Packages
+        run: |
+          echo "@rpbey:registry=https://npm.pkg.github.com" >> ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}" >> ~/.npmrc
 
       - name: Capture état avant
         id: before

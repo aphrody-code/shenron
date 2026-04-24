@@ -1,0 +1,45 @@
+# Unit systemd pour log-watcher.
+#
+# Installation :
+#   sudo cp scripts/log-watcher.service /etc/systemd/system/shenron-log-watcher.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now shenron-log-watcher
+#
+# Ou version user (sans sudo) :
+#   mkdir -p ~/.config/systemd/user
+#   cp scripts/log-watcher.service ~/.config/systemd/user/shenron-log-watcher.service
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now shenron-log-watcher
+#   loginctl enable-linger $USER   # pour tourner hors session
+#
+# Logs :
+#   journalctl --user -fu shenron-log-watcher
+#
+# Prérequis : GITHUB_PAT dans /home/ubuntu/vps/.env (ou un autre EnvironmentFile).
+
+[Unit]
+Description=Shenron log watcher — crée des issues GitHub sur ERROR
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/shenron
+# Follow le journal systemd de l'unit `shenron` (adapte au besoin)
+ExecStart=/home/ubuntu/.bun/bin/bun scripts/log-watcher.ts --systemd shenron
+# Si tu préfères un fichier log classique :
+# ExecStart=/home/ubuntu/.bun/bin/bun scripts/log-watcher.ts /home/ubuntu/shenron/logs/current.log
+Restart=always
+RestartSec=10s
+
+# Env : GITHUB_TOKEN (= GITHUB_PAT) + GITHUB_REPOSITORY
+Environment=GITHUB_REPOSITORY=aphrody-code/shenron
+EnvironmentFile=/home/ubuntu/vps/.env
+# log-watcher lit GITHUB_TOKEN ; on alias depuis GITHUB_PAT si besoin :
+Environment=GITHUB_TOKEN=${GITHUB_PAT}
+
+# Limite : max 200 MB RAM (petit watcher), pas de reset du journal
+MemoryMax=200M
+
+[Install]
+WantedBy=default.target
