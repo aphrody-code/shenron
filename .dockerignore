@@ -1,0 +1,60 @@
+# Build artifacts
+dist/
+node_modules/
+.bun/
+
+# Runtime data (persisted via Fly volume, pas dans l'image)
+data/
+logs/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Secrets (utilise flyctl secrets set)
+.env
+.env.*
+!.env.example
+.npmrc
+
+# Git + IDE + AI assistants
+.git/
+.github/
+.vscode/
+.idea/
+.claude/
+.cursor/
+.aider*
+.continue/
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+COPILOT.md
+*.ai.md
+
+# Tests + docs (pas besoin en prod)
+tests/
+*.md
+!README.md
+
+# Tooling non nécessaire au runtime
+scripts/deploy.ts
+scripts/setup.sh
+scripts/start.sh
+scripts/doctor.sh
+scripts/install.sh
+scripts/install.ps1
+scripts/install.ts
+scripts/log-watcher.service
+scripts/fetch-backgrounds.ts
+scripts/optimize-backgrounds.ts
+
+# Backgrounds : reconstruits dans le builder (bg:fetch + bg:optimize)
+assets/backgrounds/
+
+# n2b reports (audit Node→Bun, pas pour prod)
+bun/
+
+# OS
+.DS_Store
+Thumbs.db

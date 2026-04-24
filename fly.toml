@@ -1,0 +1,52 @@
+# fly.toml — Shenron Discord bot
+#
+# Déploiement :
+#   fly launch --name shenron-bot --region cdg --no-deploy    # 1re fois
+#   fly volumes create shenron_data --region cdg --size 3     # 3 GB SSD persistant
+#   fly secrets set DISCORD_TOKEN=... GUILD_ID=... OWNER_ID=...
+#   fly deploy --build-arg GH_PACKAGES_TOKEN=<PAT>
+#
+# Mise à jour : `fly deploy` (ou via GitHub Actions sur push main)
+# Logs : `fly logs` / `fly logs -a shenron-bot`
+# SSH : `fly ssh console`
+
+app = "shenron-bot"
+primary_region = "cdg"          # Paris — latence optimale vers la Gateway Discord EU
+kill_signal = "SIGTERM"
+kill_timeout = 30                 # secondes (max 300) — close Gateway WebSocket proprement
+
+[build]
+  dockerfile = "Dockerfile"
+  # GH_PACKAGES_TOKEN passé via `fly deploy --build-arg ...` ou GH Actions
+
+[env]
+  NODE_ENV = "production"
+  LOG_LEVEL = "info"
+  DATABASE_PATH = "/data/bot.db"
+  TZ = "Europe/Paris"
+
+# Volume persistant pour la DB SQLite
+[[mounts]]
+  source = "shenron_data"
+  destination = "/data"
+  initial_size = "3gb"
+
+# Pas de [[services]] : Shenron est un worker (Gateway WebSocket uniquement,
+# aucune socket entrante à exposer).
+
+# Release command : applique les migrations avant que la nouvelle version
+# reçoive le trafic (même si on a pas de trafic HTTP, ça garantit le schéma)
+[deploy]
+  release_command = "bun src/db/migrate.ts"
+  strategy = "immediate"          # pas de blue/green — single instance
+
+# Single VM, single shard — Discord impose un seul process Gateway par bot
+# (sauf sharding explicite au-delà de 2500 guilds).
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"                  # 512 MB serré avec @napi-rs/canvas ; 1 GB = marge confortable
+  cpu_kind = "shared"
+  cpus = 1
+
+# Pas de [http_service] — worker pur, toujours-on par défaut.
+# Le bot redémarre automatiquement si la machine crash (restart: always côté systemd Fly).
