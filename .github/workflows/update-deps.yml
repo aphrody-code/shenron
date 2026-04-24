@@ -20,7 +20,7 @@ jobs:
       OWNER_ID: "11111111111111111"
       DATABASE_PATH: "./data/test-ci.db"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
