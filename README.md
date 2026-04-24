@@ -690,14 +690,49 @@ WantedBy=multi-user.target
 
 ### Docker
 
-```Dockerfile
-FROM oven/bun:1.3-alpine
-WORKDIR /app
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile --production
-COPY . .
-RUN bun run db:migrate
-CMD ["bun", "src/index.ts"]
+Le repo inclut un `Dockerfile` production-ready (multi-stage, user non-root, volume `/data`) et un `.dockerignore` strict. Build local :
+
+```bash
+docker build --build-arg GH_PACKAGES_TOKEN=<ton-PAT> -t shenron .
+docker run -d --name shenron \
+  -v $(pwd)/data:/data \
+  --env-file .env \
+  shenron
+```
+
+### Fly.io (recommandé pour déploiement cloud simple)
+
+Le projet inclut `fly.toml`, `Dockerfile` et `scripts/fly-init.sh`. Bootstrap en 1 commande après avoir installé `flyctl` et fait `fly auth login` :
+
+```bash
+bash scripts/fly-init.sh
+# Lit .env, crée l'app, crée le volume 3 GB, pousse les secrets, deploy
+```
+
+**Variables facultatives** : `APP=mon-bot REGION=ams VOLUME_SIZE=5 bash scripts/fly-init.sh`
+
+**CI/CD automatique** : le workflow `.github/workflows/deploy-fly.yml` déploie sur push `main` (après CI vert). Pré-requis :
+
+1. `fly auth token` → secret GH `FLY_API_TOKEN`
+2. Secret `GH_PACKAGES_TOKEN` (déjà configuré pour le CI) — réutilisé pour l'auth `@rpbey/*` au build
+
+**Coût estimé** : shared-cpu-1x 1 GB RAM + volume 3 GB = **~3 $ / mois**.
+
+**Ce qui est fait dans le conteneur** :
+
+- Build : `bun install --frozen-lockfile` + `gen:entries` + seed des backgrounds NASA
+- Runtime : user non-root `shenron` (UID 1001), volume `/data` pour `bot.db`
+- `release_command = "bun src/db/migrate.ts"` — applique les migrations avant chaque deploy
+- Pas de `[http_service]` — Shenron = worker Gateway WebSocket uniquement, machine toujours-on
+
+**Commandes utiles** :
+
+```bash
+fly logs --app shenron-bot
+fly status --app shenron-bot
+fly ssh console --app shenron-bot          # shell interactif dans le conteneur
+fly secrets set DISCORD_TOKEN=… --app shenron-bot
+fly deploy --build-arg GH_PACKAGES_TOKEN=…  # redeploy manuel
 ```
 
 ### Sauvegarde DB
