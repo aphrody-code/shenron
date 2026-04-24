@@ -37,7 +37,7 @@ jobs:
     outputs:
       changed: ${{ steps.filter.outputs.schema }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Detect schema / migration changes
         id: filter
@@ -90,7 +90,7 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # ubuntu-latest has no Bun preinstalled — without this the next step died
       # with `bun: command not found` (exit 127), so no deploy ever ran.
       - uses: oven-sh/setup-bun@v2

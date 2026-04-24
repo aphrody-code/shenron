@@ -45,7 +45,7 @@ jobs:
             --outfile=dist/shenron-${{ matrix.target }}${{ matrix.ext }}
 
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: shenron-${{ matrix.target }}
           path: dist/shenron-${{ matrix.target }}${{ matrix.ext }}

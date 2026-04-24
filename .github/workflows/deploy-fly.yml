@@ -30,7 +30,7 @@ jobs:
     steps:
       # Fly est une cible secondaire : sans FLY_API_TOKEN configuré, on skip
       # proprement (pas d'échec) — la prod réelle est le VPS systemd + Vercel.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: env.FLY_API_TOKEN != ''
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
