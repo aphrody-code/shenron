@@ -98,21 +98,49 @@ Le bot tourne exclusivement sur **[Bun](https://bun.com)** — pas de Node requi
 
 ## Démarrage rapide (2 minutes)
 
-### One-liner (recommandé)
+### One-liner
+
+Choisis celui qui correspond à ton shell / environnement.
+
+**🐧 Linux / macOS (bash)**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh | bash
 ```
 
-Installe Bun si absent, clone dans `./shenron`, applique les migrations, check santé, et te dit où remplir `.env`. Variables facultatives :
+**🪟 Windows (PowerShell)**
+
+```powershell
+irm https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.ps1 | iex
+```
+
+**🥟 Bun (cross-platform — Linux, macOS, Windows)**
 
 ```bash
-# dossier cible
-curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh \
-  | SHENRON_DIR=/opt/shenron bash
+bun run https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.ts
+```
 
-# branche alternative
-curl -fsSL .../install.sh | SHENRON_BRANCH=dev bash
+**📦 npm / npx (si tu as déjà Node)**
+
+```bash
+npx tiged aphrody-code/shenron shenron && cd shenron && bash scripts/setup.sh
+```
+
+(`tiged` = clone shallow sans git history · fonctionne aussi avec `degit`)
+
+**Variables d'env (toutes variantes)** :
+
+| Variable | Effet | Défaut |
+|---|---|---|
+| `SHENRON_DIR` | Dossier d'installation | `./shenron` |
+| `SHENRON_BRANCH` | Branche git | `main` |
+| `SHENRON_REPO` | URL du repo | `https://github.com/aphrody-code/shenron.git` |
+| `SKIP_WIKI_SEED=1` | Skip le fetch wiki (~60 s) | off |
+
+Exemple :
+
+```bash
+curl -fsSL .../install.sh | SHENRON_DIR=/opt/shenron SHENRON_BRANCH=dev bash
 ```
 
 ### Pas à pas (équivalent)
