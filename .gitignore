@@ -36,3 +36,6 @@ GEMINI.md
 COPILOT.md
 .ai/
 *.ai.md
+
+# Backgrounds générés — bun scripts/fetch-backgrounds.ts --download && bun scripts/optimize-backgrounds.ts
+assets/backgrounds/
