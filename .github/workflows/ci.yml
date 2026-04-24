@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DISCORD_TOKEN: test-token
+  GUILD_ID: "1497167233280118896"
+  OWNER_ID: "11111111111111111"
+  DATABASE_PATH: "./data/test-ci.db"
+
+jobs:
+  check:
+    name: Check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Cache ~/.bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ matrix.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ matrix.os }}-
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Generate entries barrel
+        run: bun run gen:entries
+
+      - name: Type-check
+        run: bun run type-check
+
+      - name: Lint (oxlint)
+        run: bun run lint
+
+      - name: Tests
+        run: bun run test
+
+      - name: Build bundle
+        run: bun run build
+
+  compile:
+    name: Compile standalone binary
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run gen:entries
+      - run: bun run compile
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shenron-linux-x64-${{ github.sha }}
+          path: dist/shenron
+          retention-days: 7
