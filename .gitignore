@@ -1,0 +1,19 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Bun
+.bun/
+
+# SQLite data (runtime)
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Drizzle generated migrations are committed, but keep cache out
+.drizzle/
+
+# n2b audit reports
+bun/reports/

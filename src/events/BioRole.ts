@@ -1,0 +1,68 @@
+import { injectable } from "tsyringe";
+import { Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
+import type { Client, Guild, GuildMember, Presence } from "discord.js";
+import { env } from "~/lib/env";
+import { logger } from "~/lib/logger";
+
+/**
+ * Détecte l'URL du serveur dans le statut custom / activité d'un membre.
+ * Donne le rôle URL_IN_BIO_ROLE_ID si trouvé, le retire sinon.
+ * Note: Discord ne permet pas de lire la "About Me" via bot API — on détecte
+ * l'URL dans le custom status / activity.state uniquement.
+ */
+@Discord()
+@injectable()
+export class BioRoleEvent {
+  private key(guildId: string) {
+    return env.SERVER_INVITE_URL.replace(/^https?:\/\//, "")
+      .replace(/\/$/, "")
+      .toLowerCase();
+  }
+
+  private hasInvite(member: GuildMember): boolean {
+    const invitePattern = this.key(member.guild.id);
+    if (!invitePattern) return false;
+    for (const activity of member.presence?.activities ?? []) {
+      const text =
+        `${activity.name ?? ""} ${activity.state ?? ""} ${activity.details ?? ""} ${activity.url ?? ""}`.toLowerCase();
+      if (text.includes(invitePattern)) return true;
+    }
+    return false;
+  }
+
+  async sync(member: GuildMember) {
+    const roleId = env.URL_IN_BIO_ROLE_ID;
+    if (!roleId) return;
+    try {
+      const has = this.hasInvite(member);
+      const hasRole = member.roles.cache.has(roleId);
+      if (has && !hasRole) await member.roles.add(roleId);
+      else if (!has && hasRole) await member.roles.remove(roleId);
+    } catch (err) {
+      logger.warn({ err, userId: member.id }, "bio-role sync failed");
+    }
+  }
+
+  @Once({ event: "ready" })
+  async onReady([client]: [Client]) {
+    // Scan complet toutes les heures
+    setInterval(() => this.scanAll(client).catch(() => {}), 3_600_000).unref();
+    await this.scanAll(client);
+  }
+
+  async scanAll(client: Client) {
+    for (const guild of client.guilds.cache.values()) {
+      const members = await guild.members.fetch().catch(() => null);
+      if (!members) continue;
+      for (const m of members.values()) {
+        await this.sync(m);
+      }
+    }
+  }
+
+  @On({ event: "presenceUpdate" })
+  async onPresence([_oldP, newP]: ArgsOf<"presenceUpdate">) {
+    const member = newP.member;
+    if (member) await this.sync(member);
+  }
+}
