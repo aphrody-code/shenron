@@ -2,10 +2,12 @@
 // Regénérer avec: bun scripts/gen-entries.ts
 
 import "./commands/admin/Achievements";
+import "./commands/admin/Config";
 import "./commands/admin/Ids";
 import "./commands/economy/Economy";
 import "./commands/fun/Fun";
 import "./commands/fun/Scan";
+import "./commands/fun/Translate";
 import "./commands/games/Bingo";
 import "./commands/games/Morpion";
 import "./commands/games/Pendu";
