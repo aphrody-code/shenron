@@ -43,9 +43,11 @@ export function Layout({ route, navigate, children }: Props) {
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-72 flex-col border-r border-zinc-800 bg-zinc-950/80 backdrop-blur md:flex">
         <div className="flex items-center gap-3 border-b border-zinc-800 p-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/10 font-bold text-brand-400">
-            S
-          </div>
+          <img
+            src="/assets/logo.webp"
+            alt="Shenron"
+            className="h-10 w-10 rounded-lg object-cover"
+          />
           <div>
             <h1 className="font-bold text-brand-400">Shenron</h1>
             <p className="text-xs text-zinc-500">Tableau de bord admin</p>

@@ -30,6 +30,55 @@ function staticFile(path: string, contentType: string) {
 		});
 	};
 }
+
+const ASSET_CONTENT_TYPES: Record<string, string> = {
+	".png": "image/png",
+	".jpg": "image/jpeg",
+	".jpeg": "image/jpeg",
+	".webp": "image/webp",
+	".gif": "image/gif",
+	".svg": "image/svg+xml",
+	".ico": "image/x-icon",
+	".woff": "font/woff",
+	".woff2": "font/woff2",
+	".ttf": "font/ttf",
+	".otf": "font/otf",
+	".css": "text/css",
+	".js": "application/javascript",
+	".json": "application/json",
+};
+
+/**
+ * Sert un fichier depuis `apps/shenron/assets/` ou refuse :
+ *   - path traversal (`..`) interdit
+ *   - extensions whitelist (cf ASSET_CONTENT_TYPES)
+ *   - tout fichier hors `assets/` interdit
+ *
+ * URL : `/assets/<sub-path>` → `assets/<sub-path>`. Compat avec les paths DB
+ * stockés `./assets/dbz/...` : le client peut soit normaliser côté front (préfixer
+ * juste `/`), soit nous y faisons match exact via le pathname.
+ */
+async function serveAsset(pathname: string): Promise<Response> {
+	const sub = decodeURIComponent(pathname.replace(/^\/assets\//, ""));
+	if (!sub || sub.includes("..") || sub.startsWith("/") || sub.includes("\0")) {
+		return new Response("Chemin d'asset refusé", { status: 400 });
+	}
+	const ext = (sub.match(/\.[a-z0-9]+$/i)?.[0] ?? "").toLowerCase();
+	const contentType = ASSET_CONTENT_TYPES[ext];
+	if (!contentType) {
+		return new Response("Extension non autorisée", { status: 403 });
+	}
+	const file = Bun.file(`assets/${sub}`);
+	if (!(await file.exists())) {
+		return new Response("Asset introuvable", { status: 404 });
+	}
+	return new Response(file as unknown as BodyInit, {
+		headers: {
+			"Content-Type": contentType,
+			"Cache-Control": "public, max-age=2592000, immutable",
+		},
+	});
+}
 import {
 	TABLES,
 	getTableSpec,
@@ -383,7 +432,14 @@ export class ApiServer {
 				},
 			},
 
-			fetch() {
+			fetch(req) {
+				const url = new URL(req.url);
+				// Sert tout chemin commençant par /assets/ depuis le dossier assets/.
+				// Routes Map de Bun ne supporte pas les wildcards multi-segment, donc
+				// on les capture ici dans le fallback.
+				if (url.pathname.startsWith("/assets/")) {
+					return serveAsset(url.pathname);
+				}
 				return Response.json({ error: "Not found" }, { status: 404 });
 			},
 
