@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Edit, X } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { api } from "../lib/api";
 
 interface TableSpec {
@@ -161,11 +161,29 @@ export function TableView({ table, navigate }: Props) {
   );
 }
 
-function renderCell(v: unknown): string {
+function renderCell(v: unknown): ReactNode {
   if (v === null || v === undefined) return "—";
   if (typeof v === "boolean") return v ? "Oui" : "Non";
   if (typeof v === "object") return JSON.stringify(v);
-  return String(v);
+  const s = String(v);
+  // Détection asset image : path .png/.webp/.jpg(.eg)/.gif sous ./assets/ ou /assets/
+  if (/^\.?\/?assets\/.+\.(png|jpe?g|webp|gif)$/i.test(s)) {
+    const url = "/" + s.replace(/^\.?\//, "");
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="inline-block">
+        <img src={url} alt="" loading="lazy" className="h-10 w-10 rounded object-cover" />
+      </a>
+    );
+  }
+  // URL externe http(s) → affichage en lien tronqué
+  if (/^https?:\/\//.test(s)) {
+    return (
+      <a href={s} target="_blank" rel="noreferrer" className="text-brand-400 hover:underline">
+        {s.length > 40 ? `${s.slice(0, 40)}…` : s}
+      </a>
+    );
+  }
+  return s;
 }
 
 interface EditProps {
