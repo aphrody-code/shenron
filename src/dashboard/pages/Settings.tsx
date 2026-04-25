@@ -36,7 +36,7 @@ export function Settings() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
   });
 
-  if (isLoading) return <div className="text-zinc-500">Chargement…</div>;
+  if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
   const current = (data as any)?.rows ?? [];
 
@@ -45,16 +45,17 @@ export function Settings() {
       <div className="card">
         <div className="flex items-center gap-2">
           <SettingsIcon className="h-5 w-5 text-brand-400" />
-          <h2 className="text-lg font-semibold">Configuration runtime</h2>
+          <h2 className="text-lg font-semibold">Configuration à chaud</h2>
         </div>
         <p className="mt-1 text-sm text-zinc-400">
-          Surcharges qui priment sur l'env et les constantes hardcodées. Cache 30s côté bot.
+          Surcharges runtime qui priment sur les variables d'environnement et les constantes codées
+          en dur. Mise en cache 30 secondes côté bot.
         </p>
       </div>
 
       <div className="card">
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-          Settings actives ({current.length})
+          Surcharges actives ({current.length})
         </h3>
         <div className="space-y-2">
           {current.map((s: any) => (
@@ -75,7 +76,7 @@ export function Settings() {
           ))}
           {current.length === 0 && (
             <p className="text-sm italic text-zinc-500">
-              Aucune surcharge active — toutes les valeurs sont aux défauts.
+              Aucune surcharge active. Les valeurs par défaut s'appliquent.
             </p>
           )}
         </div>
@@ -109,7 +110,7 @@ function AddSettingForm({
   return (
     <form onSubmit={submit} className="card space-y-3">
       <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-        Définir / Mettre à jour
+        Définir ou mettre à jour une surcharge
       </h3>
       <div className="grid gap-3 sm:grid-cols-3">
         <select className="input" value={key} onChange={(e) => setKey(e.target.value)}>
@@ -123,11 +124,11 @@ function AddSettingForm({
           className="input sm:col-span-2"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="Nouvelle valeur (entier ou snowflake)"
+          placeholder="Nouvelle valeur (entier ou identifiant Discord)"
         />
       </div>
       <button type="submit" disabled={!value || pending} className="btn btn-primary">
-        <Plus className="h-3 w-3" /> {pending ? "…" : "Appliquer"}
+        <Plus className="h-3 w-3" /> {pending ? "Application…" : "Appliquer la surcharge"}
       </button>
     </form>
   );

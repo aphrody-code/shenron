@@ -10,6 +10,7 @@ import { Bot } from "./pages/Bot";
 import { Stats } from "./pages/Stats";
 import { Audit } from "./pages/Audit";
 import { Settings } from "./pages/Settings";
+import { Logs } from "./pages/Logs";
 import { api } from "./lib/api";
 
 interface Session {
@@ -37,7 +38,7 @@ export function App() {
   if (!session) {
     return (
       <div className="flex min-h-screen items-center justify-center text-zinc-500">
-        <div className="animate-pulse">Chargement…</div>
+        <div className="animate-pulse">Chargement en cours…</div>
       </div>
     );
   }
@@ -65,6 +66,7 @@ function renderRoute(route: string, navigate: (path: string) => void) {
   if (route === "/bot") return <Bot />;
   if (route === "/stats") return <Stats />;
   if (route === "/audit") return <Audit />;
+  if (route === "/logs") return <Logs />;
   if (route === "/settings") return <Settings />;
   if (route === "/database") return <Database navigate={navigate} />;
   if (route.startsWith("/database/")) {
@@ -73,8 +75,8 @@ function renderRoute(route: string, navigate: (path: string) => void) {
   }
   return (
     <div className="card text-center">
-      <h2 className="mb-2 text-2xl">404</h2>
-      <p className="text-zinc-400">Route inconnue : {route}</p>
+      <h2 className="mb-2 text-2xl">Page introuvable</h2>
+      <p className="text-zinc-400">Aucune route ne correspond à : {route}</p>
     </div>
   );
 }

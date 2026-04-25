@@ -69,7 +69,7 @@ export function TableView({ table, navigate }: Props) {
           {spec && <p className="text-xs text-zinc-400">{spec.description ?? "—"}</p>}
         </div>
         <div className="ml-auto text-sm text-zinc-400">
-          {total} lignes · page {page + 1}/{Math.max(1, totalPages)}
+          {total} ligne{total > 1 ? "s" : ""} · page {page + 1} sur {Math.max(1, totalPages)}
         </div>
       </div>
 
@@ -110,7 +110,8 @@ export function TableView({ table, navigate }: Props) {
                         type="button"
                         onClick={() => {
                           if (!spec) return;
-                          if (confirm(`Supprimer ${row[spec.pk]} ?`)) remove.mutate(row[spec.pk]);
+                          if (confirm(`Supprimer la ligne ${row[spec.pk]} ?`))
+                            remove.mutate(row[spec.pk]);
                         }}
                         className="btn btn-ghost px-2 text-red-400"
                       >
@@ -132,7 +133,7 @@ export function TableView({ table, navigate }: Props) {
           disabled={page === 0}
           className="btn btn-ghost"
         >
-          ← Précédent
+          Page précédente
         </button>
         <button
           type="button"
@@ -140,7 +141,7 @@ export function TableView({ table, navigate }: Props) {
           disabled={offset + limit >= total}
           className="btn btn-ghost"
         >
-          Suivant →
+          Page suivante
         </button>
       </div>
 
@@ -162,7 +163,7 @@ export function TableView({ table, navigate }: Props) {
 
 function renderCell(v: unknown): string {
   if (v === null || v === undefined) return "—";
-  if (typeof v === "boolean") return v ? "✓" : "✗";
+  if (typeof v === "boolean") return v ? "Oui" : "Non";
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 }
@@ -197,7 +198,7 @@ function EditModal({ row, spec, onClose, onSave, saving }: EditProps) {
       <div className="card w-full max-w-2xl max-h-[80vh] overflow-y-auto">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-semibold">
-            Éditer · <code>{String(row[spec.pk])}</code>
+            Modifier la ligne · <code>{String(row[spec.pk])}</code>
           </h3>
           <button type="button" onClick={onClose} className="btn btn-ghost px-2">
             <X className="h-4 w-4" />
@@ -223,7 +224,8 @@ function EditModal({ row, spec, onClose, onSave, saving }: EditProps) {
             Annuler
           </button>
           <button type="button" onClick={submit} disabled={saving} className="btn btn-primary">
-            <Save className="h-3 w-3" /> {saving ? "…" : "Enregistrer"}
+            <Save className="h-3 w-3" />{" "}
+            {saving ? "Enregistrement…" : "Enregistrer les modifications"}
           </button>
         </div>
       </div>

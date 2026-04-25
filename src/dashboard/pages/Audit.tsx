@@ -26,14 +26,15 @@ export function Audit() {
       ),
   });
 
-  if (isLoading) return <div className="text-zinc-500">Chargement…</div>;
+  if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
   return (
     <div className="space-y-4">
       <div className="card">
-        <h2 className="text-lg font-semibold">Audit log</h2>
+        <h2 className="text-lg font-semibold">Journal d'audit</h2>
         <p className="mt-1 text-sm text-zinc-400">
-          {data?.total ?? 0} entrées (read-only). Trace toutes les actions de modération + admin.
+          {data?.total ?? 0} entrée{(data?.total ?? 0) > 1 ? "s" : ""} (lecture seule). Toutes les
+          actions de modération et d'administration sont tracées.
         </p>
       </div>
 
@@ -43,10 +44,10 @@ export function Audit() {
             <tr>
               <th className="px-3 py-2 text-left">Date</th>
               <th className="px-3 py-2 text-left">Action</th>
-              <th className="px-3 py-2 text-left">User</th>
-              <th className="px-3 py-2 text-left">Mod</th>
-              <th className="px-3 py-2 text-left">Raison</th>
-              <th className="px-3 py-2 text-left">Meta</th>
+              <th className="px-3 py-2 text-left">Utilisateur</th>
+              <th className="px-3 py-2 text-left">Modérateur</th>
+              <th className="px-3 py-2 text-left">Motif</th>
+              <th className="px-3 py-2 text-left">Métadonnées</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-800 font-mono text-xs">
@@ -80,10 +81,10 @@ export function Audit() {
           disabled={page === 0}
           className="btn btn-ghost"
         >
-          ← Précédent
+          Page précédente
         </button>
         <span className="text-sm text-zinc-400">
-          Page {page + 1} / {Math.max(1, Math.ceil((data?.total ?? 0) / limit))}
+          Page {page + 1} sur {Math.max(1, Math.ceil((data?.total ?? 0) / limit))}
         </span>
         <button
           type="button"
@@ -91,7 +92,7 @@ export function Audit() {
           disabled={offset + limit >= (data?.total ?? 0)}
           className="btn btn-ghost"
         >
-          Suivant →
+          Page suivante
         </button>
       </div>
     </div>

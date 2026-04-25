@@ -15,7 +15,7 @@ export function Services() {
     queryFn: () => api.get<{ actions: ServiceAction[] }>("/services"),
   });
 
-  if (isLoading) return <div className="text-zinc-500">Chargement…</div>;
+  if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
   // Group by service
   const grouped = (data?.actions ?? []).reduce<Record<string, ServiceAction[]>>((acc, a) => {
@@ -26,9 +26,10 @@ export function Services() {
   return (
     <div className="space-y-4">
       <div className="card">
-        <h2 className="text-lg font-semibold">Services</h2>
+        <h2 className="text-lg font-semibold">Services internes</h2>
         <p className="mt-1 text-sm text-zinc-400">
-          Actions whitelist exposées par les <code>@singleton()</code> du bot. Body JSON brut.
+          Liste blanche d'actions exposées par les services <code>@singleton()</code> du bot. Saisir
+          le corps de requête au format JSON.
         </p>
       </div>
 
@@ -59,7 +60,7 @@ function ActionRow({ action }: { action: ServiceAction }) {
       return api.post(`/services/${action.service}/${action.action}`, parsed);
     },
     onSuccess: (data) => setResult(JSON.stringify(data, null, 2)),
-    onError: (err) => setResult(`❌ ${err instanceof Error ? err.message : String(err)}`),
+    onError: (err) => setResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
   });
 
   const submit = (e: FormEvent) => {
@@ -86,7 +87,7 @@ function ActionRow({ action }: { action: ServiceAction }) {
 
       {open && (
         <form onSubmit={submit} className="space-y-2 border-t border-zinc-800 p-3">
-          <label className="block text-xs text-zinc-400">Body JSON</label>
+          <label className="block text-xs text-zinc-400">Corps de requête (JSON)</label>
           <textarea
             className="input font-mono text-xs"
             rows={3}
@@ -94,7 +95,7 @@ function ActionRow({ action }: { action: ServiceAction }) {
             onChange={(e) => setBody(e.target.value)}
           />
           <button type="submit" disabled={mutation.isPending} className="btn btn-primary">
-            <Play className="h-3 w-3" /> {mutation.isPending ? "…" : "Exécuter"}
+            <Play className="h-3 w-3" /> {mutation.isPending ? "Exécution…" : "Exécuter l'action"}
           </button>
           {result && (
             <pre className="mt-2 overflow-x-auto rounded bg-zinc-950 p-2 text-xs">{result}</pre>

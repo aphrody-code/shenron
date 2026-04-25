@@ -1,8 +1,8 @@
 import { singleton, inject } from "tsyringe";
-import { sql } from "drizzle-orm";
+import { sql, desc } from "drizzle-orm";
 import { Client } from "@rpbey/discordx";
 import { DatabaseService } from "~/db/index";
-import { users } from "~/db/schema";
+import { users, actionLogs } from "~/db/schema";
 import { logger } from "~/lib/logger";
 
 /**
@@ -124,9 +124,29 @@ export class StatsService {
 		};
 	}
 
-	getLastInteraction(): { date: string | null } {
-		// Pas de table dédiée — pour un MVP on retourne null, le dashboard fallback
-		return { date: null };
+	async getLastInteraction(): Promise<{
+		date: string | null;
+		userId: string | null;
+		action: string | null;
+		meta: string | null;
+	}> {
+		// Lit la dernière action de type "interaction" dans action_logs.
+		// L'event interactionCreate (cf. src/events/InteractionLog.ts) y insère une
+		// entrée pour chaque slash command / context menu déclenchée.
+		const rows = await this.dbs.db
+			.select()
+			.from(actionLogs)
+			.where(sql`${actionLogs.action} = 'interaction'`)
+			.orderBy(desc(actionLogs.createdAt))
+			.limit(1);
+		const row = rows[0];
+		if (!row) return { date: null, userId: null, action: null, meta: null };
+		return {
+			date: row.createdAt.toISOString(),
+			userId: row.userId,
+			action: row.action,
+			meta: row.meta,
+		};
 	}
 
 	getLastGuildAdded(): { id: string; name: string; joinedAt: string } | null {

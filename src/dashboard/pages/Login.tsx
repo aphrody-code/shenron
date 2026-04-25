@@ -28,16 +28,18 @@ export function Login({ onLogin }: Props) {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-amber-950/40 p-4">
       <form onSubmit={submit} className="card w-full max-w-md space-y-6">
         <div className="text-center">
-          <div className="mb-2 text-5xl">🐉</div>
-          <h1 className="text-2xl font-bold text-brand-400">Shenron Dashboard</h1>
+          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-500/10 text-3xl font-bold text-brand-400">
+            S
+          </div>
+          <h1 className="text-2xl font-bold text-brand-400">Tableau de bord Shenron</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            Tu as réuni les sept Dragon Balls. Fais ton vœu.
+            Authentification requise pour accéder à l'administration du bot.
           </p>
         </div>
 
         <div>
           <label htmlFor="token" className="mb-2 block text-sm font-medium text-zinc-300">
-            API Admin Token
+            Jeton administrateur
           </label>
           <input
             id="token"
@@ -50,7 +52,8 @@ export function Login({ onLogin }: Props) {
             autoFocus
           />
           <p className="mt-1 text-xs text-zinc-500">
-            Token défini côté bot dans <code>.env</code> · <code>API_ADMIN_TOKEN</code>
+            Jeton défini dans le fichier <code>.env</code> du bot, variable{" "}
+            <code>API_ADMIN_TOKEN</code>.
           </p>
         </div>
 
@@ -61,7 +64,7 @@ export function Login({ onLogin }: Props) {
         )}
 
         <button type="submit" disabled={loading || !token} className="btn btn-primary w-full">
-          {loading ? "Vérification…" : "Entrer"}
+          {loading ? "Vérification…" : "Connexion"}
         </button>
       </form>
     </div>

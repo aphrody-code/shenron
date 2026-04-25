@@ -69,14 +69,14 @@ export function Bot() {
         <div className="card">
           <div className="mb-2 flex items-center gap-2 text-zinc-400">
             <Globe className="h-4 w-4" />
-            <h3 className="text-sm font-medium">Guilds</h3>
+            <h3 className="text-sm font-medium">Serveurs</h3>
           </div>
           <p className="text-3xl font-bold text-brand-400">{guilds.data?.guilds.length ?? "—"}</p>
         </div>
         <div className="card">
           <div className="mb-2 flex items-center gap-2 text-zinc-400">
             <Hash className="h-4 w-4" />
-            <h3 className="text-sm font-medium">Total membres</h3>
+            <h3 className="text-sm font-medium">Total des membres</h3>
           </div>
           <p className="text-3xl font-bold text-brand-400">
             {guilds.data?.guilds.reduce((s, g) => s + g.memberCount, 0) ?? "—"}
@@ -85,7 +85,7 @@ export function Bot() {
       </div>
 
       <div className="card">
-        <h2 className="mb-3 text-lg font-semibold">Guilds</h2>
+        <h2 className="mb-3 text-lg font-semibold">Serveurs Discord</h2>
         <div className="space-y-2">
           {guilds.data?.guilds.map((g) => (
             <div
@@ -100,7 +100,7 @@ export function Bot() {
               <div className="flex-1">
                 <p className="font-medium">{g.name}</p>
                 <p className="text-xs text-zinc-500">
-                  {g.memberCount} membres · joined {g.joinedAt?.slice(0, 10) ?? "—"}
+                  {g.memberCount} membres · rejoint le {g.joinedAt?.slice(0, 10) ?? "—"}
                 </p>
               </div>
               <code className="text-xs text-zinc-500">{g.id}</code>
@@ -110,7 +110,7 @@ export function Bot() {
       </div>
 
       <div className="card">
-        <h2 className="mb-3 text-lg font-semibold">Slash commands ({cmds.data?.count ?? "—"})</h2>
+        <h2 className="mb-3 text-lg font-semibold">Commandes slash ({cmds.data?.count ?? "—"})</h2>
         <div className="space-y-2">
           {cmds.data?.commands.map((c) => (
             <CommandRow key={c.name} cmd={c} />
@@ -138,7 +138,11 @@ function CommandRow({ cmd }: { cmd: Command }) {
             <code className="font-mono text-sm font-semibold text-brand-400">/{cmd.name}</code>
             <span className="badge">{TYPE_LABELS[cmd.type] ?? `type:${cmd.type}`}</span>
             {cmd.nsfw && <span className="badge badge-warning">NSFW</span>}
-            {cmd.options.length > 0 && <span className="badge">{cmd.options.length} options</span>}
+            {cmd.options.length > 0 && (
+              <span className="badge">
+                {cmd.options.length} option{cmd.options.length > 1 ? "s" : ""}
+              </span>
+            )}
           </div>
           <p className="mt-0.5 text-xs text-zinc-400">{cmd.description}</p>
         </div>
@@ -151,9 +155,9 @@ function CommandRow({ cmd }: { cmd: Command }) {
               <tr>
                 <th className="px-2 py-1 text-left">Nom</th>
                 <th className="px-2 py-1 text-left">Type</th>
-                <th className="px-2 py-1 text-left">Required</th>
+                <th className="px-2 py-1 text-left">Obligatoire</th>
                 <th className="px-2 py-1 text-left">Description</th>
-                <th className="px-2 py-1 text-left">Choices</th>
+                <th className="px-2 py-1 text-left">Choix</th>
               </tr>
             </thead>
             <tbody>
@@ -161,7 +165,7 @@ function CommandRow({ cmd }: { cmd: Command }) {
                 <tr key={o.name} className="border-t border-zinc-900">
                   <td className="px-2 py-1 font-mono">{o.name}</td>
                   <td className="px-2 py-1 text-zinc-400">{OPTION_TYPES[o.type] ?? o.type}</td>
-                  <td className="px-2 py-1">{o.required ? "✓" : ""}</td>
+                  <td className="px-2 py-1">{o.required ? "Oui" : "—"}</td>
                   <td className="px-2 py-1 text-zinc-400">{o.description}</td>
                   <td className="px-2 py-1 text-zinc-400">
                     {o.choices?.map((c) => c.name).join(", ") ?? "—"}
