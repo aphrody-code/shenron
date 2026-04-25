@@ -297,15 +297,19 @@ export class ApiServer {
 				"/api/stats/guilds/last": admin(() => Response.json(this.stats.getLastGuildAdded())),
 
 				// ── Bot ───────────────────────────────────────────────────────
+				// Filtre mono-guild : on n'expose QUE la guild prod (env.GUILD_ID).
+				// Defense in depth — `clientReady` quitte déjà les guilds non-prod.
 				"/api/bot/guilds": admin(() => {
 					const client = container.resolve(Client);
-					const guilds = [...client.guilds.cache.values()].map((g) => ({
-						id: g.id,
-						name: g.name,
-						memberCount: g.memberCount,
-						iconUrl: g.iconURL({ size: 256 }),
-						joinedAt: g.joinedTimestamp ? new Date(g.joinedTimestamp).toISOString() : null,
-					}));
+					const guilds = [...client.guilds.cache.values()]
+						.filter((g) => g.id === env.GUILD_ID)
+						.map((g) => ({
+							id: g.id,
+							name: g.name,
+							memberCount: g.memberCount,
+							iconUrl: g.iconURL({ size: 256 }),
+							joinedAt: g.joinedTimestamp ? new Date(g.joinedTimestamp).toISOString() : null,
+						}));
 					return Response.json({ guilds });
 				}),
 				"/api/bot/commands": admin(() => {
