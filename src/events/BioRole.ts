@@ -1,8 +1,9 @@
-import { injectable } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import { Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
 import type { Client, Guild, GuildMember, Presence } from "discord.js";
 import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";
+import { CronRegistry } from "~/api/cron-registry";
 
 /**
  * Détecte l'URL du serveur dans le statut custom / activité d'un membre.
@@ -13,6 +14,8 @@ import { logger } from "~/lib/logger";
 @Discord()
 @injectable()
 export class BioRoleEvent {
+  constructor(@inject(CronRegistry) private cron: CronRegistry) {}
+
   private key(guildId: string) {
     return env.SERVER_INVITE_URL.replace(/^https?:\/\//, "")
       .replace(/\/$/, "")
@@ -45,8 +48,12 @@ export class BioRoleEvent {
 
   @Once({ event: "clientReady" })
   async onReady([client]: [Client]) {
-    // Scan complet toutes les heures
-    setInterval(() => this.scanAll(client).catch(() => {}), 3_600_000).unref();
+    this.cron.register({
+      name: "bio-role-scan",
+      description: "Scan complet des présences pour détecter l'invite serveur en bio",
+      intervalMs: 3_600_000, // 1h
+      fn: () => this.scanAll(client),
+    });
     await this.scanAll(client);
   }
 

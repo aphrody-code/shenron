@@ -40,3 +40,4 @@ COPILOT.md
 # Backgrounds générés — bun scripts/fetch-backgrounds.ts --download && bun scripts/optimize-backgrounds.ts
 assets/backgrounds/
 .npmrc
+.bun-cache/
