@@ -82,44 +82,44 @@ export class MessageXPEvent {
       await announce.send(randomDailyQuestMessage(userId, ZENI_DAILY_QUEST, streak)).catch(() => {});
     }
 
-    // Salon dédié aux succès (retombe sur announce si ACHIEVEMENT_CHANNEL_ID absent)
-    const achievementChannel =
-      (await resolveAchievementChannel(message.client, message.guild ?? undefined)) ?? announce;
-
-    // Succès premier message
-    if (user.messageCount === 0) {
-      await this.eco.grantAchievement(userId, "FIRST_MESSAGE");
-      await achievementChannel
-        .send({
-          content: `<@${userId}>`,
-          embeds: [
-            brandedEmbed({
-              title: "🏆 Accomplissement débloqué",
-              description: `<@${userId}> débloque **Premier message** !`,
-              kind: "brand",
-            }),
-          ],
-        })
-        .catch(() => {});
+    // Salon succès résolu LAZY uniquement si on a un succès à annoncer (sinon
+    // on ferait un client.channels.fetch HTTP par message → rate-limit Discord).
+    const isFirstMessage = user.messageCount === 0;
+    const granted = await this.achievements.checkMessage(userId, message.content);
+    if (isFirstMessage || granted.length > 0) {
+      const achievementChannel =
+        (await resolveAchievementChannel(message.client, message.guild ?? undefined)) ?? announce;
+      if (isFirstMessage) {
+        await this.eco.grantAchievement(userId, "FIRST_MESSAGE");
+        await achievementChannel
+          .send({
+            content: `<@${userId}>`,
+            embeds: [
+              brandedEmbed({
+                title: "🏆 Accomplissement débloqué",
+                description: `<@${userId}> débloque **Premier message** !`,
+                kind: "brand",
+              }),
+            ],
+          })
+          .catch(() => {});
+      }
+      for (const code of granted) {
+        await achievementChannel
+          .send({
+            content: `<@${userId}>`,
+            embeds: [
+              brandedEmbed({
+                title: "🏆 Accomplissement débloqué",
+                description: `<@${userId}> débloque **${code}** !`,
+                kind: "brand",
+              }),
+            ],
+          })
+          .catch(() => {});
+      }
     }
     await this.dbs.db.update(users).set({ messageCount: user.messageCount + 1 }).where(eq(users.id, userId));
-
-    // Succès déclenchés par pattern (table achievement_triggers)
-    const granted = await this.achievements.checkMessage(userId, message.content);
-    for (const code of granted) {
-      await achievementChannel
-        .send({
-          content: `<@${userId}>`,
-          embeds: [
-            brandedEmbed({
-              title: "🏆 Accomplissement débloqué",
-              description: `<@${userId}> débloque **${code}** !`,
-              kind: "brand",
-            }),
-          ],
-        })
-        .catch(() => {});
-    }
 
     // XP cooldown
     if (now - last < XP_MESSAGE_COOLDOWN_MS) return;

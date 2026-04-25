@@ -73,7 +73,7 @@ function codeBlock(text: string, max = 1000): string {
 export class TranslateCommand {
 	constructor(@inject(TranslateService) private translator: TranslateService) {}
 
-	@Slash({ name: "translate", description: "OCR + traduction d'une image (DeepL)" })
+	@Slash({ name: "translate", description: "OCR + traduction d'une image (Tesseract + LibreTranslate)" })
 	async translate(
 		@SlashOption({
 			name: "image",
@@ -99,6 +99,20 @@ export class TranslateCommand {
 		target: string | undefined,
 		interaction: CommandInteraction,
 	) {
+		const avail = this.translator.available;
+		if (avail.ocr === false || avail.translate === false) {
+			await interaction.reply({
+				embeds: [
+					errorEmbed(
+						"Stack /translate indisponible",
+						`OCR (tesseract): ${avail.ocr === false ? "❌" : "✅"} · LibreTranslate: ${avail.translate === false ? "❌" : "✅"}\n\nFix : \`sudo bash apps/shenron/scripts/setup-translate.sh\``,
+					),
+				],
+				flags: MessageFlags.Ephemeral,
+			});
+			return;
+		}
+
 		const imageUrl = attachment?.url ?? url;
 		if (!imageUrl) {
 			await interaction.reply({

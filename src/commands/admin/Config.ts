@@ -190,6 +190,22 @@ export class ConfigCommand {
 		zeniBonus: number | undefined,
 		interaction: CommandInteraction,
 	) {
+		// Sanity check : le bot doit pouvoir attribuer ce rôle (position < bot.highest)
+		const botMember = await interaction.guild?.members.fetchMe();
+		if (botMember && role.position >= botMember.roles.highest.position) {
+			await interaction.reply({
+				embeds: [
+					errorEmbed(
+						"Rôle au-dessus du bot",
+						`${role} (position ${role.position}) ≥ rôle bot (${botMember.roles.highest.position}). ` +
+							"Range le rôle du bot au-dessus dans les paramètres serveur, sinon l'attribution échouera silencieusement.",
+					),
+				],
+				flags: MessageFlags.Ephemeral,
+			});
+			return;
+		}
+
 		// Formule par défaut alignée sur xp.ts (palier exponentiel doux)
 		const computed = xpThreshold ?? Math.floor(100 * level * (level + 1) * 0.5);
 		const bonus = zeniBonus ?? 1000;
