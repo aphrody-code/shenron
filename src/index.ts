@@ -68,8 +68,16 @@ if (existsSync("./src/db/migrations")) {
 container.registerInstance(Client, client);
 
 client.once("clientReady", async () => {
+  // Mono-guild forcé : quitte automatiquement toute guild ≠ env.GUILD_ID.
+  // Le bot et le dashboard sont focus sur Dragon Ball FR uniquement.
+  for (const [id, guild] of client.guilds.cache) {
+    if (id === env.GUILD_ID) continue;
+    logger.warn({ id, name: guild.name }, "guild non-prod détectée, leave en cours");
+    await guild.leave().catch((err) => logger.error({ err, id }, "guild.leave failed"));
+  }
+
   await client.initApplicationCommands();
-  logger.info(`✓ Logged in as ${client.user?.username} (${client.guilds.cache.size} guilds)`);
+  logger.info(`✓ Connecté en tant que ${client.user?.username} (focus guild ${env.GUILD_ID})`);
   await runBootAudit(client).catch((err) => logger.error({ err }, "boot-audit failed"));
   // API REST (Bun.serve) — démarrée après clientReady pour que le client soit utilisable
   try {
@@ -77,6 +85,16 @@ client.once("clientReady", async () => {
   } catch (err) {
     logger.error({ err }, "ApiServer start failed");
   }
+});
+
+// Refus de rejoindre une nouvelle guild non-prod : leave instantané si invité ailleurs.
+client.on("guildCreate", async (guild) => {
+  if (guild.id === env.GUILD_ID) return;
+  logger.warn(
+    { id: guild.id, name: guild.name },
+    "guild non-prod a invité le bot, leave instantané",
+  );
+  await guild.leave().catch((err) => logger.error({ err, id: guild.id }, "guild.leave failed"));
 });
 
 client.on("interactionCreate", (interaction) => {

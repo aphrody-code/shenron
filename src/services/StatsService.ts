@@ -4,6 +4,7 @@ import { Client } from "@rpbey/discordx";
 import { DatabaseService } from "~/db/index";
 import { users, actionLogs } from "~/db/schema";
 import { logger } from "~/lib/logger";
+import { env } from "~/lib/env";
 
 /**
  * Stats agrégées exposées par l'API REST (`/health/*`, `/stats/*`).
@@ -116,9 +117,12 @@ export class StatsService {
 
 		const totalCommands = this.client.applicationCommands?.length ?? 0;
 
+		// Mono-guild forcé : on compte 1 si la prod est connectée, sinon 0.
+		const totalGuilds = this.client.guilds.cache.has(env.GUILD_ID) ? 1 : 0;
+
 		return {
 			totalUsers: Number(total ?? 0),
-			totalGuilds: this.client.guilds.cache.size,
+			totalGuilds,
 			totalActiveUsers: Number(active ?? 0),
 			totalCommands,
 		};
@@ -150,10 +154,8 @@ export class StatsService {
 	}
 
 	getLastGuildAdded(): { id: string; name: string; joinedAt: string } | null {
-		const guilds = [...this.client.guilds.cache.values()].sort(
-			(a, b) => (b.joinedTimestamp ?? 0) - (a.joinedTimestamp ?? 0),
-		);
-		const last = guilds[0];
+		// Mono-guild : retourne uniquement la guild prod (env.GUILD_ID).
+		const last = this.client.guilds.cache.get(env.GUILD_ID);
 		if (!last) return null;
 		return {
 			id: last.id,
