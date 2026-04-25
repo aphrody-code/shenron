@@ -13,6 +13,7 @@ import { Settings } from "./pages/Settings";
 import { Logs } from "./pages/Logs";
 import { Levels } from "./pages/Levels";
 import { Messages } from "./pages/Messages";
+import { CanvasPage } from "./pages/Canvas";
 import { api } from "./lib/api";
 
 interface Session {
@@ -69,6 +70,7 @@ function renderRoute(route: string, navigate: (path: string) => void) {
   if (route === "/stats") return <Stats />;
   if (route === "/levels") return <Levels />;
   if (route === "/messages") return <Messages />;
+  if (route === "/canvas") return <CanvasPage />;
   if (route === "/audit") return <Audit />;
   if (route === "/logs") return <Logs />;
   if (route === "/settings") return <Settings />;

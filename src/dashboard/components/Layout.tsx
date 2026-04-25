@@ -13,6 +13,7 @@ import {
   Terminal,
   Trophy,
   MessageSquare,
+  Image as ImageIcon,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { cn } from "../lib/utils";
@@ -25,6 +26,7 @@ const NAV = [
   { path: "/services", label: "Services · 15 actions", icon: Wrench },
   { path: "/levels", label: "Niveaux & XP", icon: Trophy },
   { path: "/messages", label: "Messages du bot", icon: MessageSquare },
+  { path: "/canvas", label: "Aperçu canvas", icon: ImageIcon },
   { path: "/stats", label: "Statistiques", icon: BarChart3 },
   { path: "/audit", label: "Journal d'audit", icon: FileText },
   { path: "/logs", label: "Journaux du service", icon: Terminal },
