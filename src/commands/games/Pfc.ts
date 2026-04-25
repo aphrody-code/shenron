@@ -13,6 +13,7 @@ import {
   type User,
 } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { EconomyService } from "~/services/EconomyService";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
 
@@ -24,7 +25,7 @@ const WINS: Record<Choice, Choice> = { pierre: "ciseaux", feuille: "pierre", cis
 const pending = new Map<string, { challenger: string; opponent: string; choice?: Choice }>();
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class PfcCommand {
   constructor(@inject(EconomyService) private eco: EconomyService) {}

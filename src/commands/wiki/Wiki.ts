@@ -13,6 +13,7 @@ import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import { Pagination } from "@rpbey/pagination";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { WikiService, type CharacterWithRelations, type DBTransformation } from "~/services/WikiService";
 
 const RACE_COLORS: Record<string, number> = {
@@ -44,7 +45,7 @@ function asEmbedImage(imagePath: string): { url: string; attachment: AttachmentB
 }
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class WikiCommands {
   constructor(@inject(WikiService) private api: WikiService) {}

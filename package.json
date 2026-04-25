@@ -23,7 +23,8 @@
 		"db:migrate": "bun src/db/migrate.ts",
 		"db:seed-wiki": "bun src/db/seed-wiki.ts",
 		"db:seed-triggers": "bun src/db/seed-triggers.ts",
-		"db:seed-all": "bun src/db/seed-wiki.ts && bun src/db/seed-triggers.ts",
+		"db:seed-levels": "bun src/db/seed-level-rewards.ts",
+		"db:seed-all": "bun src/db/seed-wiki.ts && bun src/db/seed-triggers.ts && bun src/db/seed-level-rewards.ts",
 		"db:studio": "bunx drizzle-kit studio",
 		"db:push": "bunx drizzle-kit push"
 	},

@@ -10,6 +10,7 @@ import {
 } from "discord.js";
 import { createCanvas } from "@napi-rs/canvas";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { LevelService } from "~/services/LevelService";
 import { formatXP } from "~/lib/xp";
 import { drawScanlines, rgba } from "~/lib/canvas-kit";
@@ -83,7 +84,7 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
 // Fonts : enregistrées par canvas-kit au chargement du module ci-dessus.
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class ScanCommand {
   constructor(@inject(LevelService) private levels: LevelService) {}
