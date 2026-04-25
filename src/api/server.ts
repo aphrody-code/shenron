@@ -15,6 +15,21 @@ import { CronRegistry } from "./cron-registry";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
+
+// Helper pour servir un fichier statique du dossier `public/` avec content-type
+// inféré + cache long (les favicons ont un hash via le manifest, donc immutable
+// est OK pour 1 jour ; pas besoin de versioning).
+function staticFile(path: string, contentType: string) {
+	return () => {
+		const file = Bun.file(path);
+		return new Response(file as unknown as BodyInit, {
+			headers: {
+				"Content-Type": contentType,
+				"Cache-Control": "public, max-age=86400",
+			},
+		});
+	};
+}
 import {
 	TABLES,
 	getTableSpec,
@@ -101,6 +116,17 @@ export class ApiServer {
 				"/stats": dashboardHtml,
 				"/audit": dashboardHtml,
 				"/settings": dashboardHtml,
+
+				// ── Static assets (favicons + manifest) ───────────────────────
+				"/favicon.ico": staticFile("public/favicon.ico", "image/x-icon"),
+				"/favicon-16.png": staticFile("public/favicon-16.png", "image/png"),
+				"/favicon-32.png": staticFile("public/favicon-32.png", "image/png"),
+				"/favicon-48.png": staticFile("public/favicon-48.png", "image/png"),
+				"/favicon-96.png": staticFile("public/favicon-96.png", "image/png"),
+				"/apple-touch-icon.png": staticFile("public/apple-touch-icon.png", "image/png"),
+				"/icon-192.png": staticFile("public/icon-192.png", "image/png"),
+				"/icon-512.png": staticFile("public/icon-512.png", "image/png"),
+				"/manifest.webmanifest": staticFile("public/manifest.webmanifest", "application/manifest+json"),
 
 				// ── Auth (cookie session pour SPA) ────────────────────────────
 				"/auth/me": async (req) => {
