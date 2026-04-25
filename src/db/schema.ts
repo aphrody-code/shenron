@@ -293,6 +293,28 @@ export const levelRewards = sqliteTable("level_rewards", {
   xpThreshold: integer("xp_threshold").notNull(), // exp necessaire pour atteindre ce palier
 });
 
+/**
+ * Settings runtime overridables sans redeploy. Toutes les rows sont stockées en
+ * key/value texte — coercion par lecture côté SettingsService.
+ *
+ * Keys connues (cf. SettingsService.SETTINGS_KEYS) :
+ *   xp.message.min            (int, default 5)
+ *   xp.message.max            (int, default 15)
+ *   xp.message.cooldown_ms    (int, default 60000)
+ *   xp.voice.per_minute       (int, default 5)
+ *   zeni.daily_quest          (int, default 50)
+ *   channel.announce          (snowflake, override env)
+ *   channel.achievement       (snowflake, override env)
+ *   channel.commands          (snowflake, override env)
+ */
+export const guildSettings = sqliteTable("guild_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type InventoryItem = typeof inventory.$inferSelect;
@@ -308,3 +330,4 @@ export type AchievementTrigger = typeof achievementTriggers.$inferSelect;
 export type DBPlanet = typeof dbPlanets.$inferSelect;
 export type DBCharacter = typeof dbCharacters.$inferSelect;
 export type DBTransformation = typeof dbTransformations.$inferSelect;
+export type GuildSetting = typeof guildSettings.$inferSelect;

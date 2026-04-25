@@ -13,7 +13,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { LevelService } from "~/services/LevelService";
 import { formatXP } from "~/lib/xp";
-import { drawScanlines, rgba } from "~/lib/canvas-kit";
+import { drawScanlines, rgba, textDoubleFont } from "~/lib/canvas-kit";
 
 function kiComment(xp: number): { line: string; accent: string } {
   if (xp >= 10_000_000) return { line: "**IT'S OVER 9'000'000 !** ⚡", accent: "#f59e0b" };
@@ -58,10 +58,20 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
   ctx.fillText("⟪ SCOUTER ⟫ CIBLE", 20, 28);
   ctx.fillText(`ID: ${user.id.slice(-6)}`, 20, 48);
 
-  // Pseudo de la cible
-  ctx.font = "bold 22px 'Saiyan Sans', 'Inter Display Black', sans-serif";
-  ctx.fillStyle = "#f1f5f9";
-  ctx.fillText(user.username.toUpperCase().slice(0, 20), 20, 80);
+  // Pseudo de la cible — superposition Saiyan Sans (back glow) + Inter Display Black (front)
+  textDoubleFont(ctx, user.username.toUpperCase().slice(0, 20), 20, 80, {
+    back: {
+      font: "bold 26px 'Saiyan Sans', sans-serif",
+      color: rgba(accent, 0.85),
+      offsetX: 2,
+      offsetY: 2,
+      blur: 8,
+    },
+    front: {
+      font: "bold 22px 'Inter Display Black', 'Inter ExtraBold', sans-serif",
+      color: "#f1f5f9",
+    },
+  });
 
   // Ki affiché en font Scouter
   ctx.font = "60px 'DBS Scouter', monospace";
