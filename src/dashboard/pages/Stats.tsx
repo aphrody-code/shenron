@@ -49,7 +49,7 @@ export function Stats() {
       </div>
 
       <div className="card">
-        <h2 className="mb-4 text-lg font-semibold">🏆 Top 20 par XP</h2>
+        <h2 className="mb-4 text-lg font-semibold">Classement — top 20 par XP</h2>
         <div className="space-y-2">
           {top.data?.users.map((u, i) => (
             <div key={u.id} className="flex items-center gap-3">
@@ -63,12 +63,14 @@ export function Stats() {
                   />
                 </div>
               </div>
-              <span className="w-24 text-right font-mono text-xs">{u.xp.toLocaleString()} XP</span>
-              <span className="w-20 text-right font-mono text-xs text-amber-400">
-                {u.zeni.toLocaleString()} z
+              <span className="w-24 text-right font-mono text-xs">
+                {u.xp.toLocaleString("fr-FR")} XP
               </span>
-              <span className="w-12 text-right font-mono text-xs text-zinc-500">
-                L{u.last_level_reached}
+              <span className="w-20 text-right font-mono text-xs text-amber-400">
+                {u.zeni.toLocaleString("fr-FR")} zénis
+              </span>
+              <span className="w-16 text-right font-mono text-xs text-zinc-500">
+                niveau {u.last_level_reached}
               </span>
             </div>
           ))}

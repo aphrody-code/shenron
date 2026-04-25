@@ -10,19 +10,21 @@ import {
   BarChart3,
   FileText,
   Settings as SettingsIcon,
+  Terminal,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { cn } from "../lib/utils";
 
 const NAV = [
-  { path: "/", label: "Overview", icon: Home },
-  { path: "/bot", label: "Bot · 44 cmds", icon: Bot },
-  { path: "/database", label: "Database · 16 tables", icon: Database },
-  { path: "/cron", label: "Cron · 3 jobs", icon: Clock },
+  { path: "/", label: "Tableau de bord", icon: Home },
+  { path: "/bot", label: "Bot · 44 commandes", icon: Bot },
+  { path: "/database", label: "Base de données · 16 tables", icon: Database },
+  { path: "/cron", label: "Tâches planifiées · 3", icon: Clock },
   { path: "/services", label: "Services · 15 actions", icon: Wrench },
-  { path: "/stats", label: "Stats · Top XP", icon: BarChart3 },
-  { path: "/audit", label: "Audit log", icon: FileText },
-  { path: "/settings", label: "Settings", icon: SettingsIcon },
+  { path: "/stats", label: "Statistiques", icon: BarChart3 },
+  { path: "/audit", label: "Journal d'audit", icon: FileText },
+  { path: "/logs", label: "Journaux du service", icon: Terminal },
+  { path: "/settings", label: "Configuration", icon: SettingsIcon },
 ];
 
 interface Props {
@@ -41,10 +43,12 @@ export function Layout({ route, navigate, children }: Props) {
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-72 flex-col border-r border-zinc-800 bg-zinc-950/80 backdrop-blur md:flex">
         <div className="flex items-center gap-3 border-b border-zinc-800 p-6">
-          <span className="text-2xl">🐉</span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/10 font-bold text-brand-400">
+            S
+          </div>
           <div>
             <h1 className="font-bold text-brand-400">Shenron</h1>
-            <p className="text-xs text-zinc-500">Dashboard admin</p>
+            <p className="text-xs text-zinc-500">Tableau de bord admin</p>
           </div>
         </div>
 
@@ -73,7 +77,7 @@ export function Layout({ route, navigate, children }: Props) {
         <div className="border-t border-zinc-800 p-3">
           <button type="button" onClick={logout} className="btn btn-ghost w-full justify-start">
             <LogOut className="h-4 w-4" />
-            Logout
+            Déconnexion
           </button>
         </div>
       </aside>
@@ -90,8 +94,9 @@ export function Layout({ route, navigate, children }: Props) {
 }
 
 function routeLabel(route: string): string {
-  if (route === "/") return "Overview";
-  if (route.startsWith("/database/")) return `Database · ${route.slice("/database/".length)}`;
+  if (route === "/") return "Tableau de bord";
+  if (route.startsWith("/database/"))
+    return `Base de données · ${route.slice("/database/".length)}`;
   const match = NAV.find((n) => n.path === route);
   return match?.label ?? route;
 }

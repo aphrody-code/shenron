@@ -20,14 +20,14 @@ export function Database({ navigate }: Props) {
     queryFn: () => api.get<{ tables: TableSpec[] }>("/database/tables"),
   });
 
-  if (isLoading) return <div className="text-zinc-500">Chargement…</div>;
+  if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
   return (
     <div className="space-y-4">
       <div className="card">
-        <h2 className="text-lg font-semibold">Tables</h2>
+        <h2 className="text-lg font-semibold">Tables de la base</h2>
         <p className="mt-1 text-sm text-zinc-400">
-          16 tables exposées avec whitelist <code>mutableColumns</code> par sécurité.
+          16 tables exposées avec liste blanche <code>mutableColumns</code> par sécurité.
         </p>
       </div>
 
@@ -48,11 +48,14 @@ export function Database({ navigate }: Props) {
             </div>
             {t.description && <p className="text-xs text-zinc-400">{t.description}</p>}
             <div className="mt-3 flex gap-2 text-xs">
-              <span className="badge">PK: {t.pk}</span>
+              <span className="badge">Clé : {t.pk}</span>
               {!t.readonly && (
-                <span className="badge badge-success">{t.mutableColumns.length} cols</span>
+                <span className="badge badge-success">
+                  {t.mutableColumns.length} colonne{t.mutableColumns.length > 1 ? "s" : ""}{" "}
+                  modifiable{t.mutableColumns.length > 1 ? "s" : ""}
+                </span>
               )}
-              {t.readonly && <span className="badge">readonly</span>}
+              {t.readonly && <span className="badge">lecture seule</span>}
             </div>
           </button>
         ))}

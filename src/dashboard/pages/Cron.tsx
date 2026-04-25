@@ -27,14 +27,15 @@ export function Cron() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cron"] }),
   });
 
-  if (isLoading) return <div className="text-zinc-500">Chargement…</div>;
+  if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
   return (
     <div className="space-y-4">
       <div className="card">
-        <h2 className="text-lg font-semibold">Cron jobs</h2>
+        <h2 className="text-lg font-semibold">Tâches planifiées</h2>
         <p className="mt-1 text-sm text-zinc-400">
-          Tâches périodiques registres dans <code>CronRegistry</code>. Auto-refresh 5s.
+          Tâches périodiques enregistrées dans <code>CronRegistry</code>. Actualisation automatique
+          toutes les 5 secondes.
         </p>
       </div>
 
@@ -53,7 +54,7 @@ export function Cron() {
                 className="btn btn-primary"
               >
                 <Play className="h-3 w-3" />
-                Trigger
+                Exécuter
               </button>
             </div>
 
@@ -63,20 +64,20 @@ export function Cron() {
                 <dd className="font-medium">{formatDuration(job.intervalMs)}</dd>
               </div>
               <div>
-                <dt className="text-zinc-500">Runs</dt>
+                <dt className="text-zinc-500">Exécutions</dt>
                 <dd className="font-medium">{job.runCount}</dd>
               </div>
               <div>
-                <dt className="text-zinc-500">Dernier</dt>
+                <dt className="text-zinc-500">Dernière exécution</dt>
                 <dd className="font-medium">
                   {formatRelative(job.lastRunAt)}
                   {job.lastDurationMs != null && (
-                    <span className="text-zinc-500"> ({job.lastDurationMs}ms)</span>
+                    <span className="text-zinc-500"> ({job.lastDurationMs} ms)</span>
                   )}
                 </dd>
               </div>
               <div>
-                <dt className="text-zinc-500">Prochain</dt>
+                <dt className="text-zinc-500">Prochaine</dt>
                 <dd className="flex items-center gap-1 font-medium">
                   <Clock className="h-3 w-3" />
                   {formatRelative(job.nextRunAt)}
@@ -86,7 +87,7 @@ export function Cron() {
 
             {job.lastError && (
               <div className="mt-3 rounded border border-red-800 bg-red-900/20 p-2 text-xs text-red-400">
-                ⚠ {job.lastError}
+                Erreur : {job.lastError}
               </div>
             )}
           </div>

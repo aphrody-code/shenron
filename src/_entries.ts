@@ -19,6 +19,7 @@ import "./commands/ticket/Ticket";
 import "./commands/vocal/Vocal";
 import "./commands/wiki/Wiki";
 import "./events/BioRole";
+import "./events/InteractionLog";
 import "./events/JailExpiry";
 import "./events/JoinLeave";
 import "./events/MessageLog";
