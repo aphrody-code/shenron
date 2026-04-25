@@ -31,9 +31,9 @@ const schema = z.object({
   ANNOUNCE_CHANNEL_ID: z.string().optional(),
   ACHIEVEMENT_CHANNEL_ID: z.string().optional(),
 
-  // /translate (OCR + DeepL Free)
-  DEEPL_API_KEY: z.string().optional(),
-  OCR_SPACE_API_KEY: z.string().optional(),
+  // /translate (OCR Tesseract + LibreTranslate, 100 % FOSS)
+  LIBRETRANSLATE_URL: z.string().url().optional(), // défaut http://127.0.0.1:5000
+  LIBRETRANSLATE_API_KEY: z.string().optional(),
 
   JAIL_ROLE_ID: z.string().optional(),
   URL_IN_BIO_ROLE_ID: z.string().optional(),
