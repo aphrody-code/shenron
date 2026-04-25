@@ -3,8 +3,18 @@ import { Client } from "@rpbey/discordx";
 import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";
 import { StatsService } from "~/services/StatsService";
-import { checkAdmin } from "./auth";
+import { checkAdmin, constantTimeEqual } from "./auth";
+import {
+	createSession,
+	verifySession,
+	readCookie,
+	buildSessionCookie,
+	buildLogoutCookie,
+} from "./session";
 import { CronRegistry } from "./cron-registry";
+// HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
+// Le HTML doit être au root du package pour que les chunks soient générés à la racine.
+import dashboardHtml from "../../dashboard.html";
 import {
 	TABLES,
 	getTableSpec,
@@ -79,16 +89,65 @@ export class ApiServer {
 			development: false,
 
 			routes: {
-				// ── Public ────────────────────────────────────────────────────
-				"/": () =>
+				// ── Dashboard SPA (HTML imports — Bun bundle scripts/CSS) ─────
+				"/": dashboardHtml,
+				"/login": dashboardHtml,
+				"/bot": dashboardHtml,
+				"/cron": dashboardHtml,
+				"/services": dashboardHtml,
+				"/database": dashboardHtml,
+				"/database/:table": dashboardHtml,
+				"/database/:table/:id": dashboardHtml,
+				"/stats": dashboardHtml,
+				"/audit": dashboardHtml,
+				"/settings": dashboardHtml,
+
+				// ── Auth (cookie session pour SPA) ────────────────────────────
+				"/auth/me": async (req) => {
+					const sessionCookie = readCookie(req, "shenron_session");
+					const session = await verifySession(sessionCookie);
+					return Response.json({ authenticated: !!session });
+				},
+				"/auth/login": {
+					POST: async (req) => {
+						if (!env.API_ADMIN_TOKEN) {
+							return Response.json({ error: "API_ADMIN_TOKEN non configuré" }, { status: 503 });
+						}
+						const body = (await req.json().catch(() => null)) as { token?: string } | null;
+						if (!body?.token || !constantTimeEqual(body.token, env.API_ADMIN_TOKEN)) {
+							return Response.json({ error: "Token invalide" }, { status: 401 });
+						}
+						const session = await createSession();
+						return new Response(JSON.stringify({ ok: true }), {
+							status: 200,
+							headers: {
+								"Content-Type": "application/json",
+								"Set-Cookie": buildSessionCookie(session),
+							},
+						});
+					},
+				},
+				"/auth/logout": {
+					POST: () =>
+						new Response(JSON.stringify({ ok: true }), {
+							status: 200,
+							headers: {
+								"Content-Type": "application/json",
+								"Set-Cookie": buildLogoutCookie(),
+							},
+						}),
+				},
+
+				// ── Public API ────────────────────────────────────────────────
+				"/api": () =>
 					Response.json({
 						name: "shenron-api",
 						version: "0.1.0",
 						compatible: "tscord controllers (barthofu/tscord-dashboard)",
-						endpoints: { docs: "/openapi", health: "/health/check" },
+						endpoints: { docs: "/openapi", health: "/api/health/check" },
 					}),
 				"/openapi": () => Response.json(buildOpenApiSpec(env.API_PORT)),
-				"/health/check": () => {
+				"/api/health/check": () => {
 					const client = container.resolve(Client);
 					return Response.json({
 						online: client.isReady(),
@@ -96,12 +155,12 @@ export class ApiServer {
 						version: process.env.npm_package_version ?? "0.1.0",
 					});
 				},
-				"/health/latency": () => Response.json(this.stats.getLatency()),
+				"/api/health/latency": () => Response.json(this.stats.getLatency()),
 
 				// ── Health admin ──────────────────────────────────────────────
-				"/health/usage": admin(async () => Response.json(await this.stats.getPidUsage())),
-				"/health/host": admin(async () => Response.json(await this.stats.getHostUsage())),
-				"/health/monitoring": admin(async () => {
+				"/api/health/usage": admin(async () => Response.json(await this.stats.getPidUsage())),
+				"/api/health/host": admin(async () => Response.json(await this.stats.getHostUsage())),
+				"/api/health/monitoring": admin(async () => {
 					const client = container.resolve(Client);
 					return Response.json({
 						botStatus: { online: client.isReady(), uptime: client.uptime },
@@ -110,7 +169,7 @@ export class ApiServer {
 						latency: this.stats.getLatency(),
 					});
 				}),
-				"/health/logs": admin(() =>
+				"/api/health/logs": admin(() =>
 					Response.json({
 						logs: [],
 						note: "Streaming pino non implémenté — utilise `journalctl -u shenron`",
@@ -118,14 +177,14 @@ export class ApiServer {
 				),
 
 				// ── Stats ─────────────────────────────────────────────────────
-				"/stats/totals": admin(async () =>
+				"/api/stats/totals": admin(async () =>
 					Response.json({ stats: await this.stats.getTotalStats() }),
 				),
-				"/stats/interaction/last": admin(() => Response.json(this.stats.getLastInteraction())),
-				"/stats/guilds/last": admin(() => Response.json(this.stats.getLastGuildAdded())),
+				"/api/stats/interaction/last": admin(() => Response.json(this.stats.getLastInteraction())),
+				"/api/stats/guilds/last": admin(() => Response.json(this.stats.getLastGuildAdded())),
 
 				// ── Bot ───────────────────────────────────────────────────────
-				"/bot/guilds": admin(() => {
+				"/api/bot/guilds": admin(() => {
 					const client = container.resolve(Client);
 					const guilds = [...client.guilds.cache.values()].map((g) => ({
 						id: g.id,
@@ -136,12 +195,12 @@ export class ApiServer {
 					}));
 					return Response.json({ guilds });
 				}),
-				"/bot/commands": admin(() => {
+				"/api/bot/commands": admin(() => {
 					const client = container.resolve(Client);
 					const commands = (client.applicationCommands ?? []).map((c) => serializeCommand(c));
 					return Response.json({ commands, count: commands.length });
 				}),
-				"/bot/commands/:name": admin((req) => {
+				"/api/bot/commands/:name": admin((req) => {
 					const client = container.resolve(Client);
 					const found = (client.applicationCommands ?? []).find(
 						(c: any) => c.name === req.params.name,
@@ -151,11 +210,11 @@ export class ApiServer {
 				}),
 
 				// ── Cron ──────────────────────────────────────────────────────
-				"/cron": admin(() => {
+				"/api/cron": admin(() => {
 					const cron = container.resolve(CronRegistry);
 					return Response.json({ jobs: cron.list() });
 				}),
-				"/cron/:name/trigger": {
+				"/api/cron/:name/trigger": {
 					POST: admin(async (req) => {
 						const cron = container.resolve(CronRegistry);
 						const result = await cron.run(req.params.name);
@@ -164,8 +223,8 @@ export class ApiServer {
 				},
 
 				// ── Services ──────────────────────────────────────────────────
-				"/services": admin(() => Response.json({ actions: listServiceActions() })),
-				"/services/:service/:action": {
+				"/api/services": admin(() => Response.json({ actions: listServiceActions() })),
+				"/api/services/:service/:action": {
 					POST: admin(async (req) => {
 						const action = findAction(req.params.service, req.params.action);
 						if (!action) return Response.json({ error: "Action inconnue" }, { status: 404 });
@@ -183,7 +242,7 @@ export class ApiServer {
 				},
 
 				// ── Database (CRUD générique whitelist) ───────────────────────
-				"/database/tables": admin(() =>
+				"/api/database/tables": admin(() =>
 					Response.json({
 						tables: TABLES.map((t) => ({
 							name: t.name,
@@ -194,7 +253,7 @@ export class ApiServer {
 						})),
 					}),
 				),
-				"/database/:table": {
+				"/api/database/:table": {
 					GET: admin(async (req) => {
 						const spec = getTableSpec(req.params.table);
 						if (!spec) return Response.json({ error: "Table inconnue" }, { status: 404 });
@@ -221,7 +280,7 @@ export class ApiServer {
 						}
 					}),
 				},
-				"/database/:table/:id": {
+				"/api/database/:table/:id": {
 					GET: admin(async (req) => {
 						const spec = getTableSpec(req.params.table);
 						if (!spec) return Response.json({ error: "Table inconnue" }, { status: 404 });
@@ -292,9 +351,9 @@ export class ApiServer {
 /** Wrapper qui injecte checkAdmin avant le handler. */
 function admin<R extends Request & { params: any }>(
 	handler: (req: R) => Response | Promise<Response>,
-): (req: R) => Response | Promise<Response> {
-	return (req) => {
-		const err = checkAdmin(req);
+): (req: R) => Promise<Response> {
+	return async (req) => {
+		const err = await checkAdmin(req);
 		if (err) return err;
 		return handler(req);
 	};
@@ -327,19 +386,19 @@ function buildOpenApiSpec(port: number) {
 		},
 		servers: [{ url: `http://127.0.0.1:${port}` }],
 		paths: {
-			"/health/check": { get: { summary: "Health public" } },
-			"/health/latency": { get: { summary: "WS + DB latency" } },
-			"/health/monitoring": { get: { summary: "Full monitoring", security: [{ bearer: [] }] } },
-			"/stats/totals": { get: { summary: "Totaux", security: [{ bearer: [] }] } },
-			"/bot/guilds": { get: { summary: "Guilds", security: [{ bearer: [] }] } },
-			"/bot/commands": { get: { summary: "Slash commands", security: [{ bearer: [] }] } },
-			"/cron": { get: { summary: "Cron jobs", security: [{ bearer: [] }] } },
+			"/api/health/check": { get: { summary: "Health public" } },
+			"/api/health/latency": { get: { summary: "WS + DB latency" } },
+			"/api/health/monitoring": { get: { summary: "Full monitoring", security: [{ bearer: [] }] } },
+			"/api/stats/totals": { get: { summary: "Totaux", security: [{ bearer: [] }] } },
+			"/api/bot/guilds": { get: { summary: "Guilds", security: [{ bearer: [] }] } },
+			"/api/bot/commands": { get: { summary: "Slash commands", security: [{ bearer: [] }] } },
+			"/api/cron": { get: { summary: "Cron jobs", security: [{ bearer: [] }] } },
 			"/cron/{name}/trigger": { post: { summary: "Trigger cron", security: [{ bearer: [] }] } },
-			"/services": { get: { summary: "Service actions", security: [{ bearer: [] }] } },
+			"/api/services": { get: { summary: "Service actions", security: [{ bearer: [] }] } },
 			"/services/{service}/{action}": {
 				post: { summary: "Run action", security: [{ bearer: [] }] },
 			},
-			"/database/tables": { get: { summary: "List tables", security: [{ bearer: [] }] } },
+			"/api/database/tables": { get: { summary: "List tables", security: [{ bearer: [] }] } },
 			"/database/{table}": {
 				get: { summary: "List rows", security: [{ bearer: [] }] },
 				post: { summary: "Insert row", security: [{ bearer: [] }] },
