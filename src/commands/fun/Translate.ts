@@ -24,12 +24,12 @@ import { logger } from "~/lib/logger";
 
 const IMAGE_EXT = /\.(png|jpe?g|webp|gif|bmp)(\?.*)?$/i;
 const TARGET_LANGS = [
-	{ name: "Français", value: "FR" },
-	{ name: "Anglais", value: "EN" },
-	{ name: "Espagnol", value: "ES" },
-	{ name: "Allemand", value: "DE" },
-	{ name: "Italien", value: "IT" },
-	{ name: "Japonais", value: "JA" },
+	{ name: "Français", value: "fr" },
+	{ name: "Anglais", value: "en" },
+	{ name: "Espagnol", value: "es" },
+	{ name: "Allemand", value: "de" },
+	{ name: "Italien", value: "it" },
+	{ name: "Japonais", value: "ja" },
 ];
 
 function pickImage(message: Message): Attachment | null {
@@ -59,7 +59,7 @@ function buildResultEmbed(args: {
 			{ name: `Source (${args.detected})`, value: codeBlock(args.source), inline: false },
 			{ name: `Traduction (${args.target})`, value: codeBlock(args.translated), inline: false },
 		)
-		.setFooter({ text: `OCR.space + DeepL${args.authorTag ? ` · ${args.authorTag}` : ""}` });
+		.setFooter({ text: `Tesseract + LibreTranslate${args.authorTag ? ` · ${args.authorTag}` : ""}` });
 }
 
 function codeBlock(text: string, max = 1000): string {
@@ -99,20 +99,6 @@ export class TranslateCommand {
 		target: string | undefined,
 		interaction: CommandInteraction,
 	) {
-		const avail = this.translator.available;
-		if (!avail.ocr || !avail.deepl) {
-			await interaction.reply({
-				embeds: [
-					errorEmbed(
-						"OCR / Traduction non configurés",
-						`Manquant : ${[!avail.ocr && "`OCR_SPACE_API_KEY`", !avail.deepl && "`DEEPL_API_KEY`"].filter(Boolean).join(", ")} dans le .env du bot.`,
-					),
-				],
-				flags: MessageFlags.Ephemeral,
-			});
-			return;
-		}
-
 		const imageUrl = attachment?.url ?? url;
 		if (!imageUrl) {
 			await interaction.reply({
@@ -124,7 +110,7 @@ export class TranslateCommand {
 
 		await interaction.deferReply();
 		try {
-			const result = await this.translator.ocrAndTranslate(imageUrl, target ?? "FR");
+			const result = await this.translator.ocrAndTranslate(imageUrl, target ?? "fr");
 			if (!result) {
 				await interaction.editReply({
 					embeds: [warningEmbed("Pas de texte détecté", "L'OCR n'a rien trouvé sur cette image.")],
@@ -138,7 +124,7 @@ export class TranslateCommand {
 						source: result.source,
 						translated: result.translated,
 						detected: result.detectedLang,
-						target: target ?? "FR",
+						target: target ?? "fr",
 						authorTag: interaction.user.tag,
 					}),
 				],
@@ -153,14 +139,6 @@ export class TranslateCommand {
 
 	@ContextMenu({ name: "Traduire en VF", type: ApplicationCommandType.Message })
 	async translateMessage(interaction: MessageContextMenuCommandInteraction) {
-		const avail = this.translator.available;
-		if (!avail.ocr || !avail.deepl) {
-			await interaction.reply({
-				embeds: [errorEmbed("OCR / DeepL non configurés.")],
-				flags: MessageFlags.Ephemeral,
-			});
-			return;
-		}
 		const target = interaction.targetMessage;
 		const image = pickImage(target);
 		if (!image) {
@@ -172,7 +150,7 @@ export class TranslateCommand {
 		}
 		await interaction.deferReply();
 		try {
-			const result = await this.translator.ocrAndTranslate(image.url, "FR");
+			const result = await this.translator.ocrAndTranslate(image.url, "fr");
 			if (!result) {
 				await interaction.editReply({
 					embeds: [warningEmbed("Pas de texte détecté.")],
@@ -186,7 +164,7 @@ export class TranslateCommand {
 						source: result.source,
 						translated: result.translated,
 						detected: result.detectedLang,
-						target: "FR",
+						target: "fr",
 						authorTag: target.author.tag,
 					}),
 				],

@@ -3,35 +3,31 @@ import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";
 
 /**
- * OCR.space : free tier 25k requêtes/mois, 1 MB par image.
- *   Endpoint  : https://api.ocr.space/parse/imageurl
- *   Doc       : https://ocr.space/ocrapi
+ * OCR + Traduction — stack 100 % FOSS, zero clé commerciale.
  *
- * DeepL Free : 500k caractères/mois.
- *   Endpoint  : https://api-free.deepl.com/v2/translate
- *   Doc       : https://developers.deepl.com/docs
+ * **OCR : Tesseract** (Apache 2.0)
+ *   Installé en système via apt :
+ *     sudo apt install tesseract-ocr tesseract-ocr-{fra,eng,jpn,spa,deu,ita}
+ *   Doc : https://tesseract-ocr.github.io
+ *   Spawn binaire CLI (Bun.spawn), pas de wrapper JS lourd ; image binaire
+ *   passée en stdin pour éviter tout fichier temporaire.
  *
- * Si la key DEEPL ressemble à un compte Pro (suffixe `:fx` absent), on bascule
- * automatiquement sur l'endpoint Pro.
+ * **Traduction : LibreTranslate** (AGPL-3.0)
+ *   Self-host recommandé via Docker :
+ *     docker run -d --restart unless-stopped --name libretranslate \
+ *       -p 127.0.0.1:5000:5000 \
+ *       libretranslate/libretranslate:latest \
+ *       --load-only en,fr,ja,es,de,it
+ *   Doc : https://github.com/LibreTranslate/LibreTranslate
+ *   API publique gratuite (limitée) sur https://libretranslate.com — nécessite
+ *   `LIBRETRANSLATE_API_KEY` car le free tier inscriptionnel a été ajouté.
+ *
+ * Endpoint configurable via `LIBRETRANSLATE_URL` (défaut http://127.0.0.1:5000).
  */
-
-const OCR_LANG_HINTS: Record<string, string> = {
-  en: "eng",
-  ja: "jpn",
-  ko: "kor",
-  zh: "chs",
-  es: "spa",
-  pt: "por",
-  de: "ger",
-  it: "ita",
-  ru: "rus",
-  auto: "eng",
-};
 
 export interface OcrResult {
   text: string;
   language: string;
-  exitCode: number;
 }
 
 export interface TranslateResult {
@@ -40,100 +36,101 @@ export interface TranslateResult {
   translated: string;
 }
 
+const DEFAULT_TESSERACT_LANGS = "fra+eng+jpn";
+const DEFAULT_LIBRETRANSLATE_URL = "http://127.0.0.1:5000";
+
 @singleton()
 export class TranslateService {
-  get available(): { ocr: boolean; deepl: boolean } {
+  get available(): { ocr: boolean; translate: boolean } {
     return {
-      ocr: !!env.OCR_SPACE_API_KEY,
-      deepl: !!env.DEEPL_API_KEY,
+      ocr: true, // assumé : on testera au runtime via spawn
+      translate: !!(env.LIBRETRANSLATE_URL ?? DEFAULT_LIBRETRANSLATE_URL),
     };
   }
 
-  async ocrFromUrl(imageUrl: string, languageHint = "auto"): Promise<OcrResult> {
-    if (!env.OCR_SPACE_API_KEY) throw new Error("OCR_SPACE_API_KEY non configurée.");
-    const lang = OCR_LANG_HINTS[languageHint] ?? "eng";
-    const body = new URLSearchParams({
-      url: imageUrl,
-      language: lang,
-      isOverlayRequired: "false",
-      detectOrientation: "true",
-      scale: "true",
-      OCREngine: "2",
-    });
-    const res = await fetch("https://api.ocr.space/parse/imageurl?" + body.toString(), {
-      method: "GET",
-      headers: { apikey: env.OCR_SPACE_API_KEY },
-    });
-    if (!res.ok) {
-      throw new Error(`OCR.space HTTP ${res.status}`);
+  /**
+   * OCR via tesseract CLI. Si le binaire est absent on lève une erreur
+   * explicite (le caller affiche un embed avec la commande apt à exécuter).
+   */
+  async ocrFromUrl(imageUrl: string, langs = DEFAULT_TESSERACT_LANGS): Promise<OcrResult> {
+    const res = await fetch(imageUrl);
+    if (!res.ok) throw new Error(`Téléchargement image HTTP ${res.status}`);
+    const buf = Buffer.from(await res.arrayBuffer());
+
+    try {
+      const proc = Bun.spawn(["tesseract", "stdin", "stdout", "-l", langs, "--psm", "6"], {
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+      proc.stdin.write(buf);
+      await proc.stdin.end();
+      const [stdout, stderr, exitCode] = await Promise.all([
+        new Response(proc.stdout).text(),
+        new Response(proc.stderr).text(),
+        proc.exited,
+      ]);
+      if (exitCode !== 0) {
+        const tail = stderr.split("\n").slice(-3).join(" ").trim();
+        throw new Error(`tesseract exit ${exitCode}: ${tail || "erreur inconnue"}`);
+      }
+      return { text: stdout.replace(/\r/g, "").trim(), language: langs };
+    } catch (err) {
+      if (err instanceof Error && /ENOENT|not found|spawn/.test(err.message)) {
+        throw new Error(
+          "`tesseract` introuvable. Installer avec : `sudo apt install tesseract-ocr tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-jpn`",
+        );
+      }
+      throw err;
     }
-    const data = (await res.json()) as {
-      ParsedResults?: Array<{ ParsedText: string; TextOverlay?: unknown }>;
-      OCRExitCode?: number;
-      IsErroredOnProcessing?: boolean;
-      ErrorMessage?: string | string[];
-    };
-    if (data.IsErroredOnProcessing) {
-      const msg = Array.isArray(data.ErrorMessage)
-        ? data.ErrorMessage.join(" / ")
-        : data.ErrorMessage;
-      throw new Error(`OCR.space: ${msg ?? "erreur inconnue"}`);
-    }
-    const text = (data.ParsedResults ?? [])
-      .map((p) => p.ParsedText ?? "")
-      .join("\n")
-      .replace(/\r/g, "")
-      .trim();
-    return { text, language: lang, exitCode: data.OCRExitCode ?? 0 };
   }
 
-  async deepl(text: string, target = "FR"): Promise<TranslateResult> {
-    if (!env.DEEPL_API_KEY) throw new Error("DEEPL_API_KEY non configurée.");
+  /**
+   * Traduction via LibreTranslate. Source en `auto` pour laisser le serveur
+   * détecter la langue. Si `LIBRETRANSLATE_API_KEY` est défini il est joint à
+   * la requête (publique libretranslate.com requiert une key gratuite).
+   */
+  async libretranslate(text: string, target = "fr"): Promise<TranslateResult> {
     if (!text.trim()) return { source: text, detectedLang: "—", translated: "" };
+    const base = (env.LIBRETRANSLATE_URL ?? DEFAULT_LIBRETRANSLATE_URL).replace(/\/+$/, "");
+    const endpoint = `${base}/translate`;
 
-    const isFree = env.DEEPL_API_KEY.endsWith(":fx");
-    const endpoint = isFree
-      ? "https://api-free.deepl.com/v2/translate"
-      : "https://api.deepl.com/v2/translate";
-
-    const body = new URLSearchParams({
-      text,
-      target_lang: target.toUpperCase(),
-    });
+    const body: Record<string, string> = {
+      q: text,
+      source: "auto",
+      target: target.toLowerCase(),
+      format: "text",
+    };
+    if (env.LIBRETRANSLATE_API_KEY) body.api_key = env.LIBRETRANSLATE_API_KEY;
 
     const res = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        Authorization: `DeepL-Auth-Key ${env.DEEPL_API_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30_000),
     });
     if (!res.ok) {
       const msg = await res.text().catch(() => "");
-      throw new Error(`DeepL HTTP ${res.status}: ${msg.slice(0, 200)}`);
+      throw new Error(`LibreTranslate HTTP ${res.status}: ${msg.slice(0, 200)}`);
     }
     const data = (await res.json()) as {
-      translations: Array<{ detected_source_language: string; text: string }>;
+      translatedText?: string;
+      detectedLanguage?: { language: string; confidence: number };
     };
-    const translation = data.translations?.[0];
-    if (!translation) {
-      throw new Error("DeepL: réponse vide.");
-    }
+    if (!data.translatedText) throw new Error("LibreTranslate: réponse vide.");
     return {
       source: text,
-      detectedLang: translation.detected_source_language,
-      translated: translation.text,
+      detectedLang: data.detectedLanguage?.language ?? "auto",
+      translated: data.translatedText,
     };
   }
 
-  /** OCR puis traduction. Retourne null si pas de texte détecté. */
-  async ocrAndTranslate(imageUrl: string, target = "FR"): Promise<TranslateResult | null> {
+  async ocrAndTranslate(imageUrl: string, target = "fr"): Promise<TranslateResult | null> {
     const ocr = await this.ocrFromUrl(imageUrl);
     if (!ocr.text) {
       logger.debug({ imageUrl }, "OCR aucun texte");
       return null;
     }
-    return this.deepl(ocr.text, target);
+    return this.libretranslate(ocr.text, target);
   }
 }
