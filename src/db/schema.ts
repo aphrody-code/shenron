@@ -315,6 +315,28 @@ export const guildSettings = sqliteTable("guild_settings", {
     .default(sql`(unixepoch() * 1000)`),
 });
 
+/**
+ * Templates configurables des messages que le bot envoie pour chaque événement
+ * (welcome, farewell, level_up, achievement_unlocked, daily_quest, first_message,
+ *  anti_link_jail, jail_expired, giveaway_winner, vocal_tempo_*).
+ *
+ * `event` — clé du catalogue (cf. `lib/message-templates.ts::EVENTS`).
+ * `template` — texte avec placeholders `{var}` (ex: `{user}`, `{level}`, `{xp}`).
+ *   Si null → utilise le défaut hardcodé du catalogue.
+ * `channelKey` — clé `guild_settings` du salon où envoyer (ex: `channel.announce`).
+ *   Si null → utilise le canal par défaut du catalogue.
+ * `enabled` — false pour désactiver complètement le message.
+ */
+export const messageTemplates = sqliteTable("message_templates", {
+  event: text("event").primaryKey(),
+  template: text("template"),
+  channelKey: text("channel_key"),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type InventoryItem = typeof inventory.$inferSelect;
@@ -331,3 +353,4 @@ export type DBPlanet = typeof dbPlanets.$inferSelect;
 export type DBCharacter = typeof dbCharacters.$inferSelect;
 export type DBTransformation = typeof dbTransformations.$inferSelect;
 export type GuildSetting = typeof guildSettings.$inferSelect;
+export type MessageTemplate = typeof messageTemplates.$inferSelect;

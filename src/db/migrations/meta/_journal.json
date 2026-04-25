@@ -15,6 +15,13 @@
       "when": 1777150666195,
       "tag": "0001_lazy_scrambler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777158496446,
+      "tag": "0002_modern_gamora",
+      "breakpoints": true
     }
   ]
 }
