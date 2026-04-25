@@ -8,6 +8,7 @@ import { env } from "~/lib/env";
 import { resolveAnnounceChannel } from "~/lib/announce";
 import { logger } from "~/lib/logger";
 import { ChannelType } from "discord.js";
+import { CronRegistry } from "~/api/cron-registry";
 
 interface VoiceSession {
   channelId: string;
@@ -24,11 +25,17 @@ export class VoiceXPEvent {
   constructor(
     @inject(LevelService) private levels: LevelService,
     @inject(VocalTempoService) private vts: VocalTempoService,
+    @inject(CronRegistry) private cron: CronRegistry,
   ) {}
 
   @Once({ event: "clientReady" })
   async startTicker([client]: [Client]) {
-    setInterval(() => this.tickXP(client).catch(() => {}), XP_VOICE_TICK_MS).unref();
+    this.cron.register({
+      name: "voice-xp-tick",
+      description: `Distribution d'XP pour les membres en vocal (toutes les ${XP_VOICE_TICK_MS / 1000}s)`,
+      intervalMs: XP_VOICE_TICK_MS,
+      fn: () => this.tickXP(client),
+    });
   }
 
   private async tickXP(client: Client) {

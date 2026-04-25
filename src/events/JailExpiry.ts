@@ -6,6 +6,7 @@ import { DatabaseService } from "~/db/index";
 import { jails } from "~/db/schema";
 import { ModerationService } from "~/services/ModerationService";
 import { env } from "~/lib/env";
+import { CronRegistry } from "~/api/cron-registry";
 
 @Discord()
 @injectable()
@@ -13,11 +14,17 @@ export class JailExpiryEvent {
   constructor(
     @inject(DatabaseService) private dbs: DatabaseService,
     @inject(ModerationService) private mod: ModerationService,
+    @inject(CronRegistry) private cron: CronRegistry,
   ) {}
 
   @Once({ event: "clientReady" })
   async start([client]: [Client]) {
-    setInterval(() => this.tick(client).catch(() => {}), 60_000).unref();
+    this.cron.register({
+      name: "jail-expiry",
+      description: "Auto-unjail des membres dont la peine expire",
+      intervalMs: 60_000,
+      fn: () => this.tick(client),
+    });
   }
 
   async tick(client: Client) {

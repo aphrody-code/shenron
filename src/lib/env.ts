@@ -35,6 +35,12 @@ const schema = z.object({
   LIBRETRANSLATE_URL: z.string().url().optional(), // défaut http://127.0.0.1:5000
   LIBRETRANSLATE_API_KEY: z.string().optional(),
 
+  // API REST (Bun.serve) — surface tscord-compatible pour dashboard
+  API_PORT: z.coerce.number().int().min(1).max(65535).default(5006),
+  API_HOST: z.string().default("127.0.0.1"),
+  API_ADMIN_TOKEN: z.string().min(16).optional(), // bearer token requis sur les routes /bot, /database, /stats, /health/monitoring|/logs
+  API_ENABLED: z.coerce.boolean().default(true),
+
   JAIL_ROLE_ID: z.string().optional(),
   URL_IN_BIO_ROLE_ID: z.string().optional(),
 
