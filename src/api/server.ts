@@ -16,6 +16,7 @@ import { LEVEL_THRESHOLDS } from "~/lib/constants";
 import { eq, sql, desc } from "drizzle-orm";
 import { users, levelRewards } from "~/db/schema";
 import { DatabaseService } from "~/db/index";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
@@ -169,6 +170,7 @@ export class ApiServer {
 				"/stats": dashboardHtml,
 				"/audit": dashboardHtml,
 				"/levels": dashboardHtml,
+				"/messages": dashboardHtml,
 				"/logs": dashboardHtml,
 				"/settings": dashboardHtml,
 
@@ -495,6 +497,158 @@ export class ApiServer {
 						const newZeni = body.mode === "set" ? body.amount : Math.max(0, current + body.amount);
 						await dbs.db.update(users).set({ zeni: newZeni }).where(eq(users.id, userId));
 						return Response.json({ ok: true, userId, previousZeni: current, newZeni });
+					}),
+				},
+
+				// ── Discord scan (channels, rôles, members) ───────────────────
+				// Source live depuis le cache Discord du bot (pas de fichier scan).
+				// Utilisé par le dashboard pour résoudre les IDs en noms.
+				"/api/discord/channels": admin(() => {
+					const client = container.resolve(Client);
+					const guild = client.guilds.cache.get(env.GUILD_ID);
+					if (!guild) return Response.json({ channels: [] });
+					const channels = [...guild.channels.cache.values()].map((c) => ({
+						id: c.id,
+						name: c.name,
+						type: c.type,
+						parentId: c.parentId,
+						position: "position" in c ? c.position : 0,
+					}));
+					channels.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+					return Response.json({ channels, count: channels.length });
+				}),
+				"/api/discord/roles": admin(() => {
+					const client = container.resolve(Client);
+					const guild = client.guilds.cache.get(env.GUILD_ID);
+					if (!guild) return Response.json({ roles: [] });
+					const roles = [...guild.roles.cache.values()]
+						.filter((r) => r.name !== "@everyone")
+						.map((r) => ({
+							id: r.id,
+							name: r.name,
+							color: r.color,
+							hoist: r.hoist,
+							position: r.position,
+							memberCount: r.members.size,
+							managed: r.managed,
+						}));
+					roles.sort((a, b) => b.position - a.position);
+					return Response.json({ roles, count: roles.length });
+				}),
+				"/api/discord/members": admin(async (req) => {
+					const client = container.resolve(Client);
+					const guild = client.guilds.cache.get(env.GUILD_ID);
+					if (!guild) return Response.json({ members: [] });
+					const url = new URL(req.url);
+					const limit = Math.min(1000, Number(url.searchParams.get("limit")) || 100);
+					const search = (url.searchParams.get("search") ?? "").toLowerCase();
+					let members = [...guild.members.cache.values()];
+					if (search) {
+						members = members.filter(
+							(m) =>
+								m.user.username.toLowerCase().includes(search) ||
+								m.displayName.toLowerCase().includes(search) ||
+								m.id.includes(search),
+						);
+					}
+					const result = members.slice(0, limit).map((m) => ({
+						id: m.id,
+						username: m.user.username,
+						displayName: m.displayName,
+						avatar: m.user.displayAvatarURL({ size: 64 }),
+						bot: m.user.bot,
+						joinedAt: m.joinedTimestamp ? new Date(m.joinedTimestamp).toISOString() : null,
+						roleIds: [...m.roles.cache.keys()],
+					}));
+					return Response.json({
+						members: result,
+						count: result.length,
+						total: guild.memberCount,
+					});
+				}),
+				"/api/discord/scan": admin(async () => {
+					const client = container.resolve(Client);
+					const guild = client.guilds.cache.get(env.GUILD_ID);
+					if (!guild) return Response.json({ error: "guild absente" }, { status: 404 });
+					const channels = [...guild.channels.cache.values()].map((c) => ({
+						id: c.id,
+						name: c.name,
+						type: c.type,
+						parentId: c.parentId,
+					}));
+					const roles = [...guild.roles.cache.values()].map((r) => ({
+						id: r.id,
+						name: r.name,
+						color: r.color,
+						position: r.position,
+					}));
+					return Response.json({
+						guild: {
+							id: guild.id,
+							name: guild.name,
+							memberCount: guild.memberCount,
+							iconUrl: guild.iconURL({ size: 256 }),
+						},
+						channels,
+						channelCount: channels.length,
+						roles,
+						roleCount: roles.length,
+						scannedAt: new Date().toISOString(),
+					});
+				}),
+
+				// ── Templates de messages événementiels ───────────────────────
+				"/api/messages": admin(async () => {
+					const svc = container.resolve(MessageTemplateService);
+					return Response.json({ events: await svc.list() });
+				}),
+				"/api/messages/:event": {
+					GET: admin(async (req) => {
+						const svc = container.resolve(MessageTemplateService);
+						const list = await svc.list();
+						const found = list.find((e) => e.event === req.params.event);
+						if (!found) return Response.json({ error: "Événement inconnu" }, { status: 404 });
+						return Response.json(found);
+					}),
+					POST: admin(async (req) => {
+						const svc = container.resolve(MessageTemplateService);
+						const body = (await req.json().catch(() => null)) as
+							| { template?: string | null; channelKey?: string | null; enabled?: boolean }
+							| null;
+						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
+						try {
+							await svc.upsert({
+								event: req.params.event,
+								template: body.template ?? null,
+								channelKey: body.channelKey ?? null,
+								enabled: body.enabled ?? true,
+							});
+							return Response.json({ ok: true });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "erreur" },
+								{ status: 400 },
+							);
+						}
+					}),
+					DELETE: admin(async (req) => {
+						const svc = container.resolve(MessageTemplateService);
+						await svc.reset(req.params.event);
+						return Response.json({ ok: true });
+					}),
+				},
+				"/api/messages/:event/preview": {
+					POST: admin(async (req) => {
+						const svc = container.resolve(MessageTemplateService);
+						const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+						try {
+							return Response.json(await svc.preview(req.params.event, body));
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "erreur" },
+								{ status: 400 },
+							);
+						}
 					}),
 				},
 

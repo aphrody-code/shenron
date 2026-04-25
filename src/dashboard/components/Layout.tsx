@@ -12,6 +12,7 @@ import {
   Settings as SettingsIcon,
   Terminal,
   Trophy,
+  MessageSquare,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { cn } from "../lib/utils";
@@ -23,6 +24,7 @@ const NAV = [
   { path: "/cron", label: "Tâches planifiées · 3", icon: Clock },
   { path: "/services", label: "Services · 15 actions", icon: Wrench },
   { path: "/levels", label: "Niveaux & XP", icon: Trophy },
+  { path: "/messages", label: "Messages du bot", icon: MessageSquare },
   { path: "/stats", label: "Statistiques", icon: BarChart3 },
   { path: "/audit", label: "Journal d'audit", icon: FileText },
   { path: "/logs", label: "Journaux du service", icon: Terminal },

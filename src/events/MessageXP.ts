@@ -15,9 +15,8 @@ import {
 } from "~/lib/constants";
 import { env } from "~/lib/env";
 import { randomInt } from "~/lib/xp";
-import { randomDailyQuestMessage } from "~/lib/dbz-flavor";
-import { resolveAnnounceChannel, resolveAchievementChannel } from "~/lib/announce";
-import { brandedEmbed } from "~/lib/embeds";
+import { resolveAnnounceChannel } from "~/lib/announce";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { ModerationService } from "~/services/ModerationService";
 import { logger } from "~/lib/logger";
 import dayjs from "dayjs";
@@ -31,6 +30,7 @@ export class MessageXPEvent {
     @inject(DatabaseService) private dbs: DatabaseService,
     @inject(ModerationService) private mod: ModerationService,
     @inject(AchievementService) private achievements: AchievementService,
+    @inject(MessageTemplateService) private msg: MessageTemplateService,
   ) {}
 
   @On({ event: "messageCreate" })
@@ -48,7 +48,11 @@ export class MessageXPEvent {
         await message.delete().catch(() => {});
         try {
           await this.mod.jail(message.member, message.client.user!.id, "Lien Discord externe détecté", 24 * 3600_000);
-          await message.channel.send({ content: `🔒 <@${userId}> a été jailé (lien Discord externe).` });
+          await this.msg.publish(
+            "anti_link_jail",
+            { user: `<@${userId}>`, url },
+            message.client,
+          );
         } catch (err) {
           logger.warn({ err }, "anti-link jail failed");
         }
@@ -68,7 +72,7 @@ export class MessageXPEvent {
       ("send" in message.channel ? message.channel : null);
     if (!announce) return;
 
-    // Quête quotidienne
+    // Quête quotidienne — message rendu par le template `daily_quest`.
     const today = dayjs(now).startOf("day").valueOf();
     const lastQuest = user.lastDailyQuestAt?.getTime() ?? 0;
     const isNewDay = lastQuest < today;
@@ -79,45 +83,30 @@ export class MessageXPEvent {
         .update(users)
         .set({ lastDailyQuestAt: new Date(now), dailyStreak: streak, zeni: user.zeni + ZENI_DAILY_QUEST })
         .where(eq(users.id, userId));
-      await announce.send(randomDailyQuestMessage(userId, ZENI_DAILY_QUEST, streak)).catch(() => {});
+      await this.msg.publish(
+        "daily_quest",
+        { user: `<@${userId}>`, zeni: ZENI_DAILY_QUEST, streak },
+        message.client,
+      );
     }
 
-    // Salon succès résolu LAZY uniquement si on a un succès à annoncer (sinon
-    // on ferait un client.channels.fetch HTTP par message → rate-limit Discord).
+    // Succès — résolution lazy via le template service (gère canal + texte).
     const isFirstMessage = user.messageCount === 0;
     const granted = await this.achievements.checkMessage(userId, message.content);
-    if (isFirstMessage || granted.length > 0) {
-      const achievementChannel =
-        (await resolveAchievementChannel(message.client, message.guild ?? undefined)) ?? announce;
-      if (isFirstMessage) {
-        await this.eco.grantAchievement(userId, "FIRST_MESSAGE");
-        await achievementChannel
-          .send({
-            content: `<@${userId}>`,
-            embeds: [
-              brandedEmbed({
-                title: "🏆 Accomplissement débloqué",
-                description: `<@${userId}> débloque **Premier message** !`,
-                kind: "brand",
-              }),
-            ],
-          })
-          .catch(() => {});
-      }
-      for (const code of granted) {
-        await achievementChannel
-          .send({
-            content: `<@${userId}>`,
-            embeds: [
-              brandedEmbed({
-                title: "🏆 Accomplissement débloqué",
-                description: `<@${userId}> débloque **${code}** !`,
-                kind: "brand",
-              }),
-            ],
-          })
-          .catch(() => {});
-      }
+    if (isFirstMessage) {
+      await this.eco.grantAchievement(userId, "FIRST_MESSAGE");
+      await this.msg.publish(
+        "first_message",
+        { user: `<@${userId}>`, userName: message.author.username },
+        message.client,
+      );
+    }
+    for (const code of granted) {
+      await this.msg.publish(
+        "achievement_unlocked",
+        { user: `<@${userId}>`, userName: message.author.username, code },
+        message.client,
+      );
     }
     await this.dbs.db.update(users).set({ messageCount: user.messageCount + 1 }).where(eq(users.id, userId));
 
