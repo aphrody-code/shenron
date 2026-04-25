@@ -13,6 +13,7 @@ import {
 import { Pagination } from "@rpbey/pagination";
 import { AttachmentBuilder } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";
@@ -21,7 +22,7 @@ import { LeaderboardService, type LeaderboardEntry } from "~/services/Leaderboar
 import { levelForXP, xpRequiredForLevel } from "~/lib/xp";
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class LevelCommands {
   constructor(

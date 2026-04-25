@@ -16,6 +16,7 @@ import {
 import { env } from "~/lib/env";
 import { randomInt } from "~/lib/xp";
 import { randomDailyQuestMessage } from "~/lib/dbz-flavor";
+import { resolveAnnounceChannel } from "~/lib/announce";
 import { ModerationService } from "~/services/ModerationService";
 import { logger } from "~/lib/logger";
 import dayjs from "dayjs";
@@ -61,6 +62,11 @@ export class MessageXPEvent {
     const now = Date.now();
     const last = user.lastMessageAt?.getTime() ?? 0;
 
+    const announce =
+      (await resolveAnnounceChannel(message.client, message.guild ?? undefined)) ??
+      ("send" in message.channel ? message.channel : null);
+    if (!announce) return;
+
     // Quête quotidienne
     const today = dayjs(now).startOf("day").valueOf();
     const lastQuest = user.lastDailyQuestAt?.getTime() ?? 0;
@@ -72,20 +78,20 @@ export class MessageXPEvent {
         .update(users)
         .set({ lastDailyQuestAt: new Date(now), dailyStreak: streak, zeni: user.zeni + ZENI_DAILY_QUEST })
         .where(eq(users.id, userId));
-      await message.channel.send(randomDailyQuestMessage(userId, ZENI_DAILY_QUEST, streak)).catch(() => {});
+      await announce.send(randomDailyQuestMessage(userId, ZENI_DAILY_QUEST, streak)).catch(() => {});
     }
 
     // Succès premier message
     if (user.messageCount === 0) {
       await this.eco.grantAchievement(userId, "FIRST_MESSAGE");
-      await message.channel.send(`🏆 <@${userId}> débloque l'accomplissement **Premier message** !`).catch(() => {});
+      await announce.send(`🏆 <@${userId}> débloque l'accomplissement **Premier message** !`).catch(() => {});
     }
     await this.dbs.db.update(users).set({ messageCount: user.messageCount + 1 }).where(eq(users.id, userId));
 
     // Succès déclenchés par pattern (table achievement_triggers)
     const granted = await this.achievements.checkMessage(userId, message.content);
     for (const code of granted) {
-      await message.channel.send(`🏆 <@${userId}> débloque l'accomplissement **${code}** !`).catch(() => {});
+      await announce.send(`🏆 <@${userId}> débloque l'accomplissement **${code}** !`).catch(() => {});
     }
 
     // XP cooldown
@@ -94,7 +100,7 @@ export class MessageXPEvent {
     await this.dbs.db.update(users).set({ lastMessageAt: new Date(now) }).where(eq(users.id, userId));
     const res = await this.levels.addXP(userId, gain);
     if (res.levelUp && message.member) {
-      await this.levels.handleLevelUp(message.member, res.newLevel, message.channel);
+      await this.levels.handleLevelUp(message.member, res.newLevel, announce);
     }
   }
 }

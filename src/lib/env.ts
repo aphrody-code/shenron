@@ -31,6 +31,8 @@ const schema = z.object({
 	LOG_LEVEL_ROLE_CHANNEL_ID: z.string().optional(),
 	LOG_TICKET_CHANNEL_ID: z.string().optional(),
 	MOD_NOTIFY_CHANNEL_ID: z.string().optional(),
+	COMMANDS_CHANNEL_ID: z.string().optional(),
+	ANNOUNCE_CHANNEL_ID: z.string().optional(),
 
 	JAIL_ROLE_ID: z.string().optional(),
 	URL_IN_BIO_ROLE_ID: z.string().optional(),

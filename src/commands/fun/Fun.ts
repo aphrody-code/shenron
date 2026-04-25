@@ -8,6 +8,7 @@ import {
   type User,
 } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { env } from "~/lib/env";
 import { GaugeService } from "~/services/GaugeService";
 
@@ -26,7 +27,7 @@ function stablePercent(userId: string, salt: string): number {
 }
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class FunCommands {
   constructor(@inject(GaugeService) private gauge: GaugeService) {}

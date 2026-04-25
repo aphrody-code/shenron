@@ -5,6 +5,7 @@ import { LevelService } from "~/services/LevelService";
 import { VocalTempoService } from "~/services/VocalTempoService";
 import { XP_PER_VOICE_TICK, XP_VOICE_TICK_MS, VOCAL_TEMPO_EMPTY_DELAY_MS } from "~/lib/constants";
 import { env } from "~/lib/env";
+import { resolveAnnounceChannel } from "~/lib/announce";
 import { logger } from "~/lib/logger";
 import { ChannelType } from "discord.js";
 
@@ -39,7 +40,10 @@ export class VoiceXPEvent {
       if (res.levelUp) {
         const guild = client.guilds.cache.first();
         const member = await guild?.members.fetch(userId).catch(() => null);
-        if (member) await this.levels.handleLevelUp(member, res.newLevel);
+        if (member) {
+          const announce = await resolveAnnounceChannel(client, guild);
+          await this.levels.handleLevelUp(member, res.newLevel, announce ?? undefined);
+        }
       }
     }
   }

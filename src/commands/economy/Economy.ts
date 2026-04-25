@@ -21,6 +21,7 @@ import {
 } from "discord.js";
 import { Pagination } from "@rpbey/pagination";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { EconomyService } from "~/services/EconomyService";
 import { FusionService } from "~/services/FusionService";
@@ -28,7 +29,7 @@ import { formatXP } from "~/lib/xp";
 import { fusionName } from "~/lib/fusion-names";
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class EconomyCommands {
   constructor(

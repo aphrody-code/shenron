@@ -9,11 +9,12 @@ import {
   type User,
 } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
+import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { EconomyService } from "~/services/EconomyService";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
 
 @Discord()
-@Guard(GuildOnly)
+@Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class BingoCommand {
   constructor(@inject(EconomyService) private eco: EconomyService) {}
