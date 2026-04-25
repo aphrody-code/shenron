@@ -11,6 +11,7 @@ import { Stats } from "./pages/Stats";
 import { Audit } from "./pages/Audit";
 import { Settings } from "./pages/Settings";
 import { Logs } from "./pages/Logs";
+import { Levels } from "./pages/Levels";
 import { api } from "./lib/api";
 
 interface Session {
@@ -65,6 +66,7 @@ function renderRoute(route: string, navigate: (path: string) => void) {
   if (route === "/services") return <Services />;
   if (route === "/bot") return <Bot />;
   if (route === "/stats") return <Stats />;
+  if (route === "/levels") return <Levels />;
   if (route === "/audit") return <Audit />;
   if (route === "/logs") return <Logs />;
   if (route === "/settings") return <Settings />;
