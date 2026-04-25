@@ -12,6 +12,10 @@ import {
 	buildLogoutCookie,
 } from "./session";
 import { CronRegistry } from "./cron-registry";
+import { LEVEL_THRESHOLDS } from "~/lib/constants";
+import { eq, sql, desc } from "drizzle-orm";
+import { users, levelRewards } from "~/db/schema";
+import { DatabaseService } from "~/db/index";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
@@ -164,6 +168,7 @@ export class ApiServer {
 				"/database/:table/:id": dashboardHtml,
 				"/stats": dashboardHtml,
 				"/audit": dashboardHtml,
+				"/levels": dashboardHtml,
 				"/logs": dashboardHtml,
 				"/settings": dashboardHtml,
 
@@ -355,6 +360,141 @@ export class ApiServer {
 								{ status: 400 },
 							);
 						}
+					}),
+				},
+
+				// ── Niveaux & XP (page dédiée /levels) ────────────────────────
+				"/api/levels/config": admin(async () => {
+					const dbs = container.resolve(DatabaseService);
+					// Lit les surcharges runtime depuis guild_settings (clés `xp.*` + `zeni.*`)
+					const settings = await dbs.db.select().from(
+						(await import("~/db/schema")).guildSettings,
+					);
+					const overrides = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+					return Response.json({
+						thresholds: LEVEL_THRESHOLDS,
+						defaults: {
+							"xp.message.min": 15,
+							"xp.message.max": 25,
+							"xp.message.cooldown_ms": 60_000,
+							"xp.voice.per_minute": 20,
+							"zeni.daily_quest": 200,
+							"zeni.per_level": 1_000,
+						},
+						overrides,
+					});
+				}),
+				"/api/levels/distribution": admin(async () => {
+					const dbs = container.resolve(DatabaseService);
+					// Compte les users dans chaque tranche de palier (basé sur user.xp).
+					const buckets = LEVEL_THRESHOLDS.map((t, i) => ({
+						level: t.level,
+						minXp: i === 0 ? 0 : LEVEL_THRESHOLDS[i - 1]!.xp,
+						maxXp: t.xp,
+					}));
+					const result: Array<{ level: number; minXp: number; maxXp: number; count: number }> = [];
+					for (const b of buckets) {
+						const [{ c = 0 } = { c: 0 }] = await dbs.db
+							.select({ c: sql<number>`COUNT(*)` })
+							.from(users)
+							.where(sql`${users.xp} >= ${b.minXp} AND ${users.xp} < ${b.maxXp}`);
+						result.push({ ...b, count: Number(c) });
+					}
+					// Bucket "au-delà" pour ceux qui dépassent le dernier seuil
+					const lastXp = LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1]!.xp;
+					const [{ c: cBeyond = 0 } = { c: 0 }] = await dbs.db
+						.select({ c: sql<number>`COUNT(*)` })
+						.from(users)
+						.where(sql`${users.xp} >= ${lastXp}`);
+					result.push({ level: 11, minXp: lastXp, maxXp: Number.MAX_SAFE_INTEGER, count: Number(cBeyond) });
+					return Response.json({ buckets: result });
+				}),
+				"/api/levels/rewards": admin(async () => {
+					const dbs = container.resolve(DatabaseService);
+					const rows = await dbs.db.select().from(levelRewards).orderBy(levelRewards.level);
+					return Response.json({ rewards: rows });
+				}),
+				"/api/levels/top": admin(async (req) => {
+					const dbs = container.resolve(DatabaseService);
+					const url = new URL(req.url);
+					const metric = (url.searchParams.get("metric") ?? "xp") as
+						| "xp"
+						| "zeni"
+						| "voice"
+						| "streak"
+						| "messages";
+					const limit = Math.min(50, Number(url.searchParams.get("limit")) || 10);
+					const col =
+						metric === "voice"
+							? users.totalVoiceMs
+							: metric === "streak"
+								? users.dailyStreak
+								: metric === "zeni"
+									? users.zeni
+									: metric === "messages"
+										? users.messageCount
+										: users.xp;
+					const rows = await dbs.db
+						.select({
+							id: users.id,
+							xp: users.xp,
+							zeni: users.zeni,
+							lastLevelReached: users.lastLevelReached,
+							messageCount: users.messageCount,
+							totalVoiceMs: users.totalVoiceMs,
+							dailyStreak: users.dailyStreak,
+						})
+						.from(users)
+						.orderBy(desc(col))
+						.limit(limit);
+					return Response.json({ metric, limit, users: rows });
+				}),
+				"/api/levels/users/:userId/xp": {
+					POST: admin(async (req) => {
+						const dbs = container.resolve(DatabaseService);
+						const userId = req.params.userId;
+						const body = (await req.json().catch(() => null)) as
+							| { mode: "set" | "add"; amount: number }
+							| null;
+						if (!body || !["set", "add"].includes(body.mode) || typeof body.amount !== "number") {
+							return Response.json({ error: "Body attendu : { mode: 'set'|'add', amount: number }" }, { status: 400 });
+						}
+						const existing = await dbs.db
+							.select()
+							.from(users)
+							.where(eq(users.id, userId))
+							.limit(1);
+						if (existing.length === 0) {
+							return Response.json({ error: "Utilisateur introuvable en base" }, { status: 404 });
+						}
+						const current = existing[0]!.xp;
+						const newXp = body.mode === "set" ? body.amount : Math.max(0, current + body.amount);
+						await dbs.db.update(users).set({ xp: newXp }).where(eq(users.id, userId));
+						return Response.json({ ok: true, userId, previousXp: current, newXp });
+					}),
+				},
+				"/api/levels/users/:userId/zeni": {
+					POST: admin(async (req) => {
+						const dbs = container.resolve(DatabaseService);
+						const userId = req.params.userId;
+						const body = (await req.json().catch(() => null)) as
+							| { mode: "set" | "add"; amount: number }
+							| null;
+						if (!body || !["set", "add"].includes(body.mode) || typeof body.amount !== "number") {
+							return Response.json({ error: "Body attendu : { mode: 'set'|'add', amount: number }" }, { status: 400 });
+						}
+						const existing = await dbs.db
+							.select()
+							.from(users)
+							.where(eq(users.id, userId))
+							.limit(1);
+						if (existing.length === 0) {
+							return Response.json({ error: "Utilisateur introuvable en base" }, { status: 404 });
+						}
+						const current = existing[0]!.zeni;
+						const newZeni = body.mode === "set" ? body.amount : Math.max(0, current + body.amount);
+						await dbs.db.update(users).set({ zeni: newZeni }).where(eq(users.id, userId));
+						return Response.json({ ok: true, userId, previousZeni: current, newZeni });
 					}),
 				},
 
