@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #fefce8;
+  --color-brand-100: #fef9c3;
+  --color-brand-400: #facc15;
+  --color-brand-500: #eab308;
+  --color-brand-600: #ca8a04;
+
+  --color-saiyan: #f59e0b;
+  --color-namek: #16a34a;
+  --color-power: #dc2626;
+}
+
+@layer base {
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * {
+    border-color: theme(colors.zinc.800);
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brand-500 text-zinc-950 hover:bg-brand-400;
+  }
+  .btn-ghost {
+    @apply text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-500;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm placeholder:text-zinc-500 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-md border border-zinc-700 bg-zinc-800/50 px-2 py-0.5 text-xs font-medium;
+  }
+  .badge-success { @apply border-green-700 bg-green-900/30 text-green-400; }
+  .badge-error   { @apply border-red-700   bg-red-900/30   text-red-400;   }
+  .badge-warning { @apply border-amber-700 bg-amber-900/30 text-amber-400; }
+}
