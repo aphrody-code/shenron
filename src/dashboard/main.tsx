@@ -2,7 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "./App";
-import "./styles.css";
+// CSS is loaded via <link> in dashboard.html (pre-compiled by `bun run dashboard:css`).
+// Importing here would bypass the compiled file and let Bun bundle the raw @import "tailwindcss"
+// without the Tailwind plugin → no utility classes generated.
 
 const queryClient = new QueryClient({
   defaultOptions: {

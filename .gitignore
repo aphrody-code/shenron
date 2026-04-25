@@ -41,3 +41,4 @@ COPILOT.md
 assets/backgrounds/
 .npmrc
 .bun-cache/
+styles.compiled.css
