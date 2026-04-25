@@ -11,6 +11,12 @@ import { guildSettings } from "~/db/schema";
  * - Cache mémoire (TTL 30s) pour éviter de hammerer la DB depuis les events
  *   chauds (MessageXP, VoiceXP).
  *
+ * **Mono-guild assumed** — le bot est verrouillé sur `env.GUILD_ID` (cf.
+ * `lib/env.ts`). La table `guild_settings` n'a pas de colonne `guild_id` à
+ * dessein. Si un jour on veut multi-guild, ajouter `guild_id text NOT NULL`
+ * + PK composite et filtrer toutes les queries — voir `Pendu.ts` et
+ * `Morpion.ts` Maps qui sont déjà global aussi.
+ *
  * Toujours documenter une nouvelle key dans `SETTINGS_KEYS` ci-dessous : ça
  * sert de schéma + autocomplete pour /config.
  */
@@ -93,6 +99,7 @@ export class SettingsService {
 				set: { value, updatedAt: new Date() },
 			});
 		this.cache.set(key, value);
+		this.cacheTs = Date.now(); // évite un refresh DB inutile juste après set
 	}
 
 	async unset(key: string): Promise<void> {

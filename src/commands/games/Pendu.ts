@@ -95,11 +95,11 @@ export class PenduCommand {
         ],
       });
       await interaction.reply(msg);
-      // GC après expiration
+      // GC après expiration (.unref() pour ne pas garder l'event-loop éveillé)
       setTimeout(() => {
         const c = challenges.get(key);
         if (c && c.expiresAt <= Date.now()) challenges.delete(key);
-      }, 65_000);
+      }, 65_000).unref();
       return;
     }
 
@@ -111,7 +111,8 @@ export class PenduCommand {
     const parsed = parseChallengeId(interaction.customId);
     if (!parsed) return;
     const challenge = challenges.get(parsed.key);
-    if (!challenge) {
+    if (!challenge || challenge.expiresAt <= Date.now()) {
+      challenges.delete(parsed.key);
       await interaction.update({ content: "Défi expiré.", embeds: [], components: [] }).catch(() => {});
       return;
     }
@@ -275,8 +276,8 @@ export class PenduCommand {
       .map((c) => (status !== "playing" || guessed.has(c) ? c : "·"))
       .join(" ")
       .toUpperCase();
-    const wrong = [...guessed].filter((l) => !word.includes(l)).sort().join(" · ").toUpperCase() || "—";
-    const right = [...guessed].filter((l) => word.includes(l)).sort().join(" · ").toUpperCase() || "—";
+    const wrong = [...guessed].filter((l) => !word.includes(l)).toSorted().join(" · ").toUpperCase() || "—";
+    const right = [...guessed].filter((l) => word.includes(l)).toSorted().join(" · ").toUpperCase() || "—";
 
     const color =
       status === "won" ? 0x22c55e : status === "lost" ? 0xef4444 : 0xfbbf24;

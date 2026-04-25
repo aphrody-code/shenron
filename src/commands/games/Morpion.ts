@@ -38,6 +38,13 @@ interface PendingChallenge {
 const games = new Map<string, Game>();
 const challenges = new Map<string, PendingChallenge>();
 
+// GC : une partie inactive > 30 min est supprimée. Évite la fuite mémoire si
+// les joueurs abandonnent sans cliquer "rejouer".
+const GAME_TTL_MS = 30 * 60_000;
+function scheduleGameGc(gameId: string) {
+  setTimeout(() => games.delete(gameId), GAME_TTL_MS).unref();
+}
+
 const WIN_LINES = [
   [0, 1, 2], [3, 4, 5], [6, 7, 8],
   [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -151,7 +158,7 @@ export class MorpionCommand {
         stake: `Gagnant **+${ZENI_GAME_WIN} z** · Perdant **-${ZENI_GAME_LOSS_PENALTY} z**`,
       });
       await interaction.reply(msg);
-      setTimeout(() => challenges.delete(key), 60_000);
+      setTimeout(() => challenges.delete(key), 60_000).unref();
       return;
     }
 
@@ -163,6 +170,7 @@ export class MorpionCommand {
       playerX: interaction.user.id,
       playerO: "BOT",
     });
+    scheduleGameGc(gameId);
     await interaction.reply({
       embeds: [buildBoardEmbed(games.get(gameId)!, "playing")],
       components: render(games.get(gameId)!, gameId),
@@ -204,6 +212,7 @@ export class MorpionCommand {
       playerX: challenge.challengerId,
       playerO: challenge.opponentId,
     });
+    scheduleGameGc(gameId);
     await interaction.update({
       content: "",
       embeds: [buildBoardEmbed(games.get(gameId)!, "playing")],
