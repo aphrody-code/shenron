@@ -150,6 +150,51 @@ class HttpError extends Error {
 }
 
 /**
+ * Sélectionne le format d'image préféré du client via le header `Accept`.
+ * Ordre de préférence : AVIF (~−60 % vs PNG) > WebP (~−30 %) > PNG (fallback).
+ *
+ * Tous les browsers modernes (Chrome 85+, Firefox 93+, Safari 16.4+, Edge 121+)
+ * supportent AVIF. Pour les vieux clients (curl, Discord embeds), on reste sur
+ * le format natif du service (PNG/WebP).
+ */
+function pickFormat(accept: string | null): "avif" | "webp" | "png" {
+	if (!accept) return "png";
+	const a = accept.toLowerCase();
+	if (a.includes("image/avif")) return "avif";
+	if (a.includes("image/webp")) return "webp";
+	return "png";
+}
+
+/**
+ * Re-encode un buffer image dans un autre format. Coût : ~50-100 ms côté CPU
+ * pour AVIF, ~30 ms pour WebP. Mitigé par le LRU cache qui mémorise par
+ * (path, query, format).
+ *
+ * Si format == format source, retourne le buffer tel quel (zéro coût).
+ */
+async function reEncode(
+	srcBuffer: Uint8Array,
+	srcType: string,
+	target: "avif" | "webp" | "png",
+	quality = 75,
+): Promise<Uint8Array> {
+	if (
+		(target === "png" && srcType === "image/png") ||
+		(target === "webp" && srcType === "image/webp") ||
+		(target === "avif" && srcType === "image/avif")
+	) {
+		return srcBuffer;
+	}
+	const { loadImage, createCanvas } = await import("@napi-rs/canvas");
+	const img = await loadImage(srcBuffer as unknown as Buffer);
+	const cv = createCanvas(img.width, img.height);
+	cv.getContext("2d").drawImage(img as never, 0, 0);
+	if (target === "png") return new Uint8Array(await cv.encode("png"));
+	if (target === "webp") return new Uint8Array(await cv.encode("webp", quality));
+	return new Uint8Array(await cv.encode("avif", { quality, speed: 7 }));
+}
+
+/**
  * Cache LRU générique pour réponses JSON (canaux Discord, rôles, members,
  * templates de messages, config niveaux). Même structure que le cache canvas
  * mais TTL configurable + ETag sur le payload sérialisé.
@@ -250,15 +295,29 @@ async function cachedImage(
 	render: () => Promise<Buffer | Uint8Array>,
 	cacheSeconds = 60,
 ): Promise<Response> {
-	const key = cacheKey(req);
+	const accept = req.headers.get("accept");
+	const targetFormat = pickFormat(accept);
+	// La clé de cache inclut le format pour ne pas servir un PNG quand AVIF demandé
+	const key = `${cacheKey(req)}#${targetFormat}`;
 	const ifNoneMatch = req.headers.get("if-none-match");
 
 	let entry = getCached(key);
 	if (!entry) {
 		try {
 			const buffer = await render();
-			const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-			const contentType = detectImageType(bytes);
+			let bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+			let contentType = detectImageType(bytes);
+
+			// Re-encode si le client préfère un format ≠ de celui retourné par le service
+			if (
+				(targetFormat === "avif" && contentType !== "image/avif") ||
+				(targetFormat === "webp" && contentType !== "image/webp")
+			) {
+				const reencoded = await reEncode(bytes, contentType, targetFormat);
+				bytes = reencoded;
+				contentType = `image/${targetFormat}`;
+			}
+
 			const etag = etagOf(bytes);
 			putCached(key, bytes, contentType, etag);
 			entry = { buffer: bytes, contentType, etag, expiresAt: Date.now() + CACHE_TTL_MS };
@@ -274,6 +333,7 @@ async function cachedImage(
 		"Content-Type": entry.contentType,
 		"Cache-Control": `public, max-age=${cacheSeconds}, must-revalidate`,
 		ETag: entry.etag,
+		Vary: "Accept",
 	};
 
 	if (ifNoneMatch && ifNoneMatch === entry.etag) {
