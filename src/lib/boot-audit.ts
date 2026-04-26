@@ -111,9 +111,15 @@ export async function runBootAudit(client: Client) {
     );
   }
   if (!tProbe.translate) {
-    problems.push(
-      `LibreTranslate injoignable (${env.LIBRETRANSLATE_URL ?? "http://127.0.0.1:5000"}) — /translate désactivé.`,
-    );
+    const reasons: string[] = [];
+    if (tProbe.lingva === false) reasons.push("aucune instance Lingva atteignable");
+    if (tProbe.google === false) reasons.push("Google gtx injoignable");
+    if (tProbe.libretranslate === false)
+      reasons.push(
+        `LibreTranslate injoignable (${env.LIBRETRANSLATE_URL ?? "http://127.0.0.1:5000"})`,
+      );
+    const detail = reasons.length > 0 ? reasons.join(", ") : "aucun provider disponible";
+    problems.push(`${detail} — /translate désactivé.`);
   }
 
   if (problems.length === 0) {

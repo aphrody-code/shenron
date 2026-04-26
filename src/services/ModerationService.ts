@@ -1,5 +1,5 @@
 import { singleton, inject } from "tsyringe";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, sql, gte, desc } from "drizzle-orm";
 import type { Guild, GuildMember } from "discord.js";
 import { DatabaseService } from "~/db/index";
 import { warns, jails, actionLogs } from "~/db/schema";
@@ -98,5 +98,106 @@ export class ModerationService {
       where: and(eq(jails.userId, userId), isNull(jails.releasedAt)),
       orderBy: (t, { desc }) => desc(t.createdAt),
     });
+  }
+
+  /** Warns actifs d'un membre — utilisé par /warns et le dashboard. */
+  async listActiveWarns(userId: string) {
+    return this.db
+      .select()
+      .from(warns)
+      .where(and(eq(warns.userId, userId), eq(warns.active, true)))
+      .orderBy(desc(warns.createdAt));
+  }
+
+  /** Tous les warns actifs (paginé) pour le dashboard. */
+  async listAllActiveWarns(limit = 100, offset = 0) {
+    const rows = await this.db
+      .select()
+      .from(warns)
+      .where(eq(warns.active, true))
+      .orderBy(desc(warns.createdAt))
+      .limit(limit)
+      .offset(offset);
+    const [count] = await this.db
+      .select({ c: sql<number>`count(*)` })
+      .from(warns)
+      .where(eq(warns.active, true));
+    return { rows, total: Number(count?.c ?? 0), limit, offset };
+  }
+
+  /** Désactive un warn par id (admin/dashboard). */
+  async unwarnById(warnId: number, moderatorId?: string): Promise<boolean> {
+    const w = await this.db.query.warns.findFirst({
+      where: and(eq(warns.id, warnId), eq(warns.active, true)),
+    });
+    if (!w) return false;
+    await this.db.update(warns).set({ active: false }).where(eq(warns.id, warnId));
+    await this.log("UNWARN", w.userId, moderatorId ?? null, `removed warn #${warnId}`);
+    return true;
+  }
+
+  /** Purge tous les warns actifs d'un membre. Retourne le nb supprimé. */
+  async clearWarns(userId: string, moderatorId: string): Promise<number> {
+    const active = await this.db
+      .select({ id: warns.id })
+      .from(warns)
+      .where(and(eq(warns.userId, userId), eq(warns.active, true)));
+    if (active.length === 0) return 0;
+    await this.db
+      .update(warns)
+      .set({ active: false })
+      .where(and(eq(warns.userId, userId), eq(warns.active, true)));
+    await this.log("CLEARWARNS", userId, moderatorId, undefined, { count: active.length });
+    return active.length;
+  }
+
+  /** Jails actifs (releasedAt is null). Pour le dashboard. */
+  async listActiveJails(limit = 100, offset = 0) {
+    const rows = await this.db
+      .select()
+      .from(jails)
+      .where(isNull(jails.releasedAt))
+      .orderBy(desc(jails.createdAt))
+      .limit(limit)
+      .offset(offset);
+    const [count] = await this.db
+      .select({ c: sql<number>`count(*)` })
+      .from(jails)
+      .where(isNull(jails.releasedAt));
+    return { rows, total: Number(count?.c ?? 0), limit, offset };
+  }
+
+  /** Note interne (pas de sanction Discord, pour traçabilité mod). */
+  async note(userId: string, moderatorId: string, content: string) {
+    await this.log("NOTE", userId, moderatorId, content);
+  }
+
+  /**
+   * Résumé des actions de modération sur la fenêtre `windowMs` (default 7 j).
+   * Renvoie le nombre d'occurrences par action — pour les KPIs du dashboard.
+   */
+  async statsWindow(windowMs = 7 * 86_400_000) {
+    const since = Date.now() - windowMs;
+    const rows = await this.db
+      .select({ action: actionLogs.action, c: sql<number>`count(*)` })
+      .from(actionLogs)
+      .where(gte(actionLogs.createdAt, new Date(since)))
+      .groupBy(actionLogs.action);
+    const out: Record<string, number> = {};
+    for (const r of rows) out[r.action] = Number(r.c);
+    return { windowMs, since, byAction: out };
+  }
+
+  /** Dernières N entrées d'audit (logs déjà filtrés par action whitelist). */
+  async recentActions(limit = 50, actionsFilter?: string[]) {
+    const q = this.db
+      .select()
+      .from(actionLogs)
+      .orderBy(desc(actionLogs.createdAt))
+      .limit(limit);
+    const rows = await q;
+    if (!actionsFilter?.length) return rows;
+    const set = new Set(actionsFilter);
+    return rows.filter((r) => set.has(r.action));
   }
 }

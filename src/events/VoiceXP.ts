@@ -3,9 +3,10 @@ import { Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
 import type { Client, GuildMember, VoiceBasedChannel } from "discord.js";
 import { LevelService } from "~/services/LevelService";
 import { VocalTempoService } from "~/services/VocalTempoService";
+import { SettingsService } from "~/services/SettingsService";
 import { XP_PER_VOICE_TICK, XP_VOICE_TICK_MS, VOCAL_TEMPO_EMPTY_DELAY_MS } from "~/lib/constants";
 import { env } from "~/lib/env";
-import { resolveAnnounceChannel } from "~/lib/announce";
+import { resolveLevelChannel } from "~/lib/announce";
 import { logger } from "~/lib/logger";
 import { ChannelType } from "discord.js";
 import { CronRegistry } from "~/api/cron-registry";
@@ -26,6 +27,7 @@ export class VoiceXPEvent {
     @inject(LevelService) private levels: LevelService,
     @inject(VocalTempoService) private vts: VocalTempoService,
     @inject(CronRegistry) private cron: CronRegistry,
+    @inject(SettingsService) private settings: SettingsService,
   ) {}
 
   @Once({ event: "clientReady" })
@@ -40,15 +42,34 @@ export class VoiceXPEvent {
 
   private async tickXP(client: Client) {
     const now = Date.now();
+    // Snapshot des boosts une fois par tick (cache 30s côté SettingsService)
+    const boosts = await this.settings.getXpBoostRoles();
+    const guild = client.guilds.cache.first();
+
     for (const [userId, sess] of this.sessions) {
       if (now - sess.lastTickAt < XP_VOICE_TICK_MS) continue;
       sess.lastTickAt = now;
-      const res = await this.levels.addXP(userId, XP_PER_VOICE_TICK);
+
+      // Boost XP par rôle — MAX (ne stack pas)
+      let gain = XP_PER_VOICE_TICK;
+      if (boosts.length > 0 && guild) {
+        const member = guild.members.cache.get(userId) ?? (await guild.members.fetch(userId).catch(() => null));
+        if (member) {
+          let maxMult = 1;
+          for (const b of boosts) {
+            if (member.roles.cache.has(b.roleId) && b.multiplier > maxMult) {
+              maxMult = b.multiplier;
+            }
+          }
+          if (maxMult > 1) gain = Math.floor(gain * maxMult);
+        }
+      }
+
+      const res = await this.levels.addXP(userId, gain);
       if (res.levelUp) {
-        const guild = client.guilds.cache.first();
         const member = await guild?.members.fetch(userId).catch(() => null);
         if (member) {
-          const announce = await resolveAnnounceChannel(client, guild);
+          const announce = await resolveLevelChannel(client, guild);
           await this.levels.handleLevelUp(member, res.newLevel, announce ?? undefined);
         }
       }

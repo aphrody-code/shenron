@@ -15,9 +15,10 @@ import {
 } from "~/lib/constants";
 import { env } from "~/lib/env";
 import { randomInt } from "~/lib/xp";
-import { resolveAnnounceChannel } from "~/lib/announce";
+import { resolveLevelChannel } from "~/lib/announce";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { ModerationService } from "~/services/ModerationService";
+import { SettingsService } from "~/services/SettingsService";
 import { logger } from "~/lib/logger";
 import dayjs from "dayjs";
 
@@ -31,6 +32,7 @@ export class MessageXPEvent {
     @inject(ModerationService) private mod: ModerationService,
     @inject(AchievementService) private achievements: AchievementService,
     @inject(MessageTemplateService) private msg: MessageTemplateService,
+    @inject(SettingsService) private settings: SettingsService,
   ) {}
 
   @On({ event: "messageCreate" })
@@ -68,7 +70,7 @@ export class MessageXPEvent {
     const last = user.lastMessageAt?.getTime() ?? 0;
 
     const announce =
-      (await resolveAnnounceChannel(message.client, message.guild ?? undefined)) ??
+      (await resolveLevelChannel(message.client, message.guild ?? undefined)) ??
       ("send" in message.channel ? message.channel : null);
     if (!announce) return;
 
@@ -112,7 +114,20 @@ export class MessageXPEvent {
 
     // XP cooldown
     if (now - last < XP_MESSAGE_COOLDOWN_MS) return;
-    const gain = randomInt(XP_PER_MESSAGE_MIN, XP_PER_MESSAGE_MAX);
+    let gain = randomInt(XP_PER_MESSAGE_MIN, XP_PER_MESSAGE_MAX);
+
+    // Boost XP par rôle — on prend le MAX (ne stack pas, comportement standard Discord)
+    if (message.member) {
+      const boosts = await this.settings.getXpBoostRoles();
+      let maxMult = 1;
+      for (const b of boosts) {
+        if (message.member.roles.cache.has(b.roleId) && b.multiplier > maxMult) {
+          maxMult = b.multiplier;
+        }
+      }
+      if (maxMult > 1) gain = Math.floor(gain * maxMult);
+    }
+
     await this.dbs.db.update(users).set({ lastMessageAt: new Date(now) }).where(eq(users.id, userId));
     const res = await this.levels.addXP(userId, gain);
     if (res.levelUp && message.member) {

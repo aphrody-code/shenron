@@ -3,13 +3,13 @@
  * Optimise les backgrounds pour usage canvas : resize max 1600×900, WebP q=82.
  * Cibles ≈ 100-250 KB par image (vs 500 KB - 7 MB en source).
  *
- * Utilise @napi-rs/canvas (déjà en dep) pour load + resize + encode WebP.
+ * Utilise @aphrody-code/canvas (déjà en dep) pour load + resize + encode WebP.
  *
  * Usage : bun scripts/optimize-backgrounds.ts
  */
 
 import { Glob } from "bun";
-import { createCanvas, loadImage } from "@napi-rs/canvas";
+import { createCanvas, loadImage } from "@aphrody-code/canvas";
 
 const MAX_W = 1600;
 const MAX_H = 900;

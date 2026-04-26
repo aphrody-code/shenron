@@ -117,9 +117,9 @@ export class LeaderboardService {
       avR: number;
       height: number;
     }> = [];
-    if (podium.length >= 1) slots.push({ rank: 1, cx: W / 2, cy: 220, avR: 70, height: 210 });
-    if (podium.length >= 2) slots.push({ rank: 2, cx: W / 2 - 260, cy: 260, avR: 56, height: 170 });
-    if (podium.length >= 3) slots.push({ rank: 3, cx: W / 2 + 260, cy: 260, avR: 56, height: 140 });
+    if (podium.length >= 1) slots.push({ rank: 1, cx: W / 2, cy: 200, avR: 62, height: 130 });
+    if (podium.length >= 2) slots.push({ rank: 2, cx: W / 2 - 260, cy: 230, avR: 50, height: 110 });
+    if (podium.length >= 3) slots.push({ rank: 3, cx: W / 2 + 260, cy: 230, avR: 50, height: 90 });
 
     for (const slot of slots) {
       const entry = podium[slot.rank - 1];
@@ -129,8 +129,8 @@ export class LeaderboardService {
 
     // ── Liste (positions 4-10) ─────────────────────────────────────────
     const rest = entries.slice(3);
-    const LIST_Y = 450;
-    const ROW_H = 34;
+    const LIST_Y = 430;
+    const ROW_H = 36;
     const LIST_X = 80;
     const LIST_W = W - 160;
 
@@ -162,14 +162,14 @@ export class LeaderboardService {
 
         // XP (scouter style)
         textWithShadow(ctx, `${kiScouterLabel(e.xp)} u`, LIST_X + LIST_W - 160, y + 15, {
-          font: "500 14px 'DBS Scouter', 'Inter', monospace",
+          font: "500 16px 'Teko SemiBold', 'Inter', sans-serif",
           color: "#f9a8d4",
           align: "left",
         });
 
         // Zéni
         textWithShadow(ctx, `${kiScouterLabel(e.zeni)} z`, LIST_X + LIST_W - 80, y + 15, {
-          font: "500 14px 'DBS Scouter', 'Inter', monospace",
+          font: "500 16px 'Teko SemiBold', 'Inter', sans-serif",
           color: "#fbbf24",
           align: "left",
         });
@@ -225,14 +225,17 @@ export class LeaderboardService {
     ctx.stroke();
     ctx.restore();
 
-    // Numéro sur le piédestal
-    textStroked(ctx, String(rank), cx, P_TOP_Y + P_H - 32, {
-      font: "bold 72px 'Saiyan Sans', 'Inter Display Black', sans-serif",
+    // Numéro en watermark derrière le score (alpha bas, ne masque pas l'XP)
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    textStroked(ctx, String(rank), cx, P_TOP_Y + P_H - 10, {
+      font: "bold 88px 'Saiyan Sans', 'Inter Display Black', sans-serif",
       color: medal.ring,
-      stroke: "rgba(0,0,0,0.8)",
-      strokeWidth: 4,
+      stroke: "rgba(0,0,0,0.6)",
+      strokeWidth: 3,
       align: "center",
     });
+    ctx.restore();
 
     // Aura autour de l'avatar (3 couches additive)
     ctx.save();
@@ -282,17 +285,19 @@ export class LeaderboardService {
       align: "center",
     });
 
-    // Score (XP scouter-style) au milieu du piédestal
-    textWithShadow(ctx, kiScouterLabel(entry.xp), cx, P_TOP_Y + 38, {
-      font: "bold 26px 'DBS Scouter', 'Inter Display Black', monospace",
+    // Score (XP scouter-style) — devant le watermark rang, dominant
+    textWithShadow(ctx, kiScouterLabel(entry.xp), cx, P_TOP_Y + P_H / 2 + 4, {
+      font: "32px 'Teko Bold', 'Inter Display Black', Impact, sans-serif",
       color: medal.ring,
-      shadow: "rgba(0,0,0,0.9)",
-      blur: 8,
+      shadow: "rgba(0,0,0,0.95)",
+      blur: 10,
       align: "center",
     });
-    textWithShadow(ctx, "unités", cx, P_TOP_Y + 58, {
-      font: "500 12px 'Inter', sans-serif",
-      color: "rgba(255,255,255,0.6)",
+    textWithShadow(ctx, "unités", cx, P_TOP_Y + P_H / 2 + 22, {
+      font: "500 11px 'Inter', sans-serif",
+      color: "rgba(255,255,255,0.7)",
+      shadow: "rgba(0,0,0,0.9)",
+      blur: 4,
       align: "center",
     });
   }

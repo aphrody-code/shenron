@@ -77,4 +77,37 @@ export class AchievementService {
     await this.dbs.db.delete(achievementTriggers).where(eq(achievementTriggers.code, code));
     await this.refresh();
   }
+
+  /** Active ou désactive un trigger sans le supprimer. */
+  async setEnabled(code: string, enabled: boolean): Promise<boolean> {
+    const existing = await this.dbs.db
+      .select()
+      .from(achievementTriggers)
+      .where(eq(achievementTriggers.code, code))
+      .limit(1);
+    if (existing.length === 0) return false;
+    await this.dbs.db
+      .update(achievementTriggers)
+      .set({ enabled })
+      .where(eq(achievementTriggers.code, code));
+    await this.refresh();
+    return true;
+  }
+
+  /** Teste un pattern contre une chaîne — utile pour debug avant /succes set. */
+  async test(code: string, sample: string): Promise<{ match: boolean; pattern: string; flags: string } | null> {
+    const existing = await this.dbs.db
+      .select()
+      .from(achievementTriggers)
+      .where(eq(achievementTriggers.code, code))
+      .limit(1);
+    const t = existing[0];
+    if (!t) return null;
+    try {
+      const re = new RegExp(t.pattern, t.flags ?? "i");
+      return { match: re.test(sample), pattern: t.pattern, flags: t.flags ?? "i" };
+    } catch {
+      return { match: false, pattern: t.pattern, flags: t.flags ?? "i" };
+    }
+  }
 }

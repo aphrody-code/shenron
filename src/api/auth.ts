@@ -1,14 +1,16 @@
 import { env } from "~/lib/env";
+import { getBetterAuthSession } from "~/lib/better-auth";
 import { readCookie, verifySession } from "./session";
 
 /**
  * Auth admin pour les routes protégées de l'API.
  *
- * Deux mécanismes :
- *   1. **Bearer token** (`Authorization: Bearer <API_ADMIN_TOKEN>`) — pour les
- *      clients API externes (curl, autre app, dashboard self-hosted ailleurs).
- *   2. **Cookie session** (`shenron_session=<signed>`) — pour le dashboard SPA
- *      embarqué : posé après /auth/login, vérifié HMAC SHA-256.
+ * Trois mécanismes :
+ *   1. **Bearer token** (`Authorization: Bearer <API_ADMIN_TOKEN>`) — clients API.
+ *   2. **Better Auth** (`shenron_ba_session_token` cookie + DB ba_session) —
+ *      flow OAuth Discord moderne, geré par /api/auth/* (Better Auth handler).
+ *   3. **Cookie session HMAC** (`shenron_session=<signed>`) — flow legacy
+ *      `/auth/login` (token) ou `/auth/discord` (manuel).
  *
  * Si aucun ne match → 401.
  */
@@ -20,7 +22,7 @@ export async function checkAdmin(req: Request): Promise<Response | null> {
     );
   }
 
-  // Bearer token
+  // 1. Bearer token
   const auth = req.headers.get("authorization");
   if (auth?.startsWith("Bearer ")) {
     const token = auth.slice(7).trim();
@@ -28,7 +30,11 @@ export async function checkAdmin(req: Request): Promise<Response | null> {
     return Response.json({ error: "Token invalide." }, { status: 401 });
   }
 
-  // Cookie session (dashboard SPA)
+  // 2. Better Auth (cookie BA + DB session)
+  const baSession = await getBetterAuthSession(req);
+  if (baSession?.user) return null;
+
+  // 3. Cookie session HMAC legacy
   const sessionCookie = readCookie(req, "shenron_session");
   const session = await verifySession(sessionCookie);
   if (session) return null;

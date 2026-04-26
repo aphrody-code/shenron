@@ -11,7 +11,30 @@ import {
 	buildSessionCookie,
 	buildLogoutCookie,
 } from "./session";
+import {
+	getOAuthConfig,
+	buildAuthorizeUrl,
+	generateState,
+	buildStateCookie,
+	clearStateCookie,
+	exchangeCode,
+	fetchUser,
+	isUserAllowed,
+	revokeToken,
+} from "./oauth";
+import { getDiscordSession } from "./oauth-session";
+import { discordFetch, DiscordRESTError } from "~/lib/discord-rest";
+import { userAvatar, guildIcon } from "~/lib/discord-cdn";
+import {
+	createChannelWebhook,
+	deleteWebhook,
+	executeWebhook,
+	listChannelWebhooks,
+	listGuildWebhooks,
+	type ExecuteWebhookPayload,
+} from "~/lib/discord-webhook";
 import { CronRegistry } from "./cron-registry";
+import { ModerationService } from "~/services/ModerationService";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
 import { eq, sql, desc } from "drizzle-orm";
 import { users, levelRewards } from "~/db/schema";
@@ -25,6 +48,15 @@ import { LevelService } from "~/services/LevelService";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
+import { handleBetterAuthRequest, getBetterAuthSession } from "~/lib/better-auth";
+import { EventBusService } from "~/services/EventBusService";
+
+// Extrait le hash avatar depuis une URL CDN Discord
+// `https://cdn.discordapp.com/avatars/{id}/{hash}.{ext}` → `{hash}`
+function extractDiscordAvatarHash(url: string): string | null {
+	const m = /\/avatars\/\d+\/([a-z0-9_]+)\.(?:png|jpg|jpeg|webp|gif)/i.exec(url);
+	return m?.[1] ?? null;
+}
 
 // Helper pour servir un fichier statique du dossier `public/` avec content-type
 // inféré + cache long (les favicons ont un hash via le manifest, donc immutable
@@ -263,7 +295,9 @@ async function cachedJson<T>(
 /** Invalide le cache JSON pour une clé prefix (ex: après un POST `/messages/:event`). */
 function invalidateJsonCache(prefix: string): number {
 	let n = 0;
-	for (const k of [...jsonCache.keys()]) {
+	// Snapshot des clés pour pouvoir delete pendant l'itération sans invalider l'iterator.
+	const keys = Array.from(jsonCache.keys());
+	for (const k of keys) {
 		if (k.startsWith(prefix)) {
 			jsonCache.delete(k);
 			n++;
@@ -479,6 +513,8 @@ export class ApiServer {
 				// ── Dashboard SPA (HTML imports — Bun bundle scripts/CSS) ─────
 				"/": dashboardHtml,
 				"/login": dashboardHtml,
+				"/profile": dashboardHtml,
+				"/webhooks": dashboardHtml,
 				"/bot": dashboardHtml,
 				"/cron": dashboardHtml,
 				"/services": dashboardHtml,
@@ -487,6 +523,7 @@ export class ApiServer {
 				"/database/:table/:id": dashboardHtml,
 				"/stats": dashboardHtml,
 				"/audit": dashboardHtml,
+				"/moderation": dashboardHtml,
 				"/levels": dashboardHtml,
 				"/messages": dashboardHtml,
 				"/canvas": dashboardHtml,
@@ -505,10 +542,107 @@ export class ApiServer {
 				"/manifest.webmanifest": staticFile("public/manifest.webmanifest", "application/manifest+json"),
 
 				// ── Auth (cookie session pour SPA) ────────────────────────────
+				// Vérifie les 2 sources : Better Auth (table ba_session) ET cookie HMAC
+				// legacy (shenron_session). Le 1er match wins.
 				"/auth/me": async (req) => {
+					// 1. Better Auth ?
+					const baSession = await getBetterAuthSession(req);
+					if (baSession?.user) {
+						const u = baSession.user;
+						const discordId = u.id; // Better Auth User.id n'est PAS le snowflake Discord
+						// On essaie de retrouver l'accountId Discord en DB pour avoir le vrai snowflake
+						return Response.json({
+							authenticated: true,
+							user: {
+								id: discordId,
+								username: u.name,
+								avatar: u.image ? extractDiscordAvatarHash(u.image) : null,
+								avatarUrl: u.image ?? null,
+								email: u.email ?? null,
+								source: "better-auth",
+							},
+						});
+					}
+
+					// 2. Session HMAC legacy ?
 					const sessionCookie = readCookie(req, "shenron_session");
 					const session = await verifySession(sessionCookie);
-					return Response.json({ authenticated: !!session });
+					if (!session) return Response.json({ authenticated: false });
+					const user = session.userId
+						? {
+								id: session.userId,
+								username: session.username,
+								avatar: session.avatar ?? null,
+								avatarUrl: userAvatar(session.userId, session.avatar, { size: 128 }),
+								email: session.email ?? null,
+								source: session.source,
+						  }
+						: { source: session.source };
+					return Response.json({ authenticated: true, user });
+				},
+				"/auth/discord": (req) => {
+					const config = getOAuthConfig();
+					if (!config) {
+						return new Response(
+							"OAuth Discord non configuré (DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, OAUTH_REDIRECT_URI requis).",
+							{ status: 503 },
+						);
+					}
+					const state = generateState();
+					const url = buildAuthorizeUrl(config, state);
+					return new Response(null, {
+						status: 302,
+						headers: { Location: url, "Set-Cookie": buildStateCookie(state) },
+					});
+				},
+				"/auth/callback": async (req) => {
+					const config = getOAuthConfig();
+					if (!config) return new Response("OAuth non configuré", { status: 503 });
+					const url = new URL(req.url);
+					const code = url.searchParams.get("code");
+					const state = url.searchParams.get("state");
+					const expected = readCookie(req, "shenron_oauth_state");
+					if (!code || !state || !expected || state !== expected) {
+						return new Response("Paramètres OAuth invalides ou state mismatch.", {
+							status: 400,
+							headers: { "Set-Cookie": clearStateCookie() },
+						});
+					}
+					try {
+						const tokens = await exchangeCode(config, code);
+						const user = await fetchUser(tokens.access_token);
+						if (!isUserAllowed(user.id)) {
+							logger.warn({ userId: user.id, username: user.username }, "OAuth login refusé : user hors whitelist");
+							return new Response(
+								`Accès refusé : ${user.username} (${user.id}) n'est pas dans la whitelist.`,
+								{ status: 403, headers: { "Set-Cookie": clearStateCookie() } },
+							);
+						}
+						const session = await createSession({
+							userId: user.id,
+							username: user.global_name ?? user.username,
+							avatar: user.avatar,
+							email: user.email,
+							accessToken: tokens.access_token,
+							refreshToken: tokens.refresh_token ?? "",
+							accessTokenExpiresAt: Date.now() + tokens.expires_in * 1000,
+						});
+						logger.info({ userId: user.id, username: user.username }, "OAuth login réussi");
+						return new Response(null, {
+							status: 302,
+							headers: [
+								["Location", "/"],
+								["Set-Cookie", clearStateCookie()],
+								["Set-Cookie", buildSessionCookie(session)],
+							],
+						});
+					} catch (err) {
+						logger.error({ err }, "OAuth callback failed");
+						return new Response(
+							`OAuth callback erreur : ${err instanceof Error ? err.message : String(err)}`,
+							{ status: 500, headers: { "Set-Cookie": clearStateCookie() } },
+						);
+					}
 				},
 				"/auth/login": {
 					POST: async (req) => {
@@ -530,14 +664,22 @@ export class ApiServer {
 					},
 				},
 				"/auth/logout": {
-					POST: () =>
-						new Response(JSON.stringify({ ok: true }), {
+					POST: async (req) => {
+						// Best-effort revocation des tokens OAuth côté Discord (pas bloquant).
+						const sessionCookie = readCookie(req, "shenron_session");
+						const session = await verifySession(sessionCookie);
+						const config = getOAuthConfig();
+						if (session?.accessToken && config) {
+							void revokeToken(config, session.accessToken);
+						}
+						return new Response(JSON.stringify({ ok: true }), {
 							status: 200,
 							headers: {
 								"Content-Type": "application/json",
 								"Set-Cookie": buildLogoutCookie(),
 							},
-						}),
+						});
+					},
 				},
 
 				// ── Public API ────────────────────────────────────────────────
@@ -665,6 +807,237 @@ export class ApiServer {
 					}),
 				},
 
+				// ── Discord proxy (REST scoped sur la session OAuth user OU bot) ──
+				// Toutes ces routes requièrent admin (cookie session OU Bearer admin).
+				// Les routes en mode "Bearer" requièrent en plus une session OAuth Discord.
+				"/api/discord/me": admin(async (req) => {
+					const sess = await getDiscordSession(req);
+					if (!sess) return Response.json({ error: "OAuth session requise" }, { status: 401 });
+					try {
+						const { data } = await discordFetch<any>("/users/@me", {
+							mode: "Bearer",
+							token: sess.payload.accessToken,
+						});
+						const headers = new Headers({ "Content-Type": "application/json" });
+						if (sess.refreshedCookie) headers.append("Set-Cookie", sess.refreshedCookie);
+						return new Response(JSON.stringify({ user: data }), { headers });
+					} catch (err) {
+						const status = err instanceof DiscordRESTError ? err.status : 500;
+						return Response.json({ error: String(err) }, { status });
+					}
+				}),
+				"/api/discord/guilds": admin(async (req) => {
+					const sess = await getDiscordSession(req);
+					if (!sess) return Response.json({ error: "OAuth session requise" }, { status: 401 });
+					try {
+						const { data } = await discordFetch<any[]>("/users/@me/guilds?with_counts=true", {
+							mode: "Bearer",
+							token: sess.payload.accessToken,
+						});
+						const guilds = data.map((g: any) => ({
+							id: g.id,
+							name: g.name,
+							icon: g.icon,
+							iconUrl: guildIcon(g.id, g.icon, { size: 128 }),
+							owner: g.owner,
+							permissions: g.permissions,
+							features: g.features,
+							approximate_member_count: g.approximate_member_count,
+							approximate_presence_count: g.approximate_presence_count,
+							isCurrent: g.id === env.GUILD_ID,
+						}));
+						const headers = new Headers({ "Content-Type": "application/json" });
+						if (sess.refreshedCookie) headers.append("Set-Cookie", sess.refreshedCookie);
+						return new Response(JSON.stringify({ guilds }), { headers });
+					} catch (err) {
+						const status = err instanceof DiscordRESTError ? err.status : 500;
+						return Response.json({ error: String(err) }, { status });
+					}
+				}),
+				"/api/discord/guild-member": admin(async (req) => {
+					// Membership du user OAuth dans la guild courante (roles, nick, joined_at)
+					const sess = await getDiscordSession(req);
+					if (!sess) return Response.json({ error: "OAuth session requise" }, { status: 401 });
+					try {
+						const { data } = await discordFetch<any>(
+							`/users/@me/guilds/${env.GUILD_ID}/member`,
+							{ mode: "Bearer", token: sess.payload.accessToken },
+						);
+						const headers = new Headers({ "Content-Type": "application/json" });
+						if (sess.refreshedCookie) headers.append("Set-Cookie", sess.refreshedCookie);
+						return new Response(JSON.stringify({ member: data }), { headers });
+					} catch (err) {
+						const status = err instanceof DiscordRESTError ? err.status : 500;
+						return Response.json({ error: String(err) }, { status });
+					}
+				}),
+				"/api/discord/guild": admin(async () => {
+					try {
+						const { data } = await discordFetch<any>(
+							`/guilds/${env.GUILD_ID}?with_counts=true`,
+							{ mode: "Bot" },
+						);
+						return Response.json({ guild: data });
+					} catch (err) {
+						const status = err instanceof DiscordRESTError ? err.status : 500;
+						return Response.json({ error: String(err) }, { status });
+					}
+				}),
+				// ── Server-Sent Events ────────────────────────────────────────
+				// Stream live des events bot → dashboard (sync sans poll).
+				// Subscribers : 1 par tab dashboard ouvert.
+				"/api/events": admin((req) => {
+					const bus = container.resolve(EventBusService);
+					const encoder = new TextEncoder();
+
+					const stream = new ReadableStream({
+						start(controller) {
+							const send = (data: object) => {
+								try {
+									controller.enqueue(
+										encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+									);
+								} catch {
+									// stream fermé côté client — on ignore
+								}
+							};
+
+							// Hello immédiat
+							send({ name: "hello", payload: { ts: Date.now(), subs: bus.size() } });
+
+							// Subscribe
+							const unsub = bus.subscribe((event) => send(event));
+
+							// Keepalive 25s (nginx coupe à 60s par défaut)
+							const ka = setInterval(() => send({ name: "ping", payload: { t: Date.now() } }), 25_000);
+
+							// Abort sur fermeture client
+							req.signal.addEventListener("abort", () => {
+								clearInterval(ka);
+								unsub();
+								try {
+									controller.close();
+								} catch {}
+							});
+						},
+					});
+
+					return new Response(stream, {
+						headers: {
+							"Content-Type": "text/event-stream; charset=utf-8",
+							"Cache-Control": "no-cache, no-transform",
+							"Connection": "keep-alive",
+							"X-Accel-Buffering": "no", // disable nginx buffering
+						},
+					});
+				}),
+
+				// ── Settings schema (catalogue côté backend SETTINGS_KEYS) ───
+				"/api/settings/schema": admin(async () => {
+					const { SETTINGS_KEYS } = await import("~/services/SettingsService");
+					return Response.json({ keys: SETTINGS_KEYS });
+				}),
+
+				// ── Webhooks (CRUD + exécution) ──────────────────────────────
+				"/api/webhooks": admin(async (req) => {
+					const url = new URL(req.url);
+					const channelId = url.searchParams.get("channel_id");
+					try {
+						const list = channelId
+							? await listChannelWebhooks(channelId)
+							: await listGuildWebhooks(env.GUILD_ID);
+						return Response.json({ webhooks: list });
+					} catch (err) {
+						const status = err instanceof DiscordRESTError ? err.status : 500;
+						return Response.json({ error: String(err) }, { status });
+					}
+				}),
+				"/api/webhooks/create": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							channel_id?: string;
+							name?: string;
+							avatar?: string | null;
+						} | null;
+						if (!body?.channel_id || !body.name) {
+							return Response.json(
+								{ error: "Body attendu : { channel_id, name, avatar? }" },
+								{ status: 400 },
+							);
+						}
+						try {
+							const webhook = await createChannelWebhook(body.channel_id, {
+								name: body.name,
+								avatar: body.avatar ?? null,
+							});
+							return Response.json({ webhook });
+						} catch (err) {
+							const status = err instanceof DiscordRESTError ? err.status : 500;
+							return Response.json({ error: String(err) }, { status });
+						}
+					}),
+				},
+				"/api/webhooks/:id": {
+					DELETE: admin(async (req) => {
+						try {
+							await deleteWebhook(req.params.id);
+							return Response.json({ ok: true });
+						} catch (err) {
+							const status = err instanceof DiscordRESTError ? err.status : 500;
+							return Response.json({ error: String(err) }, { status });
+						}
+					}),
+				},
+				"/api/webhooks/execute": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as
+							| (ExecuteWebhookPayload & { url?: string; wait?: boolean })
+							| null;
+						if (!body?.url) {
+							return Response.json(
+								{
+									error:
+										"Body attendu : { url, content?, embeds?, username?, avatar_url?, wait? }",
+								},
+								{ status: 400 },
+							);
+						}
+						const { url, wait, ...payload } = body;
+						try {
+							const result = await executeWebhook(url, payload, { wait });
+							return Response.json({ ok: true, message: result });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : String(err) },
+								{ status: 500 },
+							);
+						}
+					}),
+				},
+
+				"/api/discord/audit-logs": admin(async (req) => {
+					const url = new URL(req.url);
+					const params = new URLSearchParams();
+					const limit = Math.min(100, Number(url.searchParams.get("limit")) || 50);
+					params.set("limit", String(limit));
+					const at = url.searchParams.get("action_type");
+					if (at) params.set("action_type", at);
+					const before = url.searchParams.get("before");
+					if (before) params.set("before", before);
+					const userId = url.searchParams.get("user_id");
+					if (userId) params.set("user_id", userId);
+					try {
+						const { data } = await discordFetch<any>(
+							`/guilds/${env.GUILD_ID}/audit-logs?${params}`,
+							{ mode: "Bot" },
+						);
+						return Response.json(data);
+					} catch (err) {
+						const status = err instanceof DiscordRESTError ? err.status : 500;
+						return Response.json({ error: String(err) }, { status });
+					}
+				}),
+
 				// ── Services ──────────────────────────────────────────────────
 				"/api/services": admin(() => Response.json({ actions: listServiceActions() })),
 				"/api/services/:service/:action": {
@@ -730,11 +1103,85 @@ export class ApiServer {
 					result.push({ level: 11, minXp: lastXp, maxXp: Number.MAX_SAFE_INTEGER, count: Number(cBeyond) });
 					return Response.json({ buckets: result });
 				}),
-				"/api/levels/rewards": admin(async () => {
-					const dbs = container.resolve(DatabaseService);
-					const rows = await dbs.db.select().from(levelRewards).orderBy(levelRewards.level);
-					return Response.json({ rewards: rows });
-				}),
+				"/api/levels/rewards": {
+					GET: admin(async () => {
+						const dbs = container.resolve(DatabaseService);
+						const rows = await dbs.db.select().from(levelRewards).orderBy(levelRewards.level);
+						return Response.json({ rewards: rows });
+					}),
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							level?: number;
+							roleId?: string;
+							xpThreshold?: number;
+							zeniBonus?: number;
+						} | null;
+						if (
+							!body ||
+							typeof body.level !== "number" ||
+							!body.roleId ||
+							typeof body.xpThreshold !== "number"
+						) {
+							return Response.json(
+								{ error: "Body attendu : { level, roleId, xpThreshold, zeniBonus? }" },
+								{ status: 400 },
+							);
+						}
+						// Hiérarchie : refuser si rôle au-dessus du bot (sinon attribution silencieuse échoue)
+						const client = container.resolve(Client);
+						const guild = client.guilds.cache.get(env.GUILD_ID);
+						const botMember = guild?.members.me;
+						const targetRole = guild?.roles.cache.get(body.roleId);
+						if (!targetRole) {
+							return Response.json({ error: "Rôle introuvable dans la guild" }, { status: 404 });
+						}
+						if (botMember && targetRole.position >= botMember.roles.highest.position) {
+							return Response.json(
+								{
+									error: `Rôle "${targetRole.name}" au-dessus du bot — l'attribution échouera silencieusement. Replacer le rôle du bot plus haut dans la hiérarchie.`,
+								},
+								{ status: 400 },
+							);
+						}
+						const dbs = container.resolve(DatabaseService);
+						await dbs.db
+							.insert(levelRewards)
+							.values({
+								level: body.level,
+								roleId: body.roleId,
+								xpThreshold: body.xpThreshold,
+								zeniBonus: body.zeniBonus ?? 1000,
+							})
+							.onConflictDoUpdate({
+								target: levelRewards.level,
+								set: {
+									roleId: body.roleId,
+									xpThreshold: body.xpThreshold,
+									zeniBonus: body.zeniBonus ?? 1000,
+								},
+							});
+						container.resolve(EventBusService).emit("levels:rewards:changed", {
+							level: body.level,
+							action: "upsert",
+						});
+						return Response.json({ ok: true });
+					}),
+				},
+				"/api/levels/rewards/:level": {
+					DELETE: admin(async (req) => {
+						const level = Number(req.params.level);
+						if (!Number.isFinite(level)) {
+							return Response.json({ error: "level invalide" }, { status: 400 });
+						}
+						const dbs = container.resolve(DatabaseService);
+						await dbs.db.delete(levelRewards).where(eq(levelRewards.level, level));
+						container.resolve(EventBusService).emit("levels:rewards:changed", {
+							level,
+							action: "delete",
+						});
+						return Response.json({ ok: true });
+					}),
+				},
 				"/api/levels/top": admin(async (req) => {
 					const dbs = container.resolve(DatabaseService);
 					const url = new URL(req.url);
@@ -1164,6 +1611,71 @@ export class ApiServer {
 					}),
 				},
 
+				// ── Modération (page dédiée /moderation) ──────────────────────
+				"/api/moderation/stats": admin(async () => {
+					const mod = container.resolve(ModerationService);
+					return Response.json(await mod.statsWindow());
+				}),
+				"/api/moderation/warns": admin(async (req) => {
+					const url = new URL(req.url);
+					const userId = url.searchParams.get("userId") ?? undefined;
+					const mod = container.resolve(ModerationService);
+					if (userId) {
+						const rows = await mod.listActiveWarns(userId);
+						return Response.json({ rows, total: rows.length });
+					}
+					const limit = Math.min(200, Number(url.searchParams.get("limit")) || 100);
+					const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
+					return Response.json(await mod.listAllActiveWarns(limit, offset));
+				}),
+				"/api/moderation/warns/:id": {
+					DELETE: admin(async (req) => {
+						const id = Number(req.params.id);
+						if (!Number.isFinite(id)) {
+							return Response.json({ error: "id invalide" }, { status: 400 });
+						}
+						const mod = container.resolve(ModerationService);
+						const ok = await mod.unwarnById(id);
+						if (!ok) return Response.json({ error: "warn introuvable ou déjà inactif" }, { status: 404 });
+						return Response.json({ ok: true });
+					}),
+				},
+				"/api/moderation/warns/clear/:userId": {
+					POST: admin(async (req) => {
+						const userId = req.params.userId;
+						const mod = container.resolve(ModerationService);
+						const removed = await mod.clearWarns(userId, "dashboard");
+						return Response.json({ ok: true, removed });
+					}),
+				},
+				"/api/moderation/jails": admin(async (req) => {
+					const url = new URL(req.url);
+					const limit = Math.min(200, Number(url.searchParams.get("limit")) || 100);
+					const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
+					const mod = container.resolve(ModerationService);
+					return Response.json(await mod.listActiveJails(limit, offset));
+				}),
+				"/api/moderation/jails/:userId": {
+					DELETE: admin(async (req) => {
+						const userId = req.params.userId;
+						const client = container.resolve(Client);
+						const guild = client.guilds.cache.get(env.GUILD_ID);
+						if (!guild) return Response.json({ error: "guild absente" }, { status: 503 });
+						const mod = container.resolve(ModerationService);
+						const ok = await mod.unjail(guild, userId, "dashboard", "unjail via dashboard");
+						if (!ok) return Response.json({ error: "membre introuvable ou pas en jail" }, { status: 404 });
+						return Response.json({ ok: true });
+					}),
+				},
+				"/api/moderation/recent": admin(async (req) => {
+					const url = new URL(req.url);
+					const limit = Math.min(200, Number(url.searchParams.get("limit")) || 50);
+					const filter = url.searchParams.get("actions")?.split(",").filter(Boolean);
+					const mod = container.resolve(ModerationService);
+					const rows = await mod.recentActions(limit, filter);
+					return Response.json({ rows, total: rows.length });
+				}),
+
 				// ── Database (CRUD générique whitelist) ───────────────────────
 				"/api/database/tables": admin(() =>
 					Response.json({
@@ -1242,8 +1754,15 @@ export class ApiServer {
 				},
 			},
 
-			fetch(req) {
+			async fetch(req) {
 				const url = new URL(req.url);
+
+				// Better Auth — intercepte /api/auth/* (sign-in, callback, signout, get-session).
+				if (url.pathname.startsWith("/api/auth/")) {
+					const baResponse = await handleBetterAuthRequest(req);
+					if (baResponse) return baResponse;
+				}
+
 				// Sert tout chemin commençant par /assets/ depuis le dossier assets/.
 				// Routes Map de Bun ne supporte pas les wildcards multi-segment, donc
 				// on les capture ici dans le fallback.

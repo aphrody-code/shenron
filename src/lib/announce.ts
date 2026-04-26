@@ -1,5 +1,7 @@
 import type { Client, Guild, SendableChannels } from "discord.js";
+import { container } from "tsyringe";
 import { env } from "~/lib/env";
+import { SettingsService } from "~/services/SettingsService";
 
 async function resolveById(
   client: Client,
@@ -14,22 +16,59 @@ async function resolveById(
   return null;
 }
 
+/**
+ * Résolution avec priorité runtime :
+ *   1. SettingsService (override depuis dashboard / `/config channel`)
+ *   2. env fallback
+ */
+async function resolveSettingChannel(
+  client: Client,
+  settingKey: string,
+  envFallback: string | undefined,
+  guild?: Guild,
+): Promise<SendableChannels | null> {
+  const settings = container.resolve(SettingsService);
+  const override = await settings.getSnowflake(settingKey);
+  return resolveById(client, override ?? envFallback, guild);
+}
+
 export async function resolveAnnounceChannel(
   client: Client,
   guild?: Guild,
 ): Promise<SendableChannels | null> {
-  return resolveById(client, env.ANNOUNCE_CHANNEL_ID, guild);
+  return resolveSettingChannel(client, "channel.announce", env.ANNOUNCE_CHANNEL_ID, guild);
 }
 
 /**
- * Salon des messages "🏆 succès débloqué". Retombe sur ANNOUNCE_CHANNEL_ID si
- * ACHIEVEMENT_CHANNEL_ID n'est pas défini, pour ne pas casser l'install actuelle.
+ * Salon dédié aux level-up (`channel.level`) ; sinon retombe sur announce.
+ */
+export async function resolveLevelChannel(
+  client: Client,
+  guild?: Guild,
+): Promise<SendableChannels | null> {
+  const settings = container.resolve(SettingsService);
+  const levelOverride = await settings.getSnowflake("channel.level");
+  if (levelOverride) {
+    const ch = await resolveById(client, levelOverride, guild);
+    if (ch) return ch;
+  }
+  return resolveAnnounceChannel(client, guild);
+}
+
+/**
+ * Salon des messages "🏆 succès débloqué". Cascade :
+ *   channel.achievement > env.ACHIEVEMENT_CHANNEL_ID > channel.announce > env.ANNOUNCE_CHANNEL_ID
  */
 export async function resolveAchievementChannel(
   client: Client,
   guild?: Guild,
 ): Promise<SendableChannels | null> {
-  const dedicated = await resolveById(client, env.ACHIEVEMENT_CHANNEL_ID, guild);
+  const dedicated = await resolveSettingChannel(
+    client,
+    "channel.achievement",
+    env.ACHIEVEMENT_CHANNEL_ID,
+    guild,
+  );
   if (dedicated) return dedicated;
   return resolveAnnounceChannel(client, guild);
 }

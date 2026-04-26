@@ -20,6 +20,7 @@ export interface EventDef {
   defaultChannelKey:
     | "channel.announce"
     | "channel.achievement"
+    | "channel.level"
     | "channel.welcome"
     | "channel.farewell"
     | "channel.giveaway"
@@ -44,7 +45,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "memberCount", description: "Nombre total de membres" },
       { name: "inviter", description: "Mention de l'invitant si tracké" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "farewell",
@@ -56,13 +57,13 @@ export const EVENTS: readonly EventDef[] = [
       { name: "userId", description: "ID Discord" },
       { name: "memberCount", description: "Nombre restant" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "level_up",
     description: "Annonce de passage de palier (niveau XP)",
     defaultTemplate: "{user} a atteint **{xp} XP** — palier {level} débloqué !",
-    defaultChannelKey: "channel.announce",
+    defaultChannelKey: "channel.level",
     variables: [
       { name: "user", description: "Mention du membre" },
       { name: "userName", description: "Pseudo" },
@@ -71,7 +72,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "roleId", description: "ID du rôle attribué" },
       { name: "zeniBonus", description: "Bonus zénis offert" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "achievement_unlocked",
@@ -108,7 +109,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "zeni", description: "Zénis gagnés" },
       { name: "streak", description: "Jours consécutifs" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "anti_link_jail",
@@ -119,7 +120,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "user", description: "Mention" },
       { name: "url", description: "URL détectée" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "jail_expired",
@@ -131,7 +132,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "userName", description: "Pseudo" },
       { name: "duration", description: "Durée de la peine" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "giveaway_winner",
@@ -143,7 +144,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "prize", description: "Lot mis en jeu" },
       { name: "title", description: "Titre du tirage" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "vocal_tempo_created",
@@ -154,7 +155,7 @@ export const EVENTS: readonly EventDef[] = [
       { name: "user", description: "Mention du créateur" },
       { name: "channelId", description: "ID du salon vocal" },
     ],
-    embed: false,
+    embed: true,
   },
   {
     event: "vocal_tempo_destroyed",
@@ -162,7 +163,7 @@ export const EVENTS: readonly EventDef[] = [
     defaultTemplate: "Vocal éphémère supprimé (inactivité 60s).",
     defaultChannelKey: "channel.announce",
     variables: [{ name: "channelId", description: "ID du salon supprimé" }],
-    embed: false,
+    embed: true,
   },
 ] as const;
 

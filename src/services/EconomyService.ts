@@ -142,6 +142,10 @@ export class EconomyService {
     return true;
   }
 
+  async listAllFusions() {
+    return this.db.select().from(fusions);
+  }
+
   // Succès
   async grantAchievement(userId: string, code: string): Promise<boolean> {
     await this.ensureUser(userId);

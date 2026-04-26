@@ -74,7 +74,7 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
   });
 
   // Ki affiché en font Scouter
-  ctx.font = "60px 'DBS Scouter', monospace";
+  ctx.font = "68px 'Teko Bold', 'DBS Scouter', Impact, sans-serif";
   ctx.shadowColor = accent;
   ctx.shadowBlur = 15;
   ctx.fillStyle = accent;

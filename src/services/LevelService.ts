@@ -7,6 +7,7 @@ import { or } from "drizzle-orm";
 import { LEVEL_THRESHOLDS, ZENI_PER_LEVEL, FUSION_XP_BONUS_RATIO } from "~/lib/constants";
 import { levelForXP, formatXP } from "~/lib/xp";
 import { levelUpMessage } from "~/lib/dbz-flavor";
+import { levelUpEmbed } from "~/lib/embeds";
 import { logger } from "~/lib/logger";
 
 @singleton()
@@ -128,7 +129,16 @@ export class LevelService {
     });
 
     if (channel && "send" in channel) {
-      await channel.send(levelUpMessage(member.id, newLevel)).catch(() => {});
+      const u = await this.getUser(member.id);
+      const reward = rewards[0];
+      const embed = levelUpEmbed({
+        member,
+        level: newLevel,
+        xp: u?.xp ?? 0,
+        zeniBonus: (reward?.zeniBonus ?? 0) + ZENI_PER_LEVEL,
+        message: levelUpMessage(member.id, newLevel),
+      });
+      await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
     }
   }
 }

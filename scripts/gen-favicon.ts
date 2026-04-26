@@ -14,7 +14,7 @@
 import "../src/lib/preload";
 import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { loadImage, createCanvas } from "@napi-rs/canvas";
+import { loadImage, createCanvas } from "@aphrody-code/canvas";
 
 const SIZES = [16, 32, 48, 96, 180, 192, 512];
 

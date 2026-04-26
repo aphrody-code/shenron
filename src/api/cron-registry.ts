@@ -1,5 +1,6 @@
-import { singleton } from "tsyringe";
+import { container, singleton } from "tsyringe";
 import { logger } from "~/lib/logger";
+import { EventBusService } from "~/services/EventBusService";
 
 /**
  * Registry centralisée des jobs périodiques (équivalent `@Schedule` de tscord).
@@ -63,6 +64,7 @@ export class CronRegistry {
       job.lastDurationMs = duration;
       job.runCount++;
       job.lastError = null;
+      container.resolve(EventBusService).emit("cron:run", { name, ok: true, durationMs: duration });
       return { ok: true, durationMs: duration, error: null };
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -71,6 +73,9 @@ export class CronRegistry {
       job.runCount++;
       job.lastError = msg;
       logger.warn({ err, name }, "cron job failed");
+      container
+        .resolve(EventBusService)
+        .emit("cron:run", { name, ok: false, durationMs: job.lastDurationMs });
       return { ok: false, durationMs: job.lastDurationMs, error: msg };
     }
   }

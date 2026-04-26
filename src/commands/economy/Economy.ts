@@ -25,6 +25,7 @@ import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { EconomyService } from "~/services/EconomyService";
 import { FusionService } from "~/services/FusionService";
+import { FusionRoleService } from "~/services/FusionRoleService";
 import { formatXP } from "~/lib/xp";
 import { fusionName } from "~/lib/fusion-names";
 
@@ -35,6 +36,7 @@ export class EconomyCommands {
   constructor(
     @inject(EconomyService) private eco: EconomyService,
     @inject(FusionService) private fusionCanvas: FusionService,
+    @inject(FusionRoleService) private fusionRoles: FusionRoleService,
   ) {}
 
   // /shop
@@ -206,6 +208,11 @@ export class EconomyCommands {
     }
     await this.eco.createFusion(proposerId!, targetId!);
 
+    // Rôle "Fusion" — best-effort, log + skip si setting absente / bot pas autorisé
+    if (interaction.guild) {
+      await this.fusionRoles.applyToPair(interaction.guild, proposerId!, targetId!);
+    }
+
     // Nom fusionné (canon ou généré)
     const proposer = await interaction.client.users.fetch(proposerId!).catch(() => null);
     const target = await interaction.client.users.fetch(targetId!).catch(() => null);
@@ -239,7 +246,12 @@ export class EconomyCommands {
 
   @Slash({ name: "defusion", description: "Annuler votre fusion" })
   async defusion(interaction: CommandInteraction) {
+    // Récupère le partenaire AVANT de casser la fusion (sinon plus de trace en DB)
+    const partner = await this.eco.partnerOf(interaction.user.id);
     const ok = await this.eco.breakFusion(interaction.user.id);
+    if (ok && partner && interaction.guild) {
+      await this.fusionRoles.removeFromPair(interaction.guild, interaction.user.id, partner);
+    }
     await interaction.reply({
       content: ok ? "💔 Fusion annulée." : "Tu n'es pas fusionné(e).",
       flags: ok ? undefined : MessageFlags.Ephemeral,

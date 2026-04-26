@@ -173,6 +173,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
                 </option>
               ))}
             </select>
+            <ResolvedChannel channelKey={channelKey} />
             <p className="mt-1 text-xs text-zinc-500">
               Le salon réel est défini dans <code>/settings</code> ou via{" "}
               <code>/config channel</code>. Défaut catalogue :{" "}
@@ -267,6 +268,36 @@ function EventEditor({ entry }: { entry: EventEntry }) {
         </pre>
       </div>
     </div>
+  );
+}
+
+function ResolvedChannel({ channelKey }: { channelKey: string }) {
+  const settings = useQuery({
+    queryKey: ["settings", "all"],
+    queryFn: () =>
+      api.get<{ rows: { key: string; value: string }[] }>("/database/guild_settings?limit=200"),
+    staleTime: 30_000,
+  });
+  const channels = useQuery({
+    queryKey: ["discord", "channels"],
+    queryFn: () =>
+      api.get<{ channels: { id: string; name: string; type: number }[] }>("/discord/channels"),
+    staleTime: 30_000,
+  });
+  const value = (settings.data as any)?.rows?.find((s: any) => s.key === channelKey)?.value;
+  if (!value) {
+    return (
+      <p className="mt-1 text-xs text-amber-400">
+        ⚠ Pas de surcharge dans /settings · le bot tombera sur la valeur par défaut de l'env si elle
+        existe.
+      </p>
+    );
+  }
+  const c = channels.data?.channels.find((x) => x.id === value);
+  return (
+    <p className="mt-1 text-xs text-green-400">
+      → {c ? `#${c.name}` : value} <span className="text-zinc-500">({value})</span>
+    </p>
   );
 }
 

@@ -13,14 +13,28 @@ import { env } from "~/lib/env";
 
 const TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 jours
 
-interface SessionPayload {
-  v: 1;
+export interface SessionPayload {
+  v: 2;
   expiresAt: number;
   createdAt: number;
+  // OAuth user (présent pour sessions Discord, absent pour sessions token admin)
+  userId?: string;
+  username?: string;
+  avatar?: string | null;
+  email?: string;
+  source: "token" | "discord";
+  // Tokens Discord (uniquement pour source=discord). Restent côté serveur — JAMAIS
+  // exposés via /auth/me. Le cookie httpOnly + signature HMAC empêche un XSS de les lire.
+  accessToken?: string;
+  refreshToken?: string;
+  accessTokenExpiresAt?: number;
 }
 
 function getSecret(): string {
-  if (!env.API_ADMIN_TOKEN) throw new Error("API_ADMIN_TOKEN absent");
+  // SESSION_SECRET dédié si défini ; sinon dérive d'API_ADMIN_TOKEN (rétro-compat).
+  // Avantage : rotation API_ADMIN_TOKEN sans invalider les sessions OAuth.
+  if (env.SESSION_SECRET) return env.SESSION_SECRET;
+  if (!env.API_ADMIN_TOKEN) throw new Error("SESSION_SECRET ou API_ADMIN_TOKEN requis");
   return env.API_ADMIN_TOKEN;
 }
 
@@ -52,11 +66,23 @@ async function hmac(payload: string): Promise<string> {
   return b64url(sig);
 }
 
-export async function createSession(): Promise<string> {
+interface CreateSessionUser {
+  userId: string;
+  username: string;
+  avatar: string | null;
+  email?: string;
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpiresAt: number;
+}
+
+export async function createSession(user?: CreateSessionUser): Promise<string> {
   const payload: SessionPayload = {
-    v: 1,
+    v: 2,
     createdAt: Date.now(),
     expiresAt: Date.now() + TTL_MS,
+    source: user ? "discord" : "token",
+    ...user,
   };
   const json = JSON.stringify(payload);
   const encoded = b64url(new TextEncoder().encode(json));
@@ -78,19 +104,24 @@ export async function verifySession(cookie: string | null): Promise<SessionPaylo
     const json = new TextDecoder().decode(b64urlDecode(encoded));
     const payload = JSON.parse(json) as SessionPayload;
     if (payload.expiresAt < Date.now()) return null;
+    if (!payload.source) payload.source = "token"; // migration v1 → v2
     return payload;
   } catch {
     return null;
   }
 }
 
+// `Secure` cookie attribute n'est posé qu'en prod : sur localhost HTTP, Chrome ignore
+// les cookies marqués Secure → impossible de se connecter en dev local.
+const SECURE = env.NODE_ENV === "production" ? "Secure; " : "";
+
 export function buildSessionCookie(value: string): string {
   const maxAge = Math.floor(TTL_MS / 1000);
-  return `shenron_session=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
+  return `shenron_session=${value}; Path=/; HttpOnly; ${SECURE}SameSite=Lax; Max-Age=${maxAge}`;
 }
 
 export function buildLogoutCookie(): string {
-  return `shenron_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`;
+  return `shenron_session=; Path=/; HttpOnly; ${SECURE}SameSite=Lax; Max-Age=0`;
 }
 
 export function readCookie(req: Request, name: string): string | null {
