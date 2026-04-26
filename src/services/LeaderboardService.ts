@@ -1,5 +1,6 @@
-import { singleton } from "tsyringe";
+import { singleton, inject } from "tsyringe";
 import { createCanvas, loadImage, type Image, type SKRSContext2D } from "@napi-rs/canvas";
+import { BackgroundCacheService } from "./BackgroundCacheService";
 import {
   drawDragonBall,
   drawImageCover,
@@ -37,7 +38,8 @@ const MEDAL = {
 @singleton()
 export class LeaderboardService {
   private avatarCache = new Map<string, Image>();
-  private bg: Image | null = null;
+
+  constructor(@inject(BackgroundCacheService) private bgCache: BackgroundCacheService) {}
 
   private async loadAvatar(url: string): Promise<Image | null> {
     if (this.avatarCache.has(url)) return this.avatarCache.get(url)!;
@@ -51,13 +53,7 @@ export class LeaderboardService {
   }
 
   private async loadBg(): Promise<Image | null> {
-    if (this.bg) return this.bg;
-    try {
-      this.bg = await loadImage(`./${BG_FILE}`);
-      return this.bg;
-    } catch {
-      return null;
-    }
+    return this.bgCache.get(BG_FILE);
   }
 
   async render(entries: LeaderboardEntry[], meta: LeaderboardMeta): Promise<Buffer> {
