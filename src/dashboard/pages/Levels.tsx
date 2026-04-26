@@ -13,6 +13,7 @@ import {
 import { type FormEvent, useState } from "react";
 import { api } from "../lib/api";
 import { formatDuration } from "../lib/utils";
+import { RoleSelect, RoleBadge } from "../components/RoleSelect";
 
 interface Threshold {
   level: number;
@@ -236,7 +237,7 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 
   const upsert = useMutation({
     mutationFn: (r: LevelReward) =>
-      api.post("/database/level_rewards", {
+      api.post("/levels/rewards", {
         level: r.level,
         roleId: r.roleId,
         xpThreshold: r.xpThreshold,
@@ -250,7 +251,7 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
   });
 
   const remove = useMutation({
-    mutationFn: (level: number) => api.delete(`/database/level_rewards/${level}`),
+    mutationFn: (level: number) => api.delete(`/levels/rewards/${level}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["levels", "rewards"] }),
   });
 
@@ -280,7 +281,9 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
             {rewards.map((r) => (
               <tr key={r.level}>
                 <td className="px-3 py-2 font-bold text-brand-400">{r.level}</td>
-                <td className="px-3 py-2 font-mono text-xs">{r.roleId}</td>
+                <td className="px-3 py-2 text-sm">
+                  <RoleBadge roleId={r.roleId} />
+                </td>
                 <td className="px-3 py-2 text-right font-mono text-xs">
                   {r.xpThreshold.toLocaleString("fr-FR")}
                 </td>
@@ -374,14 +377,8 @@ function RewardForm({
           />
         </div>
         <div className="sm:col-span-3">
-          <label className="mb-1 block text-xs text-zinc-400">ID du rôle Discord</label>
-          <input
-            className="input font-mono text-xs"
-            value={roleId}
-            onChange={(e) => setRoleId(e.target.value)}
-            placeholder="000000000000000000"
-            required
-          />
+          <label className="mb-1 block text-xs text-zinc-400">Rôle Discord à attribuer</label>
+          <RoleSelect value={roleId} onChange={setRoleId} required />
         </div>
         <div>
           <label className="mb-1 block text-xs text-zinc-400">Seuil XP</label>

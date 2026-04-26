@@ -3,6 +3,7 @@ import type { Client, SendableChannels } from "discord.js";
 import { eq } from "drizzle-orm";
 import { Client as DiscordxClient } from "@rpbey/discordx";
 import { DatabaseService } from "~/db/index";
+import { EventBusService } from "./EventBusService";
 import { messageTemplates, guildSettings, type MessageTemplate } from "~/db/schema";
 import { EVENTS, findEvent, renderTemplate, type EventDef } from "~/lib/message-templates";
 import { brandedEmbed } from "~/lib/embeds";
@@ -29,7 +30,10 @@ export class MessageTemplateService {
 	private cacheTs = 0;
 	private TTL = 30_000;
 
-	constructor(@inject(DatabaseService) private dbs: DatabaseService) {}
+	constructor(
+		@inject(DatabaseService) private dbs: DatabaseService,
+		@inject(EventBusService) private bus: EventBusService,
+	) {}
 
 	private async refresh(): Promise<void> {
 		const [templates, settings] = await Promise.all([
@@ -188,11 +192,13 @@ export class MessageTemplateService {
 				},
 			});
 		await this.invalidate();
+		this.bus.emit("messages:template:changed", { event: input.event, action: "set" });
 	}
 
 	async reset(event: string): Promise<void> {
 		await this.dbs.db.delete(messageTemplates).where(eq(messageTemplates.event, event));
 		await this.invalidate();
+		this.bus.emit("messages:template:changed", { event, action: "reset" });
 	}
 
 	private envFallback(channelKey: string): string | undefined {
@@ -200,6 +206,7 @@ export class MessageTemplateService {
 		const map: Record<string, string | undefined> = {
 			"channel.announce": env.ANNOUNCE_CHANNEL_ID,
 			"channel.achievement": env.ACHIEVEMENT_CHANNEL_ID ?? env.ANNOUNCE_CHANNEL_ID,
+			"channel.level": env.ANNOUNCE_CHANNEL_ID,
 			"channel.welcome": env.LOG_JOIN_LEAVE_CHANNEL_ID,
 			"channel.farewell": env.LOG_JOIN_LEAVE_CHANNEL_ID,
 			"channel.giveaway": env.ANNOUNCE_CHANNEL_ID,
@@ -211,11 +218,27 @@ export class MessageTemplateService {
 
 	private guessTitle(def: EventDef): string {
 		switch (def.event) {
+			case "welcome":
+				return "🌟 Nouveau combattant !";
+			case "farewell":
+				return "👋 Au revoir guerrier";
+			case "level_up":
+				return "🚀 Nouveau palier atteint !";
 			case "achievement_unlocked":
 			case "first_message":
-				return "Accomplissement débloqué";
-			case "level_up":
-				return "Nouveau palier";
+				return "🏆 Accomplissement débloqué";
+			case "daily_quest":
+				return "🎯 Quête quotidienne";
+			case "anti_link_jail":
+				return "⛓️ Jail automatique";
+			case "jail_expired":
+				return "🕊️ Libération";
+			case "giveaway_winner":
+				return "🎁 Tirage au sort";
+			case "vocal_tempo_created":
+				return "🔊 Vocal éphémère créé";
+			case "vocal_tempo_destroyed":
+				return "🔇 Vocal éphémère supprimé";
 			default:
 				return def.description;
 		}

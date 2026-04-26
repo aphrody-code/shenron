@@ -18,12 +18,15 @@ import {
 import { eq } from "drizzle-orm";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
-import { SettingsService, SETTINGS_KEYS } from "~/services/SettingsService";
+import { SettingsService, SETTINGS_KEYS, XP_BOOST_ROLE_PREFIX } from "~/services/SettingsService";
+import { EconomyService } from "~/services/EconomyService";
+import { FusionRoleService } from "~/services/FusionRoleService";
 import { DatabaseService } from "~/db/index";
 import { levelRewards } from "~/db/schema";
 import { brandedEmbed, errorEmbed, successEmbed } from "~/lib/embeds";
 
-const settingsChoices = SETTINGS_KEYS.map((s) => ({
+// Les keys "prefix" ne sont pas listables comme choices figées (sous-clés dynamiques).
+const settingsChoices = SETTINGS_KEYS.filter((s) => !s.prefix).map((s) => ({
 	name: `${s.key} — ${s.description}`.slice(0, 100),
 	value: s.key,
 }));
@@ -41,6 +44,8 @@ export class ConfigCommand {
 	constructor(
 		@inject(SettingsService) private settings: SettingsService,
 		@inject(DatabaseService) private dbs: DatabaseService,
+		@inject(EconomyService) private eco: EconomyService,
+		@inject(FusionRoleService) private fusionRoles: FusionRoleService,
 	) {}
 
 	@Slash({ name: "list", description: "Lister toutes les valeurs runtime" })
@@ -122,6 +127,7 @@ export class ConfigCommand {
 		@SlashChoice(
 			{ name: "Annonces (général)", value: "channel.announce" },
 			{ name: "Accomplissements", value: "channel.achievement" },
+			{ name: "Niveau & XP", value: "channel.level" },
 			{ name: "Salon des commandes", value: "channel.commands" },
 		)
 		@SlashOption({
@@ -266,6 +272,112 @@ export class ConfigCommand {
 			})),
 		);
 		await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+	}
+
+	// ── XP Boost par rôle ────────────────────────────────────────────────
+	@Slash({ name: "xp-boost-set", description: "Définir un multiplier XP pour un rôle" })
+	async xpBoostSet(
+		@SlashOption({
+			name: "role",
+			description: "Rôle bénéficiaire du boost",
+			type: ApplicationCommandOptionType.Role,
+			required: true,
+		})
+		role: Role,
+		@SlashOption({
+			name: "multiplier",
+			description: "Multiplier décimal > 0 (ex: 1.5, 2)",
+			type: ApplicationCommandOptionType.Number,
+			required: true,
+			minValue: 0.01,
+			maxValue: 100,
+		})
+		multiplier: number,
+		interaction: CommandInteraction,
+	) {
+		try {
+			await this.settings.set(`${XP_BOOST_ROLE_PREFIX}${role.id}`, String(multiplier));
+			await interaction.reply({
+				embeds: [
+					successEmbed("Boost XP enregistré", `${role} → multiplier **×${multiplier}**`),
+				],
+				flags: MessageFlags.Ephemeral,
+			});
+		} catch (err) {
+			await interaction.reply({
+				embeds: [errorEmbed("Erreur", err instanceof Error ? err.message : "Erreur inconnue")],
+				flags: MessageFlags.Ephemeral,
+			});
+		}
+	}
+
+	@Slash({ name: "xp-boost-unset", description: "Supprimer un boost XP par rôle" })
+	async xpBoostUnset(
+		@SlashOption({
+			name: "role",
+			description: "Rôle dont on retire le boost",
+			type: ApplicationCommandOptionType.Role,
+			required: true,
+		})
+		role: Role,
+		interaction: CommandInteraction,
+	) {
+		await this.settings.unset(`${XP_BOOST_ROLE_PREFIX}${role.id}`);
+		await interaction.reply({
+			embeds: [successEmbed("Boost XP supprimé", `${role}`)],
+			flags: MessageFlags.Ephemeral,
+		});
+	}
+
+	@Slash({ name: "xp-boost-list", description: "Liste des boosts XP par rôle" })
+	async xpBoostList(interaction: CommandInteraction) {
+		const boosts = await this.settings.getXpBoostRoles();
+		if (boosts.length === 0) {
+			await interaction.reply({
+				embeds: [
+					brandedEmbed({
+						title: "🚀 Boosts XP par rôle",
+						description: "*(aucun configuré — `/config xp-boost-set` pour en ajouter)*",
+						kind: "muted",
+					}),
+				],
+				flags: MessageFlags.Ephemeral,
+			});
+			return;
+		}
+		const embed = brandedEmbed({
+			title: "🚀 Boosts XP par rôle",
+			description: "Le membre reçoit le **plus grand** multiplier parmi ses rôles (ne stack pas).",
+			kind: "info",
+		}).addFields(
+			boosts
+				.toSorted((a, b) => b.multiplier - a.multiplier)
+				.slice(0, 25)
+				.map((b) => ({ name: `<@&${b.roleId}>`, value: `×${b.multiplier}`, inline: true })),
+		);
+		await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+	}
+
+	// ── Sync rôle Fusion ─────────────────────────────────────────────────
+	@Slash({
+		name: "fusion-sync-roles",
+		description: "Re-attribuer le rôle 'Fusion' à toutes les fusions actives",
+	})
+	async fusionSyncRoles(interaction: CommandInteraction) {
+		if (!interaction.inCachedGuild()) return;
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+		const fusions = await this.eco.listAllFusions();
+		if (fusions.length === 0) {
+			await interaction.editReply({ embeds: [brandedEmbed({ title: "💫 Sync fusion", description: "*(aucune fusion active)*", kind: "muted" })] });
+			return;
+		}
+		for (const f of fusions) {
+			await this.fusionRoles.applyToPair(interaction.guild, f.userA, f.userB);
+		}
+		await interaction.editReply({
+			embeds: [successEmbed("Sync fusion terminée", `${fusions.length} fusion(s) traitée(s).`)],
+		});
 	}
 }
 

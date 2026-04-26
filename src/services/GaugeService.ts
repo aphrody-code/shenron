@@ -165,7 +165,7 @@ export class GaugeService {
 
     // Chiffre géant en font Scouter
     textStroked(ctx, pctText, PCT_CX, PCT_CY, {
-      font: "bold 120px 'DBS Scouter', 'Inter Display Black', monospace",
+      font: "140px 'Teko Bold', 'Inter Display Black', Impact, sans-serif",
       color: input.accent,
       stroke: "rgba(0,0,0,0.9)",
       strokeWidth: 5,
@@ -173,7 +173,7 @@ export class GaugeService {
     });
     // Signe %
     textWithShadow(ctx, "%", PCT_CX + 90, PCT_CY - 20, {
-      font: "bold 50px 'DBS Scouter', 'Inter Display Black', monospace",
+      font: "60px 'Teko Bold', 'Inter Display Black', Impact, sans-serif",
       color: input.accent,
       shadow: rgba(input.accent, 0.7),
       blur: 14,
@@ -210,7 +210,7 @@ export class GaugeService {
       align: "left",
     });
     textWithShadow(ctx, `${input.pct}/100`, G_X + G_W, G_Y + G_H + 20, {
-      font: "bold 11px 'DBS Scouter', monospace",
+      font: "13px 'Teko Bold', 'Inter Bold', sans-serif",
       color: input.accent,
       align: "right",
     });

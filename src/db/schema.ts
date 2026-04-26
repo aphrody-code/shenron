@@ -354,3 +354,58 @@ export type DBCharacter = typeof dbCharacters.$inferSelect;
 export type DBTransformation = typeof dbTransformations.$inferSelect;
 export type GuildSetting = typeof guildSettings.$inferSelect;
 export type MessageTemplate = typeof messageTemplates.$inferSelect;
+
+// ──────────────────────────────────────────────────────────────────────
+// Better Auth — schema standard (4 tables) avec préfixe `ba_` pour ne
+// pas collisionner avec les autres tables. Géré par drizzleAdapter.
+// Doc: https://www.better-auth.com/docs/concepts/database#schema
+// ──────────────────────────────────────────────────────────────────────
+export const baUser = sqliteTable("ba_user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
+  image: text("image"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+export const baSession = sqliteTable("ba_session", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => baUser.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+export const baAccount = sqliteTable("ba_account", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => baUser.id, { onDelete: "cascade" }),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp" }),
+  refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp" }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+export const baVerification = sqliteTable("ba_verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
+});

@@ -31,15 +31,45 @@ const schema = z.object({
   ANNOUNCE_CHANNEL_ID: z.string().optional(),
   ACHIEVEMENT_CHANNEL_ID: z.string().optional(),
 
-  // /translate (OCR Tesseract + LibreTranslate, 100 % FOSS)
+  // /translate (OCR Tesseract + cascade providers sans clé)
+  // - Lingva Translate (proxy Google, instances publiques rotatives)
+  // - Google translate.googleapis.com `gtx` (endpoint Chrome, sans clé)
+  // - LibreTranslate (self-host, fallback)
   LIBRETRANSLATE_URL: z.string().url().optional(), // défaut http://127.0.0.1:5000
   LIBRETRANSLATE_API_KEY: z.string().optional(),
+  // Override l'instance Lingva primaire (ex: https://lingva.ml). Si absent,
+  // on essaie en cascade les instances publiques connues.
+  LINGVA_INSTANCE: z.string().url().optional(),
 
   // API REST (Bun.serve) — surface tscord-compatible pour dashboard
   API_PORT: z.coerce.number().int().min(1).max(65535).default(5006),
   API_HOST: z.string().default("127.0.0.1"),
   API_ADMIN_TOKEN: z.string().min(16).optional(), // bearer token requis sur les routes /bot, /database, /stats, /health/monitoring|/logs
   API_ENABLED: z.coerce.boolean().default(true),
+
+  // OAuth2 Discord (login dashboard)
+  // Le client_secret ne doit JAMAIS être commit ; uniquement dans .env (gitignored).
+  // SESSION_SECRET = clé HMAC pour signer le cookie session (séparée d'API_ADMIN_TOKEN
+  // pour que rotation token n'invalide pas les sessions OAuth en cours).
+  DISCORD_CLIENT_ID: z
+    .string()
+    .regex(/^\d{17,20}$/)
+    .optional(),
+  DISCORD_CLIENT_SECRET: z.string().min(16).optional(),
+  OAUTH_REDIRECT_URI: z.string().url().optional(),
+  // CSV de snowflakes autorisés à se connecter ; OWNER_ID est implicitement whitelisté.
+  OAUTH_ALLOWED_USERS: z
+    .string()
+    .optional()
+    .transform((v) =>
+      v
+        ? v
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : [],
+    ),
+  SESSION_SECRET: z.string().min(32).optional(),
 
   JAIL_ROLE_ID: z.string().optional(),
   URL_IN_BIO_ROLE_ID: z.string().optional(),

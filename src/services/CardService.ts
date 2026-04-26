@@ -572,12 +572,14 @@ export class CardService {
 
     const kiLabel = kiScouterLabel(input.xp).toUpperCase();
     const SCOUTER_R_X = width - PAD - 14;
-    const SCOUTER_Y = FOOTER_Y + 14;
-    const SCOUTER_H = 32;
+    const SCOUTER_H = 28;
+    const CHIP_H = SCOUTER_H + 18;
+    // Chip aligné sur la baseline du footer pour rester dans le canvas (height=360)
+    const SCOUTER_Y = height - CHIP_H - 8;
 
     ctx.save();
     // Mesure texte scouter
-    ctx.font = `26px 'DBS Scouter', monospace`;
+    ctx.font = `30px 'Teko Bold', 'DBS Scouter', Impact, sans-serif`;
     const scouterTextW = ctx.measureText(kiLabel).width;
     ctx.font = "10px 'Inter Bold', sans-serif";
     const kiLabelW = ctx.measureText("KI LEVEL").width;
@@ -586,7 +588,7 @@ export class CardService {
     // Chip bg — écran scouter (vert/ambre selon intensité)
     const kiIntensity = Math.min(1, input.xp / 1_000_000);
     const chipBg = kiIntensity > 0.5 ? "#22c55e" : "#f59e0b"; // vert > 500k, sinon ambre
-    roundRectPath(ctx, chipX, SCOUTER_Y, chipW, SCOUTER_H + 18, 6);
+    roundRectPath(ctx, chipX, SCOUTER_Y, chipW, CHIP_H, 6);
     ctx.fillStyle = "rgba(0,0,0,0.85)";
     ctx.fill();
     ctx.strokeStyle = rgba(chipBg, 0.7);
@@ -605,7 +607,7 @@ export class CardService {
     ctx.shadowColor = chipBg;
     ctx.shadowBlur = 8;
     ctx.fillStyle = chipBg;
-    ctx.font = "26px 'DBS Scouter', monospace";
+    ctx.font = "30px 'Teko Bold', 'DBS Scouter', Impact, sans-serif";
     ctx.fillText(kiLabel, chipX + chipW / 2, SCOUTER_Y + 36);
     ctx.restore();
 

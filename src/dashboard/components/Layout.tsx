@@ -14,20 +14,36 @@ import {
   Trophy,
   MessageSquare,
   Image as ImageIcon,
+  User as UserIcon,
+  Webhook as WebhookIcon,
+  ShieldAlert,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { cn } from "../lib/utils";
 
+interface SessionUser {
+  id?: string;
+  username?: string;
+  avatar?: string | null;
+  avatarUrl?: string;
+  email?: string | null;
+  source: "token" | "discord";
+}
+
 const NAV = [
   { path: "/", label: "Tableau de bord", icon: Home },
+  { path: "/profile", label: "Mon profil Discord", icon: UserIcon },
   { path: "/bot", label: "Bot · 44 commandes", icon: Bot },
   { path: "/database", label: "Base de données · 16 tables", icon: Database },
   { path: "/cron", label: "Tâches planifiées · 3", icon: Clock },
   { path: "/services", label: "Services · 15 actions", icon: Wrench },
   { path: "/levels", label: "Niveaux & XP", icon: Trophy },
   { path: "/messages", label: "Messages du bot", icon: MessageSquare },
+  { path: "/webhooks", label: "Webhooks", icon: WebhookIcon },
   { path: "/canvas", label: "Aperçu canvas", icon: ImageIcon },
   { path: "/stats", label: "Statistiques", icon: BarChart3 },
+  { path: "/moderation", label: "Modération", icon: ShieldAlert },
   { path: "/audit", label: "Journal d'audit", icon: FileText },
   { path: "/logs", label: "Journaux du service", icon: Terminal },
   { path: "/settings", label: "Configuration", icon: SettingsIcon },
@@ -40,6 +56,13 @@ interface Props {
 }
 
 export function Layout({ route, navigate, children }: Props) {
+  const me = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: () => api.get<{ authenticated: boolean; user?: SessionUser }>("/auth/me"),
+    refetchInterval: 0,
+    staleTime: 60_000,
+  });
+  const user = me.data?.user;
   const logout = async () => {
     await api.post("/auth/logout").catch(() => {});
     window.location.href = "/login";
@@ -82,7 +105,25 @@ export function Layout({ route, navigate, children }: Props) {
           })}
         </nav>
 
-        <div className="border-t border-zinc-800 p-3">
+        <div className="space-y-2 border-t border-zinc-800 p-3">
+          {user?.id && user.avatarUrl && (
+            <div className="flex items-center gap-3 rounded-lg bg-zinc-900/40 p-2">
+              <img
+                src={user.avatarUrl}
+                alt={user.username ?? ""}
+                className="h-9 w-9 rounded-full object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-zinc-100">{user.username}</p>
+                <p className="truncate text-xs text-zinc-500">{user.email ?? `ID ${user.id}`}</p>
+              </div>
+            </div>
+          )}
+          {user && !user.id && (
+            <p className="rounded-lg bg-zinc-900/40 p-2 text-xs text-zinc-500">
+              Session jeton (admin token)
+            </p>
+          )}
           <button type="button" onClick={logout} className="btn btn-ghost w-full justify-start">
             <LogOut className="h-4 w-4" />
             Déconnexion

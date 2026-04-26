@@ -10,7 +10,7 @@ import {
   type Role,
   type User,
 } from "discord.js";
-import { Pagination } from "@rpbey/pagination";
+import { Pagination, PaginationResolver } from "@rpbey/pagination";
 import { AttachmentBuilder } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
@@ -88,32 +88,39 @@ export class LevelCommands {
       return { id: row.id, username, avatarURL, xp: row.xp, zeni: row.zeni };
     };
 
-    // Rend un buffer PNG par page à la volée (pagination lazy via resolver)
-    const pages = await Promise.all(
-      Array.from({ length: totalPages }, async (_, i) => {
-        const rows = await this.levels.top(pageSize, i * pageSize);
-        const entries = await Promise.all(rows.map(toEntry));
-        const buffer = await this.leaderboard.render(entries, {
-          title: "CLASSEMENT",
-          subtitle: guildName,
-          page: i + 1,
-          totalPages,
-        });
-        return {
-          content: "",
-          files: [new AttachmentBuilder(buffer, { name: `top-p${i + 1}.png` })],
-        };
-      }),
-    );
+    // Rend un buffer PNG pour la page demandée (à la volée)
+    const renderPage = async (i: number): Promise<AttachmentBuilder> => {
+      const rows = await this.levels.top(pageSize, i * pageSize);
+      const entries = await Promise.all(rows.map(toEntry));
+      const buffer = await this.leaderboard.render(entries, {
+        title: "CLASSEMENT",
+        subtitle: guildName,
+        page: i + 1,
+        totalPages,
+      });
+      return new AttachmentBuilder(buffer, { name: `top-p${i + 1}.png` });
+    };
 
     // 1 page → envoi direct, pas de pagination
     if (totalPages === 1) {
-      await interaction.editReply(pages[0]!);
+      const file = await renderPage(0);
+      await interaction.editReply({ files: [file] });
       return;
     }
 
-    // Plusieurs pages → Pagination avec labels FR
-    const pagination = new Pagination(interaction, pages, {
+    // Cache LRU mémoire trivial pour ne pas re-render quand l'user revient en arrière
+    const cache = new Map<number, AttachmentBuilder>();
+    const resolver = new PaginationResolver(async (page) => {
+      let file = cache.get(page);
+      if (!file) {
+        file = await renderPage(page);
+        cache.set(page, file);
+      }
+      return { content: "", files: [file] };
+    }, totalPages);
+
+    // Plusieurs pages → Pagination lazy (pageResolver) avec labels FR
+    const pagination = new Pagination(interaction, resolver, {
       time: 120_000,
       buttons: {
         previous: { label: "Précédent" },
