@@ -43,7 +43,7 @@ export function CanvasPage() {
           <h2 className="text-lg font-semibold">Aperçu des canvases</h2>
         </div>
         <p className="mt-1 text-sm text-zinc-400">
-          Rendu en direct des images générées par le bot via <code>@napi-rs/canvas</code> (Skia
+          Rendu en direct des images générées par le bot via <code>@aphrody-code/canvas</code> (Skia
           natif). Les paramètres sont passés en query string ; cache HTTP côté serveur 60 s.
         </p>
       </div>

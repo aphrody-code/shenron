@@ -31,7 +31,7 @@
     "db:push": "bunx drizzle-kit push"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.99",
+    "@aphrody-code/canvas": "0.1.99-fork.4",
     "@rpbey/di": "workspace:*",
     "@rpbey/discordx": "workspace:*",
     "@rpbey/importer": "workspace:*",
