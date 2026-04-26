@@ -42,18 +42,14 @@ function staticFile(path: string, contentType: string) {
 }
 
 /**
- * Helper pour wrapper un canvas Buffer en Response avec content-type détecté
- * via les magic bytes (PNG = `89 50 4e 47`, WebP = `52 49 46 46 .. WEBP`).
- *
- * Le rendu Skia coûte 100 ms à 1 s selon le canvas — cache HTTP 60 s pour
- * éviter de re-render à chaque refresh dashboard.
+ * Détecte le content-type via les magic bytes (PNG `89 50 4e 47`,
+ * WebP `52 49 46 46 .. 57 45 42 50`, JPEG `ff d8 ff`).
  */
-function imageResponse(buffer: Buffer | Uint8Array, cacheSeconds = 60): Response {
-	const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
-	let contentType = "application/octet-stream";
+function detectImageType(bytes: Uint8Array): string {
 	if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
-		contentType = "image/png";
-	} else if (
+		return "image/png";
+	}
+	if (
 		bytes[0] === 0x52 &&
 		bytes[1] === 0x49 &&
 		bytes[2] === 0x46 &&
@@ -63,16 +59,150 @@ function imageResponse(buffer: Buffer | Uint8Array, cacheSeconds = 60): Response
 		bytes[10] === 0x42 &&
 		bytes[11] === 0x50
 	) {
-		contentType = "image/webp";
-	} else if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-		contentType = "image/jpeg";
+		return "image/webp";
 	}
-	return new Response(buffer as unknown as BodyInit, {
-		headers: {
-			"Content-Type": contentType,
-			"Cache-Control": `public, max-age=${cacheSeconds}, must-revalidate`,
-		},
+	if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+		return "image/jpeg";
+	}
+	return "application/octet-stream";
+}
+
+/**
+ * Hash rapide FNV-1a 32-bit sur un buffer — utilisé comme ETag.
+ * Pas crypto-safe mais sub-microseconde sur des buffers de 100 KB-1 MB et
+ * suffit pour identifier un rendu canvas par contenu.
+ */
+function etagOf(buffer: Uint8Array): string {
+	let h = 0x811c9dc5;
+	const len = buffer.length;
+	// Échantillonner 4096 bytes répartis pour les gros buffers (PNG ~500KB+).
+	const step = Math.max(1, Math.floor(len / 4096));
+	for (let i = 0; i < len; i += step) {
+		h ^= buffer[i] ?? 0;
+		h = Math.imul(h, 0x01000193);
+	}
+	return `"${(h >>> 0).toString(16).padStart(8, "0")}-${len.toString(16)}"`;
+}
+
+/**
+ * Cache LRU en mémoire pour les rendus canvas. Limite 32 entrées (suffisant
+ * pour le dashboard admin) avec éviction du plus ancien.
+ *
+ * Évite que Skia re-render quand :
+ *   - le browser ne respecte pas `Cache-Control` (ex: hard refresh)
+ *   - plusieurs admins consultent en parallèle
+ *   - le cache buster `_=N` du dashboard force un refresh côté HTTP
+ *
+ * Clé : path + query normalisé. TTL : 60 s (aligné avec Cache-Control HTTP).
+ */
+interface CacheEntry {
+	buffer: Uint8Array;
+	contentType: string;
+	etag: string;
+	expiresAt: number;
+}
+const renderCache = new Map<string, CacheEntry>();
+const CACHE_MAX = 32;
+const CACHE_TTL_MS = 60_000;
+
+function cacheKey(req: Request): string {
+	const url = new URL(req.url);
+	const params = [...url.searchParams.entries()]
+		.filter(([k]) => !k.startsWith("_")) // ignore cache busters
+		.sort(([a], [b]) => a.localeCompare(b));
+	return url.pathname + (params.length ? "?" + new URLSearchParams(params).toString() : "");
+}
+
+function getCached(key: string): CacheEntry | null {
+	const entry = renderCache.get(key);
+	if (!entry) return null;
+	if (entry.expiresAt < Date.now()) {
+		renderCache.delete(key);
+		return null;
+	}
+	// LRU: re-insert pour marquer comme récent
+	renderCache.delete(key);
+	renderCache.set(key, entry);
+	return entry;
+}
+
+function putCached(key: string, buffer: Uint8Array, contentType: string, etag: string): void {
+	if (renderCache.size >= CACHE_MAX) {
+		const oldest = renderCache.keys().next().value;
+		if (oldest) renderCache.delete(oldest);
+	}
+	renderCache.set(key, {
+		buffer,
+		contentType,
+		etag,
+		expiresAt: Date.now() + CACHE_TTL_MS,
 	});
+}
+
+/** Erreur HTTP propagée depuis un closure render — `cachedImage` la convertit en Response. */
+class HttpError extends Error {
+	constructor(
+		public status: number,
+		message: string,
+	) {
+		super(message);
+	}
+}
+
+/**
+ * Wrapper canvas avec 3 optimisations :
+ *
+ *   1. **Fast path 304** — si `If-None-Match` match l'ETag en cache, renvoie
+ *      `304 Not Modified` SANS appeler `render()`. Aucun fetch user/db, aucun
+ *      Skia call. ~1 ms côté serveur, 0 byte transmis.
+ *
+ *   2. **LRU cache** — si pas d'`If-None-Match` mais une entrée non-expirée existe,
+ *      sert le buffer en mémoire SANS re-render. Cache 60 s, max 32 entrées.
+ *
+ *   3. **Render + cache + ETag** — sinon appelle `render()`, encode le buffer
+ *      (le service utilise déjà `canvas.encode()` async via libuv threadpool),
+ *      détecte le content-type via magic bytes, calcule l'ETag FNV-1a, met en
+ *      cache et répond.
+ *
+ * Les `HttpError` levés depuis `render()` (404 user introuvable, 400 paramètre
+ * invalide…) sont convertis en Response JSON avec le bon status.
+ */
+async function cachedImage(
+	req: Request,
+	render: () => Promise<Buffer | Uint8Array>,
+	cacheSeconds = 60,
+): Promise<Response> {
+	const key = cacheKey(req);
+	const ifNoneMatch = req.headers.get("if-none-match");
+
+	let entry = getCached(key);
+	if (!entry) {
+		try {
+			const buffer = await render();
+			const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+			const contentType = detectImageType(bytes);
+			const etag = etagOf(bytes);
+			putCached(key, bytes, contentType, etag);
+			entry = { buffer: bytes, contentType, etag, expiresAt: Date.now() + CACHE_TTL_MS };
+		} catch (err) {
+			if (err instanceof HttpError) {
+				return Response.json({ error: err.message }, { status: err.status });
+			}
+			throw err;
+		}
+	}
+
+	const headers: HeadersInit = {
+		"Content-Type": entry.contentType,
+		"Cache-Control": `public, max-age=${cacheSeconds}, must-revalidate`,
+		ETag: entry.etag,
+	};
+
+	if (ifNoneMatch && ifNoneMatch === entry.etag) {
+		return new Response(null, { status: 304, headers });
+	}
+
+	return new Response(entry.buffer as unknown as BodyInit, { headers });
 }
 
 /** Couleur d'accent basée sur l'XP — calque la logique de /scan. */
@@ -554,131 +684,136 @@ export class ApiServer {
 				// ── Canvas (rendu PNG via @napi-rs/canvas) ────────────────────
 				// Tous les services renvoient Buffer<PNG>, on les wrappe en Response.
 				// Cache HTTP 60 s pour amortir le coût Skia (100 ms - 1 s par render).
-				"/api/canvas/profile/:userId": admin(async (req) => {
-					const client = container.resolve(Client);
-					const userId = req.params.userId;
-					const user = await client.users.fetch(userId).catch(() => null);
-					if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 });
-					const dbs = container.resolve(DatabaseService);
-					const rows = await dbs.db.select().from(users).where(eq(users.id, userId)).limit(1);
-					const row = rows[0];
-					if (!row) return Response.json({ error: "Pas de profil en base" }, { status: 404 });
-					const url = new URL(req.url);
-					const card = container.resolve(CardService);
-					const buf = await card.render({
-						discordUser: user,
-						xp: row.xp,
-						zeni: row.zeni,
-						messageCount: row.messageCount,
-						cardKey: url.searchParams.get("theme") ?? row.equippedCard,
-						badge: row.equippedBadge,
-						title: row.equippedTitle,
-						color: row.equippedColor,
-					});
-					return imageResponse(buf);
-				}),
-				"/api/canvas/scan/:userId": admin(async (req) => {
-					const client = container.resolve(Client);
-					const userId = req.params.userId;
-					const user = await client.users.fetch(userId).catch(() => null);
-					if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 });
-					const levels = container.resolve(LevelService);
-					const row = await levels.getUser(userId);
-					const xp = row?.xp ?? 0;
-					const accent = xpAccent(xp);
-					const gauge = container.resolve(GaugeService);
-					// Réutilise GaugeService avec un % calculé sur les paliers DBZ
-					const pct = Math.min(100, Math.round((xp / 9_000_000) * 100));
-					const buf = await gauge.render({
-						user,
-						title: "SCANNER DE KI",
-						subtitle: "Lecture du potentiel",
-						pct,
-						accent,
-						accentDark: "#0a0a0a",
-					});
-					return imageResponse(buf);
-				}),
-				"/api/canvas/scouter/:userId": admin(async (req) => {
-					const client = container.resolve(Client);
-					const userId = req.params.userId;
-					const user = await client.users.fetch(userId).catch(() => null);
-					if (!user) return Response.json({ error: "Utilisateur introuvable" }, { status: 404 });
-					const url = new URL(req.url);
-					const type = (url.searchParams.get("type") ?? "gay") as "gay" | "raciste";
-					const pct = Math.max(0, Math.min(101, Number(url.searchParams.get("pct") ?? 50)));
-					const gauge = container.resolve(GaugeService);
-					const config =
-						type === "raciste"
-							? {
-									title: "RACISM-O-MÈTRE",
-									subtitle: "Scanner calibré sur Commander Red",
-									accent: "#dc2626",
-									accentDark: "#4a0000",
-								}
-							: {
-									title: "GAYDAR DE BULMA",
-									subtitle: "Scanner calibré sur Master Roshi",
-									accent: "#ec4899",
-									accentDark: "#3a0420",
-								};
-					const buf = await gauge.render({ user, ...config, pct });
-					return imageResponse(buf);
-				}),
-				"/api/canvas/fusion": admin(async (req) => {
-					const client = container.resolve(Client);
-					const url = new URL(req.url);
-					const aId = url.searchParams.get("a");
-					const bId = url.searchParams.get("b");
-					if (!aId || !bId) {
-						return Response.json({ error: "Paramètres a + b requis (IDs Discord)" }, { status: 400 });
-					}
-					const [a, b] = await Promise.all([
-						client.users.fetch(aId).catch(() => null),
-						client.users.fetch(bId).catch(() => null),
-					]);
-					if (!a || !b) return Response.json({ error: "Utilisateur(s) introuvable(s)" }, { status: 404 });
-					const state = (url.searchParams.get("state") ?? "success") as "propose" | "success";
-					const fusedName = url.searchParams.get("name") ?? `${a.username.slice(0, 4)}${b.username.slice(0, 4)}`;
-					const fusion = container.resolve(FusionService);
-					const buf = await fusion.render({ a, b, state, fusedName });
-					return imageResponse(buf);
-				}),
-				"/api/canvas/leaderboard": admin(async (req) => {
-					const client = container.resolve(Client);
-					const dbs = container.resolve(DatabaseService);
-					const url = new URL(req.url);
-					const metric = (url.searchParams.get("metric") ?? "xp") as "xp" | "zeni";
-					const limit = Math.min(20, Math.max(3, Number(url.searchParams.get("limit") ?? 10)));
-					const col = metric === "zeni" ? users.zeni : users.xp;
-					const rows = await dbs.db
-						.select({ id: users.id, xp: users.xp, zeni: users.zeni })
-						.from(users)
-						.orderBy(desc(col))
-						.limit(limit);
-					const fetched = await Promise.all(
-						rows.map(async (r) => {
-							const u = await client.users.fetch(r.id).catch(() => null);
-							if (!u) return null;
-							return {
-								id: r.id,
-								username: u.username,
-								avatarURL: u.displayAvatarURL({ size: 128, extension: "png", forceStatic: true }),
-								xp: r.xp,
-								zeni: r.zeni,
-							} satisfies LeaderboardEntry;
-						}),
-					);
-					const entries = fetched.filter((e): e is LeaderboardEntry => e !== null);
-					const lb = container.resolve(LeaderboardService);
-					const buf = await lb.render(entries, {
-						title: metric === "zeni" ? "Classement zénis" : "Classement XP",
-						subtitle: `Top ${entries.length} joueurs`,
-						page: 1,
-						totalPages: 1,
-					});
-					return imageResponse(buf);
-				}),
+				"/api/canvas/profile/:userId": admin((req) =>
+					cachedImage(req, async () => {
+						const client = container.resolve(Client);
+						const userId = req.params.userId;
+						const user = await client.users.fetch(userId).catch(() => null);
+						if (!user) throw new HttpError(404, "Utilisateur introuvable");
+						const dbs = container.resolve(DatabaseService);
+						const rows = await dbs.db.select().from(users).where(eq(users.id, userId)).limit(1);
+						const row = rows[0];
+						if (!row) throw new HttpError(404, "Pas de profil en base");
+						const url = new URL(req.url);
+						const card = container.resolve(CardService);
+						return await card.render({
+							discordUser: user,
+							xp: row.xp,
+							zeni: row.zeni,
+							messageCount: row.messageCount,
+							cardKey: url.searchParams.get("theme") ?? row.equippedCard,
+							badge: row.equippedBadge,
+							title: row.equippedTitle,
+							color: row.equippedColor,
+						});
+					}),
+				),
+				"/api/canvas/scan/:userId": admin((req) =>
+					cachedImage(req, async () => {
+						const client = container.resolve(Client);
+						const userId = req.params.userId;
+						const user = await client.users.fetch(userId).catch(() => null);
+						if (!user) throw new HttpError(404, "Utilisateur introuvable");
+						const levels = container.resolve(LevelService);
+						const row = await levels.getUser(userId);
+						const xp = row?.xp ?? 0;
+						const accent = xpAccent(xp);
+						const gauge = container.resolve(GaugeService);
+						const pct = Math.min(100, Math.round((xp / 9_000_000) * 100));
+						return await gauge.render({
+							user,
+							title: "SCANNER DE KI",
+							subtitle: "Lecture du potentiel",
+							pct,
+							accent,
+							accentDark: "#0a0a0a",
+						});
+					}),
+				),
+				"/api/canvas/scouter/:userId": admin((req) =>
+					cachedImage(req, async () => {
+						const client = container.resolve(Client);
+						const userId = req.params.userId;
+						const user = await client.users.fetch(userId).catch(() => null);
+						if (!user) throw new HttpError(404, "Utilisateur introuvable");
+						const url = new URL(req.url);
+						const type = (url.searchParams.get("type") ?? "gay") as "gay" | "raciste";
+						const pct = Math.max(0, Math.min(101, Number(url.searchParams.get("pct") ?? 50)));
+						const gauge = container.resolve(GaugeService);
+						const config =
+							type === "raciste"
+								? {
+										title: "RACISM-O-MÈTRE",
+										subtitle: "Scanner calibré sur Commander Red",
+										accent: "#dc2626",
+										accentDark: "#4a0000",
+									}
+								: {
+										title: "GAYDAR DE BULMA",
+										subtitle: "Scanner calibré sur Master Roshi",
+										accent: "#ec4899",
+										accentDark: "#3a0420",
+									};
+						return await gauge.render({ user, ...config, pct });
+					}),
+				),
+				"/api/canvas/fusion": admin((req) =>
+					cachedImage(req, async () => {
+						const client = container.resolve(Client);
+						const url = new URL(req.url);
+						const aId = url.searchParams.get("a");
+						const bId = url.searchParams.get("b");
+						if (!aId || !bId) {
+							throw new HttpError(400, "Paramètres a + b requis (IDs Discord)");
+						}
+						const [a, b] = await Promise.all([
+							client.users.fetch(aId).catch(() => null),
+							client.users.fetch(bId).catch(() => null),
+						]);
+						if (!a || !b) throw new HttpError(404, "Utilisateur(s) introuvable(s)");
+						const state = (url.searchParams.get("state") ?? "success") as "propose" | "success";
+						const fusedName =
+							url.searchParams.get("name") ?? `${a.username.slice(0, 4)}${b.username.slice(0, 4)}`;
+						const fusion = container.resolve(FusionService);
+						return await fusion.render({ a, b, state, fusedName });
+					}),
+				),
+				"/api/canvas/leaderboard": admin((req) =>
+					cachedImage(req, async () => {
+						const client = container.resolve(Client);
+						const dbs = container.resolve(DatabaseService);
+						const url = new URL(req.url);
+						const metric = (url.searchParams.get("metric") ?? "xp") as "xp" | "zeni";
+						const limit = Math.min(20, Math.max(3, Number(url.searchParams.get("limit") ?? 10)));
+						const col = metric === "zeni" ? users.zeni : users.xp;
+						const rows = await dbs.db
+							.select({ id: users.id, xp: users.xp, zeni: users.zeni })
+							.from(users)
+							.orderBy(desc(col))
+							.limit(limit);
+						const fetched = await Promise.all(
+							rows.map(async (r) => {
+								const u = await client.users.fetch(r.id).catch(() => null);
+								if (!u) return null;
+								return {
+									id: r.id,
+									username: u.username,
+									avatarURL: u.displayAvatarURL({ size: 128, extension: "png", forceStatic: true }),
+									xp: r.xp,
+									zeni: r.zeni,
+								} satisfies LeaderboardEntry;
+							}),
+						);
+						const entries = fetched.filter((e): e is LeaderboardEntry => e !== null);
+						const lb = container.resolve(LeaderboardService);
+						return await lb.render(entries, {
+							title: metric === "zeni" ? "Classement zénis" : "Classement XP",
+							subtitle: `Top ${entries.length} joueurs`,
+							page: 1,
+							totalPages: 1,
+						});
+					}),
+				),
 				"/api/canvas/list": admin(() =>
 					Response.json({
 						canvases: [

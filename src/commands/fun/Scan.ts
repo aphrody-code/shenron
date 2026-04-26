@@ -88,7 +88,8 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
   ctx.fillStyle = rgba(accent, 0.6);
   ctx.fillText("POWER LEVEL", 500 - textWidth - 20, 175);
 
-  return canvas.toBuffer("image/png");
+  // `encode` async via libuv threadpool — mini-card 500×200 ~50 ms.
+  return canvas.encode("png");
 }
 
 // Fonts : enregistrées par canvas-kit au chargement du module ci-dessus.
