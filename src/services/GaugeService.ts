@@ -216,6 +216,9 @@ export class GaugeService {
     });
 
     ctx.restore();
-    return canvas.toBuffer("image/png");
+    // `encode` est async via libuv threadpool — n'occupe pas l'event loop
+    // pendant la compression PNG (~50-200ms sur 700×320). `toBuffer` reste
+    // sync donc plus lent côté serveur multi-clients.
+    return canvas.encode("png");
   }
 }
