@@ -150,6 +150,84 @@ class HttpError extends Error {
 }
 
 /**
+ * Cache LRU générique pour réponses JSON (canaux Discord, rôles, members,
+ * templates de messages, config niveaux). Même structure que le cache canvas
+ * mais TTL configurable + ETag sur le payload sérialisé.
+ *
+ * Pertinent pour les routes lecture-seule lentes (fetch Discord guild members
+ * = 5757 entrées sur DBFR).
+ */
+const jsonCache = new Map<string, CacheEntry>();
+const JSON_CACHE_MAX = 64;
+
+async function cachedJson<T>(
+	req: Request,
+	build: () => Promise<T>,
+	ttlMs = 30_000,
+): Promise<Response> {
+	const key = cacheKey(req);
+	const ifNoneMatch = req.headers.get("if-none-match");
+
+	let entry = jsonCache.get(key);
+	if (entry && entry.expiresAt < Date.now()) {
+		jsonCache.delete(key);
+		entry = undefined;
+	}
+	if (entry) {
+		// LRU re-insert
+		jsonCache.delete(key);
+		jsonCache.set(key, entry);
+	}
+
+	if (!entry) {
+		try {
+			const data = await build();
+			const json = JSON.stringify(data);
+			const bytes = new TextEncoder().encode(json);
+			const etag = etagOf(bytes);
+			entry = {
+				buffer: bytes,
+				contentType: "application/json",
+				etag,
+				expiresAt: Date.now() + ttlMs,
+			};
+			if (jsonCache.size >= JSON_CACHE_MAX) {
+				const oldest = jsonCache.keys().next().value;
+				if (oldest) jsonCache.delete(oldest);
+			}
+			jsonCache.set(key, entry);
+		} catch (err) {
+			if (err instanceof HttpError) {
+				return Response.json({ error: err.message }, { status: err.status });
+			}
+			throw err;
+		}
+	}
+
+	const headers: HeadersInit = {
+		"Content-Type": "application/json",
+		"Cache-Control": `private, max-age=${Math.floor(ttlMs / 1000)}, must-revalidate`,
+		ETag: entry.etag,
+	};
+	if (ifNoneMatch && ifNoneMatch === entry.etag) {
+		return new Response(null, { status: 304, headers });
+	}
+	return new Response(entry.buffer as unknown as BodyInit, { headers });
+}
+
+/** Invalide le cache JSON pour une clé prefix (ex: après un POST `/messages/:event`). */
+function invalidateJsonCache(prefix: string): number {
+	let n = 0;
+	for (const k of [...jsonCache.keys()]) {
+		if (k.startsWith(prefix)) {
+			jsonCache.delete(k);
+			n++;
+		}
+	}
+	return n;
+}
+
+/**
  * Wrapper canvas avec 3 optimisations :
  *
  *   1. **Fast path 304** — si `If-None-Match` match l'ETag en cache, renvoie
@@ -859,69 +937,79 @@ export class ApiServer {
 				// ── Discord scan (channels, rôles, members) ───────────────────
 				// Source live depuis le cache Discord du bot (pas de fichier scan).
 				// Utilisé par le dashboard pour résoudre les IDs en noms.
-				"/api/discord/channels": admin(() => {
-					const client = container.resolve(Client);
-					const guild = client.guilds.cache.get(env.GUILD_ID);
-					if (!guild) return Response.json({ channels: [] });
-					const channels = [...guild.channels.cache.values()].map((c) => ({
-						id: c.id,
-						name: c.name,
-						type: c.type,
-						parentId: c.parentId,
-						position: "position" in c ? c.position : 0,
-					}));
-					channels.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-					return Response.json({ channels, count: channels.length });
-				}),
-				"/api/discord/roles": admin(() => {
-					const client = container.resolve(Client);
-					const guild = client.guilds.cache.get(env.GUILD_ID);
-					if (!guild) return Response.json({ roles: [] });
-					const roles = [...guild.roles.cache.values()]
-						.filter((r) => r.name !== "@everyone")
-						.map((r) => ({
-							id: r.id,
-							name: r.name,
-							color: r.color,
-							hoist: r.hoist,
-							position: r.position,
-							memberCount: r.members.size,
-							managed: r.managed,
+				"/api/discord/channels": admin((req) =>
+					cachedJson(req, async () => {
+						const client = container.resolve(Client);
+						const guild = client.guilds.cache.get(env.GUILD_ID);
+						if (!guild) return { channels: [], count: 0 };
+						const channels = [...guild.channels.cache.values()].map((c) => ({
+							id: c.id,
+							name: c.name,
+							type: c.type,
+							parentId: c.parentId,
+							position: "position" in c ? c.position : 0,
 						}));
-					roles.sort((a, b) => b.position - a.position);
-					return Response.json({ roles, count: roles.length });
-				}),
-				"/api/discord/members": admin(async (req) => {
-					const client = container.resolve(Client);
-					const guild = client.guilds.cache.get(env.GUILD_ID);
-					if (!guild) return Response.json({ members: [] });
-					const url = new URL(req.url);
-					const limit = Math.min(1000, Number(url.searchParams.get("limit")) || 100);
-					const search = (url.searchParams.get("search") ?? "").toLowerCase();
-					let members = [...guild.members.cache.values()];
-					if (search) {
-						members = members.filter(
-							(m) =>
-								m.user.username.toLowerCase().includes(search) ||
-								m.displayName.toLowerCase().includes(search) ||
-								m.id.includes(search),
-						);
-					}
-					const result = members.slice(0, limit).map((m) => ({
-						id: m.id,
-						username: m.user.username,
-						displayName: m.displayName,
-						avatar: m.user.displayAvatarURL({ size: 64 }),
-						bot: m.user.bot,
-						joinedAt: m.joinedTimestamp ? new Date(m.joinedTimestamp).toISOString() : null,
-						roleIds: [...m.roles.cache.keys()],
-					}));
-					return Response.json({
-						members: result,
-						count: result.length,
-						total: guild.memberCount,
-					});
-				}),
+						channels.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+						return { channels, count: channels.length };
+					}, 30_000),
+				),
+				"/api/discord/roles": admin((req) =>
+					cachedJson(req, async () => {
+						const client = container.resolve(Client);
+						const guild = client.guilds.cache.get(env.GUILD_ID);
+						if (!guild) return { roles: [], count: 0 };
+						const roles = [...guild.roles.cache.values()]
+							.filter((r) => r.name !== "@everyone")
+							.map((r) => ({
+								id: r.id,
+								name: r.name,
+								color: r.color,
+								hoist: r.hoist,
+								position: r.position,
+								memberCount: r.members.size,
+								managed: r.managed,
+							}));
+						roles.sort((a, b) => b.position - a.position);
+						return { roles, count: roles.length };
+					}, 30_000),
+				),
+				"/api/discord/members": admin((req) =>
+					cachedJson(
+						req,
+						async () => {
+							const client = container.resolve(Client);
+							const guild = client.guilds.cache.get(env.GUILD_ID);
+							if (!guild) return { members: [], count: 0, total: 0 };
+							const url = new URL(req.url);
+							const limit = Math.min(1000, Number(url.searchParams.get("limit")) || 100);
+							const search = (url.searchParams.get("search") ?? "").toLowerCase();
+							let members = [...guild.members.cache.values()];
+							if (search) {
+								members = members.filter(
+									(m) =>
+										m.user.username.toLowerCase().includes(search) ||
+										m.displayName.toLowerCase().includes(search) ||
+										m.id.includes(search),
+								);
+							}
+							const result = members.slice(0, limit).map((m) => ({
+								id: m.id,
+								username: m.user.username,
+								displayName: m.displayName,
+								avatar: m.user.displayAvatarURL({ size: 64 }),
+								bot: m.user.bot,
+								joinedAt: m.joinedTimestamp ? new Date(m.joinedTimestamp).toISOString() : null,
+								roleIds: [...m.roles.cache.keys()],
+							}));
+							return {
+								members: result,
+								count: result.length,
+								total: guild.memberCount,
+							};
+						},
+						60_000,
+					),
+				),
 				"/api/discord/scan": admin(async () => {
 					const client = container.resolve(Client);
 					const guild = client.guilds.cache.get(env.GUILD_ID);
@@ -954,10 +1042,16 @@ export class ApiServer {
 				}),
 
 				// ── Templates de messages événementiels ───────────────────────
-				"/api/messages": admin(async () => {
-					const svc = container.resolve(MessageTemplateService);
-					return Response.json({ events: await svc.list() });
-				}),
+				"/api/messages": admin((req) =>
+					cachedJson(
+						req,
+						async () => {
+							const svc = container.resolve(MessageTemplateService);
+							return { events: await svc.list() };
+						},
+						30_000,
+					),
+				),
 				"/api/messages/:event": {
 					GET: admin(async (req) => {
 						const svc = container.resolve(MessageTemplateService);
@@ -979,6 +1073,7 @@ export class ApiServer {
 								channelKey: body.channelKey ?? null,
 								enabled: body.enabled ?? true,
 							});
+							invalidateJsonCache("/api/messages");
 							return Response.json({ ok: true });
 						} catch (err) {
 							return Response.json(
@@ -990,6 +1085,7 @@ export class ApiServer {
 					DELETE: admin(async (req) => {
 						const svc = container.resolve(MessageTemplateService);
 						await svc.reset(req.params.event);
+						invalidateJsonCache("/api/messages");
 						return Response.json({ ok: true });
 					}),
 				},
