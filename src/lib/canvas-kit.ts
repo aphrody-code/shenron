@@ -8,7 +8,7 @@
  * L'enregistrement des fonts est fait au chargement de ce module (side effect),
  * donc `import "~/lib/canvas-kit"` suffit à garantir leur disponibilité.
  */
-import { GlobalFonts, type SKRSContext2D } from "@napi-rs/canvas";
+import { GlobalFonts, type SKRSContext2D } from "@aphrody-code/canvas";
 import { logger } from "~/lib/logger";
 
 // ─── Fonts ────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { singleton } from "tsyringe";
-import { loadImage, type Image } from "@napi-rs/canvas";
+import { loadImage, type Image } from "@aphrody-code/canvas";
 import { logger } from "~/lib/logger";
 
 /**

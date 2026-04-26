@@ -8,7 +8,7 @@ import {
   type CommandInteraction,
   type User,
 } from "discord.js";
-import { createCanvas } from "@napi-rs/canvas";
+import { createCanvas } from "@aphrody-code/canvas";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { LevelService } from "~/services/LevelService";

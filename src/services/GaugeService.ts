@@ -1,5 +1,5 @@
 import { singleton } from "tsyringe";
-import { createCanvas, loadImage, type Image, type SKRSContext2D } from "@napi-rs/canvas";
+import { createCanvas, loadImage, type Image, type SKRSContext2D } from "@aphrody-code/canvas";
 import type { User } from "discord.js";
 import {
   drawGauge,
