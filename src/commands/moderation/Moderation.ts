@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -16,44 +16,17 @@ import { AdminOnly } from "~/guards/AdminOnly";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { ModerationService } from "~/services/ModerationService";
 import { LogService } from "~/services/LogService";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
+import { container } from "tsyringe";
 import { sanctionEmbed, brandedEmbed, errorEmbed, successEmbed, warningEmbed } from "~/lib/embeds";
+import { canModerate } from "~/lib/hierarchy";
+import { gifFor } from "~/lib/sanction-gif";
+import { parseDuration, formatDuration, notifyMember } from "~/lib/sanction-helpers";
+import type { GuildBasedChannel, Collection, Snowflake } from "discord.js";
 import dayjs from "dayjs";
 
-function parseDuration(input?: string): number | undefined {
-  if (!input) return undefined;
-  const m = input.match(/^(\d+)\s*([smhdw])$/i);
-  if (!m) return undefined;
-  const n = parseInt(m[1]!, 10);
-  const unit = m[2]!.toLowerCase();
-  const mult = { s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000, w: 604_800_000 }[unit] ?? 0;
-  return n * mult;
-}
-
-function formatDuration(ms: number): string {
-  if (ms >= 86_400_000) return `${Math.round(ms / 86_400_000)}j`;
-  if (ms >= 3_600_000) return `${Math.round(ms / 3_600_000)}h`;
-  if (ms >= 60_000) return `${Math.round(ms / 60_000)}min`;
-  return `${Math.round(ms / 1_000)}s`;
-}
-
-/**
- * DM le membre sanctionné en best-effort. Silence les erreurs (DM fermés,
- * blocked, bot bloqué…) — la sanction reste appliquée même si la notif échoue.
- * Retourne true si le DM est arrivé.
- */
-async function notifyMember(
-  target: User,
-  embed: EmbedBuilder,
-): Promise<boolean> {
-  try {
-    await target.send({ embeds: [embed] });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 @Discord()
+@Bot("beerus")
 @Guard(GuildOnly)
 @injectable()
 export class ModerationCommands {
@@ -87,6 +60,7 @@ export class ModerationCommands {
       moderator: interaction.user,
       action: "warn",
       reason,
+      gifUrl: await gifFor("warn"),
     }).addFields({ name: "Total warns actifs", value: String(count), inline: true });
 
     const dmOk = await notifyMember(
@@ -97,6 +71,12 @@ export class ModerationCommands {
         kind: "warning",
         footer: `Tu as ${count} avertissement(s) actif(s).`,
       }),
+      {
+        kind: "warn",
+        reason: reason ?? "*(non précisé)*",
+        moderator: interaction.user.username,
+        guildName: interaction.guild?.name ?? "le serveur",
+      },
     );
 
     await interaction.reply({
@@ -199,6 +179,13 @@ export class ModerationCommands {
       await interaction.reply({ embeds: [errorEmbed("Membre introuvable")], flags: MessageFlags.Ephemeral });
       return;
     }
+    {
+      const allowed = await canModerate(interaction.member, member);
+      if (!allowed.ok) {
+        await interaction.reply({ embeds: [errorEmbed("Hiérarchie staff", allowed.reason ?? "")], flags: MessageFlags.Ephemeral });
+        return;
+      }
+    }
     if (!member.moderatable) {
       await interaction.reply({
         embeds: [errorEmbed("Permissions insuffisantes", `Le bot ne peut pas timeout ${target} (rôle plus haut ou perm absente).`)],
@@ -225,6 +212,7 @@ export class ModerationCommands {
       action: "mute",
       reason,
       duration: `${formatDuration(ms)} (jusqu'à ${until.format("DD/MM HH:mm")})`,
+      gifUrl: await gifFor("mute"),
     });
     const dmOk = await notifyMember(
       target,
@@ -233,6 +221,13 @@ export class ModerationCommands {
         description: `Tu es mute sur **${interaction.guild.name}** pour **${formatDuration(ms)}**.\n\nMotif : ${reason ?? "*(non précisé)*"}\nFin : <t:${Math.floor(until.valueOf() / 1000)}:f>`,
         kind: "warning",
       }),
+      {
+        kind: "mute",
+        reason: reason ?? "*(non précisé)*",
+        duration: formatDuration(ms),
+        moderator: interaction.user.username,
+        guildName: interaction.guild.name,
+      },
     );
 
     await interaction.reply({
@@ -267,86 +262,7 @@ export class ModerationCommands {
     await member.timeout(null, reason ?? "manual unmute").catch(() => {});
     await this.mod.log("UNMUTE", target.id, interaction.user.id, reason);
 
-    const embed = sanctionEmbed({ target, moderator: interaction.user, action: "unmute", reason });
-    await interaction.reply({ embeds: [embed] });
-    await this.logs.send(interaction.client, "sanction", embed);
-  }
-
-  // ────────────────────────────── /jail
-  @Slash({ name: "jail", description: "Envoyer un membre en jail" })
-  @Guard(ModOnly)
-  async jail(
-    @SlashOption({ name: "membre", description: "Membre à jail", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
-    target: User,
-    @SlashOption({ name: "duree", description: "Durée optionnelle (ex: 1h)", type: ApplicationCommandOptionType.String, required: false })
-    duration: string | undefined,
-    @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
-    reason: string | undefined,
-    interaction: CommandInteraction,
-  ) {
-    if (!interaction.inCachedGuild()) return;
-    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
-    if (!member) {
-      await interaction.reply({ embeds: [errorEmbed("Membre introuvable")], flags: MessageFlags.Ephemeral });
-      return;
-    }
-    if (!member.manageable) {
-      await interaction.reply({
-        embeds: [errorEmbed("Hiérarchie", `Le bot ne peut pas modifier les rôles de ${target} (rôle plus haut).`)],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-    const ms = parseDuration(duration);
-    try {
-      await this.mod.jail(member, interaction.user.id, reason, ms);
-    } catch (err) {
-      await interaction.reply({
-        embeds: [errorEmbed("Échec jail", (err as Error).message)],
-        flags: MessageFlags.Ephemeral,
-      });
-      return;
-    }
-
-    const embed = sanctionEmbed({
-      target,
-      moderator: interaction.user,
-      action: "jail",
-      reason,
-      duration: ms ? formatDuration(ms) : "Indéfinie",
-    });
-    const dmOk = await notifyMember(
-      target,
-      brandedEmbed({
-        title: "⛓️ Tu as été jailé",
-        description: `Tu es en jail sur **${interaction.guild.name}**${ms ? ` pour **${formatDuration(ms)}**` : ""}.\n\nMotif : ${reason ?? "*(non précisé)*"}`,
-        kind: "error",
-      }),
-    );
-
-    await interaction.reply({
-      embeds: [embed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true })],
-    });
-    await this.logs.send(interaction.client, "sanction", embed);
-  }
-
-  // ────────────────────────────── /unjail
-  @Slash({ name: "unjail", description: "Libérer un membre de jail" })
-  @Guard(ModOnly)
-  async unjail(
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
-    target: User,
-    @SlashOption({ name: "raison", description: "Raison", type: ApplicationCommandOptionType.String, required: false })
-    reason: string | undefined,
-    interaction: CommandInteraction,
-  ) {
-    if (!interaction.inCachedGuild()) return;
-    const ok = await this.mod.unjail(interaction.guild, target.id, interaction.user.id, reason);
-    if (!ok) {
-      await interaction.reply({ embeds: [errorEmbed("Membre introuvable ou pas en jail")], flags: MessageFlags.Ephemeral });
-      return;
-    }
-    const embed = sanctionEmbed({ target, moderator: interaction.user, action: "unjail", reason });
+    const embed = sanctionEmbed({ target, moderator: interaction.user, action: "unmute", reason, gifUrl: await gifFor("unmute") });
     await interaction.reply({ embeds: [embed] });
     await this.logs.send(interaction.client, "sanction", embed);
   }
@@ -383,6 +299,16 @@ export class ModerationCommands {
       await interaction.reply({ embeds: [errorEmbed("Cible invalide", "Le bot ne peut pas se bannir.")], flags: MessageFlags.Ephemeral });
       return;
     }
+    {
+      const targetMember = await interaction.guild.members.fetch(target.id).catch(() => null);
+      if (targetMember) {
+        const allowed = await canModerate(interaction.member, targetMember);
+        if (!allowed.ok) {
+          await interaction.reply({ embeds: [errorEmbed("Hiérarchie staff", allowed.reason ?? "")], flags: MessageFlags.Ephemeral });
+          return;
+        }
+      }
+    }
 
     // DM avant ban (sinon on ne peut plus joindre la cible une fois bannie)
     const dmOk = await notifyMember(
@@ -392,6 +318,12 @@ export class ModerationCommands {
         description: `Tu as été banni de **${interaction.guild.name}**.\n\nMotif : ${reason ?? "*(non précisé)*"}`,
         kind: "error",
       }),
+      {
+        kind: "ban",
+        reason: reason ?? "*(non précisé)*",
+        moderator: interaction.user.username,
+        guildName: interaction.guild.name,
+      },
     );
 
     try {
@@ -403,7 +335,7 @@ export class ModerationCommands {
         deleteDays: deleteDays ?? 0,
       });
 
-      const embed = sanctionEmbed({ target, moderator: interaction.user, action: "ban", reason });
+      const embed = sanctionEmbed({ target, moderator: interaction.user, action: "ban", reason, gifUrl: await gifFor("ban") });
       if (deleteDays && deleteDays > 0) {
         embed.addFields({ name: "Messages purgés", value: `${deleteDays} j`, inline: true });
       }
@@ -442,7 +374,7 @@ export class ModerationCommands {
       await this.mod.log("UNBAN", userId, interaction.user.id, reason);
       const user = await interaction.client.users.fetch(userId).catch(() => null);
       if (user) {
-        const embed = sanctionEmbed({ target: user, moderator: interaction.user, action: "unban", reason });
+        const embed = sanctionEmbed({ target: user, moderator: interaction.user, action: "unban", reason, gifUrl: await gifFor("unban") });
         await interaction.reply({ embeds: [embed] });
         await this.logs.send(interaction.client, "sanction", embed);
       } else {
@@ -480,6 +412,13 @@ export class ModerationCommands {
       await interaction.reply({ embeds: [errorEmbed("Hiérarchie", `Le bot ne peut pas expulser ${target}.`)], flags: MessageFlags.Ephemeral });
       return;
     }
+    {
+      const allowed = await canModerate(interaction.member, member);
+      if (!allowed.ok) {
+        await interaction.reply({ embeds: [errorEmbed("Hiérarchie staff", allowed.reason ?? "")], flags: MessageFlags.Ephemeral });
+        return;
+      }
+    }
     const dmOk = await notifyMember(
       target,
       brandedEmbed({
@@ -487,11 +426,17 @@ export class ModerationCommands {
         description: `Tu as été expulsé de **${interaction.guild.name}**.\n\nMotif : ${reason ?? "*(non précisé)*"}`,
         kind: "warning",
       }),
+      {
+        kind: "kick",
+        reason: reason ?? "*(non précisé)*",
+        moderator: interaction.user.username,
+        guildName: interaction.guild.name,
+      },
     );
     await member.kick(reason ?? `by ${interaction.user.username}`).catch(() => {});
     await this.mod.log("KICK", target.id, interaction.user.id, reason);
 
-    const embed = sanctionEmbed({ target, moderator: interaction.user, action: "kick", reason })
+    const embed = sanctionEmbed({ target, moderator: interaction.user, action: "kick", reason, gifUrl: await gifFor("kick") })
       .addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
     await interaction.reply({ embeds: [embed] });
     await this.logs.send(interaction.client, "sanction", embed);
@@ -529,6 +474,179 @@ export class ModerationCommands {
     await interaction.editReply({
       embeds: [successEmbed(`${deleted.size} message(s) supprimé(s)`, target ? `Filtre : <@${target.id}>` : undefined)],
     });
+  }
+
+  // ────────────────────────────── /purge
+  /**
+   * /purge — supprime les messages d'un membre (ou de tous) sur un large
+   * périmètre :
+   *  - **salon courant** par défaut (jusqu'à `nombre`, max 1000),
+   *  - **un autre salon** si `salon` est précisé,
+   *  - **tout le serveur** si `global=true` (parcourt tous les TextChannels
+   *    accessibles au bot, batch 100).
+   *
+   * Limite Discord : `bulkDelete` ne supprime que les messages de **moins de
+   * 14 jours**. Les plus vieux sont silencieusement ignorés.
+   * Vegeta — Final Explosion.
+   */
+  @Slash({ name: "purge", description: "Purger massivement les messages d'un membre (salon ou serveur entier)" })
+  @Guard(ModOnly)
+  async purge(
+    @SlashOption({
+      name: "membre",
+      description: "Cible (laisser vide = tout le monde)",
+      type: ApplicationCommandOptionType.User,
+      required: false,
+    }, userTransformer)
+    target: User | undefined,
+    @SlashOption({
+      name: "nombre",
+      description: "Nombre max de messages à supprimer (1-1000, défaut 100)",
+      type: ApplicationCommandOptionType.Integer,
+      required: false,
+      minValue: 1,
+      maxValue: 1000,
+    })
+    amount: number | undefined,
+    @SlashOption({
+      name: "salon",
+      description: "Salon spécifique (défaut : salon courant)",
+      type: ApplicationCommandOptionType.Channel,
+      required: false,
+      channelTypes: [ChannelType.GuildText, ChannelType.GuildAnnouncement, ChannelType.PublicThread, ChannelType.PrivateThread],
+    })
+    channel: GuildBasedChannel | undefined,
+    @SlashOption({
+      name: "global",
+      description: "Parcourir TOUS les salons textuels du serveur (override `salon`)",
+      type: ApplicationCommandOptionType.Boolean,
+      required: false,
+    })
+    globalScope: boolean | undefined,
+    interaction: CommandInteraction,
+  ) {
+    if (!interaction.inCachedGuild()) return;
+    if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
+      await interaction.reply({ embeds: [errorEmbed("Permission insuffisante", "`Manage Messages` requis.")], flags: MessageFlags.Ephemeral });
+      return;
+    }
+    // Hiérarchie staff — empêcher de purger un membre au-dessus
+    if (target) {
+      const targetMember = await interaction.guild.members.fetch(target.id).catch(() => null);
+      if (targetMember) {
+        const allowed = await canModerate(interaction.member, targetMember);
+        if (!allowed.ok) {
+          await interaction.reply({ embeds: [errorEmbed("Hiérarchie staff", allowed.reason ?? "")], flags: MessageFlags.Ephemeral });
+          return;
+        }
+      }
+    }
+    const limit = amount ?? 100;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // Détermine la liste des salons à parcourir
+    let scope: TextChannel[];
+    if (globalScope) {
+      const all = interaction.guild.channels.cache.filter(
+        (c) => c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement,
+      ) as Collection<Snowflake, TextChannel>;
+      scope = [...all.values()];
+    } else if (channel) {
+      if (!("bulkDelete" in channel)) {
+        await interaction.editReply({ embeds: [errorEmbed("Salon non supporté", "Seuls les salons textuels sont purgeable.")] });
+        return;
+      }
+      scope = [channel as unknown as TextChannel];
+    } else {
+      const here = interaction.channel;
+      if (!here || !("bulkDelete" in here)) {
+        await interaction.editReply({ embeds: [errorEmbed("Salon non supporté")] });
+        return;
+      }
+      scope = [here as unknown as TextChannel];
+    }
+
+    // Suppression : par batches de 100 (limite bulkDelete) jusqu'à `limit`
+    let totalDeleted = 0;
+    let scanned = 0;
+    const skippedChannels: string[] = [];
+    for (const ch of scope) {
+      if (totalDeleted >= limit) break;
+      // Skip si bot n'a pas les perms
+      const me = interaction.guild.members.me;
+      if (me && !ch.permissionsFor(me)?.has([PermissionFlagsBits.ViewChannel, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages])) {
+        skippedChannels.push(ch.name);
+        continue;
+      }
+      let lastId: string | undefined;
+      // Boucle de fetch (pages de 100)
+      for (let i = 0; i < 10 && totalDeleted < limit; i++) {
+        const fetched: Collection<Snowflake, import("discord.js").Message> = await ch.messages
+          .fetch({ limit: 100, ...(lastId ? { before: lastId } : {}) })
+          .catch(() => null as unknown as Collection<Snowflake, import("discord.js").Message>);
+        if (!fetched || fetched.size === 0) break;
+        scanned += fetched.size;
+        lastId = fetched.last()?.id;
+        const matching = target ? fetched.filter((m) => m.author.id === target.id) : fetched;
+        if (matching.size === 0) continue;
+        const remaining = limit - totalDeleted;
+        const toDelete = [...matching.values()].slice(0, remaining);
+        try {
+          const res = await ch.bulkDelete(toDelete, true);
+          totalDeleted += res.size;
+        } catch {
+          // bulkDelete failed (ex: thread sans perms) → ignore et suivant
+          break;
+        }
+        if (fetched.size < 100) break;
+      }
+    }
+
+    await this.mod.log("PURGE", target?.id ?? null, interaction.user.id, undefined, {
+      scope: globalScope ? "global" : channel ? `#${channel.name}` : `#${(interaction.channel as TextChannel | null)?.name ?? "?"}`,
+      target: target?.id,
+      deleted: totalDeleted,
+      scanned,
+      channels: scope.length,
+      skippedChannels,
+    });
+
+    const desc = [
+      `**Supprimés :** ${totalDeleted}${target ? ` · cible <@${target.id}>` : ""}`,
+      `**Salons parcourus :** ${scope.length}${skippedChannels.length ? ` (skipped: ${skippedChannels.length})` : ""}`,
+      `**Messages scannés :** ${scanned}`,
+      "",
+      "_Limite Discord : seuls les messages de moins de 14 jours sont effaçables._",
+    ].join("\n");
+
+    // Confirmation publique avec GIF Vegeta sacrifice (sanction-style).
+    // Respecte le toggle `mod_purge_announce` du dashboard `/messages` : si
+    // l'admin a désactivé l'événement, l'annonce publique est skip mais le log
+    // sanctions reste. Si l'admin a surchargé le template, le rendu remplace
+    // la description par défaut.
+    const templates = container.resolve(MessageTemplateService);
+    const purgeRender = await templates.render("mod_purge_announce", {
+      moderator: interaction.user.id,
+      deleted: totalDeleted,
+      target: target?.id ?? "",
+      targetClause: target ? ` de <@${target.id}>` : "",
+      scope: globalScope ? "global" : channel ? `#${channel.name}` : `#${(interaction.channel as TextChannel | null)?.name ?? "?"}`,
+    });
+    const publicEmbed = brandedEmbed({
+      title: "💥 Purge — Final Explosion",
+      description: purgeRender?.rendered ?? (target
+        ? `<@${interaction.user.id}> a purgé **${totalDeleted}** message(s) de <@${target.id}>.`
+        : `<@${interaction.user.id}> a purgé **${totalDeleted}** message(s).`),
+      kind: "warning",
+    });
+    const gif = await gifFor("purge");
+    if (gif) publicEmbed.setImage(gif);
+    if (purgeRender?.enabled !== false && interaction.channel && "send" in interaction.channel) {
+      await (interaction.channel as TextChannel).send({ embeds: [publicEmbed] }).catch(() => {});
+    }
+    await this.logs.send(interaction.client, "sanction", publicEmbed);
+
+    await interaction.editReply({ embeds: [successEmbed("Purge terminée", desc)] });
   }
 
   // ────────────────────────────── /slowmode
@@ -807,10 +925,53 @@ export class ModerationCommands {
         return;
       }
       await interaction.deferReply();
-      const members = await interaction.guild.members.fetch();
+      // Beerus n'a pas l'intent privileged GuildMembers → guild.members.fetch()
+      // ne peut pas charger tous les membres (ws REQUEST_GUILD_MEMBERS rejected).
+      // Pour `remove`, on travaille sur role.members.cache (membres ayant déjà
+      // le rôle, populés par les events) qui suffit dans 99 % des cas. Pour
+      // `give`, sans l'intent c'est impossible — on log une erreur claire.
+      let pool: Iterable<import("discord.js").GuildMember>;
+      let scope: string;
+      if (action === "remove") {
+        // role.members = cache filtrée — sans GuildMembers intent, populée
+        // uniquement par les évents (member update, message, voice…).
+        // C'est suffisant si les porteurs du rôle ont récemment intéragi.
+        const carriers = role.members;
+        if (carriers.size === 0) {
+          await interaction.editReply({
+            embeds: [warningEmbed(
+              "Aucun membre détecté avec ce rôle",
+              `Le bot **Beerus** n'a pas l'intent privileged \`SERVER MEMBERS\`, donc la liste des porteurs du rôle ${role} est limitée à la cache.\n\n` +
+              `**Solutions :**\n` +
+              `• Active **\`SERVER MEMBERS INTENT\`** sur le portail Discord pour Beerus, puis ajoute \`I.GuildMembers\` à \`personas.ts:48\`.\n` +
+              `• Ou retire le rôle via le **dashboard Discord** (membres › filtre par rôle).\n` +
+              `• Ou via une **commande sur Grand Prêtre** (qui a l'intent), à porter explicitement.`,
+            )],
+          });
+          return;
+        }
+        pool = carriers.values();
+        scope = `${carriers.size} porteur(s)`;
+      } else {
+        // give: nécessite la liste de TOUS les membres → impossible sans intent
+        const fetched = await interaction.guild.members.fetch().catch(() => null);
+        if (!fetched || fetched.size < interaction.guild.memberCount * 0.5) {
+          await interaction.editReply({
+            embeds: [errorEmbed(
+              "Action `give` indisponible",
+              `Beerus n'a pas l'intent \`SERVER MEMBERS\` — impossible de lister tous les membres ` +
+              `(${fetched?.size ?? 0}/${interaction.guild.memberCount} chargés).\n\n` +
+              `Active l'intent privileged sur le portail Discord pour Beerus puis ajoute \`I.GuildMembers\` à \`personas.ts:48\`.`,
+            )],
+          });
+          return;
+        }
+        pool = fetched.values();
+        scope = `${fetched.size} membre(s) du serveur`;
+      }
       let ok = 0;
       let failed = 0;
-      for (const m of members.values()) {
+      for (const m of pool) {
         try {
           if (action === "give") await m.roles.add(role.id);
           else await m.roles.remove(role.id);
@@ -824,12 +985,13 @@ export class ModerationCommands {
         action,
         ok,
         failed,
+        scope,
       });
       await interaction.editReply({
         embeds: [
           successEmbed(
             action === "give" ? "Rôle donné en masse" : "Rôle retiré en masse",
-            `${role} appliqué à **${ok}** membre(s)${failed ? ` (${failed} échec(s))` : ""}.`,
+            `${role} ${action === "give" ? "ajouté à" : "retiré de"} **${ok}** membre(s)${failed ? ` (${failed} échec(s))` : ""}.\n*Scope : ${scope}.*`,
           ),
         ],
       });
