@@ -5,7 +5,13 @@ import { Client as DiscordxClient } from "@rpbey/discordx";
 import { DatabaseService } from "~/db/index";
 import { EventBusService } from "./EventBusService";
 import { messageTemplates, guildSettings, type MessageTemplate } from "~/db/schema";
-import { EVENTS, findEvent, renderTemplate, type EventDef } from "~/lib/message-templates";
+import {
+	EVENTS,
+	findEvent,
+	renderTemplate,
+	VIRTUAL_CHANNEL_KEYS,
+	type EventDef,
+} from "~/lib/message-templates";
 import { brandedEmbed } from "~/lib/embeds";
 import { logger } from "~/lib/logger";
 import { env } from "~/lib/env";
@@ -57,6 +63,9 @@ export class MessageTemplateService {
 	}
 
 	async resolveChannel(channelKey: string, client: Client): Promise<SendableChannels | null> {
+		// Clés virtuelles (DM, canal d'invocation, canal du ticket) → le caller
+		// fournit son propre canal, on ne tente AUCUNE résolution settings/env.
+		if (VIRTUAL_CHANNEL_KEYS.has(channelKey)) return null;
 		await this.ensureFresh();
 		const id = this.settingsCache.get(channelKey) ?? this.envFallback(channelKey);
 		if (!id) return null;
@@ -66,6 +75,55 @@ export class MessageTemplateService {
 		const fetched = await client.channels.fetch(id).catch(() => null);
 		if (fetched && "send" in fetched) return fetched as SendableChannels;
 		return null;
+	}
+
+	/**
+	 * Rend un template sans envoi. Utilisé par les call-sites qui composent leur
+	 * propre embed riche / canal contextuel (DM, canal d'invocation, ticket).
+	 *
+	 * Retourne `enabled=false` → le caller DOIT skip l'envoi.
+	 * Retourne null si l'événement n'existe pas.
+	 */
+	async render(
+		event: string,
+		vars: Record<string, unknown>,
+	): Promise<{ enabled: boolean; rendered: string; def: EventDef } | null> {
+		const def = findEvent(event);
+		if (!def) {
+			logger.warn({ event }, "render: événement inconnu");
+			return null;
+		}
+		await this.ensureFresh();
+		const tmpl = this.templateCache.get(event);
+		const enabled = tmpl?.enabled ?? true;
+		const rendered = renderTemplate(tmpl?.template ?? def.defaultTemplate, vars);
+		return { enabled, rendered, def };
+	}
+
+	/**
+	 * Résout l'état d'un événement (canal cible + enabled) pour les callers qui
+	 * ont besoin d'envoyer un payload custom (embed riche, components, etc.) tout
+	 * en respectant le toggle `enabled` + l'override `channelKey` du dashboard.
+	 *
+	 * Retourne `enabled=false` → le caller DOIT skip l'envoi (pas de fallback).
+	 * Retourne `channel=null` quand le canal configuré est introuvable.
+	 */
+	async resolveTarget(
+		event: string,
+		client: Client,
+	): Promise<{ enabled: boolean; channel: SendableChannels | null; def: EventDef } | null> {
+		const def = findEvent(event);
+		if (!def) {
+			logger.warn({ event }, "resolveTarget: événement inconnu");
+			return null;
+		}
+		await this.ensureFresh();
+		const tmpl = this.templateCache.get(event);
+		const enabled = tmpl?.enabled ?? true;
+		if (!enabled) return { enabled: false, channel: null, def };
+		const channelKey = tmpl?.channelKey ?? def.defaultChannelKey;
+		const channel = await this.resolveChannel(channelKey, client);
+		return { enabled: true, channel, def };
 	}
 
 	/**
@@ -210,6 +268,7 @@ export class MessageTemplateService {
 			"channel.welcome": env.LOG_JOIN_LEAVE_CHANNEL_ID,
 			"channel.farewell": env.LOG_JOIN_LEAVE_CHANNEL_ID,
 			"channel.giveaway": env.ANNOUNCE_CHANNEL_ID,
+			"channel.zeni": env.LOG_ECONOMY_CHANNEL_ID ?? env.ANNOUNCE_CHANNEL_ID,
 			"channel.mod_notify": env.MOD_NOTIFY_CHANNEL_ID,
 			"channel.log_sanction": env.LOG_SANCTION_CHANNEL_ID,
 		};

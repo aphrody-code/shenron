@@ -15,7 +15,7 @@ import { AdminOnly } from "~/guards/AdminOnly";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { ModerationService } from "~/services/ModerationService";
 import { LogService } from "~/services/LogService";
-import { sanctionEmbed, brandedEmbed, errorEmbed, successEmbed } from "~/lib/embeds";
+import { sanctionEmbed, sanctionLogEmbed, brandedEmbed, errorEmbed, successEmbed } from "~/lib/embeds";
 import { canModerate } from "~/lib/hierarchy";
 import { gifFor } from "~/lib/sanction-gif";
 import { parseDuration, formatDuration, notifyMember } from "~/lib/sanction-helpers";
@@ -74,13 +74,14 @@ export class JailCommands {
       return;
     }
 
-    const embed = sanctionEmbed({
+    const gifUrl = await gifFor("jail");
+    const detailedEmbed = sanctionEmbed({
       target,
       moderator: interaction.user,
       action: "jail",
       reason,
       duration: ms ? formatDuration(ms) : "Indéfinie",
-      gifUrl: await gifFor("jail"),
+      gifUrl,
     });
     const dmOk = await notifyMember(
       target,
@@ -98,11 +99,20 @@ export class JailCommands {
       },
     );
 
-    await interaction.reply({
-      embeds: [embed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true })],
-      flags: discret ? MessageFlags.Ephemeral : undefined,
-    });
-    await this.logs.send(interaction.client, "sanction", embed);
+    // Public : embed compact "log style" (gif + nom + "envoyé en enfer !")
+    // Détaillé : log sanction (modérateur, motif, durée, DM) — invisible côté membres.
+    if (discret) {
+      await interaction.reply({
+        embeds: [detailedEmbed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true })],
+        flags: MessageFlags.Ephemeral,
+      });
+    } else {
+      const publicEmbed = sanctionLogEmbed({ target, action: "jail", gifUrl });
+      await interaction.reply({ embeds: [publicEmbed] });
+      // Log détaillé en log channel uniquement (pas de bruit dans le salon courant).
+      detailedEmbed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
+    }
+    await this.logs.send(interaction.client, "sanction", detailedEmbed);
   }
 
   // ────────────────────────────── /unjail
@@ -131,14 +141,20 @@ export class JailCommands {
 
   // ────────────────────────────── /jail-setup
   /**
-   * Verrouille le rôle `JAIL_ROLE_ID` sur tout le serveur en une fois :
-   * deny ViewChannel + SendMessages + AddReactions + Connect + Speak + Stream
-   * + threads + slash commands sur **toutes les catégories** (les salons enfants
-   * héritent automatiquement) + tous les **salons orphelins** (sans parent).
+   * Verrouille le rôle `JAIL_ROLE_ID` sur **TOUS** les salons individuellement
+   * (catégories + salons texte/vocal/annonce/forum/media/stage). On n'applique
+   * pas seulement aux catégories : un salon enfant qui a un override custom
+   * (même pour @everyone) ne synchronise pas avec sa catégorie, donc l'override
+   * sur la catégorie n'est pas hérité. Pour garantir le deny partout, on
+   * applique l'override directement sur chaque salon.
    *
    * Si `salon-jail` est fourni, le rôle reçoit un override **allow ViewChannel
    * + SendMessages + ReadMessageHistory** sur ce salon spécifique pour pouvoir
-   * communiquer avec les mods. Les autres permissions restent deny.
+   * communiquer avec les mods. Ce salon est exclu de la boucle de deny.
+   *
+   * Pré-vérifie la **hiérarchie de rôles** : le rôle jail doit être strictement
+   * en-dessous du plus haut rôle du bot (sinon Discord refuse `Missing Permissions`
+   * sur chaque appel et rien ne se passe).
    *
    * Idempotent : applique `permissionOverwrites.edit` (merge) plutôt que
    * `set` (replace) — relancer la commande ne casse pas les overrides
@@ -183,6 +199,20 @@ export class JailCommands {
       });
       return;
     }
+    // Pré-vérif hiérarchie : Discord refuse de modifier un override pour un rôle
+    // au-dessus (ou égal) au plus haut rôle du bot. Sans ce check, chaque
+    // permissionOverwrites.edit() lance "Missing Permissions" en silence.
+    const myTop = me.roles.highest;
+    if (role.position >= myTop.position) {
+      await interaction.reply({
+        embeds: [errorEmbed(
+          "Hiérarchie cassée",
+          `Le rôle <@&${role.id}> est **au-dessus ou au même niveau** que le plus haut rôle du bot **${myTop.name}**.\n\nDans **Paramètres serveur → Rôles**, déplace **${role.name}** strictement en-dessous de **${myTop.name}**, puis relance \`/jail-setup\`.`,
+        )],
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     await interaction.deferReply();
 
@@ -206,13 +236,13 @@ export class JailCommands {
       UseExternalStickers: false,
     } as const;
 
-    const allCategories = [...interaction.guild.channels.cache.values()]
-      .filter((c) => c.type === ChannelType.GuildCategory);
-    // Salons orphelins (sans catégorie) — ne peuvent pas hériter, on doit
-    // les traiter explicitement. Les salons sous une catégorie héritent du
-    // deny via Discord directement (sauf si un override les écrase déjà).
-    // On exclut les threads (pas de permissionOverwrites propres).
-    const nonThreadTypes = new Set<number>([
+    // Tous les salons qui supportent des overrides (= tout sauf threads).
+    // On applique sur chaque salon directement plutôt que de compter sur
+    // l'héritage parent → enfant (qui ne se déclenche que si l'enfant
+    // synchronise avec sa catégorie, ce qui n'est presque jamais le cas
+    // dès qu'un override custom existe sur l'enfant).
+    const overridableTypes = new Set<number>([
+      ChannelType.GuildCategory,
       ChannelType.GuildText,
       ChannelType.GuildVoice,
       ChannelType.GuildAnnouncement,
@@ -220,29 +250,24 @@ export class JailCommands {
       ChannelType.GuildForum,
       ChannelType.GuildMedia,
     ]);
-    const orphanChannels = [...interaction.guild.channels.cache.values()].filter(
-      (c) => !c.parentId && nonThreadTypes.has(c.type),
-    ) as GuildChannel[];
+    await interaction.guild.channels.fetch().catch(() => null);
+    const allChannels = [...interaction.guild.channels.cache.values()]
+      .filter((c) => overridableTypes.has(c.type)) as GuildChannel[];
 
     let okCat = 0;
     let okCh = 0;
     const failed: string[] = [];
 
-    for (const cat of allCategories) {
-      const c = cat as GuildChannel;
-      try {
-        await c.permissionOverwrites.edit(role.id, denyAll, { reason: `jail-setup by ${interaction.user.username}` });
-        okCat++;
-      } catch (err) {
-        failed.push(`📁 ${c.name}: ${(err as Error).message}`);
-      }
-    }
-    for (const ch of orphanChannels) {
+    for (const ch of allChannels) {
+      // On exclut le salon-jail explicite : il reçoit un override allow plus bas.
+      if (jailChannel && ch.id === jailChannel.id) continue;
       try {
         await ch.permissionOverwrites.edit(role.id, denyAll, { reason: `jail-setup by ${interaction.user.username}` });
-        okCh++;
+        if (ch.type === ChannelType.GuildCategory) okCat++;
+        else okCh++;
       } catch (err) {
-        failed.push(`#${ch.name}: ${(err as Error).message}`);
+        const prefix = ch.type === ChannelType.GuildCategory ? "📁" : "#";
+        failed.push(`${prefix}${ch.name}: ${(err as Error).message}`);
       }
     }
 
@@ -259,6 +284,10 @@ export class JailCommands {
             AddReactions: false,
             AttachFiles: false,
             EmbedLinks: false,
+            UseApplicationCommands: false,
+            CreatePublicThreads: false,
+            CreatePrivateThreads: false,
+            SendMessagesInThreads: false,
           },
           { reason: `jail-setup salon dédié by ${interaction.user.username}` },
         );
@@ -268,18 +297,21 @@ export class JailCommands {
       }
     }
 
+    const totalCats = allChannels.filter((c) => c.type === ChannelType.GuildCategory).length;
+    const totalChs = allChannels.length - totalCats - (jailChannel ? 1 : 0);
+
     await this.mod.log("JAIL_SETUP", null, interaction.user.id, undefined, {
       roleId: role.id,
       categories: okCat,
-      orphanChannels: okCh,
+      channels: okCh,
       jailChannelId: jailChannel?.id,
       failed: failed.length,
     });
 
     const desc = [
       `**Rôle ciblé :** <@&${role.id}>`,
-      `**Catégories verrouillées :** ${okCat}/${allCategories.length}`,
-      `**Salons orphelins verrouillés :** ${okCh}/${orphanChannels.length}`,
+      `**Catégories verrouillées :** ${okCat}/${totalCats}`,
+      `**Salons verrouillés :** ${okCh}/${totalChs}`,
       `**Salon jail (allow) :** ${jailChannelStatus}`,
       failed.length ? `\n**Échecs (${failed.length}) :**\n${failed.slice(0, 10).map((f) => `• ${f}`).join("\n")}${failed.length > 10 ? `\n…+${failed.length - 10}` : ""}` : "",
     ].filter(Boolean).join("\n");

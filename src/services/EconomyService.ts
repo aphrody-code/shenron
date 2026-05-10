@@ -3,10 +3,14 @@ import { and, eq, sql, desc, or } from "drizzle-orm";
 import { DatabaseService } from "~/db/index";
 import { users, inventory, shopItems, fusions, achievements, actionLogs } from "~/db/schema";
 import { FUSION_ZENI_BONUS_RATIO } from "~/lib/constants";
+import { SettingsService } from "~/services/SettingsService";
 
 @singleton()
 export class EconomyService {
-  constructor(@inject(DatabaseService) private dbs: DatabaseService) {}
+  constructor(
+    @inject(DatabaseService) private dbs: DatabaseService,
+    @inject(SettingsService) private settings: SettingsService,
+  ) {}
 
   private get db() {
     return this.dbs.db;
@@ -29,7 +33,11 @@ export class EconomyService {
     if (options.propagateFusion && amount > 0) {
       const partner = await this.partnerOf(userId);
       if (partner) {
-        const bonus = Math.floor(amount * FUSION_ZENI_BONUS_RATIO);
+        const ratio = await this.settings.getFloat(
+          "zeni.fusion.bonus_ratio",
+          FUSION_ZENI_BONUS_RATIO,
+        );
+        const bonus = Math.floor(amount * ratio);
         if (bonus > 0) {
           await this.addZeni(partner, bonus, { propagateFusion: false });
           return bonus;
@@ -62,6 +70,46 @@ export class EconomyService {
 
   async getShopItem(key: string) {
     return this.db.query.shopItems.findFirst({ where: eq(shopItems.key, key) });
+  }
+
+  async setShopItemRole(key: string, roleId: string | null): Promise<boolean> {
+    const exists = await this.getShopItem(key);
+    if (!exists) return false;
+    await this.db.update(shopItems).set({ roleId }).where(eq(shopItems.key, key));
+    return true;
+  }
+
+  async upsertShopItem(item: {
+    key: string;
+    type: "card" | "badge" | "color" | "title";
+    name: string;
+    description?: string | null;
+    price: number;
+    roleId?: string | null;
+    enabled?: boolean;
+  }) {
+    await this.db
+      .insert(shopItems)
+      .values({
+        key: item.key,
+        type: item.type,
+        name: item.name,
+        description: item.description ?? null,
+        price: item.price,
+        roleId: item.roleId ?? null,
+        enabled: item.enabled ?? true,
+      })
+      .onConflictDoUpdate({
+        target: shopItems.key,
+        set: {
+          type: item.type,
+          name: item.name,
+          description: item.description ?? null,
+          price: item.price,
+          roleId: item.roleId ?? null,
+          enabled: item.enabled ?? true,
+        },
+      });
   }
 
   async grantItem(userId: string, type: "card" | "badge" | "color" | "title", key: string) {

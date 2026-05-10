@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, Guard } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
 import {
   ApplicationCommandOptionType,
   AttachmentBuilder,
@@ -45,6 +45,7 @@ function asEmbedImage(imagePath: string): { url: string; attachment: AttachmentB
 }
 
 @Discord()
+@Bot("whis")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class WikiCommands {

@@ -24,6 +24,7 @@ const { PenduCommand } = await import("~/commands/games/Pendu");
 const { PfcCommand } = await import("~/commands/games/Pfc");
 const { GiveawayCommands } = await import("~/commands/giveaway/Giveaway");
 const { LevelCommands } = await import("~/commands/level/Level");
+const { LevelAdminCommands } = await import("~/commands/admin/LevelAdmin");
 const { ModerationCommands } = await import("~/commands/moderation/Moderation");
 const { TicketCommands } = await import("~/commands/ticket/Ticket");
 const { VocalCommands } = await import("~/commands/vocal/Vocal");
@@ -116,7 +117,8 @@ describe("LevelCommands", () => {
 
 	test("/niveau admin give", async () => {
 		const int = interaction();
-		await cmd.niveauAdmin(
+		const adminCmd = container.resolve(LevelAdminCommands);
+		await adminCmd.niveauAdmin(
 			"give",
 			"exp",
 			100,

@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent, ModalComponent } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, ModalComponent, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -33,6 +33,7 @@ const KIND_LABELS = {
 } as const;
 
 @Discord()
+@Bot("whis")
 @Guard(GuildOnly)
 @injectable()
 export class TicketCommands {

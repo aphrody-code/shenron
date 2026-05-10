@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -15,6 +15,8 @@ import {
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { EconomyService } from "~/services/EconomyService";
+import { SettingsService } from "~/services/SettingsService";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
 
 type Choice = "pierre" | "feuille" | "ciseaux";
@@ -25,10 +27,15 @@ const WINS: Record<Choice, Choice> = { pierre: "ciseaux", feuille: "pierre", cis
 const pending = new Map<string, { challenger: string; opponent: string; choice?: Choice }>();
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class PfcCommand {
-  constructor(@inject(EconomyService) private eco: EconomyService) {}
+  constructor(
+    @inject(EconomyService) private eco: EconomyService,
+    @inject(SettingsService) private settings: SettingsService,
+    @inject(MessageTemplateService) private msg: MessageTemplateService,
+  ) {}
 
   @Slash({ name: "pfc", description: "Pierre-Feuille-Ciseaux" })
   async pfc(
@@ -84,9 +91,15 @@ export class PfcCommand {
     else result = "lose";
 
     let text = `Tu joues ${EMOJIS[player]} · Bot joue ${EMOJIS[botChoice]}\n\n`;
+    const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
     if (result === "win") {
-      await this.eco.addZeni(userId, ZENI_GAME_WIN);
-      text += `🎉 **Victoire** +${ZENI_GAME_WIN} z`;
+      await this.eco.addZeni(userId, winReward);
+      text += `🎉 **Victoire** +${winReward} z`;
+      await this.msg.publish(
+        "zeni_game_win",
+        { user: `<@${userId}>`, zeni: winReward, game: "pfc" },
+        interaction.client,
+      );
     } else if (result === "lose") {
       text += "😔 **Défaite**";
     } else {
@@ -128,9 +141,16 @@ export class PfcCommand {
       const loser = winner ? (winner === game.challenger ? game.opponent : game.challenger) : null;
       let text = `<@${game.challenger}> ${EMOJIS[cC]} vs ${EMOJIS[oC]} <@${game.opponent}>\n\n`;
       if (winner && loser) {
-        await this.eco.addZeni(winner, ZENI_GAME_WIN);
-        await this.eco.removeZeni(loser, ZENI_GAME_LOSS_PENALTY);
-        text += `🎉 <@${winner}> gagne +${ZENI_GAME_WIN} z · <@${loser}> perd -${ZENI_GAME_LOSS_PENALTY} z`;
+        const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+        const lossPenalty = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+        await this.eco.addZeni(winner, winReward);
+        if (lossPenalty > 0) await this.eco.removeZeni(loser, lossPenalty);
+        text += `🎉 <@${winner}> gagne +${winReward} z · <@${loser}> perd -${lossPenalty} z`;
+        await this.msg.publish(
+          "zeni_game_win",
+          { user: `<@${winner}>`, zeni: winReward, game: "pfc (duel)" },
+          interaction.client,
+        );
       } else {
         text += "🤝 Égalité.";
       }

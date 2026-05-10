@@ -7,10 +7,13 @@ import {
   type CommandInteraction,
   type User,
   type TextChannel,
+  type Client,
   PermissionFlagsBits,
   MessageFlags,
   EmbedBuilder,
+  Routes,
 } from "discord.js";
+import type { PersonaId } from "~/lib/personas";
 import { ModOnly } from "~/guards/ModOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { GuildOnly } from "~/guards/GuildOnly";
@@ -18,7 +21,7 @@ import { ModerationService } from "~/services/ModerationService";
 import { LogService } from "~/services/LogService";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { container } from "tsyringe";
-import { sanctionEmbed, brandedEmbed, errorEmbed, successEmbed, warningEmbed } from "~/lib/embeds";
+import { sanctionEmbed, sanctionLogEmbed, brandedEmbed, errorEmbed, successEmbed, warningEmbed } from "~/lib/embeds";
 import { canModerate } from "~/lib/hierarchy";
 import { gifFor } from "~/lib/sanction-gif";
 import { parseDuration, formatDuration, notifyMember } from "~/lib/sanction-helpers";
@@ -335,13 +338,18 @@ export class ModerationCommands {
         deleteDays: deleteDays ?? 0,
       });
 
-      const embed = sanctionEmbed({ target, moderator: interaction.user, action: "ban", reason, gifUrl: await gifFor("ban") });
+      const gifUrl = await gifFor("ban");
+      // Public : embed compact (gif + "X a été désintégré par Beerus !")
+      const publicEmbed = sanctionLogEmbed({ target, action: "ban", gifUrl });
+      await interaction.reply({ embeds: [publicEmbed] });
+
+      // Log détaillé : sanction channel uniquement
+      const detailedEmbed = sanctionEmbed({ target, moderator: interaction.user, action: "ban", reason, gifUrl });
       if (deleteDays && deleteDays > 0) {
-        embed.addFields({ name: "Messages purgés", value: `${deleteDays} j`, inline: true });
+        detailedEmbed.addFields({ name: "Messages purgés", value: `${deleteDays} j`, inline: true });
       }
-      embed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
-      await interaction.reply({ embeds: [embed] });
-      await this.logs.send(interaction.client, "sanction", embed);
+      detailedEmbed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
+      await this.logs.send(interaction.client, "sanction", detailedEmbed);
     } catch (err) {
       await interaction.reply({
         embeds: [errorEmbed("Échec ban", (err as Error).message)],
@@ -436,10 +444,13 @@ export class ModerationCommands {
     await member.kick(reason ?? `by ${interaction.user.username}`).catch(() => {});
     await this.mod.log("KICK", target.id, interaction.user.id, reason);
 
-    const embed = sanctionEmbed({ target, moderator: interaction.user, action: "kick", reason, gifUrl: await gifFor("kick") })
+    const gifUrl = await gifFor("kick");
+    const publicEmbed = sanctionLogEmbed({ target, action: "kick", gifUrl });
+    await interaction.reply({ embeds: [publicEmbed] });
+
+    const detailedEmbed = sanctionEmbed({ target, moderator: interaction.user, action: "kick", reason, gifUrl })
       .addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
-    await interaction.reply({ embeds: [embed] });
-    await this.logs.send(interaction.client, "sanction", embed);
+    await this.logs.send(interaction.client, "sanction", detailedEmbed);
   }
 
   // ────────────────────────────── /clear
@@ -517,12 +528,27 @@ export class ModerationCommands {
     })
     channel: GuildBasedChannel | undefined,
     @SlashOption({
+      name: "categorie",
+      description: "Cible toute une catégorie (override `salon`, ignoré si `global`)",
+      type: ApplicationCommandOptionType.Channel,
+      required: false,
+      channelTypes: [ChannelType.GuildCategory],
+    })
+    categoryScope: GuildBasedChannel | undefined,
+    @SlashOption({
       name: "global",
-      description: "Parcourir TOUS les salons textuels du serveur (override `salon`)",
+      description: "Parcourir TOUS les salons textuels du serveur (override `salon` et `categorie`)",
       type: ApplicationCommandOptionType.Boolean,
       required: false,
     })
     globalScope: boolean | undefined,
+    @SlashOption({
+      name: "lockdown",
+      description: "Après purge, retire ViewChannel à @everyone sur les salons ciblés (rend invisible)",
+      type: ApplicationCommandOptionType.Boolean,
+      required: false,
+    })
+    lockdown: boolean | undefined,
     interaction: CommandInteraction,
   ) {
     if (!interaction.inCachedGuild()) return;
@@ -551,6 +577,21 @@ export class ModerationCommands {
         (c) => c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement,
       ) as Collection<Snowflake, TextChannel>;
       scope = [...all.values()];
+    } else if (categoryScope) {
+      // Tous les salons textuels enfants de la catégorie. On exclut les threads
+      // (héritent du parent) et les vocaux/forums.
+      const cat = interaction.guild.channels.cache.filter(
+        (c) =>
+          c.parentId === categoryScope.id &&
+          (c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement),
+      ) as Collection<Snowflake, TextChannel>;
+      scope = [...cat.values()];
+      if (scope.length === 0) {
+        await interaction.editReply({
+          embeds: [warningEmbed("Catégorie vide", "Aucun salon textuel dans cette catégorie.")],
+        });
+        return;
+      }
     } else if (channel) {
       if (!("bulkDelete" in channel)) {
         await interaction.editReply({ embeds: [errorEmbed("Salon non supporté", "Seuls les salons textuels sont purgeable.")] });
@@ -602,22 +643,58 @@ export class ModerationCommands {
       }
     }
 
+    // Lockdown : retire ViewChannel à @everyone sur tous les salons du scope
+    // (ou la catégorie si fournie — l'override sur la catégorie cache toute
+    // la branche). Idempotent via permissionOverwrites.edit (merge).
+    let lockedCount = 0;
+    const lockedFails: string[] = [];
+    if (lockdown) {
+      const everyone = interaction.guild.roles.everyone;
+      const targets: GuildBasedChannel[] = categoryScope
+        ? [categoryScope, ...scope]
+        : scope.slice();
+      for (const ch of targets) {
+        // Threads héritent du parent — on les saute (lock parent suffit).
+        if (!("permissionOverwrites" in ch)) continue;
+        try {
+          await ch.permissionOverwrites.edit(
+            everyone,
+            { ViewChannel: false },
+            { reason: `purge lockdown by ${interaction.user.username}` },
+          );
+          lockedCount++;
+        } catch (err) {
+          lockedFails.push(`#${ch.name}: ${(err as Error).message}`);
+        }
+      }
+    }
+
     await this.mod.log("PURGE", target?.id ?? null, interaction.user.id, undefined, {
-      scope: globalScope ? "global" : channel ? `#${channel.name}` : `#${(interaction.channel as TextChannel | null)?.name ?? "?"}`,
+      scope: globalScope
+        ? "global"
+        : categoryScope
+        ? `📁${categoryScope.name}`
+        : channel
+        ? `#${channel.name}`
+        : `#${(interaction.channel as TextChannel | null)?.name ?? "?"}`,
       target: target?.id,
       deleted: totalDeleted,
       scanned,
       channels: scope.length,
       skippedChannels,
+      lockdown: lockdown ? lockedCount : undefined,
     });
 
     const desc = [
       `**Supprimés :** ${totalDeleted}${target ? ` · cible <@${target.id}>` : ""}`,
       `**Salons parcourus :** ${scope.length}${skippedChannels.length ? ` (skipped: ${skippedChannels.length})` : ""}`,
       `**Messages scannés :** ${scanned}`,
+      lockdown
+        ? `**Lockdown :** ${lockedCount} salon(s) cachés à @everyone${lockedFails.length ? ` (échecs: ${lockedFails.length})` : ""}`
+        : "",
       "",
       "_Limite Discord : seuls les messages de moins de 14 jours sont effaçables._",
-    ].join("\n");
+    ].filter(Boolean).join("\n");
 
     // Confirmation publique avec GIF Vegeta sacrifice (sanction-style).
     // Respecte le toggle `mod_purge_announce` du dashboard `/messages` : si
@@ -925,56 +1002,75 @@ export class ModerationCommands {
         return;
       }
       await interaction.deferReply();
-      // Beerus n'a pas l'intent privileged GuildMembers → guild.members.fetch()
-      // ne peut pas charger tous les membres (ws REQUEST_GUILD_MEMBERS rejected).
-      // Pour `remove`, on travaille sur role.members.cache (membres ayant déjà
-      // le rôle, populés par les events) qui suffit dans 99 % des cas. Pour
-      // `give`, sans l'intent c'est impossible — on log une erreur claire.
-      let pool: Iterable<import("discord.js").GuildMember>;
-      let scope: string;
-      if (action === "remove") {
-        // role.members = cache filtrée — sans GuildMembers intent, populée
-        // uniquement par les évents (member update, message, voice…).
-        // C'est suffisant si les porteurs du rôle ont récemment intéragi.
-        const carriers = role.members;
-        if (carriers.size === 0) {
-          await interaction.editReply({
-            embeds: [warningEmbed(
-              "Aucun membre détecté avec ce rôle",
-              `Le bot **Beerus** n'a pas l'intent privileged \`SERVER MEMBERS\`, donc la liste des porteurs du rôle ${role} est limitée à la cache.\n\n` +
-              `**Solutions :**\n` +
-              `• Active **\`SERVER MEMBERS INTENT\`** sur le portail Discord pour Beerus, puis ajoute \`I.GuildMembers\` à \`personas.ts:48\`.\n` +
-              `• Ou retire le rôle via le **dashboard Discord** (membres › filtre par rôle).\n` +
-              `• Ou via une **commande sur Grand Prêtre** (qui a l'intent), à porter explicitement.`,
-            )],
-          });
-          return;
-        }
-        pool = carriers.values();
-        scope = `${carriers.size} porteur(s)`;
-      } else {
-        // give: nécessite la liste de TOUS les membres → impossible sans intent
-        const fetched = await interaction.guild.members.fetch().catch(() => null);
-        if (!fetched || fetched.size < interaction.guild.memberCount * 0.5) {
-          await interaction.editReply({
-            embeds: [errorEmbed(
-              "Action `give` indisponible",
-              `Beerus n'a pas l'intent \`SERVER MEMBERS\` — impossible de lister tous les membres ` +
-              `(${fetched?.size ?? 0}/${interaction.guild.memberCount} chargés).\n\n` +
-              `Active l'intent privileged sur le portail Discord pour Beerus puis ajoute \`I.GuildMembers\` à \`personas.ts:48\`.`,
-            )],
-          });
-          return;
-        }
-        pool = fetched.values();
-        scope = `${fetched.size} membre(s) du serveur`;
+      // Beerus tourne sur [Guilds, GuildModeration] — pas d'intent GuildMembers.
+      // Donc `role.members.cache` côté Beerus est vide ou quasi vide. On délègue
+      // le fetch au client Grand Prêtre (intent GuildMembers privileged) puis on
+      // exécute le PATCH via la REST de Beerus (audit log au nom de Beerus).
+      const clients = container.resolve<Map<PersonaId, Client>>("ClientMap");
+      const gp = clients.get("grandPretre");
+      if (!gp || !gp.isReady()) {
+        await interaction.editReply({
+          embeds: [errorEmbed(
+            "Grand Prêtre indisponible",
+            "Le client `Grand Prêtre` (qui détient l'intent `GuildMembers`) n'est pas connecté. Vérifie son token et l'activation de l'intent `SERVER MEMBERS` sur le portail Discord.",
+          )],
+        });
+        return;
       }
+      const gpGuild = gp.guilds.cache.get(interaction.guildId)
+        ?? await gp.guilds.fetch(interaction.guildId).catch(() => null);
+      if (!gpGuild) {
+        await interaction.editReply({
+          embeds: [errorEmbed("Guild introuvable côté Grand Prêtre", "Le client GP n'est pas membre de cette guild.")],
+        });
+        return;
+      }
+      const allMembers = await gpGuild.members.fetch().catch((err) => {
+        return { error: (err as Error).message } as const;
+      });
+      if ("error" in allMembers) {
+        await interaction.editReply({
+          embeds: [errorEmbed(
+            "Échec fetch membres",
+            `Grand Prêtre n'a pas pu lister les membres : ${allMembers.error}.\nVérifie que **SERVER MEMBERS INTENT** est activé sur le portail Discord pour Grand Prêtre.`,
+          )],
+        });
+        return;
+      }
+      const targets =
+        action === "remove"
+          ? allMembers.filter((m) => m.roles.cache.has(role.id))
+          : allMembers.filter((m) => !m.roles.cache.has(role.id) && !m.user.bot);
+      if (targets.size === 0) {
+        await interaction.editReply({
+          embeds: [warningEmbed(
+            action === "remove" ? "Aucun porteur" : "Aucune cible",
+            action === "remove"
+              ? `Aucun membre ne porte actuellement ${role}.`
+              : `Tous les membres (non-bots) portent déjà ${role}.`,
+          )],
+        });
+        return;
+      }
+      const scope = `${targets.size} membre(s) sur ${allMembers.size} (source : Grand Prêtre)`;
+      const reason = `${action === "give" ? "give" : "remove"} bulk by ${interaction.user.username}`;
       let ok = 0;
       let failed = 0;
-      for (const m of pool) {
+      // PATCH via REST Beerus pour que l'audit log Discord crédite Beerus.
+      // PUT/DELETE /guilds/{guild}/members/{user}/roles/{role} — idempotent côté API.
+      for (const m of targets.values()) {
         try {
-          if (action === "give") await m.roles.add(role.id);
-          else await m.roles.remove(role.id);
+          if (action === "give") {
+            await interaction.client.rest.put(
+              Routes.guildMemberRole(interaction.guildId, m.id, role.id),
+              { reason },
+            );
+          } else {
+            await interaction.client.rest.delete(
+              Routes.guildMemberRole(interaction.guildId, m.id, role.id),
+              { reason },
+            );
+          }
           ok++;
         } catch {
           failed++;

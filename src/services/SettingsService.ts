@@ -42,6 +42,8 @@ export interface SettingDef {
 		| "features"
 		| "translate"
 		| "anti_invite"
+		| "tickets"
+		| "gifs"
 		| "advanced";
 	/** Si true, le rendu se fera comme un input vocal channel (type=2) au lieu de text. */
 	channelType?: "text" | "voice" | "category" | "any";
@@ -67,6 +69,11 @@ export const SETTINGS_KEYS: SettingDef[] = [
 	{ key: "zeni.daily_quest", type: "int", category: "economy", description: "Récompense quête quotidienne (zeni)", default: 50, min: 0 },
 	{ key: "zeni.per_level", type: "int", category: "economy", description: "Bonus zenis par level-up", default: 1000, min: 0 },
 	{ key: "zeni.message_chance", type: "float", category: "economy", description: "Probabilité de drop zeni par message (0-1)", default: 0, min: 0, max: 1 },
+	{ key: "zeni.message_drop_min", type: "int", category: "economy", description: "Drop zeni min sur message", default: 5, min: 0 },
+	{ key: "zeni.message_drop_max", type: "int", category: "economy", description: "Drop zeni max sur message", default: 25, min: 0 },
+	{ key: "zeni.game.win", type: "int", category: "economy", description: "Gain zeni par victoire (Bingo/Morpion/Pendu/Pfc)", default: 100, min: 0 },
+	{ key: "zeni.game.loss_penalty", type: "int", category: "economy", description: "Pénalité zeni par défaite (0 = pas de pénalité)", default: 0, min: 0 },
+	{ key: "zeni.fusion.bonus_ratio", type: "float", category: "economy", description: "Ratio zeni fusion (partenaire reçoit X% du gain)", default: 0.1, min: 0, max: 1 },
 
 	// ── Salons (toutes les surfaces) ───────────────────────────────
 	{ key: "channel.announce", type: "snowflake", category: "channels", channelType: "text", description: "Salon des annonces" },
@@ -76,6 +83,7 @@ export const SETTINGS_KEYS: SettingDef[] = [
 	{ key: "channel.welcome", type: "snowflake", category: "channels", channelType: "text", description: "Salon bienvenue (joinLeave)" },
 	{ key: "channel.farewell", type: "snowflake", category: "channels", channelType: "text", description: "Salon au revoir" },
 	{ key: "channel.giveaway", type: "snowflake", category: "channels", channelType: "text", description: "Salon tirages au sort" },
+	{ key: "channel.zeni", type: "snowflake", category: "channels", channelType: "text", description: "Salon des récompenses zeni (drops, daily quest, gains de jeux)" },
 	{ key: "channel.mod_notify", type: "snowflake", category: "channels", channelType: "text", description: "Salon notifications modération" },
 	{ key: "channel.log_sanction", type: "snowflake", category: "channels", channelType: "text", description: "Logs sanctions (warn/mute/ban)" },
 	{ key: "channel.log_message", type: "snowflake", category: "channels", channelType: "text", description: "Logs messages (edit/delete)" },
@@ -83,6 +91,7 @@ export const SETTINGS_KEYS: SettingDef[] = [
 	{ key: "channel.log_join_leave", type: "snowflake", category: "channels", channelType: "text", description: "Logs entrées/sorties" },
 	{ key: "channel.log_level_role", type: "snowflake", category: "channels", channelType: "text", description: "Logs attributions rôles level-up" },
 	{ key: "channel.log_ticket", type: "snowflake", category: "channels", channelType: "text", description: "Logs ouverture/fermeture tickets" },
+	{ key: "channel.log_audit", type: "snowflake", category: "channels", channelType: "text", description: "Logs audit serveur (bans manuels, rôles, salons, etc.)" },
 	{ key: "channel.ticket_category", type: "snowflake", category: "channels", channelType: "category", description: "Catégorie où les tickets sont créés" },
 	{ key: "channel.vocal_tempo_hub", type: "snowflake", category: "channels", channelType: "voice", description: "Salon vocal hub (auto-create vocaux temporaires)" },
 
@@ -91,6 +100,16 @@ export const SETTINGS_KEYS: SettingDef[] = [
 	{ key: "role.jail", type: "snowflake", category: "roles", description: "Rôle prison (mute total)" },
 	{ key: "role.url_in_bio", type: "snowflake", category: "roles", description: "Rôle bio + URL (auto-attribué si /bio contient URL)" },
 	{ key: "role.muted", type: "snowflake", category: "roles", description: "Rôle mute (silenced channel access)" },
+	{ key: "role.auto_join", type: "snowflake", category: "roles", description: "Rôle auto-attribué à l'arrivée d'un nouveau membre (override AUTO_ROLE_ID)" },
+	{ key: "role.booster", type: "snowflake", category: "roles", description: "Rôle 'Héros du peuple' (booster serveur — boost XP auto via xp.boost.boosters)" },
+
+	// ── Vocal éphémère ─────────────────────────────────────────────
+	{ key: "vocal.tempo_empty_delay_ms", type: "int", category: "advanced", description: "Délai (ms) avant suppression d'un vocal éphémère vide", default: 60_000, min: 5_000 },
+
+	// ── Tuning jeux ────────────────────────────────────────────────
+	{ key: "game.bingo.limit_ms", type: "int", category: "advanced", description: "Durée max d'un bingo (ms)", default: 60_000, min: 10_000 },
+	{ key: "game.morpion.ttl_ms", type: "int", category: "advanced", description: "TTL d'une partie de morpion inactive (ms)", default: 300_000, min: 30_000 },
+	{ key: "game.pendu.max_errors", type: "int", category: "advanced", description: "Nb d'erreurs max avant défaite au pendu", default: 6, min: 3, max: 12 },
 
 	// ── Anti-invite / liens ────────────────────────────────────────
 	{ key: "anti_invite.enabled", type: "bool", category: "anti_invite", description: "Activer la détection d'invitations Discord", default: true },
@@ -102,6 +121,30 @@ export const SETTINGS_KEYS: SettingDef[] = [
 	{ key: "moderation.warn_threshold_kick", type: "int", category: "moderation", description: "Nb warns avant kick auto", default: 5, min: 1, max: 20 },
 	{ key: "moderation.warn_threshold_ban", type: "int", category: "moderation", description: "Nb warns avant ban auto", default: 7, min: 1, max: 50 },
 	{ key: "moderation.jail_default_duration_min", type: "int", category: "moderation", description: "Durée jail par défaut (minutes)", default: 60, min: 1 },
+	{
+		key: "moderation.hierarchy",
+		type: "string",
+		category: "moderation",
+		description:
+			"Hiérarchie staff (JSON, niveaux décroissants). Ex: [[\"adminId\"],[\"modId1\",\"modId2\"]]. Un staff ne peut sanctionner qu'un membre dont les rôles sont **strictement plus bas** dans la hiérarchie. Membres sans rôle staff = niveau 0 (sanctionnables par tous).",
+		default: "[]",
+	},
+
+	// ── Tickets / Webhook ──────────────────────────────────────────
+	{ key: "webhook.tickets", type: "string", category: "tickets", description: "URL Webhook Discord pour notifier ouverture/fermeture des tickets (transcript)" },
+	{ key: "webhook.tickets_username", type: "string", category: "tickets", description: "Nom affiché pour le webhook tickets", default: "Shenron · Tickets" },
+
+	// ── GIFs sanctions (URL .gif/.mp4 — embed.image) ───────────────
+	{ key: "gif.warn", type: "string", category: "gifs", description: "GIF avertissement (warn)" },
+	{ key: "gif.mute", type: "string", category: "gifs", description: "GIF mute" },
+	{ key: "gif.unmute", type: "string", category: "gifs", description: "GIF unmute" },
+	{ key: "gif.kick", type: "string", category: "gifs", description: "GIF kick (ki blast)" },
+	{ key: "gif.ban", type: "string", category: "gifs", description: "GIF ban (épique)" },
+	{ key: "gif.unban", type: "string", category: "gifs", description: "GIF unban" },
+	{ key: "gif.jail", type: "string", category: "gifs", description: "GIF jail (Mafuba)" },
+	{ key: "gif.unjail", type: "string", category: "gifs", description: "GIF unjail (libération)" },
+	{ key: "gif.purge", type: "string", category: "gifs", description: "GIF purge (Vegeta sacrifice / Final Explosion)" },
+	{ key: "gif.unwarn", type: "string", category: "gifs", description: "GIF unwarn (pardon)" },
 
 	// ── Toggles features ───────────────────────────────────────────
 	{ key: "features.message_xp", type: "bool", category: "features", description: "Gagner XP en envoyant des messages", default: true },
@@ -126,6 +169,18 @@ export const SETTINGS_KEYS: SettingDef[] = [
 		description:
 			"Préfixe — multiplier XP par rôle (ex: xp.boost.role.<roleId> = 1.5). On prend le max parmi les rôles du membre.",
 		prefix: true,
+	},
+
+	// ── Boost XP boosters serveur (Héros du peuple) ─────────────────
+	{
+		key: "xp.boost.boosters",
+		type: "float",
+		category: "xp",
+		description:
+			"Multiplier XP appliqué automatiquement aux boosters Discord (premiumSince) ou aux porteurs du rôle role.booster. 1 = désactivé.",
+		default: 2.0,
+		min: 1,
+		max: 5,
 	},
 ];
 
@@ -166,6 +221,23 @@ export class SettingsService {
 		if (!v) return fallback;
 		const n = Number.parseInt(v, 10);
 		return Number.isFinite(n) ? n : fallback;
+	}
+
+	async getFloat(key: string, fallback: number): Promise<number> {
+		const v = await this.getRaw(key);
+		if (!v) return fallback;
+		const n = Number.parseFloat(v);
+		return Number.isFinite(n) ? n : fallback;
+	}
+
+	async getBool(key: string, fallback: boolean): Promise<boolean> {
+		const v = await this.getRaw(key);
+		if (v === undefined) return fallback;
+		return /^(true|1)$/i.test(v);
+	}
+
+	async getString(key: string, fallback: string): Promise<string> {
+		return (await this.getRaw(key)) ?? fallback;
 	}
 
 	async getSnowflake(key: string): Promise<string | undefined> {

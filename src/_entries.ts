@@ -8,6 +8,7 @@ import "./commands/admin/Help";
 import "./commands/admin/Ids";
 import "./commands/admin/LevelAdmin";
 import "./commands/economy/Economy";
+import "./commands/economy/Shop";
 import "./commands/fun/Fun";
 import "./commands/fun/Scan";
 import "./commands/games/Bingo";

@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, Guard, SlashGroup } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashGroup, SlashOption } from "@rpbey/discordx";
 import {
   ApplicationCommandOptionType,
   MessageFlags,
@@ -11,6 +11,7 @@ import { AchievementService } from "~/services/AchievementService";
 import { brandedEmbed, errorEmbed, successEmbed, warningEmbed } from "~/lib/embeds";
 
 @Discord()
+@Bot("shenron")
 @Guard(GuildOnly, AdminOnly)
 @SlashGroup({ name: "succes", description: "Admin: gestion des succès auto-déclenchés" })
 @SlashGroup("succes")

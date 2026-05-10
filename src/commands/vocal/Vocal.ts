@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -12,6 +12,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { VocalTempoService } from "~/services/VocalTempoService";
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly)
 @injectable()
 export class VocalCommands {

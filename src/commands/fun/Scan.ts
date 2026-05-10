@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, Guard } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -95,6 +95,7 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
 // Fonts : enregistrées par canvas-kit au chargement du module ci-dessus.
 
 @Discord()
+@Bot("whis")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class ScanCommand {

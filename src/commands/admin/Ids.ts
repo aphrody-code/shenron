@@ -5,7 +5,7 @@ import {
 	PermissionFlagsBits,
 	type CommandInteraction,
 } from "discord.js";
-import { Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { GuildOnly } from "~/guards/GuildOnly";
 
@@ -15,6 +15,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
  * sans quitter Discord.
  */
 @Discord()
+@Bot("shenron")
 @Guard(GuildOnly, AdminOnly)
 export class IdsCommand {
 	@Slash({

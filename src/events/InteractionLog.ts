@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
 import { DatabaseService } from "~/db/index";
 import { actionLogs } from "~/db/schema";
 import { logger } from "~/lib/logger";
@@ -17,6 +17,7 @@ import { logger } from "~/lib/logger";
  * commande.
  */
 @Discord()
+@Bot("grandPretre")
 @injectable()
 export class InteractionLogEvent {
 	constructor(@inject(DatabaseService) private dbs: DatabaseService) {}

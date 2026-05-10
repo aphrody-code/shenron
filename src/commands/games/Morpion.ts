@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -15,6 +15,9 @@ import {
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { EconomyService } from "~/services/EconomyService";
+import { SettingsService } from "~/services/SettingsService";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
+import { container } from "tsyringe";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
 import {
   buildChallengeMessage,
@@ -38,11 +41,13 @@ interface PendingChallenge {
 const games = new Map<string, Game>();
 const challenges = new Map<string, PendingChallenge>();
 
-// GC : une partie inactive > 30 min est supprimée. Évite la fuite mémoire si
-// les joueurs abandonnent sans cliquer "rejouer".
-const GAME_TTL_MS = 30 * 60_000;
-function scheduleGameGc(gameId: string) {
-  setTimeout(() => games.delete(gameId), GAME_TTL_MS).unref();
+// GC : une partie inactive est supprimée après le TTL configuré. Évite la
+// fuite mémoire si les joueurs abandonnent. TTL configurable via setting
+// `game.morpion.ttl_ms` (fallback 30 min).
+async function scheduleGameGc(gameId: string) {
+  const settings = container.resolve(SettingsService);
+  const ttl = await settings.getInt("game.morpion.ttl_ms", 30 * 60_000);
+  setTimeout(() => games.delete(gameId), ttl).unref();
 }
 
 const WIN_LINES = [
@@ -126,10 +131,15 @@ function buildBoardEmbed(g: Game, status: "playing" | "draw" | "won", winnerMark
 }
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class MorpionCommand {
-  constructor(@inject(EconomyService) private eco: EconomyService) {}
+  constructor(
+    @inject(EconomyService) private eco: EconomyService,
+    @inject(SettingsService) private settings: SettingsService,
+    @inject(MessageTemplateService) private msg: MessageTemplateService,
+  ) {}
 
   @Slash({ name: "morpion", description: "Morpion (tic-tac-toe)" })
   async morpion(
@@ -257,16 +267,25 @@ export class MorpionCommand {
       } else {
         const winnerId = result.mark === "X" ? g.playerX : g.playerO;
         const loserId = result.mark === "X" ? g.playerO : g.playerX;
-        if (winnerId !== "BOT") await this.eco.addZeni(winnerId, ZENI_GAME_WIN);
-        if (loserId !== "BOT") await this.eco.removeZeni(loserId, ZENI_GAME_LOSS_PENALTY);
+        const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+        const lossPenalty = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+        if (winnerId !== "BOT") await this.eco.addZeni(winnerId, winReward);
+        if (loserId !== "BOT" && lossPenalty > 0) await this.eco.removeZeni(loserId, lossPenalty);
+        if (winnerId !== "BOT") {
+          await this.msg.publish(
+            "zeni_game_win",
+            { user: `<@${winnerId}>`, zeni: winReward, game: "morpion" },
+            interaction.client,
+          );
+        }
         const embed = buildBoardEmbed(g, "won", result.mark).addFields({
           name: "Récompense",
           value:
             winnerId === "BOT"
-              ? `<@${loserId}> -${ZENI_GAME_LOSS_PENALTY} z`
+              ? `<@${loserId}> -${lossPenalty} z`
               : loserId === "BOT"
-                ? `<@${winnerId}> +${ZENI_GAME_WIN} z`
-                : `<@${winnerId}> +${ZENI_GAME_WIN} z · <@${loserId}> -${ZENI_GAME_LOSS_PENALTY} z`,
+                ? `<@${winnerId}> +${winReward} z`
+                : `<@${winnerId}> +${winReward} z · <@${loserId}> -${lossPenalty} z`,
         });
         await interaction.update({
           embeds: [embed],

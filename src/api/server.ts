@@ -35,12 +35,16 @@ import {
 } from "~/lib/discord-webhook";
 import { CronRegistry } from "./cron-registry";
 import { ModerationService } from "~/services/ModerationService";
+import { TicketService } from "~/services/TicketService";
+import { SettingsService } from "~/services/SettingsService";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
 import { eq, sql, desc } from "drizzle-orm";
 import { users, levelRewards } from "~/db/schema";
 import { DatabaseService } from "~/db/index";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
+import { EconomyService } from "~/services/EconomyService";
 import { CardService } from "~/services/CardService";
+import { CommandPermissionsService } from "~/services/CommandPermissionsService";
 import { GaugeService } from "~/services/GaugeService";
 import { FusionService } from "~/services/FusionService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
@@ -524,7 +528,15 @@ export class ApiServer {
 				"/stats": dashboardHtml,
 				"/audit": dashboardHtml,
 				"/moderation": dashboardHtml,
+				"/hierarchy": dashboardHtml,
+				"/tickets": dashboardHtml,
+				"/shop": dashboardHtml,
+				"/triggers": dashboardHtml,
+				"/commands": dashboardHtml,
+				"/audit-internal": dashboardHtml,
 				"/levels": dashboardHtml,
+				"/economy": dashboardHtml,
+				"/giveaways": dashboardHtml,
 				"/messages": dashboardHtml,
 				"/canvas": dashboardHtml,
 				"/logs": dashboardHtml,
@@ -785,6 +797,61 @@ export class ApiServer {
 					const commands = (client.applicationCommands ?? []).map((c) => serializeCommand(c));
 					return Response.json({ commands, count: commands.length });
 				}),
+				"/api/bot/commands/expanded": admin(() => {
+					const client = container.resolve(Client);
+					const leaves: { name: string; description: string; group: string }[] = [];
+					for (const c of client.applicationCommands ?? []) {
+						expandCommandLeaves(c as any, leaves);
+					}
+					return Response.json({ commands: leaves, count: leaves.length });
+				}),
+				"/api/bot/commands/permissions": {
+					GET: admin(async () => {
+						const svc = container.resolve(CommandPermissionsService);
+						return Response.json({ rules: await svc.list() });
+					}),
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							name?: string;
+							enabled?: boolean;
+							allowedRoles?: unknown;
+							deniedRoles?: unknown;
+							deniedUsers?: unknown;
+						} | null;
+						if (!body || typeof body.name !== "string" || !body.name.trim()) {
+							return Response.json(
+								{ error: "Body attendu : { name, enabled?, allowedRoles?, deniedRoles?, deniedUsers? }" },
+								{ status: 400 },
+							);
+						}
+						const sanitizeIds = (v: unknown): string[] => {
+							if (!Array.isArray(v)) return [];
+							return v
+								.filter((x): x is string => typeof x === "string")
+								.filter((x) => /^\d{17,20}$/.test(x));
+						};
+						const svc = container.resolve(CommandPermissionsService);
+						const rule = await svc.upsert({
+							name: body.name.trim(),
+							enabled: typeof body.enabled === "boolean" ? body.enabled : true,
+							allowedRoles: sanitizeIds(body.allowedRoles),
+							deniedRoles: sanitizeIds(body.deniedRoles),
+							deniedUsers: sanitizeIds(body.deniedUsers),
+						});
+						return Response.json({ rule });
+					}),
+				},
+				"/api/bot/commands/permissions/delete": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as { name?: string } | null;
+						if (!body || typeof body.name !== "string") {
+							return Response.json({ error: "Body attendu : { name }" }, { status: 400 });
+						}
+						const svc = container.resolve(CommandPermissionsService);
+						await svc.remove(body.name.trim());
+						return Response.json({ ok: true });
+					}),
+				},
 				"/api/bot/commands/:name": admin((req) => {
 					const client = container.resolve(Client);
 					const found = (client.applicationCommands ?? []).find(
@@ -792,6 +859,92 @@ export class ApiServer {
 					);
 					if (!found) return Response.json({ error: "Commande introuvable" }, { status: 404 });
 					return Response.json(serializeCommand(found));
+				}),
+
+				// ── Multi-bot — liste/détail des 6 personas ──────────────────
+				// GET /api/bots         : carte synthétique des 6 (status, ping, uptime, count cmds)
+				// GET /api/bots/:id     : détail d'un persona (guilds + commands)
+				// GET /api/bots/:id/commands  : full schema slash commands d'un persona
+				// GET /api/bots/:id/expanded  : leaves expandées (groupes flatten) pour Commands.tsx
+				"/api/bots": admin(() => {
+					const map = container.resolve<Map<string, Client>>("ClientMap");
+					// MetadataStorage discordx est singleton — `client.applicationCommands`
+					// retourne TOUTES les classes @Slash sans filtrage par botId.
+					// On filtre via `isBotAllowed(id)` pour avoir le count réel par persona.
+					const allCmds = (Client.applicationCommands ?? []) as unknown as Array<{
+						isBotAllowed: (id: string) => boolean;
+					}>;
+					const bots = [...map.entries()].map(([id, c]) => ({
+						id,
+						name: c.user?.username ?? id,
+						username: c.user?.tag ?? null,
+						avatar: c.user?.displayAvatarURL({ size: 128 }) ?? null,
+						online: c.isReady(),
+						uptime: c.uptime,
+						wsPing: c.ws.ping,
+						intents:
+							typeof c.options.intents === "number"
+								? c.options.intents
+								: c.options.intents?.bitfield ?? 0,
+						guildCount: c.guilds.cache.size,
+						commandCount: allCmds.filter((cmd) => cmd.isBotAllowed(id)).length,
+					}));
+					return Response.json({ bots });
+				}),
+				"/api/bots/:id": admin((req) => {
+					const map = container.resolve<Map<string, Client>>("ClientMap");
+					const c = map.get(req.params.id);
+					if (!c) return Response.json({ error: "Bot introuvable" }, { status: 404 });
+					const allCmds = (Client.applicationCommands ?? []) as unknown as Array<{
+						isBotAllowed: (id: string) => boolean;
+					}>;
+					const guilds = [...c.guilds.cache.values()]
+						.filter((g) => g.id === env.GUILD_ID)
+						.map((g) => ({
+							id: g.id,
+							name: g.name,
+							memberCount: g.memberCount,
+							iconUrl: g.iconURL({ size: 256 }),
+							joinedAt: g.joinedTimestamp ? new Date(g.joinedTimestamp).toISOString() : null,
+						}));
+					return Response.json({
+						id: req.params.id,
+						name: c.user?.username ?? req.params.id,
+						username: c.user?.tag ?? null,
+						avatar: c.user?.displayAvatarURL({ size: 256 }) ?? null,
+						online: c.isReady(),
+						uptime: c.uptime,
+						wsPing: c.ws.ping,
+						guilds,
+						commandCount: allCmds.filter((cmd) => cmd.isBotAllowed(req.params.id)).length,
+					});
+				}),
+				"/api/bots/:id/commands": admin((req) => {
+					const map = container.resolve<Map<string, Client>>("ClientMap");
+					const c = map.get(req.params.id);
+					if (!c) return Response.json({ error: "Bot introuvable" }, { status: 404 });
+					const id = req.params.id;
+					const allCmds = (Client.applicationCommands ?? []) as unknown as Array<{
+						isBotAllowed: (id: string) => boolean;
+					}>;
+					const commands = allCmds
+						.filter((cmd) => cmd.isBotAllowed(id))
+						.map((cmd) => serializeCommand(cmd as any));
+					return Response.json({ commands, count: commands.length });
+				}),
+				"/api/bots/:id/expanded": admin((req) => {
+					const map = container.resolve<Map<string, Client>>("ClientMap");
+					const c = map.get(req.params.id);
+					if (!c) return Response.json({ error: "Bot introuvable" }, { status: 404 });
+					const id = req.params.id;
+					const allCmds = (Client.applicationCommands ?? []) as unknown as Array<{
+						isBotAllowed: (id: string) => boolean;
+					}>;
+					const leaves: { name: string; description: string; group: string }[] = [];
+					for (const cmd of allCmds.filter((c2) => c2.isBotAllowed(id))) {
+						expandCommandLeaves(cmd as any, leaves);
+					}
+					return Response.json({ commands: leaves, count: leaves.length });
 				}),
 
 				// ── Cron ──────────────────────────────────────────────────────
@@ -804,6 +957,42 @@ export class ApiServer {
 						const cron = container.resolve(CronRegistry);
 						const result = await cron.run(req.params.name);
 						return Response.json(result, { status: result.ok ? 200 : 500 });
+					}),
+				},
+				"/api/cron/:name/interval": {
+					POST: admin(async (req) => {
+						const name = req.params.name;
+						const body = (await req.json().catch(() => ({}))) as {
+							intervalMs?: number;
+						};
+						const intervalMs = Number(body.intervalMs);
+						if (!Number.isFinite(intervalMs) || intervalMs < 1_000) {
+							return Response.json(
+								{ error: "intervalMs ≥ 1000 requis" },
+								{ status: 400 },
+							);
+						}
+						const settings = container.resolve(SettingsService);
+						// Auto-déclare la clé si elle n'existe pas dans SETTINGS_KEYS — `set`
+						// vérifie le catalogue donc on by-pass via direct DB upsert pour les
+						// crons (clé dynamique connue uniquement au runtime via register).
+						const dbs = container.resolve(DatabaseService);
+						const { guildSettings } = await import("~/db/schema");
+						await dbs.db
+							.insert(guildSettings)
+							.values({
+								key: `cron.${name}.interval_ms`,
+								value: String(intervalMs),
+								updatedAt: new Date(),
+							})
+							.onConflictDoUpdate({
+								target: guildSettings.key,
+								set: { value: String(intervalMs), updatedAt: new Date() },
+							});
+						settings.invalidate();
+						const cron = container.resolve(CronRegistry);
+						const result = await cron.reload(name);
+						return Response.json(result);
 					}),
 				},
 
@@ -1667,6 +1856,337 @@ export class ApiServer {
 						return Response.json({ ok: true });
 					}),
 				},
+				// ── Hiérarchie staff ──────────────────────────────────────────
+				"/api/moderation/hierarchy": {
+					GET: admin(async () => {
+						const settings = container.resolve(SettingsService);
+						const raw = (await settings.getRaw("moderation.hierarchy")) ?? "[]";
+						let parsed: string[][] = [];
+						try {
+							const p = JSON.parse(raw);
+							if (Array.isArray(p)) parsed = p as string[][];
+						} catch {}
+						return Response.json({ levels: parsed, raw });
+					}),
+					PUT: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as
+							| { levels?: string[][] }
+							| null;
+						if (!body || !Array.isArray(body.levels)) {
+							return Response.json(
+								{ error: "Body attendu : { levels: string[][] }" },
+								{ status: 400 },
+							);
+						}
+						// Validation : chaque niveau = array de snowflakes
+						for (const lvl of body.levels) {
+							if (!Array.isArray(lvl)) {
+								return Response.json({ error: "Chaque niveau doit être un array." }, { status: 400 });
+							}
+							for (const r of lvl) {
+								if (typeof r !== "string" || !/^\d{17,20}$/.test(r)) {
+									return Response.json({ error: `Snowflake invalide : ${r}` }, { status: 400 });
+								}
+							}
+						}
+						const settings = container.resolve(SettingsService);
+						const value = JSON.stringify(body.levels);
+						await settings.set("moderation.hierarchy", value);
+						return Response.json({ ok: true, levels: body.levels });
+					}),
+				},
+
+				// ── Tickets (list + close) ────────────────────────────────────
+				"/api/tickets": admin(async (req) => {
+					const url = new URL(req.url);
+					const closed = url.searchParams.get("closed");
+					const dbs = container.resolve(DatabaseService);
+					const { tickets } = await import("~/db/schema");
+					const { desc, eq } = await import("drizzle-orm");
+					const where =
+						closed === "true"
+							? eq(tickets.closed, true)
+							: closed === "false"
+								? eq(tickets.closed, false)
+								: undefined;
+					const q = dbs.db.select().from(tickets).orderBy(desc(tickets.createdAt));
+					const rows = where ? await q.where(where) : await q;
+					return Response.json({ rows, total: rows.length });
+				}),
+				"/api/tickets/:channelId/close": {
+					POST: admin(async (req) => {
+						const channelId = req.params.channelId;
+						const tsvc = container.resolve(TicketService);
+						const ok = await tsvc.close(channelId, "dashboard");
+						if (!ok) {
+							return Response.json(
+								{ error: "ticket introuvable ou déjà fermé" },
+								{ status: 404 },
+							);
+						}
+						return Response.json({ ok: true });
+					}),
+				},
+
+				// ── Giveaways (page dédiée /giveaways) ────────────────────────
+				"/api/giveaways": admin(async (req) => {
+					const url = new URL(req.url);
+					const ended = url.searchParams.get("ended");
+					const dbs = container.resolve(DatabaseService);
+					const { giveaways, giveawayEntries } = await import("~/db/schema");
+					const { desc, eq, sql } = await import("drizzle-orm");
+					const where =
+						ended === "true"
+							? eq(giveaways.ended, true)
+							: ended === "false"
+								? eq(giveaways.ended, false)
+								: undefined;
+					const q = dbs.db.select().from(giveaways).orderBy(desc(giveaways.endsAt));
+					const rows = where ? await q.where(where) : await q;
+					const counts = await dbs.db
+						.select({ giveawayId: giveawayEntries.giveawayId, c: sql<number>`count(*)` })
+						.from(giveawayEntries)
+						.groupBy(giveawayEntries.giveawayId);
+					const countMap = new Map(counts.map((r) => [r.giveawayId, Number(r.c)]));
+					return Response.json({
+						rows: rows.map((r) => ({ ...r, entries: countMap.get(r.id) ?? 0 })),
+						total: rows.length,
+					});
+				}),
+				"/api/giveaways/:id/end": {
+					POST: admin(async (req) => {
+						const id = Number(req.params.id);
+						if (!Number.isFinite(id)) {
+							return Response.json({ error: "id invalide" }, { status: 400 });
+						}
+						const dbs = container.resolve(DatabaseService);
+						const { giveaways } = await import("~/db/schema");
+						const { eq } = await import("drizzle-orm");
+						// Avance la date de fin à maintenant — le ticker (1 min) tirera les
+						// gagnants au prochain cycle. Solution la plus sûre : on délègue le
+						// flow au GiveawayTicker plutôt que de dupliquer ici.
+						const updated = await dbs.db
+							.update(giveaways)
+							.set({ endsAt: new Date() })
+							.where(eq(giveaways.id, id))
+							.returning();
+						if (updated.length === 0) {
+							return Response.json({ error: "giveaway introuvable" }, { status: 404 });
+						}
+						return Response.json({ ok: true, giveaway: updated[0] });
+					}),
+				},
+
+				// ── Wiki (utilise WikiService — DragonBall content) ───────────
+				"/api/wiki/stats": admin(async () => {
+					const { WikiService } = await import("~/services/WikiService");
+					const wiki = container.resolve(WikiService);
+					return Response.json({
+						counts: await wiki.count(),
+						isSeeded: await wiki.isSeeded(),
+					});
+				}),
+
+				// ── Économie (page dédiée /economy) ───────────────────────────
+				"/api/economy/stats": admin(async () => {
+					const dbs = container.resolve(DatabaseService);
+					const { users: u, fusions: f, inventory: inv, shopItems: si } = await import("~/db/schema");
+					const { sql: dsql } = await import("drizzle-orm");
+					const [agg] = await dbs.db
+						.select({
+							total: dsql<number>`coalesce(sum(${u.zeni}), 0)`,
+							avg: dsql<number>`coalesce(avg(${u.zeni}), 0)`,
+							max: dsql<number>`coalesce(max(${u.zeni}), 0)`,
+							count: dsql<number>`count(*)`,
+							rich: dsql<number>`sum(case when ${u.zeni} >= 10000 then 1 else 0 end)`,
+							zero: dsql<number>`sum(case when ${u.zeni} = 0 then 1 else 0 end)`,
+						})
+						.from(u);
+					const [fusionsCount] = await dbs.db
+						.select({ c: dsql<number>`count(*)` })
+						.from(f);
+					const [invCount] = await dbs.db
+						.select({ c: dsql<number>`count(*)` })
+						.from(inv);
+					const [shopCount] = await dbs.db
+						.select({ c: dsql<number>`count(*) filter (where ${si.enabled} = 1)` })
+						.from(si);
+					return Response.json({
+						zeni: {
+							total: Number(agg?.total ?? 0),
+							avg: Number(agg?.avg ?? 0),
+							max: Number(agg?.max ?? 0),
+							users: Number(agg?.count ?? 0),
+							rich: Number(agg?.rich ?? 0),
+							zero: Number(agg?.zero ?? 0),
+						},
+						fusions: Number(fusionsCount?.c ?? 0),
+						inventoryItems: Number(invCount?.c ?? 0),
+						shopItemsActive: Number(shopCount?.c ?? 0),
+					});
+				}),
+				"/api/economy/leaderboard": admin(async (req) => {
+					const url = new URL(req.url);
+					const limit = Math.min(100, Number(url.searchParams.get("limit")) || 25);
+					const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
+					const dbs = container.resolve(DatabaseService);
+					const { users: u } = await import("~/db/schema");
+					const rows = await dbs.db
+						.select()
+						.from(u)
+						.orderBy(desc(u.zeni))
+						.limit(limit)
+						.offset(offset);
+					return Response.json({ rows, total: rows.length });
+				}),
+				"/api/economy/transactions": admin(async (req) => {
+					const url = new URL(req.url);
+					const limit = Math.min(500, Number(url.searchParams.get("limit")) || 100);
+					const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
+					const dbs = container.resolve(DatabaseService);
+					const { actionLogs } = await import("~/db/schema");
+					const { inArray } = await import("drizzle-orm");
+					const rows = await dbs.db
+						.select()
+						.from(actionLogs)
+						.where(
+							inArray(actionLogs.action, [
+								"SHOP_PURCHASE",
+								"LEVEL_UP",
+								"ZENI_ADMIN_GIVE",
+								"ZENI_ADMIN_REMOVE",
+								"ZENI_ADMIN_SET",
+								"ZENI_ADMIN_BULK",
+							]),
+						)
+						.orderBy(desc(actionLogs.createdAt))
+						.limit(limit)
+						.offset(offset);
+					return Response.json({ rows, total: rows.length });
+				}),
+				"/api/economy/give": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => ({}))) as {
+							mode?: "user" | "role" | "all";
+							userId?: string;
+							roleId?: string;
+							amount?: number;
+						};
+						const amount = Number(body.amount);
+						if (!Number.isFinite(amount) || amount === 0) {
+							return Response.json({ error: "amount non nul requis" }, { status: 400 });
+						}
+						const eco = container.resolve(EconomyService);
+						const dbs = container.resolve(DatabaseService);
+						const { users: u, actionLogs } = await import("~/db/schema");
+
+						if (body.mode === "user") {
+							if (!body.userId) return Response.json({ error: "userId requis" }, { status: 400 });
+							if (amount > 0) await eco.addZeni(body.userId, amount, { propagateFusion: false });
+							else {
+								const ok = await eco.removeZeni(body.userId, -amount);
+								if (!ok) return Response.json({ error: "solde insuffisant" }, { status: 400 });
+							}
+							await dbs.db.insert(actionLogs).values({
+								userId: body.userId,
+								action: amount > 0 ? "ZENI_ADMIN_GIVE" : "ZENI_ADMIN_REMOVE",
+								meta: JSON.stringify({ amount, mode: "user", source: "dashboard" }),
+							});
+							return Response.json({ ok: true, applied: 1, amount });
+						}
+
+						if (body.mode === "role" || body.mode === "all") {
+							const cli = container.resolve(Client);
+							const guild = cli.guilds.cache.get(env.GUILD_ID);
+							if (!guild) return Response.json({ error: "guild introuvable" }, { status: 500 });
+							let targets: string[] = [];
+							if (body.mode === "role") {
+								if (!body.roleId) return Response.json({ error: "roleId requis" }, { status: 400 });
+								await guild.members.fetch();
+								targets = [...guild.members.cache.values()]
+									.filter((m) => !m.user.bot && m.roles.cache.has(body.roleId!))
+									.map((m) => m.id);
+							} else {
+								// all = tous les users en DB
+								const all = await dbs.db.select({ id: u.id }).from(u);
+								targets = all.map((r) => r.id);
+							}
+							let applied = 0;
+							for (const id of targets) {
+								if (amount > 0) {
+									await eco.addZeni(id, amount, { propagateFusion: false });
+									applied++;
+								} else {
+									const ok = await eco.removeZeni(id, -amount);
+									if (ok) applied++;
+								}
+							}
+							await dbs.db.insert(actionLogs).values({
+								action: "ZENI_ADMIN_BULK",
+								meta: JSON.stringify({
+									amount,
+									mode: body.mode,
+									roleId: body.roleId,
+									targets: targets.length,
+									applied,
+									source: "dashboard",
+								}),
+							});
+							return Response.json({ ok: true, applied, targeted: targets.length, amount });
+						}
+
+						return Response.json({ error: "mode invalide (user|role|all)" }, { status: 400 });
+					}),
+				},
+				"/api/economy/set": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => ({}))) as {
+							userId?: string;
+							amount?: number;
+						};
+						if (!body.userId) return Response.json({ error: "userId requis" }, { status: 400 });
+						const amount = Number(body.amount);
+						if (!Number.isFinite(amount) || amount < 0) {
+							return Response.json({ error: "amount ≥ 0 requis" }, { status: 400 });
+						}
+						const eco = container.resolve(EconomyService);
+						await eco.setZeni(body.userId, amount);
+						const dbs = container.resolve(DatabaseService);
+						const { actionLogs } = await import("~/db/schema");
+						await dbs.db.insert(actionLogs).values({
+							userId: body.userId,
+							action: "ZENI_ADMIN_SET",
+							meta: JSON.stringify({ amount, source: "dashboard" }),
+						});
+						return Response.json({ ok: true, amount });
+					}),
+				},
+
+				// ── Audit logs internes (table action_logs) ───────────────────
+				"/api/audit/logs": admin(async (req) => {
+					const url = new URL(req.url);
+					const limit = Math.min(500, Number(url.searchParams.get("limit")) || 100);
+					const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
+					const action = url.searchParams.get("action") ?? undefined;
+					const userId = url.searchParams.get("userId") ?? undefined;
+					const dbs = container.resolve(DatabaseService);
+					const { actionLogs } = await import("~/db/schema");
+					const { desc, eq, and } = await import("drizzle-orm");
+					const conds = [
+						action ? eq(actionLogs.action, action) : undefined,
+						userId ? eq(actionLogs.userId, userId) : undefined,
+					].filter(Boolean) as ReturnType<typeof eq>[];
+					const where = conds.length === 0 ? undefined : conds.length === 1 ? conds[0] : and(...conds);
+					const base = dbs.db
+						.select()
+						.from(actionLogs)
+						.orderBy(desc(actionLogs.createdAt))
+						.limit(limit)
+						.offset(offset);
+					const rows = where ? await base.where(where) : await base;
+					return Response.json({ rows, total: rows.length, limit, offset });
+				}),
+
 				"/api/moderation/recent": admin(async (req) => {
 					const url = new URL(req.url);
 					const limit = Math.min(200, Number(url.searchParams.get("limit")) || 50);
@@ -1806,6 +2326,44 @@ function admin<R extends Request & { params: any }>(
 		if (err) return err;
 		return handler(req);
 	};
+}
+
+/**
+ * Aplatit une slash command + ses sous-groupes / sous-commandes en feuilles
+ * exécutables (le format que l'utilisateur tape : `admin reload`, `economy give`).
+ *
+ * Types Discord :
+ *   1 = SUB_COMMAND
+ *   2 = SUB_COMMAND_GROUP
+ */
+function expandCommandLeaves(
+	cmd: any,
+	out: { name: string; description: string; group: string }[],
+	prefix = "",
+) {
+	const root = prefix || cmd.name;
+	const group = (prefix.split(" ")[0] ?? cmd.name) as string;
+	const opts = cmd.options ?? [];
+	const subs = opts.filter((o: any) => o.type === 1 || o.type === 2);
+	if (subs.length === 0) {
+		out.push({
+			name: prefix || cmd.name,
+			description: cmd.description ?? "",
+			group: prefix ? group : cmd.name,
+		});
+		return;
+	}
+	for (const sub of subs) {
+		if (sub.type === 1) {
+			out.push({
+				name: `${root} ${sub.name}`,
+				description: sub.description ?? "",
+				group: prefix ? group : cmd.name,
+			});
+		} else if (sub.type === 2) {
+			expandCommandLeaves(sub, out, `${root} ${sub.name}`);
+		}
+	}
 }
 
 function serializeCommand(cmd: any) {

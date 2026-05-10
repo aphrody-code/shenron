@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, Guard, ButtonComponent } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
 import {
   ApplicationCommandOptionType,
   ActionRowBuilder,
@@ -17,6 +17,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { ModOnly } from "~/guards/ModOnly";
 import { DatabaseService } from "~/db/index";
 import { giveaways, giveawayEntries } from "~/db/schema";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
 
 function parseDuration(input: string): number | undefined {
   const m = input.match(/^(\d+)\s*([smhdw])$/i);
@@ -27,6 +28,7 @@ function parseDuration(input: string): number | undefined {
 }
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly)
 @injectable()
 export class GiveawayCommands {
@@ -101,9 +103,13 @@ import { Once } from "@rpbey/discordx";
 import type { Client } from "discord.js";
 
 @Discord()
+@Bot("kaio")
 @injectable()
 export class GiveawayTicker {
-  constructor(@inject(DatabaseService) private dbs: DatabaseService) {}
+  constructor(
+    @inject(DatabaseService) private dbs: DatabaseService,
+    @inject(MessageTemplateService) private msg: MessageTemplateService,
+  ) {}
 
   @Once({ event: "clientReady" })
   async start([client]: [Client]) {
@@ -130,14 +136,33 @@ export class GiveawayTicker {
         .set({ ended: true, winnerIds: JSON.stringify(picked) })
         .where(eq(giveaways.id, gw.id));
 
-      const channel = (await client.channels.fetch(gw.channelId).catch(() => null)) as TextChannel | null;
-      if (channel) {
+      // Annonce templatable (channel.giveaway) si gagnants — sinon fallback dans
+      // le salon d'origine du giveaway pour signaler l'absence de participants.
+      if (picked.length) {
+        const target = await this.msg.resolveTarget("giveaway_winner", client);
+        if (target?.enabled !== false) {
+          const published = await this.msg.publish(
+            "giveaway_winner",
+            {
+              winners: picked.map((id) => `<@${id}>`).join(" "),
+              prize: gw.reward,
+              title: gw.title,
+            },
+            client,
+          );
+          if (!published) {
+            const channel = (await client.channels.fetch(gw.channelId).catch(() => null)) as TextChannel | null;
+            await channel
+              ?.send({
+                content: `🎉 Résultat du giveaway **${gw.title}**\nGagnant${picked.length > 1 ? "s" : ""} : ${picked.map((id) => `<@${id}>`).join(", ")}\nRécompense : ${gw.reward}`,
+              })
+              .catch(() => {});
+          }
+        }
+      } else {
+        const channel = (await client.channels.fetch(gw.channelId).catch(() => null)) as TextChannel | null;
         await channel
-          .send({
-            content: picked.length
-              ? `🎉 Résultat du giveaway **${gw.title}**\nGagnant${picked.length > 1 ? "s" : ""} : ${picked.map((id) => `<@${id}>`).join(", ")}\nRécompense : ${gw.reward}`
-              : `😔 Giveaway **${gw.title}** terminé sans participants.`,
-          })
+          ?.send({ content: `😔 Giveaway **${gw.title}** terminé sans participants.` })
           .catch(() => {});
       }
     }

@@ -43,6 +43,21 @@ Bot Discord thémé Dragon Ball pour un serveur communautaire — modération av
 
 Le bot tourne exclusivement sur **[Bun](https://bun.com)** — pas de Node requis, aucun `node_modules` qui exige le loader Node. La persistance est locale via `bun:sqlite` + Drizzle ORM.
 
+### Architecture multi-bot
+
+Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** — chaque persona = 1 application Discord distincte avec son propre token, son set de slash commands, et ses events :
+
+| Persona | Rôle | Commandes |
+|---|---|---|
+| **Shenron** | Admin · héberge l'API REST (5006) + dashboard | `/admin /config /ids /niveau /succes` |
+| **Beerus** | Modération | `/warn /mute /ban /kick /clear /purge /role /lock /slowmode /nick /note /stats /sstats` |
+| **Whis** | Utility | `/help /scan /ticket /wiki /races /planete` |
+| **Grand Prêtre** | Logs | (events only — `MessageLog`, `JoinLeave`, `BioRole`, `AuditLog`, `InteractionLog`) |
+| **Enma** | Détention | `/jail /unjail` |
+| **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
+
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+
 ## Fonctionnalités
 
 ### Modération
@@ -340,9 +355,18 @@ Toutes les variables sont validées via `zod` dans `src/lib/env.ts`. Les IDs Dis
 
 | Variable | Type | Description |
 |---|---|---|
-| `DISCORD_TOKEN` | string | Token du bot (portail dev Discord) |
-| `GUILD_ID` | snowflake | ID du serveur où enregistrer les slash commands |
+| `DISCORD_TOKEN_SHENRON` (alias `DISCORD_TOKEN`) | string | Token du bot Shenron (admin + API REST) |
+| `DISCORD_TOKEN_BEERUS` | string | Token du bot Beerus (modération) |
+| `DISCORD_TOKEN_WHIS` | string | Token du bot Whis (utility) |
+| `DISCORD_TOKEN_GRAND_PRETRE` | string | Token du bot Grand Prêtre (logs — **privileged intents requis**) |
+| `DISCORD_TOKEN_ENMA` | string | Token du bot Enma (jail/unjail) |
+| `DISCORD_TOKEN_KAIO` | string | Token du bot Kaïo (jeux + éco — **MESSAGE CONTENT INTENT requis**) |
+| `GUILD_ID` | snowflake | ID du serveur — les 6 bots sont mono-guild forcé sur cette guild |
 | `OWNER_ID` | snowflake | ID du propriétaire (garde `OwnerOnly`, overrides statiques dans certaines commandes) |
+
+> **Privileged intents** : Grand Prêtre nécessite `SERVER MEMBERS INTENT` + `PRESENCE INTENT` + `MESSAGE CONTENT INTENT` activés sur son app du dev portal Discord. Kaïo nécessite `MESSAGE CONTENT INTENT`. Sans ça, ces bots refusent le login (`Used disallowed intents`) — le service continue à tourner sans eux (login non-bloquant), Shenron seul est obligatoire.
+
+> **Scope OAuth** : inviter chaque bot avec `scope=bot+applications.commands` (sans `applications.commands`, les slashes ne s'enregistrent pas → `Missing Access 50001` côté Discord, bot connecté au gateway mais 0 commande visible).
 
 ### Variables optionnelles
 
@@ -843,7 +867,10 @@ Les fonts doivent être présentes dans `assets/fonts/`. Le log au démarrage in
 Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via `JoinLeave.onLeave`. Les logs de modération restent pour traçabilité.
 
 **Multi-serveurs ?**
-Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale.
+Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
+
+**Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).

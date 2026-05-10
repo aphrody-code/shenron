@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, Guard, SlashGroup } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashGroup, SlashOption } from "@rpbey/discordx";
 import {
   ApplicationCommandOptionType,
   MessageFlags,
@@ -24,6 +24,7 @@ import { brandedEmbed, errorEmbed, successEmbed } from "~/lib/embeds";
  * pour cacher les sous-commandes aux non-admins dans le picker Discord.
  */
 @Discord()
+@Bot("shenron")
 @Guard(GuildOnly, AdminOnly)
 @SlashGroup({
   name: "admin",

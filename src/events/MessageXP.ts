@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
 import { eq } from "drizzle-orm";
 import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";
@@ -16,6 +16,7 @@ import {
 import { env } from "~/lib/env";
 import { randomInt } from "~/lib/xp";
 import { resolveLevelChannel } from "~/lib/announce";
+import { boosterXpMultiplier } from "~/lib/booster";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { ModerationService } from "~/services/ModerationService";
 import { SettingsService } from "~/services/SettingsService";
@@ -23,6 +24,7 @@ import { logger } from "~/lib/logger";
 import dayjs from "dayjs";
 
 @Discord()
+@Bot("kaio")
 @injectable()
 export class MessageXPEvent {
   constructor(
@@ -81,13 +83,14 @@ export class MessageXPEvent {
     if (isNewDay) {
       const yesterdayDelta = today - dayjs(now).subtract(1, "day").startOf("day").valueOf();
       const streak = lastQuest >= today - yesterdayDelta ? user.dailyStreak + 1 : 1;
+      const dailyZeni = await this.settings.getInt("zeni.daily_quest", ZENI_DAILY_QUEST);
       await this.dbs.db
         .update(users)
-        .set({ lastDailyQuestAt: new Date(now), dailyStreak: streak, zeni: user.zeni + ZENI_DAILY_QUEST })
+        .set({ lastDailyQuestAt: new Date(now), dailyStreak: streak, zeni: user.zeni + dailyZeni })
         .where(eq(users.id, userId));
       await this.msg.publish(
         "daily_quest",
-        { user: `<@${userId}>`, zeni: ZENI_DAILY_QUEST, streak },
+        { user: `<@${userId}>`, zeni: dailyZeni, streak },
         message.client,
       );
     }
@@ -112,11 +115,35 @@ export class MessageXPEvent {
     }
     await this.dbs.db.update(users).set({ messageCount: user.messageCount + 1 }).where(eq(users.id, userId));
 
-    // XP cooldown
-    if (now - last < XP_MESSAGE_COOLDOWN_MS) return;
-    let gain = randomInt(XP_PER_MESSAGE_MIN, XP_PER_MESSAGE_MAX);
+    // XP cooldown — settings runtime avec fallback constants
+    const cooldownMs = await this.settings.getInt("xp.message.cooldown_ms", XP_MESSAGE_COOLDOWN_MS);
+    if (now - last < cooldownMs) return;
+    const xpMin = await this.settings.getInt("xp.message.min", XP_PER_MESSAGE_MIN);
+    const xpMax = await this.settings.getInt("xp.message.max", XP_PER_MESSAGE_MAX);
+    let gain = randomInt(xpMin, xpMax);
+
+    // Drop zeni aléatoire (zeni.message_chance probabilité) + notif templatable
+    const dropChance = await this.settings.getFloat("zeni.message_chance", 0);
+    if (dropChance > 0 && Math.random() < dropChance) {
+      const dropMin = await this.settings.getInt("zeni.message_drop_min", 5);
+      const dropMax = await this.settings.getInt("zeni.message_drop_max", 25);
+      const drop = randomInt(dropMin, dropMax);
+      if (drop > 0) {
+        await this.dbs.db
+          .update(users)
+          .set({ zeni: user.zeni + drop })
+          .where(eq(users.id, userId));
+        await this.msg.publish(
+          "zeni_drop",
+          { user: `<@${userId}>`, zeni: drop },
+          message.client,
+        );
+      }
+    }
 
     // Boost XP par rôle — on prend le MAX (ne stack pas, comportement standard Discord)
+    // Le boost booster (Héros du peuple / premiumSince) est inclus dans la
+    // sélection du max et ne se cumule donc pas avec les autres rôles boostés.
     if (message.member) {
       const boosts = await this.settings.getXpBoostRoles();
       let maxMult = 1;
@@ -125,6 +152,8 @@ export class MessageXPEvent {
           maxMult = b.multiplier;
         }
       }
+      const boosterMult = await boosterXpMultiplier(message.member, this.settings);
+      if (boosterMult > maxMult) maxMult = boosterMult;
       if (maxMult > 1) gain = Math.floor(gain * maxMult);
     }
 

@@ -1,12 +1,14 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
 import type { Client, GuildMember, VoiceBasedChannel } from "discord.js";
 import { LevelService } from "~/services/LevelService";
 import { VocalTempoService } from "~/services/VocalTempoService";
 import { SettingsService } from "~/services/SettingsService";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { XP_PER_VOICE_TICK, XP_VOICE_TICK_MS, VOCAL_TEMPO_EMPTY_DELAY_MS } from "~/lib/constants";
 import { env } from "~/lib/env";
 import { resolveLevelChannel } from "~/lib/announce";
+import { boosterXpMultiplier } from "~/lib/booster";
 import { logger } from "~/lib/logger";
 import { ChannelType } from "discord.js";
 import { CronRegistry } from "~/api/cron-registry";
@@ -18,6 +20,7 @@ interface VoiceSession {
 }
 
 @Discord()
+@Bot("kaio")
 @injectable()
 export class VoiceXPEvent {
   private sessions = new Map<string, VoiceSession>(); // userId -> session
@@ -28,6 +31,7 @@ export class VoiceXPEvent {
     @inject(VocalTempoService) private vts: VocalTempoService,
     @inject(CronRegistry) private cron: CronRegistry,
     @inject(SettingsService) private settings: SettingsService,
+    @inject(MessageTemplateService) private msg: MessageTemplateService,
   ) {}
 
   @Once({ event: "clientReady" })
@@ -46,13 +50,20 @@ export class VoiceXPEvent {
     const boosts = await this.settings.getXpBoostRoles();
     const guild = client.guilds.cache.first();
 
+    // Setting xp.voice.per_minute → conversion en per-tick (XP_VOICE_TICK_MS).
+    // Fallback constant `XP_PER_VOICE_TICK` si pas de setting.
+    const perMinute = await this.settings.getInt("xp.voice.per_minute", 0);
+    const baseGain = perMinute > 0
+      ? Math.max(1, Math.round((perMinute * XP_VOICE_TICK_MS) / 60_000))
+      : XP_PER_VOICE_TICK;
+
     for (const [userId, sess] of this.sessions) {
       if (now - sess.lastTickAt < XP_VOICE_TICK_MS) continue;
       sess.lastTickAt = now;
 
-      // Boost XP par rôle — MAX (ne stack pas)
-      let gain = XP_PER_VOICE_TICK;
-      if (boosts.length > 0 && guild) {
+      // Boost XP par rôle — MAX (ne stack pas). Inclut le boost booster auto.
+      let gain = baseGain;
+      if (guild) {
         const member = guild.members.cache.get(userId) ?? (await guild.members.fetch(userId).catch(() => null));
         if (member) {
           let maxMult = 1;
@@ -61,6 +72,8 @@ export class VoiceXPEvent {
               maxMult = b.multiplier;
             }
           }
+          const boosterMult = await boosterXpMultiplier(member, this.settings);
+          if (boosterMult > maxMult) maxMult = boosterMult;
           if (maxMult > 1) gain = Math.floor(gain * maxMult);
         }
       }
@@ -93,8 +106,12 @@ export class VoiceXPEvent {
 
     // JOIN / MOVE
     if (newCh && (!oldCh || oldCh.id !== newCh.id)) {
-      // Vocal tempo HUB
-      if (newCh.id === env.VOCAL_TEMPO_HUB_ID && newState.member) {
+      // Vocal tempo HUB — priorité au setting runtime (`channel.vocal_tempo_hub`)
+      // qui peut être set à chaud sans redémarrer, fallback env legacy.
+      const hubId =
+        (await this.settings.getRaw("channel.vocal_tempo_hub")) ??
+        env.VOCAL_TEMPO_HUB_ID;
+      if (hubId && newCh.id === hubId && newState.member) {
         await this.createTempo(newState.member, newCh);
         return;
       }
@@ -117,6 +134,11 @@ export class VoiceXPEvent {
       const parentId = hub.parentId ?? undefined;
       const tempo = await this.vts.createFor(member.guild, member, parentId);
       await member.voice.setChannel(tempo).catch(() => {});
+      await this.msg.publish(
+        "vocal_tempo_created",
+        { user: `<@${member.id}>`, channelId: tempo.id },
+        member.client,
+      );
     } catch (err) {
       logger.warn({ err }, "Failed to create vocal tempo");
     }
@@ -130,13 +152,22 @@ export class VoiceXPEvent {
 
     const prev = this.emptyTimers.get(channel.id);
     if (prev) clearTimeout(prev);
+    const delayMs = await this.settings.getInt(
+      "vocal.tempo_empty_delay_ms",
+      VOCAL_TEMPO_EMPTY_DELAY_MS,
+    );
     const timer = setTimeout(async () => {
       const refetched = await channel.fetch().catch(() => null);
       if (!refetched || refetched.members.size > 0) return;
       await refetched.delete("Vocal tempo empty").catch(() => {});
       await this.vts.remove(channel.id);
       this.emptyTimers.delete(channel.id);
-    }, VOCAL_TEMPO_EMPTY_DELAY_MS);
+      await this.msg.publish(
+        "vocal_tempo_destroyed",
+        { channelId: channel.id },
+        channel.client,
+      );
+    }, delayMs);
     this.emptyTimers.set(channel.id, timer);
   }
 }

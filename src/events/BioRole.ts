@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
 import type { Client, Guild, GuildMember, Presence } from "discord.js";
 import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";
@@ -12,6 +12,7 @@ import { CronRegistry } from "~/api/cron-registry";
  * l'URL dans le custom status / activity.state uniquement.
  */
 @Discord()
+@Bot("grandPretre")
 @injectable()
 export class BioRoleEvent {
   constructor(@inject(CronRegistry) private cron: CronRegistry) {}

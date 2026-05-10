@@ -3,16 +3,16 @@
  * Le level est juste un repère interne ; le message annonce l'XP atteint.
  */
 export const LEVEL_THRESHOLDS: readonly { level: number; xp: number }[] = [
-  { level: 1, xp: 1_000 },
-  { level: 2, xp: 5_000 },
-  { level: 3, xp: 10_000 },
-  { level: 4, xp: 25_000 },
-  { level: 5, xp: 50_000 },
-  { level: 6, xp: 100_000 },
-  { level: 7, xp: 250_000 },
-  { level: 8, xp: 500_000 },
-  { level: 9, xp: 1_000_000 },
-  { level: 10, xp: 9_000_000 }, // It's over 9000 !
+	{ level: 1, xp: 1_000 },
+	{ level: 2, xp: 5_000 },
+	{ level: 3, xp: 10_000 },
+	{ level: 4, xp: 25_000 },
+	{ level: 5, xp: 50_000 },
+	{ level: 6, xp: 100_000 },
+	{ level: 7, xp: 250_000 },
+	{ level: 8, xp: 500_000 },
+	{ level: 9, xp: 1_000_000 },
+	{ level: 10, xp: 9_000_000 }, // It's over 9000 !
 ] as const;
 
 export const XP_PER_MESSAGE_MIN = 15;
@@ -33,4 +33,8 @@ export const VOCAL_TEMPO_EMPTY_DELAY_MS = 60_000;
 export const FUSION_XP_BONUS_RATIO = 0.1;
 export const FUSION_ZENI_BONUS_RATIO = 0.1;
 
-export const DISCORD_INVITE_REGEX = /discord(?:app)?\.(?:gg|com\/invite)\/[A-Za-z0-9-]+/i;
+export const DISCORD_INVITE_REGEX =
+	/discord(?:app)?\.(?:gg|com\/invite)\/[A-Za-z0-9-]+/i;
+
+/** Rôle distribué automatiquement à tout membre (à l'arrivée + backfill au boot). */
+export const AUTO_ROLE_ID = "935209502104510564";

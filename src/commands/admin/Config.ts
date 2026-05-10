@@ -1,12 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import {
-	Discord,
-	Slash,
-	SlashOption,
-	SlashChoice,
-	Guard,
-	SlashGroup,
-} from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashGroup, SlashOption } from "@rpbey/discordx";
 import {
 	ApplicationCommandOptionType,
 	MessageFlags,
@@ -32,6 +25,7 @@ const settingsChoices = SETTINGS_KEYS.filter((s) => !s.prefix).map((s) => ({
 }));
 
 @Discord()
+@Bot("shenron")
 @Guard(GuildOnly, AdminOnly)
 @SlashGroup({
 	name: "config",

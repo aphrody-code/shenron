@@ -1,27 +1,22 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
-  EmbedBuilder,
-  MessageFlags,
-  PermissionFlagsBits,
   type CommandInteraction,
-  type Role,
   type User,
 } from "discord.js";
 import { Pagination, PaginationResolver } from "@rpbey/pagination";
 import { AttachmentBuilder } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
-import { AdminOnly } from "~/guards/AdminOnly";
 import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";
 import { CardService } from "~/services/CardService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
-import { levelForXP, xpRequiredForLevel } from "~/lib/xp";
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class LevelCommands {
@@ -132,70 +127,4 @@ export class LevelCommands {
     await pagination.send();
   }
 
-  // /niveau : admin uniquement
-  @Slash({ name: "niveau", description: "Admin: modifier niveau/xp", defaultMemberPermissions: PermissionFlagsBits.Administrator })
-  @Guard(AdminOnly)
-  async niveauAdmin(
-    @SlashChoice({ name: "give", value: "give" })
-    @SlashChoice({ name: "remove", value: "remove" })
-    @SlashOption({ name: "action", description: "give/remove", type: ApplicationCommandOptionType.String, required: true })
-    action: "give" | "remove",
-    @SlashChoice({ name: "niveau", value: "niveau" })
-    @SlashChoice({ name: "exp", value: "exp" })
-    @SlashOption({ name: "type", description: "niveau ou exp", type: ApplicationCommandOptionType.String, required: true })
-    kind: "niveau" | "exp",
-    @SlashOption({ name: "montant", description: "Montant", type: ApplicationCommandOptionType.Integer, required: true, minValue: 1 })
-    amount: number,
-    @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
-    user: User | undefined,
-    @SlashOption({ name: "role", description: "Rôle", type: ApplicationCommandOptionType.Role, required: false })
-    role: Role | undefined,
-    @SlashOption({ name: "all", description: "Tous les inscrits", type: ApplicationCommandOptionType.Boolean, required: false })
-    all: boolean | undefined,
-    interaction: CommandInteraction,
-  ) {
-    if (!interaction.inCachedGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    const sign = action === "give" ? 1 : -1;
-
-    // Calcule le XP cible pour un user donné (kind=niveau→translate, kind=exp→delta direct)
-    const compute = (currentXP: number): number => {
-      if (kind === "exp") return Math.max(0, currentXP + sign * amount);
-      const currentLevel = levelForXP(currentXP);
-      const newLevel = Math.max(0, currentLevel + sign * amount);
-      if (newLevel === 0) return 0;
-      return xpRequiredForLevel(newLevel);
-    };
-
-    const apply = async (id: string) => {
-      const c = await this.levels.getUser(id);
-      await this.levels.setXP(id, compute(c?.xp ?? 0));
-    };
-
-    if (user) {
-      await apply(user.id);
-      await interaction.editReply({ content: `✅ Appliqué à ${user}.` });
-      return;
-    }
-    if (role) {
-      const members = await interaction.guild.members.fetch();
-      let count = 0;
-      for (const m of members.values()) {
-        if (m.roles.cache.has(role.id)) {
-          await apply(m.id);
-          count++;
-        }
-      }
-      await interaction.editReply({ content: `✅ Appliqué à ${count} membres avec ${role}.` });
-      return;
-    }
-    if (all) {
-      const allUsers = await this.levels.top(10_000, 0);
-      for (const u of allUsers) await apply(u.id);
-      await interaction.editReply({ content: `✅ Appliqué à ${allUsers.length} membres inscrits.` });
-      return;
-    }
-    await interaction.editReply({ content: "Spécifiez un membre, un rôle, ou all:true." });
-  }
 }

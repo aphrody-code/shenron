@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, Guard } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -27,6 +27,7 @@ function stablePercent(userId: string, salt: string): number {
 }
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class FunCommands {

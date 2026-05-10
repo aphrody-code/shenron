@@ -1,8 +1,9 @@
-import { Discord, Once } from "@rpbey/discordx";
+import { Bot, Discord, Once } from "@rpbey/discordx";
 import type { Client } from "discord.js";
 import { logger } from "~/lib/logger";
 
 @Discord()
+@Bot("shenron")
 export class ReadyEvent {
   @Once({ event: "clientReady" })
   ready([client]: [Client]) {

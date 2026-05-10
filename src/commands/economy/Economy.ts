@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent, ModalComponent } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, ModalComponent, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -30,6 +30,7 @@ import { formatXP } from "~/lib/xp";
 import { fusionName } from "~/lib/fusion-names";
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class EconomyCommands {

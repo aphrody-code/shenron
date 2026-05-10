@@ -1,8 +1,9 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
 import { LogService } from "~/services/LogService";
 
 @Discord()
+@Bot("grandPretre")
 @injectable()
 export class MessageLogEvent {
   constructor(@inject(LogService) private logs: LogService) {}

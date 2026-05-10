@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Discord, Slash, SlashOption, SlashChoice, Guard, ButtonComponent } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
@@ -14,6 +14,8 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { EconomyService } from "~/services/EconomyService";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
+import { SettingsService } from "~/services/SettingsService";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
 import {
   buildChallengeMessage,
   challengeIdPattern,
@@ -47,10 +49,21 @@ interface PendingChallenge {
 const challenges = new Map<string, PendingChallenge>();
 
 @Discord()
+@Bot("kaio")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class PenduCommand {
-  constructor(@inject(EconomyService) private eco: EconomyService) {}
+  constructor(
+    @inject(EconomyService) private eco: EconomyService,
+    @inject(SettingsService) private settings: SettingsService,
+    @inject(MessageTemplateService) private msg: MessageTemplateService,
+  ) {}
+
+  /** MAX_ERRORS borné par HANGMAN_FRAMES.length-1 (=6). Setting peut être configuré 3-6. */
+  private async maxErrors(): Promise<number> {
+    const v = await this.settings.getInt("game.pendu.max_errors", MAX_ERRORS);
+    return Math.max(3, Math.min(MAX_ERRORS, v));
+  }
 
   @Slash({ name: "pendu", description: "Jeu du pendu (mot DBZ)" })
   async pendu(
@@ -150,6 +163,8 @@ export class PenduCommand {
     const guessed = new Set<string>();
     let errors = 0;
     const allowed = new Set([interaction.user.id]);
+    const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const maxErrors = await this.maxErrors();
 
     const buildEmbed = (status: "playing" | "won" | "lost") =>
       this.buildPenduEmbed({ word, guessed, errors, status, players: [interaction.user.id] });
@@ -157,12 +172,41 @@ export class PenduCommand {
     await interaction.reply({ embeds: [buildEmbed("playing")] });
 
     const collector = interaction.channel.createMessageCollector({
-      filter: (m: Message) => allowed.has(m.author.id) && /^[a-zA-Z]$/.test(m.content.trim()),
+      // Accepte 1 lettre OU le mot entier (≥2 lettres) pour deviner d'un coup.
+      filter: (m: Message) => allowed.has(m.author.id) && /^[a-zA-Z]{1,32}$/.test(m.content.trim()),
       time: 90_000,
     });
 
     collector.on("collect", async (m) => {
-      const letter = m.content.trim().toLowerCase();
+      const guess = m.content.trim().toLowerCase();
+      // ── Tentative de mot complet ────────────────────────────────────
+      if (guess.length > 1) {
+        if (guess === word) {
+          for (const c of word) guessed.add(c);
+          await m.react("🏆").catch(() => {});
+          await this.eco.addZeni(interaction.user.id, winReward);
+          await this.msg.publish(
+            "zeni_game_win",
+            { user: `<@${interaction.user.id}>`, zeni: winReward, game: "pendu" },
+            interaction.client,
+          );
+          await interaction.followUp({ embeds: [buildEmbed("won")] });
+          collector.stop("won");
+          return;
+        }
+        // Mauvaise réponse : pénalise une erreur (ne peut deviner à l'infini)
+        errors++;
+        await m.react("❌").catch(() => {});
+        if (errors >= maxErrors) {
+          await interaction.followUp({ embeds: [buildEmbed("lost")] });
+          collector.stop("lost");
+          return;
+        }
+        await interaction.followUp({ embeds: [buildEmbed("playing")] });
+        return;
+      }
+      // ── Tentative d'une lettre ──────────────────────────────────────
+      const letter = guess;
       if (guessed.has(letter)) {
         await m.react("🔁").catch(() => {});
         return;
@@ -171,7 +215,12 @@ export class PenduCommand {
       if (word.includes(letter)) {
         await m.react("✅").catch(() => {});
         if (word.split("").every((c) => guessed.has(c))) {
-          await this.eco.addZeni(interaction.user.id, ZENI_GAME_WIN);
+          await this.eco.addZeni(interaction.user.id, winReward);
+          await this.msg.publish(
+            "zeni_game_win",
+            { user: `<@${interaction.user.id}>`, zeni: winReward, game: "pendu" },
+            interaction.client,
+          );
           await interaction.followUp({ embeds: [buildEmbed("won")] });
           collector.stop("won");
           return;
@@ -179,7 +228,7 @@ export class PenduCommand {
       } else {
         errors++;
         await m.react("❌").catch(() => {});
-        if (errors >= MAX_ERRORS) {
+        if (errors >= maxErrors) {
           await interaction.followUp({ embeds: [buildEmbed("lost")] });
           collector.stop("lost");
           return;
@@ -219,14 +268,50 @@ export class PenduCommand {
 
     const followUpChannel = interaction.channel;
     await followUpChannel.send({ embeds: [buildEmbed("playing")] });
+    const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const lossPenalty = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+    const maxErrors = await this.maxErrors();
 
     const collector = followUpChannel.createMessageCollector({
-      filter: (m: Message) => allowed.has(m.author.id) && /^[a-zA-Z]$/.test(m.content.trim()),
+      filter: (m: Message) => allowed.has(m.author.id) && /^[a-zA-Z]{1,32}$/.test(m.content.trim()),
       time: 5 * 60_000,
     });
 
+    const finishWin = async (winnerId: string) => {
+      const loserId = winnerId === challengerId ? opponentId : challengerId;
+      await this.eco.addZeni(winnerId, winReward);
+      if (lossPenalty > 0) await this.eco.removeZeni(loserId, lossPenalty);
+      await this.msg.publish(
+        "zeni_game_win",
+        { user: `<@${winnerId}>`, zeni: winReward, game: "pendu (duel)" },
+        followUpChannel.client,
+      );
+      await followUpChannel.send({ embeds: [buildEmbed("won", winnerId)] });
+      collector.stop("won");
+    };
+
     collector.on("collect", async (m) => {
-      const letter = m.content.trim().toLowerCase();
+      const guess = m.content.trim().toLowerCase();
+      // ── Mot complet ────────────────────────────────────────────────
+      if (guess.length > 1) {
+        if (guess === word) {
+          for (const c of word) guessed.add(c);
+          await m.react("🏆").catch(() => {});
+          await finishWin(m.author.id);
+          return;
+        }
+        errors++;
+        await m.react("❌").catch(() => {});
+        if (errors >= maxErrors) {
+          await followUpChannel.send({ embeds: [buildEmbed("lost")] });
+          collector.stop("lost");
+          return;
+        }
+        await followUpChannel.send({ embeds: [buildEmbed("playing")] });
+        return;
+      }
+      // ── Lettre seule ───────────────────────────────────────────────
+      const letter = guess;
       if (guessed.has(letter)) {
         await m.react("🔁").catch(() => {});
         return;
@@ -235,18 +320,13 @@ export class PenduCommand {
       if (word.includes(letter)) {
         await m.react("✅").catch(() => {});
         if (word.split("").every((c) => guessed.has(c))) {
-          const winnerId = m.author.id;
-          const loserId = winnerId === challengerId ? opponentId : challengerId;
-          await this.eco.addZeni(winnerId, ZENI_GAME_WIN);
-          await this.eco.removeZeni(loserId, ZENI_GAME_LOSS_PENALTY);
-          await followUpChannel.send({ embeds: [buildEmbed("won", winnerId)] });
-          collector.stop("won");
+          await finishWin(m.author.id);
           return;
         }
       } else {
         errors++;
         await m.react("❌").catch(() => {});
-        if (errors >= MAX_ERRORS) {
+        if (errors >= maxErrors) {
           await followUpChannel.send({ embeds: [buildEmbed("lost")] });
           collector.stop("lost");
           return;
@@ -308,9 +388,14 @@ export class PenduCommand {
       .setColor(color);
 
     if (status === "playing") {
-      embed.setFooter({ text: "Réponds avec une seule lettre dans le salon." });
+      embed.setFooter({ text: "Réponds avec une lettre, ou tente le mot complet (risque +1 erreur)." });
     } else if (status === "lost") {
       embed.addFields({ name: "Mot", value: `||${word}||`, inline: false });
+    } else if (status === "won") {
+      const reward = players.length === 2
+        ? `**+${ZENI_GAME_WIN} z** au gagnant · **-${ZENI_GAME_LOSS_PENALTY} z** au perdant`
+        : `**+${ZENI_GAME_WIN} zenis**`;
+      embed.addFields({ name: "Récompense", value: reward, inline: false });
     }
     return embed;
   }

@@ -1,4 +1,4 @@
-import { singleton, inject } from "tsyringe";
+import { singleton, inject, container } from "tsyringe";
 import { and, eq } from "drizzle-orm";
 import {
   ChannelType,
@@ -14,6 +14,10 @@ import {
 import { DatabaseService } from "~/db/index";
 import { tickets } from "~/db/schema";
 import { env } from "~/lib/env";
+import { SettingsService } from "./SettingsService";
+import { MessageTemplateService } from "./MessageTemplateService";
+import { executeWebhook, parseWebhookUrl, type Embed as WebhookEmbed } from "~/lib/discord-webhook";
+import { logger } from "~/lib/logger";
 
 type TicketKind = "report" | "achat" | "shop" | "abus";
 
@@ -54,9 +58,19 @@ export class TicketService {
 
     await this.db.insert(tickets).values({ channelId: channel.id, ownerId, kind, context });
 
+    // Header templatable depuis /messages (toggle enabled + texte custom).
+    // Si l'admin a désactivé l'événement, le canal du ticket reste créé mais
+    // sans message d'accueil — on garde quand même le bouton de fermeture.
+    const templates = container.resolve(MessageTemplateService);
+    const ticketRender = await templates.render("ticket_opened", {
+      ownerId,
+      kind,
+      context: context || "Aucun contexte fourni.",
+    });
+
     const embed = new EmbedBuilder()
       .setTitle(`Ticket — ${kind}`)
-      .setDescription(context || "Aucun contexte fourni.")
+      .setDescription(ticketRender?.rendered ?? (context || "Aucun contexte fourni."))
       .addFields({ name: "Ouvert par", value: `<@${ownerId}>` })
       .setColor(0xff9800)
       .setTimestamp();
@@ -64,13 +78,55 @@ export class TicketService {
     const closeBtn = new ButtonBuilder().setCustomId("ticket:close").setLabel("Fermer").setStyle(ButtonStyle.Danger).setEmoji("🔒");
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(closeBtn);
 
-    await channel.send({
-      content: `<@${ownerId}> bienvenue dans votre ticket.`,
-      embeds: [embed],
-      components: [row],
+    if (ticketRender?.enabled !== false) {
+      await channel.send({
+        content: `<@${ownerId}>`,
+        embeds: [embed],
+        components: [row],
+      });
+    } else {
+      // Bouton seul (admin a désactivé le message d'accueil)
+      await channel.send({ content: `<@${ownerId}>`, components: [row] });
+    }
+
+    // Notification webhook (best-effort, n'échoue jamais le flow ticket)
+    void this.notifyWebhook({
+      title: `🎫 Ticket ouvert — ${kind}`,
+      description: context || "Aucun contexte fourni.",
+      color: 0xff9800,
+      fields: [
+        { name: "Ouvert par", value: `<@${ownerId}>`, inline: true },
+        { name: "Salon", value: `<#${channel.id}>`, inline: true },
+        { name: "Type", value: kind, inline: true },
+      ],
     });
 
     return channel;
+  }
+
+  /**
+   * Pousse un embed sur le webhook configuré dans `webhook.tickets`.
+   * Best-effort silencieux : URL invalide / Discord 404 → log warn et drop.
+   */
+  private async notifyWebhook(embed: WebhookEmbed): Promise<void> {
+    try {
+      const settings = container.resolve(SettingsService);
+      const url = await settings.getRaw("webhook.tickets");
+      if (!url) return;
+      const parsed = parseWebhookUrl(url);
+      if (!parsed) {
+        logger.warn({ url }, "webhook.tickets: URL invalide");
+        return;
+      }
+      const username = (await settings.getRaw("webhook.tickets_username")) || "Shenron · Tickets";
+      await executeWebhook(url, {
+        username,
+        embeds: [{ ...embed, timestamp: new Date().toISOString() }],
+        allowed_mentions: { parse: [] },
+      });
+    } catch (err) {
+      logger.warn({ err }, "webhook.tickets: send failed");
+    }
   }
 
   async findByChannel(channelId: string) {
@@ -81,6 +137,16 @@ export class TicketService {
     const t = await this.findByChannel(channelId);
     if (!t || t.closed) return false;
     await this.db.update(tickets).set({ closed: true, closedAt: new Date(), closedBy: closerId }).where(eq(tickets.channelId, channelId));
+    void this.notifyWebhook({
+      title: `🔒 Ticket fermé — ${t.kind}`,
+      description: t.context ?? "Aucun contexte.",
+      color: 0x6b7280,
+      fields: [
+        { name: "Ouvert par", value: `<@${t.ownerId}>`, inline: true },
+        { name: "Fermé par", value: `<@${closerId}>`, inline: true },
+        { name: "Durée", value: `<t:${Math.floor(t.createdAt.getTime() / 1000)}:R>`, inline: true },
+      ],
+    });
     return true;
   }
 

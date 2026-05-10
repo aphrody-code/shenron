@@ -9,10 +9,16 @@ import { levelForXP, formatXP } from "~/lib/xp";
 import { levelUpMessage } from "~/lib/dbz-flavor";
 import { levelUpEmbed } from "~/lib/embeds";
 import { logger } from "~/lib/logger";
+import { MessageTemplateService } from "~/services/MessageTemplateService";
+import { SettingsService } from "~/services/SettingsService";
 
 @singleton()
 export class LevelService {
-  constructor(@inject(DatabaseService) private dbs: DatabaseService) {}
+  constructor(
+    @inject(DatabaseService) private dbs: DatabaseService,
+    @inject(MessageTemplateService) private templates: MessageTemplateService,
+    @inject(SettingsService) private settings: SettingsService,
+  ) {}
 
   private get db() {
     return this.dbs.db;
@@ -53,9 +59,10 @@ export class LevelService {
       .where(eq(users.id, userId));
 
     if (levelUp) {
+      const zeniBonus = await this.settings.getInt("zeni.per_level", ZENI_PER_LEVEL);
       await this.db
         .update(users)
-        .set({ zeni: sql`${users.zeni} + ${ZENI_PER_LEVEL}` })
+        .set({ zeni: sql`${users.zeni} + ${zeniBonus}` })
         .where(eq(users.id, userId));
     }
 
@@ -64,7 +71,11 @@ export class LevelService {
     if (options.propagateFusion && amount > 0) {
       const partner = await this.partnerOf(userId);
       if (partner) {
-        partnerBonus = Math.floor(amount * FUSION_XP_BONUS_RATIO);
+        const ratio = await this.settings.getFloat(
+          "xp.fusion.bonus_ratio",
+          FUSION_XP_BONUS_RATIO,
+        );
+        partnerBonus = Math.floor(amount * ratio);
         if (partnerBonus > 0) {
           await this.addXP(partner, partnerBonus, { propagateFusion: false });
         }
@@ -115,30 +126,58 @@ export class LevelService {
     return this.db.select().from(levelRewards).orderBy(levelRewards.level);
   }
 
-  async handleLevelUp(member: GuildMember, newLevel: number, channel?: TextBasedChannel) {
+  async handleLevelUp(member: GuildMember, newLevel: number, fallbackChannel?: TextBasedChannel) {
     const rewards = await this.db.select().from(levelRewards).where(eq(levelRewards.level, newLevel));
+    let bonusZeni = 0;
     for (const reward of rewards) {
-      if (!member.roles.cache.has(reward.roleId)) {
-        await member.roles.add(reward.roleId).catch((err) => logger.warn({ err, roleId: reward.roleId }, "Failed to add level role"));
+      // Hiérarchie : refuse silencieusement si rôle au-dessus du bot, sinon
+      // l'attribution échoue côté Discord et l'utilisateur perd ses zenis bonus.
+      const role = member.guild.roles.cache.get(reward.roleId) ?? (await member.guild.roles.fetch(reward.roleId).catch(() => null));
+      const me = member.guild.members.me;
+      if (role && me && role.position >= me.roles.highest.position) {
+        logger.warn({ roleId: reward.roleId, level: newLevel }, "level reward role above bot — skipped");
+        continue;
       }
+      if (!member.roles.cache.has(reward.roleId)) {
+        try {
+          await member.roles.add(reward.roleId, `Récompense niveau ${newLevel}`);
+        } catch (err) {
+          logger.warn({ err, roleId: reward.roleId }, "Failed to add level role");
+          continue;
+        }
+      }
+      bonusZeni += reward.zeniBonus;
+    }
+    // Crédit du zeniBonus de la table level_rewards (ZENI_PER_LEVEL est déjà
+    // ajouté par addXP — ici on ajoute uniquement le surplus configuré).
+    if (bonusZeni > 0) {
+      await this.db
+        .update(users)
+        .set({ zeni: sql`${users.zeni} + ${bonusZeni}` })
+        .where(eq(users.id, member.id));
     }
     await this.db.insert(actionLogs).values({
       userId: member.id,
       action: "LEVEL_UP",
-      meta: JSON.stringify({ level: newLevel }),
+      meta: JSON.stringify({ level: newLevel, bonusZeni, rewards: rewards.map((r) => r.roleId) }),
     });
 
-    if (channel && "send" in channel) {
-      const u = await this.getUser(member.id);
-      const reward = rewards[0];
-      const embed = levelUpEmbed({
-        member,
-        level: newLevel,
-        xp: u?.xp ?? 0,
-        zeniBonus: (reward?.zeniBonus ?? 0) + ZENI_PER_LEVEL,
-        message: levelUpMessage(member.id, newLevel),
-      });
-      await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
-    }
+    // Résolution canal via MessageTemplateService (respecte toggle enabled +
+    // override channelKey défini dans /messages du dashboard).
+    const target = await this.templates.resolveTarget("level_up", member.client);
+    if (target && !target.enabled) return;
+    const channel = target?.channel ?? (fallbackChannel && "send" in fallbackChannel ? fallbackChannel : null);
+    if (!channel) return;
+
+    const u = await this.getUser(member.id);
+    const baseLevelZeni = await this.settings.getInt("zeni.per_level", ZENI_PER_LEVEL);
+    const embed = levelUpEmbed({
+      member,
+      level: newLevel,
+      xp: u?.xp ?? 0,
+      zeniBonus: bonusZeni + baseLevelZeni,
+      message: levelUpMessage(member.id, newLevel),
+    });
+    await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
   }
 }

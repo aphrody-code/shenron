@@ -1,4 +1,4 @@
-import { Discord, Slash, MetadataStorage, type DApplicationCommand } from "@rpbey/discordx";
+import { Bot, Discord, MetadataStorage, Slash, type DApplicationCommand } from "@rpbey/discordx";
 import {
   EmbedBuilder,
   MessageFlags,
@@ -69,6 +69,7 @@ const GROUPS: Array<{ title: string; cmds: Set<string>; groups?: Set<string>; mo
   ];
 
 @Discord()
+@Bot("whis")
 export class HelpCommand {
   @Slash({ name: "help", description: "Liste des commandes du bot" })
   async help(interaction: CommandInteraction) {
