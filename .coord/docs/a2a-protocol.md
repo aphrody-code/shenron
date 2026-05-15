@@ -2,7 +2,9 @@
 
 Spec : https://a2a-protocol.org/latest/specification/  •  SDK officiel : https://www.npmjs.com/package/@a2a-js/sdk
 
-Implémentation maison sur Bun.serve (~150 LOC dans `src/api/server.ts`). Pas de dépendance Express.
+Implémentation maison sur Bun.serve (~200 LOC dans `src/api/server.ts`). Pas de dépendance Express.
+
+**Compatible @a2a-js/sdk v0.3** — AgentCard et SSE wrappers calqués sur l'implémentation officielle de `packages/a2a-server` de gemini-cli (https://github.com/google-gemini/gemini-cli/tree/main/packages/a2a-server). Cf. `CoderAgentEvent` (text-content, state-change, thought) pour les event kinds.
 
 ## Endpoints
 
@@ -13,13 +15,20 @@ AgentCard discovery (cf. spec v0.3). Cache 1 h (immutable en pratique).
 ```json
 {
   "name": "shenron-coord",
+  "version": "1.1.0",
   "protocolVersion": "0.3.0",
   "url": "https://shenron.rpbey.fr/api/a2a/jsonrpc",
-  "capabilities": { "streaming": true, "pushNotifications": false },
+  "provider": { "organization": "DBFR / shenron.rpbey.fr", "url": "https://shenron.rpbey.fr" },
+  "capabilities": { "streaming": true, "pushNotifications": false, "stateTransitionHistory": true },
+  "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer" } },
+  "security": [{ "bearerAuth": [] }, {}],
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"],
+  "supportsAuthenticatedExtendedCard": false,
   "skills": [
-    { "id": "coord.messages", "name": "...", "description": "...", "tags": ["coord"] },
-    { "id": "coord.tasks", "name": "...", "description": "...", "tags": ["coord"] },
-    { "id": "coord.memory", "name": "...", "description": "...", "tags": ["coord"] }
+    { "id": "coord.messages", "name": "Inter-agent messages", "examples": ["message/send..."], "inputModes": ["text"], "outputModes": ["text"] },
+    { "id": "coord.tasks", "name": "Sprint tasks", "examples": ["tasks/list..."], "inputModes": ["text"], "outputModes": ["text"] },
+    { "id": "coord.memory", "name": "Shared markdown memory", "examples": ["memory/read..."], "inputModes": ["text"], "outputModes": ["text"] }
   ]
 }
 ```
@@ -41,11 +50,31 @@ Méthodes supportées :
 
 | Method | Params | Description |
 |---|---|---|
-| `message/send` | `message: { messageId, role, kind, parts[], contextId? }, to?` | Envoie un message synchrone, retourne ack |
-| `message/stream` | (idem) | SSE response avec events de la conversation |
+| `message/send` | `message: { messageId, role, parts[], contextId? }, to?` | Envoie un message synchrone, retourne ack. Broadcast `text-content` + `message` events. |
+| `message/stream` | (idem) | SSE response avec events de la conversation. `id` JSON-RPC est propagé dans chaque event. |
 | `tasks/list` | `{ status?, agent? }` | Liste tasks filtrées |
 | `tasks/get` | `{ id }` | Détail d'une task |
 | `tasks/cancel` | `{ id }` | Marque blocked |
+| `tasks/resubscribe` | `{ id? }` | Re-attache un client en SSE sur un task existant |
+| `agent/getAuthenticatedExtendedCard` | — | Retourne `-32601` (notre AgentCard publique est canonique) |
+
+## SSE event format (calqué sur gemini-cli)
+
+Chaque event est wrappé dans une enveloppe JSON-RPC 2.0 et émis sur la stream :
+
+```
+data: {"jsonrpc":"2.0","id":"<rpcId|taskId|messageId|null>","result":<event>}\n\n
+```
+
+Event kinds adoptés depuis `CoderAgentEvent` (gemini-cli) :
+
+| Kind | Émis quand | Payload `result.kind` |
+|---|---|---|
+| `state-change` | Welcome event à l'ouverture du SSE, transitions de TaskState | `state-change` |
+| `text-content` | Après un `message/send` (en plus du legacy `message`) | `text-content` |
+| `message` | Legacy event broadcast — conservé pour rétrocompat | `message` |
+
+Le `id` du wrapper JSON-RPC correspond au `taskId` si l'event est lié à une task, sinon au `messageId` du message envoyé, sinon au `rpcId` du `message/stream` initial.
 
 ### `GET /api/a2a/events`
 

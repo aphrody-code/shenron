@@ -1308,31 +1308,71 @@ export class ApiServer {
 					publicCachedJson(req, 60 * 60_000, async () => ({
 						name: "shenron-coord",
 						description:
-							"Bridge A2A pour la coordination des agents DBFR (Claude/Gemini). Mirroir HTTP du canal MCP `coord`.",
-						version: "1.0.0",
+							"Bridge A2A pour la coordination des agents DBFR (Claude Code ↔ Gemini CLI). Miroir HTTP du canal MCP `coord` (.coord/messages.jsonl + .coord/tasks.json). Compatible @a2a-js/sdk.",
+						version: "1.1.0",
 						protocolVersion: "0.3.0",
 						url: "https://shenron.rpbey.fr/api/a2a/jsonrpc",
-						capabilities: { streaming: true, pushNotifications: false },
+						provider: {
+							organization: "DBFR / shenron.rpbey.fr",
+							url: "https://shenron.rpbey.fr",
+						},
+						capabilities: {
+							streaming: true,
+							pushNotifications: false,
+							stateTransitionHistory: true,
+						},
+						securitySchemes: {
+							bearerAuth: {
+								type: "http",
+								scheme: "bearer",
+								description:
+									"Optional Bearer token (API_ADMIN_TOKEN). Public coord endpoints sont open par défaut.",
+							},
+						},
+						security: [{ bearerAuth: [] }, {}],
 						defaultInputModes: ["text"],
 						defaultOutputModes: ["text"],
+						supportsAuthenticatedExtendedCard: false,
 						skills: [
 							{
 								id: "coord.messages",
 								name: "Inter-agent messages",
-								description: "Send/read messages between agents.",
-								tags: ["coord"],
+								description:
+									"Append/read messages between agents on the shared bus (.coord/messages.jsonl, flock-locked). SSE broadcast on /api/a2a/events.",
+								tags: ["coord", "messaging"],
+								examples: [
+									"message/send avec params.to='gemini' params.message.parts=[{kind:'text',text:'...'}]",
+									"message/stream pour subscribe SSE",
+								],
+								inputModes: ["text"],
+								outputModes: ["text"],
 							},
 							{
 								id: "coord.tasks",
 								name: "Sprint tasks",
-								description: "List/claim/complete tasks in the shared backlog.",
-								tags: ["coord"],
+								description:
+									"List/get/cancel tasks in the shared backlog (.coord/tasks.json). Atomic claim/complete via MCP server `coord` (flock /tmp/dbfr-tasks.lock).",
+								tags: ["coord", "task-management"],
+								examples: [
+									"tasks/list params={status:'pending',agent:'gemini'}",
+									"tasks/get params.id='shenron-01-fix-jail'",
+									"tasks/cancel params.id='...'",
+								],
+								inputModes: ["text"],
+								outputModes: ["text"],
 							},
 							{
 								id: "coord.memory",
 								name: "Shared markdown memory",
-								description: "Read/write shared memory and docs.",
-								tags: ["coord"],
+								description:
+									"Read/write the cross-agent memory under .coord/memory/{shared,claude,gemini}.md and docs under .coord/docs/.",
+								tags: ["coord", "memory"],
+								examples: [
+									"memory/read params.scope='shared'",
+									"memory/append params.scope='claude' params.body='...'",
+								],
+								inputModes: ["text"],
+								outputModes: ["text"],
 							},
 						],
 					})),
@@ -3009,6 +3049,17 @@ async function a2aJsonRpc(req: Request): Promise<Response> {
 					ts: new Date().toISOString(),
 				};
 				await appendMessage(msg);
+				// Broadcast format Gemini-CoderAgentEvent : text-content (au lieu de "message" brut),
+				// pour que les clients @a2a-js/sdk parsent nativement. On garde aussi "message" pour
+				// rétrocompat avec les vieux subscribers.
+				a2aBroadcast({
+					kind: "text-content",
+					messageId: msg.id,
+					contextId: msg.contextId,
+					role: "agent",
+					parts: [{ kind: "text", text }],
+					ts: msg.ts,
+				});
 				a2aBroadcast({ kind: "message", message: msg });
 				return Response.json({
 					jsonrpc: "2.0",
@@ -3023,14 +3074,37 @@ async function a2aJsonRpc(req: Request): Promise<Response> {
 				});
 			}
 			case "message/stream": {
-				// SSE response — émet le message immédiat + les events futurs
-				const stream = a2aSseStream();
+				// SSE response — émet le state-change initial + les events futurs.
+				// rpcId = JSON-RPC id pour ce stream, propagé dans chaque event SSE.
+				const stream = a2aSseStream(typeof id === "string" ? id : undefined);
 				return new Response(stream, {
 					headers: {
 						"Content-Type": "text/event-stream",
 						"Cache-Control": "no-cache, no-transform",
 						"Access-Control-Allow-Origin": "*",
 					},
+				});
+			}
+			case "tasks/resubscribe": {
+				// Spec A2A : re-attache un client sur un task existant pour recevoir les events
+				// futurs en SSE. On ne distingue pas par taskId côté backend (broadcast global),
+				// donc équivalent à message/stream avec le taskId comme rpc-id.
+				const taskId = typeof params?.id === "string" ? params.id : undefined;
+				const stream = a2aSseStream(taskId);
+				return new Response(stream, {
+					headers: {
+						"Content-Type": "text/event-stream",
+						"Cache-Control": "no-cache, no-transform",
+						"Access-Control-Allow-Origin": "*",
+					},
+				});
+			}
+			case "agent/getAuthenticatedExtendedCard": {
+				// Notre AgentCard public expose déjà tout ; pas d'extension auth-only.
+				return Response.json({
+					jsonrpc: "2.0",
+					id,
+					error: { code: -32601, message: "Extended card not supported (public card is the canonical one)" },
 				});
 			}
 			case "tasks/list": {
@@ -3070,14 +3144,19 @@ async function a2aJsonRpc(req: Request): Promise<Response> {
 	}
 }
 
-function a2aSseStream(): ReadableStream {
+function a2aSseStream(streamId?: string): ReadableStream {
 	let cleanup: (() => void) | null = null;
 	return new ReadableStream({
 		start(controller) {
 			const encoder = new TextEncoder();
 			const sub = (event: unknown) => {
 				try {
-					controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+					// Format SSE officiel @a2a-js/sdk (gemini-cli) : wrap dans JSON-RPC,
+					// id = taskId si évènement lié à une task sinon messageId.
+					const eventObj = event as { taskId?: string; messageId?: string; kind?: string };
+					const rpcId = eventObj.taskId ?? eventObj.messageId ?? streamId ?? null;
+					const wrapped = { jsonrpc: "2.0", id: rpcId, result: event };
+					controller.enqueue(encoder.encode(`data: ${JSON.stringify(wrapped)}\n\n`));
 				} catch {
 					cleanup?.();
 				}
@@ -3095,8 +3174,16 @@ function a2aSseStream(): ReadableStream {
 				a2aSubscribers.delete(sub);
 				clearInterval(ping);
 			};
-			// Welcome event
-			controller.enqueue(encoder.encode(`data: ${JSON.stringify({ kind: "ready", ts: new Date().toISOString() })}\n\n`));
+			// Welcome event — state-change vers "submitted" pour rejoindre la sémantique TaskState A2A
+			const welcome = {
+				kind: "state-change",
+				state: "submitted",
+				ts: new Date().toISOString(),
+			};
+			const rpcId = streamId ?? null;
+			controller.enqueue(
+				encoder.encode(`data: ${JSON.stringify({ jsonrpc: "2.0", id: rpcId, result: welcome })}\n\n`),
+			);
 		},
 		cancel() {
 			cleanup?.();
