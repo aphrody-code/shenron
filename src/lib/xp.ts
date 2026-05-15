@@ -1,27 +1,29 @@
 import { LEVEL_THRESHOLDS } from "./constants";
-import * as native from "./native";
 
 /**
- * Niveau atteint pour un XP. Wrappé vers le crate Rust natif (~10× plus
- * rapide en hot-path message/voice tick). La table de thresholds est
- * dupliquée côté Rust dans `native/src/lib.rs` — garde les deux synchronisées.
+ * Niveau atteint pour un XP. Reste en TS pur — bench (Bun 1.3.14, 1M iter)
+ * mesure 5× plus lent en Rust à cause de l'overhead FFI napi (~130ns/call)
+ * pour une boucle de 10 items. Le hot-path message/voice tick l'appelle
+ * 60+ fois/seconde donc on garde TS.
+ *
+ * Pour les use cases qui ont besoin de la version riche `{current, nextLevel,
+ * nextLevelXp, needed}`, utiliser `native.xpProgress(xp)` (cf. `lib/native.ts`).
  */
 export function levelForXP(xp: number): number {
-	return native.levelForXP(xp);
+	let level = 0;
+	for (const t of LEVEL_THRESHOLDS) {
+		if (xp >= t.xp) level = t.level;
+		else break;
+	}
+	return level;
 }
 
 export function xpRequiredForLevel(level: number): number {
 	return LEVEL_THRESHOLDS.find((t) => t.level === level)?.xp ?? Infinity;
 }
 
-/**
- * Forme historique `{ level, xp }`. Wrappe le `XpProgress` Rust qui contient
- * plus d'infos (current, needed) — sous-set rendu pour matcher les callers.
- */
 export function nextThresholdFrom(xp: number) {
-	const p = native.xpProgress(xp);
-	if (!p) return undefined;
-	return { level: p.nextLevel, xp: p.nextLevelXp };
+	return LEVEL_THRESHOLDS.find((t) => t.xp > xp);
 }
 
 export function randomInt(min: number, max: number): number {

@@ -4,20 +4,22 @@
  * Le `.node` est chargé par le loader généré (`native/index.js`) qui sélectionne
  * le bon binaire selon la plateforme (`shenron-native.linux-x64-gnu.node`).
  *
- * Réexports typés + helpers de compat pour matcher les signatures
- * historiques du code TS (qui rendait `number | undefined`, là où le Rust
- * rend `number | null`, et qui utilisait des Uint8Array là où le Rust prend
- * un `string`).
+ * Bench réel (Bun 1.3.14, payload 1390b, host VPS) :
+ *   level_for_xp x1M  : TS 31ms · Rust 163ms · ratio 0.19× (Rust plus lent !)
+ *   fnv1a(1.4kb) x50k : TS 195ms · Rust 104ms · ratio 1.87× (Rust gagne)
  *
- * Pourquoi natif : ces 5 fonctions sont sur le hot-path :
- * - `levelForXP` / `xpProgress` — appelés à chaque message (XP/level), chaque
- *   hit `/api/public/user/:id`, chaque card render
- * - `fnv1aHex` — calculé pour chaque réponse cache HTTP (ETag)
- * - `parseDuration` / `formatDuration` — chaque sanction de modération
+ * Conclusion : l'overhead FFI napi est ~130ns par appel — pour des fonctions
+ * sub-microseconde sur Bun JIT, le coût FFI annule le gain Rust. À porter
+ * en Rust : seulement les fonctions avec boucle interne >1kb input ou
+ * computation lourde (hash, compress, parse complexe, image transform).
  *
- * Bench : la version Rust est ~10× plus rapide que la version TS pour
- * `fnv1aHex` sur des payloads JSON ~5kb, et inline-able dans les inner
- * loops des commandes XP/voice tick.
+ * Fonctions exposées :
+ * - `xpProgress` — formes riches du palier suivant (utile pour route cached,
+ *   pas pour hot-path : le simple `levelForXP` reste TS dans `xp.ts`).
+ * - `fnv1aHex` / `etagOf` — gain net pour hash de payloads JSON (utilisé
+ *   par les routes publiques caching).
+ * - `parseDuration` / `formatDuration` — wrappé pour cohérence avec le code
+ *   TS existant. Gain Rust marginal car appelé une fois par sanction.
  */
 import * as rust from "../../native";
 
