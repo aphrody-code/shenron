@@ -158,9 +158,28 @@ export class ShopPanelCommands {
 				.map((i) => i.itemKey),
 		);
 
+		// Preview : pour les catégories liées à un rôle (color/title/badge),
+		// on tente d'aligner la couleur de l'embed sur le rôle le plus cher
+		// (= le plus "premium" du lot) pour donner un indice visuel.
+		// Pour les cartes, on pointe setImage sur l'asset preview servi par
+		// l'API (cf. /assets/cards/<key>.png — content-nego AVIF/WebP côté serveur).
+		let embedColor = 0xfbbf24;
+		if ((type === "color" || type === "title" || type === "badge") && interaction.inCachedGuild()) {
+			const withRole = items
+				.filter((i) => i.roleId)
+				.sort((a, b) => b.price - a.price);
+			for (const it of withRole) {
+				const role = interaction.guild?.roles.cache.get(it.roleId!);
+				if (role && role.color !== 0) {
+					embedColor = role.color;
+					break;
+				}
+			}
+		}
+
 		const embed = new EmbedBuilder()
 			.setTitle(`${TYPE_LABELS[type].icon} ${TYPE_LABELS[type].label}`)
-			.setColor(0xfbbf24)
+			.setColor(embedColor)
 			.setDescription(
 				items
 					.slice(0, 25)
@@ -171,6 +190,14 @@ export class ShopPanelCommands {
 					})
 					.join("\n\n"),
 			);
+
+		// Preview visuelle pour la catégorie "card" : 1ère carte du lot
+		// rendue par l'API card preview (URL absolue construite depuis
+		// API_PUBLIC_URL si dispo, sinon path relatif).
+		if (type === "card" && items[0]) {
+			const base = process.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+			embed.setImage(`${base}/assets/cards/${encodeURIComponent(items[0].key)}.png`);
+		}
 
 		// Boutons d'achat (5 max par row, 5 rows max = 25 items pile poil)
 		const rows: ActionRowBuilder<ButtonBuilder>[] = [];
