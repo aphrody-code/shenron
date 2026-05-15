@@ -49,7 +49,7 @@ import { GaugeService } from "~/services/GaugeService";
 import { FusionService } from "~/services/FusionService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
 import { LevelService } from "~/services/LevelService";
-import { levelForXP } from "~/lib/xp";
+import { levelForXP, nextThresholdFrom } from "~/lib/xp";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
@@ -983,16 +983,44 @@ export class ApiServer {
 						const user = await dbs.db.query.users.findFirst({ where: eq(users.id, id) });
 						if (!user) return Response.json({ error: "User inconnu" }, { status: 404 });
 						const level = levelForXP(user.xp);
+						const next = nextThresholdFrom(user.xp);
 						const inv = await container.resolve(EconomyService).listInventory(id);
 						const ach = await dbs.db.query.achievements.findMany({
 							where: (a, { eq: e }) => e(a.userId, id),
 						});
+						// Enrichissement Discord (username + avatar hash) via le client
+						// Shenron — `users.fetch` utilise le cache discord.js si présent,
+						// sinon REST. Best-effort : si le user n'a jamais interagi avec le
+						// bot ou est introuvable côté Discord, on laisse les champs null.
+						const map = container.resolve<Map<string, Client>>("ClientMap");
+						const shenron = map.get("shenron");
+						const dUser = shenron ? await shenron.users.fetch(id).catch(() => null) : null;
+						const avatarHash = dUser?.avatar ?? null;
+						const avatarUrl = dUser?.displayAvatarURL({ size: 512 }) ?? null;
+						// Banner URL absolue pour le site : si une carte est équipée, on
+						// pointe sur la route asset card du serveur ; sinon null pour que
+						// le frontend affiche le gradient fallback.
+						const apiBase = process.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+						const bannerUrl = user.equippedCard
+							? `${apiBase}/assets/cards/${encodeURIComponent(user.equippedCard)}.png`
+							: null;
 						return Response.json({
 							discordId: user.id,
+							username: dUser?.username ?? null,
+							avatar: avatarHash,
+							avatarUrl,
 							level,
 							xp: user.xp,
 							zeni: user.zeni,
-							banner: user.equippedCard ?? null,
+							xpProgress: next
+								? {
+										current: user.xp,
+										nextLevel: next.level,
+										nextLevelXp: next.xp,
+										needed: next.xp - user.xp,
+								  }
+								: null,
+							banner: bannerUrl,
 							equipped: {
 								card: user.equippedCard,
 								badge: user.equippedBadge,
