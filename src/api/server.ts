@@ -49,6 +49,7 @@ import { GaugeService } from "~/services/GaugeService";
 import { FusionService } from "~/services/FusionService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
 import { LevelService } from "~/services/LevelService";
+import { levelForXP } from "~/lib/xp";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
@@ -946,6 +947,104 @@ export class ApiServer {
 					}
 					return Response.json({ commands: leaves, count: leaves.length });
 				}),
+
+				// ── Guild roles (role picker dashboard) ───────────────────────
+				// Liste les rôles de la guild via cache discord.js du persona donné
+				// (par défaut Shenron). Filtre @everyone + rôles managed (bots).
+				"/api/bots/:id/guild/roles": admin((req) => {
+					const map = container.resolve<Map<string, Client>>("ClientMap");
+					const c = map.get(req.params.id);
+					if (!c) return Response.json({ error: "Bot introuvable" }, { status: 404 });
+					const guild = c.guilds.cache.get(env.GUILD_ID);
+					if (!guild) return Response.json({ error: "Guild introuvable" }, { status: 404 });
+					const roles = [...guild.roles.cache.values()]
+						.filter((r) => r.id !== guild.id && !r.managed)
+						.sort((a, b) => b.position - a.position)
+						.map((r) => ({
+							id: r.id,
+							name: r.name,
+							color: r.color,
+							hexColor: r.hexColor,
+							position: r.position,
+							managed: r.managed,
+						}));
+					return Response.json({ roles });
+				}),
+
+				// ── Routes PUBLIQUES (CORS + rate-limit, pas d'auth) ──────────
+				// Cible : site Vercel dbfr-site qui mirror profil Discord.
+				"/api/public/user/:discordId": (req) =>
+					publicRoute(req, async () => {
+						const id = req.params.discordId;
+						if (!/^\d{17,20}$/.test(id)) {
+							return Response.json({ error: "discordId invalide" }, { status: 400 });
+						}
+						const dbs = container.resolve(DatabaseService);
+						const user = await dbs.db.query.users.findFirst({ where: eq(users.id, id) });
+						if (!user) return Response.json({ error: "User inconnu" }, { status: 404 });
+						const level = levelForXP(user.xp);
+						const inv = await container.resolve(EconomyService).listInventory(id);
+						const ach = await dbs.db.query.achievements.findMany({
+							where: (a, { eq: e }) => e(a.userId, id),
+						});
+						return Response.json({
+							discordId: user.id,
+							level,
+							xp: user.xp,
+							zeni: user.zeni,
+							banner: user.equippedCard ?? null,
+							equipped: {
+								card: user.equippedCard,
+								badge: user.equippedBadge,
+								color: user.equippedColor,
+								title: user.equippedTitle,
+							},
+							achievements: ach.map((a) => ({ code: a.code, unlockedAt: a.unlockedAt })),
+							inventory: inv.map((i) => ({ type: i.itemType, key: i.itemKey })),
+						});
+					}),
+
+				"/api/public/shop": (req) =>
+					publicRoute(req, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const items = await dbs.db.query.shopItems.findMany({
+							where: (s, { eq: e }) => e(s.enabled, true),
+						});
+						return Response.json({
+							items: items.map((i) => ({
+								key: i.key,
+								type: i.type,
+								name: i.name,
+								description: i.description,
+								price: i.price,
+								roleId: i.roleId,
+							})),
+						});
+					}),
+
+				"/api/public/leaderboard": (req) =>
+					publicRoute(req, async () => {
+						const url = new URL(req.url);
+						const limit = Math.min(
+							Math.max(parseInt(url.searchParams.get("limit") ?? "100", 10) || 100, 1),
+							500,
+						);
+						const dbs = container.resolve(DatabaseService);
+						const rows = await dbs.db
+							.select({ id: users.id, xp: users.xp, zeni: users.zeni })
+							.from(users)
+							.orderBy(desc(users.xp))
+							.limit(limit);
+						return Response.json({
+							leaderboard: rows.map((r, i) => ({
+								rank: i + 1,
+								discordId: r.id,
+								xp: r.xp,
+								zeni: r.zeni,
+								level: levelForXP(r.xp),
+							})),
+						});
+					}),
 
 				// ── Cron ──────────────────────────────────────────────────────
 				"/api/cron": admin(() => {
@@ -2326,6 +2425,66 @@ function admin<R extends Request & { params: any }>(
 		if (err) return err;
 		return handler(req);
 	};
+}
+
+// ── Routes publiques : CORS allowlist + rate-limit 60 req/min/IP ─────────
+const PUBLIC_CORS_ORIGINS = new Set([
+	"https://dbfr.fr",
+	"https://www.dbfr.fr",
+	"https://shenron.rpbey.fr",
+	"http://localhost:3000",
+]);
+
+const publicRateBuckets = new Map<string, { count: number; resetAt: number }>();
+
+function publicCorsHeaders(req: Request): Record<string, string> {
+	const origin = req.headers.get("origin") ?? "";
+	const allow = PUBLIC_CORS_ORIGINS.has(origin) ? origin : "https://dbfr.fr";
+	return {
+		"Access-Control-Allow-Origin": allow,
+		"Access-Control-Allow-Methods": "GET, OPTIONS",
+		"Access-Control-Allow-Headers": "Content-Type",
+		"Access-Control-Max-Age": "600",
+		Vary: "Origin",
+	};
+}
+
+function clientIp(req: Request): string {
+	const xff = req.headers.get("x-forwarded-for");
+	if (xff) return xff.split(",")[0]!.trim();
+	return req.headers.get("x-real-ip") ?? "unknown";
+}
+
+function publicRateLimit(ip: string): boolean {
+	const now = Date.now();
+	const bucket = publicRateBuckets.get(ip);
+	if (!bucket || bucket.resetAt < now) {
+		publicRateBuckets.set(ip, { count: 1, resetAt: now + 60_000 });
+		return true;
+	}
+	bucket.count += 1;
+	return bucket.count <= 60;
+}
+
+async function publicRoute(
+	req: Request & { params: any },
+	handler: () => Response | Promise<Response>,
+): Promise<Response> {
+	const cors = publicCorsHeaders(req);
+	if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+	if (req.method !== "GET") {
+		return new Response("Method Not Allowed", { status: 405, headers: cors });
+	}
+	if (!publicRateLimit(clientIp(req))) {
+		return new Response(JSON.stringify({ error: "Rate limit (60/min)" }), {
+			status: 429,
+			headers: { ...cors, "Content-Type": "application/json" },
+		});
+	}
+	const res = await handler();
+	const headers = new Headers(res.headers);
+	for (const [k, v] of Object.entries(cors)) headers.set(k, v);
+	return new Response(res.body, { status: res.status, headers });
 }
 
 /**
