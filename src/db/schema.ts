@@ -376,6 +376,32 @@ export const messageTemplates = sqliteTable("message_templates", {
  * Bypass automatique : OWNER_ID, BOT_DEV_ID, et toute personne avec la permission
  * Discord native `Administrator` (garde-fou anti lock-out).
  */
+/**
+ * Log persistant des invitations Discord — qui a invité qui via quel code.
+ * Alimenté par `InviteTracker.detectInviter` à chaque `guildMemberAdd`.
+ * Utilisé par `/invitations` pour afficher les stats par membre.
+ *
+ * `inviterId` est NULL si on n'a pas pu détecter (race condition Discord ou
+ * lien vanity sans tracker).
+ */
+export const invitesLog = sqliteTable(
+	"invites_log",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		userId: text("user_id").notNull(),
+		inviterId: text("inviter_id"),
+		code: text("code"),
+		joinedAt: integer("joined_at", { mode: "timestamp_ms" })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+	},
+	(t) => [
+		index("idx_invites_inviter").on(t.inviterId),
+		index("idx_invites_user").on(t.userId),
+		index("idx_invites_joined").on(t.joinedAt),
+	],
+);
+
 export const commandPermissions = sqliteTable("command_permissions", {
 	name: text("name").primaryKey(),
 	enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
@@ -406,6 +432,7 @@ export type GuildSetting = typeof guildSettings.$inferSelect;
 export type MessageTemplate = typeof messageTemplates.$inferSelect;
 export type CommandPermission = typeof commandPermissions.$inferSelect;
 export type NewCommandPermission = typeof commandPermissions.$inferInsert;
+export type InviteLog = typeof invitesLog.$inferSelect;
 
 // ──────────────────────────────────────────────────────────────────────
 // Better Auth — schema standard (4 tables) avec préfixe `ba_` pour ne

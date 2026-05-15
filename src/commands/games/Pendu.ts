@@ -44,6 +44,7 @@ interface PendingChallenge {
   opponentId: string;
   channelId: string;
   expiresAt: number;
+  stake?: number;
 }
 
 const challenges = new Map<string, PendingChallenge>();
@@ -73,6 +74,15 @@ export class PenduCommand {
     mode: "bot" | "joueur",
     @SlashOption({ name: "adversaire", description: "Adversaire (mode joueur)", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     opponent: User | undefined,
+    @SlashOption({
+      name: "mise",
+      description: "Mise en zénis (optionnel, override les gains par défaut)",
+      type: ApplicationCommandOptionType.Integer,
+      required: false,
+      minValue: 1,
+      maxValue: 1_000_000,
+    })
+    mise: number | undefined,
     interaction: CommandInteraction,
   ) {
     if (!interaction.channel || !("send" in interaction.channel)) {
@@ -86,6 +96,20 @@ export class PenduCommand {
         await interaction.reply({ content: "Adversaire invalide.", flags: MessageFlags.Ephemeral });
         return;
       }
+      if (mise !== undefined) {
+        const [bal1, bal2] = await Promise.all([
+          this.eco.getBalance(interaction.user.id),
+          this.eco.getBalance(opponent.id),
+        ]);
+        if (bal1 < mise) {
+          await interaction.reply({ content: `💸 Tu n'as que **${bal1} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+          return;
+        }
+        if (bal2 < mise) {
+          await interaction.reply({ content: `💸 ${opponent} n'a que **${bal2} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+          return;
+        }
+      }
       const key = interaction.id;
       challenges.set(key, {
         word,
@@ -93,7 +117,11 @@ export class PenduCommand {
         opponentId: opponent.id,
         channelId: interaction.channel.id,
         expiresAt: Date.now() + 60_000,
+        stake: mise,
       });
+      const stakeLine = mise
+        ? `Mise **${mise} z** par joueur · gagnant **+${mise} z** · perdant **-${mise} z**`
+        : `Gagnant **+${ZENI_GAME_WIN} z** · Perdant **-${ZENI_GAME_LOSS_PENALTY} z**`;
       const msg = buildChallengeMessage({
         scope: "pendu",
         key,
@@ -101,7 +129,7 @@ export class PenduCommand {
         opponent,
         gameTitle: "Pendu — Duel",
         gameEmoji: "🎯",
-        stake: `Gagnant **+${ZENI_GAME_WIN} z** · Perdant **-${ZENI_GAME_LOSS_PENALTY} z**`,
+        stake: stakeLine,
         extraFields: [
           { name: "Mot mystère", value: `**${word.length} lettres**`, inline: true },
           { name: "Durée", value: "5 min", inline: true },
@@ -116,7 +144,14 @@ export class PenduCommand {
       return;
     }
 
-    await this.startSoloPendu(interaction, word);
+    if (mise !== undefined) {
+      const bal = await this.eco.getBalance(interaction.user.id);
+      if (bal < mise) {
+        await interaction.reply({ content: `💸 Tu n'as que **${bal} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+        return;
+      }
+    }
+    await this.startSoloPendu(interaction, word, mise);
   }
 
   @ButtonComponent({ id: challengeIdPattern("pendu") })
@@ -154,16 +189,19 @@ export class PenduCommand {
       ],
       components: [],
     });
-    await this.runDuelPendu(interaction, challenge.word, challenge.challengerId, challenge.opponentId);
+    await this.runDuelPendu(interaction, challenge.word, challenge.challengerId, challenge.opponentId, challenge.stake);
   }
 
   /** Mode solo (vs bot) — déclenché direct depuis /pendu mode:bot. */
-  private async startSoloPendu(interaction: CommandInteraction, word: string) {
+  private async startSoloPendu(interaction: CommandInteraction, word: string, stake?: number) {
     if (!interaction.channel || !("createMessageCollector" in interaction.channel)) return;
     const guessed = new Set<string>();
     let errors = 0;
     const allowed = new Set([interaction.user.id]);
-    const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const defaultWin = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const defaultLoss = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+    const winReward = stake ?? defaultWin;
+    const lossPenalty = stake ?? defaultLoss;
     const maxErrors = await this.maxErrors();
 
     const buildEmbed = (status: "playing" | "won" | "lost") =>
@@ -198,6 +236,7 @@ export class PenduCommand {
         errors++;
         await m.react("❌").catch(() => {});
         if (errors >= maxErrors) {
+          if (lossPenalty > 0) await this.eco.removeZeni(interaction.user.id, lossPenalty);
           await interaction.followUp({ embeds: [buildEmbed("lost")] });
           collector.stop("lost");
           return;
@@ -229,6 +268,7 @@ export class PenduCommand {
         errors++;
         await m.react("❌").catch(() => {});
         if (errors >= maxErrors) {
+          if (lossPenalty > 0) await this.eco.removeZeni(interaction.user.id, lossPenalty);
           await interaction.followUp({ embeds: [buildEmbed("lost")] });
           collector.stop("lost");
           return;
@@ -239,6 +279,7 @@ export class PenduCommand {
 
     collector.on("end", async (_c, reason) => {
       if (reason === "time") {
+        if (lossPenalty > 0) await this.eco.removeZeni(interaction.user.id, lossPenalty).catch(() => {});
         await interaction.followUp({ embeds: [buildEmbed("lost")] }).catch(() => {});
       }
     });
@@ -250,6 +291,7 @@ export class PenduCommand {
     word: string,
     challengerId: string,
     opponentId: string,
+    stake?: number,
   ) {
     if (!interaction.channel || !("createMessageCollector" in interaction.channel)) return;
     const guessed = new Set<string>();
@@ -268,8 +310,10 @@ export class PenduCommand {
 
     const followUpChannel = interaction.channel;
     await followUpChannel.send({ embeds: [buildEmbed("playing")] });
-    const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
-    const lossPenalty = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+    const defaultWin = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const defaultLoss = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+    const winReward = stake ?? defaultWin;
+    const lossPenalty = stake ?? defaultLoss;
     const maxErrors = await this.maxErrors();
 
     const collector = followUpChannel.createMessageCollector({

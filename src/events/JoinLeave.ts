@@ -6,7 +6,7 @@ import { InviteTracker } from "~/services/InviteTracker";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { SettingsService } from "~/services/SettingsService";
 import { DatabaseService } from "~/db/index";
-import { users } from "~/db/schema";
+import { users, invitesLog } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { AUTO_ROLE_ID } from "~/lib/constants";
 
@@ -44,6 +44,15 @@ export class JoinLeaveEvent {
   async onJoin([member]: ArgsOf<"guildMemberAdd">) {
     await this.assignAutoRole(member);
     const detected = await this.invites.detectInviter(member.guild);
+    // Persiste la paire inviter→invited pour /invitations (best-effort).
+    await this.dbs.db
+      .insert(invitesLog)
+      .values({
+        userId: member.id,
+        inviterId: detected.inviterId,
+        code: detected.code,
+      })
+      .catch(() => {});
     const embed = this.logs
       .makeEmbed("Nouveau membre", 0x22c55e)
       .setThumbnail(member.user.displayAvatarURL())

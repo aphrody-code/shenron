@@ -19,6 +19,7 @@ import {
 import { useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { ChannelSelect } from "../components/ChannelSelect";
+import { RolePicker } from "../components/RolePicker";
 import { RoleSelect } from "../components/RoleSelect";
 import { JsonEditor, looksLikeJson } from "../components/JsonEditor";
 

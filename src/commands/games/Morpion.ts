@@ -31,11 +31,13 @@ interface Game {
   turn: "X" | "O";
   playerX: string;
   playerO: string;
+  stake?: number;
 }
 
 interface PendingChallenge {
   challengerId: string;
   opponentId: string;
+  stake?: number;
 }
 
 const games = new Map<string, Game>();
@@ -149,6 +151,15 @@ export class MorpionCommand {
     mode: "bot" | "joueur",
     @SlashOption({ name: "adversaire", description: "Adversaire (mode joueur)", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     opponent: User | undefined,
+    @SlashOption({
+      name: "mise",
+      description: "Mise en zénis (optionnel, override les gains par défaut)",
+      type: ApplicationCommandOptionType.Integer,
+      required: false,
+      minValue: 1,
+      maxValue: 1_000_000,
+    })
+    mise: number | undefined,
     interaction: CommandInteraction,
   ) {
     if (mode === "joueur") {
@@ -156,8 +167,26 @@ export class MorpionCommand {
         await interaction.reply({ content: "Adversaire invalide.", flags: MessageFlags.Ephemeral });
         return;
       }
+      // Si mise, vérifier que les deux joueurs ont le solde
+      if (mise !== undefined) {
+        const [bal1, bal2] = await Promise.all([
+          this.eco.getBalance(interaction.user.id),
+          this.eco.getBalance(opponent.id),
+        ]);
+        if (bal1 < mise) {
+          await interaction.reply({ content: `💸 Tu n'as que **${bal1} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+          return;
+        }
+        if (bal2 < mise) {
+          await interaction.reply({ content: `💸 ${opponent} n'a que **${bal2} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+          return;
+        }
+      }
       const key = interaction.id;
-      challenges.set(key, { challengerId: interaction.user.id, opponentId: opponent.id });
+      challenges.set(key, { challengerId: interaction.user.id, opponentId: opponent.id, stake: mise });
+      const stakeLine = mise
+        ? `Mise **${mise} z** par joueur · gagnant **+${mise} z** · perdant **-${mise} z**`
+        : `Gagnant **+${ZENI_GAME_WIN} z** · Perdant **-${ZENI_GAME_LOSS_PENALTY} z**`;
       const msg = buildChallengeMessage({
         scope: "morpion",
         key,
@@ -165,7 +194,7 @@ export class MorpionCommand {
         opponent,
         gameTitle: "Morpion — Duel",
         gameEmoji: "⭕",
-        stake: `Gagnant **+${ZENI_GAME_WIN} z** · Perdant **-${ZENI_GAME_LOSS_PENALTY} z**`,
+        stake: stakeLine,
       });
       await interaction.reply(msg);
       setTimeout(() => challenges.delete(key), 60_000).unref();
@@ -173,12 +202,20 @@ export class MorpionCommand {
     }
 
     // Mode bot — démarrage immédiat
+    if (mise !== undefined) {
+      const bal = await this.eco.getBalance(interaction.user.id);
+      if (bal < mise) {
+        await interaction.reply({ content: `💸 Tu n'as que **${bal} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+        return;
+      }
+    }
     const gameId = interaction.id;
     games.set(gameId, {
       board: Array(9).fill(".") as Cell[],
       turn: "X",
       playerX: interaction.user.id,
       playerO: "BOT",
+      stake: mise,
     });
     scheduleGameGc(gameId);
     await interaction.reply({
@@ -221,6 +258,7 @@ export class MorpionCommand {
       turn: "X",
       playerX: challenge.challengerId,
       playerO: challenge.opponentId,
+      stake: challenge.stake,
     });
     scheduleGameGc(gameId);
     await interaction.update({
@@ -267,8 +305,11 @@ export class MorpionCommand {
       } else {
         const winnerId = result.mark === "X" ? g.playerX : g.playerO;
         const loserId = result.mark === "X" ? g.playerO : g.playerX;
-        const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
-        const lossPenalty = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+        // Si mise fournie au lancement, elle override win/loss. Sinon settings → constantes.
+        const defaultWin = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+        const defaultLoss = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+        const winReward = g.stake ?? defaultWin;
+        const lossPenalty = g.stake ?? defaultLoss;
         if (winnerId !== "BOT") await this.eco.addZeni(winnerId, winReward);
         if (loserId !== "BOT" && lossPenalty > 0) await this.eco.removeZeni(loserId, lossPenalty);
         if (winnerId !== "BOT") {

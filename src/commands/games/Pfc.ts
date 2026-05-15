@@ -24,7 +24,9 @@ type Choice = "pierre" | "feuille" | "ciseaux";
 const EMOJIS: Record<Choice, string> = { pierre: "🪨", feuille: "📄", ciseaux: "✂️" };
 const WINS: Record<Choice, Choice> = { pierre: "ciseaux", feuille: "pierre", ciseaux: "feuille" };
 
-const pending = new Map<string, { challenger: string; opponent: string; choice?: Choice }>();
+const pending = new Map<string, { challenger: string; opponent: string; choice?: Choice; stake?: number }>();
+// Track la mise du mode bot par userId, lu au moment du callback button.
+const botStakes = new Map<string, number>();
 
 @Discord()
 @Bot("kaio")
@@ -45,10 +47,32 @@ export class PfcCommand {
     mode: "bot" | "joueur",
     @SlashOption({ name: "adversaire", description: "Adversaire (si mode=joueur)", type: ApplicationCommandOptionType.User, required: false }, userTransformer)
     opponent: User | undefined,
+    @SlashOption({
+      name: "mise",
+      description: "Mise en zénis (optionnel, override les gains par défaut)",
+      type: ApplicationCommandOptionType.Integer,
+      required: false,
+      minValue: 1,
+      maxValue: 1_000_000,
+    })
+    mise: number | undefined,
     interaction: CommandInteraction,
   ) {
     if (mode === "bot") {
-      const embed = new EmbedBuilder().setTitle("✊📄✂️ Pierre-Feuille-Ciseaux").setDescription("Choisis ton coup :").setColor(0xfbbf24);
+      if (mise !== undefined) {
+        const bal = await this.eco.getBalance(interaction.user.id);
+        if (bal < mise) {
+          await interaction.reply({ content: `💸 Tu n'as que **${bal} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+          return;
+        }
+        botStakes.set(interaction.user.id, mise);
+        // Auto-cleanup au cas où le user n'utilise pas son button (5 min)
+        setTimeout(() => botStakes.delete(interaction.user.id), 5 * 60_000).unref();
+      } else {
+        botStakes.delete(interaction.user.id);
+      }
+      const titleLine = mise ? `Mise **${mise} z** · win = +${mise}, lose = -${mise}` : "Choisis ton coup :";
+      const embed = new EmbedBuilder().setTitle("✊📄✂️ Pierre-Feuille-Ciseaux").setDescription(titleLine).setColor(0xfbbf24);
       const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder().setCustomId(`pfc:bot:pierre:${interaction.user.id}`).setEmoji("🪨").setLabel("Pierre").setStyle(ButtonStyle.Secondary),
         new ButtonBuilder().setCustomId(`pfc:bot:feuille:${interaction.user.id}`).setEmoji("📄").setLabel("Feuille").setStyle(ButtonStyle.Secondary),
@@ -62,12 +86,27 @@ export class PfcCommand {
       await interaction.reply({ content: "Adversaire invalide.", flags: MessageFlags.Ephemeral });
       return;
     }
+    if (mise !== undefined) {
+      const [bal1, bal2] = await Promise.all([
+        this.eco.getBalance(interaction.user.id),
+        this.eco.getBalance(opponent.id),
+      ]);
+      if (bal1 < mise) {
+        await interaction.reply({ content: `💸 Tu n'as que **${bal1} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+        return;
+      }
+      if (bal2 < mise) {
+        await interaction.reply({ content: `💸 ${opponent} n'a que **${bal2} z** (mise **${mise} z**).`, flags: MessageFlags.Ephemeral });
+        return;
+      }
+    }
     const key = `${interaction.id}`;
-    pending.set(key, { challenger: interaction.user.id, opponent: opponent.id });
+    pending.set(key, { challenger: interaction.user.id, opponent: opponent.id, stake: mise });
 
+    const stakeDesc = mise ? `\n💰 Mise : **${mise} z** par joueur` : "";
     const embed = new EmbedBuilder()
       .setTitle("✊📄✂️ Duel PFC")
-      .setDescription(`${interaction.user} défie ${opponent} !\nChacun choisit en secret.`)
+      .setDescription(`${interaction.user} défie ${opponent} !\nChacun choisit en secret.${stakeDesc}`)
       .setColor(0xfbbf24);
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setCustomId(`pfc:duel:pierre:${key}`).setEmoji("🪨").setLabel("Pierre").setStyle(ButtonStyle.Secondary),
@@ -91,7 +130,12 @@ export class PfcCommand {
     else result = "lose";
 
     let text = `Tu joues ${EMOJIS[player]} · Bot joue ${EMOJIS[botChoice]}\n\n`;
-    const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const defaultWin = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+    const defaultLoss = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+    const stake = botStakes.get(userId);
+    botStakes.delete(userId);
+    const winReward = stake ?? defaultWin;
+    const lossPenalty = stake ?? defaultLoss;
     if (result === "win") {
       await this.eco.addZeni(userId, winReward);
       text += `🎉 **Victoire** +${winReward} z`;
@@ -101,7 +145,8 @@ export class PfcCommand {
         interaction.client,
       );
     } else if (result === "lose") {
-      text += "😔 **Défaite**";
+      if (lossPenalty > 0) await this.eco.removeZeni(userId, lossPenalty);
+      text += `😔 **Défaite** -${lossPenalty} z`;
     } else {
       text += "🤝 **Égalité**";
     }
@@ -141,8 +186,10 @@ export class PfcCommand {
       const loser = winner ? (winner === game.challenger ? game.opponent : game.challenger) : null;
       let text = `<@${game.challenger}> ${EMOJIS[cC]} vs ${EMOJIS[oC]} <@${game.opponent}>\n\n`;
       if (winner && loser) {
-        const winReward = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
-        const lossPenalty = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+        const defaultWin = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+        const defaultLoss = await this.settings.getInt("zeni.game.loss_penalty", ZENI_GAME_LOSS_PENALTY);
+        const winReward = game.stake ?? defaultWin;
+        const lossPenalty = game.stake ?? defaultLoss;
         await this.eco.addZeni(winner, winReward);
         if (lossPenalty > 0) await this.eco.removeZeni(loser, lossPenalty);
         text += `🎉 <@${winner}> gagne +${winReward} z · <@${loser}> perd -${lossPenalty} z`;

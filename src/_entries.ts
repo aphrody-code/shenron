@@ -21,6 +21,7 @@ import "./commands/level/Level";
 import "./commands/moderation/Jail";
 import "./commands/moderation/Moderation";
 import "./commands/ticket/Ticket";
+import "./commands/utility/Invitations";
 import "./commands/vocal/Vocal";
 import "./commands/wiki/Wiki";
 import "./events/AuditLog";

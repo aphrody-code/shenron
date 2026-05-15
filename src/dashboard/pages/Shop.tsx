@@ -12,6 +12,7 @@ import {
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { RoleSelect, RoleBadge } from "../components/RoleSelect";
+import { RolePicker } from "../components/RolePicker";
 
 interface ShopItem {
 	key: string;
@@ -374,7 +375,7 @@ function ShopItemEditor({
 							<label className="block text-xs text-zinc-500">
 								Rôle attribué à l'achat (couleurs uniquement)
 							</label>
-							<RoleSelect
+							<RolePicker
 								value={draft.roleId ?? ""}
 								onChange={(v) => setDraft({ ...draft, roleId: v || null })}
 							/>
