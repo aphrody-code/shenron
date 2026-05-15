@@ -2,6 +2,7 @@ import { singleton, inject } from "tsyringe";
 import { createCanvas, loadImage, type Image, type SKRSContext2D } from "@aphrody-code/canvas";
 import type { User } from "discord.js";
 import { BackgroundCacheService } from "./BackgroundCacheService";
+import { DatabaseService } from "~/db/index";
 import {
   drawImageCover,
   drawStar,
@@ -33,7 +34,24 @@ const COLOR_FUSION = "#ec4899"; // rose central
 export class FusionService {
   private avatarCache = new Map<string, Image>();
 
-  constructor(@inject(BackgroundCacheService) private bgCache: BackgroundCacheService) {}
+  constructor(
+    @inject(BackgroundCacheService) private bgCache: BackgroundCacheService,
+    @inject(DatabaseService) private dbs: DatabaseService
+  ) {}
+
+  private get db() {
+    return this.dbs.db;
+  }
+
+  /** Retourne la fusion active d'un utilisateur si elle existe. */
+  async getFusion(userId: string) {
+    const row = await this.db.query.fusions.findFirst({
+      where: (f, { or, eq }) => or(eq(f.userA, userId), eq(f.userB, userId)),
+    });
+    if (!row) return null;
+    const partnerId = row.userA === userId ? row.userB : row.userA;
+    return { ...row, partnerId };
+  }
 
   private async loadAvatar(user: User): Promise<Image | null> {
     const url = user.displayAvatarURL({

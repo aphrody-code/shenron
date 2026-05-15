@@ -24,7 +24,7 @@ import {
 } from "./oauth";
 import { getDiscordSession } from "./oauth-session";
 import { discordFetch, DiscordRESTError } from "~/lib/discord-rest";
-import { userAvatar, guildIcon } from "~/lib/discord-cdn";
+import { userAvatar, defaultAvatar, guildIcon } from "~/lib/discord-cdn";
 import {
 	createChannelWebhook,
 	deleteWebhook,
@@ -38,8 +38,17 @@ import { ModerationService } from "~/services/ModerationService";
 import { TicketService } from "~/services/TicketService";
 import { SettingsService } from "~/services/SettingsService";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
-import { eq, sql, desc } from "drizzle-orm";
-import { users, levelRewards } from "~/db/schema";
+import { eq, sql, desc, asc, inArray } from "drizzle-orm";
+import {
+	users,
+	levelRewards,
+	shopItems,
+	achievements,
+	inventory,
+	dbCharacters,
+	dbTransformations,
+	dbPlanets,
+} from "~/db/schema";
 import { DatabaseService } from "~/db/index";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { EconomyService } from "~/services/EconomyService";
@@ -47,6 +56,7 @@ import { CardService } from "~/services/CardService";
 import { CommandPermissionsService } from "~/services/CommandPermissionsService";
 import { GaugeService } from "~/services/GaugeService";
 import { FusionService } from "~/services/FusionService";
+import { WikiService } from "~/services/WikiService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
 import { LevelService } from "~/services/LevelService";
 import { levelForXP, nextThresholdFrom } from "~/lib/xp";
@@ -971,43 +981,66 @@ export class ApiServer {
 					return Response.json({ roles });
 				}),
 
-				// ── Routes PUBLIQUES (CORS + rate-limit, pas d'auth) ──────────
+				// ── Routes PUBLIQUES (CORS + rate-limit + ETag + Cache-Control) ─
 				// Cible : site Vercel dbfr-site qui mirror profil Discord.
+				// Toutes utilisent `publicCachedJson` → 2 niveaux de cache :
+				//   1) memo mémoire (TTL court) — absorbe les hits parallèles
+				//   2) Cache-Control public + ETag — Vercel edge cache + 304
 				"/api/public/user/:discordId": (req) =>
-					publicRoute(req, async () => {
+					publicCachedJson(req, 30_000, async () => {
 						const id = req.params.discordId;
-						if (!/^\d{17,20}$/.test(id)) {
-							return Response.json({ error: "discordId invalide" }, { status: 400 });
-						}
+						if (!/^\d{17,20}$/.test(id)) throw new HttpError(400, "discordId invalide");
 						const dbs = container.resolve(DatabaseService);
 						const user = await dbs.db.query.users.findFirst({ where: eq(users.id, id) });
-						if (!user) return Response.json({ error: "User inconnu" }, { status: 404 });
+						if (!user) throw new HttpError(404, "User inconnu");
+
 						const level = levelForXP(user.xp);
 						const next = nextThresholdFrom(user.xp);
 						const inv = await container.resolve(EconomyService).listInventory(id);
 						const ach = await dbs.db.query.achievements.findMany({
 							where: (a, { eq: e }) => e(a.userId, id),
 						});
-						// Enrichissement Discord (username + avatar hash) via le client
-						// Shenron — `users.fetch` utilise le cache discord.js si présent,
-						// sinon REST. Best-effort : si le user n'a jamais interagi avec le
-						// bot ou est introuvable côté Discord, on laisse les champs null.
-						const map = container.resolve<Map<string, Client>>("ClientMap");
-						const shenron = map.get("shenron");
-						const dUser = shenron ? await shenron.users.fetch(id).catch(() => null) : null;
-						const avatarHash = dUser?.avatar ?? null;
-						const avatarUrl = dUser?.displayAvatarURL({ size: 512 }) ?? null;
-						// Banner URL absolue pour le site : si une carte est équipée, on
-						// pointe sur la route asset card du serveur ; sinon null pour que
-						// le frontend affiche le gradient fallback.
+						const fusion = await container.resolve(FusionService).getFusion(id);
+
+						// Enrichir l'inventaire avec name/description du shop pour que
+						// le site affiche "Carte Goku UI" au lieu du slug brut.
+						const itemKeys = inv.map((i) => i.itemKey);
+						const shopRows = itemKeys.length
+							? await dbs.db.query.shopItems.findMany({
+									where: inArray(shopItems.key, itemKeys),
+							  })
+							: [];
+						const shopByKey = new Map(shopRows.map((s) => [s.key, s]));
+
+						// Discord enrichment via cache 5 min (partagé avec leaderboard).
+						const dUser = await fetchDiscordUserCached(id);
+						const avatarUrl = discordAvatarUrl(id, dUser.avatarHash, 512);
+
+						let fusionData: {
+							partnerId: string;
+							partnerName: string | null;
+							createdAt: Date;
+						} | null = null;
+						if (fusion) {
+							const partner = await fetchDiscordUserCached(fusion.partnerId);
+							fusionData = {
+								partnerId: fusion.partnerId,
+								partnerName: partner.username,
+								createdAt: fusion.createdAt,
+							};
+						}
+
+						// Banner URL absolue pour le site : carte équipée → route asset
+						// du serveur, sinon null pour fallback gradient frontend.
 						const apiBase = process.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
 						const bannerUrl = user.equippedCard
 							? `${apiBase}/assets/cards/${encodeURIComponent(user.equippedCard)}.png`
 							: null;
-						return Response.json({
+
+						return {
 							discordId: user.id,
-							username: dUser?.username ?? null,
-							avatar: avatarHash,
+							username: dUser.username,
+							avatar: dUser.avatarHash,
 							avatarUrl,
 							level,
 							xp: user.xp,
@@ -1028,17 +1061,26 @@ export class ApiServer {
 								title: user.equippedTitle,
 							},
 							achievements: ach.map((a) => ({ code: a.code, unlockedAt: a.unlockedAt })),
-							inventory: inv.map((i) => ({ type: i.itemType, key: i.itemKey })),
-						});
+							inventory: inv.map((i) => {
+								const shop = shopByKey.get(i.itemKey);
+								return {
+									type: i.itemType,
+									key: i.itemKey,
+									name: shop?.name ?? i.itemKey,
+									description: shop?.description ?? null,
+								};
+							}),
+							fusion: fusionData,
+						};
 					}),
 
 				"/api/public/shop": (req) =>
-					publicRoute(req, async () => {
+					publicCachedJson(req, 5 * 60_000, async () => {
 						const dbs = container.resolve(DatabaseService);
 						const items = await dbs.db.query.shopItems.findMany({
 							where: (s, { eq: e }) => e(s.enabled, true),
 						});
-						return Response.json({
+						return {
 							items: items.map((i) => ({
 								key: i.key,
 								type: i.type,
@@ -1047,19 +1089,16 @@ export class ApiServer {
 								price: i.price,
 								roleId: i.roleId,
 							})),
-						});
+						};
 					}),
 
 				"/api/public/leaderboard": (req) =>
-					publicRoute(req, async () => {
+					publicCachedJson(req, 60_000, async () => {
 						const url = new URL(req.url);
 						const limit = Math.min(
 							Math.max(parseInt(url.searchParams.get("limit") ?? "100", 10) || 100, 1),
 							500,
 						);
-						// Option ?enrich=1 — hydrate username + avatarUrl via REST Discord.
-						// Coûteux (1 req/user, rate-limit Discord) donc opt-in : par défaut
-						// on retourne uniquement les IDs + chiffres pour les listes longues.
 						const enrich = url.searchParams.get("enrich") === "1";
 						const dbs = container.resolve(DatabaseService);
 						const rows = await dbs.db
@@ -1067,30 +1106,108 @@ export class ApiServer {
 							.from(users)
 							.orderBy(desc(users.xp))
 							.limit(limit);
-						const shenron = enrich
-							? container.resolve<Map<string, Client>>("ClientMap").get("shenron")
-							: null;
+
+						if (!enrich) {
+							return {
+								leaderboard: rows.map((r, i) => ({
+									rank: i + 1,
+									discordId: r.id,
+									username: null as string | null,
+									avatarUrl: null as string | null,
+									xp: r.xp,
+									zeni: r.zeni,
+									level: levelForXP(r.xp),
+								})),
+							};
+						}
+
+						// Enrich opt-in via cache Discord users (5 min) — les top players
+						// changent peu, cache hit ≈ 100% en stable state.
 						const enriched = await Promise.all(
 							rows.map(async (r, i) => {
-								let username: string | null = null;
-								let avatarUrl: string | null = null;
-								if (shenron) {
-									const u = await shenron.users.fetch(r.id).catch(() => null);
-									username = u?.username ?? null;
-									avatarUrl = u?.displayAvatarURL({ size: 128 }) ?? null;
-								}
+								const u = await fetchDiscordUserCached(r.id);
 								return {
 									rank: i + 1,
 									discordId: r.id,
-									username,
-									avatarUrl,
+									username: u.username,
+									avatarUrl: discordAvatarUrl(r.id, u.avatarHash, 128),
 									xp: r.xp,
 									zeni: r.zeni,
 									level: levelForXP(r.xp),
 								};
 							}),
 						);
-						return Response.json({ leaderboard: enriched });
+						return { leaderboard: enriched };
+					}),
+
+				// Stats globales pour widgets de homepage du site (compte users,
+				// XP total distribué, zenis en circulation, succès débloqués).
+				"/api/public/stats": (req) =>
+					publicCachedJson(req, 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const db = dbs.db;
+						const [u] = await db
+							.select({
+								c: sql<number>`count(*)`,
+								totalXp: sql<number>`coalesce(sum(xp), 0)`,
+								totalZeni: sql<number>`coalesce(sum(zeni), 0)`,
+							})
+							.from(users);
+						const [a] = await db
+							.select({ c: sql<number>`count(*)` })
+							.from(achievements);
+						const [s] = await db
+							.select({ c: sql<number>`count(*)` })
+							.from(shopItems)
+							.where(eq(shopItems.enabled, true));
+						const [inv] = await db
+							.select({ c: sql<number>`count(*)` })
+							.from(inventory);
+						return {
+							users: Number(u?.c ?? 0),
+							totalXp: Number(u?.totalXp ?? 0),
+							totalZeni: Number(u?.totalZeni ?? 0),
+							achievementsUnlocked: Number(a?.c ?? 0),
+							shopItems: Number(s?.c ?? 0),
+							inventoryItems: Number(inv?.c ?? 0),
+						};
+					}),
+
+				// ── Wiki Dragon Ball (cache 1 h — données quasi statiques) ────
+				"/api/public/wiki/characters": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const url = new URL(req.url);
+						const query = url.searchParams.get("q");
+						const wiki = container.resolve(WikiService);
+						const characters = query ? await wiki.search(query) : await wiki.listAll();
+						return { characters };
+					}),
+
+				"/api/public/wiki/characters/:id": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const id = parseInt(req.params.id, 10);
+						if (!Number.isFinite(id)) throw new HttpError(400, "ID invalide");
+						const wiki = container.resolve(WikiService);
+						const character = await wiki.getCharacter(id);
+						if (!character) throw new HttpError(404, "Personnage inconnu");
+						return character;
+					}),
+
+				"/api/public/wiki/planets": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						const planets = await wiki.listPlanets();
+						return { planets };
+					}),
+
+				"/api/public/wiki/planets/:id": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const id = parseInt(req.params.id, 10);
+						if (!Number.isFinite(id)) throw new HttpError(400, "ID invalide");
+						const wiki = container.resolve(WikiService);
+						const planet = await wiki.getPlanet(id);
+						if (!planet) throw new HttpError(404, "Planète inconnue");
+						return planet;
 					}),
 
 				// ── Cron ──────────────────────────────────────────────────────
@@ -2525,13 +2642,156 @@ async function publicRoute(
 	if (!publicRateLimit(clientIp(req))) {
 		return new Response(JSON.stringify({ error: "Rate limit (60/min)" }), {
 			status: 429,
-			headers: { ...cors, "Content-Type": "application/json" },
+			headers: { ...cors, "Content-Type": "application/json", "Retry-After": "60" },
 		});
 	}
 	const res = await handler();
 	const headers = new Headers(res.headers);
 	for (const [k, v] of Object.entries(cors)) headers.set(k, v);
 	return new Response(res.body, { status: res.status, headers });
+}
+
+// ── publicCachedJson : 2 niveaux de cache (mémoire + HTTP) ──────────────
+// Le site Vercel (`dbfr.fr`) fetch ces routes avec `next: { revalidate: 60 }` —
+// le Cache-Control `public, s-maxage=…, stale-while-revalidate=…` permet à
+// l'edge Vercel + au browser de mettre en cache. Le memo cache local (TTL
+// court) absorbe les hits parallèles pendant le warming d'un déploiement
+// Vercel. Combiné, ça transforme une page profil de "1 req SQLite + 1 REST
+// Discord par hit" à "1 req par minute en stable state".
+type PublicCacheEntry = { body: Uint8Array; etag: string; expiresAt: number };
+const publicCache = new Map<string, PublicCacheEntry>();
+const PUBLIC_CACHE_MAX = 256;
+
+function publicCacheKey(req: Request & { params: any }): string {
+	const url = new URL(req.url);
+	const params = [...url.searchParams.entries()].sort(([a], [b]) => a.localeCompare(b));
+	return url.pathname + (params.length ? "?" + new URLSearchParams(params).toString() : "");
+}
+
+async function publicCachedJson(
+	req: Request & { params: any },
+	ttlMs: number,
+	build: () => Promise<unknown>,
+): Promise<Response> {
+	const cors = publicCorsHeaders(req);
+	if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+	if (req.method !== "GET" && req.method !== "HEAD") {
+		return new Response("Method Not Allowed", { status: 405, headers: cors });
+	}
+	if (!publicRateLimit(clientIp(req))) {
+		return new Response(JSON.stringify({ error: "Rate limit (60/min)" }), {
+			status: 429,
+			headers: { ...cors, "Content-Type": "application/json", "Retry-After": "60" },
+		});
+	}
+
+	const key = publicCacheKey(req);
+	const now = Date.now();
+	let entry = publicCache.get(key);
+	if (entry && entry.expiresAt < now) {
+		publicCache.delete(key);
+		entry = undefined;
+	}
+	if (entry) {
+		// LRU: re-insert pour marquer comme récent
+		publicCache.delete(key);
+		publicCache.set(key, entry);
+	}
+
+	if (!entry) {
+		try {
+			const data = await build();
+			const json = JSON.stringify(data);
+			const bytes = new TextEncoder().encode(json);
+			const etag = etagOf(bytes);
+			entry = { body: bytes, etag, expiresAt: now + ttlMs };
+			if (publicCache.size >= PUBLIC_CACHE_MAX) {
+				const oldest = publicCache.keys().next().value;
+				if (oldest) publicCache.delete(oldest);
+			}
+			publicCache.set(key, entry);
+		} catch (err) {
+			if (err instanceof HttpError) {
+				return new Response(JSON.stringify({ error: err.message }), {
+					status: err.status,
+					headers: { ...cors, "Content-Type": "application/json" },
+				});
+			}
+			logger.error({ err, route: key }, "publicCachedJson build failed");
+			return new Response(JSON.stringify({ error: "internal" }), {
+				status: 500,
+				headers: { ...cors, "Content-Type": "application/json" },
+			});
+		}
+	}
+
+	const seconds = Math.max(1, Math.floor(ttlMs / 1000));
+	const cacheControl = `public, max-age=${seconds}, s-maxage=${seconds * 2}, stale-while-revalidate=${seconds * 4}`;
+	const headers: Record<string, string> = {
+		...cors,
+		"Content-Type": "application/json; charset=utf-8",
+		"Cache-Control": cacheControl,
+		ETag: entry.etag,
+	};
+	const ifNoneMatch = req.headers.get("if-none-match");
+	if (ifNoneMatch && ifNoneMatch === entry.etag) {
+		return new Response(null, { status: 304, headers });
+	}
+	const body = req.method === "HEAD" ? null : (entry.body as unknown as BodyInit);
+	return new Response(body, { status: 200, headers });
+}
+
+/** Invalide les entrées du cache public dont la clé commence par `prefix`. */
+function invalidatePublicCache(prefix: string): number {
+	let n = 0;
+	for (const k of Array.from(publicCache.keys())) {
+		if (k.startsWith(prefix)) {
+			publicCache.delete(k);
+			n++;
+		}
+	}
+	return n;
+}
+
+// ── Cache des fetchs Discord (username + avatar hash) ─────────────────
+// `client.users.fetch()` consomme le rate-limit global Discord (50 req/s).
+// Pour le leaderboard `?enrich=1` (100 IDs) ou des hits répétés sur les
+// mêmes profils populaires, on partage un cache 5 min entre toutes les
+// routes publiques. Best-effort : si fetch échoue, on cache un null
+// pour éviter de retaper la même requête en boucle.
+type DiscordUserData = {
+	username: string | null;
+	avatarHash: string | null;
+	expiresAt: number;
+};
+const discordUserCache = new Map<string, DiscordUserData>();
+const DISCORD_USER_CACHE_TTL = 5 * 60_000;
+const DISCORD_USER_CACHE_MAX = 1024;
+
+async function fetchDiscordUserCached(id: string): Promise<DiscordUserData> {
+	const now = Date.now();
+	const cached = discordUserCache.get(id);
+	if (cached && cached.expiresAt > now) return cached;
+
+	const map = container.resolve<Map<string, Client>>("ClientMap");
+	const shenron = map.get("shenron");
+	const u = shenron ? await shenron.users.fetch(id).catch(() => null) : null;
+	const entry: DiscordUserData = {
+		username: u?.username ?? null,
+		avatarHash: u?.avatar ?? null,
+		expiresAt: now + DISCORD_USER_CACHE_TTL,
+	};
+	if (discordUserCache.size >= DISCORD_USER_CACHE_MAX) {
+		const oldest = discordUserCache.keys().next().value;
+		if (oldest) discordUserCache.delete(oldest);
+	}
+	discordUserCache.set(id, entry);
+	return entry;
+}
+
+/** Construit l'URL avatar via `userAvatar` (hash) ou `defaultAvatar` (fallback). */
+function discordAvatarUrl(id: string, hash: string | null, size: 64 | 128 | 256 | 512 = 512): string {
+	return hash ? userAvatar(id, hash, { size }) : defaultAvatar(id);
 }
 
 /**
