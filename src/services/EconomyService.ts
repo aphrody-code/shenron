@@ -154,6 +154,20 @@ export class EconomyService {
     return this.db.select().from(inventory).where(eq(inventory.userId, userId));
   }
 
+  async getUser(userId: string) {
+    return this.db.query.users.findFirst({ where: eq(users.id, userId) });
+  }
+
+  async setEquipped(userId: string, type: "card" | "badge" | "color" | "title", key: string | null) {
+    await this.ensureUser(userId);
+    const patch: Record<string, string | null> = {};
+    if (type === "card") patch.equippedCard = key;
+    if (type === "badge") patch.equippedBadge = key;
+    if (type === "color") patch.equippedColor = key;
+    if (type === "title") patch.equippedTitle = key;
+    await this.db.update(users).set({ ...patch, updatedAt: new Date() }).where(eq(users.id, userId));
+  }
+
   async equip(userId: string, type: "card" | "badge" | "color" | "title", key: string): Promise<boolean> {
     if (!(await this.ownsItem(userId, type, key))) return false;
     const patch: Record<string, string | null> = {};

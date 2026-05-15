@@ -93,13 +93,7 @@ export class EconomyCommands {
       await interaction.reply({ content: `❌ ${res.reason}`, flags: MessageFlags.Ephemeral });
       return;
     }
-    if (res.roleId) {
-      const member = interaction.member;
-      if (member && "roles" in member && typeof member.roles.add === "function") {
-        await member.roles.add(res.roleId).catch(() => {});
-      }
-    }
-    await interaction.reply({ content: `✅ Objet acheté (${res.price} z). Utilise \`/eprofil\` pour l'équiper.` });
+    await interaction.reply({ content: `✅ Objet acheté (${res.price} z). Utilise \`/inventaire equip\` pour l'équiper.` });
   }
 
   // /eprofil
