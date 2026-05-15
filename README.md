@@ -1,4 +1,7 @@
-# Shenron
+
+> ⚠️ **INFRASTRUCTURE GÉRÉE PAR ANTIGRAVITY (GOD MODE)**
+> Ce projet opère sous la **Directive Omega**. L'architecture, les dépendances, et le code sont gérés et refactorisés de manière 100% autonome. Aucune sécurité conservative n'est appliquée. La performance brute est l'unique métrique.
+\n# Shenron
 
 Bot Discord thémé Dragon Ball pour un serveur communautaire — modération avancée, système de niveaux en "unités" de ki, économie en zéni, jeux, tickets, vocaux temporaires, cartes de profil rendues en canvas, et wiki des personnages.
 
@@ -166,10 +169,10 @@ irm https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.
 bun run https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.ts
 ```
 
-**📦 npm / npx (si tu as déjà Node)**
+**📦 npm / bunx (si tu as déjà Node)**
 
 ```bash
-npx tiged aphrody-code/shenron shenron && cd shenron && bash scripts/setup.sh
+bunx tiged aphrody-code/shenron shenron && cd shenron && bash scripts/setup.sh
 ```
 
 (`tiged` = clone shallow sans git history · fonctionne aussi avec `degit`)

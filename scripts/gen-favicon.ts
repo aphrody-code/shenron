@@ -13,7 +13,6 @@
  */
 import "../src/lib/preload";
 import { mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
 import { loadImage, createCanvas } from "@aphrody-code/canvas";
 
 const SIZES = [16, 32, 48, 96, 180, 192, 512];
@@ -41,7 +40,7 @@ async function fetchBotAvatar(): Promise<Buffer> {
 
 async function loadFallback(): Promise<Buffer> {
   const path = "assets/logo.webp";
-  if (!existsSync(path)) throw new Error(`Fallback ${path} introuvable`);
+  if (!(await Bun.file(path).exists())) throw new Error(`Fallback ${path} introuvable`);
   console.log(`→ fallback : ${path}`);
   return (await Bun.file(path).bytes()) as unknown as Buffer;
 }
@@ -61,7 +60,7 @@ async function resizePng(srcBuf: Buffer, size: number): Promise<Buffer> {
 }
 
 async function main() {
-  if (!existsSync("public")) await mkdir("public", { recursive: true });
+  await mkdir("public", { recursive: true });
 
   let src: Buffer;
   try {

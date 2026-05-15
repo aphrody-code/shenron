@@ -1,0 +1,79 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-saiyan: var(--font-saiyan);
+  --font-scouter: var(--font-scouter);
+  
+  --color-dbz-orange: #FF7300;
+  --color-dbz-orange-dark: #E55A00;
+  --color-dbz-blue: #0B3088;
+  --color-dbz-blue-light: #1C55C0;
+  --color-dbz-yellow: #FFEA00;
+  --color-dbz-bg: #050a15;
+  --color-dbz-card: #0a1128;
+  --color-dbz-border: #142850;
+
+  --color-primary: var(--color-dbz-orange);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-dbz-blue-light);
+  --color-secondary-foreground: #ffffff;
+  --color-muted: var(--color-dbz-card);
+  --color-muted-foreground: #8aa4d6;
+  --color-accent: var(--color-dbz-yellow);
+  --color-accent-foreground: #000000;
+  --color-border: var(--color-dbz-border);
+  --color-ring: var(--color-dbz-orange);
+  
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root, .dark {
+  --background: #050a15;
+  --foreground: #f0f4f8;
+  --radius: 0; /* Pixel perfect retro style often means 0 or very small radius */
+}
+
+@layer base {
+  * {
+    @apply border-dbz-border outline-dbz-orange/50;
+  }
+  body {
+    @apply bg-dbz-bg text-foreground;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: dark;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-saiyan tracking-wider font-normal text-white;
+  }
+}
+
+@layer utilities {
+  .dbz-panel {
+    @apply bg-dbz-card border-2 border-dbz-blue-light/50 relative;
+    box-shadow: 4px 4px 0px rgba(11, 48, 136, 0.8);
+  }
+  .dbz-panel:hover {
+    @apply border-dbz-orange;
+    box-shadow: 4px 4px 0px rgba(255, 115, 0, 0.8);
+  }
+  .dbz-button {
+    @apply font-saiyan text-2xl uppercase tracking-widest bg-dbz-orange text-white border-b-4 border-dbz-orange-dark active:border-b-0 active:translate-y-1 transition-all px-6 py-2;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+  }
+  .scouter-text {
+    @apply font-scouter text-dbz-yellow tracking-widest uppercase;
+    text-shadow: 0 0 5px rgba(255, 234, 0, 0.5);
+  }
+}
