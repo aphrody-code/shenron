@@ -2,25 +2,15 @@ import { container } from "tsyringe";
 import type { EmbedBuilder, User } from "discord.js";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 
-export function parseDuration(input?: string): number | undefined {
-	if (!input) return undefined;
-	const m = input.match(/^(\d+)\s*([smhdw])$/i);
-	if (!m) return undefined;
-	const n = parseInt(m[1]!, 10);
-	const unit = m[2]!.toLowerCase();
-	const mult =
-		{ s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000, w: 604_800_000 }[
-			unit
-		] ?? 0;
-	return n * mult;
-}
+// parseDuration + formatDuration wrappent le crate Rust natif (cf. `lib/native.ts`).
+// Si tu modifies les unités acceptées, synchronise `native/src/lib.rs`.
+import {
+	parseDuration as nativeParseDuration,
+	formatDuration as nativeFormatDuration,
+} from "./native";
 
-export function formatDuration(ms: number): string {
-	if (ms >= 86_400_000) return `${Math.round(ms / 86_400_000)}j`;
-	if (ms >= 3_600_000) return `${Math.round(ms / 3_600_000)}h`;
-	if (ms >= 60_000) return `${Math.round(ms / 60_000)}min`;
-	return `${Math.round(ms / 1_000)}s`;
-}
+export const parseDuration = nativeParseDuration;
+export const formatDuration = nativeFormatDuration;
 
 /**
  * DM le membre sanctionné en best-effort. Silence les erreurs (DM fermés,

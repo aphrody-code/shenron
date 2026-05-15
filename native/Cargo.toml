@@ -1,0 +1,26 @@
+# Crate Rust natif pour shenron, exposé au runtime Bun via napi-rs.
+# Hot-path computations : XP level lookup, FNV-1a ETag, parse/format duration.
+# Le .node compilé est importable depuis le code TS via le wrapper généré.
+#
+# Build : `bunx @napi-rs/cli build --release --platform`
+[package]
+name = "shenron-native"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "3", default-features = false, features = ["napi8"] }
+napi-derive = "3"
+
+[build-dependencies]
+napi-build = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+opt-level = 3
