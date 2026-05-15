@@ -724,6 +724,20 @@ export class ApiServer {
 				},
 				"/api/health/latency": () => Response.json(this.stats.getLatency()),
 
+				// Alias sans préfixe /api pour le site Vercel qui pingue /health/check.
+				// Inclut un CORS allowlist + Cache-Control pour que Vercel cache 5 s.
+				"/health/check": (req) =>
+					publicCachedJson(req, 5_000, async () => {
+						const client = container.resolve(Client);
+						return {
+							online: client.isReady(),
+							uptime: client.uptime,
+							version: process.env.npm_package_version ?? "0.1.0",
+						};
+					}),
+				"/health/latency": (req) =>
+					publicCachedJson(req, 5_000, async () => this.stats.getLatency()),
+
 				// ── Health admin ──────────────────────────────────────────────
 				"/api/health/usage": admin(async () => Response.json(await this.stats.getPidUsage())),
 				"/api/health/host": admin(async () => Response.json(await this.stats.getHostUsage())),
@@ -996,24 +1010,30 @@ export class ApiServer {
 
 						const level = levelForXP(user.xp);
 						const next = nextThresholdFrom(user.xp);
-						const inv = await container.resolve(EconomyService).listInventory(id);
-						const ach = await dbs.db.query.achievements.findMany({
-							where: (a, { eq: e }) => e(a.userId, id),
-						});
-						const fusion = await container.resolve(FusionService).getFusion(id);
 
-						// Enrichir l'inventaire avec name/description du shop pour que
-						// le site affiche "Carte Goku UI" au lieu du slug brut.
+						// 4 fetches en parallèle (SQLite WAL supporte les lectures
+						// concurrentes ; Discord REST de toute façon en parallèle).
+						const [inv, ach, fusion, dUser] = await Promise.all([
+							container.resolve(EconomyService).listInventory(id),
+							dbs.db.query.achievements.findMany({
+								where: (a, { eq: e }) => e(a.userId, id),
+							}),
+							container.resolve(FusionService).getFusion(id),
+							fetchDiscordUserCached(id),
+						]);
+
+						// Deuxième vague parallèle : enrich inventory (JOIN shop) +
+						// fetch partner Discord — dépend du résultat de la 1re vague.
 						const itemKeys = inv.map((i) => i.itemKey);
-						const shopRows = itemKeys.length
-							? await dbs.db.query.shopItems.findMany({
-									where: inArray(shopItems.key, itemKeys),
-							  })
-							: [];
+						const [shopRows, partnerData] = await Promise.all([
+							itemKeys.length
+								? dbs.db.query.shopItems.findMany({
+										where: inArray(shopItems.key, itemKeys),
+								  })
+								: Promise.resolve([]),
+							fusion ? fetchDiscordUserCached(fusion.partnerId) : Promise.resolve(null),
+						]);
 						const shopByKey = new Map(shopRows.map((s) => [s.key, s]));
-
-						// Discord enrichment via cache 5 min (partagé avec leaderboard).
-						const dUser = await fetchDiscordUserCached(id);
 						const avatarUrl = discordAvatarUrl(id, dUser.avatarHash, 512);
 
 						let fusionData: {
@@ -1021,11 +1041,10 @@ export class ApiServer {
 							partnerName: string | null;
 							createdAt: Date;
 						} | null = null;
-						if (fusion) {
-							const partner = await fetchDiscordUserCached(fusion.partnerId);
+						if (fusion && partnerData) {
 							fusionData = {
 								partnerId: fusion.partnerId,
-								partnerName: partner.username,
+								partnerName: partnerData.username,
 								createdAt: fusion.createdAt,
 							};
 						}
@@ -1209,6 +1228,75 @@ export class ApiServer {
 						if (!planet) throw new HttpError(404, "Planète inconnue");
 						return planet;
 					}),
+
+				// ── Cards profile dynamiques (public, cache 1 h) ──────────────
+				// Le site Vercel peut faire `<img src="/api/public/profile/{id}/card.png"/>`
+				// pour afficher la card profil DBZ. Cache mémoire LRU + ETag +
+				// Vercel CDN = ~1 ms côté edge après warm-up.
+				"/api/public/profile/:discordId/card.png": (req) =>
+					publicCachedImage(
+						req,
+						async () => {
+							const id = req.params.discordId;
+							if (!/^\d{17,20}$/.test(id))
+								throw new HttpError(400, "discordId invalide");
+							const map = container.resolve<Map<string, Client>>("ClientMap");
+							const shenron = map.get("shenron");
+							if (!shenron) throw new HttpError(503, "Bot offline");
+							const user = await shenron.users.fetch(id).catch(() => null);
+							if (!user) throw new HttpError(404, "Utilisateur introuvable");
+							const dbs = container.resolve(DatabaseService);
+							const row = await dbs.db.query.users.findFirst({
+								where: eq(users.id, id),
+							});
+							if (!row) throw new HttpError(404, "Profil bot introuvable");
+							const card = container.resolve(CardService);
+							return await card.render({
+								discordUser: user,
+								xp: row.xp,
+								zeni: row.zeni,
+								messageCount: row.messageCount,
+								cardKey: row.equippedCard,
+								badge: row.equippedBadge,
+								title: row.equippedTitle,
+								color: row.equippedColor,
+							});
+						},
+						3600,
+					),
+
+				// Scanner de ki (gauge dynamique) — variante pour widget compact.
+				"/api/public/profile/:discordId/scan.png": (req) =>
+					publicCachedImage(
+						req,
+						async () => {
+							const id = req.params.discordId;
+							if (!/^\d{17,20}$/.test(id))
+								throw new HttpError(400, "discordId invalide");
+							const map = container.resolve<Map<string, Client>>("ClientMap");
+							const shenron = map.get("shenron");
+							if (!shenron) throw new HttpError(503, "Bot offline");
+							const user = await shenron.users.fetch(id).catch(() => null);
+							if (!user) throw new HttpError(404, "Utilisateur introuvable");
+							const dbs = container.resolve(DatabaseService);
+							const row = await dbs.db.query.users.findFirst({
+								where: eq(users.id, id),
+							});
+							const xp = row?.xp ?? 0;
+							const accent = xpAccent(xp);
+							const gauge = container.resolve(GaugeService);
+							const pct = Math.min(100, Math.round((xp / 9_000_000) * 100));
+							return await gauge.render({
+								user,
+								title: "SCANNER DE KI",
+								subtitle: "Lecture du potentiel",
+								pct,
+								accent,
+								accentDark: "#0a0a0a",
+							});
+						},
+						3600,
+					),
 
 				// ── Cron ──────────────────────────────────────────────────────
 				"/api/cron": admin(() => {
@@ -2792,6 +2880,39 @@ async function fetchDiscordUserCached(id: string): Promise<DiscordUserData> {
 /** Construit l'URL avatar via `userAvatar` (hash) ou `defaultAvatar` (fallback). */
 function discordAvatarUrl(id: string, hash: string | null, size: 64 | 128 | 256 | 512 = 512): string {
 	return hash ? userAvatar(id, hash, { size }) : defaultAvatar(id);
+}
+
+/**
+ * Variante publique de `cachedImage` : CORS allowlist + rate-limit 60/min/IP
+ * + Cache-Control `public` (au lieu de `private`) pour activer le CDN Vercel.
+ * Réutilise le LRU cache buffer et le 304 d'ETag de `cachedImage` derrière.
+ */
+async function publicCachedImage(
+	req: Request & { params: any },
+	render: () => Promise<Buffer | Uint8Array>,
+	cacheSeconds = 3600,
+): Promise<Response> {
+	const cors = publicCorsHeaders(req);
+	if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+	if (req.method !== "GET" && req.method !== "HEAD") {
+		return new Response("Method Not Allowed", { status: 405, headers: cors });
+	}
+	if (!publicRateLimit(clientIp(req))) {
+		return new Response(JSON.stringify({ error: "Rate limit (60/min)" }), {
+			status: 429,
+			headers: { ...cors, "Content-Type": "application/json", "Retry-After": "60" },
+		});
+	}
+	const res = await cachedImage(req, render, cacheSeconds);
+	const headers = new Headers(res.headers);
+	for (const [k, v] of Object.entries(cors)) headers.set(k, v);
+	// Override le Cache-Control : `cachedImage` met `public, max-age=, must-revalidate`
+	// qui n'autorise pas Vercel/CDN à servir stale. Ici on veut `s-maxage` + `swr`.
+	headers.set(
+		"Cache-Control",
+		`public, max-age=${cacheSeconds}, s-maxage=${cacheSeconds * 2}, stale-while-revalidate=${cacheSeconds * 4}`,
+	);
+	return new Response(res.body, { status: res.status, headers });
 }
 
 /**
