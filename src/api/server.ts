@@ -1057,21 +1057,40 @@ export class ApiServer {
 							Math.max(parseInt(url.searchParams.get("limit") ?? "100", 10) || 100, 1),
 							500,
 						);
+						// Option ?enrich=1 — hydrate username + avatarUrl via REST Discord.
+						// Coûteux (1 req/user, rate-limit Discord) donc opt-in : par défaut
+						// on retourne uniquement les IDs + chiffres pour les listes longues.
+						const enrich = url.searchParams.get("enrich") === "1";
 						const dbs = container.resolve(DatabaseService);
 						const rows = await dbs.db
 							.select({ id: users.id, xp: users.xp, zeni: users.zeni })
 							.from(users)
 							.orderBy(desc(users.xp))
 							.limit(limit);
-						return Response.json({
-							leaderboard: rows.map((r, i) => ({
-								rank: i + 1,
-								discordId: r.id,
-								xp: r.xp,
-								zeni: r.zeni,
-								level: levelForXP(r.xp),
-							})),
-						});
+						const shenron = enrich
+							? container.resolve<Map<string, Client>>("ClientMap").get("shenron")
+							: null;
+						const enriched = await Promise.all(
+							rows.map(async (r, i) => {
+								let username: string | null = null;
+								let avatarUrl: string | null = null;
+								if (shenron) {
+									const u = await shenron.users.fetch(r.id).catch(() => null);
+									username = u?.username ?? null;
+									avatarUrl = u?.displayAvatarURL({ size: 128 }) ?? null;
+								}
+								return {
+									rank: i + 1,
+									discordId: r.id,
+									username,
+									avatarUrl,
+									xp: r.xp,
+									zeni: r.zeni,
+									level: levelForXP(r.xp),
+								};
+							}),
+						);
+						return Response.json({ leaderboard: enriched });
 					}),
 
 				// ── Cron ──────────────────────────────────────────────────────
