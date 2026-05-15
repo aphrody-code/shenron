@@ -1298,6 +1298,48 @@ export class ApiServer {
 						3600,
 					),
 
+				// ── A2A — Agent2Agent protocol (Claude ↔ Gemini bridge) ──────
+				// Spec : JSON-RPC 2.0 over HTTP. Endpoint unique + AgentCard
+				// discovery. Backé par les mêmes fichiers que le MCP server
+				// `coord` (.coord/messages.jsonl, .coord/tasks.json) — un
+				// message reçu via A2A apparaît dans read_messages MCP et vice
+				// versa. Voir docs/a2a-protocol.md.
+				"/.well-known/agent-card.json": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => ({
+						name: "shenron-coord",
+						description:
+							"Bridge A2A pour la coordination des agents DBFR (Claude/Gemini). Mirroir HTTP du canal MCP `coord`.",
+						version: "1.0.0",
+						protocolVersion: "0.3.0",
+						url: "https://shenron.rpbey.fr/api/a2a/jsonrpc",
+						capabilities: { streaming: true, pushNotifications: false },
+						defaultInputModes: ["text"],
+						defaultOutputModes: ["text"],
+						skills: [
+							{
+								id: "coord.messages",
+								name: "Inter-agent messages",
+								description: "Send/read messages between agents.",
+								tags: ["coord"],
+							},
+							{
+								id: "coord.tasks",
+								name: "Sprint tasks",
+								description: "List/claim/complete tasks in the shared backlog.",
+								tags: ["coord"],
+							},
+							{
+								id: "coord.memory",
+								name: "Shared markdown memory",
+								description: "Read/write shared memory and docs.",
+								tags: ["coord"],
+							},
+						],
+					})),
+
+				"/api/a2a/jsonrpc": (req) => a2aJsonRpc(req),
+				"/api/a2a/events": (req) => a2aEventsStream(req),
+
 				// ── Cron ──────────────────────────────────────────────────────
 				"/api/cron": admin(() => {
 					const cron = container.resolve(CronRegistry);
@@ -2880,6 +2922,206 @@ async function fetchDiscordUserCached(id: string): Promise<DiscordUserData> {
 /** Construit l'URL avatar via `userAvatar` (hash) ou `defaultAvatar` (fallback). */
 function discordAvatarUrl(id: string, hash: string | null, size: 64 | 128 | 256 | 512 = 512): string {
 	return hash ? userAvatar(id, hash, { size }) : defaultAvatar(id);
+}
+
+// ── A2A bridge ────────────────────────────────────────────────────────────
+// HTTP miroir du canal MCP `coord` (mcp/coord-server.ts). Backé par les
+// mêmes fichiers `.coord/messages.jsonl` et `.coord/tasks.json` — un
+// message envoyé via A2A est visible immédiatement par read_messages MCP
+// et inversement. SSE permet aux agents distants (CLI ou worker)
+// d'écouter les events en temps réel.
+const COORD_DIR = "/home/ubuntu/vps/apps/shenron/.coord";
+const COORD_MESSAGES = `${COORD_DIR}/messages.jsonl`;
+const COORD_TASKS = `${COORD_DIR}/tasks.json`;
+const COORD_LOCK = "/tmp/dbfr-tasks.lock";
+const a2aSubscribers = new Set<(event: unknown) => void>();
+
+function a2aBroadcast(event: unknown): void {
+	for (const sub of a2aSubscribers) {
+		try {
+			sub(event);
+		} catch {
+			/* sub closed mid-iteration */
+		}
+	}
+}
+
+async function appendMessage(msg: Record<string, unknown>): Promise<void> {
+	const line = JSON.stringify(msg) + "\n";
+	const proc = Bun.spawn(["flock", `${COORD_LOCK}-msg`, "bash", "-c", `cat >> ${COORD_MESSAGES}`], {
+		stdin: "pipe",
+	});
+	proc.stdin.write(line);
+	await proc.stdin.end();
+	await proc.exited;
+}
+
+async function readTasksFile(): Promise<{ tasks: any[] }> {
+	const file = Bun.file(COORD_TASKS);
+	if (!(await file.exists())) return { tasks: [] };
+	return (await file.json()) as { tasks: any[] };
+}
+
+function a2aRpcError(id: unknown, code: number, message: string): Response {
+	return Response.json({ jsonrpc: "2.0", id, error: { code, message } });
+}
+
+async function a2aJsonRpc(req: Request): Promise<Response> {
+	if (req.method === "OPTIONS") {
+		return new Response(null, {
+			status: 204,
+			headers: {
+				"Access-Control-Allow-Origin": "*",
+				"Access-Control-Allow-Methods": "POST, OPTIONS",
+				"Access-Control-Allow-Headers": "Content-Type, Authorization",
+			},
+		});
+	}
+	if (req.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+
+	let body: any;
+	try {
+		body = await req.json();
+	} catch {
+		return a2aRpcError(null, -32700, "Parse error");
+	}
+	const { id = null, method, params } = body ?? {};
+	if (!method) return a2aRpcError(id, -32600, "Invalid Request");
+
+	try {
+		switch (method) {
+			case "message/send": {
+				const incoming = params?.message;
+				if (!incoming?.parts?.length) {
+					return a2aRpcError(id, -32602, "params.message.parts required");
+				}
+				const text = incoming.parts
+					.filter((p: any) => p.kind === "text")
+					.map((p: any) => p.text)
+					.join("\n");
+				const msg = {
+					id: incoming.messageId ?? crypto.randomUUID(),
+					from: incoming.role === "agent" ? "agent" : "user",
+					to: params.to ?? "all",
+					type: "request" as const,
+					contextId: incoming.contextId ?? null,
+					content: text,
+					ts: new Date().toISOString(),
+				};
+				await appendMessage(msg);
+				a2aBroadcast({ kind: "message", message: msg });
+				return Response.json({
+					jsonrpc: "2.0",
+					id,
+					result: {
+						kind: "message",
+						messageId: msg.id,
+						role: "agent",
+						parts: [{ kind: "text", text: "ack" }],
+						contextId: msg.contextId,
+					},
+				});
+			}
+			case "message/stream": {
+				// SSE response — émet le message immédiat + les events futurs
+				const stream = a2aSseStream();
+				return new Response(stream, {
+					headers: {
+						"Content-Type": "text/event-stream",
+						"Cache-Control": "no-cache, no-transform",
+						"Access-Control-Allow-Origin": "*",
+					},
+				});
+			}
+			case "tasks/list": {
+				const { tasks } = await readTasksFile();
+				const filtered = tasks.filter((t: any) => {
+					if (params?.status && t.status !== params.status) return false;
+					if (params?.agent && t.agent !== params.agent) return false;
+					return true;
+				});
+				return Response.json({ jsonrpc: "2.0", id, result: { tasks: filtered } });
+			}
+			case "tasks/get": {
+				const { tasks } = await readTasksFile();
+				const t = tasks.find((x: any) => x.id === params?.id);
+				return Response.json({ jsonrpc: "2.0", id, result: t ?? null });
+			}
+			case "tasks/cancel": {
+				const proc = Bun.spawn(
+					[
+						"flock",
+						COORD_LOCK,
+						"bash",
+						"-c",
+						`jq --arg id ${JSON.stringify(params.id)} --arg now ${JSON.stringify(new Date().toISOString())} '(.tasks[] | select(.id==$id)) |= (.status="blocked" | .blocker="cancelled via A2A" | .finished_at=$now)' ${COORD_TASKS} > /tmp/.coord-tasks.tmp && mv /tmp/.coord-tasks.tmp ${COORD_TASKS}`,
+					],
+					{ stdout: "pipe", stderr: "pipe" },
+				);
+				await proc.exited;
+				return Response.json({ jsonrpc: "2.0", id, result: { cancelled: params?.id } });
+			}
+			default:
+				return a2aRpcError(id, -32601, `Method not found: ${method}`);
+		}
+	} catch (err) {
+		logger.error({ err }, "a2a/jsonrpc handler failed");
+		return a2aRpcError(id, -32000, (err as Error).message ?? "Internal error");
+	}
+}
+
+function a2aSseStream(): ReadableStream {
+	let cleanup: (() => void) | null = null;
+	return new ReadableStream({
+		start(controller) {
+			const encoder = new TextEncoder();
+			const sub = (event: unknown) => {
+				try {
+					controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+				} catch {
+					cleanup?.();
+				}
+			};
+			a2aSubscribers.add(sub);
+			// Keep-alive ping toutes les 30 s pour que nginx/Vercel ne timeout pas
+			const ping = setInterval(() => {
+				try {
+					controller.enqueue(encoder.encode(`: ping\n\n`));
+				} catch {
+					cleanup?.();
+				}
+			}, 30_000);
+			cleanup = () => {
+				a2aSubscribers.delete(sub);
+				clearInterval(ping);
+			};
+			// Welcome event
+			controller.enqueue(encoder.encode(`data: ${JSON.stringify({ kind: "ready", ts: new Date().toISOString() })}\n\n`));
+		},
+		cancel() {
+			cleanup?.();
+		},
+	});
+}
+
+function a2aEventsStream(req: Request): Response {
+	if (req.method === "OPTIONS") {
+		return new Response(null, {
+			status: 204,
+			headers: {
+				"Access-Control-Allow-Origin": "*",
+				"Access-Control-Allow-Methods": "GET, OPTIONS",
+			},
+		});
+	}
+	return new Response(a2aSseStream(), {
+		headers: {
+			"Content-Type": "text/event-stream",
+			"Cache-Control": "no-cache, no-transform",
+			"Access-Control-Allow-Origin": "*",
+			Connection: "keep-alive",
+		},
+	});
 }
 
 /**
