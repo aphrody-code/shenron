@@ -211,14 +211,8 @@ export class ShopPanelCommands {
 			await interaction.reply({ content: `❌ ${res.reason}`, flags: MessageFlags.Ephemeral });
 			return;
 		}
-		// Grant role si l'item est lié à un rôle Discord (titre/badge/couleur)
-		if (res.roleId && interaction.inCachedGuild()) {
-			await interaction.member.roles
-				.add(res.roleId, `shop purchase: ${key}`)
-				.catch(() => {});
-		}
 		await interaction.reply({
-			content: `✅ Acheté **${key}** pour ${res.price}z. Utilise \`/eprofil\` pour l'équiper.`,
+			content: `✅ Acheté **${key}** pour ${res.price}z. Stocké dans ton inventaire — utilise \`/eprofil\` ou \`/inventaire equip\` pour l'équiper.`,
 			flags: MessageFlags.Ephemeral,
 		});
 	}
