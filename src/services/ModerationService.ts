@@ -50,9 +50,27 @@ export class ModerationService {
   }
 
   // Jail
+  // On utilise `roles.add(jailRoleId)` plutôt que `roles.set([jailRoleId])` :
+  // `set()` exige que le bot puisse retirer TOUS les rôles existants — si le
+  // membre porte un rôle au-dessus du bot dans la hiérarchie, Discord refuse
+  // l'opération entière (Missing Permissions). `add()` ne vérifie que la
+  // hiérarchie du seul rôle ajouté. Le mute effectif est porté par les
+  // overrides de salon posés par `/jail-setup` (deny ViewChannel/SendMessages
+  // pour le rôle jail) : ils s'appliquent quels que soient les autres rôles
+  // du membre car les `deny` battent les `allow` au même niveau.
   async jail(member: GuildMember, moderatorId: string, reason?: string, durationMs?: number) {
     const roleId = env.JAIL_ROLE_ID;
     if (!roleId) throw new Error("JAIL_ROLE_ID not configured");
+
+    // Hiérarchie : refuser proprement avant l'appel REST plutôt que d'attendre
+    // un Missing Permissions opaque côté Discord.
+    const me = await member.guild.members.fetchMe();
+    const jailRole = member.guild.roles.cache.get(roleId);
+    if (jailRole && jailRole.position >= me.roles.highest.position) {
+      throw new Error(
+        `Le rôle jail (${jailRole.name}) est au-dessus du plus haut rôle du bot (${me.roles.highest.name}). Déplace-le dans Paramètres → Rôles.`,
+      );
+    }
 
     const prev = member.roles.cache.filter((r) => r.id !== member.guild.id).map((r) => r.id);
     await this.db.insert(jails).values({
@@ -63,8 +81,8 @@ export class ModerationService {
       previousRoles: JSON.stringify(prev),
     });
 
-    await member.roles.set([roleId]).catch((err) => {
-      logger.error({ err }, "Failed to set jail role");
+    await member.roles.add(roleId, `jail by ${moderatorId}`).catch((err) => {
+      logger.error({ err }, "Failed to add jail role");
       throw err;
     });
     await this.log("JAIL", member.id, moderatorId, reason, { durationMs, previousRoles: prev });
