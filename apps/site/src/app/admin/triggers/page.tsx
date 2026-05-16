@@ -25,7 +25,7 @@ export default async function AdminTriggersPage() {
 		<div className="w-full max-w-5xl mx-auto">
 			<header className="mb-6">
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					TRIGGERS ❯ ACHIEVEMENTS
+					TRIGGERS · ACHIEVEMENTS
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					{rows.length} patterns regex → succès auto-attribués

@@ -44,7 +44,7 @@ export default async function AdminBotStatus() {
 	return (
 		<div className="w-full max-w-6xl mx-auto space-y-8">
 			<h1 className="text-4xl font-saiyan text-dbz-orange uppercase">
-				BOT ❯ STATUT DÉTAILLÉ
+				BOT · STATUT DÉTAILLÉ
 			</h1>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">

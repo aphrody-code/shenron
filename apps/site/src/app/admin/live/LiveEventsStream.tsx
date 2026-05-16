@@ -32,7 +32,7 @@ export function LiveEventsStream() {
 					</span>
 				</div>
 				<span className="font-scouter text-[10px] tracking-widest text-dbz-blue-light/70">
-					{events.length} events ❯ buffer 200
+					{events.length} events · buffer 200
 				</span>
 			</div>
 

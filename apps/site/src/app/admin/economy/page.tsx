@@ -57,7 +57,7 @@ export default async function AdminEconomy() {
 		<div className="w-full max-w-6xl mx-auto space-y-8">
 			<header>
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					ECONOMY ❯ FULL
+					ECONOMY · FULL
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					Stats globales · top 50 · 30 dernières txs · give/remove zénis

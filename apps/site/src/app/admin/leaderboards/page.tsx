@@ -30,7 +30,7 @@ export default async function LeaderboardsPage({
 			<header className="mb-6 flex items-end justify-between flex-wrap gap-4">
 				<div>
 					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-						LEADERBOARDS ❯ {metric.toUpperCase()}
+						LEADERBOARDS · {metric.toUpperCase()}
 					</h1>
 					<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 						Top 50 utilisateurs · classement par {metric}

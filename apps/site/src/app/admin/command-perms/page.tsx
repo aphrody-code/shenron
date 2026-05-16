@@ -10,7 +10,7 @@ export default async function AdminCommandPermsPage() {
 		<div className="w-full max-w-5xl mx-auto">
 			<header className="mb-6">
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					COMMAND PERMS ❯ RBAC
+					COMMAND PERMS · RBAC
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					{data.rows.length} règles · permissions fines slash commands (table

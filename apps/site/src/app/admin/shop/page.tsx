@@ -28,7 +28,7 @@ export default async function AdminShopPage() {
 		<div className="w-full max-w-6xl mx-auto space-y-8">
 			<header>
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					SHOP ❯ CRUD
+					SHOP · CRUD
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					{items.length} items · create / edit / toggle / delete

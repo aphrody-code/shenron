@@ -11,7 +11,7 @@ export default async function AdminHierarchyPage() {
 		<div className="w-full max-w-4xl mx-auto">
 			<header className="mb-6">
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					HIERARCHY ❯ ÉDITEUR
+					HIERARCHY · ÉDITEUR
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					Tiers de modération · qui peut sanctionner qui · drag/drop disponible

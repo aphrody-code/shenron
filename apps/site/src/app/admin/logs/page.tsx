@@ -19,7 +19,7 @@ export default async function AdminLogsPage({
 			<header className="mb-6 flex items-end justify-between gap-4 flex-wrap">
 				<div>
 					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-						JOURNALCTL ❯ SHENRON
+						JOURNALCTL · SHENRON
 					</h1>
 					<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 						{data.count} lignes · service systemd · refresh auto 10s

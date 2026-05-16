@@ -10,7 +10,7 @@ export default async function CanvasThemesPage() {
 		<div className="w-full max-w-6xl mx-auto space-y-6">
 			<header>
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					CANVAS ❯ THÈMES CARTE
+					CANVAS · THÈMES CARTE
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					{data.rows.length} thèmes en DB · ajouter/éditer/supprimer · le bot

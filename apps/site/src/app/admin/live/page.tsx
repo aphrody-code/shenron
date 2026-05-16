@@ -7,7 +7,7 @@ export default function AdminLivePage() {
 		<div className="w-full max-w-4xl mx-auto">
 			<header className="mb-6">
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					LIVE ❯ BOT EVENTS
+					LIVE · BOT EVENTS
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
 					Server-Sent Events temps réel — level-ups, mod actions, joins,
