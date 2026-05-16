@@ -42,3 +42,23 @@ assets/backgrounds/
 .npmrc
 .bun-cache/
 styles.compiled.css
+
+# Turborepo
+.turbo/
+**/.turbo/
+
+# Workspace artifacts
+apps/*/node_modules/
+apps/*/dist/
+apps/*/.next/
+apps/*/data/*.db*
+packages/*/node_modules/
+packages/*/dist/
+
+# Python __pycache__ (gemini tooling)
+__pycache__/
+
+# Coord sprint artifacts (local only, ne pas committer le state)
+.coord/messages.jsonl
+.coord/memory/
+.gemini/tmp/
