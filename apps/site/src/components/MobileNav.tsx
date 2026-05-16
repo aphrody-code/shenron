@@ -82,8 +82,8 @@ export function MobileNav({
 								onClick={() => setOpen(false)}
 								className="flex items-center gap-3 bg-white/[0.06] rounded-full p-1 pr-4"
 							>
-								{avatar ? (
-									// eslint-disable-next-line @next/next/no-img-element
+								{avatar && (
+									/* eslint-disable-next-line @next/next/no-img-element */
 									<img
 										src={avatar}
 										alt=""
@@ -91,13 +91,9 @@ export function MobileNav({
 										height={36}
 										className="w-9 h-9 rounded-full"
 									/>
-								) : (
-									<span className="w-9 h-9 rounded-full bg-dbz-orange/20 text-dbz-orange grid place-items-center text-sm font-bold">
-										{(username ?? "S")[0]?.toUpperCase()}
-									</span>
 								)}
 								<span className="text-white text-sm font-medium">
-									{username ?? "Saiyan"}
+									{username ?? "Mon profil"}
 								</span>
 							</Link>
 						) : (

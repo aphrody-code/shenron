@@ -16,7 +16,8 @@ export function CharactersTeaser({
 }: {
 	characters: CharacterTeaser[];
 }) {
-	if (characters.length === 0) return null;
+	const withImages = characters.filter((c) => !!c.image);
+	if (withImages.length === 0) return null;
 
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06] bg-[#080808]">
@@ -39,7 +40,7 @@ export function CharactersTeaser({
 				</div>
 
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-					{characters.map((c, i) => (
+					{withImages.map((c, i) => (
 						<motion.div
 							key={c.id}
 							initial={{ opacity: 0, y: 20 }}
@@ -51,19 +52,13 @@ export function CharactersTeaser({
 								href={`/wiki/dragon-ball/character/${c.id}`}
 								className="group block relative aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/[0.08] hover:border-dbz-orange transition-all"
 							>
-								{c.image ? (
-									// eslint-disable-next-line @next/next/no-img-element
-									<img
-										src={`https://shenron.rpbey.fr/${c.image.replace(/^\.\//, "")}`}
-										alt={c.name}
-										className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-										loading="lazy"
-									/>
-								) : (
-									<div className="absolute inset-0 grid place-items-center font-display font-bold text-[48px] text-dbz-orange/20">
-										{c.name[0]}
-									</div>
-								)}
+								{/* eslint-disable-next-line @next/next/no-img-element */}
+								<img
+									src={`https://shenron.rpbey.fr/${c.image?.replace(/^\.\//, "")}`}
+									alt={c.name}
+									className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+									loading="lazy"
+								/>
 								<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/85 to-transparent pt-12 pb-4 px-4">
 									<p className="font-display font-bold text-[15px] text-white leading-tight">
 										{c.name}

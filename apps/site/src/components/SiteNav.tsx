@@ -70,8 +70,8 @@ export async function SiteNav() {
 							href="/profil/me"
 							className="flex items-center gap-2.5 pl-1 pr-3.5 py-1 rounded-full hover:bg-white/[0.06] transition-colors group"
 						>
-							{avatar ? (
-								// eslint-disable-next-line @next/next/no-img-element
+							{avatar && (
+								/* eslint-disable-next-line @next/next/no-img-element */
 								<img
 									src={avatar}
 									alt=""
@@ -79,13 +79,9 @@ export async function SiteNav() {
 									height={28}
 									className="w-7 h-7 rounded-full ring-1 ring-white/15 group-hover:ring-dbz-orange transition"
 								/>
-							) : (
-								<span className="w-7 h-7 rounded-full bg-dbz-orange/20 text-dbz-orange grid place-items-center text-[12px] font-bold">
-									{(username ?? "S")[0]?.toUpperCase()}
-								</span>
 							)}
 							<span className="font-display text-[13px] font-medium tracking-wide text-white max-w-[120px] truncate">
-								{username ?? "Saiyan"}
+								{username ?? "Mon profil"}
 							</span>
 						</Link>
 					) : (
