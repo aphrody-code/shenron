@@ -5,13 +5,13 @@ import { MobileNav } from "@/components/MobileNav";
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
-	{ href: "/actualites", label: "Blog" },
-	{ href: "/personas", label: "Bot" },
-	{ href: "/wiki/dragon-ball", label: "Wiki" },
-	{ href: "/leaderboard", label: "Top" },
-	{ href: "/stats", label: "Stats" },
-	{ href: "/shop", label: "Shop" },
-	{ href: "/jeux", label: "Jeux" },
+	{ href: "/wiki/dragon-ball", label: "Personnages" },
+	{ href: "/wiki/sagas", label: "Sagas" },
+	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
+	{ href: "/wiki/films", label: "Films" },
+	{ href: "/wiki/jeux", label: "Jeux" },
+	{ href: "/actualites", label: "News" },
+	{ href: "/wiki/search", label: "Recherche" },
 ];
 
 export async function SiteNav() {

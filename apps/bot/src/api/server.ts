@@ -1433,6 +1433,44 @@ export class ApiServer {
 						return { games };
 					}),
 
+				"/api/public/wiki/sagas/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const slug = req.params.slug;
+						const dbs = container.resolve(DatabaseService);
+						const saga = dbs.sqlite
+							.query("SELECT * FROM db_sagas WHERE slug = ?")
+							.get(slug);
+						if (!saga) throw new HttpError(404, "Saga inconnue");
+						const arcs = dbs.sqlite
+							.query(
+								"SELECT * FROM db_arcs WHERE saga_id = ? ORDER BY order_idx",
+							)
+							.all((saga as { id: number }).id);
+						return { saga, arcs };
+					}),
+
+				"/api/public/wiki/movies/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const slug = req.params.slug;
+						const dbs = container.resolve(DatabaseService);
+						const movie = dbs.sqlite
+							.query("SELECT * FROM db_movies WHERE slug = ?")
+							.get(slug);
+						if (!movie) throw new HttpError(404, "Film inconnu");
+						return movie;
+					}),
+
+				"/api/public/wiki/games/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const slug = req.params.slug;
+						const dbs = container.resolve(DatabaseService);
+						const game = dbs.sqlite
+							.query("SELECT * FROM db_games WHERE slug = ?")
+							.get(slug);
+						if (!game) throw new HttpError(404, "Jeu inconnu");
+						return game;
+					}),
+
 				"/api/public/wiki/manga/volumes": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
 						const dbs = container.resolve(DatabaseService);
