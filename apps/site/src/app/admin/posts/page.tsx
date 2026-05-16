@@ -25,7 +25,7 @@ export default async function AdminPosts() {
             </tr>
           </thead>
           <tbody className="divide-y-2 divide-dbz-border">
-            {posts.map(post => (
+            {posts.map((post: any) => (
               <tr key={post.id} className="hover:bg-dbz-blue-light/10 transition-colors group">
                 <td className="p-4 font-bold text-white group-hover:text-dbz-orange transition-colors">{post.title}</td>
                 <td className="p-4">

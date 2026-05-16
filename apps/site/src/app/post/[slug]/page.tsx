@@ -49,7 +49,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         <h2 className="text-2xl font-bold mb-8">Commentaires ({post.comments.length})</h2>
         
         <div className="space-y-6 mb-12">
-          {post.comments.map((comment) => (
+          {post.comments.map((comment: any) => (
             <div key={comment.id} className="p-4 rounded-xl bg-[#1a0d2e]/30 border border-[#1a0d2e]">
               <div className="flex items-center gap-3 mb-2">
                 {comment.author.avatar && (

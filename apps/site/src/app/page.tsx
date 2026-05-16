@@ -31,7 +31,7 @@ export default async function Home() {
             <p className="text-2xl font-saiyan text-dbz-orange uppercase tracking-wider">Aucun article publié pour le moment.</p>
           </div>
         ) : (
-          posts.map((post) => (
+          posts.map((post: any) => (
             <article key={post.id} className="dbz-panel p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start group">
               <div className="flex-1">
                 <Link href={`/post/${post.slug}`}>

@@ -21,20 +21,20 @@ export default async function WikiLayout({ children }: { children: React.ReactNo
             <Link href="/wiki" className="text-xl font-bold hover:text-[#4a5cff] transition-colors block">Wiki DBFR</Link>
             <Link href="/wiki/dragon-ball" className="text-xl font-bold text-dbz-yellow hover:text-dbz-orange transition-colors block">Encyclopédie DBZ</Link>
           </div>
-          {categories.map(cat => (
+          {categories.map((cat: any) => (
             <div key={cat.id}>
               <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">{cat.name}</h3>
               <ul className="space-y-1">
-                {cat.pages.map(page => (
+                {cat.pages.map((page: any) => (
                   <li key={page.id}>
                     <Link href={`/wiki/${cat.slug}/${page.slug}`} className="text-sm text-gray-300 hover:text-white transition-colors block py-1">{page.title}</Link>
                   </li>
                 ))}
-                {cat.children.map(subCat => (
+                {cat.children.map((subCat: any) => (
                   <li key={subCat.id} className="pl-3">
                     <span className="text-xs text-gray-500 block mb-1">{subCat.name}</span>
                     <ul className="space-y-1 border-l border-[#1a0d2e] pl-3">
-                      {subCat.pages.map(page => (
+                      {subCat.pages.map((page: any) => (
                         <li key={page.id}>
                           <Link href={`/wiki/${cat.slug}/${subCat.slug}/${page.slug}`} className="text-sm text-gray-400 hover:text-white transition-colors block py-1">{page.title}</Link>
                         </li>
