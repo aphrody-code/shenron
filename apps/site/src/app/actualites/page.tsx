@@ -4,6 +4,8 @@ import Image from "next/image";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { Metadata } from "next";
+import { PageHero } from "@/components/PageHero";
+import { NEWS_HERO } from "@/lib/db-banners";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -43,21 +45,15 @@ export default async function ActualitesPage({
 	const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
 
 	return (
-		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-			<header className="mb-12 max-w-3xl">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-					Journal
-				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-5">
-					Actualités Dragon Ball
-				</h1>
-				<p className="text-[17px] leading-relaxed text-white/70">
-					Sorties anime, chapitres manga, événements, news communauté
-					francophone.{" "}
-					{totalCount > 0 &&
-						`${totalCount} article${totalCount > 1 ? "s" : ""} publié${totalCount > 1 ? "s" : ""}.`}
-				</p>
-			</header>
+		<>
+			<PageHero
+				eyebrow="Journal"
+				title="Actualités Dragon Ball"
+				lead={`Sorties anime, chapitres manga, événements, news communauté francophone${totalCount > 0 ? ". " + totalCount + " article" + (totalCount > 1 ? "s" : "") + " publié" + (totalCount > 1 ? "s" : "") + "." : "."}`}
+				image={NEWS_HERO}
+				imageAlt="Actualités Dragon Ball"
+			/>
+			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
 
 			{posts.length === 0 ? (
 				<div className="p-10 rounded-2xl bg-white/[0.04] border border-white/[0.06] max-w-2xl">
@@ -183,5 +179,6 @@ export default async function ActualitesPage({
 				</>
 			)}
 		</div>
+		</>
 	);
 }

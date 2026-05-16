@@ -27,6 +27,14 @@ export function LandingHero() {
 			{/* Strip nébuleuse top */}
 			<div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-dbz-orange/10 to-transparent pointer-events-none" />
 
+			{/* Kanji 神龍 (Shenron) vertical décoratif */}
+			<div
+				aria-hidden
+				className="kata-vert absolute left-4 top-1/2 -translate-y-1/2 font-jp text-[120px] leading-none text-dbz-orange/8 select-none pointer-events-none hidden md:block"
+			>
+				神龍
+			</div>
+
 			<div className="relative container mx-auto px-4 py-20 grid lg:grid-cols-[1fr_auto] gap-12 items-center">
 				{/* Texte gauche */}
 				<div className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0 z-10">
@@ -34,9 +42,11 @@ export function LandingHero() {
 						initial={{ opacity: 0, y: -10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5 }}
-						className="font-scouter text-xs md:text-sm tracking-[0.5em] text-dbz-yellow mb-4 ki-pulse"
+						className="font-display font-bold text-xs md:text-sm tracking-[0.4em] uppercase text-dbz-orange mb-4 inline-flex items-center gap-3"
 					>
-						COMMUNAUTÉ DRAGON BALL FRANCE
+						<span aria-hidden className="w-8 h-px bg-dbz-orange" />
+						Communauté Dragon Ball France
+						<span aria-hidden className="w-8 h-px bg-dbz-orange" />
 					</motion.p>
 					<motion.h1
 						initial={{ opacity: 0, scale: 0.9 }}

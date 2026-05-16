@@ -2,6 +2,8 @@ import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PageHero } from "@/components/PageHero";
+import { GAMES_HERO } from "@/lib/db-banners";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -18,19 +20,15 @@ export default async function JeuxPage() {
 	const games = data.games;
 
 	return (
-		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-			<header className="mb-12 max-w-3xl">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-					Bandai Namco Entertainment
-				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-5">
-					Jeux vidéo Dragon Ball
-				</h1>
-				<p className="text-[17px] leading-relaxed text-white/70">
-					{games.length} titres officiels — du fighting de FighterZ au RPG
-					narratif de Kakarot, du mobile gacha Dokkan à Sparking ZERO sur PS5.
-				</p>
-			</header>
+		<>
+			<PageHero
+				eyebrow="Bandai Namco Entertainment"
+				title="Jeux vidéo Dragon Ball"
+				lead={`${games.length} titres officiels — du fighting de FighterZ au RPG narratif de Kakarot, du mobile gacha Dokkan à Sparking ZERO sur PS5.`}
+				image={GAMES_HERO}
+				imageAlt="Jeux Dragon Ball"
+			/>
+			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
 
 			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
 				{games.map((g) => (
@@ -90,5 +88,6 @@ export default async function JeuxPage() {
 				))}
 			</div>
 		</div>
+		</>
 	);
 }

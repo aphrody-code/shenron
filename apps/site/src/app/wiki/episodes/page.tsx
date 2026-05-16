@@ -2,6 +2,8 @@ import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PageHero } from "@/components/PageHero";
+import { bannerForSeries } from "@/lib/db-banners";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 1800;
@@ -39,35 +41,30 @@ export default async function EpisodesIndex({
 	const pages = Math.ceil(total / limit);
 
 	return (
-		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-			<header className="mb-10">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-					Anime
-				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-5">
-					Épisodes
-				</h1>
-				<p className="text-[17px] leading-relaxed text-white/70 max-w-2xl mb-8">
-					Index complet des séries Dragon Ball — chaque épisode avec titre
-					original japonais, date de diffusion et synopsis.
-				</p>
-
-				<nav className="flex flex-wrap gap-2">
-					{Object.entries(SERIES_LABELS).map(([key, label]) => (
-						<Link
-							key={key}
-							href={`/wiki/episodes?series=${key}`}
-							className={`px-3 py-1.5 rounded-full font-display font-semibold text-[12px] tracking-[0.08em] uppercase transition-colors ${
-								series === key
-									? "bg-dbz-orange text-black"
-									: "bg-white/[0.06] text-white/72 hover:bg-white/[0.12]"
-							}`}
-						>
-							{label.split(" (")[0]}
-						</Link>
-					))}
-				</nav>
-			</header>
+		<>
+			<PageHero
+				eyebrow="Anime"
+				title={SERIES_LABELS[series] ?? series}
+				lead={`Index complet des épisodes — titres japonais, dates de diffusion, synopsis.`}
+				image={bannerForSeries(series)}
+				imageAlt={`Bannière ${SERIES_LABELS[series] ?? series}`}
+			/>
+			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
+			<nav className="mb-10 flex flex-wrap gap-2">
+				{Object.entries(SERIES_LABELS).map(([key, label]) => (
+					<Link
+						key={key}
+						href={`/wiki/episodes?series=${key}`}
+						className={`px-3 py-1.5 rounded-full font-display font-semibold text-[12px] tracking-[0.08em] uppercase transition-colors ${
+							series === key
+								? "bg-dbz-orange text-black"
+								: "bg-white/[0.06] text-white/72 hover:bg-white/[0.12]"
+						}`}
+					>
+						{label.split(" (")[0]}
+					</Link>
+				))}
+			</nav>
 
 			<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-3 mb-6">
 				{SERIES_LABELS[series] ?? series}{" "}
@@ -124,5 +121,6 @@ export default async function EpisodesIndex({
 				</nav>
 			)}
 		</div>
+		</>
 	);
 }

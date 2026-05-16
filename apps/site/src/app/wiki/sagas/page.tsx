@@ -2,6 +2,8 @@ import { dbUniverse, type Saga } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { PageHero } from "@/components/PageHero";
+import { SAGAS_HERO } from "@/lib/db-banners";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -46,19 +48,15 @@ export default async function SagasPage() {
 	})).filter((g) => g.sagas.length > 0);
 
 	return (
-		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-			<header className="mb-12 max-w-3xl">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-					Univers Dragon Ball
-				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-5">
-					Toutes les sagas
-				</h1>
-				<p className="text-[17px] leading-relaxed text-white/70">
-					De la quête des Dragon Balls par Goku enfant jusqu'au Monde des Démons
-					de Daima — chaque arc narratif raconté en français.
-				</p>
-			</header>
+		<>
+			<PageHero
+				eyebrow="Univers Dragon Ball"
+				title="Toutes les sagas"
+				lead="De la quête des Dragon Balls par Goku enfant jusqu'au Monde des Démons de Daima — chaque arc narratif raconté en français."
+				image={SAGAS_HERO}
+				imageAlt="Bannière officielle Dragon Ball"
+			/>
+			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
 
 			{bySeries.map((g) => (
 				<section key={g.key} className="mb-16">
@@ -95,5 +93,6 @@ export default async function SagasPage() {
 				</section>
 			))}
 		</div>
+		</>
 	);
 }
