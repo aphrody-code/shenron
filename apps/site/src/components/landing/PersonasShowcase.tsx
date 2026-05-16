@@ -72,15 +72,16 @@ export function PersonasShowcase({
 					transition={{ duration: 0.6 }}
 					className="text-center mb-16"
 				>
-					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">
-						LES SIX GARDIENS
+					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
+						En bonus — notre bot Discord
 					</p>
-					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
-						Les gardiens du serveur.
+					<h2 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
+						Six gardiens veillent sur le serveur.
 					</h2>
-					<p className="text-white/55 mt-4 max-w-2xl mx-auto">
-						Six figures légendaires veillent sur la communauté. Chacune a son
-						rôle, son style et sa mission.
+					<p className="text-white/55 mt-5 max-w-2xl mx-auto text-[15px] leading-relaxed">
+						Sur Discord, six personnages iconiques de Dragon Ball animent la
+						communauté : Shenron, Beerus, Whis, le Grand Prêtre, Enma et Kaïo.
+						Modération, accueil, jeux, économie — chacun a sa spécialité.
 					</p>
 				</motion.div>
 

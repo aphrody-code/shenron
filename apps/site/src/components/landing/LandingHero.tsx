@@ -4,8 +4,6 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { DragonBallsOrbit } from "./DragonBallsOrbit";
-import { SignInDiscord } from "@/components/SignInDiscord";
-
 const KiCanvas = dynamic(
 	() => import("@/components/site/KiCanvas").then((m) => m.KiCanvas),
 	{ ssr: false },
@@ -57,22 +55,21 @@ export function LandingHero() {
 						initial={{ opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.35 }}
-						className="text-lg md:text-2xl font-light text-white/85 mb-2 max-w-xl"
+						className="text-lg md:text-2xl font-light text-white/85 mb-3 max-w-xl"
 					>
-						Rassemble les{" "}
-						<span className="text-galactic font-semibold">
-							sept Dragon Balls
-						</span>{" "}
-						et rejoins la plus grande communauté Dragon Ball francophone.
+						Le portail Dragon Ball en français. Wiki, personnages,
+						<span className="text-dbz-orange font-semibold"> sagas</span>,
+						actualités anime & manga — tout l'univers de Toriyama au même
+						endroit.
 					</motion.p>
 					<motion.p
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						transition={{ duration: 0.5, delay: 0.55 }}
-						className="text-sm text-white/50 mb-10 max-w-md"
+						className="text-sm text-white/55 mb-10 max-w-md"
 					>
-						Entraîne-toi, combats, gagne des zénis, débloque des succès et
-						grimpe au sommet du Power Level.
+						Et une communauté Discord vivante pour partager théories, news et
+						fan-arts.
 					</motion.p>
 
 					<motion.div
@@ -81,12 +78,18 @@ export function LandingHero() {
 						transition={{ duration: 0.5, delay: 0.7 }}
 						className="flex flex-wrap items-center gap-4 justify-center lg:justify-start"
 					>
-						<Link href="#stats" className="dbz-button !text-sm md:!text-base">
-							Entrer dans l'arène
+						<Link
+							href="/wiki/dragon-ball"
+							className="dbz-button !text-sm md:!text-base"
+						>
+							Explorer le wiki
 						</Link>
-						<SignInDiscord className="dbz-button-ghost !text-xs md:!text-sm">
-							Connexion Discord
-						</SignInDiscord>
+						<Link
+							href="/actualites"
+							className="dbz-button-ghost !text-xs md:!text-sm"
+						>
+							Voir les actualités
+						</Link>
 					</motion.div>
 				</div>
 
