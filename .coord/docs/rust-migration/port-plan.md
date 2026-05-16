@@ -1,4 +1,6 @@
-# Plan de port TS → Rust — shenron monorepo
+> **⛔ ABANDONNÉ — 2026-05-16.** Décision : la prod reste **Bun + TS** (`apps/shenron/` sur VPS). Raison : 613 LOC portées sur ~29 878 (2 %), 5-6 semaines de port pour zéro gain runtime mesuré (FFI Rust déjà essayée via `native/`, plus lente sur les hot paths courts cf. bench `28ab50b`). La FFI sélective via `native/` reste en place (gain net 1.87× sur fnv1a/ETag des routes publiques cached). Le scaffold `~/.gemini/tmp/shenron/shenron-axum/` peut être archivé/purgé côté Gemini.
+
+# Plan de port TS → Rust — shenron monorepo (HISTORIQUE)
 
 Source data : `/home/ubuntu/.gemini/tmp/shenron/shenron_ts_map.json` (bot, 136 files / 28 687 LOC) + `shenron_ts_map_apps.json` (site, 24 files / 1 191 LOC). Scan : `2026-05-15T13:09:42Z`. Outil : `scan_ts_app.ts` (Bun + Regex).
 

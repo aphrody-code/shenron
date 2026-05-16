@@ -1,4 +1,6 @@
-# Migration site DBFR → Axum + Leptos (hors VPS)
+> **⛔ ABANDONNÉ — 2026-05-16.** Le site DBFR reste Next.js 15 sur Vercel (`apps/dbfr-site/`). Cf. `port-plan.md` pour la décision globale.
+
+# Migration site DBFR → Axum + Leptos (HISTORIQUE)
 
 Gemini reprend le site `apps/dbfr-site` (Next.js 15 + Tailwind v4) et le réécrit en stack Rust full-stack :
 - **Axum** (https://github.com/tokio-rs/axum) — serveur HTTP / server functions / SSR
