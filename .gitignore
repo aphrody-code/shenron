@@ -53,7 +53,7 @@ apps/*/dist/
 apps/*/.next/
 apps/*/data/*.db*
 packages/*/node_modules/
-packages/*/dist/
+# packages/*/dist/  --  committed for vendored @rpbey/* until build pipeline est setup
 
 # Python __pycache__ (gemini tooling)
 __pycache__/
