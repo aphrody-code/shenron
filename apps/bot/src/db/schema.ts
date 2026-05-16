@@ -295,6 +295,27 @@ export const dbCharacters = sqliteTable(
 	],
 );
 
+/**
+ * Thèmes de cartes profil — éditables via dashboard.
+ * Remplace le dict hardcodé CARDS dans CardService.ts.
+ * Le bot lit la table au render (cache 60s), reload via SettingsService.
+ */
+export const cardThemes = sqliteTable("card_themes", {
+	id: text("id").primaryKey(), // key courte (ex: "goku", "vegeta") utilisée par users.equippedCard
+	name: text("name").notNull(), // libellé affiché
+	accent: text("accent").notNull(), // #RRGGBB couleur principale (ring, highlights)
+	aura: text("aura").notNull(), // #RRGGBB couleur aura avatar + barre XP
+	bgGrad1: text("bg_grad_1").notNull(), // 1er stop dégradé fond
+	bgGrad2: text("bg_grad_2").notNull(),
+	bgGrad3: text("bg_grad_3").notNull(),
+	bgFile: text("bg_file"), // chemin relatif assets/backgrounds/... (nullable)
+	textShadow: text("text_shadow").notNull(), // rgba(...) pour ombres
+	enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+	createdAt: integer("created_at", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
+
 export const dbTransformations = sqliteTable(
 	"db_transformations",
 	{

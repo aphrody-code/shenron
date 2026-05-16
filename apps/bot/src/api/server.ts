@@ -2684,6 +2684,98 @@ export class ApiServer {
 						});
 					}),
 				),
+				// ── Card themes CRUD (canvas profile) ─────────────────────────
+				"/api/card-themes": {
+					GET: admin(async () => {
+						const dbs = container.resolve(DatabaseService);
+						const { cardThemes } = await import("~/db/schema");
+						const rows = await dbs.db.select().from(cardThemes);
+						return Response.json({ rows });
+					}),
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							id?: string;
+							name?: string;
+							accent?: string;
+							aura?: string;
+							bgGrad1?: string;
+							bgGrad2?: string;
+							bgGrad3?: string;
+							bgFile?: string | null;
+							textShadow?: string;
+							enabled?: boolean;
+						} | null;
+						if (
+							!body?.id ||
+							!body?.name ||
+							!body?.accent ||
+							!body?.aura ||
+							!body?.bgGrad1 ||
+							!body?.bgGrad2 ||
+							!body?.bgGrad3 ||
+							!body?.textShadow
+						) {
+							return Response.json(
+								{ error: "id/name/accent/aura/bgGrad1-3/textShadow requis" },
+								{ status: 400 },
+							);
+						}
+						try {
+							const dbs = container.resolve(DatabaseService);
+							const { cardThemes } = await import("~/db/schema");
+							const { CardService } = await import("~/services/CardService");
+							await dbs.db.insert(cardThemes).values({
+								id: body.id,
+								name: body.name,
+								accent: body.accent,
+								aura: body.aura,
+								bgGrad1: body.bgGrad1,
+								bgGrad2: body.bgGrad2,
+								bgGrad3: body.bgGrad3,
+								bgFile: body.bgFile ?? null,
+								textShadow: body.textShadow,
+								enabled: body.enabled ?? true,
+							});
+							container.resolve(CardService).invalidateThemes();
+							return Response.json({ ok: true, id: body.id });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "insert failed" },
+								{ status: 400 },
+							);
+						}
+					}),
+				},
+				"/api/card-themes/:id": {
+					PUT: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
+						const dbs = container.resolve(DatabaseService);
+						const { cardThemes } = await import("~/db/schema");
+						const { CardService } = await import("~/services/CardService");
+						const patch: Record<string, unknown> = {};
+						for (const k of ["name", "accent", "aura", "bgGrad1", "bgGrad2", "bgGrad3", "textShadow"]) {
+							if (typeof body[k] === "string") patch[k] = body[k];
+						}
+						if (typeof body.bgFile === "string" || body.bgFile === null) patch.bgFile = body.bgFile;
+						if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
+						await dbs.db
+							.update(cardThemes)
+							.set(patch)
+							.where(eq(cardThemes.id, req.params.id));
+						container.resolve(CardService).invalidateThemes();
+						return Response.json({ ok: true });
+					}),
+					DELETE: admin(async (req) => {
+						const dbs = container.resolve(DatabaseService);
+						const { cardThemes } = await import("~/db/schema");
+						const { CardService } = await import("~/services/CardService");
+						await dbs.db.delete(cardThemes).where(eq(cardThemes.id, req.params.id));
+						container.resolve(CardService).invalidateThemes();
+						return Response.json({ ok: true });
+					}),
+				},
+
 				"/api/canvas/list": admin(() =>
 					Response.json({
 						canvases: [

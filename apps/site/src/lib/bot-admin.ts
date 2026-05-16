@@ -222,13 +222,54 @@ export const botAdmin = {
 	},
 
 	canvas: {
-		profileUrl: (userId: string) => `${API}/api/canvas/profile/${userId}`,
+		profileUrl: (userId: string, theme?: string) =>
+			`${API}/api/canvas/profile/${userId}${theme ? `?theme=${encodeURIComponent(theme)}` : ""}`,
 		leaderboardUrl: () => `${API}/api/canvas/leaderboard`,
 		scoutUrl: (userId: string) => `${API}/api/canvas/scouter/${userId}`,
 		list: () =>
 			botAdmin.fetch<{
 				canvases: Array<{ name: string; description: string; path: string }>;
 			}>("/api/canvas/list", { revalidate: 300 }),
+		themes: () =>
+			botAdmin.fetch<{
+				rows: Array<{
+					id: string;
+					name: string;
+					accent: string;
+					aura: string;
+					bgGrad1: string;
+					bgGrad2: string;
+					bgGrad3: string;
+					bgFile: string | null;
+					textShadow: string;
+					enabled: boolean;
+				}>;
+			}>("/api/card-themes", { revalidate: 30 }),
+		themeCreate: (body: {
+			id: string;
+			name: string;
+			accent: string;
+			aura: string;
+			bgGrad1: string;
+			bgGrad2: string;
+			bgGrad3: string;
+			bgFile?: string | null;
+			textShadow: string;
+			enabled?: boolean;
+		}) =>
+			botAdmin.fetch("/api/card-themes", {
+				method: "POST",
+				body: JSON.stringify(body),
+			}),
+		themeUpdate: (id: string, patch: Record<string, unknown>) =>
+			botAdmin.fetch(`/api/card-themes/${encodeURIComponent(id)}`, {
+				method: "PUT",
+				body: JSON.stringify(patch),
+			}),
+		themeRemove: (id: string) =>
+			botAdmin.fetch(`/api/card-themes/${encodeURIComponent(id)}`, {
+				method: "DELETE",
+			}),
 	},
 
 	giveaways: () =>

@@ -50,6 +50,13 @@
       "when": 1778920607272,
       "tag": "0006_woozy_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778929093360,
+      "tag": "0007_fluffy_ricochet",
+      "breakpoints": true
     }
   ]
 }

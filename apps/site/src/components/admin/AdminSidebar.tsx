@@ -21,6 +21,12 @@ const ADMIN_LINKS: AdminLink[] = [
 	{ href: "/admin/database", label: "DATABASE", kanji: "蔵", section: "data" },
 	{ href: "/admin/discord", label: "DISCORD", kanji: "話", section: "social" },
 	{ href: "/admin/canvas", label: "CANVAS", kanji: "絵", section: "social" },
+	{
+		href: "/admin/canvas/themes",
+		label: "THEMES",
+		kanji: "彩",
+		section: "social",
+	},
 	{ href: "/admin/economy", label: "ECONOMY", kanji: "銭", section: "econ" },
 	{ href: "/admin/levels", label: "LEVELS", kanji: "級", section: "econ" },
 	{ href: "/admin/shop", label: "SHOP", kanji: "店", section: "econ" },

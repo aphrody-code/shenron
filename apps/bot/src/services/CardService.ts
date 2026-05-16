@@ -5,6 +5,9 @@ import type { User } from "discord.js";
 import { formatXP, levelForXP, nextThresholdFrom } from "~/lib/xp";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
 import { logger } from "~/lib/logger";
+import { DatabaseService } from "~/db/index";
+import { cardThemes } from "~/db/schema";
+import { container } from "tsyringe";
 import {
   drawDragonBall,
   drawImageCover,
@@ -113,8 +116,52 @@ export interface CardInput {
 export class CardService {
   private avatarCache = new Map<string, { image: Image; ts: number }>();
   private bgCache = new Map<string, Image | null>();
+  // Cache thèmes DB — refresh 60s. Fallback CARDS hardcoded si DB inaccessible.
+  private themesCache: Map<string, CardTheme> | null = null;
+  private themesCacheAt = 0;
 
   constructor(@inject(BackgroundCacheService) private bgs: BackgroundCacheService) {}
+
+  /**
+   * Retourne la map active des thèmes (DB > fallback CARDS hardcoded).
+   * Cache TTL 60s — admin peut éditer via dashboard et voir le résultat
+   * en max 1 minute (ou via /reload).
+   */
+  private async getThemes(): Promise<Map<string, CardTheme>> {
+    const now = Date.now();
+    if (this.themesCache && now - this.themesCacheAt < 60_000) {
+      return this.themesCache;
+    }
+    const out = new Map<string, CardTheme>(Object.entries(CARDS));
+    try {
+      const dbs = container.resolve(DatabaseService);
+      const rows = await dbs.db
+        .select()
+        .from(cardThemes);
+      for (const r of rows) {
+        if (!r.enabled) continue;
+        out.set(r.id, {
+          name: r.name,
+          accent: r.accent,
+          aura: r.aura,
+          bgGrad: [r.bgGrad1, r.bgGrad2, r.bgGrad3] as const,
+          bgFile: r.bgFile ?? undefined,
+          textShadow: r.textShadow,
+        });
+      }
+    } catch (err) {
+      logger.warn({ err }, "CardService.getThemes — fallback CARDS hardcoded");
+    }
+    this.themesCache = out;
+    this.themesCacheAt = now;
+    return out;
+  }
+
+  /** Invalide le cache thèmes (appelé par admin POST/PUT/DELETE card-themes). */
+  invalidateThemes(): void {
+    this.themesCache = null;
+    this.bgCache.clear();
+  }
 
   private async loadAvatar(user: User): Promise<Image | null> {
     const cached = this.avatarCache.get(user.id);
@@ -136,7 +183,8 @@ export class CardService {
   private async loadBackground(key: string): Promise<Image | null> {
     if (this.bgCache.has(key)) return this.bgCache.get(key) ?? null;
     // 1) bgFile explicite du thème (assets/backgrounds/...) — délégué au cache partagé
-    const theme = CARDS[key];
+    const themes = await this.getThemes();
+    const theme = themes.get(key);
     if (theme?.bgFile) {
       const img = await this.bgs.get(theme.bgFile);
       if (img) {
@@ -156,12 +204,14 @@ export class CardService {
     return null;
   }
 
-  listCards(): string[] {
-    return Object.keys(CARDS);
+  async listCards(): Promise<string[]> {
+    const themes = await this.getThemes();
+    return [...themes.keys()];
   }
 
-  describeCard(key: string): CardTheme | undefined {
-    return CARDS[key];
+  async describeCard(key: string): Promise<CardTheme | undefined> {
+    const themes = await this.getThemes();
+    return themes.get(key);
   }
 
   /**
@@ -176,8 +226,9 @@ export class CardService {
     const ctx = canvas.getContext("2d") as SKRSContext2D;
     ctx.scale(SCALE, SCALE);
 
-    const cardKey = input.cardKey && CARDS[input.cardKey] ? input.cardKey : "default";
-    const theme = CARDS[cardKey]!;
+    const themes = await this.getThemes();
+    const cardKey = input.cardKey && themes.has(input.cardKey) ? input.cardKey : "default";
+    const theme = themes.get(cardKey) ?? CARDS.default!;
     const userColor = input.color || theme.accent;
 
     const width = 1000;
