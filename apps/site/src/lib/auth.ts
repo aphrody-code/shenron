@@ -6,7 +6,22 @@ import { env } from "./env";
 
 export const auth = betterAuth({
 	appName: "DBFR",
-	baseURL: env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app",
+	// Dynamic baseURL avec allowlist : sur Vercel chaque déploiement a son host
+	// dbfr-xxxxxxxx-aphrody.vercel.app, et l'alias dbfr.vercel.app pointe vers
+	// le dernier. Si on hardcode baseURL='https://dbfr.vercel.app' Better Auth
+	// pose le cookie sur ce host mais sur preview deploy ça merdoie.
+	// allowedHosts couvre prod + preview + dev → cookie domain = host courant.
+	// Doc: https://better-auth.com/docs/guides/dynamic-base-url#vercel-deployment
+	baseURL: {
+		allowedHosts: [
+			"dbfr.vercel.app",
+			"*.vercel.app",
+			"localhost:3000",
+			"localhost:5173",
+		],
+		protocol: "https",
+		fallback: "https://dbfr.vercel.app",
+	},
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
 	// Logger debug : on log TOUT pour diagnostiquer le flow OAuth Discord
