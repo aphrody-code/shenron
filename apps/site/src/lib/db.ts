@@ -1,10 +1,21 @@
-import { neon, neonConfig } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "../db/schema";
 
-neonConfig.fetchConnectionCache = true;
+const globalForDb = globalThis as unknown as {
+	pgClient?: ReturnType<typeof postgres>;
+};
 
-const sql = neon(process.env.DATABASE_URL!);
+const client =
+	globalForDb.pgClient ??
+	postgres(process.env.DATABASE_URL!, {
+		max: 1,
+		idle_timeout: 20,
+		connect_timeout: 30,
+		prepare: false,
+	});
 
-export const db = drizzle(sql, { schema, logger: false });
+if (process.env.NODE_ENV !== "production") globalForDb.pgClient = client;
+
+export const db = drizzle(client, { schema, logger: false });
 export { schema };

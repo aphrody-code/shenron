@@ -1,0 +1,11 @@
+[install]
+exact = false
+cache = true
+registry = "https://registry.npmjs.org/"
+
+[install.scopes]
+"@rpbey" = { url = "https://registry.npmjs.org/" }
+
+# Bun JSC tuning runtime monorepo
+[run]
+silent = false
