@@ -1,33 +1,32 @@
 #!/usr/bin/env bun
 /**
  * Télécharge les assets Dragon Ball pour le site (characters, transformations,
- * planets, gifs combat) depuis la Dragon Ball API (open source) + Giphy.
+ * planets) depuis la Dragon Ball API — **API publique libre, sans clé**.
+ *
+ * Politique projet : zéro API payante, zéro API à clé propriétaire. Si tu veux
+ * ajouter une source, elle doit être libre et accessible sans inscription.
  *
  * Usage :
  *   bun scripts/fetch-dbz-assets.ts                # download tout dans apps/site/public/dbz/
  *   bun scripts/fetch-dbz-assets.ts --characters   # uniquement personnages
- *   bun scripts/fetch-dbz-assets.ts --gifs         # uniquement gifs (giphy)
+ *   bun scripts/fetch-dbz-assets.ts --planets      # uniquement planètes
  *
- * Sources :
- *   - https://dragonball-api.com (REST gratuite, images CDN)
- *   - https://giphy.com/api (clé publique dev pour tag DBZ)
+ * Source :
+ *   - https://dragonball-api.com (REST publique, libre, CDN images)
  */
 
 import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join, dirname, basename } from "node:path";
+import { join, dirname } from "node:path";
 
 const ROOT = new URL("../../site/public/dbz/", import.meta.url).pathname;
 const DBAPI = "https://dragonball-api.com/api";
-const GIPHY_KEY =
-	process.env.GIPHY_API_KEY ?? "DLGwYsKEMqr5LIzAOLZ3FlGcRTBQbB1H";
 
 const args = new Set(process.argv.slice(2));
 const ALL = args.size === 0;
 const DO_CHARS = ALL || args.has("--characters");
 const DO_PLANETS = ALL || args.has("--planets");
 const DO_TRANSFORMS = ALL || args.has("--transformations");
-const DO_GIFS = ALL || args.has("--gifs");
 
 async function ensureDir(path: string) {
 	if (!existsSync(path)) await mkdir(path, { recursive: true });
@@ -134,59 +133,12 @@ async function downloadTransformations() {
 	return trans;
 }
 
-async function downloadGifs() {
-	console.log("▶ GIFs (giphy)");
-	await ensureDir(join(ROOT, "gifs"));
-	const tags = [
-		"dragon ball z",
-		"goku kamehameha",
-		"vegeta final flash",
-		"super saiyan",
-		"goku ultra instinct",
-		"frieza dragon ball",
-		"piccolo",
-		"gohan",
-		"trunks dragon ball",
-		"cell dragon ball",
-		"majin buu",
-		"jiren",
-		"broly dragon ball",
-	];
-	let dl = 0;
-	let total = 0;
-	for (const tag of tags) {
-		const url = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(
-			tag,
-		)}&limit=15&rating=g`;
-		const res = await fetch(url);
-		if (!res.ok) {
-			console.warn(`  ✗ giphy ${tag} : ${res.status}`);
-			continue;
-		}
-		const data = (await res.json()) as {
-			data: Array<{
-				id: string;
-				title: string;
-				images: { original: { url: string } };
-			}>;
-		};
-		for (const gif of data.data) {
-			total++;
-			const fname = `${slugify(tag)}-${gif.id}.gif`;
-			const dest = join(ROOT, "gifs", fname);
-			if (await downloadFile(gif.images.original.url, dest)) dl++;
-		}
-	}
-	console.log(`  ✓ ${dl}/${total} new gifs`);
-}
-
 async function main() {
 	console.log(`📥 DBZ assets → ${ROOT}`);
 	await ensureDir(ROOT);
 	if (DO_CHARS) await downloadCharacters();
 	if (DO_PLANETS) await downloadPlanets();
 	if (DO_TRANSFORMS) await downloadTransformations();
-	if (DO_GIFS) await downloadGifs();
 	console.log("✓ done");
 }
 
