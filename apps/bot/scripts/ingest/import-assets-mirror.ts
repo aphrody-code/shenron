@@ -79,6 +79,12 @@ const BUCKETS: Record<
 		entityType: "game",
 		role: "banner",
 	},
+	toei: {
+		source: "toei-animation",
+		license: "FAIR-USE-EDITORIAL",
+		attribution: "© Toei Animation",
+		role: "banner",
+	},
 	dbofficial: {
 		source: "dbofficial-fr",
 		license: "FAIR-USE-EDITORIAL",

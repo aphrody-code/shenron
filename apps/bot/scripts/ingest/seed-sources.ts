@@ -88,6 +88,13 @@ const SOURCES = [
 		attributionTemplate: "© Bird Studio / Shueisha / Toei Animation",
 	},
 	{
+		id: "toei-animation",
+		name: "Toei Animation",
+		url: "https://www.toei-animation.com/catalog/dragon-ball/",
+		licenseKey: "FAIR-USE-EDITORIAL",
+		attributionTemplate: "© Toei Animation",
+	},
+	{
 		id: "shueisha",
 		name: "Shueisha (corporate)",
 		url: "https://www.shueisha.co.jp/",
