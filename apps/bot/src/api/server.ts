@@ -3640,6 +3640,78 @@ export class ApiServer {
 					}
 					return serveAsset(url.pathname, req);
 				}
+
+				// /db/* — sert les 617 assets DB (Phase 2 mirror) avec headers
+				// d'attribution X-DB-Attribution + X-DB-License + X-DB-Source.
+				if (url.pathname.startsWith("/db/")) {
+					if (req.method === "OPTIONS") {
+						return new Response(null, { status: 204, headers: publicCorsHeaders(req) });
+					}
+					const relPath = url.pathname.slice("/db/".length);
+					if (relPath.includes("..") || relPath.startsWith("/")) {
+						return new Response("Forbidden", { status: 403 });
+					}
+					// Content-Negotiation : si client supporte AVIF/WebP et qu'on a
+					// la variante pré-générée, on la sert (10-60% plus léger).
+					const accept = req.headers.get("accept") ?? "";
+					const baseDir = `${process.cwd()}/public/db`;
+					const ext = relPath.replace(/^.*\./, "").toLowerCase();
+					const negotiable = ext === "png" || ext === "jpg" || ext === "jpeg";
+					let servedPath = relPath;
+					if (negotiable) {
+						const stem = relPath.replace(/\.(png|jpe?g)$/i, "");
+						if (accept.includes("image/avif")) {
+							const avif = Bun.file(`${baseDir}/${stem}.avif`);
+							if (await avif.exists()) servedPath = `${stem}.avif`;
+						}
+						if (servedPath === relPath && accept.includes("image/webp")) {
+							const webp = Bun.file(`${baseDir}/${stem}.webp`);
+							if (await webp.exists()) servedPath = `${stem}.webp`;
+						}
+					}
+					const file = Bun.file(`${baseDir}/${servedPath}`);
+					if (!(await file.exists())) {
+						return new Response("Asset introuvable", { status: 404 });
+					}
+					// Lookup attribution metadata (best-effort, query peut faillir si la
+					// table n'existe pas — la file existe quand même, on sert)
+					let attribution = "";
+					let licenseKey = "";
+					let sourceId = "";
+					try {
+						const dbs = container.resolve(DatabaseService);
+						const row = dbs.sqlite
+							.query(
+								"SELECT attribution, license_key, source_id FROM db_assets WHERE path = ?",
+							)
+							.get(relPath) as
+							| { attribution: string; license_key: string; source_id: string }
+							| null;
+						if (row) {
+							attribution = row.attribution ?? "";
+							licenseKey = row.license_key ?? "";
+							sourceId = row.source_id ?? "";
+						}
+					} catch {}
+					// Headers HTTP n'acceptent que ISO-8859-1 ; on encode l'attribution
+					// (souvent en UTF-8 avec ©, —, etc.) en utf-8 percent-encoded.
+					const safe = (s: string) =>
+						encodeURIComponent(s).replace(/%20/g, " ");
+					return new Response(file, {
+						headers: {
+							"Content-Type": file.type,
+							"Cache-Control": "public, max-age=31536000, immutable",
+							Vary: "Accept",
+							...publicCorsHeaders(req),
+							...(attribution ? { "X-DB-Attribution": safe(attribution) } : {}),
+							...(licenseKey ? { "X-DB-License": licenseKey } : {}),
+							...(sourceId ? { "X-DB-Source": sourceId } : {}),
+							...(servedPath !== relPath
+								? { "X-DB-Served-Variant": servedPath.replace(/.*\./, "") }
+								: {}),
+						},
+					});
+				}
 				return Response.json({ error: "Not found" }, { status: 404 });
 			},
 
