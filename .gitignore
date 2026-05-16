@@ -1,7 +1,10 @@
 node_modules/
-dist/
 .env
 *.log
+
+# Build artifacts (dist exclu sauf packages vendorés ci-dessous)
+apps/*/dist/
+!packages/*/dist/
 
 # Bun
 .bun/
