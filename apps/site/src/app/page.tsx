@@ -7,37 +7,12 @@ import {
 	CharactersTeaser,
 	type CharacterTeaser,
 } from "@/components/landing/CharactersTeaser";
-import { StatsTicker } from "@/components/landing/StatsTicker";
 import { PersonasShowcase } from "@/components/landing/PersonasShowcase";
 import { BlogTeaser } from "@/components/landing/BlogTeaser";
 import { CtaFinal } from "@/components/landing/CtaFinal";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 120;
-
-type BotStats = {
-	users: number;
-	totalXp: number;
-	totalZeni: number;
-	achievementsUnlocked: number;
-};
-
-async function fetchBotStats(): Promise<BotStats> {
-	try {
-		const res = await fetch(`${env.SHENRON_API_URL}/api/public/stats`, {
-			next: { revalidate: 60 },
-		});
-		if (!res.ok) throw new Error(`HTTP ${res.status}`);
-		return (await res.json()) as BotStats;
-	} catch {
-		return {
-			users: 0,
-			totalXp: 0,
-			totalZeni: 0,
-			achievementsUnlocked: 0,
-		};
-	}
-}
 
 const HERO_CHARACTERS = [1, 2, 3, 11, 18, 23];
 
@@ -60,14 +35,13 @@ async function fetchHeroCharacters(): Promise<CharacterTeaser[]> {
 }
 
 export default async function Home() {
-	const [posts, stats, personas, characters] = await Promise.all([
+	const [posts, personas, characters] = await Promise.all([
 		db.query.posts.findMany({
 			where: (p, { eq }) => eq(p.published, true),
 			orderBy: (p, { desc }) => desc(p.createdAt),
 			limit: 3,
 			with: { author: true },
 		}),
-		fetchBotStats(),
 		getShenronPersonas().catch(() => []),
 		fetchHeroCharacters(),
 	]);
@@ -91,7 +65,6 @@ export default async function Home() {
 					},
 				}))}
 			/>
-			<StatsTicker stats={stats} />
 			<PersonasShowcase
 				personas={personas.map((p) => ({
 					id: p.id,

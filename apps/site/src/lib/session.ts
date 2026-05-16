@@ -29,11 +29,41 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		)
 		.limit(1);
 
-	if (!row?.account) return null;
+	// Si pas d'account discord lié (premier login en cours, race avec hook),
+	// on retourne quand même le session.user pour ne pas casser le state UI.
+	if (!row?.account) {
+		return {
+			sessionUserId: session.user.id,
+			discordId: "",
+			user: null,
+		};
+	}
+
+	// Lazy upsert dans `users` si le hook databaseHooks n'a pas tourné (timing).
+	let appUser = row.user;
+	if (!appUser) {
+		const inserted = await db
+			.insert(users)
+			.values({
+				discordId: row.account.accountId,
+				username: session.user.name ?? "Saiyan",
+				avatar: session.user.image ?? null,
+			})
+			.onConflictDoUpdate({
+				target: users.discordId,
+				set: {
+					username: session.user.name ?? "Saiyan",
+					avatar: session.user.image ?? null,
+				},
+			})
+			.returning();
+		appUser = inserted[0] ?? null;
+	}
+
 	return {
 		sessionUserId: session.user.id,
 		discordId: row.account.accountId,
-		user: row.user ?? null,
+		user: appUser,
 	};
 }
 

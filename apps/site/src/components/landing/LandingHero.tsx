@@ -38,8 +38,8 @@ export function LandingHero() {
 				神龍
 			</div>
 
-			<div className="relative container mx-auto px-4 py-20 grid lg:grid-cols-[1fr_auto] gap-12 items-center">
-				<div className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0 z-10">
+			<div className="relative mx-auto max-w-[1280px] w-full px-6 lg:px-10 py-20 grid lg:grid-cols-2 gap-12 items-center">
+				<div className="z-10">
 					<p className="font-display font-bold text-xs md:text-sm tracking-[0.4em] uppercase text-dbz-orange mb-6 inline-flex items-center gap-3">
 						<span aria-hidden className="w-8 h-px bg-dbz-orange" />
 						Communauté Dragon Ball France
@@ -75,8 +75,8 @@ export function LandingHero() {
 					</div>
 				</div>
 
-				<div className="hidden lg:block">
-					<DragonBallsOrbit size={420} />
+				<div className="hidden lg:flex items-center justify-center">
+					<DragonBallsOrbit size={460} />
 				</div>
 			</div>
 		</section>

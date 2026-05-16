@@ -1,217 +1,180 @@
-"use client";
-
 /**
- * 7 Dragon Balls cosmiques en orbite — version galactique :
- * sphères verre+gradient violet→cyan avec étoile magenta intérieure,
- * orbite SVG continue. Le centre sert d'ancrage pour le titre.
+ * 7 Dragon Balls réalistes en orbite — pure SVG, server component, 0 JS.
+ * Sphère orange ambrée (canon Toriyama) + 1-7 étoiles rouges + reflet vitré.
  */
 
-const STARS = [1, 2, 3, 4, 5, 6, 7] as const;
+const STARS_PER_BALL = [1, 2, 3, 4, 5, 6, 7] as const;
+
+const STAR_POS: Record<number, Array<[number, number]>> = {
+	1: [[0, 0]],
+	2: [
+		[-0.22, 0],
+		[0.22, 0],
+	],
+	3: [
+		[0, -0.25],
+		[-0.22, 0.13],
+		[0.22, 0.13],
+	],
+	4: [
+		[-0.22, -0.22],
+		[0.22, -0.22],
+		[-0.22, 0.22],
+		[0.22, 0.22],
+	],
+	5: [
+		[-0.25, -0.22],
+		[0.25, -0.22],
+		[0, 0],
+		[-0.25, 0.22],
+		[0.25, 0.22],
+	],
+	6: [
+		[-0.25, -0.25],
+		[0.25, -0.25],
+		[-0.25, 0],
+		[0.25, 0],
+		[-0.25, 0.25],
+		[0.25, 0.25],
+	],
+	7: [
+		[0, -0.3],
+		[-0.25, -0.12],
+		[0.25, -0.12],
+		[0, 0.06],
+		[-0.25, 0.24],
+		[0.25, 0.24],
+		[0, 0.3],
+	],
+};
+
+function DragonBall({
+	stars,
+	size,
+	x,
+	y,
+}: {
+	stars: number;
+	size: number;
+	x: number;
+	y: number;
+}) {
+	const r = size / 2;
+	const positions = STAR_POS[stars] ?? [];
+	return (
+		<g transform={`translate(${x} ${y})`}>
+			<circle cx="0" cy="0" r={r} fill={`url(#dbf-grad)`} />
+			<ellipse
+				cx={-r * 0.3}
+				cy={-r * 0.35}
+				rx={r * 0.35}
+				ry={r * 0.22}
+				fill="white"
+				opacity="0.55"
+			/>
+			<ellipse
+				cx={r * 0.35}
+				cy={r * 0.3}
+				rx={r * 0.15}
+				ry={r * 0.08}
+				fill="white"
+				opacity="0.15"
+			/>
+			{positions.map(([sx, sy], i) => (
+				<polygon
+					key={`${stars}-${i}`}
+					points="0,-12 3.5,-3.7 11.4,-3.7 5,1.4 7,11.4 0,5.7 -7,11.4 -5,1.4 -11.4,-3.7 -3.5,-3.7"
+					transform={`translate(${sx * size} ${sy * size}) scale(${size / 110})`}
+					fill="#c81b1b"
+				/>
+			))}
+			<circle
+				cx="0"
+				cy="0"
+				r={r - 0.5}
+				fill="none"
+				stroke="rgba(0,0,0,0.25)"
+				strokeWidth="1"
+			/>
+		</g>
+	);
+}
 
 export function DragonBallsOrbit({
-	size = 520,
+	size = 420,
 	className = "",
 }: {
 	size?: number;
 	className?: string;
 }) {
-	const radius = size * 0.42;
-	const ballSize = size * 0.11;
+	const cx = size / 2;
+	const cy = size / 2;
+	const orbit = size * 0.36;
+	const ballSize = size * 0.16;
+
 	return (
 		<div
 			className={`relative ${className}`}
 			style={{ width: size, height: size }}
-			aria-hidden
 		>
-			{/* Orbite SVG en pointillés */}
 			<svg
+				viewBox={`0 0 ${size} ${size}`}
 				width={size}
 				height={size}
-				className="absolute inset-0 pointer-events-none"
+				aria-label="Sept Dragon Balls"
+				role="img"
 			>
 				<defs>
-					<linearGradient id="orbit-grad" x1="0" y1="0" x2="1" y2="1">
-						<stop offset="0%" stopColor="#a855f7" stopOpacity="0.6" />
-						<stop offset="50%" stopColor="#38bdf8" stopOpacity="0.6" />
-						<stop offset="100%" stopColor="#ec4899" stopOpacity="0.6" />
-					</linearGradient>
+					<radialGradient id="dbf-grad" cx="0.32" cy="0.32" r="0.85">
+						<stop offset="0%" stopColor="#ffe9a8" />
+						<stop offset="35%" stopColor="#ffb74d" />
+						<stop offset="70%" stopColor="#f57c00" />
+						<stop offset="100%" stopColor="#b34700" />
+					</radialGradient>
+					<radialGradient id="dbf-aura" cx="0.5" cy="0.5" r="0.5">
+						<stop offset="0%" stopColor="#ffb74d" stopOpacity="0.5" />
+						<stop offset="60%" stopColor="#ff9800" stopOpacity="0.15" />
+						<stop offset="100%" stopColor="#ff9800" stopOpacity="0" />
+					</radialGradient>
 				</defs>
+
 				<circle
-					cx={size / 2}
-					cy={size / 2}
-					r={radius}
-					fill="none"
-					stroke="url(#orbit-grad)"
-					strokeWidth="1"
-					strokeDasharray="2 6"
-					className="orbit-spin"
-					style={{ transformOrigin: "center" }}
+					cx={cx}
+					cy={cy}
+					r={orbit + ballSize / 2}
+					fill="url(#dbf-aura)"
 				/>
 				<circle
-					cx={size / 2}
-					cy={size / 2}
-					r={radius * 1.08}
+					cx={cx}
+					cy={cy}
+					r={orbit}
 					fill="none"
-					stroke="rgba(255,107,26,0.15)"
+					stroke="rgba(255,178,0,0.18)"
 					strokeWidth="1"
+					strokeDasharray="3 6"
 				/>
+
+				<g className="dbf-spin" style={{ transformOrigin: `${cx}px ${cy}px` }}>
+					{STARS_PER_BALL.map((stars, i) => {
+						const angle = (i / 7) * Math.PI * 2 - Math.PI / 2;
+						return (
+							<DragonBall
+								key={stars}
+								stars={stars}
+								size={ballSize}
+								x={cx + Math.cos(angle) * orbit}
+								y={cy + Math.sin(angle) * orbit}
+							/>
+						);
+					})}
+				</g>
 			</svg>
 
-			{/* 7 boules réparties uniformément, animation rotation contraire */}
-			<div className="absolute inset-0 ball-orbit">
-				{STARS.map((n, i) => {
-					const angle = (i / STARS.length) * Math.PI * 2 - Math.PI / 2;
-					const x = size / 2 + Math.cos(angle) * radius - ballSize / 2;
-					const y = size / 2 + Math.sin(angle) * radius - ballSize / 2;
-					return (
-						<div
-							key={n}
-							className="absolute ball-float"
-							style={{
-								left: x,
-								top: y,
-								width: ballSize,
-								height: ballSize,
-								animationDelay: `${i * 0.4}s`,
-							}}
-						>
-							<DragonBall stars={n} size={ballSize} />
-						</div>
-					);
-				})}
-			</div>
-
 			<style>{`
-				@keyframes orbit-spin {
-					from { transform: rotate(0deg); }
-					to { transform: rotate(360deg); }
-				}
-				.orbit-spin { animation: orbit-spin 80s linear infinite; }
-				.ball-orbit { animation: orbit-spin 120s linear infinite; }
-				@keyframes ball-float {
-					0%, 100% { transform: scale(1) translateY(0); filter: brightness(1); }
-					50% { transform: scale(1.08) translateY(-4px); filter: brightness(1.3); }
-				}
-				.ball-float { animation: ball-float 4s ease-in-out infinite; }
+				.dbf-spin { animation: dbf-rotate 38s linear infinite; }
+				@keyframes dbf-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+				@media (prefers-reduced-motion: reduce) { .dbf-spin { animation: none; } }
 			`}</style>
 		</div>
 	);
-}
-
-function DragonBall({ stars, size }: { stars: number; size: number }) {
-	const id = `db-${stars}`;
-	return (
-		<svg viewBox="0 0 100 100" width={size} height={size}>
-			<defs>
-				<radialGradient id={`${id}-body`} cx="35%" cy="30%" r="75%">
-					<stop offset="0%" stopColor="#fef3c7" stopOpacity="0.95" />
-					<stop offset="35%" stopColor="#c4b5fd" stopOpacity="0.85" />
-					<stop offset="70%" stopColor="#7c3aed" stopOpacity="0.9" />
-					<stop offset="100%" stopColor="#3b0764" stopOpacity="1" />
-				</radialGradient>
-				<radialGradient id={`${id}-shine`} cx="30%" cy="25%" r="25%">
-					<stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-					<stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-				</radialGradient>
-				<filter id={`${id}-glow`}>
-					<feGaussianBlur stdDeviation="3" result="blur" />
-					<feMerge>
-						<feMergeNode in="blur" />
-						<feMergeNode in="SourceGraphic" />
-					</feMerge>
-				</filter>
-			</defs>
-			{/* Halo extérieur */}
-			<circle cx="50" cy="50" r="48" fill={`url(#${id}-body)`} opacity="0.3" />
-			{/* Sphère principale */}
-			<circle
-				cx="50"
-				cy="50"
-				r="42"
-				fill={`url(#${id}-body)`}
-				stroke="rgba(255,107,26,0.4)"
-				strokeWidth="0.5"
-			/>
-			{/* Étoiles rouge/magenta intérieures */}
-			<g filter={`url(#${id}-glow)`}>
-				{starPositions(stars).map(([cx, cy], i) => (
-					<polygon
-						key={i}
-						points={starPath(cx, cy, 4)}
-						fill="#ec4899"
-						stroke="#fbbf24"
-						strokeWidth="0.4"
-					/>
-				))}
-			</g>
-			{/* Reflet brillant */}
-			<ellipse cx="38" cy="32" rx="14" ry="8" fill={`url(#${id}-shine)`} />
-		</svg>
-	);
-}
-
-/** Position des étoiles selon le nombre (canon Dragon Ball) */
-function starPositions(n: number): Array<[number, number]> {
-	const c = 50;
-	switch (n) {
-		case 1:
-			return [[c, c]];
-		case 2:
-			return [
-				[c - 10, c],
-				[c + 10, c],
-			];
-		case 3:
-			return [
-				[c, c - 10],
-				[c - 10, c + 6],
-				[c + 10, c + 6],
-			];
-		case 4:
-			return [
-				[c - 10, c - 10],
-				[c + 10, c - 10],
-				[c - 10, c + 10],
-				[c + 10, c + 10],
-			];
-		case 5:
-			return [
-				[c, c],
-				[c - 11, c - 11],
-				[c + 11, c - 11],
-				[c - 11, c + 11],
-				[c + 11, c + 11],
-			];
-		case 6:
-			return [
-				[c - 11, c - 11],
-				[c, c - 11],
-				[c + 11, c - 11],
-				[c - 11, c + 11],
-				[c, c + 11],
-				[c + 11, c + 11],
-			];
-		case 7:
-			return [
-				[c, c],
-				[c - 12, c - 12],
-				[c, c - 12],
-				[c + 12, c - 12],
-				[c - 12, c + 12],
-				[c, c + 12],
-				[c + 12, c + 12],
-			];
-		default:
-			return [[c, c]];
-	}
-}
-
-function starPath(cx: number, cy: number, r: number): string {
-	const pts: string[] = [];
-	for (let i = 0; i < 10; i++) {
-		const angle = (Math.PI / 5) * i - Math.PI / 2;
-		const rad = i % 2 === 0 ? r : r * 0.45;
-		pts.push(`${cx + Math.cos(angle) * rad},${cy + Math.sin(angle) * rad}`);
-	}
-	return pts.join(" ");
 }
