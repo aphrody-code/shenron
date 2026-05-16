@@ -45,7 +45,6 @@ export function buildAuthorizeUrl(config: OAuthConfig, state: string): string {
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", SCOPES.join(" "));
   url.searchParams.set("state", state);
-  url.searchParams.set("prompt", "none");
   return url.toString();
 }
 

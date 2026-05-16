@@ -18,11 +18,13 @@ import { EconomyService } from "~/services/EconomyService";
 import { SettingsService } from "~/services/SettingsService";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
-
-type Choice = "pierre" | "feuille" | "ciseaux";
+import {
+  type PfcChoice as Choice,
+  decideBotChoice,
+  resolvePfc,
+} from "~/services/games/pfc";
 
 const EMOJIS: Record<Choice, string> = { pierre: "🪨", feuille: "📄", ciseaux: "✂️" };
-const WINS: Record<Choice, Choice> = { pierre: "ciseaux", feuille: "pierre", ciseaux: "feuille" };
 
 const pending = new Map<string, { challenger: string; opponent: string; choice?: Choice; stake?: number }>();
 // Track la mise du mode bot par userId, lu au moment du callback button.
@@ -123,11 +125,8 @@ export class PfcCommand {
       await interaction.reply({ content: "Pas ta partie.", flags: MessageFlags.Ephemeral });
       return;
     }
-    const botChoice: Choice = (["pierre", "feuille", "ciseaux"] as const)[Math.floor(Math.random() * 3)]!;
-    let result: "win" | "lose" | "draw";
-    if (player === botChoice) result = "draw";
-    else if (WINS[player] === botChoice) result = "win";
-    else result = "lose";
+    const botChoice = decideBotChoice();
+    const result = resolvePfc(player, botChoice);
 
     let text = `Tu joues ${EMOJIS[player]} · Bot joue ${EMOJIS[botChoice]}\n\n`;
     const defaultWin = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
@@ -179,9 +178,9 @@ export class PfcCommand {
     const oC = (game as Record<string, unknown>).opponentChoice as Choice | undefined;
     if (cC && oC) {
       let winner: string | null = null;
-      if (cC === oC) winner = null;
-      else if (WINS[cC] === oC) winner = game.challenger;
-      else winner = game.opponent;
+      const duelResult = resolvePfc(cC, oC);
+      if (duelResult === "win") winner = game.challenger;
+      else if (duelResult === "lose") winner = game.opponent;
 
       const loser = winner ? (winner === game.challenger ? game.opponent : game.challenger) : null;
       let text = `<@${game.challenger}> ${EMOJIS[cC]} vs ${EMOJIS[oC]} <@${game.opponent}>\n\n`;

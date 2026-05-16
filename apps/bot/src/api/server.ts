@@ -38,7 +38,30 @@ import { ModerationService } from "~/services/ModerationService";
 import { TicketService } from "~/services/TicketService";
 import { SettingsService } from "~/services/SettingsService";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
-import { PERSONAS, PERSONA_IDS } from "~/lib/personas";
+import { PERSONAS, PERSONA_IDS, type PersonaId } from "~/lib/personas";
+import type { APIEmbed, TextChannel } from "discord.js";
+import { verifyActingUser } from "./user-auth";
+import { decideBotChoice, isPfcChoice, resolvePfc } from "~/services/games/pfc";
+import {
+	applyMorpionMove,
+	decideMorpionMove,
+	emptyBoard,
+	evaluateBoard,
+} from "~/services/games/morpion";
+import {
+	BINGO_MAX,
+	BINGO_MIN,
+	compareBingoGuess,
+	randomBingoTarget,
+} from "~/services/games/bingo";
+import {
+	constantTimeEqualStr,
+	packBingoToken,
+	parseMorpionBoard,
+	signMorpion,
+	unpackBingoToken,
+} from "~/services/games/tokens";
+import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
 import { eq, sql, desc, asc, inArray } from "drizzle-orm";
 import {
 	users,
@@ -431,7 +454,7 @@ const ASSET_CONTENT_TYPES: Record<string, string> = {
  * stockés `./assets/dbz/...` : le client peut soit normaliser côté front (préfixer
  * juste `/`), soit nous y faisons match exact via le pathname.
  */
-async function serveAsset(pathname: string): Promise<Response> {
+async function serveAsset(pathname: string, req?: Request): Promise<Response> {
 	const sub = decodeURIComponent(pathname.replace(/^\/assets\//, ""));
 	if (!sub || sub.includes("..") || sub.startsWith("/") || sub.includes("\0")) {
 		return new Response("Chemin d'asset refusé", { status: 400 });
@@ -445,10 +468,13 @@ async function serveAsset(pathname: string): Promise<Response> {
 	if (!(await file.exists())) {
 		return new Response("Asset introuvable", { status: 404 });
 	}
+	const cors = req ? publicCorsHeaders(req) : {};
 	return new Response(file as unknown as BodyInit, {
 		headers: {
 			"Content-Type": contentType,
 			"Cache-Control": "public, max-age=2592000, immutable",
+			"Cross-Origin-Resource-Policy": "cross-origin",
+			...cors,
 		},
 	});
 }
@@ -622,7 +648,16 @@ export class ApiServer {
 				"/auth/callback": async (req) => {
 					const config = getOAuthConfig();
 					if (!config) return new Response("OAuth non configuré", { status: 503 });
+
+					if (req.method === "OPTIONS") {
+						return new Response(null, {
+							status: 204,
+							headers: publicCorsHeaders(req),
+						});
+					}
+
 					const url = new URL(req.url);
+
 					const code = url.searchParams.get("code");
 					const state = url.searchParams.get("state");
 					const expected = readCookie(req, "shenron_oauth_state");
@@ -1653,6 +1688,341 @@ export class ApiServer {
 						},
 					});
 				}),
+
+				// ── Jeux jouables depuis le site (user-authenticated) ─────────
+				// Auth : HMAC-SHA256(discordId:ts) via headers X-Acting-User/Ts/Sig.
+				// Le proxy site `/api/bot-user/*` signe automatiquement.
+				// Mêmes règles que les slash commands Discord (engines partagés).
+				"/api/games/pfc/play": {
+					POST: async (req) => {
+						const userId = verifyActingUser(req);
+						if (!userId) {
+							return Response.json({ error: "Unauthorized" }, { status: 401 });
+						}
+						const body = (await req.json().catch(() => null)) as {
+							choice?: unknown;
+							stake?: number;
+						} | null;
+						if (!body || !isPfcChoice(body.choice)) {
+							return Response.json({ error: "choice invalide" }, { status: 400 });
+						}
+						const stakeRaw = body.stake;
+						const stake =
+							typeof stakeRaw === "number" && stakeRaw > 0
+								? Math.min(1_000_000, Math.floor(stakeRaw))
+								: undefined;
+						const eco = container.resolve(EconomyService);
+						const settings = container.resolve(SettingsService);
+						const balance = await eco.getBalance(userId);
+						if (stake !== undefined && balance < stake) {
+							return Response.json(
+								{ error: `Solde insuffisant (${balance} z, mise ${stake})` },
+								{ status: 400 },
+							);
+						}
+						const defaultWin = await settings.getInt(
+							"zeni.game.win",
+							ZENI_GAME_WIN,
+						);
+						const defaultLoss = await settings.getInt(
+							"zeni.game.loss_penalty",
+							ZENI_GAME_LOSS_PENALTY,
+						);
+						const winReward = stake ?? defaultWin;
+						const lossPenalty = stake ?? defaultLoss;
+
+						const botChoice = decideBotChoice();
+						const result = resolvePfc(body.choice, botChoice);
+						let delta = 0;
+						if (result === "win") {
+							await eco.addZeni(userId, winReward);
+							delta = winReward;
+						} else if (result === "lose") {
+							if (lossPenalty > 0) await eco.removeZeni(userId, lossPenalty);
+							delta = -lossPenalty;
+						}
+						const newBalance = await eco.getBalance(userId);
+						return Response.json({
+							ok: true,
+							player: body.choice,
+							bot: botChoice,
+							result,
+							delta,
+							balance: newBalance,
+						});
+					},
+				},
+				// Morpion vs bot — stateless HMAC. Le client renvoie son state
+				// à chaque coup, le bot signe pour empêcher la forge d'un board
+				// gagnant. Joueur = X, bot = O. `stake` figé au 1er coup.
+				"/api/games/morpion/move": {
+					POST: async (req) => {
+						const userId = verifyActingUser(req);
+						if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+						if (!env.API_USER_SECRET) {
+							return Response.json({ error: "user-auth désactivé" }, { status: 503 });
+						}
+						const body = (await req.json().catch(() => null)) as {
+							cell?: unknown;
+							state?: { board?: string; sig?: string; ts?: number };
+							stake?: number;
+						} | null;
+						const stakeRaw = body?.stake;
+						const stake =
+							typeof stakeRaw === "number" && stakeRaw > 0
+								? Math.min(1_000_000, Math.floor(stakeRaw))
+								: undefined;
+						const eco = container.resolve(EconomyService);
+						const settings = container.resolve(SettingsService);
+
+						if (!body?.state) {
+							if (stake !== undefined) {
+								const bal = await eco.getBalance(userId);
+								if (bal < stake) {
+									return Response.json(
+										{ error: `Solde insuffisant (${bal} z)` },
+										{ status: 400 },
+									);
+								}
+							}
+							const board = emptyBoard();
+							const ts = Date.now();
+							return Response.json({
+								board,
+								sig: signMorpion(env.API_USER_SECRET, board, userId, stake ?? 0, ts),
+								ts,
+								stake: stake ?? 0,
+								outcome: { kind: "playing" },
+							});
+						}
+
+						const stateBoard = parseMorpionBoard(body.state.board);
+						const stateTs = Number(body.state.ts);
+						const stateStake = stake ?? 0;
+						if (
+							!stateBoard ||
+							!body.state.sig ||
+							!Number.isFinite(stateTs) ||
+							Math.abs(Date.now() - stateTs) > 30 * 60 * 1000
+						) {
+							return Response.json({ error: "state invalide ou expiré" }, { status: 400 });
+						}
+						const expectedSig = signMorpion(
+							env.API_USER_SECRET,
+							stateBoard,
+							userId,
+							stateStake,
+							stateTs,
+						);
+						if (!constantTimeEqualStr(expectedSig, body.state.sig)) {
+							return Response.json({ error: "signature invalide" }, { status: 403 });
+						}
+						const cell = Number(body.cell);
+						const move = applyMorpionMove(stateBoard, cell, "X");
+						if (!move.ok) return Response.json({ error: move.error }, { status: 400 });
+						let board = move.board;
+						let outcome = evaluateBoard(board);
+						let botCell: number | null = null;
+						if (outcome.kind === "playing") {
+							botCell = decideMorpionMove(board, "O");
+							const botMove = applyMorpionMove(board, botCell, "O");
+							if (botMove.ok) {
+								board = botMove.board;
+								outcome = evaluateBoard(board);
+							}
+						}
+						let delta = 0;
+						let balance: number | undefined;
+						if (outcome.kind === "won" || outcome.kind === "draw") {
+							const defaultWin = await settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+							const defaultLoss = await settings.getInt(
+								"zeni.game.loss_penalty",
+								ZENI_GAME_LOSS_PENALTY,
+							);
+							const winReward = stateStake || defaultWin;
+							const lossPenalty = stateStake || defaultLoss;
+							if (outcome.kind === "won" && outcome.mark === "X") {
+								await eco.addZeni(userId, winReward);
+								delta = winReward;
+							} else if (outcome.kind === "won" && outcome.mark === "O") {
+								if (lossPenalty > 0) await eco.removeZeni(userId, lossPenalty);
+								delta = -lossPenalty;
+							}
+							balance = await eco.getBalance(userId);
+						}
+						const ts = Date.now();
+						return Response.json({
+							board,
+							sig: signMorpion(env.API_USER_SECRET, board, userId, stateStake, ts),
+							ts,
+							stake: stateStake,
+							outcome,
+							botCell,
+							delta,
+							balance,
+						});
+					},
+				},
+
+				// Bingo vs bot — stateless : target chiffré dans token HMAC,
+				// 10 essais max, hints "plus haut/plus bas".
+				"/api/games/bingo/play": {
+					POST: async (req) => {
+						const userId = verifyActingUser(req);
+						if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+						if (!env.API_USER_SECRET) {
+							return Response.json({ error: "user-auth désactivé" }, { status: 503 });
+						}
+						const body = (await req.json().catch(() => null)) as {
+							token?: string;
+							guess?: unknown;
+							stake?: number;
+						} | null;
+						const stakeRaw = body?.stake;
+						const stake =
+							typeof stakeRaw === "number" && stakeRaw > 0
+								? Math.min(1_000_000, Math.floor(stakeRaw))
+								: undefined;
+						const eco = container.resolve(EconomyService);
+						const settings = container.resolve(SettingsService);
+
+						if (!body?.token) {
+							if (stake !== undefined) {
+								const bal = await eco.getBalance(userId);
+								if (bal < stake) {
+									return Response.json(
+										{ error: `Solde insuffisant (${bal} z)` },
+										{ status: 400 },
+									);
+								}
+							}
+							const target = randomBingoTarget();
+							const ts = Date.now();
+							const token = packBingoToken(
+								env.API_USER_SECRET,
+								userId,
+								target,
+								stake ?? 0,
+								0,
+								ts,
+							);
+							return Response.json({
+								token,
+								ts,
+								attempts: 0,
+								max: BINGO_MAX,
+								min: BINGO_MIN,
+							});
+						}
+
+						const parsed = unpackBingoToken(env.API_USER_SECRET, body.token, userId);
+						if (!parsed) {
+							return Response.json({ error: "token invalide ou expiré" }, { status: 403 });
+						}
+						const guess = Number(body.guess);
+						const hint = compareBingoGuess(guess, parsed.target);
+						if (hint === "out-of-range") {
+							return Response.json(
+								{ error: `Nombre entre ${BINGO_MIN} et ${BINGO_MAX}` },
+								{ status: 400 },
+							);
+						}
+						const attempts = parsed.attempts + 1;
+						if (hint === "match") {
+							const defaultWin = await settings.getInt("zeni.game.win", ZENI_GAME_WIN);
+							const winReward = parsed.stake || defaultWin;
+							await eco.addZeni(userId, winReward);
+							const balance = await eco.getBalance(userId);
+							return Response.json({
+								hint,
+								target: parsed.target,
+								attempts,
+								delta: winReward,
+								balance,
+							});
+						}
+						if (attempts >= 10) {
+							const defaultLoss = await settings.getInt(
+								"zeni.game.loss_penalty",
+								ZENI_GAME_LOSS_PENALTY,
+							);
+							const lossPenalty = parsed.stake || defaultLoss;
+							if (lossPenalty > 0) await eco.removeZeni(userId, lossPenalty);
+							const balance = await eco.getBalance(userId);
+							return Response.json({
+								hint: "lost",
+								target: parsed.target,
+								attempts,
+								delta: -lossPenalty,
+								balance,
+							});
+						}
+						const ts = Date.now();
+						const token = packBingoToken(
+							env.API_USER_SECRET,
+							userId,
+							parsed.target,
+							parsed.stake,
+							attempts,
+							ts,
+						);
+						return Response.json({ hint, attempts, token, ts });
+					},
+				},
+				"/api/games/pendu/new": {
+					POST: async () =>
+						Response.json({ error: "WIP — UI Pendu round suivant" }, { status: 501 }),
+				},
+
+				// ── Discord direct send (depuis site admin) ───────────────────
+				// Envoie un message dans un salon Discord via une persona donnée.
+				// Body : { channelId: string, content?: string, embed?: object,
+				//          persona?: PersonaId (défaut: shenron) }
+				"/api/discord/send": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							channelId?: string;
+							content?: string;
+							embed?: Record<string, unknown>;
+							persona?: PersonaId;
+						} | null;
+						if (!body?.channelId) {
+							return Response.json({ error: "channelId requis" }, { status: 400 });
+						}
+						if (!body.content && !body.embed) {
+							return Response.json({ error: "content ou embed requis" }, { status: 400 });
+						}
+						const personaId = (body.persona ?? "shenron") as PersonaId;
+						if (!PERSONA_IDS.includes(personaId)) {
+							return Response.json({ error: "persona invalide" }, { status: 400 });
+						}
+						const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
+						const client = clientMap.get(personaId);
+						if (!client) {
+							return Response.json({ error: "persona offline" }, { status: 503 });
+						}
+						try {
+							const channel = await client.channels.fetch(body.channelId);
+							if (!channel || !channel.isTextBased() || !("send" in channel)) {
+								return Response.json({ error: "salon textuel introuvable" }, { status: 404 });
+							}
+							const sent = await (channel as TextChannel).send({
+								content: body.content ?? undefined,
+								embeds: body.embed ? [body.embed as APIEmbed] : undefined,
+							});
+							return Response.json({
+								ok: true,
+								messageId: sent.id,
+								url: `https://discord.com/channels/${sent.guildId}/${sent.channelId}/${sent.id}`,
+							});
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "envoi échoué" },
+								{ status: 500 },
+							);
+						}
+					}),
+				},
 
 				// ── Settings schema (catalogue côté backend SETTINGS_KEYS) ───
 				"/api/settings/schema": admin(async () => {
@@ -2820,7 +3190,10 @@ export class ApiServer {
 				// Routes Map de Bun ne supporte pas les wildcards multi-segment, donc
 				// on les capture ici dans le fallback.
 				if (url.pathname.startsWith("/assets/")) {
-					return serveAsset(url.pathname);
+					if (req.method === "OPTIONS") {
+						return new Response(null, { status: 204, headers: publicCorsHeaders(req) });
+					}
+					return serveAsset(url.pathname, req);
 				}
 				return Response.json({ error: "Not found" }, { status: 404 });
 			},

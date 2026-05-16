@@ -40,7 +40,10 @@ export function getAuth() {
 
   _auth = betterAuth({
     appName: "Shenron",
-    baseURL: env.OAUTH_REDIRECT_URI?.replace(/\/auth\/callback$/, "") ?? "https://shenron.rpbey.fr",
+    baseURL:
+      env.BETTER_AUTH_URL ??
+      env.OAUTH_REDIRECT_URI?.replace(/\/auth\/callback$/, "") ??
+      "https://shenron.rpbey.fr",
     basePath: "/api/auth",
 
     secret: env.SESSION_SECRET ?? env.API_ADMIN_TOKEN ?? "dev-secret-change-me",
@@ -83,6 +86,9 @@ export function getAuth() {
       useSecureCookies: env.NODE_ENV === "production",
       cookiePrefix: "shenron_ba",
       crossSubDomainCookies: { enabled: false },
+      // Nécessaire quand le bot est derrière un proxy (Fly.io / Nginx)
+      // pour que Better Auth détecte correctement le protocole https
+      trustProxy: true,
     },
 
     // Whitelist : seuls OWNER_ID + OAUTH_ALLOWED_USERS peuvent se connecter.
@@ -110,8 +116,15 @@ export function getAuth() {
       },
     },
 
-    // CORS / origin trust : same-origin uniquement
-    trustedOrigins: ["https://shenron.rpbey.fr"],
+    // CORS / origin trust : autorise le bot lui-même et le site public
+    trustedOrigins: [
+      "https://shenron.rpbey.fr",
+      "https://dbfr.fr",
+      "https://www.dbfr.fr",
+      "https://dbfr.vercel.app",
+      "http://localhost:3000",
+      "http://localhost:5006",
+    ],
   });
 
   return _auth;

@@ -1,26 +1,50 @@
 /**
- * Proxy générique /api/bot-admin/* → shenron bot REST API (Bearer).
- * Sécurise le SHENRON_ADMIN_TOKEN côté server (jamais leak au browser).
- * Refuse l'accès sans session admin (Better Auth + DB User.roleAdmin).
- * Stream les Server-Sent Events sans bufferiser (Content-Type: text/event-stream).
+ * Proxy user-authenticated /api/bot-user/* → shenron bot REST API.
+ *
+ * Diffère du proxy admin (`/api/bot-admin/*`) :
+ *  - Ne nécessite PAS `roleAdmin === true`, juste une session Better Auth valide
+ *  - Ajoute headers HMAC `X-Acting-User`/`X-Acting-Ts`/`X-Acting-Sig` que le
+ *    bot vérifie via `API_USER_SECRET` partagé entre les deux applis
+ *  - Permet à un user normal d'agir sur le bot pour jouer (/games/*),
+ *    récupérer son profil (/me/*), etc.
  */
-import { isCurrentUserAdmin } from "@/lib/session";
+import { getCurrentUser } from "@/lib/session";
 import { env } from "@/lib/env";
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "node:crypto";
 
 const API = env.SHENRON_API_URL;
-const TOKEN = env.SHENRON_ADMIN_TOKEN ?? "";
+const USER_SECRET = env.SHENRON_USER_SECRET ?? "";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function signActing(discordId: string): {
+	ts: string;
+	sig: string;
+} {
+	const ts = String(Date.now());
+	const sig = createHmac("sha256", USER_SECRET)
+		.update(`${discordId}:${ts}`)
+		.digest("hex");
+	return { ts, sig };
+}
 
 async function proxy(
 	req: NextRequest,
 	ctx: { params: Promise<{ path: string[] }> },
 ) {
-	if (!(await isCurrentUserAdmin())) {
-		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+	const me = await getCurrentUser();
+	if (!me?.discordId) {
+		return NextResponse.json({ error: "Login requis" }, { status: 401 });
 	}
+	if (!USER_SECRET) {
+		return NextResponse.json(
+			{ error: "SHENRON_USER_SECRET non configuré côté site" },
+			{ status: 500 },
+		);
+	}
+
 	const { path } = await ctx.params;
 	const url = `${API}/api/${path.join("/")}${req.nextUrl.search}`;
 	const body =
@@ -28,22 +52,22 @@ async function proxy(
 			? undefined
 			: await req.text().catch(() => undefined);
 
-	const accept = req.headers.get("accept") ?? "application/json";
+	const { ts, sig } = signActing(me.discordId);
 	const res = await fetch(url, {
 		method: req.method,
 		body,
 		headers: {
-			authorization: `Bearer ${TOKEN}`,
 			"content-type": req.headers.get("content-type") ?? "application/json",
-			accept,
+			accept: req.headers.get("accept") ?? "application/json",
+			"x-acting-user": me.discordId,
+			"x-acting-ts": ts,
+			"x-acting-sig": sig,
 		},
 		cache: "no-store",
 		signal: req.signal,
 	});
 
 	const ct = res.headers.get("content-type") ?? "application/json";
-
-	// SSE / streaming : forward le body tel quel, headers no-buffer
 	if (ct.includes("text/event-stream") && res.body) {
 		return new NextResponse(res.body, {
 			status: res.status,
@@ -55,7 +79,6 @@ async function proxy(
 			},
 		});
 	}
-
 	const text = await res.text();
 	return new NextResponse(text, {
 		status: res.status,

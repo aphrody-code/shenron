@@ -1,15 +1,23 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 async function requireAdmin() {
-	const session = await auth();
-	if (!session?.user) redirect("/api/auth/signin");
-	const discordId = (session.user as { id?: string }).id;
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	});
+	if (!session?.user) redirect("/api/auth/signin/social/discord");
+	
+	const account = await db.query.baAccount.findFirst({
+		where: (acc, { eq }) => eq(acc.userId, session.user.id),
+	});
+	
+	const discordId = account?.accountId;
 	const user = await db.query.users.findFirst({
 		where: (u, { eq }) => eq(u.discordId, discordId ?? ""),
 	});

@@ -66,3 +66,7 @@ __pycache__/
 .coord/memory/
 .gemini/tmp/
 .vercel
+
+# AI agents skills cache (better-auth, etc.)
+.agents/
+skills-lock.json

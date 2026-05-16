@@ -1,14 +1,9 @@
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProfilMePage() {
-	const session = await auth();
-	if (!session?.user) redirect("/api/auth/signin?callbackUrl=/profil/me");
-	const discordId =
-		(session.user as { id?: string; discordId?: string }).discordId ??
-		(session.user as { id?: string }).id;
-	if (!discordId) redirect("/");
-	redirect(`/profil/${discordId}`);
+	const me = await requireUser("/profil/me");
+	redirect(`/profil/${me.discordId}`);
 }

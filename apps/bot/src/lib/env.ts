@@ -90,6 +90,11 @@ const schema = z.object({
 	API_PORT: z.coerce.number().int().min(1).max(65535).default(5006),
 	API_HOST: z.string().default("127.0.0.1"),
 	API_ADMIN_TOKEN: z.string().min(16).optional(), // bearer token requis sur les routes /bot, /database, /stats, /health/monitoring|/logs
+	// Shared secret entre site Next et bot pour les routes user-authentifiées
+	// (`/api/games/*`, `/api/me/*`). Le site signe `discordId` via HMAC-SHA256
+	// et le bot vérifie. Permet au site d'agir au nom d'un user sans qu'un
+	// utilisateur browser puisse forger l'identité.
+	API_USER_SECRET: z.string().min(32).optional(),
 	API_ENABLED: z.coerce.boolean().default(true),
 
 	// OAuth2 Discord (login dashboard)
@@ -115,6 +120,7 @@ const schema = z.object({
 				: [],
 		),
 	SESSION_SECRET: z.string().min(32).optional(),
+	BETTER_AUTH_URL: z.string().url().optional(),
 
 	JAIL_ROLE_ID: z.string().optional(),
 	URL_IN_BIO_ROLE_ID: z.string().optional(),
