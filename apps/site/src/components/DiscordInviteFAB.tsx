@@ -3,43 +3,49 @@
 import { useEffect, useState } from "react";
 
 export function DiscordInviteFAB() {
-  const [isVisible, setIsVisible] = useState(false);
+	const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
-    const dismissed = localStorage.getItem("dbfr_fab_dismissed");
-    if (!dismissed) {
-      setIsVisible(true);
-    }
-  }, []);
+	useEffect(() => {
+		const dismissed = localStorage.getItem("dbfr_fab_dismissed");
+		if (!dismissed) setIsVisible(true);
+	}, []);
 
-  if (!isVisible) return null;
+	if (!isVisible) return null;
 
-  const handleDismiss = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    localStorage.setItem("dbfr_fab_dismissed", "true");
-    setIsVisible(false);
-  };
+	const handleDismiss = (e: React.MouseEvent) => {
+		e.stopPropagation();
+		e.preventDefault();
+		localStorage.setItem("dbfr_fab_dismissed", "true");
+		setIsVisible(false);
+	};
 
-  const inviteUrl = process.env.NEXT_PUBLIC_DISCORD_INVITE_URL || "https://discord.gg/votre_invite_ici";
+	const inviteUrl =
+		process.env.NEXT_PUBLIC_DISCORD_INVITE_URL ??
+		"https://discord.gg/votre_invite_ici";
 
-  return (
-    <div className="fixed bottom-4 right-4 md:bottom-8 md:right-8 z-50">
-      <a
-        href={inviteUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="dbz-button inline-flex items-center gap-3 !px-4 !py-3 hover:scale-105"
-      >
-        <span className="text-xl md:text-2xl mt-1">REJOINDRE LE DISCORD</span>
-        <button
-          onClick={handleDismiss}
-          className="absolute -top-3 -right-3 w-8 h-8 bg-dbz-bg border-2 border-dbz-orange text-dbz-orange flex items-center justify-center font-sans font-black text-sm hover:bg-dbz-orange hover:text-white transition-colors"
-          title="Fermer"
-        >
-          X
-        </button>
-      </a>
-    </div>
-  );
+	return (
+		<div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50">
+			<div className="relative inline-block">
+				<button
+					type="button"
+					onClick={handleDismiss}
+					aria-label="Fermer"
+					className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-dbz-bg border border-dbz-border hover:border-fuchsia-400 text-white/70 hover:text-white flex items-center justify-center text-xs leading-none transition-colors z-10"
+				>
+					×
+				</button>
+				<a
+					href={inviteUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="dbz-button !py-2.5 !px-4 inline-flex items-center gap-2.5 !text-xs md:!text-sm"
+				>
+					<svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden>
+						<path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.07.07 0 0 0-.073.035 13.86 13.86 0 0 0-.61 1.255 18.27 18.27 0 0 0-5.488 0 12.51 12.51 0 0 0-.617-1.255.07.07 0 0 0-.073-.035A19.74 19.74 0 0 0 3.687 4.37a.06.06 0 0 0-.03.025C.533 9.046-.32 13.58.099 18.06a.08.08 0 0 0 .03.054 19.9 19.9 0 0 0 5.993 3.03.07.07 0 0 0 .078-.027 14.27 14.27 0 0 0 1.226-1.994.07.07 0 0 0-.038-.097 13.11 13.11 0 0 1-1.872-.892.07.07 0 0 1-.008-.118c.126-.094.252-.192.372-.291a.07.07 0 0 1 .07-.01c3.927 1.793 8.18 1.793 12.062 0a.07.07 0 0 1 .072.01c.12.1.245.198.372.292a.07.07 0 0 1-.006.118 12.3 12.3 0 0 1-1.873.891.07.07 0 0 0-.037.098 16.04 16.04 0 0 0 1.225 1.994.07.07 0 0 0 .078.028 19.84 19.84 0 0 0 6.002-3.03.08.08 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.665a.06.06 0 0 0-.029-.025zM8.02 15.331c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.212 0 2.176 1.094 2.157 2.418 0 1.334-.955 2.42-2.157 2.42zm7.974 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.212 0 2.176 1.094 2.157 2.418 0 1.334-.945 2.42-2.157 2.42z" />
+					</svg>
+					<span>Rejoindre le Discord</span>
+				</a>
+			</div>
+		</div>
+	);
 }

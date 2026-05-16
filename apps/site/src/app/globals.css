@@ -10,27 +10,41 @@
   --font-sans: var(--font-sans);
   --font-saiyan: var(--font-saiyan);
   --font-scouter: var(--font-scouter);
-  
-  --color-dbz-orange: #FF7300;
-  --color-dbz-orange-dark: #E55A00;
-  --color-dbz-blue: #0B3088;
-  --color-dbz-blue-light: #1C55C0;
-  --color-dbz-yellow: #FFEA00;
-  --color-dbz-bg: #050a15;
-  --color-dbz-card: #0a1128;
-  --color-dbz-border: #142850;
+
+  /* === Palette galactique (les tokens dbz-* gardent leur nom pour préserver
+        les class names existantes mais pointent vers la palette nébuleuse) ===
+        bg     = void absolu
+        card   = surface panneau nuit
+        border = indigo deep
+        violet primary = accent principal (boutons, headings)
+        cyan secondary = accent secondaire (liens, info)
+        lavande accent = highlight subtil (étoiles, stats)               */
+  --color-dbz-bg: #04050f;            /* void */
+  --color-dbz-card: #0a0d1c;          /* surface nuit */
+  --color-dbz-border: #1f1b3a;        /* indigo deep */
+  --color-dbz-orange: #a855f7;        /* violet 500 = primary */
+  --color-dbz-orange-dark: #7c3aed;   /* violet 600 = press */
+  --color-dbz-blue: #1e1b4b;          /* indigo 950 */
+  --color-dbz-blue-light: #38bdf8;    /* cyan electric = secondary */
+  --color-dbz-yellow: #c4b5fd;        /* lavande star = accent */
+
+  /* Gradients réutilisables */
+  --gradient-galactic: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  --gradient-nebula: radial-gradient(ellipse at top, rgba(168, 85, 247, 0.25), transparent 60%),
+                     radial-gradient(ellipse at bottom right, rgba(56, 189, 248, 0.18), transparent 55%),
+                     radial-gradient(ellipse at bottom left, rgba(236, 72, 153, 0.12), transparent 50%);
 
   --color-primary: var(--color-dbz-orange);
   --color-primary-foreground: #ffffff;
   --color-secondary: var(--color-dbz-blue-light);
   --color-secondary-foreground: #ffffff;
   --color-muted: var(--color-dbz-card);
-  --color-muted-foreground: #8aa4d6;
+  --color-muted-foreground: #a5b4fc;
   --color-accent: var(--color-dbz-yellow);
-  --color-accent-foreground: #000000;
+  --color-accent-foreground: #04050f;
   --color-border: var(--color-dbz-border);
   --color-ring: var(--color-dbz-orange);
-  
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -38,9 +52,9 @@
 }
 
 :root, .dark {
-  --background: #050a15;
-  --foreground: #f0f4f8;
-  --radius: 0; /* Pixel perfect retro style often means 0 or very small radius */
+  --background: #04050f;
+  --foreground: #e0e7ff;
+  --radius: 0.5rem;
 }
 
 @layer base {
@@ -49,31 +63,278 @@
   }
   body {
     @apply bg-dbz-bg text-foreground;
+    background-image: var(--gradient-nebula);
+    background-attachment: fixed;
   }
   html {
     @apply font-sans;
     color-scheme: dark;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-saiyan tracking-wider font-normal text-white;
+    @apply font-saiyan tracking-wider font-normal;
+    color: #f0f0ff;
+  }
+  ::selection {
+    background: rgba(168, 85, 247, 0.4);
+    color: #fff;
   }
 }
 
 @layer utilities {
+  /* === Surface panneau galactique === */
   .dbz-panel {
-    @apply bg-dbz-card border-2 border-dbz-blue-light/50 relative;
-    box-shadow: 4px 4px 0px rgba(11, 48, 136, 0.8);
+    @apply bg-dbz-card/80 backdrop-blur-sm border border-dbz-border relative;
+    box-shadow:
+      0 0 0 1px rgba(168, 85, 247, 0.08),
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border-radius: 0.75rem;
+    transition: border-color 0.25s, box-shadow 0.25s;
   }
   .dbz-panel:hover {
-    @apply border-dbz-orange;
-    box-shadow: 4px 4px 0px rgba(255, 115, 0, 0.8);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow:
+      0 0 0 1px rgba(168, 85, 247, 0.25),
+      0 12px 48px rgba(168, 85, 247, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
+
+  /* === Bouton signature gradient violet→cyan === */
   .dbz-button {
-    @apply font-saiyan text-2xl uppercase tracking-widest bg-dbz-orange text-white border-b-4 border-dbz-orange-dark active:border-b-0 active:translate-y-1 transition-all px-6 py-2;
-    text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+    @apply font-sans font-bold uppercase tracking-widest text-white px-6 py-3 inline-flex items-center justify-center transition-all relative overflow-hidden;
+    background: var(--gradient-galactic);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
+    border-radius: 0.5rem;
+    box-shadow:
+      0 4px 16px rgba(99, 102, 241, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.12em;
+    font-size: 0.95rem;
   }
+  .dbz-button:hover {
+    background-position: 100% 50%;
+    box-shadow:
+      0 6px 24px rgba(168, 85, 247, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+  .dbz-button:active {
+    transform: translateY(1px);
+    box-shadow:
+      0 2px 8px rgba(99, 102, 241, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  .dbz-button-ghost {
+    @apply font-sans font-semibold uppercase tracking-widest px-5 py-2.5 inline-flex items-center justify-center transition-all border;
+    background: rgba(168, 85, 247, 0.06);
+    color: #c4b5fd;
+    border-color: rgba(168, 85, 247, 0.3);
+    border-radius: 0.5rem;
+  }
+  .dbz-button-ghost:hover {
+    background: rgba(168, 85, 247, 0.18);
+    border-color: rgba(168, 85, 247, 0.6);
+    color: #fff;
+  }
+
+  /* === Texte stylé === */
   .scouter-text {
     @apply font-scouter text-dbz-yellow tracking-widest uppercase;
-    text-shadow: 0 0 5px rgba(255, 234, 0, 0.5);
+    text-shadow: 0 0 8px rgba(196, 181, 253, 0.6);
+  }
+  .text-galactic {
+    background: var(--gradient-galactic);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* === HUD admin (re-théé violet) === */
+  .hud-scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      rgba(168, 85, 247, 0.04) 2px,
+      rgba(168, 85, 247, 0.04) 3px
+    );
+  }
+  .hud-grid {
+    background-image:
+      linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(168, 85, 247, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .hud-frame {
+    position: relative;
+  }
+  .hud-frame::before,
+  .hud-frame::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--color-dbz-yellow);
+    border-style: solid;
+  }
+  .hud-frame::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+  }
+  .hud-frame::after {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 2px 2px 0;
+  }
+  .led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 8px #38bdf8, 0 0 16px rgba(56, 189, 248, 0.5);
+    animation: led-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes led-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  @keyframes hud-sweep {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .hud-sweep::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(168, 85, 247, 0.08) 50%,
+      transparent 100%
+    );
+    animation: hud-sweep 6s linear infinite;
+  }
+
+  /* === Manga FX réutilisés (recolored) === */
+  .halftone {
+    background-image: radial-gradient(
+      rgba(168, 85, 247, 0.18) 1px,
+      transparent 1.5px
+    );
+    background-size: 4px 4px;
+  }
+  .halftone-orange {
+    background-image: radial-gradient(
+      rgba(56, 189, 248, 0.25) 1px,
+      transparent 1.6px
+    );
+    background-size: 5px 5px;
+  }
+  .speed-lines {
+    background: repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      transparent 0deg,
+      transparent 4deg,
+      rgba(168, 85, 247, 0.3) 4deg,
+      rgba(168, 85, 247, 0.3) 4.4deg
+    );
+    -webkit-mask-image: radial-gradient(circle at center, transparent 28%, black 70%);
+    mask-image: radial-gradient(circle at center, transparent 28%, black 70%);
+  }
+  .sunburst {
+    background: repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      #a855f7 0deg,
+      #a855f7 6deg,
+      #38bdf8 6deg,
+      #38bdf8 12deg
+    );
+  }
+  .ink-edge {
+    clip-path: polygon(0 0, 100% 0, 99% 100%, 0 98%, 0 4%);
+  }
+  .title-jagged {
+    font-family: var(--font-saiyan);
+    background: var(--gradient-galactic);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.5))
+            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+    letter-spacing: 0.04em;
+  }
+  @keyframes ki-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.04); opacity: 1; }
+  }
+  .ki-pulse { animation: ki-pulse 2.4s ease-in-out infinite; }
+
+  @keyframes burst-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .spin-slow { animation: burst-spin 60s linear infinite; }
+  .spin-reverse { animation: burst-spin 90s linear infinite reverse; }
+
+  /* === Editorial === */
+  .kata-vert {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.1em;
+  }
+  .link-underline {
+    position: relative;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--gradient-galactic);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+  .link-underline:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* === Starfield === */
+  .starfield {
+    background-image:
+      radial-gradient(1px 1px at 25% 12%, rgba(255, 255, 255, 0.9), transparent),
+      radial-gradient(1px 1px at 70% 28%, rgba(168, 85, 247, 0.8), transparent),
+      radial-gradient(1px 1px at 15% 45%, rgba(255, 255, 255, 0.7), transparent),
+      radial-gradient(2px 2px at 88% 60%, rgba(56, 189, 248, 0.9), transparent),
+      radial-gradient(1px 1px at 40% 75%, rgba(255, 255, 255, 0.6), transparent),
+      radial-gradient(1px 1px at 60% 92%, rgba(196, 181, 253, 0.8), transparent),
+      radial-gradient(1px 1px at 92% 18%, rgba(255, 255, 255, 0.5), transparent),
+      radial-gradient(1px 1px at 5% 70%, rgba(236, 72, 153, 0.7), transparent),
+      radial-gradient(1px 1px at 50% 5%, rgba(255, 255, 255, 0.4), transparent),
+      radial-gradient(1px 1px at 33% 33%, rgba(168, 85, 247, 0.5), transparent);
+    background-size: 600px 600px;
+    background-repeat: repeat;
+  }
+  @keyframes star-drift {
+    from { background-position: 0 0; }
+    to { background-position: 600px 600px; }
+  }
+  .starfield-anim {
+    animation: star-drift 240s linear infinite;
+  }
+
+  /* === Nebula glow utility === */
+  .glow-violet {
+    box-shadow: 0 0 24px rgba(168, 85, 247, 0.4),
+                0 0 48px rgba(168, 85, 247, 0.2);
+  }
+  .glow-cyan {
+    box-shadow: 0 0 24px rgba(56, 189, 248, 0.4),
+                0 0 48px rgba(56, 189, 248, 0.2);
   }
 }

@@ -22,7 +22,7 @@ export default async function WikiLayout({
 					<div className="space-y-4">
 						<Link
 							href="/wiki"
-							className="text-xl font-bold hover:text-[#4a5cff] transition-colors block"
+							className="text-xl font-bold hover:text-fuchsia-400 transition-colors block"
 						>
 							Wiki DBFR
 						</Link>
@@ -54,7 +54,7 @@ export default async function WikiLayout({
 										<span className="text-xs text-gray-500 block mb-1">
 											{subCat.name}
 										</span>
-										<ul className="space-y-1 border-l border-[#1a0d2e] pl-3">
+										<ul className="space-y-1 border-l border-dbz-border pl-3">
 											{subCat.pages.map((page: any) => (
 												<li key={page.id}>
 													<Link

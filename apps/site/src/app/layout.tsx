@@ -37,8 +37,20 @@ export default function RootLayout({
 			<body
 				className={`${inter.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
-				{/* Pixel pattern overlay */}
-				<div className="fixed inset-0 z-[-1] pointer-events-none opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMwMDAiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjM2IzYjNiIi8+PC9zdmc+')] mix-blend-overlay"></div>
+				{/* Starfield drift cosmique — fixe en arrière-plan */}
+				<div
+					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-70"
+					aria-hidden
+				/>
+				{/* Nébuleuse violet+cyan additive */}
+				<div
+					className="fixed inset-0 z-[-1] pointer-events-none opacity-50"
+					style={{
+						background:
+							"radial-gradient(ellipse 60% 40% at 20% 10%, rgba(168,85,247,0.22), transparent 60%), radial-gradient(ellipse 55% 35% at 80% 90%, rgba(56,189,248,0.18), transparent 60%), radial-gradient(ellipse 40% 30% at 90% 30%, rgba(236,72,153,0.10), transparent 60%)",
+					}}
+					aria-hidden
+				/>
 				<SiteNav />
 				<main className="relative z-10 flex-1 w-full flex flex-col">
 					{children}

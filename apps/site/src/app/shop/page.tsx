@@ -44,7 +44,7 @@ export default async function ShopPage() {
 			<header className="text-center mb-12">
 				<h1
 					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(229, 90, 0, 0.8)" }}
+					style={{ textShadow: "4px 4px 0px rgba(168, 85, 247, 0.6), 0 0 24px rgba(56, 189, 248, 0.3)" }}
 				>
 					BOUTIQUE SHENRON
 				</h1>

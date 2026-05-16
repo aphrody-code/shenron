@@ -35,7 +35,7 @@ export default async function WikiPage({
 			<div className="prose prose-invert max-w-none">
 				<ReactMarkdown remarkPlugins={[remarkGfm]}>{page.body}</ReactMarkdown>
 			</div>
-			<div className="mt-16 pt-8 border-t border-[#1a0d2e] text-xs text-gray-500">
+			<div className="mt-16 pt-8 border-t border-dbz-border text-xs text-gray-500">
 				Dernière mise à jour le{" "}
 				{new Date(page.updatedAt).toLocaleDateString("fr-FR")}
 			</div>
