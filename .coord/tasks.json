@@ -108,7 +108,7 @@
     {
       "id": "shenron-06-dashboard-role-picker",
       "agent": "claude",
-      "status": "blocked",
+      "status": "done",
       "deps": [
         "shenron-05-api-guild-roles"
       ],
@@ -119,8 +119,9 @@
         "src/dashboard/components/RolePicker.tsx"
       ],
       "acceptance": "<select> peuplé via /api/bots/shenron/guild/roles, remplace input ID brut sur titles/badges/level-rewards.",
-      "blocker": "React UI work cross 3 fichiers — hors budget temps sprint 30min, API backend prete (/api/bots/:id/guild/roles)",
-      "started_at": "2026-05-15T11:08:04Z"
+      "started_at": "2026-05-15T11:08:04Z",
+      "finished_at": "2026-05-16T02:31:12Z",
+      "notes": "Levels.tsx wire RolePicker (/bots/:id/guild/roles); Settings.tsx conserve RoleSelect existant pour role.* keys; cleanup import unused."
     },
     {
       "id": "shenron-07-api-public-user",
