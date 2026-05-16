@@ -61,7 +61,7 @@ export class EconomyService {
   }
 
   // Shop
-  async listShop(type?: "card" | "badge" | "color" | "title") {
+  async listShop(type?: "card" | "badge" | "color" | "title" | "banner") {
     if (type) {
       return this.db.select().from(shopItems).where(and(eq(shopItems.enabled, true), eq(shopItems.type, type)));
     }
@@ -81,7 +81,7 @@ export class EconomyService {
 
   async upsertShopItem(item: {
     key: string;
-    type: "card" | "badge" | "color" | "title";
+    type: "card" | "badge" | "color" | "title" | "banner";
     name: string;
     description?: string | null;
     price: number;
@@ -112,18 +112,18 @@ export class EconomyService {
       });
   }
 
-  async grantItem(userId: string, type: "card" | "badge" | "color" | "title", key: string) {
+  async grantItem(userId: string, type: "card" | "badge" | "color" | "title" | "banner", key: string) {
     await this.ensureUser(userId);
     await this.db.insert(inventory).values({ userId, itemType: type, itemKey: key }).onConflictDoNothing();
   }
 
-  async removeItem(userId: string, type: "card" | "badge" | "color" | "title", key: string) {
+  async removeItem(userId: string, type: "card" | "badge" | "color" | "title" | "banner", key: string) {
     await this.db
       .delete(inventory)
       .where(and(eq(inventory.userId, userId), eq(inventory.itemType, type), eq(inventory.itemKey, key)));
   }
 
-  async ownsItem(userId: string, type: "card" | "badge" | "color" | "title", key: string): Promise<boolean> {
+  async ownsItem(userId: string, type: "card" | "badge" | "color" | "title" | "banner", key: string): Promise<boolean> {
     const row = await this.db.query.inventory.findFirst({
       where: and(eq(inventory.userId, userId), eq(inventory.itemType, type), eq(inventory.itemKey, key)),
     });
@@ -158,7 +158,7 @@ export class EconomyService {
     return this.db.query.users.findFirst({ where: eq(users.id, userId) });
   }
 
-  async setEquipped(userId: string, type: "card" | "badge" | "color" | "title", key: string | null) {
+  async setEquipped(userId: string, type: "card" | "badge" | "color" | "title" | "banner", key: string | null) {
     await this.ensureUser(userId);
     const patch: Record<string, string | null> = {};
     if (type === "card") patch.equippedCard = key;
@@ -168,7 +168,7 @@ export class EconomyService {
     await this.db.update(users).set({ ...patch, updatedAt: new Date() }).where(eq(users.id, userId));
   }
 
-  async equip(userId: string, type: "card" | "badge" | "color" | "title", key: string): Promise<boolean> {
+  async equip(userId: string, type: "card" | "badge" | "color" | "title" | "banner", key: string): Promise<boolean> {
     if (!(await this.ownsItem(userId, type, key))) return false;
     const patch: Record<string, string | null> = {};
     if (type === "card") patch.equippedCard = key;

@@ -21,6 +21,7 @@ export interface ShenronUser {
 		badge: string | null;
 		color: string | null;
 		title: string | null;
+		banner?: string | null;
 	};
 	achievements: Array<{ code: string; unlockedAt: string | number }>;
 	inventory: Array<{ type: string; key: string }>;
@@ -33,11 +34,12 @@ export interface ShenronUser {
 
 export interface ShenronShopItem {
 	key: string;
-	type: "card" | "badge" | "color" | "title";
+	type: "card" | "badge" | "color" | "title" | "banner";
 	name: string;
 	description: string | null;
 	price: number;
 	roleId: string | null;
+	preview?: string; // URL relative CDN site (ex: /banners/banner-01.jpg)
 }
 
 export interface LeaderboardEntry {

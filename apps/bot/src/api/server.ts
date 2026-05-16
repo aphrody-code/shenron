@@ -1049,12 +1049,39 @@ export class ApiServer {
 							};
 						}
 
-						// Banner URL absolue pour le site : carte équipée → route asset
-						// du serveur, sinon null pour fallback gradient frontend.
-						const apiBase = process.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
-						const bannerUrl = user.equippedCard
-							? `${apiBase}/assets/cards/${encodeURIComponent(user.equippedCard)}.png`
-							: null;
+						// Bannière : priorité 1) banner explicitement équipé via /inventaire equip,
+						// 2) bannière du level reward atteint, 3) carte équipée legacy, 4) null.
+						const siteBase =
+							process.env.SITE_PUBLIC_URL ?? "https://dbfr.vercel.app";
+						let bannerUrl: string | null = null;
+						if (user.equippedBanner) {
+							// Lookup via shop_items.meta.bannerPath
+							const banItem = await dbs.db.query.shopItems.findFirst({
+								where: (s, { eq: e }) => e(s.key, user.equippedBanner ?? ""),
+							});
+							if (banItem?.meta) {
+								try {
+									const m = JSON.parse(banItem.meta) as { bannerPath?: string };
+									if (m.bannerPath) {
+										const f = m.bannerPath.split("/").pop();
+										if (f) bannerUrl = `${siteBase}/banners/${f}`;
+									}
+								} catch {}
+							}
+						}
+						if (!bannerUrl && level >= 1) {
+							const lr = await dbs.db.query.levelRewards.findFirst({
+								where: (l, { eq: e }) => e(l.level, level),
+							});
+							if (lr?.bannerUrl) {
+								const f = lr.bannerUrl.split("/").pop();
+								if (f) bannerUrl = `${siteBase}/banners/${f}`;
+							}
+						}
+						if (!bannerUrl && user.equippedCard) {
+							const apiBase = process.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+							bannerUrl = `${apiBase}/assets/cards/${encodeURIComponent(user.equippedCard)}.png`;
+						}
 
 						return {
 							discordId: user.id,
@@ -1078,6 +1105,7 @@ export class ApiServer {
 								badge: user.equippedBadge,
 								color: user.equippedColor,
 								title: user.equippedTitle,
+								banner: user.equippedBanner,
 							},
 							achievements: ach.map((a) => ({ code: a.code, unlockedAt: a.unlockedAt })),
 							inventory: inv.map((i) => {
@@ -1100,14 +1128,31 @@ export class ApiServer {
 							where: (s, { eq: e }) => e(s.enabled, true),
 						});
 						return {
-							items: items.map((i) => ({
-								key: i.key,
-								type: i.type,
-								name: i.name,
-								description: i.description,
-								price: i.price,
-								roleId: i.roleId,
-							})),
+							items: items.map((i) => {
+								let meta: Record<string, unknown> | undefined;
+								if (i.meta) {
+									try {
+										meta = JSON.parse(i.meta);
+									} catch {
+										meta = undefined;
+									}
+								}
+								// Convertit le bannerPath bot (assets/banners/...) en URL CDN site
+								let preview: string | undefined;
+								if (meta?.bannerPath && typeof meta.bannerPath === "string") {
+									const fname = meta.bannerPath.split("/").pop();
+									if (fname) preview = `/banners/${fname}`;
+								}
+								return {
+									key: i.key,
+									type: i.type,
+									name: i.name,
+									description: i.description,
+									price: i.price,
+									roleId: i.roleId,
+									preview,
+								};
+							}),
 						};
 					}),
 

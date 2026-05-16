@@ -33,6 +33,7 @@ export const users = sqliteTable(
 		equippedBadge: text("equipped_badge"),
 		equippedColor: text("equipped_color"),
 		equippedTitle: text("equipped_title"),
+		equippedBanner: text("equipped_banner"),
 
 		createdAt: integer("created_at", { mode: "timestamp_ms" })
 			.notNull()
@@ -52,7 +53,7 @@ export const inventory = sqliteTable(
 			.notNull()
 			.references(() => users.id, { onDelete: "cascade" }),
 		itemType: text("item_type", {
-			enum: ["card", "badge", "color", "title"],
+			enum: ["card", "badge", "color", "title", "banner"],
 		}).notNull(),
 		itemKey: text("item_key").notNull(),
 		acquiredAt: integer("acquired_at", { mode: "timestamp_ms" })
@@ -69,7 +70,9 @@ export const shopItems = sqliteTable(
 	"shop_items",
 	{
 		key: text("key").primaryKey(),
-		type: text("type", { enum: ["card", "badge", "color", "title"] }).notNull(),
+		type: text("type", {
+			enum: ["card", "badge", "color", "title", "banner"],
+		}).notNull(),
 		name: text("name").notNull(),
 		description: text("description"),
 		price: integer("price").notNull(),

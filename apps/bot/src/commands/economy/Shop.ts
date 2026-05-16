@@ -33,6 +33,7 @@ const TYPE_LABELS = {
 	badge: { label: "Badges", icon: "🎖️" },
 	color: { label: "Couleurs", icon: "🎨" },
 	title: { label: "Titres", icon: "📜" },
+	banner: { label: "Bannières", icon: "🌌" },
 } as const;
 
 type ShopType = keyof typeof TYPE_LABELS;
@@ -118,7 +119,7 @@ export class ShopPanelCommands {
 			});
 			return;
 		}
-		const grouped: Record<ShopType, string[]> = { card: [], badge: [], color: [], title: [] };
+		const grouped: Record<ShopType, string[]> = { card: [], badge: [], color: [], title: [], banner: [] };
 		for (const item of inv) grouped[item.itemType as ShopType].push(item.itemKey);
 		const embed = new EmbedBuilder()
 			.setTitle("✏️ Ton inventaire")
