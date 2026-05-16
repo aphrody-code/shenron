@@ -5,7 +5,7 @@ import { SignInDiscord } from "@/components/SignInDiscord";
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
 	{ href: "/actualites", label: "Blog" },
-	{ href: "/personas", label: "Gardiens" },
+	{ href: "/personas", label: "Bot" },
 	{ href: "/wiki/dragon-ball", label: "Wiki" },
 	{ href: "/leaderboard", label: "Top" },
 	{ href: "/stats", label: "Stats" },
