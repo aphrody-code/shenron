@@ -264,6 +264,8 @@ export const actionLogs = sqliteTable(
 export const dbPlanets = sqliteTable("db_planets", {
 	id: integer("id").primaryKey(),
 	name: text("name").notNull().unique(),
+	nameJa: text("name_ja"), // 漢字/カナ d'AniList
+	nameRomaji: text("name_romaji"), // translittération canon EN
 	image: text("image").notNull(),
 	isDestroyed: integer("is_destroyed", { mode: "boolean" })
 		.notNull()
@@ -276,6 +278,8 @@ export const dbCharacters = sqliteTable(
 	{
 		id: integer("id").primaryKey(),
 		name: text("name").notNull().unique(),
+		nameJa: text("name_ja"), // 孫悟空, ベジータ — natif AniList
+		nameRomaji: text("name_romaji"), // "Son Gokuu", "Vegeta" — canon JP romanisé
 		image: text("image").notNull(), // path local dans assets/dbz/characters/
 		ki: text("ki"),
 		maxKi: text("max_ki"),

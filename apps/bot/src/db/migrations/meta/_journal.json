@@ -43,6 +43,13 @@
       "when": 1778847574164,
       "tag": "0005_wet_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1778920607272,
+      "tag": "0006_woozy_overlord",
+      "breakpoints": true
     }
   ]
 }

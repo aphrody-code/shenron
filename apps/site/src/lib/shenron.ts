@@ -55,6 +55,10 @@ export interface LeaderboardEntry {
 export interface DBCharacter {
 	id: number;
 	name: string;
+	/** Nom japonais natif (孫悟空, ベジータ) — enrichi via AniList */
+	nameJa: string | null;
+	/** Translittération canon (Son Gokuu, Kuririn) — enrichi via AniList */
+	nameRomaji: string | null;
 	image: string;
 	ki: string | null;
 	maxKi: string | null;
@@ -68,6 +72,8 @@ export interface DBCharacter {
 export interface DBPlanet {
 	id: number;
 	name: string;
+	nameJa: string | null;
+	nameRomaji: string | null;
 	image: string;
 	isDestroyed: boolean;
 	description: string | null;

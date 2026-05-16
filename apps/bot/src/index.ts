@@ -230,3 +230,28 @@ await Promise.allSettled(
 		}
 	}),
 );
+
+// ── Auto-seed wiki si DB vide (self-healing après perte bot.db) ─────────
+// Non-bloquant : tourne en background après boot, idempotent (skip si seedé).
+// Évite que les endpoints `/api/public/wiki/*` répondent `{characters: []}`
+// après un recovery comme commit 8d9fc49.
+void (async () => {
+	try {
+		const { runWikiSeed } = await import("~/db/seed-wiki");
+		const result = await runWikiSeed({
+			log: (m) => logger.info({ subsystem: "wiki-seed" }, m),
+		});
+		if (!result.skipped) {
+			logger.info(
+				{
+					planets: result.planets,
+					characters: result.characters,
+					transformations: result.transformations,
+				},
+				"wiki auto-seeded on boot",
+			);
+		}
+	} catch (err) {
+		logger.warn({ err }, "wiki auto-seed failed (non-fatal)");
+	}
+})();
