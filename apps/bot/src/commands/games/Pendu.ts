@@ -316,9 +316,10 @@ export class PenduCommand {
     const lossPenalty = stake ?? defaultLoss;
     const maxErrors = await this.maxErrors();
 
+    const challengeTimeoutMs = await this.settings.getInt("game.challenge_timeout_ms", 5 * 60_000);
     const collector = followUpChannel.createMessageCollector({
       filter: (m: Message) => allowed.has(m.author.id) && /^[a-zA-Z]{1,32}$/.test(m.content.trim()),
-      time: 5 * 60_000,
+      time: challengeTimeoutMs,
     });
 
     const finishWin = async (winnerId: string) => {

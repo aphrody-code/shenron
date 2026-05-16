@@ -119,12 +119,17 @@ export class TicketCommands {
       }
       return;
     }
+    const closeDelayMs = await (await import("tsyringe")).container
+      .resolve((await import("~/services/SettingsService")).SettingsService)
+      .getInt("game.ticket.close_delay_ms", 10_000)
+      .catch(() => 10_000);
+    const closeSec = Math.round(closeDelayMs / 1000);
     if (interaction.isRepliable()) {
-      await interaction.reply({ content: `🔒 Ticket fermé par <@${interaction.user.id}>. Suppression dans 10 secondes…` });
+      await interaction.reply({ content: `🔒 Ticket fermé par <@${interaction.user.id}>. Suppression dans ${closeSec} secondes…` });
     }
     setTimeout(async () => {
       await (interaction.channel as TextChannel).delete().catch(() => {});
-    }, 10_000);
+    }, closeDelayMs);
 
     const embed = this.logs.makeEmbed("Ticket fermé", 0x6b7280)
       .addFields({ name: "Fermé par", value: `<@${interaction.user.id}>` }, { name: "Salon", value: `#${(interaction.channel as TextChannel).name}` });

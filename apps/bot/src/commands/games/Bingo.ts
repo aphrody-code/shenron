@@ -196,11 +196,12 @@ export class BingoCommand {
   private async runDuel(interaction: ButtonInteraction, challenge: PendingChallenge) {
     if (!interaction.channel || !("createMessageCollector" in interaction.channel)) return;
     const followUpChannel = interaction.channel;
+    const challengeTimeoutMs = await this.settings.getInt("game.challenge_timeout_ms", 5 * 60_000);
     const collector = followUpChannel.createMessageCollector({
       filter: (m: Message) =>
         (m.author.id === challenge.challengerId || m.author.id === challenge.opponentId) &&
         /^\d+$/.test(m.content),
-      time: 5 * 60_000,
+      time: challengeTimeoutMs,
     });
     collector.on("collect", async (m) => {
       const guess = parseInt(m.content, 10);

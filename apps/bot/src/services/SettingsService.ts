@@ -108,8 +108,26 @@ export const SETTINGS_KEYS: SettingDef[] = [
 
 	// ── Tuning jeux ────────────────────────────────────────────────
 	{ key: "game.bingo.limit_ms", type: "int", category: "advanced", description: "Durée max d'un bingo (ms)", default: 60_000, min: 10_000 },
+	{ key: "game.bingo.min", type: "int", category: "advanced", description: "Valeur min du bingo", default: 1, min: 1, max: 1000 },
+	{ key: "game.bingo.max", type: "int", category: "advanced", description: "Valeur max du bingo", default: 100, min: 10, max: 10000 },
 	{ key: "game.morpion.ttl_ms", type: "int", category: "advanced", description: "TTL d'une partie de morpion inactive (ms)", default: 300_000, min: 30_000 },
 	{ key: "game.pendu.max_errors", type: "int", category: "advanced", description: "Nb d'erreurs max avant défaite au pendu", default: 6, min: 3, max: 12 },
+	{ key: "game.max_stake", type: "int", category: "advanced", description: "Mise max autorisée tous jeux confondus", default: 1_000_000, min: 1, max: 100_000_000 },
+	{ key: "game.challenge_timeout_ms", type: "int", category: "advanced", description: "Timeout challenge multijoueur (Pendu/Bingo/PFC duel)", default: 300_000, min: 60_000, max: 1_800_000 },
+	{ key: "game.pfc.stake_cleanup_ms", type: "int", category: "advanced", description: "Cleanup auto stake PFC vs-bot inutilisé (ms)", default: 300_000, min: 60_000, max: 600_000 },
+	{ key: "game.ticket.close_delay_ms", type: "int", category: "advanced", description: "Délai avant fermeture effective d'un ticket (ms)", default: 10_000, min: 1_000, max: 60_000 },
+
+	// ── Translate / OCR ──────────────────────────────────────────
+	{ key: "translate.tesseract_timeout_ms", type: "int", category: "advanced", description: "Timeout OCR Tesseract (ms)", default: 30_000, min: 5_000, max: 120_000 },
+	{ key: "translate.libretranslate_timeout_ms", type: "int", category: "advanced", description: "Timeout LibreTranslate (ms)", default: 8_000, min: 1_000, max: 60_000 },
+	{ key: "translate.google_timeout_ms", type: "int", category: "advanced", description: "Timeout Google Translate (ms)", default: 8_000, min: 1_000, max: 60_000 },
+	{ key: "translate.fetch_image_timeout_ms", type: "int", category: "advanced", description: "Timeout fetch image (ms)", default: 10_000, min: 1_000, max: 60_000 },
+	{ key: "translate.max_image_bytes", type: "int", category: "advanced", description: "Taille max image OCR (octets)", default: 10_485_760, min: 100_000, max: 104_857_600 },
+	{ key: "translate.max_chars", type: "int", category: "advanced", description: "Caractères max texte traduit", default: 5_000, min: 100, max: 50_000 },
+	{ key: "translate.lingva_instances", type: "string", category: "advanced", description: "Instances Lingva (CSV ou JSON array)", default: "https://lingva.ml,https://lingva.lunar.icu,https://translate.plausibility.cloud,https://lingva.thedaviddelta.com" },
+
+	// ── API session ────────────────────────────────────────────────
+	{ key: "api.session_ttl_days", type: "int", category: "advanced", description: "TTL session API admin (jours)", default: 7, min: 1, max: 90 },
 
 	// ── Anti-invite / liens ────────────────────────────────────────
 	{ key: "anti_invite.enabled", type: "bool", category: "anti_invite", description: "Activer la détection d'invitations Discord", default: true },

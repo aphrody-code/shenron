@@ -68,8 +68,9 @@ export class PfcCommand {
           return;
         }
         botStakes.set(interaction.user.id, mise);
-        // Auto-cleanup au cas où le user n'utilise pas son button (5 min)
-        setTimeout(() => botStakes.delete(interaction.user.id), 5 * 60_000).unref();
+        // Auto-cleanup au cas où le user n'utilise pas son button (setting éditable)
+        const cleanupMs = await this.settings.getInt("game.pfc.stake_cleanup_ms", 5 * 60_000);
+        setTimeout(() => botStakes.delete(interaction.user.id), cleanupMs).unref();
       } else {
         botStakes.delete(interaction.user.id);
       }
