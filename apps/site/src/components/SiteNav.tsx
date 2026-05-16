@@ -1,7 +1,15 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getCurrentUser } from "@/lib/session";
-import { SignInDiscord } from "@/components/SignInDiscord";
-import { MobileNav } from "@/components/MobileNav";
+
+// Lazy : SignInDiscord (Better Auth client SDK) seulement si non-connecté,
+// MobileNav (état drawer + Better Auth) seulement sur viewport <lg.
+const SignInDiscord = dynamic(() =>
+	import("@/components/SignInDiscord").then((m) => m.SignInDiscord),
+);
+const MobileNav = dynamic(() =>
+	import("@/components/MobileNav").then((m) => m.MobileNav),
+);
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
