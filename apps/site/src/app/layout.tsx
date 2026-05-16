@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Oswald, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
-import { DiscordInviteFAB } from "@/components/DiscordInviteFAB";
+import dynamic from "next/dynamic";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+
+// FAB Discord lazy : composant client gated par localStorage, jamais critical.
+const DiscordInviteFAB = dynamic(() =>
+	import("@/components/DiscordInviteFAB").then((m) => m.DiscordInviteFAB),
+);
 
 // Google Sans Flex — police corps officielle Google, publiée sur Google Fonts
 // (fonts.google.com/specimen/Google+Sans+Flex). Servie en local (TTF v20 de
@@ -46,8 +51,28 @@ const dbScouter = localFont({
 });
 
 export const metadata: Metadata = {
-	title: "DBFR - Dragon Ball FR",
-	description: "Le Hub Communautaire Dragon Ball Z Numéro 1",
+	metadataBase: new URL("https://dbfr.vercel.app"),
+	title: {
+		default: "DBFR — Dragon Ball France",
+		template: "%s — DBFR",
+	},
+	description:
+		"Le portail Dragon Ball en français : wiki, personnages, sagas, films, jeux et actualités anime + manga.",
+	openGraph: {
+		type: "website",
+		locale: "fr_FR",
+		siteName: "DBFR",
+		images: [{ url: "/hero-daima.png", width: 1920, height: 595 }],
+	},
+	twitter: {
+		card: "summary_large_image",
+		images: ["/hero-daima.png"],
+	},
+};
+
+export const viewport = {
+	themeColor: "#0a0a0a",
+	colorScheme: "dark" as const,
 };
 
 export default function RootLayout({
@@ -60,18 +85,9 @@ export default function RootLayout({
 			<body
 				className={`${sansFlex.variable} ${oswald.variable} ${notoJP.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
-				{/* Starfield drift cosmique — fixe en arrière-plan */}
+				{/* Starfield drift cosmique — fixe en arrière-plan, pure CSS */}
 				<div
-					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-70"
-					aria-hidden
-				/>
-				{/* Nébuleuse violet+cyan additive */}
-				<div
-					className="fixed inset-0 z-[-1] pointer-events-none opacity-50"
-					style={{
-						background:
-							"radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,107,26,0.22), transparent 60%), radial-gradient(ellipse 55% 35% at 80% 90%, rgba(75,168,255,0.18), transparent 60%), radial-gradient(ellipse 40% 30% at 90% 30%, rgba(217,33,33,0.10), transparent 60%)",
-					}}
+					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-50"
 					aria-hidden
 				/>
 				<SiteNav />
