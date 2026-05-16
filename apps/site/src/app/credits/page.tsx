@@ -78,8 +78,8 @@ const TECH = [
 	{ name: "Next.js 15", link: "https://nextjs.org" },
 	{ name: "Tailwind CSS v4", link: "https://tailwindcss.com" },
 	{
-		name: "Roboto Flex (Google Fonts)",
-		link: "https://fonts.google.com/specimen/Roboto+Flex",
+		name: "Google Sans Flex (Google Fonts)",
+		link: "https://fonts.google.com/specimen/Google+Sans+Flex",
 	},
 	{
 		name: "Oswald (Google Fonts)",

@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Roboto_Flex, Oswald, Noto_Sans_JP } from "next/font/google";
+import { Oswald, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { DiscordInviteFAB } from "@/components/DiscordInviteFAB";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 
-// Google Sans Flex n'est pas publié sur Google Fonts ; Roboto Flex est
-// l'équivalent public Variable Font maintenu par Google.
-// Roboto Flex = équivalent public Google Sans Flex (variable)
-const sansFlex = Roboto_Flex({
+// Google Sans Flex — police corps officielle Google, publiée sur Google Fonts
+// (fonts.google.com/specimen/Google+Sans+Flex). Servie en local (TTF v20 de
+// fonts.gstatic.com) car next/font/google n'a pas encore Google Sans Flex
+// dans son registry. Variable font avec axes wght+wdth+ital.
+const sansFlex = localFont({
+	src: "../../public/fonts/google-sans-flex.ttf",
 	variable: "--font-sans",
-	subsets: ["latin"],
 	display: "swap",
+	weight: "100 900", // variable axes
 });
 
 // Oswald — police signature du site Dragon Ball officiel (nav + titres)

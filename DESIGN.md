@@ -48,7 +48,7 @@ DMCA, erreurs). Le bleu est un secondaire calme (gris clair `#cdcdcd`).
 | Tier | Police | Usage | Rationale |
 |---|---|---|---|
 | Display | **Oswald** (Google Fonts) | titres, nav, CTAs, labels | police signature `fr.dragon-ball-official.com` — condensée, gras, lisible en uppercase |
-| Body | **Roboto Flex** (Google Fonts variable) | paragraphes, listes, descriptions | équivalent public de Google Sans Flex, variable axes pour fine-tune |
+| Body | **Google Sans Flex** (Google Fonts variable, v20 TTF servie en local) | paragraphes, listes, descriptions | police corps officielle Google, variable axes wght+wdth+ital, publiée sur fonts.google.com/specimen/Google+Sans+Flex (chargée en `localFont` car next/font/google registry ne la liste pas encore) |
 | Japonais | **Noto Sans JP** (Google Fonts) | 漢字, romaji, attaques (Kamehameha) | police officielle DB Site, support katakana + kanji complet |
 
 **Hiérarchie de tailles** (calibrée sur `design.google` × DB Official) :
