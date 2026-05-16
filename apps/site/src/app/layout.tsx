@@ -4,6 +4,7 @@ import { Roboto_Flex, Oswald, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { DiscordInviteFAB } from "@/components/DiscordInviteFAB";
 import { SiteNav } from "@/components/SiteNav";
+import { SiteFooter } from "@/components/SiteFooter";
 
 // Google Sans Flex n'est pas publié sur Google Fonts ; Roboto Flex est
 // l'équivalent public Variable Font maintenu par Google.
@@ -75,6 +76,7 @@ export default function RootLayout({
 				<main className="relative z-10 flex-1 w-full flex flex-col">
 					{children}
 				</main>
+				<SiteFooter />
 				<DiscordInviteFAB />
 			</body>
 		</html>
