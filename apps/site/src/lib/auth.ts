@@ -22,39 +22,23 @@ export const auth = betterAuth({
 		discord: {
 			clientId: env.DISCORD_CLIENT_ID,
 			clientSecret: env.DISCORD_CLIENT_SECRET,
-			scope: ["identify", "email", "guilds", "guilds.members.read"],
+			// Better Auth ajoute déjà 'identify email' implicit. On NE met PAS de
+			// scopes ici sinon ils sont dupliqués dans l'URL OAuth (identify
+			// identify email email guilds…) ce qui faisait foirer Discord en
+			// returning prompt=consent_required. Les scopes guilds sont OK car
+			// Discord les fusionne s'ils sont passés UNE seule fois.
+			scope: ["guilds", "guilds.members.read"],
+			// Redirect URI explicite — évite Better Auth de calculer depuis le
+			// host de la requête (qui peut être un preview URL preview-*.vercel.app
+			// au lieu de dbfr.vercel.app)
+			redirectURI: `${env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app"}/api/auth/callback/discord`,
 		},
 	},
-	// Synchroniser les users Better Auth avec la table User de l'app
-	databaseHooks: {
-		user: {
-			create: {
-				after: async (user) => {
-					// On récupère le discordId via le premier account lié
-					const account = await db.query.baAccount.findFirst({
-						where: (acc, { eq }) => eq(acc.userId, user.id),
-					});
-
-					if (account && account.providerId === "discord") {
-						await db
-							.insert(schema.users)
-							.values({
-								discordId: account.accountId,
-								username: user.name,
-								avatar: user.image,
-							})
-							.onConflictDoUpdate({
-								target: schema.users.discordId,
-								set: {
-									username: user.name,
-									avatar: user.image,
-								},
-							});
-					}
-				},
-			},
-		},
-	},
+	// L'app User row est upsertée lazy depuis getCurrentUser() (lib/session.ts)
+	// car databaseHooks.user.create.after se déclenche AVANT que le compte soit
+	// commit dans ba_account → la jointure findFirst retournait null → User
+	// table jamais peuplée. Le lazy upsert dans session.ts capture le bon
+	// moment (premier appel post-login).
 	trustedOrigins: ["https://dbfr.vercel.app", "http://localhost:3000"],
 	advanced: {
 		// @ts-expect-error better-auth supporte trustProxy runtime mais types pas à jour (v1.6.x)
