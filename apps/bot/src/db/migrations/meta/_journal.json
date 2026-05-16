@@ -57,6 +57,13 @@
       "when": 1778929093360,
       "tag": "0007_fluffy_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1778943346994,
+      "tag": "0008_curious_drax",
+      "breakpoints": true
     }
   ]
 }

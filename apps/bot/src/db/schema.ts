@@ -523,3 +523,244 @@ export const baVerification = sqliteTable("ba_verification", {
 	createdAt: integer("created_at", { mode: "timestamp" }),
 	updatedAt: integer("updated_at", { mode: "timestamp" }),
 });
+
+/* ============================================================
+ * DragonBall Universe — extension complète canon
+ * Couvre : races, techniques, sagas, arcs, épisodes, manga,
+ *          films, jeux, news + médias/attribution traçables.
+ * Source de vérité unifiée pour bot + site DBFR.
+ * ========================================================= */
+
+// --- Métadonnées sources/licences ---
+export const dbSources = sqliteTable("db_sources", {
+	id: text("id").primaryKey(), // "dragonball-api", "fandom-fr", "bandai-eu", "jikan", etc.
+	name: text("name").notNull(), // libellé public
+	url: text("url").notNull(),
+	licenseKey: text("license_key").notNull(), // FK db_licenses.key
+	attributionTemplate: text("attribution_template"), // "© Source — {title}" (interpolable)
+});
+
+export const dbLicenses = sqliteTable("db_licenses", {
+	key: text("key").primaryKey(), // "MIT", "CC-BY-SA-3", "FAIR-USE-EDITORIAL", "API-PUBLIC"
+	name: text("name").notNull(),
+	url: text("url"), // lien vers la licence
+	requiresAttribution: integer("requires_attribution", { mode: "boolean" })
+		.notNull()
+		.default(true),
+	shareAlike: integer("share_alike", { mode: "boolean" }).notNull().default(false),
+});
+
+export const dbAssets = sqliteTable(
+	"db_assets",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		path: text("path").notNull().unique(), // path relatif sous public/db/
+		sourceId: text("source_id")
+			.notNull()
+			.references(() => dbSources.id),
+		sourceUrl: text("source_url"), // URL d'origine
+		licenseKey: text("license_key").notNull(),
+		attribution: text("attribution"), // string finale "© Bird Studio / Shueisha"
+		sha256: text("sha256"),
+		mimeType: text("mime_type"),
+		bytes: integer("bytes"),
+		width: integer("width"),
+		height: integer("height"),
+		entityType: text("entity_type"), // "character", "planet", "movie", "game", "news"
+		entityId: integer("entity_id"),
+		role: text("role"), // "thumbnail", "banner", "still", "poster", "logo"
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+	},
+	(t) => [
+		index("idx_db_assets_entity").on(t.entityType, t.entityId),
+		index("idx_db_assets_source").on(t.sourceId),
+	],
+);
+
+// --- Canon Dragon Ball ---
+export const dbRaces = sqliteTable("db_races", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	slug: text("slug").notNull().unique(), // "saiyan", "namekian", "frieza-race"
+	name: text("name").notNull(),
+	nameJa: text("name_ja"),
+	homePlanetId: integer("home_planet_id"),
+	description: text("description"),
+});
+
+export const dbTechniques = sqliteTable(
+	"db_techniques",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		slug: text("slug").notNull().unique(), // "kamehameha", "genkidama"
+		name: text("name").notNull(),
+		nameJa: text("name_ja"),
+		nameRomaji: text("name_romaji"),
+		type: text("type"), // "energy", "physical", "fusion", "transformation-aid"
+		creatorId: integer("creator_id"), // FK db_characters
+		description: text("description"),
+		debutEpisodeId: integer("debut_episode_id"),
+		debutChapterId: integer("debut_chapter_id"),
+	},
+	(t) => [index("idx_db_techniques_creator").on(t.creatorId)],
+);
+
+export const dbCharacterTechniques = sqliteTable(
+	"db_character_techniques",
+	{
+		characterId: integer("character_id").notNull(),
+		techniqueId: integer("technique_id").notNull(),
+	},
+	(t) => [
+		index("idx_db_char_tech_char").on(t.characterId),
+		index("idx_db_char_tech_tech").on(t.techniqueId),
+	],
+);
+
+// --- Narration ---
+export const dbSagas = sqliteTable("db_sagas", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	slug: text("slug").notNull().unique(), // "saiyan", "frieza", "cell", "buu", "tournament-of-power"
+	name: text("name").notNull(),
+	nameJa: text("name_ja"),
+	series: text("series").notNull(), // "DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"
+	orderIdx: integer("order_idx").notNull(),
+	description: text("description"),
+	image: text("image"),
+});
+
+export const dbArcs = sqliteTable(
+	"db_arcs",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		sagaId: integer("saga_id").notNull(),
+		slug: text("slug").notNull().unique(),
+		name: text("name").notNull(),
+		nameJa: text("name_ja"),
+		orderIdx: integer("order_idx").notNull(),
+		description: text("description"),
+	},
+	(t) => [index("idx_db_arcs_saga").on(t.sagaId)],
+);
+
+export const dbEpisodes = sqliteTable(
+	"db_episodes",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		series: text("series").notNull(), // "DB", "DBZ", "DBGT", "DBS", "DB_DAIMA", "DBZ_KAI"
+		numberInSeries: integer("number_in_series").notNull(),
+		title: text("title").notNull(),
+		titleJa: text("title_ja"),
+		titleRomaji: text("title_romaji"),
+		arcId: integer("arc_id"),
+		airDate: integer("air_date", { mode: "timestamp" }),
+		durationSec: integer("duration_sec"),
+		synopsis: text("synopsis"),
+		image: text("image"),
+		malId: integer("mal_id"), // MyAnimeList episode ID (via Jikan)
+	},
+	(t) => [
+		index("idx_db_episodes_series_num").on(t.series, t.numberInSeries),
+		index("idx_db_episodes_arc").on(t.arcId),
+	],
+);
+
+// --- Manga ---
+export const dbMangaVolumes = sqliteTable(
+	"db_manga_volumes",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		series: text("series").notNull(), // "DB", "DBS"
+		volumeNumber: integer("volume_number").notNull(),
+		title: text("title"),
+		titleJa: text("title_ja"),
+		publishedAt: integer("published_at", { mode: "timestamp" }),
+		cover: text("cover"),
+		isbn: text("isbn"),
+	},
+	(t) => [index("idx_db_manga_vol").on(t.series, t.volumeNumber)],
+);
+
+export const dbMangaChapters = sqliteTable(
+	"db_manga_chapters",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		series: text("series").notNull(),
+		chapterNumber: integer("chapter_number").notNull(),
+		title: text("title"),
+		titleJa: text("title_ja"),
+		volumeId: integer("volume_id"),
+		publishedAt: integer("published_at", { mode: "timestamp" }),
+	},
+	(t) => [
+		index("idx_db_manga_chap").on(t.series, t.chapterNumber),
+		index("idx_db_manga_chap_vol").on(t.volumeId),
+	],
+);
+
+// --- Médias dérivés ---
+export const dbMovies = sqliteTable("db_movies", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	slug: text("slug").notNull().unique(),
+	title: text("title").notNull(),
+	titleJa: text("title_ja"),
+	titleRomaji: text("title_romaji"),
+	series: text("series").notNull(), // "DB_MOVIE", "DBZ_MOVIE", "DBS_MOVIE", "DB_DAIMA_MOVIE"
+	releaseDate: integer("release_date", { mode: "timestamp" }),
+	durationMin: integer("duration_min"),
+	synopsis: text("synopsis"),
+	poster: text("poster"),
+	malId: integer("mal_id"),
+	anilistId: integer("anilist_id"),
+});
+
+export const dbGames = sqliteTable("db_games", {
+	id: integer("id").primaryKey({ autoIncrement: true }),
+	slug: text("slug").notNull().unique(),
+	title: text("title").notNull(),
+	titleJa: text("title_ja"),
+	platforms: text("platforms"), // CSV "PS5,XSX,PC,Switch"
+	releaseDate: integer("release_date", { mode: "timestamp" }),
+	publisher: text("publisher").default("Bandai Namco Entertainment"),
+	developer: text("developer"),
+	description: text("description"),
+	cover: text("cover"),
+	officialUrl: text("official_url"),
+});
+
+export const dbGameCharacters = sqliteTable(
+	"db_game_characters",
+	{
+		gameId: integer("game_id").notNull(),
+		characterId: integer("character_id").notNull(),
+	},
+	(t) => [
+		index("idx_db_gc_game").on(t.gameId),
+		index("idx_db_gc_char").on(t.characterId),
+	],
+);
+
+// --- Agrégateur news ---
+export const dbNews = sqliteTable(
+	"db_news",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		sourceId: text("source_id").notNull(),
+		sourceUrl: text("source_url").notNull().unique(),
+		title: text("title").notNull(),
+		titleJa: text("title_ja"),
+		excerpt: text("excerpt"),
+		category: text("category"), // "anime", "manga", "movie", "game", "event", "column"
+		publishedAt: integer("published_at", { mode: "timestamp" }).notNull(),
+		fetchedAt: integer("fetched_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		image: text("image"),
+	},
+	(t) => [
+		index("idx_db_news_published").on(t.publishedAt),
+		index("idx_db_news_source").on(t.sourceId),
+		index("idx_db_news_category").on(t.category),
+	],
+);

@@ -1365,6 +1365,166 @@ export class ApiServer {
 						return planet;
 					}),
 
+				// ── DB Universe étendu (Phase 3) ──────────────────────────
+				"/api/public/wiki/transformations": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const transformations = dbs.sqlite
+							.query("SELECT * FROM db_transformations ORDER BY character_id, id")
+							.all();
+						return { transformations };
+					}),
+
+				"/api/public/wiki/races": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const races = dbs.sqlite
+							.query("SELECT * FROM db_races ORDER BY name")
+							.all();
+						return { races };
+					}),
+
+				"/api/public/wiki/sagas": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const sagas = dbs.sqlite
+							.query("SELECT * FROM db_sagas ORDER BY series, order_idx")
+							.all();
+						return { sagas };
+					}),
+
+				"/api/public/wiki/episodes": (req) =>
+					publicCachedJson(req, 30 * 60_000, async () => {
+						const url = new URL(req.url);
+						const series = url.searchParams.get("series");
+						const limit = Math.min(
+							parseInt(url.searchParams.get("limit") ?? "100", 10),
+							500,
+						);
+						const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+						const dbs = container.resolve(DatabaseService);
+						const sql = series
+							? "SELECT * FROM db_episodes WHERE series = ? ORDER BY number_in_series LIMIT ? OFFSET ?"
+							: "SELECT * FROM db_episodes ORDER BY series, number_in_series LIMIT ? OFFSET ?";
+						const episodes = series
+							? dbs.sqlite.query(sql).all(series, limit, offset)
+							: dbs.sqlite.query(sql).all(limit, offset);
+						const total = series
+							? (dbs.sqlite.query("SELECT COUNT(*) AS n FROM db_episodes WHERE series = ?").get(series) as { n: number }).n
+							: (dbs.sqlite.query("SELECT COUNT(*) AS n FROM db_episodes").get() as { n: number }).n;
+						return { episodes, total, limit, offset };
+					}),
+
+				"/api/public/wiki/movies": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const movies = dbs.sqlite
+							.query("SELECT * FROM db_movies ORDER BY release_date")
+							.all();
+						return { movies };
+					}),
+
+				"/api/public/wiki/games": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const games = dbs.sqlite
+							.query("SELECT * FROM db_games ORDER BY release_date DESC")
+							.all();
+						return { games };
+					}),
+
+				"/api/public/wiki/manga/volumes": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const volumes = dbs.sqlite
+							.query("SELECT * FROM db_manga_volumes ORDER BY series, volume_number")
+							.all();
+						return { volumes };
+					}),
+
+				"/api/public/wiki/search": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const url = new URL(req.url);
+						const q = (url.searchParams.get("q") ?? "").trim();
+						if (q.length < 2) return { results: [], q };
+						const dbs = container.resolve(DatabaseService);
+						// Search both FTS5 (if populated) AND raw LIKE across canonical entities
+						const like = `%${q}%`;
+						const characters = dbs.sqlite
+							.query(
+								"SELECT id, name, name_ja, image, race FROM db_characters WHERE name LIKE ? OR name_ja LIKE ? OR name_romaji LIKE ? LIMIT 20",
+							)
+							.all(like, like, like);
+						const planets = dbs.sqlite
+							.query(
+								"SELECT id, name, name_ja, image FROM db_planets WHERE name LIKE ? OR name_ja LIKE ? LIMIT 10",
+							)
+							.all(like, like);
+						const sagas = dbs.sqlite
+							.query(
+								"SELECT id, slug, name, name_ja, series FROM db_sagas WHERE name LIKE ? OR name_ja LIKE ? LIMIT 10",
+							)
+							.all(like, like);
+						const movies = dbs.sqlite
+							.query(
+								"SELECT id, slug, title, title_ja, series FROM db_movies WHERE title LIKE ? OR title_ja LIKE ? LIMIT 10",
+							)
+							.all(like, like);
+						const games = dbs.sqlite
+							.query(
+								"SELECT id, slug, title, title_ja FROM db_games WHERE title LIKE ? OR title_ja LIKE ? LIMIT 10",
+							)
+							.all(like, like);
+						return { q, characters, planets, sagas, movies, games };
+					}),
+
+				"/api/public/news": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const url = new URL(req.url);
+						const source = url.searchParams.get("source");
+						const limit = Math.min(
+							parseInt(url.searchParams.get("limit") ?? "20", 10),
+							100,
+						);
+						const dbs = container.resolve(DatabaseService);
+						const sql = source
+							? "SELECT * FROM db_news WHERE source_id = ? ORDER BY published_at DESC LIMIT ?"
+							: "SELECT * FROM db_news ORDER BY published_at DESC LIMIT ?";
+						const news = source
+							? dbs.sqlite.query(sql).all(source, limit)
+							: dbs.sqlite.query(sql).all(limit);
+						return { news, limit };
+					}),
+
+				"/api/public/assets": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const url = new URL(req.url);
+						const bucket = url.searchParams.get("bucket"); // path prefix
+						const limit = Math.min(
+							parseInt(url.searchParams.get("limit") ?? "50", 10),
+							200,
+						);
+						const dbs = container.resolve(DatabaseService);
+						const sql = bucket
+							? "SELECT id, path, source_id, attribution, license_key, role FROM db_assets WHERE path LIKE ? ORDER BY id DESC LIMIT ?"
+							: "SELECT id, path, source_id, attribution, license_key, role FROM db_assets ORDER BY id DESC LIMIT ?";
+						const assets = bucket
+							? dbs.sqlite.query(sql).all(`${bucket}%`, limit)
+							: dbs.sqlite.query(sql).all(limit);
+						return { assets };
+					}),
+
+				"/api/public/sources": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const dbs = container.resolve(DatabaseService);
+						const sources = dbs.sqlite
+							.query(
+								"SELECT s.*, l.name AS license_name, l.url AS license_url FROM db_sources s JOIN db_licenses l ON s.license_key = l.key ORDER BY s.id",
+							)
+							.all();
+						return { sources };
+					}),
+
 				// ── Cards profile dynamiques (public, cache 1 h) ──────────────
 				// Le site Vercel peut faire `<img src="/api/public/profile/{id}/card.png"/>`
 				// pour afficher la card profil DBZ. Cache mémoire LRU + ETag +

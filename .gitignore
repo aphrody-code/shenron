@@ -73,3 +73,4 @@ skills-lock.json
 
 # Recon / extraction artefacts (lourd, hors repo)
 reference/
+apps/bot/public/db/
