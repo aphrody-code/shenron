@@ -164,6 +164,50 @@ export async function getShenronPlanet(id: number): Promise<DBPlanet | null> {
 /**
  * URL d'une image profile card générée par le canvas du bot (8 thèmes).
  */
+export interface PersonaInfo {
+	id: string;
+	name: string;
+	username: string | null;
+	avatar: string | null;
+	online: boolean;
+	wsPing: number;
+	intents: number;
+	guildCount: number;
+	commandCount: number;
+}
+
+export interface CommandInfo {
+	name: string;
+	description: string;
+	type: number;
+	options?: Array<{
+		name: string;
+		description?: string;
+		type: number;
+		required?: boolean;
+	}>;
+}
+
+export async function getShenronPersonas(): Promise<PersonaInfo[]> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/personas`, {
+		next: { revalidate: 30 },
+	});
+	if (!res.ok) return [];
+	const data = await res.json();
+	return data.personas || [];
+}
+
+export async function getShenronCommands(): Promise<
+	Record<string, CommandInfo[]>
+> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/commands`, {
+		next: { revalidate: 300 },
+	});
+	if (!res.ok) return {};
+	const data = await res.json();
+	return data.commands || {};
+}
+
 export function getProfileCardUrl(discordId: string, theme?: string): string {
 	const q = theme ? `?theme=${encodeURIComponent(theme)}` : "";
 	return `${SHENRON_API_URL}/api/public/profile/${encodeURIComponent(discordId)}/card.png${q}`;

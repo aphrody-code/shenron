@@ -38,6 +38,7 @@ import { ModerationService } from "~/services/ModerationService";
 import { TicketService } from "~/services/TicketService";
 import { SettingsService } from "~/services/SettingsService";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
+import { PERSONAS, PERSONA_IDS } from "~/lib/personas";
 import { eq, sql, desc, asc, inArray } from "drizzle-orm";
 import {
 	users,
@@ -1235,6 +1236,60 @@ export class ApiServer {
 							shopItems: Number(s?.c ?? 0),
 							inventoryItems: Number(inv?.c ?? 0),
 						};
+					}),
+
+				// ── Personas + Commands publics (mirroring site) ────────────
+				"/api/public/personas": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const clientMap = container.resolve<Map<string, Client>>("ClientMap");
+						const list = [];
+						for (const id of PERSONA_IDS) {
+							const c = clientMap.get(id);
+							const cfg = PERSONAS[id];
+							list.push({
+								id,
+								name: cfg.name,
+								username: c?.user?.username ?? null,
+								avatar: c?.user
+									? `https://cdn.discordapp.com/avatars/${c.user.id}/${c.user.avatar}.webp?size=256`
+									: null,
+								online: c?.isReady() ?? false,
+								wsPing: c?.ws?.ping ?? -1,
+								intents: cfg.intents.length,
+								guildCount: c?.guilds.cache.size ?? 0,
+								commandCount: c
+									? Client.applicationCommands.filter((cmd) =>
+											cmd.isBotAllowed(id),
+										).length
+									: 0,
+							});
+						}
+						return { personas: list };
+					}),
+
+				"/api/public/commands": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const grouped: Record<
+							string,
+							Array<{
+								name: string;
+								description: string;
+								type: number;
+								options?: unknown[];
+							}>
+						> = {};
+						for (const id of PERSONA_IDS) {
+							const cmds = Client.applicationCommands
+								.filter((c) => c.isBotAllowed(id))
+								.map((c) => ({
+									name: c.name,
+									description: c.description ?? "",
+									type: c.type ?? 1,
+									options: c.options as unknown[],
+								}));
+							grouped[id] = cmds;
+						}
+						return { commands: grouped };
 					}),
 
 				// ── Wiki Dragon Ball (cache 1 h — données quasi statiques) ────

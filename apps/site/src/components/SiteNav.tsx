@@ -24,12 +24,15 @@ export async function SiteNav() {
 				<div className="flex gap-2 md:gap-4 text-sm md:text-base flex-1">
 					{[
 						{ href: "/", label: "Blog" },
-						{ href: "/wiki", label: "Wiki" },
-						{ href: "/wiki/dragon-ball", label: "Wiki DBZ" },
+						{ href: "/personas", label: "Personas" },
+						{ href: "/commands", label: "Cmds" },
+						{ href: "/wiki/dragon-ball", label: "Wiki" },
 						{ href: "/leaderboard", label: "Top" },
 						{ href: "/stats", label: "Stats" },
 						{ href: "/shop", label: "Shop" },
-						{ href: "/about", label: "About" },
+						{ href: "/jeux", label: "Jeux" },
+						{ href: "/canvas", label: "Canvas" },
+						{ href: "/api-docs", label: "API" },
 					].map((l) => (
 						<Link
 							key={l.href}

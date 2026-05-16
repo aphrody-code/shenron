@@ -30,12 +30,15 @@ export default async function AdminLayout({
 				<nav className="flex flex-row md:flex-col gap-2 md:gap-2 overflow-x-auto pb-4 md:pb-0">
 					{[
 						{ href: "/admin/dashboard", label: "DASHBOARD" },
-						{ href: "/admin/posts", label: "ARTICLES" },
-						{ href: "/admin/wiki", label: "WIKI" },
+						{ href: "/admin/events", label: "EVENTS LIVE" },
 						{ href: "/admin/cron", label: "CRON" },
 						{ href: "/admin/services", label: "SERVICES" },
 						{ href: "/admin/database", label: "DATABASE" },
 						{ href: "/admin/economy", label: "ECONOMY" },
+						{ href: "/admin/audit", label: "AUDIT" },
+						{ href: "/admin/discord", label: "DISCORD" },
+						{ href: "/admin/posts", label: "ARTICLES" },
+						{ href: "/admin/wiki", label: "WIKI" },
 					].map((l) => (
 						<Link
 							key={l.href}
