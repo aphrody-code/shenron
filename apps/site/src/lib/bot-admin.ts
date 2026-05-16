@@ -348,6 +348,159 @@ export const botAdmin = {
 			planets: number;
 			transformations: number;
 		}>("/api/wiki/stats", { revalidate: 300 }),
+
+	// ─── Mutations (utilisées via Server Actions) ────────────────────────
+	shop: {
+		list: () =>
+			botAdmin.fetch<{
+				items: Array<{
+					key: string;
+					type: "card" | "badge" | "color" | "title" | "banner";
+					name: string;
+					description: string | null;
+					price: number;
+					roleId: string | null;
+					meta: string | null;
+					enabled: boolean;
+				}>;
+			}>("/api/shop", { revalidate: 30 }),
+		create: (
+			body: Record<string, unknown>,
+		): Promise<{ ok: boolean; key?: string; error?: string }> =>
+			botAdmin.fetch("/api/shop", {
+				method: "POST",
+				body: JSON.stringify(body),
+			}),
+		update: (key: string, patch: Record<string, unknown>) =>
+			botAdmin.fetch(`/api/shop/${encodeURIComponent(key)}`, {
+				method: "PUT",
+				body: JSON.stringify(patch),
+			}),
+		toggle: (key: string) =>
+			botAdmin.fetch<{ ok: boolean; enabled: boolean }>(
+				`/api/shop/${encodeURIComponent(key)}`,
+				{ method: "PATCH", body: "{}" },
+			),
+		remove: (key: string) =>
+			botAdmin.fetch(`/api/shop/${encodeURIComponent(key)}`, {
+				method: "DELETE",
+			}),
+	},
+
+	settingsSet: (key: string, value: unknown) =>
+		botAdmin.fetch(`/api/settings/${encodeURIComponent(key)}`, {
+			method: "POST",
+			body: JSON.stringify({ value }),
+		}),
+	settingsUnset: (key: string) =>
+		botAdmin.fetch(`/api/settings/${encodeURIComponent(key)}`, {
+			method: "DELETE",
+		}),
+
+	triggers: {
+		list: () =>
+			botAdmin.fetch<{
+				rows: Array<{
+					code: string;
+					description: string | null;
+					pattern: string;
+					flags: string | null;
+					enabled: boolean;
+				}>;
+			}>("/api/triggers", { revalidate: 30 }),
+		create: (body: {
+			code: string;
+			description?: string | null;
+			pattern: string;
+			flags?: string;
+			enabled?: boolean;
+		}) =>
+			botAdmin.fetch("/api/triggers", {
+				method: "POST",
+				body: JSON.stringify(body),
+			}),
+		update: (code: string, patch: Record<string, unknown>) =>
+			botAdmin.fetch(`/api/triggers/${encodeURIComponent(code)}`, {
+				method: "PUT",
+				body: JSON.stringify(patch),
+			}),
+		remove: (code: string) =>
+			botAdmin.fetch(`/api/triggers/${encodeURIComponent(code)}`, {
+				method: "DELETE",
+			}),
+	},
+
+	moderationActions: {
+		deleteWarn: (id: number) =>
+			botAdmin.fetch(`/api/moderation/warns/${id}`, { method: "DELETE" }),
+		clearWarns: (userId: string) =>
+			botAdmin.fetch(
+				`/api/moderation/warns/clear/${encodeURIComponent(userId)}`,
+				{
+					method: "POST",
+					body: "{}",
+				},
+			),
+		unjail: (userId: string) =>
+			botAdmin.fetch(`/api/moderation/jails/${encodeURIComponent(userId)}`, {
+				method: "DELETE",
+			}),
+		updateHierarchy: (levels: string[][]) =>
+			botAdmin.fetch("/api/moderation/hierarchy", {
+				method: "PUT",
+				body: JSON.stringify({ levels }),
+			}),
+	},
+
+	ticketsClose: (channelId: string) =>
+		botAdmin.fetch(`/api/tickets/${encodeURIComponent(channelId)}/close`, {
+			method: "POST",
+			body: "{}",
+		}),
+
+	cronSetInterval: (name: string, intervalMs: number) =>
+		botAdmin.fetch(`/api/cron/${encodeURIComponent(name)}/interval`, {
+			method: "POST",
+			body: JSON.stringify({ intervalMs }),
+		}),
+
+	webhooksCreate: (body: {
+		channel_id: string;
+		name: string;
+		avatar?: string | null;
+	}) =>
+		botAdmin.fetch("/api/webhooks/create", {
+			method: "POST",
+			body: JSON.stringify(body),
+		}),
+	webhooksDelete: (id: string) =>
+		botAdmin.fetch(`/api/webhooks/${encodeURIComponent(id)}`, {
+			method: "DELETE",
+		}),
+	webhooksExecute: (body: {
+		url: string;
+		content?: string;
+		username?: string;
+		avatar_url?: string;
+		embeds?: unknown[];
+	}) =>
+		botAdmin.fetch("/api/webhooks/execute", {
+			method: "POST",
+			body: JSON.stringify(body),
+		}),
+
+	levelsRewardUpsert: (body: {
+		level: number;
+		roleId: string;
+		xpThreshold: number;
+		zeniBonus?: number;
+	}) =>
+		botAdmin.fetch("/api/levels/rewards", {
+			method: "POST",
+			body: JSON.stringify(body),
+		}),
+	levelsRewardRemove: (level: number) =>
+		botAdmin.fetch(`/api/levels/rewards/${level}`, { method: "DELETE" }),
 };
 
 export const BOT_API_URL = API;

@@ -1,4 +1,5 @@
 import { botAdmin } from "@/lib/bot-admin";
+import { ShopCreateForm, ShopRowActions, ShopPriceCell } from "./ShopForm";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +10,7 @@ type ShopRow = {
 	description: string | null;
 	price: number;
 	roleId: string | null;
-	enabled: number;
+	enabled: number | boolean;
 	meta: string | null;
 };
 
@@ -27,13 +28,14 @@ export default async function AdminShopPage() {
 		<div className="w-full max-w-6xl mx-auto space-y-8">
 			<header>
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					SHOP (admin)
+					SHOP ❯ CRUD
 				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-					{items.length} items configurés · CRUD via{" "}
-					<code className="text-dbz-orange">/admin/database/shop_items</code>
+					{items.length} items · create / edit / toggle / delete
 				</p>
 			</header>
+
+			<ShopCreateForm />
 
 			{Object.entries(byType).map(([type, list]) => (
 				<section key={type}>
@@ -41,7 +43,7 @@ export default async function AdminShopPage() {
 						{type} ({list.length})
 					</h2>
 					<div className="dbz-panel overflow-x-auto">
-						<table className="w-full min-w-[500px] text-xs">
+						<table className="w-full min-w-[600px] text-xs">
 							<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
 								<tr>
 									<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
@@ -57,7 +59,7 @@ export default async function AdminShopPage() {
 										Role / Meta
 									</th>
 									<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-										État
+										Actions
 									</th>
 								</tr>
 							</thead>
@@ -66,18 +68,17 @@ export default async function AdminShopPage() {
 									<tr key={i.key} className="hover:bg-dbz-blue-light/5">
 										<td className="p-2 font-mono text-dbz-orange">{i.key}</td>
 										<td className="p-2 text-white">{i.name}</td>
-										<td className="p-2 text-right font-mono text-dbz-yellow">
-											{i.price} ¥
+										<td className="p-2 text-right font-mono">
+											<ShopPriceCell itemKey={i.key} initial={i.price} />
 										</td>
 										<td className="p-2 font-mono text-[10px] text-gray-400 max-w-xs truncate">
 											{i.roleId ?? i.meta ?? "—"}
 										</td>
 										<td className="p-2 text-right">
-											{i.enabled ? (
-												<span className="text-green-400">●</span>
-											) : (
-												<span className="text-red-400">○</span>
-											)}
+											<ShopRowActions
+												itemKey={i.key}
+												enabled={Boolean(i.enabled)}
+											/>
 										</td>
 									</tr>
 								))}

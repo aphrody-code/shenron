@@ -68,6 +68,7 @@ import {
 	levelRewards,
 	shopItems,
 	achievements,
+	achievementTriggers,
 	inventory,
 	dbCharacters,
 	dbTransformations,
@@ -1972,6 +1973,198 @@ export class ApiServer {
 				"/api/games/pendu/new": {
 					POST: async () =>
 						Response.json({ error: "WIP — UI Pendu round suivant" }, { status: 501 }),
+				},
+
+				// ── Shop CRUD (admin) ─────────────────────────────────────────
+				"/api/shop": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							key?: string;
+							type?: "card" | "badge" | "color" | "title" | "banner";
+							name?: string;
+							description?: string | null;
+							price?: number;
+							role_id?: string | null;
+							meta?: string | null;
+							enabled?: boolean;
+						} | null;
+						if (!body?.key || !body?.type || !body?.name || typeof body.price !== "number") {
+							return Response.json(
+								{ error: "key, type, name, price requis" },
+								{ status: 400 },
+							);
+						}
+						try {
+							const dbs = container.resolve(DatabaseService);
+							await dbs.db.insert(shopItems).values({
+								key: body.key,
+								type: body.type,
+								name: body.name,
+								description: body.description ?? null,
+								price: body.price,
+								roleId: body.role_id ?? null,
+								meta: body.meta ?? null,
+								enabled: body.enabled ?? true,
+							});
+							invalidateJsonCache("/api/shop");
+							return Response.json({ ok: true, key: body.key });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "insert failed" },
+								{ status: 400 },
+							);
+						}
+					}),
+				},
+				"/api/shop/:key": {
+					PUT: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
+						try {
+							const dbs = container.resolve(DatabaseService);
+							const patch: Record<string, unknown> = {};
+							if (typeof body.name === "string") patch.name = body.name;
+							if (typeof body.description === "string" || body.description === null)
+								patch.description = body.description;
+							if (typeof body.price === "number") patch.price = body.price;
+							if (typeof body.role_id === "string" || body.role_id === null) patch.roleId = body.role_id;
+							if (typeof body.meta === "string" || body.meta === null) patch.meta = body.meta;
+							if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
+							if (typeof body.type === "string") patch.type = body.type;
+							await dbs.db.update(shopItems).set(patch).where(eq(shopItems.key, req.params.key));
+							invalidateJsonCache("/api/shop");
+							return Response.json({ ok: true });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "update failed" },
+								{ status: 400 },
+							);
+						}
+					}),
+					DELETE: admin(async (req) => {
+						const dbs = container.resolve(DatabaseService);
+						await dbs.db.delete(shopItems).where(eq(shopItems.key, req.params.key));
+						invalidateJsonCache("/api/shop");
+						return Response.json({ ok: true });
+					}),
+					PATCH: admin(async (req) => {
+						// Toggle enabled
+						const dbs = container.resolve(DatabaseService);
+						const item = await dbs.db.query.shopItems.findFirst({
+							where: eq(shopItems.key, req.params.key),
+						});
+						if (!item) return Response.json({ error: "Item introuvable" }, { status: 404 });
+						await dbs.db
+							.update(shopItems)
+							.set({ enabled: !item.enabled })
+							.where(eq(shopItems.key, req.params.key));
+						invalidateJsonCache("/api/shop");
+						return Response.json({ ok: true, enabled: !item.enabled });
+					}),
+				},
+
+				// ── Settings set/unset ────────────────────────────────────────
+				"/api/settings/:key": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as { value?: unknown } | null;
+						if (!body || body.value === undefined) {
+							return Response.json({ error: "{ value } requis" }, { status: 400 });
+						}
+						const svc = container.resolve(SettingsService);
+						try {
+							const value = typeof body.value === "string" ? body.value : JSON.stringify(body.value);
+							await svc.set(req.params.key, value);
+							return Response.json({ ok: true, key: req.params.key, value });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "set failed" },
+								{ status: 400 },
+							);
+						}
+					}),
+					DELETE: admin(async (req) => {
+						const svc = container.resolve(SettingsService);
+						await svc.unset(req.params.key);
+						return Response.json({ ok: true });
+					}),
+				},
+
+				// ── Triggers CRUD (achievement_triggers) ──────────────────────
+				"/api/triggers": {
+					GET: admin(async () => {
+						const dbs = container.resolve(DatabaseService);
+						const rows = await dbs.db.select().from(achievementTriggers);
+						return Response.json({ rows });
+					}),
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							code?: string;
+							description?: string | null;
+							pattern?: string;
+							flags?: string;
+							enabled?: boolean;
+						} | null;
+						if (!body?.code || !body?.pattern) {
+							return Response.json(
+								{ error: "code, pattern requis" },
+								{ status: 400 },
+							);
+						}
+						try {
+							// Validate regex
+							new RegExp(body.pattern, body.flags ?? "i");
+						} catch (err) {
+							return Response.json(
+								{ error: `regex invalide : ${err instanceof Error ? err.message : err}` },
+								{ status: 400 },
+							);
+						}
+						try {
+							const dbs = container.resolve(DatabaseService);
+							await dbs.db.insert(achievementTriggers).values({
+								code: body.code,
+								description: body.description ?? null,
+								pattern: body.pattern,
+								flags: body.flags ?? "i",
+								enabled: body.enabled ?? true,
+							});
+							return Response.json({ ok: true, code: body.code });
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "insert failed" },
+								{ status: 400 },
+							);
+						}
+					}),
+				},
+				"/api/triggers/:code": {
+					PUT: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
+						if (typeof body.pattern === "string") {
+							try {
+								new RegExp(body.pattern, (body.flags as string) ?? "i");
+							} catch (err) {
+								return Response.json(
+									{ error: `regex invalide : ${err instanceof Error ? err.message : err}` },
+									{ status: 400 },
+								);
+							}
+						}
+						const dbs = container.resolve(DatabaseService);
+						const patch: Record<string, unknown> = {};
+						if (typeof body.description === "string" || body.description === null) patch.description = body.description;
+						if (typeof body.pattern === "string") patch.pattern = body.pattern;
+						if (typeof body.flags === "string") patch.flags = body.flags;
+						if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
+						await dbs.db.update(achievementTriggers).set(patch).where(eq(achievementTriggers.code, req.params.code));
+						return Response.json({ ok: true });
+					}),
+					DELETE: admin(async (req) => {
+						const dbs = container.resolve(DatabaseService);
+						await dbs.db.delete(achievementTriggers).where(eq(achievementTriggers.code, req.params.code));
+						return Response.json({ ok: true });
+					}),
 				},
 
 				// ── Discord direct send (depuis site admin) ───────────────────

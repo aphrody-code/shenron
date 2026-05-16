@@ -1,5 +1,6 @@
 import { botAdmin } from "@/lib/bot-admin";
 import { CronTriggerButton } from "./trigger-button";
+import { CronIntervalEditor } from "./IntervalEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +63,7 @@ export default async function AdminCron() {
 							<tr key={j.name} className="hover:bg-dbz-blue-light/10">
 								<td className="p-4 font-mono text-sm text-white">{j.name}</td>
 								<td className="p-4 text-sm text-dbz-yellow">
-									{fmtInterval(j.intervalMs)}
+									<CronIntervalEditor name={j.name} intervalMs={j.intervalMs} />
 								</td>
 								<td className="p-4 text-sm text-gray-300">
 									{fmtDate(j.lastRunAt)}

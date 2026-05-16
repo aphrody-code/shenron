@@ -1,4 +1,6 @@
 import { botAdmin } from "@/lib/bot-admin";
+import { CloseTicketButton } from "./CloseButton";
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminTicketsPage() {
@@ -42,6 +44,9 @@ export default async function AdminTicketsPage() {
 									<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
 										Créé
 									</th>
+									<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
+										Action
+									</th>
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-dbz-border">
@@ -60,12 +65,19 @@ export default async function AdminTicketsPage() {
 										<td className="p-2 text-right text-gray-500">
 											{new Date(t.createdAt).toLocaleString("fr-FR")}
 										</td>
+										<td className="p-2 text-right">
+											{t.closed ? (
+												<span className="text-white/30 text-[10px]">fermé</span>
+											) : (
+												<CloseTicketButton channelId={t.channelId} />
+											)}
+										</td>
 									</tr>
 								))}
 								{s.list.length === 0 && (
 									<tr>
 										<td
-											colSpan={5}
+											colSpan={6}
 											className="p-4 text-center text-gray-500 font-saiyan uppercase"
 										>
 											aucun

@@ -1,4 +1,9 @@
 import { botAdmin } from "@/lib/bot-admin";
+import {
+	DeleteWarnButton,
+	ClearWarnsButton,
+	UnjailButton,
+} from "./ModerationButtons";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +84,16 @@ export default async function AdminModerationPage() {
 									<td className="p-2 text-right text-gray-500">
 										{new Date(w.createdAt).toLocaleString("fr-FR")}
 									</td>
-									<td className="p-2 text-right">{w.active ? "✓" : "✗"}</td>
+									<td className="p-2 text-right">
+										<div className="flex justify-end gap-1">
+											{w.active ? (
+												<DeleteWarnButton id={w.id} />
+											) : (
+												<span className="text-white/30">✗</span>
+											)}
+											<ClearWarnsButton userId={w.userId} />
+										</div>
+									</td>
 								</tr>
 							))}
 							{warns.warns.length === 0 && (
@@ -138,7 +152,11 @@ export default async function AdminModerationPage() {
 											: "permanent"}
 									</td>
 									<td className="p-2 text-right text-xs">
-										{j.releasedAt ? "released" : "ACTIF"}
+										{j.releasedAt ? (
+											<span className="text-white/30">released</span>
+										) : (
+											<UnjailButton userId={j.userId} />
+										)}
 									</td>
 								</tr>
 							))}

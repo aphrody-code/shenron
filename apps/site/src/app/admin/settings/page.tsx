@@ -1,4 +1,5 @@
 import { botAdmin } from "@/lib/bot-admin";
+import { SettingRow } from "./SettingRow";
 
 export const dynamic = "force-dynamic";
 
@@ -42,8 +43,13 @@ export default async function AdminSettingsPage() {
 								<td className="p-2 font-mono text-gray-500">
 									{JSON.stringify(s.default)}
 								</td>
-								<td className="p-2 font-mono text-white">
-									{JSON.stringify(s.current)}
+								<td className="p-2">
+									<SettingRow
+										settingKey={s.key}
+										type={s.type}
+										defaultValue={s.default}
+										current={s.current}
+									/>
 								</td>
 								<td className="p-2 text-gray-400">{s.description ?? "—"}</td>
 							</tr>
@@ -61,9 +67,10 @@ export default async function AdminSettingsPage() {
 					</tbody>
 				</table>
 			</div>
-			<p className="mt-4 text-xs text-gray-500 text-center">
-				Édition via Discord{" "}
-				<code className="text-dbz-orange">
+			<p className="mt-4 text-xs text-white/40 text-center">
+				Cliquer sur une valeur courante pour l'éditer · ↺ pour reset au défaut ·
+				équivalent Discord{" "}
+				<code className="text-fuchsia-300">
 					/config set &lt;key&gt; &lt;value&gt;
 				</code>
 			</p>

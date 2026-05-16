@@ -1,71 +1,83 @@
 import { botAdmin } from "@/lib/bot-admin";
+import {
+	TriggerCreateForm,
+	TriggerRowActions,
+	RegexTester,
+} from "./TriggerForms";
+
 export const dynamic = "force-dynamic";
 
 type Trigger = {
-	id: number;
+	code: string;
+	description: string | null;
 	pattern: string;
-	reply: string;
-	enabled: number;
-	[k: string]: unknown;
+	flags: string | null;
+	enabled: boolean;
 };
 
 export default async function AdminTriggersPage() {
-	const data = await botAdmin
-		.table("triggers", 100, 0)
-		.catch(() => ({ rows: [], total: 0, columns: [] }));
-	const triggers = (data.rows ?? []) as Trigger[];
+	const data = await botAdmin.triggers
+		.list()
+		.catch(() => ({ rows: [] as Trigger[] }));
+	const rows = data.rows as Trigger[];
+
 	return (
 		<div className="w-full max-w-5xl mx-auto">
 			<header className="mb-6">
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">TRIGGERS</h1>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
+					TRIGGERS ❯ ACHIEVEMENTS
+				</h1>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-					{triggers.length} triggers regex → reply auto
+					{rows.length} patterns regex → succès auto-attribués
 				</p>
 			</header>
+
+			<RegexTester />
+			<TriggerCreateForm />
+
 			<div className="dbz-panel overflow-x-auto">
-				<table className="w-full min-w-[500px] text-xs">
+				<table className="w-full min-w-[700px] text-xs">
 					<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
 						<tr>
 							<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-								#
+								Code
 							</th>
 							<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-								Pattern regex
+								Pattern
 							</th>
 							<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-								Reply
+								Flags
+							</th>
+							<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
+								Description
 							</th>
 							<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-								Actif
+								Actions
 							</th>
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-dbz-border">
-						{triggers.map((t) => (
-							<tr key={t.id} className="hover:bg-dbz-blue-light/5">
-								<td className="p-2 font-mono text-gray-500">#{t.id}</td>
-								<td className="p-2 font-mono text-dbz-orange max-w-xs truncate">
+						{rows.map((t) => (
+							<tr key={t.code} className="hover:bg-dbz-blue-light/5">
+								<td className="p-2 font-mono text-dbz-orange">{t.code}</td>
+								<td className="p-2 font-mono text-fuchsia-200 break-all max-w-md">
 									{t.pattern}
 								</td>
-								<td className="p-2 text-gray-300 max-w-md truncate">
-									{t.reply}
+								<td className="p-2 font-mono text-cyan-300">
+									{t.flags ?? "i"}
+								</td>
+								<td className="p-2 text-white/70 text-[10px]">
+									{t.description ?? "—"}
 								</td>
 								<td className="p-2 text-right">
-									{t.enabled ? (
-										<span className="text-green-400">●</span>
-									) : (
-										<span className="text-red-400">○</span>
-									)}
+									<TriggerRowActions code={t.code} enabled={t.enabled} />
 								</td>
 							</tr>
 						))}
-						{triggers.length === 0 && (
+						{rows.length === 0 && (
 							<tr>
-								<td
-									colSpan={4}
-									className="p-6 text-center text-gray-500 font-saiyan uppercase"
-								>
-									Aucun trigger
+								<td colSpan={5} className="p-6 text-center text-white/50">
+									Aucun trigger configuré.
 								</td>
 							</tr>
 						)}
