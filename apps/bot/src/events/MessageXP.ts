@@ -159,8 +159,22 @@ export class MessageXPEvent {
 
     await this.dbs.db.update(users).set({ lastMessageAt: new Date(now) }).where(eq(users.id, userId));
     const res = await this.levels.addXP(userId, gain);
-    if (res.levelUp && message.member) {
-      await this.levels.handleLevelUp(message.member, res.newLevel, announce);
+    if (res.levelUp) {
+      // Fallback : si message.member est null (intent GuildMembers pas encore
+      // hydraté, cache miss), fetch côté Discord avant de poser le rôle.
+      const member =
+        message.member ??
+        (message.guild
+          ? await message.guild.members.fetch(userId).catch(() => null)
+          : null);
+      if (member) {
+        await this.levels.handleLevelUp(member, res.newLevel, announce);
+      } else {
+        logger.warn(
+          { userId, newLevel: res.newLevel },
+          "levelUp détecté mais GuildMember introuvable — rôle level non posé",
+        );
+      }
     }
   }
 }

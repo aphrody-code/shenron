@@ -83,12 +83,19 @@ export const PERSONAS: Record<PersonaId, PersonaConfig> = {
 		appId: env.APPLICATION_ID_ENMA,
 		intents: [I.Guilds],
 	},
-	// Kaïo : XP via messageCreate (Message Content privileged) + voice
+	// Kaïo : XP via messageCreate (Message Content privileged) + voice + GuildMembers
+	// requis pour récupérer member.roles / poser les rôles level via handleLevelUp.
 	kaio: {
 		id: "kaio",
 		name: "Kaïo",
 		token: env.DISCORD_TOKEN_KAIO,
 		appId: env.APPLICATION_ID_KAIO,
-		intents: [I.Guilds, I.GuildMessages, I.MessageContent, I.GuildVoiceStates],
+		intents: [
+			I.Guilds,
+			I.GuildMembers,
+			I.GuildMessages,
+			I.MessageContent,
+			I.GuildVoiceStates,
+		],
 	},
 };
