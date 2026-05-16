@@ -45,6 +45,8 @@ const ADMIN_LINKS: AdminLink[] = [
 	{ href: "/admin/live", label: "LIVE", kanji: "生", section: "ops" },
 	{ href: "/admin/logs", label: "LOGS", kanji: "誌", section: "ops" },
 	{ href: "/admin/bot", label: "BOT", kanji: "獸", section: "core" },
+	{ href: "/admin/command-perms", label: "PERMS", kanji: "権", section: "mod" },
+	{ href: "/admin/leaderboards", label: "LB+", kanji: "順", section: "econ" },
 	{ href: "/admin/webhooks", label: "WEBHOOKS", kanji: "鎖", section: "ops" },
 	{ href: "/admin/settings", label: "SETTINGS", kanji: "設", section: "core" },
 	{ href: "/admin/posts", label: "ARTICLES", kanji: "記", section: "cms" },

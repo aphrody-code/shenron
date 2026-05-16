@@ -280,9 +280,97 @@ export const botAdmin = {
 				event: string;
 				enabled: boolean;
 				channelId: string | null;
-				embed: unknown;
+				template?: string | null;
+				channelKey?: string | null;
+				embed?: unknown;
 			}>;
 		}>("/api/messages", { revalidate: 60 }),
+	messagesUpsert: (
+		event: string,
+		body: {
+			template?: string | null;
+			channelKey?: string | null;
+			enabled?: boolean;
+		},
+	) =>
+		botAdmin.fetch(`/api/messages/${encodeURIComponent(event)}`, {
+			method: "POST",
+			body: JSON.stringify(body),
+		}),
+	messagesRemove: (event: string) =>
+		botAdmin.fetch(`/api/messages/${encodeURIComponent(event)}`, {
+			method: "DELETE",
+		}),
+	messagesPreview: (event: string, params?: Record<string, unknown>) =>
+		botAdmin.fetch<{
+			rendered?: string;
+			preview?: string;
+			[k: string]: unknown;
+		}>(`/api/messages/${encodeURIComponent(event)}/preview`, {
+			method: "POST",
+			body: JSON.stringify(params ?? {}),
+		}),
+
+	commandPerms: {
+		list: () =>
+			botAdmin.fetch<{
+				rows: Array<{
+					command: string;
+					scope: string;
+					roleId?: string | null;
+					userId?: string | null;
+					allow: boolean;
+				}>;
+			}>("/api/bot/commands/permissions", { revalidate: 60 }),
+		upsert: (body: {
+			command: string;
+			scope: string;
+			roleId?: string | null;
+			userId?: string | null;
+			allow: boolean;
+		}) =>
+			botAdmin.fetch("/api/bot/commands/permissions", {
+				method: "POST",
+				body: JSON.stringify(body),
+			}),
+		remove: (body: {
+			command: string;
+			scope: string;
+			roleId?: string | null;
+			userId?: string | null;
+		}) =>
+			botAdmin.fetch("/api/bot/commands/permissions/delete", {
+				method: "POST",
+				body: JSON.stringify(body),
+			}),
+	},
+
+	economyGiveBulk: (body: {
+		mode: "user" | "role" | "all";
+		userId?: string;
+		roleId?: string;
+		amount: number;
+		reason?: string;
+	}) =>
+		botAdmin.fetch<{ ok: boolean; applied?: number; amount?: number }>(
+			"/api/economy/give",
+			{ method: "POST", body: JSON.stringify(body) },
+		),
+
+	levelsTop: (
+		metric: "xp" | "zeni" | "voice" | "streak" | "messages" = "xp",
+		limit = 50,
+	) =>
+		botAdmin.fetch<{
+			top: Array<{
+				rank: number;
+				discordId: string;
+				username?: string;
+				avatarUrl?: string;
+				value: number;
+				level?: number;
+			}>;
+		}>(`/api/levels/top?metric=${metric}&limit=${limit}`, { revalidate: 30 }),
 
 	moderation: {
 		hierarchy: () =>
