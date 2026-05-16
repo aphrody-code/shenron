@@ -145,6 +145,17 @@ export const botAdmin = {
 		botAdmin.fetch<unknown>("/api/health/usage", { revalidate: 10 }),
 	healthHost: () =>
 		botAdmin.fetch<unknown>("/api/health/host", { revalidate: 30 }),
+	healthLogs: (lines = 100) =>
+		botAdmin.fetch<{
+			logs: Array<{
+				time?: string;
+				host?: string;
+				unit?: string;
+				message?: string;
+				raw?: string;
+			}>;
+			count: number;
+		}>(`/api/health/logs?lines=${lines}`, { revalidate: 5 }),
 
 	stats: () =>
 		botAdmin.fetch<{ users: number; guilds: number; commands: number }>(
