@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Inter } from "next/font/google";
+import { Roboto_Flex } from "next/font/google";
 import "./globals.css";
 import { DiscordInviteFAB } from "@/components/DiscordInviteFAB";
 import { SiteNav } from "@/components/SiteNav";
 
-const inter = Inter({
+// Google Sans Flex n'est pas publié sur Google Fonts ; Roboto Flex est
+// l'équivalent public Variable Font maintenu par Google.
+const sansFlex = Roboto_Flex({
 	variable: "--font-sans",
 	subsets: ["latin"],
+	display: "swap",
 });
 
 const saiyanSans = localFont({
@@ -35,7 +38,7 @@ export default function RootLayout({
 	return (
 		<html lang="fr" className="dark">
 			<body
-				className={`${inter.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
+				className={`${sansFlex.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
 				{/* Starfield drift cosmique — fixe en arrière-plan */}
 				<div
