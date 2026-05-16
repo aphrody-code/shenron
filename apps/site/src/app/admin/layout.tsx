@@ -27,31 +27,30 @@ export default async function AdminLayout({
 				>
 					CAPSULE CORP CMS
 				</h2>
-				<nav className="flex flex-row md:flex-col gap-4 md:space-y-4 md:gap-0 overflow-x-auto pb-4 md:pb-0">
-					<Link
-						href="/admin/posts"
-						className="dbz-button whitespace-nowrap !text-xl !px-4 !py-2 bg-dbz-blue-light border-dbz-blue hover:bg-dbz-orange hover:border-dbz-orange-dark"
-					>
-						ARTICLES
-					</Link>
-					<Link
-						href="/admin/wiki"
-						className="dbz-button whitespace-nowrap !text-xl !px-4 !py-2 bg-dbz-blue-light border-dbz-blue hover:bg-dbz-orange hover:border-dbz-orange-dark"
-					>
-						WIKI DBFR
-					</Link>
-					<Link
-						href="/admin/bot"
-						className="dbz-button whitespace-nowrap !text-xl !px-4 !py-2 bg-dbz-blue-light border-dbz-blue hover:bg-dbz-orange hover:border-dbz-orange-dark"
-					>
-						BOT STATUS
-					</Link>
-					<div className="flex-1 md:hidden"></div>
+				<nav className="flex flex-row md:flex-col gap-2 md:gap-2 overflow-x-auto pb-4 md:pb-0">
+					{[
+						{ href: "/admin/dashboard", label: "DASHBOARD" },
+						{ href: "/admin/posts", label: "ARTICLES" },
+						{ href: "/admin/wiki", label: "WIKI" },
+						{ href: "/admin/cron", label: "CRON" },
+						{ href: "/admin/services", label: "SERVICES" },
+						{ href: "/admin/database", label: "DATABASE" },
+						{ href: "/admin/economy", label: "ECONOMY" },
+					].map((l) => (
+						<Link
+							key={l.href}
+							href={l.href}
+							className="dbz-button whitespace-nowrap !text-base !px-3 !py-2 bg-dbz-blue-light border-dbz-blue hover:bg-dbz-orange hover:border-dbz-orange-dark"
+						>
+							{l.label}
+						</Link>
+					))}
+					<div className="flex-1 md:hidden" />
 					<Link
 						href="/"
-						className="font-saiyan text-xl text-gray-500 hover:text-white transition-colors uppercase pt-2 md:pt-8 block"
+						className="font-saiyan text-base text-gray-500 hover:text-white transition-colors uppercase pt-2 md:pt-6 block"
 					>
-						← RETOUR
+						← SITE
 					</Link>
 				</nav>
 			</aside>
