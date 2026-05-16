@@ -30,6 +30,7 @@ export default async function AdminLayout({
 				<nav className="flex flex-row md:flex-col gap-2 md:gap-2 overflow-x-auto pb-4 md:pb-0">
 					{[
 						{ href: "/admin/dashboard", label: "DASHBOARD" },
+						{ href: "/admin/sync", label: "SYNC" },
 						{ href: "/admin/events", label: "EVENTS" },
 						{ href: "/admin/cron", label: "CRON" },
 						{ href: "/admin/services", label: "SERVICES" },

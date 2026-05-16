@@ -42,6 +42,12 @@ export class JoinLeaveEvent {
 
   @On({ event: "guildMemberAdd" })
   async onJoin([member]: ArgsOf<"guildMemberAdd">) {
+    // 🎯 Sync structurel : tout nouveau membre Discord = row users immediate
+    await this.dbs.db
+      .insert(users)
+      .values({ id: member.id })
+      .onConflictDoNothing();
+
     await this.assignAutoRole(member);
     const detected = await this.invites.detectInviter(member.guild);
     // Persiste la paire inviter→invited pour /invitations (best-effort).
@@ -141,5 +147,52 @@ export class JoinLeaveEvent {
 
     // À la sortie du serveur on vide le profil niveau (cdc)
     await this.dbs.db.delete(users).where(eq(users.id, member.id));
+  }
+
+  /**
+   * 🎯 Sync structurel : quand les rôles d'un membre changent, on re-dérive
+   * son `lastLevelReached` + `currentLevelRoleId` en se basant sur le plus
+   * haut rôle level-reward qu'il possède. Évite la dérive DB ↔ Discord.
+   */
+  @On({ event: "guildMemberUpdate" })
+  async onUpdate([oldM, newM]: ArgsOf<"guildMemberUpdate">) {
+    if (oldM.partial) return;
+    const oldRoles = new Set(oldM.roles.cache.keys());
+    const newRoles = new Set(newM.roles.cache.keys());
+    // Diff
+    const added = [...newRoles].filter((r) => !oldRoles.has(r));
+    const removed = [...oldRoles].filter((r) => !newRoles.has(r));
+    if (added.length === 0 && removed.length === 0) return;
+
+    const rewards = await this.dbs.db.query.levelRewards.findMany();
+    const rewardByRole = new Map(rewards.map((r) => [r.roleId, r]));
+    const touched = [...added, ...removed].some((r) => rewardByRole.has(r));
+    if (!touched) return; // aucun changement sur les rôles level
+
+    // Recalcule le plus haut palier détenu
+    let best: { level: number; roleId: string; xpThreshold: number } | null = null;
+    for (const rid of newRoles) {
+      const lr = rewardByRole.get(rid);
+      if (lr && (!best || lr.level > best.level)) {
+        best = { level: lr.level, roleId: lr.roleId, xpThreshold: lr.xpThreshold };
+      }
+    }
+
+    await this.dbs.db
+      .insert(users)
+      .values({
+        id: newM.id,
+        lastLevelReached: best?.level ?? 0,
+        currentLevelRoleId: best?.roleId ?? null,
+        ...(best ? { xp: best.xpThreshold } : {}),
+      })
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          lastLevelReached: best?.level ?? 0,
+          currentLevelRoleId: best?.roleId ?? null,
+          updatedAt: new Date(),
+        },
+      });
   }
 }
