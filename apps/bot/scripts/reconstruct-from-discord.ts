@@ -1,9 +1,16 @@
 #!/usr/bin/env bun
 /**
- * Reconstruction du bot.db perdu le 2026-05-16 via les rôles Discord live.
+ * Reconstruction du bot.db via les rôles Discord live.
  *
- * Pour chaque membre de la guild qui a un rôle level-reward,
- * on dérive : level, xp (min threshold), zeni (default + bonus level).
+ * IDEMPOTENT — safe à relancer en cron quotidien :
+ *   • Users INEXISTANTS : insère avec xp = seuil min du palier détecté.
+ *   • Users EXISTANTS   : NE TOUCHE PAS xp / zeni (préserve la progression réelle).
+ *                          Met à jour UNIQUEMENT currentLevelRoleId + lastLevelReached
+ *                          si le rôle Discord a changé (promotion).
+ *
+ * Historique : avant ce patch, ce script écrasait xp/zeni de TOUS les users à
+ * chaque run, ramenant les Saiyan à 9 000 000 XP / 11 000 zeni chaque matin
+ * via shenron-guild-sync.timer. Cause racine du bug "XP/zeni ne progressent pas".
  *
  * Source : apps/bot/data/guild-scan.json (généré par scripts/scan-ids.ts).
  */
@@ -104,11 +111,10 @@ for (const m of scan.users) {
 			dailyStreak: 0,
 		});
 	} else {
+		// PRESERVE xp/zeni — sync uniquement le rôle level Discord (promotion détectée).
 		await db
 			.update(users)
 			.set({
-				xp: best.xp,
-				zeni: best.zeni,
 				lastLevelReached: best.level,
 				currentLevelRoleId: best.roleId,
 			})
