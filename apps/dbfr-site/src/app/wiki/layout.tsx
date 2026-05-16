@@ -17,7 +17,10 @@ export default async function WikiLayout({ children }: { children: React.ReactNo
     <div className="container mx-auto px-4 py-12 flex gap-8">
       <aside className="w-64 flex-shrink-0">
         <nav className="sticky top-12 space-y-6">
-          <Link href="/wiki" className="text-xl font-bold hover:text-[#4a5cff] transition-colors">Wiki DBFR</Link>
+          <div className="space-y-4">
+            <Link href="/wiki" className="text-xl font-bold hover:text-[#4a5cff] transition-colors block">Wiki DBFR</Link>
+            <Link href="/wiki/dragon-ball" className="text-xl font-bold text-dbz-yellow hover:text-dbz-orange transition-colors block">Encyclopédie DBZ</Link>
+          </div>
           {categories.map(cat => (
             <div key={cat.id}>
               <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-2">{cat.name}</h3>

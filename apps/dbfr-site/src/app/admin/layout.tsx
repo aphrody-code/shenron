@@ -27,6 +27,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/wiki" className="dbz-button whitespace-nowrap !text-xl !px-4 !py-2 bg-dbz-blue-light border-dbz-blue hover:bg-dbz-orange hover:border-dbz-orange-dark">
             WIKI DBFR
           </Link>
+          <Link href="/admin/bot" className="dbz-button whitespace-nowrap !text-xl !px-4 !py-2 bg-dbz-blue-light border-dbz-blue hover:bg-dbz-orange hover:border-dbz-orange-dark">
+            BOT STATUS
+          </Link>
           <div className="flex-1 md:hidden"></div>
           <Link href="/" className="font-saiyan text-xl text-gray-500 hover:text-white transition-colors uppercase pt-2 md:pt-8 block">
             ← RETOUR

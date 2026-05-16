@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "coord": {
+      "command": "stdio",
+      "args": [
+        "bun",
+        "/home/ubuntu/vps/apps/shenron/mcp/coord-server.ts"
+      ],
+      "enabled": true
+    },
+    "bridge": {
+      "command": "stdio",
+      "args": [
+        "bun",
+        "/home/ubuntu/vps/apps/shenron/mcp/coord-server.ts"
+      ],
+      "enabled": true
+    }
+  }
+}

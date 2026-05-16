@@ -1,5 +1,6 @@
 import { getShenronUser, ShenronUser } from "@/lib/shenron";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
   if (!user) notFound();
 
   const equipped = user.equipped || {};
+  const username = user.username || "Guerrier Inconnu";
+  const avatar = user.avatarUrl || `https://cdn.discordapp.com/embed/avatars/${parseInt(id) % 5}.png`;
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-16 max-w-5xl">
@@ -20,7 +23,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             <img src={user.banner} alt="Banner" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full bg-dbz-bg flex items-center justify-center">
-               <span className="font-saiyan text-6xl text-dbz-border opacity-50">DBFR</span>
+               <span className="font-saiyan text-6xl text-dbz-border opacity-50 uppercase tracking-widest">DBFR</span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-dbz-card to-transparent" />
@@ -32,12 +35,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
             <div className="relative">
               <div className="w-32 h-32 md:w-44 md:h-44 border-4 md:border-8 border-dbz-blue-light bg-dbz-bg relative z-10 p-1">
                 <img 
-                  src={`https://cdn.discordapp.com/avatars/${id}/${user.avatar}.png?size=512`} 
-                  alt={user.username} 
+                  src={avatar} 
+                  alt={username} 
                   className="w-full h-full object-cover border-2 border-dbz-card"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://cdn.discordapp.com/embed/avatars/0.png";
-                  }}
                 />
               </div>
               <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-dbz-orange text-white px-4 py-1 border-2 border-dbz-orange-dark z-20 shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">
@@ -45,13 +45,41 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
               </div>
             </div>
             
-            <div className="flex-1 text-center md:text-left space-y-1 md:space-y-2 mt-4 md:mt-0">
-              <h1 className="text-4xl md:text-6xl font-saiyan text-white" style={{ textShadow: "3px 3px 0px rgba(0,0,0,0.8)" }}>
-                {user.username}
-              </h1>
-              {equipped.title && (
-                <div className="inline-block px-3 py-1 bg-dbz-bg border-2 border-dbz-yellow text-dbz-yellow font-bold text-xs uppercase tracking-widest">
-                  {equipped.title}
+            <div className="flex-1 text-center md:text-left space-y-2 md:space-y-4 mt-4 md:mt-0">
+              <div className="space-y-1">
+                <h1 className="text-4xl md:text-6xl font-saiyan text-white" style={{ textShadow: "3px 3px 0px rgba(0,0,0,0.8)" }}>
+                  {username}
+                </h1>
+                {equipped.title && (
+                  <div className="inline-block px-3 py-1 bg-dbz-bg border-2 border-dbz-yellow text-dbz-yellow font-bold text-xs uppercase tracking-widest">
+                    {equipped.title}
+                  </div>
+                )}
+              </div>
+
+              {/* XP Progress Bar */}
+              {user.xpProgress && (
+                <div className="max-w-md mx-auto md:mx-0">
+                  <div className="flex justify-between items-end mb-1">
+                    <span className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest">Progression Niveau {user.xpProgress.nextLevel}</span>
+                    <span className="text-[10px] font-bold text-gray-400">{user.xpProgress.current.toLocaleString()} / {user.xpProgress.nextLevelXp.toLocaleString()} XP</span>
+                  </div>
+                  <div className="h-4 bg-dbz-bg border-2 border-dbz-border p-0.5 relative overflow-hidden">
+                    <div 
+                      className="h-full bg-dbz-orange shadow-[0_0_8px_rgba(255,115,0,0.5)]" 
+                      style={{ width: `${Math.min(100, (user.xpProgress.current / user.xpProgress.nextLevelXp) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Fusion Status */}
+              {user.fusion && (
+                <div className="flex justify-center md:justify-start">
+                  <Link href={`/profil/${user.fusion.partnerId}`} className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 border border-pink-500/30 text-pink-400 text-xs font-bold uppercase tracking-widest hover:bg-pink-500/20 transition-colors">
+                    <div className="w-2 h-2 bg-pink-500 animate-pulse rounded-full" />
+                    Fusion avec {user.fusion.partnerName}
+                  </Link>
                 </div>
               )}
             </div>
@@ -99,8 +127,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                 </h3>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
                   {user.inventory?.map((item: any, i: number) => (
-                    <div key={i} className="aspect-square bg-dbz-bg border-2 border-dbz-border p-2 flex flex-col items-center justify-center text-center hover:border-dbz-blue-light transition-colors">
-                       <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-tighter break-all">
+                    <div key={i} className="aspect-square bg-dbz-bg border-2 border-dbz-border p-2 flex flex-col items-center justify-center text-center hover:border-dbz-blue-light transition-colors group">
+                       <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-tighter break-all group-hover:text-dbz-blue-light transition-colors">
                          {item.key}
                        </span>
                     </div>
@@ -113,8 +141,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
                   DERNIERS SUCCÈS
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {user.achievements?.slice(0, 8).map((ach: any, i: number) => (
-                    <div key={i} className="px-3 py-2 bg-dbz-bg border-2 border-dbz-yellow flex items-center gap-2">
+                  {user.achievements?.slice(0, 12).map((ach: any, i: number) => (
+                    <div key={i} className="px-3 py-2 bg-dbz-bg border-2 border-dbz-yellow flex items-center gap-2 hover:bg-dbz-yellow/10 transition-colors">
                       <div className="w-2 h-2 bg-dbz-yellow animate-pulse" />
                       <span className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">{ach.code}</span>
                     </div>
@@ -131,7 +159,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 
 function EquippedItem({ label, value }: { label: string, value: string | null | undefined }) {
   return (
-    <div className="flex items-center justify-between p-3 bg-dbz-bg border-2 border-dbz-border">
+    <div className="flex items-center justify-between p-3 bg-dbz-bg border-2 border-dbz-border hover:border-dbz-blue-light transition-colors">
       <span className="text-xs font-bold text-dbz-blue-light uppercase tracking-widest">{label}</span>
       <span className={value ? "text-sm font-bold text-white uppercase tracking-wider" : "text-[10px] font-bold text-gray-600 uppercase"}>
         {value || "VIDE"}
