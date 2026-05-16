@@ -8,25 +8,24 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-jp: var(--font-jp);
   --font-saiyan: var(--font-saiyan);
   --font-scouter: var(--font-scouter);
 
-  /* === Palette Dragon Ball ===
-        bg     = ciel de nuit profond
-        card   = surface bleu marine
-        border = bleu nuit
-        orange primary = gi de Goku
-        blue secondary = ceinture / ciel
-        yellow accent = étoiles de la dragon ball                */
-  --color-dbz-bg: #0a0e27;            /* ciel nuit DB */
-  --color-dbz-card: #131836;          /* surface marine */
-  --color-dbz-border: #1f2754;        /* bleu nuit */
-  --color-dbz-orange: #ff6b1a;        /* orange gi Goku */
-  --color-dbz-orange-dark: #d94d00;   /* orange press */
-  --color-dbz-blue: #143a8a;          /* bleu ceinture */
-  --color-dbz-blue-light: #4ba8ff;    /* bleu ciel */
-  --color-dbz-yellow: #ffd23f;        /* jaune étoile DB */
-  --color-dbz-red: #d92121;           /* rouge logo DB */
+  /* === Palette fusion design.google × Xenoverse 2 ===
+        Couches éditoriales sobres (Google) + accents énergie DBZ (Bandai).
+        Tokens dbz-* conservés pour rétrocompat des composants existants.    */
+  /* Calibré sur fr.dragon-ball-official.com : palette noir/jaune doré/rouge */
+  --color-dbz-bg: #0a0a0a;            /* noir profond DB officiel */
+  --color-dbz-card: #141410;          /* surface élevée chaude */
+  --color-dbz-border: #2a2a26;        /* hairline subtil */
+  --color-dbz-orange: #ffb200;        /* jaune doré signature DB officiel */
+  --color-dbz-orange-dark: #d99700;   /* press state */
+  --color-dbz-blue: #1e244d;          /* deep navy lisible */
+  --color-dbz-blue-light: #cdcdcd;    /* gris clair DB officiel */
+  --color-dbz-yellow: #ffb200;        /* alias accent doré */
+  --color-dbz-red: #ff0000;           /* rouge pur DB officiel */
 
   /* Gradients réutilisables */
   --gradient-galactic: linear-gradient(135deg, #ff6b1a 0%, #ffd23f 50%, #ff3e00 100%);

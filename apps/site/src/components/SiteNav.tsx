@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
 import { SignInDiscord } from "@/components/SignInDiscord";
+import { MobileNav } from "@/components/MobileNav";
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
@@ -20,115 +21,87 @@ export async function SiteNav() {
 	const avatar = me?.user?.avatar ?? null;
 
 	return (
-		<header className="sticky top-0 z-40 bg-dbz-bg/95 backdrop-blur-md border-b-2 border-dbz-border">
-			{/* Strip utilitaire */}
-			<div className="border-b border-dbz-border/60 bg-black/30">
-				<div className="container mx-auto px-4 h-6 flex items-center justify-between text-[10px] font-scouter tracking-[0.3em] text-dbz-blue-light/70">
-					<span>
-						<span className="text-dbz-orange">●</span> DBFR.FR
-					</span>
-					<span className="hidden md:inline">
-						COMMUNAUTÉ DRAGON BALL FRANCE
-					</span>
-					<span>FR/JP</span>
-				</div>
-			</div>
+		<header className="sticky top-0 z-50 w-full">
+			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
 
-			<div className="container mx-auto px-4 py-3 flex items-stretch gap-4 md:gap-6 overflow-x-auto">
-				{/* Logo + katakana */}
+			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 h-16 flex items-center gap-8">
+				{/* Wordmark — Oswald gras avec accent doré façon DB Official */}
 				<Link
 					href="/"
-					className="flex items-center gap-3 group whitespace-nowrap"
+					className="group flex items-baseline shrink-0 select-none"
+					aria-label="DBFR — Dragon Ball France — Accueil"
 				>
-					<span
-						className="kata-vert font-scouter text-[10px] text-dbz-orange/80 leading-none group-hover:text-dbz-yellow transition-colors"
-						aria-hidden
-					>
-						ドラゴン
+					<span className="font-display font-bold text-[24px] tracking-[0.06em] text-white leading-none">
+						DB
 					</span>
-					<span
-						className="font-saiyan text-3xl text-dbz-yellow group-hover:text-dbz-orange transition-colors"
-						style={{
-							textShadow:
-								"2px 2px 0px rgba(255, 107, 26, 0.55), 0 0 20px rgba(75, 168, 255, 0.3)",
-						}}
-					>
-						DBFR
+					<span className="font-display font-bold text-[24px] tracking-[0.06em] text-dbz-orange leading-none transition-colors group-hover:text-white">
+						FR
 					</span>
-					<span className="hidden md:inline-block self-center w-1 h-1 rounded-full bg-dbz-yellow/40" />
 				</Link>
 
-				{/* Liens */}
-				<nav className="flex items-center gap-4 md:gap-6 text-sm md:text-base flex-1">
-					{PUBLIC_LINKS.map((l, i) => (
-						<span key={l.href} className="flex items-center gap-4 md:gap-6">
-							{i > 0 && (
-								<span
-									className="hidden md:inline text-dbz-blue/50 text-xs"
-									aria-hidden
-								>
-									·
-								</span>
-							)}
-							<Link
-								href={l.href}
-								className="link-underline font-saiyan uppercase tracking-wider text-dbz-blue-light hover:text-dbz-orange transition-colors whitespace-nowrap"
-							>
-								{l.label}
-							</Link>
-						</span>
+				{/* Nav desktop — Oswald 14px uppercase, espacement DB Official */}
+				<nav
+					className="hidden lg:flex items-center gap-1 flex-1 justify-center"
+					aria-label="Navigation principale"
+				>
+					{PUBLIC_LINKS.map((l) => (
+						<Link
+							key={l.href}
+							href={l.href}
+							className="relative font-display font-semibold text-[14px] tracking-[0.10em] uppercase text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+						>
+							{l.label}
+						</Link>
 					))}
 				</nav>
 
-				{/* Zone identité */}
-				<div className="flex items-center gap-2">
+				{/* Zone identité desktop */}
+				<div className="hidden lg:flex items-center gap-2 shrink-0">
 					{isAdmin && (
 						<Link
 							href="/admin/dashboard"
-							className="group flex items-center gap-2 px-3 py-1 bg-dbz-yellow/10 border-2 border-dbz-yellow text-dbz-yellow hover:bg-dbz-yellow hover:text-black transition-colors whitespace-nowrap"
+							className="font-display font-semibold text-[12px] tracking-[0.12em] uppercase text-dbz-orange hover:text-black hover:bg-dbz-orange px-3 py-1.5 rounded-full border border-dbz-orange/50 transition-colors"
 						>
-							<span className="led" aria-hidden />
-							<span className="font-saiyan uppercase tracking-widest text-xs">
-								ADMIN
-							</span>
+							Admin
 						</Link>
 					)}
 					{me ? (
 						<Link
 							href="/profil/me"
-							className="flex items-center gap-2 pl-1 pr-3 py-1 bg-dbz-card border-2 border-dbz-blue-light hover:border-dbz-orange transition-colors whitespace-nowrap group"
+							className="flex items-center gap-2.5 pl-1 pr-3.5 py-1 rounded-full hover:bg-white/[0.06] transition-colors group"
 						>
 							{avatar ? (
 								// eslint-disable-next-line @next/next/no-img-element
 								<img
 									src={avatar}
 									alt=""
-									width={22}
-									height={22}
-									className="rounded-full border border-dbz-yellow/60"
+									width={28}
+									height={28}
+									className="w-7 h-7 rounded-full ring-1 ring-white/15 group-hover:ring-dbz-orange transition"
 								/>
 							) : (
-								<span className="w-[22px] h-[22px] rounded-full bg-dbz-blue grid place-items-center font-saiyan text-[10px] text-dbz-yellow">
-									?
+								<span className="w-7 h-7 rounded-full bg-dbz-orange/20 text-dbz-orange grid place-items-center text-[12px] font-bold">
+									{(username ?? "S")[0]?.toUpperCase()}
 								</span>
 							)}
-							<span className="flex flex-col leading-none">
-								<span className="font-scouter text-[8px] tracking-widest text-dbz-blue-light/70 group-hover:text-dbz-orange/80">
-									PROFIL
-								</span>
-								<span className="font-saiyan text-xs tracking-wider text-white max-w-[90px] truncate">
-									{username ?? "Saiyan"}
-								</span>
+							<span className="font-display text-[13px] font-medium tracking-wide text-white max-w-[120px] truncate">
+								{username ?? "Saiyan"}
 							</span>
 						</Link>
 					) : (
-						<SignInDiscord className="group flex items-center gap-2 px-3 py-1.5 bg-dbz-orange border-b-4 border-dbz-orange-dark active:border-b-0 active:translate-y-1 transition-all whitespace-nowrap">
-							<span className="font-saiyan uppercase tracking-widest text-xs text-white">
-								ENTRER
-							</span>
+						<SignInDiscord className="inline-flex items-center h-9 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[13px] tracking-[0.10em] uppercase transition-colors">
+							Connexion
 						</SignInDiscord>
 					)}
 				</div>
+
+				<MobileNav
+					links={PUBLIC_LINKS}
+					isAdmin={isAdmin}
+					authenticated={!!me}
+					username={username}
+					avatar={avatar}
+				/>
 			</div>
 		</header>
 	);
