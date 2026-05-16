@@ -29,7 +29,7 @@ export function CtaFinal() {
 					transition={{ duration: 0.6 }}
 					className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-4 ki-pulse"
 				>
-					// INVOCATION //
+					❯ INVOCATION ❮
 				</motion.p>
 				<motion.h2
 					initial={{ opacity: 0, scale: 0.9 }}

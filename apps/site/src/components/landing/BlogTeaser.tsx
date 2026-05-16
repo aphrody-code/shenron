@@ -29,7 +29,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 				>
 					<div>
 						<p className="font-scouter text-xs tracking-[0.5em] text-cyan-300 mb-3">
-							// JOURNAL DE BORD //
+							❯ JOURNAL DE BORD ❮
 						</p>
 						<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 							Dernières dépêches

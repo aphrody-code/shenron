@@ -15,7 +15,7 @@ export default async function MorpionPlayPage() {
 					MORPION
 				</h1>
 				<p className="font-scouter text-xs tracking-[0.3em] text-dbz-blue-light">
-					{me.user?.username ?? "Saiyan"} (X) // VS BOT (O)
+					{me.user?.username ?? "Saiyan"} (X) ❯ VS BOT (O)
 				</p>
 			</header>
 			<MorpionGame />

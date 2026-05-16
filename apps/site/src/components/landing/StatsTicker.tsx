@@ -90,7 +90,7 @@ export function StatsTicker({ stats }: { stats: Stats }) {
 					className="text-center mb-16"
 				>
 					<p className="font-scouter text-xs tracking-[0.5em] text-cyan-300 mb-3">
-						// POWER LEVEL //
+						❯ POWER LEVEL ❮
 					</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 						Compteur d'énergie cosmique

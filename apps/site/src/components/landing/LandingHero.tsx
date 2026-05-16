@@ -37,7 +37,7 @@ export function LandingHero() {
 						transition={{ duration: 0.5 }}
 						className="font-scouter text-xs md:text-sm tracking-[0.5em] text-fuchsia-300 mb-4 ki-pulse"
 					>
-						// HUB GALACTIQUE //
+						❯ HUB GALACTIQUE ❮
 					</motion.p>
 					<motion.h1
 						initial={{ opacity: 0, scale: 0.9 }}

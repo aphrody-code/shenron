@@ -73,7 +73,7 @@ export function PersonasShowcase({
 					className="text-center mb-16"
 				>
 					<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-3">
-						// PANTHÉON //
+						❯ PANTHÉON ❮
 					</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 						Six dieux. Un process.

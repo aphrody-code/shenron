@@ -18,7 +18,7 @@ export default async function ActualitesPage() {
 		<div className="container mx-auto px-4 py-16 md:py-24 max-w-5xl">
 			<header className="mb-12 text-center">
 				<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-3">
-					// JOURNAL DE BORD //
+					❯ JOURNAL DE BORD ❮
 				</p>
 				<h1 className="title-jagged text-5xl md:text-7xl leading-none mb-4">
 					Actualités DBFR

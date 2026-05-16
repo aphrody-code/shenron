@@ -61,6 +61,7 @@ export const auth = betterAuth({
 		"http://localhost:3000",
 	],
 	advanced: {
+		// @ts-expect-error better-auth supporte trustProxy runtime mais types pas à jour (v1.6.x)
 		trustProxy: true,
 	},
 });

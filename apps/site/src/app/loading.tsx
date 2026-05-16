@@ -13,7 +13,7 @@ export default function Loading() {
 				/>
 			</div>
 			<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 ki-pulse">
-				// CHARGEMENT //
+				❯ CHARGEMENT ❮
 			</p>
 		</div>
 	);

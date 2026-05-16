@@ -15,7 +15,7 @@ export default async function BingoPlayPage() {
 					BINGO
 				</h1>
 				<p className="font-scouter text-xs tracking-[0.3em] text-dbz-blue-light">
-					{me.user?.username ?? "Saiyan"} // Devine 1-100 en 10 essais
+					{me.user?.username ?? "Saiyan"} ❯ Devine 1-100 en 10 essais
 				</p>
 			</header>
 			<BingoGame />

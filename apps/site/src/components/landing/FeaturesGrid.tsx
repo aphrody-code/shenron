@@ -101,7 +101,7 @@ export function FeaturesGrid() {
 					className="text-center mb-16"
 				>
 					<p className="font-scouter text-xs tracking-[0.5em] text-violet-300 mb-3">
-						// MODULES //
+						❯ MODULES ❮
 					</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 						Tout le bot, depuis le navigateur.

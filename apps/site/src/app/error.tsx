@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function GlobalError({
 	error,
@@ -18,7 +19,7 @@ export default function GlobalError({
 		<div className="container mx-auto px-4 py-24 max-w-2xl text-center">
 			<div className="dbz-panel p-12 border-l-4 border-fuchsia-500">
 				<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-4">
-					// ANOMALIE COSMIQUE //
+					❯ ANOMALIE COSMIQUE ❮
 				</p>
 				<h1 className="title-jagged text-5xl md:text-7xl leading-none mb-6">
 					ERREUR
@@ -37,9 +38,9 @@ export default function GlobalError({
 					>
 						Réessayer
 					</button>
-					<a href="/" className="dbz-button-ghost !text-xs">
+					<Link href="/" className="dbz-button-ghost !text-xs">
 						Accueil
-					</a>
+					</Link>
 				</div>
 			</div>
 		</div>

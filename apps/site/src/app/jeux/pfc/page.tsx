@@ -15,7 +15,7 @@ export default async function PfcPlayPage() {
 					PIERRE · FEUILLE · CISEAUX
 				</h1>
 				<p className="font-scouter text-xs tracking-[0.3em] text-dbz-blue-light">
-					{me.user?.username ?? "Saiyan"} // VS BOT // MÊMES RÈGLES /pfc
+					{me.user?.username ?? "Saiyan"} ❯ VS BOT ❯ MÊMES RÈGLES /pfc
 				</p>
 			</header>
 			<PfcGame />

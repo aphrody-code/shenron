@@ -7,7 +7,7 @@ export default function NotFound() {
 				<div className="absolute inset-0 starfield opacity-30 pointer-events-none" />
 				<div className="relative">
 					<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-4">
-						// SECTEUR INCONNU //
+						❯ SECTEUR INCONNU ❮
 					</p>
 					<h1 className="title-jagged text-7xl md:text-9xl leading-none mb-6">
 						404
