@@ -3,6 +3,7 @@ import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,
+  AttachmentBuilder,
   ChannelType,
   type CommandInteraction,
   type GuildChannel,
@@ -10,6 +11,7 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
+import { existsSync } from "node:fs";
 import { ModOnly } from "~/guards/ModOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { GuildOnly } from "~/guards/GuildOnly";
@@ -74,7 +76,16 @@ export class JailCommands {
       return;
     }
 
-    const gifUrl = await gifFor("jail");
+    let gifUrl = await gifFor("jail");
+
+    // Discord (depuis fin 2024) n'auto-anime PLUS les GIFs setImage via URL externe :
+    // il faut les attacher comme AttachmentBuilder + référencer attachment://name.
+    // On essaie d'abord le fichier local assets/sanctions/jail.gif.
+    const jailLocal = `${process.cwd()}/assets/sanctions/jail.gif`;
+    const jailAttachment = existsSync(jailLocal)
+      ? new AttachmentBuilder(jailLocal, { name: "jail.gif" })
+      : null;
+    if (jailAttachment) gifUrl = "attachment://jail.gif";
     const detailedEmbed = sanctionEmbed({
       target,
       moderator: interaction.user,
@@ -108,7 +119,10 @@ export class JailCommands {
       });
     } else {
       const publicEmbed = sanctionLogEmbed({ target, action: "jail", gifUrl });
-      await interaction.reply({ embeds: [publicEmbed] });
+      await interaction.reply({
+        embeds: [publicEmbed],
+        files: jailAttachment ? [jailAttachment] : undefined,
+      });
       // Log détaillé en log channel uniquement (pas de bruit dans le salon courant).
       detailedEmbed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
     }

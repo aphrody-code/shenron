@@ -98,10 +98,17 @@ export class LevelService {
     await this.db.update(users).set({ xp, lastLevelReached: levelForXP(xp), updatedAt: new Date() }).where(eq(users.id, userId));
   }
 
+  /**
+   * Top par XP (cohérent partout : slash /top, API /api/public/leaderboard,
+   * dashboard /admin/leaderboards). Filtre xp > 0 pour éliminer les ~5800
+   * users à 0 XP qui sont créés lazy par ensureUser mais n'ont jamais
+   * envoyé de message. Sans ce filter le top affichait des doublons à 0.
+   */
   async top(limit = 10, offset = 0) {
     return this.db
       .select()
       .from(users)
+      .where(sql`${users.xp} > 0`)
       .orderBy(desc(users.xp))
       .limit(limit)
       .offset(offset);
@@ -109,7 +116,7 @@ export class LevelService {
 
   async rankOf(userId: string): Promise<number | null> {
     const u = await this.getUser(userId);
-    if (!u) return null;
+    if (!u || u.xp <= 0) return null;
     const [row] = await this.db
       .select({ c: sql<number>`count(*)` })
       .from(users)
@@ -118,7 +125,10 @@ export class LevelService {
   }
 
   async totalUsers(): Promise<number> {
-    const [row] = await this.db.select({ c: sql<number>`count(*)` }).from(users);
+    const [row] = await this.db
+      .select({ c: sql<number>`count(*)` })
+      .from(users)
+      .where(sql`${users.xp} > 0`);
     return Number(row?.c ?? 0);
   }
 

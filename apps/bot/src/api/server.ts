@@ -1194,7 +1194,7 @@ export class ApiServer {
 					}),
 
 				"/api/public/leaderboard": (req) =>
-					publicCachedJson(req, 60_000, async () => {
+					publicCachedJson(req, 15_000, async () => {
 						const url = new URL(req.url);
 						const limit = Math.min(
 							Math.max(parseInt(url.searchParams.get("limit") ?? "100", 10) || 100, 1),
@@ -1202,9 +1202,13 @@ export class ApiServer {
 						);
 						const enrich = url.searchParams.get("enrich") === "1";
 						const dbs = container.resolve(DatabaseService);
+						// Filtre xp > 0 — cohérent avec LevelService.top() slash /top.
+						// Sans filter le classement renvoyait des users à 0 XP en fin
+						// de liste (~5800 lignes ensureUser créées mais inactives).
 						const rows = await dbs.db
 							.select({ id: users.id, xp: users.xp, zeni: users.zeni })
 							.from(users)
+							.where(sql`${users.xp} > 0`)
 							.orderBy(desc(users.xp))
 							.limit(limit);
 
@@ -1243,8 +1247,10 @@ export class ApiServer {
 
 				// Stats globales pour widgets de homepage du site (compte users,
 				// XP total distribué, zenis en circulation, succès débloqués).
+				// Cache 15s (cohérent avec leaderboard pour éviter incohérence
+				// totalXp = top.sum(xp) entre les deux endpoints).
 				"/api/public/stats": (req) =>
-					publicCachedJson(req, 60_000, async () => {
+					publicCachedJson(req, 15_000, async () => {
 						const dbs = container.resolve(DatabaseService);
 						const db = dbs.db;
 						const [u] = await db

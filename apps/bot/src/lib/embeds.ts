@@ -295,7 +295,8 @@ export function sanctionLogEmbed(opts: {
 	};
 	const { line, color } = phrase[action];
 	const embed = new EmbedBuilder().setColor(color).setDescription(line);
-	if (gifUrl && /^https:\/\//i.test(gifUrl)) embed.setImage(gifUrl);
+	if (gifUrl && /^(https:\/\/|attachment:\/\/)/i.test(gifUrl))
+		embed.setImage(gifUrl);
 	return embed;
 }
 
@@ -329,6 +330,7 @@ export function sanctionEmbed(opts: {
 	if (reason) embed.addFields({ name: "Motif", value: reason });
 	if (duration)
 		embed.addFields({ name: "Durée", value: duration, inline: true });
-	if (gifUrl && /^https:\/\//i.test(gifUrl)) embed.setImage(gifUrl);
+	if (gifUrl && /^(https:\/\/|attachment:\/\/)/i.test(gifUrl))
+		embed.setImage(gifUrl);
 	return embed;
 }
