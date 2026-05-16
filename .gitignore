@@ -70,3 +70,6 @@ __pycache__/
 # AI agents skills cache (better-auth, etc.)
 .agents/
 skills-lock.json
+
+# Recon / extraction artefacts (lourd, hors repo)
+reference/
