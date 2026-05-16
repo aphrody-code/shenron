@@ -9,13 +9,13 @@
 			"packages/*"
 		],
 		"catalog": {
-			"react": "^19.2.5",
-			"react-dom": "^19.2.5",
-			"next": "^16.2.6",
+			"react": "canary",
+			"react-dom": "canary",
+			"next": "canary",
 			"@next/bundle-analyzer": "^16.2.6",
 			"@next/eslint-plugin-next": "^16.2.6",
 			"eslint-config-next": "^16.2.6",
-			"typescript": "^6.0.3",
+			"typescript": "next",
 			"tailwindcss": "^4.2.2",
 			"@supabase/supabase-js": "^2.89.0",
 			"@supabase/ssr": "^0.6.1",
@@ -29,9 +29,9 @@
 			"oxlint": "^1.64.0",
 			"eslint-plugin-oxlint": "^1.64.0",
 			"@types/bun": "^1.3.14",
-			"@types/node": "^25.7.0",
-			"@types/react": "19.2.14",
-			"@types/react-dom": "19.2.3",
+			"@types/node": "latest",
+			"@types/react": "latest",
+			"@types/react-dom": "latest",
 			"eslint": "^9.39.4"
 		}
 	},
@@ -52,5 +52,9 @@
 	"devDependencies": {
 		"turbo": "^2.5.10"
 	},
-	"packageManager": "bun@1.3.14"
+	"packageManager": "bun@1.3.14",
+	"dependencies": {
+		"canary": "^0.5.3",
+		"sharp": "^0.34.5"
+	}
 }

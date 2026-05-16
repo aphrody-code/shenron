@@ -136,6 +136,22 @@ DB**, pas mode crypto.
 
 ## 5. Animations & FX
 
+**Bibliothèque animations (2026)** : `motion` (motion.dev) — fork lean de
+framer-motion par Matt Perry, **9 KB gz** (vs 60 KB framer-motion).
+Import : `import { motion } from "motion/react"`. API identique à framer.
+
+**WebGPU** : intégration native via `<canvas>` + WGSL shaders sans wrapper
+React-three-fiber. KiCanvas (`apps/site/src/components/site/KiCanvas.tsx`)
+est un composant client dynamic-imported (jamais dans le critical path).
+
+**Préférer toujours d'abord** :
+1. View Transitions API native (Chrome 111+, Safari 18+) → `next/transitions`
+2. CSS `@scroll-timeline` + `@view-timeline` (Chrome 115+) → animations
+   scroll-linked sans JS
+3. CSS keyframes + `prefers-reduced-motion`
+4. SVG SMIL natif pour micro-anims
+5. En dernier recours : `motion/react`
+
 **Réservées aux moments-clés**, pas saupoudrées partout.
 
 | Élément | Animation | Durée | Easing |
