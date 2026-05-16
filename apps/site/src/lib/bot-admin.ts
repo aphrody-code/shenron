@@ -163,11 +163,31 @@ export const botAdmin = {
 			{ revalidate: 30 },
 		),
 
-	auditLogs: (limit = 50) =>
-		botAdmin.fetch<{ logs: unknown[] }>(`/api/audit/logs?limit=${limit}`, {
-			revalidate: 10,
-		}),
+	auditLogs: (limit = 50, offset = 0) =>
+		botAdmin.fetch<{ logs: unknown[]; total?: number }>(
+			`/api/audit/logs?limit=${limit}&offset=${offset}`,
+			{ revalidate: 10 },
+		),
+	auditDiscord: (limit = 50, actionType?: string) =>
+		botAdmin.fetch<{ audit_logs?: unknown[]; entries?: unknown[] }>(
+			`/api/discord/audit-logs?limit=${limit}${actionType ? `&action_type=${actionType}` : ""}`,
+			{ revalidate: 30 },
+		),
 
+	economyStats: () =>
+		botAdmin.fetch<{
+			zeni: {
+				total: number;
+				avg: number;
+				max: number;
+				count: number;
+				rich: number;
+				zero: number;
+			};
+			fusions: number;
+			inventoryItems: number;
+			shopItemsActive: number;
+		}>("/api/economy/stats", { revalidate: 30 }),
 	economyLeaderboard: (limit = 50) =>
 		botAdmin.fetch<{ leaderboard: unknown[] }>(
 			`/api/economy/leaderboard?limit=${limit}`,

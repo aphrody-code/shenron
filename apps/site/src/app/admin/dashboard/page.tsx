@@ -1,7 +1,9 @@
 import { botAdmin, BOT_API_URL } from "@/lib/bot-admin";
 import Link from "next/link";
+import { HostStatsLive } from "./HostStatsLive";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 10;
 
 function uptime(s: number): string {
 	if (s < 60) return `${s.toFixed(0)}s`;
@@ -61,6 +63,8 @@ export default async function AdminDashboard() {
 					</div>
 				</div>
 			</div>
+
+			<HostStatsLive />
 
 			{/* Bots multi-persona grid */}
 			<div>

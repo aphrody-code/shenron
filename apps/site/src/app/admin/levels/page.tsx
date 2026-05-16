@@ -1,4 +1,5 @@
 import { botAdmin } from "@/lib/bot-admin";
+import { RewardUpsertForm, RewardRemoveButton } from "./RewardForms";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ export default async function AdminLevelsPage() {
 					{rewards.rewards.length} paliers configurés
 				</p>
 			</header>
+
+			<RewardUpsertForm />
 
 			<section>
 				<h2 className="text-2xl font-saiyan text-dbz-yellow uppercase mb-4">
@@ -40,6 +43,9 @@ export default async function AdminLevelsPage() {
 								</th>
 								<th className="p-2 text-left text-xs font-bold uppercase tracking-widest text-dbz-blue-light">
 									Bannière
+								</th>
+								<th className="p-2 text-right text-xs font-bold uppercase tracking-widest text-dbz-blue-light">
+									Action
 								</th>
 							</tr>
 						</thead>
@@ -70,6 +76,9 @@ export default async function AdminLevelsPage() {
 										) : (
 											<span className="text-gray-600 text-xs italic">—</span>
 										)}
+									</td>
+									<td className="p-2 text-right">
+										<RewardRemoveButton level={r.level} />
 									</td>
 								</tr>
 							))}
