@@ -1,3 +1,6 @@
+import { getCurrentUser } from "@/lib/session";
+import { notFound } from "next/navigation";
+
 const SHENRON_API = process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
 const PUBLIC_ROUTES = [
@@ -183,13 +186,20 @@ function RouteRow({
 	);
 }
 
-export default function ApiDocsPage() {
+export default async function ApiDocsPage() {
+	const me = await getCurrentUser();
+	if (!me?.user?.roleAdmin) {
+		notFound();
+	}
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-6xl">
 			<header className="text-center mb-10">
 				<h1
 					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(168, 85, 247, 0.6), 0 0 24px rgba(56, 189, 248, 0.3)" }}
+					style={{
+						textShadow:
+							"4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
+					}}
 				>
 					API
 				</h1>

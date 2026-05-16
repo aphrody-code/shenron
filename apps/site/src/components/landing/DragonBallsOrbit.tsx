@@ -52,7 +52,7 @@ export function DragonBallsOrbit({
 					cy={size / 2}
 					r={radius * 1.08}
 					fill="none"
-					stroke="rgba(168,85,247,0.15)"
+					stroke="rgba(255,107,26,0.15)"
 					strokeWidth="1"
 				/>
 			</svg>
@@ -129,7 +129,7 @@ function DragonBall({ stars, size }: { stars: number; size: number }) {
 				cy="50"
 				r="42"
 				fill={`url(#${id}-body)`}
-				stroke="rgba(168,85,247,0.4)"
+				stroke="rgba(255,107,26,0.4)"
 				strokeWidth="0.5"
 			/>
 			{/* Étoiles rouge/magenta intérieures */}

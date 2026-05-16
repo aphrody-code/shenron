@@ -47,7 +47,7 @@ export default function RootLayout({
 					className="fixed inset-0 z-[-1] pointer-events-none opacity-50"
 					style={{
 						background:
-							"radial-gradient(ellipse 60% 40% at 20% 10%, rgba(168,85,247,0.22), transparent 60%), radial-gradient(ellipse 55% 35% at 80% 90%, rgba(56,189,248,0.18), transparent 60%), radial-gradient(ellipse 40% 30% at 90% 30%, rgba(236,72,153,0.10), transparent 60%)",
+							"radial-gradient(ellipse 60% 40% at 20% 10%, rgba(255,107,26,0.22), transparent 60%), radial-gradient(ellipse 55% 35% at 80% 90%, rgba(75,168,255,0.18), transparent 60%), radial-gradient(ellipse 40% 30% at 90% 30%, rgba(217,33,33,0.10), transparent 60%)",
 					}}
 					aria-hidden
 				/>

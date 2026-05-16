@@ -11,7 +11,7 @@ async function requireAdmin() {
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	});
-	if (!session?.user) redirect("/api/auth/signin/social/discord");
+	if (!session?.user) redirect("/signin");
 	
 	const account = await db.query.baAccount.findFirst({
 		where: (acc, { eq }) => eq(acc.userId, session.user.id),

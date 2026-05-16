@@ -11,7 +11,7 @@ export default async function LeaderboardPage() {
 			<header className="text-center mb-12">
 				<h1
 					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(168, 85, 247, 0.6), 0 0 24px rgba(56, 189, 248, 0.3)" }}
+					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)" }}
 				>
 					CLASSEMENT
 				</h1>

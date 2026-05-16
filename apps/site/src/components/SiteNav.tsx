@@ -1,18 +1,16 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { SignInDiscord } from "@/components/SignInDiscord";
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
 	{ href: "/actualites", label: "Blog" },
-	{ href: "/personas", label: "Personas" },
-	{ href: "/commands", label: "Cmds" },
+	{ href: "/personas", label: "Gardiens" },
 	{ href: "/wiki/dragon-ball", label: "Wiki" },
 	{ href: "/leaderboard", label: "Top" },
 	{ href: "/stats", label: "Stats" },
 	{ href: "/shop", label: "Shop" },
 	{ href: "/jeux", label: "Jeux" },
-	{ href: "/canvas", label: "Canvas" },
-	{ href: "/api-docs", label: "API" },
 ];
 
 export async function SiteNav() {
@@ -27,10 +25,10 @@ export async function SiteNav() {
 			<div className="border-b border-dbz-border/60 bg-black/30">
 				<div className="container mx-auto px-4 h-6 flex items-center justify-between text-[10px] font-scouter tracking-[0.3em] text-dbz-blue-light/70">
 					<span>
-						<span className="text-dbz-orange">●</span> SHENRON.NET//ONLINE
+						<span className="text-dbz-orange">●</span> DBFR.FR
 					</span>
 					<span className="hidden md:inline">
-						6 PERSONAS // 1 SOUL // DBFR.FR
+						COMMUNAUTÉ DRAGON BALL FRANCE
 					</span>
 					<span>FR/JP</span>
 				</div>
@@ -52,7 +50,7 @@ export async function SiteNav() {
 						className="font-saiyan text-3xl text-dbz-yellow group-hover:text-dbz-orange transition-colors"
 						style={{
 							textShadow:
-								"2px 2px 0px rgba(168, 85, 247, 0.55), 0 0 20px rgba(56, 189, 248, 0.3)",
+								"2px 2px 0px rgba(255, 107, 26, 0.55), 0 0 20px rgba(75, 168, 255, 0.3)",
 						}}
 					>
 						DBFR
@@ -91,7 +89,7 @@ export async function SiteNav() {
 						>
 							<span className="led" aria-hidden />
 							<span className="font-saiyan uppercase tracking-widest text-xs">
-								HUD
+								ADMIN
 							</span>
 						</Link>
 					)}
@@ -116,7 +114,7 @@ export async function SiteNav() {
 							)}
 							<span className="flex flex-col leading-none">
 								<span className="font-scouter text-[8px] tracking-widest text-dbz-blue-light/70 group-hover:text-dbz-orange/80">
-									PWR
+									PROFIL
 								</span>
 								<span className="font-saiyan text-xs tracking-wider text-white max-w-[90px] truncate">
 									{username ?? "Saiyan"}
@@ -124,17 +122,11 @@ export async function SiteNav() {
 							</span>
 						</Link>
 					) : (
-						<Link
-							href="/api/auth/signin/social/discord"
-							className="group flex items-center gap-2 px-3 py-1.5 bg-dbz-orange border-b-4 border-dbz-orange-dark active:border-b-0 active:translate-y-1 transition-all whitespace-nowrap"
-						>
+						<SignInDiscord className="group flex items-center gap-2 px-3 py-1.5 bg-dbz-orange border-b-4 border-dbz-orange-dark active:border-b-0 active:translate-y-1 transition-all whitespace-nowrap">
 							<span className="font-saiyan uppercase tracking-widest text-xs text-white">
 								ENTRER
 							</span>
-							<span className="font-scouter text-[9px] tracking-widest text-white/80">
-								↵
-							</span>
-						</Link>
+						</SignInDiscord>
 					)}
 				</div>
 			</div>

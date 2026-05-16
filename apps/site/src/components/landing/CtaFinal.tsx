@@ -14,7 +14,7 @@ export function CtaFinal() {
 					className="absolute inset-0"
 					style={{
 						background:
-							"radial-gradient(ellipse 80% 70% at 50% 50%, rgba(168,85,247,0.3), transparent 60%), radial-gradient(ellipse 60% 50% at 30% 30%, rgba(56,189,248,0.2), transparent 65%), radial-gradient(ellipse 50% 50% at 70% 70%, rgba(236,72,153,0.15), transparent 60%)",
+							"radial-gradient(ellipse 80% 70% at 50% 50%, rgba(255,107,26,0.3), transparent 60%), radial-gradient(ellipse 60% 50% at 30% 30%, rgba(255,210,63,0.2), transparent 65%), radial-gradient(ellipse 50% 50% at 70% 70%, rgba(217,33,33,0.15), transparent 60%)",
 					}}
 				/>
 				<div className="absolute inset-0 starfield opacity-50" />
@@ -27,9 +27,9 @@ export function CtaFinal() {
 					whileInView={{ opacity: 1 }}
 					viewport={{ once: true, amount: 0.5 }}
 					transition={{ duration: 0.6 }}
-					className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-4 ki-pulse"
+					className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-4 ki-pulse"
 				>
-					❯ INVOCATION ❮
+					REJOINS-NOUS
 				</motion.p>
 				<motion.h2
 					initial={{ opacity: 0, scale: 0.9 }}
@@ -47,8 +47,8 @@ export function CtaFinal() {
 					transition={{ duration: 0.5, delay: 0.2 }}
 					className="text-white/70 text-lg mb-10 max-w-xl mx-auto"
 				>
-					Rejoins le serveur Discord, lie ton compte, commence à grimper. Niveau
-					1 à 100, six personas, un seul univers.
+					Rejoins le serveur Discord, lie ton compte et commence ton ascension.
+					Du niveau 1 au sommet, un seul univers t'attend.
 				</motion.p>
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}

@@ -43,7 +43,7 @@ export async function requireUser(callbackURL?: string): Promise<CurrentUser> {
 		const cb = callbackURL
 			? `?callbackURL=${encodeURIComponent(callbackURL)}`
 			: "";
-		redirect(`/api/auth/signin/social/discord${cb}`);
+		redirect(`/signin${cb}`);
 	}
 	return me;
 }

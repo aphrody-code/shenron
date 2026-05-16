@@ -10,7 +10,7 @@ export default async function MorpionPlayPage() {
 			<header className="text-center mb-8">
 				<h1
 					className="text-5xl text-dbz-yellow mb-2"
-					style={{ textShadow: "4px 4px 0px rgba(168, 85, 247, 0.55), 0 0 20px rgba(56, 189, 248, 0.3)" }}
+					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.55), 0 0 20px rgba(75, 168, 255, 0.3)" }}
 				>
 					MORPION
 				</h1>

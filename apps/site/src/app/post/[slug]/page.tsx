@@ -116,7 +116,7 @@ export default async function PostPage({
 							Connecte-toi avec Discord pour participer.
 						</p>
 						<Link
-							href={`/api/auth/signin/social/discord?callbackURL=/post/${slug}`}
+							href={`/signin?callbackURL=/post/${slug}`}
 							className="dbz-button !text-xs"
 						>
 							Se connecter

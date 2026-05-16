@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { DragonBallsOrbit } from "./DragonBallsOrbit";
+import { SignInDiscord } from "@/components/SignInDiscord";
 
 const KiCanvas = dynamic(
 	() => import("@/components/site/KiCanvas").then((m) => m.KiCanvas),
@@ -16,8 +17,8 @@ export function LandingHero() {
 			{/* Couche WebGPU ki */}
 			<KiCanvas
 				className="absolute inset-0 w-full h-full"
-				color={0xa855f7}
-				colorAccent={0x38bdf8}
+				color={0xff6b1a}
+				colorAccent={0xffd23f}
 				density={1.4}
 			/>
 
@@ -26,7 +27,7 @@ export function LandingHero() {
 			<div className="absolute inset-0 halftone opacity-20 pointer-events-none mix-blend-overlay" />
 
 			{/* Strip nébuleuse top */}
-			<div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-fuchsia-500/10 to-transparent pointer-events-none" />
+			<div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-dbz-orange/10 to-transparent pointer-events-none" />
 
 			<div className="relative container mx-auto px-4 py-20 grid lg:grid-cols-[1fr_auto] gap-12 items-center">
 				{/* Texte gauche */}
@@ -35,9 +36,9 @@ export function LandingHero() {
 						initial={{ opacity: 0, y: -10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5 }}
-						className="font-scouter text-xs md:text-sm tracking-[0.5em] text-fuchsia-300 mb-4 ki-pulse"
+						className="font-scouter text-xs md:text-sm tracking-[0.5em] text-dbz-yellow mb-4 ki-pulse"
 					>
-						❯ HUB GALACTIQUE ❮
+						COMMUNAUTÉ DRAGON BALL FRANCE
 					</motion.p>
 					<motion.h1
 						initial={{ opacity: 0, scale: 0.9 }}
@@ -58,9 +59,11 @@ export function LandingHero() {
 						transition={{ duration: 0.5, delay: 0.35 }}
 						className="text-lg md:text-2xl font-light text-white/85 mb-2 max-w-xl"
 					>
-						La communauté Dragon Ball française —{" "}
-						<span className="text-galactic font-semibold">six dieux</span>, un
-						bot, et un wiki éclaté façon nébuleuse.
+						Rassemble les{" "}
+						<span className="text-galactic font-semibold">
+							sept Dragon Balls
+						</span>{" "}
+						et rejoins la plus grande communauté Dragon Ball francophone.
 					</motion.p>
 					<motion.p
 						initial={{ opacity: 0 }}
@@ -68,8 +71,8 @@ export function LandingHero() {
 						transition={{ duration: 0.5, delay: 0.55 }}
 						className="text-sm text-white/50 mb-10 max-w-md"
 					>
-						Discord ↔ web sync intégrale. XP, zénis, succès, fusion. Mêmes
-						règles partout.
+						Entraîne-toi, combats, gagne des zénis, débloque des succès et
+						grimpe au sommet du Power Level.
 					</motion.p>
 
 					<motion.div
@@ -81,12 +84,9 @@ export function LandingHero() {
 						<Link href="#stats" className="dbz-button !text-sm md:!text-base">
 							Entrer dans l'arène
 						</Link>
-						<Link
-							href="/api/auth/signin/social/discord"
-							className="dbz-button-ghost !text-xs md:!text-sm"
-						>
+						<SignInDiscord className="dbz-button-ghost !text-xs md:!text-sm">
 							Connexion Discord
-						</Link>
+						</SignInDiscord>
 					</motion.div>
 				</div>
 
@@ -124,9 +124,9 @@ export function LandingHero() {
 				className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40"
 			>
 				<span className="font-scouter text-[10px] tracking-[0.4em]">
-					SCROLL
+					DÉFILER
 				</span>
-				<div className="w-px h-10 bg-gradient-to-b from-fuchsia-400/60 to-transparent scroll-pulse" />
+				<div className="w-px h-10 bg-gradient-to-b from-dbz-orange/60 to-transparent scroll-pulse" />
 			</motion.div>
 
 			<style>{`

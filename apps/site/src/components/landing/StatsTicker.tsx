@@ -26,21 +26,21 @@ const ITEMS: Array<{
 	{
 		key: "users",
 		label: "Guerriers",
-		tint: "text-fuchsia-300",
-		shadow: "shadow-fuchsia-500/40",
+		tint: "text-dbz-yellow",
+		shadow: "shadow-dbz-orange/40",
 	},
 	{
 		key: "totalXp",
 		label: "XP cumulé",
-		tint: "text-cyan-300",
-		shadow: "shadow-cyan-500/40",
+		tint: "text-dbz-blue-light",
+		shadow: "shadow-dbz-blue-light/40",
 	},
 	{
 		key: "totalZeni",
 		label: "Zénis frappés",
 		suffix: " z",
-		tint: "text-violet-300",
-		shadow: "shadow-violet-500/40",
+		tint: "text-dbz-yellow",
+		shadow: "shadow-dbz-orange/40",
 	},
 	{
 		key: "achievementsUnlocked",
@@ -89,8 +89,8 @@ export function StatsTicker({ stats }: { stats: Stats }) {
 					transition={{ duration: 0.6 }}
 					className="text-center mb-16"
 				>
-					<p className="font-scouter text-xs tracking-[0.5em] text-cyan-300 mb-3">
-						❯ POWER LEVEL ❮
+					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-blue-light mb-3">
+						POWER LEVEL
 					</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 						Compteur d'énergie cosmique

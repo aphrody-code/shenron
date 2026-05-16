@@ -28,15 +28,15 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 					className="flex items-end justify-between flex-wrap gap-4 mb-12"
 				>
 					<div>
-						<p className="font-scouter text-xs tracking-[0.5em] text-cyan-300 mb-3">
-							❯ JOURNAL DE BORD ❮
+						<p className="font-scouter text-xs tracking-[0.5em] text-dbz-blue-light mb-3">
+							ACTUALITÉS
 						</p>
 						<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 							Dernières dépêches
 						</h2>
 					</div>
 					<Link href="/actualites" className="dbz-button-ghost !text-xs">
-						Toutes les actualités →
+						Toutes les actualités
 					</Link>
 				</motion.div>
 
@@ -64,10 +64,10 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 								</Link>
 							)}
 							<div className="p-5 flex-1 flex flex-col">
-								<time className="font-scouter text-[10px] tracking-[0.3em] text-fuchsia-300 mb-2 uppercase">
+								<time className="font-scouter text-[10px] tracking-[0.3em] text-dbz-yellow mb-2 uppercase">
 									{format(p.createdAt, "d MMM yyyy", { locale: fr })}
 								</time>
-								<h3 className="font-saiyan text-xl text-white leading-tight mb-2 group-hover:text-fuchsia-200 transition-colors">
+								<h3 className="font-saiyan text-xl text-white leading-tight mb-2 group-hover:text-dbz-200 transition-colors">
 									<Link href={`/post/${p.slug}`}>{p.title}</Link>
 								</h3>
 								<p className="text-sm text-white/55 leading-relaxed flex-1 mb-4 line-clamp-3">

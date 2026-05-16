@@ -88,7 +88,7 @@ export default async function ProfilePage({
 									</div>
 									<div className="h-4 bg-dbz-bg border-2 border-dbz-border p-0.5 relative overflow-hidden">
 										<div
-											className="h-full shadow-[0_0_12px_rgba(168,85,247,0.6)]"
+											className="h-full shadow-[0_0_12px_rgba(255,107,26,0.6)]"
 											style={{
 												width: `${Math.min(100, (user.xpProgress.current / user.xpProgress.nextLevelXp) * 100)}%`,
 												background:

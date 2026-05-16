@@ -4,39 +4,30 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
-const PERSONA_BIOS: Record<
-	string,
-	{ tagline: string; role: string; intents: string }
-> = {
+const PERSONA_BIOS: Record<string, { tagline: string; role: string }> = {
 	shenron: {
 		tagline: "Le Dragon Légendaire",
-		role: "Admin · /config · héberge l'API REST",
-		intents: "Standard",
+		role: "Exauce les vœux et veille sur le serveur. Maître absolu des lieux.",
 	},
 	beerus: {
 		tagline: "Le Dieu de la Destruction",
-		role: "Modération · /ban /kick /warn /mute /clear /role /lock /unlock /purge…",
-		intents: "Standard",
+		role: "Maintient l'ordre. Sanctionne avec sagesse et puissance.",
 	},
 	whis: {
 		tagline: "L'Ange Précepteur",
-		role: "Utilitaires · /help /scan /ticket /wiki /races /planete",
-		intents: "Standard",
+		role: "Aide, conseille et accompagne les nouveaux venus.",
 	},
 	grandPretre: {
 		tagline: "Le Grand Prêtre Cosmique",
-		role: "Logs · MessageLog · JoinLeave · BioRole · AuditLog · InteractionLog",
-		intents: "MEMBERS + PRESENCE + MESSAGE_CONTENT",
+		role: "Observe et chronique tout ce qui se passe sur le serveur.",
 	},
 	enma: {
 		tagline: "Le Juge des Enfers",
-		role: "Sanctions · /jail /unjail + cron jail-expiry",
-		intents: "Standard",
+		role: "Préside le tribunal et applique les sanctions des contrevenants.",
 	},
 	kaio: {
 		tagline: "Le Maître du Nord",
-		role: "Économie + Jeux + Level · /shop /eprofil /pendu /morpion /pfc /bingo /fusion /top /niveau…",
-		intents: "MESSAGE_CONTENT",
+		role: "Anime les jeux, distribue les zénis et fait grimper le Power Level.",
 	},
 };
 
@@ -48,13 +39,16 @@ export default async function PersonasPage() {
 			<header className="text-center mb-12">
 				<h1
 					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(168, 85, 247, 0.6), 0 0 24px rgba(56, 189, 248, 0.3)" }}
+					style={{
+						textShadow:
+							"4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
+					}}
 				>
-					LES 6 PERSONAS
+					LES SIX GARDIENS
 				</h1>
 				<p className="text-dbz-blue-light font-bold tracking-widest uppercase max-w-3xl mx-auto">
-					Le bot Shenron est composé de 6 entités Discord distinctes, chacune
-					spécialisée dans un domaine de la vie du serveur.
+					Six figures légendaires de Dragon Ball veillent sur la communauté.
+					Chacune a son rôle, sa personnalité et sa mission.
 				</p>
 			</header>
 
@@ -63,7 +57,6 @@ export default async function PersonasPage() {
 					const bio = PERSONA_BIOS[p.id] ?? {
 						tagline: "—",
 						role: "—",
-						intents: "—",
 					};
 					return (
 						<article
@@ -114,15 +107,11 @@ export default async function PersonasPage() {
 								</div>
 							</div>
 
-							<div className="mt-3 text-[10px] text-gray-500 font-mono uppercase">
-								Intents : {bio.intents}
-							</div>
-
 							<Link
 								href={`/commands?persona=${p.id}`}
 								className="mt-4 dbz-button text-center"
 							>
-								VOIR LES COMMANDES
+								DÉCOUVRIR
 							</Link>
 						</article>
 					);
@@ -130,8 +119,7 @@ export default async function PersonasPage() {
 			</div>
 
 			<footer className="mt-12 text-center text-xs text-gray-500 uppercase tracking-widest">
-				Architecture mono-process · 6 Client discord.js · 1 DB SQLite WAL
-				partagée
+				Les six gardiens de la communauté Dragon Ball France
 			</footer>
 		</div>
 	);

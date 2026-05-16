@@ -7,14 +7,14 @@ export type PersonaCard = {
 	name: string;
 	tagline: string;
 	role: string;
-	hue: string; // tailwind color class suffix (fuchsia-500 etc)
+	hue: string; // tailwind color class suffix (dbz-orange etc)
 	avatar: string | null;
 };
 
 const FALLBACK_HUES: Record<string, string> = {
-	shenron: "fuchsia-500",
-	beerus: "violet-500",
-	whis: "cyan-400",
+	shenron: "dbz-orange",
+	beerus: "dbz-orange",
+	whis: "dbz-blue-light",
 	grandPretre: "indigo-400",
 	enma: "rose-400",
 	kaio: "amber-400",
@@ -23,27 +23,27 @@ const FALLBACK_HUES: Record<string, string> = {
 const TAGLINES: Record<string, { tagline: string; role: string }> = {
 	shenron: {
 		tagline: "Vœu cosmique exaucé.",
-		role: "Admin & API",
+		role: "Le dieu dragon",
 	},
 	beerus: {
 		tagline: "Destruction sélective.",
-		role: "Modération",
+		role: "Gardien de l'ordre",
 	},
 	whis: {
 		tagline: "Élégance servicielle.",
-		role: "Utility & support",
+		role: "Aide et accueil",
 	},
 	grandPretre: {
-		tagline: "Œil omniscient des logs.",
-		role: "Audit & logs",
+		tagline: "Œil omniscient.",
+		role: "Sage suprême",
 	},
 	enma: {
 		tagline: "Tribunal des âmes.",
-		role: "Jail & sanctions",
+		role: "Juge des sanctions",
 	},
 	kaio: {
 		tagline: "Maître du Power Level.",
-		role: "Jeux, XP, économie",
+		role: "Maître de l'arène",
 	},
 };
 
@@ -59,7 +59,7 @@ export function PersonasShowcase({
 					className="absolute inset-0 opacity-30"
 					style={{
 						background:
-							"radial-gradient(ellipse 60% 60% at 30% 50%, rgba(168,85,247,0.25), transparent), radial-gradient(ellipse 60% 60% at 70% 50%, rgba(56,189,248,0.18), transparent)",
+							"radial-gradient(ellipse 60% 60% at 30% 50%, rgba(255,107,26,0.25), transparent), radial-gradient(ellipse 60% 60% at 70% 50%, rgba(255,210,63,0.18), transparent)",
 					}}
 				/>
 			</div>
@@ -72,15 +72,15 @@ export function PersonasShowcase({
 					transition={{ duration: 0.6 }}
 					className="text-center mb-16"
 				>
-					<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-3">
-						❯ PANTHÉON ❮
+					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">
+						LES SIX GARDIENS
 					</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
-						Six dieux. Un process.
+						Les gardiens du serveur.
 					</h2>
 					<p className="text-white/55 mt-4 max-w-2xl mx-auto">
-						Chaque persona Discord est un bot dédié avec son rôle. Tous tournent
-						dans le même node, partagent la même DB. Aucun délai entre eux.
+						Six figures légendaires veillent sur la communauté. Chacune a son
+						rôle, son style et sa mission.
 					</p>
 				</motion.div>
 
@@ -90,7 +90,7 @@ export function PersonasShowcase({
 							tagline: "Persona inconnue.",
 							role: "—",
 						};
-						const hue = FALLBACK_HUES[p.id] ?? "violet-500";
+						const hue = FALLBACK_HUES[p.id] ?? "dbz-orange";
 						return (
 							<motion.div
 								key={p.id}
@@ -115,11 +115,11 @@ export function PersonasShowcase({
 												alt={p.name}
 												width={64}
 												height={64}
-												className="relative w-16 h-16 rounded-full border-2 border-dbz-border group-hover:border-fuchsia-400/60 transition-colors object-cover"
+												className="relative w-16 h-16 rounded-full border-2 border-dbz-border group-hover:border-dbz-orange/60 transition-colors object-cover"
 											/>
 										</div>
 									) : (
-										<div className="w-16 h-16 rounded-full bg-dbz-card border-2 border-dbz-border grid place-items-center font-saiyan text-2xl text-fuchsia-300">
+										<div className="w-16 h-16 rounded-full bg-dbz-card border-2 border-dbz-border grid place-items-center font-saiyan text-2xl text-dbz-yellow">
 											{p.name[0]}
 										</div>
 									)}
@@ -141,7 +141,7 @@ export function PersonasShowcase({
 								{/* Bottom ki-line accent */}
 								<div className="mt-5 pt-4 border-t border-dbz-border/60 flex items-center justify-between">
 									<span className="font-scouter text-[9px] tracking-[0.3em] text-white/40">
-										ONLINE
+										EN LIGNE
 									</span>
 									<span className="led" aria-hidden />
 								</div>

@@ -11,28 +11,28 @@
   --font-saiyan: var(--font-saiyan);
   --font-scouter: var(--font-scouter);
 
-  /* === Palette galactique (les tokens dbz-* gardent leur nom pour préserver
-        les class names existantes mais pointent vers la palette nébuleuse) ===
-        bg     = void absolu
-        card   = surface panneau nuit
-        border = indigo deep
-        violet primary = accent principal (boutons, headings)
-        cyan secondary = accent secondaire (liens, info)
-        lavande accent = highlight subtil (étoiles, stats)               */
-  --color-dbz-bg: #04050f;            /* void */
-  --color-dbz-card: #0a0d1c;          /* surface nuit */
-  --color-dbz-border: #1f1b3a;        /* indigo deep */
-  --color-dbz-orange: #a855f7;        /* violet 500 = primary */
-  --color-dbz-orange-dark: #7c3aed;   /* violet 600 = press */
-  --color-dbz-blue: #1e1b4b;          /* indigo 950 */
-  --color-dbz-blue-light: #38bdf8;    /* cyan electric = secondary */
-  --color-dbz-yellow: #c4b5fd;        /* lavande star = accent */
+  /* === Palette Dragon Ball ===
+        bg     = ciel de nuit profond
+        card   = surface bleu marine
+        border = bleu nuit
+        orange primary = gi de Goku
+        blue secondary = ceinture / ciel
+        yellow accent = étoiles de la dragon ball                */
+  --color-dbz-bg: #0a0e27;            /* ciel nuit DB */
+  --color-dbz-card: #131836;          /* surface marine */
+  --color-dbz-border: #1f2754;        /* bleu nuit */
+  --color-dbz-orange: #ff6b1a;        /* orange gi Goku */
+  --color-dbz-orange-dark: #d94d00;   /* orange press */
+  --color-dbz-blue: #143a8a;          /* bleu ceinture */
+  --color-dbz-blue-light: #4ba8ff;    /* bleu ciel */
+  --color-dbz-yellow: #ffd23f;        /* jaune étoile DB */
+  --color-dbz-red: #d92121;           /* rouge logo DB */
 
   /* Gradients réutilisables */
-  --gradient-galactic: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-  --gradient-nebula: radial-gradient(ellipse at top, rgba(168, 85, 247, 0.25), transparent 60%),
-                     radial-gradient(ellipse at bottom right, rgba(56, 189, 248, 0.18), transparent 55%),
-                     radial-gradient(ellipse at bottom left, rgba(236, 72, 153, 0.12), transparent 50%);
+  --gradient-galactic: linear-gradient(135deg, #ff6b1a 0%, #ffd23f 50%, #ff3e00 100%);
+  --gradient-nebula: radial-gradient(ellipse at top, rgba(255, 107, 26, 0.18), transparent 60%),
+                     radial-gradient(ellipse at bottom right, rgba(75, 168, 255, 0.14), transparent 55%),
+                     radial-gradient(ellipse at bottom left, rgba(255, 210, 63, 0.10), transparent 50%);
 
   --color-primary: var(--color-dbz-orange);
   --color-primary-foreground: #ffffff;
@@ -52,8 +52,8 @@
 }
 
 :root, .dark {
-  --background: #04050f;
-  --foreground: #e0e7ff;
+  --background: #0a0e27;
+  --foreground: #fff7e0;
   --radius: 0.5rem;
 }
 
@@ -75,7 +75,7 @@
     color: #f0f0ff;
   }
   ::selection {
-    background: rgba(168, 85, 247, 0.4);
+    background: rgba(255, 107, 26, 0.4);
     color: #fff;
   }
 }
@@ -85,17 +85,17 @@
   .dbz-panel {
     @apply bg-dbz-card/80 backdrop-blur-sm border border-dbz-border relative;
     box-shadow:
-      0 0 0 1px rgba(168, 85, 247, 0.08),
+      0 0 0 1px rgba(255, 107, 26, 0.08),
       0 8px 32px rgba(0, 0, 0, 0.5),
       inset 0 1px 0 rgba(255, 255, 255, 0.03);
     border-radius: 0.75rem;
     transition: border-color 0.25s, box-shadow 0.25s;
   }
   .dbz-panel:hover {
-    border-color: rgba(168, 85, 247, 0.5);
+    border-color: rgba(255, 107, 26, 0.5);
     box-shadow:
-      0 0 0 1px rgba(168, 85, 247, 0.25),
-      0 12px 48px rgba(168, 85, 247, 0.15),
+      0 0 0 1px rgba(255, 107, 26, 0.25),
+      0 12px 48px rgba(255, 107, 26, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
 
@@ -107,7 +107,7 @@
     background-position: 0% 50%;
     border-radius: 0.5rem;
     box-shadow:
-      0 4px 16px rgba(99, 102, 241, 0.35),
+      0 4px 16px rgba(255, 107, 26, 0.35),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);
     letter-spacing: 0.12em;
     font-size: 0.95rem;
@@ -115,33 +115,33 @@
   .dbz-button:hover {
     background-position: 100% 50%;
     box-shadow:
-      0 6px 24px rgba(168, 85, 247, 0.5),
+      0 6px 24px rgba(255, 107, 26, 0.5),
       inset 0 1px 0 rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
   }
   .dbz-button:active {
     transform: translateY(1px);
     box-shadow:
-      0 2px 8px rgba(99, 102, 241, 0.4),
+      0 2px 8px rgba(255, 107, 26, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.15);
   }
   .dbz-button-ghost {
     @apply font-sans font-semibold uppercase tracking-widest px-5 py-2.5 inline-flex items-center justify-center transition-all border;
-    background: rgba(168, 85, 247, 0.06);
-    color: #c4b5fd;
-    border-color: rgba(168, 85, 247, 0.3);
+    background: rgba(255, 107, 26, 0.06);
+    color: #ffd23f;
+    border-color: rgba(255, 107, 26, 0.3);
     border-radius: 0.5rem;
   }
   .dbz-button-ghost:hover {
-    background: rgba(168, 85, 247, 0.18);
-    border-color: rgba(168, 85, 247, 0.6);
+    background: rgba(255, 107, 26, 0.18);
+    border-color: rgba(255, 107, 26, 0.6);
     color: #fff;
   }
 
   /* === Texte stylé === */
   .scouter-text {
     @apply font-scouter text-dbz-yellow tracking-widest uppercase;
-    text-shadow: 0 0 8px rgba(196, 181, 253, 0.6);
+    text-shadow: 0 0 8px rgba(255, 210, 63, 0.6);
   }
   .text-galactic {
     background: var(--gradient-galactic);
@@ -156,14 +156,14 @@
       to bottom,
       transparent 0,
       transparent 2px,
-      rgba(168, 85, 247, 0.04) 2px,
-      rgba(168, 85, 247, 0.04) 3px
+      rgba(255, 107, 26, 0.04) 2px,
+      rgba(255, 107, 26, 0.04) 3px
     );
   }
   .hud-grid {
     background-image:
-      linear-gradient(rgba(168, 85, 247, 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(168, 85, 247, 0.07) 1px, transparent 1px);
+      linear-gradient(rgba(255, 107, 26, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 107, 26, 0.07) 1px, transparent 1px);
     background-size: 24px 24px;
   }
   .hud-frame {
@@ -192,8 +192,8 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: #38bdf8;
-    box-shadow: 0 0 8px #38bdf8, 0 0 16px rgba(56, 189, 248, 0.5);
+    background: #4ba8ff;
+    box-shadow: 0 0 8px #4ba8ff, 0 0 16px rgba(75, 168, 255, 0.5);
     animation: led-pulse 1.6s ease-in-out infinite;
   }
   @keyframes led-pulse {
@@ -212,7 +212,7 @@
     background: linear-gradient(
       to bottom,
       transparent 0%,
-      rgba(168, 85, 247, 0.08) 50%,
+      rgba(255, 107, 26, 0.08) 50%,
       transparent 100%
     );
     animation: hud-sweep 6s linear infinite;
@@ -221,14 +221,14 @@
   /* === Manga FX réutilisés (recolored) === */
   .halftone {
     background-image: radial-gradient(
-      rgba(168, 85, 247, 0.18) 1px,
+      rgba(255, 107, 26, 0.18) 1px,
       transparent 1.5px
     );
     background-size: 4px 4px;
   }
   .halftone-orange {
     background-image: radial-gradient(
-      rgba(56, 189, 248, 0.25) 1px,
+      rgba(75, 168, 255, 0.25) 1px,
       transparent 1.6px
     );
     background-size: 5px 5px;
@@ -238,8 +238,8 @@
       from 0deg at 50% 50%,
       transparent 0deg,
       transparent 4deg,
-      rgba(168, 85, 247, 0.3) 4deg,
-      rgba(168, 85, 247, 0.3) 4.4deg
+      rgba(255, 107, 26, 0.3) 4deg,
+      rgba(255, 107, 26, 0.3) 4.4deg
     );
     -webkit-mask-image: radial-gradient(circle at center, transparent 28%, black 70%);
     mask-image: radial-gradient(circle at center, transparent 28%, black 70%);
@@ -247,10 +247,10 @@
   .sunburst {
     background: repeating-conic-gradient(
       from 0deg at 50% 50%,
-      #a855f7 0deg,
-      #a855f7 6deg,
-      #38bdf8 6deg,
-      #38bdf8 12deg
+      #ff6b1a 0deg,
+      #ff6b1a 6deg,
+      #4ba8ff 6deg,
+      #4ba8ff 12deg
     );
   }
   .ink-edge {
@@ -262,7 +262,7 @@
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
-    filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.5))
+    filter: drop-shadow(0 0 16px rgba(255, 107, 26, 0.5))
             drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
     letter-spacing: 0.04em;
   }
@@ -308,15 +308,15 @@
   .starfield {
     background-image:
       radial-gradient(1px 1px at 25% 12%, rgba(255, 255, 255, 0.9), transparent),
-      radial-gradient(1px 1px at 70% 28%, rgba(168, 85, 247, 0.8), transparent),
+      radial-gradient(1px 1px at 70% 28%, rgba(255, 107, 26, 0.8), transparent),
       radial-gradient(1px 1px at 15% 45%, rgba(255, 255, 255, 0.7), transparent),
-      radial-gradient(2px 2px at 88% 60%, rgba(56, 189, 248, 0.9), transparent),
+      radial-gradient(2px 2px at 88% 60%, rgba(75, 168, 255, 0.9), transparent),
       radial-gradient(1px 1px at 40% 75%, rgba(255, 255, 255, 0.6), transparent),
-      radial-gradient(1px 1px at 60% 92%, rgba(196, 181, 253, 0.8), transparent),
+      radial-gradient(1px 1px at 60% 92%, rgba(255, 210, 63, 0.8), transparent),
       radial-gradient(1px 1px at 92% 18%, rgba(255, 255, 255, 0.5), transparent),
-      radial-gradient(1px 1px at 5% 70%, rgba(236, 72, 153, 0.7), transparent),
+      radial-gradient(1px 1px at 5% 70%, rgba(217, 33, 33, 0.7), transparent),
       radial-gradient(1px 1px at 50% 5%, rgba(255, 255, 255, 0.4), transparent),
-      radial-gradient(1px 1px at 33% 33%, rgba(168, 85, 247, 0.5), transparent);
+      radial-gradient(1px 1px at 33% 33%, rgba(255, 107, 26, 0.5), transparent);
     background-size: 600px 600px;
     background-repeat: repeat;
   }
@@ -330,11 +330,11 @@
 
   /* === Nebula glow utility === */
   .glow-violet {
-    box-shadow: 0 0 24px rgba(168, 85, 247, 0.4),
-                0 0 48px rgba(168, 85, 247, 0.2);
+    box-shadow: 0 0 24px rgba(255, 107, 26, 0.4),
+                0 0 48px rgba(255, 107, 26, 0.2);
   }
   .glow-cyan {
-    box-shadow: 0 0 24px rgba(56, 189, 248, 0.4),
-                0 0 48px rgba(56, 189, 248, 0.2);
+    box-shadow: 0 0 24px rgba(75, 168, 255, 0.4),
+                0 0 48px rgba(75, 168, 255, 0.2);
   }
 }
