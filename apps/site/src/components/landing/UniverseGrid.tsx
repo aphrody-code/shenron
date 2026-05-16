@@ -75,7 +75,7 @@ export function UniverseGrid() {
 					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
 						L'univers Dragon Ball
 					</p>
-					<h2 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
+					<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
 						Tout Dragon Ball.
 						<br />
 						<span className="text-white/55">
@@ -84,7 +84,7 @@ export function UniverseGrid() {
 					</h2>
 				</div>
 
-				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden">
+				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden">
 					{PILLARS.map((p, i) => (
 						<div
 							key={p.title}

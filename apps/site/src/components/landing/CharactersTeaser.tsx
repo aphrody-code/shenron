@@ -24,7 +24,7 @@ export function CharactersTeaser({
 						<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
 							Personnages mythiques
 						</p>
-						<h2 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white max-w-2xl">
+						<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white max-w-2xl">
 							Les guerriers qui ont marqué la saga.
 						</h2>
 					</div>
@@ -36,7 +36,7 @@ export function CharactersTeaser({
 					</Link>
 				</div>
 
-				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+				<div className="reveal-up-stagger grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
 					{withImages.map((c, i) => (
 						<div
 							key={c.id}

@@ -94,7 +94,7 @@ export function FeaturesGrid() {
 					</h2>
 				</div>
 
-				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
 					{FEATURES.map((f, i) => {
 						const a = ACCENT_MAP[f.accent];
 						return (

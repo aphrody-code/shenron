@@ -58,6 +58,18 @@ export const metadata: Metadata = {
 	},
 	description:
 		"Le portail Dragon Ball en français : wiki, personnages, sagas, films, jeux et actualités anime + manga.",
+	manifest: "/manifest.webmanifest",
+	icons: {
+		icon: [
+			{ url: "/favicon.ico", sizes: "any" },
+			{ url: "/favicon-16.png", type: "image/png", sizes: "16x16" },
+			{ url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+			{ url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
+			{ url: "/favicon-96.png", type: "image/png", sizes: "96x96" },
+		],
+		apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+		shortcut: "/favicon.ico",
+	},
 	openGraph: {
 		type: "website",
 		locale: "fr_FR",
@@ -85,6 +97,8 @@ export default function RootLayout({
 			<body
 				className={`${sansFlex.variable} ${oswald.variable} ${notoJP.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
+				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
+				<div className="scroll-progress" aria-hidden />
 				{/* Starfield drift cosmique — fixe en arrière-plan, pure CSS */}
 				<div
 					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-50"

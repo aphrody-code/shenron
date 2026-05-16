@@ -25,7 +25,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 						<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
 							Actualités
 						</p>
-						<h2 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
+						<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
 							Dernières dépêches Dragon Ball
 						</h2>
 					</div>
@@ -37,7 +37,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 					</Link>
 				</div>
 
-				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<div className="reveal-up-stagger grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{posts.slice(0, 3).map((p, i) => (
 						<article
 							key={p.id}

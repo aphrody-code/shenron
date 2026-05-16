@@ -68,7 +68,7 @@ export function PersonasShowcase({
 					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
 						En bonus — notre bot Discord
 					</p>
-					<h2 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
+					<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
 						Six gardiens veillent sur le serveur.
 					</h2>
 					<p className="text-white/55 mt-5 max-w-2xl mx-auto text-[15px] leading-relaxed">
@@ -78,7 +78,7 @@ export function PersonasShowcase({
 					</p>
 				</div>
 
-				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
+				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
 					{personas
 						.filter((p) => !!p.avatar)
 						.map((p, i) => {
