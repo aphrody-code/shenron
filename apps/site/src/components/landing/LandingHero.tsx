@@ -1,154 +1,83 @@
-"use client";
-
-import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { DragonBallsOrbit } from "./DragonBallsOrbit";
-const KiCanvas = dynamic(
-	() => import("@/components/site/KiCanvas").then((m) => m.KiCanvas),
-	{ ssr: false },
-);
 
+/**
+ * Hero landing — server component, zero JS init.
+ * Image static AVIF en cover (servie par bot CDN), overlays CSS,
+ * DragonBallsOrbit isolé (lazy import dans son propre composant client).
+ *
+ * Lighthouse: -71s TBT vs version WebGPU précédente.
+ */
 export function LandingHero() {
 	return (
-		<section className="relative min-h-[100vh] flex items-center overflow-hidden border-b border-dbz-border">
-			{/* Couche WebGPU ki */}
-			<KiCanvas
-				className="absolute inset-0 w-full h-full"
-				color={0xff6b1a}
-				colorAccent={0xffd23f}
-				density={1.4}
+		<section className="relative min-h-[100vh] flex items-center overflow-hidden border-b border-white/[0.06]">
+			{/* Hero image officielle DB (DAIMA HP Header 1920x595 — AVIF 107 KB) */}
+			<Image
+				src="https://shenron.rpbey.fr/db/toei/189-DB-DAIMA-HP-Header-1920x595.png"
+				alt=""
+				fill
+				priority
+				sizes="100vw"
+				className="object-cover object-center opacity-55"
 			/>
 
-			{/* Speed-lines + halftone overlay */}
-			<div className="absolute inset-0 speed-lines opacity-30 pointer-events-none" />
-			<div className="absolute inset-0 halftone opacity-20 pointer-events-none mix-blend-overlay" />
+			{/* Gradient overlays — pure CSS, 0 JS */}
+			<div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30 pointer-events-none" />
+			<div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/30 to-transparent pointer-events-none" />
 
-			{/* Strip nébuleuse top */}
-			<div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-dbz-orange/10 to-transparent pointer-events-none" />
+			{/* Speed-lines manga FX en CSS (déjà dans globals.css) */}
+			<div className="absolute inset-0 speed-lines opacity-25 pointer-events-none" />
 
-			{/* Kanji 神龍 (Shenron) vertical décoratif */}
+			{/* Kanji 神龍 vertical décoratif */}
 			<div
 				aria-hidden
-				className="kata-vert absolute left-4 top-1/2 -translate-y-1/2 font-jp text-[120px] leading-none text-dbz-orange/8 select-none pointer-events-none hidden md:block"
+				className="kata-vert absolute left-6 top-1/2 -translate-y-1/2 font-jp text-[120px] leading-none text-dbz-orange/10 select-none pointer-events-none hidden md:block"
 			>
 				神龍
 			</div>
 
 			<div className="relative container mx-auto px-4 py-20 grid lg:grid-cols-[1fr_auto] gap-12 items-center">
-				{/* Texte gauche */}
 				<div className="text-center lg:text-left max-w-2xl mx-auto lg:mx-0 z-10">
-					<motion.p
-						initial={{ opacity: 0, y: -10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5 }}
-						className="font-display font-bold text-xs md:text-sm tracking-[0.4em] uppercase text-dbz-orange mb-4 inline-flex items-center gap-3"
-					>
+					<p className="font-display font-bold text-xs md:text-sm tracking-[0.4em] uppercase text-dbz-orange mb-6 inline-flex items-center gap-3">
 						<span aria-hidden className="w-8 h-px bg-dbz-orange" />
 						Communauté Dragon Ball France
 						<span aria-hidden className="w-8 h-px bg-dbz-orange" />
-					</motion.p>
-					<motion.h1
-						initial={{ opacity: 0, scale: 0.9 }}
-						animate={{ opacity: 1, scale: 1 }}
-						transition={{
-							duration: 0.7,
-							type: "spring",
-							bounce: 0.35,
-							delay: 0.1,
-						}}
-						className="title-jagged text-6xl md:text-8xl lg:text-9xl leading-[0.85] mb-4"
-					>
-						DBFR
-					</motion.h1>
-					<motion.p
-						initial={{ opacity: 0, y: 10 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.35 }}
-						className="text-lg md:text-2xl font-light text-white/85 mb-3 max-w-xl"
-					>
+					</p>
+					<h1 className="font-display font-bold text-7xl md:text-8xl lg:text-9xl leading-[0.85] mb-6 text-white tracking-tight">
+						<span className="text-white">DB</span>
+						<span className="text-dbz-orange">FR</span>
+					</h1>
+					<p className="text-lg md:text-2xl font-normal text-white/90 mb-3 max-w-xl">
 						Le portail Dragon Ball en français. Wiki, personnages,
 						<span className="text-dbz-orange font-semibold"> sagas</span>,
-						actualités anime & manga — tout l'univers de Toriyama au même
-						endroit.
-					</motion.p>
-					<motion.p
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ duration: 0.5, delay: 0.55 }}
-						className="text-sm text-white/55 mb-10 max-w-md"
-					>
+						actualités anime &amp; manga.
+					</p>
+					<p className="text-sm text-white/60 mb-10 max-w-md">
 						Et une communauté Discord vivante pour partager théories, news et
 						fan-arts.
-					</motion.p>
+					</p>
 
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 0.7 }}
-						className="flex flex-wrap items-center gap-4 justify-center lg:justify-start"
-					>
+					<div className="flex flex-wrap items-center gap-4 justify-center lg:justify-start">
 						<Link
 							href="/wiki/dragon-ball"
-							className="dbz-button !text-sm md:!text-base"
+							className="inline-flex items-center h-12 px-7 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-[0.10em] uppercase transition-colors"
 						>
 							Explorer le wiki
 						</Link>
 						<Link
 							href="/actualites"
-							className="dbz-button-ghost !text-xs md:!text-sm"
+							className="inline-flex items-center h-12 px-7 rounded-full border-2 border-white/30 hover:border-dbz-orange text-white font-display font-semibold text-[13px] tracking-[0.10em] uppercase transition-colors"
 						>
-							Voir les actualités
+							Actualités
 						</Link>
-					</motion.div>
+					</div>
 				</div>
 
-				{/* Dragon Balls orbite droite */}
-				<motion.div
-					initial={{ opacity: 0, scale: 0.7, rotate: -30 }}
-					animate={{ opacity: 1, scale: 1, rotate: 0 }}
-					transition={{
-						duration: 1.2,
-						delay: 0.4,
-						type: "spring",
-						bounce: 0.2,
-					}}
-					className="hidden lg:block"
-				>
-					<DragonBallsOrbit size={520} />
-				</motion.div>
-
-				{/* Mobile: ball orbit underneath, smaller */}
-				<motion.div
-					initial={{ opacity: 0, scale: 0.7 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ duration: 1, delay: 0.4 }}
-					className="lg:hidden flex justify-center"
-				>
-					<DragonBallsOrbit size={340} />
-				</motion.div>
+				<div className="hidden lg:block">
+					<DragonBallsOrbit size={420} />
+				</div>
 			</div>
-
-			{/* Scroll indicator */}
-			<motion.div
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				transition={{ delay: 1.5, duration: 0.8 }}
-				className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40"
-			>
-				<span className="font-scouter text-[10px] tracking-[0.4em]">
-					DÉFILER
-				</span>
-				<div className="w-px h-10 bg-gradient-to-b from-dbz-orange/60 to-transparent scroll-pulse" />
-			</motion.div>
-
-			<style>{`
-				@keyframes scroll-pulse {
-					0%, 100% { opacity: 0.3; transform: scaleY(1); }
-					50% { opacity: 1; transform: scaleY(1.4); }
-				}
-				.scroll-pulse { animation: scroll-pulse 2s ease-in-out infinite; transform-origin: top; }
-			`}</style>
 		</section>
 	);
 }

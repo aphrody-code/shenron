@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 
 export type PersonaCard = {
 	id: string;
@@ -65,11 +62,7 @@ export function PersonasShowcase({
 			</div>
 
 			<div className="container mx-auto px-4 relative">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true, amount: 0.3 }}
-					transition={{ duration: 0.6 }}
+				<div
 					className="text-center mb-16"
 				>
 					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
@@ -83,7 +76,7 @@ export function PersonasShowcase({
 						communauté : Shenron, Beerus, Whis, le Grand Prêtre, Enma et Kaïo.
 						Modération, accueil, jeux, économie — chacun a sa spécialité.
 					</p>
-				</motion.div>
+				</div>
 
 				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
 					{personas
@@ -95,12 +88,8 @@ export function PersonasShowcase({
 							};
 							const hue = FALLBACK_HUES[p.id] ?? "dbz-orange";
 							return (
-								<motion.div
+								<div
 									key={p.id}
-									initial={{ opacity: 0, y: 30 }}
-									whileInView={{ opacity: 1, y: 0 }}
-									viewport={{ once: true, amount: 0.2 }}
-									transition={{ duration: 0.5, delay: i * 0.08 }}
 									className="dbz-panel p-6 group relative overflow-hidden"
 								>
 									<div
@@ -142,7 +131,7 @@ export function PersonasShowcase({
 										</span>
 										<span className="led" aria-hidden />
 									</div>
-								</motion.div>
+								</div>
 							);
 						})}
 				</div>

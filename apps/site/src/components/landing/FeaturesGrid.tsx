@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 type Feature = {
@@ -86,11 +83,7 @@ export function FeaturesGrid() {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-dbz-border">
 			<div className="container mx-auto px-4">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true, amount: 0.3 }}
-					transition={{ duration: 0.6 }}
+				<div
 					className="text-center mb-16"
 				>
 					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">
@@ -99,18 +92,14 @@ export function FeaturesGrid() {
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 						L'univers Dragon Ball, à portée de clic.
 					</h2>
-				</motion.div>
+				</div>
 
 				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
 					{FEATURES.map((f, i) => {
 						const a = ACCENT_MAP[f.accent];
 						return (
-							<motion.div
+							<div
 								key={f.title}
-								initial={{ opacity: 0, y: 30 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								viewport={{ once: true, amount: 0.2 }}
-								transition={{ duration: 0.5, delay: i * 0.06 }}
 							>
 								<Link
 									href={f.href}
@@ -141,7 +130,7 @@ export function FeaturesGrid() {
 										{f.cta}
 									</div>
 								</Link>
-							</motion.div>
+							</div>
 						);
 					})}
 				</div>

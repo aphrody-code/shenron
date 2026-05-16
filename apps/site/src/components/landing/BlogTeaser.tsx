@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -21,11 +18,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06] bg-[#080808]">
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true, amount: 0.3 }}
-					transition={{ duration: 0.6 }}
+				<div
 					className="flex items-end justify-between flex-wrap gap-6 mb-12"
 				>
 					<div>
@@ -42,16 +35,12 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 					>
 						Toutes les actualités
 					</Link>
-				</motion.div>
+				</div>
 
 				<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{posts.slice(0, 3).map((p, i) => (
-						<motion.article
+						<article
 							key={p.id}
-							initial={{ opacity: 0, y: 30 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true, amount: 0.2 }}
-							transition={{ duration: 0.5, delay: i * 0.1 }}
 							className="rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 transition-colors overflow-hidden group flex flex-col"
 						>
 							{p.cover && (
@@ -97,7 +86,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 									</span>
 								</div>
 							</div>
-						</motion.article>
+						</article>
 					))}
 				</div>
 			</div>

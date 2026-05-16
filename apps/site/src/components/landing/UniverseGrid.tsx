@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 type Pillar = {
@@ -72,11 +69,7 @@ export function UniverseGrid() {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06]">
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
-					viewport={{ once: true, amount: 0.3 }}
-					transition={{ duration: 0.6 }}
+				<div
 					className="max-w-3xl mb-16"
 				>
 					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
@@ -89,16 +82,12 @@ export function UniverseGrid() {
 							En français, à jour, sans détour.
 						</span>
 					</h2>
-				</motion.div>
+				</div>
 
 				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden">
 					{PILLARS.map((p, i) => (
-						<motion.div
+						<div
 							key={p.title}
-							initial={{ opacity: 0, y: 24 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true, amount: 0.2 }}
-							transition={{ duration: 0.5, delay: i * 0.05 }}
 						>
 							<Link
 								href={p.href}
@@ -124,7 +113,7 @@ export function UniverseGrid() {
 									<span aria-hidden>→</span>
 								</span>
 							</Link>
-						</motion.div>
+						</div>
 					))}
 				</div>
 			</div>

@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 export type CharacterTeaser = {
@@ -41,12 +38,8 @@ export function CharactersTeaser({
 
 				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
 					{withImages.map((c, i) => (
-						<motion.div
+						<div
 							key={c.id}
-							initial={{ opacity: 0, y: 20 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							viewport={{ once: true, amount: 0.2 }}
-							transition={{ duration: 0.45, delay: i * 0.04 }}
 						>
 							<Link
 								href={`/wiki/dragon-ball/character/${c.id}`}
@@ -75,7 +68,7 @@ export function CharactersTeaser({
 									)}
 								</div>
 							</Link>
-						</motion.div>
+						</div>
 					))}
 				</div>
 			</div>
