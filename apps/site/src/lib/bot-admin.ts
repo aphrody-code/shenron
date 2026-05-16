@@ -194,7 +194,149 @@ export const botAdmin = {
 		profileUrl: (userId: string) => `${API}/api/canvas/profile/${userId}`,
 		leaderboardUrl: () => `${API}/api/canvas/leaderboard`,
 		scoutUrl: (userId: string) => `${API}/api/canvas/scouter/${userId}`,
+		list: () =>
+			botAdmin.fetch<{
+				canvases: Array<{ name: string; description: string; path: string }>;
+			}>("/api/canvas/list", { revalidate: 300 }),
 	},
+
+	giveaways: () =>
+		botAdmin.fetch<{
+			giveaways: Array<{
+				id: number;
+				messageId: string;
+				channelId: string;
+				hostId: string;
+				title: string;
+				reward: string;
+				description: string | null;
+				winners: number;
+				endsAt: number;
+				ended: boolean;
+				winnerIds: string | null;
+			}>;
+		}>("/api/giveaways", { revalidate: 30 }),
+	giveawayEnd: (id: number) =>
+		botAdmin.fetch(`/api/giveaways/${id}/end`, { method: "POST", body: "{}" }),
+
+	levels: {
+		config: () =>
+			botAdmin.fetch<unknown>("/api/levels/config", { revalidate: 60 }),
+		distribution: () =>
+			botAdmin.fetch<{ distribution: Array<{ level: number; count: number }> }>(
+				"/api/levels/distribution",
+				{ revalidate: 60 },
+			),
+		rewards: () =>
+			botAdmin.fetch<{
+				rewards: Array<{
+					level: number;
+					roleId: string;
+					zeniBonus: number;
+					xpThreshold: number;
+					bannerUrl: string | null;
+				}>;
+			}>("/api/levels/rewards", { revalidate: 60 }),
+		top: (limit = 50) =>
+			botAdmin.fetch<{ top: unknown[] }>(`/api/levels/top?limit=${limit}`, {
+				revalidate: 30,
+			}),
+	},
+
+	messages: () =>
+		botAdmin.fetch<{
+			events: Array<{
+				event: string;
+				enabled: boolean;
+				channelId: string | null;
+				embed: unknown;
+			}>;
+		}>("/api/messages", { revalidate: 60 }),
+
+	moderation: {
+		hierarchy: () =>
+			botAdmin.fetch<{
+				tiers: Array<{ name: string; roleIds: string[]; level: number }>;
+			}>("/api/moderation/hierarchy", { revalidate: 60 }),
+		recent: () =>
+			botAdmin.fetch<{ actions: unknown[] }>("/api/moderation/recent", {
+				revalidate: 10,
+			}),
+		stats: () =>
+			botAdmin.fetch<{
+				warns: number;
+				jails: number;
+				bans: number;
+				kicks: number;
+				mutes: number;
+			}>("/api/moderation/stats", { revalidate: 30 }),
+		warns: () =>
+			botAdmin.fetch<{
+				warns: Array<{
+					id: number;
+					userId: string;
+					moderatorId: string;
+					reason: string | null;
+					active: boolean;
+					createdAt: number;
+				}>;
+			}>("/api/moderation/warns", { revalidate: 10 }),
+		jails: () =>
+			botAdmin.fetch<{
+				jails: Array<{
+					id: number;
+					userId: string;
+					moderatorId: string;
+					reason: string | null;
+					expiresAt: number | null;
+					releasedAt: number | null;
+					createdAt: number;
+				}>;
+			}>("/api/moderation/jails", { revalidate: 10 }),
+	},
+
+	settings: () =>
+		botAdmin.fetch<{
+			schema: Array<{
+				key: string;
+				type: string;
+				default: unknown;
+				current: unknown;
+				description: string | null;
+			}>;
+		}>("/api/settings/schema", { revalidate: 60 }),
+
+	tickets: () =>
+		botAdmin.fetch<{
+			tickets: Array<{
+				id: number;
+				channelId: string;
+				ownerId: string;
+				kind: string;
+				context: string | null;
+				closed: boolean;
+				closedAt: number | null;
+				createdAt: number;
+			}>;
+		}>("/api/tickets", { revalidate: 30 }),
+
+	webhooks: () =>
+		botAdmin.fetch<{
+			webhooks: Array<{
+				id: string;
+				name: string;
+				channelId: string;
+				url?: string;
+				type: number;
+			}>;
+		}>("/api/webhooks", { revalidate: 60 }),
+
+	wikiStats: () =>
+		botAdmin.fetch<{
+			characters: number;
+			planets: number;
+			transformations: number;
+		}>("/api/wiki/stats", { revalidate: 300 }),
 };
 
 export const BOT_API_URL = API;
