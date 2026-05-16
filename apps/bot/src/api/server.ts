@@ -3236,8 +3236,7 @@ function admin<R extends Request & { params: any }>(
 
 // ── Routes publiques : CORS allowlist + rate-limit 60 req/min/IP ─────────
 const PUBLIC_CORS_ORIGINS = new Set([
-	"https://dbfr.fr",
-	"https://www.dbfr.fr",
+	"https://dbfr.vercel.app",
 	"https://shenron.rpbey.fr",
 	"http://localhost:3000",
 ]);
@@ -3246,7 +3245,9 @@ const publicRateBuckets = new Map<string, { count: number; resetAt: number }>();
 
 function publicCorsHeaders(req: Request): Record<string, string> {
 	const origin = req.headers.get("origin") ?? "";
-	const allow = PUBLIC_CORS_ORIGINS.has(origin) ? origin : "https://dbfr.fr";
+	const allow = PUBLIC_CORS_ORIGINS.has(origin)
+		? origin
+		: "https://dbfr.vercel.app";
 	return {
 		"Access-Control-Allow-Origin": allow,
 		"Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -3295,7 +3296,7 @@ async function publicRoute(
 }
 
 // ── publicCachedJson : 2 niveaux de cache (mémoire + HTTP) ──────────────
-// Le site Vercel (`dbfr.fr`) fetch ces routes avec `next: { revalidate: 60 }` —
+// Le site Vercel (`dbfr.vercel.app`) fetch ces routes avec `next: { revalidate: 60 }` —
 // le Cache-Control `public, s-maxage=…, stale-while-revalidate=…` permet à
 // l'edge Vercel + au browser de mettre en cache. Le memo cache local (TTL
 // court) absorbe les hits parallèles pendant le warming d'un déploiement

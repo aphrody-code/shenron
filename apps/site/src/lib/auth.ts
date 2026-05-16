@@ -6,7 +6,7 @@ import { env } from "./env";
 
 export const auth = betterAuth({
 	appName: "DBFR",
-	baseURL: env.BETTER_AUTH_URL ?? "https://dbfr.fr",
+	baseURL: env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app",
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {
@@ -55,11 +55,7 @@ export const auth = betterAuth({
 			},
 		},
 	},
-	trustedOrigins: [
-		"https://dbfr.vercel.app",
-		"https://dbfr.fr",
-		"http://localhost:3000",
-	],
+	trustedOrigins: ["https://dbfr.vercel.app", "http://localhost:3000"],
 	advanced: {
 		// @ts-expect-error better-auth supporte trustProxy runtime mais types pas à jour (v1.6.x)
 		trustProxy: true,

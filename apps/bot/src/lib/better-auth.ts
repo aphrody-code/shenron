@@ -30,104 +30,108 @@ import { logger } from "./logger";
 let _auth: any = null;
 
 export function getAuth() {
-  if (_auth) return _auth;
+	if (_auth) return _auth;
 
-  if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) {
-    throw new Error("Better Auth requires DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET in .env");
-  }
+	if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) {
+		throw new Error(
+			"Better Auth requires DISCORD_CLIENT_ID + DISCORD_CLIENT_SECRET in .env",
+		);
+	}
 
-  const dbs = container.resolve(DatabaseService);
+	const dbs = container.resolve(DatabaseService);
 
-  _auth = betterAuth({
-    appName: "Shenron",
-    baseURL:
-      env.BETTER_AUTH_URL ??
-      env.OAUTH_REDIRECT_URI?.replace(/\/auth\/callback$/, "") ??
-      "https://shenron.rpbey.fr",
-    basePath: "/api/auth",
+	_auth = betterAuth({
+		appName: "Shenron",
+		baseURL:
+			env.BETTER_AUTH_URL ??
+			env.OAUTH_REDIRECT_URI?.replace(/\/auth\/callback$/, "") ??
+			"https://shenron.rpbey.fr",
+		basePath: "/api/auth",
 
-    secret: env.SESSION_SECRET ?? env.API_ADMIN_TOKEN ?? "dev-secret-change-me",
+		secret: env.SESSION_SECRET ?? env.API_ADMIN_TOKEN ?? "dev-secret-change-me",
 
-    // bun:sqlite via drizzle (mêmes tables que le bot, préfixe ba_)
-    database: drizzleAdapter(dbs.db, {
-      provider: "sqlite",
-      schema: {
-        user: baUser,
-        session: baSession,
-        account: baAccount,
-        verification: baVerification,
-      },
-    }),
+		// bun:sqlite via drizzle (mêmes tables que le bot, préfixe ba_)
+		database: drizzleAdapter(dbs.db, {
+			provider: "sqlite",
+			schema: {
+				user: baUser,
+				session: baSession,
+				account: baAccount,
+				verification: baVerification,
+			},
+		}),
 
-    // Pas de signup local — uniquement OAuth Discord
-    emailAndPassword: { enabled: false },
+		// Pas de signup local — uniquement OAuth Discord
+		emailAndPassword: { enabled: false },
 
-    socialProviders: {
-      discord: {
-        clientId: env.DISCORD_CLIENT_ID,
-        clientSecret: env.DISCORD_CLIENT_SECRET,
-        // identify (id, username, avatar) + email + guilds + membership read
-        scope: ["identify", "email", "guilds", "guilds.members.read"],
-      },
-    },
+		socialProviders: {
+			discord: {
+				clientId: env.DISCORD_CLIENT_ID,
+				clientSecret: env.DISCORD_CLIENT_SECRET,
+				// identify (id, username, avatar) + email + guilds + membership read
+				scope: ["identify", "email", "guilds", "guilds.members.read"],
+			},
+		},
 
-    session: {
-      // Session 7 jours, renouvelée à chaque requête (sliding window)
-      expiresIn: 60 * 60 * 24 * 7,
-      updateAge: 60 * 60 * 24, // refresh expiry 1×/jour
-      cookieCache: {
-        enabled: true,
-        maxAge: 5 * 60, // cache cookie 5min côté client (sliding session)
-      },
-    },
+		session: {
+			// Session 7 jours, renouvelée à chaque requête (sliding window)
+			expiresIn: 60 * 60 * 24 * 7,
+			updateAge: 60 * 60 * 24, // refresh expiry 1×/jour
+			cookieCache: {
+				enabled: true,
+				maxAge: 5 * 60, // cache cookie 5min côté client (sliding session)
+			},
+		},
 
-    advanced: {
-      // En dev (NODE_ENV=development), Secure cookie désactivé pour localhost
-      useSecureCookies: env.NODE_ENV === "production",
-      cookiePrefix: "shenron_ba",
-      crossSubDomainCookies: { enabled: false },
-      // Nécessaire quand le bot est derrière un proxy (Fly.io / Nginx)
-      // pour que Better Auth détecte correctement le protocole https
-      trustProxy: true,
-    },
+		advanced: {
+			// En dev (NODE_ENV=development), Secure cookie désactivé pour localhost
+			useSecureCookies: env.NODE_ENV === "production",
+			cookiePrefix: "shenron_ba",
+			crossSubDomainCookies: { enabled: false },
+			// Nécessaire quand le bot est derrière un proxy (Fly.io / Nginx)
+			// pour que Better Auth détecte correctement le protocole https
+			trustProxy: true,
+		},
 
-    // Whitelist : seuls OWNER_ID + OAUTH_ALLOWED_USERS peuvent se connecter.
-    // On hook après création du compte Discord pour rejeter les non-whitelistés.
-    databaseHooks: {
-      account: {
-        create: {
-          before: async (account) => {
-            if (account.providerId !== "discord") return;
-            const discordId = account.accountId;
-            const allowed =
-              discordId === env.OWNER_ID || env.OAUTH_ALLOWED_USERS.includes(discordId);
-            if (!allowed) {
-              logger.warn(
-                { discordId, providerId: account.providerId },
-                "Better Auth — login Discord refusé (hors whitelist)",
-              );
-              throw new Error(
-                `Accès refusé : votre ID Discord (${discordId}) n'est pas whitelisté.`,
-              );
-            }
-            logger.info({ discordId }, "Better Auth — login Discord whitelisté");
-          },
-        },
-      },
-    },
+		// Whitelist : seuls OWNER_ID + OAUTH_ALLOWED_USERS peuvent se connecter.
+		// On hook après création du compte Discord pour rejeter les non-whitelistés.
+		databaseHooks: {
+			account: {
+				create: {
+					before: async (account) => {
+						if (account.providerId !== "discord") return;
+						const discordId = account.accountId;
+						const allowed =
+							discordId === env.OWNER_ID ||
+							env.OAUTH_ALLOWED_USERS.includes(discordId);
+						if (!allowed) {
+							logger.warn(
+								{ discordId, providerId: account.providerId },
+								"Better Auth — login Discord refusé (hors whitelist)",
+							);
+							throw new Error(
+								`Accès refusé : votre ID Discord (${discordId}) n'est pas whitelisté.`,
+							);
+						}
+						logger.info(
+							{ discordId },
+							"Better Auth — login Discord whitelisté",
+						);
+					},
+				},
+			},
+		},
 
-    // CORS / origin trust : autorise le bot lui-même et le site public
-    trustedOrigins: [
-      "https://shenron.rpbey.fr",
-      "https://dbfr.fr",
-      "https://www.dbfr.fr",
-      "https://dbfr.vercel.app",
-      "http://localhost:3000",
-      "http://localhost:5006",
-    ],
-  });
+		// CORS / origin trust : autorise le bot lui-même et le site public
+		trustedOrigins: [
+			"https://shenron.rpbey.fr",
+			"https://dbfr.vercel.app",
+			"http://localhost:3000",
+			"http://localhost:5006",
+		],
+	});
 
-  return _auth;
+	return _auth;
 }
 
 /**
@@ -135,11 +139,13 @@ export function getAuth() {
  *  - Response : Better Auth a matché et géré la requête
  *  - null : route non gérée par Better Auth, laisser passer aux autres routes
  */
-export async function handleBetterAuthRequest(req: Request): Promise<Response | null> {
-  const url = new URL(req.url);
-  if (!url.pathname.startsWith("/api/auth/")) return null;
-  const auth = getAuth();
-  return auth.handler(req);
+export async function handleBetterAuthRequest(
+	req: Request,
+): Promise<Response | null> {
+	const url = new URL(req.url);
+	if (!url.pathname.startsWith("/api/auth/")) return null;
+	const auth = getAuth();
+	return auth.handler(req);
 }
 
 /**
@@ -147,11 +153,11 @@ export async function handleBetterAuthRequest(req: Request): Promise<Response | 
  * Retourne `null` si pas de session valide.
  */
 export async function getBetterAuthSession(req: Request) {
-  try {
-    const auth = getAuth();
-    const session = await auth.api.getSession({ headers: req.headers });
-    return session;
-  } catch {
-    return null;
-  }
+	try {
+		const auth = getAuth();
+		const session = await auth.api.getSession({ headers: req.headers });
+		return session;
+	} catch {
+		return null;
+	}
 }
