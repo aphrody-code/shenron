@@ -14,10 +14,11 @@ export function LandingHero() {
 		<section className="relative min-h-[100vh] flex items-center overflow-hidden border-b border-white/[0.06]">
 			{/* Hero image officielle DB (DAIMA HP Header 1920x595 — AVIF 107 KB) */}
 			<Image
-				src="https://shenron.rpbey.fr/db/toei/189-DB-DAIMA-HP-Header-1920x595.png"
+				src="/hero-daima.avif"
 				alt=""
 				fill
 				priority
+				fetchPriority="high"
 				sizes="100vw"
 				className="object-cover object-center opacity-55"
 			/>
