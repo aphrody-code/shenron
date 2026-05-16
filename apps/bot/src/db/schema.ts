@@ -313,6 +313,7 @@ export const levelRewards = sqliteTable("level_rewards", {
 	roleId: text("role_id").notNull(),
 	zeniBonus: integer("zeni_bonus").notNull().default(1000),
 	xpThreshold: integer("xp_threshold").notNull(), // exp necessaire pour atteindre ce palier
+	bannerUrl: text("banner_url"), // chemin relatif (assets/banners/...) ou URL absolue
 });
 
 /**

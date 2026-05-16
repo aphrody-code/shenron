@@ -28,6 +28,20 @@ const db = dbs.db;
 
 await db.delete(levelRewards);
 
+// Bannières par niveau (assets/banners/banner-NN.ext fournies par Omar 2026-05-12, 19 disponibles)
+const BANNERS: Record<number, string> = {
+	1: "assets/banners/banner-01.jpg",
+	2: "assets/banners/banner-02.jpg",
+	3: "assets/banners/banner-03.png",
+	4: "assets/banners/banner-04.jpg",
+	5: "assets/banners/banner-05.jpg",
+	6: "assets/banners/banner-06.jpg",
+	7: "assets/banners/banner-07.jpg",
+	8: "assets/banners/banner-08.jpg",
+	9: "assets/banners/banner-09.png",
+	10: "assets/banners/banner-10.jpg",
+};
+
 for (const { level, xp } of LEVEL_THRESHOLDS) {
 	const map = LEVEL_ROLE_MAP[level];
 	if (!map) continue;
@@ -36,9 +50,10 @@ for (const { level, xp } of LEVEL_THRESHOLDS) {
 		roleId: map.roleId,
 		xpThreshold: xp,
 		zeniBonus: ZENI_PER_LEVEL * level,
+		bannerUrl: BANNERS[level] ?? null,
 	});
 	console.log(
-		`  L${level.toString().padStart(2)} (${xp.toLocaleString("fr").padStart(11)} XP) → ${map.roleName}`,
+		`  L${level.toString().padStart(2)} (${xp.toLocaleString("fr").padStart(11)} XP) → ${map.roleName} · ${BANNERS[level] ?? "—"}`,
 	);
 }
 
