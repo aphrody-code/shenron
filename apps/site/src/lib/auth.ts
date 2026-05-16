@@ -9,8 +9,21 @@ export const auth = betterAuth({
 	baseURL: env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app",
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
+	// Logger debug : on log TOUT pour diagnostiquer le flow OAuth Discord
+	// (sera réduit à 'warn' une fois login confirmé stable).
+	logger: {
+		disabled: false,
+		level: "debug",
+		log: (level, message, ...args) => {
+			console.log(
+				`[AUTH ${level}] ${message}`,
+				JSON.stringify(args).slice(0, 500),
+			);
+		},
+	},
 	database: drizzleAdapter(db, {
 		provider: "pg",
+		debugLogs: true,
 		schema: {
 			user: schema.baUser,
 			session: schema.baSession,
