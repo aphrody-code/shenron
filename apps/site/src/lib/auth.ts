@@ -62,6 +62,24 @@ export const auth = betterAuth({
 			redirectURI: `${env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app"}/api/auth/callback/discord`,
 		},
 	},
+	databaseHooks: {
+		account: {
+			create: {
+				before: async (account) => {
+					if (account.providerId !== "discord") return;
+					const discordId = account.accountId;
+					const allowed =
+						discordId === env.OWNER_ID ||
+						env.OAUTH_ALLOWED_USERS.includes(discordId);
+					if (!allowed) {
+						throw new Error(
+							`Accès refusé : votre ID Discord (${discordId}) n'est pas whitelisté.`,
+						);
+					}
+				},
+			},
+		},
+	},
 	// L'app User row est upsertée lazy depuis getCurrentUser() (lib/session.ts)
 	// car databaseHooks.user.create.after se déclenche AVANT que le compte soit
 	// commit dans ba_account → la jointure findFirst retournait null → User

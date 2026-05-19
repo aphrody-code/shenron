@@ -38,7 +38,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 				</div>
 
 				<div className="reveal-up-stagger grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{posts.slice(0, 3).map((p, i) => (
+					{posts.slice(0, 3).map((p, _i) => (
 						<article
 							key={p.id}
 							className="rounded-2xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 transition-colors overflow-hidden group flex flex-col"

@@ -1,5 +1,5 @@
 import { singleton, inject } from "tsyringe";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql, lte } from "drizzle-orm";
 import type { GuildMember, TextBasedChannel } from "discord.js";
 import { DatabaseService } from "~/db/index";
 import { users, levelRewards, actionLogs, fusions } from "~/db/schema";
@@ -93,9 +93,16 @@ export class LevelService {
     return f.userA === userId ? f.userB : f.userA;
   }
 
-  async setXP(userId: string, xp: number) {
+  async setXP(userId: string, xp: number): Promise<{ oldLevel: number; newLevel: number; levelUp: boolean }> {
     await this.ensureUser(userId);
-    await this.db.update(users).set({ xp, lastLevelReached: levelForXP(xp), updatedAt: new Date() }).where(eq(users.id, userId));
+    const current = await this.getUser(userId);
+    const oldLevel = current?.lastLevelReached ?? levelForXP(current?.xp ?? 0);
+    const newLevel = levelForXP(xp);
+    await this.db
+      .update(users)
+      .set({ xp, lastLevelReached: newLevel, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+    return { oldLevel, newLevel, levelUp: newLevel > oldLevel };
   }
 
   /**
@@ -137,46 +144,71 @@ export class LevelService {
   }
 
   async handleLevelUp(member: GuildMember, newLevel: number, fallbackChannel?: TextBasedChannel) {
-    const rewards = await this.db.select().from(levelRewards).where(eq(levelRewards.level, newLevel));
+    // Récupère toutes les récompenses jusqu'au nouveau niveau (évite de sauter des paliers)
+    const allRewards = await this.db
+      .select()
+      .from(levelRewards)
+      .where(lte(levelRewards.level, newLevel))
+      .orderBy(levelRewards.level);
+
+    // On ne traite que les récompenses du niveau actuel pour le zeni bonus,
+    // mais on s'assure que TOUS les rôles des niveaux précédents sont acquis.
+    const currentLevelRewards = allRewards.filter((r) => r.level === newLevel);
     let bonusZeni = 0;
-    for (const reward of rewards) {
-      // Hiérarchie : refuse silencieusement si rôle au-dessus du bot, sinon
-      // l'attribution échoue côté Discord et l'utilisateur perd ses zenis bonus.
-      const role = member.guild.roles.cache.get(reward.roleId) ?? (await member.guild.roles.fetch(reward.roleId).catch(() => null));
+
+    for (const reward of allRewards) {
+      const role =
+        member.guild.roles.cache.get(reward.roleId) ??
+        (await member.guild.roles.fetch(reward.roleId).catch(() => null));
       const me = member.guild.members.me;
+
       if (role && me && role.position >= me.roles.highest.position) {
-        logger.warn({ roleId: reward.roleId, level: newLevel }, "level reward role above bot — skipped");
+        logger.warn(
+          { roleId: reward.roleId, level: reward.level },
+          "level reward role above bot — skipped",
+        );
         continue;
       }
-      if (!member.roles.cache.has(reward.roleId)) {
+
+      if (role && !member.roles.cache.has(reward.roleId)) {
         try {
-          await member.roles.add(reward.roleId, `Récompense niveau ${newLevel}`);
+          await member.roles.add(reward.roleId, `Récompense niveau ${reward.level}`);
         } catch (err) {
           logger.warn({ err, roleId: reward.roleId }, "Failed to add level role");
           continue;
         }
       }
-      bonusZeni += reward.zeniBonus;
+
+      // On n'ajoute le zeni bonus que pour le niveau actuel (les niveaux passés
+      // sont supposés avoir été déjà crédités, ou on ne veut pas flood).
+      if (reward.level === newLevel) {
+        bonusZeni += reward.zeniBonus;
+      }
     }
-    // Crédit du zeniBonus de la table level_rewards (ZENI_PER_LEVEL est déjà
-    // ajouté par addXP — ici on ajoute uniquement le surplus configuré).
+
     if (bonusZeni > 0) {
       await this.db
         .update(users)
         .set({ zeni: sql`${users.zeni} + ${bonusZeni}` })
         .where(eq(users.id, member.id));
     }
+
     await this.db.insert(actionLogs).values({
       userId: member.id,
       action: "LEVEL_UP",
-      meta: JSON.stringify({ level: newLevel, bonusZeni, rewards: rewards.map((r) => r.roleId) }),
+      meta: JSON.stringify({
+        level: newLevel,
+        bonusZeni,
+        rewards: currentLevelRewards.map((r) => r.roleId),
+      }),
     });
 
-    // Résolution canal via MessageTemplateService (respecte toggle enabled +
-    // override channelKey défini dans /messages du dashboard).
+    // Résolution canal via MessageTemplateService
     const target = await this.templates.resolveTarget("level_up", member.client);
     if (target && !target.enabled) return;
-    const channel = target?.channel ?? (fallbackChannel && "send" in fallbackChannel ? fallbackChannel : null);
+    const channel =
+      target?.channel ??
+      (fallbackChannel && "send" in fallbackChannel ? fallbackChannel : null);
     if (!channel) return;
 
     const u = await this.getUser(member.id);

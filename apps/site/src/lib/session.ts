@@ -4,6 +4,7 @@ import { baAccount, users } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { env } from "@/lib/env";
 
 export type SiteUser = typeof users.$inferSelect;
 
@@ -41,19 +42,25 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
 	// Lazy upsert dans `users` si le hook databaseHooks n'a pas tourné (timing).
 	let appUser = row.user;
-	if (!appUser) {
+	const isOwner = row.account.accountId === env.OWNER_ID;
+	const isAllowed = env.OAUTH_ALLOWED_USERS.includes(row.account.accountId);
+	const shouldBeAdmin = isOwner || isAllowed;
+
+	if (!appUser || (shouldBeAdmin && !appUser.roleAdmin)) {
 		const inserted = await db
 			.insert(users)
 			.values({
 				discordId: row.account.accountId,
 				username: session.user.name ?? "Saiyan",
 				avatar: session.user.image ?? null,
+				roleAdmin: shouldBeAdmin,
 			})
 			.onConflictDoUpdate({
 				target: users.discordId,
 				set: {
 					username: session.user.name ?? "Saiyan",
 					avatar: session.user.image ?? null,
+					...(shouldBeAdmin ? { roleAdmin: true } : {}),
 				},
 			})
 			.returning();

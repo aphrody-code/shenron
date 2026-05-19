@@ -144,9 +144,6 @@ export class JoinLeaveEvent {
       },
       member.client,
     );
-
-    // À la sortie du serveur on vide le profil niveau (cdc)
-    await this.dbs.db.delete(users).where(eq(users.id, member.id));
   }
 
   /**

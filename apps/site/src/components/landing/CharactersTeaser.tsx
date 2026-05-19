@@ -37,7 +37,7 @@ export function CharactersTeaser({
 				</div>
 
 				<div className="reveal-up-stagger grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-					{withImages.map((c, i) => (
+					{withImages.map((c, _i) => (
 						<div
 							key={c.id}
 						>

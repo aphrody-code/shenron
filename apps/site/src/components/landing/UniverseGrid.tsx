@@ -85,7 +85,7 @@ export function UniverseGrid() {
 				</div>
 
 				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden">
-					{PILLARS.map((p, i) => (
+					{PILLARS.map((p, _i) => (
 						<div
 							key={p.title}
 						>

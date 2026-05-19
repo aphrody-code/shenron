@@ -58,7 +58,13 @@ export class LevelAdminCommands {
 
     const apply = async (id: string) => {
       const c = await this.levels.getUser(id);
-      await this.levels.setXP(id, compute(c?.xp ?? 0));
+      const res = await this.levels.setXP(id, compute(c?.xp ?? 0));
+      if (res.levelUp) {
+        const member = await interaction.guild?.members.fetch(id).catch(() => null);
+        if (member) {
+          await this.levels.handleLevelUp(member, res.newLevel);
+        }
+      }
     };
 
     if (user) {

@@ -1,4 +1,4 @@
-import { getShenronUser, ShenronUser } from "@/lib/shenron";
+import { getShenronUser } from "@/lib/shenron";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 

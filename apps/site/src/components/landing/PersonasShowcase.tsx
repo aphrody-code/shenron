@@ -81,7 +81,7 @@ export function PersonasShowcase({
 				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
 					{personas
 						.filter((p) => !!p.avatar)
-						.map((p, i) => {
+						.map((p, _i) => {
 							const meta = TAGLINES[p.id] ?? {
 								tagline: "Persona inconnue.",
 								role: "—",

@@ -10,13 +10,6 @@ function fmtMs(ms: number | null): string {
 	return `${(ms / 1000).toFixed(2)}s`;
 }
 
-function fmtInterval(ms: number): string {
-	const s = ms / 1000;
-	if (s < 60) return `${s}s`;
-	if (s < 3600) return `${(s / 60).toFixed(0)}min`;
-	return `${(s / 3600).toFixed(1)}h`;
-}
-
 function fmtDate(ts: number | null): string {
 	if (!ts) return "—";
 	const d = new Date(ts);

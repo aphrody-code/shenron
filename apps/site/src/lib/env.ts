@@ -16,6 +16,18 @@ export const env = createEnv({
 		SHENRON_API_URL: z.string().url().default("https://shenron.rpbey.fr"),
 		SHENRON_ADMIN_TOKEN: z.string().min(16).optional(),
 		SHENRON_USER_SECRET: z.string().min(32).optional(),
+		OWNER_ID: z.string().regex(/^\d{17,20}$/).optional(),
+		OAUTH_ALLOWED_USERS: z
+			.string()
+			.optional()
+			.transform((v) =>
+				v
+					? v
+							.split(",")
+							.map((s) => s.trim())
+							.filter(Boolean)
+					: [],
+			),
 		NODE_ENV: z
 			.enum(["development", "production", "test"])
 			.default("development"),
