@@ -1,9 +1,8 @@
 #!/usr/bin/env bun
 /**
- * Project Documentation Unifier
+ * Project Documentation Unifier & Meta-Sync
  *
- * Crée une base de connaissance unique à partir de tous les fichiers Markdown du projet.
- * Utile pour le contexte IA, l'onboarding ou l'audit de documentation.
+ * Crée une base de connaissance unique et synchronise les métadonnées des agents/skills.
  *
  * Usage:
  *   bun scripts/docs/unify-markdown.ts [output_file]
@@ -31,7 +30,7 @@ async function main() {
 
   console.log(`🔍 Scan des fichiers Markdown dans ${projectRoot}...`);
 
-  // 1. Lister les fichiers MD via find (plus rapide et respecte les ignores)
+  // 1. Lister les fichiers MD via find
   const findCmd = await $`find . -name "*.md"`.text();
   const allFiles = findCmd
     .split("\n")
@@ -43,7 +42,12 @@ async function main() {
   let content = `# 📚 Base de Connaissance Unifiée — ${new Date().toLocaleDateString("fr-FR")}\n\n`;
   content += `> Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.\n\n`;
 
-  // 2. Générer la table des matières
+  // 2. Section Métadonnées (Skills & Agents)
+  content += `## 🤖 Capacités & Agents\n\n`;
+  content += await generateAgentMetadata();
+  content += `\n---\n\n`;
+
+  // 3. Table des matières
   content += `## 🗂 Sommaire\n\n`;
   for (const file of allFiles) {
     const relPath = file.startsWith("./") ? file.substring(2) : file;
@@ -52,7 +56,7 @@ async function main() {
   }
   content += `\n---\n\n`;
 
-  // 3. Fusionner les contenus
+  // 4. Fusionner les contenus
   for (const file of allFiles) {
     const relPath = file.startsWith("./") ? file.substring(2) : file;
     console.log(`  ▸ Intégration : ${relPath}`);
@@ -64,25 +68,19 @@ async function main() {
     content += `## 📄 Fichier : \`${relPath}\`\n\n`;
     content += `**Titre original :** ${title}\n\n`;
     
-    // Nettoyage éventuel : transformer les headers relatifs pour ne pas casser la structure du document final
-    // (Optionnel : on pourrait incrémenter le niveau des headers # -> ###)
     const processedContent = fileContent.replace(/^# /gm, "### ");
     
     content += processedContent;
     content += `\n\n---\n\n`;
   }
 
-  // 4. Écrire le résultat
+  // 5. Écrire le résultat
   await Bun.write(outputFile, content);
 
   console.log(`\n✅ Unification terminée !`);
   console.log(`📦 Fichier généré : ${outputFile} (${(content.length / 1024).toFixed(2)} KB)`);
 }
 
-/**
- * Extrait le premier header H1 d'un fichier Markdown, 
- * sinon retourne le nom du fichier.
- */
 async function extractTitle(filePath: string): Promise<string> {
   const content = await Bun.file(filePath).text();
   const h1Match = content.match(/^#\s+(.+)$/m);
@@ -90,9 +88,6 @@ async function extractTitle(filePath: string): Promise<string> {
   return filePath.split("/").pop() || filePath;
 }
 
-/**
- * Slugifie un chemin pour les ancres internes.
- */
 function slugify(text: string): string {
   return text
     .toString()
@@ -104,6 +99,42 @@ function slugify(text: string): string {
     .replace(/\-\-+/g, "-")
     .replace(/^-+/, "")
     .replace(/-+$/, "");
+}
+
+/**
+ * Scanne les dossiers d'agents et de skills pour extraire une vue d'ensemble.
+ */
+async function generateAgentMetadata(): Promise<string> {
+  let meta = "### 🛠 Skills & Compétences\n\n";
+  
+  const skillDirs = [".gemini/skills", ".agents/skills"];
+  for (const dir of skillDirs) {
+    if (!existsSync(dir)) continue;
+    const skills = await $`ls ${dir}`.text();
+    for (const skill of skills.split("\n").filter(Boolean)) {
+      const skillPath = join(dir, skill, "SKILL.md");
+      if (existsSync(skillPath)) {
+        const title = await extractTitle(skillPath);
+        meta += `- **${skill}** : ${title} (\`${skillPath}\`)\n`;
+      }
+    }
+  }
+
+  meta += "\n### 🕵️ Agents Spécialisés\n\n";
+  const agentDirs = [".claude/agents"];
+  for (const dir of agentDirs) {
+    if (!existsSync(dir)) continue;
+    const agents = await $`ls ${dir}`.text();
+    for (const agent of agents.split("\n").filter(Boolean)) {
+      const agentPath = join(dir, agent);
+      if (agentPath.endsWith(".md")) {
+        const title = await extractTitle(agentPath);
+        meta += `- **${agent.replace(".md", "")}** : ${title} (\`${agentPath}\`)\n`;
+      }
+    }
+  }
+
+  return meta;
 }
 
 main().catch(console.error);
