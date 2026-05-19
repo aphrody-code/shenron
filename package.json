@@ -47,7 +47,8 @@
 		"lint": "turbo run lint",
 		"build": "turbo run build",
 		"test": "turbo run test",
-		"type-check": "turbo run type-check"
+		"type-check": "turbo run type-check",
+		"docs:unify": "bun scripts/docs/unify-markdown.ts"
 	},
 	"devDependencies": {
 		"turbo": "^2.5.10"
