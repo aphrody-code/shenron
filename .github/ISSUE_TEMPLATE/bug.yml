@@ -1,5 +1,5 @@
-name: Bug report
-description: Signaler un bug reproductible
+name: Signalement de Bug
+description: Signaler un bug reproductible pour Shenron
 labels: [bug, triage]
 body:
   - type: textarea
@@ -29,7 +29,7 @@ body:
     id: bun-version
     attributes:
       label: Version Bun
-      placeholder: "bun --version → 1.3.x"
+      placeholder: "bun --version → 1.2.x"
     validations:
       required: true
   - type: input

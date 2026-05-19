@@ -1,8 +1,8 @@
 <!-- Merci pour la PR ! Décris ce qu'elle change et comment la tester. -->
 
-## Changement
+## Modifications
 
-<!-- 1-3 phrases : quoi + pourquoi -->
+<!-- Décris ici les changements apportés et la raison de cette PR. -->
 
 ## Type
 
