@@ -159,7 +159,7 @@
     {
       "id": "shenron-09-banners-seed",
       "agent": "claude",
-      "status": "blocked",
+      "status": "done",
       "deps": [],
       "title": "Intégrer 19 bannières level-rewards",
       "files": [
@@ -168,8 +168,10 @@
         "src/db/schema.ts"
       ],
       "acceptance": "19 assets en place, seed level_rewards mappe level -> banner path, BackgroundCacheService re-warm.",
-      "blocker": "19 assets bannieres non fournis dans assets/banners/ — seed sans assets impossible",
-      "started_at": "2026-05-15T11:08:04Z"
+      "agent_pid": "2704585",
+      "started_at": "2026-05-15T11:08:04Z",
+      "finished_at": "2026-05-19T00:50:00Z",
+      "notes": "Assets validés dans apps/bot/assets/banners/. Seed exécuté via bun src/db/seed-level-rewards.ts."
     },
     {
       "id": "shenron-10-validate-deploy",
