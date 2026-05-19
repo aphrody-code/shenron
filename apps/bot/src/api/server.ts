@@ -1089,7 +1089,8 @@ export class ApiServer {
 						// Bannière : priorité 1) banner explicitement équipé via /inventaire equip,
 						// 2) bannière du level reward atteint, 3) carte équipée legacy, 4) null.
 						const siteBase =
-							process.env.SITE_PUBLIC_URL ?? "https://dbfr.vercel.app";
+						        process.env.SITE_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+
 						let bannerUrl: string | null = null;
 						if (user.equippedBanner) {
 							// Lookup via shop_items.meta.bannerPath
@@ -3797,18 +3798,19 @@ function admin<R extends Request & { params: any }>(
 
 // ── Routes publiques : CORS allowlist + rate-limit 60 req/min/IP ─────────
 const PUBLIC_CORS_ORIGINS = new Set([
-	"https://dbfr.vercel.app",
-	"https://shenron.rpbey.fr",
-	"http://localhost:3000",
+        "https://shenron.rpbey.fr",
+        "https://dbfr.vercel.app",
+        "http://localhost:3000",
 ]);
 
 const publicRateBuckets = new Map<string, { count: number; resetAt: number }>();
 
 function publicCorsHeaders(req: Request): Record<string, string> {
-	const origin = req.headers.get("origin") ?? "";
-	const allow = PUBLIC_CORS_ORIGINS.has(origin)
-		? origin
-		: "https://dbfr.vercel.app";
+        const origin = req.headers.get("origin") ?? "";
+        const allow = PUBLIC_CORS_ORIGINS.has(origin)
+                ? origin
+                : "https://shenron.rpbey.fr";
+
 	return {
 		"Access-Control-Allow-Origin": allow,
 		"Access-Control-Allow-Methods": "GET, OPTIONS",

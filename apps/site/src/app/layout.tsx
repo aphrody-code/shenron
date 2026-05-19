@@ -51,7 +51,8 @@ const dbScouter = localFont({
 });
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://dbfr.vercel.app"),
+        metadataBase: new URL("https://shenron.rpbey.fr"),
+
 	title: {
 		default: "DBFR — Dragon Ball France",
 		template: "%s — DBFR",

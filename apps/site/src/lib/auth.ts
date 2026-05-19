@@ -13,15 +13,16 @@ export const auth = betterAuth({
 	// allowedHosts couvre prod + preview + dev → cookie domain = host courant.
 	// Doc: https://better-auth.com/docs/guides/dynamic-base-url#vercel-deployment
 	baseURL: {
-		allowedHosts: [
-			"dbfr.vercel.app",
-			"*.vercel.app",
-			"localhost:3000",
-			"localhost:5173",
-		],
-		protocol: "https",
-		fallback: "https://dbfr.vercel.app",
+	        allowedHosts: [
+	                "shenron.rpbey.fr",
+	                "dbfr.vercel.app",
+	                "*.vercel.app",
+	                "localhost:3000",
+	        ],
+	        protocol: "https",
+	        fallback: "https://shenron.rpbey.fr",
 	},
+
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
 	// Logger debug : on log TOUT pour diagnostiquer le flow OAuth Discord
@@ -59,7 +60,8 @@ export const auth = betterAuth({
 			// Redirect URI explicite — évite Better Auth de calculer depuis le
 			// host de la requête (qui peut être un preview URL preview-*.vercel.app
 			// au lieu de dbfr.vercel.app)
-			redirectURI: `${env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app"}/api/auth/callback/discord`,
+			redirectURI: `${env.BETTER_AUTH_URL ?? "https://shenron.rpbey.fr"}/api/auth/callback/discord`,
+
 		},
 	},
 	databaseHooks: {
@@ -85,7 +87,8 @@ export const auth = betterAuth({
 	// commit dans ba_account → la jointure findFirst retournait null → User
 	// table jamais peuplée. Le lazy upsert dans session.ts capture le bon
 	// moment (premier appel post-login).
-	trustedOrigins: ["https://dbfr.vercel.app", "http://localhost:3000"],
+	trustedOrigins: ["https://shenron.rpbey.fr", "https://dbfr.vercel.app", "http://localhost:3000"],
+
 	advanced: {
 		// @ts-expect-error better-auth supporte trustProxy runtime mais types pas à jour (v1.6.x)
 		trustProxy: true,
