@@ -168,7 +168,7 @@ export class ShopPanelCommands {
 		if ((type === "color" || type === "title" || type === "badge") && interaction.inCachedGuild()) {
 			const withRole = items
 				.filter((i) => i.roleId)
-				.sort((a, b) => b.price - a.price);
+				.toSorted((a, b) => b.price - a.price);
 			for (const it of withRole) {
 				const role = interaction.guild?.roles.cache.get(it.roleId!);
 				if (role && role.color !== 0) {

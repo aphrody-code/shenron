@@ -181,7 +181,7 @@ function cacheKey(req: Request): string {
 	const url = new URL(req.url);
 	const params = [...url.searchParams.entries()]
 		.filter(([k]) => !k.startsWith("_")) // ignore cache busters
-		.sort(([a], [b]) => a.localeCompare(b));
+		.toSorted(([a], [b]) => a.localeCompare(b));
 	return url.pathname + (params.length ? "?" + new URLSearchParams(params).toString() : "");
 }
 
@@ -1020,7 +1020,7 @@ export class ApiServer {
 					if (!guild) return Response.json({ error: "Guild introuvable" }, { status: 404 });
 					const roles = [...guild.roles.cache.values()]
 						.filter((r) => r.id !== guild.id && !r.managed)
-						.sort((a, b) => b.position - a.position)
+						.toSorted((a, b) => b.position - a.position)
 						.map((r) => ({
 							id: r.id,
 							name: r.name,
@@ -3912,7 +3912,7 @@ const PUBLIC_CACHE_MAX = 256;
 
 function publicCacheKey(req: Request & { params: any }): string {
 	const url = new URL(req.url);
-	const params = [...url.searchParams.entries()].sort(([a], [b]) => a.localeCompare(b));
+	const params = [...url.searchParams.entries()].toSorted(([a], [b]) => a.localeCompare(b));
 	return url.pathname + (params.length ? "?" + new URLSearchParams(params).toString() : "");
 }
 

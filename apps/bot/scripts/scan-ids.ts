@@ -53,7 +53,7 @@ const channelTypeLabel = (t: ChannelType) => {
 };
 
 const channels = [...guild.channels.cache.values()]
-	.sort(
+	.toSorted(
 		(a, b) =>
 			a.type - b.type ||
 			((a as GuildChannel).position ?? 0) - ((b as GuildChannel).position ?? 0),
@@ -74,7 +74,7 @@ const channels = [...guild.channels.cache.values()]
 
 const roles = [...guild.roles.cache.values()]
 	.filter((r) => r.name !== "@everyone")
-	.sort((a, b) => b.position - a.position)
+	.toSorted((a, b) => b.position - a.position)
 	.map((r) => ({
 		id: r.id,
 		name: r.name,

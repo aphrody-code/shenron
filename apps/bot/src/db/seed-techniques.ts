@@ -69,7 +69,7 @@ async function runTechniqueSeed() {
 			const items = [];
 			
 			// Pattern 1: <li><b>Name</b>: Desc
-			const liRegex = /<li><b>(.*?)<\/b>\s*[:\-]?\s*(.*?)(?=<\/li>|<li>|$)/gs;
+			const liRegex = /<li><b>(.*?)<\/b>\s*[:-]?\s*(.*?)(?=<\/li>|<li>|$)/gs;
 			let match;
 			while ((match = liRegex.exec(subHtml)) !== null) {
 				items.push({ name: match[1], desc: match[2] });

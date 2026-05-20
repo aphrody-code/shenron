@@ -74,7 +74,7 @@ export function RoleSelect({
     let list = data?.roles ?? [];
     if (excludeManaged) list = list.filter((r) => !r.managed);
     if (!includeEveryone) list = list.filter((r) => r.name !== "@everyone");
-    return [...list].sort((a, b) => b.position - a.position);
+    return [...list].toSorted((a, b) => b.position - a.position);
   }, [data, excludeManaged, includeEveryone]);
 
   const selected = roles.find((r) => r.id === value);

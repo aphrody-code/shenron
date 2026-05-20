@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function CtaFinal() {
 	const inviteUrl =
-		Bun.env.NEXT_PUBLIC_DISCORD_INVITE_URL ?? "https://discord.gg/dbfr";
+		process.env.NEXT_PUBLIC_DISCORD_INVITE_URL ?? "https://discord.gg/dbfr";
 	return (
 		<section className="relative py-32 md:py-40 overflow-hidden">
 			{/* Nébuleuse radiale finale */}

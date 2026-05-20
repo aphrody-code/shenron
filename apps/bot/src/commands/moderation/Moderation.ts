@@ -933,7 +933,7 @@ export class ModerationCommands {
     const g = interaction.guild;
     const stats = await this.mod.statsWindow();
     const top3 = Object.entries(stats.byAction)
-      .sort((a, b) => b[1] - a[1])
+      .toSorted((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([action, count]) => `\`${action}\` × ${count}`)
       .join(" · ") || "*aucune*";

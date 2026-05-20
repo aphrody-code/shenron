@@ -1,7 +1,7 @@
 import { getCurrentUser } from "@/lib/session";
 import { notFound } from "next/navigation";
 
-const SHENRON_API = Bun.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+const SHENRON_API = process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
 const PUBLIC_ROUTES = [
 	{

@@ -16,8 +16,8 @@ function slugify(text: string) {
 		.toLowerCase()
 		.trim()
 		.replace(/\s+/g, "-")
-		.replace(/[^\w\-]+/g, "")
-		.replace(/\-\-+/g, "-");
+		.replace(/[^\w-]+/g, "")
+		.replace(/--+/g, "-");
 }
 
 async function main() {

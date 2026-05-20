@@ -40,7 +40,7 @@ async function main() {
 			for (const title of items) {
 				const exists = await db.select().from(dbNews).where(eq(dbNews.title, title)).limit(1);
 				if (exists.length === 0) {
-					const slug = title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^\w\-]+/g, "");
+					const slug = title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^\w-]+/g, "");
 					await db.insert(dbNews).values({
 						sourceId: source.name.toLowerCase().replace(/\s+/g, "-"),
 						sourceUrl: `${source.url}#${slug.substring(0, 50)}`, // Unique URL per news

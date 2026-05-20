@@ -1,4 +1,4 @@
-const API = Bun.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+const API = process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
 const SAMPLES = [
 	{

@@ -1,5 +1,5 @@
 const SHENRON_API_URL =
-	Bun.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+	process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;

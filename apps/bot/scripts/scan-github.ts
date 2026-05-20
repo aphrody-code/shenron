@@ -67,7 +67,7 @@ async function main() {
 			if (!GITHUB_TOKEN) await new Promise(r => setTimeout(r, 2000));
 		}
 
-		const sortedRepos = Array.from(allRepos.values()).sort((a, b) => b.stargazers_count - a.stargazers_count);
+		const sortedRepos = Array.from(allRepos.values()).toSorted((a, b) => b.stargazers_count - a.stargazers_count);
 
 		// Génération du rapport Markdown
 		let md = `# 🐉 Rapport de Scan GitHub — Dragon Ball\n\n`;

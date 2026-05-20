@@ -196,7 +196,7 @@ const yellow = "\x1b[33m";
 const reset = "\x1b[0m";
 
 console.log(`${bold}── Rôles (${roles.length}) ──${reset}`);
-for (const r of [...roles].sort((a, b) => b.position - a.position)) {
+for (const r of [...roles].toSorted((a, b) => b.position - a.position)) {
 	if (r.name === "@everyone") continue;
 	const managed = r.managed ? `${dim} [bot/integration]${reset}` : "";
 	console.log(`  ${r.id}  ${r.name}${managed}`);
@@ -208,10 +208,10 @@ for (const c of channels) {
 	byType.get(c.type)!.push(c);
 }
 console.log(`\n${bold}── Salons (${channels.length}) ──${reset}`);
-for (const [type, list] of [...byType.entries()].sort(([a], [b]) => a - b)) {
+for (const [type, list] of [...byType.entries()].toSorted(([a], [b]) => a - b)) {
 	const label = TYPE_LABEL[type] ?? `type-${type}`;
 	console.log(`  ${dim}[${label}]${reset}`);
-	for (const c of list.sort((a, b) => a.position - b.position)) {
+	for (const c of list.toSorted((a, b) => a.position - b.position)) {
 		console.log(`    ${c.id}  ${c.name}`);
 	}
 }

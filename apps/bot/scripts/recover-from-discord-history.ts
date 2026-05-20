@@ -400,7 +400,7 @@ if (DRY_RUN) {
 	log("\n🔵 DRY-RUN — nothing written. Sample:");
 	log("  Top 10 message senders:");
 	[...userAgg.entries()]
-		.sort((a, b) => b[1].messageCount - a[1].messageCount)
+		.toSorted((a, b) => b[1].messageCount - a[1].messageCount)
 		.slice(0, 10)
 		.forEach(([id, agg]) =>
 			log(

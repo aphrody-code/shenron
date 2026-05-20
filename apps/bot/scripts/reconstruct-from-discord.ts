@@ -127,7 +127,7 @@ for (const m of scan.users) {
 
 console.log(`\n✓ ${imported} users reconstructed (${skipped} bots skipped)`);
 console.log("Distribution par niveau récupéré :");
-for (const [lvl, count] of Object.entries(byLevel).sort(
+for (const [lvl, count] of Object.entries(byLevel).toSorted(
 	(a, b) => Number(a[0]) - Number(b[0]),
 )) {
 	console.log(`  L${lvl.padStart(2)} → ${count} users`);

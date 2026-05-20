@@ -44,7 +44,7 @@ export class IdsCommand {
 		if (scope !== "channels") {
 			const roles = [...guild.roles.cache.values()]
 				.filter((r) => r.name !== "@everyone")
-				.sort((a, b) => b.position - a.position);
+				.toSorted((a, b) => b.position - a.position);
 			const lines = roles.map((r) => {
 				const managed = r.managed ? " *(intégration)*" : "";
 				return `\`${r.id}\` · ${r.name}${managed}`;
@@ -55,7 +55,7 @@ export class IdsCommand {
 		if (scope !== "roles") {
 			const channels = [...guild.channels.cache.values()]
 				.filter((c) => "position" in c)
-				.sort(
+				.toSorted(
 					(a, b) =>
 						a.type - b.type ||
 						((a as { position: number }).position ?? 0) -
