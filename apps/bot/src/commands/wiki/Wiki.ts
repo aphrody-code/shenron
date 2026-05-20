@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordy";
 import {
   ApplicationCommandOptionType,
   AttachmentBuilder,
@@ -159,9 +159,9 @@ export class WikiCommands {
       const focus = interaction.options.getFocused().toLowerCase();
       await interaction.respond(
         races
-          .filter((r) => r.toLowerCase().includes(focus))
+          .filter((r) => r.name.toLowerCase().includes(focus))
           .slice(0, 25)
-          .map((r) => ({ name: r, value: r })),
+          .map((r) => ({ name: r.name, value: r.name })),
       );
       return;
     }

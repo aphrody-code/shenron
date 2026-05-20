@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, Guard, Slash, SlashChoice, SlashGroup, SlashOption } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashGroup, SlashOption } from "@rpbey/discordy";
 import {
   ApplicationCommandOptionType,
   EmbedBuilder,

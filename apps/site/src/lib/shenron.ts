@@ -1,5 +1,5 @@
 const SHENRON_API_URL =
-	process.env.SHENRON_API_URL || "https://shenron.rpbey.fr";
+	Bun.env.SHENRON_API_URL || "https://shenron.rpbey.fr";
 
 export interface ShenronUser {
 	discordId: string;
@@ -79,6 +79,21 @@ export interface DBPlanet {
 	description: string | null;
 }
 
+export interface DBMovie {
+	id: number;
+	slug: string;
+	title: string;
+	titleJa: string | null;
+	titleRomaji: string | null;
+	series: string;
+	releaseDate: string | number | null;
+	durationMin: number | null;
+	synopsis: string | null;
+	poster: string | null;
+	trailerUrl: string | null;
+	malId: number | null;
+}
+
 export interface DBTransformation {
 	id: number;
 	name: string;
@@ -87,9 +102,40 @@ export interface DBTransformation {
 	characterId: number;
 }
 
+export interface DBTechnique {
+	id: number;
+	slug: string;
+	name: string;
+	description: string | null;
+	creatorId: number | null;
+}
+
+export interface DBGame {
+	id: number;
+	slug: string;
+	title: string;
+	titleJa: string | null;
+	platforms: string | null;
+	releaseDate: string | number | null;
+	publisher: string | null;
+	developer: string | null;
+	description: string | null;
+	cover: string | null;
+	officialUrl: string | null;
+}
+
+export interface DBMangaVolume {
+	id: number;
+	series: string;
+	volumeNumber: number;
+	title: string | null;
+	cover: string | null;
+}
+
 export interface CharacterWithRelations extends DBCharacter {
 	transformations: DBTransformation[];
 	originPlanet: DBPlanet | null;
+	techniques: Array<{ technique: DBTechnique }>;
 }
 
 export async function getShenronUser(
@@ -137,11 +183,107 @@ export async function getShenronCharacters(
 	return data.characters || [];
 }
 
+export async function getShenronMovies(): Promise<DBMovie[]> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/movies`, {
+		next: { revalidate: 3600 },
+	});
+	if (!res.ok) return [];
+	const data = await res.json();
+	return data.movies || [];
+}
+
+export async function getShenronMovie(id: number): Promise<DBMovie | null> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/movies/${id}`, {
+		next: { revalidate: 3600 },
+	});
+	if (!res.ok) return null;
+	return res.json();
+}
+
 export async function getShenronCharacter(
 	id: number,
 ): Promise<CharacterWithRelations | null> {
 	const res = await fetch(
 		`${SHENRON_API_URL}/api/public/wiki/characters/${id}`,
+		{
+			next: { revalidate: 3600 },
+		},
+	);
+	if (!res.ok) return null;
+	return res.json();
+}
+
+export async function getShenronTechniques(): Promise<DBTechnique[]> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/techniques`, {
+		next: { revalidate: 3600 },
+	});
+	if (!res.ok) return [];
+	const data = await res.json();
+	return data.techniques || [];
+}
+
+export async function getShenronTechnique(
+	slug: string,
+): Promise<DBTechnique | null> {
+	const res = await fetch(
+		`${SHENRON_API_URL}/api/public/wiki/techniques/${encodeURIComponent(slug)}`,
+		{
+			next: { revalidate: 3600 },
+		},
+	);
+	if (!res.ok) return null;
+	return res.json();
+}
+
+export async function getShenronGames(): Promise<DBGame[]> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/games`, {
+		next: { revalidate: 3600 },
+	});
+	if (!res.ok) return [];
+	const data = await res.json();
+	return data.games || [];
+}
+
+export async function getShenronGame(slug: string): Promise<DBGame | null> {
+	const res = await fetch(
+		`${SHENRON_API_URL}/api/public/wiki/games/${encodeURIComponent(slug)}`,
+		{
+			next: { revalidate: 3600 },
+		},
+	);
+	if (!res.ok) return null;
+	return res.json();
+}
+
+export async function getShenronManga(): Promise<DBMangaVolume[]> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/manga-volumes`, {
+		next: { revalidate: 3600 },
+	});
+	if (!res.ok) return [];
+	const data = await res.json();
+	return data.volumes || [];
+}
+
+export interface DBRace {
+	id: number;
+	slug: string;
+	name: string;
+	nameJa: string | null;
+	description: string | null;
+}
+
+export async function getShenronRaces(): Promise<DBRace[]> {
+	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/races`, {
+		next: { revalidate: 3600 },
+	});
+	if (!res.ok) return [];
+	const data = await res.json();
+	return data.races || [];
+}
+
+export async function getShenronRace(slug: string): Promise<(DBRace & { characters: DBCharacter[] }) | null> {
+	const res = await fetch(
+		`${SHENRON_API_URL}/api/public/wiki/races/${encodeURIComponent(slug)}`,
 		{
 			next: { revalidate: 3600 },
 		},
@@ -159,7 +301,7 @@ export async function getShenronPlanets(): Promise<DBPlanet[]> {
 	return data.planets || [];
 }
 
-export async function getShenronPlanet(id: number): Promise<DBPlanet | null> {
+export async function getShenronPlanet(id: number): Promise<(DBPlanet & { characters: DBCharacter[] }) | null> {
 	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/planets/${id}`, {
 		next: { revalidate: 3600 },
 	});

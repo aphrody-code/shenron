@@ -2,7 +2,7 @@
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 

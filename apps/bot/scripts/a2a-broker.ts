@@ -18,9 +18,9 @@
 import { existsSync, unlinkSync, chmodSync, appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
-const SOCKET = process.env.A2A_SOCKET ?? "/tmp/dbfr-a2a.sock";
+const SOCKET = Bun.env.A2A_SOCKET ?? "/tmp/dbfr-a2a.sock";
 const COORD_DIR =
-	process.env.COORD_DIR ??
+	Bun.env.COORD_DIR ??
 	`${process.cwd().replace(/\/apps\/bot\/?$/, "")}/.coord`;
 const MESSAGES = `${COORD_DIR}/messages.jsonl`;
 const TASKS = `${COORD_DIR}/tasks.json`;

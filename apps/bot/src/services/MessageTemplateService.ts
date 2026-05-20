@@ -1,7 +1,7 @@
 import { singleton, inject, container } from "tsyringe";
 import type { Client, SendableChannels } from "discord.js";
 import { eq } from "drizzle-orm";
-import { Client as DiscordxClient } from "@rpbey/discordx";
+import { Client as DiscordxClient } from "@rpbey/discordy";
 import { DatabaseService } from "~/db/index";
 import { EventBusService } from "./EventBusService";
 import { messageTemplates, guildSettings, type MessageTemplate } from "~/db/schema";
@@ -264,7 +264,7 @@ export class MessageTemplateService {
 		const map: Record<string, string | undefined> = {
 			"channel.announce": env.ANNOUNCE_CHANNEL_ID,
 			"channel.achievement": env.ACHIEVEMENT_CHANNEL_ID ?? env.ANNOUNCE_CHANNEL_ID,
-			"channel.level": env.ANNOUNCE_CHANNEL_ID,
+			"channel.level": env.LEVEL_CHANNEL_ID ?? env.ANNOUNCE_CHANNEL_ID,
 			"channel.welcome": env.LOG_JOIN_LEAVE_CHANNEL_ID,
 			"channel.farewell": env.LOG_JOIN_LEAVE_CHANNEL_ID,
 			"channel.giveaway": env.ANNOUNCE_CHANNEL_ID,

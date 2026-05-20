@@ -3,7 +3,7 @@ import type { GuildMember, User } from "discord.js";
 /**
  * Transformer pour @SlashOption de type User.
  *
- * `@rpbey/discordx` renvoie le `GuildMember` quand disponible, puis fallback
+ * `@rpbey/discordy` renvoie le `GuildMember` quand disponible, puis fallback
  * sur `User`. Or nos handlers typent `target: User | undefined` et accèdent
  * à `username`/`tag` — propriétés absentes de `GuildMember`.
  *

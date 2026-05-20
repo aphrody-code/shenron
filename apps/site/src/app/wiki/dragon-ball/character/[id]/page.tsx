@@ -1,4 +1,5 @@
 import { getShenronCharacter } from "@/lib/shenron";
+import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -11,48 +12,61 @@ export default async function CharacterPage({
 }) {
 	const { id } = await params;
 	const character = await getShenronCharacter(parseInt(id));
-	const SHENRON_API_URL =
-		process.env.SHENRON_API_URL || "https://shenron.rpbey.fr";
 
 	if (!character) notFound();
 
 	return (
-		<div className="space-y-12">
+		<div className="space-y-12 reveal-up">
 			<Link
 				href="/wiki/dragon-ball"
-				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-dbz-yellow transition-colors font-bold uppercase text-xs tracking-widest mb-4"
+				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
 			>
 				<span>← Retour à l'index</span>
 			</Link>
 
-			<div className="flex flex-col md:flex-row gap-8 md:gap-12">
-				<div className="w-full md:w-1/3">
-					<div className="dbz-panel p-4 border-4 border-dbz-blue-light bg-dbz-bg relative overflow-hidden">
+			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
+				<div className="w-full lg:w-2/5 xl:w-1/3">
+					<div className="dbz-panel p-6 border-2 border-dbz-orange/30 bg-dbz-card relative overflow-hidden group">
+						<div className="absolute inset-0 halftone opacity-20 group-hover:opacity-30 transition-opacity" />
 						<img
-							src={`${SHENRON_API_URL}/${character.image}`}
+							src={assetUrl(character.image)}
 							alt={character.name}
-							className="w-full h-auto object-contain relative z-10"
+							className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,178,0,0.3)] group-hover:scale-105 transition-transform duration-700"
 						/>
-						<div className="absolute inset-0 bg-gradient-to-t from-dbz-blue/20 to-transparent" />
+						<div className="absolute inset-0 bg-gradient-to-t from-dbz-orange/10 to-transparent" />
 					</div>
 				</div>
 
-				<div className="flex-1 space-y-6">
-					<div>
+				<div className="flex-1 space-y-8">
+					<div className="reveal-up" style={{ animationDelay: "0.1s" }}>
 						<h1
-							className="text-5xl md:text-7xl font-saiyan text-white mb-2"
-							style={{ textShadow: "4px 4px 0px rgba(0,0,0,0.8)" }}
+							className="text-5xl md:text-6xl lg:text-8xl font-saiyan text-white mb-4 leading-none"
+							style={{ textShadow: "0 0 20px rgba(255,178,0,0.2)" }}
 						>
 							{character.name}
 						</h1>
-						<div className="flex flex-wrap gap-2">
+						{(character.nameJa || character.nameRomaji) && (
+							<div className="flex items-center flex-wrap gap-4 mb-6 text-gray-400">
+								{character.nameJa && (
+									<span className="text-2xl font-bold tracking-widest text-dbz-orange" style={{ fontFamily: '"Noto Sans JP", sans-serif' }}>
+										{character.nameJa}
+									</span>
+								)}
+								{character.nameRomaji && (
+									<span className="text-sm italic uppercase tracking-[0.2em] text-white/60">
+										{character.nameRomaji}
+									</span>
+								)}
+							</div>
+						)}
+						<div className="flex flex-wrap gap-3">
 							{character.race && (
-								<span className="px-3 py-1 bg-dbz-bg border-2 border-dbz-orange text-dbz-orange font-bold text-xs uppercase tracking-widest">
+								<span className="px-4 py-1.5 bg-dbz-orange/10 border border-dbz-orange/40 text-dbz-orange font-bold text-[10px] uppercase tracking-[0.2em]">
 									{character.race}
 								</span>
 							)}
 							{character.affiliation && (
-								<span className="px-3 py-1 bg-dbz-bg border-2 border-dbz-blue-light text-dbz-blue-light font-bold text-xs uppercase tracking-widest">
+								<span className="px-4 py-1.5 bg-white/5 border border-white/20 text-white/80 font-bold text-[10px] uppercase tracking-[0.2em]">
 									{character.affiliation}
 								</span>
 							)}
@@ -60,29 +74,33 @@ export default async function CharacterPage({
 					</div>
 
 					{character.description && (
-						<p className="text-gray-300 leading-relaxed text-lg italic">
-							{character.description}
-						</p>
+						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
+							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
+							<h3 className="text-dbz-orange font-saiyan text-3xl mb-4 uppercase tracking-widest">Archives / Lore</h3>
+							<p className="text-gray-300 leading-relaxed text-lg text-justify whitespace-pre-wrap font-sans">
+								{character.description}
+							</p>
+						</div>
 					)}
 
 					{(character.ki || character.maxKi) && (
-						<div className="grid grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6 reveal-up" style={{ animationDelay: "0.3s" }}>
 							{character.ki && (
-								<div className="bg-dbz-bg border-2 border-dbz-border p-4">
-									<p className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest mb-1">
+								<div className="dbz-panel p-6 border-l-4 border-l-dbz-orange">
+									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
 										KI Actuel
 									</p>
-									<p className="scouter-text text-2xl text-dbz-orange">
+									<p className="scouter-text text-4xl text-dbz-orange">
 										{character.ki}
 									</p>
 								</div>
 							)}
 							{character.maxKi && (
-								<div className="bg-dbz-bg border-2 border-dbz-border p-4">
-									<p className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest mb-1">
+								<div className="dbz-panel p-6 border-l-4 border-l-dbz-red">
+									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
 										KI Maximum
 									</p>
-									<p className="scouter-text text-2xl text-dbz-yellow">
+									<p className="scouter-text text-4xl text-dbz-red">
 										{character.maxKi}
 									</p>
 								</div>
@@ -91,50 +109,60 @@ export default async function CharacterPage({
 					)}
 
 					{character.originPlanet && (
-						<div className="dbz-panel p-4 flex items-center gap-4 hover:border-dbz-blue-light transition-colors group">
-							<div className="w-16 h-16 bg-dbz-bg border-2 border-dbz-border p-1 overflow-hidden shrink-0">
+						<Link 
+							href={`/wiki/dragon-ball/planet/${character.originPlanet.id}`}
+							className="dbz-panel p-6 flex items-center gap-6 hover:border-dbz-orange transition-all group reveal-up"
+							style={{ animationDelay: "0.4s" }}
+						>
+							<div className="w-20 h-20 bg-dbz-bg border border-dbz-border p-1 overflow-hidden shrink-0 rounded-lg">
 								<img
-									src={`${SHENRON_API_URL}/${character.originPlanet.image}`}
+									src={assetUrl(character.originPlanet.image)}
 									alt={character.originPlanet.name}
-									className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+									className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
 								/>
 							</div>
-							<div>
-								<p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+							<div className="flex-1">
+								<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-1">
 									Planète d'Origine
 								</p>
-								<p className="text-xl font-saiyan text-white group-hover:text-dbz-blue-light transition-colors">
+								<p className="text-2xl font-saiyan text-white group-hover:text-dbz-orange transition-colors uppercase tracking-widest">
 									{character.originPlanet.name}
 								</p>
 							</div>
-						</div>
+							<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">→</span>
+						</Link>
 					)}
 				</div>
 			</div>
 
 			{character.transformations && character.transformations.length > 0 && (
-				<section className="space-y-6">
-					<h2 className="font-saiyan text-4xl text-dbz-orange border-b-2 border-dbz-orange pb-2">
-						TRANSFORMATIONS
-					</h2>
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-						{character.transformations.map((transfo) => (
+				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.5s" }}>
+					<div className="flex items-center gap-6">
+						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+							TRANSFORMATIONS
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+					</div>
+					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+						{character.transformations.map((transfo, idx) => (
 							<div
 								key={transfo.id}
-								className="dbz-panel p-2 flex flex-col items-center group"
+								className="dbz-panel p-4 flex flex-col items-center group hover:scale-105 transition-transform duration-300"
+								style={{ animationDelay: `${0.6 + idx * 0.05}s` }}
 							>
-								<div className="aspect-square w-full bg-dbz-bg border-2 border-dbz-border p-1 mb-2 overflow-hidden relative">
+								<div className="aspect-square w-full bg-dbz-bg border border-dbz-border p-2 mb-4 overflow-hidden relative rounded-lg">
+									<div className="absolute inset-0 halftone opacity-10" />
 									<img
-										src={`${SHENRON_API_URL}/${transfo.image}`}
+										src={assetUrl(transfo.image)}
 										alt={transfo.name}
-										className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
+										className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-700"
 									/>
 								</div>
-								<h3 className="text-[10px] font-bold text-white uppercase text-center group-hover:text-dbz-yellow transition-colors leading-tight">
+								<h3 className="text-xs font-bold text-white uppercase text-center group-hover:text-dbz-orange transition-colors leading-tight tracking-widest">
 									{transfo.name}
 								</h3>
 								{transfo.ki && (
-									<span className="text-[9px] text-dbz-orange font-bold uppercase mt-1">
+									<span className="scouter-text text-[10px] mt-2">
 										KI: {transfo.ki}
 									</span>
 								)}
@@ -143,6 +171,50 @@ export default async function CharacterPage({
 					</div>
 				</section>
 			)}
+
+			{character.techniques && character.techniques.length > 0 && (
+				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.7s" }}>
+					<div className="flex items-center gap-6">
+						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+							TECHNIQUES & CAPACITÉS
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
+					</div>
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+						{character.techniques.map(({ technique: tech }, idx) => (
+							<div
+								key={tech.id}
+								className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group"
+								style={{ animationDelay: `${0.8 + idx * 0.05}s` }}
+							>
+								<div className="flex justify-between items-start mb-4">
+									<h3 className="text-xl font-bold text-white group-hover:text-dbz-blue-light transition-colors uppercase tracking-wider">
+										{tech.name}
+									</h3>
+									<span className="scouter-text text-[10px] text-dbz-blue-light/60">
+										TECH_ID: {tech.id}
+									</span>
+								</div>
+								{tech.description && (
+									<p className="text-sm text-gray-400 leading-relaxed line-clamp-3 font-sans">
+										{tech.description}
+									</p>
+								)}
+								<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+									<Link 
+										href={`/wiki/dragon-ball/techniques/${tech.slug}`}
+										className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
+									>
+										Détails Technique →
+									</Link>
+								</div>
+							</div>
+						))}
+					</div>
+				</section>
+			)}
 		</div>
 	);
 }
+
+

@@ -16,7 +16,7 @@ import { AbstractConfigurableDependencyInjector } from "../AbstractConfigurableD
 type Factory = <T>(factoryFunc: FactoryFunction<T>) => FactoryFunction<T>;
 
 export class TsyringeDependencyRegistryEngine extends AbstractConfigurableDependencyInjector<DependencyContainer> {
-  public static token = Symbol("@rpbey/discordx");
+  public static token = Symbol("@rpbey/discordy");
 
   private static _instance: TsyringeDependencyRegistryEngine | undefined;
 

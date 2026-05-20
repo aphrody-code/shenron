@@ -4,6 +4,6 @@
   "dependencies": {
     "@rpbey/importer": "workspace:^",
     "@rpbey/pagination": "workspace:^",
-    "@rpbey/discordx": "workspace:^"
+    "@rpbey/discordy": "workspace:^"
   }
 }

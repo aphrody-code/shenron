@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, Once } from "@rpbey/discordx";
+import { Bot, Discord, Once } from "@rpbey/discordy";
 import type { Client } from "discord.js";
 import { and, isNull, lte } from "drizzle-orm";
 import { DatabaseService } from "~/db/index";

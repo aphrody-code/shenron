@@ -32,6 +32,42 @@ export default async function WikiLayout({
 						>
 							Encyclopédie DBZ
 						</Link>
+						<Link
+							href="/wiki/races"
+							className="text-xl font-bold text-white hover:text-dbz-orange transition-colors block"
+						>
+							Races & Peuples
+						</Link>
+						<Link
+							href="/wiki/dragon-ball/techniques"
+							className="text-xl font-bold text-white hover:text-dbz-orange transition-colors block"
+						>
+							Techniques
+						</Link>
+						<Link
+							href="/wiki/tools"
+							className="text-xl font-bold text-white hover:text-dbz-orange transition-colors block"
+						>
+							Outils & Modding
+						</Link>
+						<Link
+							href="/wiki/manga"
+							className="text-xl font-bold text-white hover:text-dbz-orange transition-colors block"
+						>
+							Manga & Scans
+						</Link>
+						<Link
+							href="/wiki/news"
+							className="text-xl font-bold text-white hover:text-dbz-orange transition-colors block"
+						>
+							Actualités
+						</Link>
+						<Link
+							href="/wiki/search"
+							className="text-xl font-bold text-dbz-orange hover:text-white transition-colors block"
+						>
+							Recherche
+						</Link>
 					</div>
 					{categories.map((cat: any) => (
 						<div key={cat.id}>

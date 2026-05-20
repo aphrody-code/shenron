@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["node", "bun"],
+    "types": ["bun"],
     "ignoreDeprecations": "6.0",
     "module": "ESNext",
     "target": "ESNext",
@@ -11,7 +11,7 @@
     "noUncheckedIndexedAccess": true,
     "rootDir": "src",
     "outDir": "dist",
-    "emitDecoratorMetadata": false,
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
@@ -19,7 +19,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleDetection": "force",
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": false
   },
   "exclude": [
     "node_modules",

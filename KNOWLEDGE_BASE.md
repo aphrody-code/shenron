@@ -43,7 +43,7 @@
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -1670,7 +1670,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -1949,7 +1949,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -1962,7 +1962,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -2910,7 +2910,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -3018,7 +3018,7 @@ This project is under autonomous management. Priority is given to:
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -4645,7 +4645,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -4924,7 +4924,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -4937,7 +4937,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -5885,7 +5885,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -6004,7 +6004,7 @@ This project is under autonomous management. Priority is given to:
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -7631,7 +7631,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -8554,7 +8554,7 @@ Services à porter (par ordre criticité runtime) :
 
 **Commands** (23 files, 5 759 LOC) — `poise::command` :
 - admin/, config/, economy/, games/, level/, moderation/, utility/
-- Le routing `@Bot("persona")` du fork @rpbey/discordx → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
+- Le routing `@Bot("persona")` du fork @rpbey/discordy → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
 - Important : `Moderation.ts` 1 097 LOC = 19 commands → split en `commands/moderation/{ban,kick,mute,warn,unban,...}.rs`.
 
 ### Phase 4 — `apps/server` API (4 405 LOC)
@@ -9278,7 +9278,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -9291,7 +9291,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -10239,7 +10239,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -10358,7 +10358,7 @@ This project is under autonomous management. Priority is given to:
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -11985,7 +11985,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -12908,7 +12908,7 @@ Services à porter (par ordre criticité runtime) :
 
 **Commands** (23 files, 5 759 LOC) — `poise::command` :
 - admin/, config/, economy/, games/, level/, moderation/, utility/
-- Le routing `@Bot("persona")` du fork @rpbey/discordx → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
+- Le routing `@Bot("persona")` du fork @rpbey/discordy → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
 - Important : `Moderation.ts` 1 097 LOC = 19 commands → split en `commands/moderation/{ban,kick,mute,warn,unban,...}.rs`.
 
 ### Phase 4 — `apps/server` API (4 405 LOC)
@@ -13632,7 +13632,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -13645,7 +13645,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -14593,7 +14593,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -14712,7 +14712,7 @@ This project is under autonomous management. Priority is given to:
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -16339,7 +16339,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -17262,7 +17262,7 @@ Services à porter (par ordre criticité runtime) :
 
 **Commands** (23 files, 5 759 LOC) — `poise::command` :
 - admin/, config/, economy/, games/, level/, moderation/, utility/
-- Le routing `@Bot("persona")` du fork @rpbey/discordx → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
+- Le routing `@Bot("persona")` du fork @rpbey/discordy → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
 - Important : `Moderation.ts` 1 097 LOC = 19 commands → split en `commands/moderation/{ban,kick,mute,warn,unban,...}.rs`.
 
 ### Phase 4 — `apps/server` API (4 405 LOC)
@@ -17986,7 +17986,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -17999,7 +17999,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -18947,7 +18947,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -19066,7 +19066,7 @@ This project is under autonomous management. Priority is given to:
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -20693,7 +20693,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -21616,7 +21616,7 @@ Services à porter (par ordre criticité runtime) :
 
 **Commands** (23 files, 5 759 LOC) — `poise::command` :
 - admin/, config/, economy/, games/, level/, moderation/, utility/
-- Le routing `@Bot("persona")` du fork @rpbey/discordx → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
+- Le routing `@Bot("persona")` du fork @rpbey/discordy → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
 - Important : `Moderation.ts` 1 097 LOC = 19 commands → split en `commands/moderation/{ban,kick,mute,warn,unban,...}.rs`.
 
 ### Phase 4 — `apps/server` API (4 405 LOC)
@@ -22340,7 +22340,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -22353,7 +22353,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -23301,7 +23301,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -23402,7 +23402,7 @@ This project is under autonomous management. Priority is given to:
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
 - [discordx](#packages-discordx-changelog-md)
-- [@rpbey/discordx](#packages-discordx-readme-md)
+- [@rpbey/discordy](#packages-discordx-readme-md)
 - [Security Policy](#packages-discordx-security-md)
 - [@discordx/importer](#packages-importer-changelog-md)
 - [@rpbey/importer](#packages-importer-readme-md)
@@ -25029,7 +25029,7 @@ tools: Read, Glob, Grep, Bash
 
 ### intent-auditor
 
-Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordx`).
+Tu es un auditeur spécialisé dans la détection des incohérences entre **intents Discord déclarés** et **events réellement écoutés** dans le bot Shenron (multi-personas via `@rpbey/discordy`).
 
 ## Contexte du bug fondateur
 
@@ -25952,7 +25952,7 @@ Services à porter (par ordre criticité runtime) :
 
 **Commands** (23 files, 5 759 LOC) — `poise::command` :
 - admin/, config/, economy/, games/, level/, moderation/, utility/
-- Le routing `@Bot("persona")` du fork @rpbey/discordx → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
+- Le routing `@Bot("persona")` du fork @rpbey/discordy → en Rust : 6 `serenity::Client` chacun avec son `poise::Framework` indépendant et son sous-ensemble de commands. Le sharing du DB pool via `Arc<PgPool>`.
 - Important : `Moderation.ts` 1 097 LOC = 19 commands → split en `commands/moderation/{ban,kick,mute,warn,unban,...}.rs`.
 
 ### Phase 4 — `apps/server` API (4 405 LOC)
@@ -26676,7 +26676,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -26689,7 +26689,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 
@@ -27637,7 +27637,7 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
 
 - **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordx` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
+- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
 - **Site:** Next.js 15+, Tailwind CSS 4, Drizzle ORM
 - **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
 
@@ -27961,7 +27961,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -28038,7 +28038,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -28177,7 +28177,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -28775,7 +28775,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -28925,7 +28925,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -28934,7 +28934,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -29168,14 +29168,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -29188,7 +29188,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -29405,7 +29405,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 
@@ -33933,7 +33933,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -34010,7 +34010,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -34149,7 +34149,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -34747,7 +34747,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -34897,7 +34897,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -34906,7 +34906,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -35140,14 +35140,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -35160,7 +35160,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -35377,7 +35377,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 
@@ -39905,7 +39905,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -39982,7 +39982,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -40121,7 +40121,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -40719,7 +40719,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -40869,7 +40869,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -40878,7 +40878,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -41112,14 +41112,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -41132,7 +41132,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -41349,7 +41349,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 
@@ -45877,7 +45877,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -45954,7 +45954,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -46093,7 +46093,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -46691,7 +46691,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -46841,7 +46841,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -46850,7 +46850,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -47084,14 +47084,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -47104,7 +47104,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -47321,7 +47321,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 
@@ -51849,7 +51849,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -51926,7 +51926,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -52065,7 +52065,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -52663,7 +52663,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -52813,7 +52813,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -52822,7 +52822,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -53056,14 +53056,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -53076,7 +53076,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -53293,7 +53293,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 
@@ -57821,7 +57821,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -57898,7 +57898,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -58037,7 +58037,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -58635,7 +58635,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -58785,7 +58785,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -58794,7 +58794,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -59028,14 +59028,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -59048,7 +59048,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -59265,7 +59265,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 
@@ -63793,7 +63793,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -63870,7 +63870,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -64009,7 +64009,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -64607,7 +64607,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).
@@ -64757,7 +64757,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -64766,7 +64766,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()
@@ -65000,14 +65000,14 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 <a name="packages-discordx-readme-md"></a>
 ## 📄 Fichier : `packages/discordx/README.md`
 
-**Titre original :** @rpbey/discordx
+**Titre original :** @rpbey/discordy
 
-### @rpbey/discordx
+### @rpbey/discordy
 
 > Core of **discordy** — TypeScript-decorator framework for `discord.js` 14.26+.
 
 ```bash
-bun add discord.js reflect-metadata @rpbey/discordx
+bun add discord.js reflect-metadata @rpbey/discordy
 ```
 
 ## What it does
@@ -65020,7 +65020,7 @@ Extends `discord.js`'s `Client` with `initApplicationCommands()`, `clearApplicat
 
 ```ts
 import "reflect-metadata";
-import { Client, Discord, Slash } from "@rpbey/discordx";
+import { Client, Discord, Slash } from "@rpbey/discordy";
 import { IntentsBitField, MessageFlags } from "discord.js";
 import type { CommandInteraction } from "discord.js";
 
@@ -65237,7 +65237,7 @@ Please report vulnerabilities via github issues, with the prefix starting with `
 
 > Internal shared types and metadata storage for **discordy**.
 
-> ⚠️ **Not a public API.** Consume `@rpbey/discordx` directly — this package exposes private types needed for plugin and decorator authoring only.
+> ⚠️ **Not a public API.** Consume `@rpbey/discordy` directly — this package exposes private types needed for plugin and decorator authoring only.
 
 ## What's inside
 

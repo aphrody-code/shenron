@@ -19,7 +19,7 @@ import { mkdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 
-const ROOT = new URL("../../site/public/dbz/", import.meta.url).pathname;
+const ROOT = join(import.meta.dir, "../../site/public/dbz/");
 const DBAPI = "https://dragonball-api.com/api";
 
 const args = new Set(process.argv.slice(2));

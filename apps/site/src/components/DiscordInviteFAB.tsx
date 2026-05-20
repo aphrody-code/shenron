@@ -20,7 +20,7 @@ export function DiscordInviteFAB() {
 	};
 
 	const inviteUrl =
-		process.env.NEXT_PUBLIC_DISCORD_INVITE_URL ??
+		Bun.env.NEXT_PUBLIC_DISCORD_INVITE_URL ??
 		"https://discord.gg/votre_invite_ici";
 
 	return (

@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, ButtonComponent, Discord, Guard, ModalComponent, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, ModalComponent, Slash, SlashChoice, SlashOption } from "@rpbey/discordy";
 import { userTransformer } from "~/lib/slash-user";
 import {
   ApplicationCommandOptionType,

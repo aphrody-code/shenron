@@ -52,6 +52,9 @@ export async function resolveLevelChannel(
     const ch = await resolveById(client, levelOverride, guild);
     if (ch) return ch;
   }
+  const envFallback = await resolveById(client, env.LEVEL_CHANNEL_ID, guild);
+  if (envFallback) return envFallback;
+
   return resolveAnnounceChannel(client, guild);
 }
 

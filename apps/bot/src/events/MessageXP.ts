@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
 import { eq } from "drizzle-orm";
 import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";

@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, ButtonComponent, Discord, Guard, Slash, SlashOption } from "@rpbey/discordx";
+import { Bot, ButtonComponent, Discord, Guard, Slash, SlashOption } from "@rpbey/discordy";
 import {
   ApplicationCommandOptionType,
   ActionRowBuilder,
@@ -99,7 +99,7 @@ export class GiveawayCommands {
   }
 }
 
-import { Once } from "@rpbey/discordx";
+import { Once } from "@rpbey/discordy";
 import type { Client } from "discord.js";
 
 @Discord()

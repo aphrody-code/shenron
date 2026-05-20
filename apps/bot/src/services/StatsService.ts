@@ -1,6 +1,6 @@
 import { singleton, inject } from "tsyringe";
 import { sql, desc } from "drizzle-orm";
-import { Client } from "@rpbey/discordx";
+import { Client } from "@rpbey/discordy";
 import { DatabaseService } from "~/db/index";
 import { users, actionLogs } from "~/db/schema";
 import { logger } from "~/lib/logger";
@@ -54,13 +54,13 @@ export class StatsService {
 	getLatency(): LatencyStats {
 		const ws = Math.max(0, this.client.ws.ping);
 		// Latence DB : ping query simple
-		const t0 = performance.now();
+		const t0 = Bun.nanoseconds() / 1e6;
 		try {
 			this.dbs.sqlite.query("SELECT 1").get();
 		} catch (err) {
 			logger.debug({ err }, "DB latency probe failed");
 		}
-		const db = performance.now() - t0;
+		const db = Bun.nanoseconds() / 1e6 - t0;
 		return { ws, db: Math.round(db * 100) / 100 };
 	}
 
@@ -101,8 +101,8 @@ export class StatsService {
 				used: totalMem - freeMem,
 				usage: Math.round(((totalMem - freeMem) / totalMem) * 10_000) / 100,
 			},
-			platform: os.platform(),
-			uptime: Math.round(os.uptime()),
+			platform: process.platform,
+			uptime: Math.round(process.uptime()),
 		};
 	}
 

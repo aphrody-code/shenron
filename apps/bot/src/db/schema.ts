@@ -5,7 +5,7 @@ import {
 	index,
 	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const users = sqliteTable(
 	"users",
@@ -658,6 +658,7 @@ export const dbEpisodes = sqliteTable(
 		durationSec: integer("duration_sec"),
 		synopsis: text("synopsis"),
 		image: text("image"),
+		videoUrl: text("video_url"), // URL vers l'épisode (ex: ADN, Crunchyroll, YouTube)
 		malId: integer("mal_id"), // MyAnimeList episode ID (via Jikan)
 	},
 	(t) => [
@@ -741,6 +742,23 @@ export const dbGameCharacters = sqliteTable(
 	],
 );
 
+export const dbTools = sqliteTable(
+	"db_tools",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		slug: text("slug").notNull().unique(),
+		name: text("name").notNull(),
+		description: text("description"),
+		url: text("url").notNull(),
+		author: text("author"),
+		language: text("language"),
+		category: text("category"), // "modding", "shader", "api", "engine", "utility"
+		targetGameId: integer("target_game_id"), // FK db_games
+		stars: integer("stars").default(0),
+	},
+	(t) => [index("idx_db_tools_game").on(t.targetGameId)],
+);
+
 // --- Agrégateur news ---
 export const dbNews = sqliteTable(
 	"db_news",
@@ -764,3 +782,127 @@ export const dbNews = sqliteTable(
 		index("idx_db_news_category").on(t.category),
 	],
 );
+
+// --- Relations Wiki ---
+
+export const dbCharactersRelations = relations(dbCharacters, ({ one, many }) => ({
+	originPlanet: one(dbPlanets, {
+		fields: [dbCharacters.originPlanetId],
+		references: [dbPlanets.id],
+	}),
+	transformations: many(dbTransformations),
+	techniques: many(dbCharacterTechniques),
+	games: many(dbGameCharacters),
+}));
+
+export const dbPlanetsRelations = relations(dbPlanets, ({ many }) => ({
+	characters: many(dbCharacters),
+	races: many(dbRaces),
+}));
+
+export const dbRacesRelations = relations(dbRaces, ({ one, many }) => ({
+	homePlanet: one(dbPlanets, {
+		fields: [dbRaces.homePlanetId],
+		references: [dbPlanets.id],
+	}),
+}));
+
+export const dbTransformationsRelations = relations(dbTransformations, ({ one }) => ({
+	character: one(dbCharacters, {
+		fields: [dbTransformations.characterId],
+		references: [dbCharacters.id],
+	}),
+}));
+
+export const dbCharacterTechniquesRelations = relations(dbCharacterTechniques, ({ one }) => ({
+	character: one(dbCharacters, {
+		fields: [dbCharacterTechniques.characterId],
+		references: [dbCharacters.id],
+	}),
+	technique: one(dbTechniques, {
+		fields: [dbCharacterTechniques.techniqueId],
+		references: [dbTechniques.id],
+	}),
+}));
+
+export const dbTechniquesRelations = relations(dbTechniques, ({ one, many }) => ({
+	creator: one(dbCharacters, {
+		fields: [dbTechniques.creatorId],
+		references: [dbCharacters.id],
+	}),
+	characters: many(dbCharacterTechniques),
+}));
+
+export const dbSagasRelations = relations(dbSagas, ({ many }) => ({
+	arcs: many(dbArcs),
+}));
+
+export const dbArcsRelations = relations(dbArcs, ({ one, many }) => ({
+	saga: one(dbSagas, {
+		fields: [dbArcs.sagaId],
+		references: [dbSagas.id],
+	}),
+	episodes: many(dbEpisodes),
+}));
+
+export const dbEpisodesRelations = relations(dbEpisodes, ({ one }) => ({
+	arc: one(dbArcs, {
+		fields: [dbEpisodes.arcId],
+		references: [dbArcs.id],
+	}),
+}));
+
+export const dbMangaVolumesRelations = relations(dbMangaVolumes, ({ many }) => ({
+	chapters: many(dbMangaChapters),
+}));
+
+export const dbMangaChaptersRelations = relations(dbMangaChapters, ({ one }) => ({
+	volume: one(dbMangaVolumes, {
+		fields: [dbMangaChapters.volumeId],
+		references: [dbMangaVolumes.id],
+	}),
+}));
+
+export const dbMoviesRelations = relations(dbMovies, ({ many }) => ({
+	assets: many(dbAssets, { relationName: "movieAssets" }),
+}));
+
+export const dbGamesRelations = relations(dbGames, ({ many }) => ({
+	characters: many(dbGameCharacters),
+}));
+
+export const dbGameCharactersRelations = relations(dbGameCharacters, ({ one }) => ({
+	game: one(dbGames, {
+		fields: [dbGameCharacters.gameId],
+		references: [dbGames.id],
+	}),
+	character: one(dbCharacters, {
+		fields: [dbGameCharacters.characterId],
+		references: [dbCharacters.id],
+	}),
+}));
+
+export const dbNewsRelations = relations(dbNews, ({ one }) => ({
+	source: one(dbSources, {
+		fields: [dbNews.sourceId],
+		references: [dbSources.id],
+	}),
+}));
+
+export const dbToolsRelations = relations(dbTools, ({ one }) => ({
+	targetGame: one(dbGames, {
+		fields: [dbTools.targetGameId],
+		references: [dbGames.id],
+	}),
+}));
+
+export const dbAssetsRelations = relations(dbAssets, ({ one }) => ({
+	source: one(dbSources, {
+		fields: [dbAssets.sourceId],
+		references: [dbSources.id],
+	}),
+	license: one(dbLicenses, {
+		fields: [dbAssets.licenseKey],
+		references: [dbLicenses.key],
+	}),
+}));

@@ -59,7 +59,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
-Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordx`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
+Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
 ## Fonctionnalités
 
@@ -136,7 +136,7 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 |---|---|
 | Runtime | **Bun 1.3+** (aucune dépendance Node) |
 | Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordx`](https://www.npmjs.com/package/@rpbey/discordx) (décorateurs sur `discord.js` v14) |
+| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
 | DI | `tsyringe` + `reflect-metadata` |
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
@@ -275,7 +275,7 @@ Onglets connexes :
 
 Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
-- [`@rpbey/discordx`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
+- [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
 - [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
 
@@ -873,7 +873,7 @@ Son profil (XP, zéni, inventaire, succès) est **supprimé** par `CASCADE` via 
 Non par défaut — les commandes sont enregistrées sur `GUILD_ID` uniquement (déploiement quasi-instantané en dev). Pour multi-guild, retirer `botGuilds` dans `src/index.ts` et compter 1 h pour la propagation globale. Note : Shenron est **mono-guild forcé** sur les 6 personas (chaque `clientReady` quitte automatiquement toute guild ≠ `GUILD_ID`).
 
 **Multi-bot — pourquoi 6 apps Discord pour 1 bot ?**
-Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordx`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
+Pour avoir une UX où chaque catégorie de commandes a un personnage iconique du lore (Beerus = modération, Whis = utility, Grand Prêtre = logs, Enma = jail, Kaïo = jeux/éco). Ce sont 6 apps Discord distinctes avec leurs propres tokens, mais **1 seul process Bun** (DB + services partagés). Le routage commands/events se fait via `@Bot("<persona>")` du fork `@rpbey/discordy`. Mapping dans `src/lib/personas.ts`. Pour ajouter/retirer un persona, éditer ce fichier + ajouter `DISCORD_TOKEN_<NAME>` dans `.env`.
 
 **Comment backup la DB ?**
 Le fichier est `data/bot.db`. Snapshot via `VACUUM INTO` (voir [Déploiement](#déploiement)) ou `cp data/bot.db data/bot.bak` à chaud (WAL-safe).

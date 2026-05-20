@@ -31,7 +31,7 @@
 import { $ } from "bun";
 import { parseArgs } from "node:util";
 
-const t0 = performance.now();
+const t0 = Bun.nanoseconds() / 1e6;
 
 const { values: opts } = parseArgs({
 	args: Bun.argv.slice(2),
@@ -148,8 +148,8 @@ if (DRY) {
 }
 
 for (const step of planned) {
-	const tStep = performance.now();
-	process.stdout.write(`\n▸ ${step.name}…`);
+	const tStep = Bun.nanoseconds() / 1e6;
+	Bun.stdout.write(`\n▸ ${step.name}…`);
 	try {
 		const cmd = step.run();
 		if (
@@ -160,7 +160,7 @@ for (const step of planned) {
 		} else {
 			await cmd;
 		}
-		const dt = ((performance.now() - tStep) / 1000).toFixed(2);
+		const dt = ((Bun.nanoseconds() / 1e6 - tStep) / 1000).toFixed(2);
 		console.log(` ok (${dt}s)`);
 	} catch (err) {
 		console.log(" ✗");
@@ -169,5 +169,5 @@ for (const step of planned) {
 	}
 }
 
-const total = ((performance.now() - t0) / 1000).toFixed(2);
+const total = ((Bun.nanoseconds() / 1e6 - t0) / 1000).toFixed(2);
 console.log(`\n✓ Deploy ok (${total}s)`);

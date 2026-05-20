@@ -73,32 +73,36 @@ export default async function EpisodesIndex({
 
 			<ol className="divide-y divide-white/[0.06]">
 				{episodes.map((ep) => (
-					<li
-						key={ep.id}
-						className="grid grid-cols-[60px_1fr_auto] gap-5 py-4 items-baseline"
-					>
-						<span className="font-display font-bold text-[16px] text-dbz-orange tabular-nums">
-							{String(ep.number_in_series).padStart(3, "0")}
-						</span>
-						<div>
-							<p className="font-display font-semibold text-[15px] text-white leading-snug">
-								{ep.title}
-							</p>
-							{ep.title_ja && (
-								<p className="font-jp text-[12px] text-dbz-orange/75 mt-0.5">
-									{ep.title_ja}
+					<li key={ep.id}>
+						<Link
+							href={`/wiki/episodes/${ep.id}`}
+							className="grid grid-cols-[60px_1fr_auto] gap-5 py-5 items-center group hover:bg-white/[0.02] px-4 -mx-4 rounded-lg transition-colors"
+						>
+							<span className="scouter-text text-lg text-dbz-orange">
+								{String(ep.number_in_series).padStart(3, "0")}
+							</span>
+							<div>
+								<p className="font-display font-bold text-[16px] text-white group-hover:text-dbz-orange transition-colors leading-snug">
+									{ep.title}
 								</p>
-							)}
-						</div>
-						<span className="text-[12px] text-white/50 whitespace-nowrap font-display tracking-wide">
-							{ep.air_date
-								? new Date(ep.air_date).toLocaleDateString("fr-FR", {
-										day: "numeric",
-										month: "short",
-										year: "numeric",
-									})
-								: ""}
-						</span>
+								{ep.title_ja && (
+									<p className="font-jp text-[12px] text-white/30 mt-1">
+										{ep.title_ja}
+									</p>
+								)}
+							</div>
+							<div className="flex items-center gap-4">
+								<span className="text-[11px] text-white/40 whitespace-nowrap font-display tracking-widest uppercase hidden sm:block">
+									{ep.air_date
+										? new Date(ep.air_date).toLocaleDateString("fr-FR", {
+												month: "short",
+												year: "numeric",
+											})
+										: ""}
+								</span>
+								<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-xl">→</span>
+							</div>
+						</Link>
 					</li>
 				))}
 			</ol>

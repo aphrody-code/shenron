@@ -1,4 +1,4 @@
-import type { GuardFunction } from "@rpbey/discordx";
+import type { GuardFunction } from "@rpbey/discordy";
 import type { CommandInteraction, ButtonInteraction, ModalSubmitInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 

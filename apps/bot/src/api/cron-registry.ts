@@ -113,10 +113,10 @@ export class CronRegistry {
 	): Promise<{ ok: boolean; durationMs: number; error: string | null }> {
 		const job = this.jobs.get(name);
 		if (!job) return { ok: false, durationMs: 0, error: "job inconnu" };
-		const t0 = performance.now();
+		const t0 = Bun.nanoseconds() / 1e6;
 		try {
 			await job.fn();
-			const duration = Math.round(performance.now() - t0);
+			const duration = Math.round(Bun.nanoseconds() / 1e6 - t0);
 			job.lastRunAt = Date.now();
 			job.lastDurationMs = duration;
 			job.runCount++;
@@ -128,7 +128,7 @@ export class CronRegistry {
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);
 			job.lastRunAt = Date.now();
-			job.lastDurationMs = Math.round(performance.now() - t0);
+			job.lastDurationMs = Math.round(Bun.nanoseconds() / 1e6 - t0);
 			job.runCount++;
 			job.lastError = msg;
 			logger.warn({ err, name }, "cron job failed");

@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
 import { LogService } from "~/services/LogService";
 
 @Discord()

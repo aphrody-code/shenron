@@ -1,4 +1,4 @@
-import { Bot, Discord, MetadataStorage, Slash, type DApplicationCommand } from "@rpbey/discordx";
+import { Bot, Discord, MetadataStorage, Slash, type DApplicationCommand } from "@rpbey/discordy";
 import {
   EmbedBuilder,
   MessageFlags,

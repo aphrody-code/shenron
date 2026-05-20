@@ -1,5 +1,13 @@
 const GAMES = [
 	{
+		name: "2048: Ki Merge",
+		cmd: "Nouveau !",
+		variant: "solo",
+		desc: "Joue au célèbre 2048 version Dragon Ball ! Fusionne Saibaiman jusqu'à Whis pour faire exploser ton compteur de Ki.",
+		palette: "text-dbz-orange border-dbz-orange",
+		play: "/jeux/2048" as string | null,
+	},
+	{
 		name: "Pendu",
 		cmd: "/pendu",
 		variant: "solo / joueur",

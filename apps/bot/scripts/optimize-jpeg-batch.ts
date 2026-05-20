@@ -10,7 +10,7 @@ import { join, extname } from "node:path";
 import sharp from "sharp";
 
 const ROOT = process.argv[2] ?? "apps/bot/public/db";
-const CONCURRENCY = parseInt(process.env.JOBS ?? "8", 10);
+const CONCURRENCY = parseInt(Bun.env.JOBS ?? "8", 10);
 
 function* walk(dir: string): Generator<string> {
 	for (const e of readdirSync(dir)) {

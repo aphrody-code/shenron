@@ -6,7 +6,7 @@
  */
 import { dirname, importx } from "@rpbey/importer";
 import { Events, IntentsBitField } from "discord.js";
-import { Client } from "@rpbey/discordx";
+import { Client } from "@rpbey/discordy";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: ignore
 export class Main {

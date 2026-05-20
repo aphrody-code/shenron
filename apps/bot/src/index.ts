@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { Client, DIService } from "@rpbey/discordx";
+import { Client, DIService } from "@rpbey/discordy";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);

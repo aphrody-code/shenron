@@ -13,7 +13,7 @@
  * fallback sur le salon des sanctions).
  */
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
 import { AuditLogEvent, ChannelType, PermissionsBitField } from "discord.js";
 import { LogService } from "~/services/LogService";
 import { logger } from "~/lib/logger";

@@ -1,5 +1,5 @@
 import { singleton, inject, container } from "tsyringe";
-import { Client } from "@rpbey/discordx";
+import { Client } from "@rpbey/discordy";
 import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";
 import { StatsService } from "~/services/StatsService";
@@ -756,7 +756,7 @@ export class ApiServer {
 					return Response.json({
 						online: client.isReady(),
 						uptime: client.uptime,
-						version: process.env.npm_package_version ?? "0.1.0",
+						version: Bun.env.npm_package_version ?? "0.1.0",
 					});
 				},
 				"/api/health/latency": () => Response.json(this.stats.getLatency()),
@@ -769,7 +769,7 @@ export class ApiServer {
 						return {
 							online: client.isReady(),
 							uptime: client.uptime,
-							version: process.env.npm_package_version ?? "0.1.0",
+							version: Bun.env.npm_package_version ?? "0.1.0",
 						};
 					}),
 				"/health/latency": (req) =>
@@ -1089,7 +1089,7 @@ export class ApiServer {
 						// Bannière : priorité 1) banner explicitement équipé via /inventaire equip,
 						// 2) bannière du level reward atteint, 3) carte équipée legacy, 4) null.
 						const siteBase =
-						        process.env.SITE_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+						        Bun.env.SITE_PUBLIC_URL ?? "https://shenron.rpbey.fr";
 
 						let bannerUrl: string | null = null;
 						if (user.equippedBanner) {
@@ -1117,7 +1117,7 @@ export class ApiServer {
 							}
 						}
 						if (!bannerUrl && user.equippedCard) {
-							const apiBase = process.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+							const apiBase = Bun.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
 							bannerUrl = `${apiBase}/assets/cards/${encodeURIComponent(user.equippedCard)}.png`;
 						}
 
@@ -1358,8 +1358,7 @@ export class ApiServer {
 				"/api/public/wiki/planets": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
 						const wiki = container.resolve(WikiService);
-						const planets = await wiki.listPlanets();
-						return { planets };
+						return { planets: await wiki.listPlanets() };
 					}),
 
 				"/api/public/wiki/planets/:id": (req) =>
@@ -1372,32 +1371,54 @@ export class ApiServer {
 						return planet;
 					}),
 
-				// ── DB Universe étendu (Phase 3) ──────────────────────────
-				"/api/public/wiki/transformations": (req) =>
-					publicCachedJson(req, 60 * 60_000, async () => {
-						const dbs = container.resolve(DatabaseService);
-						const transformations = dbs.sqlite
-							.query("SELECT * FROM db_transformations ORDER BY character_id, id")
-							.all();
-						return { transformations };
-					}),
-
 				"/api/public/wiki/races": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
-						const dbs = container.resolve(DatabaseService);
-						const races = dbs.sqlite
-							.query("SELECT * FROM db_races ORDER BY name")
-							.all();
-						return { races };
+						const wiki = container.resolve(WikiService);
+						return { races: await wiki.listRaces() };
+					}),
+
+				"/api/public/wiki/races/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						const r = await wiki.getRace(req.params.slug);
+						if (!r) throw new HttpError(404, "Race inconnue");
+						return r;
+					}),
+
+				"/api/public/wiki/techniques": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						return { techniques: await wiki.listTechniques() };
+					}),
+
+				"/api/public/wiki/techniques/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						const t = await wiki.getTechnique(req.params.slug);
+						if (!t) throw new HttpError(404, "Technique inconnue");
+						return t;
 					}),
 
 				"/api/public/wiki/sagas": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
-						const dbs = container.resolve(DatabaseService);
-						const sagas = dbs.sqlite
-							.query("SELECT * FROM db_sagas ORDER BY series, order_idx")
-							.all();
-						return { sagas };
+						const wiki = container.resolve(WikiService);
+						return { sagas: await wiki.listSagas() };
+					}),
+
+				"/api/public/wiki/sagas/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						const s = await wiki.getSaga(req.params.slug);
+						if (!s) throw new HttpError(404, "Saga inconnue");
+						return s;
+					}),
+
+				"/api/public/wiki/arcs/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						const a = await wiki.getArc(req.params.slug);
+						if (!a) throw new HttpError(404, "Arc inconnu");
+						return a;
 					}),
 
 				"/api/public/wiki/episodes": (req) =>
@@ -1417,74 +1438,94 @@ export class ApiServer {
 							? dbs.sqlite.query(sql).all(series, limit, offset)
 							: dbs.sqlite.query(sql).all(limit, offset);
 						const total = series
-							? (dbs.sqlite.query("SELECT COUNT(*) AS n FROM db_episodes WHERE series = ?").get(series) as { n: number }).n
-							: (dbs.sqlite.query("SELECT COUNT(*) AS n FROM db_episodes").get() as { n: number }).n;
+							? (dbs.sqlite
+									.query("SELECT COUNT(*) AS n FROM db_episodes WHERE series = ?")
+									.get(series) as { n: number }).n
+							: (dbs.sqlite.query("SELECT COUNT(*) AS n FROM db_episodes").get() as {
+									n: number;
+							  }).n;
 						return { episodes, total, limit, offset };
+					}),
+
+				"/api/public/wiki/episodes/:id": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const id = parseInt(req.params.id, 10);
+						if (!Number.isFinite(id)) throw new HttpError(400, "ID invalide");
+						const wiki = container.resolve(WikiService);
+						const ep = await wiki.getEpisodeById(id);
+						if (!ep) throw new HttpError(404, "Épisode inconnu");
+						return ep;
 					}),
 
 				"/api/public/wiki/movies": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
-						const dbs = container.resolve(DatabaseService);
-						const movies = dbs.sqlite
-							.query("SELECT * FROM db_movies ORDER BY release_date")
-							.all();
-						return { movies };
-					}),
-
-				"/api/public/wiki/games": (req) =>
-					publicCachedJson(req, 60 * 60_000, async () => {
-						const dbs = container.resolve(DatabaseService);
-						const games = dbs.sqlite
-							.query("SELECT * FROM db_games ORDER BY release_date DESC")
-							.all();
-						return { games };
-					}),
-
-				"/api/public/wiki/sagas/:slug": (req) =>
-					publicCachedJson(req, 60 * 60_000, async () => {
-						const slug = req.params.slug;
-						const dbs = container.resolve(DatabaseService);
-						const saga = dbs.sqlite
-							.query("SELECT * FROM db_sagas WHERE slug = ?")
-							.get(slug);
-						if (!saga) throw new HttpError(404, "Saga inconnue");
-						const arcs = dbs.sqlite
-							.query(
-								"SELECT * FROM db_arcs WHERE saga_id = ? ORDER BY order_idx",
-							)
-							.all((saga as { id: number }).id);
-						return { saga, arcs };
+						const wiki = container.resolve(WikiService);
+						return { movies: await wiki.listMovies() };
 					}),
 
 				"/api/public/wiki/movies/:slug": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
-						const slug = req.params.slug;
-						const dbs = container.resolve(DatabaseService);
-						const movie = dbs.sqlite
-							.query("SELECT * FROM db_movies WHERE slug = ?")
-							.get(slug);
-						if (!movie) throw new HttpError(404, "Film inconnu");
-						return movie;
+						const wiki = container.resolve(WikiService);
+						const m = await wiki.getMovie(req.params.slug);
+						if (!m) throw new HttpError(404, "Film inconnu");
+						return m;
+					}),
+
+				"/api/public/wiki/games": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						return { games: await wiki.listGames() };
 					}),
 
 				"/api/public/wiki/games/:slug": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
-						const slug = req.params.slug;
-						const dbs = container.resolve(DatabaseService);
-						const game = dbs.sqlite
-							.query("SELECT * FROM db_games WHERE slug = ?")
-							.get(slug);
-						if (!game) throw new HttpError(404, "Jeu inconnu");
-						return game;
+						const wiki = container.resolve(WikiService);
+						const g = await wiki.getGame(req.params.slug);
+						if (!g) throw new HttpError(404, "Jeu inconnu");
+						return g;
+					}),
+
+				"/api/public/wiki/tools": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						return { tools: await wiki.listTools() };
+					}),
+
+				"/api/public/wiki/tools/:slug": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						const t = await wiki.getTool(req.params.slug);
+						if (!t) throw new HttpError(404, "Outil inconnu");
+						return t;
 					}),
 
 				"/api/public/wiki/manga/volumes": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
-						const dbs = container.resolve(DatabaseService);
-						const volumes = dbs.sqlite
-							.query("SELECT * FROM db_manga_volumes ORDER BY series, volume_number")
-							.all();
-						return { volumes };
+						const url = new URL(req.url);
+						const series = url.searchParams.get("series") ?? "DB";
+						const wiki = container.resolve(WikiService);
+						return { volumes: await wiki.listMangaVolumes(series) };
+					}),
+
+				"/api/public/wiki/manga/volumes/:id": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const id = parseInt(req.params.id, 10);
+						if (!Number.isFinite(id)) throw new HttpError(400, "ID invalide");
+						const wiki = container.resolve(WikiService);
+						const v = await wiki.getMangaVolume(id);
+						if (!v) throw new HttpError(404, "Volume inconnu");
+						return v;
+					}),
+
+				"/api/public/wiki/news": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const url = new URL(req.url);
+						const limit = Math.min(
+							parseInt(url.searchParams.get("limit") ?? "10", 10),
+							100,
+						);
+						const wiki = container.resolve(WikiService);
+						return { news: await wiki.listNews(limit) };
 					}),
 
 				"/api/public/wiki/search": (req) =>
@@ -4008,7 +4049,7 @@ function discordAvatarUrl(id: string, hash: string | null, size: 64 | 128 | 256 
 // et inversement. SSE permet aux agents distants (CLI ou worker)
 // d'écouter les events en temps réel.
 const COORD_DIR =
-	process.env.COORD_DIR ?? `${process.cwd().replace(/\/apps\/bot\/?$/, "")}/.coord`;
+	Bun.env.COORD_DIR ?? `${process.cwd().replace(/\/apps\/bot\/?$/, "")}/.coord`;
 const COORD_MESSAGES = `${COORD_DIR}/messages.jsonl`;
 const COORD_TASKS = `${COORD_DIR}/tasks.json`;
 const COORD_LOCK = "/tmp/dbfr-tasks.lock";

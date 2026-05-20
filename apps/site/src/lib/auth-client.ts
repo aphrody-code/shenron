@@ -15,7 +15,7 @@ import { createAuthClient } from "better-auth/react";
 const baseURL =
 	typeof window !== "undefined"
 		? window.location.origin
-		: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://shenron.rpbey.fr");
+		: (Bun.env.NEXT_PUBLIC_SITE_URL ?? "https://shenron.rpbey.fr");
 export const authClient = createAuthClient({
 	baseURL,
 });

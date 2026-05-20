@@ -10,9 +10,7 @@ const SERIES_LABELS: Record<string, string> = {
 	DB: "Dragon Ball",
 	DBZ: "Dragon Ball Z",
 	DBGT: "Dragon Ball GT",
-	DBS: "Dragon Ball Super (anime)",
-	DBS_MANGA: "Dragon Ball Super (manga)",
-	DBS_MOVIE: "Films Dragon Ball Super",
+	DBS: "Dragon Ball Super",
 	DB_DAIMA: "Dragon Ball Daima",
 };
 
@@ -44,86 +42,101 @@ export default async function SagaPage({
 	const seriesLabel = SERIES_LABELS[saga.series] ?? saga.series;
 
 	return (
-		<div className="mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
+		<div className="mx-auto max-w-[1000px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<Link
 				href="/wiki/sagas"
-				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-8"
+				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
 			>
-				← Toutes les sagas
+				<span>← Toutes les sagas</span>
 			</Link>
 
-			<header className="mb-12">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-3">
-					{seriesLabel} · Saga {saga.order_idx}
-				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-4">
+			<header className="mb-16">
+				<div className="flex items-center gap-4 mb-4">
+					<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange">
+						{seriesLabel} · Saga {saga.order_idx}
+					</p>
+					<div className="h-px w-12 bg-dbz-border" />
+				</div>
+				
+				<h1 className="font-saiyan text-5xl md:text-7xl text-white mb-6 tracking-widest leading-tight">
 					{saga.name}
 				</h1>
+				
 				{saga.name_ja && (
-					<p className="font-jp text-[20px] text-dbz-orange/85 mb-6">
+					<p className="font-jp text-2xl text-dbz-orange/80 mb-8">
 						{saga.name_ja}
 					</p>
 				)}
+				
 				{saga.description && (
-					<p className="text-[17px] leading-relaxed text-white/75">
-						{saga.description}
-					</p>
+					<div className="dbz-panel p-8 relative overflow-hidden">
+						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
+						<p className="text-gray-300 leading-relaxed text-lg font-sans">
+							{saga.description}
+						</p>
+					</div>
 				)}
 			</header>
 
 			{arcs.length > 0 && (
-				<section className="mb-16">
-					<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
-						Arcs narratifs{" "}
-						<span className="text-white/40">— {arcs.length}</span>
-					</h2>
-					<ol className="space-y-3">
-						{arcs.map((a) => (
-							<li
+				<section className="mb-20">
+					<div className="flex items-center gap-6 mb-10">
+						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest whitespace-nowrap">
+							Arcs Narratifs ({arcs.length})
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+					</div>
+					
+					<div className="grid gap-4">
+						{arcs.map((a, idx) => (
+							<Link
 								key={a.id}
-								className="p-5 rounded-xl bg-white/[0.04] border border-white/[0.06]"
+								href={`/wiki/arcs/${a.slug}`}
+								className="dbz-panel p-6 hover:bg-white/5 transition-all group reveal-up"
+								style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
 							>
-								<p className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-dbz-orange mb-1">
-									Arc {a.order_idx}
-								</p>
-								<h3 className="font-display font-bold text-[18px] text-white">
-									{a.name}
-								</h3>
-								{a.name_ja && (
-									<p className="font-jp text-[12px] text-dbz-orange/80 mt-1">
-										{a.name_ja}
-									</p>
-								)}
-								{a.description && (
-									<p className="text-[14px] text-white/70 leading-relaxed mt-2">
-										{a.description}
-									</p>
-								)}
-							</li>
+								<div className="flex justify-between items-start">
+									<div>
+										<p className="scouter-text text-xs text-dbz-orange mb-2">
+											ARC_SEQUENCE: {a.order_idx}
+										</p>
+										<h3 className="font-display font-bold text-xl text-white group-hover:text-dbz-orange transition-colors">
+											{a.name}
+										</h3>
+										{a.name_ja && (
+											<p className="font-jp text-sm text-white/40 mt-1">
+												{a.name_ja}
+											</p>
+										)}
+									</div>
+									<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">→</span>
+								</div>
+							</Link>
 						))}
-					</ol>
+					</div>
 				</section>
 			)}
 
-			<section className="p-8 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
-				<h2 className="font-display font-bold text-[18px] text-white mb-3">
-					Aller plus loin
+			<section className="dbz-panel p-10 border-t-4 border-t-dbz-orange bg-dbz-card/30">
+				<h2 className="font-saiyan text-3xl text-white mb-6 tracking-widest">
+					EXPLORATION
 				</h2>
-				<div className="flex flex-wrap gap-3">
+				<div className="flex flex-wrap gap-4">
 					<Link
 						href={`/wiki/episodes?series=${saga.series}`}
-						className="inline-flex items-center h-10 px-4 rounded-full bg-dbz-orange text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase hover:bg-white transition-colors"
+						className="dbz-button"
 					>
-						Voir les épisodes
+						VOIR LES ÉPISODES
 					</Link>
 					<Link
 						href="/wiki/dragon-ball"
-						className="inline-flex items-center h-10 px-4 rounded-full border border-white/20 hover:border-dbz-orange text-white font-display font-semibold text-[12px] tracking-[0.10em] uppercase transition-colors"
+						className="dbz-button-ghost"
 					>
-						Personnages de la saga
+						PERSONNAGES
 					</Link>
 				</div>
 			</section>
 		</div>
 	);
 }
+

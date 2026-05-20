@@ -38,7 +38,7 @@ var AbstractConfigurableDependencyInjector = class {
 
 // src/logic/impl/TsyringeDependencyRegistryEngine.ts
 var TsyringeDependencyRegistryEngine = class _TsyringeDependencyRegistryEngine extends AbstractConfigurableDependencyInjector {
-  static token = Symbol("@rpbey/discordx");
+  static token = Symbol("@rpbey/discordy");
   static _instance;
   factory = null;
   static get instance() {
@@ -119,7 +119,7 @@ var TsyringeDependencyRegistryEngine = class _TsyringeDependencyRegistryEngine e
 // src/logic/impl/TypeDiDependencyRegistryEngine.ts
 import { Token } from "typedi";
 var TypeDiDependencyRegistryEngine = class _TypeDiDependencyRegistryEngine extends AbstractConfigurableDependencyInjector {
-  static token = new Token("@rpbey/discordx");
+  static token = new Token("@rpbey/discordy");
   static _instance;
   service;
   static get instance() {

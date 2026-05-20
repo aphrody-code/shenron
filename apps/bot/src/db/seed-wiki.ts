@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { eq } from "drizzle-orm";
 import { DatabaseService } from "~/db/index";
 import { dbCharacters, dbPlanets, dbTransformations } from "~/db/schema";
@@ -408,6 +409,56 @@ export async function runWikiSeed(
 		return 0;
 	});
 
+	let fandomEnriched = 0;
+	log("→ Fetching Fandom FR lore…");
+	try {
+		const fandomPath = join(import.meta.dir, "../../../reference/db-recon/datasets/fandom-fr/");
+		if (existsSync(fandomPath)) {
+			const fs = await import("node:fs/promises");
+			const files = await fs.readdir(fandomPath);
+			const allChars = await db.select().from(dbCharacters);
+			
+			for (const file of files) {
+				if (!file.endsWith(".json")) continue;
+				const content = await fs.readFile(fandomPath + file, "utf-8");
+				const fandomData = JSON.parse(content);
+				
+				const htmlContent = fandomData?.parse?.text?.["*"];
+				if (!htmlContent) continue;
+
+				// Strip HTML tags using a regex, and remove multiple spaces/newlines
+				let textContent = htmlContent
+					.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+					.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+					.replace(/<[^>]+>/g, " ")
+					.replace(/\s+/g, " ")
+					.trim();
+
+				// Fandom pages often start with a warning or infobox. We try to find the start of actual text.
+				// Let's just take a substantial chunk.
+				
+				const fandomName = file.replace(".json", "").toLowerCase().replace(/_/g, " ");
+				const match = allChars.find(c => {
+					const normDb = c.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+					const normFd = fandomName.replace(/[^a-z0-9]/g, "");
+					return normDb === normFd || normFd.includes(normDb) || normDb.includes(normFd);
+				});
+
+				if (match && textContent.length > 100) {
+					// Clean up the text a bit more if needed, but a raw extraction is better than nothing
+					const cleanDesc = textContent.substring(0, 1500) + (textContent.length > 1500 ? "..." : "");
+					await db.update(dbCharacters)
+						.set({ description: cleanDesc })
+						.where(eq(dbCharacters.id, match.id));
+					fandomEnriched++;
+				}
+			}
+			log(`✓ ${fandomEnriched} character descriptions enriched from Fandom FR`);
+		}
+	} catch(e) {
+		log(`  enrichment Fandom échoué (non-fatal): ${e}`);
+	}
+
 	return {
 		skipped: false,
 		planets: planets.length,
@@ -415,7 +466,7 @@ export async function runWikiSeed(
 		transformations: totalTransfos,
 		imgMapped,
 		imgMissing,
-		enriched,
+		enriched: enriched + fandomEnriched,
 	};
 }
 

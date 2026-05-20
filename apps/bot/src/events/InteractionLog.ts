@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
 import { DatabaseService } from "~/db/index";
 import { actionLogs } from "~/db/schema";
 import { logger } from "~/lib/logger";

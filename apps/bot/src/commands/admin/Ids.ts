@@ -5,7 +5,7 @@ import {
 	PermissionFlagsBits,
 	type CommandInteraction,
 } from "discord.js";
-import { Bot, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordx";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordy";
 import { AdminOnly } from "~/guards/AdminOnly";
 import { GuildOnly } from "~/guards/GuildOnly";
 

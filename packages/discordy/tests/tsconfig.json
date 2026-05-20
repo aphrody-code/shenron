@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "types": ["bun"],
+    "ignoreDeprecations": "6.0",
+    "module": "ESNext",
+    "target": "ESNext",
+    "strict": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "declaration": false,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "Bundler",
+    "paths": {
+      "discordy": ["../src/index.ts"]
+    },
+    "esModuleInterop": true,
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": false
+  }
+}

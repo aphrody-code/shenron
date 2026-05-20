@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { Bot, Discord, On, Once, type ArgsOf } from "@rpbey/discordx";
+import { Bot, Discord, On, Once, type ArgsOf } from "@rpbey/discordy";
 import type { Client, Guild, GuildMember, Presence } from "discord.js";
 import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";

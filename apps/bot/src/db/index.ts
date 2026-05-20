@@ -34,4 +34,8 @@ export class DatabaseService {
 	close() {
 		this.sqlite.close();
 	}
+
+	runRaw(sql: string) {
+		this.sqlite.exec(sql);
+	}
 }

@@ -22,77 +22,94 @@ export default async function SearchPage({
 	const results = q.length >= 2 ? await dbUniverse.search(q) : null;
 
 	return (
-		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-			<header className="mb-10">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-					Recherche
+		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+			<header className="mb-16">
+				<p className="font-display font-semibold text-[12px] tracking-[0.2em] uppercase text-dbz-orange mb-4">
+					Système de Détection
 				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-8">
-					Explorer l'univers
+				<h1 className="font-saiyan text-5xl md:text-7xl text-white mb-10 tracking-widest">
+					EXPLORER L'UNIVERS
 				</h1>
 
-				<form className="flex gap-2 max-w-2xl">
-					<input
-						type="search"
-						name="q"
-						defaultValue={q}
-						placeholder="Goku, Namek, Tournoi du Pouvoir, Kakarot…"
-						autoFocus
-						className="flex-1 h-12 px-5 rounded-full bg-white/[0.06] border border-white/[0.08] focus:border-dbz-orange/60 focus:bg-white/[0.10] outline-none text-white placeholder:text-white/40 font-display text-[15px] transition-colors"
-					/>
+				<form className="flex flex-col sm:flex-row gap-4 max-w-3xl">
+					<div className="relative flex-1">
+						<div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+							<span className="text-dbz-orange/50">🔍</span>
+						</div>
+						<input
+							type="search"
+							name="q"
+							defaultValue={q}
+							placeholder="Goku, Namek, Tournoi du Pouvoir, Kakarot…"
+							autoFocus
+							className="w-full h-14 pl-12 pr-5 rounded-xl bg-dbz-card/50 border-2 border-dbz-border focus:border-dbz-orange focus:bg-dbz-card outline-none text-white placeholder:text-white/30 font-display text-lg transition-all"
+						/>
+					</div>
 					<button
 						type="submit"
-						className="inline-flex items-center h-12 px-7 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[13px] tracking-[0.10em] uppercase transition-colors"
+						className="dbz-button h-14 px-10"
 					>
-						Chercher
+						SCANNER
 					</button>
 				</form>
 			</header>
 
 			{!results && q.length === 0 && (
-				<p className="text-white/55 text-[15px]">
-					Tape un nom de personnage, planète, saga, film ou jeu Dragon Ball.
-				</p>
+				<div className="dbz-panel p-8 max-w-2xl border-l-4 border-l-dbz-orange">
+					<p className="text-white/70 text-lg leading-relaxed">
+						Initialisation du Scouter... Tape un nom de personnage, planète, saga, film ou jeu Dragon Ball pour lancer la recherche.
+					</p>
+				</div>
 			)}
 
 			{q.length > 0 && q.length < 2 && (
-				<p className="text-white/55 text-[15px]">
-					Au moins 2 caractères requis.
-				</p>
+				<div className="dbz-panel p-6 max-w-md border-l-4 border-l-dbz-red">
+					<p className="text-red-400 font-bold uppercase tracking-widest text-sm">
+						⚠️ Énergie insuffisante : Au moins 2 caractères requis.
+					</p>
+				</div>
 			)}
 
 			{results && (
-				<div className="space-y-12">
+				<div className="space-y-20">
 					{results.characters.length > 0 && (
-						<section>
-							<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-5">
-								Personnages — {results.characters.length}
-							</h2>
-							<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-								{results.characters.map((c) => (
+						<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
+							<div className="flex items-center gap-6 mb-8">
+								<h2 className="font-saiyan text-3xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+									Guerriers Détectés ({results.characters.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+							</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+								{results.characters.map((c, idx) => (
 									<Link
 										key={c.id}
 										href={`/wiki/dragon-ball/character/${c.id}`}
-										className="group block aspect-[3/4] relative rounded-xl overflow-hidden border border-white/[0.06] hover:border-dbz-orange transition-colors"
+										className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
+										style={{ animationDelay: `${0.2 + idx * 0.03}s` }}
 									>
-										{c.image && (
-											<Image
-												src={assetUrl(c.image)}
-												alt={c.name}
-												fill
-												sizes="(max-width: 768px) 50vw, 16vw"
-												className="object-cover object-top opacity-95 group-hover:scale-105 transition-transform"
-											/>
-										)}
-										<div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black to-transparent p-3 pt-10">
-											<p className="font-display font-bold text-[13px] text-white">
-												{c.name}
-											</p>
-											{c.name_ja && (
-												<p className="font-jp text-[10px] text-dbz-orange/85 mt-0.5">
-													{c.name_ja}
-												</p>
+										<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
+											<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
+											{c.image && (
+												<Image
+													src={assetUrl(c.image)}
+													alt={c.name}
+													fill
+													sizes="(max-width: 768px) 50vw, 16vw"
+													className="object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+												/>
 											)}
+											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
+											<div className="absolute inset-x-0 bottom-0 p-4 z-30">
+												<p className="font-display font-bold text-sm text-white group-hover:text-dbz-orange transition-colors">
+													{c.name}
+												</p>
+												{c.name_ja && (
+													<p className="font-jp text-[10px] text-white/40 font-bold mt-1">
+														{c.name_ja}
+													</p>
+												)}
+											</div>
 										</div>
 									</Link>
 								))}
@@ -101,131 +118,130 @@ export default async function SearchPage({
 					)}
 
 					{results.planets.length > 0 && (
-						<section>
-							<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-5">
-								Planètes — {results.planets.length}
-							</h2>
-							<ul className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+						<section className="reveal-up" style={{ animationDelay: "0.2s" }}>
+							<div className="flex items-center gap-6 mb-8">
+								<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+									Localisations ({results.planets.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
+							</div>
+							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 								{results.planets.map((p) => (
-									<li
+									<Link
 										key={p.id}
-										className="p-4 rounded-xl bg-white/[0.04] border border-white/[0.06]"
+										href={`/wiki/dragon-ball/planet/${p.id}`}
+										className="dbz-panel p-5 hover:border-dbz-blue-light transition-colors group"
 									>
-										<p className="font-display font-bold text-white">
-											{p.name}
-										</p>
-										{p.name_ja && (
-											<p className="font-jp text-[12px] text-dbz-orange/80 mt-1">
-												{p.name_ja}
-											</p>
-										)}
-									</li>
+										<div className="flex justify-between items-start">
+											<div>
+												<p className="font-display font-bold text-white group-hover:text-dbz-blue-light transition-colors">
+													{p.name}
+												</p>
+												{p.name_ja && (
+													<p className="font-jp text-xs text-white/40 mt-1">
+														{p.name_ja}
+													</p>
+												)}
+											</div>
+											<span className="text-dbz-blue-light opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+										</div>
+									</Link>
 								))}
-							</ul>
+							</div>
 						</section>
 					)}
 
-					{results.sagas.length > 0 && (
-						<section>
-							<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-5">
-								Sagas — {results.sagas.length}
-							</h2>
-							<ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-								{results.sagas.map((s) => (
-									<li
-										key={s.id}
-										className="p-4 rounded-xl bg-white/[0.04] border border-white/[0.06]"
-									>
-										<p className="font-display font-bold text-white">
-											{s.name}
-										</p>
-										<p className="text-[11px] font-display tracking-[0.12em] uppercase text-white/50 mt-1">
-											{s.series}
-										</p>
-									</li>
-								))}
-							</ul>
-						</section>
-					)}
+					<div className="grid md:grid-cols-2 gap-12">
+						{results.sagas.length > 0 && (
+							<section className="reveal-up" style={{ animationDelay: "0.3s" }}>
+								<div className="flex items-center gap-6 mb-6">
+									<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+										Chronologie
+									</h2>
+									<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+								</div>
+								<div className="space-y-3">
+									{results.sagas.map((s) => (
+										<Link
+											key={s.id}
+											href={`/wiki/sagas/${s.slug}`}
+											className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+										>
+											<div className="flex justify-between items-center">
+												<div>
+													<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
+														{s.name}
+													</p>
+													<p className="text-[10px] font-display tracking-[0.2em] uppercase text-white/40 mt-1">
+														{s.series}
+													</p>
+												</div>
+												<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+											</div>
+										</Link>
+									))}
+								</div>
+							</section>
+						)}
 
-					{results.movies.length > 0 && (
-						<section>
-							<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-5">
-								Films — {results.movies.length}
-							</h2>
-							<ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-								{results.movies.map((m) => (
-									<li
-										key={m.id}
-										className="p-4 rounded-xl bg-white/[0.04] border border-white/[0.06]"
-									>
-										<p className="font-display font-bold text-white">
-											{m.title}
-										</p>
-										{m.title_ja && (
-											<p className="font-jp text-[12px] text-dbz-orange/80 mt-1">
-												{m.title_ja}
-											</p>
-										)}
-									</li>
-								))}
-							</ul>
-						</section>
-					)}
-
-					{results.games.length > 0 && (
-						<section>
-							<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-5">
-								Jeux — {results.games.length}
-							</h2>
-							<ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-								{results.games.map((g) => (
-									<li
-										key={g.id}
-										className="p-4 rounded-xl bg-white/[0.04] border border-white/[0.06]"
-									>
-										<p className="font-display font-bold text-white">
-											{g.title}
-										</p>
-										{g.title_ja && (
-											<p className="font-jp text-[12px] text-dbz-orange/80 mt-1">
-												{g.title_ja}
-											</p>
-										)}
-									</li>
-								))}
-							</ul>
-						</section>
-					)}
+						{results.movies.length > 0 && (
+							<section className="reveal-up" style={{ animationDelay: "0.4s" }}>
+								<div className="flex items-center gap-6 mb-6">
+									<h2 className="font-saiyan text-2xl text-dbz-red uppercase tracking-widest whitespace-nowrap">
+										Archives Cinéma
+									</h2>
+									<div className="h-px flex-1 bg-gradient-to-r from-dbz-red/50 to-transparent" />
+								</div>
+								<div className="space-y-3">
+									{results.movies.map((m) => (
+										<Link
+											key={m.id}
+											href={`/wiki/dragon-ball/movie/${m.id}`}
+											className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+										>
+											<div className="flex justify-between items-center">
+												<div>
+													<p className="font-display font-bold text-white group-hover:text-dbz-red transition-colors">
+														{m.title}
+													</p>
+													{m.title_ja && (
+														<p className="font-jp text-[10px] text-white/40 mt-1">
+															{m.title_ja}
+														</p>
+													)}
+												</div>
+												<span className="text-dbz-red opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+											</div>
+										</Link>
+									))}
+								</div>
+							</section>
+						)}
+					</div>
 
 					{results.characters.length === 0 &&
 						results.planets.length === 0 &&
 						results.sagas.length === 0 &&
 						results.movies.length === 0 &&
 						results.games.length === 0 && (
-							<div className="p-8 rounded-2xl bg-white/[0.04] border border-white/[0.06] max-w-2xl">
-								<h2 className="font-display font-bold text-[20px] text-white mb-2">
-									Aucun résultat pour « {q} »
+							<div className="dbz-panel p-10 max-w-3xl border-l-4 border-l-dbz-red reveal-up">
+								<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
+									AUCUNE ÉNERGIE DÉTECTÉE
 								</h2>
-								<p className="text-[14px] text-white/65 leading-relaxed mb-4">
-									Essaie un autre terme — un nom de personnage, un titre de
-									film, une saga, une planète ou un jeu. Notre catalogue couvre
-									:
+								<p className="text-white/60 text-lg leading-relaxed mb-8">
+									Le Scouter n'a trouvé aucun résultat pour « <span className="text-dbz-orange font-bold">{q}</span> ». 
+									Essaie un autre terme — un nom de personnage, un titre de film, une saga ou une planète.
 								</p>
-								<ul className="text-[13px] text-white/65 space-y-1 list-disc list-inside">
-									<li>58 personnages canon (Goku, Vegeta, Beerus, Jiren…)</li>
-									<li>20 planètes (Terre, Namek, Vegeta, Yardrat…)</li>
-									<li>
-										29 sagas (Saiyans, Freezer, Cell, Buu, ToP, Granolah…)
-									</li>
-									<li>
-										9 films (Battle of Gods, Resurrection F, Broly, Super Hero…)
-									</li>
-									<li>
-										10 jeux Bandai (Kakarot, Sparking ZERO, Xenoverse,
-										FighterZ…)
-									</li>
-								</ul>
+								<div className="grid sm:grid-cols-2 gap-6 text-sm">
+									<div className="space-y-2">
+										<p className="text-dbz-orange font-bold uppercase tracking-widest">Guerriers</p>
+										<p className="text-white/40">Goku, Vegeta, Beerus, Jiren, Broly...</p>
+									</div>
+									<div className="space-y-2">
+										<p className="text-dbz-blue-light font-bold uppercase tracking-widest">Mondes</p>
+										<p className="text-white/40">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
+									</div>
+								</div>
 							</div>
 						)}
 				</div>
@@ -233,3 +249,4 @@ export default async function SearchPage({
 		</div>
 	);
 }
+

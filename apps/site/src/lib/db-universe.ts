@@ -36,6 +36,7 @@ export type Episode = {
 	air_date: number | null;
 	synopsis: string | null;
 	image: string | null;
+	video_url: string | null;
 	mal_id: number | null;
 };
 
@@ -50,6 +51,7 @@ export type Movie = {
 	duration_min: number | null;
 	synopsis: string | null;
 	poster: string | null;
+	trailer_url: string | null;
 	mal_id: number | null;
 	anilist_id: number | null;
 };
@@ -84,6 +86,33 @@ export type Transformation = {
 	character_id: number;
 };
 
+export type MangaVolume = {
+	id: number;
+	series: string;
+	volume_number: number;
+	title: string | null;
+	cover: string | null;
+};
+
+export type MangaChapter = {
+	id: number;
+	series: string;
+	chapter_number: number;
+	title: string | null;
+	volume_id: number | null;
+};
+
+export type News = {
+	id: number;
+	source_id: string;
+	source_url: string;
+	title: string;
+	excerpt: string | null;
+	category: string | null;
+	published_at: number;
+	image: string | null;
+};
+
 export type SearchResults = {
 	q: string;
 	characters: Array<{
@@ -114,12 +143,31 @@ export type Arc = {
 	description: string | null;
 };
 
+export type Tool = {
+	id: number;
+	slug: string;
+	name: string;
+	description: string | null;
+	url: string;
+	author: string | null;
+	language: string | null;
+	category: string | null;
+	target_game_id: number | null;
+	stars: number;
+};
+
 export const dbUniverse = {
 	sagas: () => get<{ sagas: Saga[] }>("/api/public/wiki/sagas"),
 	saga: (slug: string) =>
 		get<{ saga: Saga; arcs: Arc[] }>(
 			`/api/public/wiki/sagas/${encodeURIComponent(slug)}`,
 		),
+	arc: (slug: string) =>
+		get<{ arc: Arc; episodes: Episode[] }>(
+			`/api/public/wiki/arcs/${encodeURIComponent(slug)}`,
+		),
+	episode: (id: number) =>
+		get<Episode>(`/api/public/wiki/episodes/${id}`),
 	episodes: (series?: string, limit = 50, offset = 0) =>
 		get<{ episodes: Episode[]; total: number }>(
 			`/api/public/wiki/episodes?${new URLSearchParams({
@@ -135,11 +183,26 @@ export const dbUniverse = {
 	games: () => get<{ games: Game[] }>("/api/public/wiki/games"),
 	game: (slug: string) =>
 		get<Game>(`/api/public/wiki/games/${encodeURIComponent(slug)}`),
+	tools: () => get<{ tools: Tool[] }>("/api/public/wiki/tools"),
+	tool: (slug: string) =>
+		get<Tool>(`/api/public/wiki/tools/${encodeURIComponent(slug)}`),
 	races: () => get<{ races: Race[] }>("/api/public/wiki/races"),
+	race: (slug: string) =>
+		get<Race>(`/api/public/wiki/races/${encodeURIComponent(slug)}`),
 	transformations: () =>
 		get<{ transformations: Transformation[] }>(
 			"/api/public/wiki/transformations",
 		),
+	mangaVolumes: (series = "DB") =>
+		get<{ volumes: MangaVolume[] }>(
+			`/api/public/wiki/manga/volumes?series=${series}`,
+		),
+	mangaVolume: (id: number) =>
+		get<MangaVolume & { chapters: MangaChapter[] }>(
+			`/api/public/wiki/manga/volumes/${id}`,
+		),
+	news: (limit = 10) =>
+		get<{ news: News[] }>(`/api/public/wiki/news?limit=${limit}`, 600),
 	search: (q: string) =>
 		get<SearchResults>(
 			`/api/public/wiki/search?q=${encodeURIComponent(q)}`,

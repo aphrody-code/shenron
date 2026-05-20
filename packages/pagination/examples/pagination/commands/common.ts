@@ -14,7 +14,7 @@ import {
   type CommandInteraction,
   type MessageActionRowComponentBuilder,
 } from "discord.js";
-import { Discord, On, Slash, type ArgsOf } from "@rpbey/discordx";
+import { Discord, On, Slash, type ArgsOf } from "@rpbey/discordy";
 
 import { GeneratePages } from "../util/common.js";
 

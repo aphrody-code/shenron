@@ -48,8 +48,8 @@ if (opts.help) {
 	process.exit(0);
 }
 
-const REPO = process.env.GITHUB_REPOSITORY ?? "aphrody-code/shenron";
-const TOKEN = process.env.GITHUB_TOKEN;
+const REPO = Bun.env.GITHUB_REPOSITORY ?? "aphrody-code/shenron";
+const TOKEN = Bun.env.GITHUB_TOKEN;
 const DRY = opts["dry-run"];
 
 if (!DRY && !TOKEN) {

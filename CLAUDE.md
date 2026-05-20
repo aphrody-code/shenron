@@ -51,7 +51,7 @@ apps/
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
 packages/
   di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordx
+  discordx/    → wrapper fork @rpbey/discordy
   importer/    → loader entries statiques
   internal/    → utils partagés
   pagination/  → helpers pagination Discord
@@ -64,7 +64,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 6 personas en 1 process (mapping `apps/bot/src/lib/personas.ts`) :
 - Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo.
 - Tokens : `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, … (cf. `apps/bot/.env`).
-- Fork `@rpbey/discordx` requis pour le multi-client injection.
+- Fork `@rpbey/discordy` requis pour le multi-client injection.
 
 ### Entries statiques
 

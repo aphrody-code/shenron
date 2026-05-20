@@ -1,4 +1,4 @@
-import type { GuardFunction } from "@rpbey/discordx";
+import type { GuardFunction } from "@rpbey/discordy";
 import { type CommandInteraction, MessageFlags } from "discord.js";
 import { env } from "~/lib/env";
 

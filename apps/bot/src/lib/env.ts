@@ -75,6 +75,7 @@ const schema = z.object({
 	COMMANDS_CHANNEL_ID: z.string().optional(),
 	ANNOUNCE_CHANNEL_ID: z.string().optional(),
 	ACHIEVEMENT_CHANNEL_ID: z.string().optional(),
+	LEVEL_CHANNEL_ID: z.string().optional(),
 
 	// /translate (OCR Tesseract + cascade providers sans clé)
 	// - Lingva Translate (proxy Google, instances publiques rotatives)
@@ -138,7 +139,7 @@ const schema = z.object({
 		.default("development"),
 });
 
-const parsed = schema.safeParse(process.env);
+const parsed = schema.safeParse(Bun.env);
 if (!parsed.success) {
 	console.error("✗ Invalid environment:");
 	for (const issue of parsed.error.issues) {

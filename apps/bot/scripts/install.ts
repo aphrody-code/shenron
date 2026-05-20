@@ -20,10 +20,10 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 const REPO =
-	process.env.SHENRON_REPO ?? "https://github.com/aphrody-code/shenron.git";
-const BRANCH = process.env.SHENRON_BRANCH ?? "main";
-const TARGET = resolve(process.env.SHENRON_DIR ?? `${process.cwd()}/shenron`);
-const SKIP_WIKI = process.env.SKIP_WIKI_SEED === "1";
+	Bun.env.SHENRON_REPO ?? "https://github.com/aphrody-code/shenron.git";
+const BRANCH = Bun.env.SHENRON_BRANCH ?? "main";
+const TARGET = resolve(Bun.env.SHENRON_DIR ?? `${Bun.cwd}/shenron`);
+const SKIP_WIKI = Bun.env.SKIP_WIKI_SEED === "1";
 
 const C = {
 	blue: "\x1b[1;34m",
@@ -55,7 +55,7 @@ if (gitOk.exitCode !== 0) die("git introuvable. Installe-le d'abord.");
 ok(`git ${gitOk.stdout.toString().trim().split(" ").pop()}`);
 
 ok(`Bun ${Bun.version}`);
-ok(`Plateforme ${process.platform} / ${process.arch}`);
+ok(`Plateforme ${process.platform} / ${Bun.arch}`);
 
 // ── Clone ────────────────────────────────────────────────────────────────
 step(`Clone (branche: ${BRANCH})`);

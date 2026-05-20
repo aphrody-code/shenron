@@ -1,0 +1,239 @@
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+import { DBZ_TILES } from "./tiles";
+import { assetUrl } from "@/lib/db-universe";
+
+type Tile = {
+	id: number;
+	value: number;
+	x: number;
+	y: number;
+	isNew: boolean;
+	isMerged: boolean;
+};
+
+const GRID_SIZE = 4;
+
+function generateId() {
+	return Math.random() * 1000000;
+}
+
+export default function DragonBall2048() {
+	const [tiles, setTiles] = useState<Tile[]>([]);
+	const [score, setScore] = useState(0);
+	const [gameOver, setGameOver] = useState(false);
+
+	const initializeGame = useCallback(() => {
+		setTiles([
+			{ id: generateId(), value: 2, x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE), isNew: true, isMerged: false },
+			{ id: generateId(), value: 2, x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE), isNew: true, isMerged: false },
+		]);
+		setScore(0);
+		setGameOver(false);
+	}, []);
+
+	useEffect(() => {
+		initializeGame();
+	}, [initializeGame]);
+
+	// Basic 2048 logic
+	const move = useCallback(
+		(direction: "UP" | "DOWN" | "LEFT" | "RIGHT") => {
+			if (gameOver) return;
+
+			setTiles((prevTiles) => {
+				let newTiles = [...prevTiles].map(t => ({ ...t, isNew: false, isMerged: false }));
+				let hasMoved = false;
+				let currentScore = score;
+
+				const moveInLine = (line: Tile[]) => {
+					let result: Tile[] = [];
+					for (let i = 0; i < line.length; i++) {
+						if (line[i]) {
+							if (result.length > 0 && result[result.length - 1].value === line[i].value && !result[result.length - 1].isMerged) {
+								result[result.length - 1].value *= 2;
+								result[result.length - 1].isMerged = true;
+								currentScore += result[result.length - 1].value;
+								hasMoved = true;
+							} else {
+								result.push(line[i]);
+							}
+						}
+					}
+					return result;
+				};
+
+				for (let i = 0; i < GRID_SIZE; i++) {
+					let line = newTiles.filter((t) => (direction === "UP" || direction === "DOWN" ? t.x === i : t.y === i));
+					line.sort((a, b) => (direction === "UP" || direction === "DOWN" ? a.y - b.y : a.x - b.x));
+					if (direction === "DOWN" || direction === "RIGHT") line.reverse();
+
+					const mergedLine = moveInLine(line);
+
+					for (let j = 0; j < mergedLine.length; j++) {
+						const targetPos = direction === "DOWN" || direction === "RIGHT" ? GRID_SIZE - 1 - j : j;
+						if (direction === "UP" || direction === "DOWN") {
+							if (mergedLine[j].y !== targetPos) hasMoved = true;
+							mergedLine[j].y = targetPos;
+						} else {
+							if (mergedLine[j].x !== targetPos) hasMoved = true;
+							mergedLine[j].x = targetPos;
+						}
+					}
+				}
+
+				if (hasMoved) {
+					// Add new tile
+					const emptySpots = [];
+					for (let x = 0; x < GRID_SIZE; x++) {
+						for (let y = 0; y < GRID_SIZE; y++) {
+							if (!newTiles.some((t) => t.x === x && t.y === y)) emptySpots.push({ x, y });
+						}
+					}
+					if (emptySpots.length > 0) {
+						const randomSpot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
+						newTiles.push({
+							id: generateId(),
+							value: Math.random() < 0.9 ? 2 : 4,
+							x: randomSpot.x,
+							y: randomSpot.y,
+							isNew: true,
+							isMerged: false,
+						});
+					}
+					setScore(currentScore);
+				}
+
+				return newTiles;
+			});
+		},
+		[gameOver, score]
+	);
+
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) e.preventDefault();
+			if (e.key === "ArrowUp") move("UP");
+			if (e.key === "ArrowDown") move("DOWN");
+			if (e.key === "ArrowLeft") move("LEFT");
+			if (e.key === "ArrowRight") move("RIGHT");
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [move]);
+
+	// Touch/Swipe support
+	const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+
+	const handleTouchStart = (e: React.TouchEvent) => {
+		setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+	};
+
+	const handleTouchEnd = (e: React.TouchEvent) => {
+		if (!touchStart) return;
+		const touchEnd = { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+		const dx = touchEnd.x - touchStart.x;
+		const dy = touchEnd.y - touchStart.y;
+		const absDx = Math.abs(dx);
+		const absDy = Math.abs(dy);
+
+		if (Math.max(absDx, absDy) > 30) {
+			if (absDx > absDy) {
+				move(dx > 0 ? "RIGHT" : "LEFT");
+			} else {
+				move(dy > 0 ? "DOWN" : "UP");
+			}
+		}
+		setTouchStart(null);
+	};
+
+	// Simple check for game over
+	useEffect(() => {
+		if (tiles.length === GRID_SIZE * GRID_SIZE) {
+			const canMove = tiles.some((t) => {
+				const neighbors = tiles.filter(
+					(n) =>
+						(Math.abs(n.x - t.x) === 1 && n.y === t.y) ||
+						(Math.abs(n.y - t.y) === 1 && n.x === t.x)
+				);
+				return neighbors.some((n) => n.value === t.value);
+			});
+			if (!canMove) setGameOver(true);
+		}
+	}, [tiles]);
+
+	return (
+		<div className="flex flex-col items-center justify-center min-h-[60vh] p-4 text-white font-sans" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+			<div className="flex items-center justify-between w-full max-w-md mb-8">
+				<h1 className="text-5xl font-saiyan text-dbz-yellow tracking-widest drop-shadow-lg">DBZ 2048</h1>
+				<div className="dbz-panel px-6 py-2 text-center border border-dbz-orange/50">
+					<p className="text-[10px] text-dbz-orange uppercase tracking-widest mb-1">Ki Total</p>
+					<p className="scouter-text text-2xl leading-none">{score}</p>
+				</div>
+			</div>
+
+			<div className="relative bg-zinc-900/80 p-3 rounded-xl border-4 border-dbz-border shadow-2xl backdrop-blur-sm w-full max-w-md aspect-square">
+				<div className="grid grid-cols-4 grid-rows-4 gap-3 w-full h-full">
+					{Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => (
+						<div key={i} className="w-full h-full bg-zinc-800/50 rounded-lg shadow-inner" />
+					))}
+				</div>
+
+				{tiles.map((tile) => {
+					const tileInfo = DBZ_TILES[tile.value] || DBZ_TILES[16384];
+					return (
+						<div
+							key={tile.id}
+							className={`absolute rounded-lg flex flex-col items-center justify-center transition-all duration-150 ease-in-out ${
+								tile.isNew ? "scale-0 animate-[reveal-scale_0.2s_ease-out_forwards]" : ""
+							} ${tile.isMerged ? "animate-[ki-pulse_0.3s_ease-out]" : ""}`}
+							style={{
+								width: "calc((100% - 2.25rem) / 4)",
+								height: "calc((100% - 2.25rem) / 4)",
+								transform: `translate(calc(${tile.x * 100}% + ${tile.x * 0.75}rem), calc(${tile.y * 100}% + ${tile.y * 0.75}rem)) ${tile.isNew ? 'scale(0)' : 'scale(1)'}`,
+								backgroundColor: tileInfo.bg,
+								border: `2px solid ${tileInfo.color}`,
+								boxShadow: `0 0 10px ${tileInfo.color}40`,
+								top: "0.75rem",
+								left: "0.75rem",
+								margin: 0
+							}}
+						>
+							<div className="relative w-full h-full p-1 overflow-hidden group">
+								<img 
+									src={assetUrl(tileInfo.image)} 
+									alt={tileInfo.name} 
+									className="w-full h-full object-contain drop-shadow-md z-10 relative opacity-90"
+								/>
+								<div className="absolute bottom-0 left-0 right-0 bg-black/60 z-20">
+									<p className="text-[9px] sm:text-[11px] font-bold text-center text-white truncate px-1 font-display uppercase tracking-wider" style={{ color: tileInfo.color }}>
+										{tileInfo.name}
+									</p>
+								</div>
+								<div className="absolute top-1 left-1 bg-black/80 px-1 rounded z-20">
+									<p className="scouter-text text-[10px]">{tile.value}</p>
+								</div>
+							</div>
+						</div>
+					);
+				})}
+
+				{gameOver && (
+					<div className="absolute inset-0 bg-black/80 backdrop-blur-md rounded-lg flex flex-col items-center justify-center z-50">
+						<h2 className="text-6xl font-saiyan text-red-500 mb-2 tracking-widest drop-shadow-[0_0_15px_rgba(255,0,0,0.5)]">GAME OVER</h2>
+						<p className="text-zinc-300 font-display mb-6">Tu as été vaincu !</p>
+						<button onClick={initializeGame} className="dbz-button">
+							Rejouer
+						</button>
+					</div>
+				)}
+			</div>
+			
+			<div className="mt-8 text-center text-zinc-400 text-sm font-display max-w-md">
+				<p>Utilise les <strong>flèches directionnelles</strong> pour fusionner les personnages et augmenter leur niveau de puissance.</p>
+				<p className="mt-2 text-dbz-orange/80">Fusionne deux personnages identiques pour évoluer vers la transformation suivante !</p>
+			</div>
+		</div>
+	);
+}

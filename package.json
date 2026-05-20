@@ -22,7 +22,7 @@
 			"better-auth": "^1.6.11",
 			"prisma": "7.7.0",
 			"@prisma/client": "7.7.0",
-			"@rpbey/discordx": "^0.1.1",
+			"@rpbey/discordy": "^0.1.1",
 			"discord.js": "^14.26.3",
 			"vitest": "^4.0.18",
 			"zod": "^4.4.3",

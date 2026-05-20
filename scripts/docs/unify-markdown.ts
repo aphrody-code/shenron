@@ -10,7 +10,7 @@
 
 import { $ } from "bun";
 import { join, relative } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync, appendFileSync } from "node:fs";
 
 const OUTPUT_DEFAULT = "KNOWLEDGE_BASE.md";
 const IGNORE_PATTERNS = [
@@ -34,27 +34,33 @@ async function main() {
   const findCmd = await $`find . -name "*.md"`.text();
   const allFiles = findCmd
     .split("\n")
-    .filter(f => f.trim() !== "" && !IGNORE_PATTERNS.some(p => f.includes(p)))
+    .filter(f => {
+        const relPath = f.startsWith("./") ? f.substring(2) : f;
+        return f.trim() !== "" && 
+               !IGNORE_PATTERNS.some(p => f.includes(p)) &&
+               relPath !== outputFile;
+    })
     .sort();
 
   console.log(`📄 ${allFiles.length} fichiers trouvés.`);
 
-  let content = `# 📚 Base de Connaissance Unifiée — ${new Date().toLocaleDateString("fr-FR")}\n\n`;
-  content += `> Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.\n\n`;
+  // Initialiser le fichier
+  writeFileSync(outputFile, `# 📚 Base de Connaissance Unifiée — ${new Date().toLocaleDateString("fr-FR")}\n\n`);
+  appendFileSync(outputFile, `> Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.\n\n`);
 
   // 2. Section Métadonnées (Skills & Agents)
-  content += `## 🤖 Capacités & Agents\n\n`;
-  content += await generateAgentMetadata();
-  content += `\n---\n\n`;
+  appendFileSync(outputFile, `## 🤖 Capacités & Agents\n\n`);
+  appendFileSync(outputFile, await generateAgentMetadata());
+  appendFileSync(outputFile, `\n---\n\n`);
 
   // 3. Table des matières
-  content += `## 🗂 Sommaire\n\n`;
+  appendFileSync(outputFile, `## 🗂 Sommaire\n\n`);
   for (const file of allFiles) {
     const relPath = file.startsWith("./") ? file.substring(2) : file;
     const title = await extractTitle(file);
-    content += `- [${title}](#${slugify(relPath)})\n`;
+    appendFileSync(outputFile, `- [${title}](#${slugify(relPath)})\n`);
   }
-  content += `\n---\n\n`;
+  appendFileSync(outputFile, `\n---\n\n`);
 
   // 4. Fusionner les contenus
   for (const file of allFiles) {
@@ -64,21 +70,18 @@ async function main() {
     const fileContent = await Bun.file(file).text();
     const title = await extractTitle(file);
 
-    content += `<a name="${slugify(relPath)}"></a>\n`;
-    content += `## 📄 Fichier : \`${relPath}\`\n\n`;
-    content += `**Titre original :** ${title}\n\n`;
+    appendFileSync(outputFile, `<a name="${slugify(relPath)}"></a>\n`);
+    appendFileSync(outputFile, `## 📄 Fichier : \`${relPath}\`\n\n`);
+    appendFileSync(outputFile, `**Titre original :** ${title}\n\n`);
     
     const processedContent = fileContent.replace(/^# /gm, "### ");
     
-    content += processedContent;
-    content += `\n\n---\n\n`;
+    appendFileSync(outputFile, processedContent);
+    appendFileSync(outputFile, `\n\n---\n\n`);
   }
 
-  // 5. Écrire le résultat
-  await Bun.write(outputFile, content);
-
   console.log(`\n✅ Unification terminée !`);
-  console.log(`📦 Fichier généré : ${outputFile} (${(content.length / 1024).toFixed(2)} KB)`);
+  console.log(`📦 Fichier généré : ${outputFile}`);
 }
 
 async function extractTitle(filePath: string): Promise<string> {

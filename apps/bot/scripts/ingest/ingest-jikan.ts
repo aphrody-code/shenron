@@ -133,7 +133,7 @@ for (const { malId, series } of ANIME_SERIES) {
 		page++;
 		await SLEEP(400);
 	}
-	process.stdout.write(`  +${totalEp} eps total\n`);
+	Bun.stdout.write(`  +${totalEp} eps total\n`);
 	await SLEEP(400);
 }
 

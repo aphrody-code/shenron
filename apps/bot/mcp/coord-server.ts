@@ -25,7 +25,7 @@ import { join, basename } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const COORD_DIR =
-	process.env.COORD_DIR ?? "/home/ubuntu/vps/apps/shenron/.coord";
+	Bun.env.COORD_DIR ?? "/home/ubuntu/vps/apps/shenron/.coord";
 const TASKS_FILE = join(COORD_DIR, "tasks.json");
 const MESSAGES_FILE = join(COORD_DIR, "messages.jsonl");
 const MEMORY_DIR = join(COORD_DIR, "memory");
@@ -34,10 +34,10 @@ const LOCK_FILE = "/tmp/dbfr-tasks.lock";
 
 // Identité de l'agent — passe via env `COORD_AGENT` ou par défaut `unknown`.
 // Utilisée pour stamper les messages envoyés (`from`).
-const AGENT_ID = process.env.COORD_AGENT ?? "unknown";
+const AGENT_ID = Bun.env.COORD_AGENT ?? "unknown";
 
 const log = (...args: unknown[]) =>
-	process.stderr.write(`[coord-mcp] ${args.map(String).join(" ")}\n`);
+	Bun.stderr.write(`[coord-mcp] ${args.map(String).join(" ")}\n`);
 
 if (!existsSync(COORD_DIR)) mkdirSync(COORD_DIR, { recursive: true });
 if (!existsSync(MEMORY_DIR)) mkdirSync(MEMORY_DIR, { recursive: true });
@@ -297,7 +297,7 @@ function handleToolsCall(name: string, args: any): any {
 				if (!t) return null;
 				if (t.status !== "pending") return { conflict: true, task: t };
 				t.status = "in_progress";
-				t.agent_pid = String(process.ppid ?? process.pid);
+				t.agent_pid = String(Bun.ppid ?? Bun.pid);
 				t.started_at = new Date().toISOString();
 				return { task: t };
 			});
@@ -546,7 +546,7 @@ async function main() {
 				}
 				const resp = handle(req);
 				if (resp) {
-					process.stdout.write(JSON.stringify(resp) + "\n");
+					Bun.stdout.write(JSON.stringify(resp) + "\n");
 				}
 			}
 			nl = buf.indexOf("\n");

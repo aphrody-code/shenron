@@ -12,7 +12,7 @@ bun add @rpbey/di tsyringe reflect-metadata
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { tsyringeDependencyRegistryEngine } from "@rpbey/di";
-import { DIService } from "@rpbey/discordx";
+import { DIService } from "@rpbey/discordy";
 
 DIService.engine = tsyringeDependencyRegistryEngine.setInjector(container);
 ```
@@ -21,7 +21,7 @@ Once registered, every class decorated with `@Discord` is resolved through the c
 
 ```ts
 import { injectable } from "tsyringe";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 @injectable()

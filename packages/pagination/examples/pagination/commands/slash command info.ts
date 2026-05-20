@@ -6,7 +6,7 @@
  */
 import { Pagination } from "@rpbey/pagination";
 import { EmbedBuilder, type CommandInteraction } from "discord.js";
-import { Discord, MetadataStorage, Slash } from "@rpbey/discordx";
+import { Discord, MetadataStorage, Slash } from "@rpbey/discordy";
 
 @Discord()
 export class Example {

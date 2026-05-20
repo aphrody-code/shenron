@@ -6,7 +6,7 @@
  */
 import { Pagination } from "@rpbey/pagination";
 import type { CommandInteraction } from "discord.js";
-import { Discord, Slash } from "@rpbey/discordx";
+import { Discord, Slash } from "@rpbey/discordy";
 
 import { GeneratePages } from "../util/common.js";
 

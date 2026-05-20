@@ -12,7 +12,7 @@ import { AbstractConfigurableDependencyInjector } from "../AbstractConfigurableD
 export class TypeDiDependencyRegistryEngine extends AbstractConfigurableDependencyInjector<
   typeof Container
 > {
-  public static token = new Token<unknown>("@rpbey/discordx");
+  public static token = new Token<unknown>("@rpbey/discordy");
 
   private static _instance: TypeDiDependencyRegistryEngine | undefined;
 
