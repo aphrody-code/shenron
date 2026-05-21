@@ -16,9 +16,20 @@ export const metadata: Metadata = {
 		"Dernières news, annonces officielles et rumeurs sur l'univers Dragon Ball (Daima, Sparking ZERO, Manga).",
 };
 
-export default async function NewsPage() {
-	const data = await dbUniverse.news(20);
-	const news = data?.news ?? [];
+export default async function NewsPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ page?: string }>;
+}) {
+	const sp = await searchParams;
+	const page = Math.max(1, parseInt(sp.page ?? "1", 10));
+	const limit = 20;
+	// API ne supporte pas encore l'offset — on charge limit * page puis slice
+	const data = await dbUniverse.news(limit * page);
+	const allNews = data?.news ?? [];
+	const news = allNews.slice((page - 1) * limit, page * limit);
+	// Estimation conservative : s'il y a exactement limit * page résultats, il peut y en avoir plus
+	const hasMore = allNews.length === limit * page;
 
 	return (
 		<div className="reveal-up">
@@ -109,6 +120,31 @@ export default async function NewsPage() {
 						</div>
 					)}
 				</div>
+
+				{/* Pagination */}
+				{(page > 1 || hasMore) && (
+					<nav className="mt-12 flex items-center justify-center gap-4">
+						{page > 1 && (
+							<Link
+								href={`/wiki/news?page=${page - 1}`}
+								className="dbz-button-ghost"
+							>
+								← Page précédente
+							</Link>
+						)}
+						<span className="scouter-text text-dbz-orange px-4">
+							PAGE {page}
+						</span>
+						{hasMore && (
+							<Link
+								href={`/wiki/news?page=${page + 1}`}
+								className="dbz-button-ghost"
+							>
+								Page suivante →
+							</Link>
+						)}
+					</nav>
+				)}
 			</div>
 		</div>
 	);

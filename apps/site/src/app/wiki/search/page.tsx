@@ -160,27 +160,40 @@ export default async function SearchPage({
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
 							</div>
-							<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+							<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
 								{results.planets.map((p) => (
 									<Link
 										key={p.id}
 										href={`/wiki/dragon-ball/planet/${p.id}`}
-										className="dbz-panel p-5 hover:border-dbz-blue-light transition-colors group"
+										className="group dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
 									>
-										<div className="flex justify-between items-start">
-											<div>
-												<p className="font-display font-bold text-white group-hover:text-dbz-blue-light transition-colors">
+										<div className="relative aspect-video bg-dbz-bg overflow-hidden p-3">
+											<div className="absolute inset-0 starfield opacity-20" />
+											{p.image ? (
+												<img
+													src={assetUrl(p.image)}
+													alt={p.name}
+													className="w-full h-full object-contain relative z-10 opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_15px_rgba(75,168,255,0.2)]"
+													loading="lazy"
+												/>
+											) : (
+												<div className="w-full h-full flex items-center justify-center">
+													<span className="text-dbz-blue-light/20 font-saiyan text-2xl">
+														P
+													</span>
+												</div>
+											)}
+											<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-20" />
+											<div className="absolute inset-x-0 bottom-0 p-2 text-center z-30">
+												<p className="font-display font-bold text-sm text-white leading-tight group-hover:text-dbz-blue-light transition-colors">
 													{p.name}
 												</p>
 												{p.name_ja && (
-													<p className="font-jp text-xs text-white/40 mt-1">
+													<p className="font-jp text-[9px] text-dbz-blue-light/50 mt-0.5">
 														{p.name_ja}
 													</p>
 												)}
 											</div>
-											<span className="text-dbz-blue-light opacity-0 group-hover:opacity-100 transition-opacity">
-												→
-											</span>
 										</div>
 									</Link>
 								))}
