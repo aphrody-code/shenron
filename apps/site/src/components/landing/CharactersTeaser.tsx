@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SectionHeading } from "./SectionHeading";
+import { assetUrl } from "@/lib/db-universe";
 
 export type CharacterTeaser = {
 	id: number;
@@ -45,7 +46,7 @@ export function CharactersTeaser({
 							>
 								{/* eslint-disable-next-line @next/next/no-img-element */}
 								<img
-									src={`https://shenron.rpbey.fr/${c.image?.replace(/^\.\//, "")}`}
+									src={assetUrl(c.image)}
 									alt={c.name}
 									className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
 									loading="lazy"

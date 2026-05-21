@@ -8,9 +8,10 @@
  */
 
 const PUBLIC_ASSETS_URL =
-	process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ?? // ex: https://shenron.rpbey.fr
+	process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ??
+	process.env.NEXT_PUBLIC_SHENRON_API_URL ?? // client-exposed (bot.rpbey.fr)
 	process.env.SHENRON_API_URL ??
-	"https://shenron.rpbey.fr";
+	"https://bot.rpbey.fr";
 
 const BASE = PUBLIC_ASSETS_URL.replace(/\/+$/, "");
 

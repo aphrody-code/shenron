@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
 		formats: ["image/avif", "image/webp"],
 		// Bot expose les assets DB via /db/* (Cache-Control immutable + Vary:Accept côté bot).
 		remotePatterns: [
+			// API/assets du bot — hôte public actuel (shenron.rpbey.fr pointe vers
+			// Vercel désormais, le bot vit sur bot.rpbey.fr).
+			{ protocol: "https", hostname: "bot.rpbey.fr", pathname: "/db/**" },
+			{ protocol: "https", hostname: "bot.rpbey.fr", pathname: "/assets/**" },
 			{
 				protocol: "https",
 				hostname: "shenron.rpbey.fr",
@@ -17,6 +21,18 @@ const nextConfig: NextConfig = {
 				protocol: "https",
 				hostname: "shenron.rpbey.fr",
 				pathname: "/assets/**",
+			},
+			// Posters films (MyAnimeList), news officielles (DB Official).
+			{ protocol: "https", hostname: "myanimelist.net", pathname: "/**" },
+			{
+				protocol: "https",
+				hostname: "fr.dragon-ball-official.com",
+				pathname: "/**",
+			},
+			{
+				protocol: "https",
+				hostname: "www.dragon-ball-official.com",
+				pathname: "/**",
 			},
 			{
 				protocol: "https",

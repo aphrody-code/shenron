@@ -3,7 +3,11 @@
  * Manuel curated depuis les 798 assets téléchargés (Toei + DB Official).
  * Aucun reverse-engineering, juste mapping section → asset disponible.
  */
-const API = "https://shenron.rpbey.fr";
+const API = (
+	process.env.NEXT_PUBLIC_SHENRON_API_URL ??
+	process.env.SHENRON_API_URL ??
+	"https://bot.rpbey.fr"
+).replace(/\/+$/, "");
 
 export const SERIES_BANNERS: Record<string, string> = {
 	DB: `${API}/db/toei/189-DB-DAIMA-HP-Header-1920x595.png`,

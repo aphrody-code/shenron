@@ -4,7 +4,7 @@
  */
 import { env } from "@/lib/env";
 
-const API = env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+const API = (env.SHENRON_API_URL ?? "https://bot.rpbey.fr").replace(/\/+$/, "");
 
 async function get<T>(path: string, revalidate = 3600): Promise<T | null> {
 	try {
@@ -166,8 +166,7 @@ export const dbUniverse = {
 		get<{ arc: Arc; episodes: Episode[] }>(
 			`/api/public/wiki/arcs/${encodeURIComponent(slug)}`,
 		),
-	episode: (id: number) =>
-		get<Episode>(`/api/public/wiki/episodes/${id}`),
+	episode: (id: number) => get<Episode>(`/api/public/wiki/episodes/${id}`),
 	episodes: (series?: string, limit = 50, offset = 0) =>
 		get<{ episodes: Episode[]; total: number }>(
 			`/api/public/wiki/episodes?${new URLSearchParams({
@@ -213,5 +212,8 @@ export const dbUniverse = {
 export function assetUrl(path: string | null | undefined): string {
 	if (!path) return "";
 	if (path.startsWith("http")) return path;
-	return `${API}${path.startsWith("/") ? "" : "/"}${path}`;
+	// Les chemins DB sont relatifs (`./assets/...`) → normaliser en `/assets/...`
+	// (sinon next/image fetch `${API}/./assets/...` côté serveur → 404).
+	const clean = path.replace(/^\.?\/*/, "");
+	return `${API}/${clean}`;
 }
