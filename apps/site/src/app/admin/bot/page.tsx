@@ -1,200 +1,262 @@
-import { botAdmin } from "@/lib/bot-admin";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { Bot as BotIcon, ChevronDown, Globe, Hash, Wifi } from "lucide-react";
+import { api } from "@/lib/admin-api";
+import { formatDuration } from "@/lib/admin-format";
+import { BotSelector, useBotId } from "@/components/admin/BotSelector";
 
-type CmdRow = {
+interface Command {
 	name: string;
 	description: string;
-	type?: number;
-	options?: Array<{
+	type: number;
+	guildId: string | null;
+	nsfw: boolean;
+	options: Array<{
 		name: string;
-		description?: string;
-		type?: number;
-		required?: boolean;
+		description: string;
+		type: number;
+		required: boolean;
+		choices?: Array<{ name: string; value: string | number }>;
 	}>;
-	default_member_permissions?: string | null;
-	nsfw?: boolean;
-};
+}
 
-type GuildRow = {
+interface Guild {
 	id: string;
 	name: string;
-	memberCount?: number;
-	joinedAt?: string;
+	memberCount: number;
+	iconUrl: string | null;
+	joinedAt: string | null;
+}
+
+interface BotInfo {
+	id: string;
+	name: string;
+	username: string | null;
+	avatar: string | null;
+	online: boolean;
+	uptime: number | null;
+	wsPing: number;
+	guilds: Guild[];
+	commandCount: number;
+}
+
+const TYPE_LABELS: Record<number, string> = {
+	1: "CHAT_INPUT",
+	2: "USER",
+	3: "MESSAGE",
 };
 
-export default async function AdminBotStatus() {
-	const [health, expanded, guilds] = await Promise.all([
-		botAdmin.health().catch(() => null),
-		botAdmin
-			.fetch<{ commands: CmdRow[]; count?: number }>(
-				"/api/bot/commands/expanded",
-				{
-					revalidate: 60,
-				},
-			)
-			.catch(() => ({ commands: [], count: 0 })),
-		botAdmin
-			.fetch<{ guilds: GuildRow[] }>("/api/bot/guilds", { revalidate: 60 })
-			.catch(() => ({ guilds: [] })),
-	]);
+const OPTION_TYPES: Record<number, string> = {
+	1: "SUB_COMMAND",
+	2: "SUB_COMMAND_GROUP",
+	3: "STRING",
+	4: "INTEGER",
+	5: "BOOLEAN",
+	6: "USER",
+	7: "CHANNEL",
+	8: "ROLE",
+	9: "MENTIONABLE",
+	10: "NUMBER",
+	11: "ATTACHMENT",
+};
 
-	const cmds = expanded.commands ?? [];
+export default function BotPage() {
+	const [botId, setBotId] = useBotId();
+
+	const info = useQuery({
+		queryKey: ["bot", botId, "info"],
+		queryFn: () => api.get<BotInfo>(`/bots/${botId}`),
+		staleTime: 10_000,
+	});
+	const cmds = useQuery({
+		queryKey: ["bot", botId, "commands"],
+		queryFn: () =>
+			api.get<{ commands: Command[]; count: number }>(
+				`/bots/${botId}/commands`,
+			),
+		staleTime: 30_000,
+	});
 
 	return (
-		<div className="w-full max-w-6xl mx-auto space-y-8">
-			<h1 className="text-4xl font-saiyan text-dbz-orange uppercase">
-				BOT · STATUT DÉTAILLÉ
-			</h1>
+		<div className="space-y-6">
+			<BotSelector value={botId} onChange={setBotId} />
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<div className="dbz-panel p-6">
-					<p className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest mb-2">
-						État
+			<div className="grid gap-4 lg:grid-cols-4">
+				<KPI title="État" icon={<Wifi className="h-4 w-4" />}>
+					{info.data?.online ? (
+						<>
+							<span className="badge badge-success">en ligne</span>
+							<p className="mt-2 text-xs text-zinc-400">
+								Ping {info.data.wsPing} ms · uptime{" "}
+								{info.data.uptime ? formatDuration(info.data.uptime) : "—"}
+							</p>
+						</>
+					) : (
+						<>
+							<span className="badge badge-error">hors ligne</span>
+							<p className="mt-2 text-xs text-zinc-400">Login désactivé.</p>
+						</>
+					)}
+				</KPI>
+				<KPI title="Commandes" icon={<BotIcon className="h-4 w-4" />}>
+					<p className="text-3xl font-bold text-brand-400">
+						{cmds.data?.count ?? "—"}
 					</p>
-					<div className="flex items-center gap-3">
-						<div
-							className={`w-4 h-4 ${health?.online ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
-						/>
-						<span className="text-2xl font-saiyan text-white">
-							{health?.online ? "OPÉRATIONNEL" : "HORS LIGNE"}
-						</span>
-					</div>
-				</div>
-				<div className="dbz-panel p-6">
-					<p className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest mb-2">
-						Uptime
+				</KPI>
+				<KPI title="Serveurs" icon={<Globe className="h-4 w-4" />}>
+					<p className="text-3xl font-bold text-brand-400">
+						{info.data?.guilds.length ?? "—"}
 					</p>
-					<p className="scouter-text text-2xl">
-						{health
-							? `${Math.floor(health.uptime / 3600)}h ${Math.floor((health.uptime % 3600) / 60)}m`
-							: "—"}
+				</KPI>
+				<KPI title="Total membres" icon={<Hash className="h-4 w-4" />}>
+					<p className="text-3xl font-bold text-brand-400">
+						{info.data?.guilds.reduce((s, g) => s + g.memberCount, 0) ?? "—"}
 					</p>
-				</div>
-				<div className="dbz-panel p-6">
-					<p className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest mb-2">
-						Version
-					</p>
-					<p className="scouter-text text-2xl">
-						{health?.version ? `v${health.version}` : "—"}
-					</p>
-				</div>
+				</KPI>
 			</div>
 
-			<section>
-				<h2 className="text-2xl font-saiyan text-cyan-300 mb-3">
-					🏛 Serveurs ({guilds.guilds.length})
-				</h2>
-				<div className="dbz-panel overflow-x-auto">
-					<table className="w-full min-w-[500px] text-xs">
-						<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
-							<tr>
-								<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-									Nom
-								</th>
-								<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-									ID
-								</th>
-								<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-									Membres
-								</th>
-								<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-									Joint
-								</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-dbz-border">
-							{guilds.guilds.map((g) => (
-								<tr key={g.id} className="hover:bg-dbz-blue-light/5">
-									<td className="p-2 text-white font-bold">{g.name}</td>
-									<td className="p-2 font-mono text-white/40">{g.id}</td>
-									<td className="p-2 text-right font-mono text-fuchsia-300">
-										{g.memberCount?.toLocaleString("fr-FR") ?? "—"}
-									</td>
-									<td className="p-2 text-right text-white/40">
-										{g.joinedAt
-											? new Date(g.joinedAt).toLocaleDateString("fr-FR")
-											: "—"}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			</section>
+			<div className="card">
+				<h2 className="mb-3 text-lg font-semibold">Serveurs Discord</h2>
+				{info.data?.guilds.length ? (
+					<div className="space-y-2">
+						{info.data.guilds.map((g) => (
+							<div
+								key={g.id}
+								className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
+							>
+								{g.iconUrl ? (
+									 
+									<img
+										src={g.iconUrl}
+										alt=""
+										className="h-10 w-10 rounded-full"
+									/>
+								) : (
+									<div className="h-10 w-10 rounded-full bg-zinc-800" />
+								)}
+								<div className="flex-1">
+									<p className="font-medium">{g.name}</p>
+									<p className="text-xs text-zinc-500">
+										{g.memberCount} membres · rejoint le{" "}
+										{g.joinedAt?.slice(0, 10) ?? "—"}
+									</p>
+								</div>
+								<code className="text-xs text-zinc-500">{g.id}</code>
+							</div>
+						))}
+					</div>
+				) : (
+					<p className="text-sm text-zinc-500">
+						{info.isLoading ? "Chargement…" : "Aucun serveur."}
+					</p>
+				)}
+			</div>
 
-			<section>
-				<h2 className="text-2xl font-saiyan text-fuchsia-300 mb-3">
-					⚡ Commandes ({cmds.length})
+			<div className="card">
+				<h2 className="mb-3 text-lg font-semibold">
+					Commandes slash ({cmds.data?.count ?? "—"})
 				</h2>
-				<div className="dbz-panel overflow-x-auto">
-					<table className="w-full min-w-[700px] text-xs">
-						<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
+				{cmds.data?.commands.length ? (
+					<div className="space-y-2">
+						{cmds.data.commands.map((c) => (
+							<CommandRow key={c.name} cmd={c} />
+						))}
+					</div>
+				) : (
+					<p className="text-sm text-zinc-500">
+						{cmds.isLoading
+							? "Chargement…"
+							: "Aucune commande slash registrée pour ce bot."}
+					</p>
+				)}
+			</div>
+		</div>
+	);
+}
+
+function KPI({
+	title,
+	icon,
+	children,
+}: {
+	title: string;
+	icon: React.ReactNode;
+	children: React.ReactNode;
+}) {
+	return (
+		<div className="card">
+			<div className="mb-2 flex items-center gap-2 text-zinc-400">
+				{icon}
+				<h3 className="text-sm font-medium">{title}</h3>
+			</div>
+			{children}
+		</div>
+	);
+}
+
+function CommandRow({ cmd }: { cmd: Command }) {
+	const [open, setOpen] = useState(false);
+	return (
+		<div className="rounded-lg border border-zinc-800 bg-zinc-950/40">
+			<button
+				type="button"
+				onClick={() => setOpen((o) => !o)}
+				className="flex w-full items-start gap-3 p-3 text-left transition-colors hover:bg-zinc-900/50"
+			>
+				<ChevronDown
+					className={`mt-0.5 h-4 w-4 shrink-0 transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
+				/>
+				<div className="flex-1">
+					<div className="flex items-center gap-2">
+						<code className="font-mono text-sm font-semibold text-brand-400">
+							/{cmd.name}
+						</code>
+						<span className="badge">
+							{TYPE_LABELS[cmd.type] ?? `type:${cmd.type}`}
+						</span>
+						{cmd.nsfw && <span className="badge badge-warning">NSFW</span>}
+						{cmd.options.length > 0 && (
+							<span className="badge">
+								{cmd.options.length} option{cmd.options.length > 1 ? "s" : ""}
+							</span>
+						)}
+					</div>
+					<p className="mt-0.5 text-xs text-zinc-400">{cmd.description}</p>
+				</div>
+			</button>
+
+			{open && cmd.options.length > 0 && (
+				<div className="border-t border-zinc-800 p-3">
+					<table className="w-full text-xs">
+						<thead className="text-zinc-500">
 							<tr>
-								<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-									Nom
-								</th>
-								<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-									Description
-								</th>
-								<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-									Options
-								</th>
-								<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-									NSFW
-								</th>
+								<th className="px-2 py-1 text-left">Nom</th>
+								<th className="px-2 py-1 text-left">Type</th>
+								<th className="px-2 py-1 text-left">Obligatoire</th>
+								<th className="px-2 py-1 text-left">Description</th>
+								<th className="px-2 py-1 text-left">Choix</th>
 							</tr>
 						</thead>
-						<tbody className="divide-y divide-dbz-border">
-							{cmds.map((c) => (
-								<tr key={c.name} className="hover:bg-dbz-blue-light/5">
-									<td className="p-2 font-mono text-dbz-orange">/{c.name}</td>
-									<td className="p-2 text-white/70 max-w-md truncate">
-										{c.description}
+						<tbody>
+							{cmd.options.map((o) => (
+								<tr key={o.name} className="border-t border-zinc-900">
+									<td className="px-2 py-1 font-mono">{o.name}</td>
+									<td className="px-2 py-1 text-zinc-400">
+										{OPTION_TYPES[o.type] ?? o.type}
 									</td>
-									<td className="p-2 text-[10px]">
-										{c.options && c.options.length > 0 ? (
-											<div className="flex flex-wrap gap-1">
-												{c.options.map((o) => (
-													<span
-														key={o.name}
-														className={`px-1.5 py-0.5 rounded font-mono ${
-															o.required
-																? "bg-fuchsia-500/20 text-fuchsia-200 border border-fuchsia-500/40"
-																: "bg-cyan-500/10 text-cyan-300 border border-cyan-500/30"
-														}`}
-														title={o.description}
-													>
-														{o.name}
-													</span>
-												))}
-											</div>
-										) : (
-											<span className="text-white/30">—</span>
-										)}
-									</td>
-									<td className="p-2 text-right">
-										{c.nsfw ? (
-											<span className="text-red-400 text-[10px] font-bold">
-												NSFW
-											</span>
-										) : (
-											<span className="text-white/30">—</span>
-										)}
+									<td className="px-2 py-1">{o.required ? "Oui" : "—"}</td>
+									<td className="px-2 py-1 text-zinc-400">{o.description}</td>
+									<td className="px-2 py-1 text-zinc-400">
+										{o.choices?.map((c) => c.name).join(", ") ?? "—"}
 									</td>
 								</tr>
 							))}
-							{cmds.length === 0 && (
-								<tr>
-									<td colSpan={4} className="p-8 text-center text-white/50">
-										Aucune commande
-									</td>
-								</tr>
-							)}
 						</tbody>
 					</table>
 				</div>
-			</section>
+			)}
 		</div>
 	);
 }

@@ -37,14 +37,10 @@ const notoJP = Noto_Sans_JP({
 	preload: false,
 });
 
-// SaiyanSans n'est plus chargée : le token `font-saiyan` est remappé sur Google
-// Sans Flex (globals.css) pour la lisibilité → aucun composant ne la rend.
-
-const dbScouter = localFont({
-	src: "../../public/fonts/DBSScouter.ttf",
-	variable: "--font-scouter",
-	display: "swap",
-});
+// SaiyanSans + DBSScouter ne sont plus chargées : les tokens `font-saiyan` et
+// `font-scouter` sont remappés sur Google Sans Flex (globals.css) pour la
+// lisibilité — DBSScouter rendait des glyphes aliens illisibles. Aucun
+// composant ne charge donc ces .ttf décoratifs.
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://shenron.rpbey.fr"),
@@ -92,7 +88,7 @@ export default function RootLayout({
 	return (
 		<html lang="fr" className="dark">
 			<body
-				className={`${sansFlex.variable} ${notoJP.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
+				className={`${sansFlex.variable} ${notoJP.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
 				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
 				<div className="scroll-progress" aria-hidden />

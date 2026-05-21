@@ -1,94 +1,158 @@
-import { botAdmin } from "@/lib/bot-admin";
-import { CloseTicketButton } from "./CloseButton";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	Lock,
+	Ticket as TicketIcon,
+	RefreshCw,
+	ExternalLink,
+} from "lucide-react";
+import { useState } from "react";
+import { api } from "@/lib/admin-api";
 
-export default async function AdminTicketsPage() {
-	const data = await botAdmin.tickets().catch(() => ({ tickets: [] }));
-	const open = data.tickets.filter((t) => !t.closed);
-	const closed = data.tickets.filter((t) => t.closed);
+interface TicketRow {
+	id: number;
+	channelId: string;
+	ownerId: string;
+	kind: "report" | "achat" | "shop" | "abus";
+	context: string | null;
+	closed: boolean;
+	closedAt: string | null;
+	closedBy: string | null;
+	createdAt: string;
+}
+
+const KIND_LABEL: Record<
+	TicketRow["kind"],
+	{ emoji: string; label: string; color: string }
+> = {
+	report: { emoji: "🚨", label: "Signaler", color: "text-red-400" },
+	achat: { emoji: "🛒", label: "Achat", color: "text-blue-400" },
+	shop: { emoji: "🏪", label: "Shop", color: "text-amber-400" },
+	abus: { emoji: "⚠️", label: "Abus de perm", color: "text-orange-400" },
+};
+
+export default function TicketsPage() {
+	const qc = useQueryClient();
+	const [filter, setFilter] = useState<"all" | "open" | "closed">("open");
+
+	const tickets = useQuery({
+		queryKey: ["tickets", filter],
+		queryFn: () =>
+			api.get<{ rows: TicketRow[]; total: number }>(
+				filter === "all"
+					? "/tickets"
+					: `/tickets?closed=${filter === "closed"}`,
+			),
+	});
+
+	const close = useMutation({
+		mutationFn: (channelId: string) => api.post(`/tickets/${channelId}/close`),
+		onSuccess: () => qc.invalidateQueries({ queryKey: ["tickets"] }),
+	});
+
 	return (
-		<div className="w-full max-w-5xl mx-auto space-y-8">
-			<header>
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">TICKETS</h1>
-				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-					{open.length} ouverts · {closed.length} fermés
-				</p>
-			</header>
-			{[
-				{ title: "Ouverts", list: open, c: "text-green-400 border-green-400" },
-				{ title: "Fermés", list: closed, c: "text-gray-500 border-dbz-border" },
-			].map((s) => (
-				<section key={s.title}>
-					<h2
-						className={`text-xl font-saiyan uppercase mb-3 border-b-2 pb-2 ${s.c}`}
+		<div className="space-y-4">
+			<div className="card">
+				<div className="flex items-center gap-2">
+					<TicketIcon className="h-5 w-5 text-brand-400" />
+					<h2 className="text-lg font-semibold">Tickets</h2>
+					<button
+						type="button"
+						onClick={() => qc.invalidateQueries({ queryKey: ["tickets"] })}
+						className="btn btn-ghost ml-auto px-2"
+						title="Rafraîchir"
 					>
-						{s.title} ({s.list.length})
-					</h2>
-					<div className="dbz-panel overflow-x-auto">
-						<table className="w-full min-w-[500px] text-xs">
-							<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
-								<tr>
-									<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-										#
-									</th>
-									<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-										Kind
-									</th>
-									<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-										Owner
-									</th>
-									<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-										Channel
-									</th>
-									<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-										Créé
-									</th>
-									<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-										Action
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-dbz-border">
-								{s.list.map((t) => (
-									<tr key={t.id} className="hover:bg-dbz-blue-light/5">
-										<td className="p-2 font-mono text-gray-500">#{t.id}</td>
-										<td className="p-2 font-saiyan text-dbz-yellow uppercase">
-											{t.kind}
-										</td>
-										<td className="p-2 font-mono text-dbz-orange">
-											{t.ownerId}
-										</td>
-										<td className="p-2 font-mono text-gray-300">
-											{t.channelId}
-										</td>
-										<td className="p-2 text-right text-gray-500">
+						<RefreshCw className="h-3 w-3" />
+					</button>
+				</div>
+				<div className="mt-3 flex gap-2">
+					{(["open", "closed", "all"] as const).map((f) => (
+						<button
+							key={f}
+							type="button"
+							onClick={() => setFilter(f)}
+							className={`btn ${filter === f ? "btn-primary" : "btn-ghost"}`}
+						>
+							{f === "open" ? "Ouverts" : f === "closed" ? "Fermés" : "Tous"}
+						</button>
+					))}
+					<span className="ml-auto text-xs text-zinc-500">
+						{tickets.data?.total ?? 0} ticket(s)
+					</span>
+				</div>
+			</div>
+
+			{tickets.isLoading && <div className="text-zinc-500">Chargement…</div>}
+			{tickets.data?.rows.length === 0 && (
+				<div className="card text-center text-zinc-500">Aucun ticket.</div>
+			)}
+
+			<div className="space-y-2">
+				{tickets.data?.rows.map((t) => {
+					const meta = KIND_LABEL[t.kind];
+					return (
+						<div key={t.id} className="card">
+							<div className="flex items-center gap-3">
+								<span className={`text-2xl ${meta.color}`}>{meta.emoji}</span>
+								<div className="min-w-0 flex-1">
+									<div className="flex items-center gap-2">
+										<span className="font-semibold">{meta.label}</span>
+										<span className="text-xs text-zinc-500">#{t.id}</span>
+										{t.closed ? (
+											<span className="badge badge-error">Fermé</span>
+										) : (
+											<span className="badge badge-success">Ouvert</span>
+										)}
+									</div>
+									<p className="mt-1 text-xs text-zinc-400">
+										Owner : <code>{t.ownerId}</code> · Créé{" "}
+										<time dateTime={t.createdAt}>
 											{new Date(t.createdAt).toLocaleString("fr-FR")}
-										</td>
-										<td className="p-2 text-right">
-											{t.closed ? (
-												<span className="text-white/30 text-[10px]">fermé</span>
-											) : (
-												<CloseTicketButton channelId={t.channelId} />
-											)}
-										</td>
-									</tr>
-								))}
-								{s.list.length === 0 && (
-									<tr>
-										<td
-											colSpan={6}
-											className="p-4 text-center text-gray-500 font-saiyan uppercase"
+										</time>
+										{t.closed && t.closedAt && (
+											<>
+												{" · "}Fermé{" "}
+												<time dateTime={t.closedAt}>
+													{new Date(t.closedAt).toLocaleString("fr-FR")}
+												</time>{" "}
+												par <code>{t.closedBy ?? "?"}</code>
+											</>
+										)}
+									</p>
+									{t.context && (
+										<p className="mt-2 line-clamp-3 whitespace-pre-wrap text-sm text-zinc-300">
+											{t.context}
+										</p>
+									)}
+								</div>
+								<div className="flex flex-col items-end gap-1">
+									<a
+										href={`discord://discord.com/channels/@me/${t.channelId}`}
+										target="_blank"
+										rel="noreferrer"
+										className="btn btn-ghost px-2"
+										title="Ouvrir dans Discord"
+									>
+										<ExternalLink className="h-3 w-3" />
+									</a>
+									{!t.closed && (
+										<button
+											type="button"
+											onClick={() => close.mutate(t.channelId)}
+											disabled={close.isPending}
+											className="btn btn-ghost px-2 text-red-400"
+											title="Fermer le ticket"
 										>
-											aucun
-										</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
-					</div>
-				</section>
-			))}
+											<Lock className="h-3 w-3" />
+										</button>
+									)}
+								</div>
+							</div>
+						</div>
+					);
+				})}
+			</div>
 		</div>
 	);
 }

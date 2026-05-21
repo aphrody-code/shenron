@@ -290,7 +290,7 @@ function CanvasPreview({
 				</h3>
 				<div className="flex items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
 					{paramsValid(def, params) ? (
-						// eslint-disable-next-line @next/next/no-img-element
+						 
 						<img
 							src={url}
 							alt={def.name}

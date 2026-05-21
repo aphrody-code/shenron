@@ -1,30 +1,35 @@
-import { botAdmin } from "@/lib/bot-admin";
-import Link from "next/link";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { api } from "@/lib/admin-api";
+import { formatRelative } from "@/lib/admin-format";
 
-type AuditLog = {
-	id?: number;
-	type?: string;
-	userId?: string;
-	moderatorId?: string;
-	target?: string;
-	action?: string;
+interface ActionLog {
+	id: number;
+	action: string;
+	userId: string | null;
+	moderatorId: string | null;
+	reason: string | null;
+	meta: string | null;
+	createdAt: number;
+}
+
+interface DiscordAuditEntry {
+	id: string;
+	user_id: string | null;
+	target_id: string | null;
+	action_type: number;
 	reason?: string;
-	createdAt?: number;
-	[k: string]: unknown;
-};
+	changes?: { key: string; old_value?: unknown; new_value?: unknown }[];
+}
 
-type DiscordEntry = {
-	id?: string;
-	action_type?: number;
-	user_id?: string;
-	target_id?: string;
-	reason?: string | null;
-	[k: string]: unknown;
-};
+interface DiscordAuditLog {
+	audit_log_entries: DiscordAuditEntry[];
+	users: { id: string; username: string; avatar: string | null }[];
+}
 
-const DISCORD_ACTION_TYPES: Record<number, string> = {
+const ACTION_TYPE_LABELS: Record<number, string> = {
 	1: "GUILD_UPDATE",
 	10: "CHANNEL_CREATE",
 	11: "CHANNEL_UPDATE",
@@ -35,205 +40,200 @@ const DISCORD_ACTION_TYPES: Record<number, string> = {
 	23: "MEMBER_BAN_REMOVE",
 	24: "MEMBER_UPDATE",
 	25: "MEMBER_ROLE_UPDATE",
-	28: "MEMBER_DISCONNECT",
+	26: "MEMBER_MOVE",
+	27: "MEMBER_DISCONNECT",
+	28: "BOT_ADD",
 	30: "ROLE_CREATE",
 	31: "ROLE_UPDATE",
 	32: "ROLE_DELETE",
+	40: "INVITE_CREATE",
+	42: "INVITE_DELETE",
 	72: "MESSAGE_DELETE",
+	73: "MESSAGE_BULK_DELETE",
+	74: "MESSAGE_PIN",
+	75: "MESSAGE_UNPIN",
+	83: "AUTO_MODERATION_RULE_CREATE",
 };
 
-export default async function AdminAuditPage({
-	searchParams,
-}: {
-	searchParams: Promise<{ source?: string; page?: string }>;
-}) {
-	const sp = await searchParams;
-	const source = sp.source === "discord" ? "discord" : "local";
-	const page = Math.max(0, Number(sp.page) || 0);
+export default function AuditPage() {
+	const [source, setSource] = useState<"local" | "discord">("local");
+	const [page, setPage] = useState(0);
 	const limit = 50;
+	const offset = page * limit;
 
-	let localLogs: AuditLog[] = [];
-	let discordLogs: DiscordEntry[] = [];
-	let total = 0;
+	const local = useQuery({
+		queryKey: ["audit", page],
+		queryFn: () =>
+			api.get<{ rows: ActionLog[]; total: number }>(
+				`/database/action_logs?limit=${limit}&offset=${offset}`,
+			),
+		enabled: source === "local",
+	});
 
-	if (source === "local") {
-		const data = await botAdmin
-			.auditLogs(limit, page * limit)
-			.catch(() => ({ logs: [], total: 0 }));
-		localLogs = (data.logs ?? []) as AuditLog[];
-		total = data.total ?? localLogs.length;
-	} else {
-		const data = await botAdmin
-			.auditDiscord(limit)
-			.catch(() => ({ audit_logs: [], entries: [] }));
-		discordLogs = (data.audit_logs ?? data.entries ?? []) as DiscordEntry[];
-		total = discordLogs.length;
-	}
+	const discord = useQuery({
+		queryKey: ["audit", "discord"],
+		queryFn: () => api.get<DiscordAuditLog>(`/discord/audit-logs?limit=100`),
+		enabled: source === "discord",
+	});
 
-	const totalPages = Math.max(1, Math.ceil(total / limit));
+	const data = local.data;
+	const isLoading = source === "local" ? local.isLoading : discord.isLoading;
+
+	if (isLoading)
+		return <div className="text-zinc-500">Chargement en cours…</div>;
 
 	return (
-		<div className="w-full max-w-6xl mx-auto">
-			<header className="mb-6 flex items-end justify-between flex-wrap gap-4">
-				<div>
-					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-						AUDIT LOGS
-					</h1>
-					<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-						{source === "local"
-							? "Action logs internes bot"
-							: "Audit Discord natif"}{" "}
-						· page {page + 1}/{totalPages} · {total} entrées
-					</p>
+		<div className="space-y-4">
+			<div className="card">
+				<div className="flex items-center justify-between gap-3">
+					<div>
+						<h2 className="text-lg font-semibold">Journal d&apos;audit</h2>
+						<p className="mt-1 text-sm text-zinc-400">
+							{source === "local"
+								? `${data?.total ?? 0} entrée${(data?.total ?? 0) > 1 ? "s" : ""} locales (action_logs SQLite, lecture seule).`
+								: `${discord.data?.audit_log_entries.length ?? 0} entrées Discord (live REST /audit-logs, lecture seule).`}
+						</p>
+					</div>
+					<div className="flex gap-2">
+						<button
+							type="button"
+							onClick={() => setSource("local")}
+							className={`btn ${source === "local" ? "btn-primary" : "btn-ghost"}`}
+						>
+							Local SQLite
+						</button>
+						<button
+							type="button"
+							onClick={() => setSource("discord")}
+							className={`btn ${source === "discord" ? "btn-primary" : "btn-ghost"}`}
+						>
+							Discord live
+						</button>
+					</div>
 				</div>
-				<div className="flex gap-2 text-xs">
-					<Link
-						href="?source=local"
-						className={`px-3 py-1.5 border rounded ${
-							source === "local"
-								? "border-fuchsia-400 bg-fuchsia-500/20 text-white"
-								: "border-dbz-border hover:border-fuchsia-400 text-white/60"
-						}`}
-					>
-						LOCAL
-					</Link>
-					<Link
-						href="?source=discord"
-						className={`px-3 py-1.5 border rounded ${
-							source === "discord"
-								? "border-cyan-400 bg-cyan-500/20 text-white"
-								: "border-dbz-border hover:border-cyan-400 text-white/60"
-						}`}
-					>
-						DISCORD
-					</Link>
-				</div>
-			</header>
-
-			<div className="dbz-panel overflow-x-auto mb-4">
-				{source === "local" ? (
-					<table className="w-full min-w-[700px] text-xs">
-						<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
-							<tr>
-								{[
-									"Type",
-									"Action",
-									"Cible",
-									"Modérateur",
-									"Raison",
-									"Date",
-								].map((h, i) => (
-									<th
-										key={h}
-										className={`p-2 ${i === 5 ? "text-right" : "text-left"} font-bold uppercase tracking-widest text-dbz-blue-light`}
-									>
-										{h}
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-dbz-border">
-							{localLogs.map((l, i) => (
-								<tr key={l.id ?? i} className="hover:bg-dbz-blue-light/5">
-									<td className="p-2 font-mono text-dbz-yellow">
-										{l.type ?? "—"}
-									</td>
-									<td className="p-2 font-mono text-fuchsia-300">
-										{l.action ?? "—"}
-									</td>
-									<td className="p-2 font-mono text-gray-300">
-										{l.target ?? l.userId ?? "—"}
-									</td>
-									<td className="p-2 font-mono text-gray-300">
-										{l.moderatorId ?? "—"}
-									</td>
-									<td className="p-2 text-gray-400 max-w-xs truncate">
-										{l.reason ?? "—"}
-									</td>
-									<td className="p-2 text-right font-mono text-white/40">
-										{l.createdAt
-											? new Date(l.createdAt).toLocaleString("fr-FR")
-											: "—"}
-									</td>
-								</tr>
-							))}
-							{localLogs.length === 0 && (
-								<tr>
-									<td colSpan={6} className="p-8 text-center text-white/50">
-										Aucun log
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				) : (
-					<table className="w-full min-w-[700px] text-xs">
-						<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
-							<tr>
-								{["Action", "User", "Target", "Reason"].map((h) => (
-									<th
-										key={h}
-										className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light"
-									>
-										{h}
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-dbz-border">
-							{discordLogs.map((l, i) => (
-								<tr key={l.id ?? i} className="hover:bg-dbz-blue-light/5">
-									<td className="p-2 font-mono text-cyan-300">
-										{l.action_type !== undefined
-											? (DISCORD_ACTION_TYPES[l.action_type] ??
-												`TYPE_${l.action_type}`)
-											: "—"}
-									</td>
-									<td className="p-2 font-mono text-gray-300">
-										{l.user_id ?? "—"}
-									</td>
-									<td className="p-2 font-mono text-gray-300">
-										{l.target_id ?? "—"}
-									</td>
-									<td className="p-2 text-gray-400 max-w-md truncate">
-										{l.reason ?? "—"}
-									</td>
-								</tr>
-							))}
-							{discordLogs.length === 0 && (
-								<tr>
-									<td colSpan={4} className="p-8 text-center text-white/50">
-										Aucun audit Discord
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				)}
 			</div>
 
-			{source === "local" && totalPages > 1 && (
-				<div className="flex items-center justify-center gap-2 text-xs">
-					{page > 0 && (
-						<Link
-							href={`?source=local&page=${page - 1}`}
-							className="dbz-button-ghost !text-[10px] !py-1 !px-3"
-						>
-							← Préc
-						</Link>
-					)}
-					<span className="text-white/50">
-						{page + 1} / {totalPages}
-					</span>
-					{page < totalPages - 1 && (
-						<Link
-							href={`?source=local&page=${page + 1}`}
-							className="dbz-button-ghost !text-[10px] !py-1 !px-3"
-						>
-							Suiv →
-						</Link>
-					)}
+			{source === "discord" && discord.data && (
+				<div className="card overflow-x-auto p-0">
+					<table className="w-full text-sm">
+						<thead className="border-b border-zinc-800 bg-zinc-900/40 text-xs uppercase tracking-wide text-zinc-400">
+							<tr>
+								<th className="px-3 py-2 text-left">Action</th>
+								<th className="px-3 py-2 text-left">Auteur</th>
+								<th className="px-3 py-2 text-left">Cible</th>
+								<th className="px-3 py-2 text-left">Motif</th>
+								<th className="px-3 py-2 text-left">Changements</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-zinc-800 font-mono text-xs">
+							{discord.data.audit_log_entries.map((e) => {
+								const author = discord.data!.users.find(
+									(u) => u.id === e.user_id,
+								);
+								return (
+									<tr key={e.id} className="hover:bg-zinc-900/30">
+										<td className="px-3 py-2">
+											<span className="badge">
+												{ACTION_TYPE_LABELS[e.action_type] ??
+													`type:${e.action_type}`}
+											</span>
+										</td>
+										<td className="px-3 py-2">
+											{author?.username ?? e.user_id ?? "—"}
+										</td>
+										<td className="px-3 py-2 text-zinc-400">
+											{e.target_id ?? "—"}
+										</td>
+										<td className="px-3 py-2 text-zinc-400">
+											{e.reason ?? "—"}
+										</td>
+										<td className="px-3 py-2 text-zinc-500">
+											{e.changes?.map((c) => c.key).join(", ") ?? "—"}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
 				</div>
+			)}
+
+			{source === "discord" &&
+				(discord.error || !discord.data) &&
+				!discord.isLoading && (
+					<div className="card text-sm text-red-400">
+						{discord.error
+							? `Erreur Discord : ${(discord.error as Error).message}`
+							: "Permission VIEW_AUDIT_LOG manquante sur le bot."}
+					</div>
+				)}
+
+			{source === "local" && (
+				<>
+					<div className="card overflow-x-auto p-0">
+						<table className="w-full text-sm">
+							<thead className="border-b border-zinc-800 bg-zinc-900/40 text-xs uppercase tracking-wide text-zinc-400">
+								<tr>
+									<th className="px-3 py-2 text-left">Date</th>
+									<th className="px-3 py-2 text-left">Action</th>
+									<th className="px-3 py-2 text-left">Utilisateur</th>
+									<th className="px-3 py-2 text-left">Modérateur</th>
+									<th className="px-3 py-2 text-left">Motif</th>
+									<th className="px-3 py-2 text-left">Métadonnées</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-zinc-800 font-mono text-xs">
+								{data?.rows.map((r) => (
+									<tr key={r.id} className="hover:bg-zinc-900/30">
+										<td
+											className="px-3 py-2 text-zinc-400"
+											title={new Date(r.createdAt).toLocaleString()}
+										>
+											{formatRelative(r.createdAt)}
+										</td>
+										<td className="px-3 py-2">
+											<span className="badge">{r.action}</span>
+										</td>
+										<td className="px-3 py-2">{r.userId ?? "—"}</td>
+										<td className="px-3 py-2">{r.moderatorId ?? "—"}</td>
+										<td className="px-3 py-2 text-zinc-400">
+											{r.reason ?? "—"}
+										</td>
+										<td
+											className="max-w-xs truncate px-3 py-2 text-zinc-500"
+											title={r.meta ?? ""}
+										>
+											{r.meta ?? "—"}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+
+					<div className="flex justify-between">
+						<button
+							type="button"
+							onClick={() => setPage((p) => Math.max(0, p - 1))}
+							disabled={page === 0}
+							className="btn btn-ghost"
+						>
+							Page précédente
+						</button>
+						<span className="text-sm text-zinc-400">
+							Page {page + 1} sur{" "}
+							{Math.max(1, Math.ceil((data?.total ?? 0) / limit))}
+						</span>
+						<button
+							type="button"
+							onClick={() => setPage((p) => p + 1)}
+							disabled={offset + limit >= (data?.total ?? 0)}
+							className="btn btn-ghost"
+						>
+							Page suivante
+						</button>
+					</div>
+				</>
 			)}
 		</div>
 	);

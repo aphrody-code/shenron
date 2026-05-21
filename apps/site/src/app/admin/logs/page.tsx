@@ -1,51 +1,102 @@
-import { botAdmin } from "@/lib/bot-admin";
-import { LogsAutoRefresh } from "./LogsAutoRefresh";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useQuery } from "@tanstack/react-query";
+import { Terminal, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { api } from "@/lib/admin-api";
 
-export default async function AdminLogsPage({
-	searchParams,
-}: {
-	searchParams: Promise<{ lines?: string }>;
-}) {
-	const sp = await searchParams;
-	const lines = Math.min(500, Math.max(10, Number(sp.lines) || 100));
-	const data = await botAdmin
-		.healthLogs(lines)
-		.catch(() => ({ logs: [], count: 0 }));
+interface LogEntry {
+	time?: string;
+	host?: string;
+	unit?: string;
+	message?: string;
+	raw?: string;
+}
+
+export default function LogsPage() {
+	const [lines, setLines] = useState(100);
+	const { data, isLoading, refetch, isFetching } = useQuery({
+		queryKey: ["logs", lines],
+		queryFn: () =>
+			api.get<{ logs: LogEntry[]; count: number }>(
+				`/health/logs?lines=${lines}`,
+			),
+		refetchInterval: 10_000,
+	});
 
 	return (
-		<div className="w-full max-w-6xl mx-auto">
-			<header className="mb-6 flex items-end justify-between gap-4 flex-wrap">
-				<div>
-					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-						JOURNALCTL · SHENRON
-					</h1>
-					<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-						{data.count} lignes · service systemd · refresh auto 10s
-					</p>
+		<div className="space-y-4">
+			<div className="card">
+				<div className="flex items-center gap-2">
+					<Terminal className="h-5 w-5 text-brand-400" />
+					<h2 className="text-lg font-semibold">Journaux du service</h2>
 				</div>
-				<form className="flex items-center gap-2 text-xs">
-					<label className="font-scouter tracking-widest text-white/60">
-						LIGNES
-					</label>
-					{[50, 100, 200, 500].map((n) => (
-						<a
-							key={n}
-							href={`?lines=${n}`}
-							className={`px-3 py-1.5 border rounded ${
-								n === lines
-									? "border-fuchsia-400 bg-fuchsia-500/20 text-white"
-									: "border-dbz-border hover:border-fuchsia-400 text-white/60"
-							}`}
-						>
-							{n}
-						</a>
-					))}
-				</form>
-			</header>
+				<p className="mt-1 text-sm text-zinc-400">
+					Sortie de <code>journalctl -u shenron</code> en temps réel.
+					Actualisation automatique toutes les 10 secondes.
+				</p>
+			</div>
 
-			<LogsAutoRefresh initial={data.logs} lines={lines} />
+			<div className="card flex items-center gap-3">
+				<label className="text-sm text-zinc-400">Lignes affichées</label>
+				<select
+					className="input w-32"
+					value={lines}
+					onChange={(e) => setLines(Number(e.target.value))}
+				>
+					{[50, 100, 200, 500].map((n) => (
+						<option key={n} value={n}>
+							{n}
+						</option>
+					))}
+				</select>
+				<button
+					type="button"
+					onClick={() => refetch()}
+					disabled={isFetching}
+					className="btn btn-ghost ml-auto"
+				>
+					<RefreshCw
+						className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`}
+					/>
+					Actualiser
+				</button>
+			</div>
+
+			{isLoading ? (
+				<div className="text-zinc-500">Chargement en cours…</div>
+			) : (
+				<div className="card overflow-x-auto bg-zinc-950 p-3 font-mono text-xs">
+					{data?.logs.map((log, i) => (
+						<div key={i} className="whitespace-pre-wrap py-0.5">
+							{log.raw ? (
+								<span className="text-zinc-300">{log.raw}</span>
+							) : (
+								<>
+									<span className="text-zinc-500">{log.time}</span>
+									{" — "}
+									<span className={colorize(log.message ?? "")}>
+										{log.message}
+									</span>
+								</>
+							)}
+						</div>
+					))}
+					{data?.logs.length === 0 && (
+						<p className="italic text-zinc-500">
+							Aucun journal pour l&apos;instant.
+						</p>
+					)}
+				</div>
+			)}
 		</div>
 	);
+}
+
+function colorize(message: string): string {
+	if (/\bERROR\b|\berror\b|\bFAIL\b|\bfail\b/.test(message))
+		return "text-red-400";
+	if (/\bWARN\b|\bwarn\b/.test(message)) return "text-amber-400";
+	if (/\bINFO\b|\binfo\b|✓/.test(message)) return "text-green-400";
+	return "text-zinc-300";
 }

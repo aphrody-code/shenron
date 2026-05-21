@@ -15,7 +15,10 @@
      deviennent lisibles sans toucher chaque composant (SaiyanSans n'est plus
      chargée — cf. layout.tsx). */
   --font-saiyan: var(--font-sans);
-  --font-scouter: var(--font-scouter);
+  /* `font-scouter` remappé sur Google Sans Flex : DBSScouter rend des glyphes
+     « scouter » aliens illisibles (labels HUD, eyebrows, sidebar admin). Le
+     rendu lisible est piloté par le tracking large + uppercase, pas la police. */
+  --font-scouter: var(--font-sans);
 
   /* === Palette fusion design.google × Xenoverse 2 ===
         Couches éditoriales sobres (Google) + accents énergie DBZ (Bandai).
@@ -47,6 +50,19 @@
   --color-accent-foreground: #04050f;
   --color-border: var(--color-dbz-border);
   --color-ring: var(--color-dbz-orange);
+
+  /* Tokens dashboard admin — portés du dashboard interne du bot (brand orange,
+     saiyan jaune, namek vert, power rouge) pour permettre le portage verbatim
+     des pages tout en restant cohérent avec la palette du site. */
+  --color-brand-50: #fff3e0;
+  --color-brand-100: #ffedd5;
+  --color-brand-300: #ffb27a;
+  --color-brand-400: #ff7300;
+  --color-brand-500: #e55a00;
+  --color-brand-600: #c24100;
+  --color-saiyan: #ffea00;
+  --color-namek: #16a34a;
+  --color-power: #dc2626;
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -84,6 +100,46 @@
   ::selection {
     background: rgba(255, 107, 26, 0.4);
     color: #fff;
+  }
+}
+
+@layer components {
+  /* === Primitives dashboard admin (card / btn / input / badge) ===
+     Mêmes noms de classes que le dashboard interne du bot
+     (apps/bot/src/dashboard/styles.css) → portage quasi-verbatim des pages,
+     mais stylées sur la palette DBZ du site (orange/or, surfaces chaudes). */
+  .card {
+    @apply bg-dbz-card/80 border border-dbz-border rounded-xl p-5 backdrop-blur-sm;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-dbz-orange text-black hover:bg-dbz-orange-dark;
+  }
+  .btn-ghost {
+    @apply border border-dbz-border text-white/80 hover:border-dbz-orange/60 hover:text-white hover:bg-dbz-orange/10;
+  }
+  .btn-danger {
+    @apply bg-dbz-red text-white hover:brightness-110;
+  }
+  .input {
+    @apply w-full rounded-md border border-dbz-border bg-dbz-bg/70 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-dbz-orange focus:outline-none;
+  }
+  select.input {
+    @apply appearance-none;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest;
+  }
+  .badge-success {
+    @apply border-green-500/50 bg-green-500/15 text-green-300;
+  }
+  .badge-error {
+    @apply border-red-500/50 bg-red-500/15 text-red-300;
+  }
+  .badge-warning {
+    @apply border-dbz-yellow/50 bg-dbz-yellow/15 text-dbz-yellow;
   }
 }
 

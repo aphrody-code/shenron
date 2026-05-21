@@ -318,18 +318,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 }
 
 function ResolvedChannel({ channelKey }: { channelKey: string }) {
-	if (VIRTUAL_CHANNEL_KEYS.has(channelKey)) {
-		const label =
-			CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
-		return (
-			<p className="mt-1 text-xs text-cyan-400">
-				🔗 Cible contextuelle : <strong>{label}</strong>{" "}
-				<span className="text-zinc-500">
-					— résolu côté bot par le call-site (pas via /settings).
-				</span>
-			</p>
-		);
-	}
+	// Hooks appelés inconditionnellement AVANT tout return anticipé (rules-of-hooks).
 	const settings = useQuery({
 		queryKey: ["settings", "all"],
 		queryFn: () =>
@@ -346,6 +335,18 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 			),
 		staleTime: 30_000,
 	});
+	if (VIRTUAL_CHANNEL_KEYS.has(channelKey)) {
+		const label =
+			CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
+		return (
+			<p className="mt-1 text-xs text-cyan-400">
+				🔗 Cible contextuelle : <strong>{label}</strong>{" "}
+				<span className="text-zinc-500">
+					— résolu côté bot par le call-site (pas via /settings).
+				</span>
+			</p>
+		);
+	}
 	const value = (
 		settings.data as { rows?: { key: string; value: string }[] }
 	)?.rows?.find((s) => s.key === channelKey)?.value;

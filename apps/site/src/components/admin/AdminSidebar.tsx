@@ -37,6 +37,8 @@ const ADMIN_LINKS: AdminLink[] = [
 	{ href: "/admin/services", label: "SERVICES", kanji: "機", section: "ops" },
 	{ href: "/admin/live", label: "LIVE", kanji: "生", section: "ops" },
 	{ href: "/admin/logs", label: "LOGS", kanji: "誌", section: "ops" },
+	{ href: "/admin/stats", label: "STATS", kanji: "統", section: "ops" },
+	{ href: "/admin/commands", label: "COMMANDS", kanji: "令", section: "ops" },
 	{ href: "/admin/triggers", label: "TRIGGERS", kanji: "動", section: "ops" },
 	{ href: "/admin/webhooks", label: "WEBHOOKS", kanji: "鎖", section: "ops" },
 
@@ -83,6 +85,7 @@ const ADMIN_LINKS: AdminLink[] = [
 
 	// SOCIAL
 	{ href: "/admin/discord", label: "DISCORD", kanji: "話", section: "social" },
+	{ href: "/admin/profile", label: "PROFILE", kanji: "民", section: "social" },
 	{ href: "/admin/canvas", label: "CANVAS", kanji: "絵", section: "social" },
 	{
 		href: "/admin/canvas/themes",
@@ -114,6 +117,12 @@ const ADMIN_LINKS: AdminLink[] = [
 	// MOD
 	{ href: "/admin/moderation", label: "MOD", kanji: "制", section: "mod" },
 	{ href: "/admin/audit", label: "AUDIT", kanji: "査", section: "mod" },
+	{
+		href: "/admin/audit-internal",
+		label: "AUDIT INT",
+		kanji: "帳",
+		section: "mod",
+	},
 	{ href: "/admin/hierarchy", label: "HIERARCHY", kanji: "位", section: "mod" },
 	{ href: "/admin/command-perms", label: "PERMS", kanji: "権", section: "mod" },
 

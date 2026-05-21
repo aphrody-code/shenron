@@ -84,7 +84,7 @@ export default async function LeaderboardsPage({
 								<td className="p-2">
 									<div className="flex items-center gap-2">
 										{e.avatarUrl && (
-											// eslint-disable-next-line @next/next/no-img-element
+											 
 											<img
 												src={e.avatarUrl}
 												alt=""

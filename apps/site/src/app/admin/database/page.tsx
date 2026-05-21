@@ -1,30 +1,71 @@
-import { botAdmin } from "@/lib/bot-admin";
-import Link from "next/link";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useQuery } from "@tanstack/react-query";
+import { Database as DbIcon, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/admin-api";
 
-export default async function AdminDatabase() {
-	const { tables } = await botAdmin.tables().catch(() => ({ tables: [] }));
+interface TableSpec {
+	name: string;
+	pk: string;
+	readonly: boolean;
+	mutableColumns: string[];
+	description: string | null;
+}
+
+export default function DatabasePage() {
+	const router = useRouter();
+	const { data, isLoading } = useQuery({
+		queryKey: ["db", "tables"],
+		queryFn: () => api.get<{ tables: TableSpec[] }>("/database/tables"),
+	});
+
+	if (isLoading)
+		return <div className="text-zinc-500">Chargement en cours…</div>;
 
 	return (
-		<div className="w-full max-w-6xl mx-auto">
-			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">DATABASE</h1>
-
-			<div className="dbz-panel p-6">
-				<p className="text-xs uppercase text-dbz-blue-light tracking-widest mb-4">
-					{tables.length} tables · SQLite WAL · drizzle ORM
+		<div className="space-y-4">
+			<div className="card">
+				<h2 className="text-lg font-semibold">Tables de la base</h2>
+				<p className="mt-1 text-sm text-zinc-400">
+					16 tables exposées avec liste blanche <code>mutableColumns</code> par
+					sécurité.
 				</p>
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-					{tables.map((t) => (
-						<Link
-							key={t}
-							href={`/admin/database/${t}`}
-							className="dbz-button text-center !text-sm !py-2"
-						>
-							{t}
-						</Link>
-					))}
-				</div>
+			</div>
+
+			<div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+				{data?.tables.map((t) => (
+					<button
+						key={t.name}
+						type="button"
+						onClick={() => router.push(`/admin/database/${t.name}`)}
+						className="card cursor-pointer text-left transition-colors hover:border-brand-500/50 hover:bg-zinc-900/60"
+					>
+						<div className="mb-2 flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<DbIcon className="h-4 w-4 text-brand-400" />
+								<code className="font-mono text-sm font-semibold">
+									{t.name}
+								</code>
+							</div>
+							{t.readonly && <Lock className="h-3 w-3 text-zinc-500" />}
+						</div>
+						{t.description && (
+							<p className="text-xs text-zinc-400">{t.description}</p>
+						)}
+						<div className="mt-3 flex gap-2 text-xs">
+							<span className="badge">Clé : {t.pk}</span>
+							{!t.readonly && (
+								<span className="badge badge-success">
+									{t.mutableColumns.length} colonne
+									{t.mutableColumns.length > 1 ? "s" : ""} modifiable
+									{t.mutableColumns.length > 1 ? "s" : ""}
+								</span>
+							)}
+							{t.readonly && <span className="badge">lecture seule</span>}
+						</div>
+					</button>
+				))}
 			</div>
 		</div>
 	);
