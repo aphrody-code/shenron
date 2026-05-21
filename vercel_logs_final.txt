@@ -1,8 +1,0 @@
-Retrieving project…
-Resolving deployment "dpl_8Tzp4GiiC1pNA1BKxRoQtmiKnsFC"
-Streaming logs for deployment dpl_8Tzp4GiiC1pNA1BKxRoQtmiKnsFC starting from 02:15:02.04
-
-waiting for new logs...
-(node:214530) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
-(Use `node --trace-warnings ...` to show where the warning was created)
-Error: An unexpected error occurred in logs: FetchError: request to https://api.vercel.com/v1/projects/prj_wxLn9COQIo9HAOUVis08ppKXx7zI/deployments/dpl_8Tzp4GiiC1pNA1BKxRoQtmiKnsFC/runtime-logs?format=lines&teamId=team_guWQJZI4ZmSLj2K3RWuU4VqM failed, reason: read ETIMEDOUT

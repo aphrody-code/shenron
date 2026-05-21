@@ -47,15 +47,17 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 
 ```
 apps/
-  bot/    → @shenron/bot  — Bun + discordx + drizzle + bun:sqlite + canvas (6 personas en 1 process)
-  site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel)
+  bot/    → @shenron/bot  — Bun + discordx + drizzle + bun:sqlite + canvas (6 personas en 1 process) + dashboard admin React SPA (src/dashboard/, TanStack Router + Query)
+  site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel) ; Pixi.js (@pixi/react, ex. KiCanvas) pour le rendu canvas, shadcn (components/ui) pour l'UI. Pas d'API métier propre : les route handlers proxifient l'API REST du bot (cf. piège proxy plus bas)
 packages/
-  di/          → wrapper tsyringe
-  discordx/    → wrapper fork @rpbey/discordy
-  importer/    → loader entries statiques
-  internal/    → utils partagés
-  pagination/  → helpers pagination Discord
+  di/          → @rpbey/di — wrapper tsyringe
+  discordy/    → @rpbey/discordy — wrapper fork discordx (multi-client injection)
+  importer/    → @rpbey/importer — loader entries statiques
+  internal/    → @rpbey/internal — utils partagés
+  pagination/  → @rpbey/pagination — helpers pagination Discord
 ```
+
+Le dossier physique est `packages/discordy/` (et non `discordx/`).
 
 Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `@rpbey/*` côté ancien monorepo VPS, maintenant inlinés.
 
@@ -108,6 +110,7 @@ Définitions dans `~/vps/infra/systemd/shenron*.{service,timer}`. Scripts dans `
 - **`bunfig.toml`** : registre forcé sur npmjs (`@rpbey` scope). Si on rebascule sur GitHub Packages, prévoir `NPM_TOKEN`.
 - **Intent ↔ event mismatch silent** : retirer un intent (ex. `GuildMembers` sur kaio) ne casse rien au boot, mais `message.member` devient `null` et tous les handlers qui en dépendent (`handleLevelUp`, rôles auto, etc.) deviennent silencieusement no-op. Avant tout edit de `apps/bot/src/lib/personas.ts`, lancer le subagent `intent-auditor` (`.claude/agents/intent-auditor.md`). Cause racine du bug rôles level / Saiyan post-migration monorepo.
 - **Vercel deploy depuis root uniquement** : `vercel deploy --prod --yes` doit être lancé depuis `/home/ubuntu/shenron/` (jamais depuis `apps/site/`). Le projet `dbfr` a `rootDirectory: apps/site` côté Vercel UI ; deploy depuis `apps/site/` produit un path invalide `apps/site/apps/site`. Pareil pour `git push` (toujours depuis root). Skill dédiée : `deploy-shenron-prod`.
+- **Site = proxy de l'API bot** : le site n'a pas d'API métier propre. Les route handlers `apps/site/src/app/api/bot-admin/[...path]/route.ts` et `bot-user/[...path]/route.ts` proxifient l'API REST du bot (`SHENRON_API_URL`) côté server, en gardant `SHENRON_ADMIN_TOKEN` server-only (jamais leak au browser). `@trpc/*` figure dans les deps mais **n'est pas câblé** — ne pas l'utiliser comme référence d'archi.
 
 ## Backups & recovery
 
@@ -137,13 +140,19 @@ bun bot:dev          # bot en watch
 bun site:dev         # site Next dev server
 
 # Build / qualité
-bun build            # turbo build all
-bun lint             # oxlint + eslint
-bun run type-check   # tsc all
+bun build            # turbo build all (site: next build --turbopack ; bot: dashboard:css puis bun build)
+bun lint             # oxlint + eslint (turbo)
+bun run type-check   # tsc all (turbo)
+
+# Tests (bot uniquement — site n'a pas de tests)
+bun --filter @shenron/bot test                  # tous les tests (apps/bot/tests/)
+bun test apps/bot/tests/wiki.test.ts            # un seul fichier de test (depuis le root)
 
 # Bot — utilitaires
 bun --filter @shenron/bot run gen:entries  # regen _entries.ts
 bun --filter @shenron/bot run db:migrate   # drizzle migrations
+bun --filter @shenron/bot run db:seed-all  # seed wiki + triggers + levels + media + techniques + games + manga
+bun --filter @shenron/bot run dashboard:css # recompile le CSS Tailwind du dashboard admin (requis avant build)
 
 # Prod (VPS)
 sudo systemctl restart shenron
