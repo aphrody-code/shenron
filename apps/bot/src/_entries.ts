@@ -31,5 +31,6 @@ import "./events/JailExpiry";
 import "./events/JoinLeave";
 import "./events/MessageLog";
 import "./events/MessageXP";
+import "./events/NewsScan";
 import "./events/VoiceXP";
 import "./events/ready";
