@@ -367,25 +367,25 @@ export class CardService {
     if (input.title) {
       textWithShadow(ctx, input.title, TXT_X, 72, {
         color: "#cbd5e1",
-        font: "italic 18px 'Inter SemiBold', Inter, sans-serif",
+        font: "italic 600 18px 'Google Sans Flex', sans-serif",
         shadow: theme.textShadow,
         blur: 4,
       });
     }
 
-    // Pseudo en Saiyan Sans (style logo DBZ)
+    // Pseudo en Google Sans Flex (800, lisible)
     const displayName = name.toUpperCase();
     textStroked(ctx, displayName, TXT_X, 120, {
       color: userColor,
       stroke: "rgba(0,0,0,0.8)",
       strokeWidth: 7,
-      font: "48px 'Saiyan Sans', 'Inter Display Black', sans-serif",
+      font: "800 48px 'Google Sans Flex', sans-serif",
     });
 
     // Badge : pastille ronde à côté du pseudo
     if (input.badge) {
       ctx.save();
-      ctx.font = "48px 'Saiyan Sans', 'Inter Display Black', sans-serif";
+      ctx.font = "800 48px 'Google Sans Flex', sans-serif";
       const nameWidth = ctx.measureText(displayName).width;
       const BADGE_CX = TXT_X + nameWidth + 40;
       const BADGE_CY = 108;
@@ -402,7 +402,7 @@ export class CardService {
       ctx.lineWidth = 2;
       ctx.stroke();
       // Contenu du badge : emoji couleur (Noto) ou texte court
-      ctx.font = "30px 'Noto Color Emoji', 'Inter Bold', sans-serif";
+      ctx.font = "30px 'Noto Color Emoji', 'Google Sans Flex', sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#1f2937";
@@ -426,7 +426,7 @@ export class CardService {
     ctx.restore();
     textWithShadow(ctx, levelLabel, TXT_X + levelW / 2, STATS_Y, {
       color: theme.accent,
-      font: "28px 'Teko Bold', Impact, sans-serif",
+      font: "700 28px 'Google Sans Flex', sans-serif",
       align: "center",
       shadow: theme.textShadow,
       blur: 3,
@@ -436,7 +436,7 @@ export class CardService {
     const zeniX = TXT_X + levelW + 14;
     const zeniLabel = `${formatXP(input.zeni)} Z`;
     ctx.save();
-    ctx.font = "28px 'Teko Bold', Impact, sans-serif";
+    ctx.font = "700 28px 'Google Sans Flex', sans-serif";
     const zeniW = Math.max(130, ctx.measureText(zeniLabel).width + 30);
     roundRectPath(ctx, zeniX, STATS_Y - levelH + 6, zeniW, levelH, 10);
     ctx.fillStyle = "rgba(251, 191, 36, 0.2)";
@@ -447,7 +447,7 @@ export class CardService {
     ctx.restore();
     textWithShadow(ctx, zeniLabel, zeniX + zeniW / 2, STATS_Y, {
       color: "#fde047",
-      font: "28px 'Teko Bold', Impact, sans-serif",
+      font: "700 28px 'Google Sans Flex', sans-serif",
       align: "center",
       shadow: "rgba(0,0,0,0.7)",
       blur: 3,
@@ -457,7 +457,7 @@ export class CardService {
     if (input.rank) {
       textWithShadow(ctx, `#${input.rank}`, width - PAD - 30, 90, {
         color: "#f1f5f9",
-        font: "48px 'Teko Bold', Impact, sans-serif",
+        font: "700 48px 'Google Sans Flex', sans-serif",
         align: "right",
         shadow: "rgba(0,0,0,0.7)",
         blur: 4,
@@ -466,7 +466,7 @@ export class CardService {
       ctx.letterSpacing = "3px";
       textWithShadow(ctx, "RANG", width - PAD - 30, 115, {
         color: "#94a3b8",
-        font: "14px 'Inter SemiBold', sans-serif",
+        font: "600 14px 'Google Sans Flex', sans-serif",
         align: "right",
       });
       ctx.restore();
@@ -486,7 +486,7 @@ export class CardService {
       ctx.restore();
       textWithShadow(ctx, "💞 FUSIONNÉ", fusedX + fusedW / 2, STATS_Y, {
         color: "#f9a8d4",
-        font: "22px 'Teko Bold', Impact, sans-serif",
+        font: "700 22px 'Google Sans Flex', sans-serif",
         align: "center",
         shadow: "rgba(80,7,36,0.8)",
         blur: 3,
@@ -568,12 +568,12 @@ export class CardService {
     ctx.letterSpacing = "2px";
     textWithShadow(ctx, "UNITÉS", BAR_X, BAR_Y - 12, {
       color: "#94a3b8",
-      font: "12px 'Inter Bold', sans-serif",
+      font: "700 12px 'Google Sans Flex', sans-serif",
     });
     ctx.restore();
     textWithShadow(ctx, `${xpCurrent} / ${xpMax}`, BAR_X + BAR_W, BAR_Y - 10, {
       color: "#f1f5f9",
-      font: "18px 'Teko Bold', Impact, sans-serif",
+      font: "700 18px 'Google Sans Flex', sans-serif",
       align: "right",
       shadow: theme.textShadow,
       blur: 3,
@@ -586,7 +586,7 @@ export class CardService {
         color: "#ffffff",
         stroke: "rgba(0,0,0,0.5)",
         strokeWidth: 3,
-        font: "bold 14px 'Inter Bold', sans-serif",
+        font: "700 14px 'Google Sans Flex', sans-serif",
         align: "center",
       });
     }
@@ -608,15 +608,15 @@ export class CardService {
       ctx.letterSpacing = "1.5px";
       textWithShadow(ctx, item.label, footerX, FOOTER_Y + 18, {
         color: "#64748b",
-        font: "11px 'Inter Bold', sans-serif",
+        font: "700 11px 'Google Sans Flex', sans-serif",
       });
       ctx.restore();
       textWithShadow(ctx, item.value, footerX, FOOTER_Y + 36, {
         color: "#e2e8f0",
-        font: "18px 'Teko SemiBold', Impact, sans-serif",
+        font: "600 18px 'Google Sans Flex', sans-serif",
       });
       ctx.save();
-      ctx.font = "18px 'Teko SemiBold', sans-serif";
+      ctx.font = "600 18px 'Google Sans Flex', sans-serif";
       footerX += Math.max(120, ctx.measureText(item.value).width + 36);
       ctx.restore();
     }
@@ -630,9 +630,9 @@ export class CardService {
 
     ctx.save();
     // Mesure texte scouter
-    ctx.font = `30px 'Teko Bold', 'DBS Scouter', Impact, sans-serif`;
+    ctx.font = "700 30px 'Google Sans Flex', sans-serif";
     const scouterTextW = ctx.measureText(kiLabel).width;
-    ctx.font = "10px 'Inter Bold', sans-serif";
+    ctx.font = "700 10px 'Google Sans Flex', sans-serif";
     const kiLabelW = ctx.measureText("KI LEVEL").width;
     const chipW = Math.max(scouterTextW, kiLabelW) + 26;
     const chipX = SCOUTER_R_X - chipW;
@@ -648,7 +648,7 @@ export class CardService {
 
     // Label "KI LEVEL" avec tracking pour le côté scouter
     ctx.fillStyle = rgba(chipBg, 0.9);
-    ctx.font = "9px 'Inter Bold', sans-serif";
+    ctx.font = "700 9px 'Google Sans Flex', sans-serif";
     ctx.textAlign = "center";
     ctx.letterSpacing = "2.5px";
     ctx.fillText("KI LEVEL", chipX + chipW / 2, SCOUTER_Y + 11);
@@ -658,13 +658,13 @@ export class CardService {
     ctx.shadowColor = chipBg;
     ctx.shadowBlur = 8;
     ctx.fillStyle = chipBg;
-    ctx.font = "30px 'Teko Bold', 'DBS Scouter', Impact, sans-serif";
+    ctx.font = "700 30px 'Google Sans Flex', sans-serif";
     ctx.fillText(kiLabel, chipX + chipW / 2, SCOUTER_Y + 36);
     ctx.restore();
 
     textWithShadow(ctx, `#${input.discordUser.id.slice(-6)}`, width - PAD - 30, 135, {
       color: "rgba(148,163,184,0.3)",
-      font: "10px 'Inter Medium', sans-serif",
+      font: "500 10px 'Google Sans Flex', sans-serif",
       align: "right",
     });
 

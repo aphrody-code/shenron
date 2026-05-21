@@ -94,7 +94,7 @@ export class LeaderboardService {
 
     // ── En-tête ────────────────────────────────────────────────────────
     textWithShadow(ctx, meta.title, W / 2, 70, {
-      font: "bold 42px 'Saiyan Sans', 'Inter Display Black', sans-serif",
+      font: "800 42px 'Google Sans Flex', sans-serif",
       color: "#fbbf24",
       shadow: "rgba(0,0,0,0.8)",
       blur: 14,
@@ -102,7 +102,7 @@ export class LeaderboardService {
     });
     if (meta.subtitle) {
       textWithShadow(ctx, meta.subtitle, W / 2, 100, {
-        font: "500 16px 'Inter', sans-serif",
+        font: "500 16px 'Google Sans Flex', sans-serif",
         color: "rgba(255,255,255,0.65)",
         align: "center",
       });
@@ -148,28 +148,28 @@ export class LeaderboardService {
 
         // Rang
         textWithShadow(ctx, `#${rank}`, LIST_X + 20, y + 15, {
-          font: "bold 16px 'Inter Bold', sans-serif",
+          font: "700 16px 'Google Sans Flex', sans-serif",
           color: "#fbbf24",
           align: "left",
         });
 
         // Pseudo
         textWithShadow(ctx, truncate(e.username, 24), LIST_X + 75, y + 15, {
-          font: "500 15px 'Inter', sans-serif",
+          font: "500 15px 'Google Sans Flex', sans-serif",
           color: "#f1f5f9",
           align: "left",
         });
 
         // XP (scouter style)
         textWithShadow(ctx, `${kiScouterLabel(e.xp)} u`, LIST_X + LIST_W - 160, y + 15, {
-          font: "500 16px 'Teko SemiBold', 'Inter', sans-serif",
+          font: "600 16px 'Google Sans Flex', sans-serif",
           color: "#f9a8d4",
           align: "left",
         });
 
         // Zéni
         textWithShadow(ctx, `${kiScouterLabel(e.zeni)} z`, LIST_X + LIST_W - 80, y + 15, {
-          font: "500 16px 'Teko SemiBold', 'Inter', sans-serif",
+          font: "600 16px 'Google Sans Flex', sans-serif",
           color: "#fbbf24",
           align: "left",
         });
@@ -183,7 +183,7 @@ export class LeaderboardService {
       W / 2,
       H - 22,
       {
-        font: "500 14px 'Inter', sans-serif",
+        font: "500 14px 'Google Sans Flex', sans-serif",
         color: "rgba(255,255,255,0.6)",
         align: "center",
       },
@@ -229,7 +229,7 @@ export class LeaderboardService {
     ctx.save();
     ctx.globalAlpha = 0.18;
     textStroked(ctx, String(rank), cx, P_TOP_Y + P_H - 10, {
-      font: "bold 88px 'Saiyan Sans', 'Inter Display Black', sans-serif",
+      font: "800 88px 'Google Sans Flex', sans-serif",
       color: medal.ring,
       stroke: "rgba(0,0,0,0.6)",
       strokeWidth: 3,
@@ -278,7 +278,7 @@ export class LeaderboardService {
 
     // Pseudo sous l'avatar
     textWithShadow(ctx, truncate(entry.username, 16), cx, cy + avR + 18, {
-      font: "bold 18px 'Inter Bold', sans-serif",
+      font: "700 18px 'Google Sans Flex', sans-serif",
       color: "#f1f5f9",
       shadow: "rgba(0,0,0,0.9)",
       blur: 6,
@@ -287,14 +287,14 @@ export class LeaderboardService {
 
     // Score (XP scouter-style) — devant le watermark rang, dominant
     textWithShadow(ctx, kiScouterLabel(entry.xp), cx, P_TOP_Y + P_H / 2 + 4, {
-      font: "32px 'Teko Bold', 'Inter Display Black', Impact, sans-serif",
+      font: "700 32px 'Google Sans Flex', sans-serif",
       color: medal.ring,
       shadow: "rgba(0,0,0,0.95)",
       blur: 10,
       align: "center",
     });
     textWithShadow(ctx, "unités", cx, P_TOP_Y + P_H / 2 + 22, {
-      font: "500 11px 'Inter', sans-serif",
+      font: "500 11px 'Google Sans Flex', sans-serif",
       color: "rgba(255,255,255,0.7)",
       shadow: "rgba(0,0,0,0.9)",
       blur: 4,

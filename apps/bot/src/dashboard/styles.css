@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
+/* Google Sans Flex — variable (axes opsz+wght), servie par le bot via /assets. */
+@font-face {
+  font-family: "Google Sans Flex";
+  src: url("/assets/fonts/GoogleSansFlex.woff2") format("woff2");
+  font-weight: 1 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
+  --font-sans: "Google Sans Flex", ui-sans-serif, system-ui, sans-serif;
   --color-brand-50: #fff3e0;
   --color-brand-100: #ffedd5;
   --color-brand-400: #FF7300;
@@ -20,7 +30,8 @@
 
 @layer base {
   body {
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: "Google Sans Flex", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-optical-sizing: auto;
     @apply bg-dbz-bg text-zinc-100;
     /* Optional pixel pattern */
     background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMwMDAiLz48cmVjdCB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjM2IzYjNiIi8+PC9zdmc+');

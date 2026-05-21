@@ -13,7 +13,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { LevelService } from "~/services/LevelService";
 import { formatXP } from "~/lib/xp";
-import { drawScanlines, rgba, textDoubleFont } from "~/lib/canvas-kit";
+import { drawScanlines, rgba, textWithShadow } from "~/lib/canvas-kit";
 
 function kiComment(xp: number): { line: string; accent: string } {
   if (xp >= 10_000_000) return { line: "**IT'S OVER 9'000'000 !** ⚡", accent: "#f59e0b" };
@@ -54,27 +54,20 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
 
   // Label
   ctx.fillStyle = accent;
-  ctx.font = "14px 'Inter Bold', sans-serif";
-  ctx.fillText("⟪ SCOUTER ⟫ CIBLE", 20, 28);
+  ctx.font = "700 14px 'Google Sans Flex', sans-serif";
+  ctx.fillText("« SCOUTER » CIBLE", 20, 28);
   ctx.fillText(`ID: ${user.id.slice(-6)}`, 20, 48);
 
-  // Pseudo de la cible — superposition Saiyan Sans (back glow) + Inter Display Black (front)
-  textDoubleFont(ctx, user.username.toUpperCase().slice(0, 20), 20, 80, {
-    back: {
-      font: "bold 26px 'Saiyan Sans', sans-serif",
-      color: rgba(accent, 0.85),
-      offsetX: 2,
-      offsetY: 2,
-      blur: 8,
-    },
-    front: {
-      font: "bold 22px 'Inter Display Black', 'Inter ExtraBold', sans-serif",
-      color: "#f1f5f9",
-    },
+  // Pseudo de la cible — Google Sans Flex 900 avec halo accent (glow néon).
+  textWithShadow(ctx, user.username.toUpperCase().slice(0, 20), 20, 80, {
+    font: "900 24px 'Google Sans Flex', sans-serif",
+    color: "#f1f5f9",
+    shadow: rgba(accent, 0.85),
+    blur: 8,
   });
 
   // Ki affiché en font Scouter
-  ctx.font = "68px 'Teko Bold', 'DBS Scouter', Impact, sans-serif";
+  ctx.font = "700 68px 'Google Sans Flex', sans-serif";
   ctx.shadowColor = accent;
   ctx.shadowBlur = 15;
   ctx.fillStyle = accent;
@@ -84,7 +77,7 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
   ctx.shadowBlur = 0;
 
   // Sous-label
-  ctx.font = "11px 'Inter Bold', sans-serif";
+  ctx.font = "700 11px 'Google Sans Flex', sans-serif";
   ctx.fillStyle = rgba(accent, 0.6);
   ctx.fillText("POWER LEVEL", 500 - textWidth - 20, 175);
 
