@@ -457,7 +457,7 @@ export const botAdmin = {
 
 	settings: () =>
 		botAdmin.fetch<{
-			schema: Array<{
+			keys: Array<{
 				key: string;
 				type: string;
 				default: unknown;

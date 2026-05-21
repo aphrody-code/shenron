@@ -2463,10 +2463,17 @@ export class ApiServer {
 					}),
 				},
 
-				// ── Settings schema (catalogue côté backend SETTINGS_KEYS) ───
+				// ── Settings schema (catalogue SETTINGS_KEYS + valeur courante) ──
 				"/api/settings/schema": admin(async () => {
 					const { SETTINGS_KEYS } = await import("~/services/SettingsService");
-					return Response.json({ keys: SETTINGS_KEYS });
+					const svc = container.resolve(SettingsService);
+					const overrides = await svc.list();
+					const currentMap = new Map(overrides.map((o) => [o.key, o.value]));
+					const keys = SETTINGS_KEYS.map((k) => ({
+						...k,
+						current: currentMap.get(k.key) ?? null,
+					}));
+					return Response.json({ keys });
 				}),
 
 				// ── Webhooks (CRUD + exécution) ──────────────────────────────

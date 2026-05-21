@@ -14,10 +14,16 @@ export function SettingRow({
 	defaultValue: unknown;
 	current: unknown;
 }) {
-	const isOverridden = JSON.stringify(current) !== JSON.stringify(defaultValue);
+	const isOverridden = current !== null && current !== undefined;
 	const [editing, setEditing] = useState(false);
 	const [val, setVal] = useState<string>(
-		typeof current === "string" ? current : JSON.stringify(current ?? ""),
+		isOverridden
+			? typeof current === "string"
+				? current
+				: JSON.stringify(current)
+			: typeof defaultValue === "string"
+				? defaultValue
+				: JSON.stringify(defaultValue ?? ""),
 	);
 	const [pending, start] = useTransition();
 	const [error, setError] = useState<string | null>(null);
@@ -79,7 +85,11 @@ export function SettingRow({
 				}`}
 				title="Cliquer pour éditer"
 			>
-				{JSON.stringify(current ?? null)}
+				{isOverridden
+					? typeof current === "string"
+						? current
+						: JSON.stringify(current)
+					: "—"}
 			</button>
 			{isOverridden && (
 				<button

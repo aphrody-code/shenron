@@ -4,12 +4,14 @@ import { SettingRow } from "./SettingRow";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-	const data = await botAdmin.settings().catch(() => ({ schema: [] }));
+	const data = await botAdmin.settings().catch(() => ({
+		keys: [] as Awaited<ReturnType<typeof botAdmin.settings>>["keys"],
+	}));
 	return (
 		<div className="w-full max-w-5xl mx-auto">
 			<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">SETTINGS</h1>
 			<p className="text-xs text-dbz-blue-light uppercase tracking-widest mb-6">
-				{data.schema.length} clés runtime overridables (table guild_settings,
+				{data.keys.length} clés runtime overridables (table guild_settings,
 				cache 30s)
 			</p>
 			<div className="dbz-panel overflow-x-auto">
@@ -34,7 +36,7 @@ export default async function AdminSettingsPage() {
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-dbz-border">
-						{data.schema.map((s) => (
+						{data.keys.map((s) => (
 							<tr key={s.key} className="hover:bg-dbz-blue-light/5">
 								<td className="p-2 font-mono text-dbz-orange">{s.key}</td>
 								<td className="p-2 text-dbz-yellow text-[10px] uppercase">
@@ -54,7 +56,7 @@ export default async function AdminSettingsPage() {
 								<td className="p-2 text-gray-400">{s.description ?? "—"}</td>
 							</tr>
 						))}
-						{data.schema.length === 0 && (
+						{data.keys.length === 0 && (
 							<tr>
 								<td
 									colSpan={5}
