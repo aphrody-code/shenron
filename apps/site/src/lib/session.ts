@@ -14,10 +14,29 @@ export type CurrentUser = {
 	user: SiteUser | null;
 };
 
+/**
+ * Pipeline auth admin — source unique de vérité.
+ *
+ * 1. Discord OAuth (Better Auth) → ba_user / ba_account / ba_session (Neon).
+ * 2. getCurrentUser() lit la session, joint ba_account (provider discord) pour
+ *    récupérer le Discord ID, puis upsert le user métier (`users`) en
+ *    resynchronisant username/avatar et en calculant roleAdmin.
+ * 3. requireAdmin() / isCurrentUserAdmin() gatent /admin/* et le proxy bot-admin.
+ *
+ * roleAdmin = OWNER_ID ou membre de OAUTH_ALLOWED_USERS (cf. env). Déterminé à
+ * chaque requête (pas seulement à la création) → robuste aux changements d'env.
+ */
+function resolveRoleAdmin(discordId: string): boolean {
+	return (
+		discordId === env.OWNER_ID || env.OAUTH_ALLOWED_USERS.includes(discordId)
+	);
+}
+
 export async function getCurrentUser(): Promise<CurrentUser | null> {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user) return null;
 
+	// Compte Discord lié → fournit le Discord ID (= clé du user métier).
 	const [row] = await db
 		.select({ account: baAccount, user: users })
 		.from(baAccount)
@@ -30,28 +49,20 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		)
 		.limit(1);
 
-	// Si pas d'account discord lié (premier login en cours, race avec hook),
-	// on retourne quand même le session.user pour ne pas casser le state UI.
+	// Session valide mais compte pas encore lié (race au tout premier login) :
+	// on renvoie la session sans user métier ; ça se résout au call suivant.
 	if (!row?.account) {
-		return {
-			sessionUserId: session.user.id,
-			discordId: "",
-			user: null,
-		};
+		return { sessionUserId: session.user.id, discordId: "", user: null };
 	}
 
-	// Upsert dans `users` (le hook databaseHooks a été retiré, cf. auth.ts).
-	// On resynchronise username + avatar dès qu'ils diffèrent de la session
-	// Discord — sinon un user créé avant l'ajout de l'avatar (ou qui change de
-	// photo Discord) reste sans photo, car l'ancienne condition `!appUser`
-	// sautait la mise à jour pour un user déjà existant.
-	let appUser = row.user;
-	const isOwner = row.account.accountId === env.OWNER_ID;
-	const isAllowed = env.OAUTH_ALLOWED_USERS.includes(row.account.accountId);
-	const shouldBeAdmin = isOwner || isAllowed;
-
+	const discordId = row.account.accountId;
+	const shouldBeAdmin = resolveRoleAdmin(discordId);
 	const wantUsername = session.user.name ?? "Saiyan";
 	const wantAvatar = session.user.image ?? null;
+
+	// Upsert/resync : crée le user métier au 1er passage, et garde
+	// username/avatar/roleAdmin alignés ensuite (resync si divergence).
+	let appUser = row.user;
 	const needsSync =
 		!appUser ||
 		appUser.username !== wantUsername ||
@@ -59,10 +70,11 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		(shouldBeAdmin && !appUser.roleAdmin);
 
 	if (needsSync) {
+		const wasAdmin = appUser?.roleAdmin === true;
 		const inserted = await db
 			.insert(users)
 			.values({
-				discordId: row.account.accountId,
+				discordId,
 				username: wantUsername,
 				avatar: wantAvatar,
 				roleAdmin: shouldBeAdmin,
@@ -72,18 +84,19 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 				set: {
 					username: wantUsername,
 					avatar: wantAvatar,
+					// On n'élève jamais à false ici (révocation = manuelle) ; on
+					// élève à true si l'env le dit.
 					...(shouldBeAdmin ? { roleAdmin: true } : {}),
 				},
 			})
 			.returning();
 		appUser = inserted[0] ?? appUser;
+		if (shouldBeAdmin && !wasAdmin) {
+			console.info(`[auth] admin élevé : discordId=${discordId}`);
+		}
 	}
 
-	return {
-		sessionUserId: session.user.id,
-		discordId: row.account.accountId,
-		user: appUser,
-	};
+	return { sessionUserId: session.user.id, discordId, user: appUser };
 }
 
 export async function requireUser(callbackURL?: string): Promise<CurrentUser> {
