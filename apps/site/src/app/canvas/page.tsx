@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/PageHeader";
+
 const API = process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
 const SAMPLES = [
@@ -20,18 +22,11 @@ const SAMPLES = [
 export default function CanvasShowcase() {
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-6xl">
-			<header className="text-center mb-10">
-				<h1
-					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)" }}
-				>
-					CANVAS
-				</h1>
-				<p className="text-dbz-blue-light font-bold tracking-widest uppercase max-w-3xl mx-auto">
-					Le bot génère des images PNG/WebP/AVIF via Skia (napi-rs). Aperçus
-					live depuis l'API publique.
-				</p>
-			</header>
+			<PageHeader
+				title="CANVAS"
+				className="mb-10"
+				subtitle="Le bot génère des images PNG/WebP/AVIF via Skia (napi-rs). Aperçus live depuis l'API publique."
+			/>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 				{SAMPLES.map((s) => (

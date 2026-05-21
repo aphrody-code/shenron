@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { SectionHeading } from "./SectionHeading";
 
 export type PostTeaser = {
 	id: string;
@@ -18,16 +19,12 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06] bg-[#080808]">
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
-				<div
-					className="flex items-end justify-between flex-wrap gap-6 mb-12"
-				>
+				<div className="flex items-end justify-between flex-wrap gap-6 mb-12">
 					<div>
-						<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-							Actualités
-						</p>
-						<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
-							Dernières dépêches Dragon Ball
-						</h2>
+						<SectionHeading
+							eyebrow="Actualités"
+							title="Dernières dépêches Dragon Ball"
+						/>
 					</div>
 					<Link
 						href="/actualites"

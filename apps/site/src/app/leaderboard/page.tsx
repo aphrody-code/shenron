@@ -1,4 +1,5 @@
 import { getShenronLeaderboard } from "@/lib/shenron";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -8,17 +9,10 @@ export default async function LeaderboardPage() {
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-4xl">
-			<header className="text-center mb-12">
-				<h1
-					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)" }}
-				>
-					CLASSEMENT
-				</h1>
-				<p className="text-dbz-blue-light font-bold tracking-widest uppercase">
-					Top 100 guerriers du serveur · XP cumulé
-				</p>
-			</header>
+			<PageHeader
+				title="CLASSEMENT"
+				subtitle="Top 100 guerriers du serveur · XP cumulé"
+			/>
 
 			{entries.length === 0 ? (
 				<div className="dbz-panel p-8 text-center">

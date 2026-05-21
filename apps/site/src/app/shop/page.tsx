@@ -1,4 +1,5 @@
 import { getShenronShop, type ShenronShopItem } from "@/lib/shenron";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 60;
@@ -41,19 +42,16 @@ export default async function ShopPage() {
 
 	return (
 		<div className="container mx-auto px-4 py-8 md:py-16">
-			<header className="text-center mb-12">
-				<h1
-					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)" }}
-				>
-					BOUTIQUE SHENRON
-				</h1>
-				<p className="text-dbz-blue-light font-bold tracking-widest uppercase max-w-2xl mx-auto">
-					Cosmétiques exclusifs · achat via{" "}
-					<code className="text-dbz-orange">/shop</code> Discord · équipement
-					via <code className="text-dbz-orange">/inventaire equip</code>
-				</p>
-			</header>
+			<PageHeader
+				title="BOUTIQUE SHENRON"
+				subtitle={
+					<>
+						Cosmétiques exclusifs · achat via{" "}
+						<code className="text-dbz-orange">/shop</code> Discord · équipement
+						via <code className="text-dbz-orange">/inventaire equip</code>
+					</>
+				}
+			/>
 
 			{items.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">

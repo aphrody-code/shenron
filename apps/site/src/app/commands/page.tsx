@@ -1,4 +1,5 @@
 import { getShenronCommands, getShenronPersonas } from "@/lib/shenron";
+import { PageHeader } from "@/components/PageHeader";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 300;
@@ -39,17 +40,11 @@ export default async function CommandsPage({
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-6xl">
-			<header className="text-center mb-10">
-				<h1
-					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)" }}
-				>
-					COMMANDES
-				</h1>
-				<p className="text-dbz-blue-light font-bold tracking-widest uppercase">
-					{total} slash commands réparties entre 6 personas
-				</p>
-			</header>
+			<PageHeader
+				title="COMMANDES"
+				className="mb-10"
+				subtitle={`${total} slash commands réparties entre 6 personas`}
+			/>
 
 			{/* Persona filter pills */}
 			<div className="flex flex-wrap gap-2 mb-8 justify-center">

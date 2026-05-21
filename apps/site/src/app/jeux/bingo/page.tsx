@@ -1,24 +1,16 @@
-import { requireUser } from "@/lib/session";
+import { GamePageLayout } from "@/components/GamePageLayout";
 import { BingoGame } from "./BingoGame";
 
 export const dynamic = "force-dynamic";
 
-export default async function BingoPlayPage() {
-	const me = await requireUser("/jeux/bingo");
+export default function BingoPlayPage() {
 	return (
-		<div className="container mx-auto px-4 py-12 max-w-xl">
-			<header className="text-center mb-8">
-				<h1
-					className="text-5xl text-dbz-yellow mb-2"
-					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.55), 0 0 20px rgba(75, 168, 255, 0.3)" }}
-				>
-					BINGO
-				</h1>
-				<p className="font-scouter text-xs tracking-[0.3em] text-dbz-blue-light">
-					{me.user?.username} ❯ Devine 1-100 en 10 essais
-				</p>
-			</header>
+		<GamePageLayout
+			path="/jeux/bingo"
+			title="BINGO"
+			subtitle={(u) => `${u} ❯ Devine 1-100 en 10 essais`}
+		>
 			<BingoGame />
-		</div>
+		</GamePageLayout>
 	);
 }

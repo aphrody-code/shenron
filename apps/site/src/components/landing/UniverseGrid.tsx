@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionHeading } from "./SectionHeading";
 
 type Pillar = {
 	title: string;
@@ -69,26 +70,24 @@ export function UniverseGrid() {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06]">
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
-				<div
-					className="max-w-3xl mb-16"
-				>
-					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-						L'univers Dragon Ball
-					</p>
-					<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
-						Tout Dragon Ball.
-						<br />
-						<span className="text-white/55">
-							En français, à jour, sans détour.
-						</span>
-					</h2>
+				<div className="max-w-3xl mb-16">
+					<SectionHeading
+						eyebrow="L'univers Dragon Ball"
+						title={
+							<>
+								Tout Dragon Ball.
+								<br />
+								<span className="text-white/55">
+									En français, à jour, sans détour.
+								</span>
+							</>
+						}
+					/>
 				</div>
 
 				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden">
 					{PILLARS.map((p, _i) => (
-						<div
-							key={p.title}
-						>
+						<div key={p.title}>
 							<Link
 								href={p.href}
 								className={`block bg-[#0a0a0a] p-8 h-full transition-all duration-300 border border-transparent ${ACCENT_BORDER[p.accent]} group`}

@@ -1,3 +1,4 @@
+import { SectionHeading } from "./SectionHeading";
 
 export type PersonaCard = {
 	id: string;
@@ -62,15 +63,11 @@ export function PersonasShowcase({
 			</div>
 
 			<div className="container mx-auto px-4 relative">
-				<div
-					className="text-center mb-16"
-				>
-					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-						En bonus — notre bot Discord
-					</p>
-					<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white">
-						Six gardiens veillent sur le serveur.
-					</h2>
+				<div className="text-center mb-16">
+					<SectionHeading
+						eyebrow="En bonus — notre bot Discord"
+						title="Six gardiens veillent sur le serveur."
+					/>
 					<p className="text-white/55 mt-5 max-w-2xl mx-auto text-[15px] leading-relaxed">
 						Sur Discord, six personnages iconiques de Dragon Ball animent la
 						communauté : Shenron, Beerus, Whis, le Grand Prêtre, Enma et Kaïo.

@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/PageHeader";
+
 const GAMES = [
 	{
 		name: "2048: Ki Merge",
@@ -44,17 +46,11 @@ const GAMES = [
 export default function JeuxPage() {
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-5xl">
-			<header className="text-center mb-10">
-				<h1
-					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{ textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)" }}
-				>
-					JEUX
-				</h1>
-				<p className="text-dbz-blue-light font-bold tracking-widest uppercase">
-					4 mini-jeux solo ou multijoueur, gagne du Zéni en jouant
-				</p>
-			</header>
+			<PageHeader
+				title="JEUX"
+				className="mb-10"
+				subtitle="4 mini-jeux solo ou multijoueur, gagne du Zéni en jouant"
+			/>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 				{GAMES.map((g) => (

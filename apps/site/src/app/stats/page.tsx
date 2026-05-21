@@ -1,3 +1,5 @@
+import { PageHeader } from "@/components/PageHeader";
+
 const SHENRON_API_URL =
 	process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
@@ -54,20 +56,10 @@ export default async function StatsPage() {
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-5xl">
-			<header className="text-center mb-12">
-				<h1
-					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
-					style={{
-						textShadow:
-							"4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
-					}}
-				>
-					STATISTIQUES
-				</h1>
-				<p className="text-dbz-blue-light font-bold tracking-widest uppercase">
-					État de l'univers DBFR · temps réel
-				</p>
-			</header>
+			<PageHeader
+				title="STATISTIQUES"
+				subtitle="État de l'univers DBFR · temps réel"
+			/>
 
 			{!stats ? (
 				<div className="dbz-panel p-8 text-center">

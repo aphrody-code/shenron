@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionHeading } from "./SectionHeading";
 
 export type CharacterTeaser = {
 	id: number;
@@ -21,12 +22,11 @@ export function CharactersTeaser({
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
 				<div className="flex items-end justify-between flex-wrap gap-6 mb-12">
 					<div>
-						<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
-							Personnages mythiques
-						</p>
-						<h2 className="reveal-up font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white max-w-2xl">
-							Les guerriers qui ont marqué la saga.
-						</h2>
+						<SectionHeading
+							eyebrow="Personnages mythiques"
+							title="Les guerriers qui ont marqué la saga."
+							className="max-w-2xl"
+						/>
 					</div>
 					<Link
 						href="/wiki/dragon-ball"
@@ -38,9 +38,7 @@ export function CharactersTeaser({
 
 				<div className="reveal-up-stagger grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
 					{withImages.map((c, _i) => (
-						<div
-							key={c.id}
-						>
+						<div key={c.id}>
 							<Link
 								href={`/wiki/dragon-ball/character/${c.id}`}
 								className="group block relative aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/[0.08] hover:border-dbz-orange transition-all"
