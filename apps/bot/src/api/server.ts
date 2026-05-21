@@ -1564,6 +1564,38 @@ export class ApiServer {
 						return { q, characters, planets, sagas, movies, games };
 					}),
 
+				// RAG : recherche lexicale (BM25) sur l'index rag_chunks
+				// (data structurée + corpus scrapé). Construit par rag-build.ts.
+				"/api/public/rag/search": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const url = new URL(req.url);
+						const raw = (url.searchParams.get("q") ?? "").trim();
+						const limit = Math.min(
+							Math.max(Number(url.searchParams.get("limit") ?? 8), 1),
+							25,
+						);
+						if (raw.length < 2) return { q: raw, results: [] };
+						const dbs = container.resolve(DatabaseService);
+						const tokens = raw
+							.replace(/["*()]/g, " ")
+							.split(/\s+/)
+							.filter((t) => t.length > 1);
+						if (tokens.length === 0) return { q: raw, results: [] };
+						// OR entre tokens : récupération par pertinence BM25 (recall
+						// large pour les questions naturelles), pas un AND strict.
+						const match = tokens.map((t) => `"${t}"`).join(" OR ");
+						try {
+							const results = dbs.sqlite
+								.query(
+									"SELECT kind, title, url, snippet(rag_chunks, 3, '', '', '…', 18) AS snippet FROM rag_chunks WHERE rag_chunks MATCH ? ORDER BY rank LIMIT ?",
+								)
+								.all(match, limit);
+							return { q: raw, results };
+						} catch {
+							return { q: raw, results: [], error: "index_unavailable" };
+						}
+					}),
+
 				"/api/public/news": (req) =>
 					publicCachedJson(req, 5 * 60_000, async () => {
 						const url = new URL(req.url);

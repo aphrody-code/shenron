@@ -73,7 +73,7 @@ async function main() {
 			.all() as { name: string }[]
 	)
 		.map((r) => r.name)
-		.filter((n) => !SKIP.has(n));
+		.filter((n) => !SKIP.has(n) && !n.startsWith("rag_chunks"));
 
 	await sql`CREATE SCHEMA IF NOT EXISTS bot`;
 	await sql.unsafe(
