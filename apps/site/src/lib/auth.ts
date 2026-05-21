@@ -73,10 +73,22 @@ export const auth = betterAuth({
 			// returning prompt=consent_required. Les scopes guilds sont OK car
 			// Discord les fusionne s'ils sont passés UNE seule fois.
 			scope: ["guilds", "guilds.members.read"],
-			// Redirect URI explicite — évite Better Auth de calculer depuis le
-			// host de la requête (qui peut être un preview URL preview-*.vercel.app
-			// au lieu de dbfr.vercel.app)
-			redirectURI: `${SITE_URL}/api/auth/callback/discord`,
+			// CRITIQUE : sans ça, Better Auth émet `prompt=none` → Discord renvoie
+			// `consent_required` pour tout utilisateur qui n'a jamais autorisé
+			// l'app (= 100 % des nouveaux) → AUCUN login possible (ba_user=0).
+			// `consent` force l'écran d'autorisation, qui marche pour tout le monde.
+			prompt: "consent",
+			// Email Discord parfois null (comptes phone-only) → fallback sur l'ID
+			// snowflake pour ne pas planter sur `email_not_found`.
+			mapProfileToUser: (profile: { id: string; email?: string | null }) => ({
+				email: profile.email ?? `${profile.id}@discord.placeholder.local`,
+			}),
+			// Pas de redirectURI hardcodé : il est calculé depuis le baseURL
+			// dynamique (host courant ∈ allowedHosts). Indispensable pour que le
+			// login fonctionne aussi bien sur shenron.rpbey.fr que dbfr.vercel.app —
+			// le cookie de state OAuth est posé ET relu sur le MÊME host (sinon
+			// "invalid_state" en cross-domain). Le callback de chaque host doit être
+			// déclaré côté Discord Developer Portal (Redirects).
 		},
 	},
 	// Login ouvert à tous les membres Discord — le site est public (suivi de

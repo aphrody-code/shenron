@@ -1,4 +1,4 @@
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -46,57 +46,57 @@ export default async function FilmsPage() {
 				imageAlt="Bannière films Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-
-			{groups.map((g) => (
-				<section key={g.key} className="mb-16">
-					<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
-						{g.label} <span className="text-white/40">— {g.movies.length}</span>
-					</h2>
-					<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-						{g.movies.map((m) => (
-							<Link
-								key={m.id}
-								href={`/wiki/films/${m.slug}`}
-								className="bg-white/[0.04] border border-white/[0.06] rounded-xl overflow-hidden hover:border-dbz-orange/60 transition-colors flex flex-col"
-							>
-								{m.poster && (
-									<div className="relative aspect-[2/3] bg-black">
-										<Image
-											src={m.poster}
-											alt={m.title}
-											fill
-											sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-											className="object-cover"
-										/>
-									</div>
-								)}
-								<div className="p-4 flex-1 flex flex-col">
-									<h3 className="font-display font-bold text-[15px] text-white leading-tight mb-1">
-										{m.title}
-									</h3>
-									{m.title_ja && (
-										<p className="font-jp text-[11px] text-dbz-orange/80 mb-2">
-											{m.title_ja}
-										</p>
+				{groups.map((g) => (
+					<section key={g.key} className="mb-16">
+						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
+							{g.label}{" "}
+							<span className="text-white/40">— {g.movies.length}</span>
+						</h2>
+						<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+							{g.movies.map((m) => (
+								<Link
+									key={m.id}
+									href={`/wiki/films/${m.slug}`}
+									className="bg-white/[0.04] border border-white/[0.06] rounded-xl overflow-hidden hover:border-dbz-orange/60 transition-colors flex flex-col"
+								>
+									{m.poster && (
+										<div className="relative aspect-[2/3] bg-black">
+											<Image
+												src={assetUrl(m.poster)}
+												alt={m.title}
+												fill
+												sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+												className="object-cover"
+											/>
+										</div>
 									)}
-									<div className="text-[11px] font-display tracking-[0.12em] uppercase text-white/55 mb-3 flex gap-3 flex-wrap">
-										{m.release_date && (
-											<span>{new Date(m.release_date).getFullYear()}</span>
+									<div className="p-4 flex-1 flex flex-col">
+										<h3 className="font-display font-bold text-[15px] text-white leading-tight mb-1">
+											{m.title}
+										</h3>
+										{m.title_ja && (
+											<p className="font-jp text-[11px] text-dbz-orange/80 mb-2">
+												{m.title_ja}
+											</p>
 										)}
-										{m.duration_min && <span>{m.duration_min} min</span>}
+										<div className="text-[11px] font-display tracking-[0.12em] uppercase text-white/55 mb-3 flex gap-3 flex-wrap">
+											{m.release_date && (
+												<span>{new Date(m.release_date).getFullYear()}</span>
+											)}
+											{m.duration_min && <span>{m.duration_min} min</span>}
+										</div>
+										{m.synopsis && (
+											<p className="text-[12px] text-white/65 leading-relaxed line-clamp-4">
+												{m.synopsis}
+											</p>
+										)}
 									</div>
-									{m.synopsis && (
-										<p className="text-[12px] text-white/65 leading-relaxed line-clamp-4">
-											{m.synopsis}
-										</p>
-									)}
-								</div>
-							</Link>
-						))}
-					</div>
-				</section>
-			))}
-		</div>
+								</Link>
+							))}
+						</div>
+					</section>
+				))}
+			</div>
 		</>
 	);
 }

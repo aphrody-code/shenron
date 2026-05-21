@@ -1,4 +1,4 @@
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -51,7 +51,7 @@ export default async function FilmPage({
 					{m.poster && (
 						<div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-white/10 bg-black">
 							<Image
-								src={m.poster}
+								src={assetUrl(m.poster)}
 								alt={m.title}
 								fill
 								sizes="280px"
