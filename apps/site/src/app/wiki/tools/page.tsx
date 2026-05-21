@@ -29,7 +29,6 @@ export default async function ToolsPage() {
 			<PageHero
 				eyebrow="Communauté"
 				title="Outils & Modding"
-				lead="Les projets techniques de la communauté : outils de modification, shaders FighterZ et APIs de données."
 				image={SAGAS_HERO}
 				imageAlt="Modding Dragon Ball"
 			/>

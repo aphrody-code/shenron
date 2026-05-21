@@ -11,7 +11,7 @@ type Feature = {
 const FEATURES: Feature[] = [
 	{
 		title: "Mini-jeux Zéni",
-		desc: "Pierre-Feuille-Ciseaux, Morpion, Bingo. Tente ta chance et empoche des zénis.",
+		desc: "Pierre-Feuille-Ciseaux, Morpion, Bingo, Pendu, 2048.",
 		href: "/jeux",
 		cta: "Jouer",
 		accent: "fuchsia",
@@ -25,21 +25,21 @@ const FEATURES: Feature[] = [
 	},
 	{
 		title: "Ton profil de guerrier",
-		desc: "Niveau, XP, zénis, succès, fusion. Une carte unique à personnaliser.",
+		desc: "Niveau, XP, zénis, succès, fusion.",
 		href: "/profil/me",
 		cta: "Voir mon profil",
 		accent: "violet",
 	},
 	{
 		title: "Boutique cosmétique",
-		desc: "Cartes, badges, couleurs, titres, bannières. Tout s'achète en zénis.",
+		desc: "Cartes, badges, couleurs, titres, bannières.",
 		href: "/shop",
 		cta: "Boutique",
 		accent: "pink",
 	},
 	{
 		title: "Classement des guerriers",
-		desc: "Le top 100 mis à jour en temps réel. Grimpe au sommet du Power Level.",
+		desc: "Top 100, mis à jour en temps réel.",
 		href: "/leaderboard",
 		cta: "Classement",
 		accent: "cyan",

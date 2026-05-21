@@ -46,11 +46,7 @@ const GAMES = [
 export default function JeuxPage() {
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-5xl">
-			<PageHeader
-				title="JEUX"
-				className="mb-10"
-				subtitle="4 mini-jeux solo ou multijoueur, gagne du Zéni en jouant"
-			/>
+			<PageHeader title="JEUX" className="mb-10" />
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 				{GAMES.map((g) => (

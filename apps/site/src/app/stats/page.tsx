@@ -56,10 +56,7 @@ export default async function StatsPage() {
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-5xl">
-			<PageHeader
-				title="STATISTIQUES"
-				subtitle="État de l'univers DBFR · temps réel"
-			/>
+			<PageHeader title="STATISTIQUES" />
 
 			{!stats ? (
 				<div className="dbz-panel p-8 text-center">

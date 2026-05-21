@@ -1,14 +1,5 @@
 import { SectionHeading } from "./SectionHeading";
 
-export type PersonaCard = {
-	id: string;
-	name: string;
-	tagline: string;
-	role: string;
-	hue: string; // tailwind color class suffix (dbz-orange etc)
-	avatar: string | null;
-};
-
 const FALLBACK_HUES: Record<string, string> = {
 	shenron: "dbz-orange",
 	beerus: "dbz-orange",
@@ -18,31 +9,13 @@ const FALLBACK_HUES: Record<string, string> = {
 	kaio: "amber-400",
 };
 
-const TAGLINES: Record<string, { tagline: string; role: string }> = {
-	shenron: {
-		tagline: "Vœu cosmique exaucé.",
-		role: "Le dieu dragon",
-	},
-	beerus: {
-		tagline: "Destruction sélective.",
-		role: "Gardien de l'ordre",
-	},
-	whis: {
-		tagline: "Élégance servicielle.",
-		role: "Aide et accueil",
-	},
-	grandPretre: {
-		tagline: "Œil omniscient.",
-		role: "Sage suprême",
-	},
-	enma: {
-		tagline: "Tribunal des âmes.",
-		role: "Juge des sanctions",
-	},
-	kaio: {
-		tagline: "Maître du Power Level.",
-		role: "Maître de l'arène",
-	},
+const PERSONA_ROLES: Record<string, string> = {
+	shenron: "Admin · config · API",
+	beerus: "Modération · sanctions",
+	whis: "Aide · tickets · wiki",
+	grandPretre: "Logs · observation",
+	enma: "Tribunal · jail",
+	kaio: "Jeux · économie · XP",
 };
 
 export function PersonasShowcase({
@@ -68,21 +41,13 @@ export function PersonasShowcase({
 						eyebrow="En bonus — notre bot Discord"
 						title="Six gardiens veillent sur le serveur."
 					/>
-					<p className="text-white/55 mt-5 max-w-2xl mx-auto text-[15px] leading-relaxed">
-						Sur Discord, six personnages iconiques de Dragon Ball animent la
-						communauté : Shenron, Beerus, Whis, le Grand Prêtre, Enma et Kaïo.
-						Modération, accueil, jeux, économie — chacun a sa spécialité.
-					</p>
 				</div>
 
 				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
 					{personas
 						.filter((p) => !!p.avatar)
 						.map((p, _i) => {
-							const meta = TAGLINES[p.id] ?? {
-								tagline: "Persona inconnue.",
-								role: "—",
-							};
+							const role = PERSONA_ROLES[p.id] ?? "";
 							const hue = FALLBACK_HUES[p.id] ?? "dbz-orange";
 							return (
 								<div
@@ -110,14 +75,11 @@ export function PersonasShowcase({
 											<p
 												className={`font-scouter text-[10px] tracking-[0.3em] text-${hue} mb-1 uppercase`}
 											>
-												{meta.role}
+												{role}
 											</p>
-											<h3 className="font-saiyan text-2xl text-white leading-none mb-2">
+											<h3 className="font-saiyan text-2xl text-white leading-none">
 												{p.name}
 											</h3>
-											<p className="text-sm text-white/60 italic">
-												« {meta.tagline} »
-											</p>
 										</div>
 									</div>
 

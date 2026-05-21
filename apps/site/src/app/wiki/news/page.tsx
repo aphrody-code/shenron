@@ -24,7 +24,6 @@ export default async function NewsPage() {
 			<PageHero
 				eyebrow="Archives"
 				title="Actualités"
-				lead="News officielles, sorties manga et mises à jour du bot. L'actu Dragon Ball réunie au même endroit."
 				image={SAGAS_HERO}
 				imageAlt="News Dragon Ball"
 			/>

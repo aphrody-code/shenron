@@ -21,7 +21,6 @@ export default async function RacesPage() {
 			<PageHero
 				eyebrow="Wiki"
 				title="Races & Peuples"
-				lead="Saiyans, Nameks, Humains, Cyborgs et Démons du Froid : origines, capacités et spécificités de chaque race."
 				image={SAGAS_HERO}
 				imageAlt="Races Dragon Ball"
 			/>
