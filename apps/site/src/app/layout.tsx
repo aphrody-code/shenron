@@ -21,24 +21,24 @@ const sansFlex = localFont({
 	variable: "--font-sans",
 	display: "swap",
 	weight: "1 1000", // axe wght variable
+	// Best practices next/font : préchargé (défaut), fallback à métriques
+	// ajustées (`size-adjust` auto sur Arial) → zéro layout shift au swap.
+	fallback: ["system-ui", "arial"],
+	adjustFontFallback: "Arial",
 });
 
-// Noto Sans JP — utilisé sur le site DB officiel pour le corps
+// Noto Sans JP — corps japonais (noms natifs 孫悟空…). Pas de preload : chargé
+// seulement quand du texte JP est présent, pour ne pas peser sur le LCP latin.
 const notoJP = Noto_Sans_JP({
 	variable: "--font-jp",
 	subsets: ["latin"],
 	weight: ["400", "500", "700"],
 	display: "swap",
+	preload: false,
 });
 
-// SaiyanSans conservée mais NON rendue par défaut (token `font-saiyan` remappé
-// sur Google Sans Flex dans globals.css pour la lisibilité). Exposée en
-// `--font-saiyan-raw` pour réactiver l'accent de marque ponctuellement si besoin.
-const saiyanSans = localFont({
-	src: "../../public/fonts/SaiyanSans.ttf",
-	variable: "--font-saiyan-raw",
-	display: "swap",
-});
+// SaiyanSans n'est plus chargée : le token `font-saiyan` est remappé sur Google
+// Sans Flex (globals.css) pour la lisibilité → aucun composant ne la rend.
 
 const dbScouter = localFont({
 	src: "../../public/fonts/DBSScouter.ttf",
@@ -92,7 +92,7 @@ export default function RootLayout({
 	return (
 		<html lang="fr" className="dark">
 			<body
-				className={`${sansFlex.variable} ${notoJP.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
+				className={`${sansFlex.variable} ${notoJP.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
 				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
 				<div className="scroll-progress" aria-hidden />

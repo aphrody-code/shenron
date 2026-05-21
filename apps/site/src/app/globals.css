@@ -12,8 +12,8 @@
   --font-display: var(--font-sans);
   --font-jp: var(--font-jp);
   /* `font-saiyan` remappé sur Google Sans Flex : les ~89 titres de hero du wiki
-     deviennent lisibles sans toucher chaque composant. Pour réactiver SaiyanSans,
-     remettre `var(--font-saiyan-raw)` (injecté par le localFont dans layout.tsx). */
+     deviennent lisibles sans toucher chaque composant (SaiyanSans n'est plus
+     chargée — cf. layout.tsx). */
   --font-saiyan: var(--font-sans);
   --font-scouter: var(--font-scouter);
 
