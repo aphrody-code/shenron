@@ -343,6 +343,35 @@ export interface CommandInfo {
 	}>;
 }
 
+export interface ShenronStats {
+	users: number;
+	totalXp: number;
+	totalZeni: number;
+	achievementsUnlocked: number;
+	shopItems: number;
+	inventoryItems: number;
+}
+
+export async function getShenronStats(): Promise<ShenronStats> {
+	const fallback: ShenronStats = {
+		users: 0,
+		totalXp: 0,
+		totalZeni: 0,
+		achievementsUnlocked: 0,
+		shopItems: 0,
+		inventoryItems: 0,
+	};
+	try {
+		const res = await fetch(`${SHENRON_API_URL}/api/public/stats`, {
+			next: { revalidate: 30 },
+		});
+		if (!res.ok) return fallback;
+		return { ...fallback, ...(await res.json()) };
+	} catch {
+		return fallback;
+	}
+}
+
 export async function getShenronPersonas(): Promise<PersonaInfo[]> {
 	const res = await fetch(`${SHENRON_API_URL}/api/public/personas`, {
 		next: { revalidate: 30 },
