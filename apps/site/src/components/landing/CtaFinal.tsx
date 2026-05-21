@@ -19,12 +19,9 @@ export function CtaFinal() {
 			</div>
 
 			<div className="container mx-auto px-4 relative text-center max-w-3xl">
-				<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-4 ki-pulse">
+				<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-6 ki-pulse">
 					REJOINS-NOUS
 				</p>
-				<h2 className="title-jagged text-5xl md:text-7xl leading-[0.95] mb-6">
-					Sept étoiles. Un vœu.
-				</h2>
 				<p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
 					Rejoins le serveur Discord et lie ton compte. XP, zénis, mini-jeux et
 					un wiki complet t'attendent.
@@ -42,9 +39,6 @@ export function CtaFinal() {
 						Explorer le wiki
 					</Link>
 				</div>
-				<p className="font-scouter text-[10px] tracking-[0.4em] text-white/30 mt-10">
-					DBFR · DRAGON BALL FRANCE · DEPUIS 2026
-				</p>
 			</div>
 		</section>
 	);
