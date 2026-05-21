@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
+import { Markdown } from "@/components/Markdown";
 import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
@@ -80,9 +81,9 @@ export default async function NewsPage() {
 								</h2>
 
 								{item.excerpt && (
-									<p className="text-gray-400 leading-relaxed line-clamp-3 mb-6 font-sans">
+									<Markdown className="text-gray-400 leading-relaxed mb-6 font-sans text-[15px] max-h-[7.5rem] overflow-hidden [mask-image:linear-gradient(to_bottom,black_65%,transparent)]">
 										{item.excerpt}
-									</p>
+									</Markdown>
 								)}
 
 								<a
