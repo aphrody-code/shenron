@@ -44,7 +44,7 @@ export function CharactersTeaser({
 								href={`/wiki/dragon-ball/character/${c.id}`}
 								className="group block relative aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/[0.08] hover:border-dbz-orange transition-all"
 							>
-								{/* eslint-disable-next-line @next/next/no-img-element */}
+								{ }
 								<img
 									src={assetUrl(c.image)}
 									alt={c.name}

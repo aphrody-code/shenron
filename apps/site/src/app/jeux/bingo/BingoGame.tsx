@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { sfx } from "@/lib/sfx";
+import { KiShock, KiReactor } from "@/components/games/KiFx";
+import fx from "@/components/games/games.module.css";
 
 type SessionStart = {
 	token: string;
@@ -31,11 +33,12 @@ type Attempt = {
 	hint: "higher" | "lower" | "match" | "lost";
 };
 
+// Capteur de Ki : "plus haut" = la cible a un Ki supérieur (signal monte).
 const HINT_LABEL = {
-	higher: { txt: "↑ PLUS HAUT", color: "text-cyan-400" },
-	lower: { txt: "↓ PLUS BAS", color: "text-purple-400" },
-	match: { txt: "🎯 BINGO", color: "text-green-400" },
-	lost: { txt: "✗ HORS LIMITES", color: "text-red-400" },
+	higher: { txt: "↑ KI SUPÉRIEUR", color: "text-cyan-400" },
+	lower: { txt: "↓ KI INFÉRIEUR", color: "text-purple-400" },
+	match: { txt: "🎯 KI VERROUILLÉ", color: "text-green-400" },
+	lost: { txt: "✗ HORS PORTÉE", color: "text-red-400" },
 } as const;
 
 export function BingoGame() {
@@ -45,6 +48,7 @@ export function BingoGame() {
 	const [attempts, setAttempts] = useState<Attempt[]>([]);
 	const [ended, setEnded] = useState<SessionEnd | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [scanPulse, setScanPulse] = useState(0);
 	const [pending, startTransition] = useTransition();
 
 	async function call(payload: {
@@ -106,6 +110,7 @@ export function BingoGame() {
 			}
 			setError(null);
 			setGuess("");
+			setScanPulse((p) => p + 1);
 			if ("target" in reply) {
 				setAttempts((a) => [...a, { guess: g, hint: reply.hint }]);
 				setEnded(reply);
@@ -121,10 +126,18 @@ export function BingoGame() {
 		});
 	}
 
+	// Dernier signal capté → couleur du réacteur de Ki.
+	const lastHint = attempts[attempts.length - 1]?.hint;
+	const reactorColor =
+		lastHint === "higher" ? "blue" : lastHint === "lower" ? "purple" : "orange";
+
 	return (
 		<div className="space-y-6">
 			{!token && !ended && (
-				<div className="dbz-panel p-6 space-y-4">
+				<div className="dbz-panel p-6 space-y-4 hud-frame">
+					<p className="text-center font-scouter text-[10px] tracking-[0.3em] text-dbz-blue-light/70 uppercase">
+						Capteur de Ki · localise une puissance cachée (1-100)
+					</p>
 					<label className="block">
 						<span className="font-saiyan uppercase tracking-widest text-sm text-dbz-yellow">
 							Mise (optionnelle, en zénis)
@@ -146,36 +159,58 @@ export function BingoGame() {
 						disabled={pending}
 						className="dbz-button w-full disabled:opacity-40"
 					>
-						{pending ? "…" : "DÉMARRER"}
+						{pending ? "…" : "CALIBRER LE CAPTEUR"}
 					</button>
 				</div>
 			)}
 
 			{token && !ended && (
-				<div className="dbz-panel p-6 space-y-4">
-					<div className="text-center">
-						<div className="font-scouter text-xs tracking-widest text-dbz-blue-light/70 mb-1">
-							ESSAIS // {attempts.length} / 10
+				<div
+					className={`dbz-panel p-6 space-y-4 relative overflow-hidden hud-frame ${fx.scanSweep}`}
+				>
+					{/* Onde de scan à chaque mesure de Ki */}
+					<KiShock trigger={scanPulse || null} color={reactorColor} />
+					<div className="flex items-center justify-center gap-4">
+						<KiReactor
+							color={reactorColor}
+							active={pending}
+							className="w-12 h-12"
+						/>
+						<div className="text-center">
+							<div className="font-scouter text-xs tracking-widest text-dbz-blue-light/70 mb-0.5">
+								SCANS // {attempts.length} / 10
+							</div>
+							<div className="font-scouter text-[10px] tracking-widest uppercase">
+								{lastHint ? (
+									<span className={HINT_LABEL[lastHint].color}>
+										{HINT_LABEL[lastHint].txt}
+									</span>
+								) : (
+									<span className="text-dbz-orange/70">
+										Aucun signal · lance un scan
+									</span>
+								)}
+							</div>
 						</div>
-						<div className="flex justify-center gap-1 mb-4">
-							{Array.from({ length: 10 }, (_, i) => (
-								<div
-									key={i}
-									className={`w-4 h-4 border ${
-										i < attempts.length
-											? "border-dbz-orange bg-dbz-orange"
-											: "border-dbz-border"
-									}`}
-								/>
-							))}
-						</div>
+					</div>
+					<div className="flex justify-center gap-1">
+						{Array.from({ length: 10 }, (_, i) => (
+							<div
+								key={i}
+								className={`w-4 h-4 border transition-all ${
+									i < attempts.length
+										? "border-dbz-orange bg-dbz-orange shadow-[0_0_8px_var(--color-dbz-orange)]"
+										: "border-dbz-border"
+								}`}
+							/>
+						))}
 					</div>
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
 							submitGuess();
 						}}
-						className="flex gap-2"
+						className="flex gap-2 relative z-10"
 					>
 						<input
 							type="number"
@@ -184,7 +219,7 @@ export function BingoGame() {
 							value={guess}
 							onChange={(e) => setGuess(e.target.value)}
 							autoFocus
-							placeholder="1-100"
+							placeholder="Puissance estimée 1-100"
 							className="flex-1 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-3 font-mono text-xl text-center"
 							disabled={pending}
 						/>
@@ -193,7 +228,7 @@ export function BingoGame() {
 							disabled={pending || !guess}
 							className="dbz-button !text-base disabled:opacity-40"
 						>
-							OK
+							SCAN
 						</button>
 					</form>
 				</div>
@@ -201,28 +236,35 @@ export function BingoGame() {
 
 			{ended && (
 				<div
-					className={`dbz-panel p-5 border-l-8 ${ended.hint === "match" ? "border-green-400" : "border-red-400"}`}
+					className={`dbz-panel p-5 border-l-8 relative overflow-hidden ${ended.hint === "match" ? "border-green-400" : `border-red-400 ${fx.shake}`}`}
 				>
-					<div className="flex items-baseline justify-between mb-2">
+					{/* Verrouillage de Ki réussi → flash vert ; signal perdu → shake */}
+					<KiShock
+						trigger={ended.hint === "match" ? `win-${ended.target}` : null}
+						color="green"
+						flash
+					/>
+					<div className="flex items-baseline justify-between mb-2 relative z-10">
 						<span
 							className={`font-saiyan text-3xl ${ended.hint === "match" ? "text-green-400" : "text-red-400"}`}
 						>
-							{ended.hint === "match" ? "VICTOIRE" : "DÉFAITE"}
+							{ended.hint === "match" ? "KI VERROUILLÉ" : "SIGNAL PERDU"}
 						</span>
 						<span className="font-scouter text-xs tracking-widest text-dbz-blue-light">
 							Solde : {ended.balance} z
 						</span>
 					</div>
-					<p className="font-mono text-sm text-dbz-blue-light">
-						C'était{" "}
+					<p className="font-mono text-sm text-dbz-blue-light relative z-10">
+						Puissance cible :{" "}
 						<span className="text-dbz-yellow font-bold text-lg">
 							{ended.target}
 						</span>{" "}
-						· trouvé en {ended.attempts} essai{ended.attempts > 1 ? "s" : ""}
+						· localisée en {ended.attempts} scan
+						{ended.attempts > 1 ? "s" : ""}
 					</p>
 					{ended.delta !== 0 && (
 						<p
-							className={`font-saiyan text-xl mt-2 ${ended.delta > 0 ? "text-green-400" : "text-red-400"}`}
+							className={`font-saiyan text-xl mt-2 relative z-10 ${ended.delta > 0 ? "text-green-400" : "text-red-400"}`}
 						>
 							{ended.delta > 0 ? "+" : ""}
 							{ended.delta} z
@@ -231,7 +273,7 @@ export function BingoGame() {
 					<button
 						type="button"
 						onClick={reset}
-						className="dbz-button mt-4 !text-sm"
+						className="dbz-button mt-4 !text-sm relative z-10"
 					>
 						REJOUER
 					</button>
@@ -241,7 +283,7 @@ export function BingoGame() {
 			{attempts.length > 0 && (
 				<div className="dbz-panel p-4">
 					<h3 className="font-saiyan text-sm text-dbz-blue-light mb-2 uppercase tracking-widest">
-						Historique
+						Journal des scans
 					</h3>
 					<ul className="text-xs font-mono space-y-1 max-h-40 overflow-y-auto">
 						{attempts.map((a, i) => (

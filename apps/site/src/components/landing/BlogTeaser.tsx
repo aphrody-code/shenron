@@ -69,7 +69,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 								</p>
 								<div className="flex items-center gap-2.5 pt-4 border-t border-white/[0.06]">
 									{p.author.avatar && (
-										// eslint-disable-next-line @next/next/no-img-element
+										 
 										<img
 											src={p.author.avatar}
 											alt=""

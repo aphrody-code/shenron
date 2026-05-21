@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { sfx } from "@/lib/sfx";
+import { KiShock } from "@/components/games/KiFx";
+import fx from "@/components/games/games.module.css";
 
 type Cell = "." | "X" | "O";
 type Outcome =
@@ -45,17 +47,28 @@ function CellButton({
 			type="button"
 			onClick={onClick}
 			disabled={disabled || !empty}
-			className={`aspect-square flex items-center justify-center text-5xl font-saiyan border-2 transition-colors ${
+			style={{
+				boxShadow: highlighted
+					? "0 0 18px rgba(74,222,128,0.7), inset 0 0 12px rgba(74,222,128,0.4)"
+					: value === "X"
+						? "inset 0 0 14px rgba(75,168,255,0.35)"
+						: value === "O"
+							? "inset 0 0 14px rgba(255,178,0,0.3)"
+							: undefined,
+			}}
+			className={`aspect-square flex items-center justify-center text-5xl font-saiyan border-2 transition-all ${
 				highlighted
-					? "border-green-400 bg-green-400/10 text-green-400"
+					? "border-green-400 bg-green-400/10 text-green-400 ki-pulse"
 					: empty
-						? "border-dbz-border hover:border-dbz-orange hover:bg-dbz-orange/10 text-dbz-orange"
+						? "border-dbz-border hover:border-dbz-orange hover:bg-dbz-orange/10 text-dbz-orange hover:scale-[1.03]"
 						: value === "X"
 							? "border-dbz-blue-light bg-dbz-blue-light/10 text-dbz-blue-light"
 							: "border-dbz-orange/60 bg-dbz-orange/10 text-dbz-orange"
 			} disabled:cursor-not-allowed`}
 		>
-			{empty ? "" : value}
+			<span className={empty ? "" : "drop-shadow-[0_0_8px_currentColor]"}>
+				{empty ? "" : value}
+			</span>
 		</button>
 	);
 }
@@ -64,6 +77,7 @@ export function MorpionGame() {
 	const [state, setState] = useState<ApiState | null>(null);
 	const [stake, setStake] = useState("");
 	const [error, setError] = useState<string | null>(null);
+	const [endPulse, setEndPulse] = useState(0);
 	const [pending, startTransition] = useTransition();
 
 	async function call(payload: {
@@ -113,9 +127,13 @@ export function MorpionGame() {
 			if (next) {
 				setState(next);
 				if (next.outcome.kind === "won") {
+					setEndPulse((p) => p + 1);
 					if (next.outcome.mark === "X") sfx.win();
 					else sfx.lose();
-				} else if (next.outcome.kind === "draw") sfx.draw();
+				} else if (next.outcome.kind === "draw") {
+					setEndPulse((p) => p + 1);
+					sfx.draw();
+				}
 			}
 		});
 	}
@@ -131,7 +149,10 @@ export function MorpionGame() {
 	return (
 		<div className="space-y-6">
 			{!state && (
-				<div className="dbz-panel p-6 space-y-4">
+				<div className="dbz-panel p-6 space-y-4 hud-frame">
+					<p className="text-center font-scouter text-[10px] tracking-[0.3em] text-dbz-blue-light/70 uppercase">
+						Duel de Ki · ton aura (X) contre le bot (O)
+					</p>
 					<label className="block">
 						<span className="font-saiyan uppercase tracking-widest text-sm text-dbz-yellow">
 							Mise (optionnelle, en zénis)
@@ -160,8 +181,35 @@ export function MorpionGame() {
 
 			{state && (
 				<>
-					<div className="dbz-panel p-6">
-						<div className="grid grid-cols-3 gap-2">
+					<div className="dbz-panel p-6 relative overflow-hidden hud-frame hud-scanlines">
+						{/* Légende des combattants (auras Ki) */}
+						<div className="flex items-center justify-between mb-3 font-scouter text-[10px] tracking-widest uppercase">
+							<span className="text-dbz-blue-light flex items-center gap-1">
+								<span className="text-dbz-blue-light text-lg drop-shadow-[0_0_6px_currentColor]">
+									X
+								</span>
+								Ki Saiyan
+							</span>
+							<span className="text-dbz-orange flex items-center gap-1">
+								Ki Bot
+								<span className="text-dbz-orange text-lg drop-shadow-[0_0_6px_currentColor]">
+									O
+								</span>
+							</span>
+						</div>
+						{/* Onde de choc + flash quand le duel se résout */}
+						<KiShock
+							trigger={endPulse || null}
+							color={
+								state.outcome.kind === "won"
+									? state.outcome.mark === "X"
+										? "green"
+										: "red"
+									: "yellow"
+							}
+							flash={state.outcome.kind === "won" && state.outcome.mark === "X"}
+						/>
+						<div className="grid grid-cols-3 gap-2 relative z-10">
 							{state.board.map((v, i) => (
 								<CellButton
 									key={i}
@@ -175,7 +223,11 @@ export function MorpionGame() {
 					</div>
 
 					{finishedKey && (
-						<div className="dbz-panel p-5 border-l-8 border-dbz-yellow">
+						<div
+							className={`dbz-panel p-5 border-l-8 border-dbz-yellow ${
+								finishedKey === "won-O" ? fx.shake : ""
+							}`}
+						>
 							<div className="flex items-baseline justify-between mb-2">
 								<span
 									className={`font-saiyan text-3xl ${OUTCOME_LABEL[finishedKey].color}`}

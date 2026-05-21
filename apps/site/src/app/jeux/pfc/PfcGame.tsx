@@ -2,11 +2,32 @@
 
 import { useState, useTransition } from "react";
 import { sfx } from "@/lib/sfx";
+import { KiAura, KiShock } from "@/components/games/KiFx";
+import fx from "@/components/games/games.module.css";
 
+// Pierre/Feuille/Ciseaux thématisés "techniques de Ki" Dragon Ball.
 const CHOICES = [
-	{ value: "pierre", label: "Pierre", emoji: "🪨" },
-	{ value: "feuille", label: "Feuille", emoji: "📄" },
-	{ value: "ciseaux", label: "Ciseaux", emoji: "✂️" },
+	{
+		value: "pierre",
+		label: "Pierre",
+		emoji: "🪨",
+		ki: "Genki-Dama",
+		aura: "blue" as const,
+	},
+	{
+		value: "feuille",
+		label: "Feuille",
+		emoji: "📄",
+		ki: "Kienzan",
+		aura: "green" as const,
+	},
+	{
+		value: "ciseaux",
+		label: "Ciseaux",
+		emoji: "✂️",
+		ki: "Kamehameha",
+		aura: "orange" as const,
+	},
 ] as const;
 
 type Choice = (typeof CHOICES)[number]["value"];
@@ -39,6 +60,7 @@ const RESULT_TEXT = {
 export function PfcGame() {
 	const [stake, setStake] = useState<string>("");
 	const [history, setHistory] = useState<ApiResult[]>([]);
+	const [clash, setClash] = useState(0);
 	const [pending, startTransition] = useTransition();
 
 	function play(choice: Choice) {
@@ -65,6 +87,7 @@ export function PfcGame() {
 				}
 				setHistory((h) => [data, ...h.slice(0, 19)]);
 				if (data.ok) {
+					setClash((c) => c + 1);
 					if (data.result === "win") sfx.win();
 					else if (data.result === "lose") sfx.lose();
 					else sfx.draw();
@@ -102,25 +125,47 @@ export function PfcGame() {
 
 				<div className="grid grid-cols-3 gap-3">
 					{CHOICES.map((c) => (
-						<button
+						<KiAura
 							key={c.value}
-							type="button"
-							onClick={() => play(c.value)}
-							disabled={pending}
-							className="dbz-button !text-base flex flex-col items-center gap-1 py-4 disabled:opacity-40 disabled:cursor-not-allowed"
+							color={c.aura}
+							className={`rounded-lg ${pending ? "" : fx.float}`}
 						>
-							<span className="text-3xl">{c.emoji}</span>
-							<span>{c.label}</span>
-						</button>
+							<button
+								type="button"
+								onClick={() => play(c.value)}
+								disabled={pending}
+								className="dbz-button !text-base flex flex-col items-center gap-1 py-4 w-full disabled:opacity-40 disabled:cursor-not-allowed"
+							>
+								<span className="text-3xl">{c.emoji}</span>
+								<span>{c.label}</span>
+								<span className="font-scouter text-[9px] tracking-[0.2em] opacity-80">
+									{c.ki}
+								</span>
+							</button>
+						</KiAura>
 					))}
 				</div>
 			</div>
 
 			{lastSuccess && (
 				<div
-					className={`dbz-panel p-6 border-l-8 ${RESULT_TEXT[lastSuccess.result].border}`}
+					className={`dbz-panel p-6 border-l-8 relative overflow-hidden ${RESULT_TEXT[lastSuccess.result].border} ${
+						lastSuccess.result === "lose" ? fx.shake : ""
+					}`}
 				>
-					<div className="flex items-baseline justify-between mb-3">
+					{/* Onde de choc du clash de Ki + flash sur victoire */}
+					<KiShock
+						trigger={clash || null}
+						color={
+							lastSuccess.result === "win"
+								? "green"
+								: lastSuccess.result === "lose"
+									? "red"
+									: "yellow"
+						}
+						flash={lastSuccess.result === "win"}
+					/>
+					<div className="flex items-baseline justify-between mb-3 relative z-10">
 						<span
 							className={`font-saiyan text-3xl ${RESULT_TEXT[lastSuccess.result].color}`}
 						>
@@ -130,18 +175,23 @@ export function PfcGame() {
 							Solde : {lastSuccess.balance} z
 						</span>
 					</div>
-					<div className="flex items-center justify-center gap-6 text-5xl py-4">
+					<div
+						className={`flex items-center justify-center gap-6 text-5xl py-4 relative z-10 ${fx.impactIn}`}
+						key={clash}
+					>
 						<span>
 							{CHOICES.find((c) => c.value === lastSuccess.player)?.emoji}
 						</span>
-						<span className="font-saiyan text-dbz-orange text-2xl">VS</span>
+						<span className="font-saiyan text-dbz-orange text-2xl ki-pulse">
+							VS
+						</span>
 						<span>
 							{CHOICES.find((c) => c.value === lastSuccess.bot)?.emoji}
 						</span>
 					</div>
 					{lastSuccess.delta !== 0 && (
 						<p
-							className={`text-center font-saiyan text-xl ${lastSuccess.delta > 0 ? "text-green-400" : "text-red-400"}`}
+							className={`text-center font-saiyan text-xl relative z-10 ${lastSuccess.delta > 0 ? "text-green-400" : "text-red-400"}`}
 						>
 							{lastSuccess.delta > 0 ? "+" : ""}
 							{lastSuccess.delta} z

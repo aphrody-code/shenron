@@ -62,7 +62,7 @@ export function PersonasShowcase({
 											<div
 												className={`absolute -inset-1 rounded-full bg-${hue} opacity-30 blur-md group-hover:opacity-70 transition-opacity`}
 											/>
-											{/* eslint-disable-next-line @next/next/no-img-element */}
+											{ }
 											<img
 												src={p.avatar!}
 												alt={p.name}
