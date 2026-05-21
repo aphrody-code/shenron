@@ -89,33 +89,43 @@ export class NewsService {
 		const body = raw || embedText;
 		const image = this.extractImage(message);
 
-		// Nettoie les tokens Discord (mentions rôle/user/salon, custom emoji,
-		// @everyone/@here) qui feraient de mauvais titres/extraits.
-		const clean = (s: string) =>
+		// Retire seulement les tokens Discord (mentions rôle/user/salon, custom
+		// emoji, @everyone/@here) — on PRÉSERVE le markdown (gras, listes, liens)
+		// pour que le site puisse le rendre via react-markdown.
+		const stripTokens = (s: string) =>
 			s
-				.replace(/<a?:\w+:\d+>/g, "") // custom emoji
+				.replace(/<a?:(\w+):\d+>/g, ":$1:") // custom emoji → :nom:
 				.replace(/<[@#][!&]?\d+>/g, "") // mentions
 				.replace(/@everyone|@here/g, "")
-				.replace(/^[#>*\-\s]+/, "")
+				.replace(/[ \t]+/g, " ")
 				.trim();
+		// Pour le titre : en plus, on enlève la syntaxe markdown de tête (#, >, *, -).
+		const titleLine = (s: string) => stripTokens(s).replace(/^[#>*\-\s]+/, "").trim();
 
-		const lines = body
-			.split("\n")
-			.map(clean)
-			.filter(Boolean);
+		const lines = body.split("\n").map(stripTokens);
+		const nonEmpty = lines.filter(Boolean);
 
 		// Rien d'exploitable (que des mentions/emoji) et pas d'image → on saute.
-		if (lines.length === 0 && !image) return false;
+		if (nonEmpty.length === 0 && !image) return false;
 
 		const channelName =
 			message.channel && "name" in message.channel
 				? (message.channel.name ?? "Annonce")
 				: "Annonce";
-		const title = (lines[0] ?? message.embeds[0]?.title ?? channelName).slice(
-			0,
-			NEWS_TITLE_MAX,
-		);
-		const excerpt = lines.slice(1).join(" ").slice(0, NEWS_EXCERPT_MAX) || null;
+		const title = (
+			titleLine(nonEmpty[0] ?? "") ||
+			message.embeds[0]?.title ||
+			channelName
+		).slice(0, NEWS_TITLE_MAX);
+		// Excerpt = corps après la 1re ligne, markdown préservé (newlines compris).
+		const firstIdx = lines.findIndex(Boolean);
+		const excerpt =
+			lines
+				.slice(firstIdx + 1)
+				.join("\n")
+				.replace(/\n{3,}/g, "\n\n")
+				.trim()
+				.slice(0, NEWS_EXCERPT_MAX) || null;
 
 		await this.saveNews({
 			sourceId: `discord:${message.channelId}`,
