@@ -18,7 +18,7 @@ const FEATURES: Feature[] = [
 	},
 	{
 		title: "Wiki Dragon Ball",
-		desc: "58 personnages, 20 planètes, noms japonais et romaji. Toute la saga à portée de main.",
+		desc: "58 personnages, 20 planètes, noms japonais et romaji.",
 		href: "/wiki",
 		cta: "Explorer",
 		accent: "cyan",
@@ -83,14 +83,12 @@ export function FeaturesGrid() {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-dbz-border">
 			<div className="container mx-auto px-4">
-				<div
-					className="text-center mb-16"
-				>
+				<div className="text-center mb-16">
 					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">
 						EXPLORER
 					</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
-						L'univers Dragon Ball, à portée de clic.
+						De quoi faire grimper ton Power Level.
 					</h2>
 				</div>
 
@@ -98,9 +96,7 @@ export function FeaturesGrid() {
 					{FEATURES.map((f, i) => {
 						const a = ACCENT_MAP[f.accent];
 						return (
-							<div
-								key={f.title}
-							>
+							<div key={f.title}>
 								<Link
 									href={f.href}
 									className={`dbz-panel p-6 block h-full group hover:!${a.border} transition-all`}

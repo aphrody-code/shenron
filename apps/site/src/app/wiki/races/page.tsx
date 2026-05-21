@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: "Races Dragon Ball — DBFR",
 	description:
-		"Découvrez les différentes races de l'univers Dragon Ball : Saiyans, Nameks, Humains, Cyborgs, Démons du Froid...",
+		"Les races de l'univers Dragon Ball : Saiyans, Nameks, Humains, Cyborgs, Démons du Froid.",
 };
 
 export default async function RacesPage() {
@@ -21,7 +21,7 @@ export default async function RacesPage() {
 			<PageHero
 				eyebrow="Wiki"
 				title="Races & Peuples"
-				lead="L'univers Dragon Ball regorge de peuples aux capacités uniques. Explorez les origines et les spécificités de chaque race."
+				lead="Saiyans, Nameks, Humains, Cyborgs et Démons du Froid : origines, capacités et spécificités de chaque race."
 				image={SAGAS_HERO}
 				imageAlt="Races Dragon Ball"
 			/>
@@ -39,7 +39,9 @@ export default async function RacesPage() {
 								<h2 className="text-3xl font-saiyan text-white group-hover:text-dbz-orange transition-colors tracking-widest">
 									{race.name}
 								</h2>
-								<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">→</span>
+								<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
+									→
+								</span>
 							</div>
 							{race.nameJa && (
 								<p className="font-jp text-lg text-dbz-orange/60 mb-4">

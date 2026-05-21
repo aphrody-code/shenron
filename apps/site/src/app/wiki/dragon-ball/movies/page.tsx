@@ -14,7 +14,8 @@ export default async function MoviesPage() {
 						Films & Hors-Séries
 					</h1>
 					<p className="mt-2 text-zinc-400">
-						Découvrez la liste complète des films et épisodes spéciaux Dragon Ball.
+						Tous les films et épisodes spéciaux Dragon Ball, avec dates, durées
+						et synopsis.
 					</p>
 				</div>
 				<Link
@@ -59,7 +60,9 @@ export default async function MoviesPage() {
 									{movie.title}
 								</h2>
 								{movie.titleJa && (
-									<p className="text-sm text-zinc-500 italic">{movie.titleJa}</p>
+									<p className="text-sm text-zinc-500 italic">
+										{movie.titleJa}
+									</p>
 								)}
 							</div>
 

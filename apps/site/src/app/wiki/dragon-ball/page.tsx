@@ -21,7 +21,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: "Wiki complet Dragon Ball — DBFR",
 	description:
-		"Encyclopédie Dragon Ball la plus complète. Personnages canon, planètes, transformations. Fiches avec ki, noms japonais, romaji.",
+		"Encyclopédie Dragon Ball : personnages canon, planètes, transformations. Fiches avec ki, noms japonais et romaji.",
 };
 
 export default async function DragonBallWikiIndex() {
@@ -41,7 +41,6 @@ export default async function DragonBallWikiIndex() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-32">
-				
 				<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
 					<div className="flex items-center gap-6 mb-12">
 						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
@@ -69,7 +68,9 @@ export default async function DragonBallWikiIndex() {
 										/>
 									) : (
 										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-4xl">?</span>
+											<span className="text-zinc-700 font-saiyan text-4xl">
+												?
+											</span>
 										</div>
 									)}
 									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
@@ -78,7 +79,9 @@ export default async function DragonBallWikiIndex() {
 											{movie.title}
 										</h3>
 										<p className="font-display text-[10px] tracking-[0.2em] uppercase text-dbz-orange/80 mt-2">
-											{movie.series.replace("_MOVIE", "").replace("_SPECIAL", "")}
+											{movie.series
+												.replace("_MOVIE", "")
+												.replace("_SPECIAL", "")}
 										</p>
 									</div>
 								</div>
@@ -86,9 +89,14 @@ export default async function DragonBallWikiIndex() {
 						))}
 					</div>
 					<div className="mt-12 text-center">
-						<Link href="/wiki/dragon-ball/movies" className="dbz-button-ghost group">
+						<Link
+							href="/wiki/dragon-ball/movies"
+							className="dbz-button-ghost group"
+						>
 							<span>Voir tous les films</span>
-							<span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+							<span className="ml-2 group-hover:translate-x-1 transition-transform">
+								→
+							</span>
 						</Link>
 					</div>
 				</section>
@@ -129,7 +137,10 @@ export default async function DragonBallWikiIndex() {
 												</p>
 											)}
 											{char.nameJa && (
-												<p className="text-[10px] text-white/40 font-bold" style={{ fontFamily: '"Noto Sans JP", sans-serif' }}>
+												<p
+													className="text-[10px] text-white/40 font-bold"
+													style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
+												>
 													{char.nameJa}
 												</p>
 											)}
@@ -169,7 +180,10 @@ export default async function DragonBallWikiIndex() {
 											{planet.name}
 										</h3>
 										{planet.nameJa && (
-											<p className="text-xs text-dbz-blue-light/60 mt-1 font-bold tracking-widest" style={{ fontFamily: '"Noto Sans JP", sans-serif' }}>
+											<p
+												className="text-xs text-dbz-blue-light/60 mt-1 font-bold tracking-widest"
+												style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
+											>
 												{planet.nameJa}
 											</p>
 										)}
@@ -207,7 +221,9 @@ export default async function DragonBallWikiIndex() {
 										/>
 									) : (
 										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-4xl">GAME</span>
+											<span className="text-zinc-700 font-saiyan text-4xl">
+												GAME
+											</span>
 										</div>
 									)}
 									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
@@ -226,7 +242,6 @@ export default async function DragonBallWikiIndex() {
 						))}
 					</div>
 				</section>
-				
 			</div>
 		</div>
 	);

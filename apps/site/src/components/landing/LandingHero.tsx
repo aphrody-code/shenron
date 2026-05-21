@@ -58,8 +58,7 @@ export function LandingHero() {
 						actualités anime &amp; manga.
 					</p>
 					<p className="text-sm text-white/60 mb-10 max-w-md">
-						Et une communauté Discord vivante pour partager théories, news et
-						fan-arts.
+						Et un serveur Discord pour partager théories, news et fan-arts.
 					</p>
 
 					<div className="flex flex-wrap items-center gap-4">

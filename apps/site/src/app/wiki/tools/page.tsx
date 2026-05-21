@@ -10,7 +10,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: "Outils & Modding Dragon Ball — DBFR",
 	description:
-		"Découvrez les outils communautaires pour Dragon Ball : modding, shaders, API publiques et utilitaires de recherche.",
+		"Outils communautaires Dragon Ball : modding, shaders, API publiques et utilitaires de recherche.",
 };
 
 export default async function ToolsPage() {
@@ -29,14 +29,14 @@ export default async function ToolsPage() {
 			<PageHero
 				eyebrow="Communauté"
 				title="Outils & Modding"
-				lead="Explorez les projets techniques de la communauté Dragon Ball. Outils de modification, shaders FighterZ, et APIs de données."
+				lead="Les projets techniques de la communauté : outils de modification, shaders FighterZ et APIs de données."
 				image={SAGAS_HERO}
 				imageAlt="Modding Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
 				{Object.entries(categories).map(([key, label]) => {
-					const catTools = tools.filter(t => t.category === key);
+					const catTools = tools.filter((t) => t.category === key);
 					if (catTools.length === 0) return null;
 
 					return (

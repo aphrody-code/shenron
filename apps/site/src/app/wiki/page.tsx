@@ -55,8 +55,8 @@ export default function WikiIndex() {
 					ARCHIVES SHENRON
 				</h1>
 				<p className="text-xl text-gray-400 max-w-2xl leading-relaxed">
-					Bienvenue dans la base de données la plus complète sur l'univers de Dragon Ball. 
-					Sélectionnez une section pour commencer votre exploration.
+					Personnages, planètes, races, techniques, manga et actualités Dragon
+					Ball. Tout est là, en français.
 				</p>
 			</header>
 
@@ -72,9 +72,7 @@ export default function WikiIndex() {
 						<h2 className="text-2xl font-saiyan uppercase tracking-widest mb-2 group-hover:translate-x-1 transition-transform">
 							{s.title}
 						</h2>
-						<p className="text-gray-400 text-sm font-sans">
-							{s.desc}
-						</p>
+						<p className="text-gray-400 text-sm font-sans">{s.desc}</p>
 					</Link>
 				))}
 			</div>
@@ -82,10 +80,12 @@ export default function WikiIndex() {
 			<section className="mt-20 dbz-panel p-10 bg-dbz-card/30 border-t-4 border-t-dbz-orange relative overflow-hidden">
 				<div className="absolute inset-0 halftone opacity-5 pointer-events-none" />
 				<div className="relative z-10">
-					<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">CONTRIBUTION</h2>
+					<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
+						CONTRIBUTION
+					</h2>
 					<p className="text-gray-300 max-w-3xl mb-8">
-						Ces archives sont alimentées par les données de l'API Shenron et enrichies par la communauté. 
-						Si vous repérez une erreur ou souhaitez ajouter du contenu, contactez l'équipe sur Discord.
+						Ces archives s'appuient sur l'API Shenron et sur les ajouts de la
+						communauté. Une erreur, un manque ? Signale-le sur Discord.
 					</p>
 					<Link href="/about" className="dbz-button-ghost">
 						EN SAVOIR PLUS
@@ -95,5 +95,3 @@ export default function WikiIndex() {
 		</div>
 	);
 }
-
-
