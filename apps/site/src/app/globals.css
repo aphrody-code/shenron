@@ -8,9 +8,13 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-display: var(--font-display);
+  /* Display = Google Sans Flex aussi (hiérarchie par le poids, façon Google). */
+  --font-display: var(--font-sans);
   --font-jp: var(--font-jp);
-  --font-saiyan: var(--font-saiyan);
+  /* `font-saiyan` remappé sur Google Sans Flex : les ~89 titres de hero du wiki
+     deviennent lisibles sans toucher chaque composant. Pour réactiver SaiyanSans,
+     remettre `var(--font-saiyan-raw)` (injecté par le localFont dans layout.tsx). */
+  --font-saiyan: var(--font-sans);
   --font-scouter: var(--font-scouter);
 
   /* === Palette fusion design.google × Xenoverse 2 ===
@@ -68,9 +72,13 @@
   html {
     @apply font-sans;
     color-scheme: dark;
+    /* Optical sizing auto = l'axe opsz adapte les formes à la taille (lisibilité). */
+    font-optical-sizing: auto;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-saiyan tracking-wider font-normal;
+    /* Titres en Google Sans Flex (lisible) plutôt que SaiyanSans. La police DBZ
+       reste dispo via l'utilitaire `.font-saiyan` pour les accents de marque. */
+    @apply font-display font-bold tracking-tight;
     color: #f0f0ff;
   }
   ::selection {
@@ -256,7 +264,7 @@
     clip-path: polygon(0 0, 100% 0, 99% 100%, 0 98%, 0 4%);
   }
   .title-jagged {
-    font-family: var(--font-saiyan);
+    font-family: var(--font-sans);
     background: var(--gradient-galactic);
     background-clip: text;
     -webkit-background-clip: text;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Oswald, Noto_Sans_JP } from "next/font/google";
+import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import dynamic from "next/dynamic";
 import { SiteNav } from "@/components/SiteNav";
@@ -11,23 +11,16 @@ const DiscordInviteFAB = dynamic(() =>
 	import("@/components/DiscordInviteFAB").then((m) => m.DiscordInviteFAB),
 );
 
-// Google Sans Flex — police corps officielle Google, publiée sur Google Fonts
-// (fonts.google.com/specimen/Google+Sans+Flex). Servie en local (TTF v20 de
-// fonts.gstatic.com) car next/font/google n'a pas encore Google Sans Flex
-// dans son registry. Variable font avec axes wght+wdth+ital.
+// Google Sans Flex — police officielle Google, open-source 2025 (variable font,
+// axes opsz 6→144 + wght 1→1000). Servie en local depuis le woff2 v20 de
+// fonts.gstatic.com (next/font/google ne l'a pas encore dans son registry).
+// Sert à la fois de corps (--font-sans) ET de police d'affichage (--font-display,
+// mappé dans globals.css) : hiérarchie pilotée par le poids, façon design Google.
 const sansFlex = localFont({
-	src: "../../public/fonts/google-sans-flex.ttf",
+	src: "../../public/fonts/google-sans-flex.woff2",
 	variable: "--font-sans",
 	display: "swap",
-	weight: "100 900", // variable axes
-});
-
-// Oswald — police signature du site Dragon Ball officiel (nav + titres)
-const oswald = Oswald({
-	variable: "--font-display",
-	subsets: ["latin"],
-	weight: ["400", "500", "600", "700"],
-	display: "swap",
+	weight: "1 1000", // axe wght variable
 });
 
 // Noto Sans JP — utilisé sur le site DB officiel pour le corps
@@ -38,9 +31,12 @@ const notoJP = Noto_Sans_JP({
 	display: "swap",
 });
 
+// SaiyanSans conservée mais NON rendue par défaut (token `font-saiyan` remappé
+// sur Google Sans Flex dans globals.css pour la lisibilité). Exposée en
+// `--font-saiyan-raw` pour réactiver l'accent de marque ponctuellement si besoin.
 const saiyanSans = localFont({
 	src: "../../public/fonts/SaiyanSans.ttf",
-	variable: "--font-saiyan",
+	variable: "--font-saiyan-raw",
 	display: "swap",
 });
 
@@ -51,7 +47,7 @@ const dbScouter = localFont({
 });
 
 export const metadata: Metadata = {
-        metadataBase: new URL("https://shenron.rpbey.fr"),
+	metadataBase: new URL("https://shenron.rpbey.fr"),
 
 	title: {
 		default: "DBFR — Dragon Ball France",
@@ -96,7 +92,7 @@ export default function RootLayout({
 	return (
 		<html lang="fr" className="dark">
 			<body
-				className={`${sansFlex.variable} ${oswald.variable} ${notoJP.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
+				className={`${sansFlex.variable} ${notoJP.variable} ${saiyanSans.variable} ${dbScouter.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
 				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
 				<div className="scroll-progress" aria-hidden />

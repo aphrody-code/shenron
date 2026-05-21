@@ -82,10 +82,6 @@ const TECH = [
 		link: "https://fonts.google.com/specimen/Google+Sans+Flex",
 	},
 	{
-		name: "Oswald (Google Fonts)",
-		link: "https://fonts.google.com/specimen/Oswald",
-	},
-	{
 		name: "Noto Sans JP (Google Fonts)",
 		link: "https://fonts.google.com/specimen/Noto+Sans+JP",
 	},
