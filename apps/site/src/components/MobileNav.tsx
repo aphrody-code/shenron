@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
+import { SignOut } from "@/components/SignOut";
 
 type Props = {
 	links: Array<{ href: string; label: string }>;
@@ -77,25 +78,30 @@ export function MobileNav({
 							</Link>
 						)}
 						{authenticated ? (
-							<Link
-								href="/profil/me"
-								onClick={() => setOpen(false)}
-								className="flex items-center gap-3 bg-white/[0.06] rounded-full p-1 pr-4"
-							>
-								{avatar && (
-									/* eslint-disable-next-line @next/next/no-img-element */
-									<img
-										src={avatar}
-										alt=""
-										width={36}
-										height={36}
-										className="w-9 h-9 rounded-full"
-									/>
-								)}
-								<span className="text-white text-sm font-medium">
-									{username ?? "Mon profil"}
-								</span>
-							</Link>
+							<>
+								<Link
+									href="/profil/me"
+									onClick={() => setOpen(false)}
+									className="flex items-center gap-3 bg-white/[0.06] rounded-full p-1 pr-4"
+								>
+									{avatar && (
+										/* eslint-disable-next-line @next/next/no-img-element */
+										<img
+											src={avatar}
+											alt=""
+											width={36}
+											height={36}
+											className="w-9 h-9 rounded-full"
+										/>
+									)}
+									<span className="text-white text-sm font-medium">
+										{username ?? "Mon profil"}
+									</span>
+								</Link>
+								<SignOut className="text-center font-display font-semibold text-[13px] tracking-[0.12em] uppercase text-white/70 border border-white/15 rounded-full py-3 hover:text-dbz-orange hover:border-dbz-orange/50 transition-colors disabled:opacity-50">
+									Déconnexion
+								</SignOut>
+							</>
 						) : (
 							<SignInDiscord className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-[0.10em] uppercase transition-colors">
 								Connexion
