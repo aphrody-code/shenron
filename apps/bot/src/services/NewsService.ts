@@ -88,13 +88,30 @@ export class NewsService {
 			.trim();
 		const body = raw || embedText;
 		const image = this.extractImage(message);
-		if (!body && !image) return false;
+
+		// Nettoie les tokens Discord (mentions rôle/user/salon, custom emoji,
+		// @everyone/@here) qui feraient de mauvais titres/extraits.
+		const clean = (s: string) =>
+			s
+				.replace(/<a?:\w+:\d+>/g, "") // custom emoji
+				.replace(/<[@#][!&]?\d+>/g, "") // mentions
+				.replace(/@everyone|@here/g, "")
+				.replace(/^[#>*\-\s]+/, "")
+				.trim();
 
 		const lines = body
 			.split("\n")
-			.map((l) => l.replace(/^[#>*\-\s]+/, "").trim())
+			.map(clean)
 			.filter(Boolean);
-		const title = (lines[0] ?? message.embeds[0]?.title ?? "Annonce").slice(
+
+		// Rien d'exploitable (que des mentions/emoji) et pas d'image → on saute.
+		if (lines.length === 0 && !image) return false;
+
+		const channelName =
+			message.channel && "name" in message.channel
+				? (message.channel.name ?? "Annonce")
+				: "Annonce";
+		const title = (lines[0] ?? message.embeds[0]?.title ?? channelName).slice(
 			0,
 			NEWS_TITLE_MAX,
 		);
