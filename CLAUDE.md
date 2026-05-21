@@ -87,6 +87,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 - **Bot** : `bun:sqlite` via Drizzle. Migrations dans `apps/bot/drizzle/`. Fichier prod : `apps/bot/data/bot.db`.
 - **Site** : Postgres via Drizzle. Migrations dans `apps/site/drizzle/`. URL via `DATABASE_URL`.
 - Schéma partagé conceptuellement mais **physiquement séparé** (provider différent). Préfixe `ba_` pour better-auth tables (`ba_user`, `ba_session`, `ba_account`, `ba_verification`).
+- **Miroir SQLite → Neon** : `apps/bot/scripts/sync-sqlite-to-neon.ts` recopie toutes les tables métier de `bot.db` dans le schéma Postgres **`bot`** du Neon du site (isolé de `public.*`, idempotent DROP+CREATE+INSERT en transaction, FTS5/`ba_*`/migrations exclus). Timer VPS `shenron-neon-sync.timer` (toutes les 30 min). Connexion Neon dans `/home/ubuntu/.shenron-neon.env` (600, hors repo). Le site peut donc lire `bot.*` en plus du proxy API. Vérifié : 39 tables, ~9.8k lignes, 0 mismatch.
 
 ## Services VPS (références)
 
@@ -95,6 +96,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 | shenron | 5006 | shenron.rpbey.fr | Bun + discordx + drizzle + bun:sqlite + canvas |
 | shenron-backup.timer | — | — | `VACUUM INTO` quotidien 03:00 UTC → `apps/bot/backups/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
+| shenron-neon-sync.timer | — | — | Miroir SQLite → Neon (schéma `bot`) toutes les 30 min |
 
 Définitions dans `~/vps/infra/systemd/shenron*.{service,timer}`. Scripts dans `~/vps/scripts/ops/{backup-shenron-sqlite,shenron-guild-sync}.sh`.
 
