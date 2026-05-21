@@ -54,6 +54,8 @@ const nextConfig: NextConfig = {
 				hostname: "cdn.myanimelist.net",
 				pathname: "/**",
 			},
+			// Stills d'épisodes (TMDB).
+			{ protocol: "https", hostname: "image.tmdb.org", pathname: "/**" },
 			{
 				protocol: "https",
 				hostname: "media.kitsu.io",
