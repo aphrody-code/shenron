@@ -1,5 +1,7 @@
 import { getShenronTechniques } from "@/lib/shenron";
+import { assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function TechniquesPage() {
 	const techniques = await getShenronTechniques();
@@ -25,19 +27,38 @@ export default async function TechniquesPage() {
 
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 				{techniques.map((tech) => (
-					<div
+					<Link
 						key={tech.id}
-						className="group flex flex-col rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 transition hover:border-dbz-orange/50"
+						href={`/wiki/dragon-ball/techniques/${tech.slug}`}
+						className="group flex gap-4 rounded-xl border border-zinc-800 bg-zinc-900/50 p-5 transition hover:border-dbz-orange/50"
 					>
-						<h2 className="text-xl font-bold text-white group-hover:text-dbz-orange transition-colors">
-							{tech.name}
-						</h2>
-						{tech.description && (
-							<p className="mt-4 text-sm text-zinc-400 leading-relaxed line-clamp-4">
-								{tech.description}
-							</p>
+						{tech.creatorImage && (
+							<div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
+								<Image
+									src={assetUrl(tech.creatorImage)}
+									alt={tech.creatorName ?? tech.name}
+									fill
+									sizes="80px"
+									className="object-cover object-top"
+								/>
+							</div>
 						)}
-					</div>
+						<div className="min-w-0 flex-1">
+							<h2 className="text-xl font-bold text-white group-hover:text-dbz-orange transition-colors">
+								{tech.name}
+							</h2>
+							{tech.creatorName && (
+								<p className="mt-0.5 text-[11px] font-semibold uppercase tracking-widest text-dbz-orange/70">
+									{tech.creatorName}
+								</p>
+							)}
+							{tech.description && (
+								<p className="mt-3 text-sm text-zinc-400 leading-relaxed line-clamp-3">
+									{tech.description}
+								</p>
+							)}
+						</div>
+					</Link>
 				))}
 			</div>
 		</div>

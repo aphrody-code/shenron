@@ -107,7 +107,10 @@ export interface DBTechnique {
 	slug: string;
 	name: string;
 	description: string | null;
+	type: string | null;
 	creatorId: number | null;
+	creatorName: string | null;
+	creatorImage: string | null;
 }
 
 export interface DBGame {
@@ -281,7 +284,9 @@ export async function getShenronRaces(): Promise<DBRace[]> {
 	return data.races || [];
 }
 
-export async function getShenronRace(slug: string): Promise<(DBRace & { characters: DBCharacter[] }) | null> {
+export async function getShenronRace(
+	slug: string,
+): Promise<(DBRace & { characters: DBCharacter[] }) | null> {
 	const res = await fetch(
 		`${SHENRON_API_URL}/api/public/wiki/races/${encodeURIComponent(slug)}`,
 		{
@@ -301,7 +306,9 @@ export async function getShenronPlanets(): Promise<DBPlanet[]> {
 	return data.planets || [];
 }
 
-export async function getShenronPlanet(id: number): Promise<(DBPlanet & { characters: DBCharacter[] }) | null> {
+export async function getShenronPlanet(
+	id: number,
+): Promise<(DBPlanet & { characters: DBCharacter[] }) | null> {
 	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/planets/${id}`, {
 		next: { revalidate: 3600 },
 	});

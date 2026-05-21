@@ -224,11 +224,27 @@ export class WikiService {
 	// --- Techniques ---
 
 	/**
-	 * Liste toutes les techniques.
+	 * Liste toutes les techniques, enrichies du créateur (nom + image) via un
+	 * left join sur `db_characters` — les techniques n'ayant pas d'image propre,
+	 * le portrait du personnage créateur sert de visuel côté site.
 	 */
-	async listTechniques(): Promise<DBTechnique[]> {
+	async listTechniques(): Promise<
+		(DBTechnique & { creatorName: string | null; creatorImage: string | null })[]
+	> {
 		try {
-			return await this.db.select().from(dbTechniques);
+			const rows = await this.db
+				.select({
+					t: dbTechniques,
+					creatorName: dbCharacters.name,
+					creatorImage: dbCharacters.image,
+				})
+				.from(dbTechniques)
+				.leftJoin(dbCharacters, eq(dbTechniques.creatorId, dbCharacters.id));
+			return rows.map((r) => ({
+				...r.t,
+				creatorName: r.creatorName ?? null,
+				creatorImage: r.creatorImage ?? null,
+			}));
 		} catch (err) {
 			logger.error({ err }, "WikiService.listTechniques failed");
 			return [];
@@ -238,13 +254,29 @@ export class WikiService {
 	/**
 	 * Récupère une technique par son slug.
 	 */
-	async getTechnique(slug: string): Promise<DBTechnique | null> {
+	async getTechnique(
+		slug: string,
+	): Promise<
+		| (DBTechnique & { creatorName: string | null; creatorImage: string | null })
+		| null
+	> {
 		try {
-			return (
-				(await this.db.query.dbTechniques.findFirst({
-					where: eq(dbTechniques.slug, slug),
-				})) ?? null
-			);
+			const [row] = await this.db
+				.select({
+					t: dbTechniques,
+					creatorName: dbCharacters.name,
+					creatorImage: dbCharacters.image,
+				})
+				.from(dbTechniques)
+				.leftJoin(dbCharacters, eq(dbTechniques.creatorId, dbCharacters.id))
+				.where(eq(dbTechniques.slug, slug))
+				.limit(1);
+			if (!row) return null;
+			return {
+				...row.t,
+				creatorName: row.creatorName ?? null,
+				creatorImage: row.creatorImage ?? null,
+			};
 		} catch (err) {
 			logger.error({ err, slug }, "WikiService.getTechnique failed");
 			return null;
