@@ -23,10 +23,10 @@ export async function generateMetadata({
 	const data = await dbUniverse.saga(slug);
 	if (!data) return { title: "Saga — DBFR" };
 	return {
-		title: `${data.saga.name} — Saga Dragon Ball | DBFR`,
+		title: `${data.name} — Saga Dragon Ball | DBFR`,
 		description:
-			data.saga.description ??
-			`Saga ${data.saga.name} de ${SERIES_LABELS[data.saga.series] ?? data.saga.series}.`,
+			data.description ??
+			`Saga ${data.name} de ${SERIES_LABELS[data.series] ?? data.series}.`,
 	};
 }
 
@@ -38,7 +38,8 @@ export default async function SagaPage({
 	const { slug } = await params;
 	const data = await dbUniverse.saga(slug);
 	if (!data) notFound();
-	const { saga, arcs } = data;
+	const saga = data;
+	const arcs = data.arcs ?? [];
 	const seriesLabel = SERIES_LABELS[saga.series] ?? saga.series;
 
 	return (
@@ -57,17 +58,17 @@ export default async function SagaPage({
 					</p>
 					<div className="h-px w-12 bg-dbz-border" />
 				</div>
-				
+
 				<h1 className="font-saiyan text-5xl md:text-7xl text-white mb-6 tracking-widest leading-tight">
 					{saga.name}
 				</h1>
-				
+
 				{saga.name_ja && (
 					<p className="font-jp text-2xl text-dbz-orange/80 mb-8">
 						{saga.name_ja}
 					</p>
 				)}
-				
+
 				{saga.description && (
 					<div className="dbz-panel p-8 relative overflow-hidden">
 						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
@@ -86,7 +87,7 @@ export default async function SagaPage({
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 					</div>
-					
+
 					<div className="grid gap-4">
 						{arcs.map((a, idx) => (
 							<Link
@@ -109,7 +110,9 @@ export default async function SagaPage({
 											</p>
 										)}
 									</div>
-									<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">→</span>
+									<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
+										→
+									</span>
 								</div>
 							</Link>
 						))}
@@ -128,10 +131,7 @@ export default async function SagaPage({
 					>
 						VOIR LES ÉPISODES
 					</Link>
-					<Link
-						href="/wiki/dragon-ball"
-						className="dbz-button-ghost"
-					>
+					<Link href="/wiki/dragon-ball" className="dbz-button-ghost">
 						PERSONNAGES
 					</Link>
 				</div>
@@ -139,4 +139,3 @@ export default async function SagaPage({
 		</div>
 	);
 }
-

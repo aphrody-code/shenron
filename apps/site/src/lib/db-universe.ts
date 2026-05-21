@@ -6,11 +6,28 @@ import { env } from "@/lib/env";
 
 const API = (env.SHENRON_API_URL ?? "https://bot.rpbey.fr").replace(/\/+$/, "");
 
+// L'API bot sérialise en camelCase ; ce module type tout en snake_case.
+// Normalise récursivement les clés camelCase → snake_case pour que les pages
+// (sagas, episodes, games, search…) reçoivent les champs attendus.
+function toSnake(v: unknown): unknown {
+	if (Array.isArray(v)) return v.map(toSnake);
+	if (v && typeof v === "object") {
+		const out: Record<string, unknown> = {};
+		for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+			out[k.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)] = toSnake(val);
+		}
+		return out;
+	}
+	return v;
+}
+
 async function get<T>(path: string, revalidate = 3600): Promise<T | null> {
 	try {
 		const r = await fetch(`${API}${path}`, { next: { revalidate } });
 		if (!r.ok) return null;
-		return (await r.json()) as T;
+		const json = await r.json();
+		if (json && typeof json === "object" && "error" in json) return null;
+		return toSnake(json) as T;
 	} catch {
 		return null;
 	}
@@ -159,7 +176,7 @@ export type Tool = {
 export const dbUniverse = {
 	sagas: () => get<{ sagas: Saga[] }>("/api/public/wiki/sagas"),
 	saga: (slug: string) =>
-		get<{ saga: Saga; arcs: Arc[] }>(
+		get<Saga & { arcs: Arc[] }>(
 			`/api/public/wiki/sagas/${encodeURIComponent(slug)}`,
 		),
 	arc: (slug: string) =>

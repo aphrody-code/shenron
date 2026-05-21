@@ -396,15 +396,18 @@ export class WikiService {
 	/**
 	 * Récupère un film par son slug.
 	 */
-	async getMovie(slug: string): Promise<DBMovie | null> {
+	async getMovie(idOrSlug: string): Promise<DBMovie | null> {
 		try {
+			const isId = /^\d+$/.test(idOrSlug);
 			return (
 				(await this.db.query.dbMovies.findFirst({
-					where: eq(dbMovies.slug, slug),
+					where: isId
+						? eq(dbMovies.id, Number(idOrSlug))
+						: eq(dbMovies.slug, idOrSlug),
 				})) ?? null
 			);
 		} catch (err) {
-			logger.error({ err, slug }, "WikiService.getMovie failed");
+			logger.error({ err, slug: idOrSlug }, "WikiService.getMovie failed");
 			return null;
 		}
 	}
