@@ -40,31 +40,43 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		};
 	}
 
-	// Lazy upsert dans `users` si le hook databaseHooks n'a pas tourné (timing).
+	// Upsert dans `users` (le hook databaseHooks a été retiré, cf. auth.ts).
+	// On resynchronise username + avatar dès qu'ils diffèrent de la session
+	// Discord — sinon un user créé avant l'ajout de l'avatar (ou qui change de
+	// photo Discord) reste sans photo, car l'ancienne condition `!appUser`
+	// sautait la mise à jour pour un user déjà existant.
 	let appUser = row.user;
 	const isOwner = row.account.accountId === env.OWNER_ID;
 	const isAllowed = env.OAUTH_ALLOWED_USERS.includes(row.account.accountId);
 	const shouldBeAdmin = isOwner || isAllowed;
 
-	if (!appUser || (shouldBeAdmin && !appUser.roleAdmin)) {
+	const wantUsername = session.user.name ?? "Saiyan";
+	const wantAvatar = session.user.image ?? null;
+	const needsSync =
+		!appUser ||
+		appUser.username !== wantUsername ||
+		appUser.avatar !== wantAvatar ||
+		(shouldBeAdmin && !appUser.roleAdmin);
+
+	if (needsSync) {
 		const inserted = await db
 			.insert(users)
 			.values({
 				discordId: row.account.accountId,
-				username: session.user.name ?? "Saiyan",
-				avatar: session.user.image ?? null,
+				username: wantUsername,
+				avatar: wantAvatar,
 				roleAdmin: shouldBeAdmin,
 			})
 			.onConflictDoUpdate({
 				target: users.discordId,
 				set: {
-					username: session.user.name ?? "Saiyan",
-					avatar: session.user.image ?? null,
+					username: wantUsername,
+					avatar: wantAvatar,
 					...(shouldBeAdmin ? { roleAdmin: true } : {}),
 				},
 			})
 			.returning();
-		appUser = inserted[0] ?? null;
+		appUser = inserted[0] ?? appUser;
 	}
 
 	return {
