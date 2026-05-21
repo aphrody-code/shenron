@@ -19,7 +19,10 @@ export default async function SearchPage({
 }) {
 	const sp = await searchParams;
 	const q = (sp.q ?? "").trim();
-	const results = q.length >= 2 ? await dbUniverse.search(q) : null;
+	const [results, rag] =
+		q.length >= 2
+			? await Promise.all([dbUniverse.search(q), dbUniverse.rag(q, 8)])
+			: [null, null];
 
 	return (
 		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
@@ -45,10 +48,7 @@ export default async function SearchPage({
 							className="w-full h-14 pl-12 pr-5 rounded-xl bg-dbz-card/50 border-2 border-dbz-border focus:border-dbz-orange focus:bg-dbz-card outline-none text-white placeholder:text-white/30 font-display text-lg transition-all"
 						/>
 					</div>
-					<button
-						type="submit"
-						className="dbz-button h-14 px-10"
-					>
+					<button type="submit" className="dbz-button h-14 px-10">
 						SCANNER
 					</button>
 				</form>
@@ -57,7 +57,8 @@ export default async function SearchPage({
 			{!results && q.length === 0 && (
 				<div className="dbz-panel p-8 max-w-2xl border-l-4 border-l-dbz-orange">
 					<p className="text-white/70 text-lg leading-relaxed">
-						Initialisation du Scouter... Tape un nom de personnage, planète, saga, film ou jeu Dragon Ball pour lancer la recherche.
+						Initialisation du Scouter... Tape un nom de personnage, planète,
+						saga, film ou jeu Dragon Ball pour lancer la recherche.
 					</p>
 				</div>
 			)}
@@ -68,6 +69,40 @@ export default async function SearchPage({
 						⚠️ Énergie insuffisante : Au moins 2 caractères requis.
 					</p>
 				</div>
+			)}
+
+			{rag && rag.results.length > 0 && (
+				<section className="mb-16 reveal-up">
+					<div className="flex items-center gap-6 mb-6">
+						<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+							Réponses Scouter ({rag.results.length})
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
+					</div>
+					<div className="grid gap-3 md:grid-cols-2">
+						{rag.results.map((r, i) => (
+							<Link
+								key={`${r.url}-${i}`}
+								href={r.url}
+								className="dbz-panel p-4 hover:border-dbz-orange transition-colors group"
+							>
+								<div className="flex items-center gap-2 mb-1">
+									<span className="font-scouter text-[9px] tracking-[0.25em] uppercase text-dbz-orange shrink-0">
+										{r.kind}
+									</span>
+									<span className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors truncate">
+										{r.title}
+									</span>
+								</div>
+								{r.snippet && (
+									<p className="text-xs text-white/55 leading-relaxed line-clamp-2">
+										{r.snippet}
+									</p>
+								)}
+							</Link>
+						))}
+					</div>
+				</section>
 			)}
 
 			{results && (
@@ -143,7 +178,9 @@ export default async function SearchPage({
 													</p>
 												)}
 											</div>
-											<span className="text-dbz-blue-light opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+											<span className="text-dbz-blue-light opacity-0 group-hover:opacity-100 transition-opacity">
+												→
+											</span>
 										</div>
 									</Link>
 								))}
@@ -176,7 +213,9 @@ export default async function SearchPage({
 														{s.series}
 													</p>
 												</div>
-												<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+												<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity">
+													→
+												</span>
 											</div>
 										</Link>
 									))}
@@ -210,7 +249,9 @@ export default async function SearchPage({
 														</p>
 													)}
 												</div>
-												<span className="text-dbz-red opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+												<span className="text-dbz-red opacity-0 group-hover:opacity-100 transition-opacity">
+													→
+												</span>
 											</div>
 										</Link>
 									))}
@@ -229,17 +270,27 @@ export default async function SearchPage({
 									AUCUNE ÉNERGIE DÉTECTÉE
 								</h2>
 								<p className="text-white/60 text-lg leading-relaxed mb-8">
-									Le Scouter n'a trouvé aucun résultat pour « <span className="text-dbz-orange font-bold">{q}</span> ». 
-									Essaie un autre terme — un nom de personnage, un titre de film, une saga ou une planète.
+									Le Scouter n'a trouvé aucun résultat pour «{" "}
+									<span className="text-dbz-orange font-bold">{q}</span> ».
+									Essaie un autre terme — un nom de personnage, un titre de
+									film, une saga ou une planète.
 								</p>
 								<div className="grid sm:grid-cols-2 gap-6 text-sm">
 									<div className="space-y-2">
-										<p className="text-dbz-orange font-bold uppercase tracking-widest">Guerriers</p>
-										<p className="text-white/40">Goku, Vegeta, Beerus, Jiren, Broly...</p>
+										<p className="text-dbz-orange font-bold uppercase tracking-widest">
+											Guerriers
+										</p>
+										<p className="text-white/40">
+											Goku, Vegeta, Beerus, Jiren, Broly...
+										</p>
 									</div>
 									<div className="space-y-2">
-										<p className="text-dbz-blue-light font-bold uppercase tracking-widest">Mondes</p>
-										<p className="text-white/40">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
+										<p className="text-dbz-blue-light font-bold uppercase tracking-widest">
+											Mondes
+										</p>
+										<p className="text-white/40">
+											Terre, Namek, Vegeta, Yardrat, Kaio...
+										</p>
 									</div>
 								</div>
 							</div>
@@ -249,4 +300,3 @@ export default async function SearchPage({
 		</div>
 	);
 }
-

@@ -207,6 +207,12 @@ export const dbUniverse = {
 			`/api/public/wiki/search?q=${encodeURIComponent(q)}`,
 			300,
 		),
+	// RAG : recherche lexicale (BM25) sur l'index rag_chunks du bot.
+	rag: (q: string, limit = 8) =>
+		get<{
+			q: string;
+			results: { kind: string; title: string; url: string; snippet: string }[];
+		}>(`/api/public/rag/search?q=${encodeURIComponent(q)}&limit=${limit}`, 300),
 };
 
 export function assetUrl(path: string | null | undefined): string {
