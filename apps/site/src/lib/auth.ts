@@ -36,7 +36,23 @@ export const auth = betterAuth({
 
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
-	logger: { level: "warn" },
+	logger: { level: "debug" },
+	// Capture explicite des erreurs d'API (sinon une exception au create user
+	// ou à l'échange de code Discord est avalée → 302 vers errorURL sans trace).
+	onAPIError: {
+		throw: false,
+		onError: (error: unknown, ctx) => {
+			const e = error as { message?: string; stack?: string; cause?: unknown };
+			const path = (ctx as unknown as { path?: string })?.path ?? "?";
+			console.error(
+				"[better-auth][API ERROR]",
+				path,
+				e?.message ?? String(error),
+				e?.cause ? `cause=${JSON.stringify(e.cause)}` : "",
+				e?.stack ?? "",
+			);
+		},
+	},
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		debugLogs: true,
