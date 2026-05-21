@@ -1,0 +1,38 @@
+name: Deploy site to Vercel (production)
+
+# Auto-deploy de remplacement : le projet Vercel `dbfr` n'est pas connecté
+# nativement au repo (GitHub App sans accès au repo privé), donc on déclenche
+# le déploiement prod ici sur chaque push `main`. `vercel deploy --prod` upload
+# la source et laisse Vercel builder (rootDirectory=apps/site côté projet).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/site/**"
+      - "packages/**"
+      - "package.json"
+      - "bun.lock"
+      - "turbo.json"
+      - ".github/workflows/deploy-vercel.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: vercel-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+      - name: Deploy (production)
+        run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
