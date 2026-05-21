@@ -60,7 +60,7 @@ export function MobileNav({
 								key={l.href}
 								href={l.href}
 								onClick={() => setOpen(false)}
-								className="font-display font-bold text-[32px] tracking-[0.04em] uppercase text-white py-1.5 hover:text-dbz-orange transition-colors"
+								className="font-display font-bold text-[32px] tracking-[0.04em] text-white py-1.5 hover:text-dbz-orange transition-colors"
 							>
 								{l.label}
 							</Link>
@@ -72,7 +72,7 @@ export function MobileNav({
 							<Link
 								href="/admin/dashboard"
 								onClick={() => setOpen(false)}
-								className="text-center font-display font-semibold text-[13px] tracking-[0.12em] uppercase text-dbz-orange border border-dbz-orange/50 rounded-full py-3"
+								className="text-center font-display font-semibold text-[13px] tracking-[0.12em] text-dbz-orange border border-dbz-orange/50 rounded-full py-3"
 							>
 								Tableau de bord
 							</Link>
@@ -98,12 +98,12 @@ export function MobileNav({
 										{username ?? "Mon profil"}
 									</span>
 								</Link>
-								<SignOut className="text-center font-display font-semibold text-[13px] tracking-[0.12em] uppercase text-white/70 border border-white/15 rounded-full py-3 hover:text-dbz-orange hover:border-dbz-orange/50 transition-colors disabled:opacity-50">
+								<SignOut className="text-center font-display font-semibold text-[13px] tracking-[0.12em] text-white/70 border border-white/15 rounded-full py-3 hover:text-dbz-orange hover:border-dbz-orange/50 transition-colors disabled:opacity-50">
 									Déconnexion
 								</SignOut>
 							</>
 						) : (
-							<SignInDiscord className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-[0.10em] uppercase transition-colors">
+							<SignInDiscord className="inline-flex items-center justify-center h-12 px-6 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-[0.10em] transition-colors">
 								Connexion
 							</SignInDiscord>
 						)}

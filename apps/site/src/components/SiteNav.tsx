@@ -39,14 +39,14 @@ export async function SiteNav() {
 				{/* Wordmark — Oswald gras avec accent doré façon DB Official */}
 				<Link
 					href="/"
-					className="group flex items-baseline shrink-0 select-none"
-					aria-label="DBFR — Dragon Ball France — Accueil"
+					className="group flex items-baseline shrink-0 select-none whitespace-nowrap"
+					aria-label="Dragon Ball France — Accueil"
 				>
-					<span className="font-display font-bold text-[24px] tracking-[0.06em] text-white leading-none">
-						DB
+					<span className="font-display font-bold text-[19px] tracking-tight text-white leading-none">
+						Dragon&nbsp;Ball&nbsp;
 					</span>
-					<span className="font-display font-bold text-[24px] tracking-[0.06em] text-dbz-orange leading-none transition-colors group-hover:text-white">
-						FR
+					<span className="font-display font-bold text-[19px] tracking-tight text-dbz-orange leading-none transition-colors group-hover:text-white">
+						France
 					</span>
 				</Link>
 
@@ -59,7 +59,7 @@ export async function SiteNav() {
 						<Link
 							key={l.href}
 							href={l.href}
-							className="relative font-display font-semibold text-[14px] tracking-[0.10em] uppercase text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+							className="relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 						>
 							{l.label}
 						</Link>
@@ -71,7 +71,7 @@ export async function SiteNav() {
 					{isAdmin && (
 						<Link
 							href="/admin/dashboard"
-							className="font-display font-semibold text-[12px] tracking-[0.12em] uppercase text-dbz-orange hover:text-black hover:bg-dbz-orange px-3 py-1.5 rounded-full border border-dbz-orange/50 transition-colors"
+							className="font-display font-semibold text-[13px] tracking-normal text-dbz-orange hover:text-black hover:bg-dbz-orange px-3 py-1.5 rounded-full border border-dbz-orange/50 transition-colors"
 						>
 							Admin
 						</Link>
@@ -118,7 +118,7 @@ export async function SiteNav() {
 							</SignOut>
 						</>
 					) : (
-						<SignInDiscord className="inline-flex items-center h-9 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[13px] tracking-[0.10em] uppercase transition-colors">
+						<SignInDiscord className="inline-flex items-center h-9 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-normal transition-colors">
 							Connexion
 						</SignInDiscord>
 					)}

@@ -44,18 +44,18 @@ export function LandingHero() {
 
 			<div className="relative mx-auto max-w-[1280px] w-full px-6 lg:px-10 py-20 grid lg:grid-cols-2 gap-12 items-center">
 				<div className="z-10">
-					<p className="font-display font-bold text-xs md:text-sm tracking-[0.4em] uppercase text-dbz-orange mb-6 inline-flex items-center gap-3">
+					<p className="font-display font-bold text-xs md:text-sm tracking-[0.4em] text-dbz-orange mb-6 inline-flex items-center gap-3">
 						<span aria-hidden className="w-8 h-px bg-dbz-orange" />
-						Communauté Dragon Ball France
+						Le portail francophone
 					</p>
-					<h1 className="font-display font-bold text-7xl md:text-8xl lg:text-9xl leading-[0.85] mb-6 text-white tracking-tight">
-						<span className="text-white">DB</span>
-						<span className="text-dbz-orange">FR</span>
+					<h1 className="font-display font-bold text-5xl md:text-7xl lg:text-8xl leading-[0.9] mb-6 tracking-tight">
+						<span className="text-white">Dragon Ball</span>{" "}
+						<span className="text-dbz-orange">France</span>
 					</h1>
 					<p className="text-lg md:text-2xl font-normal text-white/90 mb-3 max-w-xl">
-						Le portail Dragon Ball en français. Wiki, personnages,
-						<span className="text-dbz-orange font-semibold"> sagas</span>,
-						actualités anime &amp; manga.
+						Wiki, personnages,
+						<span className="text-dbz-orange font-semibold"> sagas</span> et
+						actualités anime &amp; manga, en français.
 					</p>
 					<p className="text-sm text-white/60 mb-10 max-w-md">
 						Et un serveur Discord pour partager théories, news et fan-arts.
