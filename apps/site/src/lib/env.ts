@@ -8,15 +8,28 @@ import { z } from "zod";
  */
 export const env = createEnv({
 	server: {
-		DATABASE_URL: z.string().url(),
-		BETTER_AUTH_SECRET: z.string().min(32),
-		BETTER_AUTH_URL: z.string().url().optional(),
-		DISCORD_CLIENT_ID: z.string().min(10),
-		DISCORD_CLIENT_SECRET: z.string().min(10),
-		SHENRON_API_URL: z.string().url().default("https://shenron.rpbey.fr"),
-		SHENRON_ADMIN_TOKEN: z.string().min(16).optional(),
-		SHENRON_USER_SECRET: z.string().min(32).optional(),
-		OWNER_ID: z.string().regex(/^\d{17,20}$/).optional(),
+		// `.trim()` partout : les env Vercel sont régulièrement pollués par un
+		// `\n` final (posées via echo au lieu de printf). Un client_secret Discord
+		// avec newline → Discord renvoie invalid_client à l'échange de code → aucun
+		// ba_user créé → login "marche" mais ne persiste pas. Cf. mémoire
+		// vercel-env-newline-pollution.
+		DATABASE_URL: z.string().trim().url(),
+		BETTER_AUTH_SECRET: z.string().trim().min(32),
+		BETTER_AUTH_URL: z.string().trim().url().optional(),
+		DISCORD_CLIENT_ID: z.string().trim().min(10),
+		DISCORD_CLIENT_SECRET: z.string().trim().min(10),
+		SHENRON_API_URL: z
+			.string()
+			.trim()
+			.url()
+			.default("https://shenron.rpbey.fr"),
+		SHENRON_ADMIN_TOKEN: z.string().trim().min(16).optional(),
+		SHENRON_USER_SECRET: z.string().trim().min(32).optional(),
+		OWNER_ID: z
+			.string()
+			.trim()
+			.regex(/^\d{17,20}$/)
+			.optional(),
 		OAUTH_ALLOWED_USERS: z
 			.string()
 			.optional()
