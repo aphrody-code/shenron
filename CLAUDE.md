@@ -25,7 +25,8 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 - Sync DB↔Discord quotidien : timer VPS `shenron-guild-sync.timer` (04:00 UTC).
 
 ### Site (Vercel)
-- Auto-deploy sur push `main` du repo `github.com/aphrody-code/shenron`.
+- Auto-deploy sur push `main` via **GitHub Actions** (`.github/workflows/deploy-vercel.yml` → `vercel deploy --prod`). Le projet Vercel `dbfr` n'est PAS connecté nativement au repo (la GitHub App Vercel n'a pas accès au repo privé `aphrody-code/shenron`), donc l'auto-deploy passe par ce workflow, pas par l'intégration Git native. Secrets repo : `VERCEL_TOKEN` (token dédié `vcp_…`), `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. Pour repasser au natif un jour : donner accès au repo à la GitHub App Vercel puis `vercel git connect`.
+- Deploy manuel : `vercel deploy --prod --yes` depuis la racine du repo (jamais depuis `apps/site/`).
 - Envs gérées dans Vercel UI (jamais commitées). Inclut `DATABASE_URL`, `DISCORD_CLIENT_ID/SECRET`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`.
 - Build : `bun --filter @shenron/site build`. Pas de build VPS.
 - `.vercelignore` exclut `apps/bot/` du build site.
