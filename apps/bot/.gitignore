@@ -1,0 +1,5 @@
+
+# Artefacts générés (mirror assets, export JSON, corpus RAG) — VPS only
+data/export/
+data/rag/
+assets/ext/
