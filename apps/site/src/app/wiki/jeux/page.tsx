@@ -1,5 +1,6 @@
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
@@ -29,65 +30,77 @@ export default async function JeuxPage() {
 				imageAlt="Jeux Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-
-			<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-				{games.map((g) => (
-					<Link
-						key={g.id}
-						href={`/wiki/jeux/${g.slug}`}
-						className="block p-6 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 hover:bg-white/[0.07] transition-all"
-					>
-						<h3 className="font-display font-bold text-[20px] text-white mb-1.5">
-							{g.title}
-						</h3>
-						{g.title_ja && (
-							<p className="font-jp text-[12px] text-dbz-orange/80 mb-4">
-								{g.title_ja}
-							</p>
-						)}
-						<div className="flex flex-wrap gap-1.5 mb-4">
-							{(g.platforms ?? "")
-								.split(",")
-								.filter(Boolean)
-								.map((p) => (
-									<span
-										key={p}
-										className="text-[10px] font-display font-semibold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full bg-white/[0.06] text-white/80"
-									>
-										{p.trim()}
-									</span>
-								))}
-						</div>
-						<dl className="text-[12px] text-white/65 space-y-1">
-							{g.release_date && (
-								<div>
-									<dt className="inline text-white/45">Sortie : </dt>
-									<dd className="inline">
-										{new Date(g.release_date).toLocaleDateString("fr-FR", {
-											day: "numeric",
-											month: "long",
-											year: "numeric",
-										})}
-									</dd>
+				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+					{games.map((g) => (
+						<Link
+							key={g.id}
+							href={`/wiki/jeux/${g.slug}`}
+							className="block rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 hover:bg-white/[0.07] transition-all overflow-hidden"
+						>
+							{g.cover && (
+								<div className="relative aspect-[3/4] bg-black">
+									<Image
+										src={assetUrl(g.cover)}
+										alt={g.title}
+										fill
+										sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+										className="object-cover"
+									/>
 								</div>
 							)}
-							{g.developer && (
-								<div>
-									<dt className="inline text-white/45">Studio : </dt>
-									<dd className="inline">{g.developer}</dd>
+							<div className="p-6">
+								<h3 className="font-display font-bold text-[20px] text-white mb-1.5">
+									{g.title}
+								</h3>
+								{g.title_ja && (
+									<p className="font-jp text-[12px] text-dbz-orange/80 mb-4">
+										{g.title_ja}
+									</p>
+								)}
+								<div className="flex flex-wrap gap-1.5 mb-4">
+									{(g.platforms ?? "")
+										.split(",")
+										.filter(Boolean)
+										.map((p) => (
+											<span
+												key={p}
+												className="text-[10px] font-display font-semibold tracking-[0.10em] uppercase px-2 py-0.5 rounded-full bg-white/[0.06] text-white/80"
+											>
+												{p.trim()}
+											</span>
+										))}
 								</div>
-							)}
-							{g.publisher && (
-								<div>
-									<dt className="inline text-white/45">Éditeur : </dt>
-									<dd className="inline">{g.publisher}</dd>
-								</div>
-							)}
-						</dl>
-					</Link>
-				))}
+								<dl className="text-[12px] text-white/65 space-y-1">
+									{g.release_date && (
+										<div>
+											<dt className="inline text-white/45">Sortie : </dt>
+											<dd className="inline">
+												{new Date(g.release_date).toLocaleDateString("fr-FR", {
+													day: "numeric",
+													month: "long",
+													year: "numeric",
+												})}
+											</dd>
+										</div>
+									)}
+									{g.developer && (
+										<div>
+											<dt className="inline text-white/45">Studio : </dt>
+											<dd className="inline">{g.developer}</dd>
+										</div>
+									)}
+									{g.publisher && (
+										<div>
+											<dt className="inline text-white/45">Éditeur : </dt>
+											<dd className="inline">{g.publisher}</dd>
+										</div>
+									)}
+								</dl>
+							</div>
+						</Link>
+					))}
+				</div>
 			</div>
-		</div>
 		</>
 	);
 }

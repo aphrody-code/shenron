@@ -1,5 +1,6 @@
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -44,18 +45,32 @@ export default async function GamePage({
 				← Tous les jeux
 			</Link>
 
-			<header className="mb-12">
-				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-3">
-					Bandai Namco Entertainment
-				</p>
-				<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-3">
-					{g.title}
-				</h1>
-				{g.title_ja && (
-					<p className="font-jp text-[20px] text-dbz-orange/85 mb-6">
-						{g.title_ja}
-					</p>
+			<header className="mb-12 flex flex-col sm:flex-row gap-8 items-start">
+				{g.cover && (
+					<div className="relative w-40 sm:w-48 shrink-0 aspect-[3/4] rounded-xl overflow-hidden border border-white/10 bg-black">
+						<Image
+							src={assetUrl(g.cover)}
+							alt={g.title}
+							fill
+							sizes="192px"
+							className="object-cover"
+							priority
+						/>
+					</div>
 				)}
+				<div>
+					<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-3">
+						Bandai Namco Entertainment
+					</p>
+					<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-3">
+						{g.title}
+					</h1>
+					{g.title_ja && (
+						<p className="font-jp text-[20px] text-dbz-orange/85">
+							{g.title_ja}
+						</p>
+					)}
+				</div>
 			</header>
 
 			<dl className="grid sm:grid-cols-2 gap-6 mb-12 p-6 rounded-xl bg-white/[0.04] border border-white/[0.06]">
