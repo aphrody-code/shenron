@@ -36,7 +36,7 @@ export async function SiteNav() {
 			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
 
 			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 h-16 flex items-center gap-8">
-				{/* Wordmark — Oswald gras avec accent doré façon DB Official */}
+				{/* Wordmark — Google Sans Flex bold + accent doré */}
 				<Link
 					href="/"
 					className="group flex items-baseline shrink-0 select-none whitespace-nowrap"
@@ -50,7 +50,7 @@ export async function SiteNav() {
 					</span>
 				</Link>
 
-				{/* Nav desktop — Oswald 14px uppercase, espacement DB Official */}
+				{/* Nav desktop — Google Sans Flex 14px uppercase */}
 				<nav
 					className="hidden lg:flex items-center gap-1 flex-1 justify-center"
 					aria-label="Navigation principale"
