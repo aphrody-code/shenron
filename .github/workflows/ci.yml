@@ -59,8 +59,9 @@ jobs:
       - name: Tests
         run: bun run test
 
-      - name: Build bundle
-        run: bun run build
+      # Build bundle : le bot est validé par le job `compile`, le site par le
+      # deploy Vercel (push main). Pas de `turbo run build` ici — il lancerait
+      # le `build: tsup` des packages @rpbey/* (tsup non installé, dist commité).
 
   compile:
     name: Compile standalone binary
