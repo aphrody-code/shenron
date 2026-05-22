@@ -4,7 +4,19 @@
  */
 import { env } from "@/lib/env";
 
-const API = (env.SHENRON_API_URL ?? "https://bot.rpbey.fr").replace(/\/+$/, "");
+// Base publique (NEXT_PUBLIC) pour les URLs d'assets — accessible côté client
+// (ex. assetUrl dans le jeu 2048). NE PAS lire env.SHENRON_API_URL au top-level :
+// c'est server-only, et ce module est aussi importé par des Client Components
+// → t3-env throw « server-side env on the client ».
+const ASSET_BASE = (
+	env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://bot.rpbey.fr"
+).replace(/\/+$/, "");
+
+// API REST du bot pour les fetch server-side (ISR). Lue paresseusement : l'accès
+// à SHENRON_API_URL (server-only) ne doit s'exécuter que côté serveur.
+function apiBase(): string {
+	return (env.SHENRON_API_URL ?? "https://bot.rpbey.fr").replace(/\/+$/, "");
+}
 
 // L'API bot sérialise en camelCase ; ce module type tout en snake_case.
 // Normalise récursivement les clés camelCase → snake_case pour que les pages
@@ -23,7 +35,7 @@ function toSnake(v: unknown): unknown {
 
 async function get<T>(path: string, revalidate = 3600): Promise<T | null> {
 	try {
-		const r = await fetch(`${API}${path}`, { next: { revalidate } });
+		const r = await fetch(`${apiBase()}${path}`, { next: { revalidate } });
 		if (!r.ok) return null;
 		const json = await r.json();
 		if (json && typeof json === "object" && "error" in json) return null;
@@ -238,5 +250,5 @@ export function assetUrl(path: string | null | undefined): string {
 	// Les chemins DB sont relatifs (`./assets/...`) → normaliser en `/assets/...`
 	// (sinon next/image fetch `${API}/./assets/...` côté serveur → 404).
 	const clean = path.replace(/^\.?\/*/, "");
-	return `${API}/${clean}`;
+	return `${ASSET_BASE}/${clean}`;
 }
