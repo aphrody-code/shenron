@@ -71,4 +71,3 @@ jobs:
       # - Le site est buildé et validé par le deploy Vercel sur push main.
       # - `turbo run build` est exclu : il lancerait le `build: tsup` des
       #   packages @rpbey/* (tsup non installé ; leurs dist sont commités).
-          retention-days: 7
