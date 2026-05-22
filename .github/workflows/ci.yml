@@ -24,7 +24,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Cible de prod = linux uniquement (systemd VPS + Docker Fly). Le binaire
+        # natif skia (@aphrody-code/canvas) n'est publié que pour linux-x64-gnu :
+        # sur macOS aucun binding n'existe et mock.module ne peut pas intercepter
+        # l'import statique → faux échec. On ne teste donc que linux.
+        os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
