@@ -3699,6 +3699,7 @@ export class ApiServer {
 						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
 						try {
 							await insertRow(spec, body);
+							if (spec.name.startsWith("db_")) invalidatePublicWikiCache();
 							return Response.json({ ok: true });
 						} catch (err) {
 							return Response.json(
@@ -3723,6 +3724,7 @@ export class ApiServer {
 						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
 						try {
 							await updateRow(spec, req.params.id, body);
+							if (spec.name.startsWith("db_")) invalidatePublicWikiCache();
 							return Response.json({ ok: true });
 						} catch (err) {
 							return Response.json(
@@ -3736,6 +3738,7 @@ export class ApiServer {
 						if (!spec) return Response.json({ error: "Table inconnue" }, { status: 404 });
 						try {
 							await deleteRow(spec, req.params.id);
+							if (spec.name.startsWith("db_")) invalidatePublicWikiCache();
 							return Response.json({ ok: true });
 						} catch (err) {
 							return Response.json(
@@ -3948,6 +3951,18 @@ async function publicRoute(
 type PublicCacheEntry = { body: Uint8Array; etag: string; expiresAt: number };
 const publicCache = new Map<string, PublicCacheEntry>();
 const PUBLIC_CACHE_MAX = 256;
+
+/**
+ * Purge les entrées du cache public wiki (TTL 1 h) pour qu'une édition admin
+ * d'une table `db_*` soit visible immédiatement sur le site, sans attendre
+ * l'expiration ni un restart du bot. Appelé après chaque écriture CRUD sur
+ * une table wiki (cf. routes `/api/database/:table`).
+ */
+function invalidatePublicWikiCache(): void {
+	for (const key of publicCache.keys()) {
+		if (key.startsWith("/api/public/wiki/")) publicCache.delete(key);
+	}
+}
 
 function publicCacheKey(req: Request & { params: any }): string {
 	const url = new URL(req.url);
