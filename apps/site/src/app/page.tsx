@@ -12,14 +12,22 @@ import { CtaFinal } from "@/components/landing/CtaFinal";
 export const dynamic = "force-dynamic";
 export const revalidate = 120;
 
+// Le blog teaser est optionnel : une défaillance DB (cold start / timeout Neon)
+// ne doit jamais faire tomber toute la home dans l'error boundary.
+function getLatestPosts() {
+	return db.query.posts.findMany({
+		where: (p, { eq }) => eq(p.published, true),
+		orderBy: (p, { desc }) => desc(p.createdAt),
+		limit: 3,
+		with: { author: true },
+	});
+}
+
 export default async function Home() {
 	const [posts, personas, stats] = await Promise.all([
-		db.query.posts.findMany({
-			where: (p, { eq }) => eq(p.published, true),
-			orderBy: (p, { desc }) => desc(p.createdAt),
-			limit: 3,
-			with: { author: true },
-		}),
+		getLatestPosts().catch(
+			() => [] as Awaited<ReturnType<typeof getLatestPosts>>,
+		),
 		getShenronPersonas().catch(() => []),
 		getShenronStats(),
 	]);
