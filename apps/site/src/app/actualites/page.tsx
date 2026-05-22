@@ -122,7 +122,6 @@ export default async function ActualitesPage({
 									)}
 									<div className="flex items-center gap-3 pt-4 border-t border-white/[0.06]">
 										{post.author.avatar && (
-											// eslint-disable-next-line @next/next/no-img-element
 											<img
 												src={post.author.avatar}
 												alt=""

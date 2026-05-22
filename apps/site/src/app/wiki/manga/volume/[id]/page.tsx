@@ -1,6 +1,5 @@
 import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
-import Image from "next/image";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";

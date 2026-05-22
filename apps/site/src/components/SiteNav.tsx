@@ -83,7 +83,6 @@ export async function SiteNav() {
 								className="flex items-center gap-2.5 pl-1 pr-3.5 py-1 rounded-full hover:bg-white/[0.06] transition-colors group"
 							>
 								{avatar && (
-									/* eslint-disable-next-line @next/next/no-img-element */
 									<img
 										src={avatar}
 										alt=""

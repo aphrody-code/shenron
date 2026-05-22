@@ -88,7 +88,7 @@ async function main() {
 		const colNames = cols.map((c) => c.name);
 		const pkCols = cols
 			.filter((c) => c.pk > 0)
-			.sort((a, b) => a.pk - b.pk)
+			.toSorted((a, b) => a.pk - b.pk)
 			.map((c) => c.name);
 		const defs = cols.map((c) => `"${c.name}" ${pgType(c.type)}`);
 		const pkClause = pkCols.length

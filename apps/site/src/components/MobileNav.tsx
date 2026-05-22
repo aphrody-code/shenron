@@ -85,7 +85,6 @@ export function MobileNav({
 									className="flex items-center gap-3 bg-white/[0.06] rounded-full p-1 pr-4"
 								>
 									{avatar && (
-										/* eslint-disable-next-line @next/next/no-img-element */
 										<img
 											src={avatar}
 											alt=""

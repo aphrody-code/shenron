@@ -35,7 +35,6 @@ export default function CanvasShowcase() {
 						className="dbz-panel overflow-hidden flex flex-col"
 					>
 						<div className="aspect-[16/6] bg-dbz-bg overflow-hidden border-b-4 border-dbz-border">
-							{/* eslint-disable-next-line @next/next/no-img-element */}
 							<img
 								src={s.example}
 								alt={s.name}

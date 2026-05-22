@@ -105,7 +105,6 @@ export default async function PostPage({
 					)}
 					<div className="flex items-center gap-3 mt-8 pb-8 border-b border-white/[0.06]">
 						{post.author.avatar && (
-							// eslint-disable-next-line @next/next/no-img-element
 							<img
 								src={post.author.avatar}
 								alt=""
@@ -157,7 +156,6 @@ export default async function PostPage({
 								>
 									<div className="flex items-center gap-3 mb-3">
 										{comment.author.avatar && (
-											// eslint-disable-next-line @next/next/no-img-element
 											<img
 												src={comment.author.avatar}
 												alt=""

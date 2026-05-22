@@ -1,5 +1,4 @@
 import { dbUniverse } from "@/lib/db-universe";
-import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
@@ -48,7 +47,7 @@ export default async function ToolsPage() {
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{catTools.map((tool, idx) => (
+								{catTools.map((tool) => (
 									<a
 										key={tool.id}
 										href={tool.url}
