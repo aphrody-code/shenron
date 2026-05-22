@@ -48,7 +48,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Generate entries barrel
-        run: bun run gen:entries
+        run: bun --filter @shenron/bot run gen:entries
 
       - name: Type-check
         run: bun run type-check
@@ -77,8 +77,8 @@ jobs:
         run: |
           printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
       - run: bun install --frozen-lockfile
-      - run: bun run gen:entries
-      - run: bun run compile
+      - run: bun --filter @shenron/bot run gen:entries
+      - run: bun --filter @shenron/bot run compile
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
