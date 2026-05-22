@@ -63,30 +63,12 @@ jobs:
       - name: Tests
         run: bun run test
 
-      # Build bundle : le bot est validé par le job `compile`, le site par le
-      # deploy Vercel (push main). Pas de `turbo run build` ici — il lancerait
-      # le `build: tsup` des packages @rpbey/* (tsup non installé, dist commité).
-
-  compile:
-    name: Compile standalone binary
-    runs-on: ubuntu-latest
-    needs: check
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Auth GitHub Packages
-        env:
-          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
-      - run: bun install --frozen-lockfile
-      - run: bun --filter @shenron/bot gen:entries
-      - run: bun --filter @shenron/bot compile
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: shenron-linux-x64-${{ github.sha }}
-          path: dist/shenron
+      # Pas de step build ici : la cible de prod n'a pas de bundle préalable.
+      # - Le bot tourne `bun src/index.ts` en direct (systemd VPS + Docker Fly),
+      #   jamais le binaire `--compile`. Le binaire standalone (bundling du
+      #   dashboard HTML/CSS + assets fonts) est produit séparément par
+      #   release.yml sur tags v* ; il n'est sur aucun chemin de déploiement.
+      # - Le site est buildé et validé par le deploy Vercel sur push main.
+      # - `turbo run build` est exclu : il lancerait le `build: tsup` des
+      #   packages @rpbey/* (tsup non installé ; leurs dist sont commités).
           retention-days: 7
