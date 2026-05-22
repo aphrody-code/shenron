@@ -13,13 +13,20 @@ import { mock } from "bun:test";
 // ne charge pas, on substitue un shim no-op : imports et DI ne crashent plus,
 // les smoke tests tournent (le rendu réel est couvert par canvas-render.test.ts,
 // skippé quand le natif est indisponible — cf. shenronCanvasNativeOk).
-let canvasNativeOk = true;
+// Le binaire skia n'est publié que pour linux-x64-gnu (cf. optionalDependencies
+// du lockfile). On ne tente l'import de détection que là : sur macOS/autre, le
+// loader @napi-rs émet une "unhandled error" non catchable proprement (aucun
+// binaire darwin) qui ferait échouer bun:test malgré 0 fail — donc shim direct.
+let canvasNativeOk = false;
 // SHENRON_CANVAS_SHIM=1 force le shim (debug / repro CI sur machine au binding OK).
-if (Bun.env.SHENRON_CANVAS_SHIM === "1") {
-	canvasNativeOk = false;
-} else {
+if (
+	Bun.env.SHENRON_CANVAS_SHIM !== "1" &&
+	process.platform === "linux" &&
+	process.arch === "x64"
+) {
 	try {
 		await import("@aphrody-code/canvas");
+		canvasNativeOk = true;
 	} catch {
 		canvasNativeOk = false;
 	}
