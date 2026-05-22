@@ -6,13 +6,13 @@
 FROM oven/bun:1 AS builder
 WORKDIR /app
 
-# Auth GitHub Packages (pour les packages privés @rpbey/*)
+# Auth GitHub Packages (pour les packages privés @aphrody-code/* — ex. canvas fork)
 ARG GH_PACKAGES_TOKEN
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=bun.lock,target=bun.lock \
     --mount=type=cache,target=/root/.bun/install/cache \
     if [ -n "$GH_PACKAGES_TOKEN" ]; then \
-      printf "@rpbey:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PACKAGES_TOKEN" > .npmrc ; \
+      printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PACKAGES_TOKEN" > .npmrc ; \
     fi && \
     bun install --frozen-lockfile
 
