@@ -1,3 +1,4 @@
+import { WikiEditor } from "@/components/wiki/WikiEditor";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { createPage } from "../../_actions";
@@ -15,7 +16,7 @@ export default async function NewWikiPagePage({
 	});
 
 	return (
-		<div className="w-full max-w-3xl mx-auto">
+		<div className="w-full max-w-6xl mx-auto">
 			<div className="flex items-center gap-4 mb-8">
 				<Link
 					href="/admin/wiki"
@@ -28,62 +29,12 @@ export default async function NewWikiPagePage({
 				NOUVELLE PAGE WIKI
 			</h1>
 
-			<form action={createPage} className="dbz-panel p-6 space-y-4">
-				<div>
-					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
-						Titre
-					</label>
-					<input
-						name="title"
-						required
-						className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none font-bold text-white"
-						placeholder="Ex: Goku Saiyan"
-					/>
-				</div>
-				<div>
-					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
-						Catégorie
-					</label>
-					<select
-						name="categoryId"
-						required
-						defaultValue={params.category ?? ""}
-						className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white"
-					>
-						<option value="">— Sélectionner —</option>
-						{allCategories.map((c) => (
-							<option key={c.id} value={c.id}>
-								{c.name}
-							</option>
-						))}
-					</select>
-				</div>
-				<div>
-					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
-						Contenu (markdown)
-					</label>
-					<textarea
-						name="body"
-						rows={16}
-						className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white font-mono text-sm"
-						placeholder="# Goku&#10;&#10;Le légendaire Saiyan élevé sur Terre…"
-					/>
-				</div>
-				<div>
-					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
-						Ordre
-					</label>
-					<input
-						type="number"
-						name="order"
-						defaultValue={0}
-						className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white"
-					/>
-				</div>
-				<button type="submit" className="dbz-button w-full !text-lg mt-6">
-					CRÉER
-				</button>
-			</form>
+			<WikiEditor
+				categories={allCategories.map((c) => ({ id: c.id, name: c.name }))}
+				action={createPage}
+				defaultCategoryId={params.category}
+				submitLabel="CRÉER"
+			/>
 		</div>
 	);
 }

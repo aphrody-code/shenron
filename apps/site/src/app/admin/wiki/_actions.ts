@@ -2,6 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { assetUrl } from "@/lib/db-universe";
+import { env } from "@/lib/env";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -12,11 +14,11 @@ async function requireAdmin() {
 		headers: await headers(),
 	});
 	if (!session?.user) redirect("/signin");
-	
+
 	const account = await db.query.baAccount.findFirst({
 		where: (acc, { eq }) => eq(acc.userId, session.user.id),
 	});
-	
+
 	const discordId = account?.accountId;
 	const user = await db.query.users.findFirst({
 		where: (u, { eq }) => eq(u.discordId, discordId ?? ""),
@@ -119,4 +121,43 @@ export async function deletePage(id: string) {
 	revalidatePath("/admin/wiki");
 	revalidatePath("/wiki");
 	redirect("/admin/wiki");
+}
+
+/**
+ * Upload une image vers le bot (`POST /api/assets/upload`). Next gère le
+ * multipart nativement (le proxy /api/bot-admin lit `req.text()` et corromprait
+ * les bytes binaires → on passe par cette server action). Le token admin reste
+ * server-only. Retourne l'URL CDN absolue à insérer dans le markdown.
+ */
+export async function uploadWikiImage(
+	formData: FormData,
+): Promise<{ url: string } | { error: string }> {
+	await requireAdmin();
+	const file = formData.get("file");
+	if (!(file instanceof File) || file.size === 0) {
+		return { error: "Aucun fichier" };
+	}
+	const token = env.SHENRON_ADMIN_TOKEN;
+	if (!token) return { error: "SHENRON_ADMIN_TOKEN absent côté site" };
+
+	const upstream = new FormData();
+	upstream.append("file", file, file.name);
+	try {
+		const res = await fetch(`${env.SHENRON_API_URL}/api/assets/upload`, {
+			method: "POST",
+			headers: { authorization: `Bearer ${token}` },
+			body: upstream,
+			cache: "no-store",
+		});
+		const data = (await res.json().catch(() => null)) as {
+			path?: string;
+			error?: string;
+		} | null;
+		if (!res.ok || !data?.path) {
+			return { error: data?.error ?? `Upload échoué (${res.status})` };
+		}
+		return { url: assetUrl(data.path) };
+	} catch (err) {
+		return { error: err instanceof Error ? err.message : "Upload échoué" };
+	}
 }

@@ -475,3 +475,78 @@
     transform: none !important;
   }
 }
+
+/* ── Mise en page wiki (pages libres WikiPage) ───────────────────────────
+   Classes utilitaires utilisables dans le markdown/HTML des pages wiki pour
+   placer des images à côté du texte, des galeries, des infobox. Le rédacteur
+   (admin) écrit p.ex. <figure class="wiki-float-right">…</figure>. */
+.wiki-content figure {
+  margin: 0 0 1rem;
+}
+.wiki-content figure img,
+.wiki-content img {
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-dbz-border, #2a3a5a);
+}
+.wiki-content figcaption {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #9ca3af;
+  margin-top: 0.35rem;
+}
+/* Image flottante à droite / à gauche : le texte s'enroule autour. */
+.wiki-content .wiki-float-right {
+  float: right;
+  max-width: min(42%, 320px);
+  margin: 0.25rem 0 1rem 1.5rem;
+  clear: right;
+}
+.wiki-content .wiki-float-left {
+  float: left;
+  max-width: min(42%, 320px);
+  margin: 0.25rem 1.5rem 1rem 0;
+  clear: left;
+}
+.wiki-content .wiki-float-right img,
+.wiki-content .wiki-float-left img {
+  width: 100%;
+  height: auto;
+}
+/* Infobox type wiki : encadré aligné à droite. */
+.wiki-content .wiki-infobox {
+  float: right;
+  width: min(46%, 300px);
+  margin: 0 0 1.25rem 1.5rem;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--color-dbz-border, #2a3a5a);
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+}
+/* Galerie multi-images en grille responsive. */
+.wiki-content .wiki-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  clear: both;
+}
+.wiki-content .wiki-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Annule le flottement (à placer après un bloc flotté). */
+.wiki-content .wiki-clear {
+  clear: both;
+}
+@media (max-width: 640px) {
+  .wiki-content .wiki-float-right,
+  .wiki-content .wiki-float-left,
+  .wiki-content .wiki-infobox {
+    float: none;
+    max-width: 100%;
+    width: 100%;
+    margin: 1rem 0;
+  }
+}

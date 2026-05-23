@@ -1,7 +1,6 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 export default async function WikiPage({
 	params,
@@ -32,8 +31,8 @@ export default async function WikiPage({
 				<span>{page.category.name}</span>
 			</nav>
 			<h1 className="text-4xl font-black mb-8">{page.title}</h1>
-			<div className="prose prose-invert max-w-none">
-				<ReactMarkdown remarkPlugins={[remarkGfm]}>{page.body}</ReactMarkdown>
+			<div className="prose prose-invert max-w-none wiki-content">
+				<WikiMarkdown body={page.body} />
 			</div>
 			<div className="mt-16 pt-8 border-t border-dbz-border text-xs text-gray-500">
 				Dernière mise à jour le{" "}
