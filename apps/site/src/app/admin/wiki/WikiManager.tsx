@@ -23,6 +23,38 @@ type CategoryNode = {
 	}[];
 };
 
+// Contenu structuré de l'encyclopédie : édité via les tables db_* du bot
+// (CRUD /admin/database/[table]) ou les éditeurs spécialisés /admin/db-universe.
+// C'est ICI que se modifient les descriptions des films, épisodes, persos, etc.
+const ENCYCLO: { label: string; kanji: string; href: string }[] = [
+	{
+		label: "Personnages",
+		kanji: "人物",
+		href: "/admin/database/db_characters",
+	},
+	{ label: "Films", kanji: "映画", href: "/admin/db-universe/films" },
+	{ label: "Épisodes", kanji: "話", href: "/admin/db-universe/episodes" },
+	{ label: "Planètes", kanji: "星", href: "/admin/database/db_planets" },
+	{ label: "Sagas", kanji: "編", href: "/admin/db-universe/sagas" },
+	{ label: "Arcs", kanji: "章", href: "/admin/database/db_arcs" },
+	{ label: "Races", kanji: "種族", href: "/admin/database/db_races" },
+	{
+		label: "Transformations",
+		kanji: "変身",
+		href: "/admin/database/db_transformations",
+	},
+	{ label: "Techniques", kanji: "技", href: "/admin/database/db_techniques" },
+	{ label: "Jeux", kanji: "遊", href: "/admin/db-universe/games" },
+	{
+		label: "Manga (tomes)",
+		kanji: "巻",
+		href: "/admin/database/db_manga_volumes",
+	},
+	{ label: "Actualités", kanji: "報", href: "/admin/database/db_news" },
+	{ label: "Sources", kanji: "源", href: "/admin/db-universe/sources" },
+	{ label: "Assets", kanji: "画", href: "/admin/db-universe/assets" },
+];
+
 export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 	const [q, setQ] = useState("");
 
@@ -80,6 +112,44 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 						+ PAGE
 					</Link>
 				</div>
+			</div>
+
+			{/* Encyclopédie — contenu structuré (db_*). Édition des descriptions
+			    films/épisodes/persos + images. */}
+			<section className="mb-10">
+				<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase tracking-widest mb-1">
+					Encyclopédie
+				</h2>
+				<p className="text-sm text-gray-400 mb-4">
+					Éditer le contenu des fiches (descriptions, images, dates…). C'est ici
+					qu'on modifie films, épisodes, personnages, etc.
+				</p>
+				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+					{ENCYCLO.map((e) => (
+						<Link
+							key={e.href}
+							href={e.href}
+							className="dbz-panel p-4 flex items-center gap-3 hover:border-dbz-orange transition-colors group"
+						>
+							<span className="text-2xl text-dbz-blue-light group-hover:text-dbz-orange transition-colors">
+								{e.kanji}
+							</span>
+							<span className="font-saiyan uppercase tracking-wider text-sm text-gray-200 group-hover:text-white">
+								{e.label}
+							</span>
+						</Link>
+					))}
+				</div>
+			</section>
+
+			{/* Pages libres — table WikiPage (markdown + HTML + images custom). */}
+			<div className="flex items-baseline justify-between mb-4 border-t border-dbz-border pt-8">
+				<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase tracking-widest">
+					Pages libres
+				</h2>
+				<p className="text-xs text-gray-500">
+					Articles 100% custom (markdown, mise en page, images)
+				</p>
 			</div>
 
 			<input
