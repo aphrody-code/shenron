@@ -68,6 +68,59 @@ export function WikiEditor({
 		});
 	}
 
+	// Entoure la sélection (ex. **gras**) ; insère un placeholder si rien n'est sélectionné.
+	function wrapSelection(before: string, after: string, placeholder = "texte") {
+		const ta = taRef.current;
+		if (!ta) return;
+		const start = ta.selectionStart;
+		const end = ta.selectionEnd;
+		const sel = body.slice(start, end) || placeholder;
+		const next = body.slice(0, start) + before + sel + after + body.slice(end);
+		setBody(next);
+		requestAnimationFrame(() => {
+			ta.focus();
+			ta.setSelectionRange(
+				start + before.length,
+				start + before.length + sel.length,
+			);
+		});
+	}
+
+	// Préfixe chaque ligne de la sélection (titres, listes, citations).
+	function prefixLines(prefix: string) {
+		const ta = taRef.current;
+		if (!ta) return;
+		const start = ta.selectionStart;
+		const end = ta.selectionEnd;
+		const lineStart = body.lastIndexOf("\n", start - 1) + 1;
+		const block = body.slice(lineStart, end) || "texte";
+		const prefixed = block
+			.split("\n")
+			.map((l) => prefix + l)
+			.join("\n");
+		const next = body.slice(0, lineStart) + prefixed + body.slice(end);
+		setBody(next);
+		requestAnimationFrame(() => {
+			ta.focus();
+			ta.setSelectionRange(lineStart, lineStart + prefixed.length);
+		});
+	}
+
+	const FORMATS: { label: string; title: string; run: () => void }[] = [
+		{ label: "B", title: "Gras", run: () => wrapSelection("**", "**") },
+		{ label: "I", title: "Italique", run: () => wrapSelection("*", "*") },
+		{ label: "H2", title: "Titre", run: () => prefixLines("## ") },
+		{ label: "H3", title: "Sous-titre", run: () => prefixLines("### ") },
+		{ label: "•", title: "Liste", run: () => prefixLines("- ") },
+		{ label: "”", title: "Citation", run: () => prefixLines("> ") },
+		{
+			label: "🔗",
+			title: "Lien",
+			run: () => wrapSelection("[", "](https://)", "texte du lien"),
+		},
+		{ label: "</>", title: "Code", run: () => wrapSelection("`", "`", "code") },
+	];
+
 	function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
 		const file = e.target.files?.[0];
 		e.target.value = "";
@@ -135,6 +188,21 @@ export function WikiEditor({
 						/>
 					</div>
 				</div>
+			</div>
+
+			{/* Barre de formatage markdown */}
+			<div className="dbz-panel p-3 flex flex-wrap items-center gap-1">
+				{FORMATS.map((f) => (
+					<button
+						key={f.label}
+						type="button"
+						title={f.title}
+						onClick={f.run}
+						className="min-w-9 px-2.5 py-1.5 text-sm font-bold text-dbz-blue-light hover:text-dbz-yellow hover:bg-dbz-bg border-2 border-transparent hover:border-dbz-border rounded transition-colors"
+					>
+						{f.label}
+					</button>
+				))}
 			</div>
 
 			{/* Barre d'outils : upload image + raccourcis de mise en page */}
