@@ -1,9 +1,12 @@
 import { adminFetch, assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
+import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+const TABLE = "db_assets";
 
 type Asset = {
 	id: number;
@@ -59,8 +62,13 @@ export default async function AdminAssetsPage({
 			<p className="text-sm text-white/50 mb-5">
 				Galerie des images de l&apos;encyclopédie, organisées par catégorie
 				source. Cliquez sur une image pour l&apos;ouvrir en pleine taille.
-				Survolez pour voir l&apos;attribution et la licence.
+				Survolez pour voir l&apos;attribution et la licence. Modifiez ou
+				supprimez un média via les boutons sous chaque image.
 			</p>
+
+			<div className="flex justify-end mb-4">
+				<DbAddButton table={TABLE} label="Ajouter un média" />
+			</div>
 
 			{/* Navigation catégories */}
 			<nav
@@ -96,31 +104,35 @@ export default async function AdminAssetsPage({
 			) : (
 				<div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
 					{assets.map((a) => (
-						<a
-							key={a.id}
-							href={assetCdnUrl(a.path)}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="block group"
-							title={[a.attribution ?? a.source_id, a.license_key, a.role]
-								.filter(Boolean)
-								.join(" · ")}
-						>
-							<div className="relative aspect-square bg-dbz-bg border-2 border-dbz-border group-hover:border-dbz-orange transition-colors overflow-hidden">
-								<Image
-									src={assetCdnUrl(a.path)}
-									alt={a.role ?? a.path}
-									fill
-									sizes="(max-width: 768px) 25vw, 12vw"
-									className="object-cover"
-									unoptimized
-								/>
+						<div key={a.id} className="group">
+							<a
+								href={assetCdnUrl(a.path)}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="block"
+								title={[a.attribution ?? a.source_id, a.license_key, a.role]
+									.filter(Boolean)
+									.join(" · ")}
+							>
+								<div className="relative aspect-square bg-dbz-bg border-2 border-dbz-border group-hover:border-dbz-orange transition-colors overflow-hidden">
+									<Image
+										src={assetCdnUrl(a.path)}
+										alt={a.role ?? a.path}
+										fill
+										sizes="(max-width: 768px) 25vw, 12vw"
+										className="object-cover"
+										unoptimized
+									/>
+								</div>
+							</a>
+							<div className="mt-1.5 flex items-center justify-between gap-1">
+								<span className="text-[10px] text-white/55 font-mono truncate">
+									#{a.id}
+									{a.role ? ` · ${a.role}` : ""}
+								</span>
+								<DbRowActions table={TABLE} id={a.id} />
 							</div>
-							<div className="mt-1.5 text-[10px] text-white/55 font-mono truncate">
-								#{a.id}
-								{a.role ? ` · ${a.role}` : ""}
-							</div>
-						</a>
+						</div>
 					))}
 				</div>
 			)}

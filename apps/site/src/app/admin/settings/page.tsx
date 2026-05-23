@@ -18,7 +18,7 @@ import {
 	Film,
 	ExternalLink,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/admin-api";
 import { ChannelSelect } from "@/components/admin/ChannelSelect";
 import { RoleSelect } from "@/components/admin/RoleSelect";
@@ -133,14 +133,34 @@ export default function SettingsPage() {
 			),
 	});
 
+	const [toast, setToast] = useState<{
+		type: "success" | "error";
+		msg: string;
+	} | null>(null);
+	useEffect(() => {
+		if (!toast) return;
+		const t = setTimeout(() => setToast(null), 3500);
+		return () => clearTimeout(t);
+	}, [toast]);
+
 	const set = useMutation({
 		mutationFn: (data: { key: string; value: string }) =>
 			api.post("/services/settings/set", data),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["settings"] });
+			setToast({ type: "success", msg: "Paramètre enregistré." });
+		},
+		onError: (err: Error) =>
+			setToast({ type: "error", msg: `Échec : ${err.message}` }),
 	});
 	const unset = useMutation({
 		mutationFn: (key: string) => api.post("/services/settings/unset", { key }),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["settings"] });
+			setToast({ type: "success", msg: "Retour à la valeur par défaut." });
+		},
+		onError: (err: Error) =>
+			setToast({ type: "error", msg: `Échec : ${err.message}` }),
 	});
 
 	const valueMap = useMemo(() => {
@@ -182,6 +202,17 @@ export default function SettingsPage() {
 
 	return (
 		<div className="space-y-4">
+			{toast && (
+				<div
+					className={`fixed top-4 right-4 z-50 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+						toast.type === "success"
+							? "border-green-500/50 bg-dbz-card text-green-300"
+							: "border-red-500/50 bg-dbz-card text-red-300"
+					}`}
+				>
+					{toast.msg}
+				</div>
+			)}
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 mb-2">
 					<SettingsIcon className="h-5 w-5 text-dbz-orange" />

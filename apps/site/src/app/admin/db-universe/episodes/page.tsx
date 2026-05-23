@@ -1,8 +1,11 @@
 import { adminFetch } from "../_lib";
 import { AdminHeader } from "../_Header";
+import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
+
+const TABLE = "db_episodes";
 
 const SERIES = [
 	"DB",
@@ -64,6 +67,10 @@ export default async function AdminEpisodesPage({
 				fiche MyAnimeList de l&apos;anime.
 			</p>
 
+			<div className="flex justify-end mb-4">
+				<DbAddButton table={TABLE} label="Ajouter un épisode" />
+			</div>
+
 			{/* Filtre séries */}
 			<nav className="mb-6 flex flex-wrap gap-2" aria-label="Choisir une série">
 				{SERIES.map((s) => (
@@ -111,6 +118,9 @@ export default async function AdminEpisodesPage({
 								<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
 									MAL
 								</th>
+								<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
+									Actions
+								</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -148,6 +158,9 @@ export default async function AdminEpisodesPage({
 										) : (
 											<span className="text-[10px] text-white/25">—</span>
 										)}
+									</td>
+									<td className="p-2">
+										<DbRowActions table={TABLE} id={ep.id} />
 									</td>
 								</tr>
 							))}

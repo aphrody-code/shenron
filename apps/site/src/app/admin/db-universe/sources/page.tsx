@@ -1,7 +1,10 @@
 import { adminFetch } from "../_lib";
 import { AdminHeader } from "../_Header";
+import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 
 export const dynamic = "force-dynamic";
+
+const TABLE = "db_sources";
 
 type Source = {
 	id: string;
@@ -34,6 +37,10 @@ export default async function AdminSourcesPage() {
 				d&apos;attribution à utiliser et la licence applicable.
 			</p>
 
+			<div className="flex justify-end mb-6">
+				<DbAddButton table={TABLE} label="Ajouter une source" />
+			</div>
+
 			{sources.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
 					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
@@ -60,6 +67,9 @@ export default async function AdminSourcesPage() {
 								</th>
 								<th className="p-3 text-left text-xs font-bold uppercase tracking-widest text-dbz-blue-light">
 									Modèle d&apos;attribution
+								</th>
+								<th className="p-3 text-right text-xs font-bold uppercase tracking-widest text-dbz-blue-light w-20">
+									Actions
 								</th>
 							</tr>
 						</thead>
@@ -114,6 +124,9 @@ export default async function AdminSourcesPage() {
 										) : (
 											<span className="text-white/25">—</span>
 										)}
+									</td>
+									<td className="p-3 align-top">
+										<DbRowActions table={TABLE} id={s.id} />
 									</td>
 								</tr>
 							))}

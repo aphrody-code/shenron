@@ -1,5 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { db } from "@/lib/db";
+import { isCurrentUserAdmin } from "@/lib/session";
 import { notFound } from "next/navigation";
 
 export default async function WikiPage({
@@ -17,6 +18,8 @@ export default async function WikiPage({
 
 	if (!page) notFound();
 
+	const isAdmin = await isCurrentUserAdmin();
+
 	return (
 		<div>
 			<nav className="flex gap-2 text-xs text-gray-500 mb-8 uppercase tracking-widest">
@@ -30,7 +33,17 @@ export default async function WikiPage({
 				)}
 				<span>{page.category.name}</span>
 			</nav>
-			<h1 className="text-4xl font-black mb-8">{page.title}</h1>
+			<div className="flex items-start justify-between gap-4 mb-8">
+				<h1 className="text-4xl font-black">{page.title}</h1>
+				{isAdmin && (
+					<Link
+						href={`/admin/wiki/page/${page.id}`}
+						className="shrink-0 mt-1 inline-flex items-center gap-2 rounded border border-dbz-orange/60 bg-dbz-orange/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-dbz-orange hover:bg-dbz-orange/20 transition-colors"
+					>
+						Éditer cette page
+					</Link>
+				)}
+			</div>
 			<div className="prose prose-invert max-w-none wiki-content">
 				<WikiMarkdown body={page.body} />
 			</div>

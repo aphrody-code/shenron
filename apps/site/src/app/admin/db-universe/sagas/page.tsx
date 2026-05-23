@@ -1,7 +1,10 @@
 import { adminFetch } from "../_lib";
 import { AdminHeader } from "../_Header";
+import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 
 export const dynamic = "force-dynamic";
+
+const TABLE = "db_sagas";
 
 type Saga = {
 	id: number;
@@ -62,6 +65,10 @@ export default async function AdminSagasPage() {
 				chronologique de diffusion.
 			</p>
 
+			<div className="flex justify-end mb-6">
+				<DbAddButton table={TABLE} label="Ajouter une saga" />
+			</div>
+
 			{sagas.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
 					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
@@ -92,6 +99,9 @@ export default async function AdminSagasPage() {
 									<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-28">
 										Nom japonais
 									</th>
+									<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
+										Actions
+									</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -118,6 +128,9 @@ export default async function AdminSagasPage() {
 										</td>
 										<td className="p-2 font-jp text-sm text-dbz-yellow/85">
 											{s.name_ja ?? <span className="text-white/20">—</span>}
+										</td>
+										<td className="p-2">
+											<DbRowActions table={TABLE} id={s.id} />
 										</td>
 									</tr>
 								))}

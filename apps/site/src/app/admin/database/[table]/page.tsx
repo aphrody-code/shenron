@@ -14,6 +14,8 @@ import {
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/admin-api";
+import { assetUrl } from "@/lib/db-universe";
+import { TABLE_LABELS, colLabel } from "@/lib/db-labels";
 
 interface TableSpec {
 	name: string;
@@ -23,201 +25,6 @@ interface TableSpec {
 	description: string | null;
 }
 
-/** Libellés humains pour chaque table. */
-const TABLE_LABELS: Record<string, string> = {
-	users: "Joueurs",
-	inventory: "Inventaires",
-	shop_items: "Articles de la boutique",
-	achievements: "Succès obtenus",
-	achievement_triggers: "Déclencheurs de succès",
-	level_rewards: "Récompenses de niveau",
-	guild_settings: "Paramètres du serveur",
-	warns: "Avertissements",
-	jails: "Joueurs en prison",
-	tickets: "Tickets de support",
-	giveaways: "Giveaways",
-	fusions: "Fusions actives",
-	action_logs: "Journal des actions",
-	db_characters: "Personnages",
-	db_planets: "Planètes",
-	db_races: "Races",
-	db_transformations: "Transformations",
-	db_techniques: "Techniques",
-	db_sagas: "Sagas",
-	db_arcs: "Arcs narratifs",
-	db_episodes: "Épisodes",
-	db_movies: "Films",
-	db_games: "Jeux vidéo",
-	db_manga_volumes: "Tomes manga",
-	db_manga_chapters: "Chapitres manga",
-	db_tools: "Outils communautaires",
-	db_news: "Actualités",
-	db_sources: "Sources & attributions",
-	db_licenses: "Licences",
-	db_assets: "Médias & images",
-};
-
-/** Libellés humains par colonne (snake_case ou camelCase). */
-const COL_LABELS: Record<string, string> = {
-	id: "Identifiant",
-	name: "Nom",
-	nameJa: "Nom japonais",
-	name_ja: "Nom japonais",
-	nameRomaji: "Nom romaji",
-	name_romaji: "Nom romaji",
-	title: "Titre",
-	titleJa: "Titre japonais",
-	title_ja: "Titre japonais",
-	titleRomaji: "Titre romaji",
-	title_romaji: "Titre romaji",
-	slug: "Identifiant URL",
-	description: "Description",
-	series: "Série",
-	orderIdx: "Ordre",
-	order_idx: "Ordre",
-	image: "Image",
-	cover: "Couverture",
-	poster: "Affiche",
-	releaseDate: "Date de sortie",
-	release_date: "Date de sortie",
-	publishedAt: "Date de publication",
-	published_at: "Date de publication",
-	airDate: "Date de diffusion",
-	air_date: "Date de diffusion",
-	durationMin: "Durée (min)",
-	duration_min: "Durée (min)",
-	durationSec: "Durée (sec)",
-	duration_sec: "Durée (sec)",
-	malId: "ID MyAnimeList",
-	mal_id: "ID MyAnimeList",
-	anilistId: "ID AniList",
-	anilist_id: "ID AniList",
-	platforms: "Plateformes",
-	developer: "Développeur",
-	publisher: "Éditeur",
-	officialUrl: "Site officiel",
-	official_url: "Site officiel",
-	synopsis: "Synopsis",
-	numberInSeries: "N° dans la série",
-	number_in_series: "N° dans la série",
-	volumeNumber: "N° de tome",
-	volume_number: "N° de tome",
-	chapterNumber: "N° de chapitre",
-	chapter_number: "N° de chapitre",
-	isbn: "ISBN",
-	ki: "Ki",
-	maxKi: "Ki maximum",
-	max_ki: "Ki maximum",
-	race: "Race",
-	gender: "Genre",
-	affiliation: "Affiliation",
-	originPlanetId: "Planète d'origine",
-	origin_planet_id: "Planète d'origine",
-	characterId: "Personnage",
-	character_id: "Personnage",
-	isDestroyed: "Détruite ?",
-	is_destroyed: "Détruite ?",
-	homePlanetId: "Planète natale",
-	home_planet_id: "Planète natale",
-	type: "Type",
-	creatorId: "Créateur",
-	creator_id: "Créateur",
-	debutEpisodeId: "Épisode de début",
-	debut_episode_id: "Épisode de début",
-	debutChapterId: "Chapitre de début",
-	debut_chapter_id: "Chapitre de début",
-	category: "Catégorie",
-	url: "URL",
-	author: "Auteur",
-	language: "Langue",
-	targetGameId: "Jeu ciblé",
-	target_game_id: "Jeu ciblé",
-	stars: "Étoiles",
-	sourceId: "Source",
-	source_id: "Source",
-	sourceUrl: "URL source",
-	source_url: "URL source",
-	licenseKey: "Licence",
-	license_key: "Licence",
-	attribution: "Attribution",
-	mimeType: "Type MIME",
-	mime_type: "Type MIME",
-	width: "Largeur",
-	height: "Hauteur",
-	entityType: "Type entité",
-	entity_type: "Type entité",
-	entityId: "ID entité",
-	entity_id: "ID entité",
-	role: "Rôle",
-	xp: "XP",
-	zeni: "Zeni",
-	currentLevelRoleId: "Rôle niveau actuel",
-	lastLevelReached: "Dernier niveau",
-	messageCount: "Messages",
-	totalVoiceMs: "Temps vocal (ms)",
-	equippedCard: "Carte équipée",
-	equippedBadge: "Badge équipé",
-	equippedColor: "Couleur équipée",
-	equippedTitle: "Titre équipé",
-	price: "Prix",
-	enabled: "Activé ?",
-	meta: "Métadonnées",
-	roleId: "ID du rôle",
-	zeniBonus: "Bonus zeni",
-	xpThreshold: "Seuil XP",
-	key: "Clé",
-	value: "Valeur",
-	active: "Actif ?",
-	userId: "Joueur",
-	user_id: "Joueur",
-	expiresAt: "Expire le",
-	expires_at: "Expire le",
-	status: "Statut",
-	closedAt: "Fermé le",
-	closed_at: "Fermé le",
-	title_en: "Titre anglais",
-	winners: "Gagnants",
-	endsAt: "Se termine le",
-	ends_at: "Se termine le",
-	ended: "Terminé ?",
-	pattern: "Motif regex",
-	flags: "Drapeaux",
-	code: "Code",
-	excerpt: "Extrait",
-	licenseUrl: "URL licence",
-	license_url: "URL licence",
-	requiresAttribution: "Attribution requise ?",
-	requires_attribution: "Attribution requise ?",
-	shareAlike: "Partage identique ?",
-	share_alike: "Partage identique ?",
-	attributionTemplate: "Modèle d'attribution",
-	attribution_template: "Modèle d'attribution",
-	sagaId: "Saga",
-	saga_id: "Saga",
-	arcId: "Arc",
-	arc_id: "Arc",
-	volumeId: "Tome",
-	volume_id: "Tome",
-	videoUrl: "URL vidéo",
-	video_url: "URL vidéo",
-	licenseName: "Nom de la licence",
-	license_name: "Nom de la licence",
-};
-
-const CDN_BASE =
-	typeof window !== "undefined"
-		? (process.env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://shenron.rpbey.fr")
-		: "https://shenron.rpbey.fr";
-
-function colLabel(col: string): string {
-	return (
-		COL_LABELS[col] ??
-		col
-			.replace(/_/g, " ")
-			.replace(/([A-Z])/g, " $1")
-			.trim()
-	);
-}
 
 export default function TablePage() {
 	const { table } = useParams<{ table: string }>();
@@ -527,14 +334,12 @@ function renderCell(v: unknown, col?: string): ReactNode {
 		);
 	const s = String(v);
 
-	// Détection image : chemin relatif type "characters/goku.png" ou "/db/…"
+	// Détection image : chemin DB relatif type "./assets/dbz/characters/goku.webp"
+	// → résolu vers le host du bot (bot.rpbey.fr) via assetUrl (strip "./", pas de /db/).
 	const isImageCol = col && /image|cover|poster|photo|avatar/i.test(col);
 	const isImagePath = /\.(png|jpe?g|webp|gif|avif)$/i.test(s);
 	if (isImageCol && isImagePath && s.length < 200) {
-		// Chemin relatif → préfixe CDN bot
-		const src = /^https?:\/\//.test(s)
-			? s
-			: `${CDN_BASE}/db/${s.replace(/^\//, "")}`;
+		const src = assetUrl(s);
 		return (
 			<a href={src} target="_blank" rel="noreferrer" className="inline-block">
 				<img

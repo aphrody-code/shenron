@@ -1,6 +1,9 @@
 import { adminFetch, assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
+import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 import Image from "next/image";
+
+const TABLE = "db_movies";
 
 export const dynamic = "force-dynamic";
 
@@ -33,11 +36,13 @@ export default async function AdminFilmsPage() {
 				}
 			/>
 
-			<p className="text-sm text-white/50 mb-6">
-				Liste de tous les films Dragon Ball. Les données proviennent de
-				l&apos;API MyAnimeList (Jikan). Cliquez sur le numéro MAL pour voir la
-				fiche correspondante.
-			</p>
+			<div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+				<p className="text-sm text-white/50 max-w-2xl">
+					Liste de tous les films Dragon Ball. Modifiez ou supprimez une fiche
+					via les actions à droite de chaque ligne, ou ajoutez-en une.
+				</p>
+				<DbAddButton table={TABLE} label="Ajouter un film" />
+			</div>
 
 			{movies.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
@@ -70,6 +75,9 @@ export default async function AdminFilmsPage() {
 								</th>
 								<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
 									MAL
+								</th>
+								<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
+									Actions
 								</th>
 							</tr>
 						</thead>
@@ -145,6 +153,9 @@ export default async function AdminFilmsPage() {
 											) : (
 												<span className="text-[10px] text-white/25">—</span>
 											)}
+										</td>
+										<td className="p-2">
+											<DbRowActions table={TABLE} id={m.id} />
 										</td>
 									</tr>
 								);

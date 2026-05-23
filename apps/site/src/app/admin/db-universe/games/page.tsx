@@ -1,8 +1,11 @@
 import { adminFetch, assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
+import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
+
+const TABLE = "db_games";
 
 type Game = {
 	id: number;
@@ -37,6 +40,10 @@ export default async function AdminGamesPage() {
 				plateformes, la date de sortie et le studio de développement.
 			</p>
 
+			<div className="flex justify-end mb-6">
+				<DbAddButton table={TABLE} label="Ajouter un jeu" />
+			</div>
+
 			{games.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
 					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
@@ -65,6 +72,9 @@ export default async function AdminGamesPage() {
 								</th>
 								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-32">
 									Studio
+								</th>
+								<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
+									Actions
 								</th>
 							</tr>
 						</thead>
@@ -149,6 +159,9 @@ export default async function AdminGamesPage() {
 										</td>
 										<td className="p-2 text-xs text-white/70">
 											{g.developer ?? "—"}
+										</td>
+										<td className="p-2">
+											<DbRowActions table={TABLE} id={g.id} />
 										</td>
 									</tr>
 								);
