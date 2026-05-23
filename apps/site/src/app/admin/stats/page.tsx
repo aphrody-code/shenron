@@ -9,9 +9,7 @@ interface User {
 	id: string;
 	xp: number;
 	zeni: number;
-	last_level_reached: number;
-	message_count: number;
-	total_voice_ms: number;
+	lastLevelReached: number;
 }
 
 export default function StatsPage() {
@@ -21,7 +19,7 @@ export default function StatsPage() {
 	});
 	const top = useQuery({
 		queryKey: ["bot", "users", "top"],
-		queryFn: () => api.get<{ users: User[] }>("/bot/users?limit=20&offset=0"),
+		queryFn: () => api.get<{ users: User[] }>("/levels/top?metric=xp&limit=20"),
 	});
 
 	const maxXp = top.data?.users[0]?.xp ?? 1;
@@ -77,7 +75,7 @@ export default function StatsPage() {
 								{(u.zeni ?? 0).toLocaleString("fr-FR")} zénis
 							</span>
 							<span className="w-16 text-right font-mono text-xs text-zinc-500">
-								niveau {u.last_level_reached ?? 0}
+								niveau {u.lastLevelReached ?? 0}
 							</span>
 						</div>
 					))}
