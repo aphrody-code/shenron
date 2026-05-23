@@ -24,54 +24,58 @@ export function PermCreateForm() {
 	}
 	return (
 		<form onSubmit={onSubmit} className="dbz-panel p-5 space-y-3 mb-4">
-			<h3 className="font-saiyan text-xl text-fuchsia-300">+ Nouvelle règle</h3>
-			<p className="text-[10px] text-white/50">
-				Scope = nom command ou wildcard (`admin *`, `*`). Allow/Deny. Hiérarchie
-				: règle spécifique &gt; admin * &gt; *
+			<h3 className="font-saiyan text-xl text-fuchsia-300">
+				Ajouter / modifier une règle
+			</h3>
+			<p className="text-xs text-zinc-400">
+				Définissez si un rôle ou un utilisateur peut utiliser une commande.
+				Portée = nom de la commande ou joker (<code>admin *</code>,{" "}
+				<code>*</code>). Une règle plus spécifique prime toujours sur une règle
+				plus générale.
 			</p>
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
 				<label>
 					<span className="font-scouter tracking-widest text-cyan-300 text-[10px] uppercase">
-						Command
+						Commande
 					</span>
 					<input
 						name="command"
 						required
 						placeholder="warn"
-						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono"
+						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono rounded outline-none"
 					/>
 				</label>
 				<label>
 					<span className="font-scouter tracking-widest text-cyan-300 text-[10px] uppercase">
-						Scope (sous-cmd ou *)
+						Portée (sous-commande ou *)
 					</span>
 					<input
 						name="scope"
 						required
-						placeholder="* | admin * | reload"
-						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono"
+						placeholder="* | add | reload"
+						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono rounded outline-none"
 					/>
 				</label>
 				<label>
 					<span className="font-scouter tracking-widest text-cyan-300 text-[10px] uppercase">
-						Role ID (xor user)
+						ID du rôle (exclusif avec utilisateur)
 					</span>
 					<input
 						name="roleId"
 						pattern="\d{17,20}"
-						placeholder="Role Discord (17-20 chiffres)"
-						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono"
+						placeholder="Identifiant du rôle Discord (17-20 chiffres)"
+						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono rounded outline-none"
 					/>
 				</label>
 				<label>
 					<span className="font-scouter tracking-widest text-cyan-300 text-[10px] uppercase">
-						User ID (xor role)
+						ID de l'utilisateur (exclusif avec rôle)
 					</span>
 					<input
 						name="userId"
 						pattern="\d{17,20}"
-						placeholder="User Discord"
-						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono"
+						placeholder="Identifiant de l'utilisateur Discord"
+						className="mt-1 w-full bg-dbz-bg border border-dbz-border focus:border-fuchsia-400 p-2 font-mono rounded outline-none"
 					/>
 				</label>
 				<label className="flex items-center gap-2 pt-5 sm:col-span-2">
@@ -82,7 +86,7 @@ export function PermCreateForm() {
 						className="w-4 h-4"
 					/>
 					<span className="font-scouter tracking-widest text-cyan-300 text-[10px]">
-						ALLOW (sinon DENY)
+						AUTORISER (décocher = INTERDIRE)
 					</span>
 				</label>
 			</div>
@@ -92,13 +96,13 @@ export function PermCreateForm() {
 					disabled={pending}
 					className="dbz-button !text-xs disabled:opacity-40"
 				>
-					{pending ? "…" : "Créer/Update"}
+					{pending ? "Enregistrement…" : "Créer / mettre à jour"}
 				</button>
 				{r && (
 					<span
 						className={`text-xs ${r.ok ? "text-green-300" : "text-red-400"}`}
 					>
-						{r.ok ? "✓ Règle appliquée" : `✗ ${r.error}`}
+						{r.ok ? "Règle appliquée" : `Erreur : ${r.error}`}
 					</span>
 				)}
 			</div>
@@ -124,13 +128,18 @@ export function PermDeleteButton({
 			disabled={pending}
 			onClick={() =>
 				start(async () => {
-					if (!confirm(`Supprimer règle ${command}/${scope} ?`)) return;
+					if (
+						!confirm(
+							`Supprimer la règle « ${command} / ${scope} » ?\n\nLes réglages par défaut s'appliqueront à nouveau.`,
+						)
+					)
+						return;
 					await removePerm({ command, scope, roleId, userId });
 				})
 			}
-			className="px-2 py-1 text-[10px] uppercase tracking-widest border border-red-400/50 text-red-300 hover:bg-red-500/10 rounded"
+			className="px-2 py-1 text-[10px] uppercase tracking-widest border border-red-400/50 text-red-300 hover:bg-red-500/10 rounded disabled:opacity-40"
 		>
-			✗
+			Supprimer
 		</button>
 	);
 }

@@ -43,23 +43,23 @@ interface BotInfo {
 }
 
 const TYPE_LABELS: Record<number, string> = {
-	1: "CHAT_INPUT",
-	2: "USER",
-	3: "MESSAGE",
+	1: "slash",
+	2: "ctx. utilisateur",
+	3: "ctx. message",
 };
 
 const OPTION_TYPES: Record<number, string> = {
-	1: "SUB_COMMAND",
-	2: "SUB_COMMAND_GROUP",
-	3: "STRING",
-	4: "INTEGER",
-	5: "BOOLEAN",
-	6: "USER",
-	7: "CHANNEL",
-	8: "ROLE",
-	9: "MENTIONABLE",
-	10: "NUMBER",
-	11: "ATTACHMENT",
+	1: "sous-commande",
+	2: "groupe sous-cmd",
+	3: "texte",
+	4: "entier",
+	5: "oui/non",
+	6: "utilisateur",
+	7: "salon",
+	8: "rôle",
+	9: "mention",
+	10: "nombre",
+	11: "fichier",
 };
 
 export default function BotPage() {
@@ -81,6 +81,20 @@ export default function BotPage() {
 
 	return (
 		<div className="space-y-6">
+			<div className="dbz-panel p-4">
+				<div className="flex items-center gap-2 mb-2">
+					<BotIcon className="h-5 w-5 text-dbz-orange" />
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
+						Personas Discord
+					</h2>
+				</div>
+				<p className="text-sm text-zinc-300">
+					Le bot fonctionne avec 6 personnages Discord distincts (Shenron,
+					Beerus, Whis…). Chacun a son propre jeton de connexion, ses commandes
+					et ses guildes. Sélectionnez un persona pour voir son état, son nombre
+					de commandes et les serveurs qu'il surveille.
+				</p>
+			</div>
 			<BotSelector value={botId} onChange={setBotId} />
 
 			<div className="grid gap-4 lg:grid-cols-4">
@@ -127,7 +141,6 @@ export default function BotPage() {
 								className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
 							>
 								{g.iconUrl ? (
-									 
 									<img
 										src={g.iconUrl}
 										alt=""

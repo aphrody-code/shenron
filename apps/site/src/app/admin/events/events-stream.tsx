@@ -2,11 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Event = {
+type BotEvent = {
 	id: number;
 	ts: number;
 	type: string;
 	data: unknown;
+};
+
+const EVENT_LABEL: Record<string, string> = {
+	"level-up": "Montée de niveau",
+	"achievement-unlocked": "Succès débloqué",
+	"fusion-created": "Fusion créée",
+	"message-xp": "XP de message",
+	"voice-xp": "XP vocal",
+	sanction: "Sanction",
+	jail: "Mise en jail",
+	"daily-quest": "Quête quotidienne",
 };
 
 const COLOR_BY_TYPE: Record<string, string> = {
@@ -21,7 +32,7 @@ const COLOR_BY_TYPE: Record<string, string> = {
 };
 
 export function EventsStream() {
-	const [events, setEvents] = useState<Event[]>([]);
+	const [events, setEvents] = useState<BotEvent[]>([]);
 	const [connected, setConnected] = useState(false);
 	const counterRef = useRef(0);
 
@@ -56,38 +67,55 @@ export function EventsStream() {
 			<div className="dbz-panel p-4 flex items-center justify-between">
 				<div className="flex items-center gap-3">
 					<div
-						className={`w-3 h-3 rounded-full ${connected ? "bg-green-500 shadow-[0_0_8px_currentColor]" : "bg-red-500"}`}
+						className={`w-2.5 h-2.5 rounded-full ${
+							connected ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-red-500"
+						}`}
 					/>
 					<span className="font-saiyan text-sm uppercase tracking-widest">
-						{connected ? "Connecté" : "Déconnecté"}
+						{connected ? "Connecté" : "Déconnecté — reconnexion auto"}
 					</span>
 				</div>
-				<div className="text-xs text-gray-500 font-mono">
-					{events.length} events · max 100
+				<div className="text-xs text-zinc-500 font-mono">
+					{events.length} événement{events.length > 1 ? "s" : ""} · max 100
 				</div>
 			</div>
 
+			{!connected && (
+				<div className="dbz-panel p-3 text-xs text-red-300 border border-red-800 bg-red-900/20">
+					La connexion est interrompue. Les événements reprendront
+					automatiquement dès que le bot sera joignable.
+				</div>
+			)}
+
 			<div className="space-y-2">
 				{events.length === 0 ? (
-					<div className="dbz-panel p-8 text-center text-gray-500 font-saiyan uppercase">
-						En attente d'events bot...
+					<div className="dbz-panel p-8 text-center text-zinc-500 text-sm">
+						{connected
+							? "En attente du prochain événement A2A…"
+							: "Connexion en cours…"}
 					</div>
 				) : (
 					events.map((e) => {
 						const colorClass =
 							COLOR_BY_TYPE[e.type] ?? "text-dbz-blue-light border-dbz-border";
+						const label = EVENT_LABEL[e.type] ?? e.type;
 						return (
 							<article
 								key={e.id}
-								className={`dbz-panel p-3 border-l-4 ${colorClass} hover:bg-dbz-blue-light/5`}
+								className={`dbz-panel p-3 border-l-4 ${colorClass} hover:bg-dbz-blue-light/5 transition-colors`}
 							>
 								<div className="flex items-baseline justify-between mb-1">
-									<code
-										className={`font-mono text-sm font-bold ${colorClass.split(" ")[0]}`}
-									>
-										{e.type}
-									</code>
-									<span className="text-[10px] text-gray-500 font-mono">
+									<div className="flex items-center gap-2">
+										<span
+											className={`font-saiyan text-sm font-bold ${colorClass.split(" ")[0]}`}
+										>
+											{label}
+										</span>
+										<code className="text-[9px] text-zinc-500 font-mono">
+											{e.type}
+										</code>
+									</div>
+									<span className="text-[10px] text-zinc-500 font-mono">
 										{new Date(e.ts).toLocaleTimeString("fr-FR", {
 											hour12: false,
 											hour: "2-digit",
@@ -96,9 +124,14 @@ export function EventsStream() {
 										})}
 									</span>
 								</div>
-								<pre className="text-[11px] text-gray-300 font-mono overflow-x-auto bg-dbz-bg p-2 mt-1 max-h-32">
-									{JSON.stringify(e.data, null, 2)}
-								</pre>
+								<details>
+									<summary className="text-[10px] text-zinc-500 cursor-pointer select-none">
+										Données détaillées
+									</summary>
+									<pre className="text-[11px] text-zinc-300 font-mono overflow-x-auto bg-dbz-bg p-2 mt-1 max-h-32 rounded">
+										{JSON.stringify(e.data, null, 2)}
+									</pre>
+								</details>
 							</article>
 						);
 					})

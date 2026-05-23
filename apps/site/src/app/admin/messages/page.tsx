@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Save, RotateCcw, Eye, Power } from "lucide-react";
+import { Save, RotateCcw, Eye, Power } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/admin-api";
 
@@ -26,18 +26,18 @@ interface EventEntry {
 const CHANNEL_KEYS: { key: string; label: string; virtual?: boolean }[] = [
 	{ key: "channel.announce", label: "Annonces générales" },
 	{ key: "channel.achievement", label: "Accomplissements" },
-	{ key: "channel.level", label: "Niveau & XP" },
+	{ key: "channel.level", label: "Niveau et XP" },
 	{ key: "channel.welcome", label: "Bienvenue" },
 	{ key: "channel.farewell", label: "Au revoir" },
 	{ key: "channel.giveaway", label: "Tirages au sort" },
-	{ key: "channel.mod_notify", label: "Notifications modération" },
-	{ key: "channel.log_sanction", label: "Logs sanctions" },
-	{ key: "channel.dm", label: "DM membre concerné", virtual: true },
+	{ key: "channel.mod_notify", label: "Notifications de modération" },
+	{ key: "channel.log_sanction", label: "Journaux des sanctions" },
 	{
-		key: "channel.invocation",
-		label: "Salon d&apos;invocation",
+		key: "channel.dm",
+		label: "Message privé au membre concerné",
 		virtual: true,
 	},
+	{ key: "channel.invocation", label: "Salon d'invocation", virtual: true },
 	{ key: "channel.ticket", label: "Salon du ticket", virtual: true },
 ];
 
@@ -48,7 +48,7 @@ const VIRTUAL_CHANNEL_KEYS = new Set([
 ]);
 
 export default function MessagesPage() {
-	const { data, isLoading } = useQuery({
+	const { data, isLoading, isError } = useQuery({
 		queryKey: ["messages"],
 		queryFn: () => api.get<{ events: EventEntry[] }>("/messages"),
 	});
@@ -59,55 +59,85 @@ export default function MessagesPage() {
 	}, [data, selected]);
 
 	if (isLoading)
-		return <div className="text-zinc-500">Chargement en cours…</div>;
+		return (
+			<div className="dbz-panel p-8 text-center">
+				<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
+				<p className="text-sm text-white/40">
+					Récupération des messages automatiques.
+				</p>
+			</div>
+		);
+
+	if (isError)
+		return (
+			<div className="dbz-panel p-6 text-center border-l-4 border-red-500">
+				<p className="font-saiyan text-red-400 mb-2">Erreur de chargement</p>
+				<p className="text-sm text-white/40">
+					Impossible de récupérer les messages. Vérifiez que le bot est en
+					ligne.
+				</p>
+			</div>
+		);
 
 	const events = data?.events ?? [];
 	const current = events.find((e) => e.event === selected);
 
 	return (
-		<div className="space-y-4">
-			<div className="card">
-				<div className="flex items-center gap-2">
-					<MessageSquare className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Messages événementiels</h2>
-				</div>
-				<p className="mt-1 text-sm text-zinc-400">
-					Configure le contenu et le salon de chaque message envoyé
-					automatiquement par le bot. Variables disponibles affichées par
-					événement. Les surcharges sont rechargées sous 30 secondes côté bot
-					(ou immédiatement après modification).
+		<div className="space-y-6">
+			<header>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
+					MESSAGES AUTOMATIQUES
+				</h1>
+				<p className="text-sm text-white/60 mb-1">
+					Configurez les messages envoyés automatiquement par le bot lors
+					d&apos;événements sur le serveur.
 				</p>
-			</div>
+				<p className="text-xs text-white/30 uppercase tracking-widest">
+					{events.length} événement{events.length !== 1 ? "s" : ""} · rechargé
+					côté bot sous 30 secondes
+				</p>
+			</header>
 
 			<div className="grid gap-4 lg:grid-cols-3">
-				<div className="card lg:col-span-1">
-					<h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+				{/* Liste des événements */}
+				<div className="dbz-panel p-4 lg:col-span-1">
+					<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-3">
 						Événements ({events.length})
 					</h3>
+					<p className="text-xs text-white/30 mb-3">
+						Cliquez sur un événement pour modifier son message et son salon de
+						destination.
+					</p>
 					<div className="space-y-1">
 						{events.map((e) => (
 							<button
 								key={e.event}
 								type="button"
 								onClick={() => setSelected(e.event)}
-								className={`flex w-full items-start gap-2 rounded-lg p-2 text-left text-sm transition-colors ${
+								className={`flex w-full items-start gap-2 rounded p-2 text-left text-sm transition-colors ${
 									selected === e.event
-										? "bg-brand-500/10 text-brand-400"
-										: "hover:bg-zinc-800 text-zinc-300"
+										? "bg-dbz-orange/10 border border-dbz-orange/30"
+										: "hover:bg-white/5 border border-transparent"
 								}`}
 							>
 								<div className="flex-1">
-									<code className="font-mono text-xs">{e.event}</code>
-									<p className="mt-0.5 text-xs text-zinc-500">
-										{e.description}
+									<p className="font-medium text-white text-xs truncate">
+										{e.description || e.event}
 									</p>
+									<code className="font-mono text-[10px] text-white/30">
+										{e.event}
+									</code>
 								</div>
-								<div className="flex flex-col items-end gap-0.5">
+								<div className="flex flex-col items-end gap-0.5 shrink-0">
 									{e.isCustom && (
-										<span className="badge badge-warning">surchargé</span>
+										<span className="text-[9px] px-1.5 py-0.5 border border-dbz-yellow/50 text-dbz-yellow rounded uppercase tracking-widest">
+											modifié
+										</span>
 									)}
 									{!e.enabled && (
-										<span className="badge badge-error">désactivé</span>
+										<span className="text-[9px] px-1.5 py-0.5 border border-red-500/50 text-red-400 rounded uppercase tracking-widest">
+											désactivé
+										</span>
 									)}
 								</div>
 							</button>
@@ -115,8 +145,15 @@ export default function MessagesPage() {
 					</div>
 				</div>
 
+				{/* Éditeur */}
 				<div className="lg:col-span-2">
-					{current ? <EventEditor entry={current} /> : null}
+					{current ? (
+						<EventEditor entry={current} />
+					) : (
+						<div className="dbz-panel p-8 text-center text-white/30">
+							Sélectionnez un événement pour modifier son message.
+						</div>
+					)}
 				</div>
 			</div>
 		</div>
@@ -177,139 +214,179 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 
 	return (
 		<div className="space-y-4">
-			<div className="card">
-				<div className="mb-3 flex items-center justify-between">
+			{/* Éditeur principal */}
+			<div className="dbz-panel p-5 space-y-4">
+				<div className="flex items-start justify-between gap-4">
 					<div>
-						<code className="font-mono text-sm font-semibold text-brand-400">
+						<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">
+							{entry.description || entry.event}
+						</h3>
+						<code className="text-xs font-mono text-white/30">
 							{entry.event}
 						</code>
-						<p className="mt-0.5 text-xs text-zinc-400">{entry.description}</p>
-						{entry.embed && <span className="badge mt-1">Rendu en embed</span>}
+						{entry.embed && (
+							<p className="text-xs text-dbz-blue-light mt-1">
+								Ce message est envoyé sous forme d&apos;encart enrichi (embed
+								Discord).
+							</p>
+						)}
 					</div>
 					<button
 						type="button"
 						onClick={() => setEnabled(!enabled)}
-						className={`btn ${enabled ? "btn-primary" : "btn-ghost"}`}
+						className={`dbz-button !text-xs !py-1 !px-3 shrink-0 flex items-center gap-1.5 ${!enabled ? "opacity-50" : ""}`}
 					>
 						<Power className="h-3 w-3" />
 						{enabled ? "Activé" : "Désactivé"}
 					</button>
 				</div>
 
-				<div className="space-y-3">
-					<div>
-						<label className="mb-1 block text-xs text-zinc-400">
-							Salon de destination
-						</label>
-						<select
-							className="input"
-							value={channelKey}
-							onChange={(e) => setChannelKey(e.target.value)}
-						>
-							{CHANNEL_KEYS.map((k) => (
-								<option key={k.key} value={k.key}>
-									{k.label} — {k.key}
-								</option>
-							))}
-						</select>
-						<ResolvedChannel channelKey={channelKey} />
-						<p className="mt-1 text-xs text-zinc-500">
-							Le salon réel est défini dans <code>/settings</code> ou via{" "}
-							<code>/config channel</code>. Défaut catalogue :{" "}
-							<code>{entry.defaultChannelKey}</code>
-						</p>
-					</div>
+				{/* Salon de destination */}
+				<div>
+					<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+						Salon de destination
+					</label>
+					<p className="text-xs text-white/30 mb-2">
+						Choisissez dans quel salon Discord ce message sera envoyé.
+					</p>
+					<select
+						className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
+						value={channelKey}
+						onChange={(e) => setChannelKey(e.target.value)}
+					>
+						{CHANNEL_KEYS.map((k) => (
+							<option key={k.key} value={k.key}>
+								{k.label}
+								{k.virtual ? " (contextuel)" : ""}
+							</option>
+						))}
+					</select>
+					<ResolvedChannel channelKey={channelKey} />
+				</div>
 
-					<div>
-						<label className="mb-1 block text-xs text-zinc-400">
-							Template du message
-						</label>
-						<textarea
-							className="input font-mono text-sm"
-							rows={4}
-							value={template}
-							onChange={(e) => setTemplate(e.target.value)}
-						/>
-						<p className="mt-1 text-xs text-zinc-500">
-							Variables : utilise <code>{"{nom}"}</code> pour insérer une
-							valeur. Les placeholders inconnus restent affichés tels quels.
-						</p>
-					</div>
+				{/* Template */}
+				<div>
+					<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+						Contenu du message
+					</label>
+					<p className="text-xs text-white/30 mb-2">
+						Utilisez <code className="text-dbz-yellow">{"{nom}"}</code> pour
+						insérer des valeurs dynamiques (voir la liste ci-dessous).
+					</p>
+					<textarea
+						className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-3 font-mono text-sm text-white"
+						rows={5}
+						value={template}
+						onChange={(e) => setTemplate(e.target.value)}
+					/>
+				</div>
 
-					<div className="flex flex-wrap gap-2">
+				{/* Actions */}
+				<div className="flex flex-wrap gap-2 pt-1">
+					<button
+						type="button"
+						onClick={() => save.mutate()}
+						disabled={save.isPending}
+						className="dbz-button flex items-center gap-1.5 disabled:opacity-40"
+					>
+						<Save className="h-3 w-3" />
+						{save.isPending ? "Enregistrement…" : "Enregistrer"}
+					</button>
+					{entry.isCustom && (
 						<button
 							type="button"
-							onClick={() => save.mutate()}
-							disabled={save.isPending}
-							className="btn btn-primary"
+							onClick={() => {
+								if (
+									confirm(
+										`Remettre le message de "${entry.description || entry.event}" à sa valeur par défaut ?`,
+									)
+								)
+									reset.mutate();
+							}}
+							disabled={reset.isPending}
+							className="dbz-button-ghost flex items-center gap-1.5"
 						>
-							<Save className="h-3 w-3" />
-							{save.isPending ? "Enregistrement…" : "Enregistrer la surcharge"}
+							<RotateCcw className="h-3 w-3" />
+							Remettre par défaut
 						</button>
-						{entry.isCustom && (
-							<button
-								type="button"
-								onClick={() => {
-									if (confirm(`Supprimer la surcharge pour ${entry.event} ?`))
-										reset.mutate();
-								}}
-								disabled={reset.isPending}
-								className="btn btn-ghost"
-							>
-								<RotateCcw className="h-3 w-3" />
-								Revenir au défaut
-							</button>
-						)}
-					</div>
+					)}
+					{save.isSuccess && (
+						<span className="text-xs text-green-400 self-center">
+							Message enregistré.
+						</span>
+					)}
+					{save.isError && (
+						<span className="text-xs text-red-400 self-center">
+							Erreur :{" "}
+							{save.error instanceof Error
+								? save.error.message
+								: "erreur inconnue"}
+						</span>
+					)}
 				</div>
 			</div>
 
-			<div className="card">
-				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					<Eye className="h-4 w-4" />
-					Aperçu avec variables
-				</h3>
-				<div className="grid gap-3 sm:grid-cols-2">
-					{entry.variables.map((v) => (
-						<div key={v.name}>
-							<label className="mb-1 block text-xs">
-								<code className="text-brand-400">{`{${v.name}}`}</code>{" "}
-								<span className="text-zinc-500">— {v.description}</span>
-							</label>
-							<input
-								className="input text-xs"
-								value={previewVars[v.name] ?? ""}
-								onChange={(e) =>
-									setPreviewVars({ ...previewVars, [v.name]: e.target.value })
-								}
-							/>
+			{/* Aperçu avec variables */}
+			{entry.variables.length > 0 && (
+				<div className="dbz-panel p-5 space-y-4">
+					<div className="flex items-center gap-2">
+						<Eye className="h-4 w-4 text-dbz-blue-light" />
+						<h3 className="font-saiyan text-dbz-blue-light text-base uppercase">
+							Prévisualiser le message
+						</h3>
+					</div>
+					<p className="text-xs text-white/30">
+						Renseignez des exemples pour chaque variable et générez un aperçu du
+						message final.
+					</p>
+					<div className="grid gap-3 sm:grid-cols-2">
+						{entry.variables.map((v) => (
+							<div key={v.name}>
+								<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+									<code className="text-dbz-yellow normal-case font-mono">{`{${v.name}}`}</code>
+									{" — "}
+									<span className="text-white/30 normal-case font-normal">
+										{v.description}
+									</span>
+								</label>
+								<input
+									className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
+									value={previewVars[v.name] ?? ""}
+									onChange={(e) =>
+										setPreviewVars({ ...previewVars, [v.name]: e.target.value })
+									}
+								/>
+							</div>
+						))}
+					</div>
+					<button
+						type="button"
+						onClick={() => preview.mutate()}
+						disabled={preview.isPending}
+						className="dbz-button flex items-center gap-1.5 disabled:opacity-40"
+					>
+						<Eye className="h-3 w-3" />
+						{preview.isPending ? "Rendu en cours…" : "Générer l'aperçu"}
+					</button>
+					{previewResult && (
+						<div className="rounded border border-dbz-border bg-black/30 p-4">
+							<p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">
+								Rendu final
+							</p>
+							<p className="whitespace-pre-wrap text-sm text-white">
+								{previewResult}
+							</p>
 						</div>
-					))}
+					)}
 				</div>
-				<button
-					type="button"
-					onClick={() => preview.mutate()}
-					disabled={preview.isPending}
-					className="btn btn-primary mt-3"
-				>
-					<Eye className="h-3 w-3" />
-					{preview.isPending ? "Rendu…" : "Générer l&apos;aperçu"}
-				</button>
-				{previewResult && (
-					<div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3 text-sm">
-						<p className="mb-1 text-xs uppercase tracking-wide text-zinc-500">
-							Aperçu rendu
-						</p>
-						<p className="whitespace-pre-wrap text-zinc-100">{previewResult}</p>
-					</div>
-				)}
-			</div>
+			)}
 
-			<div className="card">
-				<h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					Template par défaut
+			{/* Template par défaut */}
+			<div className="dbz-panel p-4">
+				<h3 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-2">
+					Message par défaut (référence)
 				</h3>
-				<pre className="overflow-x-auto rounded bg-zinc-950 p-3 text-xs text-zinc-400">
+				<pre className="overflow-x-auto rounded bg-black/40 p-3 text-xs text-white/40 border border-dbz-border">
 					{entry.defaultTemplate}
 				</pre>
 			</div>
@@ -318,7 +395,6 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 }
 
 function ResolvedChannel({ channelKey }: { channelKey: string }) {
-	// Hooks appelés inconditionnellement AVANT tout return anticipé (rules-of-hooks).
 	const settings = useQuery({
 		queryKey: ["settings", "all"],
 		queryFn: () =>
@@ -339,10 +415,10 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 		const label =
 			CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
 		return (
-			<p className="mt-1 text-xs text-cyan-400">
-				🔗 Cible contextuelle : <strong>{label}</strong>{" "}
-				<span className="text-zinc-500">
-					— résolu côté bot par le call-site (pas via /settings).
+			<p className="mt-1 text-xs text-dbz-blue-light">
+				Cible contextuelle : <strong>{label}</strong>{" "}
+				<span className="text-white/30">
+					— résolu automatiquement par le bot selon le contexte.
 				</span>
 			</p>
 		);
@@ -352,17 +428,17 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 	)?.rows?.find((s) => s.key === channelKey)?.value;
 	if (!value) {
 		return (
-			<p className="mt-1 text-xs text-amber-400">
-				⚠ Pas de surcharge dans /settings · le bot tombera sur la valeur par
-				défaut de l&apos;env si elle existe.
+			<p className="mt-1 text-xs text-dbz-yellow">
+				Aucun salon configuré pour cette clé — le bot utilisera la valeur par
+				défaut.
 			</p>
 		);
 	}
 	const c = channels.data?.channels.find((x) => x.id === value);
 	return (
 		<p className="mt-1 text-xs text-green-400">
-			→ {c ? `#${c.name}` : value}{" "}
-			<span className="text-zinc-500">({value})</span>
+			Salon : {c ? <strong>#{c.name}</strong> : value}{" "}
+			<span className="text-white/30 font-mono text-[10px]">({value})</span>
 		</p>
 	);
 }

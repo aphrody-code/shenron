@@ -9,18 +9,20 @@ import {
 	Save,
 	Trash2,
 	AlertTriangle,
+	Loader2,
+	CheckCircle2,
+	X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/admin-api";
 import { RoleSelect, RoleBadge } from "@/components/admin/RoleSelect";
 
 /**
- * Éditeur visuel pour la hiérarchie staff (`moderation.hierarchy` setting).
+ * Éditeur visuel de la hiérarchie staff (paramètre `moderation.hierarchy`).
  *
- * Les niveaux sont ordonnés du plus haut (index 0 — admin) au plus bas. Un
- * staff ne peut sanctionner qu&apos;un membre dont le niveau effectif est
- * <em>strictement plus grand</em>. Les membres sans rôle staff = Infinity
- * (sanctionnables par tous).
+ * Les niveaux vont du plus haut (index 0 — administrateur) au plus bas.
+ * Un staff ne peut sanctionner qu'un membre dont le niveau est strictement
+ * plus grand. Les owners et bot-dev passent toujours.
  */
 export default function HierarchyPage() {
 	const qc = useQueryClient();
@@ -83,20 +85,22 @@ export default function HierarchyPage() {
 
 	return (
 		<div className="space-y-4">
+			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
 					<Crown className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Hiérarchie staff</h2>
+					<h2 className="text-lg font-semibold">Hiérarchie du staff</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Niveaux du plus haut (index <code>0</code>) au plus bas. Un staff
-					sanctionne uniquement les membres de niveau{" "}
-					<em>strictement plus grand</em>. Les owners et bot-dev bypassent
-					toujours.
+					Définit qui peut sanctionner qui. Le niveau <strong>0</strong> est le
+					plus haut (administrateurs), le niveau le plus bas est celui des
+					modérateurs débutants. Un membre du staff ne peut sanctionner que des
+					membres d&apos;un niveau <em>plus bas</em> que le sien. Les
+					propriétaires du serveur et les développeurs du bot passent toujours.
 				</p>
-				<div className="mt-3 flex items-center gap-2">
+				<div className="mt-3 flex flex-wrap items-center gap-2">
 					<button type="button" className="btn btn-ghost" onClick={addLevel}>
-						<Plus className="h-3 w-3" /> Ajouter un niveau
+						<Plus className="h-3 w-3" /> Ajouter un niveau hiérarchique
 					</button>
 					<button
 						type="button"
@@ -104,7 +108,8 @@ export default function HierarchyPage() {
 						disabled={!dirty || save.isPending}
 						onClick={() => save.mutate(draft)}
 					>
-						<Save className="h-3 w-3" /> Enregistrer
+						<Save className="h-3 w-3" />
+						{save.isPending ? "Enregistrement…" : "Enregistrer la hiérarchie"}
 					</button>
 					{dirty && (
 						<button
@@ -112,14 +117,16 @@ export default function HierarchyPage() {
 							className="btn btn-ghost text-zinc-400"
 							onClick={reset}
 						>
-							Annuler
+							<X className="h-3 w-3" /> Annuler les modifications
 						</button>
 					)}
 					{save.isSuccess && !dirty && (
-						<span className="text-xs text-emerald-400">✓ enregistré</span>
+						<span className="flex items-center gap-1 text-xs text-emerald-400">
+							<CheckCircle2 className="h-3 w-3" /> Hiérarchie enregistrée
+						</span>
 					)}
 					{save.isError && (
-						<span className="text-xs text-red-400">
+						<span className="flex items-center gap-1 text-xs text-red-400">
 							<AlertTriangle className="inline h-3 w-3" />{" "}
 							{(save.error as Error)?.message}
 						</span>
@@ -127,10 +134,30 @@ export default function HierarchyPage() {
 				</div>
 			</div>
 
-			{draft.length === 0 ? (
+			{/* Chargement */}
+			{hierarchy.isLoading && (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement de la hiérarchie…
+				</div>
+			)}
+
+			{/* Erreur */}
+			{hierarchy.isError && (
+				<div className="flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
+					<AlertTriangle className="h-4 w-4 shrink-0" />
+					Impossible de charger la hiérarchie. Réessayez.
+				</div>
+			)}
+
+			{/* Liste des niveaux */}
+			{!hierarchy.isLoading && draft.length === 0 ? (
 				<div className="card text-center text-zinc-500">
-					Aucun niveau défini · les sanctions sont libres tant que la guard{" "}
-					<code>ModOnly</code> passe.
+					<p>Aucun niveau défini.</p>
+					<p className="mt-1 text-xs">
+						Sans hiérarchie configurée, les sanctions ne sont limitées que par
+						la garde <code>ModOnly</code>.
+					</p>
 				</div>
 			) : (
 				<div className="space-y-3">
@@ -149,10 +176,11 @@ export default function HierarchyPage() {
 				</div>
 			)}
 
+			{/* JSON brut */}
 			{hierarchy.data?.raw && (
 				<details className="card">
 					<summary className="cursor-pointer text-xs text-zinc-500">
-						JSON brut (ce qui est stocké dans <code>moderation.hierarchy</code>)
+						Voir la configuration brute stockée dans la base de données
 					</summary>
 					<pre className="mt-2 overflow-auto rounded bg-zinc-950 p-3 text-xs">
 						{JSON.stringify(draft, null, 2)}
@@ -181,22 +209,26 @@ function LevelCard({
 	onRemove: () => void;
 }) {
 	const [pick, setPick] = useState("");
-	const labelHint =
-		index === 0 ? "(top — admin)" : index === total - 1 ? "(bas)" : "";
+	const levelLabel =
+		index === 0
+			? "Niveau 0 — Administrateurs (le plus haut)"
+			: index === total - 1
+				? `Niveau ${index} — Modérateurs débutants (le plus bas)`
+				: `Niveau ${index}`;
+
 	return (
 		<div className="card">
 			<div className="flex items-center gap-2">
 				<span className="rounded bg-brand-500/20 px-2 py-1 text-sm font-semibold text-brand-300">
-					niveau {index}
+					{levelLabel}
 				</span>
-				<span className="text-xs text-zinc-500">{labelHint}</span>
 				<div className="ml-auto flex items-center gap-1">
 					<button
 						type="button"
 						className="btn btn-ghost px-2"
 						disabled={index === 0}
 						onClick={() => onMove(-1)}
-						title="Monter"
+						title="Monter ce niveau"
 					>
 						<ArrowUp className="h-3 w-3" />
 					</button>
@@ -205,7 +237,7 @@ function LevelCard({
 						className="btn btn-ghost px-2"
 						disabled={index === total - 1}
 						onClick={() => onMove(1)}
-						title="Descendre"
+						title="Descendre ce niveau"
 					>
 						<ArrowDown className="h-3 w-3" />
 					</button>
@@ -213,15 +245,20 @@ function LevelCard({
 						type="button"
 						className="btn btn-ghost px-2 text-red-400"
 						onClick={onRemove}
-						title="Supprimer le niveau"
+						title="Supprimer ce niveau"
 					>
 						<Trash2 className="h-3 w-3" />
 					</button>
 				</div>
 			</div>
-			<div className="mt-3 flex flex-wrap gap-2">
+			<p className="mt-1 text-xs text-zinc-500">
+				Les rôles Discord assignés à ce niveau de staff :
+			</p>
+			<div className="mt-2 flex flex-wrap gap-2">
 				{roles.length === 0 && (
-					<span className="text-xs italic text-zinc-500">aucun rôle</span>
+					<span className="text-xs italic text-zinc-500">
+						Aucun rôle — ajoutez-en un ci-dessous.
+					</span>
 				)}
 				{roles.map((r) => (
 					<span
@@ -233,8 +270,9 @@ function LevelCard({
 							type="button"
 							onClick={() => onRemoveRole(r)}
 							className="ml-1 text-red-400 hover:text-red-300"
+							title="Retirer ce rôle du niveau"
 						>
-							×
+							<X className="h-3 w-3" />
 						</button>
 					</span>
 				))}
@@ -250,7 +288,7 @@ function LevelCard({
 						setPick("");
 					}}
 				>
-					Ajouter le rôle
+					<Plus className="h-3 w-3" /> Ajouter le rôle
 				</button>
 			</div>
 		</div>

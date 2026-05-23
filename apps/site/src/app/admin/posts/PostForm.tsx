@@ -15,10 +15,11 @@ const field =
 	"w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none p-3 text-white text-sm rounded";
 const label =
 	"block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1";
+const hint = "text-[10px] text-white/30 mt-1";
 
 /**
  * Éditeur d'article (création + édition). Server Component : le formulaire poste
- * directement vers la Server Action `savePost` (pas de JS client requis).
+ * directement vers la Server Action `savePost`.
  */
 export function PostForm({ post }: { post?: PostData }) {
 	return (
@@ -28,7 +29,7 @@ export function PostForm({ post }: { post?: PostData }) {
 
 				<div>
 					<label className={label} htmlFor="title">
-						Titre
+						Titre de l&apos;article
 					</label>
 					<input
 						id="title"
@@ -36,26 +37,34 @@ export function PostForm({ post }: { post?: PostData }) {
 						required
 						defaultValue={post?.title}
 						className={field}
-						placeholder="Titre de l'article"
+						placeholder="ex : Mise à jour des saisons 2 de Dragon Ball"
 					/>
+					<p className={hint}>
+						Affiché en titre principal sur la page de l&apos;article.
+					</p>
 				</div>
 
 				<div>
 					<label className={label} htmlFor="slug">
-						Slug (URL) — laissé vide = généré depuis le titre
+						Identifiant URL (slug)
 					</label>
 					<input
 						id="slug"
 						name="slug"
 						defaultValue={post?.slug}
 						className={`${field} font-mono`}
-						placeholder="mon-article"
+						placeholder="laissez vide pour générer automatiquement depuis le titre"
 					/>
+					<p className={hint}>
+						Utilisé dans l&apos;adresse de la page :{" "}
+						<code className="text-dbz-blue-light">/actualites/mon-article</code>
+						. Ne contient que des lettres, chiffres et tirets.
+					</p>
 				</div>
 
 				<div>
 					<label className={label} htmlFor="cover">
-						Image de couverture (URL)
+						Image de couverture
 					</label>
 					<input
 						id="cover"
@@ -63,13 +72,16 @@ export function PostForm({ post }: { post?: PostData }) {
 						type="url"
 						defaultValue={post?.cover ?? ""}
 						className={`${field} font-mono`}
-						placeholder="https://…"
+						placeholder="https://… (optionnel)"
 					/>
+					<p className={hint}>
+						Image affichée en haut de l&apos;article et dans les listes.
+					</p>
 				</div>
 
 				<div>
 					<label className={label} htmlFor="excerpt">
-						Extrait
+						Résumé court
 					</label>
 					<textarea
 						id="excerpt"
@@ -78,13 +90,17 @@ export function PostForm({ post }: { post?: PostData }) {
 						rows={2}
 						defaultValue={post?.excerpt}
 						className={field}
-						placeholder="Résumé court affiché dans les listes."
+						placeholder="Quelques phrases décrivant l'article, affichées dans les listes."
 					/>
+					<p className={hint}>
+						Visible sur la page d&apos;accueil et dans les listes
+						d&apos;articles.
+					</p>
 				</div>
 
 				<div>
 					<label className={label} htmlFor="body">
-						Contenu (Markdown)
+						Contenu de l&apos;article (Markdown)
 					</label>
 					<textarea
 						id="body"
@@ -93,25 +109,37 @@ export function PostForm({ post }: { post?: PostData }) {
 						rows={16}
 						defaultValue={post?.body}
 						className={`${field} font-mono leading-relaxed`}
-						placeholder="# Titre&#10;&#10;Contenu en Markdown…"
+						placeholder={
+							"# Titre\n\nCommencez à écrire votre article en Markdown…\n\n**Texte en gras**, *texte en italique*, [lien](https://…)"
+						}
 					/>
+					<p className={hint}>
+						Syntaxe Markdown supportée : titres (#), listes (- …), liens
+						([texte](url)), gras (**…**), etc.
+					</p>
 				</div>
 
-				<label className="flex items-center gap-3 cursor-pointer">
+				<label className="flex items-center gap-3 cursor-pointer p-3 rounded border border-dbz-border hover:border-dbz-orange/40 transition-colors">
 					<input
 						type="checkbox"
 						name="published"
 						defaultChecked={post?.published ?? false}
 						className="w-5 h-5 accent-dbz-orange"
 					/>
-					<span className="text-sm font-bold text-white uppercase tracking-wide">
-						Publié (visible sur le site)
-					</span>
+					<div>
+						<span className="text-sm font-bold text-white uppercase tracking-wide">
+							Publier l&apos;article
+						</span>
+						<p className={hint}>
+							Si coché, l&apos;article sera visible par tous les visiteurs du
+							site. Sinon, il reste en brouillon.
+						</p>
+					</div>
 				</label>
 
 				<div className="flex items-center gap-3 pt-2">
 					<button type="submit" className="dbz-button !text-base">
-						{post ? "Enregistrer" : "Créer l'article"}
+						{post ? "Enregistrer les modifications" : "Créer l'article"}
 					</button>
 					<Link href="/admin/posts" className="dbz-button-ghost !text-sm">
 						Annuler
@@ -122,17 +150,32 @@ export function PostForm({ post }: { post?: PostData }) {
 			{post && (
 				<form
 					action={deletePost}
-					className="dbz-panel p-4 border-l-4 border-dbz-red flex items-center justify-between"
+					className="dbz-panel p-5 border-l-4 border-red-500 space-y-3"
+					onSubmit={(e) => {
+						if (
+							!confirm(
+								`Supprimer définitivement l'article "${post.title}" ?\n\nCette action est irréversible.`,
+							)
+						) {
+							e.preventDefault();
+						}
+					}}
 				>
 					<input type="hidden" name="id" value={post.id} />
-					<span className="text-sm text-white/70">
-						Supprimer définitivement cet article.
-					</span>
+					<div>
+						<p className="text-sm font-bold text-red-400 mb-1">
+							Zone de danger
+						</p>
+						<p className="text-sm text-white/50">
+							Supprimer définitivement cet article. Cette action est
+							irréversible.
+						</p>
+					</div>
 					<button
 						type="submit"
-						className="px-4 py-2 bg-dbz-red text-white font-bold uppercase text-xs tracking-widest rounded hover:brightness-110"
+						className="px-4 py-2 bg-red-600 text-white font-bold uppercase text-xs tracking-widest rounded hover:bg-red-500 transition-colors"
 					>
-						Supprimer
+						Supprimer l&apos;article
 					</button>
 				</form>
 			)}

@@ -88,27 +88,33 @@ export default function CommandsPage() {
 	const globalRule = ruleByName.get(GLOBAL_KEY);
 
 	if (commands.isLoading || rules.isLoading) {
-		return <div className="text-zinc-500">Chargement des commandes…</div>;
+		return (
+			<div className="text-zinc-500 text-sm">Chargement des commandes…</div>
+		);
 	}
 
 	return (
 		<div className="space-y-4">
-			<div className="card">
-				<div className="flex items-center gap-2">
-					<Slash className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Permissions des commandes</h2>
+			<div className="dbz-panel p-4">
+				<div className="flex items-center gap-2 mb-2">
+					<Slash className="h-5 w-5 text-dbz-orange" />
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
+						Permissions des commandes Discord
+					</h2>
 				</div>
-				<p className="mt-1 text-sm text-zinc-400">
-					{commands.data?.commands.length ?? 0} commandes · {overriddenCount}{" "}
-					règle{overriddenCount > 1 ? "s" : ""} active
-					{overriddenCount > 1 ? "s" : ""}. Le owner et les membres avec la
-					permission Discord <strong>Administrator</strong> bypassent toujours
-					les règles.
+				<p className="text-sm text-zinc-300">
+					Définissez qui peut utiliser chaque commande slash du bot : activer /
+					désactiver une commande, l'autoriser uniquement à certains rôles ou
+					l'interdire à des utilisateurs spécifiques. Les propriétaires du
+					serveur et les membres avec la permission{" "}
+					<strong>Administrateur</strong> Discord contournent toujours ces
+					règles.
 				</p>
-				<p className="mt-2 text-xs text-zinc-500">
-					Cache bot 30 s. Lookup hiérarchique : règle exacte (
-					<code>admin reload</code>) → joker du groupe (<code>admin *</code>) →
-					joker global (<code>*</code>).
+				<p className="mt-1 text-xs text-dbz-blue-light">
+					{commands.data?.commands.length ?? 0} commandes disponibles ·{" "}
+					{overriddenCount} règle{overriddenCount > 1 ? "s" : ""} personnalisée
+					{overriddenCount > 1 ? "s" : ""} · cache bot 30 s · hiérarchie : règle
+					exacte → joker du groupe → joker global
 				</p>
 			</div>
 
@@ -147,33 +153,38 @@ function GlobalRuleCard({
 }) {
 	const [open, setOpen] = useState(false);
 	return (
-		<div className="card p-0">
+		<div className="dbz-panel p-0">
 			<button
 				type="button"
 				onClick={() => setOpen((o) => !o)}
-				className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-zinc-900/40"
+				className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-dbz-blue-light/5"
 			>
 				<Shield className="h-5 w-5 shrink-0 text-amber-400" />
 				<div className="flex-1">
-					<h3 className="font-semibold">Règle globale (joker *)</h3>
+					<h3 className="font-semibold text-zinc-100">
+						Règle par défaut (s'applique à toutes les commandes sans règle
+						spécifique)
+					</h3>
 					<p className="text-xs text-zinc-500">
-						S&apos;applique à toute commande sans règle plus spécifique.
+						Si une commande n'a pas de règle propre, cette règle s'applique.
 					</p>
 				</div>
 				{rule ? (
-					<span className="badge badge-warning">active</span>
+					<span className="text-xs px-2 py-0.5 rounded bg-amber-900/40 text-amber-300 border border-amber-700/50">
+						active
+					</span>
 				) : (
-					<span className="text-xs text-zinc-500">aucune</span>
+					<span className="text-xs text-zinc-500">aucune règle définie</span>
 				)}
 				<ChevronDown
 					className={`h-4 w-4 shrink-0 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`}
 				/>
 			</button>
 			{open && (
-				<div className="border-t border-zinc-800 p-4">
+				<div className="border-t border-dbz-border p-4">
 					<RuleEditor
 						name={GLOBAL_KEY}
-						label="Joker global"
+						label="Règle par défaut"
 						rule={rule}
 						onSet={onSet}
 						onUnset={onUnset}
@@ -208,32 +219,33 @@ function GroupSection({
 	const hasMultipleLeaves = items.length > 1 || items[0]?.name !== group;
 
 	return (
-		<div className="card p-0">
+		<div className="dbz-panel p-0">
 			<button
 				type="button"
 				onClick={() => setOpen((o) => !o)}
-				className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-zinc-900/40"
+				className="flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-dbz-blue-light/5"
 			>
-				<Slash className="h-5 w-5 shrink-0 text-brand-400" />
+				<Slash className="h-5 w-5 shrink-0 text-dbz-orange" />
 				<div className="flex-1">
-					<h3 className="font-semibold">/{group}</h3>
+					<h3 className="font-semibold text-zinc-100">/{group}</h3>
 					<p className="text-xs text-zinc-500">
 						{items.length} commande{items.length > 1 ? "s" : ""}
 					</p>
 				</div>
-				<span className="badge">
-					{overridden} / {items.length + (hasMultipleLeaves ? 1 : 0)}
+				<span className="text-xs text-zinc-400">
+					{overridden} / {items.length + (hasMultipleLeaves ? 1 : 0)} règle
+					{overridden > 1 ? "s" : ""}
 				</span>
 				<ChevronDown
 					className={`h-4 w-4 shrink-0 text-zinc-500 transition-transform ${open ? "rotate-180" : ""}`}
 				/>
 			</button>
 			{open && (
-				<div className="space-y-3 border-t border-zinc-800 p-4">
+				<div className="space-y-3 border-t border-dbz-border p-4">
 					{hasMultipleLeaves && (
 						<RuleEditor
 							name={wildcardName}
-							label={`Joker ${group} *`}
+							label={`Toutes les sous-commandes de /${group}`}
 							description={`S'applique à toute sous-commande de /${group} sans règle exacte.`}
 							rule={wildcardRule}
 							onSet={onSet}
@@ -299,17 +311,31 @@ function RuleEditor({
 		setEditing(true);
 	}
 
+	function handleUnset() {
+		if (
+			!confirm(
+				`Supprimer la règle pour « ${label} » ?\n\nLes réglages par défaut s'appliqueront à nouveau.`,
+			)
+		)
+			return;
+		onUnset();
+	}
+
 	return (
-		<div className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
+		<div className="rounded-lg border border-dbz-border bg-dbz-bg/40 p-3">
 			<div className="flex items-start gap-3">
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2">
-						<code className="text-sm font-medium">{label}</code>
+						<code className="text-sm font-medium text-zinc-100">{label}</code>
 						{isOverridden && (
 							<span
-								className={`badge ${rule?.enabled ? "badge-warning" : "badge-error"}`}
+								className={`text-[10px] px-1.5 py-0.5 rounded border ${
+									rule?.enabled
+										? "text-amber-300 border-amber-700/50 bg-amber-900/30"
+										: "text-red-300 border-red-700/50 bg-red-900/30"
+								}`}
 							>
-								{rule?.enabled ? "règle active" : "désactivée"}
+								{rule?.enabled ? "règle active" : "commande désactivée"}
 							</span>
 						)}
 					</div>
@@ -322,16 +348,20 @@ function RuleEditor({
 					<button
 						type="button"
 						onClick={editing ? () => setEditing(false) : startEdit}
-						className="btn btn-ghost px-2"
+						className="text-xs px-2 py-1 border border-dbz-border text-zinc-300 hover:text-dbz-orange hover:border-dbz-orange/50 rounded transition-colors"
 					>
-						{editing ? "Fermer" : isOverridden ? "Modifier" : "Définir"}
+						{editing
+							? "Fermer"
+							: isOverridden
+								? "Modifier"
+								: "Définir une règle"}
 					</button>
 					{isOverridden && (
 						<button
 							type="button"
-							onClick={onUnset}
-							className="btn btn-ghost px-2 text-red-400"
-							title="Supprimer la règle (retour au défaut)"
+							onClick={handleUnset}
+							className="text-xs px-2 py-1 border border-red-900/50 text-red-400 hover:bg-red-900/20 rounded transition-colors"
+							title="Supprimer la règle (retour aux paramètres par défaut)"
 							disabled={pending}
 						>
 							<RotateCcw className="h-3 w-3" />
@@ -340,7 +370,7 @@ function RuleEditor({
 				</div>
 			</div>
 			{editing && (
-				<div className="mt-3 space-y-3 border-t border-zinc-800 pt-3">
+				<div className="mt-3 space-y-3 border-t border-dbz-border pt-3">
 					<label className="flex items-center gap-2 text-sm">
 						<input
 							type="checkbox"
@@ -348,20 +378,21 @@ function RuleEditor({
 							onChange={(e) =>
 								setDraft({ ...draft, enabled: e.target.checked })
 							}
-							className="h-4 w-4 accent-brand-500"
+							className="h-4 w-4 accent-dbz-orange"
 						/>
 						<Power className="h-4 w-4 text-zinc-500" />
-						<span>
+						<span className="text-zinc-200">
 							Commande activée
 							<span className="ml-1 text-xs text-zinc-500">
-								(décocher → désactivée pour tout le monde sauf bypass)
+								(décocher pour la désactiver pour tout le monde, sauf
+								administrateurs)
 							</span>
 						</span>
 					</label>
 
 					<RoleListEditor
 						label="Rôles autorisés"
-						hint="Si non vide, le membre doit avoir au moins un de ces rôles."
+						hint="Si la liste n'est pas vide, seuls les membres ayant au moins un de ces rôles pourront utiliser la commande."
 						icon={<Shield className="h-4 w-4 text-emerald-400" />}
 						roles={draft.allowedRoles}
 						onChange={(roles) => setDraft({ ...draft, allowedRoles: roles })}
@@ -369,15 +400,15 @@ function RuleEditor({
 
 					<RoleListEditor
 						label="Rôles interdits"
-						hint="Si le membre a un de ces rôles, refus immédiat."
+						hint="Les membres ayant un de ces rôles seront refusés, quelles que soient les autres règles."
 						icon={<Lock className="h-4 w-4 text-red-400" />}
 						roles={draft.deniedRoles}
 						onChange={(roles) => setDraft({ ...draft, deniedRoles: roles })}
 					/>
 
 					<UserIdListEditor
-						label="Utilisateurs interdits"
-						hint="ID Discord (snowflake 17-20 chiffres)."
+						label="Utilisateurs bloqués"
+						hint="Identifiant Discord de l'utilisateur (numéro à 17-20 chiffres, visible dans les paramètres Discord)."
 						icon={<UserMinus className="h-4 w-4 text-red-400" />}
 						users={draft.deniedUsers}
 						onChange={(users) => setDraft({ ...draft, deniedUsers: users })}
@@ -391,14 +422,14 @@ function RuleEditor({
 								setEditing(false);
 							}}
 							disabled={pending}
-							className="btn btn-primary"
+							className="dbz-button !text-xs !px-3 !py-1.5"
 						>
 							Enregistrer
 						</button>
 						<button
 							type="button"
 							onClick={() => setEditing(false)}
-							className="btn btn-ghost"
+							className="text-xs px-3 py-1.5 border border-dbz-border text-zinc-400 hover:text-zinc-200 rounded transition-colors"
 						>
 							Annuler
 						</button>
@@ -423,7 +454,7 @@ function summarizeRule(rule: PermissionRule | undefined): string {
 		);
 	if (rule.deniedUsers.length > 0)
 		parts.push(
-			`${rule.deniedUsers.length} user${rule.deniedUsers.length > 1 ? "s" : ""} interdit${rule.deniedUsers.length > 1 ? "s" : ""}`,
+			`${rule.deniedUsers.length} utilisateur${rule.deniedUsers.length > 1 ? "s" : ""} bloqué${rule.deniedUsers.length > 1 ? "s" : ""}`,
 		);
 	return parts.join(" · ");
 }
@@ -443,10 +474,10 @@ function RoleListEditor({
 }) {
 	const [pick, setPick] = useState("");
 	return (
-		<div className="rounded-md border border-zinc-800 bg-zinc-950/40 p-3">
+		<div className="rounded-md border border-dbz-border bg-dbz-bg/40 p-3">
 			<div className="mb-2 flex items-center gap-2">
 				{icon}
-				<span className="text-sm font-medium">{label}</span>
+				<span className="text-sm font-medium text-zinc-200">{label}</span>
 				<span className="text-xs text-zinc-500">({roles.length})</span>
 			</div>
 			<p className="mb-2 text-xs text-zinc-500">{hint}</p>
@@ -462,7 +493,7 @@ function RoleListEditor({
 								type="button"
 								onClick={() => onChange(roles.filter((r) => r !== id))}
 								className="text-zinc-500 hover:text-red-400"
-								title="Retirer"
+								title="Retirer ce rôle"
 							>
 								<X className="h-3 w-3" />
 							</button>
@@ -480,7 +511,7 @@ function RoleListEditor({
 						setPick("");
 					}}
 					disabled={!pick || roles.includes(pick)}
-					className="btn btn-ghost"
+					className="text-xs px-2 py-1 border border-dbz-border text-zinc-300 hover:text-dbz-orange hover:border-dbz-orange/50 rounded transition-colors disabled:opacity-40"
 				>
 					Ajouter
 				</button>
@@ -505,10 +536,10 @@ function UserIdListEditor({
 	const [pick, setPick] = useState("");
 	const valid = /^\d{17,20}$/.test(pick);
 	return (
-		<div className="rounded-md border border-zinc-800 bg-zinc-950/40 p-3">
+		<div className="rounded-md border border-dbz-border bg-dbz-bg/40 p-3">
 			<div className="mb-2 flex items-center gap-2">
 				{icon}
-				<span className="text-sm font-medium">{label}</span>
+				<span className="text-sm font-medium text-zinc-200">{label}</span>
 				<span className="text-xs text-zinc-500">({users.length})</span>
 			</div>
 			<p className="mb-2 text-xs text-zinc-500">{hint}</p>
@@ -524,6 +555,7 @@ function UserIdListEditor({
 								type="button"
 								onClick={() => onChange(users.filter((u) => u !== id))}
 								className="text-zinc-500 hover:text-red-400"
+								title="Retirer cet utilisateur"
 							>
 								<Trash2 className="h-3 w-3" />
 							</button>
@@ -535,8 +567,8 @@ function UserIdListEditor({
 				<input
 					value={pick}
 					onChange={(e) => setPick(e.target.value)}
-					placeholder="ID Discord (17-20 chiffres)"
-					className="input flex-1 font-mono text-xs"
+					placeholder="Identifiant Discord (17-20 chiffres)"
+					className="flex-1 bg-dbz-bg border border-dbz-border rounded px-2 py-1 font-mono text-xs focus:border-dbz-orange outline-none"
 				/>
 				<button
 					type="button"
@@ -546,7 +578,7 @@ function UserIdListEditor({
 						setPick("");
 					}}
 					disabled={!valid || users.includes(pick)}
-					className="btn btn-ghost"
+					className="text-xs px-2 py-1 border border-dbz-border text-zinc-300 hover:text-dbz-orange hover:border-dbz-orange/50 rounded transition-colors disabled:opacity-40"
 				>
 					Ajouter
 				</button>

@@ -2,161 +2,444 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import {
+	LayoutDashboard,
+	RefreshCw,
+	Settings,
+	Bot,
+	CalendarDays,
+	Clock,
+	Server,
+	Radio,
+	ScrollText,
+	BarChart2,
+	Terminal,
+	Zap,
+	Webhook,
+	Database,
+	BookOpen,
+	ImageIcon,
+	Film,
+	Gamepad2,
+	Tv2,
+	MapPin,
+	Users,
+	UserCircle,
+	Palette,
+	Layers,
+	Gift,
+	Ticket,
+	MessageSquare,
+	Send,
+	Coins,
+	TrendingUp,
+	ShoppingBag,
+	Trophy,
+	Shield,
+	ClipboardList,
+	BookMarked,
+	Crown,
+	Key,
+	FileText,
+	BookText,
+	PanelLeftClose,
+	PanelLeftOpen,
+} from "lucide-react";
+
+// Types internes
+
+type SectionId =
+	| "accueil"
+	| "systeme"
+	| "encyclopedie"
+	| "communaute"
+	| "economie"
+	| "moderation"
+	| "contenu";
 
 type AdminLink = {
 	href: string;
+	/** Libellé court affiché dans la sidebar */
 	label: string;
-	kanji: string;
-	section:
-		| "core"
-		| "ops"
-		| "data"
-		| "social"
-		| "econ"
-		| "mod"
-		| "cms"
-		| "universe";
+	/** Description courte visible au survol / en sous-titre */
+	description: string;
+	/** Icône lucide-react */
+	icon: React.ReactNode;
+	section: SectionId;
 };
 
+// ---------------------------------------------------------------------------
+// Définition des liens — les href sont INCHANGÉS (ne pas modifier)
+// ---------------------------------------------------------------------------
+
 const ADMIN_LINKS: AdminLink[] = [
-	// CORE
+	// ACCUEIL & ADMINISTRATION GÉNÉRALE
 	{
 		href: "/admin/dashboard",
-		label: "DASHBOARD",
-		kanji: "戦",
-		section: "core",
+		label: "Tableau de bord",
+		description: "Vue d'ensemble du bot",
+		icon: <LayoutDashboard className="h-4 w-4" />,
+		section: "accueil",
 	},
-	{ href: "/admin/sync", label: "SYNC", kanji: "同", section: "core" },
-	{ href: "/admin/settings", label: "SETTINGS", kanji: "設", section: "core" },
-	{ href: "/admin/bot", label: "BOT", kanji: "獸", section: "core" },
+	{
+		href: "/admin/sync",
+		label: "Synchronisation",
+		description: "Synchroniser Discord ↔ base de données",
+		icon: <RefreshCw className="h-4 w-4" />,
+		section: "accueil",
+	},
+	{
+		href: "/admin/settings",
+		label: "Paramètres",
+		description: "Réglages généraux du bot",
+		icon: <Settings className="h-4 w-4" />,
+		section: "accueil",
+	},
+	{
+		href: "/admin/bot",
+		label: "Gestion du bot",
+		description: "État et contrôle des personas",
+		icon: <Bot className="h-4 w-4" />,
+		section: "accueil",
+	},
 
-	// OPS
-	{ href: "/admin/events", label: "EVENTS", kanji: "事", section: "ops" },
-	{ href: "/admin/cron", label: "CRON", kanji: "時", section: "ops" },
-	{ href: "/admin/services", label: "SERVICES", kanji: "機", section: "ops" },
-	{ href: "/admin/live", label: "LIVE", kanji: "生", section: "ops" },
-	{ href: "/admin/logs", label: "LOGS", kanji: "誌", section: "ops" },
-	{ href: "/admin/stats", label: "STATS", kanji: "統", section: "ops" },
-	{ href: "/admin/commands", label: "COMMANDS", kanji: "令", section: "ops" },
-	{ href: "/admin/triggers", label: "TRIGGERS", kanji: "動", section: "ops" },
-	{ href: "/admin/webhooks", label: "WEBHOOKS", kanji: "鎖", section: "ops" },
+	// SYSTÈME & TECHNIQUE
+	{
+		href: "/admin/events",
+		label: "Événements",
+		description: "Événements Discord reçus",
+		icon: <CalendarDays className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/cron",
+		label: "Tâches planifiées",
+		description: "Jobs automatiques (cron)",
+		icon: <Clock className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/services",
+		label: "Services",
+		description: "État des services internes",
+		icon: <Server className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/live",
+		label: "En direct",
+		description: "Activité en temps réel",
+		icon: <Radio className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/logs",
+		label: "Journaux",
+		description: "Logs d'activité du bot",
+		icon: <ScrollText className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/stats",
+		label: "Statistiques",
+		description: "Chiffres globaux d'utilisation",
+		icon: <BarChart2 className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/commands",
+		label: "Commandes Discord",
+		description: "Liste et gestion des commandes",
+		icon: <Terminal className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/triggers",
+		label: "Déclencheurs",
+		description: "Réponses automatiques aux messages",
+		icon: <Zap className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/webhooks",
+		label: "Webhooks",
+		description: "Connexions externes et notifications",
+		icon: <Webhook className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/database",
+		label: "Base de données",
+		description: "Accès direct aux tables",
+		icon: <Database className="h-4 w-4" />,
+		section: "systeme",
+	},
 
-	// DATA
-	{ href: "/admin/database", label: "DATABASE", kanji: "蔵", section: "data" },
-
-	// DB UNIVERSE — nouveau (Phase 4.5)
+	// ENCYCLOPÉDIE / WIKI DBZ
 	{
 		href: "/admin/db-universe/sources",
-		label: "SOURCES",
-		kanji: "源",
-		section: "universe",
+		label: "Sources",
+		description: "Origines des données wiki",
+		icon: <BookOpen className="h-4 w-4" />,
+		section: "encyclopedie",
 	},
 	{
 		href: "/admin/db-universe/assets",
-		label: "ASSETS",
-		kanji: "像",
-		section: "universe",
+		label: "Images & médias",
+		description: "Illustrations, icônes et visuels",
+		icon: <ImageIcon className="h-4 w-4" />,
+		section: "encyclopedie",
 	},
 	{
 		href: "/admin/db-universe/sagas",
-		label: "SAGAS",
-		kanji: "編",
-		section: "universe",
+		label: "Sagas",
+		description: "Arcs narratifs de l'univers DBZ",
+		icon: <MapPin className="h-4 w-4" />,
+		section: "encyclopedie",
 	},
 	{
 		href: "/admin/db-universe/episodes",
-		label: "EPISODES",
-		kanji: "話",
-		section: "universe",
+		label: "Épisodes",
+		description: "Catalogue des épisodes",
+		icon: <Tv2 className="h-4 w-4" />,
+		section: "encyclopedie",
 	},
 	{
 		href: "/admin/db-universe/films",
-		label: "FILMS",
-		kanji: "映",
-		section: "universe",
+		label: "Films",
+		description: "Films et OAV Dragon Ball",
+		icon: <Film className="h-4 w-4" />,
+		section: "encyclopedie",
 	},
 	{
 		href: "/admin/db-universe/games",
-		label: "GAMES",
-		kanji: "戯",
-		section: "universe",
+		label: "Jeux vidéo",
+		description: "Jeux Dragon Ball référencés",
+		icon: <Gamepad2 className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
+	{
+		href: "/admin/wiki",
+		label: "Wiki (articles libres)",
+		description: "Pages wiki rédigées manuellement",
+		icon: <BookText className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
+	{
+		href: "/admin/posts",
+		label: "Articles / Actualités",
+		description: "Publications et annonces du serveur",
+		icon: <FileText className="h-4 w-4" />,
+		section: "encyclopedie",
 	},
 
-	// SOCIAL
-	{ href: "/admin/discord", label: "DISCORD", kanji: "話", section: "social" },
-	{ href: "/admin/profile", label: "PROFILE", kanji: "民", section: "social" },
-	{ href: "/admin/canvas", label: "CANVAS", kanji: "絵", section: "social" },
+	// COMMUNAUTÉ & SOCIAL
+	{
+		href: "/admin/discord",
+		label: "Serveurs Discord",
+		description: "Guildes et membres connectés",
+		icon: <Users className="h-4 w-4" />,
+		section: "communaute",
+	},
+	{
+		href: "/admin/profile",
+		label: "Profils membres",
+		description: "Fiches et données des membres",
+		icon: <UserCircle className="h-4 w-4" />,
+		section: "communaute",
+	},
+	{
+		href: "/admin/canvas",
+		label: "Cartes de profil",
+		description: "Visuels générés (niveau, profil)",
+		icon: <Palette className="h-4 w-4" />,
+		section: "communaute",
+	},
 	{
 		href: "/admin/canvas/themes",
-		label: "THEMES",
-		kanji: "彩",
-		section: "social",
+		label: "Thèmes visuels",
+		description: "Thèmes disponibles pour les cartes",
+		icon: <Layers className="h-4 w-4" />,
+		section: "communaute",
 	},
 	{
 		href: "/admin/giveaways",
-		label: "GIVEAWAYS",
-		kanji: "贈",
-		section: "social",
+		label: "Cadeaux & Tirages",
+		description: "Concours et cadeaux en cours",
+		icon: <Gift className="h-4 w-4" />,
+		section: "communaute",
 	},
-	{ href: "/admin/tickets", label: "TICKETS", kanji: "札", section: "social" },
+	{
+		href: "/admin/tickets",
+		label: "Tickets de support",
+		description: "Demandes d'aide des membres",
+		icon: <Ticket className="h-4 w-4" />,
+		section: "communaute",
+	},
 	{
 		href: "/admin/messages",
-		label: "MESSAGES",
-		kanji: "文",
-		section: "social",
+		label: "Messages",
+		description: "Historique des messages importants",
+		icon: <MessageSquare className="h-4 w-4" />,
+		section: "communaute",
 	},
-	{ href: "/admin/send", label: "SEND", kanji: "送", section: "social" },
+	{
+		href: "/admin/send",
+		label: "Envoyer un message",
+		description: "Diffuser un message via le bot",
+		icon: <Send className="h-4 w-4" />,
+		section: "communaute",
+	},
 
-	// ECON
-	{ href: "/admin/economy", label: "ECONOMY", kanji: "銭", section: "econ" },
-	{ href: "/admin/levels", label: "LEVELS", kanji: "級", section: "econ" },
-	{ href: "/admin/shop", label: "SHOP", kanji: "店", section: "econ" },
-	{ href: "/admin/leaderboards", label: "LB+", kanji: "順", section: "econ" },
+	// ÉCONOMIE & PROGRESSION
+	{
+		href: "/admin/economy",
+		label: "Économie",
+		description: "Soldes, transactions, Zénies",
+		icon: <Coins className="h-4 w-4" />,
+		section: "economie",
+	},
+	{
+		href: "/admin/levels",
+		label: "Niveaux & XP",
+		description: "Progression et paliers d'expérience",
+		icon: <TrendingUp className="h-4 w-4" />,
+		section: "economie",
+	},
+	{
+		href: "/admin/shop",
+		label: "Boutique",
+		description: "Articles disponibles à l'achat",
+		icon: <ShoppingBag className="h-4 w-4" />,
+		section: "economie",
+	},
+	{
+		href: "/admin/leaderboards",
+		label: "Classements",
+		description: "Meilleurs joueurs et combattants",
+		icon: <Trophy className="h-4 w-4" />,
+		section: "economie",
+	},
 
-	// MOD
-	{ href: "/admin/moderation", label: "MOD", kanji: "制", section: "mod" },
-	{ href: "/admin/audit", label: "AUDIT", kanji: "査", section: "mod" },
+	// MODÉRATION & SÉCURITÉ
+	{
+		href: "/admin/moderation",
+		label: "Modération",
+		description: "Sanctions, mutes, bans",
+		icon: <Shield className="h-4 w-4" />,
+		section: "moderation",
+	},
+	{
+		href: "/admin/audit",
+		label: "Journal de modération",
+		description: "Historique des actions de modération",
+		icon: <ClipboardList className="h-4 w-4" />,
+		section: "moderation",
+	},
 	{
 		href: "/admin/audit-internal",
-		label: "AUDIT INT",
-		kanji: "帳",
-		section: "mod",
+		label: "Journal interne",
+		description: "Logs d'audit internes du bot",
+		icon: <BookMarked className="h-4 w-4" />,
+		section: "moderation",
 	},
-	{ href: "/admin/hierarchy", label: "HIERARCHY", kanji: "位", section: "mod" },
-	{ href: "/admin/command-perms", label: "PERMS", kanji: "権", section: "mod" },
-
-	// CMS
-	{ href: "/admin/posts", label: "ARTICLES", kanji: "記", section: "cms" },
-	{ href: "/admin/wiki", label: "WIKI", kanji: "書", section: "cms" },
+	{
+		href: "/admin/hierarchy",
+		label: "Hiérarchie des rôles",
+		description: "Rangs et rôles Discord",
+		icon: <Crown className="h-4 w-4" />,
+		section: "moderation",
+	},
+	{
+		href: "/admin/command-perms",
+		label: "Permissions commandes",
+		description: "Qui peut utiliser quoi",
+		icon: <Key className="h-4 w-4" />,
+		section: "moderation",
+	},
 ];
 
-const SECTION_LABEL: Record<AdminLink["section"], string> = {
-	core: "// CORE",
-	ops: "// OPS",
-	data: "// DATA",
-	universe: "// DB UNIVERSE",
-	social: "// SOCIAL",
-	econ: "// ECON",
-	mod: "// MOD",
-	cms: "// CMS",
+// ---------------------------------------------------------------------------
+// Configuration des sections — libellés et ordre d'affichage
+// ---------------------------------------------------------------------------
+
+type SectionConfig = {
+	id: SectionId;
+	label: string;
+	description: string;
 };
 
-const SECTION_ORDER: AdminLink["section"][] = [
-	"core",
-	"ops",
-	"data",
-	"universe",
-	"social",
-	"econ",
-	"mod",
-	"cms",
+const SECTIONS: SectionConfig[] = [
+	{
+		id: "accueil",
+		label: "Accueil & Administration",
+		description: "Vue d'ensemble et réglages",
+	},
+	{
+		id: "systeme",
+		label: "Système & Technique",
+		description: "Logs, tâches, services",
+	},
+	{
+		id: "encyclopedie",
+		label: "Encyclopédie Dragon Ball",
+		description: "Wiki, sagas, films, jeux",
+	},
+	{
+		id: "communaute",
+		label: "Communauté & Social",
+		description: "Membres, messages, événements",
+	},
+	{
+		id: "economie",
+		label: "Économie & Progression",
+		description: "Niveaux, boutique, classements",
+	},
+	{
+		id: "moderation",
+		label: "Modération & Sécurité",
+		description: "Sanctions, rôles, permissions",
+	},
+	{
+		id: "contenu",
+		label: "Contenu & Publication",
+		description: "Articles, wiki libre",
+	},
 ];
+
+const SECTION_ORDER: SectionId[] = [
+	"accueil",
+	"systeme",
+	"encyclopedie",
+	"communaute",
+	"economie",
+	"moderation",
+	"contenu",
+];
+
+// ---------------------------------------------------------------------------
+// Composant principal
+// ---------------------------------------------------------------------------
 
 export function AdminSidebar() {
 	const pathname = usePathname();
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(false); // tiroir mobile
+	const [collapsed, setCollapsed] = useState(false); // repli desktop (mode icônes)
 	const [q, setQ] = useState("");
+
+	// Restaure l'état replié depuis localStorage au montage
+	useEffect(() => {
+		setCollapsed(localStorage.getItem("admin-sidebar-collapsed") === "1");
+	}, []);
+
+	const toggleCollapsed = () =>
+		setCollapsed((v) => {
+			const next = !v;
+			localStorage.setItem("admin-sidebar-collapsed", next ? "1" : "0");
+			if (next) setQ(""); // la recherche est masquée en mode replié
+			return next;
+		});
 
 	const filtered = useMemo(() => {
 		if (!q.trim()) return ADMIN_LINKS;
@@ -164,17 +447,21 @@ export function AdminSidebar() {
 		return ADMIN_LINKS.filter(
 			(l) =>
 				l.label.toLowerCase().includes(needle) ||
-				l.href.toLowerCase().includes(needle) ||
-				l.section.toLowerCase().includes(needle),
+				l.description.toLowerCase().includes(needle) ||
+				l.href.toLowerCase().includes(needle),
 		);
 	}, [q]);
 
 	const grouped = useMemo(
 		() =>
-			SECTION_ORDER.map((s) => ({
-				section: s,
-				items: filtered.filter((l) => l.section === s),
-			})).filter((g) => g.items.length > 0),
+			SECTION_ORDER.map((id) => {
+				const config = SECTIONS.find((s) => s.id === id);
+				return {
+					id,
+					label: config?.label ?? id,
+					items: filtered.filter((l) => l.section === id),
+				};
+			}).filter((g) => g.items.length > 0),
 		[filtered],
 	);
 
@@ -184,7 +471,7 @@ export function AdminSidebar() {
 
 	return (
 		<>
-			{/* Mobile bar — toggle */}
+			{/* Barre mobile — bouton d'ouverture du tiroir */}
 			<div className="md:hidden sticky top-16 z-30 flex items-center justify-between gap-3 px-4 py-3 bg-dbz-card/95 backdrop-blur border-b-2 border-dbz-yellow/50">
 				<span className="font-display font-bold text-[14px] tracking-[0.18em] uppercase text-dbz-yellow">
 					Admin
@@ -200,64 +487,104 @@ export function AdminSidebar() {
 				</button>
 			</div>
 
+			{/*
+			  Desktop : sticky sous le SiteNav global (h-16) → top-16 + hauteur
+			  réelle calc(100vh-4rem) avec scroll interne sur le <nav> (toutes les
+			  sections restent atteignables). Repliable en mode icônes (md:w-16).
+			  Mobile : tiroir plein largeur piloté par `open`.
+			*/}
 			<aside
-				className={`relative w-full md:w-72 shrink-0 border-b-4 md:border-b-0 md:border-r-2 border-dbz-yellow/60 bg-dbz-card hud-scanlines overflow-hidden z-20 ${
+				className={`${collapsed ? "md:w-16" : "md:w-72"} relative w-full shrink-0 border-b-4 md:border-b-0 md:border-r-2 border-dbz-yellow/60 bg-dbz-card hud-scanlines z-20 md:sticky md:top-16 md:h-[calc(100vh-4rem)] transition-[width] duration-200 ${
 					open ? "block" : "hidden md:block"
 				}`}
 			>
 				<div className="absolute inset-0 hud-grid opacity-30 pointer-events-none" />
-				<div className="relative hud-sweep">
-					{/* Header HUD */}
-					<div className="px-5 pt-6 pb-4 border-b border-dbz-yellow/30 hud-frame">
-						<div className="flex items-baseline justify-between">
-							<div className="flex items-center gap-2">
+				<div className="relative hud-sweep flex flex-col h-full">
+					{/* En-tête HUD */}
+					<div className="shrink-0 px-3 md:px-5 pt-5 pb-4 border-b border-dbz-yellow/30 hud-frame">
+						{collapsed ? (
+							<div className="hidden md:flex flex-col items-center gap-3">
 								<span className="led" aria-hidden />
-								<span className="font-scouter text-[10px] tracking-[0.3em] text-dbz-yellow/90">
-									HUD//ACTIVE
-								</span>
+								<button
+									type="button"
+									onClick={toggleCollapsed}
+									title="Déplier le menu"
+									aria-label="Déplier le menu"
+									className="flex items-center justify-center w-9 h-9 border border-dbz-yellow/30 rounded text-dbz-yellow/80 hover:border-dbz-orange hover:text-dbz-orange transition-colors"
+								>
+									<PanelLeftOpen className="h-5 w-5" />
+								</button>
 							</div>
-							<span className="font-scouter text-[10px] tracking-widest text-dbz-blue-light/70">
-								v8.0
-							</span>
-						</div>
-						<h2 className="mt-3 font-saiyan text-2xl leading-none text-dbz-yellow">
-							CAPSULE
-							<span className="block text-white/90">CORP CMS</span>
-						</h2>
-						<p className="mt-2 font-scouter text-[10px] tracking-[0.35em] text-dbz-orange">
-							SCOUTER // OPERATOR
-						</p>
+						) : (
+							<>
+								<div className="flex items-center justify-between gap-2">
+									<div className="flex items-center gap-2">
+										<span className="led" aria-hidden />
+										<span className="font-scouter text-[10px] tracking-[0.3em] text-dbz-yellow/90">
+											PANNEAU ADMIN
+										</span>
+									</div>
+									<button
+										type="button"
+										onClick={toggleCollapsed}
+										title="Replier le menu"
+										aria-label="Replier le menu"
+										className="hidden md:inline-flex items-center justify-center w-7 h-7 border border-dbz-yellow/20 rounded text-dbz-blue-light/70 hover:border-dbz-orange hover:text-dbz-orange transition-colors"
+									>
+										<PanelLeftClose className="h-4 w-4" />
+									</button>
+								</div>
+								<h2 className="mt-3 font-saiyan text-2xl leading-none text-dbz-yellow">
+									DRAGON BALL
+									<span className="block text-white/90">FRANCE</span>
+								</h2>
+								<p className="mt-1 font-scouter text-[10px] tracking-[0.25em] text-dbz-orange">
+									Espace administrateur
+								</p>
 
-						{/* Search */}
-						<div className="mt-4">
-							<input
-								type="search"
-								value={q}
-								onChange={(e) => setQ(e.target.value)}
-								placeholder="Filtrer modules…"
-								className="w-full h-9 px-3 bg-dbz-bg/80 border border-dbz-yellow/30 focus:border-dbz-orange outline-none font-display text-[12px] text-white placeholder:text-white/40 rounded"
-							/>
-						</div>
+								{/* Champ de recherche */}
+								<div className="mt-4">
+									<input
+										type="search"
+										value={q}
+										onChange={(e) => setQ(e.target.value)}
+										placeholder="Rechercher une section…"
+										className="w-full h-9 px-3 bg-dbz-bg/80 border border-dbz-yellow/30 focus:border-dbz-orange outline-none font-display text-[12px] text-white placeholder:text-white/40 rounded"
+										aria-label="Filtrer le menu"
+									/>
+								</div>
+							</>
+						)}
 					</div>
 
-					{/* Sections */}
-					<nav className="px-3 py-4 space-y-5 max-h-[calc(100vh-260px)] overflow-y-auto md:block flex flex-row md:flex-col gap-3 md:gap-0">
+					{/* Navigation par sections — flex-1 + scroll interne */}
+					<nav
+						className="flex-1 overflow-y-auto px-2 md:px-3 py-4 space-y-5"
+						aria-label="Navigation admin"
+					>
 						{grouped.length === 0 ? (
 							<p className="px-2 font-display text-[12px] text-white/50">
-								Aucun module ne correspond à « {q} ».
+								Aucune section ne correspond à &laquo;&nbsp;{q}&nbsp;&raquo;.
 							</p>
 						) : (
 							grouped.map((group) => (
-								<div key={group.section} className="space-y-1 min-w-[220px]">
-									<div className="px-2 flex items-center gap-2">
-										<span className="font-scouter text-[10px] tracking-[0.3em] text-dbz-blue-light">
-											{SECTION_LABEL[group.section]}
-										</span>
-										<span className="flex-1 h-px bg-dbz-blue/40" />
-										<span className="font-scouter text-[10px] text-dbz-blue-light/60">
-											{String(group.items.length).padStart(2, "0")}
-										</span>
-									</div>
+								<div key={group.id} className="space-y-1">
+									{/* En-tête de section — masqué en mode replié */}
+									{collapsed ? (
+										<div className="hidden md:block mx-2 my-1 h-px bg-dbz-yellow/15" />
+									) : (
+										<div className="px-2 py-1 flex items-center gap-2">
+											<span className="font-display font-semibold text-[11px] tracking-[0.15em] uppercase text-dbz-yellow/80">
+												{group.label}
+											</span>
+											<span className="flex-1 h-px bg-dbz-yellow/20" />
+											<span className="font-scouter text-[10px] text-dbz-blue-light/50">
+												{String(group.items.length).padStart(2, "0")}
+											</span>
+										</div>
+									)}
+
+									{/* Liste des liens de la section */}
 									<ul className="space-y-0.5">
 										{group.items.map((l) => {
 											const active = isActive(l.href);
@@ -266,31 +593,48 @@ export function AdminSidebar() {
 													<Link
 														href={l.href}
 														onClick={() => setOpen(false)}
-														className={`group relative flex items-center gap-3 px-2 py-1.5 border-l-2 transition-colors ${
+														title={
+															collapsed
+																? `${l.label} — ${l.description}`
+																: l.description
+														}
+														className={`group relative flex items-center gap-3 px-2 py-2 border-l-2 rounded-r transition-colors ${
+															collapsed ? "md:justify-center md:gap-0" : ""
+														} ${
 															active
 																? "border-dbz-orange bg-dbz-orange/15"
 																: "border-transparent hover:border-dbz-orange hover:bg-dbz-orange/10"
 														}`}
 													>
+														{/* Icône */}
 														<span
-															className={`flex items-center justify-center w-7 h-7 border bg-dbz-bg/60 font-saiyan text-base leading-none transition-colors ${
+															className={`flex items-center justify-center w-7 h-7 border rounded transition-colors shrink-0 ${
 																active
-																	? "border-dbz-orange text-dbz-orange"
-																	: "border-dbz-blue-light/40 text-dbz-yellow group-hover:border-dbz-orange group-hover:text-dbz-orange"
+																	? "border-dbz-orange text-dbz-orange bg-dbz-orange/10"
+																	: "border-dbz-blue-light/30 text-dbz-yellow/70 bg-dbz-bg/40 group-hover:border-dbz-orange group-hover:text-dbz-orange"
 															}`}
 															aria-hidden
 														>
-															{l.kanji}
+															{l.icon}
 														</span>
-														<span
-															className={`flex-1 font-saiyan tracking-widest text-sm transition-colors ${
-																active
-																	? "text-white"
-																	: "text-white/85 group-hover:text-white"
-															}`}
+
+														{/* Libellé + description — masqués en mode replié (desktop) */}
+														<div
+															className={`flex-1 min-w-0 ${collapsed ? "md:hidden" : ""}`}
 														>
-															{l.label}
-														</span>
+															<span
+																className={`block font-display font-semibold text-[13px] leading-tight transition-colors ${
+																	active
+																		? "text-white"
+																		: "text-white/85 group-hover:text-white"
+																}`}
+															>
+																{l.label}
+															</span>
+															<span className="block font-display text-[10px] text-white/40 truncate mt-0.5 leading-tight">
+																{l.description}
+															</span>
+														</div>
 													</Link>
 												</li>
 											);
@@ -301,17 +645,20 @@ export function AdminSidebar() {
 						)}
 					</nav>
 
-					{/* Footer */}
-					<div className="px-5 py-4 border-t border-dbz-yellow/30 flex items-center justify-between">
+					{/* Pied de page */}
+					<div className="shrink-0 px-3 md:px-5 py-4 border-t border-dbz-yellow/30 flex items-center justify-between gap-2">
 						<Link
 							href="/"
-							className="font-saiyan text-xs tracking-[0.3em] text-dbz-blue-light hover:text-dbz-orange transition-colors"
+							title="Retour au site"
+							className="font-display text-xs tracking-[0.15em] text-dbz-blue-light hover:text-dbz-orange transition-colors"
 						>
-							← RETOUR SITE
+							{collapsed ? <span aria-hidden>&larr;</span> : "← Retour au site"}
 						</Link>
-						<span className="font-scouter text-[9px] tracking-widest text-dbz-blue-light/50">
-							{ADMIN_LINKS.length} MODULES
-						</span>
+						{!collapsed && (
+							<span className="font-scouter text-[9px] tracking-widest text-dbz-blue-light/50">
+								{ADMIN_LINKS.length} liens
+							</span>
+						)}
 					</div>
 				</div>
 			</aside>

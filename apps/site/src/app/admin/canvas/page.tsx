@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Image as ImageIcon, RefreshCw, Download } from "lucide-react";
+import { RefreshCw, Download } from "lucide-react";
 import { useMemo, useState } from "react";
 import { api, proxyAsset } from "@/lib/admin-api";
 
@@ -31,6 +31,15 @@ const PROFILE_THEMES = [
 	"ultra",
 ];
 
+const CANVAS_DESCRIPTIONS: Record<string, string> = {
+	profile:
+		"Carte de profil personnalisée avec avatar, niveau, barre d'XP et thème DBZ.",
+	scan: "Lecture du niveau de Ki d'un membre, basée sur son XP.",
+	scouter: "Scouter humoristique (Gaydar de Bulma ou Racism-o-mètre).",
+	fusion: "Carte de fusion entre deux membres.",
+	leaderboard: "Classement graphique des meilleurs joueurs.",
+};
+
 export default function CanvasPage() {
 	const list = useQuery({
 		queryKey: ["canvas", "list"],
@@ -46,36 +55,62 @@ export default function CanvasPage() {
 	const [selected, setSelected] = useState("profile");
 
 	if (list.isLoading)
-		return <div className="text-zinc-500">Chargement en cours…</div>;
-
-	return (
-		<div className="space-y-4">
-			<div className="card">
-				<div className="flex items-center gap-2">
-					<ImageIcon className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Aperçu des canvases</h2>
-				</div>
-				<p className="mt-1 text-sm text-zinc-400">
-					Rendu en direct des images générées par le bot via{" "}
-					<code>@aphrody-code/canvas</code> (Skia natif). Les paramètres sont
-					passés en query string ; cache HTTP côté serveur 60 s.
+		return (
+			<div className="dbz-panel p-8 text-center">
+				<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
+				<p className="text-sm text-white/40">
+					Récupération des canvases disponibles.
 				</p>
 			</div>
+		);
 
-			<div className="card flex flex-wrap gap-2">
-				{list.data?.canvases.map((c) => (
-					<button
-						key={c.id}
-						type="button"
-						onClick={() => setSelected(c.id)}
-						className={`btn ${selected === c.id ? "btn-primary" : "btn-ghost"}`}
-					>
-						{c.name}
-					</button>
-				))}
+	if (list.isError)
+		return (
+			<div className="dbz-panel p-8 text-center border-l-4 border-red-500">
+				<p className="font-saiyan text-red-400 text-xl mb-2">ERREUR</p>
+				<p className="text-sm text-white/40">
+					Impossible de charger la liste des canvases. Vérifiez que le bot est
+					en ligne.
+				</p>
+			</div>
+		);
+
+	return (
+		<div className="space-y-6">
+			<header>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
+					IMAGES GÉNÉRÉES
+				</h1>
+				<p className="text-sm text-white/60 mb-1">
+					Prévisualisez les cartes et images créées par le bot pour les membres
+					du serveur.
+				</p>
+				<p className="text-xs text-white/30 uppercase tracking-widest">
+					Rendu en direct via Skia · mise en cache 60 secondes
+				</p>
+			</header>
+
+			{/* Sélecteur de type */}
+			<div className="dbz-panel p-4">
+				<p className="text-xs text-white/40 uppercase tracking-widest mb-3">
+					Choisissez le type d&apos;image à prévisualiser
+				</p>
+				<div className="flex flex-wrap gap-2">
+					{(list.data?.canvases ?? []).map((c) => (
+						<button
+							key={c.id}
+							type="button"
+							onClick={() => setSelected(c.id)}
+							className={`dbz-button !text-sm !py-1.5 !px-4 ${selected === c.id ? "" : "opacity-50 hover:opacity-80"}`}
+						>
+							{c.name}
+						</button>
+					))}
+				</div>
 			</div>
 
-			{list.data?.canvases
+			{/* Aperçu du canvas sélectionné */}
+			{(list.data?.canvases ?? [])
 				.filter((c) => c.id === selected)
 				.map((c) => (
 					<CanvasPreview
@@ -101,27 +136,35 @@ function CanvasPreview({
 	const [bust, setBust] = useState(0);
 
 	const url = useMemo(() => buildUrl(def, params, bust), [def, params, bust]);
+	const isValid = paramsValid(def, params);
 
 	return (
 		<div className="grid gap-4 lg:grid-cols-3">
-			<div className="card space-y-3 lg:col-span-1">
-				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					Paramètres
-				</h3>
-				<p className="text-xs text-zinc-500">{def.description}</p>
+			{/* Panneau paramètres */}
+			<div className="dbz-panel p-5 space-y-4 lg:col-span-1">
+				<div>
+					<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">
+						{def.name}
+					</h3>
+					<p className="text-xs text-white/40">
+						{CANVAS_DESCRIPTIONS[def.id] ?? def.description}
+					</p>
+				</div>
 
 				{def.id === "profile" && (
 					<>
 						<MemberSelect
-							label="Joueur"
+							label="Membre"
 							value={params.userId ?? ""}
 							onChange={(v) => setParams({ ...params, userId: v })}
 							members={members}
 						/>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">Thème</label>
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Thème de carte
+							</label>
 							<select
-								className="input"
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.theme ?? "default"}
 								onChange={(e) =>
 									setParams({ ...params, theme: e.target.value })
@@ -129,7 +172,7 @@ function CanvasPreview({
 							>
 								{PROFILE_THEMES.map((t) => (
 									<option key={t} value={t}>
-										{t}
+										{t.charAt(0).toUpperCase() + t.slice(1)}
 									</option>
 								))}
 							</select>
@@ -139,7 +182,7 @@ function CanvasPreview({
 
 				{def.id === "scan" && (
 					<MemberSelect
-						label="Joueur à scanner"
+						label="Membre à scanner"
 						value={params.userId ?? ""}
 						onChange={(v) => setParams({ ...params, userId: v })}
 						members={members}
@@ -149,17 +192,17 @@ function CanvasPreview({
 				{def.id === "scouter" && (
 					<>
 						<MemberSelect
-							label="Cible"
+							label="Cible du scouter"
 							value={params.userId ?? ""}
 							onChange={(v) => setParams({ ...params, userId: v })}
 							members={members}
 						/>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 								Type de scouter
 							</label>
 							<select
-								className="input"
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.type ?? "gay"}
 								onChange={(e) => setParams({ ...params, type: e.target.value })}
 							>
@@ -168,14 +211,14 @@ function CanvasPreview({
 							</select>
 						</div>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">
-								Pourcentage : {params.pct ?? "50"}
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Pourcentage : {params.pct ?? "50"}%
 							</label>
 							<input
 								type="range"
 								min="0"
 								max="101"
-								className="w-full"
+								className="w-full accent-dbz-orange"
 								value={params.pct ?? "50"}
 								onChange={(e) => setParams({ ...params, pct: e.target.value })}
 							/>
@@ -186,39 +229,41 @@ function CanvasPreview({
 				{def.id === "fusion" && (
 					<>
 						<MemberSelect
-							label="Joueur A"
+							label="Membre A"
 							value={params.a ?? ""}
 							onChange={(v) => setParams({ ...params, a: v })}
 							members={members}
 						/>
 						<MemberSelect
-							label="Joueur B"
+							label="Membre B"
 							value={params.b ?? ""}
 							onChange={(v) => setParams({ ...params, b: v })}
 							members={members}
 						/>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">État</label>
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								État de la fusion
+							</label>
 							<select
-								className="input"
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.state ?? "success"}
 								onChange={(e) =>
 									setParams({ ...params, state: e.target.value })
 								}
 							>
-								<option value="propose">Proposition</option>
+								<option value="propose">Proposition de fusion</option>
 								<option value="success">Fusion réussie</option>
 							</select>
 						</div>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 								Nom de fusion
 							</label>
 							<input
-								className="input"
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.name ?? ""}
 								onChange={(e) => setParams({ ...params, name: e.target.value })}
-								placeholder="Gokuetto"
+								placeholder="ex : Gokuetto"
 							/>
 						</div>
 					</>
@@ -227,29 +272,29 @@ function CanvasPreview({
 				{def.id === "leaderboard" && (
 					<>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">
-								Métrique
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Classement
 							</label>
 							<select
-								className="input"
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.metric ?? "xp"}
 								onChange={(e) =>
 									setParams({ ...params, metric: e.target.value })
 								}
 							>
-								<option value="xp">XP</option>
-								<option value="zeni">Zénis</option>
+								<option value="xp">Points d&apos;expérience (XP)</option>
+								<option value="zeni">Zénis (monnaie)</option>
 							</select>
 						</div>
 						<div>
-							<label className="mb-1 block text-xs text-zinc-400">
-								Profondeur : {params.limit ?? "10"}
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Nombre de joueurs : {params.limit ?? "10"}
 							</label>
 							<input
 								type="range"
 								min="3"
 								max="20"
-								className="w-full"
+								className="w-full accent-dbz-orange"
 								value={params.limit ?? "10"}
 								onChange={(e) =>
 									setParams({ ...params, limit: e.target.value })
@@ -263,34 +308,31 @@ function CanvasPreview({
 					<button
 						type="button"
 						onClick={() => setBust(bust + 1)}
-						className="btn btn-ghost"
+						className="dbz-button !text-xs !py-1.5 !px-3 flex items-center gap-1.5"
 					>
 						<RefreshCw className="h-3 w-3" />
-						Régénérer
+						Regénérer
 					</button>
-					<a href={url} download={`${def.id}.png`} className="btn btn-ghost">
-						<Download className="h-3 w-3" />
-						Télécharger
-					</a>
-				</div>
-
-				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						URL générée
-					</label>
-					<code className="block break-all rounded bg-zinc-950 p-2 text-xs text-zinc-400">
-						{url}
-					</code>
+					{isValid && (
+						<a
+							href={url}
+							download={`${def.id}.png`}
+							className="dbz-button-ghost !text-xs !py-1.5 !px-3 flex items-center gap-1.5"
+						>
+							<Download className="h-3 w-3" />
+							Télécharger
+						</a>
+					)}
 				</div>
 			</div>
 
-			<div className="card lg:col-span-2">
-				<h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+			{/* Aperçu visuel */}
+			<div className="dbz-panel p-5 lg:col-span-2">
+				<h3 className="font-saiyan text-dbz-blue-light text-base uppercase mb-3">
 					Aperçu
 				</h3>
-				<div className="flex items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
-					{paramsValid(def, params) ? (
-						 
+				<div className="flex items-center justify-center rounded border border-dbz-border bg-black/30 p-4 min-h-[200px]">
+					{isValid ? (
 						<img
 							src={url}
 							alt={def.name}
@@ -298,11 +340,21 @@ function CanvasPreview({
 							loading="lazy"
 						/>
 					) : (
-						<p className="py-12 text-sm italic text-zinc-500">
-							Renseigne les paramètres requis pour afficher l&apos;aperçu.
+						<p className="text-sm text-white/30 text-center">
+							Renseignez les paramètres à gauche pour afficher l&apos;aperçu.
 						</p>
 					)}
 				</div>
+				{isValid && (
+					<div className="mt-3">
+						<p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">
+							URL générée (pour intégration)
+						</p>
+						<code className="block break-all rounded bg-black/40 p-2 text-[10px] text-white/40 border border-dbz-border">
+							{url}
+						</code>
+					</div>
+				)}
 			</div>
 		</div>
 	);
@@ -330,28 +382,32 @@ function MemberSelect({
 
 	return (
 		<div>
-			<label className="mb-1 block text-xs text-zinc-400">{label}</label>
+			<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+				{label}
+			</label>
 			<input
-				className="input mb-1 text-xs"
-				placeholder="Filtrer par pseudo ou ID"
+				className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs mb-1"
+				placeholder="Rechercher par pseudo…"
 				value={search}
 				onChange={(e) => setSearch(e.target.value)}
 			/>
 			<select
-				className="input"
+				className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
 			>
-				<option value="">— sélectionner —</option>
+				<option value="">— choisir un membre —</option>
 				{filtered.slice(0, 50).map((m) => (
 					<option key={m.id} value={m.id}>
-						{m.displayName} ({m.id})
+						{m.displayName !== m.username
+							? `${m.displayName} (${m.username})`
+							: m.username}
 					</option>
 				))}
 			</select>
 			{filtered.length > 50 && (
-				<p className="mt-1 text-xs text-zinc-500">
-					{filtered.length} résultats — affine le filtre.
+				<p className="mt-1 text-[10px] text-white/30">
+					{filtered.length} résultats — affinez la recherche.
 				</p>
 			)}
 		</div>

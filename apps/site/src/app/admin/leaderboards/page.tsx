@@ -1,121 +1,226 @@
-import { botAdmin } from "@/lib/bot-admin";
-import Link from "next/link";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import {
+	Trophy,
+	Loader2,
+	AlertTriangle,
+	Mic,
+	MessageSquare,
+	Flame,
+	Coins,
+} from "lucide-react";
+import { api } from "@/lib/admin-api";
+import { formatDuration } from "@/lib/admin-format";
 
 const METRICS = [
-	{ key: "xp", label: "XP", color: "text-fuchsia-300" },
-	{ key: "zeni", label: "Zénis", color: "text-yellow-300" },
-	{ key: "voice", label: "Vocal", color: "text-cyan-300" },
-	{ key: "messages", label: "Messages", color: "text-violet-300" },
-	{ key: "streak", label: "Streak", color: "text-pink-300" },
+	{ key: "xp", label: "XP", color: "text-fuchsia-300", icon: Trophy },
+	{ key: "zeni", label: "Zénis", color: "text-yellow-300", icon: Coins },
+	{ key: "voice", label: "Temps vocal", color: "text-cyan-300", icon: Mic },
+	{
+		key: "messages",
+		label: "Messages",
+		color: "text-violet-300",
+		icon: MessageSquare,
+	},
+	{ key: "streak", label: "Streak quête", color: "text-pink-300", icon: Flame },
 ] as const;
 
 type Metric = (typeof METRICS)[number]["key"];
 
-export default async function LeaderboardsPage({
-	searchParams,
-}: {
-	searchParams: Promise<{ metric?: string }>;
-}) {
-	const sp = await searchParams;
-	const metric = (METRICS.find((m) => m.key === sp.metric)?.key ??
+// Forme réelle retournée par /api/levels/top
+interface TopUser {
+	id: string;
+	xp: number;
+	zeni: number;
+	lastLevelReached: number;
+	messageCount: number;
+	totalVoiceMs: number;
+	dailyStreak: number;
+}
+
+function formatValue(u: TopUser, metric: Metric): string {
+	switch (metric) {
+		case "voice":
+			return formatDuration(u.totalVoiceMs);
+		case "streak":
+			return `${u.dailyStreak} jour${u.dailyStreak !== 1 ? "s" : ""}`;
+		case "messages":
+			return `${u.messageCount.toLocaleString("fr-FR")} msg`;
+		case "zeni":
+			return `${u.zeni.toLocaleString("fr-FR")} zénis`;
+		default:
+			return `${u.xp.toLocaleString("fr-FR")} XP`;
+	}
+}
+
+function LeaderboardInner() {
+	const searchParams = useSearchParams();
+	const metricParam = searchParams.get("metric") ?? "xp";
+	const metric = (METRICS.find((m) => m.key === metricParam)?.key ??
 		"xp") as Metric;
-	const data = await botAdmin.levelsTop(metric, 50).catch(() => ({ top: [] }));
 	const tint =
 		METRICS.find((m) => m.key === metric)?.color ?? "text-fuchsia-300";
 
+	const { data, isLoading, isError } = useQuery({
+		queryKey: ["leaderboard", metric],
+		// Bug corrigé : l'API retourne { users: [...] } et non { top: [...] }
+		queryFn: () =>
+			api.get<{ metric: string; limit: number; users: TopUser[] }>(
+				`/levels/top?metric=${metric}&limit=50`,
+			),
+		staleTime: 30_000,
+	});
+
 	return (
-		<div className="w-full max-w-5xl mx-auto">
-			<header className="mb-6 flex items-end justify-between flex-wrap gap-4">
-				<div>
-					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-						LEADERBOARDS · {metric.toUpperCase()}
+		<div className="w-full max-w-5xl mx-auto space-y-4">
+			<div className="dbz-panel p-4">
+				<div className="flex items-center gap-3 mb-1">
+					<Trophy className="h-6 w-6 text-dbz-orange" />
+					<h1 className="font-saiyan text-2xl text-dbz-orange tracking-widest">
+						CLASSEMENTS
 					</h1>
-					<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-						Top 50 utilisateurs · classement par {metric}
-					</p>
 				</div>
-				<div className="flex flex-wrap gap-1 text-xs">
-					{METRICS.map((m) => (
+				<p className="text-sm text-white/60">
+					Top 50 membres du serveur. Clique sur une métrique pour changer le
+					classement.
+				</p>
+			</div>
+
+			{/* Sélecteur de métrique */}
+			<div className="flex flex-wrap gap-2">
+				{METRICS.map((m) => {
+					const Icon = m.icon;
+					return (
 						<Link
 							key={m.key}
 							href={`?metric=${m.key}`}
-							className={`px-3 py-1.5 border rounded uppercase tracking-widest ${
+							className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs uppercase tracking-widest transition-colors ${
 								m.key === metric
-									? `${m.color} border-current bg-current/20`
-									: "border-dbz-border text-white/40 hover:border-current"
+									? `${m.color} border-current bg-current/10 font-bold`
+									: "border-dbz-border text-white/40 hover:border-white/40 hover:text-white/70"
 							}`}
 						>
+							<Icon className="h-3 w-3" />
 							{m.label}
 						</Link>
-					))}
-				</div>
-			</header>
-
-			<div className="dbz-panel overflow-x-auto">
-				<table className="w-full min-w-[600px] text-xs">
-					<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
-						<tr>
-							<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-								#
-							</th>
-							<th className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
-								User
-							</th>
-							{metric !== "xp" && (
-								<th className="p-2 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
-									Niv
-								</th>
-							)}
-							<th
-								className={`p-2 text-right font-bold uppercase tracking-widest ${tint}`}
-							>
-								{metric}
-							</th>
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-dbz-border">
-						{data.top.map((e, i) => (
-							<tr key={e.discordId} className="hover:bg-dbz-blue-light/5">
-								<td className="p-2 text-right font-saiyan text-dbz-blue-light">
-									{e.rank ?? i + 1}
-								</td>
-								<td className="p-2">
-									<div className="flex items-center gap-2">
-										{e.avatarUrl && (
-											 
-											<img
-												src={e.avatarUrl}
-												alt=""
-												className="w-6 h-6 rounded-full border border-dbz-border"
-											/>
-										)}
-										<span className="font-mono text-white">
-											{e.username ?? e.discordId}
-										</span>
-									</div>
-								</td>
-								{metric !== "xp" && (
-									<td className="p-2 text-right font-saiyan text-fuchsia-300">
-										{e.level ?? "—"}
-									</td>
-								)}
-								<td className={`p-2 text-right font-mono ${tint}`}>
-									{e.value.toLocaleString("fr-FR")}
-								</td>
-							</tr>
-						))}
-						{data.top.length === 0 && (
-							<tr>
-								<td colSpan={4} className="p-6 text-center text-white/50">
-									Aucune donnée
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+					);
+				})}
 			</div>
+
+			{/* État chargement */}
+			{isLoading && (
+				<div className="dbz-panel p-8 flex items-center justify-center gap-3 text-white/50">
+					<Loader2 className="h-5 w-5 animate-spin" />
+					<span>Chargement du classement…</span>
+				</div>
+			)}
+
+			{/* État erreur */}
+			{isError && (
+				<div className="dbz-panel p-6 flex items-center gap-3 text-red-400 border-red-500/40">
+					<AlertTriangle className="h-5 w-5 shrink-0" />
+					<div>
+						<p className="font-semibold">
+							Impossible de charger le classement.
+						</p>
+						<p className="text-xs text-white/40 mt-0.5">
+							Vérifiez que le bot est en ligne puis rechargez la page.
+						</p>
+					</div>
+				</div>
+			)}
+
+			{/* Tableau */}
+			{data && (
+				<div className="dbz-panel overflow-x-auto">
+					<table className="w-full min-w-[520px] text-xs">
+						<thead className="border-b-2 border-dbz-border">
+							<tr>
+								<th className="p-3 text-right w-10 font-bold uppercase tracking-widest text-dbz-blue-light">
+									#
+								</th>
+								<th className="p-3 text-left font-bold uppercase tracking-widest text-dbz-blue-light">
+									Membre
+								</th>
+								<th className="p-3 text-right font-bold uppercase tracking-widest text-dbz-blue-light">
+									Niveau
+								</th>
+								<th
+									className={`p-3 text-right font-bold uppercase tracking-widest ${tint}`}
+								>
+									{METRICS.find((m) => m.key === metric)?.label ?? metric}
+								</th>
+							</tr>
+						</thead>
+						<tbody className="divide-y divide-dbz-border">
+							{data.users.map((u, i) => (
+								<tr
+									key={u.id}
+									className="hover:bg-dbz-blue-light/5 transition-colors"
+								>
+									<td className="p-3 text-right font-saiyan text-dbz-blue-light">
+										{i === 0 ? (
+											<span className="text-yellow-400">1</span>
+										) : i === 1 ? (
+											<span className="text-zinc-400">2</span>
+										) : i === 2 ? (
+											<span className="text-amber-600">3</span>
+										) : (
+											i + 1
+										)}
+									</td>
+									<td className="p-3">
+										{/* Affiche l'ID Discord de façon discrète — pas d'info pseudo disponible ici */}
+										<span className="font-mono text-white/80 text-[11px]">
+											{u.id}
+										</span>
+									</td>
+									<td className="p-3 text-right font-saiyan text-fuchsia-300">
+										{u.lastLevelReached > 0 ? u.lastLevelReached : "—"}
+									</td>
+									<td
+										className={`p-3 text-right font-mono font-semibold ${tint}`}
+									>
+										{formatValue(u, metric)}
+									</td>
+								</tr>
+							))}
+							{data.users.length === 0 && (
+								<tr>
+									<td colSpan={4} className="p-8 text-center text-white/40">
+										Aucun joueur enregistré pour cette métrique.
+									</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+					{data.users.length > 0 && (
+						<p className="p-3 text-[10px] text-white/30 text-right border-t border-dbz-border">
+							{data.users.length} membre{data.users.length !== 1 ? "s" : ""}{" "}
+							affichés
+						</p>
+					)}
+				</div>
+			)}
 		</div>
+	);
+}
+
+export default function LeaderboardsPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex items-center justify-center gap-3 p-12 text-white/50">
+					<Loader2 className="h-5 w-5 animate-spin" />
+					<span>Chargement…</span>
+				</div>
+			}
+		>
+			<LeaderboardInner />
+		</Suspense>
 	);
 }

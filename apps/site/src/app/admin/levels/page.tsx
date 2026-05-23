@@ -11,6 +11,10 @@ import {
 	MessageSquare,
 	Coins,
 	Flame,
+	Loader2,
+	AlertTriangle,
+	CheckCircle2,
+	X,
 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { api } from "@/lib/admin-api";
@@ -55,6 +59,54 @@ interface TopUser {
 
 type Metric = "xp" | "zeni" | "voice" | "streak" | "messages";
 
+// Modale de confirmation pour les actions destructives
+function ConfirmDialog({
+	title,
+	message,
+	confirmLabel,
+	onConfirm,
+	onCancel,
+}: {
+	title: string;
+	message: string;
+	confirmLabel: string;
+	onConfirm: () => void;
+	onCancel: () => void;
+}) {
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+			<div className="card w-full max-w-sm space-y-4 border border-red-500/40">
+				<div className="flex items-start gap-3">
+					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+					<div>
+						<h3 className="font-semibold text-white">{title}</h3>
+						<p className="mt-1 text-sm text-zinc-400">{message}</p>
+					</div>
+					<button
+						type="button"
+						onClick={onCancel}
+						className="ml-auto btn btn-ghost px-1 py-1"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</div>
+				<div className="flex justify-end gap-2">
+					<button type="button" onClick={onCancel} className="btn btn-ghost">
+						Annuler
+					</button>
+					<button
+						type="button"
+						onClick={onConfirm}
+						className="btn btn-primary bg-red-600 hover:bg-red-500 border-red-500"
+					>
+						{confirmLabel}
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 export default function LevelsPage() {
 	const config = useQuery({
 		queryKey: ["levels", "config"],
@@ -72,24 +124,38 @@ export default function LevelsPage() {
 
 	return (
 		<div className="space-y-6">
+			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
 					<Trophy className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Système de niveaux et XP</h2>
+					<h2 className="text-lg font-semibold">Niveaux et XP</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Configuration des paliers, distribution des joueurs, classements et
-					actions manuelles. Le palier final &laquo;&nbsp;It&apos;s over 9
-					millions&nbsp;!&nbsp;&raquo; correspond à 9&nbsp;000&nbsp;000 XP.
+					Cette page vous permet de consulter les paliers d&apos;expérience, la
+					répartition des joueurs, gérer les récompenses de niveau et modifier
+					manuellement l&apos;XP ou les zénis d&apos;un membre. Le palier ultime
+					&laquo;&nbsp;It&apos;s over 9 millions&nbsp;!&nbsp;&raquo; correspond
+					à 9&nbsp;000&nbsp;000 XP.
 				</p>
 			</div>
+
+			{config.isError && (
+				<div className="flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
+					<AlertTriangle className="h-4 w-4 shrink-0" />
+					Impossible de charger la configuration. Le bot est-il en ligne ?
+				</div>
+			)}
 
 			<XpRatesCard config={config.data} loading={config.isLoading} />
 			<ThresholdsCard
 				config={config.data}
 				distribution={distribution.data?.buckets}
+				loading={distribution.isLoading}
 			/>
-			<RewardsCard rewards={rewards.data?.rewards ?? []} />
+			<RewardsCard
+				rewards={rewards.data?.rewards ?? []}
+				loading={rewards.isLoading}
+			/>
 			<TopsCard />
 			<ManualActionsCard />
 		</div>
@@ -111,45 +177,64 @@ function XpRatesCard({
 	loading: boolean;
 }) {
 	if (loading)
-		return <div className="text-zinc-500">Chargement de la configuration…</div>;
+		return (
+			<div className="flex items-center gap-2 rounded-lg border border-zinc-800 p-4 text-zinc-500">
+				<Loader2 className="h-4 w-4 animate-spin" />
+				Chargement de la configuration…
+			</div>
+		);
+	if (!config) return null;
+
 	const rates = [
 		{
 			key: "xp.message.min",
 			label: "XP minimum par message",
 			icon: <MessageSquare className="h-4 w-4" />,
+			tooltip: "Quantité minimale d'XP gagnée à chaque message envoyé.",
 		},
 		{
 			key: "xp.message.max",
 			label: "XP maximum par message",
 			icon: <MessageSquare className="h-4 w-4" />,
+			tooltip: "Quantité maximale d'XP gagnée à chaque message envoyé.",
 		},
 		{
 			key: "xp.message.cooldown_ms",
-			label: "Cooldown messages (ms)",
+			label: "Délai entre messages (ms)",
 			icon: <MessageSquare className="h-4 w-4" />,
+			tooltip:
+				"Temps d'attente en millisecondes entre deux gains d'XP par message.",
 		},
 		{
 			key: "xp.voice.per_minute",
 			label: "XP par minute en vocal",
 			icon: <Mic className="h-4 w-4" />,
+			tooltip: "XP gagnée toutes les minutes passées dans un salon vocal.",
 		},
 		{
 			key: "zeni.daily_quest",
 			label: "Récompense quête quotidienne",
 			icon: <Flame className="h-4 w-4" />,
+			tooltip: "Zénis obtenus en complétant la quête quotidienne.",
 		},
 		{
 			key: "zeni.per_level",
-			label: "Bonus zénis par level-up",
+			label: "Bonus zénis par montée de niveau",
 			icon: <Coins className="h-4 w-4" />,
+			tooltip: "Zénis offerts à chaque fois qu'un joueur monte de niveau.",
 		},
 	];
 
 	return (
 		<div className="card">
-			<h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-				Taux d&apos;XP et de zénis (effectifs)
+			<h3 className="mb-1 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+				Taux d&apos;XP et de zénis
 			</h3>
+			<p className="mb-3 text-xs text-zinc-500">
+				Valeurs actuellement en vigueur sur le serveur. Pour modifier ces
+				paramètres, rendez-vous sur la page <strong>Paramètres</strong> ou
+				utilisez la commande <code>/config</code> dans Discord.
+			</p>
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{rates.map((r) => {
 					const value = effective(config, r.key);
@@ -158,28 +243,22 @@ function XpRatesCard({
 						<div
 							key={r.key}
 							className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
+							title={r.tooltip}
 						>
 							<div className="mb-1 flex items-center gap-2 text-xs text-zinc-400">
 								{r.icon}
 								<span>{r.label}</span>
 							</div>
 							<p className="text-xl font-bold text-brand-400">{value}</p>
-							<p className="mt-1 text-xs text-zinc-500">
-								<code>{r.key}</code>
-								{overridden && (
-									<span className="ml-2 badge badge-warning">
-										surcharge active
-									</span>
-								)}
-							</p>
+							{overridden && (
+								<span className="mt-1 inline-block badge badge-warning text-[10px]">
+									Valeur personnalisée
+								</span>
+							)}
 						</div>
 					);
 				})}
 			</div>
-			<p className="mt-3 text-xs text-zinc-500">
-				Modifier ces valeurs depuis la page <code>/admin/settings</code> ou via
-				la commande <code>/config</code> dans Discord.
-			</p>
 		</div>
 	);
 }
@@ -187,9 +266,11 @@ function XpRatesCard({
 function ThresholdsCard({
 	config,
 	distribution,
+	loading,
 }: {
 	config: ConfigResponse | undefined;
 	distribution: DistributionBucket[] | undefined;
+	loading: boolean;
 }) {
 	if (!config) return null;
 	const total = (distribution ?? []).reduce((s, b) => s + b.count, 0);
@@ -200,10 +281,24 @@ function ThresholdsCard({
 
 	return (
 		<div className="card">
-			<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+			<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
 				<TrendingUp className="h-4 w-4" />
-				Paliers DBZ — distribution des joueurs ({total} au total)
+				Paliers DBZ — répartition des joueurs
 			</h3>
+			<p className="mb-3 text-xs text-zinc-500">
+				Chaque barre représente le nombre de joueurs dans ce palier d&apos;XP.
+				Total :{" "}
+				<strong>
+					{total} joueur{total !== 1 ? "s" : ""}
+				</strong>{" "}
+				enregistré{total !== 1 ? "s" : ""}.
+			</p>
+			{loading && (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement de la distribution…
+				</div>
+			)}
 			<div className="space-y-2">
 				{config.thresholds.map((t, i) => {
 					const bucket = distribution?.find((b) => b.level === t.level);
@@ -223,8 +318,8 @@ function ThresholdsCard({
 									style={{ width: `${(count / max) * 100}%` }}
 								/>
 							</div>
-							<span className="w-16 text-right font-mono text-xs">
-								{count} joueur{count > 1 ? "s" : ""}
+							<span className="w-20 text-right font-mono text-xs">
+								{count} joueur{count !== 1 ? "s" : ""}
 							</span>
 						</div>
 					);
@@ -245,7 +340,7 @@ function ThresholdsCard({
 								}}
 							/>
 						</div>
-						<span className="w-16 text-right font-mono text-xs">
+						<span className="w-20 text-right font-mono text-xs text-amber-400">
 							{distribution?.find((b) => b.level === 11)?.count}
 						</span>
 					</div>
@@ -255,10 +350,23 @@ function ThresholdsCard({
 	);
 }
 
-function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
+function RewardsCard({
+	rewards,
+	loading,
+}: {
+	rewards: LevelReward[];
+	loading: boolean;
+}) {
 	const qc = useQueryClient();
 	const [editing, setEditing] = useState<LevelReward | null>(null);
 	const [adding, setAdding] = useState(false);
+	const [confirmDelete, setConfirmDelete] = useState<LevelReward | null>(null);
+	const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+	const showSuccess = (msg: string) => {
+		setSuccessMsg(msg);
+		setTimeout(() => setSuccessMsg(null), 3000);
+	};
 
 	const upsert = useMutation({
 		mutationFn: (r: LevelReward) =>
@@ -272,20 +380,30 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 			qc.invalidateQueries({ queryKey: ["levels", "rewards"] });
 			setEditing(null);
 			setAdding(false);
+			showSuccess("Récompense enregistrée avec succès.");
 		},
 	});
 
 	const remove = useMutation({
 		mutationFn: (level: number) => api.delete(`/levels/rewards/${level}`),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["levels", "rewards"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["levels", "rewards"] });
+			showSuccess("Récompense supprimée.");
+		},
 	});
 
 	return (
 		<div className="card">
 			<div className="mb-3 flex items-center justify-between">
-				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					Récompenses de palier ({rewards.length})
-				</h3>
+				<div>
+					<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
+						Récompenses de palier ({rewards.length})
+					</h3>
+					<p className="mt-0.5 text-xs text-zinc-500">
+						Rôles et bonus zénis attribués automatiquement à chaque montée de
+						niveau.
+					</p>
+				</div>
 				<button
 					type="button"
 					onClick={() => setAdding(true)}
@@ -295,62 +413,89 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 					Ajouter une récompense
 				</button>
 			</div>
-			<div className="overflow-x-auto">
-				<table className="w-full text-sm">
-					<thead className="text-xs uppercase tracking-wide text-zinc-500">
-						<tr>
-							<th className="px-3 py-2 text-left">Niveau</th>
-							<th className="px-3 py-2 text-left">Rôle Discord</th>
-							<th className="px-3 py-2 text-right">Seuil XP</th>
-							<th className="px-3 py-2 text-right">Bonus zénis</th>
-							<th className="px-3 py-2" />
-						</tr>
-					</thead>
-					<tbody className="divide-y divide-zinc-800">
-						{rewards.map((r) => (
-							<tr key={r.level}>
-								<td className="px-3 py-2 font-bold text-brand-400">
-									{r.level}
-								</td>
-								<td className="px-3 py-2 text-sm">
-									<RoleBadge roleId={r.roleId} />
-								</td>
-								<td className="px-3 py-2 text-right font-mono text-xs">
-									{r.xpThreshold.toLocaleString("fr-FR")}
-								</td>
-								<td className="px-3 py-2 text-right font-mono text-xs text-amber-400">
-									+{r.zeniBonus.toLocaleString("fr-FR")}
-								</td>
-								<td className="px-3 py-2 text-right">
-									<div className="flex justify-end gap-1">
-										<button
-											type="button"
-											onClick={() => setEditing(r)}
-											className="btn btn-ghost px-2"
-										>
-											<Save className="h-3 w-3" />
-										</button>
-										<button
-											type="button"
-											onClick={() => {
-												if (
-													confirm(
-														`Supprimer la récompense du niveau ${r.level} ?`,
-													)
-												)
-													remove.mutate(r.level);
-											}}
-											className="btn btn-ghost px-2 text-red-400"
-										>
-											<Trash2 className="h-3 w-3" />
-										</button>
-									</div>
-								</td>
+
+			{successMsg && (
+				<div className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					{successMsg}
+				</div>
+			)}
+
+			{confirmDelete && (
+				<ConfirmDialog
+					title={`Supprimer la récompense du niveau ${confirmDelete.level} ?`}
+					message="Cette récompense ne sera plus attribuée lors des prochaines montées de niveau. Les rôles déjà attribués aux joueurs ne seront pas retirés."
+					confirmLabel="Supprimer définitivement"
+					onConfirm={() => {
+						remove.mutate(confirmDelete.level);
+						setConfirmDelete(null);
+					}}
+					onCancel={() => setConfirmDelete(null)}
+				/>
+			)}
+
+			{loading ? (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement des récompenses…
+				</div>
+			) : rewards.length === 0 ? (
+				<div className="rounded-lg border border-zinc-800 bg-zinc-900/20 p-4 text-center text-sm text-zinc-500">
+					Aucune récompense de palier définie pour le moment.
+				</div>
+			) : (
+				<div className="overflow-x-auto">
+					<table className="w-full text-sm">
+						<thead className="text-xs uppercase tracking-wide text-zinc-500">
+							<tr>
+								<th className="px-3 py-2 text-left">Niveau</th>
+								<th className="px-3 py-2 text-left">Rôle Discord attribué</th>
+								<th className="px-3 py-2 text-right">Seuil XP requis</th>
+								<th className="px-3 py-2 text-right">Bonus zénis</th>
+								<th className="px-3 py-2" />
 							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
+						</thead>
+						<tbody className="divide-y divide-zinc-800">
+							{rewards.map((r) => (
+								<tr key={r.level}>
+									<td className="px-3 py-2 font-bold text-brand-400">
+										{r.level}
+									</td>
+									<td className="px-3 py-2 text-sm">
+										<RoleBadge roleId={r.roleId} />
+									</td>
+									<td className="px-3 py-2 text-right font-mono text-xs">
+										{r.xpThreshold.toLocaleString("fr-FR")}
+									</td>
+									<td className="px-3 py-2 text-right font-mono text-xs text-amber-400">
+										+{r.zeniBonus.toLocaleString("fr-FR")}
+									</td>
+									<td className="px-3 py-2 text-right">
+										<div className="flex justify-end gap-1">
+											<button
+												type="button"
+												onClick={() => setEditing(r)}
+												className="btn btn-ghost px-2"
+												title="Modifier cette récompense"
+											>
+												<Save className="h-3 w-3" />
+											</button>
+											<button
+												type="button"
+												onClick={() => setConfirmDelete(r)}
+												className="btn btn-ghost px-2 text-red-400"
+												title="Supprimer cette récompense"
+											>
+												<Trash2 className="h-3 w-3" />
+											</button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			)}
 
 			{(editing || adding) && (
 				<RewardForm
@@ -361,6 +506,7 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 						setAdding(false);
 					}}
 					pending={upsert.isPending}
+					error={upsert.isError ? (upsert.error as Error).message : null}
 				/>
 			)}
 		</div>
@@ -372,11 +518,13 @@ function RewardForm({
 	onSubmit,
 	onCancel,
 	pending,
+	error,
 }: {
 	initial?: LevelReward;
 	onSubmit: (r: LevelReward) => void;
 	onCancel: () => void;
 	pending: boolean;
+	error: string | null;
 }) {
 	const [level, setLevel] = useState(String(initial?.level ?? ""));
 	const [roleId, setRoleId] = useState(initial?.roleId ?? "");
@@ -402,6 +550,14 @@ function RewardForm({
 			onSubmit={submit}
 			className="mt-3 space-y-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
 		>
+			<h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+				{initial ? "Modifier la récompense" : "Nouvelle récompense"}
+			</h4>
+			{error && (
+				<div className="rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-400">
+					{error}
+				</div>
+			)}
 			<div className="grid gap-3 sm:grid-cols-4">
 				<div>
 					<label className="mb-1 block text-xs text-zinc-400">Niveau</label>
@@ -422,7 +578,9 @@ function RewardForm({
 					<RolePicker value={roleId} onChange={setRoleId} />
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">Seuil XP</label>
+					<label className="mb-1 block text-xs text-zinc-400">
+						Seuil XP requis
+					</label>
 					<input
 						className="input"
 						type="number"
@@ -434,7 +592,7 @@ function RewardForm({
 				</div>
 				<div>
 					<label className="mb-1 block text-xs text-zinc-400">
-						Bonus zénis
+						Bonus zénis offerts
 					</label>
 					<input
 						className="input"
@@ -475,9 +633,9 @@ function TopsCard() {
 			case "voice":
 				return formatDuration(u.totalVoiceMs);
 			case "streak":
-				return `${u.dailyStreak} jour${u.dailyStreak > 1 ? "s" : ""}`;
+				return `${u.dailyStreak} jour${u.dailyStreak !== 1 ? "s" : ""}`;
 			case "messages":
-				return `${u.messageCount.toLocaleString("fr-FR")} msg`;
+				return `${u.messageCount.toLocaleString("fr-FR")} messages`;
 			case "zeni":
 				return `${u.zeni.toLocaleString("fr-FR")} zénis`;
 			default:
@@ -485,22 +643,22 @@ function TopsCard() {
 		}
 	};
 
+	const metrics = [
+		{ k: "xp" as Metric, label: "XP" },
+		{ k: "zeni" as Metric, label: "Zénis" },
+		{ k: "voice" as Metric, label: "Temps vocal" },
+		{ k: "messages" as Metric, label: "Messages" },
+		{ k: "streak" as Metric, label: "Streak quête" },
+	] as const;
+
 	return (
 		<div className="card">
 			<div className="mb-3 flex flex-wrap items-center gap-3">
 				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					Classements
+					Classement rapide
 				</h3>
 				<div className="flex flex-wrap gap-1">
-					{(
-						[
-							{ k: "xp" as Metric, label: "XP" },
-							{ k: "zeni" as Metric, label: "Zénis" },
-							{ k: "voice" as Metric, label: "Temps en vocal" },
-							{ k: "messages" as Metric, label: "Messages" },
-							{ k: "streak" as Metric, label: "Streak quête" },
-						] as const
-					).map((m) => (
+					{metrics.map((m) => (
 						<button
 							key={m.k}
 							type="button"
@@ -524,13 +682,37 @@ function TopsCard() {
 				</select>
 			</div>
 
+			{top.isLoading && (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement du classement…
+				</div>
+			)}
+			{top.isError && (
+				<div className="flex items-center gap-2 text-sm text-red-400">
+					<AlertTriangle className="h-4 w-4" />
+					Impossible de charger le classement. Réessayez.
+				</div>
+			)}
+
 			<div className="space-y-1.5">
 				{top.data?.users.map((u, i) => (
 					<div key={u.id} className="flex items-center gap-3 text-sm">
 						<span className="w-8 text-right font-mono text-xs text-zinc-500">
 							#{i + 1}
 						</span>
-						<code className="w-44 truncate text-xs">{u.id}</code>
+						<span
+							className="w-44 truncate font-mono text-xs text-zinc-300"
+							title={u.id}
+						>
+							{u.id.slice(0, 6)}…{u.id.slice(-4)}
+							<span
+								className="ml-1 text-[10px] text-zinc-600"
+								title={`ID Discord complet : ${u.id}`}
+							>
+								({u.id})
+							</span>
+						</span>
 						<span className="flex-1 truncate text-xs text-zinc-400">
 							niveau {u.lastLevelReached} · {u.xp.toLocaleString("fr-FR")} XP ·{" "}
 							{u.zeni.toLocaleString("fr-FR")} zénis
@@ -555,7 +737,10 @@ function ManualActionsCard() {
 	const [target, setTarget] = useState<"xp" | "zeni">("xp");
 	const [mode, setMode] = useState<"add" | "set">("add");
 	const [amount, setAmount] = useState("");
-	const [lastResult, setLastResult] = useState<string | null>(null);
+	const [lastResult, setLastResult] = useState<{
+		ok: boolean;
+		msg: string;
+	} | null>(null);
 
 	const mutation = useMutation({
 		mutationFn: () =>
@@ -563,11 +748,25 @@ function ManualActionsCard() {
 				mode,
 				amount: Number(amount),
 			}),
-		onSuccess: (data) => setLastResult(JSON.stringify(data, null, 2)),
+		onSuccess: (data) => {
+			const d = data as {
+				ok?: boolean;
+				newXp?: number;
+				newZeni?: number;
+				previousXp?: number;
+				previousZeni?: number;
+			};
+			const newVal = target === "xp" ? d.newXp : d.newZeni;
+			setLastResult({
+				ok: true,
+				msg: `Modification appliquée. Nouvelle valeur : ${newVal?.toLocaleString("fr-FR") ?? "—"} ${target === "xp" ? "XP" : "zénis"}.`,
+			});
+		},
 		onError: (err) =>
-			setLastResult(
-				`Erreur : ${err instanceof Error ? err.message : String(err)}`,
-			),
+			setLastResult({
+				ok: false,
+				msg: `Erreur : ${err instanceof Error ? err.message : String(err)}`,
+			}),
 	});
 
 	const submit = (e: FormEvent) => {
@@ -579,16 +778,18 @@ function ManualActionsCard() {
 	return (
 		<form onSubmit={submit} className="card space-y-3">
 			<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-				Action manuelle sur un joueur
+				Modification manuelle d&apos;un joueur
 			</h3>
 			<p className="text-xs text-zinc-500">
-				Ajoute ou définit l&apos;XP ou les zénis d&apos;un membre. Utilise
-				l&apos;identifiant Discord (snowflake) du joueur.
+				Permet d&apos;ajouter, retirer ou définir directement l&apos;XP ou les
+				zénis d&apos;un membre. Renseignez son identifiant Discord (suite de
+				chiffres visible dans les paramètres Discord avec le mode développeur
+				activé).
 			</p>
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				<div className="lg:col-span-2">
 					<label className="mb-1 block text-xs text-zinc-400">
-						ID du joueur
+						Identifiant Discord du joueur
 					</label>
 					<input
 						className="input font-mono text-xs"
@@ -599,14 +800,16 @@ function ManualActionsCard() {
 					/>
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">Cible</label>
+					<label className="mb-1 block text-xs text-zinc-400">
+						Ce que l&apos;on modifie
+					</label>
 					<select
 						className="input"
 						value={target}
 						onChange={(e) => setTarget(e.target.value as "xp" | "zeni")}
 					>
-						<option value="xp">XP</option>
-						<option value="zeni">Zénis</option>
+						<option value="xp">Points d&apos;expérience (XP)</option>
+						<option value="zeni">Zénis (monnaie)</option>
 					</select>
 				</div>
 				<div>
@@ -616,12 +819,14 @@ function ManualActionsCard() {
 						value={mode}
 						onChange={(e) => setMode(e.target.value as "add" | "set")}
 					>
-						<option value="add">Ajouter</option>
-						<option value="set">Définir</option>
+						<option value="add">Ajouter / retirer</option>
+						<option value="set">Définir exactement</option>
 					</select>
 				</div>
 				<div className="lg:col-span-2">
-					<label className="mb-1 block text-xs text-zinc-400">Montant</label>
+					<label className="mb-1 block text-xs text-zinc-400">
+						Montant (négatif pour retirer)
+					</label>
 					<input
 						className="input"
 						type="number"
@@ -638,12 +843,25 @@ function ManualActionsCard() {
 				className="btn btn-primary"
 			>
 				<Save className="h-3 w-3" />
-				{mutation.isPending ? "Application…" : "Appliquer"}
+				{mutation.isPending
+					? "Application en cours…"
+					: "Appliquer la modification"}
 			</button>
 			{lastResult && (
-				<pre className="overflow-x-auto rounded bg-zinc-950 p-2 text-xs text-zinc-300">
-					{lastResult}
-				</pre>
+				<div
+					className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${
+						lastResult.ok
+							? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+							: "border-red-500/40 bg-red-500/10 text-red-400"
+					}`}
+				>
+					{lastResult.ok ? (
+						<CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+					) : (
+						<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+					)}
+					{lastResult.msg}
+				</div>
 			)}
 		</form>
 	);

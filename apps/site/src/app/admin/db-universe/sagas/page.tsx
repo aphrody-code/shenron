@@ -23,12 +23,23 @@ const SERIES_ORDER = [
 	"DB_DAIMA",
 ];
 
+const SERIES_LABELS: Record<string, string> = {
+	DB: "Dragon Ball",
+	DBZ: "Dragon Ball Z",
+	DBGT: "Dragon Ball GT",
+	DBS: "Dragon Ball Super",
+	DBS_MANGA: "DBS Manga",
+	DBS_MOVIE: "DBS Films",
+	DB_DAIMA: "Dragon Ball Daima",
+};
+
 export default async function AdminSagasPage() {
 	const data = await adminFetch<{ sagas: Saga[] }>("/api/public/wiki/sagas");
 	const sagas = data?.sagas ?? [];
 
 	const byseries = SERIES_ORDER.map((s) => ({
 		series: s,
+		label: SERIES_LABELS[s] ?? s,
 		items: sagas
 			.filter((sg) => sg.series === s)
 			.sort((a, b) => a.order_idx - b.order_idx),
@@ -37,64 +48,84 @@ export default async function AdminSagasPage() {
 	return (
 		<div className="w-full max-w-6xl mx-auto">
 			<AdminHeader
-				title="DB Universe // Sagas"
-				subtitle={`${sagas.length} sagas réparties sur ${byseries.length} séries`}
+				title="Sagas"
+				subtitle={
+					sagas.length > 0
+						? `${sagas.length} saga${sagas.length > 1 ? "s" : ""} · ${byseries.length} série${byseries.length > 1 ? "s" : ""}`
+						: undefined
+				}
 			/>
 
-			{byseries.map((g) => (
-				<section key={g.series} className="mb-10">
-					<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase mb-3 border-b-2 border-dbz-yellow/30 pb-2">
-						{g.series}{" "}
-						<span className="text-white/40 text-sm">{g.items.length}</span>
-					</h2>
-					<table className="w-full">
-						<thead>
-							<tr className="border-b border-dbz-border/40">
-								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-12">
-									#
-								</th>
-								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-40">
-									Slug
-								</th>
-								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light">
-									Nom
-								</th>
-								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-24">
-									日本語
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							{g.items.map((s) => (
-								<tr
-									key={s.id}
-									className="border-b border-dbz-border/30 hover:bg-dbz-blue-light/5"
-								>
-									<td className="p-2 font-mono text-xs text-dbz-orange">
-										{s.order_idx}
-									</td>
-									<td className="p-2 font-mono text-xs text-white/70">
-										{s.slug}
-									</td>
-									<td className="p-2">
-										<div className="text-sm text-white font-medium">
-											{s.name}
-										</div>
-										{s.description && (
-											<div className="text-[11px] text-white/55 mt-0.5 line-clamp-2">
-												{s.description}
-											</div>
-										)}
-									</td>
-									<td className="p-2 font-jp text-sm text-dbz-yellow/85">
-										{s.name_ja ?? ""}
-									</td>
+			<p className="text-sm text-white/50 mb-6">
+				Les sagas regroupent les grands arcs narratifs de chaque série Dragon
+				Ball. L&apos;ordre d&apos;affichage correspond à l&apos;ordre
+				chronologique de diffusion.
+			</p>
+
+			{sagas.length === 0 ? (
+				<div className="dbz-panel p-12 text-center">
+					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
+						Aucune saga enregistrée
+					</p>
+					<p className="text-white/40 text-sm">
+						Les sagas s&apos;affichent ici une fois importées.
+					</p>
+				</div>
+			) : (
+				byseries.map((g) => (
+					<section key={g.series} className="mb-10">
+						<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase mb-3 border-b-2 border-dbz-yellow/30 pb-2">
+							{g.label}{" "}
+							<span className="text-white/40 text-sm font-sans normal-case">
+								{g.items.length} saga{g.items.length > 1 ? "s" : ""}
+							</span>
+						</h2>
+						<table className="w-full">
+							<thead>
+								<tr className="border-b border-dbz-border/40">
+									<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-12">
+										Ordre
+									</th>
+									<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light">
+										Nom
+									</th>
+									<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-28">
+										Nom japonais
+									</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</section>
-			))}
+							</thead>
+							<tbody>
+								{g.items.map((s) => (
+									<tr
+										key={s.id}
+										className="border-b border-dbz-border/30 hover:bg-dbz-blue-light/5 transition-colors"
+									>
+										<td className="p-2 font-mono text-xs text-dbz-orange tabular-nums">
+											{s.order_idx}
+										</td>
+										<td className="p-2">
+											<div className="text-sm text-white font-medium">
+												{s.name}
+											</div>
+											{s.description && (
+												<div className="text-[11px] text-white/55 mt-0.5 line-clamp-2">
+													{s.description}
+												</div>
+											)}
+											<div className="text-[10px] text-white/25 font-mono mt-0.5">
+												{s.slug}
+											</div>
+										</td>
+										<td className="p-2 font-jp text-sm text-dbz-yellow/85">
+											{s.name_ja ?? <span className="text-white/20">—</span>}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</section>
+				))
+			)}
 		</div>
 	);
 }

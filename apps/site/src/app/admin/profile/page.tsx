@@ -3,11 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import {
 	Crown,
-	Server,
 	ShieldCheck,
 	Mail,
 	AlertCircle,
 	ExternalLink,
+	Calendar,
+	Globe,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/admin-api";
 
@@ -64,10 +65,7 @@ interface MemberResponse {
 }
 
 /**
- * Construit l'URL d'avatar Discord en gérant les 3 cas :
- *   - avatar custom : `cdn.discordapp.com/avatars/{id}/{hash}.{ext}` (anim si `a_…`)
- *   - pas d'avatar : avatar par défaut Discord (5 variantes selon `id >> 22 % 6`)
- *   - id manquant : null → fallback initiales côté affichage
+ * Construit l'URL d'avatar Discord.
  */
 function avatarUrl(
 	user: { id?: string; avatar?: string | null },
@@ -92,7 +90,7 @@ function bannerUrl(
 }
 
 export default function ProfilePage() {
-	// Session locale (toujours dispo, peu importe la source d'auth)
+	// Session locale (toujours disponible)
 	const session = useQuery({
 		queryKey: ["auth", "me"],
 		queryFn: () =>
@@ -100,7 +98,7 @@ export default function ProfilePage() {
 		staleTime: 60_000,
 	});
 
-	// Discord OAuth — peut 401 si user logué via token admin ou Better Auth sans token Discord
+	// Profil Discord via OAuth — peut échouer si connecté via jeton admin
 	const me = useQuery({
 		queryKey: ["discord", "me"],
 		queryFn: () => api.get<MeResponse>("/discord/me"),
@@ -120,40 +118,54 @@ export default function ProfilePage() {
 		enabled: !!me.data,
 	});
 
-	// 1. Pas encore prêt
+	// Chargement initial
 	if (session.isLoading || me.isLoading) {
 		return (
-			<div className="card text-zinc-500">Chargement du profil Discord…</div>
+			<div className="dbz-panel p-8 text-center">
+				<p className="text-dbz-blue-light font-saiyan text-xl mb-2">
+					CHARGEMENT…
+				</p>
+				<p className="text-sm text-white/40">
+					Récupération de votre profil Discord en cours.
+				</p>
+			</div>
 		);
 	}
 
-	// 2. Pas de session Discord OAuth → CTA pour se connecter
+	// Pas de session OAuth Discord → invitation à se connecter
 	if (me.isError || !me.data) {
 		const sUser = session.data?.user;
 		const isOAuthMissing =
 			me.error instanceof ApiError &&
 			(me.error.status === 401 || me.error.status === 503);
 		return (
-			<div className="space-y-4">
+			<div className="space-y-4 max-w-2xl">
+				<header>
+					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
+						MON PROFIL
+					</h1>
+					<p className="text-sm text-white/50">
+						Consultez et gérez votre compte Discord lié au tableau de bord.
+					</p>
+				</header>
 				<SessionCard user={sUser} />
-				<div className="card border-amber-700/50 bg-amber-900/10">
+				<div className="dbz-panel p-5 border-l-4 border-dbz-yellow">
 					<div className="flex items-start gap-3">
-						<AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
-						<div className="flex-1 space-y-2">
-							<h3 className="font-semibold text-amber-300">
-								Profil Discord indisponible
+						<AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-dbz-yellow" />
+						<div className="flex-1 space-y-3">
+							<h3 className="font-saiyan text-dbz-yellow">
+								Profil Discord complet non disponible
 							</h3>
-							<p className="text-sm text-zinc-300">
+							<p className="text-sm text-white/70">
 								{isOAuthMissing
-									? "Tu es connecté via le jeton admin (ou Better Auth sans scope identify). Pour afficher ton profil Discord complet (avatar HD, bannière, serveurs, rôles), connecte-toi via OAuth Discord."
+									? "Vous êtes connecté via le jeton administrateur. Pour afficher votre avatar, votre bannière et vos serveurs Discord, connectez-vous via votre compte Discord."
 									: me.error instanceof Error
-										? `Erreur : ${me.error.message}`
-										: "Le serveur Discord n'a pas répondu. Réessaye dans un instant."}
+										? `Erreur de connexion : ${me.error.message}`
+										: "Le serveur Discord ne répond pas. Réessayez dans un instant."}
 							</p>
 							<button
 								type="button"
 								onClick={async () => {
-									// Better Auth POST /api/auth/sign-in/social → renvoie { url } puis redirect.
 									const res = await fetch("/api/auth/sign-in/social", {
 										method: "POST",
 										headers: { "Content-Type": "application/json" },
@@ -169,12 +181,11 @@ export default function ProfilePage() {
 											return;
 										}
 									}
-									// Fallback legacy si Better Auth indispo
 									window.location.href = "/auth/discord";
 								}}
-								className="btn btn-primary inline-flex w-fit items-center gap-2 text-sm"
+								className="dbz-button !text-sm inline-flex items-center gap-2"
 							>
-								Se connecter via Discord
+								Se connecter avec Discord
 								<ExternalLink className="h-3 w-3" />
 							</button>
 						</div>
@@ -184,7 +195,7 @@ export default function ProfilePage() {
 		);
 	}
 
-	// 3. OAuth OK → affichage complet
+	// Profil OAuth complet
 	const u = me.data.user;
 	const banner = bannerUrl({ id: u.id, banner: u.banner });
 	const accentBg =
@@ -192,10 +203,22 @@ export default function ProfilePage() {
 			? `#${u.accent_color.toString(16).padStart(6, "0")}`
 			: "linear-gradient(to right, #18181b, #27272a)";
 	const avatar = avatarUrl(u);
+	const displayName = u.global_name ?? u.username;
 
 	return (
-		<div className="space-y-6">
-			<div className="card overflow-hidden p-0">
+		<div className="space-y-6 max-w-4xl">
+			<header>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
+					MON PROFIL
+				</h1>
+				<p className="text-sm text-white/50">
+					Informations de votre compte Discord.
+				</p>
+			</header>
+
+			{/* Carte profil */}
+			<div className="dbz-panel overflow-hidden p-0">
+				{/* Bannière */}
 				<div
 					className="h-32 w-full"
 					style={
@@ -208,122 +231,155 @@ export default function ProfilePage() {
 							: { background: accentBg }
 					}
 				/>
+				{/* Avatar + nom */}
 				<div className="-mt-10 flex items-end gap-4 px-6">
 					{avatar ? (
-						 
 						<img
 							src={avatar}
 							alt=""
-							className="h-24 w-24 rounded-full border-4 border-zinc-950 object-cover"
+							className="h-24 w-24 rounded-full border-4 border-dbz-bg object-cover"
 						/>
 					) : (
-						<div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-zinc-950 bg-zinc-800 text-2xl font-bold text-zinc-300">
-							{(u.global_name ?? u.username).slice(0, 2).toUpperCase()}
+						<div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-dbz-bg bg-dbz-border text-2xl font-bold text-white">
+							{displayName.slice(0, 2).toUpperCase()}
 						</div>
 					)}
 					<div className="pb-4">
-						<h2 className="text-2xl font-bold">
-							{u.global_name ?? u.username}
-						</h2>
-						<p className="text-sm text-zinc-400">@{u.username}</p>
+						<h2 className="text-2xl font-bold text-white">{displayName}</h2>
+						<p className="text-sm text-white/50">@{u.username}</p>
 					</div>
 				</div>
+				{/* Champs détaillés */}
 				<div className="grid gap-3 p-6 sm:grid-cols-2 lg:grid-cols-4">
 					<Field
 						icon={<ShieldCheck className="h-4 w-4" />}
-						label="ID Discord"
+						label="Identifiant Discord"
 						value={u.id}
 						mono
+						hint="Numéro unique de votre compte"
 					/>
 					<Field
 						icon={<Mail className="h-4 w-4" />}
-						label="Email"
+						label="Adresse e-mail"
 						value={
 							u.email
-								? `${u.email}${u.verified ? " ✓" : " (non vérifié)"}`
+								? `${u.email}${u.verified ? " (vérifiée)" : " (non vérifiée)"}`
 								: "—"
 						}
 					/>
 					<Field
-						icon={<Server className="h-4 w-4" />}
-						label="Locale"
-						value={u.locale ?? "—"}
+						icon={<Globe className="h-4 w-4" />}
+						label="Langue Discord"
+						value={u.locale ? u.locale.toUpperCase() : "—"}
 					/>
 					<Field
 						icon={<Crown className="h-4 w-4" />}
-						label="Public flags"
-						value={u.public_flags?.toString() ?? "0"}
-						mono
+						label="Badges publics"
+						value={
+							u.public_flags
+								? `Valeur : ${u.public_flags}`
+								: "Aucun badge spécial"
+						}
 					/>
 				</div>
 			</div>
 
+			{/* Membership sur le serveur */}
 			{member.isLoading && (
-				<div className="card text-sm text-zinc-500">
-					Chargement des données guild…
+				<div className="dbz-panel p-4 text-sm text-white/40">
+					Chargement de votre statut sur le serveur…
 				</div>
 			)}
 			{member.isError && (
-				<div className="card border-zinc-800 text-sm text-zinc-500">
-					Membership guild indisponible
-					{member.error instanceof Error ? ` (${member.error.message})` : ""}.
+				<div className="dbz-panel p-4 text-sm text-white/40">
+					Impossible de récupérer votre statut sur le serveur.
 				</div>
 			)}
 			{member.data && (
-				<div className="card">
-					<h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-						Membership sur la guild Shenron
+				<div className="dbz-panel p-5">
+					<h3 className="font-saiyan text-dbz-yellow text-lg mb-4 uppercase">
+						Votre statut sur le serveur
 					</h3>
-					<dl className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+					<dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
 						<div>
-							<dt className="text-zinc-500">Surnom</dt>
-							<dd>{member.data.member.nick ?? "—"}</dd>
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">
+								Surnom
+							</dt>
+							<dd className="text-white font-medium">
+								{member.data.member.nick ?? "—"}
+							</dd>
 						</div>
 						<div>
-							<dt className="text-zinc-500">Rejoint le</dt>
-							<dd>
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1 flex items-center gap-1">
+								<Calendar className="h-3 w-3" />
+								Date d&apos;arrivée
+							</dt>
+							<dd className="text-white font-medium">
 								{new Date(member.data.member.joined_at).toLocaleDateString(
 									"fr-FR",
+									{ year: "numeric", month: "long", day: "numeric" },
 								)}
 							</dd>
 						</div>
 						<div>
-							<dt className="text-zinc-500">Boost depuis</dt>
-							<dd>
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">
+								Boost actif depuis
+							</dt>
+							<dd className="text-white font-medium">
 								{member.data.member.premium_since
 									? new Date(
 											member.data.member.premium_since,
-										).toLocaleDateString("fr-FR")
-									: "—"}
+										).toLocaleDateString("fr-FR", {
+											year: "numeric",
+											month: "long",
+											day: "numeric",
+										})
+									: "Pas de boost actif"}
 							</dd>
 						</div>
 						<div>
-							<dt className="text-zinc-500">Statut</dt>
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">
+								Statut
+							</dt>
 							<dd>
 								{member.data.member.communication_disabled_until &&
 								new Date(member.data.member.communication_disabled_until) >
 									new Date() ? (
-									<span className="badge badge-warning">timeout actif</span>
+									<span className="px-2 py-0.5 text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/40 rounded">
+										Réduit au silence
+									</span>
 								) : member.data.member.pending ? (
-									<span className="badge">en attente</span>
+									<span className="px-2 py-0.5 text-xs font-bold bg-dbz-yellow/20 text-dbz-yellow border border-dbz-yellow/40 rounded">
+										En attente de vérification
+									</span>
 								) : (
-									<span className="badge badge-success">actif</span>
+									<span className="px-2 py-0.5 text-xs font-bold bg-green-500/20 text-green-300 border border-green-500/40 rounded">
+										Membre actif
+									</span>
 								)}
 							</dd>
 						</div>
-						<div className="sm:col-span-3">
-							<dt className="text-zinc-500">
-								Rôles ({member.data.member.roles.length})
+						<div className="sm:col-span-2 lg:col-span-3">
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-2">
+								Vos rôles ({member.data.member.roles.length})
 							</dt>
-							<dd className="mt-1 flex flex-wrap gap-1">
+							<dd>
 								{member.data.member.roles.length === 0 ? (
-									<span className="text-zinc-500">aucun rôle</span>
+									<span className="text-white/30 text-sm">
+										Aucun rôle attribué
+									</span>
 								) : (
-									member.data.member.roles.map((rid) => (
-										<code key={rid} className="badge font-mono text-xs">
-											{rid}
-										</code>
-									))
+									<div className="flex flex-wrap gap-1">
+										{member.data.member.roles.map((rid) => (
+											<span
+												key={rid}
+												className="px-2 py-0.5 text-xs font-mono bg-dbz-border text-white/60 rounded border border-dbz-border/80"
+												title={`ID Discord du rôle : ${rid}`}
+											>
+												{rid}
+											</span>
+										))}
+									</div>
 								)}
 							</dd>
 						</div>
@@ -331,45 +387,48 @@ export default function ProfilePage() {
 				</div>
 			)}
 
-			<div className="card">
-				<h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+			{/* Serveurs Discord */}
+			<div className="dbz-panel p-5">
+				<h3 className="font-saiyan text-dbz-yellow text-lg mb-1 uppercase">
 					Mes serveurs Discord
 					{guilds.data ? ` (${guilds.data.guilds.length})` : ""}
 				</h3>
+				<p className="text-xs text-white/30 mb-4">
+					Serveurs Discord où vous êtes présent. Le serveur du bot est mis en
+					avant.
+				</p>
 				{guilds.isLoading && (
-					<div className="text-sm text-zinc-500">Chargement…</div>
-				)}
-				{guilds.isError && (
-					<div className="text-sm text-zinc-500">
-						Liste de serveurs indisponible
-						{guilds.error instanceof Error ? ` (${guilds.error.message})` : ""}.
+					<div className="text-sm text-white/40">
+						Chargement de vos serveurs…
 					</div>
 				)}
-				{guilds.data && (
+				{guilds.isError && (
+					<div className="text-sm text-white/40">
+						Liste des serveurs indisponible.
+					</div>
+				)}
+				{guilds.data && guilds.data.guilds.length === 0 && (
+					<div className="text-sm text-white/40">Aucun serveur en commun.</div>
+				)}
+				{guilds.data && guilds.data.guilds.length > 0 && (
 					<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-						{guilds.data.guilds.length === 0 && (
-							<div className="text-sm text-zinc-500">
-								Aucun serveur partagé.
-							</div>
-						)}
 						{guilds.data.guilds.map((g) => (
 							<div
 								key={g.id}
-								className={`flex items-center gap-3 rounded-lg border p-2 ${
+								className={`flex items-center gap-3 rounded-lg border p-3 ${
 									g.isCurrent
-										? "border-brand-500 bg-brand-500/10"
-										: "border-zinc-800 bg-zinc-950/40"
+										? "border-dbz-orange/60 bg-dbz-orange/5"
+										: "border-dbz-border bg-dbz-bg/40"
 								}`}
 							>
 								{g.iconUrl ? (
-									 
 									<img
 										src={g.iconUrl}
 										alt=""
-										className="h-10 w-10 rounded-full"
+										className="h-10 w-10 rounded-full shrink-0"
 									/>
 								) : (
-									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800 text-xs font-semibold">
+									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-dbz-border text-xs font-bold text-white shrink-0">
 										{g.name
 											.split(" ")
 											.map((w) => w[0])
@@ -379,11 +438,18 @@ export default function ProfilePage() {
 									</div>
 								)}
 								<div className="min-w-0 flex-1">
-									<p className="truncate text-sm font-medium" title={g.name}>
-										{g.name}
+									<p
+										className="truncate text-sm font-semibold text-white"
+										title={g.name}
+									>
+										{g.isCurrent ? (
+											<span className="text-dbz-orange">{g.name}</span>
+										) : (
+											g.name
+										)}
 									</p>
-									<p className="text-xs text-zinc-500">
-										{g.owner && "👑 "}
+									<p className="text-xs text-white/40">
+										{g.owner && "Propriétaire · "}
 										{g.approximate_member_count?.toLocaleString("fr-FR") ?? "?"}{" "}
 										membres
 										{g.isCurrent && " · serveur du bot"}
@@ -401,37 +467,45 @@ export default function ProfilePage() {
 function SessionCard({ user }: { user: SessionUser | undefined }) {
 	if (!user) return null;
 	const sourceLabel: Record<SessionUser["source"], string> = {
-		token: "Jeton admin",
-		discord: "OAuth Discord (legacy)",
-		"better-auth": "Better Auth Discord",
+		token: "Jeton administrateur",
+		discord: "Connexion Discord (classique)",
+		"better-auth": "Connexion Discord (OAuth)",
 	};
 	const initials = (user.username ?? "??").slice(0, 2).toUpperCase();
 	return (
-		<div className="card">
-			<h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-				Session courante
+		<div className="dbz-panel p-5">
+			<h3 className="font-saiyan text-dbz-yellow text-base mb-3 uppercase">
+				Session active
 			</h3>
 			<div className="flex items-center gap-4">
 				{user.avatarUrl ? (
-					 
 					<img
 						src={user.avatarUrl}
 						alt=""
-						className="h-16 w-16 rounded-full border border-zinc-800 object-cover"
+						className="h-16 w-16 rounded-full border border-dbz-border object-cover"
 					/>
 				) : (
-					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-800 font-semibold text-zinc-300">
+					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-dbz-border font-bold text-white">
 						{initials}
 					</div>
 				)}
 				<div className="space-y-1 text-sm">
-					<div className="font-semibold">{user.username ?? "Utilisateur"}</div>
+					<div className="font-semibold text-white">
+						{user.username ?? "Utilisateur"}
+					</div>
 					{user.id && (
-						<div className="font-mono text-xs text-zinc-500">{user.id}</div>
+						<div
+							className="font-mono text-xs text-white/40"
+							title="Identifiant Discord"
+						>
+							{user.id}
+						</div>
 					)}
-					{user.email && <div className="text-zinc-400">{user.email}</div>}
+					{user.email && <div className="text-white/50">{user.email}</div>}
 					<div className="text-xs">
-						<span className="badge">{sourceLabel[user.source]}</span>
+						<span className="px-2 py-0.5 border border-dbz-border text-white/50 text-[10px] uppercase tracking-widest rounded">
+							{sourceLabel[user.source]}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -444,19 +518,27 @@ function Field({
 	label,
 	value,
 	mono,
+	hint,
 }: {
 	icon: React.ReactNode;
 	label: string;
 	value: string;
 	mono?: boolean;
+	hint?: string;
 }) {
 	return (
 		<div>
-			<div className="mb-1 flex items-center gap-2 text-xs text-zinc-400">
+			<div className="mb-1 flex items-center gap-2 text-xs text-white/40">
 				{icon}
 				<span>{label}</span>
 			</div>
-			<p className={`text-sm ${mono ? "font-mono break-all" : ""}`}>{value}</p>
+			<p
+				className={`text-sm text-white ${mono ? "font-mono break-all" : ""}`}
+				title={hint}
+			>
+				{value}
+			</p>
+			{hint && <p className="text-[10px] text-white/20 mt-0.5">{hint}</p>}
 		</div>
 	);
 }

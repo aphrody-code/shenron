@@ -11,6 +11,10 @@ import {
 	Send,
 	Edit,
 	RefreshCw,
+	Loader2,
+	AlertTriangle,
+	CheckCircle2,
+	X,
 } from "lucide-react";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
@@ -42,20 +46,70 @@ interface TransactionRow {
 	action: string;
 	reason: string | null;
 	meta: string | null;
-	createdAt: string;
+	createdAt: string | number;
 }
 
 const ACTION_LABEL: Record<string, { label: string; color: string }> = {
-	SHOP_PURCHASE: { label: "🛒 Achat shop", color: "text-blue-400" },
-	LEVEL_UP: { label: "🚀 Level up", color: "text-emerald-400" },
-	ZENI_ADMIN_GIVE: { label: "➕ Don admin", color: "text-yellow-400" },
-	ZENI_ADMIN_REMOVE: { label: "➖ Retrait admin", color: "text-red-400" },
-	ZENI_ADMIN_SET: { label: "✏️ Set admin", color: "text-purple-400" },
-	ZENI_ADMIN_BULK: { label: "📤 Distribution masse", color: "text-cyan-400" },
+	SHOP_PURCHASE: { label: "Achat boutique", color: "text-blue-400" },
+	LEVEL_UP: { label: "Montée de niveau", color: "text-emerald-400" },
+	ZENI_ADMIN_GIVE: { label: "Don administrateur", color: "text-yellow-400" },
+	ZENI_ADMIN_REMOVE: { label: "Retrait administrateur", color: "text-red-400" },
+	ZENI_ADMIN_SET: { label: "Définition directe", color: "text-purple-400" },
+	ZENI_ADMIN_BULK: { label: "Distribution de masse", color: "text-cyan-400" },
 };
+
+// Modale de confirmation
+function ConfirmDialog({
+	title,
+	message,
+	confirmLabel,
+	onConfirm,
+	onCancel,
+}: {
+	title: string;
+	message: string;
+	confirmLabel: string;
+	onConfirm: () => void;
+	onCancel: () => void;
+}) {
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+			<div className="card w-full max-w-sm space-y-4 border border-amber-500/40">
+				<div className="flex items-start gap-3">
+					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+					<div>
+						<h3 className="font-semibold text-white">{title}</h3>
+						<p className="mt-1 text-sm text-zinc-400">{message}</p>
+					</div>
+					<button
+						type="button"
+						onClick={onCancel}
+						className="ml-auto btn btn-ghost px-1 py-1"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</div>
+				<div className="flex justify-end gap-2">
+					<button type="button" onClick={onCancel} className="btn btn-ghost">
+						Annuler
+					</button>
+					<button type="button" onClick={onConfirm} className="btn btn-primary">
+						{confirmLabel}
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 export default function AdminEconomyPage() {
 	const qc = useQueryClient();
+	const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+	const showSuccess = (msg: string) => {
+		setSuccessMsg(msg);
+		setTimeout(() => setSuccessMsg(null), 3000);
+	};
 
 	const stats = useQuery({
 		queryKey: ["economy", "stats"],
@@ -99,14 +153,22 @@ export default function AdminEconomyPage() {
 		(c) => c.id === channelZeniId,
 	)?.name;
 
+	// /api/services/settings/set et /api/services/settings/unset sont des actions
+	// enregistrées dans service-registry.ts — l'endpoint est POST /services/:service/:action
 	const setSetting = useMutation({
 		mutationFn: ({ key, value }: { key: string; value: string }) =>
 			api.post("/services/settings/set", { key, value }),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["settings"] });
+			showSuccess("Salon des récompenses mis à jour.");
+		},
 	});
 	const unsetSetting = useMutation({
 		mutationFn: (key: string) => api.post("/services/settings/unset", { key }),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["settings"] });
+			showSuccess("Salon des récompenses désactivé.");
+		},
 	});
 
 	const give = useMutation({
@@ -116,18 +178,23 @@ export default function AdminEconomyPage() {
 			roleId?: string;
 			amount: number;
 		}) => api.post<{ ok: boolean; applied?: number }>("/economy/give", body),
-		onSuccess: () => {
+		onSuccess: (data) => {
 			qc.invalidateQueries({ queryKey: ["economy"] });
+			showSuccess(`Distribution réussie sur ${data.applied ?? 0} membre(s).`);
 		},
 	});
 	const setBalance = useMutation({
 		mutationFn: (body: { userId: string; amount: number }) =>
 			api.post("/economy/set", body),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["economy"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["economy"] });
+			showSuccess("Solde modifié avec succès.");
+		},
 	});
 
 	return (
 		<div className="space-y-4">
+			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
 					<Coins className="h-5 w-5 text-amber-400" />
@@ -136,94 +203,137 @@ export default function AdminEconomyPage() {
 						type="button"
 						onClick={() => qc.invalidateQueries({ queryKey: ["economy"] })}
 						className="btn btn-ghost ml-auto px-2"
-						title="Rafraîchir"
+						title="Rafraîchir les données"
 					>
 						<RefreshCw className="h-3 w-3" />
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Vue d&apos;ensemble du système économique : circulation, top zenis,
-					transactions, et opérations admin (distribution masse, set direct,
-					salon des récompenses).
+					Vue d&apos;ensemble de la monnaie du serveur : circulation des zénis,
+					classement des membres les plus riches, historique des transactions et
+					opérations administratives.
 				</p>
 			</div>
 
-			{/* ── Salon des récompenses zeni ──────────────────────────── */}
+			{/* Feedback */}
+			{successMsg && (
+				<div className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					{successMsg}
+				</div>
+			)}
+
+			{/* Salon des récompenses zeni */}
 			<div className="card">
-				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+				<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
 					<Gift className="h-4 w-4" />
-					Salon des récompenses zeni
+					Salon des notifications de récompense
 				</h3>
 				<p className="mb-3 text-xs text-zinc-500">
-					Cible des notifications de récompense zeni : <code>daily_quest</code>,{" "}
-					<code>zeni_drop</code> (drop aléatoire sur message),{" "}
-					<code>zeni_game_win</code> (victoire à un jeu). Templates éditables
-					sur <code>/admin/messages</code>.
+					Les notifications de zénis (quête quotidienne, drop aléatoire,
+					victoire dans un jeu) sont envoyées dans ce salon. Laissez vide pour
+					les désactiver. Les modèles de messages sont éditables sur la page{" "}
+					<strong>Messages</strong>.
 				</p>
 				<div className="flex items-center gap-2">
-					<select
-						className="input flex-1"
-						value={channelZeniId ?? ""}
-						onChange={(e) => {
-							const v = e.target.value;
-							if (!v) unsetSetting.mutate("channel.zeni");
-							else setSetting.mutate({ key: "channel.zeni", value: v });
-						}}
-					>
-						<option value="">— Aucun (pas de notif) —</option>
-						{channels.data?.channels
-							.filter((c) => c.type === 0)
-							.map((c) => (
-								<option key={c.id} value={c.id}>
-									#{c.name}
-								</option>
-							))}
-					</select>
+					{channels.isLoading ? (
+						<div className="flex items-center gap-2 text-zinc-500 text-sm">
+							<Loader2 className="h-4 w-4 animate-spin" />
+							Chargement des salons…
+						</div>
+					) : (
+						<select
+							className="input flex-1"
+							value={channelZeniId ?? ""}
+							onChange={(e) => {
+								const v = e.target.value;
+								if (!v) unsetSetting.mutate("channel.zeni");
+								else setSetting.mutate({ key: "channel.zeni", value: v });
+							}}
+						>
+							<option value="">— Désactivé (aucune notification) —</option>
+							{channels.data?.channels
+								.filter((c) => c.type === 0)
+								.map((c) => (
+									<option key={c.id} value={c.id}>
+										#{c.name}
+									</option>
+								))}
+						</select>
+					)}
 					{channelZeniName && (
-						<span className="badge badge-success">→ #{channelZeniName}</span>
+						<span className="badge badge-success">
+							Actif : #{channelZeniName}
+						</span>
 					)}
 				</div>
 			</div>
 
-			{/* ── Stats globales ──────────────────────────────────────── */}
-			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-				<StatCard
-					icon={Coins}
-					label="Zeni en circulation"
-					value={fmtNum(stats.data?.zeni.total)}
-					sub={`Max : ${fmtNum(stats.data?.zeni.max)} z`}
-					color="text-amber-400"
-				/>
-				<StatCard
-					icon={Users}
-					label="Utilisateurs"
-					value={fmtNum(stats.data?.zeni.users)}
-					sub={`${stats.data?.zeni.rich ?? 0} riches · ${stats.data?.zeni.zero ?? 0} à 0`}
-					color="text-blue-400"
-				/>
-				<StatCard
-					icon={TrendingUp}
-					label="Solde moyen"
-					value={fmtNum(Math.round(stats.data?.zeni.avg ?? 0))}
-					sub="Moyenne par membre"
-					color="text-emerald-400"
-				/>
-				<StatCard
-					icon={Trophy}
-					label="Items inventaire"
-					value={fmtNum(stats.data?.inventoryItems)}
-					sub={`${stats.data?.fusions ?? 0} fusions · ${stats.data?.shopItemsActive ?? 0} shop`}
-					color="text-purple-400"
-				/>
-			</div>
+			{/* Stats globales */}
+			{stats.isLoading ? (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement des statistiques…
+				</div>
+			) : stats.isError ? (
+				<div className="flex items-center gap-2 text-sm text-red-400">
+					<AlertTriangle className="h-4 w-4" />
+					Impossible de charger les statistiques. Réessayez.
+				</div>
+			) : (
+				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					<StatCard
+						icon={Coins}
+						label="Zénis en circulation"
+						value={fmtNum(stats.data?.zeni.total)}
+						sub={`Maximum détenu : ${fmtNum(stats.data?.zeni.max)} z`}
+						color="text-amber-400"
+					/>
+					<StatCard
+						icon={Users}
+						label="Membres enregistrés"
+						value={fmtNum(stats.data?.zeni.users)}
+						sub={`${stats.data?.zeni.rich ?? 0} riches · ${stats.data?.zeni.zero ?? 0} à zéro`}
+						color="text-blue-400"
+					/>
+					<StatCard
+						icon={TrendingUp}
+						label="Solde moyen"
+						value={fmtNum(Math.round(stats.data?.zeni.avg ?? 0))}
+						sub="Moyenne par membre actif"
+						color="text-emerald-400"
+					/>
+					<StatCard
+						icon={Trophy}
+						label="Objets en inventaire"
+						value={fmtNum(stats.data?.inventoryItems)}
+						sub={`${stats.data?.fusions ?? 0} fusions · ${stats.data?.shopItemsActive ?? 0} articles actifs`}
+						color="text-purple-400"
+					/>
+				</div>
+			)}
 
-			{/* ── Top zenis ────────────────────────────────────────────── */}
+			{/* Top zenis */}
 			<div className="card">
 				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
 					<Trophy className="h-4 w-4" />
-					Top 20 zenis
+					Top 20 membres les plus riches
 				</h3>
-				{top.isLoading && <div className="text-zinc-500">Chargement…</div>}
+				{top.isLoading && (
+					<div className="flex items-center gap-2 text-zinc-500 text-sm">
+						<Loader2 className="h-4 w-4 animate-spin" />
+						Chargement…
+					</div>
+				)}
+				{top.isError && (
+					<div className="flex items-center gap-2 text-sm text-red-400">
+						<AlertTriangle className="h-4 w-4" />
+						Impossible de charger le classement. Réessayez.
+					</div>
+				)}
+				{top.data?.rows.length === 0 && (
+					<p className="text-sm text-zinc-500">Aucun membre enregistré.</p>
+				)}
 				<div className="space-y-1">
 					{top.data?.rows.map((u, i) => (
 						<div
@@ -233,9 +343,19 @@ export default function AdminEconomyPage() {
 							<span className="w-8 text-right font-mono text-sm text-zinc-500">
 								#{i + 1}
 							</span>
-							<code className="flex-1 truncate text-xs text-zinc-300">
-								{u.displayName ?? u.id}
-							</code>
+							<span
+								className="flex-1 truncate text-xs text-zinc-300 font-mono"
+								title={`ID Discord : ${u.id}`}
+							>
+								{u.displayName ?? (
+									<>
+										{u.id.slice(0, 6)}…{u.id.slice(-4)}
+										<span className="ml-1 text-zinc-600 text-[10px]">
+											({u.id})
+										</span>
+									</>
+								)}
+							</span>
 							<span className="font-mono text-sm font-semibold text-amber-400">
 								{fmtNum(u.zeni)} z
 							</span>
@@ -249,24 +369,25 @@ export default function AdminEconomyPage() {
 				</div>
 			</div>
 
-			{/* ── Bulk operations ──────────────────────────────────────── */}
+			{/* Distribution de masse */}
 			<div className="card">
-				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+				<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
 					<Send className="h-4 w-4" />
-					Distribution masse
+					Distribution de zénis
 				</h3>
+				<p className="mb-3 text-xs text-zinc-500">
+					Donnez ou retirez des zénis à un membre, à tous les membres d&apos;un
+					rôle Discord ou à l&apos;ensemble du serveur. Un montant négatif
+					retire des zénis. Toutes les opérations sont enregistrées dans
+					l&apos;historique.
+				</p>
 				<BulkGiveForm
 					onSubmit={(body) => give.mutate(body)}
 					pending={give.isPending}
 				/>
-				{give.data && (
-					<p className="mt-2 text-xs text-emerald-400">
-						✓ Appliqué sur {give.data.applied ?? 0} membre(s).
-					</p>
-				)}
-				{give.error && (
-					<p className="mt-2 text-xs text-red-400">
-						✗{" "}
+				{give.isError && (
+					<p className="mt-2 flex items-center gap-1 text-xs text-red-400">
+						<AlertTriangle className="h-3 w-3" />
 						{give.error instanceof Error
 							? give.error.message
 							: String(give.error)}
@@ -274,15 +395,26 @@ export default function AdminEconomyPage() {
 				)}
 			</div>
 
-			{/* ── Transactions log ─────────────────────────────────────── */}
+			{/* Transactions récentes */}
 			<div className="card">
-				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+				<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
 					<History className="h-4 w-4" />
-					Transactions récentes
+					Historique des transactions
 				</h3>
-				{txs.isLoading && <div className="text-zinc-500">Chargement…</div>}
+				<p className="mb-3 text-xs text-zinc-500">
+					Les 50 dernières opérations économiques (achats, montées de niveau,
+					dons administrateurs…).
+				</p>
+				{txs.isLoading && (
+					<div className="flex items-center gap-2 text-zinc-500 text-sm">
+						<Loader2 className="h-4 w-4 animate-spin" />
+						Chargement…
+					</div>
+				)}
 				{txs.data?.rows.length === 0 && (
-					<p className="text-zinc-500">Aucune transaction.</p>
+					<p className="text-zinc-500 text-sm">
+						Aucune transaction pour le moment.
+					</p>
 				)}
 				<div className="space-y-1 max-h-[500px] overflow-y-auto">
 					{txs.data?.rows.map((t) => {
@@ -290,6 +422,9 @@ export default function AdminEconomyPage() {
 							label: t.action,
 							color: "text-zinc-400",
 						};
+						const createdAt = t.createdAt
+							? new Date(t.createdAt).toLocaleString("fr-FR")
+							: "—";
 						return (
 							<div
 								key={t.id}
@@ -300,13 +435,14 @@ export default function AdminEconomyPage() {
 										{meta.label}
 									</span>
 									{t.userId && (
-										<code className="text-zinc-400">{t.userId}</code>
+										<span
+											className="text-zinc-400 font-mono"
+											title={`ID Discord : ${t.userId}`}
+										>
+											{t.userId.slice(0, 6)}…{t.userId.slice(-4)}
+										</span>
 									)}
-									<span className="ml-auto text-zinc-500">
-										{t.createdAt
-											? new Date(t.createdAt).toLocaleString("fr-FR")
-											: "—"}
-									</span>
+									<span className="ml-auto text-zinc-500">{createdAt}</span>
 								</div>
 								{t.meta && (
 									<pre className="mt-1 overflow-x-auto text-zinc-500">
@@ -352,7 +488,7 @@ function StatCard({
 }
 
 function EditBalanceButton({
-	userId,
+	userId: _userId,
 	current,
 	onSave,
 }: {
@@ -362,6 +498,9 @@ function EditBalanceButton({
 }) {
 	const [editing, setEditing] = useState(false);
 	const [val, setVal] = useState(String(current));
+	const [confirm, setConfirm] = useState(false);
+	const pendingAmount = Number.parseInt(val, 10);
+
 	if (!editing) {
 		return (
 			<button
@@ -371,41 +510,57 @@ function EditBalanceButton({
 					setEditing(true);
 				}}
 				className="btn btn-ghost px-1 py-0 text-xs"
-				title={`Set zenis pour ${userId}`}
+				title="Modifier le solde de ce membre"
 			>
 				<Edit className="h-3 w-3" />
 			</button>
 		);
 	}
+
 	return (
-		<div className="flex items-center gap-1">
-			<input
-				type="number"
-				min={0}
-				value={val}
-				onChange={(e) => setVal(e.target.value)}
-				className="input w-24 px-1 py-0 text-xs"
-			/>
-			<button
-				type="button"
-				onClick={() => {
-					const n = Number.parseInt(val, 10);
-					if (!Number.isFinite(n) || n < 0) return;
-					onSave(n);
-					setEditing(false);
-				}}
-				className="btn btn-primary px-1 py-0 text-xs"
-			>
-				✓
-			</button>
-			<button
-				type="button"
-				onClick={() => setEditing(false)}
-				className="btn btn-ghost px-1 py-0 text-xs"
-			>
-				✕
-			</button>
-		</div>
+		<>
+			{confirm && (
+				<ConfirmDialog
+					title="Modifier le solde ?"
+					message={`Vous allez définir le solde de ce membre à ${pendingAmount.toLocaleString("fr-FR")} zénis. Cette action est enregistrée dans l'historique.`}
+					confirmLabel="Définir le solde"
+					onConfirm={() => {
+						onSave(pendingAmount);
+						setEditing(false);
+						setConfirm(false);
+					}}
+					onCancel={() => setConfirm(false)}
+				/>
+			)}
+			<div className="flex items-center gap-1">
+				<input
+					type="number"
+					min={0}
+					value={val}
+					onChange={(e) => setVal(e.target.value)}
+					className="input w-24 px-1 py-0 text-xs"
+				/>
+				<button
+					type="button"
+					onClick={() => {
+						if (!Number.isFinite(pendingAmount) || pendingAmount < 0) return;
+						setConfirm(true);
+					}}
+					className="btn btn-primary px-1 py-0 text-xs"
+					title="Valider"
+				>
+					<CheckCircle2 className="h-3 w-3" />
+				</button>
+				<button
+					type="button"
+					onClick={() => setEditing(false)}
+					className="btn btn-ghost px-1 py-0 text-xs"
+					title="Annuler"
+				>
+					<X className="h-3 w-3" />
+				</button>
+			</div>
+		</>
 	);
 }
 
@@ -425,74 +580,118 @@ function BulkGiveForm({
 	const [userId, setUserId] = useState("");
 	const [roleId, setRoleId] = useState("");
 	const [amount, setAmount] = useState("100");
+	const [confirm, setConfirm] = useState<null | {
+		mode: "user" | "role" | "all";
+		userId: string;
+		roleId: string;
+		amount: number;
+	}>(null);
+
+	const handleClick = () => {
+		const n = Number.parseInt(amount, 10);
+		if (!Number.isFinite(n) || n === 0) return;
+		setConfirm({ mode, userId, roleId, amount: n });
+	};
+
+	const confirmMsg =
+		confirm === null
+			? ""
+			: confirm.mode === "all"
+				? `Vous allez distribuer ${confirm.amount.toLocaleString("fr-FR")} zénis à TOUS les membres enregistrés. Cette opération peut toucher plusieurs centaines de membres.`
+				: confirm.mode === "role"
+					? `Vous allez distribuer ${confirm.amount.toLocaleString("fr-FR")} zénis à tous les membres possédant le rôle Discord ${confirm.roleId}.`
+					: `Vous allez donner ${confirm.amount.toLocaleString("fr-FR")} zénis au membre ${confirm.userId}.`;
 
 	return (
-		<div className="space-y-3">
-			<div className="flex gap-2">
-				{(["user", "role", "all"] as const).map((m) => (
-					<button
-						key={m}
-						type="button"
-						onClick={() => setMode(m)}
-						className={`btn ${mode === m ? "btn-primary" : "btn-ghost"}`}
-					>
-						{m === "user" ? "1 membre" : m === "role" ? "1 rôle" : "Tous"}
-					</button>
-				))}
-			</div>
-			<div className="grid gap-2 sm:grid-cols-3">
-				{mode === "user" && (
-					<input
-						type="text"
-						value={userId}
-						onChange={(e) => setUserId(e.target.value)}
-						placeholder="User ID Discord"
-						className="input"
-					/>
-				)}
-				{mode === "role" && (
-					<input
-						type="text"
-						value={roleId}
-						onChange={(e) => setRoleId(e.target.value)}
-						placeholder="Role ID Discord"
-						className="input"
-					/>
-				)}
-				<input
-					type="number"
-					value={amount}
-					onChange={(e) => setAmount(e.target.value)}
-					placeholder="Montant (négatif = retrait)"
-					className="input"
-				/>
-				<button
-					type="button"
-					onClick={() => {
-						const n = Number.parseInt(amount, 10);
-						if (!Number.isFinite(n) || n === 0) return;
-						const confirmation =
-							mode === "all"
-								? `Distribuer ${n} z à TOUS les membres en DB ?`
-								: mode === "role"
-									? `Distribuer ${n} z à tous les membres avec le rôle ${roleId} ?`
-									: `Donner ${n} z à ${userId} ?`;
-						if (!confirm(confirmation)) return;
-						onSubmit({ mode, userId, roleId, amount: n });
+		<>
+			{confirm && (
+				<ConfirmDialog
+					title="Confirmer la distribution ?"
+					message={confirmMsg}
+					confirmLabel={`Distribuer ${confirm.amount.toLocaleString("fr-FR")} zénis`}
+					onConfirm={() => {
+						onSubmit({
+							mode: confirm.mode,
+							userId: confirm.userId,
+							roleId: confirm.roleId,
+							amount: confirm.amount,
+						});
+						setConfirm(null);
 					}}
-					disabled={pending || !amount}
-					className="btn btn-primary"
-				>
-					<Send className="h-3 w-3" />
-					{pending ? "Envoi…" : "Distribuer"}
-				</button>
+					onCancel={() => setConfirm(null)}
+				/>
+			)}
+			<div className="space-y-3">
+				<div className="flex gap-2">
+					{(["user", "role", "all"] as const).map((m) => (
+						<button
+							key={m}
+							type="button"
+							onClick={() => setMode(m)}
+							className={`btn ${mode === m ? "btn-primary" : "btn-ghost"}`}
+						>
+							{m === "user"
+								? "1 membre"
+								: m === "role"
+									? "Par rôle"
+									: "Tout le serveur"}
+						</button>
+					))}
+				</div>
+				<div className="grid gap-2 sm:grid-cols-3">
+					{mode === "user" && (
+						<div>
+							<label className="mb-1 block text-xs text-zinc-400">
+								Identifiant Discord du membre
+							</label>
+							<input
+								type="text"
+								value={userId}
+								onChange={(e) => setUserId(e.target.value)}
+								placeholder="000000000000000000"
+								className="input w-full font-mono text-xs"
+							/>
+						</div>
+					)}
+					{mode === "role" && (
+						<div>
+							<label className="mb-1 block text-xs text-zinc-400">
+								Identifiant Discord du rôle
+							</label>
+							<input
+								type="text"
+								value={roleId}
+								onChange={(e) => setRoleId(e.target.value)}
+								placeholder="000000000000000000"
+								className="input w-full font-mono text-xs"
+							/>
+						</div>
+					)}
+					<div>
+						<label className="mb-1 block text-xs text-zinc-400">
+							Montant (négatif = retrait)
+						</label>
+						<input
+							type="number"
+							value={amount}
+							onChange={(e) => setAmount(e.target.value)}
+							placeholder="ex. 500 ou -200"
+							className="input w-full"
+						/>
+					</div>
+					<div className="flex items-end">
+						<button
+							type="button"
+							onClick={handleClick}
+							disabled={pending || !amount}
+							className="btn btn-primary w-full"
+						>
+							<Send className="h-3 w-3" />
+							{pending ? "Distribution en cours…" : "Distribuer les zénis"}
+						</button>
+					</div>
+				</div>
 			</div>
-			<p className="text-xs text-zinc-500">
-				Montant négatif = retrait. Mode &quot;all&quot; itère sur tous les users
-				en DB. Mode &quot;role&quot; fetch tous les membres du serveur (peut
-				prendre quelques secondes). Toutes les opérations sont loguées en{" "}
-				<code>action_logs</code> avec source &quot;dashboard&quot;.
-			</p>
-		</div>
+		</>
 	);
 }

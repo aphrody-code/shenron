@@ -550,3 +550,75 @@
     margin: 1rem 0;
   }
 }
+
+/* ── Utilitaires dashboard admin — non-dev friendly ─────────────────────────
+   Classes partagées entre toutes les pages admin pour les états et badges.  */
+
+@layer utilities {
+  /* Carte d'accès rapide (page dashboard — "Que voulez-vous faire ?") */
+  .dbz-quick-action {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border-width: 1px;
+    border-style: solid;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+    cursor: pointer;
+  }
+  .dbz-quick-action:hover {
+    transform: translateY(-1px);
+  }
+  .dbz-quick-action:active {
+    transform: translateY(0);
+  }
+
+  /* Badge de statut "actif" (vert namek) */
+  .badge-actif {
+    @apply inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest;
+    @apply border-namek/50 bg-namek/15 text-namek;
+  }
+
+  /* Badge de statut "inactif" / "hors ligne" */
+  .badge-inactif {
+    @apply inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest;
+    @apply border-zinc-500/40 bg-zinc-500/10 text-zinc-400;
+  }
+
+  /* Badge "en attente" (jaune doré) */
+  .badge-attente {
+    @apply inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest;
+    @apply border-dbz-yellow/50 bg-dbz-yellow/15 text-dbz-yellow;
+  }
+
+  /* Indicateur "pas de données" — état vide lisible */
+  .admin-empty {
+    @apply flex flex-col items-center justify-center gap-3 py-12 text-center text-white/40;
+  }
+  .admin-empty p {
+    @apply text-sm max-w-xs leading-relaxed;
+  }
+
+  /* Séparateur de section dans les pages admin */
+  .admin-section-title {
+    @apply text-[11px] font-semibold uppercase tracking-widest text-white/50 mb-3;
+  }
+
+  /* Point de statut animé (vert = en ligne) */
+  .status-dot-online {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-namek);
+    box-shadow: 0 0 6px var(--color-namek);
+    animation: led-pulse 1.6s ease-in-out infinite;
+  }
+  .status-dot-offline {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-dbz-red);
+    opacity: 0.7;
+  }
+}

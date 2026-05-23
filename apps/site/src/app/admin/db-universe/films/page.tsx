@@ -1,5 +1,6 @@
-import { adminFetch } from "../_lib";
+import { adminFetch, assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -24,75 +25,134 @@ export default async function AdminFilmsPage() {
 	return (
 		<div className="w-full max-w-6xl mx-auto">
 			<AdminHeader
-				title="DB Universe // Films"
-				subtitle={`${movies.length} long-métrages catalogués via Jikan`}
+				title="Films"
+				subtitle={
+					movies.length > 0
+						? `${movies.length} long-métrage${movies.length > 1 ? "s" : ""} catalogué${movies.length > 1 ? "s" : ""} via Jikan`
+						: undefined
+				}
 			/>
 
-			<table className="w-full">
-				<thead>
-					<tr className="border-b-2 border-dbz-border/60">
-						<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-32">
-							Slug
-						</th>
-						<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light">
-							Titre
-						</th>
-						<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-24">
-							Série
-						</th>
-						<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-24">
-							Sortie
-						</th>
-						<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-16">
-							Durée
-						</th>
-						<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
-							MAL
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					{movies.map((m) => (
-						<tr
-							key={m.id}
-							className="border-b border-dbz-border/30 hover:bg-dbz-blue-light/5"
-						>
-							<td className="p-2 font-mono text-xs text-white/70">{m.slug}</td>
-							<td className="p-2">
-								<div className="text-sm text-white">{m.title}</div>
-								{m.title_ja && (
-									<div className="font-jp text-xs text-dbz-yellow/75 mt-0.5">
-										{m.title_ja}
-									</div>
-								)}
-							</td>
-							<td className="p-2 font-mono text-xs text-dbz-orange">
-								{m.series}
-							</td>
-							<td className="p-2 text-[11px] text-white/55">
-								{m.release_date
-									? new Date(m.release_date).toLocaleDateString("fr-FR")
-									: "—"}
-							</td>
-							<td className="p-2 text-xs text-white/70">
-								{m.duration_min ? `${m.duration_min} min` : "—"}
-							</td>
-							<td className="p-2 text-right">
-								{m.mal_id && (
-									<a
-										href={`https://myanimelist.net/anime/${m.mal_id}`}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-[10px] font-mono text-dbz-blue-light/70 hover:text-dbz-orange"
+			<p className="text-sm text-white/50 mb-6">
+				Liste de tous les films Dragon Ball. Les données proviennent de
+				l&apos;API MyAnimeList (Jikan). Cliquez sur le numéro MAL pour voir la
+				fiche correspondante.
+			</p>
+
+			{movies.length === 0 ? (
+				<div className="dbz-panel p-12 text-center">
+					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
+						Aucun film enregistré
+					</p>
+					<p className="text-white/40 text-sm">
+						Les films s&apos;affichent ici une fois importés depuis Jikan.
+					</p>
+				</div>
+			) : (
+				<div className="overflow-x-auto">
+					<table className="w-full">
+						<thead>
+							<tr className="border-b-2 border-dbz-border/60">
+								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-14">
+									Affiche
+								</th>
+								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light">
+									Titre
+								</th>
+								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-24">
+									Série
+								</th>
+								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-24">
+									Sortie
+								</th>
+								<th className="p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light w-20">
+									Durée
+								</th>
+								<th className="p-2 text-right text-xs uppercase tracking-widest text-dbz-blue-light w-20">
+									MAL
+								</th>
+							</tr>
+						</thead>
+						<tbody>
+							{movies.map((m) => {
+								const posterUrl = m.poster
+									? /^https?:\/\//.test(m.poster)
+										? m.poster
+										: assetCdnUrl(m.poster)
+									: null;
+								return (
+									<tr
+										key={m.id}
+										className="border-b border-dbz-border/30 hover:bg-dbz-blue-light/5 transition-colors"
 									>
-										#{m.mal_id}
-									</a>
-								)}
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
+										<td className="p-2">
+											{posterUrl ? (
+												<a
+													href={posterUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="block"
+												>
+													<Image
+														src={posterUrl}
+														alt={m.title}
+														width={36}
+														height={52}
+														className="rounded object-cover border border-dbz-border"
+														unoptimized
+													/>
+												</a>
+											) : (
+												<div className="w-9 h-[52px] rounded bg-dbz-border/30 flex items-center justify-center text-[9px] text-white/25 uppercase">
+													n/a
+												</div>
+											)}
+										</td>
+										<td className="p-2">
+											<div className="text-sm text-white font-medium">
+												{m.title}
+											</div>
+											{m.title_ja && (
+												<div className="font-jp text-xs text-dbz-yellow/75 mt-0.5">
+													{m.title_ja}
+												</div>
+											)}
+											<div className="text-[10px] text-white/30 font-mono mt-0.5">
+												{m.slug}
+											</div>
+										</td>
+										<td className="p-2 font-mono text-xs text-dbz-orange">
+											{m.series}
+										</td>
+										<td className="p-2 text-[11px] text-white/55">
+											{m.release_date
+												? new Date(m.release_date).toLocaleDateString("fr-FR")
+												: "—"}
+										</td>
+										<td className="p-2 text-xs text-white/70">
+											{m.duration_min ? `${m.duration_min} min` : "—"}
+										</td>
+										<td className="p-2 text-right">
+											{m.mal_id ? (
+												<a
+													href={`https://myanimelist.net/anime/${m.mal_id}`}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-[10px] font-mono text-dbz-blue-light/70 hover:text-dbz-orange"
+												>
+													#{m.mal_id}
+												</a>
+											) : (
+												<span className="text-[10px] text-white/25">—</span>
+											)}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+			)}
 		</div>
 	);
 }

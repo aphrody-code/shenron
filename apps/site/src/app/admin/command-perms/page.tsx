@@ -10,11 +10,17 @@ export default async function AdminCommandPermsPage() {
 		<div className="w-full max-w-5xl mx-auto">
 			<header className="mb-6">
 				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					COMMAND PERMS · RBAC
+					PERMISSIONS FINES
 				</h1>
+				<p className="text-sm text-zinc-300 mb-1">
+					Règles avancées d'accès aux commandes Discord, stockées en base de
+					données. Chaque règle précise si un rôle ou un utilisateur peut
+					(ALLOW) ou ne peut pas (DENY) utiliser une commande. Plus spécifique
+					qu'une règle de groupe, elle prime sur les réglages généraux.
+				</p>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-					{data.rows.length} règles · permissions fines slash commands (table
-					command_permissions)
+					{data.rows.length} règle{data.rows.length > 1 ? "s" : ""} · hiérarchie
+					: commande exacte &gt; groupe * &gt; joker global *
 				</p>
 			</header>
 
@@ -24,7 +30,13 @@ export default async function AdminCommandPermsPage() {
 				<table className="w-full min-w-[700px] text-xs">
 					<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
 						<tr>
-							{["Command", "Scope", "Cible", "Allow/Deny", ""].map((h) => (
+							{[
+								"Commande",
+								"Portée",
+								"Cible (rôle / utilisateur)",
+								"Autorisation",
+								"",
+							].map((h) => (
 								<th
 									key={h}
 									className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light"
@@ -39,18 +51,18 @@ export default async function AdminCommandPermsPage() {
 							<tr key={i} className="hover:bg-dbz-blue-light/5">
 								<td className="p-2 font-mono text-fuchsia-300">/{r.command}</td>
 								<td className="p-2 font-mono text-cyan-300">{r.scope}</td>
-								<td className="p-2 font-mono text-white/70">
+								<td className="p-2 text-white/70">
 									{r.roleId
-										? `role ${r.roleId}`
+										? `Rôle ${r.roleId}`
 										: r.userId
-											? `user ${r.userId}`
-											: "global"}
+											? `Utilisateur ${r.userId}`
+											: "Tout le monde"}
 								</td>
 								<td className="p-2">
 									{r.allow ? (
-										<span className="text-green-300 font-bold">ALLOW</span>
+										<span className="text-green-300 font-bold">AUTORISÉ</span>
 									) : (
-										<span className="text-red-300 font-bold">DENY</span>
+										<span className="text-red-300 font-bold">INTERDIT</span>
 									)}
 								</td>
 								<td className="p-2 text-right">
@@ -66,8 +78,8 @@ export default async function AdminCommandPermsPage() {
 						{data.rows.length === 0 && (
 							<tr>
 								<td colSpan={5} className="p-6 text-center text-white/50">
-									Aucune règle · les permissions par défaut s'appliquent (guards
-									Admin/Mod/Owner).
+									Aucune règle fine définie. Les protections par défaut
+									s'appliquent (gardes Admin / Modérateur / Propriétaire).
 								</td>
 							</tr>
 						)}

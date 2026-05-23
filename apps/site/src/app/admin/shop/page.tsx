@@ -10,6 +10,9 @@ import {
 	Search,
 	Power,
 	PowerOff,
+	AlertTriangle,
+	CheckCircle2,
+	Loader2,
 } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "@/lib/admin-api";
@@ -28,15 +31,59 @@ interface ShopItem {
 	enabled: boolean;
 }
 
-const TYPE_META: Record<
-	ShopItem["type"],
-	{ emoji: string; label: string; color: string }
-> = {
-	card: { emoji: "🎴", label: "Carte profil", color: "text-amber-400" },
-	badge: { emoji: "🏅", label: "Badge", color: "text-fuchsia-400" },
-	color: { emoji: "🎨", label: "Couleur (rôle)", color: "text-blue-400" },
-	title: { emoji: "👑", label: "Titre", color: "text-purple-400" },
+const TYPE_META: Record<ShopItem["type"], { label: string; color: string }> = {
+	card: { label: "Carte de profil", color: "text-amber-400" },
+	badge: { label: "Badge", color: "text-fuchsia-400" },
+	color: { label: "Couleur (rôle)", color: "text-blue-400" },
+	title: { label: "Titre", color: "text-purple-400" },
 };
+
+function ConfirmDialog({
+	title,
+	message,
+	confirmLabel,
+	onConfirm,
+	onCancel,
+}: {
+	title: string;
+	message: string;
+	confirmLabel: string;
+	onConfirm: () => void;
+	onCancel: () => void;
+}) {
+	return (
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+			<div className="card w-full max-w-sm space-y-4 border border-red-500/40">
+				<div className="flex items-start gap-3">
+					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+					<div>
+						<h3 className="font-semibold text-white">{title}</h3>
+						<p className="mt-1 text-sm text-zinc-400">{message}</p>
+					</div>
+					<button
+						type="button"
+						onClick={onCancel}
+						className="ml-auto btn btn-ghost px-1 py-1"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</div>
+				<div className="flex justify-end gap-2">
+					<button type="button" onClick={onCancel} className="btn btn-ghost">
+						Annuler
+					</button>
+					<button
+						type="button"
+						onClick={onConfirm}
+						className="btn btn-primary bg-red-600 hover:bg-red-500 border-red-500"
+					>
+						{confirmLabel}
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
 
 export default function ShopPage() {
 	const qc = useQueryClient();
@@ -44,6 +91,13 @@ export default function ShopPage() {
 	const [creating, setCreating] = useState(false);
 	const [search, setSearch] = useState("");
 	const [typeFilter, setTypeFilter] = useState<string>("");
+	const [confirmDelete, setConfirmDelete] = useState<ShopItem | null>(null);
+	const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+	const showSuccess = (msg: string) => {
+		setSuccessMsg(msg);
+		setTimeout(() => setSuccessMsg(null), 3000);
+	};
 
 	const items = useQuery({
 		queryKey: ["shop", "items"],
@@ -56,7 +110,10 @@ export default function ShopPage() {
 	const remove = useMutation({
 		mutationFn: (key: string) =>
 			api.delete(`/database/shop_items/${encodeURIComponent(key)}`),
-		onSuccess: () => qc.invalidateQueries({ queryKey: ["shop"] }),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["shop"] });
+			showSuccess("Article supprimé définitivement.");
+		},
 	});
 
 	const filtered = useMemo(() => {
@@ -92,27 +149,47 @@ export default function ShopPage() {
 
 	return (
 		<div className="space-y-4">
+			{confirmDelete && (
+				<ConfirmDialog
+					title={`Supprimer « ${confirmDelete.name} » ?`}
+					message="Cet article sera définitivement supprimé de la boutique. Les membres qui l'ont déjà acheté conserveront leur exemplaire dans leur inventaire."
+					confirmLabel="Supprimer définitivement"
+					onConfirm={() => {
+						remove.mutate(confirmDelete.key);
+						setConfirmDelete(null);
+					}}
+					onCancel={() => setConfirmDelete(null)}
+				/>
+			)}
+
+			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
 					<ShoppingBag className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Shop</h2>
+					<h2 className="text-lg font-semibold">Boutique</h2>
 					<span className="ml-2 text-xs text-zinc-500">
-						{stats.total} item(s) · {stats.enabled} actif(s)
+						{stats.total} article{stats.total !== 1 ? "s" : ""} ·{" "}
+						{stats.enabled} actif{stats.enabled !== 1 ? "s" : ""}
 					</span>
 					<button
 						type="button"
 						className="ml-auto btn btn-primary"
 						onClick={() => setCreating(true)}
 					>
-						<Plus className="h-3 w-3" /> Créer
+						<Plus className="h-3 w-3" /> Créer un article
 					</button>
 				</div>
+				<p className="mt-1 text-sm text-zinc-400">
+					Gérez les articles disponibles à l&apos;achat avec des zénis. Un
+					article désactivé reste en base mais n&apos;est plus affiché dans la
+					boutique.
+				</p>
 				<div className="mt-3 grid gap-2 sm:grid-cols-3">
 					<div className="relative">
 						<Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500" />
 						<input
 							className="input w-full pl-8"
-							placeholder="Filtrer par nom / clé"
+							placeholder="Rechercher par nom ou identifiant"
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 						/>
@@ -122,19 +199,36 @@ export default function ShopPage() {
 						value={typeFilter}
 						onChange={(e) => setTypeFilter(e.target.value)}
 					>
-						<option value="">— Tous types —</option>
+						<option value="">— Tous les types —</option>
 						{Object.entries(TYPE_META).map(([t, m]) => (
 							<option key={t} value={t}>
-								{m.emoji} {m.label} ({stats.byType[t] ?? 0})
+								{m.label} ({stats.byType[t] ?? 0})
 							</option>
 						))}
 					</select>
 					<div className="flex items-center gap-2 text-xs text-zinc-500">
-						{filtered.length} résultat(s)
+						{filtered.length} résultat{filtered.length !== 1 ? "s" : ""}
 					</div>
 				</div>
 			</div>
 
+			{/* Feedback */}
+			{successMsg && (
+				<div className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					{successMsg}
+				</div>
+			)}
+
+			{/* Chargement */}
+			{items.isLoading && (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement des articles…
+				</div>
+			)}
+
+			{/* Grille d'articles */}
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{filtered.map((item) => (
 					<div
@@ -142,16 +236,24 @@ export default function ShopPage() {
 						className={cn("card", !item.enabled && "opacity-60")}
 					>
 						<div className="flex items-start gap-2">
-							<span className={`text-2xl ${TYPE_META[item.type].color}`}>
-								{TYPE_META[item.type].emoji}
-							</span>
 							<div className="flex-1 min-w-0">
-								<h3 className="truncate font-semibold">{item.name}</h3>
+								<div className="flex items-center gap-2">
+									<span
+										className={`text-xs font-semibold uppercase tracking-wide ${TYPE_META[item.type].color}`}
+									>
+										{TYPE_META[item.type].label}
+									</span>
+									{!item.enabled && (
+										<span className="badge badge-error text-[10px]">
+											Masqué
+										</span>
+									)}
+								</div>
+								<h3 className="mt-0.5 truncate font-semibold">{item.name}</h3>
 								<code className="block truncate text-[10px] text-zinc-500">
 									{item.key}
 								</code>
 							</div>
-							{!item.enabled && <span className="badge badge-error">OFF</span>}
 						</div>
 						{item.description && (
 							<p className="mt-2 line-clamp-2 text-xs text-zinc-400">
@@ -160,7 +262,7 @@ export default function ShopPage() {
 						)}
 						<div className="mt-3 flex items-center gap-2">
 							<span className="badge badge-warning">
-								💰 {(item.price ?? 0).toLocaleString("fr-FR")} z
+								{(item.price ?? 0).toLocaleString("fr-FR")} zénis
 							</span>
 							{item.roleId && <RoleBadge roleId={item.roleId} />}
 						</div>
@@ -175,10 +277,8 @@ export default function ShopPage() {
 							<button
 								type="button"
 								className="btn btn-ghost px-2 text-red-400"
-								onClick={() => {
-									if (confirm(`Supprimer ${item.key} ?`))
-										remove.mutate(item.key);
-								}}
+								title="Supprimer cet article"
+								onClick={() => setConfirmDelete(item)}
 							>
 								<Trash2 className="h-3 w-3" />
 							</button>
@@ -187,7 +287,9 @@ export default function ShopPage() {
 				))}
 				{filtered.length === 0 && !items.isLoading && (
 					<div className="col-span-full card text-center text-zinc-500">
-						Aucun item ne correspond aux filtres.
+						{search || typeFilter
+							? "Aucun article ne correspond à ces filtres."
+							: "Aucun article dans la boutique. Créez le premier !"}
 					</div>
 				)}
 			</div>
@@ -199,7 +301,14 @@ export default function ShopPage() {
 						setEditing(null);
 						setCreating(false);
 					}}
-					onSaved={() => qc.invalidateQueries({ queryKey: ["shop"] })}
+					onSaved={() => {
+						qc.invalidateQueries({ queryKey: ["shop"] });
+						showSuccess(
+							editing
+								? "Article modifié avec succès."
+								: "Article créé avec succès.",
+						);
+					}}
 				/>
 			)}
 		</div>
@@ -251,18 +360,20 @@ function ShopItemEditor({
 		e.preventDefault();
 		setError(null);
 		if (!draft.key || !draft.name) {
-			setError("Clé et nom requis.");
+			setError("L'identifiant et le nom sont obligatoires.");
 			return;
 		}
 		if (!/^[a-z0-9_-]+$/.test(draft.key)) {
-			setError("Clé doit être [a-z0-9_-]+ (slug).");
+			setError(
+				"L'identifiant doit contenir uniquement des lettres minuscules, chiffres, tirets ou underscores.",
+			);
 			return;
 		}
 		if (draft.meta) {
 			try {
 				JSON.parse(draft.meta);
 			} catch {
-				setError("Meta doit être du JSON valide.");
+				setError("Le champ Méta doit contenir du JSON valide.");
 				return;
 			}
 		}
@@ -277,7 +388,7 @@ function ShopItemEditor({
 			>
 				<div className="flex items-center gap-2">
 					<h3 className="text-lg font-semibold">
-						{isCreate ? "Créer un item shop" : `Modifier ${draft.key}`}
+						{isCreate ? "Créer un article" : `Modifier « ${draft.name} »`}
 					</h3>
 					<button
 						type="button"
@@ -294,17 +405,24 @@ function ShopItemEditor({
 				)}
 				<div className="grid gap-2 sm:grid-cols-2">
 					<div>
-						<label className="block text-xs text-zinc-500">Clé (slug)</label>
+						<label className="block text-xs text-zinc-500">
+							Identifiant (slug)
+							<span className="ml-1 text-zinc-600">
+								— lettres minuscules et tirets
+							</span>
+						</label>
 						<input
 							className="input w-full font-mono text-xs"
 							value={draft.key}
 							onChange={(e) => setDraft({ ...draft, key: e.target.value })}
 							disabled={!isCreate}
-							placeholder="goku_card"
+							placeholder="goku_super_saiyan"
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">Type</label>
+						<label className="block text-xs text-zinc-500">
+							Type d&apos;article
+						</label>
 						<select
 							className="input w-full"
 							value={draft.type}
@@ -314,25 +432,25 @@ function ShopItemEditor({
 						>
 							{Object.entries(TYPE_META).map(([t, m]) => (
 								<option key={t} value={t}>
-									{m.emoji} {m.label}
+									{m.label}
 								</option>
 							))}
 						</select>
 					</div>
 					<div className="sm:col-span-2">
 						<label className="block text-xs text-zinc-500">
-							Nom (affiché en boutique)
+							Nom affiché dans la boutique
 						</label>
 						<input
 							className="input w-full"
 							value={draft.name}
 							onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-							placeholder="Goku Saiyan"
+							placeholder="Super Saiyan Goku"
 						/>
 					</div>
 					<div className="sm:col-span-2">
 						<label className="block text-xs text-zinc-500">
-							Description (optionnel)
+							Description (optionnelle)
 						</label>
 						<textarea
 							className="input w-full"
@@ -344,7 +462,7 @@ function ShopItemEditor({
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">Prix (zenis)</label>
+						<label className="block text-xs text-zinc-500">Prix en zénis</label>
 						<input
 							className="input w-full"
 							type="number"
@@ -356,7 +474,9 @@ function ShopItemEditor({
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">Activé</label>
+						<label className="block text-xs text-zinc-500">
+							Visibilité dans la boutique
+						</label>
 						<button
 							type="button"
 							className={`btn ${draft.enabled ? "btn-primary" : "btn-ghost"} w-full`}
@@ -364,11 +484,11 @@ function ShopItemEditor({
 						>
 							{draft.enabled ? (
 								<>
-									<Power className="h-3 w-3" /> Visible boutique
+									<Power className="h-3 w-3" /> Visible (actif)
 								</>
 							) : (
 								<>
-									<PowerOff className="h-3 w-3" /> Masqué
+									<PowerOff className="h-3 w-3" /> Masqué (inactif)
 								</>
 							)}
 						</button>
@@ -376,7 +496,10 @@ function ShopItemEditor({
 					{draft.type === "color" && (
 						<div className="sm:col-span-2">
 							<label className="block text-xs text-zinc-500">
-								Rôle attribué à l&apos;achat (couleurs uniquement)
+								Rôle Discord attribué à l&apos;achat
+								<span className="ml-1 text-zinc-600">
+									— couleurs uniquement
+								</span>
 							</label>
 							<RolePicker
 								value={draft.roleId ?? ""}
@@ -386,7 +509,10 @@ function ShopItemEditor({
 					)}
 					<div className="sm:col-span-2">
 						<label className="block text-xs text-zinc-500">
-							Meta (JSON optionnel — image url, propriétés custom)
+							Données supplémentaires (JSON optionnel)
+							<span className="ml-1 text-zinc-600">
+								— URL d&apos;image, propriétés custom
+							</span>
 						</label>
 						<textarea
 							className="input w-full font-mono text-xs"
@@ -405,7 +531,12 @@ function ShopItemEditor({
 						className="btn btn-primary"
 						disabled={save.isPending}
 					>
-						<Save className="h-3 w-3" /> {isCreate ? "Créer" : "Enregistrer"}
+						<Save className="h-3 w-3" />
+						{save.isPending
+							? "Enregistrement…"
+							: isCreate
+								? "Créer l'article"
+								: "Enregistrer les modifications"}
 					</button>
 					<button type="button" className="btn btn-ghost" onClick={onClose}>
 						Annuler

@@ -1,10 +1,81 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Activity, Cpu, Server, Users } from "lucide-react";
+import {
+	Activity,
+	Cpu,
+	Server,
+	Users,
+	BookOpen,
+	Shield,
+	Coins,
+	MessageSquare,
+	TrendingUp,
+	Settings,
+} from "lucide-react";
 import { api } from "@/lib/admin-api";
-import { formatBytes, formatDuration } from "@/lib/admin-format";
+import { formatBytes, formatDuration, fmtNum } from "@/lib/admin-format";
 import { useBots, type BotSummary } from "@/components/admin/BotSelector";
+
+// ---------------------------------------------------------------------------
+// Cartes "Que voulez-vous faire ?" — accès rapide pour l'admin
+// ---------------------------------------------------------------------------
+
+const QUICK_ACTIONS = [
+	{
+		href: "/admin/wiki",
+		label: "Encyclopédie Dragon Ball",
+		description: "Gérer le wiki, les sagas, films et jeux",
+		icon: <BookOpen className="h-6 w-6" />,
+		color: "text-dbz-yellow",
+		bg: "bg-dbz-yellow/10 hover:bg-dbz-yellow/20 border-dbz-yellow/30 hover:border-dbz-yellow/60",
+	},
+	{
+		href: "/admin/levels",
+		label: "Membres & Niveaux",
+		description: "Voir la progression XP de vos membres",
+		icon: <TrendingUp className="h-6 w-6" />,
+		color: "text-brand-400",
+		bg: "bg-brand-400/10 hover:bg-brand-400/20 border-brand-400/30 hover:border-brand-400/60",
+	},
+	{
+		href: "/admin/moderation",
+		label: "Modération",
+		description: "Gérer les sanctions et les rôles",
+		icon: <Shield className="h-6 w-6" />,
+		color: "text-dbz-red",
+		bg: "bg-dbz-red/10 hover:bg-dbz-red/20 border-dbz-red/30 hover:border-dbz-red/60",
+	},
+	{
+		href: "/admin/economy",
+		label: "Économie",
+		description: "Zénies, boutique et transactions",
+		icon: <Coins className="h-6 w-6" />,
+		color: "text-namek",
+		bg: "bg-namek/10 hover:bg-namek/20 border-namek/30 hover:border-namek/60",
+	},
+	{
+		href: "/admin/send",
+		label: "Envoyer un message",
+		description: "Diffuser une annonce via le bot",
+		icon: <MessageSquare className="h-6 w-6" />,
+		color: "text-dbz-blue-light",
+		bg: "bg-dbz-blue/10 hover:bg-dbz-blue/20 border-dbz-blue-light/20 hover:border-dbz-blue-light/40",
+	},
+	{
+		href: "/admin/settings",
+		label: "Paramètres",
+		description: "Configurer le comportement du bot",
+		icon: <Settings className="h-6 w-6" />,
+		color: "text-white/70",
+		bg: "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/25",
+	},
+];
+
+// ---------------------------------------------------------------------------
+// Page principale
+// ---------------------------------------------------------------------------
 
 export default function DashboardPage() {
 	const bots = useBots();
@@ -32,79 +103,144 @@ export default function DashboardPage() {
 			: null;
 
 	return (
-		<div className="space-y-6">
-			{/* Vue d&apos;ensemble — résumé du système multi-bot */}
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<KPICard title="Bots en ligne" icon={<Server className="h-4 w-4" />}>
-					<p className="text-3xl font-bold text-brand-400">
-						{onlineCount}
-						<span className="text-sm text-zinc-500"> / {totalCount}</span>
-					</p>
-					<p className="mt-2 text-xs text-zinc-400">
-						{totalCount > 0
-							? `${onlineCount === totalCount ? "Tous opérationnels" : `${totalCount - onlineCount} hors ligne`}`
-							: "—"}
-					</p>
-				</KPICard>
-
-				<KPICard title="Joueurs en base" icon={<Users className="h-4 w-4" />}>
-					<p className="text-3xl font-bold text-brand-400">
-						{stats.data?.stats.totalUsers ?? "—"}
-					</p>
-					<p className="mt-2 text-xs text-zinc-400">
-						{stats.data?.stats.totalActiveUsers ?? "—"} actifs ·{" "}
-						{stats.data?.stats.totalGuilds ?? "—"} serveur
-						{(stats.data?.stats.totalGuilds ?? 0) > 1 ? "s" : ""}
-					</p>
-				</KPICard>
-
-				<KPICard
-					title="Latence moyenne"
-					icon={<Activity className="h-4 w-4" />}
-				>
-					<p className="text-3xl font-bold">
-						{avgPing !== null ? avgPing : "—"}
-						<span className="text-sm text-zinc-500"> ms</span>
-					</p>
-					<p className="mt-2 text-xs text-zinc-400">
-						WS Discord · base {health.data?.latency.db ?? "—"} ms
-					</p>
-				</KPICard>
-
-				<KPICard title="Mémoire process" icon={<Cpu className="h-4 w-4" />}>
-					<p className="text-3xl font-bold">
-						{health.data ? formatBytes(health.data.pid.rss).split(" ")[0] : "—"}
-						<span className="text-sm text-zinc-500">
-							{" "}
-							{health.data
-								? formatBytes(health.data.pid.rss).split(" ")[1]
-								: ""}
+		<div className="space-y-8">
+			{/* En-tête accueillant */}
+			<div className="dbz-panel px-6 py-5">
+				<div className="flex items-start gap-4">
+					<div className="flex-1">
+						<h1 className="font-saiyan text-3xl text-dbz-yellow leading-tight">
+							Bienvenue dans votre espace admin
+						</h1>
+						<p className="mt-2 text-white/60 text-sm leading-relaxed max-w-xl">
+							Depuis ici, gérez le bot Dragon Ball France : membres, économie,
+							encyclopédie, modération et bien plus. Utilisez le menu à gauche
+							ou les raccourcis ci-dessous.
+						</p>
+					</div>
+					<div className="hidden sm:flex items-center gap-2 shrink-0">
+						<span
+							className={`h-2.5 w-2.5 rounded-full ${onlineCount > 0 ? "bg-namek animate-pulse" : "bg-dbz-red"}`}
+						/>
+						<span className="text-xs text-white/50">
+							{onlineCount > 0
+								? `${onlineCount} persona${onlineCount > 1 ? "s" : ""} en ligne`
+								: "Bot hors ligne"}
 						</span>
-					</p>
-					<p className="mt-2 text-xs text-zinc-400">
-						CPU {health.data?.pid.cpu ?? "—"} % · machine{" "}
-						{health.data?.host.cpu.usage ?? "—"} %
-					</p>
-				</KPICard>
+					</div>
+				</div>
 			</div>
 
-			{/* Grid des 6 personas */}
+			{/* Accès rapides — que voulez-vous faire ? */}
 			<div>
-				<h2 className="mb-3 text-lg font-semibold">Personas</h2>
+				<h2 className="mb-4 text-base font-semibold text-white/70 uppercase tracking-widest text-[11px]">
+					Que voulez-vous faire ?
+				</h2>
+				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					{QUICK_ACTIONS.map((a) => (
+						<Link
+							key={a.href}
+							href={a.href}
+							className={`dbz-quick-action group flex items-start gap-4 p-4 rounded-xl border transition-all ${a.bg}`}
+						>
+							<span className={`mt-0.5 shrink-0 ${a.color}`}>{a.icon}</span>
+							<div className="min-w-0">
+								<p className={`font-display font-semibold text-sm ${a.color}`}>
+									{a.label}
+								</p>
+								<p className="mt-0.5 text-xs text-white/50 leading-snug">
+									{a.description}
+								</p>
+							</div>
+						</Link>
+					))}
+				</div>
+			</div>
+
+			{/* KPIs — vue d'ensemble du système */}
+			<div>
+				<h2 className="mb-4 text-base font-semibold text-white/70 uppercase tracking-widest text-[11px]">
+					État du système
+				</h2>
+				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+					<KPICard label="Bots en ligne" icon={<Server className="h-4 w-4" />}>
+						<p className="text-3xl font-bold text-brand-400">
+							{onlineCount}
+							<span className="text-sm text-zinc-500"> / {totalCount}</span>
+						</p>
+						<p className="mt-2 text-xs text-zinc-400">
+							{totalCount > 0
+								? onlineCount === totalCount
+									? "Tous opérationnels"
+									: `${totalCount - onlineCount} hors ligne`
+								: "—"}
+						</p>
+					</KPICard>
+
+					<KPICard label="Joueurs en base" icon={<Users className="h-4 w-4" />}>
+						<p className="text-3xl font-bold text-brand-400">
+							{stats.data ? fmtNum(stats.data.stats.totalUsers) : "—"}
+						</p>
+						<p className="mt-2 text-xs text-zinc-400">
+							{stats.data ? fmtNum(stats.data.stats.totalActiveUsers) : "—"}{" "}
+							actifs &middot;{" "}
+							{stats.data ? fmtNum(stats.data.stats.totalGuilds) : "—"} serveur
+							{(stats.data?.stats.totalGuilds ?? 0) > 1 ? "s" : ""}
+						</p>
+					</KPICard>
+
+					<KPICard
+						label="Latence Discord"
+						icon={<Activity className="h-4 w-4" />}
+					>
+						<p className="text-3xl font-bold">
+							{avgPing !== null ? avgPing : "—"}
+							<span className="text-sm text-zinc-500"> ms</span>
+						</p>
+						<p className="mt-2 text-xs text-zinc-400">
+							WebSocket &middot; base de données{" "}
+							{health.data?.latency.db ?? "—"}&nbsp;ms
+						</p>
+					</KPICard>
+
+					<KPICard label="Mémoire utilisée" icon={<Cpu className="h-4 w-4" />}>
+						<p className="text-3xl font-bold">
+							{health.data
+								? formatBytes(health.data.pid.rss).split(" ")[0]
+								: "—"}
+							<span className="text-sm text-zinc-500">
+								{" "}
+								{health.data
+									? formatBytes(health.data.pid.rss).split(" ")[1]
+									: ""}
+							</span>
+						</p>
+						<p className="mt-2 text-xs text-zinc-400">
+							CPU {health.data?.pid.cpu ?? "—"} % &middot; machine{" "}
+							{health.data?.host.cpu.usage ?? "—"} %
+						</p>
+					</KPICard>
+				</div>
+			</div>
+
+			{/* Personas — état de chacun */}
+			<div>
+				<h2 className="mb-4 text-base font-semibold text-white/70 uppercase tracking-widest text-[11px]">
+					Personas Discord
+				</h2>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{bots.data?.bots.map((b) => <BotCard key={b.id} bot={b} />) ?? (
-						<div className="text-zinc-500">Chargement…</div>
+						<div className="text-zinc-500 text-sm">Chargement…</div>
 					)}
 				</div>
 			</div>
 
 			{/* Machine hôte */}
 			<div className="card">
-				<h2 className="mb-4 text-lg font-semibold">Machine hôte</h2>
+				<h2 className="mb-4 text-base font-semibold">Machine hôte (VPS)</h2>
 				{health.data ? (
 					<dl className="grid gap-2 text-sm sm:grid-cols-2">
 						<div className="flex justify-between border-b border-zinc-900 py-1">
-							<dt className="text-zinc-400">Système</dt>
+							<dt className="text-zinc-400">Système d&rsquo;exploitation</dt>
 							<dd>{health.data.host.platform}</dd>
 						</div>
 						<div className="flex justify-between border-b border-zinc-900 py-1">
@@ -122,24 +258,28 @@ export default function DashboardPage() {
 							</dd>
 						</div>
 						<div className="flex justify-between border-b border-zinc-900 py-1">
-							<dt className="text-zinc-400">Uptime machine</dt>
+							<dt className="text-zinc-400">Temps de fonctionnement</dt>
 							<dd>{formatDuration(health.data.host.uptime * 1000)}</dd>
 						</div>
 					</dl>
 				) : (
-					<p className="text-zinc-500">…</p>
+					<p className="text-zinc-500 text-sm">Connexion à la machine hôte…</p>
 				)}
 			</div>
 		</div>
 	);
 }
 
+// ---------------------------------------------------------------------------
+// Composants internes
+// ---------------------------------------------------------------------------
+
 function KPICard({
-	title,
+	label,
 	icon,
 	children,
 }: {
-	title: string;
+	label: string;
 	icon: React.ReactNode;
 	children: React.ReactNode;
 }) {
@@ -147,7 +287,7 @@ function KPICard({
 		<div className="card">
 			<div className="mb-3 flex items-center gap-2 text-zinc-400">
 				{icon}
-				<h3 className="text-sm font-medium">{title}</h3>
+				<h3 className="text-sm font-medium">{label}</h3>
 			</div>
 			{children}
 		</div>
@@ -161,7 +301,6 @@ function BotCard({ bot }: { bot: BotSummary }) {
 			title={bot.username ?? bot.name}
 		>
 			{bot.avatar ? (
-				 
 				<img
 					src={bot.avatar}
 					alt=""
@@ -175,12 +314,13 @@ function BotCard({ bot }: { bot: BotSummary }) {
 					<h3 className="truncate font-semibold">{bot.name}</h3>
 					<span
 						className={`h-2 w-2 shrink-0 rounded-full ${bot.online ? "bg-emerald-400" : "bg-red-500"}`}
+						title={bot.online ? "En ligne" : "Hors ligne"}
 					/>
 				</div>
 				<p className="mt-0.5 text-xs text-zinc-500">
 					{bot.online ? (
 						<>
-							{bot.wsPing} ms · uptime{" "}
+							{bot.wsPing} ms &middot; actif depuis{" "}
 							{bot.uptime ? formatDuration(bot.uptime) : "—"}
 						</>
 					) : (

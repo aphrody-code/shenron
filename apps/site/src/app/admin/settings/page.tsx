@@ -128,7 +128,9 @@ export default function SettingsPage() {
 	const current = useQuery({
 		queryKey: ["settings", "current"],
 		queryFn: () =>
-			api.get<{ rows: CurrentSetting[] }>("/database/guild_settings?limit=200"),
+			api.get<{ rows: CurrentSetting[]; total?: number }>(
+				"/database/guild_settings?limit=200",
+			),
 	});
 
 	const set = useMutation({
@@ -143,7 +145,7 @@ export default function SettingsPage() {
 
 	const valueMap = useMemo(() => {
 		const m = new Map<string, string>();
-		for (const r of (current.data as any)?.rows ?? []) m.set(r.key, r.value);
+		for (const r of current.data?.rows ?? []) m.set(r.key, r.value);
 		return m;
 	}, [current.data]);
 
@@ -161,7 +163,7 @@ export default function SettingsPage() {
 		}));
 	}, [schema.data]);
 
-	const overriddenCount = (current.data as any)?.rows?.length ?? 0;
+	const overriddenCount = current.data?.rows?.length ?? 0;
 	const xpBoostRoles = useMemo(() => {
 		const out: { roleId: string; multiplier: string }[] = [];
 		for (const [k, v] of valueMap) {
@@ -172,19 +174,31 @@ export default function SettingsPage() {
 	}, [valueMap]);
 
 	if (schema.isLoading)
-		return <div className="text-zinc-500">Chargement du schema…</div>;
+		return (
+			<div className="text-zinc-500 text-sm">
+				Chargement de la configuration…
+			</div>
+		);
 
 	return (
 		<div className="space-y-4">
-			<div className="card">
-				<div className="flex items-center gap-2">
-					<SettingsIcon className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">Configuration complète</h2>
+			<div className="dbz-panel p-4">
+				<div className="flex items-center gap-2 mb-2">
+					<SettingsIcon className="h-5 w-5 text-dbz-orange" />
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
+						Configuration du bot
+					</h2>
 				</div>
-				<p className="mt-1 text-sm text-zinc-400">
-					{schema.data?.keys.filter((k) => !k.prefix).length} clés configurables
-					· {overriddenCount} surcharges actives. Toute valeur sans surcharge
-					utilise la valeur par défaut affichée. Cache bot 30 s.
+				<p className="text-sm text-zinc-300">
+					Tous les réglages du bot sont regroupés ici : quels salons utiliser,
+					quels rôles assigner, combien d'XP gagner par message… Chaque valeur a
+					un défaut intégré ; vous ne modifiez que ce que vous souhaitez
+					personnaliser.
+				</p>
+				<p className="mt-1 text-xs text-dbz-blue-light">
+					{schema.data?.keys.filter((k) => !k.prefix).length ?? 0} paramètres ·
+					{overriddenCount} personnalisé{overriddenCount > 1 ? "s" : ""} · les
+					valeurs par défaut s'appliquent si rien n'est défini · cache bot 30 s
 				</p>
 			</div>
 
@@ -458,7 +472,7 @@ function GifPreview({ url }: { url: string }) {
 		);
 	return (
 		<div className="flex items-center gap-2">
-			{ }
+			{}
 			<img
 				src={url}
 				alt=""

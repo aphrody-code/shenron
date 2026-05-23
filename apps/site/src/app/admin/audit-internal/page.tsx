@@ -1,7 +1,15 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileSearch, RefreshCw, Filter } from "lucide-react";
+import {
+	FileSearch,
+	RefreshCw,
+	Filter,
+	Loader2,
+	AlertTriangle,
+	ChevronLeft,
+	ChevronRight,
+} from "lucide-react";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
 
@@ -12,7 +20,7 @@ interface ActionLog {
 	action: string;
 	reason: string | null;
 	meta: string | null;
-	createdAt: string;
+	createdAt: string | number;
 }
 
 const ACTION_OPTIONS = [
@@ -33,6 +41,25 @@ const ACTION_OPTIONS = [
 	"LEVEL_UP",
 ] as const;
 
+// Labels lisibles pour les actions
+const ACTION_LABELS: Record<string, string> = {
+	WARN: "Avertissement",
+	UNWARN: "Retrait d'avertissement",
+	MUTE: "Mise en sourdine",
+	UNMUTE: "Fin de sourdine",
+	JAIL: "Mise en prison",
+	UNJAIL: "Libération prison",
+	BAN: "Bannissement",
+	UNBAN: "Débannissement",
+	KICK: "Expulsion",
+	PURGE: "Suppression messages",
+	CLEAR: "Nettoyage",
+	SLOWMODE: "Mode lent",
+	LOCK: "Verrouillage salon",
+	UNLOCK: "Déverrouillage salon",
+	LEVEL_UP: "Montée de niveau",
+};
+
 const ACTION_COLORS: Record<string, string> = {
 	WARN: "text-amber-400",
 	UNWARN: "text-emerald-400",
@@ -52,8 +79,8 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 /**
- * Page dédiée pour visualiser la table `action_logs` avec filtres serveur.
- * Distincte de `/admin/audit` (qui interroge l&apos;audit log Discord natif).
+ * Visualise la table `action_logs` avec filtres serveur.
+ * Distinct de `/admin/audit` qui interroge le journal d'audit Discord natif.
  */
 export default function AuditInternalPage() {
 	const qc = useQueryClient();
@@ -82,11 +109,12 @@ export default function AuditInternalPage() {
 
 	return (
 		<div className="space-y-4">
+			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
 					<FileSearch className="h-5 w-5 text-brand-400" />
 					<h2 className="text-lg font-semibold">
-						Journal interne — action_logs
+						Journal des actions internes
 					</h2>
 					<button
 						type="button"
@@ -100,13 +128,17 @@ export default function AuditInternalPage() {
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Toutes les actions modé/level/economy enregistrées par les services.
-					Un autre journal (Discord native audit log) est disponible sur la page{" "}
-					<code>/admin/audit</code>.
+					Toutes les actions enregistrées par le bot : modération, montées de
+					niveau, opérations sur l&apos;économie. Pour le journal d&apos;audit
+					officiel Discord, consultez la page{" "}
+					<strong>Journal d&apos;audit</strong>.
 				</p>
+				{/* Filtres */}
 				<div className="mt-3 grid gap-2 sm:grid-cols-3">
 					<div>
-						<label className="block text-xs text-zinc-500">Action</label>
+						<label className="mb-1 block text-xs text-zinc-500">
+							Type d&apos;action
+						</label>
 						<select
 							className="input w-full"
 							value={action}
@@ -115,16 +147,18 @@ export default function AuditInternalPage() {
 								setPage(0);
 							}}
 						>
-							<option value="">— Toutes —</option>
+							<option value="">— Toutes les actions —</option>
 							{ACTION_OPTIONS.map((a) => (
 								<option key={a} value={a}>
-									{a}
+									{ACTION_LABELS[a] ?? a}
 								</option>
 							))}
 						</select>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">User ID</label>
+						<label className="mb-1 block text-xs text-zinc-500">
+							Filtrer par membre (identifiant Discord)
+						</label>
 						<input
 							className="input w-full font-mono text-xs"
 							value={userId}
@@ -132,7 +166,7 @@ export default function AuditInternalPage() {
 								setUserId(e.target.value);
 								setPage(0);
 							}}
-							placeholder="snowflake (filtre cible)"
+							placeholder="000000000000000000"
 						/>
 					</div>
 					<div className="flex items-end gap-2">
@@ -145,59 +179,112 @@ export default function AuditInternalPage() {
 								setPage(0);
 							}}
 						>
-							<Filter className="h-3 w-3" /> Réinit
+							<Filter className="h-3 w-3" /> Réinitialiser
 						</button>
 						<span className="ml-auto text-xs text-zinc-500">
-							{logs.data?.total ?? 0} entrée(s)
+							{logs.data?.total ?? 0} entrée
+							{(logs.data?.total ?? 0) !== 1 ? "s" : ""}
 						</span>
 					</div>
 				</div>
 			</div>
 
-			{logs.isLoading && <div className="text-zinc-500">Chargement…</div>}
+			{/* Chargement */}
+			{logs.isLoading && (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement du journal…
+				</div>
+			)}
 
+			{/* Erreur */}
+			{logs.isError && (
+				<div className="flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
+					<AlertTriangle className="h-4 w-4 shrink-0" />
+					Impossible de charger le journal. Réessayez.
+				</div>
+			)}
+
+			{/* Tableau */}
 			<div className="card p-0 overflow-hidden">
 				<table className="w-full text-xs">
-					<thead className="bg-zinc-900/60 text-left">
+					<thead className="bg-zinc-900/60 text-left border-b border-zinc-800">
 						<tr>
-							<th className="px-3 py-2 font-medium">Action</th>
-							<th className="px-3 py-2 font-medium">Cible</th>
-							<th className="px-3 py-2 font-medium">Modérateur</th>
-							<th className="px-3 py-2 font-medium">Raison</th>
-							<th className="px-3 py-2 font-medium">Meta</th>
-							<th className="px-3 py-2 font-medium">Date</th>
+							<th className="px-3 py-2 font-medium text-zinc-400">Action</th>
+							<th className="px-3 py-2 font-medium text-zinc-400">Membre</th>
+							<th className="px-3 py-2 font-medium text-zinc-400">
+								Modérateur
+							</th>
+							<th className="px-3 py-2 font-medium text-zinc-400">Motif</th>
+							<th className="px-3 py-2 font-medium text-zinc-400">Données</th>
+							<th className="px-3 py-2 font-medium text-zinc-400">Date</th>
 						</tr>
 					</thead>
 					<tbody>
-						{logs.data?.rows.map((row) => (
-							<tr key={row.id} className="border-t border-zinc-800 align-top">
-								<td
-									className={`px-3 py-2 font-semibold ${ACTION_COLORS[row.action] ?? ""}`}
+						{logs.data?.rows.map((row) => {
+							const createdAt = row.createdAt
+								? new Date(row.createdAt).toLocaleString("fr-FR")
+								: "—";
+							return (
+								<tr
+									key={row.id}
+									className="border-t border-zinc-800 align-top hover:bg-zinc-900/30"
 								>
-									{row.action}
-								</td>
-								<td className="px-3 py-2 font-mono">{row.userId ?? "—"}</td>
-								<td className="px-3 py-2 font-mono">
-									{row.moderatorId ?? "—"}
-								</td>
-								<td
-									className="px-3 py-2 max-w-xs truncate"
-									title={row.reason ?? ""}
-								>
-									{row.reason ?? "—"}
-								</td>
-								<td className="px-3 py-2 max-w-xs">
-									{row.meta ? <MetaCell raw={row.meta} /> : "—"}
-								</td>
-								<td className="px-3 py-2 whitespace-nowrap text-zinc-500">
-									{new Date(row.createdAt).toLocaleString("fr-FR")}
+									<td
+										className={`px-3 py-2 font-semibold ${ACTION_COLORS[row.action] ?? "text-zinc-400"}`}
+									>
+										{ACTION_LABELS[row.action] ?? row.action}
+									</td>
+									<td className="px-3 py-2 font-mono">
+										{row.userId ? (
+											<span title={row.userId}>
+												{row.userId.slice(0, 6)}…{row.userId.slice(-4)}
+											</span>
+										) : (
+											"—"
+										)}
+									</td>
+									<td className="px-3 py-2 font-mono">
+										{row.moderatorId ? (
+											<span title={row.moderatorId}>
+												{row.moderatorId.slice(0, 6)}…
+												{row.moderatorId.slice(-4)}
+											</span>
+										) : (
+											"—"
+										)}
+									</td>
+									<td
+										className="px-3 py-2 max-w-xs truncate"
+										title={row.reason ?? ""}
+									>
+										{row.reason ?? (
+											<span className="italic text-zinc-600">Aucun motif</span>
+										)}
+									</td>
+									<td className="px-3 py-2 max-w-xs">
+										{row.meta ? <MetaCell raw={row.meta} /> : "—"}
+									</td>
+									<td className="px-3 py-2 whitespace-nowrap text-zinc-500">
+										{createdAt}
+									</td>
+								</tr>
+							);
+						})}
+						{logs.data?.rows.length === 0 && (
+							<tr>
+								<td colSpan={6} className="p-6 text-center text-zinc-500">
+									{action || userId
+										? "Aucune entrée ne correspond à ces critères."
+										: "Aucune entrée dans le journal."}
 								</td>
 							</tr>
-						))}
+						)}
 					</tbody>
 				</table>
 			</div>
 
+			{/* Pagination */}
 			<div className="flex items-center justify-center gap-2">
 				<button
 					type="button"
@@ -205,11 +292,12 @@ export default function AuditInternalPage() {
 					disabled={page === 0}
 					onClick={() => setPage((p) => Math.max(0, p - 1))}
 				>
-					← Précédent
+					<ChevronLeft className="h-4 w-4" />
+					Précédent
 				</button>
 				<span className="text-xs text-zinc-500">
 					Page {page + 1}
-					{logs.data?.total ? ` / ${Math.ceil(logs.data.total / limit)}` : ""}
+					{logs.data?.total ? ` sur ${Math.ceil(logs.data.total / limit)}` : ""}
 				</span>
 				<button
 					type="button"
@@ -217,7 +305,8 @@ export default function AuditInternalPage() {
 					disabled={(logs.data?.rows.length ?? 0) < limit}
 					onClick={() => setPage((p) => p + 1)}
 				>
-					Suivant →
+					Suivant
+					<ChevronRight className="h-4 w-4" />
 				</button>
 			</div>
 		</div>
