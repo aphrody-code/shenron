@@ -36,6 +36,13 @@ export const auth = betterAuth({
 
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
+	// Cache de session signé en cookie : getSession lit le cookie au lieu de
+	// taper ba_session sur Neon (us-east-1) à CHAQUE requête. Avec les fonctions
+	// pinnées en cdg1 (Paris, loin de Neon US), c'est ce qui évite un aller-retour
+	// transatlantique par appel admin. maxAge 5 min = fraîcheur roleAdmin acceptable.
+	session: {
+		cookieCache: { enabled: true, maxAge: 5 * 60 },
+	},
 	logger: { level: "debug" },
 	// Capture explicite des erreurs d'API (sinon une exception au create user
 	// ou à l'échange de code Discord est avalée → 302 vers errorURL sans trace).

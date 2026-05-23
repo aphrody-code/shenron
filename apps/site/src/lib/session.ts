@@ -32,9 +32,19 @@ function resolveRoleAdmin(discordId: string): boolean {
 	);
 }
 
+// Mémoïsation in-process de la jointure ba_account→users, par sessionUserId.
+// Évite un aller-retour Neon (us-east-1) sur chaque requête depuis cdg1 : sur une
+// instance chaude (Fluid Compute), la 2e+ résolution est servie depuis la RAM.
+// TTL court → un changement de roleAdmin/username se propage en ≤ 60 s.
+const userResolveCache = new Map<string, { at: number; value: CurrentUser }>();
+const USER_RESOLVE_TTL = 60_000;
+
 export async function getCurrentUser(): Promise<CurrentUser | null> {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user) return null;
+
+	const cached = userResolveCache.get(session.user.id);
+	if (cached && Date.now() - cached.at < USER_RESOLVE_TTL) return cached.value;
 
 	// Compte Discord lié → fournit le Discord ID (= clé du user métier).
 	const [row] = await db
@@ -96,7 +106,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		}
 	}
 
-	return { sessionUserId: session.user.id, discordId, user: appUser };
+	const result: CurrentUser = {
+		sessionUserId: session.user.id,
+		discordId,
+		user: appUser,
+	};
+	userResolveCache.set(session.user.id, { at: Date.now(), value: result });
+	return result;
 }
 
 export async function requireUser(callbackURL?: string): Promise<CurrentUser> {
