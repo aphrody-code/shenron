@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -72,9 +73,9 @@ export default async function SagaPage({
 				{saga.description && (
 					<div className="dbz-panel p-8 relative overflow-hidden">
 						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-						<p className="text-gray-300 leading-relaxed text-lg font-sans">
-							{saga.description}
-						</p>
+						<div className="prose prose-invert max-w-none wiki-content">
+							<WikiMarkdown body={saga.description} />
+						</div>
 					</div>
 				)}
 			</header>

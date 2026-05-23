@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronGame } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -117,9 +118,9 @@ export default async function GameDetailPage({
 						<section className="dbz-panel p-8 relative overflow-hidden">
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
 							<h2 className="font-saiyan text-2xl text-dbz-orange mb-4 uppercase tracking-widest">Présentation</h2>
-							<p className="text-gray-300 leading-relaxed text-lg font-sans">
-								{game.description}
-							</p>
+							<div className="prose prose-invert max-w-none wiki-content">
+								<WikiMarkdown body={game.description} />
+							</div>
 						</section>
 					)}
 				</div>

@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Image from "next/image";
 import Link from "next/link";
@@ -137,9 +138,9 @@ export default async function FilmPage({
 							<h2 className="font-saiyan text-2xl text-dbz-orange mb-4 uppercase tracking-widest">
 								Synopsis
 							</h2>
-							<p className="text-gray-300 leading-relaxed text-lg font-sans whitespace-pre-line">
-								{m.synopsis}
-							</p>
+							<div className="prose prose-invert max-w-none wiki-content">
+								<WikiMarkdown body={m.synopsis} />
+							</div>
 						</section>
 					)}
 

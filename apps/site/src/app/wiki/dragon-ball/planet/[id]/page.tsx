@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronPlanet } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -76,9 +77,9 @@ export default async function PlanetPage({
 						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
 							<h3 className="text-dbz-blue-light font-saiyan text-3xl mb-4 uppercase tracking-widest">Archives / Lore</h3>
-							<p className="text-gray-300 leading-relaxed text-lg text-justify whitespace-pre-wrap font-sans">
-								{planet.description}
-							</p>
+							<div className="prose prose-invert max-w-none wiki-content text-justify">
+								<WikiMarkdown body={planet.description} />
+							</div>
 						</div>
 					)}
 				</div>

@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronTechnique } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -101,9 +102,9 @@ export default async function TechniqueDetailPage({
 						<h2 className="font-saiyan text-2xl text-dbz-blue-light mb-4 uppercase tracking-widest">
 							Description & Effets
 						</h2>
-						<p className="text-gray-300 leading-relaxed text-lg font-sans whitespace-pre-line">
-							{tech.description}
-						</p>
+						<div className="prose prose-invert max-w-none wiki-content">
+							<WikiMarkdown body={tech.description} />
+						</div>
 					</section>
 				)}
 			</div>

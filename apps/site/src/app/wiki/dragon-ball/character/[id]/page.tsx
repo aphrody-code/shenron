@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronCharacter } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -77,9 +78,9 @@ export default async function CharacterPage({
 						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
 							<h3 className="text-dbz-orange font-saiyan text-3xl mb-4 uppercase tracking-widest">Archives / Lore</h3>
-							<p className="text-gray-300 leading-relaxed text-lg text-justify whitespace-pre-wrap font-sans">
-								{character.description}
-							</p>
+							<div className="prose prose-invert max-w-none wiki-content text-justify">
+								<WikiMarkdown body={character.description} />
+							</div>
 						</div>
 					)}
 

@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronRace } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -61,9 +62,9 @@ export default async function RaceDetailPage({
 					{race.description && (
 						<div className="dbz-panel p-10 relative overflow-hidden max-w-4xl">
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-							<p className="text-gray-300 leading-relaxed text-xl font-sans">
-								{race.description}
-							</p>
+							<div className="prose prose-invert max-w-none wiki-content">
+								<WikiMarkdown body={race.description} />
+							</div>
 						</div>
 					)}
 				</header>

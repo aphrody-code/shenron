@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import Image from "next/image";
@@ -128,9 +129,9 @@ export default async function GamePage({
 					<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-4">
 						Description
 					</h2>
-					<p className="text-[16px] leading-relaxed text-white/75 whitespace-pre-line">
-						{g.description}
-					</p>
+					<div className="prose prose-invert max-w-none wiki-content">
+						<WikiMarkdown body={g.description} />
+					</div>
 				</section>
 			)}
 

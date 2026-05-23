@@ -1,3 +1,4 @@
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -60,9 +61,9 @@ export default async function ArcPage({
 				{arc.description && (
 					<div className="dbz-panel p-8 relative overflow-hidden">
 						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-						<p className="text-gray-300 leading-relaxed text-lg font-sans">
-							{arc.description}
-						</p>
+						<div className="prose prose-invert max-w-none wiki-content">
+							<WikiMarkdown body={arc.description} />
+						</div>
 					</div>
 				)}
 			</header>
