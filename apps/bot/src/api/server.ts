@@ -3714,6 +3714,8 @@ export class ApiServer {
 						const name = `${crypto.randomUUID()}${ext}`;
 						const rel = `assets/wiki/${name}`;
 						try {
+							const { mkdir } = await import("node:fs/promises");
+							await mkdir("assets/wiki", { recursive: true });
 							await Bun.write(rel, file);
 						} catch (err) {
 							return Response.json(
