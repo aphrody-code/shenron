@@ -3670,6 +3670,60 @@ export class ApiServer {
 				}),
 
 				// ── Database (CRUD générique whitelist) ───────────────────────
+				// Upload d'image wiki → écrit dans `assets/wiki/` (servi en self-host
+				// via /assets/wiki/...). Retourne le path DB (`./assets/...`) que le
+				// site convertit en URL CDN via assetUrl(). Admin-only.
+				"/api/assets/upload": {
+					POST: admin(async (req) => {
+						let form: FormData;
+						try {
+							form = await req.formData();
+						} catch {
+							return Response.json(
+								{ error: "multipart/form-data requis" },
+								{ status: 400 },
+							);
+						}
+						const file = form.get("file");
+						if (!(file instanceof File)) {
+							return Response.json(
+								{ error: "champ 'file' manquant" },
+								{ status: 400 },
+							);
+						}
+						const MAX = 8 * 1024 * 1024;
+						if (file.size > MAX) {
+							return Response.json(
+								{ error: "Fichier trop lourd (max 8 Mo)" },
+								{ status: 413 },
+							);
+						}
+						const extByType: Record<string, string> = {
+							"image/png": ".png",
+							"image/jpeg": ".jpg",
+							"image/webp": ".webp",
+							"image/gif": ".gif",
+						};
+						const ext = extByType[file.type];
+						if (!ext) {
+							return Response.json(
+								{ error: "Type non supporté (png, jpg, webp, gif)" },
+								{ status: 415 },
+							);
+						}
+						const name = `${crypto.randomUUID()}${ext}`;
+						const rel = `assets/wiki/${name}`;
+						try {
+							await Bun.write(rel, file);
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "écriture échouée" },
+								{ status: 500 },
+							);
+						}
+						return Response.json({ path: `./${rel}`, url: `/${rel}` });
+					}),
+				},
 				"/api/database/tables": admin(() =>
 					Response.json({
 						tables: TABLES.map((t) => ({
