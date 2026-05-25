@@ -14,8 +14,11 @@ import { logger } from "~/lib/logger";
  *   - `mutableColumns` : whitelist des colonnes éditables via PUT (sécurité)
  *
  * Les tables non listées ici sont **invisibles** depuis l'API — pas de fuite
- * accidentelle (ex: `vocal_tempo` qui contient des IDs voice cache, n'a pas
- * besoin d'être éditable depuis un dashboard).
+ * accidentelle. Les tables de logs / d'état runtime / de jonction (action_logs,
+ * invites_log, vocal_tempo(_bans), giveaway_entries, db_*_techniques/characters)
+ * sont exposées en `readonly: true` : consultables mais jamais mutables.
+ * Les tables sensibles (`ba_*` better-auth, FTS5 `db_search*`/`rag_chunks*`)
+ * restent volontairement hors liste.
  */
 
 interface TableSpec {
@@ -382,6 +385,49 @@ export const TABLES: TableSpec[] = [
 		pk: "id",
 		readonly: true,
 		description: "Audit trail",
+	},
+	{
+		name: "invites_log",
+		table: schema.invitesLog,
+		pk: "id",
+		readonly: true,
+		description: "Suivi des invitations (qui a invité qui)",
+	},
+	{
+		name: "giveaway_entries",
+		table: schema.giveawayEntries,
+		pk: "id",
+		readonly: true,
+		description:
+			"Participations aux giveaways (géré par le système de giveaway)",
+	},
+	{
+		name: "vocal_tempo",
+		table: schema.vocalTempo,
+		pk: "channel_id",
+		readonly: true,
+		description: "Salons vocaux éphémères actifs (état runtime)",
+	},
+	{
+		name: "vocal_tempo_bans",
+		table: schema.vocalTempoBans,
+		pk: "id",
+		readonly: true,
+		description: "Bannissements de salons vocaux éphémères",
+	},
+	{
+		name: "db_character_techniques",
+		table: schema.dbCharacterTechniques,
+		pk: "character_id",
+		readonly: true,
+		description: "Relation personnages ↔ techniques (table de jonction)",
+	},
+	{
+		name: "db_game_characters",
+		table: schema.dbGameCharacters,
+		pk: "game_id",
+		readonly: true,
+		description: "Relation jeux ↔ personnages (table de jonction)",
 	},
 ];
 
