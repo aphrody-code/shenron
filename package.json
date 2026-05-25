@@ -56,12 +56,12 @@
 		"docs:unify": "bun scripts/docs/unify-markdown.ts"
 	},
 	"devDependencies": {
-		"turbo": "^2.5.10"
+		"turbo": "^2.9.14"
 	},
 	"packageManager": "bun@1.3.14",
 	"dependencies": {
-		"canary": "^0.5.3",
+		"canary": "^0.5.4",
 		"sharp": "^0.34.5",
-		"vercel": "^54.2.0"
+		"vercel": "^54.4.1"
 	}
 }
