@@ -38,7 +38,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#F3E603",
     aura: "#D67711",
     bgGrad: ["#550000", "#D67711", "#1a0a00"],
-    bgFile: "assets/backgrounds/sun/close-up-view-of-an-active-region-of-the.webp",
+    bgFile: "assets/banners/banner-17.jpg", // Goku enfant + Shenron
     textShadow: "rgba(0,0,0,0.8)",
   },
   goku: {
@@ -46,7 +46,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#F85B1A",
     aura: "#FA5A1E",
     bgGrad: ["#3b0d00", "#F85B1A", "#072083"],
-    bgFile: "assets/backgrounds/earth/earth-observation-from-the-international.webp",
+    bgFile: "assets/banners/banner-08.jpg", // Goku SSJ Kamehameha
     textShadow: "rgba(7,32,131,0.8)",
   },
   vegeta: {
@@ -54,7 +54,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#2955DC",
     aura: "#4169E1",
     bgGrad: ["#0a0f3d", "#2955DC", "#181463"],
-    bgFile: "assets/backgrounds/galaxy/hubble-peeks-at-a-spiral-galaxy.webp",
+    bgFile: "assets/banners/banner-03.png", // Z Warriors (Vegeta)
     textShadow: "rgba(24,20,99,0.9)",
   },
   kaio: {
@@ -62,7 +62,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#FA0011",
     aura: "#FF3030",
     bgGrad: ["#4a0000", "#FA0011", "#1a0000"],
-    bgFile: "assets/backgrounds/nebula/weighing-in-on-the-dumbbell-nebula.webp",
+    bgFile: "assets/banners/banner-10.jpg", // Goku SSG (rouge) vs Beerus
     textShadow: "rgba(74,0,0,0.9)",
   },
   ssj: {
@@ -70,7 +70,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#F9EE54",
     aura: "#FFD700",
     bgGrad: ["#422006", "#F3A903", "#0f0800"],
-    bgFile: "assets/backgrounds/sun/full-disk-image-of-the-sun-march-26-2007.webp",
+    bgFile: "assets/banners/banner-04.jpg", // 5 SSJ ère Cell
     textShadow: "rgba(66,32,6,0.9)",
   },
   blue: {
@@ -78,7 +78,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#00E5FF",
     aura: "#00B8FF",
     bgGrad: ["#001a3d", "#0369a1", "#00091f"],
-    bgFile: "assets/backgrounds/aurora/aurora-borealis-at-kennedy-space-center.webp",
+    bgFile: "assets/banners/banner-15.jpg", // Vegito SSB
     textShadow: "rgba(0,26,61,0.9)",
   },
   rose: {
@@ -86,7 +86,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#FF4FB0",
     aura: "#FF1493",
     bgGrad: ["#3a0420", "#9d174d", "#0a0208"],
-    bgFile: "assets/backgrounds/nebula/ant-nebula.webp",
+    bgFile: "assets/banners/banner-16.png", // Goku Black Rosé (miroir brisé)
     textShadow: "rgba(58,4,32,0.9)",
   },
   ultra: {
@@ -94,7 +94,7 @@ const CARDS: Record<string, CardTheme> = {
     accent: "#E5E9F0",
     aura: "#B4C4DD",
     bgGrad: ["#000814", "#475569", "#000000"],
-    bgFile: "assets/backgrounds/galaxy/spiral-galaxy-m83.webp",
+    bgFile: "assets/banners/banner-02.jpg", // Goku silhouette UI arc-en-ciel
     textShadow: "rgba(0,8,20,0.95)",
   },
 };
