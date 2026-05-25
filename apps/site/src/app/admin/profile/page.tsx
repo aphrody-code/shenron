@@ -11,6 +11,7 @@ import {
 	Globe,
 } from "lucide-react";
 import { api, ApiError } from "@/lib/admin-api";
+import { authClient } from "@/lib/auth-client";
 
 interface DiscordUser {
 	id: string;
@@ -90,20 +91,29 @@ function bannerUrl(
 }
 
 export default function ProfilePage() {
-	// Session locale (toujours disponible)
-	const session = useQuery({
-		queryKey: ["auth", "me"],
-		queryFn: () =>
-			api.get<{ authenticated: boolean; user?: SessionUser }>("/auth/me"),
-		staleTime: 60_000,
-	});
+	// Session du SITE (Better Auth) — source de vérité de l'admin connecté.
+	// NB: le bot a sa propre session cookie, inaccessible via le proxy bearer
+	// (`/auth/me` → 404, `/discord/*` → 401). On lit donc la session locale.
+	const { data: siteSession, isPending: sessionPending } =
+		authClient.useSession();
+	const sessionUser: SessionUser | undefined = siteSession?.user
+		? {
+				id: siteSession.user.id,
+				username: siteSession.user.name ?? undefined,
+				avatarUrl: siteSession.user.image ?? undefined,
+				email: siteSession.user.email ?? null,
+				source: "better-auth",
+			}
+		: undefined;
 
-	// Profil Discord via OAuth — peut échouer si connecté via jeton admin
+	// Profil Discord enrichi via OAuth — nécessite la session OAuth côté bot,
+	// indisponible derrière le proxy bearer : échoue proprement (401) et la page
+	// retombe sur la carte de session du site.
 	const me = useQuery({
 		queryKey: ["discord", "me"],
 		queryFn: () => api.get<MeResponse>("/discord/me"),
 		retry: false,
-		enabled: session.data?.authenticated === true,
+		enabled: !!sessionUser,
 	});
 	const guilds = useQuery({
 		queryKey: ["discord", "guilds"],
@@ -119,7 +129,7 @@ export default function ProfilePage() {
 	});
 
 	// Chargement initial
-	if (session.isLoading || me.isLoading) {
+	if (sessionPending || me.isLoading) {
 		return (
 			<div className="dbz-panel p-8 text-center">
 				<p className="text-dbz-blue-light font-saiyan text-xl mb-2">
@@ -134,7 +144,7 @@ export default function ProfilePage() {
 
 	// Pas de session OAuth Discord → invitation à se connecter
 	if (me.isError || !me.data) {
-		const sUser = session.data?.user;
+		const sUser = sessionUser;
 		const isOAuthMissing =
 			me.error instanceof ApiError &&
 			(me.error.status === 401 || me.error.status === 503);
