@@ -12,9 +12,11 @@ import {
 	PowerOff,
 	Palette,
 	Loader2,
+	Image as ImageIcon,
 } from "lucide-react";
 import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { api, proxyAsset } from "@/lib/admin-api";
+import { botAsset } from "@/lib/bot-assets";
 
 interface CanvasDef {
 	id: string;
@@ -43,6 +45,29 @@ interface CardTheme {
 	textShadow: string;
 	enabled: boolean;
 }
+
+interface AssetFile {
+	path: string;
+	url: string;
+	name: string;
+}
+
+interface AssetListResponse {
+	dir: string;
+	dirs: string[];
+	count: number;
+	files: AssetFile[];
+}
+
+const ASSET_DIR_LABELS: Record<string, string> = {
+	banners: "Bannières",
+	backgrounds: "Fonds de carte",
+	cards: "Cartes (legacy)",
+	dbz: "Personnages / planètes",
+	ext: "Médias wiki (films, épisodes…)",
+	sanctions: "Sanctions",
+	wiki: "Uploads wiki",
+};
 
 const PROFILE_THEMES = [
 	"default",
@@ -89,7 +114,7 @@ function TabBtn({
 }
 
 export default function CanvasPage() {
-	const [tab, setTab] = useState<"preview" | "themes">("preview");
+	const [tab, setTab] = useState<"preview" | "themes" | "gallery">("preview");
 
 	const list = useQuery({
 		queryKey: ["canvas", "list"],
@@ -133,9 +158,12 @@ export default function CanvasPage() {
 				<TabBtn active={tab === "themes"} onClick={() => setTab("themes")}>
 					Édition des thèmes
 				</TabBtn>
+				<TabBtn active={tab === "gallery"} onClick={() => setTab("gallery")}>
+					Galerie
+				</TabBtn>
 			</div>
 
-			{tab === "preview" ? (
+			{tab === "preview" && (
 				<PreviewSection
 					list={list.data?.canvases ?? []}
 					isLoading={list.isLoading}
@@ -144,9 +172,9 @@ export default function CanvasPage() {
 					selected={selected}
 					setSelected={setSelected}
 				/>
-			) : (
-				<ThemesSection sampleUserId={sampleUserId} />
 			)}
+			{tab === "themes" && <ThemesSection sampleUserId={sampleUserId} />}
+			{tab === "gallery" && <AssetGallery />}
 		</div>
 	);
 }
@@ -426,6 +454,7 @@ function ThemeEditor({
 	const [draft, setDraft] = useState<CardTheme>(theme ?? EMPTY_THEME);
 	const [error, setError] = useState<string | null>(null);
 	const [bust, setBust] = useState(0);
+	const [picker, setPicker] = useState(false);
 
 	const set = (patch: Partial<CardTheme>) => setDraft({ ...draft, ...patch });
 
@@ -473,14 +502,381 @@ function ThemeEditor({
 			: "";
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
-			<form
-				onSubmit={submit}
-				className="dbz-panel w-full max-w-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto"
-			>
+		<>
+			{picker && (
+				<AssetPickerModal
+					onPick={(path) => set({ bgFile: path })}
+					onClose={() => setPicker(false)}
+				/>
+			)}
+			<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
+				<form
+					onSubmit={submit}
+					className="dbz-panel w-full max-w-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto"
+				>
+					<div className="flex items-center gap-2">
+						<h3 className="font-saiyan text-dbz-orange text-lg uppercase">
+							{isCreate ? "Nouveau thème" : `Modifier « ${draft.name} »`}
+						</h3>
+						<button
+							type="button"
+							onClick={onClose}
+							className="ml-auto dbz-button-ghost !px-2 !py-1"
+						>
+							<X className="h-4 w-4" />
+						</button>
+					</div>
+
+					{error && (
+						<div className="rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-400">
+							{error}
+						</div>
+					)}
+
+					<div className="grid gap-3 sm:grid-cols-2">
+						<div>
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Identifiant (slug)
+							</label>
+							<input
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono disabled:opacity-50"
+								value={draft.id}
+								disabled={!isCreate}
+								onChange={(e) => set({ id: e.target.value })}
+								placeholder="goku"
+							/>
+						</div>
+						<div>
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Nom affiché
+							</label>
+							<input
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
+								value={draft.name}
+								onChange={(e) => set({ name: e.target.value })}
+								placeholder="Goku"
+							/>
+						</div>
+
+						<ColorField
+							label="Accent (ring, highlights)"
+							value={draft.accent}
+							onChange={(v) => set({ accent: v })}
+						/>
+						<ColorField
+							label="Aura (avatar, barre XP)"
+							value={draft.aura}
+							onChange={(v) => set({ aura: v })}
+						/>
+						<ColorField
+							label="Dégradé fond — 1"
+							value={draft.bgGrad1}
+							onChange={(v) => set({ bgGrad1: v })}
+						/>
+						<ColorField
+							label="Dégradé fond — 2"
+							value={draft.bgGrad2}
+							onChange={(v) => set({ bgGrad2: v })}
+						/>
+						<ColorField
+							label="Dégradé fond — 3"
+							value={draft.bgGrad3}
+							onChange={(v) => set({ bgGrad3: v })}
+						/>
+
+						<div>
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Visibilité
+							</label>
+							<button
+								type="button"
+								onClick={() => set({ enabled: !draft.enabled })}
+								className={`w-full flex items-center justify-center gap-1.5 p-2 text-sm border-2 ${
+									draft.enabled
+										? "border-dbz-orange text-dbz-orange"
+										: "border-dbz-border text-white/40"
+								}`}
+							>
+								{draft.enabled ? (
+									<>
+										<Power className="h-3 w-3" /> Actif
+									</>
+								) : (
+									<>
+										<PowerOff className="h-3 w-3" /> Masqué
+									</>
+								)}
+							</button>
+						</div>
+
+						<div className="sm:col-span-2">
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Image de fond (optionnelle)
+								<span className="ml-1 normal-case text-white/30">
+									— vide = dégradé seul · ex : une bannière comme fond
+								</span>
+							</label>
+							<div className="flex gap-1.5">
+								<input
+									className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
+									value={draft.bgFile ?? ""}
+									onChange={(e) => set({ bgFile: e.target.value || null })}
+									placeholder="assets/banners/banner-09.png"
+								/>
+								<button
+									type="button"
+									onClick={() => setPicker(true)}
+									className="dbz-button-ghost !text-xs !py-1 !px-3 shrink-0 flex items-center gap-1.5"
+								>
+									<ImageIcon className="h-3 w-3" /> Parcourir
+								</button>
+								{draft.bgFile && (
+									<button
+										type="button"
+										onClick={() => set({ bgFile: null })}
+										className="dbz-button-ghost !text-xs !py-1 !px-2 shrink-0 !text-red-400"
+										title="Retirer le fond"
+									>
+										<X className="h-3 w-3" />
+									</button>
+								)}
+							</div>
+							{draft.bgFile && (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={botAsset(draft.bgFile)}
+									alt="Fond sélectionné"
+									className="mt-2 h-20 w-full rounded border border-dbz-border object-cover"
+								/>
+							)}
+						</div>
+
+						<div className="sm:col-span-2">
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Ombre de texte (rgba)
+							</label>
+							<input
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
+								value={draft.textShadow}
+								onChange={(e) => set({ textShadow: e.target.value })}
+								placeholder="rgba(0,0,0,0.8)"
+							/>
+						</div>
+					</div>
+
+					{/* Aperçu live (reflète l'état enregistré) */}
+					{previewUrl ? (
+						<div>
+							<div className="flex items-center justify-between mb-1">
+								<p className="text-[10px] text-white/30 uppercase tracking-widest">
+									Aperçu (état enregistré)
+								</p>
+								<button
+									type="button"
+									onClick={() => setBust((b) => b + 1)}
+									className="dbz-button-ghost !text-[10px] !py-0.5 !px-2 flex items-center gap-1"
+								>
+									<RefreshCw className="h-3 w-3" /> Rafraîchir
+								</button>
+							</div>
+							<img
+								src={previewUrl}
+								alt={draft.name}
+								className="w-full rounded border border-dbz-border"
+							/>
+							<p className="mt-1 text-[10px] text-white/30">
+								Enregistrez pour voir vos changements de couleurs/fond ici.
+							</p>
+						</div>
+					) : (
+						isCreate && (
+							<p className="text-[10px] text-white/30">
+								L&apos;aperçu sera disponible après la première création.
+							</p>
+						)
+					)}
+
+					<div className="flex items-center gap-2 border-t border-dbz-border pt-3">
+						<button
+							type="submit"
+							disabled={save.isPending}
+							className="dbz-button !text-xs !py-1.5 !px-4 flex items-center gap-1.5"
+						>
+							<Save className="h-3 w-3" />
+							{save.isPending
+								? "Enregistrement…"
+								: isCreate
+									? "Créer le thème"
+									: "Enregistrer"}
+						</button>
+						<button
+							type="button"
+							onClick={onClose}
+							className="dbz-button-ghost !text-xs !py-1.5 !px-4"
+						>
+							Annuler
+						</button>
+						{!isCreate && (
+							<button
+								type="button"
+								onClick={() => {
+									if (
+										window.confirm(
+											`Supprimer le thème « ${draft.name} » ? Le bot retombera sur le thème intégré du même nom s'il existe.`,
+										)
+									)
+										del.mutate();
+								}}
+								disabled={del.isPending}
+								className="ml-auto dbz-button-ghost !text-xs !py-1.5 !px-3 flex items-center gap-1.5 !text-red-400"
+							>
+								<Trash2 className="h-3 w-3" /> Supprimer
+							</button>
+						)}
+					</div>
+				</form>
+			</div>
+		</>
+	);
+}
+
+// ── Galerie d'assets ─────────────────────────────────────────────────────────
+
+/**
+ * Grille d'images d'un dossier d'assets du bot. Mode picker si `onPick` fourni
+ * (clic = sélection), sinon clic = copie du chemin relatif. Images chargées en
+ * direct depuis le bot (botAsset → bot.rpbey.fr/assets/, public, sans auth).
+ */
+function AssetGrid({
+	dir,
+	onPick,
+}: {
+	dir: string;
+	onPick?: (path: string) => void;
+}) {
+	const [copied, setCopied] = useState<string | null>(null);
+
+	const assets = useQuery({
+		queryKey: ["assets", dir],
+		queryFn: () =>
+			api.get<AssetListResponse>(`/assets/list?dir=${encodeURIComponent(dir)}`),
+	});
+
+	const files = assets.data?.files ?? [];
+
+	const handleClick = (path: string) => {
+		if (onPick) {
+			onPick(path);
+			return;
+		}
+		navigator.clipboard?.writeText(path).then(
+			() => {
+				setCopied(path);
+				setTimeout(() => setCopied(null), 1500);
+			},
+			() => {},
+		);
+	};
+
+	if (assets.isLoading)
+		return (
+			<div className="flex items-center gap-2 text-white/40 text-sm">
+				<Loader2 className="h-4 w-4 animate-spin" /> Chargement des images…
+			</div>
+		);
+	if (assets.isError)
+		return (
+			<div className="dbz-panel p-4 border-l-4 border-red-500 text-sm text-white/50">
+				Impossible de lister les images. Vérifiez que le bot est en ligne.
+			</div>
+		);
+	if (files.length === 0)
+		return (
+			<div className="dbz-panel p-6 text-center text-sm text-white/40">
+				Aucune image dans ce dossier.
+			</div>
+		);
+
+	return (
+		<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+			{files.map((f) => (
+				<button
+					key={f.path}
+					type="button"
+					onClick={() => handleClick(f.path)}
+					title={onPick ? `Choisir ${f.name}` : `Copier ${f.path}`}
+					className="group relative overflow-hidden rounded border border-dbz-border bg-black/30 text-left hover:border-dbz-orange transition-colors"
+				>
+					<img
+						src={botAsset(f.path)}
+						alt={f.name}
+						className="aspect-video w-full object-cover"
+						loading="lazy"
+					/>
+					<div className="p-1.5">
+						<code className="block truncate text-[10px] text-white/50">
+							{f.name}
+						</code>
+					</div>
+					{copied === f.path && (
+						<span className="absolute inset-x-0 top-0 bg-emerald-600/90 text-center text-[10px] py-0.5 text-white">
+							Chemin copié !
+						</span>
+					)}
+				</button>
+			))}
+		</div>
+	);
+}
+
+function AssetGallery({ onPick }: { onPick?: (path: string) => void }) {
+	const [dir, setDir] = useState(onPick ? "banners" : "banners");
+
+	const list = useQuery({
+		queryKey: ["assets", dir],
+		queryFn: () =>
+			api.get<AssetListResponse>(`/assets/list?dir=${encodeURIComponent(dir)}`),
+	});
+	const dirs = list.data?.dirs ?? Object.keys(ASSET_DIR_LABELS);
+
+	return (
+		<div className="space-y-4">
+			<div className="dbz-panel p-3 flex flex-wrap items-center gap-2">
+				{dirs.map((d) => (
+					<button
+						key={d}
+						type="button"
+						onClick={() => setDir(d)}
+						className={`dbz-button !text-xs !py-1 !px-3 ${dir === d ? "" : "opacity-50 hover:opacity-80"}`}
+					>
+						{ASSET_DIR_LABELS[d] ?? d}
+						{list.data && dir === d ? ` (${list.data.count})` : ""}
+					</button>
+				))}
+				{!onPick && (
+					<span className="ml-auto text-[10px] text-white/30">
+						Cliquez une image pour copier son chemin
+					</span>
+				)}
+			</div>
+			<AssetGrid dir={dir} onPick={onPick} />
+		</div>
+	);
+}
+
+function AssetPickerModal({
+	onPick,
+	onClose,
+}: {
+	onPick: (path: string) => void;
+	onClose: () => void;
+}) {
+	return (
+		<div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur">
+			<div className="dbz-panel w-full max-w-4xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
 				<div className="flex items-center gap-2">
 					<h3 className="font-saiyan text-dbz-orange text-lg uppercase">
-						{isCreate ? "Nouveau thème" : `Modifier « ${draft.name} »`}
+						Choisir une image de fond
 					</h3>
 					<button
 						type="button"
@@ -490,188 +886,13 @@ function ThemeEditor({
 						<X className="h-4 w-4" />
 					</button>
 				</div>
-
-				{error && (
-					<div className="rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-400">
-						{error}
-					</div>
-				)}
-
-				<div className="grid gap-3 sm:grid-cols-2">
-					<div>
-						<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-							Identifiant (slug)
-						</label>
-						<input
-							className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono disabled:opacity-50"
-							value={draft.id}
-							disabled={!isCreate}
-							onChange={(e) => set({ id: e.target.value })}
-							placeholder="goku"
-						/>
-					</div>
-					<div>
-						<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-							Nom affiché
-						</label>
-						<input
-							className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
-							value={draft.name}
-							onChange={(e) => set({ name: e.target.value })}
-							placeholder="Goku"
-						/>
-					</div>
-
-					<ColorField
-						label="Accent (ring, highlights)"
-						value={draft.accent}
-						onChange={(v) => set({ accent: v })}
-					/>
-					<ColorField
-						label="Aura (avatar, barre XP)"
-						value={draft.aura}
-						onChange={(v) => set({ aura: v })}
-					/>
-					<ColorField
-						label="Dégradé fond — 1"
-						value={draft.bgGrad1}
-						onChange={(v) => set({ bgGrad1: v })}
-					/>
-					<ColorField
-						label="Dégradé fond — 2"
-						value={draft.bgGrad2}
-						onChange={(v) => set({ bgGrad2: v })}
-					/>
-					<ColorField
-						label="Dégradé fond — 3"
-						value={draft.bgGrad3}
-						onChange={(v) => set({ bgGrad3: v })}
-					/>
-
-					<div>
-						<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-							Visibilité
-						</label>
-						<button
-							type="button"
-							onClick={() => set({ enabled: !draft.enabled })}
-							className={`w-full flex items-center justify-center gap-1.5 p-2 text-sm border-2 ${
-								draft.enabled
-									? "border-dbz-orange text-dbz-orange"
-									: "border-dbz-border text-white/40"
-							}`}
-						>
-							{draft.enabled ? (
-								<>
-									<Power className="h-3 w-3" /> Actif
-								</>
-							) : (
-								<>
-									<PowerOff className="h-3 w-3" /> Masqué
-								</>
-							)}
-						</button>
-					</div>
-
-					<div className="sm:col-span-2">
-						<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-							Image de fond (chemin relatif, optionnel)
-							<span className="ml-1 normal-case text-white/30">
-								— ex : assets/backgrounds/sun/…webp · vide = dégradé seul
-							</span>
-						</label>
-						<input
-							className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
-							value={draft.bgFile ?? ""}
-							onChange={(e) => set({ bgFile: e.target.value || null })}
-							placeholder="assets/backgrounds/galaxy/spiral-galaxy-m83.webp"
-						/>
-					</div>
-
-					<div className="sm:col-span-2">
-						<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-							Ombre de texte (rgba)
-						</label>
-						<input
-							className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
-							value={draft.textShadow}
-							onChange={(e) => set({ textShadow: e.target.value })}
-							placeholder="rgba(0,0,0,0.8)"
-						/>
-					</div>
-				</div>
-
-				{/* Aperçu live (reflète l'état enregistré) */}
-				{previewUrl ? (
-					<div>
-						<div className="flex items-center justify-between mb-1">
-							<p className="text-[10px] text-white/30 uppercase tracking-widest">
-								Aperçu (état enregistré)
-							</p>
-							<button
-								type="button"
-								onClick={() => setBust((b) => b + 1)}
-								className="dbz-button-ghost !text-[10px] !py-0.5 !px-2 flex items-center gap-1"
-							>
-								<RefreshCw className="h-3 w-3" /> Rafraîchir
-							</button>
-						</div>
-						<img
-							src={previewUrl}
-							alt={draft.name}
-							className="w-full rounded border border-dbz-border"
-						/>
-						<p className="mt-1 text-[10px] text-white/30">
-							Enregistrez pour voir vos changements de couleurs/fond ici.
-						</p>
-					</div>
-				) : (
-					isCreate && (
-						<p className="text-[10px] text-white/30">
-							L&apos;aperçu sera disponible après la première création.
-						</p>
-					)
-				)}
-
-				<div className="flex items-center gap-2 border-t border-dbz-border pt-3">
-					<button
-						type="submit"
-						disabled={save.isPending}
-						className="dbz-button !text-xs !py-1.5 !px-4 flex items-center gap-1.5"
-					>
-						<Save className="h-3 w-3" />
-						{save.isPending
-							? "Enregistrement…"
-							: isCreate
-								? "Créer le thème"
-								: "Enregistrer"}
-					</button>
-					<button
-						type="button"
-						onClick={onClose}
-						className="dbz-button-ghost !text-xs !py-1.5 !px-4"
-					>
-						Annuler
-					</button>
-					{!isCreate && (
-						<button
-							type="button"
-							onClick={() => {
-								if (
-									window.confirm(
-										`Supprimer le thème « ${draft.name} » ? Le bot retombera sur le thème intégré du même nom s'il existe.`,
-									)
-								)
-									del.mutate();
-							}}
-							disabled={del.isPending}
-							className="ml-auto dbz-button-ghost !text-xs !py-1.5 !px-3 flex items-center gap-1.5 !text-red-400"
-						>
-							<Trash2 className="h-3 w-3" /> Supprimer
-						</button>
-					)}
-				</div>
-			</form>
+				<AssetGallery
+					onPick={(path) => {
+						onPick(path);
+						onClose();
+					}}
+				/>
+			</div>
 		</div>
 	);
 }

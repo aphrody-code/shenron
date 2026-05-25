@@ -3726,6 +3726,49 @@ export class ApiServer {
 						return Response.json({ path: `./${rel}`, url: `/${rel}` });
 					}),
 				},
+				// Liste les images d'un dossier d'assets whitelisté (galerie admin :
+				// banners utilisables comme fond de carte, visuels wiki, etc.).
+				"/api/assets/list": admin(async (req) => {
+					const ALLOWED = new Set([
+						"banners",
+						"backgrounds",
+						"cards",
+						"dbz",
+						"ext",
+						"sanctions",
+						"wiki",
+					]);
+					const url = new URL(req.url);
+					const dir = url.searchParams.get("dir") ?? "banners";
+					if (!ALLOWED.has(dir)) {
+						return Response.json(
+							{ error: `dir non autorisé (autorisés: ${[...ALLOWED].join(", ")})` },
+							{ status: 400 },
+						);
+					}
+					const { Glob } = await import("bun");
+					const glob = new Glob("**/*.{png,jpg,jpeg,webp,gif}");
+					const files: { path: string; url: string; name: string }[] = [];
+					try {
+						for await (const f of glob.scan({
+							cwd: `assets/${dir}`,
+							onlyFiles: true,
+						})) {
+							const rel = `assets/${dir}/${f}`;
+							files.push({ path: rel, url: `/${rel}`, name: f });
+							if (files.length >= 1000) break;
+						}
+					} catch {
+						// dossier absent → liste vide
+					}
+					files.sort((a, b) => a.name.localeCompare(b.name));
+					return Response.json({
+						dir,
+						dirs: [...ALLOWED],
+						count: files.length,
+						files,
+					});
+				}),
 				"/api/database/tables": admin(() =>
 					Response.json({
 						tables: TABLES.map((t) => ({
