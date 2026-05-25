@@ -165,6 +165,7 @@ export class EconomyService {
     if (type === "badge") patch.equippedBadge = key;
     if (type === "color") patch.equippedColor = key;
     if (type === "title") patch.equippedTitle = key;
+    if (type === "banner") patch.equippedBanner = key;
     await this.db.update(users).set({ ...patch, updatedAt: new Date() }).where(eq(users.id, userId));
   }
 
@@ -175,6 +176,7 @@ export class EconomyService {
     if (type === "badge") patch.equippedBadge = key;
     if (type === "color") patch.equippedColor = key;
     if (type === "title") patch.equippedTitle = key;
+    if (type === "banner") patch.equippedBanner = key;
     await this.db.update(users).set({ ...patch, updatedAt: new Date() }).where(eq(users.id, userId));
     return true;
   }

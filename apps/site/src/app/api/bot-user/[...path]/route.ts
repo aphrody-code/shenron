@@ -79,6 +79,17 @@ async function proxy(
 			},
 		});
 	}
+	// Binaire (images canvas WebP/PNG, assets) : NE PAS passer par res.text()
+	// qui décode les octets en UTF-8 et corrompt le fichier. Forward le buffer
+	// brut + préserve le Cache-Control.
+	if (!ct.includes("application/json") && !ct.startsWith("text/")) {
+		const buf = await res.arrayBuffer();
+		const headers = new Headers({ "content-type": ct });
+		const cc = res.headers.get("cache-control");
+		if (cc) headers.set("cache-control", cc);
+		return new NextResponse(buf, { status: res.status, headers });
+	}
+
 	const text = await res.text();
 	return new NextResponse(text, {
 		status: res.status,
