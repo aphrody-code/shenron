@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 interface ShopItem {
 	key: string;
-	type: "card" | "badge" | "color" | "title";
+	type: "card" | "badge" | "color" | "title" | "banner";
 	name: string;
 	description: string | null;
 	price: number;
@@ -36,7 +36,10 @@ const TYPE_META: Record<ShopItem["type"], { label: string; color: string }> = {
 	badge: { label: "Badge", color: "text-fuchsia-400" },
 	color: { label: "Couleur (rôle)", color: "text-blue-400" },
 	title: { label: "Titre", color: "text-purple-400" },
+	banner: { label: "Bannière", color: "text-emerald-400" },
 };
+
+const FALLBACK_TYPE_META = { label: "Inconnu", color: "text-zinc-400" };
 
 function ConfirmDialog({
 	title,
@@ -239,9 +242,9 @@ export default function ShopPage() {
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2">
 									<span
-										className={`text-xs font-semibold uppercase tracking-wide ${TYPE_META[item.type].color}`}
+										className={`text-xs font-semibold uppercase tracking-wide ${(TYPE_META[item.type] ?? FALLBACK_TYPE_META).color}`}
 									>
-										{TYPE_META[item.type].label}
+										{(TYPE_META[item.type] ?? FALLBACK_TYPE_META).label}
 									</span>
 									{!item.enabled && (
 										<span className="badge badge-error text-[10px]">
