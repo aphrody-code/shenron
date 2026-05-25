@@ -2,6 +2,7 @@ import {
 	sqliteTable,
 	text,
 	integer,
+	real,
 	index,
 	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
@@ -308,8 +309,12 @@ export const cardThemes = sqliteTable("card_themes", {
 	bgGrad1: text("bg_grad_1").notNull(), // 1er stop dégradé fond
 	bgGrad2: text("bg_grad_2").notNull(),
 	bgGrad3: text("bg_grad_3").notNull(),
-	bgFile: text("bg_file"), // chemin relatif assets/backgrounds/... (nullable)
+	bgFile: text("bg_file"), // chemin relatif assets/banners|backgrounds/... (nullable)
 	textShadow: text("text_shadow").notNull(), // rgba(...) pour ombres
+	// Contrôle fin du rendu (cf. CardService.render). Defaults = anciens hardcodes.
+	overlayOpacity: real("overlay_opacity").notNull().default(0.78), // assombrissement de l'image de fond (0-1)
+	tintStrength: real("tint_strength").notNull().default(0.08), // teinte aura par-dessus le fond (0-1)
+	gradientAngle: integer("gradient_angle").notNull().default(135), // angle du dégradé sans image (deg)
 	enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
@@ -547,7 +552,9 @@ export const dbLicenses = sqliteTable("db_licenses", {
 	requiresAttribution: integer("requires_attribution", { mode: "boolean" })
 		.notNull()
 		.default(true),
-	shareAlike: integer("share_alike", { mode: "boolean" }).notNull().default(false),
+	shareAlike: integer("share_alike", { mode: "boolean" })
+		.notNull()
+		.default(false),
 });
 
 export const dbAssets = sqliteTable(
@@ -785,15 +792,18 @@ export const dbNews = sqliteTable(
 
 // --- Relations Wiki ---
 
-export const dbCharactersRelations = relations(dbCharacters, ({ one, many }) => ({
-	originPlanet: one(dbPlanets, {
-		fields: [dbCharacters.originPlanetId],
-		references: [dbPlanets.id],
+export const dbCharactersRelations = relations(
+	dbCharacters,
+	({ one, many }) => ({
+		originPlanet: one(dbPlanets, {
+			fields: [dbCharacters.originPlanetId],
+			references: [dbPlanets.id],
+		}),
+		transformations: many(dbTransformations),
+		techniques: many(dbCharacterTechniques),
+		games: many(dbGameCharacters),
 	}),
-	transformations: many(dbTransformations),
-	techniques: many(dbCharacterTechniques),
-	games: many(dbGameCharacters),
-}));
+);
 
 export const dbPlanetsRelations = relations(dbPlanets, ({ many }) => ({
 	characters: many(dbCharacters),
@@ -807,31 +817,40 @@ export const dbRacesRelations = relations(dbRaces, ({ one, many }) => ({
 	}),
 }));
 
-export const dbTransformationsRelations = relations(dbTransformations, ({ one }) => ({
-	character: one(dbCharacters, {
-		fields: [dbTransformations.characterId],
-		references: [dbCharacters.id],
+export const dbTransformationsRelations = relations(
+	dbTransformations,
+	({ one }) => ({
+		character: one(dbCharacters, {
+			fields: [dbTransformations.characterId],
+			references: [dbCharacters.id],
+		}),
 	}),
-}));
+);
 
-export const dbCharacterTechniquesRelations = relations(dbCharacterTechniques, ({ one }) => ({
-	character: one(dbCharacters, {
-		fields: [dbCharacterTechniques.characterId],
-		references: [dbCharacters.id],
+export const dbCharacterTechniquesRelations = relations(
+	dbCharacterTechniques,
+	({ one }) => ({
+		character: one(dbCharacters, {
+			fields: [dbCharacterTechniques.characterId],
+			references: [dbCharacters.id],
+		}),
+		technique: one(dbTechniques, {
+			fields: [dbCharacterTechniques.techniqueId],
+			references: [dbTechniques.id],
+		}),
 	}),
-	technique: one(dbTechniques, {
-		fields: [dbCharacterTechniques.techniqueId],
-		references: [dbTechniques.id],
-	}),
-}));
+);
 
-export const dbTechniquesRelations = relations(dbTechniques, ({ one, many }) => ({
-	creator: one(dbCharacters, {
-		fields: [dbTechniques.creatorId],
-		references: [dbCharacters.id],
+export const dbTechniquesRelations = relations(
+	dbTechniques,
+	({ one, many }) => ({
+		creator: one(dbCharacters, {
+			fields: [dbTechniques.creatorId],
+			references: [dbCharacters.id],
+		}),
+		characters: many(dbCharacterTechniques),
 	}),
-	characters: many(dbCharacterTechniques),
-}));
+);
 
 export const dbSagasRelations = relations(dbSagas, ({ many }) => ({
 	arcs: many(dbArcs),
@@ -852,16 +871,22 @@ export const dbEpisodesRelations = relations(dbEpisodes, ({ one }) => ({
 	}),
 }));
 
-export const dbMangaVolumesRelations = relations(dbMangaVolumes, ({ many }) => ({
-	chapters: many(dbMangaChapters),
-}));
-
-export const dbMangaChaptersRelations = relations(dbMangaChapters, ({ one }) => ({
-	volume: one(dbMangaVolumes, {
-		fields: [dbMangaChapters.volumeId],
-		references: [dbMangaVolumes.id],
+export const dbMangaVolumesRelations = relations(
+	dbMangaVolumes,
+	({ many }) => ({
+		chapters: many(dbMangaChapters),
 	}),
-}));
+);
+
+export const dbMangaChaptersRelations = relations(
+	dbMangaChapters,
+	({ one }) => ({
+		volume: one(dbMangaVolumes, {
+			fields: [dbMangaChapters.volumeId],
+			references: [dbMangaVolumes.id],
+		}),
+	}),
+);
 
 export const dbMoviesRelations = relations(dbMovies, ({ many }) => ({
 	assets: many(dbAssets, { relationName: "movieAssets" }),
@@ -871,16 +896,19 @@ export const dbGamesRelations = relations(dbGames, ({ many }) => ({
 	characters: many(dbGameCharacters),
 }));
 
-export const dbGameCharactersRelations = relations(dbGameCharacters, ({ one }) => ({
-	game: one(dbGames, {
-		fields: [dbGameCharacters.gameId],
-		references: [dbGames.id],
+export const dbGameCharactersRelations = relations(
+	dbGameCharacters,
+	({ one }) => ({
+		game: one(dbGames, {
+			fields: [dbGameCharacters.gameId],
+			references: [dbGames.id],
+		}),
+		character: one(dbCharacters, {
+			fields: [dbGameCharacters.characterId],
+			references: [dbCharacters.id],
+		}),
 	}),
-	character: one(dbCharacters, {
-		fields: [dbGameCharacters.characterId],
-		references: [dbCharacters.id],
-	}),
-}));
+);
 
 export const dbNewsRelations = relations(dbNews, ({ one }) => ({
 	source: one(dbSources, {

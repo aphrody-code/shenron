@@ -15,6 +15,7 @@ import {
 	Image as ImageIcon,
 } from "lucide-react";
 import { type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { Sketch } from "@uiw/react-color";
 import { api, proxyAsset } from "@/lib/admin-api";
 import { botAsset } from "@/lib/bot-assets";
 
@@ -43,6 +44,9 @@ interface CardTheme {
 	bgGrad3: string;
 	bgFile: string | null;
 	textShadow: string;
+	overlayOpacity: number;
+	tintStrength: number;
+	gradientAngle: number;
 	enabled: boolean;
 }
 
@@ -256,8 +260,27 @@ const EMPTY_THEME: CardTheme = {
 	bgGrad3: "#1a0a00",
 	bgFile: null,
 	textShadow: "rgba(0,0,0,0.8)",
+	overlayOpacity: 0.78,
+	tintStrength: 0.08,
+	gradientAngle: 135,
 	enabled: true,
 };
+
+// Palette DBZ pour les presets des color pickers.
+const DBZ_PRESETS = [
+	"#F3E603",
+	"#F85B1A",
+	"#2955DC",
+	"#FA0011",
+	"#FFD700",
+	"#00E5FF",
+	"#FF4FB0",
+	"#E5E9F0",
+	"#9013FE",
+	"#22c55e",
+	"#000000",
+	"#FFFFFF",
+];
 
 function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 	const qc = useQueryClient();
@@ -408,33 +431,146 @@ function ThemeCard({
 	);
 }
 
-function ColorField({
+/** Pastille couleur + popover Sketch (@uiw/react-color) : saturation, teinte,
+ *  champs HEX/RGB, presets DBZ + eyedropper natif. Stocke du hex 6 digits. */
+function SwatchPicker({
 	label,
 	value,
 	onChange,
 }: {
-	label: string;
+	label?: string;
 	value: string;
 	onChange: (v: string) => void;
 }) {
+	const [open, setOpen] = useState(false);
+	const valid = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000";
+
 	return (
 		<div>
-			<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-				{label}
-			</label>
-			<div className="flex gap-1.5">
+			{label && (
+				<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+					{label}
+				</label>
+			)}
+			<div className="relative">
+				<button
+					type="button"
+					onClick={() => setOpen((o) => !o)}
+					className="flex w-full items-center gap-2 border-2 border-dbz-border bg-dbz-bg p-1.5 hover:border-dbz-orange transition-colors"
+				>
+					<span
+						className="h-6 w-6 shrink-0 rounded border border-black/40"
+						style={{ background: valid }}
+					/>
+					<code className="text-xs font-mono text-white/70">{value}</code>
+				</button>
+				{open && (
+					<>
+						<button
+							type="button"
+							aria-label="Fermer"
+							className="fixed inset-0 z-40 cursor-default"
+							onClick={() => setOpen(false)}
+						/>
+						<div className="absolute left-0 top-full z-50 mt-1">
+							<Sketch
+								color={valid}
+								disableAlpha
+								presetColors={DBZ_PRESETS}
+								onChange={(c) => onChange(c.hex)}
+							/>
+						</div>
+					</>
+				)}
+			</div>
+		</div>
+	);
+}
+
+/** Éditeur de dégradé 3 stops : barre d'aperçu CSS orientée par l'angle +
+ *  3 pastilles éditables + slider d'angle. Reflète exactement le rendu carte. */
+function GradientBar({
+	stops,
+	angle,
+	onStop,
+	onAngle,
+}: {
+	stops: [string, string, string];
+	angle: number;
+	onStop: (i: 0 | 1 | 2, v: string) => void;
+	onAngle: (deg: number) => void;
+}) {
+	return (
+		<div className="space-y-2">
+			<div
+				className="h-10 w-full rounded border-2 border-dbz-border"
+				style={{
+					background: `linear-gradient(${angle}deg, ${stops[0]} 0%, ${stops[1]} 50%, ${stops[2]} 100%)`,
+				}}
+			/>
+			<div className="grid grid-cols-3 gap-2">
+				<SwatchPicker value={stops[0]} onChange={(v) => onStop(0, v)} />
+				<SwatchPicker value={stops[1]} onChange={(v) => onStop(1, v)} />
+				<SwatchPicker value={stops[2]} onChange={(v) => onStop(2, v)} />
+			</div>
+			<div className="flex items-center gap-2">
+				<span className="text-[10px] uppercase tracking-widest text-dbz-blue-light">
+					Angle {angle}°
+				</span>
 				<input
-					type="color"
-					className="h-9 w-10 shrink-0 cursor-pointer rounded border-2 border-dbz-border bg-dbz-bg"
-					value={/^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000"}
-					onChange={(e) => onChange(e.target.value)}
-				/>
-				<input
-					className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
+					type="range"
+					min={0}
+					max={360}
+					value={angle}
+					onChange={(e) => onAngle(Number(e.target.value))}
+					className="flex-1 accent-dbz-orange"
 				/>
 			</div>
+			<p className="text-[10px] text-white/30">
+				Dégradé utilisé seulement si aucune image de fond n&apos;est définie.
+			</p>
+		</div>
+	);
+}
+
+/** Slider 0-1 (ou plage custom) avec label et valeur, pour overlay/teinte. */
+function RangeField({
+	label,
+	value,
+	min,
+	max,
+	step,
+	onChange,
+	format,
+	hint,
+}: {
+	label: string;
+	value: number;
+	min: number;
+	max: number;
+	step: number;
+	onChange: (v: number) => void;
+	format?: (v: number) => string;
+	hint?: string;
+}) {
+	return (
+		<div>
+			<label className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+				<span>{label}</span>
+				<span className="text-dbz-yellow">
+					{format ? format(value) : value}
+				</span>
+			</label>
+			<input
+				type="range"
+				min={min}
+				max={max}
+				step={step}
+				value={value}
+				onChange={(e) => onChange(Number(e.target.value))}
+				className="w-full accent-dbz-orange"
+			/>
+			{hint && <p className="mt-0.5 text-[10px] text-white/30">{hint}</p>}
 		</div>
 	);
 }
@@ -558,30 +694,15 @@ function ThemeEditor({
 							/>
 						</div>
 
-						<ColorField
+						<SwatchPicker
 							label="Accent (ring, highlights)"
 							value={draft.accent}
 							onChange={(v) => set({ accent: v })}
 						/>
-						<ColorField
+						<SwatchPicker
 							label="Aura (avatar, barre XP)"
 							value={draft.aura}
 							onChange={(v) => set({ aura: v })}
-						/>
-						<ColorField
-							label="Dégradé fond — 1"
-							value={draft.bgGrad1}
-							onChange={(v) => set({ bgGrad1: v })}
-						/>
-						<ColorField
-							label="Dégradé fond — 2"
-							value={draft.bgGrad2}
-							onChange={(v) => set({ bgGrad2: v })}
-						/>
-						<ColorField
-							label="Dégradé fond — 3"
-							value={draft.bgGrad3}
-							onChange={(v) => set({ bgGrad3: v })}
 						/>
 
 						<div>
@@ -607,6 +728,38 @@ function ThemeEditor({
 									</>
 								)}
 							</button>
+						</div>
+
+						<div>
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Ombre de texte (rgba)
+							</label>
+							<input
+								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
+								value={draft.textShadow}
+								onChange={(e) => set({ textShadow: e.target.value })}
+								placeholder="rgba(0,0,0,0.8)"
+							/>
+						</div>
+
+						<div className="sm:col-span-2">
+							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
+								Dégradé de fond (3 stops + angle)
+							</label>
+							<GradientBar
+								stops={[draft.bgGrad1, draft.bgGrad2, draft.bgGrad3]}
+								angle={draft.gradientAngle}
+								onStop={(i, v) =>
+									set(
+										i === 0
+											? { bgGrad1: v }
+											: i === 1
+												? { bgGrad2: v }
+												: { bgGrad3: v },
+									)
+								}
+								onAngle={(deg) => set({ gradientAngle: deg })}
+							/>
 						</div>
 
 						<div className="sm:col-span-2">
@@ -651,17 +804,27 @@ function ThemeEditor({
 							)}
 						</div>
 
-						<div className="sm:col-span-2">
-							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
-								Ombre de texte (rgba)
-							</label>
-							<input
-								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-xs font-mono"
-								value={draft.textShadow}
-								onChange={(e) => set({ textShadow: e.target.value })}
-								placeholder="rgba(0,0,0,0.8)"
-							/>
-						</div>
+						{/* Réglages fins du rendu (n'ont d'effet qu'avec une image de fond) */}
+						<RangeField
+							label="Assombrissement du fond"
+							value={draft.overlayOpacity}
+							min={0}
+							max={1}
+							step={0.01}
+							onChange={(v) => set({ overlayOpacity: v })}
+							format={(v) => `${Math.round(v * 100)}%`}
+							hint="Voile noir sur l'image — lisibilité du texte"
+						/>
+						<RangeField
+							label="Teinte (aura sur le fond)"
+							value={draft.tintStrength}
+							min={0}
+							max={0.4}
+							step={0.01}
+							onChange={(v) => set({ tintStrength: v })}
+							format={(v) => `${Math.round(v * 100)}%`}
+							hint="Colore l'image avec la couleur d'aura"
+						/>
 					</div>
 
 					{/* Aperçu live (reflète l'état enregistré) */}

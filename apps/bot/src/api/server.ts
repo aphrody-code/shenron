@@ -2988,6 +2988,9 @@ export class ApiServer {
 							bgGrad3?: string;
 							bgFile?: string | null;
 							textShadow?: string;
+							overlayOpacity?: number;
+							tintStrength?: number;
+							gradientAngle?: number;
 							enabled?: boolean;
 						} | null;
 						if (
@@ -3019,6 +3022,12 @@ export class ApiServer {
 								bgGrad3: body.bgGrad3,
 								bgFile: body.bgFile ?? null,
 								textShadow: body.textShadow,
+								overlayOpacity:
+									typeof body.overlayOpacity === "number" ? body.overlayOpacity : 0.78,
+								tintStrength:
+									typeof body.tintStrength === "number" ? body.tintStrength : 0.08,
+								gradientAngle:
+									typeof body.gradientAngle === "number" ? body.gradientAngle : 135,
 								enabled: body.enabled ?? true,
 							});
 							container.resolve(CardService).invalidateThemes();
@@ -3044,6 +3053,14 @@ export class ApiServer {
 						}
 						if (typeof body.bgFile === "string" || body.bgFile === null) patch.bgFile = body.bgFile;
 						if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
+						const clamp = (v: number, lo: number, hi: number) =>
+							Math.max(lo, Math.min(hi, v));
+						if (typeof body.overlayOpacity === "number")
+							patch.overlayOpacity = clamp(body.overlayOpacity, 0, 1);
+						if (typeof body.tintStrength === "number")
+							patch.tintStrength = clamp(body.tintStrength, 0, 1);
+						if (typeof body.gradientAngle === "number")
+							patch.gradientAngle = clamp(Math.round(body.gradientAngle), 0, 360);
 						await dbs.db
 							.update(cardThemes)
 							.set(patch)

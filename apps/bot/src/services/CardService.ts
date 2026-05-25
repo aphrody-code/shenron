@@ -26,9 +26,18 @@ interface CardTheme {
   accent: string; // couleur principale (ring, highlights)
   aura: string; // couleur de l'aura avatar + barre XP
   bgGrad: readonly [string, string, string]; // dégradé de fond si pas d'image
-  bgFile?: string; // chemin relatif (assets/backgrounds/...) — overlay obscurci en top
+  bgFile?: string; // chemin relatif (assets/banners|backgrounds/...) — overlay obscurci en top
   textShadow: string;
+  overlayOpacity?: number; // assombrissement de l'image de fond (0-1), défaut 0.78
+  tintStrength?: number; // teinte aura par-dessus le fond (0-1), défaut 0.08
+  gradientAngle?: number; // angle du dégradé sans image (deg), défaut 135
 }
+
+// Valeurs par défaut du rendu (= anciens hardcodes). Utilisées si non définies
+// (thèmes hardcodés CARDS) ; les thèmes DB portent toujours une valeur.
+const DEFAULT_OVERLAY = 0.78;
+const DEFAULT_TINT = 0.08;
+const DEFAULT_ANGLE = 135;
 
 // Palettes calquées sur les couleurs officielles de l'anime/manga DBZ.
 // Sources : brandpalettes.com pour le logo, schemecolor.com pour Goku/Vegeta.
@@ -147,6 +156,9 @@ export class CardService {
           bgGrad: [r.bgGrad1, r.bgGrad2, r.bgGrad3] as const,
           bgFile: r.bgFile ?? undefined,
           textShadow: r.textShadow,
+          overlayOpacity: r.overlayOpacity,
+          tintStrength: r.tintStrength,
+          gradientAngle: r.gradientAngle,
         });
       }
     } catch (err) {
@@ -243,23 +255,36 @@ export class CardService {
     roundRectPath(ctx, 0, 0, width, height, CARD_R);
     ctx.clip();
 
+    const overlayOpacity = theme.overlayOpacity ?? DEFAULT_OVERLAY;
+    const tintStrength = theme.tintStrength ?? DEFAULT_TINT;
+    const gradientAngle = theme.gradientAngle ?? DEFAULT_ANGLE;
+
     const bg = await this.loadBackground(cardKey);
     if (bg) {
       // object-fit: cover — préserve le ratio, crop ce qui dépasse
       drawImageCover(ctx, bg, 0, 0, width, height);
-      // Overlay dégradé : obscurci à gauche pour lisibilité de l'avatar/texte
+      // Overlay dégradé : obscurci à gauche pour lisibilité de l'avatar/texte.
+      // Les 3 stops sont pilotés par overlayOpacity (défaut 0.78 → 0.78/0.45/0.22).
       const overlay = ctx.createLinearGradient(0, 0, width, 0);
-      overlay.addColorStop(0, "rgba(0,0,0,0.78)");
-      overlay.addColorStop(0.55, "rgba(0,0,0,0.45)");
-      overlay.addColorStop(1, "rgba(0,0,0,0.22)");
+      overlay.addColorStop(0, `rgba(0,0,0,${overlayOpacity})`);
+      overlay.addColorStop(0.55, `rgba(0,0,0,${overlayOpacity * 0.577})`);
+      overlay.addColorStop(1, `rgba(0,0,0,${overlayOpacity * 0.282})`);
       ctx.fillStyle = overlay;
       ctx.fillRect(0, 0, width, height);
-      // Teinte thématique légère pour marier bg + palette
-      ctx.fillStyle = rgba(theme.aura, 0.08);
+      // Teinte thématique pour marier bg + palette
+      ctx.fillStyle = rgba(theme.aura, tintStrength);
       ctx.fillRect(0, 0, width, height);
     } else {
-      // Multi-stop linear gradient
-      const grad = ctx.createLinearGradient(0, 0, width, height);
+      // Multi-stop linear gradient orienté par gradientAngle (deg, repère écran)
+      const rad = (gradientAngle * Math.PI) / 180;
+      const hx = (Math.cos(rad) * width) / 2;
+      const hy = (Math.sin(rad) * height) / 2;
+      const grad = ctx.createLinearGradient(
+        width / 2 - hx,
+        height / 2 - hy,
+        width / 2 + hx,
+        height / 2 + hy,
+      );
       grad.addColorStop(0, theme.bgGrad[0]);
       grad.addColorStop(0.5, theme.bgGrad[1]);
       grad.addColorStop(1, theme.bgGrad[2]);
