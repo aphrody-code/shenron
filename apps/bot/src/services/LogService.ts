@@ -2,6 +2,7 @@ import { container, singleton } from "tsyringe";
 import {
 	Client,
 	EmbedBuilder,
+	type AttachmentBuilder,
 	type TextChannel,
 	type ColorResolvable,
 } from "discord.js";
@@ -73,13 +74,21 @@ export class LogService {
 		return override ?? map.envFallback;
 	}
 
-	async send(client: Client, category: LogCategory, embed: EmbedBuilder) {
+	async send(
+		client: Client,
+		category: LogCategory,
+		embed: EmbedBuilder,
+		files?: AttachmentBuilder[],
+	) {
 		const channelId = await this.resolveChannelId(category);
 		if (!channelId) return;
 		try {
 			const ch = await client.channels.fetch(channelId);
 			if (ch?.isSendable()) {
-				await (ch as TextChannel).send({ embeds: [embed] });
+				await (ch as TextChannel).send({
+					embeds: [embed],
+					...(files?.length ? { files } : {}),
+				});
 			}
 		} catch (err) {
 			logger.warn({ err, category, channelId }, "Failed to send log");
