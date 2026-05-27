@@ -795,7 +795,6 @@ function ThemeEditor({
 								)}
 							</div>
 							{draft.bgFile && (
-								// eslint-disable-next-line @next/next/no-img-element
 								<img
 									src={botAsset(draft.bgFile)}
 									alt="Fond sélectionné"

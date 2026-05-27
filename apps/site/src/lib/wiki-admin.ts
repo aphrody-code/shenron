@@ -23,8 +23,9 @@ import { db } from "@/lib/db";
 import * as botSchema from "@/db/bot-schema";
 import { WIKI_TABLE_SPECS, type WikiTableSpec } from "@/lib/wiki-tables";
 
-// biome/oxlint: les tables Drizzle sont hétérogènes → any localisé et assumé.
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// Les tables Drizzle bot-schema sont hétérogènes → any localisé et assumé
+// (la règle no-explicit-any est déjà off dans eslint.config.mjs).
+// biome-ignore lint/suspicious/noExplicitAny: tables Drizzle hétérogènes
 type AnyTable = any;
 type Row = Record<string, unknown>;
 
