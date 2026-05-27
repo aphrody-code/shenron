@@ -25,6 +25,7 @@ type Movie = {
 	mal_id: number | null;
 	poster: string | null;
 	trailer_url: string | null;
+	synopsis: string | null;
 };
 
 type JikanAnime = {
@@ -33,6 +34,7 @@ type JikanAnime = {
 	trailer?: { url?: string | null };
 	title?: string;
 	type?: string;
+	synopsis?: string | null;
 };
 
 async function jikan<T>(url: string): Promise<T | null> {
@@ -72,21 +74,26 @@ async function byId(malId: number): Promise<JikanAnime | null> {
 async function main() {
 	const movies = db
 		.query(
-			`SELECT id, title, title_romaji, mal_id, poster, trailer_url FROM db_movies ORDER BY id`,
+			`SELECT id, title, title_romaji, mal_id, poster, trailer_url, synopsis FROM db_movies ORDER BY id`,
 		)
 		.all() as Movie[];
 
 	let posters = 0;
 	let trailers = 0;
+	let synopses = 0;
 
 	const upd = db.query(
-		`UPDATE db_movies SET poster = COALESCE(?, poster), trailer_url = COALESCE(?, trailer_url), mal_id = COALESCE(?, mal_id) WHERE id = ?`,
+		`UPDATE db_movies SET poster = COALESCE(?, poster), trailer_url = COALESCE(?, trailer_url), mal_id = COALESCE(?, mal_id), synopsis = COALESCE(?, synopsis) WHERE id = ?`,
 	);
 
 	for (const m of movies) {
-		const hasPoster = !!m.poster && m.poster.startsWith("http");
+		// Poster fiable seulement si déjà self-hosté local (./assets) — sinon on
+		// le (re)cherche. Les URLs http sont d'anciens fetch potentiellement
+		// mismatchés et seront ré-écrasées via le mal_id (source de vérité).
+		const hasPoster = !!m.poster && m.poster.startsWith("./");
 		const hasTrailer = !!m.trailer_url;
-		if (hasPoster && hasTrailer) {
+		const hasSynopsis = !!m.synopsis && m.synopsis.trim().length > 0;
+		if (hasPoster && hasTrailer && hasSynopsis) {
 			console.log(`= ${m.title} (déjà complet)`);
 			continue;
 		}
@@ -106,17 +113,20 @@ async function main() {
 			anime.images?.jpg?.image_url ??
 			null;
 		const trailer = anime.trailer?.url ?? null;
+		const synopsis = anime.synopsis?.trim() || null;
 
 		upd.run(
 			hasPoster ? null : poster,
 			hasTrailer ? null : trailer,
 			m.mal_id ? null : anime.mal_id,
+			hasSynopsis ? null : synopsis,
 			m.id,
 		);
 		if (!hasPoster && poster) posters++;
 		if (!hasTrailer && trailer) trailers++;
+		if (!hasSynopsis && synopsis) synopses++;
 		console.log(
-			`✓ ${m.title} → mal_id=${anime.mal_id} poster=${poster ? "oui" : "non"} trailer=${trailer ? "oui" : "non"}`,
+			`✓ ${m.title} → mal_id=${anime.mal_id} poster=${poster ? "oui" : "non"} trailer=${trailer ? "oui" : "non"} synopsis=${synopsis ? "oui" : "non"}`,
 		);
 	}
 
@@ -136,7 +146,7 @@ async function main() {
 	).c;
 	const total = movies.length;
 	console.log(
-		`\n+${posters} posters, +${trailers} trailers. Couverture : poster ${totalPoster}/${total}, trailer ${totalTrailer}/${total}.`,
+		`\n+${posters} posters, +${trailers} trailers, +${synopses} synopsis. Couverture : poster ${totalPoster}/${total}, trailer ${totalTrailer}/${total}.`,
 	);
 	db.close();
 }
