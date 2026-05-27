@@ -30,7 +30,7 @@
 		"db:seed-techniques": "bun src/db/seed-techniques.ts",
 		"db:seed-games": "bun src/db/seed-games.ts",
 		"db:seed-manga": "bun src/db/seed-manga.ts",
-		"db:seed-all": "bun src/db/seed-wiki.ts && bun src/db/seed-triggers.ts && bun src/db/seed-level-rewards.ts && bun src/db/seed-media.ts && bun src/db/seed-techniques.ts && bun src/db/seed-games.ts && bun src/db/seed-manga.ts",
+		"db:seed-all": "bun src/db/seed-triggers.ts && bun src/db/seed-level-rewards.ts && bun src/db/seed-shop-banners.ts",
 		"db:sync-news": "bun scripts/sync-news.ts",
 		"db:studio": "bunx drizzle-kit studio",
 		"db:push": "bunx drizzle-kit push"

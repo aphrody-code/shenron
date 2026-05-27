@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import "./wiki-write-guard";
 import { container } from "tsyringe";
 import { DatabaseService } from "~/db/index";
 import { dbGames } from "~/db/schema";

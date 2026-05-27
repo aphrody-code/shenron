@@ -34,10 +34,54 @@ const sqlite = new Database(SQLITE_PATH); // read-write (replica local)
 sqlite.exec("PRAGMA busy_timeout = 10000");
 const sql = postgres(NEON_URL, { max: 4, prepare: false });
 
-async function main() {
-	const report: { table: string; neon: number; sqlite: number; ok: boolean }[] =
-		[];
+/**
+ * Colonnes Date stockées en SECONDES côté SQLite (Drizzle `mode: "timestamp"`,
+ * cf. schema.ts:579/664/686/702/718/732). postgres-js renvoie ces colonnes
+ * comme objets `Date` → il faut écrire `getTime()/1000`, pas `getTime()` (ms),
+ * sinon les dates sont fausses d'un facteur 1000 (an ~57000) et le reverse-sync
+ * réintroduit la corruption à CHAQUE tick. Toutes les autres colonnes Date des
+ * tables WIKI_EDITORIAL sont en secondes (aucune en `timestamp_ms`).
+ */
+const SECONDS_TS_COLS = new Set([
+	"db_assets.created_at",
+	"db_episodes.air_date",
+	"db_manga_volumes.published_at",
+	"db_manga_chapters.published_at",
+	"db_movies.release_date",
+	"db_games.release_date",
+]);
 
+function encodeValue(table: string, col: string, v: unknown): string | number | null {
+	if (v === null || v === undefined) return null;
+	// postgres-js rend les bigint en string → laisse l'affinité SQLite (INTEGER)
+	// convertir ; bool éventuels → 0/1.
+	if (typeof v === "boolean") return v ? 1 : 0;
+	if (v instanceof Date) {
+		return SECONDS_TS_COLS.has(`${table}.${col}`)
+			? Math.floor(v.getTime() / 1000)
+			: v.getTime();
+	}
+	return v as string | number;
+}
+
+interface TablePlan {
+	table: string;
+	cols: string[];
+	insertSql: string;
+	rows: Record<string, unknown>[];
+	existing: number;
+}
+
+async function main() {
+	const report: {
+		table: string;
+		neon: number;
+		sqlite: number;
+		ok: boolean;
+	}[] = [];
+
+	// ── Phase 1 — lire Neon + préparer les plans (hors transaction SQLite) ──
+	const plans: TablePlan[] = [];
 	for (const t of WIKI_EDITORIAL) {
 		// Colonnes réellement présentes dans le SQLite local (tolère le drift :
 		// on n'insère que des colonnes que la table SQLite connaît).
@@ -54,6 +98,22 @@ async function main() {
 			`SELECT * FROM bot."${t}"`,
 		)) as unknown as Record<string, unknown>[];
 
+		const existing = (
+			sqlite.query(`SELECT count(*) AS n FROM "${t}"`).get() as { n: number }
+		).n;
+
+		// Garde anti-truncate : Neon momentanément vide (migration/reset/échec de
+		// seed) alors que le replica a des données → NE PAS vider le SQLite.
+		// On skip la table (pas de DELETE) et on marque la run en échec (exit≠0)
+		// pour que le timer systemd logue l'anomalie.
+		if (rows.length === 0 && existing > 0) {
+			console.error(
+				`✗ ${t.padEnd(26)} Neon=0 mais SQLite=${existing} → SKIP (anti-truncate)`,
+			);
+			report.push({ table: t, neon: 0, sqlite: existing, ok: false });
+			continue;
+		}
+
 		// Colonnes communes Neon ∩ SQLite, dans l'ordre SQLite.
 		const neonCols = rows.length > 0 ? Object.keys(rows[0]) : sqliteCols;
 		const cols = sqliteCols.filter((c) => neonCols.includes(c));
@@ -61,54 +121,53 @@ async function main() {
 		const insertSql = `INSERT INTO "${t}" (${cols
 			.map((c) => `"${c}"`)
 			.join(", ")}) VALUES (${placeholders})`;
+		plans.push({ table: t, cols, insertSql, rows, existing });
+	}
 
-		const refresh = sqlite.transaction(
-			(items: Record<string, unknown>[]) => {
-				sqlite.query(`DELETE FROM "${t}"`).run();
-				const stmt = sqlite.query(insertSql);
-				for (const r of items) {
-					stmt.run(
-						...cols.map((c) => {
-							const v = r[c];
-							if (v === null || v === undefined) return null;
-							// postgres-js rend les bigint en string → laisse l'affinité
-							// SQLite (INTEGER) convertir ; bool éventuels → 0/1.
-							if (typeof v === "boolean") return v ? 1 : 0;
-							if (v instanceof Date) return v.getTime();
-							return v as string | number;
-						}),
-					);
+	// ── Phase 2 — UNE seule transaction globale (atomique cross-table) ──
+	// Le bot ne voit jamais d'état intermédiaire entre tables (ex. db_characters
+	// rafraîchi mais db_transformations pas encore). FK off le temps du refresh
+	// (données Neon déjà cohérentes), hors transaction car PRAGMA ne change pas
+	// à l'intérieur d'une transaction ouverte.
+	sqlite.exec("PRAGMA foreign_keys = OFF");
+	try {
+		const apply = sqlite.transaction(() => {
+			for (const p of plans) {
+				sqlite.query(`DELETE FROM "${p.table}"`).run();
+				const stmt = sqlite.query(p.insertSql);
+				for (const r of p.rows) {
+					stmt.run(...p.cols.map((c) => encodeValue(p.table, c, r[c])));
 				}
-			},
-		);
+			}
+		});
+		apply();
+	} finally {
+		sqlite.exec("PRAGMA foreign_keys = ON");
+	}
 
-		// FK off le temps du refresh atomique (données Neon déjà cohérentes).
-		sqlite.exec("PRAGMA foreign_keys = OFF");
-		try {
-			refresh(rows);
-		} finally {
-			sqlite.exec("PRAGMA foreign_keys = ON");
-		}
-
+	// ── Phase 3 — vérif counts ──
+	for (const p of plans) {
 		const cnt = (
-			sqlite.query(`SELECT count(*) AS n FROM "${t}"`).get() as { n: number }
+			sqlite.query(`SELECT count(*) AS n FROM "${p.table}"`).get() as {
+				n: number;
+			}
 		).n;
-		const ok = cnt === rows.length;
-		report.push({ table: t, neon: rows.length, sqlite: cnt, ok });
+		const ok = cnt === p.rows.length;
+		report.push({ table: p.table, neon: p.rows.length, sqlite: cnt, ok });
 		console.log(
-			`${ok ? "✓" : "✗"} ${t.padEnd(26)} neon=${rows.length} sqlite=${cnt}`,
+			`${ok ? "✓" : "✗"} ${p.table.padEnd(26)} neon=${p.rows.length} sqlite=${cnt}`,
 		);
 	}
 
 	const bad = report.filter((r) => !r.ok);
 	console.log(
-		`\n${report.length} tables wiki rafraîchies · ${bad.length} mismatch`,
+		`\n${report.length} tables wiki traitées · ${bad.length} anomalie(s)`,
 	);
 
 	await sql.end();
 	sqlite.close();
 	if (bad.length) {
-		console.error("✗ Mismatch de counts — reverse-sync incomplète.");
+		console.error("✗ Reverse-sync incomplète (mismatch ou anti-truncate).");
 		process.exit(1);
 	}
 	console.log("✓ Reverse-sync Neon → SQLite (wiki éditorial) complète.");

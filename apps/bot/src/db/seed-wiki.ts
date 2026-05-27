@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import "./wiki-write-guard";
 import { container } from "tsyringe";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
