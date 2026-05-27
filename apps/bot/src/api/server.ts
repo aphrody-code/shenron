@@ -1227,10 +1227,15 @@ export class ApiServer {
 							};
 						}
 
-						// Enrich opt-in via cache Discord users (5 min) — les top players
-						// changent peu, cache hit ≈ 100% en stable state.
-						const enriched = await Promise.all(
-							rows.map(async (r, i) => {
+						// Enrich opt-in via cache Discord users (5 min). Concurrence
+						// bornée (8) + deadline 7 s : cache chaud ≈ instantané, cache
+						// froid borné (jamais de 502 par rate-limit storm). Les users
+						// non résolus dans le budget → username null + avatar défaut.
+						const enriched = await mapLimitDeadline(
+							rows,
+							8,
+							7000,
+							async (r, i) => {
 								const u = await fetchDiscordUserCached(r.id);
 								return {
 									rank: i + 1,
@@ -1241,6 +1246,15 @@ export class ApiServer {
 									zeni: r.zeni,
 									level: levelForXP(r.xp),
 								};
+							},
+							(r, i) => ({
+								rank: i + 1,
+								discordId: r.id,
+								username: null as string | null,
+								avatarUrl: discordAvatarUrl(r.id, null, 128),
+								xp: r.xp,
+								zeni: r.zeni,
+								level: levelForXP(r.xp),
 							}),
 						);
 						return { leaderboard: enriched };
@@ -4204,8 +4218,28 @@ async function fetchDiscordUserCached(id: string): Promise<DiscordUserData> {
 	if (cached && cached.expiresAt > now) return cached;
 
 	const map = container.resolve<Map<string, Client>>("ClientMap");
-	const shenron = map.get("shenron");
-	const u = shenron ? await shenron.users.fetch(id).catch(() => null) : null;
+	// 1) Cache mémoire de N'IMPORTE QUEL client : les personas privilégiées
+	//    (grandPretre/kaio, intent GuildMembers) ont les membres en cache dès le
+	//    boot → résolution instantanée sans REST pour la plupart des IDs.
+	let u: { username: string; avatar: string | null } | null = null;
+	for (const c of map.values()) {
+		const cu = c.users.cache.get(id);
+		if (cu) {
+			u = { username: cu.username, avatar: cu.avatar };
+			break;
+		}
+	}
+	// 2) Miss cache → REST via shenron, timeout dur 2.5 s (sinon 100 fetch froids
+	//    en rate-limit → 502 nginx). On rend null plutôt que de bloquer.
+	if (!u) {
+		const shenron = map.get("shenron");
+		u = shenron
+			? await Promise.race([
+					shenron.users.fetch(id).catch(() => null),
+					new Promise<null>((res) => setTimeout(() => res(null), 2500)),
+				])
+			: null;
+	}
 	const entry: DiscordUserData = {
 		username: u?.username ?? null,
 		avatarHash: u?.avatar ?? null,
@@ -4222,6 +4256,41 @@ async function fetchDiscordUserCached(id: string): Promise<DiscordUserData> {
 /** Construit l'URL avatar via `userAvatar` (hash) ou `defaultAvatar` (fallback). */
 function discordAvatarUrl(id: string, hash: string | null, size: 64 | 128 | 256 | 512 = 512): string {
 	return hash ? userAvatar(id, hash, { size }) : defaultAvatar(id);
+}
+
+/**
+ * map() avec **concurrence bornée + deadline globale**. Au-delà du budget temps,
+ * les items restants prennent `fallback` (pas de REST) → garantit une réponse
+ * rapide même cache froid (ex. enrich leaderboard : 100 fetch Discord bornés).
+ */
+async function mapLimitDeadline<T, R>(
+	items: T[],
+	limit: number,
+	deadlineMs: number,
+	fn: (item: T, idx: number) => Promise<R>,
+	fallback: (item: T, idx: number) => R,
+): Promise<R[]> {
+	const results = Array.from({ length: items.length }) as R[];
+	const deadline = Date.now() + deadlineMs;
+	let next = 0;
+	async function worker() {
+		while (next < items.length) {
+			const i = next++;
+			if (Date.now() > deadline) {
+				results[i] = fallback(items[i], i);
+				continue;
+			}
+			try {
+				results[i] = await fn(items[i], i);
+			} catch {
+				results[i] = fallback(items[i], i);
+			}
+		}
+	}
+	await Promise.all(
+		Array.from({ length: Math.min(limit, items.length) }, worker),
+	);
+	return results;
 }
 
 // ── A2A bridge ────────────────────────────────────────────────────────────
