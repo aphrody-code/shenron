@@ -195,3 +195,37 @@ export const botTools = bot.table("db_tools", {
 	targetGameId: int("target_game_id"),
 	stars: int("stars"),
 });
+
+export const botSources = bot.table("db_sources", {
+	id: text("id").primaryKey(),
+	name: text("name").notNull(),
+	url: text("url"),
+	licenseKey: text("license_key"),
+	attributionTemplate: text("attribution_template"),
+});
+
+export const botLicenses = bot.table("db_licenses", {
+	key: text("key").primaryKey(),
+	name: text("name").notNull(),
+	url: text("url"),
+	requiresAttribution: int("requires_attribution"),
+	shareAlike: int("share_alike"),
+});
+
+export const botAssets = bot.table("db_assets", {
+	id: int("id").primaryKey(),
+	path: text("path").notNull(),
+	sourceId: text("source_id"),
+	sourceUrl: text("source_url"),
+	licenseKey: text("license_key"),
+	attribution: text("attribution"),
+	sha256: text("sha256"),
+	mimeType: text("mime_type"),
+	bytes: int("bytes"),
+	width: int("width"),
+	height: int("height"),
+	entityType: text("entity_type"),
+	entityId: int("entity_id"),
+	role: text("role"),
+	createdAt: int("created_at"),
+});

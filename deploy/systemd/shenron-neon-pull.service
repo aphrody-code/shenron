@@ -1,0 +1,13 @@
+[Unit]
+Description=Reverse-sync Neon -> SQLite du wiki editorial (replica de lecture du bot)
+After=network-online.target shenron.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/shenron
+EnvironmentFile=/home/ubuntu/.shenron-neon.env
+ExecStart=/home/ubuntu/.bun/bin/bun apps/bot/scripts/sync-neon-to-sqlite.ts
+TimeoutStartSec=300
+Nice=10

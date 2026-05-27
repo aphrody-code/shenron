@@ -3816,6 +3816,8 @@ export class ApiServer {
 					POST: admin(async (req) => {
 						const spec = getTableSpec(req.params.table);
 						if (!spec) return Response.json({ error: "Table inconnue" }, { status: 404 });
+						if (spec.name.startsWith("db_"))
+							return Response.json({ error: "Wiki en lecture seule côté bot — édition sur le site (Neon)." }, { status: 409 });
 						if (spec.readonly) return Response.json({ error: "Table readonly" }, { status: 403 });
 						const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
 						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
@@ -3842,6 +3844,8 @@ export class ApiServer {
 					PUT: admin(async (req) => {
 						const spec = getTableSpec(req.params.table);
 						if (!spec) return Response.json({ error: "Table inconnue" }, { status: 404 });
+						if (spec.name.startsWith("db_"))
+							return Response.json({ error: "Wiki en lecture seule côté bot — édition sur le site (Neon)." }, { status: 409 });
 						const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
 						if (!body) return Response.json({ error: "JSON body requis" }, { status: 400 });
 						try {
@@ -3858,6 +3862,8 @@ export class ApiServer {
 					DELETE: admin(async (req) => {
 						const spec = getTableSpec(req.params.table);
 						if (!spec) return Response.json({ error: "Table inconnue" }, { status: 404 });
+						if (spec.name.startsWith("db_"))
+							return Response.json({ error: "Wiki en lecture seule côté bot — édition sur le site (Neon)." }, { status: 409 });
 						try {
 							await deleteRow(spec, req.params.id);
 							if (spec.name.startsWith("db_")) invalidatePublicWikiCache();

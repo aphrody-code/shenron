@@ -1,4 +1,4 @@
-import { adminFetch } from "../_lib";
+import { countEpisodesBySeries, listEpisodesBySeries } from "@/lib/wiki-admin";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 import Link from "next/link";
@@ -44,11 +44,10 @@ export default async function AdminEpisodesPage({
 }) {
 	const sp = await searchParams;
 	const series = sp.series ?? "DBZ";
-	const data = await adminFetch<{ episodes: Episode[]; total: number }>(
-		`/api/public/wiki/episodes?series=${series}&limit=500`,
-	);
-	const eps = data?.episodes ?? [];
-	const total = data?.total ?? 0;
+	const [eps, total] = await Promise.all([
+		listEpisodesBySeries(series, 500) as Promise<Episode[]>,
+		countEpisodesBySeries(series),
+	]);
 
 	return (
 		<div className="w-full max-w-6xl mx-auto">

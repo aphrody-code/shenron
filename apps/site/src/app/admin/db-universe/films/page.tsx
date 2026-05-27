@@ -1,6 +1,7 @@
-import { adminFetch, assetCdnUrl } from "../_lib";
+import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
+import { listWikiSnake } from "@/lib/wiki-admin";
 import Image from "next/image";
 
 const TABLE = "db_movies";
@@ -20,8 +21,7 @@ type Movie = {
 };
 
 export default async function AdminFilmsPage() {
-	const data = await adminFetch<{ movies: Movie[] }>("/api/public/wiki/movies");
-	const movies = (data?.movies ?? []).sort(
+	const movies = ((await listWikiSnake("db_movies")) as Movie[]).sort(
 		(a, b) => (a.release_date ?? 0) - (b.release_date ?? 0),
 	);
 

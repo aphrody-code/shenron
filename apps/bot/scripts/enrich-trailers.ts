@@ -19,6 +19,7 @@ if (!KEY) {
 	process.exit(1);
 }
 
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
 const db = new Database(DB);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

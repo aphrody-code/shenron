@@ -16,6 +16,7 @@ const DB = new URL("../data/bot.db", import.meta.url).pathname;
 const ASSETS = new URL("../assets/ext/db_games/", import.meta.url).pathname;
 const FORCE = process.argv.includes("--force");
 const DRY = process.argv.includes("--dry-run");
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
 const db = new Database(DB);
 mkdirSync(ASSETS, { recursive: true });
 

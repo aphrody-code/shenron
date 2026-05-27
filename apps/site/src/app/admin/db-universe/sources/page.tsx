@@ -1,6 +1,6 @@
-import { adminFetch } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
+import { listSourcesWithLicense } from "@/lib/wiki-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +17,7 @@ type Source = {
 };
 
 export default async function AdminSourcesPage() {
-	const data = await adminFetch<{ sources: Source[] }>("/api/public/sources");
-	const sources = data?.sources ?? [];
+	const sources = (await listSourcesWithLicense()) as Source[];
 
 	return (
 		<div className="w-full max-w-6xl mx-auto">

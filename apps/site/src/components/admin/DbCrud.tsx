@@ -10,8 +10,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Edit, Trash2, Plus, X, Save, AlertTriangle } from "lucide-react";
-import { api } from "@/lib/admin-api";
+import { api, apiAt } from "@/lib/admin-api";
 import { colLabel } from "@/lib/db-labels";
+import { WIKI_TABLE_SPECS, crudBase, isWikiTable } from "@/lib/wiki-tables";
 
 interface TableSpec {
 	name: string;
@@ -21,12 +22,38 @@ interface TableSpec {
 	description: string | null;
 }
 
-function useTableSpec(table: string) {
+/**
+ * Client + chemin CRUD pour une table :
+ *   - wiki éditoriale → `apiAt("/api/wiki-admin")` + `/:table[/:id]` (Neon direct)
+ *   - sinon → `api` (proxy bot) + `/database/:table[/:id]`
+ */
+function useCrud(table: string) {
+	const wiki = isWikiTable(table);
+	const client = wiki ? apiAt(crudBase(table)) : api;
+	const collection = wiki ? `/${table}` : `/database/${table}`;
+	const row = (id: string | number) =>
+		`${collection}/${encodeURIComponent(String(id))}`;
+	return { client, collection, row };
+}
+
+function useTableSpec(table: string): TableSpec | undefined {
+	// Tables wiki : schéma statique (camelCase), aucun appel au bot.
+	const wikiSpec = WIKI_TABLE_SPECS[table];
 	const q = useQuery({
 		queryKey: ["db", "tables"],
 		queryFn: () => api.get<{ tables: TableSpec[] }>("/database/tables"),
 		staleTime: 5 * 60_000,
+		enabled: !wikiSpec,
 	});
+	if (wikiSpec) {
+		return {
+			name: wikiSpec.name,
+			pk: Array.isArray(wikiSpec.pk) ? wikiSpec.pk.join(",") : wikiSpec.pk,
+			readonly: false,
+			mutableColumns: wikiSpec.mutableColumns,
+			description: null,
+		};
+	}
 	return q.data?.tables.find((t) => t.name === table);
 }
 
@@ -64,10 +91,11 @@ export function DbAddButton({
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
 	const qc = useQueryClient();
+	const crud = useCrud(table);
 
 	const create = useMutation({
 		mutationFn: (body: Record<string, unknown>) =>
-			api.post(`/database/${table}`, body),
+			crud.client.post(crud.collection, body),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setOpen(false);
@@ -117,20 +145,18 @@ export function DbRowActions({
 	const [confirming, setConfirming] = useState(false);
 	const router = useRouter();
 	const qc = useQueryClient();
+	const crud = useCrud(table);
 
 	// Charge la ligne canonique (casing API) à l'ouverture de l'édition.
 	const row = useQuery({
 		queryKey: ["db", table, "row", id],
-		queryFn: () =>
-			api.get<Record<string, unknown>>(
-				`/database/${table}/${encodeURIComponent(String(id))}`,
-			),
+		queryFn: () => crud.client.get<Record<string, unknown>>(crud.row(id)),
 		enabled: editing,
 	});
 
 	const update = useMutation({
 		mutationFn: (body: Record<string, unknown>) =>
-			api.put(`/database/${table}/${encodeURIComponent(String(id))}`, body),
+			crud.client.put(crud.row(id), body),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setEditing(false);
@@ -141,8 +167,7 @@ export function DbRowActions({
 	});
 
 	const remove = useMutation({
-		mutationFn: () =>
-			api.delete(`/database/${table}/${encodeURIComponent(String(id))}`),
+		mutationFn: () => crud.client.delete(crud.row(id)),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setConfirming(false);

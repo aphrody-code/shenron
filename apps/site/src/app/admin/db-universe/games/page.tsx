@@ -1,6 +1,7 @@
-import { adminFetch, assetCdnUrl } from "../_lib";
+import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
+import { listWikiSnake } from "@/lib/wiki-admin";
 import Image from "next/image";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +22,7 @@ type Game = {
 };
 
 export default async function AdminGamesPage() {
-	const data = await adminFetch<{ games: Game[] }>("/api/public/wiki/games");
-	const games = data?.games ?? [];
+	const games = (await listWikiSnake("db_games")) as Game[];
 
 	return (
 		<div className="w-full max-w-6xl mx-auto">

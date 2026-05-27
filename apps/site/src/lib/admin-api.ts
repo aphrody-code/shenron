@@ -13,8 +13,12 @@
  */
 const PROXY_BASE = "/api/bot-admin";
 
+function joinPath(base: string, path: string): string {
+	return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
 function resolvePath(path: string): string {
-	return `${PROXY_BASE}${path.startsWith("/") ? "" : "/"}${path}`;
+	return joinPath(PROXY_BASE, path);
 }
 
 interface ApiOpts extends RequestInit {
@@ -31,14 +35,18 @@ export class ApiError extends Error {
 	}
 }
 
-async function request<T>(path: string, opts: ApiOpts = {}): Promise<T> {
+async function requestAt<T>(
+	base: string,
+	path: string,
+	opts: ApiOpts = {},
+): Promise<T> {
 	const headers = new Headers(opts.headers);
 	let body: BodyInit | undefined = opts.body as BodyInit | undefined;
 	if (opts.json !== undefined) {
 		headers.set("Content-Type", "application/json");
 		body = JSON.stringify(opts.json);
 	}
-	const res = await fetch(resolvePath(path), {
+	const res = await fetch(joinPath(base, path), {
 		credentials: "same-origin",
 		...opts,
 		headers,
@@ -56,17 +64,34 @@ async function request<T>(path: string, opts: ApiOpts = {}): Promise<T> {
 	return (await res.json()) as T;
 }
 
-export const api = {
-	get: <T = unknown>(path: string) => request<T>(path),
-	post: <T = unknown>(path: string, json?: unknown) =>
-		request<T>(path, { method: "POST", json }),
-	put: <T = unknown>(path: string, json?: unknown) =>
-		request<T>(path, { method: "PUT", json }),
-	patch: <T = unknown>(path: string, json?: unknown) =>
-		request<T>(path, { method: "PATCH", json }),
-	delete: <T = unknown>(path: string, json?: unknown) =>
-		request<T>(path, { method: "DELETE", json }),
-};
+interface CrudClient {
+	get: <T = unknown>(path: string) => Promise<T>;
+	post: <T = unknown>(path: string, json?: unknown) => Promise<T>;
+	put: <T = unknown>(path: string, json?: unknown) => Promise<T>;
+	patch: <T = unknown>(path: string, json?: unknown) => Promise<T>;
+	delete: <T = unknown>(path: string, json?: unknown) => Promise<T>;
+}
+
+/**
+ * Construit un client CRUD sur une base arbitraire (même contrat que `api`).
+ * Utilisé pour router les tables wiki éditoriales vers `/api/wiki-admin`
+ * (Neon direct) au lieu de `/api/bot-admin` (proxy bot). Cf. `crudBase()`.
+ */
+export function apiAt(base: string): CrudClient {
+	return {
+		get: <T = unknown>(path: string) => requestAt<T>(base, path),
+		post: <T = unknown>(path: string, json?: unknown) =>
+			requestAt<T>(base, path, { method: "POST", json }),
+		put: <T = unknown>(path: string, json?: unknown) =>
+			requestAt<T>(base, path, { method: "PUT", json }),
+		patch: <T = unknown>(path: string, json?: unknown) =>
+			requestAt<T>(base, path, { method: "PATCH", json }),
+		delete: <T = unknown>(path: string, json?: unknown) =>
+			requestAt<T>(base, path, { method: "DELETE", json }),
+	};
+}
+
+export const api: CrudClient = apiAt(PROXY_BASE);
 
 /** URL absolue d'un asset/canvas servi par le bot via le proxy (GET only, images). */
 export function proxyAsset(path: string): string {

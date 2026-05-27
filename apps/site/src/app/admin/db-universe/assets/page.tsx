@@ -1,6 +1,7 @@
-import { adminFetch, assetCdnUrl } from "../_lib";
+import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
+import { listAssetsByBucket } from "@/lib/wiki-admin";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -42,10 +43,7 @@ export default async function AdminAssetsPage({
 	const bucket = sp.bucket ?? "characters";
 	const limit = Math.min(200, Math.max(20, Number(sp.limit) || 60));
 
-	const data = await adminFetch<{ assets: Asset[] }>(
-		`/api/public/assets?bucket=${encodeURIComponent(bucket)}&limit=${limit}`,
-	);
-	const assets = data?.assets ?? [];
+	const assets = (await listAssetsByBucket(bucket, limit)) as Asset[];
 	const bucketLabel = BUCKETS.find((b) => b.key === bucket)?.label ?? bucket;
 
 	return (

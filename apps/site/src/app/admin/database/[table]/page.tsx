@@ -13,9 +13,10 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "@/lib/admin-api";
+import { api, apiAt } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
 import { TABLE_LABELS, colLabel } from "@/lib/db-labels";
+import { WIKI_TABLE_SPECS, crudBase, isWikiTable } from "@/lib/wiki-tables";
 
 interface TableSpec {
 	name: string;
@@ -29,6 +30,11 @@ interface TableSpec {
 export default function TablePage() {
 	const { table } = useParams<{ table: string }>();
 	const router = useRouter();
+	const wiki = isWikiTable(table);
+	const client = wiki ? apiAt(crudBase(table)) : api;
+	const collection = wiki ? `/${table}` : `/database/${table}`;
+	const rowPath = (id: unknown) =>
+		`${collection}/${encodeURIComponent(String(id))}`;
 	const [page, setPage] = useState(0);
 	const [creating, setCreating] = useState(false);
 	const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
@@ -51,24 +57,36 @@ export default function TablePage() {
 		return () => clearTimeout(t);
 	}, [toast]);
 
+	const wikiSpecRaw = WIKI_TABLE_SPECS[table];
 	const tableSpec = useQuery({
 		queryKey: ["db", "tables"],
 		queryFn: () => api.get<{ tables: TableSpec[] }>("/database/tables"),
+		enabled: !wikiSpecRaw,
 	});
-	const spec = tableSpec.data?.tables.find((t) => t.name === table);
+	const spec: TableSpec | undefined = wikiSpecRaw
+		? {
+				name: wikiSpecRaw.name,
+				pk: Array.isArray(wikiSpecRaw.pk)
+					? wikiSpecRaw.pk.join(",")
+					: wikiSpecRaw.pk,
+				readonly: false,
+				mutableColumns: wikiSpecRaw.mutableColumns,
+				description: null,
+			}
+		: tableSpec.data?.tables.find((t) => t.name === table);
 
 	const rows = useQuery({
 		queryKey: ["db", table, page],
 		queryFn: () =>
-			api.get<{ rows: Record<string, unknown>[]; total: number }>(
-				`/database/${table}?limit=${limit}&offset=${offset}`,
+			client.get<{ rows: Record<string, unknown>[]; total: number }>(
+				`${collection}?limit=${limit}&offset=${offset}`,
 			),
 		enabled: !!table,
 	});
 
 	const create = useMutation({
 		mutationFn: (body: Record<string, unknown>) =>
-			api.post(`/database/${table}`, body),
+			client.post(collection, body),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setCreating(false);
@@ -81,10 +99,7 @@ export default function TablePage() {
 
 	const update = useMutation({
 		mutationFn: (data: { id: unknown; body: Record<string, unknown> }) =>
-			api.put(
-				`/database/${table}/${encodeURIComponent(String(data.id))}`,
-				data.body,
-			),
+			client.put(rowPath(data.id), data.body),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setEditing(null);
@@ -96,8 +111,7 @@ export default function TablePage() {
 	});
 
 	const remove = useMutation({
-		mutationFn: (id: unknown) =>
-			api.delete(`/database/${table}/${encodeURIComponent(String(id))}`),
+		mutationFn: (id: unknown) => client.delete(rowPath(id)),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setDeleteTarget(null);

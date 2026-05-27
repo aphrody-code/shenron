@@ -1,6 +1,6 @@
-import { adminFetch } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
+import { listWikiSnake } from "@/lib/wiki-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -37,8 +37,7 @@ const SERIES_LABELS: Record<string, string> = {
 };
 
 export default async function AdminSagasPage() {
-	const data = await adminFetch<{ sagas: Saga[] }>("/api/public/wiki/sagas");
-	const sagas = data?.sagas ?? [];
+	const sagas = (await listWikiSnake("db_sagas")) as Saga[];
 
 	const byseries = SERIES_ORDER.map((s) => ({
 		series: s,

@@ -26,11 +26,38 @@ if (!NEON_URL) {
 	process.exit(1);
 }
 
-// Tables à NE PAS mirrorer :
+// Wiki ÉDITORIAL : Neon est désormais la SOURCE DE VÉRITÉ (le site édite ces
+// tables en direct via Server Actions Drizzle). Ce miroir SQLite→Neon NE DOIT
+// PAS les écraser → on les exclut ici. Le sens inverse (Neon→SQLite, pour
+// rafraîchir le replica de lecture du bot) est géré par sync-neon-to-sqlite.ts.
+// `db_news` N'EST PAS éditorial (écrit par le bot en runtime) → reste mirroré.
+export const WIKI_EDITORIAL = [
+	"db_characters",
+	"db_planets",
+	"db_transformations",
+	"db_races",
+	"db_techniques",
+	"db_character_techniques",
+	"db_sagas",
+	"db_arcs",
+	"db_episodes",
+	"db_manga_volumes",
+	"db_manga_chapters",
+	"db_movies",
+	"db_games",
+	"db_game_characters",
+	"db_tools",
+	"db_sources",
+	"db_licenses",
+	"db_assets",
+] as const;
+
+// Tables à NE PAS mirrorer (SQLite→Neon) :
 // - interne drizzle/SQLite
 // - FTS5 (db_search + tables shadow) : non portables tel quel vers Postgres
 // - ba_* : le site a ses propres tables better-auth dans public, ne pas mélanger
-const SKIP = new Set([
+// - wiki éditorial : Neon = source de vérité (cf. WIKI_EDITORIAL ci-dessus)
+const SKIP = new Set<string>([
 	"__drizzle_migrations",
 	"ba_user",
 	"ba_session",
@@ -42,6 +69,7 @@ const SKIP = new Set([
 	"db_search_content",
 	"db_search_data",
 	"db_search_config",
+	...WIKI_EDITORIAL,
 ]);
 
 function pgType(declared: string): string {
