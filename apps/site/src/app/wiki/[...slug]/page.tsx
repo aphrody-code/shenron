@@ -1,6 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { db } from "@/lib/db";
 import { isCurrentUserAdmin } from "@/lib/session";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function WikiPage({
@@ -55,19 +56,4 @@ export default async function WikiPage({
 	);
 }
 
-function Link({
-	href,
-	children,
-	className,
-}: {
-	href: string;
-	children: React.ReactNode;
-	className?: string;
-}) {
-	return (
-		<a href={href} className={className}>
-			{children}
-		</a>
-	);
-}
 export const dynamic = "force-dynamic";

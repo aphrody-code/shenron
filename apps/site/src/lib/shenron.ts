@@ -13,8 +13,11 @@ import {
 	botTransformations,
 } from "@/db/bot-schema";
 
+// Default = bot.rpbey.fr (API du bot). PAS shenron.rpbey.fr qui pointe sur Vercel
+// (le site lui-même) → sans cet env posé en prod, tous les appels runtime
+// partiraient vers le site et boucleraient en 404.
 const SHENRON_API_URL =
-	process.env.SHENRON_API_URL || "https://shenron.rpbey.fr";
+	process.env.SHENRON_API_URL || "https://bot.rpbey.fr";
 
 export interface ShenronUser {
 	discordId: string;
@@ -218,35 +221,48 @@ function mapTransfo(r: TransfoRow): DBTransformation {
 export async function getShenronUser(
 	discordId: string,
 ): Promise<ShenronUser | null> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/user/${discordId}`, {
-		next: { revalidate: 60 },
-	});
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const res = await fetch(`${SHENRON_API_URL}/api/public/user/${discordId}`, {
+			next: { revalidate: 60 },
+		});
+		if (!res.ok) return null;
+		return res.json();
+	} catch {
+		// Bot injoignable → null (la page appelante fait notFound), pas une 500.
+		return null;
+	}
 }
 
 export async function getShenronShop(): Promise<ShenronShopItem[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/shop`, {
-		next: { revalidate: 60 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.items || [];
+	try {
+		const res = await fetch(`${SHENRON_API_URL}/api/public/shop`, {
+			next: { revalidate: 60 },
+		});
+		if (!res.ok) return [];
+		const data = await res.json();
+		return data.items || [];
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronLeaderboard(
 	limit = 100,
 	enrich = true,
 ): Promise<LeaderboardEntry[]> {
-	const res = await fetch(
-		`${SHENRON_API_URL}/api/public/leaderboard?limit=${limit}${enrich ? "&enrich=1" : ""}`,
-		{
-			next: { revalidate: 60 },
-		},
-	);
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.leaderboard || [];
+	try {
+		const res = await fetch(
+			`${SHENRON_API_URL}/api/public/leaderboard?limit=${limit}${enrich ? "&enrich=1" : ""}`,
+			{
+				next: { revalidate: 60 },
+			},
+		);
+		if (!res.ok) return [];
+		const data = await res.json();
+		return data.leaderboard || [];
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronCharacters(
@@ -547,21 +563,29 @@ export async function getShenronStats(): Promise<ShenronStats> {
 }
 
 export async function getShenronPersonas(): Promise<PersonaInfo[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/personas`, {
-		next: { revalidate: 30 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.personas || [];
+	try {
+		const res = await fetch(`${SHENRON_API_URL}/api/public/personas`, {
+			next: { revalidate: 30 },
+		});
+		if (!res.ok) return [];
+		const data = await res.json();
+		return data.personas || [];
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronCommands(): Promise<
 	Record<string, CommandInfo[]>
 > {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/commands`, {
-		next: { revalidate: 300 },
-	});
-	if (!res.ok) return {};
-	const data = await res.json();
-	return data.commands || {};
+	try {
+		const res = await fetch(`${SHENRON_API_URL}/api/public/commands`, {
+			next: { revalidate: 300 },
+		});
+		if (!res.ok) return {};
+		const data = await res.json();
+		return data.commands || {};
+	} catch {
+		return {};
+	}
 }

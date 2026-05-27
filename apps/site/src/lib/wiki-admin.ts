@@ -225,7 +225,12 @@ export async function updateWiki(
 		.set(values)
 		.where(cond)
 		.returning()) as Row[];
-	return updated[0] ?? (await getWikiRow(table, id)) ?? values;
+	// 0 ligne matchée = pk introuvable → ne JAMAIS renvoyer un faux succès
+	// (l'admin croirait avoir sauvegardé). Le route handler mappe ça en 404.
+	if (updated.length === 0) {
+		throw new Error(`Ligne introuvable: ${table}#${id}`);
+	}
+	return updated[0];
 }
 
 export async function deleteWiki(table: string, id: string): Promise<void> {

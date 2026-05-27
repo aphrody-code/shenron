@@ -105,6 +105,10 @@ export class PfcCommand {
     }
     const key = `${interaction.id}`;
     pending.set(key, { challenger: interaction.user.id, opponent: opponent.id, stake: mise });
+    // Auto-purge : si l'adversaire ne joue jamais, l'entrée resterait à vie (fuite
+    // mémoire sur un process long-lived). On nettoie après le timeout du duel.
+    const duelTtl = await this.settings.getInt("game.pfc.duel_timeout_ms", 10 * 60_000);
+    setTimeout(() => pending.delete(key), duelTtl).unref();
 
     const stakeDesc = mise ? `\n💰 Mise : **${mise} z** par joueur` : "";
     const embed = new EmbedBuilder()

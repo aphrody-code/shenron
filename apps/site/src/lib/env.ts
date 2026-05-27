@@ -22,7 +22,7 @@ export const env = createEnv({
 			.string()
 			.trim()
 			.url()
-			.default("https://shenron.rpbey.fr"),
+			.default("https://bot.rpbey.fr"),
 		SHENRON_ADMIN_TOKEN: z.string().trim().min(16).optional(),
 		SHENRON_USER_SECRET: z.string().trim().min(32).optional(),
 		OWNER_ID: z
