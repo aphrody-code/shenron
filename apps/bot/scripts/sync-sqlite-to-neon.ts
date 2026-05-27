@@ -17,6 +17,7 @@
  */
 import { Database } from "bun:sqlite";
 import postgres from "postgres";
+import { WIKI_EDITORIAL } from "./_wiki-editorial";
 
 const SQLITE_PATH =
 	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
@@ -26,31 +27,10 @@ if (!NEON_URL) {
 	process.exit(1);
 }
 
-// Wiki ÉDITORIAL : Neon est désormais la SOURCE DE VÉRITÉ (le site édite ces
-// tables en direct via Server Actions Drizzle). Ce miroir SQLite→Neon NE DOIT
-// PAS les écraser → on les exclut ici. Le sens inverse (Neon→SQLite, pour
-// rafraîchir le replica de lecture du bot) est géré par sync-neon-to-sqlite.ts.
+// Wiki ÉDITORIAL (cf. _wiki-editorial.ts) : Neon est la SOURCE DE VÉRITÉ (le
+// site édite ces tables en direct). Ce miroir SQLite→Neon NE DOIT PAS les
+// écraser → exclues ici ; le sens inverse est géré par sync-neon-to-sqlite.ts.
 // `db_news` N'EST PAS éditorial (écrit par le bot en runtime) → reste mirroré.
-export const WIKI_EDITORIAL = [
-	"db_characters",
-	"db_planets",
-	"db_transformations",
-	"db_races",
-	"db_techniques",
-	"db_character_techniques",
-	"db_sagas",
-	"db_arcs",
-	"db_episodes",
-	"db_manga_volumes",
-	"db_manga_chapters",
-	"db_movies",
-	"db_games",
-	"db_game_characters",
-	"db_tools",
-	"db_sources",
-	"db_licenses",
-	"db_assets",
-] as const;
 
 // Tables à NE PAS mirrorer (SQLite→Neon) :
 // - interne drizzle/SQLite

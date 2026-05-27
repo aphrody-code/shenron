@@ -20,7 +20,7 @@
  */
 import { Database } from "bun:sqlite";
 import postgres from "postgres";
-import { WIKI_EDITORIAL } from "./sync-sqlite-to-neon";
+import { WIKI_EDITORIAL } from "./_wiki-editorial";
 
 const SQLITE_PATH =
 	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
