@@ -1,0 +1,13 @@
+[Unit]
+Description=Shenron Guild Sync — réconciliation DB ↔ Discord (members, roles, messages 24h)
+After=shenron.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+ExecStart=/home/ubuntu/shenron/scripts/shenron-guild-sync.sh
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-guild-sync
+TimeoutStartSec=15min

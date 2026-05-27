@@ -1,0 +1,66 @@
+[Unit]
+Description=shenron — Discord bot DBZ (Bun + discordx + drizzle + canvas)
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitBurst=20
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron/apps/bot
+
+EnvironmentFile=/home/ubuntu/shenron/apps/bot/.env
+Environment=NODE_ENV=production
+Environment=BUN_CONFIG_MAX_HTTP_REQUESTS=2048
+Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/bot/.bun-cache
+Environment=BUN_JSC_forceRAMSize=536870912
+Environment=UV_THREADPOOL_SIZE=8
+
+ExecStart=/home/ubuntu/.bun/bin/bun src/index.ts
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5
+
+MemoryMax=1.5G
+MemoryHigh=1.2G
+# MemoryLow : 256M garantis hors-reclaim (RSS prod ~320M, cold canvas/sqlite).
+MemoryLow=256M
+TasksMax=256
+LimitNOFILE=131072
+OOMScoreAdjust=-500
+# cgroup v2 weights — boost CPU+IO vs jobs périodiques (batch). Default cgroup = 100.
+CPUWeight=200
+IOWeight=200
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+ReadWritePaths=/home/ubuntu/shenron/apps/bot/.bun-cache /home/ubuntu/shenron/apps/bot/data /home/ubuntu/shenron/apps/bot/dist /home/ubuntu/shenron/node_modules /home/ubuntu/shenron/apps/bot/assets/wiki
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron
+
+[Install]
+WantedBy=multi-user.target

@@ -19,7 +19,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 
 ### Bot (VPS)
 - Le code vit ici dans `~/shenron/`. Le service systemd lit directement ce path.
-- Déploiement = `git pull` dans `~/shenron/` puis `sudo systemctl restart shenron`. Le script VPS `~/vps/scripts/ops/deploy-shenron.sh` automatise.
+- Déploiement = `git pull` dans `~/shenron/` puis `sudo systemctl restart shenron`. Le script **in-repo** `scripts/deploy-shenron.sh` automatise (pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto).
 - **Aucun build préalable** : Bun exécute `src/index.ts` en direct (TS natif).
 - Backup DB quotidien : timer VPS `shenron-backup.timer` (03:00 UTC) → `VACUUM INTO` snapshot.
 - Sync DB↔Discord quotidien : timer VPS `shenron-guild-sync.timer` (04:00 UTC).
@@ -99,7 +99,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
 | shenron-neon-sync.timer | — | — | Miroir SQLite → Neon (schéma `bot`) toutes les 30 min |
 
-Définitions dans `~/vps/infra/systemd/shenron*.{service,timer}`. Scripts dans `~/vps/scripts/ops/{backup-shenron-sqlite,shenron-guild-sync}.sh`.
+**Vendorées dans le repo (source de vérité, plus `~/vps/`)** : units `deploy/systemd/shenron*.{service,timer}`, vhosts `deploy/nginx/{bot.rpbey.fr,shenron}.conf`, installeur idempotent `deploy/install.sh`. Scripts d'ops `scripts/{backup-shenron-sqlite,shenron-guild-sync,deploy-shenron}.sh`. Provisioning d'un hôte nu : `bash deploy/install.sh --nginx --start` (cf. `deploy/README.md`).
 
 ## Pièges critiques
 
@@ -131,11 +131,11 @@ Pour toute modif applicative (`apps/bot/`, `apps/site/`, `packages/*`) :
 2. Éditer dans `~/shenron/` (jamais ailleurs).
 3. `bun run lint` puis `bun run type-check` au root (turbo cache).
 4. Commit + push `github.com/aphrody-code/shenron`.
-5. Bot : `~/vps/scripts/ops/deploy-shenron.sh` (pull + restart systemd).
+5. Bot : `scripts/deploy-shenron.sh --pull` (pull + build + restart systemd + smoke + rollback).
    Site : auto-deploy Vercel sur push `main`.
 6. Vérifier `journalctl -u shenron -n 50` (bot) ou Vercel logs (site).
 
-Pour toute modif infra VPS associée (timers, services, scripts ops) : éditer dans `~/vps/infra/` puis suivre le workflow `~/vps/CLAUDE.md`.
+Pour toute modif infra (units, timers, vhosts, scripts ops) : éditer dans `deploy/` ou `scripts/` **du repo**, puis `bash deploy/install.sh [--nginx]` pour propager sur l'hôte. Le repo est self-contained — `~/vps/` n'est plus la source de vérité pour shenron.
 
 ## Commandes courantes
 
