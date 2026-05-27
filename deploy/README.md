@@ -19,7 +19,7 @@ de vérité des units systemd, des vhosts nginx et des scripts d'ops.
 | `scripts/shenron-guild-sync.sh` | Script de la réconciliation. |
 | `scripts/deploy-shenron.sh` | Pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto. |
 | `apps/bot/scripts/sync-sqlite-to-neon.ts` | Miroir Neon (appelé par le timer). |
-| `apps/bot/Dockerfile`, `apps/bot/fly.toml` | Cible conteneur / Fly.io (alternative sans VPS). |
+| `Dockerfile`, `fly.toml`, `.dockerignore` (**racine**) | Cible conteneur / Fly.io monorepo-aware (alternative sans VPS). |
 
 ## Déploiement bare-metal (VPS systemd)
 
@@ -64,7 +64,11 @@ ainsi que des certificats letsencrypt pour `bot.rpbey.fr` et
 
 ## Alternative sans VPS (conteneur)
 
-`apps/bot/Dockerfile` + `apps/bot/fly.toml` permettent un déploiement Fly.io
-(workflow `.github/workflows/deploy-fly.yml`). Le site est déjà 100 % Vercel.
-Seul le SQLite local (`apps/bot/data/bot.db`) suppose un volume persistant —
-sur Fly, monter un volume sur `/app/data`.
+Le `Dockerfile` + `fly.toml` à la **racine** (monorepo-aware : build au root,
+run `apps/bot`) permettent un déploiement Fly.io (workflow
+`.github/workflows/deploy-fly.yml`, déclenché si `FLY_API_TOKEN` configuré).
+Le site est déjà 100 % Vercel. Seul le SQLite (`DATABASE_PATH=/data/bot.db`)
+suppose un volume persistant — sur Fly, le mount `shenron_data` → `/data`.
+Build : `docker build -f Dockerfile --build-arg GH_PACKAGES_TOKEN=<PAT> .`
+(le token sert au fork privé `@aphrody-code/canvas` ; les `@rpbey/*` sont des
+workspaces locaux).

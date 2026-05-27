@@ -1,0 +1,46 @@
+# Contexte de build = racine du monorepo (cf. Dockerfile). On exclut tout ce
+# qui est régénéré (node_modules réinstallé), volumineux (build caches) ou
+# secret (.env, data SQLite). Les package.json/bun.lock/bunfig.toml et tout le
+# source SONT conservés (requis par `bun install --frozen-lockfile` workspace).
+
+# Deps régénérées dans l'image
+**/node_modules
+
+# Build / caches
+**/.next
+**/.turbo
+**/dist
+.bun-cache
+**/.bun-cache
+
+# Data runtime (volume Fly persistant, jamais dans l'image) + DB
+apps/bot/data
+**/*.db
+**/*.db-wal
+**/*.db-shm
+**/*.db-journal
+logs
+**/*.log
+
+# Secrets — utiliser `fly secrets set` (jamais dans l'image)
+**/.env
+**/.env.*
+!**/.env.example
+**/.npmrc
+
+# Backgrounds : refetch optionnel dans le build
+apps/bot/assets/backgrounds
+
+# Git / CI / IDE / agents AI
+.git
+.github
+.vscode
+.idea
+.claude
+.cursor
+.aider*
+.continue
+
+# OS
+.DS_Store
+Thumbs.db

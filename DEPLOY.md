@@ -56,7 +56,7 @@ Ce que fait le script :
 1. Crée l'app `shenron-bot` en région `cdg` (Paris) si elle n'existe pas
 2. Provisionne le volume persistant `shenron_data` (3 GB SSD, mount `/data`)
 3. Extrait chaque variable de `.env` et la pousse en secret Fly (masquée)
-4. `fly deploy` avec `--build-arg GH_PACKAGES_TOKEN` (lu depuis `~/vps/.env` si présent)
+4. `fly deploy` avec `--build-arg GH_PACKAGES_TOKEN` (env, pour le fork `@aphrody-code/canvas`)
 
 **Variables d'env du script** :
 
@@ -64,12 +64,12 @@ Ce que fait le script :
 APP=mon-bot           # défaut : shenron-bot
 REGION=ams            # défaut : cdg
 VOLUME_SIZE=5         # défaut : 3 (GB)
-GH_PACKAGES_TOKEN=… # pour @rpbey/* ; auto-détecté depuis ~/vps/.env
+GH_PACKAGES_TOKEN=… # fork privé @aphrody-code/canvas (GitHub Packages)
 ```
 
 ### Ce qui tourne dans le conteneur
 
-- Image base : `oven/bun:1-debian` (run) + `oven/bun:1` (build)
+- Image base : `oven/bun:1-debian` (single-stage, monorepo-aware : `Dockerfile` **à la racine**, contexte = racine pour résoudre les workspaces `packages/*`, run `apps/bot/src/index.ts`)
 - User non-root : `shenron` (UID 1001)
 - Volume persistant : `/data` pour `bot.db` (SQLite WAL)
 - `release_command = "bun src/db/migrate.ts"` — migrations appliquées **avant** que la nouvelle version ne reçoive du trafic

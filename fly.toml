@@ -1,0 +1,49 @@
+# fly.toml — Shenron Discord bot (cible conteneur, sans VPS)
+#
+# À la RACINE du monorepo : le build a besoin du contexte racine (lockfile +
+# workspaces packages/* & apps/*). Le Dockerfile racine fait l'install workspace
+# puis run `apps/bot/src/index.ts`.
+#
+# 1re fois :
+#   fly launch --name shenron-bot --region cdg --no-deploy   # depuis la racine
+#   fly volumes create shenron_data --region cdg --size 3
+#   fly secrets set DISCORD_TOKEN_SHENRON=... DISCORD_TOKEN_BEERUS=... … \
+#                   OWNER_ID=... DATABASE_URL=...               # cf. apps/bot/.env.example
+#   fly deploy --build-arg GH_PACKAGES_TOKEN=<PAT>
+#
+# MAJ : `fly deploy` (ou GitHub Actions sur push main, si FLY_API_TOKEN configuré).
+
+app = "shenron-bot"
+primary_region = "cdg"          # Paris — latence Gateway Discord EU
+kill_signal = "SIGTERM"
+kill_timeout = 30               # close Gateway WebSocket proprement
+
+[build]
+  dockerfile = "Dockerfile"     # racine du repo
+  # GH_PACKAGES_TOKEN via `fly deploy --build-arg ...` (fork @aphrody-code/canvas)
+
+[env]
+  NODE_ENV = "production"
+  LOG_LEVEL = "info"
+  DATABASE_PATH = "/data/bot.db"
+  TZ = "Europe/Paris"
+
+# Volume persistant : DB SQLite + user data (la source de vérité runtime)
+[[mounts]]
+  source = "shenron_data"
+  destination = "/data"
+  initial_size = "3gb"
+
+# Migrations appliquées avant bascule du trafic. WORKDIR image = /app/apps/bot.
+[deploy]
+  release_command = "bun src/db/migrate.ts"
+  strategy = "immediate"        # single instance, pas de blue/green
+
+# Single VM / single shard — Discord = 1 process Gateway par bot.
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"                # @napi-rs/canvas + 6 clients : 512M serré, 1G confortable
+  cpu_kind = "shared"
+  cpus = 1
+
+# Pas de [http_service] : worker pur, always-on, restart auto si crash.
