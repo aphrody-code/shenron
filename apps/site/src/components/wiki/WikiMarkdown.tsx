@@ -15,7 +15,7 @@
  * Isomorphe : utilisable en RSC (page wiki) comme en Client Component (preview
  * de l'éditeur). Ne pas ajouter "use client" ici.
  */
-import { assetUrl } from "@/lib/db-universe";
+import { assetUrl } from "@/lib/assets";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";

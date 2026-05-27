@@ -1,3 +1,18 @@
+import "server-only";
+import { asc, eq, like, sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import {
+	botCharacters,
+	botCharacterTechniques,
+	botGames,
+	botMangaVolumes,
+	botMovies,
+	botPlanets,
+	botRaces,
+	botTechniques,
+	botTransformations,
+} from "@/db/bot-schema";
+
 const SHENRON_API_URL =
 	process.env.SHENRON_API_URL || "https://shenron.rpbey.fr";
 
@@ -135,10 +150,69 @@ export interface DBMangaVolume {
 	cover: string | null;
 }
 
+export interface DBRace {
+	id: number;
+	slug: string;
+	name: string;
+	nameJa: string | null;
+	description: string | null;
+}
+
 export interface CharacterWithRelations extends DBCharacter {
 	transformations: DBTransformation[];
 	originPlanet: DBPlanet | null;
 	techniques: Array<{ technique: DBTechnique }>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Wiki Dragon Ball — lu DIRECTEMENT depuis Neon (schéma `bot`, miroir du
+// SQLite du bot). Découplé de l'API REST du bot : les pages /wiki ne dépendent
+// plus de la dispo du process bot. Lecture seule, ISR Vercel côté pages.
+// Les mappers ci-dessous reproduisent à l'identique les shapes que servait
+// l'API du bot (WikiService) pour ne rien casser côté pages.
+// ─────────────────────────────────────────────────────────────────────────
+
+type CharacterRow = typeof botCharacters.$inferSelect;
+type PlanetRow = typeof botPlanets.$inferSelect;
+type TransfoRow = typeof botTransformations.$inferSelect;
+
+function mapCharacter(r: CharacterRow): DBCharacter {
+	return {
+		id: r.id,
+		name: r.name,
+		nameJa: r.nameJa,
+		nameRomaji: r.nameRomaji,
+		image: r.image ?? "",
+		ki: r.ki,
+		maxKi: r.maxKi,
+		race: r.race,
+		gender: r.gender,
+		affiliation: r.affiliation,
+		description: r.description,
+		originPlanetId: r.originPlanetId,
+	};
+}
+
+function mapPlanet(r: PlanetRow): DBPlanet {
+	return {
+		id: r.id,
+		name: r.name,
+		nameJa: r.nameJa,
+		nameRomaji: r.nameRomaji,
+		image: r.image ?? "",
+		isDestroyed: !!r.isDestroyed,
+		description: r.description,
+	};
+}
+
+function mapTransfo(r: TransfoRow): DBTransformation {
+	return {
+		id: r.id,
+		name: r.name,
+		image: r.image ?? "",
+		ki: r.ki,
+		characterId: r.characterId ?? 0,
+	};
 }
 
 export async function getShenronUser(
@@ -178,147 +252,247 @@ export async function getShenronLeaderboard(
 export async function getShenronCharacters(
 	query?: string,
 ): Promise<DBCharacter[]> {
-	const url = new URL(`${SHENRON_API_URL}/api/public/wiki/characters`);
-	if (query) url.searchParams.set("q", query);
-	const res = await fetch(url.toString(), { next: { revalidate: 3600 } });
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.characters || [];
+	try {
+		const q = query?.trim();
+		const rows = q
+			? await db
+					.select()
+					.from(botCharacters)
+					.where(like(sql`lower(${botCharacters.name})`, `%${q.toLowerCase()}%`))
+					.limit(25)
+			: await db.select().from(botCharacters);
+		return rows.map(mapCharacter);
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronMovies(): Promise<DBMovie[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/movies`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.movies || [];
+	try {
+		return (await db.select().from(botMovies)) as DBMovie[];
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronMovie(id: number): Promise<DBMovie | null> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/movies/${id}`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const [m] = await db
+			.select()
+			.from(botMovies)
+			.where(eq(botMovies.id, id))
+			.limit(1);
+		return (m as DBMovie) ?? null;
+	} catch {
+		return null;
+	}
 }
 
 export async function getShenronCharacter(
 	id: number,
 ): Promise<CharacterWithRelations | null> {
-	const res = await fetch(
-		`${SHENRON_API_URL}/api/public/wiki/characters/${id}`,
-		{
-			next: { revalidate: 3600 },
-		},
-	);
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const [c] = await db
+			.select()
+			.from(botCharacters)
+			.where(eq(botCharacters.id, id))
+			.limit(1);
+		if (!c) return null;
+
+		const transformations = (
+			await db
+				.select()
+				.from(botTransformations)
+				.where(eq(botTransformations.characterId, id))
+		).map(mapTransfo);
+
+		let originPlanet: DBPlanet | null = null;
+		if (c.originPlanetId != null) {
+			const [p] = await db
+				.select()
+				.from(botPlanets)
+				.where(eq(botPlanets.id, c.originPlanetId))
+				.limit(1);
+			originPlanet = p ? mapPlanet(p) : null;
+		}
+
+		const techRows = await db
+			.select({ t: botTechniques })
+			.from(botCharacterTechniques)
+			.innerJoin(
+				botTechniques,
+				eq(botCharacterTechniques.techniqueId, botTechniques.id),
+			)
+			.where(eq(botCharacterTechniques.characterId, id));
+		const techniques = techRows.map((r) => ({
+			technique: {
+				id: r.t.id,
+				slug: r.t.slug,
+				name: r.t.name,
+				description: r.t.description,
+				type: r.t.type,
+				creatorId: r.t.creatorId,
+				creatorName: null,
+				creatorImage: null,
+			} satisfies DBTechnique,
+		}));
+
+		return { ...mapCharacter(c), transformations, originPlanet, techniques };
+	} catch {
+		return null;
+	}
 }
 
 export async function getShenronTechniques(): Promise<DBTechnique[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/techniques`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.techniques || [];
+	try {
+		const rows = await db
+			.select({ t: botTechniques, name: botCharacters.name, image: botCharacters.image })
+			.from(botTechniques)
+			.leftJoin(botCharacters, eq(botTechniques.creatorId, botCharacters.id));
+		return rows.map((r) => ({
+			id: r.t.id,
+			slug: r.t.slug,
+			name: r.t.name,
+			description: r.t.description,
+			type: r.t.type,
+			creatorId: r.t.creatorId,
+			creatorName: r.name ?? null,
+			creatorImage: r.image ?? null,
+		}));
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronTechnique(
 	slug: string,
 ): Promise<DBTechnique | null> {
-	const res = await fetch(
-		`${SHENRON_API_URL}/api/public/wiki/techniques/${encodeURIComponent(slug)}`,
-		{
-			next: { revalidate: 3600 },
-		},
-	);
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const [r] = await db
+			.select({ t: botTechniques, name: botCharacters.name, image: botCharacters.image })
+			.from(botTechniques)
+			.leftJoin(botCharacters, eq(botTechniques.creatorId, botCharacters.id))
+			.where(eq(botTechniques.slug, slug))
+			.limit(1);
+		if (!r) return null;
+		return {
+			id: r.t.id,
+			slug: r.t.slug,
+			name: r.t.name,
+			description: r.t.description,
+			type: r.t.type,
+			creatorId: r.t.creatorId,
+			creatorName: r.name ?? null,
+			creatorImage: r.image ?? null,
+		};
+	} catch {
+		return null;
+	}
 }
 
 export async function getShenronGames(): Promise<DBGame[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/games`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.games || [];
+	try {
+		return (await db.select().from(botGames)) as DBGame[];
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronGame(slug: string): Promise<DBGame | null> {
-	const res = await fetch(
-		`${SHENRON_API_URL}/api/public/wiki/games/${encodeURIComponent(slug)}`,
-		{
-			next: { revalidate: 3600 },
-		},
-	);
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const [g] = await db
+			.select()
+			.from(botGames)
+			.where(eq(botGames.slug, slug))
+			.limit(1);
+		return (g as DBGame) ?? null;
+	} catch {
+		return null;
+	}
 }
 
 export async function getShenronManga(): Promise<DBMangaVolume[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/manga-volumes`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.volumes || [];
-}
-
-export interface DBRace {
-	id: number;
-	slug: string;
-	name: string;
-	nameJa: string | null;
-	description: string | null;
+	try {
+		const rows = await db
+			.select()
+			.from(botMangaVolumes)
+			.where(eq(botMangaVolumes.series, "DB"))
+			.orderBy(asc(botMangaVolumes.volumeNumber));
+		return rows.map((r) => ({
+			id: r.id,
+			series: r.series,
+			volumeNumber: r.volumeNumber ?? 0,
+			title: r.title,
+			cover: r.cover,
+		}));
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronRaces(): Promise<DBRace[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/races`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.races || [];
+	try {
+		return (await db.select().from(botRaces)) as DBRace[];
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronRace(
 	slug: string,
 ): Promise<(DBRace & { characters: DBCharacter[] }) | null> {
-	const res = await fetch(
-		`${SHENRON_API_URL}/api/public/wiki/races/${encodeURIComponent(slug)}`,
-		{
-			next: { revalidate: 3600 },
-		},
-	);
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const [r] = await db
+			.select()
+			.from(botRaces)
+			.where(eq(botRaces.slug, slug))
+			.limit(1);
+		if (!r) return null;
+		const characters = (
+			await db.select().from(botCharacters).where(eq(botCharacters.race, r.name))
+		).map(mapCharacter);
+		return { ...(r as DBRace), characters };
+	} catch {
+		return null;
+	}
 }
 
 export async function getShenronPlanets(): Promise<DBPlanet[]> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/planets`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return [];
-	const data = await res.json();
-	return data.planets || [];
+	try {
+		return (await db.select().from(botPlanets)).map(mapPlanet);
+	} catch {
+		return [];
+	}
 }
 
 export async function getShenronPlanet(
 	id: number,
 ): Promise<(DBPlanet & { characters: DBCharacter[] }) | null> {
-	const res = await fetch(`${SHENRON_API_URL}/api/public/wiki/planets/${id}`, {
-		next: { revalidate: 3600 },
-	});
-	if (!res.ok) return null;
-	return res.json();
+	try {
+		const [p] = await db
+			.select()
+			.from(botPlanets)
+			.where(eq(botPlanets.id, id))
+			.limit(1);
+		if (!p) return null;
+		const characters = (
+			await db
+				.select()
+				.from(botCharacters)
+				.where(eq(botCharacters.originPlanetId, id))
+		).map(mapCharacter);
+		return { ...mapPlanet(p), characters };
+	} catch {
+		return null;
+	}
 }
 
-/**
- * URL d'une image profile card générée par le canvas du bot (8 thèmes).
- */
+// ─────────────────────────────────────────────────────────────────────────
+// Runtime du bot (XP/zeni/shop/personas live) — reste sur l'API REST : ces
+// données changent en continu et n'ont pas de sens à miroiter (le miroir a
+// 30 min de retard, inacceptable pour un leaderboard).
+// ─────────────────────────────────────────────────────────────────────────
+
 export interface PersonaInfo {
 	id: string;
 	name: string;
@@ -390,42 +564,4 @@ export async function getShenronCommands(): Promise<
 	if (!res.ok) return {};
 	const data = await res.json();
 	return data.commands || {};
-}
-
-export function getProfileCardUrl(discordId: string, theme?: string): string {
-	const q = theme ? `?theme=${encodeURIComponent(theme)}` : "";
-	return `${SHENRON_API_URL}/api/public/profile/${encodeURIComponent(discordId)}/card.png${q}`;
-}
-
-/**
- * Browser-only : s'abonne aux events SSE temps réel du bot (level-up, achievement,
- * fusion, message-xp). Retourne un cleanup pour fermer la connexion.
- *
- * Usage dans un Client Component :
- *   useEffect(() => {
- *     const unsub = subscribeBotEvents((e) => console.log(e));
- *     return unsub;
- *   }, []);
- */
-export function subscribeBotEvents(
-	onEvent: (event: { type: string; data: unknown }) => void,
-	opts?: { types?: string[] },
-): () => void {
-	if (typeof window === "undefined") {
-		throw new Error(
-			"subscribeBotEvents() must be called from a Client Component",
-		);
-	}
-	const url = `${SHENRON_API_URL}/api/a2a/events${
-		opts?.types?.length ? `?types=${opts.types.join(",")}` : ""
-	}`;
-	const es = new EventSource(url);
-	es.onmessage = (e) => {
-		try {
-			onEvent(JSON.parse(e.data));
-		} catch {
-			/* ignore malformed */
-		}
-	};
-	return () => es.close();
 }

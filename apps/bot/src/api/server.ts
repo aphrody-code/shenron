@@ -1361,6 +1361,12 @@ export class ApiServer {
 						return { planets: await wiki.listPlanets() };
 					}),
 
+				"/api/public/wiki/transformations": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const wiki = container.resolve(WikiService);
+						return { transformations: await wiki.listTransformations() };
+					}),
+
 				"/api/public/wiki/planets/:id": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {
 						const id = parseInt(req.params.id, 10);

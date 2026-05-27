@@ -138,6 +138,21 @@ export class WikiService {
 		}
 	}
 
+	// --- Transformations ---
+
+	/**
+	 * Liste toutes les transformations (SSJ, SSJ2, etc.) tous personnages
+	 * confondus. Exposé en lecture publique pour le site (page wiki dédiée).
+	 */
+	async listTransformations(): Promise<DBTransformation[]> {
+		try {
+			return await this.db.select().from(dbTransformations);
+		} catch (err) {
+			logger.error({ err }, "WikiService.listTransformations failed");
+			return [];
+		}
+	}
+
 	// --- Planets ---
 
 	/**

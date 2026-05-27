@@ -14,7 +14,7 @@ import {
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/admin-api";
-import { assetUrl } from "@/lib/db-universe";
+import { assetUrl } from "@/lib/assets";
 import { TABLE_LABELS, colLabel } from "@/lib/db-labels";
 
 interface TableSpec {

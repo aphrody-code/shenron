@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { DBZ_TILES } from "./tiles";
-import { assetUrl } from "@/lib/db-universe";
+import { assetUrl } from "@/lib/assets";
 import { sfx } from "@/lib/sfx";
 import { KiShock, PowerLevel } from "@/components/games/KiFx";
 import fx from "@/components/games/games.module.css";

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SectionHeading } from "./SectionHeading";
-import { assetUrl } from "@/lib/db-universe";
+import { assetUrl } from "@/lib/assets";
 
 export type CharacterTeaser = {
 	id: number;

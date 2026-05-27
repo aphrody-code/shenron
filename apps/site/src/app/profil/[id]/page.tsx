@@ -1,4 +1,5 @@
-import { getShenronUser, getProfileCardUrl } from "@/lib/shenron";
+import { getProfileCardUrl } from "@/lib/assets";
+import { getShenronUser } from "@/lib/shenron";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
