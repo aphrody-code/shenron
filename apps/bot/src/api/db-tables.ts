@@ -455,13 +455,43 @@ export async function getRow(spec: TableSpec, id: string | number) {
 	return rows[0] ?? null;
 }
 
+/**
+ * Coerce les valeurs entrantes vers le type attendu par Drizzle.
+ * Les colonnes `mode: "timestamp"/"timestamp_ms"` ont `dataType === "date"` :
+ * Drizzle appelle `value.getTime()` à l'écriture → il faut un objet Date, pas
+ * une string/number issue du formulaire dashboard.
+ */
+function coerceForColumns(
+	spec: TableSpec,
+	body: Record<string, unknown>,
+): Record<string, unknown> {
+	const out: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(body)) {
+		const col = spec.table[key];
+		if (col?.dataType === "date" && value != null && !(value instanceof Date)) {
+			if (value === "") {
+				out[key] = null;
+				continue;
+			}
+			const d =
+				typeof value === "number"
+					? new Date(value)
+					: new Date(String(value));
+			out[key] = Number.isNaN(d.getTime()) ? value : d;
+			continue;
+		}
+		out[key] = value;
+	}
+	return out;
+}
+
 export async function insertRow(
 	spec: TableSpec,
 	body: Record<string, unknown>,
 ) {
 	if (spec.readonly) throw new Error(`Table ${spec.name} en read-only.`);
 	const dbs = container.resolve(DatabaseService);
-	await dbs.db.insert(spec.table).values(body as any);
+	await dbs.db.insert(spec.table).values(coerceForColumns(spec, body) as any);
 }
 
 export async function updateRow(
@@ -481,7 +511,7 @@ export async function updateRow(
 		throw new Error("Aucune colonne mutable fournie.");
 	}
 	const cond = pkCond(spec, id);
-	await dbs.db.update(spec.table).set(filtered).where(cond);
+	await dbs.db.update(spec.table).set(coerceForColumns(spec, filtered)).where(cond);
 	logger.info(
 		{ table: spec.name, id, cols: Object.keys(filtered) },
 		"row updated via API",
