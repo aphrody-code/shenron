@@ -1449,7 +1449,7 @@ export class ApiServer {
 							parseInt(url.searchParams.get("limit") ?? "100", 10),
 							500,
 						);
-						const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+						const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
 						const dbs = container.resolve(DatabaseService);
 						const sql = series
 							? "SELECT * FROM db_episodes WHERE series = ? ORDER BY number_in_series LIMIT ? OFFSET ?"
@@ -4452,18 +4452,31 @@ async function a2aJsonRpc(req: Request): Promise<Response> {
 				return Response.json({ jsonrpc: "2.0", id, result: t ?? null });
 			}
 			case "tasks/cancel": {
+				if (typeof params?.id !== "string" || !params.id.trim()) {
+					return a2aRpcError(id, -32602, "params.id (string) required");
+				}
+				const now = new Date().toISOString();
+				// id/now/path passés en ARGUMENTS POSITIONNELS ($1/$2/$3) — bash ne
+				// ré-évalue jamais une expansion de variable (pas de command-substitution
+				// sur "$1"), donc aucune injection shell possible même si params.id
+				// contient `$(...)`, backticks ou `;`. Ne JAMAIS réinterpoler dans la
+				// chaîne `bash -c`.
 				const proc = Bun.spawn(
 					[
 						"flock",
 						COORD_LOCK,
 						"bash",
 						"-c",
-						`jq --arg id ${JSON.stringify(params.id)} --arg now ${JSON.stringify(new Date().toISOString())} '(.tasks[] | select(.id==$id)) |= (.status="blocked" | .blocker="cancelled via A2A" | .finished_at=$now)' ${COORD_TASKS} > /tmp/.coord-tasks.tmp && mv /tmp/.coord-tasks.tmp ${COORD_TASKS}`,
+						'jq --arg id "$1" --arg now "$2" \'(.tasks[] | select(.id==$id)) |= (.status="blocked" | .blocker="cancelled via A2A" | .finished_at=$now)\' "$3" > /tmp/.coord-tasks.tmp && mv /tmp/.coord-tasks.tmp "$3"',
+						"a2a-cancel",
+						params.id,
+						now,
+						COORD_TASKS,
 					],
 					{ stdout: "pipe", stderr: "pipe" },
 				);
 				await proc.exited;
-				return Response.json({ jsonrpc: "2.0", id, result: { cancelled: params?.id } });
+				return Response.json({ jsonrpc: "2.0", id, result: { cancelled: params.id } });
 			}
 			default:
 				return a2aRpcError(id, -32601, `Method not found: ${method}`);
