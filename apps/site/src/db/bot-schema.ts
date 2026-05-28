@@ -10,7 +10,7 @@
  * bot. Toutes les colonnes int SQLite arrivent en `bigint` Postgres, les autres
  * en `text` — on type donc à l'identique. Lecture seule : aucune écriture site.
  */
-import { bigint, pgSchema, text } from "drizzle-orm/pg-core";
+import { bigint, jsonb, pgSchema, text } from "drizzle-orm/pg-core";
 
 export const bot = pgSchema("bot");
 
@@ -168,6 +168,11 @@ export const botMangaChapters = bot.table("db_manga_chapters", {
 	titleJa: text("title_ja"),
 	volumeId: int("volume_id"),
 	publishedAt: int("published_at"),
+	cover: text("cover"),
+	// Pages du chapitre = liste ordonnée de chemins d'images (assetUrl côté site).
+	// Colonne Neon-only : le reverse-sync Neon→SQLite l'ignore (intersection de
+	// colonnes), le bot n'en a pas besoin (seul le reader du site lit les pages).
+	pages: jsonb("pages").$type<string[]>(),
 });
 
 export const botNews = bot.table("db_news", {

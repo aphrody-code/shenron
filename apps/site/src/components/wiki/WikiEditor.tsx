@@ -7,11 +7,21 @@
  */
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { uploadWikiImage } from "@/app/admin/wiki/_actions";
+import CodeMirror, { oneDark } from "@uiw/react-codemirror";
+import { EditorView } from "@codemirror/view";
+import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { languages } from "@codemirror/language-data";
 import { useRef, useState, useTransition } from "react";
 
 type Category = { id: string; name: string };
 
 type Placement = "inline" | "wiki-float-right" | "wiki-float-left";
+
+// Extensions CodeMirror (constantes : pas de recréation par rendu).
+const CM_EXTENSIONS = [
+	markdown({ base: markdownLanguage, codeLanguages: languages }),
+	EditorView.lineWrapping,
+];
 
 const SNIPPETS: { label: string; insert: string }[] = [
 	{
@@ -49,61 +59,56 @@ export function WikiEditor({
 	const [placement, setPlacement] = useState<Placement>("wiki-float-right");
 	const [uploadErr, setUploadErr] = useState<string | null>(null);
 	const [uploading, startUpload] = useTransition();
-	const taRef = useRef<HTMLTextAreaElement>(null);
+	const viewRef = useRef<EditorView | null>(null);
 
+	// Insère du texte à la position du curseur (ou en fin de doc si l'éditeur n'est pas prêt).
 	function insertAtCursor(text: string) {
-		const ta = taRef.current;
-		if (!ta) {
+		const view = viewRef.current;
+		if (!view) {
 			setBody((b) => b + text);
 			return;
 		}
-		const start = ta.selectionStart;
-		const end = ta.selectionEnd;
-		const next = body.slice(0, start) + text + body.slice(end);
-		setBody(next);
-		requestAnimationFrame(() => {
-			ta.focus();
-			const caret = start + text.length;
-			ta.setSelectionRange(caret, caret);
+		const { from, to } = view.state.selection.main;
+		const caret = from + text.length;
+		view.dispatch({
+			changes: { from, to, insert: text },
+			selection: { anchor: caret },
 		});
+		view.focus();
 	}
 
 	// Entoure la sélection (ex. **gras**) ; insère un placeholder si rien n'est sélectionné.
 	function wrapSelection(before: string, after: string, placeholder = "texte") {
-		const ta = taRef.current;
-		if (!ta) return;
-		const start = ta.selectionStart;
-		const end = ta.selectionEnd;
-		const sel = body.slice(start, end) || placeholder;
-		const next = body.slice(0, start) + before + sel + after + body.slice(end);
-		setBody(next);
-		requestAnimationFrame(() => {
-			ta.focus();
-			ta.setSelectionRange(
-				start + before.length,
-				start + before.length + sel.length,
-			);
+		const view = viewRef.current;
+		if (!view) return;
+		const { from, to } = view.state.selection.main;
+		const sel = view.state.sliceDoc(from, to) || placeholder;
+		view.dispatch({
+			changes: { from, to, insert: before + sel + after },
+			selection: {
+				anchor: from + before.length,
+				head: from + before.length + sel.length,
+			},
 		});
+		view.focus();
 	}
 
 	// Préfixe chaque ligne de la sélection (titres, listes, citations).
 	function prefixLines(prefix: string) {
-		const ta = taRef.current;
-		if (!ta) return;
-		const start = ta.selectionStart;
-		const end = ta.selectionEnd;
-		const lineStart = body.lastIndexOf("\n", start - 1) + 1;
-		const block = body.slice(lineStart, end) || "texte";
+		const view = viewRef.current;
+		if (!view) return;
+		const { from, to } = view.state.selection.main;
+		const lineStart = view.state.doc.lineAt(from).from;
+		const block = view.state.sliceDoc(lineStart, to) || "texte";
 		const prefixed = block
 			.split("\n")
 			.map((l) => prefix + l)
 			.join("\n");
-		const next = body.slice(0, lineStart) + prefixed + body.slice(end);
-		setBody(next);
-		requestAnimationFrame(() => {
-			ta.focus();
-			ta.setSelectionRange(lineStart, lineStart + prefixed.length);
+		view.dispatch({
+			changes: { from: lineStart, to, insert: prefixed },
+			selection: { anchor: lineStart, head: lineStart + prefixed.length },
 		});
+		view.focus();
 	}
 
 	const FORMATS: { label: string; title: string; run: () => void }[] = [
@@ -249,14 +254,19 @@ export function WikiEditor({
 					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
 						Contenu (markdown + HTML)
 					</label>
-					<textarea
-						ref={taRef}
-						name="body"
-						rows={24}
+					{/* CodeMirror ne produit pas de champ form : un input caché alimente FormData. */}
+					<input type="hidden" name="body" value={body} />
+					<CodeMirror
 						value={body}
-						onChange={(e) => setBody(e.target.value)}
-						className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white font-mono text-sm resize-y"
+						onChange={setBody}
+						onCreateEditor={(view) => {
+							viewRef.current = view;
+						}}
+						extensions={CM_EXTENSIONS}
+						theme={oneDark}
+						height="540px"
 						placeholder="# Goku&#10;&#10;Le légendaire Saiyan élevé sur Terre…"
+						className="border-2 border-dbz-border focus-within:border-dbz-orange text-sm overflow-hidden"
 					/>
 					<p className="text-xs text-gray-500 mt-2">
 						Classes dispo : <code>wiki-float-right</code>,{" "}

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
+import { BookOpen } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -11,83 +12,83 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
 	title: "Manga Dragon Ball — DBFR",
 	description:
-		"Index complet des volumes et chapitres du manga Dragon Ball et Dragon Ball Super. Couvertures HD et résumés.",
+		"Lis les chapitres du manga Dragon Ball d'Akira Toriyama, planche par planche, dans le lecteur de scan DBFR.",
 };
 
-export default async function MangaIndex({
-	searchParams,
-}: {
-	searchParams: Promise<{ series?: string }>;
-}) {
-	const sp = await searchParams;
-	const series = sp.series ?? "DB";
-	const data = await dbUniverse.mangaVolumes(series);
-	const volumes = data?.volumes ?? [];
+const SERIES_LABELS: Record<string, string> = {
+	DB: "Dragon Ball",
+	DBZ: "Dragon Ball Z",
+	DBS: "Dragon Ball Super",
+	DB_DAIMA: "Dragon Ball Daima",
+};
+
+export default async function MangaIndexPage() {
+	const data = await dbUniverse.readableMangaChapters();
+	const chapters = data?.chapters ?? [];
 
 	return (
 		<div className="reveal-up">
 			<PageHero
 				eyebrow="Manga"
-				title={series === "DB" ? "Dragon Ball" : "Dragon Ball Super"}
-				lead="L'œuvre originale d'Akira Toriyama et sa suite par Toyotaro. Explorez tous les volumes et chapitres."
+				title="Lecteur de scan"
+				lead="L'œuvre originale d'Akira Toriyama, planche par planche. Sélectionne un chapitre pour ouvrir le lecteur."
 				image={SAGAS_HERO}
 				imageAlt="Manga Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
-				<nav className="mb-12 flex gap-4">
-					<Link
-						href="/wiki/manga?series=DB"
-						className={`dbz-button-ghost !px-8 ${series === "DB" ? "bg-dbz-orange/20 border-dbz-orange text-white" : ""}`}
-					>
-						Dragon Ball
-					</Link>
-					<Link
-						href="/wiki/manga?series=DBS"
-						className={`dbz-button-ghost !px-8 ${series === "DBS" ? "bg-dbz-orange/20 border-dbz-orange text-white" : ""}`}
-					>
-						Dragon Ball Super
-					</Link>
-				</nav>
-
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
-					{volumes.map((v, idx) => (
-						<Link
-							key={v.id}
-							href={`/wiki/manga/volume/${v.id}`}
-							className="group flex flex-col dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
-							style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
-						>
-							<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
-								<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-								{v.cover ? (
-									<Image
-										src={assetUrl(v.cover)}
-										alt={`Volume ${v.volume_number}`}
-										fill
-										sizes="(max-width: 640px) 50vw, 20vw"
-										className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
-									/>
-								) : (
-									<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-										<span className="text-zinc-700 font-saiyan text-4xl">{v.volume_number}</span>
+				{chapters.length === 0 ? (
+					<div className="dbz-panel p-10 max-w-2xl border-l-4 border-l-dbz-orange">
+						<h2 className="font-saiyan text-2xl text-white mb-3 tracking-widest">
+							AUCUN CHAPITRE DISPONIBLE
+						</h2>
+						<p className="text-white/60 leading-relaxed">
+							Aucun chapitre lisible n'est encore en ligne. Les scans seront
+							ajoutés progressivement — reviens bientôt.
+						</p>
+					</div>
+				) : (
+					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+						{chapters.map((chapter, idx) => (
+							<Link
+								key={chapter.id}
+								href={`/wiki/manga/${chapter.id}`}
+								className="group dbz-panel overflow-hidden hover:scale-105 hover:border-dbz-orange transition-all duration-300"
+								style={{ animationDelay: `${idx * 0.03}s` }}
+							>
+								<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
+									<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
+									{chapter.cover ? (
+										<Image
+											src={assetUrl(chapter.cover)}
+											alt={chapter.title ?? `Chapitre ${chapter.chapter_number}`}
+											fill
+											sizes="(max-width: 768px) 50vw, 16vw"
+											className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+										/>
+									) : (
+										<div className="grid h-full w-full place-items-center">
+											<BookOpen
+												className="w-10 h-10 text-dbz-orange/20"
+												aria-hidden="true"
+											/>
+										</div>
+									)}
+									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
+									<div className="absolute inset-x-0 bottom-0 p-4 z-30">
+										<span className="scouter-text text-xs text-dbz-orange block mb-1">
+											Chapitre {chapter.chapter_number}
+										</span>
+										<p className="font-display font-bold text-sm text-white group-hover:text-dbz-orange transition-colors line-clamp-2">
+											{chapter.title ??
+												(SERIES_LABELS[chapter.series] ?? chapter.series)}
+										</p>
 									</div>
-								)}
-								<div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-20" />
-								<div className="absolute top-3 left-3 z-30">
-									<span className="bg-dbz-orange text-black font-bold text-[10px] px-2 py-0.5 rounded uppercase tracking-widest">
-										Vol. {v.volume_number}
-									</span>
 								</div>
-							</div>
-							<div className="p-4 bg-dbz-card/50 border-t border-dbz-border">
-								<h3 className="font-display font-bold text-xs text-white line-clamp-2 group-hover:text-dbz-orange transition-colors">
-									{v.title || `Volume ${v.volume_number}`}
-								</h3>
-							</div>
-						</Link>
-					))}
-				</div>
+							</Link>
+						))}
+					</div>
+				)}
 			</div>
 		</div>
 	);

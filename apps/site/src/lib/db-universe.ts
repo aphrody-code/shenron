@@ -11,7 +11,7 @@
  * servait l'API REST du bot.
  */
 import "server-only";
-import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ilike, isNotNull, lt, or, sql } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -124,6 +124,15 @@ export type MangaChapter = {
 	chapter_number: number;
 	title: string | null;
 	volume_id: number | null;
+	cover: string | null;
+};
+
+/** Chapitre + ses pages, pour le lecteur de scan. `prev`/`next` = chapitres
+ *  adjacents (même série, par numéro) pour la navigation. */
+export type MangaChapterRead = MangaChapter & {
+	pages: string[];
+	prev: number | null;
+	next: number | null;
 };
 
 export type News = {
@@ -293,6 +302,7 @@ function toMangaChapter(r: typeof botMangaChapters.$inferSelect): MangaChapter {
 		chapter_number: r.chapterNumber ?? 0,
 		title: r.title,
 		volume_id: r.volumeId,
+		cover: r.cover,
 	};
 }
 
@@ -543,6 +553,69 @@ export const dbUniverse = {
 					.orderBy(asc(botMangaChapters.chapterNumber))
 			).map(toMangaChapter);
 			return { ...toMangaVolume(v), chapters };
+		}),
+
+	// Chapitres manga LISIBLES (pages renseignées) → index du lecteur de scan.
+	readableMangaChapters: (series?: string) =>
+		safe(async () => ({
+			chapters: (
+				await db
+					.select()
+					.from(botMangaChapters)
+					.where(
+						series
+							? and(
+									eq(botMangaChapters.series, series),
+									isNotNull(botMangaChapters.pages),
+								)
+							: isNotNull(botMangaChapters.pages),
+					)
+					.orderBy(
+						asc(botMangaChapters.series),
+						asc(botMangaChapters.chapterNumber),
+					)
+			).map(toMangaChapter),
+		})),
+
+	// Un chapitre + ses pages + chapitres adjacents (nav lecteur).
+	mangaChapter: (id: number) =>
+		safe<MangaChapterRead | null>(async () => {
+			const [c] = await db
+				.select()
+				.from(botMangaChapters)
+				.where(eq(botMangaChapters.id, id))
+				.limit(1);
+			if (!c) return null;
+			const [prev] = await db
+				.select({ id: botMangaChapters.id })
+				.from(botMangaChapters)
+				.where(
+					and(
+						eq(botMangaChapters.series, c.series),
+						isNotNull(botMangaChapters.pages),
+						lt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0),
+					),
+				)
+				.orderBy(desc(botMangaChapters.chapterNumber))
+				.limit(1);
+			const [next] = await db
+				.select({ id: botMangaChapters.id })
+				.from(botMangaChapters)
+				.where(
+					and(
+						eq(botMangaChapters.series, c.series),
+						isNotNull(botMangaChapters.pages),
+						gt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0),
+					),
+				)
+				.orderBy(asc(botMangaChapters.chapterNumber))
+				.limit(1);
+			return {
+				...toMangaChapter(c),
+				pages: Array.isArray(c.pages) ? c.pages : [],
+				prev: prev?.id ?? null,
+				next: next?.id ?? null,
+			};
 		}),
 
 	news: (limit = 10) =>

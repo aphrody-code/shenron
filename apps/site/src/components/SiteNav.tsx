@@ -21,6 +21,7 @@ const PUBLIC_LINKS = [
 	{ href: "/wiki/sagas", label: "Sagas" },
 	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
 	{ href: "/wiki/films", label: "Films" },
+	{ href: "/wiki/manga", label: "Manga" },
 	{ href: "/wiki/jeux", label: "Jeux" },
 	{ href: "/actualites", label: "News" },
 	{ href: "/wiki/search", label: "Recherche" },

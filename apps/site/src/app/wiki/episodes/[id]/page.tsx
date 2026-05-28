@@ -1,9 +1,13 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse } from "@/lib/db-universe";
-import { assetUrl } from "@/lib/db-universe";
+import { assetUrl } from "@/lib/assets";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+// Client Component : un RSC peut le rendre directement. `ssr:false` n'est pas
+// autorisé via next/dynamic dans un Server Component (Next 16) → le no-SSR
+// (Vidstack touche `window`) est géré à l'intérieur du composant lui-même.
+import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 
 export const dynamic = "force-dynamic";
 
@@ -94,14 +98,22 @@ export default async function EpisodeDetailPage({
 					</div>
 				</header>
 
-				{ep.image && (
-					<div className="dbz-panel p-2 aspect-video bg-dbz-bg overflow-hidden">
-						<img
-							src={assetUrl(ep.image)}
-							alt={ep.title}
-							className="w-full h-full object-cover rounded-lg opacity-90"
-						/>
-					</div>
+				{ep.video_url ? (
+					<VideoPlayer
+						src={ep.video_url}
+						title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
+						poster={ep.image ? assetUrl(ep.image) : undefined}
+					/>
+				) : (
+					ep.image && (
+						<div className="dbz-panel p-2 aspect-video bg-dbz-bg overflow-hidden">
+							<img
+								src={assetUrl(ep.image)}
+								alt={ep.title}
+								className="w-full h-full object-cover rounded-lg opacity-90"
+							/>
+						</div>
+					)
 				)}
 
 				{ep.synopsis && (
