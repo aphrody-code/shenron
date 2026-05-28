@@ -124,6 +124,13 @@ export const botEpisodes = bot.table("db_episodes", {
 	players: jsonb("players").$type<
 		{ name: string; provider: string; embedUrl: string }[]
 	>(),
+	// Flux résolu (HLS/mp4) + headers requis (Referer), pour le proxy HLS du
+	// site qui le relaie à notre player hls.js. Rafraîchi par resolve-streams.ts
+	// (tokens ~12 h). Colonnes Neon-only.
+	streamUrl: text("stream_url"),
+	streamHeaders: jsonb("stream_headers").$type<Record<string, string>>(),
+	streamProvider: text("stream_provider"),
+	streamAt: bigint("stream_at", { mode: "number" }),
 });
 
 export const botMovies = bot.table("db_movies", {

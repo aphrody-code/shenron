@@ -110,6 +110,13 @@ export default async function EpisodeDetailPage({
 						poster={ep.image ? assetUrl(ep.image) : undefined}
 						subtitles={ep.subtitles ?? undefined}
 					/>
+				) : ep.stream_url ? (
+					<VideoPlayer
+						src={`/api/hls/${ep.id}/master.m3u8`}
+						title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
+						poster={ep.image ? assetUrl(ep.image) : undefined}
+						subtitles={ep.subtitles ?? undefined}
+					/>
 				) : ep.players && ep.players.length > 0 ? (
 					<EpisodeLecteurs players={ep.players} />
 				) : (

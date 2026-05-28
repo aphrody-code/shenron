@@ -65,6 +65,7 @@ export type Episode = {
 	mal_id: number | null;
 	subtitles: { lang: string; label: string; src: string }[] | null;
 	players: { name: string; provider: string; embedUrl: string }[] | null;
+	stream_url: string | null;
 };
 
 export type Movie = {
@@ -247,6 +248,7 @@ function toEpisode(r: typeof botEpisodes.$inferSelect): Episode {
 		mal_id: r.malId,
 		subtitles: r.subtitles ?? null,
 		players: r.players ?? null,
+		stream_url: r.streamUrl ?? null,
 	};
 }
 
@@ -447,6 +449,20 @@ export const dbUniverse = {
 				.where(eq(botEpisodes.id, id))
 				.limit(1);
 			return e ? toEpisode(e) : null;
+		}),
+
+	/** Flux résolu (HLS/mp4) + headers d'un épisode, pour le proxy HLS. */
+	episodeStream: (id: number) =>
+		safe(async () => {
+			const [e] = await db
+				.select({
+					url: botEpisodes.streamUrl,
+					headers: botEpisodes.streamHeaders,
+				})
+				.from(botEpisodes)
+				.where(eq(botEpisodes.id, id))
+				.limit(1);
+			return e?.url ? { url: e.url, headers: e.headers ?? {} } : null;
 		}),
 
 	episodes: (series?: string, limit = 50, offset = 0) =>
