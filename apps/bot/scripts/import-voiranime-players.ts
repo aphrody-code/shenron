@@ -73,7 +73,9 @@ for (const [series, slug] of Object.entries(SERIES_SLUG)) {
 			noMatch++;
 			continue;
 		}
-		await sql`UPDATE bot.db_episodes SET players = ${JSON.stringify(players)}::jsonb WHERE id = ${r.id}`;
+		// postgres.js : sql.json() pour un jsonb correct ; `${JSON.stringify}::jsonb`
+		// produit un scalaire string double-encodé (bug attrapé 2026-05-28).
+		await sql`UPDATE bot.db_episodes SET players = ${sql.json(players)} WHERE id = ${r.id}`;
 		updated++;
 	}
 	console.log(`  ✓ ${series} (${slug}) : ${byNum.size} épisodes avec lecteurs côté voiranime`);
