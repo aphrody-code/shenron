@@ -131,8 +131,8 @@ export const SETTINGS_KEYS: SettingDef[] = [
 
 	// ── Anti-invite / liens ────────────────────────────────────────
 	{ key: "anti_invite.enabled", type: "bool", category: "anti_invite", description: "Activer la détection d'invitations Discord", default: true },
-	{ key: "anti_invite.whitelist_url", type: "string", category: "anti_invite", description: "URL d'invitation autorisée (ex: discord.gg/dragonball)", default: "discord.gg/" },
-	{ key: "anti_invite.action", type: "string", category: "anti_invite", description: "Action sur invitation détectée (delete | warn | mute)", default: "delete" },
+	{ key: "anti_invite.whitelist_url", type: "string", category: "anti_invite", description: "Invitation supplémentaire autorisée — doit porter un chemin spécifique (ex: discord.gg/dragonball). L'invite du serveur (SERVER_INVITE_URL) reste toujours autorisée. Vide = pas de whitelist additionnelle.", default: "" },
+	{ key: "anti_invite.action", type: "string", category: "anti_invite", description: "Action sur invitation détectée (delete | warn | jail)", default: "jail" },
 
 	// ── Modération ─────────────────────────────────────────────────
 	{ key: "moderation.warn_threshold_mute", type: "int", category: "moderation", description: "Nb warns avant mute auto", default: 3, min: 1, max: 20 },

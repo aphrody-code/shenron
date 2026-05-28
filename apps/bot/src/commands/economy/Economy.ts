@@ -23,6 +23,7 @@ import { Pagination } from "@rpbey/pagination";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
+import { FeatureEnabled } from "~/guards/FeatureEnabled";
 import { EconomyService } from "~/services/EconomyService";
 import { FusionService } from "~/services/FusionService";
 import { FusionRoleService } from "~/services/FusionRoleService";
@@ -152,8 +153,9 @@ export class EconomyCommands {
     });
   }
 
-  // /fusion
+  // /fusion (gardé par features.fusion ; /defusion reste libre pour défusionner même feature off)
   @Slash({ name: "fusion", description: "Proposer une fusion (mariage) à un membre" })
+  @Guard(FeatureEnabled("features.fusion", "La fusion"))
   async fusion(
     @SlashOption({ name: "membre", description: "Membre", type: ApplicationCommandOptionType.User, required: true }, userTransformer)
     target: User,

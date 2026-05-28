@@ -21,6 +21,7 @@ import {
 } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { AdminOnly } from "~/guards/AdminOnly";
+import { FeatureEnabled } from "~/guards/FeatureEnabled";
 import { TicketService } from "~/services/TicketService";
 import { LogService } from "~/services/LogService";
 import { env } from "~/lib/env";
@@ -34,7 +35,7 @@ const KIND_LABELS = {
 
 @Discord()
 @Bot("whis")
-@Guard(GuildOnly)
+@Guard(GuildOnly, FeatureEnabled("features.tickets", "Le système de tickets"))
 @injectable()
 export class TicketCommands {
   constructor(

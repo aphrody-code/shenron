@@ -19,6 +19,13 @@ async function getString(key: string, def: string): Promise<string> {
 		return def;
 	}
 }
+async function getBool(key: string, def: boolean): Promise<boolean> {
+	try {
+		return await container.resolve(SettingsService).getBool(key, def);
+	} catch {
+		return def;
+	}
+}
 
 /**
  * OCR + Traduction.
@@ -391,6 +398,9 @@ export class TranslateService {
 		target = "fr",
 		source?: string,
 	): Promise<TranslateResult> {
+		if (!(await getBool("features.translate", true))) {
+			throw new Error("Traduction désactivée (features.translate).");
+		}
 		if (!text.trim()) {
 			return {
 				source: text,
@@ -602,6 +612,9 @@ export class TranslateService {
 		imageUrl: string,
 		target = "fr",
 	): Promise<TranslateResult | null> {
+		if (!(await getBool("features.translate", true))) {
+			throw new Error("Traduction désactivée (features.translate).");
+		}
 		const ocr = await this.ocrFromUrl(imageUrl);
 		if (!ocr.text) {
 			logger.debug({ imageUrl }, "OCR aucun texte");

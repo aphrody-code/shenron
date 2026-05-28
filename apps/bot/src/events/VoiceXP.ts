@@ -45,6 +45,8 @@ export class VoiceXPEvent {
   }
 
   private async tickXP(client: Client) {
+    // Toggle features.voice_xp — fallback true (DB vide = activé par défaut).
+    if (!(await this.settings.getBool("features.voice_xp", true))) return;
     const now = Date.now();
     // Snapshot des boosts une fois par tick (cache 30s côté SettingsService)
     const boosts = await this.settings.getXpBoostRoles();

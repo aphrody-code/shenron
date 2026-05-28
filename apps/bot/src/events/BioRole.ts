@@ -4,6 +4,7 @@ import type { Client, Guild, GuildMember, Presence } from "discord.js";
 import { env } from "~/lib/env";
 import { logger } from "~/lib/logger";
 import { CronRegistry } from "~/api/cron-registry";
+import { SettingsService } from "~/services/SettingsService";
 
 /**
  * Détecte l'URL du serveur dans le statut custom / activité d'un membre.
@@ -15,7 +16,10 @@ import { CronRegistry } from "~/api/cron-registry";
 @Bot("grandPretre")
 @injectable()
 export class BioRoleEvent {
-  constructor(@inject(CronRegistry) private cron: CronRegistry) {}
+  constructor(
+    @inject(CronRegistry) private cron: CronRegistry,
+    @inject(SettingsService) private settings: SettingsService,
+  ) {}
 
   private key(guildId: string) {
     return env.SERVER_INVITE_URL.replace(/^https?:\/\//, "")
@@ -37,6 +41,7 @@ export class BioRoleEvent {
   async sync(member: GuildMember) {
     const roleId = env.URL_IN_BIO_ROLE_ID;
     if (!roleId) return;
+    if (!(await this.settings.getBool("features.bio_role", true))) return;
     try {
       const has = this.hasInvite(member);
       const hasRole = member.roles.cache.has(roleId);

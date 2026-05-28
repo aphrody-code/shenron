@@ -15,6 +15,7 @@ import {
 import { and, eq, lte } from "drizzle-orm";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { ModOnly } from "~/guards/ModOnly";
+import { FeatureEnabled } from "~/guards/FeatureEnabled";
 import { DatabaseService } from "~/db/index";
 import { giveaways, giveawayEntries } from "~/db/schema";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
@@ -29,7 +30,7 @@ function parseDuration(input: string): number | undefined {
 
 @Discord()
 @Bot("kaio")
-@Guard(GuildOnly)
+@Guard(GuildOnly, FeatureEnabled("features.giveaway", "Le système de giveaway"))
 @injectable()
 export class GiveawayCommands {
   constructor(@inject(DatabaseService) private dbs: DatabaseService) {}

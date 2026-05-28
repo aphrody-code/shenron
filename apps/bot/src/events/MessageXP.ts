@@ -42,23 +42,39 @@ export class MessageXPEvent {
     if (!message.inGuild() || message.author.bot) return;
     const userId = message.author.id;
 
-    // Anti-lien Discord externe (auto-jail)
+    // Anti-lien Discord externe — configurable via anti_invite.* (enabled / action / whitelist_url).
     const match = message.content.match(DISCORD_INVITE_REGEX);
-    if (match) {
-      const url = match[0];
-      const ownInvite = env.SERVER_INVITE_URL?.replace(/^https?:\/\//, "");
-      const isOwn = ownInvite && url.toLowerCase().includes(ownInvite.toLowerCase().split("/").pop() ?? "");
+    if (match && (await this.settings.getBool("anti_invite.enabled", true))) {
+      const url = match[0].toLowerCase();
+      const ownTail = env.SERVER_INVITE_URL?.replace(/^https?:\/\//, "").toLowerCase().split("/").pop() ?? "";
+      // Whitelist additionnelle. Le placeholder "discord.gg/" (défaut historique)
+      // matcherait toutes les invites → on ne l'applique que s'il porte un
+      // segment de chemin spécifique (ex: discord.gg/dragonball).
+      const wl = (await this.settings.getString("anti_invite.whitelist_url", ""))
+        .trim()
+        .toLowerCase()
+        .replace(/^https?:\/\//, "");
+      const wlSpecific = wl !== "" && wl !== "discord.gg/" && /\/[^/]+/.test(wl);
+      const isOwn = (ownTail !== "" && url.includes(ownTail)) || (wlSpecific && url.includes(wl));
       if (!isOwn && message.member && !message.member.permissions.has("ModerateMembers")) {
         await message.delete().catch(() => {});
+        const action = (await this.settings.getString("anti_invite.action", "jail")).toLowerCase();
         try {
-          await this.mod.jail(message.member, message.client.user!.id, "Lien Discord externe détecté", 24 * 3600_000);
-          await this.msg.publish(
-            "anti_link_jail",
-            { user: `<@${userId}>`, url },
-            message.client,
-          );
+          if (action === "warn") {
+            await this.mod.addWarn(userId, message.client.user!.id, "Lien Discord externe détecté");
+          } else if (action === "delete") {
+            // message déjà supprimé — aucune sanction supplémentaire
+          } else {
+            // "jail" (défaut, comportement historique) — couvre aussi toute valeur inconnue
+            await this.mod.jail(message.member, message.client.user!.id, "Lien Discord externe détecté", 24 * 3600_000);
+            await this.msg.publish(
+              "anti_link_jail",
+              { user: `<@${userId}>`, url: match[0] },
+              message.client,
+            );
+          }
         } catch (err) {
-          logger.warn({ err }, "anti-link jail failed");
+          logger.warn({ err, action }, "anti-link action failed");
         }
         return;
       }
@@ -114,6 +130,9 @@ export class MessageXPEvent {
       );
     }
     await this.dbs.db.update(users).set({ messageCount: user.messageCount + 1 }).where(eq(users.id, userId));
+
+    // Toggle features.message_xp — fallback true (DB vide = activé par défaut, jamais couper l'XP par accident).
+    if (!(await this.settings.getBool("features.message_xp", true))) return;
 
     // XP cooldown — settings runtime avec fallback constants
     const cooldownMs = await this.settings.getInt("xp.message.cooldown_ms", XP_MESSAGE_COOLDOWN_MS);
