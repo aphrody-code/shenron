@@ -8,6 +8,8 @@ import type { Metadata } from "next";
 // autorisé via next/dynamic dans un Server Component (Next 16) → le no-SSR
 // (Vidstack touche `window`) est géré à l'intérieur du composant lui-même.
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
+import { isCurrentUserAdmin } from "@/lib/session";
+import { EpisodeMediaEditor } from "./EpisodeMediaEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +46,8 @@ export default async function EpisodeDetailPage({
 	const ep = await dbUniverse.episode(parseInt(id));
 
 	if (!ep) notFound();
+
+	const isAdmin = await isCurrentUserAdmin();
 
 	// Helper to extract YouTube ID
 	const getYoutubeId = (url: string | null) => {
@@ -103,6 +107,7 @@ export default async function EpisodeDetailPage({
 						src={ep.video_url}
 						title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
 						poster={ep.image ? assetUrl(ep.image) : undefined}
+						subtitles={ep.subtitles ?? undefined}
 					/>
 				) : (
 					ep.image && (
@@ -116,7 +121,15 @@ export default async function EpisodeDetailPage({
 					)
 				)}
 
-				{ep.synopsis && (
+				{isAdmin && (
+						<EpisodeMediaEditor
+							episodeId={ep.id}
+							videoUrl={ep.video_url}
+							subtitles={ep.subtitles}
+						/>
+					)}
+
+					{ep.synopsis && (
 					<section className="dbz-panel p-8 relative overflow-hidden">
 						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
 						<h2 className="font-saiyan text-2xl text-dbz-orange mb-4 uppercase tracking-widest">Synopsis</h2>

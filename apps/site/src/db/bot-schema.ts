@@ -112,6 +112,13 @@ export const botEpisodes = bot.table("db_episodes", {
 	image: text("image"),
 	malId: int("mal_id"),
 	videoUrl: text("video_url"),
+	// Pistes de sous-titres : [{ lang, label, src }] où `src` est un chemin
+	// d'asset bot (assets/subtitles/...) en .vtt ou .srt, ou une URL .vtt.
+	// Colonne Neon-only (le reverse-sync l'ignore par intersection de colonnes ;
+	// seul le lecteur du site la lit).
+	subtitles: jsonb("subtitles").$type<
+		{ lang: string; label: string; src: string }[]
+	>(),
 });
 
 export const botMovies = bot.table("db_movies", {

@@ -443,6 +443,8 @@ const ASSET_CONTENT_TYPES: Record<string, string> = {
 	".css": "text/css",
 	".js": "application/javascript",
 	".json": "application/json",
+	".vtt": "text/vtt",
+	".srt": "application/x-subrip",
 };
 
 /**
@@ -3775,6 +3777,59 @@ export class ApiServer {
 							);
 						}
 						return Response.json({ path: `./${rel}`, url: `/${rel}` });
+					}),
+				},
+				// Upload d'une piste de sous-titres d'épisode (.vtt/.srt) → écrit dans
+				// `assets/subtitles/db_episodes/<id>/<lang>.<ext>`. Le site sert/convertit
+				// ensuite en WebVTT via /api/subtitles. Admin-only.
+				"/api/assets/upload-subtitle": {
+					POST: admin(async (req) => {
+						let form: FormData;
+						try {
+							form = await req.formData();
+						} catch {
+							return Response.json(
+								{ error: "multipart/form-data requis" },
+								{ status: 400 },
+							);
+						}
+						const file = form.get("file");
+						const episodeId = String(form.get("episodeId") ?? "").trim();
+						const lang = String(form.get("lang") ?? "").trim().toLowerCase();
+						if (!(file instanceof File)) {
+							return Response.json({ error: "champ 'file' manquant" }, { status: 400 });
+						}
+						if (!/^\d+$/.test(episodeId)) {
+							return Response.json({ error: "episodeId invalide" }, { status: 400 });
+						}
+						if (!/^[a-z]{2,5}(-[a-z]{2,5})?$/.test(lang)) {
+							return Response.json({ error: "lang invalide (ex. fr, en, fr-fr)" }, { status: 400 });
+						}
+						if (file.size > 2 * 1024 * 1024) {
+							return Response.json({ error: "Fichier trop lourd (max 2 Mo)" }, { status: 413 });
+						}
+						const lower = file.name.toLowerCase();
+						const ext = lower.endsWith(".vtt")
+							? ".vtt"
+							: lower.endsWith(".srt")
+								? ".srt"
+								: null;
+						if (!ext) {
+							return Response.json({ error: "Type non supporté (.vtt, .srt)" }, { status: 415 });
+						}
+						const dir = `assets/subtitles/db_episodes/${episodeId}`;
+						const rel = `${dir}/${lang}${ext}`;
+						try {
+							const { mkdir } = await import("node:fs/promises");
+							await mkdir(dir, { recursive: true });
+							await Bun.write(rel, file);
+						} catch (err) {
+							return Response.json(
+								{ error: err instanceof Error ? err.message : "écriture échouée" },
+								{ status: 500 },
+							);
+						}
+						return Response.json({ path: `./${rel}`, url: `/${rel}`, src: rel });
 					}),
 				},
 				// Liste les images d'un dossier d'assets whitelisté (galerie admin :

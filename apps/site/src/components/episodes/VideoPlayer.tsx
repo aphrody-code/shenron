@@ -2,10 +2,29 @@
 
 import { useEffect, useRef } from "react";
 
+export interface SubtitleTrack {
+	lang: string;
+	label: string;
+	src: string;
+}
+
 export interface VideoPlayerProps {
 	src: string;
 	title: string;
 	poster?: string;
+	subtitles?: SubtitleTrack[];
+}
+
+/**
+ * URL de piste consommable par `<track>` (toujours du WebVTT) : une URL http
+ * absolue est utilisée telle quelle (déjà en .vtt) ; un chemin d'asset relatif
+ * passe par /api/subtitles (conversion SRT→VTT à la volée, same-origin → pas
+ * de CORS sur la piste).
+ */
+function trackUrl(src: string): string {
+	return src.startsWith("http")
+		? src
+		: `/api/subtitles?src=${encodeURIComponent(src.replace(/^\.?\/*/, ""))}`;
 }
 
 /**
@@ -18,7 +37,7 @@ export interface VideoPlayerProps {
  * - hls.js (plain ESM) remplace Vidstack v1, que Turbopack canary n'arrive pas
  *   à parser au build prod. À réévaluer quand Vidstack sera turbopack-compatible.
  */
-export function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
+export function VideoPlayer({ src, title, poster, subtitles }: VideoPlayerProps) {
 	const videoRef = useRef<HTMLVideoElement>(null);
 
 	useEffect(() => {
@@ -75,7 +94,6 @@ export function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
 
 	return (
 		<div className="dbz-panel overflow-hidden rounded-lg border border-dbz-border bg-black p-0">
-			{/* biome-ignore lint/a11y/useMediaCaption: pistes VTT ajoutées via la source quand dispo */}
 			<video
 				ref={videoRef}
 				controls
@@ -85,7 +103,18 @@ export function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
 				poster={poster}
 				title={title}
 				className="aspect-video w-full rounded-lg bg-black"
-			/>
+			>
+				{subtitles?.map((t, i) => (
+					<track
+						key={`${t.lang}-${t.src}`}
+						kind="subtitles"
+						src={trackUrl(t.src)}
+						srcLang={t.lang}
+						label={t.label}
+						default={i === 0}
+					/>
+				))}
+			</video>
 		</div>
 	);
 }

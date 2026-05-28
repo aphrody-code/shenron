@@ -62,6 +62,7 @@ export type Episode = {
 	image: string | null;
 	video_url: string | null;
 	mal_id: number | null;
+	subtitles: { lang: string; label: string; src: string }[] | null;
 };
 
 export type Movie = {
@@ -228,6 +229,7 @@ function toEpisode(r: typeof botEpisodes.$inferSelect): Episode {
 		image: r.image,
 		video_url: r.videoUrl,
 		mal_id: r.malId,
+		subtitles: r.subtitles ?? null,
 	};
 }
 
