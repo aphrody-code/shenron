@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { isCurrentUserAdmin } from "@/lib/session";
 import { EpisodeMediaEditor } from "./EpisodeMediaEditor";
+import { EpisodeLecteurs } from "@/components/episodes/EpisodeLecteurs";
 
 export const dynamic = "force-dynamic";
 
@@ -109,6 +110,8 @@ export default async function EpisodeDetailPage({
 						poster={ep.image ? assetUrl(ep.image) : undefined}
 						subtitles={ep.subtitles ?? undefined}
 					/>
+				) : ep.players && ep.players.length > 0 ? (
+					<EpisodeLecteurs players={ep.players} />
 				) : (
 					ep.image && (
 						<div className="dbz-panel p-2 aspect-video bg-dbz-bg overflow-hidden">

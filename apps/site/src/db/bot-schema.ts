@@ -119,6 +119,11 @@ export const botEpisodes = bot.table("db_episodes", {
 	subtitles: jsonb("subtitles").$type<
 		{ lang: string; label: string; src: string }[]
 	>(),
+	// Lecteurs externes (voir-anime) : [{ name, provider, embedUrl }] affichés en
+	// iframe. Colonne Neon-only, rafraîchie par import-voiranime-players.ts.
+	players: jsonb("players").$type<
+		{ name: string; provider: string; embedUrl: string }[]
+	>(),
 });
 
 export const botMovies = bot.table("db_movies", {
