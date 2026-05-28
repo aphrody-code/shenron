@@ -43,6 +43,22 @@ export function VideoPlayer({ src, title, poster }: VideoPlayerProps) {
 			if (cancelled || !videoRef.current) return;
 			if (Hls.isSupported()) {
 				const instance = new Hls({ enableWorker: true });
+				// Recovery sur erreur fatale (pattern recommandé hls.js) : on tente
+				// de relancer le réseau / réinitialiser le média avant d'abandonner,
+				// pour absorber les blips réseau d'un flux HLS.
+				instance.on(Hls.Events.ERROR, (_evt, data) => {
+					if (!data.fatal) return;
+					switch (data.type) {
+						case Hls.ErrorTypes.NETWORK_ERROR:
+							instance.startLoad();
+							break;
+						case Hls.ErrorTypes.MEDIA_ERROR:
+							instance.recoverMediaError();
+							break;
+						default:
+							instance.destroy();
+					}
+				});
 				instance.loadSource(src);
 				instance.attachMedia(videoRef.current);
 				hls = instance;
