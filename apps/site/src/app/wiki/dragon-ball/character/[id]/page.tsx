@@ -8,7 +8,7 @@ import Link from "next/link";
 import { cache } from "react";
 import type { BreadcrumbList, WithContext } from "schema-dts";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 const SITE = "https://shenron.rpbey.fr";
 

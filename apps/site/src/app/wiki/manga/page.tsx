@@ -7,7 +7,7 @@ import { SAGAS_HERO } from "@/lib/db-banners";
 import { BookOpen } from "lucide-react";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
 	title: "Manga Dragon Ball — DBFR",
