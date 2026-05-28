@@ -470,12 +470,26 @@ async function serveAsset(pathname: string, req?: Request): Promise<Response> {
 		return new Response("Asset introuvable", { status: 404 });
 	}
 	const cors = req ? publicCorsHeaders(req) : {};
+	// Les assets wiki sont éditables en place (remplacement via l'admin au même
+	// chemin) → JAMAIS de cache immutable, sinon l'ancienne image reste figée
+	// (navigateur + optimiseur CDN). `no-cache` force la revalidation ; l'ETag
+	// (taille + mtime) permet un 304 bon marché tant que le fichier est inchangé,
+	// et sert la nouvelle image dès qu'il est réécrit.
+	const etag = `"${file.size}-${Math.floor(file.lastModified)}"`;
+	const cacheHeaders = {
+		"Cache-Control": "no-cache, must-revalidate",
+		ETag: etag,
+		"Last-Modified": new Date(file.lastModified).toUTCString(),
+		"Cross-Origin-Resource-Policy": "cross-origin",
+		...cors,
+	};
+	if (req?.headers.get("if-none-match") === etag) {
+		return new Response(null, { status: 304, headers: cacheHeaders });
+	}
 	return new Response(file as unknown as BodyInit, {
 		headers: {
 			"Content-Type": contentType,
-			"Cache-Control": "public, max-age=2592000, immutable",
-			"Cross-Origin-Resource-Policy": "cross-origin",
-			...cors,
+			...cacheHeaders,
 		},
 	});
 }

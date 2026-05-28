@@ -5,6 +5,14 @@ const nextConfig: NextConfig = {
 	// Docs : https://nextjs.org/docs/app/api-reference/components/image#formats
 	// Note : chaque format est caché séparément (storage ↑ mais latence ↓ après warm).
 	images: {
+		// Images wiki éditables en place via l'admin (réécriture du fichier au même
+		// chemin). L'optimiseur Vercel cache l'image optimisée par URL source ; une
+		// fois figée, un remplacement n'apparaissait jamais. On désactive donc
+		// l'optimisation : le navigateur charge l'asset directement depuis le bot,
+		// qui répond `no-cache` + ETag → revalidation 304 bon marché tant que le
+		// fichier est identique, image fraîche dès qu'il change. Pas d'optim
+		// AVIF/resize, mais éditabilité garantie (existant + futur, sans purge).
+		unoptimized: true,
 		formats: ["image/avif", "image/webp"],
 		// Bot expose les assets DB via /db/* (Cache-Control immutable + Vary:Accept côté bot).
 		remotePatterns: [
@@ -64,11 +72,6 @@ const nextConfig: NextConfig = {
 		],
 		deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
 		imageSizes: [16, 32, 48, 64, 96, 128, 192, 256, 384],
-		// Cache minimum après optimization Vercel. Les posters/images wiki sont
-		// éditables en place (remplacement via l'admin sans changer le nom de
-		// fichier) → 1 an cachait l'ancienne image pendant un an. 1 jour garde un
-		// fort taux de cache tout en laissant les remplacements se propager.
-		minimumCacheTTL: 86_400, // 1 jour
 		dangerouslyAllowSVG: false,
 	},
 
