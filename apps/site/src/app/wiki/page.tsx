@@ -101,7 +101,7 @@ export default async function WikiIndex() {
 	const featuredEpisodes = episodesData?.episodes.slice(0, 6) ?? [];
 
 	return (
-		<div className="reveal-up space-y-24">
+		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24 reveal-up space-y-24">
 			<header className="mb-4">
 				<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
 					Base de données DBFR
