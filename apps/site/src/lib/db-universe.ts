@@ -12,6 +12,7 @@
  */
 import "server-only";
 import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import type { PgColumn } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import {
@@ -331,6 +332,40 @@ async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
 	}
 }
 
+// Seuil de proximité trigramme (pg_trgm). 0.3 attrape les fautes de frappe
+// courantes ("vegetta"→Vegeta) sans bruit sur les noms courts.
+const FUZZY_THRESHOLD = 0.3;
+
+// WHERE tolérant aux fautes : substring (ILIKE, conserve le prefix/partial)
+// OU proximité trigramme, le tout insensible casse + accents (unaccent).
+// Tables wiki ~dizaines de lignes → seq-scan sub-ms, aucun index requis.
+function fuzzyWhere(term: string, cols: PgColumn[]) {
+	const pat = `%${term}%`;
+	return or(
+		...cols.flatMap((c) => [
+			ilike(c, pat),
+			sql`similarity(unaccent(lower(${c})), unaccent(lower(${term}))) > ${FUZZY_THRESHOLD}`,
+		]),
+	);
+}
+
+// ORDER BY pertinence : égalité exacte > préfixe > meilleure proximité
+// trigramme (toutes colonnes confondues).
+function fuzzyOrder(term: string, cols: PgColumn[]) {
+	const primary = cols[0];
+	const sim = sql`greatest(${sql.join(
+		cols.map(
+			(c) => sql`similarity(unaccent(lower(${c})), unaccent(lower(${term})))`,
+		),
+		sql`, `,
+	)})`;
+	return [
+		sql`(lower(${primary}) = lower(${term})) desc`,
+		sql`(unaccent(lower(${primary})) like unaccent(lower(${term})) || '%') desc`,
+		sql`${sim} desc nulls last`,
+	];
+}
+
 export const dbUniverse = {
 	sagas: () =>
 		safe(async () => ({
@@ -527,7 +562,15 @@ export const dbUniverse = {
 			if (term.length < 2) {
 				return { q: term, characters: [], planets: [], sagas: [], movies: [], games: [] };
 			}
-			const p = `%${term}%`;
+			const charCols = [
+				botCharacters.name,
+				botCharacters.nameJa,
+				botCharacters.nameRomaji,
+			];
+			const planetCols = [botPlanets.name, botPlanets.nameJa];
+			const sagaCols = [botSagas.name, botSagas.nameJa];
+			const movieCols = [botMovies.title, botMovies.titleJa];
+			const gameCols = [botGames.title, botGames.titleJa];
 			const [characters, planets, sagas, movies, games] = await Promise.all([
 				db
 					.select({
@@ -538,13 +581,8 @@ export const dbUniverse = {
 						race: botCharacters.race,
 					})
 					.from(botCharacters)
-					.where(
-						or(
-							ilike(botCharacters.name, p),
-							ilike(botCharacters.nameJa, p),
-							ilike(botCharacters.nameRomaji, p),
-						),
-					)
+					.where(fuzzyWhere(term, charCols))
+					.orderBy(...fuzzyOrder(term, charCols))
 					.limit(20),
 				db
 					.select({
@@ -554,7 +592,8 @@ export const dbUniverse = {
 						image: botPlanets.image,
 					})
 					.from(botPlanets)
-					.where(or(ilike(botPlanets.name, p), ilike(botPlanets.nameJa, p)))
+					.where(fuzzyWhere(term, planetCols))
+					.orderBy(...fuzzyOrder(term, planetCols))
 					.limit(10),
 				db
 					.select({
@@ -565,7 +604,8 @@ export const dbUniverse = {
 						series: botSagas.series,
 					})
 					.from(botSagas)
-					.where(or(ilike(botSagas.name, p), ilike(botSagas.nameJa, p)))
+					.where(fuzzyWhere(term, sagaCols))
+					.orderBy(...fuzzyOrder(term, sagaCols))
 					.limit(10),
 				db
 					.select({
@@ -576,7 +616,8 @@ export const dbUniverse = {
 						series: botMovies.series,
 					})
 					.from(botMovies)
-					.where(or(ilike(botMovies.title, p), ilike(botMovies.titleJa, p)))
+					.where(fuzzyWhere(term, movieCols))
+					.orderBy(...fuzzyOrder(term, movieCols))
 					.limit(10),
 				db
 					.select({
@@ -586,7 +627,8 @@ export const dbUniverse = {
 						title_ja: botGames.titleJa,
 					})
 					.from(botGames)
-					.where(or(ilike(botGames.title, p), ilike(botGames.titleJa, p)))
+					.where(fuzzyWhere(term, gameCols))
+					.orderBy(...fuzzyOrder(term, gameCols))
 					.limit(10),
 			]);
 			return {

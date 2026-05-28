@@ -84,6 +84,9 @@ async function main() {
 		.filter((n) => !SKIP.has(n) && !n.startsWith("rag_chunks"));
 
 	await sql`CREATE SCHEMA IF NOT EXISTS bot`;
+	// Recherche floue du site (/wiki/search) : proximité trigramme + accents.
+	await sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
+	await sql`CREATE EXTENSION IF NOT EXISTS unaccent`;
 	await sql.unsafe(
 		`COMMENT ON SCHEMA bot IS 'Miroir read-only de la SQLite du bot Shenron (sync VPS sqlite-to-neon). Ne pas ecrire a la main.'`,
 	);
