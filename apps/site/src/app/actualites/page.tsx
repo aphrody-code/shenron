@@ -52,7 +52,7 @@ export default async function ActualitesPage({
 				image={NEWS_HERO}
 				imageAlt="Actualités Dragon Ball"
 			/>
-			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
+			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 
 			{posts.length === 0 ? (
 				<div className="p-10 rounded-2xl bg-white/[0.04] border border-white/[0.06] max-w-2xl">

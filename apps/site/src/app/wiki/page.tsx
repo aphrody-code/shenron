@@ -101,7 +101,7 @@ export default async function WikiIndex() {
 	const featuredEpisodes = episodesData?.episodes.slice(0, 6) ?? [];
 
 	return (
-		<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24 reveal-up space-y-24">
+		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up space-y-24">
 			<header className="mb-4">
 				<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
 					Base de données DBFR
@@ -321,7 +321,7 @@ export default async function WikiIndex() {
 							{planets.length} mondes →
 						</Link>
 					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+					<div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
 						{featuredPlanets.map((planet, idx) => (
 							<Link
 								key={planet.id}

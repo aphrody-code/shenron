@@ -43,7 +43,7 @@ export default async function SagaPage({
 	const seriesLabel = SERIES_LABELS[saga.series] ?? saga.series;
 
 	return (
-		<div className="mx-auto max-w-[1000px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<Link
 				href="/wiki/sagas"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"

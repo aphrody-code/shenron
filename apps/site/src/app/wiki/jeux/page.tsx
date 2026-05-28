@@ -28,8 +28,8 @@ export default async function JeuxPage() {
 				image={GAMES_HERO}
 				imageAlt="Jeux Dragon Ball"
 			/>
-			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
-				<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
 					{games.map((g) => (
 						<Link
 							key={g.id}

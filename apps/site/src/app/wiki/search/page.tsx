@@ -273,11 +273,78 @@ export default async function SearchPage({
 						)}
 					</div>
 
+					{results.games.length > 0 && (
+						<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+									Jeux ({results.games.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />
+							</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+								{results.games.map((g) => (
+									<Link key={g.id} href={`/wiki/jeux/${g.slug}`} className="block dbz-panel p-4 hover:bg-white/5 transition-colors group">
+										<p className="font-display font-bold text-white group-hover:text-dbz-blue-light transition-colors">{g.title}</p>
+										{g.title_ja && <p className="font-jp text-[10px] text-white/40 mt-1">{g.title_ja}</p>}
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{results.episodes.length > 0 && (
+						<section className="reveal-up" style={{ animationDelay: "0.5s" }}>
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+									Épisodes ({results.episodes.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />
+							</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+								{results.episodes.map((e) => (
+									<Link key={e.id} href={`/wiki/episodes/${e.id}`} className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300">
+										<div className="relative aspect-video bg-dbz-bg overflow-hidden">
+											{e.image && (
+												<Image src={assetUrl(e.image)} alt={e.title} fill sizes="(max-width: 768px) 50vw, 16vw" className="object-cover opacity-90 group-hover:opacity-100 transition-all duration-700" />
+											)}
+											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+											<div className="absolute inset-x-0 bottom-0 p-3">
+												<p className="scouter-text text-[11px] text-dbz-orange">{e.series} #{e.number_in_series}</p>
+												<p className="font-display font-bold text-xs text-white group-hover:text-dbz-blue-light transition-colors line-clamp-2">{e.title}</p>
+											</div>
+										</div>
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{results.techniques.length > 0 && (
+						<section className="reveal-up" style={{ animationDelay: "0.55s" }}>
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+									Techniques ({results.techniques.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/40 to-transparent" />
+							</div>
+							<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+								{results.techniques.map((t) => (
+									<Link key={t.id} href={`/wiki/dragon-ball/techniques/${t.slug}`} className="block dbz-panel p-4 hover:bg-white/5 transition-colors group">
+										<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">{t.name}</p>
+										{(t.name_ja || t.type) && <p className="font-jp text-[10px] text-white/40 mt-1">{t.name_ja ?? t.type}</p>}
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
 					{results.characters.length === 0 &&
 						results.planets.length === 0 &&
 						results.sagas.length === 0 &&
 						results.movies.length === 0 &&
-						results.games.length === 0 && (
+						results.games.length === 0 &&
+						results.episodes.length === 0 &&
+						results.techniques.length === 0 && (
 							<div className="dbz-panel p-10 max-w-3xl border-l-4 border-l-dbz-red reveal-up">
 								<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
 									AUCUNE ÉNERGIE DÉTECTÉE

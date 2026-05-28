@@ -55,6 +55,20 @@ type SearchResults = {
 		title: string;
 		title_ja: string | null;
 	}>;
+	episodes: Array<{
+		id: number;
+		series: string;
+		number_in_series: number;
+		title: string;
+		image: string | null;
+	}>;
+	techniques: Array<{
+		id: number;
+		slug: string;
+		name: string;
+		name_ja: string | null;
+		type: string | null;
+	}>;
 };
 
 const EMPTY: SearchResults = {
@@ -64,6 +78,8 @@ const EMPTY: SearchResults = {
 	sagas: [],
 	movies: [],
 	games: [],
+	episodes: [],
+	techniques: [],
 };
 
 function count(r: SearchResults): number {
@@ -72,7 +88,9 @@ function count(r: SearchResults): number {
 		r.planets.length +
 		r.sagas.length +
 		r.movies.length +
-		r.games.length
+		r.games.length +
+		r.episodes.length +
+		r.techniques.length
 	);
 }
 
@@ -303,6 +321,39 @@ export function CommandMenu() {
 									subtitle={g.title_ja ?? undefined}
 									kind="Jeu"
 									accent="blue"
+								/>
+							))}
+						</Command.Group>
+					)}
+
+					{results.episodes.length > 0 && (
+						<Command.Group heading="Épisodes">
+							{results.episodes.map((e) => (
+								<Item
+									key={`ep-${e.id}`}
+									value={`ep-${e.id}-${e.title}`}
+									onSelect={() => go(`/wiki/episodes/${e.id}`)}
+									image={e.image}
+									title={e.title}
+									subtitle={`${e.series} · épisode ${e.number_in_series}`}
+									kind="Épisode"
+									accent="blue"
+								/>
+							))}
+						</Command.Group>
+					)}
+
+					{results.techniques.length > 0 && (
+						<Command.Group heading="Techniques">
+							{results.techniques.map((t) => (
+								<Item
+									key={`tech-${t.id}`}
+									value={`tech-${t.id}-${t.name}`}
+									onSelect={() => go(`/wiki/dragon-ball/techniques/${t.slug}`)}
+									title={t.name}
+									subtitle={t.name_ja ?? t.type ?? undefined}
+									kind="Technique"
+									accent="orange"
 								/>
 							))}
 						</Command.Group>

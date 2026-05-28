@@ -44,14 +44,14 @@ export default async function FilmsPage() {
 				image={FILMS_HERO}
 				imageAlt="Bannière films Dragon Ball"
 			/>
-			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
+			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				{groups.map((g) => (
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
 							{g.label}{" "}
 							<span className="text-white/40">— {g.movies.length}</span>
 						</h2>
-						<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+						<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
 							{g.movies.map((m) => (
 								<Link
 									key={m.id}

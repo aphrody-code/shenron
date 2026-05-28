@@ -69,7 +69,7 @@ const ACCENT_TEXT: Record<Pillar["accent"], string> = {
 export function UniverseGrid() {
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06]">
-			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
+			<div className="mx-auto max-w-[1400px] px-6 lg:px-10">
 				<div className="max-w-3xl mb-16">
 					<SectionHeading
 						eyebrow="L'univers Dragon Ball"

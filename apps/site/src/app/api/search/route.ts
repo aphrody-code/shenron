@@ -21,6 +21,8 @@ const empty = (q: string): SearchResults => ({
 	sagas: [],
 	movies: [],
 	games: [],
+	episodes: [],
+	techniques: [],
 });
 
 export async function GET(req: NextRequest) {

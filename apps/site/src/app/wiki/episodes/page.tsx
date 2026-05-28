@@ -49,7 +49,7 @@ export default async function EpisodesIndex({
 				image={bannerForSeries(series)}
 				imageAlt={`Bannière ${SERIES_LABELS[series] ?? series}`}
 			/>
-			<div className="mx-auto max-w-[1280px] px-6 lg:px-10 py-16 lg:py-24">
+			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				<div className="mb-10 flex flex-wrap items-center justify-between gap-4">
 					<nav className="flex flex-wrap gap-2">
 						{Object.entries(SERIES_LABELS).map(([key, label]) => (

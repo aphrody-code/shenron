@@ -27,6 +27,7 @@ import {
 	botRaces,
 	botSagas,
 	botCharacters,
+	botTechniques,
 	botTools,
 	botTransformations,
 } from "@/db/bot-schema";
@@ -165,6 +166,20 @@ export type SearchResults = {
 	sagas: Array<Pick<Saga, "id" | "slug" | "name" | "name_ja" | "series">>;
 	movies: Array<Pick<Movie, "id" | "slug" | "title" | "title_ja" | "series">>;
 	games: Array<Pick<Game, "id" | "slug" | "title" | "title_ja">>;
+	episodes: Array<{
+		id: number;
+		series: string;
+		number_in_series: number;
+		title: string;
+		image: string | null;
+	}>;
+	techniques: Array<{
+		id: number;
+		slug: string;
+		name: string;
+		name_ja: string | null;
+		type: string | null;
+	}>;
 };
 
 export type Arc = {
@@ -635,7 +650,16 @@ export const dbUniverse = {
 		safe<SearchResults>(async () => {
 			const term = q.trim();
 			if (term.length < 2) {
-				return { q: term, characters: [], planets: [], sagas: [], movies: [], games: [] };
+				return {
+					q: term,
+					characters: [],
+					planets: [],
+					sagas: [],
+					movies: [],
+					games: [],
+					episodes: [],
+					techniques: [],
+				};
 			}
 			const charCols = [
 				botCharacters.name,
@@ -646,7 +670,18 @@ export const dbUniverse = {
 			const sagaCols = [botSagas.name, botSagas.nameJa];
 			const movieCols = [botMovies.title, botMovies.titleJa];
 			const gameCols = [botGames.title, botGames.titleJa];
-			const [characters, planets, sagas, movies, games] = await Promise.all([
+			const episodeCols = [
+				botEpisodes.title,
+				botEpisodes.titleJa,
+				botEpisodes.titleRomaji,
+			];
+			const techniqueCols = [
+				botTechniques.name,
+				botTechniques.nameJa,
+				botTechniques.nameRomaji,
+			];
+			const [characters, planets, sagas, movies, games, episodes, techniques] =
+				await Promise.all([
 				db
 					.select({
 						id: botCharacters.id,
@@ -705,6 +740,30 @@ export const dbUniverse = {
 					.where(fuzzyWhere(term, gameCols))
 					.orderBy(...fuzzyOrder(term, gameCols))
 					.limit(10),
+				db
+					.select({
+						id: botEpisodes.id,
+						series: botEpisodes.series,
+						number_in_series: botEpisodes.numberInSeries,
+						title: botEpisodes.title,
+						image: botEpisodes.image,
+					})
+					.from(botEpisodes)
+					.where(fuzzyWhere(term, episodeCols))
+					.orderBy(...fuzzyOrder(term, episodeCols))
+					.limit(12),
+				db
+					.select({
+						id: botTechniques.id,
+						slug: botTechniques.slug,
+						name: botTechniques.name,
+						name_ja: botTechniques.nameJa,
+						type: botTechniques.type,
+					})
+					.from(botTechniques)
+					.where(fuzzyWhere(term, techniqueCols))
+					.orderBy(...fuzzyOrder(term, techniqueCols))
+					.limit(10),
 			]);
 			return {
 				q: term,
@@ -713,6 +772,12 @@ export const dbUniverse = {
 				sagas: sagas.map((s) => ({ ...s, series: s.series ?? "" })),
 				movies: movies.map((m) => ({ ...m, series: m.series ?? "" })),
 				games,
+				episodes: episodes.map((e) => ({
+					...e,
+					title: e.title ?? "",
+					number_in_series: e.number_in_series ?? 0,
+				})),
+				techniques,
 			};
 		}),
 
