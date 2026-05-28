@@ -74,6 +74,17 @@ const nextConfig: NextConfig = {
 
 	compress: true,
 
+	// Dédoublonnage des anciennes routes films (id-based, API) vers la source
+	// canonique /wiki/films (Neon, slug-based). Redirect au niveau routing → 308
+	// dur avant tout rendu (un redirect() en composant dégradait en navigation
+	// client 200 à cause du layout /wiki force-dynamic qui flush en streaming).
+	async redirects() {
+		return [
+			{ source: "/wiki/dragon-ball/movies", destination: "/wiki/films", permanent: true },
+			{ source: "/wiki/dragon-ball/movie/:id", destination: "/wiki/films", permanent: true },
+		];
+	},
+
 	async headers() {
 		return [
 			{
