@@ -1,10 +1,61 @@
+import { JsonLd } from "@/components/JsonLd";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronCharacter } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { cache } from "react";
+import type { BreadcrumbList, WithContext } from "schema-dts";
 
 export const dynamic = "force-dynamic";
+
+const SITE = "https://shenron.rpbey.fr";
+
+// Mémoïsé par requête : generateMetadata + le composant partagent un seul fetch.
+const getChar = cache((id: number) => getShenronCharacter(id));
+
+// Résumé texte brut pour <meta description> (markdown/HTML retirés, tronqué).
+function plainText(md: string, max = 160): string {
+	const t = md
+		.replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+		.replace(/<[^>]+>/g, "")
+		.replace(/[#*_`>~|]/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	return t.length > max ? `${t.slice(0, max - 1).trimEnd()}…` : t;
+}
+
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+	const { id } = await params;
+	const c = await getChar(parseInt(id, 10));
+	if (!c) return { title: "Personnage introuvable" };
+	const img = c.image ? assetUrl(c.image) : undefined;
+	const description = c.description
+		? plainText(c.description)
+		: `${c.name} — fiche personnage Dragon Ball : race, techniques, transformations et lore sur DBFR.`;
+	return {
+		title: c.nameJa ? `${c.name} (${c.nameJa})` : c.name,
+		description,
+		openGraph: {
+			title: `${c.name} — DBFR`,
+			description,
+			type: "article",
+			images: img ? [{ url: img, alt: c.name }] : undefined,
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: `${c.name} — DBFR`,
+			description,
+			images: img ? [img] : undefined,
+		},
+	};
+}
 
 export default async function CharacterPage({
 	params,
@@ -12,12 +63,28 @@ export default async function CharacterPage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const character = await getShenronCharacter(parseInt(id));
+	const character = await getChar(parseInt(id, 10));
 
 	if (!character) notFound();
 
+	const breadcrumb: WithContext<BreadcrumbList> = {
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: [
+			{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE}/` },
+			{
+				"@type": "ListItem",
+				position: 2,
+				name: "Personnages",
+				item: `${SITE}/wiki/dragon-ball`,
+			},
+			{ "@type": "ListItem", position: 3, name: character.name },
+		],
+	};
+
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up">
+			<JsonLd data={breadcrumb} />
 			<Link
 				href="/wiki/dragon-ball"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
