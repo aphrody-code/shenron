@@ -1,6 +1,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { getCurrentUser } from "@/lib/session";
+import { CommandMenu } from "@/components/CommandMenu";
 
 // Lazy : SignInDiscord/SignOut (Better Auth client SDK) selon l'état de session,
 // MobileNav (état drawer + Better Auth) seulement sur viewport <lg.
@@ -68,6 +69,7 @@ export async function SiteNav() {
 
 				{/* Zone identité desktop */}
 				<div className="hidden lg:flex items-center gap-2 shrink-0">
+					<CommandMenu />
 					{isAdmin && (
 						<Link
 							href="/admin/dashboard"

@@ -17,13 +17,20 @@
  */
 import { assetUrl } from "@/lib/assets";
 import ReactMarkdown from "react-markdown";
+import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
 const schema = {
 	...defaultSchema,
+	// rehype-sanitize préfixe les `id` en `user-content-` par défaut (anti DOM
+	// clobbering). Or les ancres de titres (rehype-autolink-headings) pointent sur
+	// `#slug` sans préfixe → désynchro qui casse le scroll. On vide le préfixe : le
+	// seul rédacteur est l'admin (owner), pas de contenu hostile.
+	clobberPrefix: "",
 	tagNames: [
 		...(defaultSchema.tagNames ?? []),
 		"figure",
@@ -59,7 +66,16 @@ export function WikiMarkdown({ body }: { body: string }) {
 	return (
 		<ReactMarkdown
 			remarkPlugins={[remarkGfm, remarkBreaks]}
-			rehypePlugins={[rehypeRaw, [rehypeSanitize, schema]]}
+			// Ordre critique : slug + autolink AVANT sanitize. rehype-slug pose un
+			// `id` sur chaque titre (deep-link `#ancre`), autolink-headings emballe
+			// le titre dans un `<a href="#id">`. `id` est déjà whitelisté (sur `*`)
+			// dans `schema`, donc sanitize ne strippe pas les ancres.
+			rehypePlugins={[
+				rehypeRaw,
+				rehypeSlug,
+				[rehypeAutolinkHeadings, { behavior: "wrap" }],
+				[rehypeSanitize, schema],
+			]}
 			components={{
 				img: ({ src, alt, node: _node, ...props }) => (
 					// biome-ignore lint/a11y/useAltText: alt forwardé depuis le markdown

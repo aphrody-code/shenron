@@ -3,6 +3,9 @@ import localFont from "next/font/local";
 import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import dynamic from "next/dynamic";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -103,6 +106,19 @@ export default function RootLayout({
 				</main>
 				<SiteFooter />
 				<DiscordInviteFAB />
+				<Toaster
+					theme="dark"
+					position="bottom-right"
+					closeButton
+					toastOptions={{
+						classNames: {
+							toast:
+								"!bg-dbz-card !border-dbz-border !text-white !font-display",
+						},
+					}}
+				/>
+				<Analytics />
+				<SpeedInsights />
 			</body>
 		</html>
 	);
