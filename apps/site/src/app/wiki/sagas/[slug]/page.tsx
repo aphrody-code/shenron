@@ -7,6 +7,11 @@ import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
+export async function generateStaticParams() {
+	const r = await dbUniverse.sagas();
+	return (r?.sagas ?? []).map((s) => ({ slug: s.slug }));
+}
+
 const SERIES_LABELS: Record<string, string> = {
 	DB: "Dragon Ball",
 	DBZ: "Dragon Ball Z",

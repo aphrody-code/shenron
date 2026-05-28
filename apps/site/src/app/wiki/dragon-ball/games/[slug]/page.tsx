@@ -1,5 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { getShenronGame } from "@/lib/shenron";
+import { getShenronGame, getShenronGames } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
@@ -7,6 +7,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+	const list = await getShenronGames();
+	return list.map((g) => ({ slug: g.slug }));
+}
 
 export async function generateMetadata({
 	params,

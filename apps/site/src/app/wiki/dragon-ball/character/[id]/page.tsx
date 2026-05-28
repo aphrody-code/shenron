@@ -1,6 +1,6 @@
 import { JsonLd } from "@/components/JsonLd";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { getShenronCharacter } from "@/lib/shenron";
+import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -9,6 +9,11 @@ import { cache } from "react";
 import type { BreadcrumbList, WithContext } from "schema-dts";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+	const list = await getShenronCharacters();
+	return list.map((c) => ({ id: String(c.id) }));
+}
 
 const SITE = "https://shenron.rpbey.fr";
 

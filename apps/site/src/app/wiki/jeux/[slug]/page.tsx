@@ -8,6 +8,11 @@ import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
+export async function generateStaticParams() {
+	const r = await dbUniverse.games();
+	return (r?.games ?? []).map((g) => ({ slug: g.slug }));
+}
+
 export async function generateMetadata({
 	params,
 }: {

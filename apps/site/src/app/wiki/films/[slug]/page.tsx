@@ -8,6 +8,11 @@ import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
+export async function generateStaticParams() {
+	const r = await dbUniverse.movies();
+	return (r?.movies ?? []).map((m) => ({ slug: m.slug }));
+}
+
 const SERIES_LABELS: Record<string, string> = {
 	DB_MOVIE: "Film Dragon Ball",
 	DBZ_MOVIE: "Film Dragon Ball Z",

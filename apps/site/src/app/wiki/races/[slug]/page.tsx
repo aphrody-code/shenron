@@ -1,11 +1,16 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { getShenronRace } from "@/lib/shenron";
+import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+	const list = await getShenronRaces();
+	return list.map((r) => ({ slug: r.slug }));
+}
 
 export async function generateMetadata({
 	params,

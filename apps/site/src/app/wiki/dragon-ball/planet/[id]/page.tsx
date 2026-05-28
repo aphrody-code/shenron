@@ -1,10 +1,15 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { getShenronPlanet } from "@/lib/shenron";
+import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+	const list = await getShenronPlanets();
+	return list.map((p) => ({ id: String(p.id) }));
+}
 
 export default async function PlanetPage({
 	params,

@@ -1,5 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { getShenronTechnique } from "@/lib/shenron";
+import { getShenronTechnique, getShenronTechniques } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -7,6 +7,11 @@ import Image from "next/image";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
+
+export async function generateStaticParams() {
+	const list = await getShenronTechniques();
+	return list.map((t) => ({ slug: t.slug }));
+}
 
 export async function generateMetadata({
 	params,
