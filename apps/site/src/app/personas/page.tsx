@@ -2,7 +2,6 @@ import { getShenronPersonas } from "@/lib/shenron";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 const PERSONA_ROLES: Record<string, string> = {

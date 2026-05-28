@@ -8,7 +8,6 @@ import { PageHero } from "@/components/PageHero";
 import { NEWS_HERO } from "@/lib/db-banners";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 60;
 
 const POSTS_PER_PAGE = 12;
 

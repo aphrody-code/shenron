@@ -9,7 +9,6 @@ import { PersonasShowcase } from "@/components/landing/PersonasShowcase";
 import { BlogTeaser } from "@/components/landing/BlogTeaser";
 import { CtaFinal } from "@/components/landing/CtaFinal";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 120;
 
 // Le blog teaser est optionnel : une défaillance DB (cold start / timeout Neon)

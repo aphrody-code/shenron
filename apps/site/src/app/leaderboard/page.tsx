@@ -1,7 +1,6 @@
 import { getShenronLeaderboard } from "@/lib/shenron";
 import { PageHeader } from "@/components/PageHeader";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 export default async function LeaderboardPage() {

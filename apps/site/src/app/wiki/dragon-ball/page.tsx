@@ -15,7 +15,6 @@ import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
@@ -52,7 +51,7 @@ export default async function DragonBallWikiIndex() {
 						{movies.map((movie: DBMovie, idx) => (
 							<Link
 								key={movie.id}
-								href={`/wiki/dragon-ball/movie/${movie.id}`}
+								href={`/wiki/films/${movie.slug}`}
 								className="group flex flex-col dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
 								style={{ animationDelay: `${0.2 + idx * 0.05}s` }}
 							>
@@ -90,7 +89,7 @@ export default async function DragonBallWikiIndex() {
 					</div>
 					<div className="mt-12 text-center">
 						<Link
-							href="/wiki/dragon-ball/movies"
+							href="/wiki/films"
 							className="dbz-button-ghost group"
 						>
 							<span>Voir tous les films</span>

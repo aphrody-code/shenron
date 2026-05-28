@@ -1,7 +1,6 @@
 import { getShenronShop, type ShenronShopItem } from "@/lib/shenron";
 import { PageHeader } from "@/components/PageHeader";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 const TYPE_LABELS: Record<string, string> = {

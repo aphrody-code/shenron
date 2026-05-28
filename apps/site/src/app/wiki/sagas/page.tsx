@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {

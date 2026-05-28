@@ -9,7 +9,6 @@ import {
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Image from "next/image";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 const SECTIONS = [

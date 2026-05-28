@@ -8,7 +8,6 @@ import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 600;
 
 export const metadata: Metadata = {
 	title: "Actualités Dragon Ball — DBFR",

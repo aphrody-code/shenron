@@ -248,7 +248,7 @@ export default async function SearchPage({
 									{results.movies.map((m) => (
 										<Link
 											key={m.id}
-											href={`/wiki/dragon-ball/movie/${m.id}`}
+											href={`/wiki/films/${m.slug}`}
 											className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
 										>
 											<div className="flex justify-between items-center">

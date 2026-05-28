@@ -6,7 +6,6 @@ import { PageHero } from "@/components/PageHero";
 import { bannerForSeries } from "@/lib/db-banners";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 1800;
 
 export const metadata: Metadata = {
 	title: "Épisodes anime Dragon Ball — DBFR",

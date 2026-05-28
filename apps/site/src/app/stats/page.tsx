@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/PageHeader";
 const SHENRON_API_URL =
 	process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 async function getStats() {
