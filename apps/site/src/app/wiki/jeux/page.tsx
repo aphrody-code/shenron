@@ -14,6 +14,16 @@ export const metadata: Metadata = {
 		"Catalogue des jeux vidéo officiels Dragon Ball : Kakarot, Sparking ZERO, Xenoverse, FighterZ, Dokkan Battle, Legends et plus.",
 };
 
+function excerpt(text: string | null | undefined, max = 180): string {
+	if (!text) return "";
+	const clean = text
+		.replace(/_?\(Sources?\s*:[^)]*\)_?/gi, "")
+		.replace(/[*_#>`]/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
+	return clean.length > max ? `${clean.slice(0, max).trimEnd()}…` : clean;
+}
+
 export default async function JeuxPage() {
 	const data = await dbUniverse.games();
 	if (!data || data.games.length === 0) notFound();
@@ -54,6 +64,11 @@ export default async function JeuxPage() {
 								{g.title_ja && (
 									<p className="font-jp text-[12px] text-dbz-orange/80 mb-4">
 										{g.title_ja}
+									</p>
+								)}
+								{g.description && (
+									<p className="text-[12.5px] leading-relaxed text-white/55 mb-4 line-clamp-3">
+										{excerpt(g.description)}
 									</p>
 								)}
 								<div className="flex flex-wrap gap-1.5 mb-4">

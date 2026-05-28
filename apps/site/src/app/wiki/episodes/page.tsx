@@ -23,6 +23,16 @@ const SERIES_LABELS: Record<string, string> = {
 	DB_DAIMA: "Dragon Ball Daima (2024-2025)",
 };
 
+function excerpt(text: string | null, max = 160): string {
+	if (!text) return "";
+	const clean = text
+		.replace(/_?\(Sources?\s*:[^)]*\)_?/gi, "")
+		.replace(/[*_#>`]/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
+	return clean.length > max ? `${clean.slice(0, max).trimEnd()}…` : clean;
+}
+
 export default async function EpisodesIndex({
 	searchParams,
 }: {
@@ -169,6 +179,11 @@ export default async function EpisodesIndex({
 										{ep.title_ja && (
 											<p className="font-jp text-[12px] text-white/30 mt-1">
 												{ep.title_ja}
+											</p>
+										)}
+										{ep.synopsis && (
+											<p className="text-[12px] text-white/45 mt-1.5 line-clamp-2 hidden md:block">
+												{excerpt(ep.synopsis)}
 											</p>
 										)}
 									</div>
