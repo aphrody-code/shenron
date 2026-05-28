@@ -44,7 +44,7 @@ export default async function MangaReaderPage({
 	if (!chapter) notFound();
 
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-10 lg:py-16 reveal-up overflow-x-hidden">
+		<div className="mx-auto w-full min-w-0 max-w-[1200px] px-6 lg:px-10 py-10 lg:py-16 reveal-up overflow-x-hidden">
 			<Link
 				href="/wiki/manga"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-8 link-underline"
