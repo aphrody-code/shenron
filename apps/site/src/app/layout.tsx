@@ -70,11 +70,11 @@ export const metadata: Metadata = {
 		type: "website",
 		locale: "fr_FR",
 		siteName: "DBFR",
-		images: [{ url: "/hero-daima.png", width: 1920, height: 595 }],
+		// Image OG par défaut = `app/opengraph-image.tsx` (carte de marque 1200×630,
+		// générée à la volée), héritée par toutes les routes sans image propre.
 	},
 	twitter: {
 		card: "summary_large_image",
-		images: ["/hero-daima.png"],
 	},
 };
 

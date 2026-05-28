@@ -1,5 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { ogMeta } from "@/lib/og";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -15,10 +16,16 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const g = await dbUniverse.game(slug);
 	if (!g) return { title: "Jeu — DBFR" };
+	const description =
+		g.description ?? `${g.title} (${g.developer ?? "Bandai Namco"}).`;
 	return {
 		title: `${g.title} — Jeu vidéo Dragon Ball | DBFR`,
-		description:
-			g.description ?? `${g.title} (${g.developer ?? "Bandai Namco"}).`,
+		description,
+		...ogMeta({
+			title: `${g.title} — DBFR`,
+			description,
+			image: g.cover ? assetUrl(g.cover) : undefined,
+		}),
 	};
 }
 

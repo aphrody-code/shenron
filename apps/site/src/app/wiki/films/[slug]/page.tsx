@@ -1,5 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { ogMeta } from "@/lib/og";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,9 +23,16 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
 	if (!m) return { title: "Film — DBFR" };
+	const description = m.synopsis ?? `${SERIES_LABELS[m.series] ?? "Film"}.`;
 	return {
 		title: `${m.title} — Film | DBFR`,
-		description: m.synopsis ?? `${SERIES_LABELS[m.series] ?? "Film"}.`,
+		description,
+		...ogMeta({
+			title: `${m.title} — DBFR`,
+			description,
+			image: m.poster ? assetUrl(m.poster) : undefined,
+			type: "video.movie",
+		}),
 	};
 }
 

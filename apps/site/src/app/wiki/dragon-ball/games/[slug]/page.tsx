@@ -1,6 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronGame } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
+import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -15,9 +16,15 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const game = await getShenronGame(slug);
 	if (!game) return { title: "Jeu Dragon Ball — DBFR" };
+	const description = game.description ?? `Fiche détaillée du jeu ${game.title}.`;
 	return {
 		title: `${game.title} — Jeu Dragon Ball | DBFR`,
-		description: game.description ?? `Fiche détaillée du jeu ${game.title}.`,
+		description,
+		...ogMeta({
+			title: `${game.title} — DBFR`,
+			description,
+			image: game.cover ? assetUrl(game.cover) : undefined,
+		}),
 	};
 }
 

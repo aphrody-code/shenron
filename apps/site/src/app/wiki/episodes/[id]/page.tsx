@@ -2,6 +2,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { dbUniverse } from "@/lib/db-universe";
 import type { EpisodeNavItem } from "@/lib/db-universe";
 import { assetUrl } from "@/lib/assets";
+import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -34,11 +35,18 @@ export async function generateMetadata({
 	const { id } = await params;
 	const ep = await dbUniverse.episode(parseInt(id));
 	if (!ep) return { title: "Épisode Dragon Ball — DBFR" };
+	const description =
+		ep.synopsis ??
+		`Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`;
 	return {
 		title: `Épisode ${ep.number_in_series} : ${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series} | DBFR`,
-		description:
-			ep.synopsis ??
-			`Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`,
+		description,
+		...ogMeta({
+			title: `${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series}`,
+			description,
+			image: ep.image ? assetUrl(ep.image) : undefined,
+			type: "video.episode",
+		}),
 	};
 }
 

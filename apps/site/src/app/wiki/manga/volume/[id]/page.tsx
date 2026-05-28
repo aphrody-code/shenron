@@ -1,6 +1,7 @@
 import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
 import { assetUrl } from "@/lib/db-universe";
+import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -14,9 +15,16 @@ export async function generateMetadata({
 	const { id } = await params;
 	const volume = await dbUniverse.mangaVolume(parseInt(id));
 	if (!volume) return { title: "Volume Manga — DBFR" };
+	const description =
+		volume.title ?? `Volume ${volume.volume_number} du manga ${volume.series}.`;
 	return {
 		title: `${volume.series} Volume ${volume.volume_number} — Manga Dragon Ball | DBFR`,
-		description: volume.title ?? `Volume ${volume.volume_number} du manga ${volume.series}.`,
+		description,
+		...ogMeta({
+			title: `${volume.series} — Volume ${volume.volume_number}`,
+			description,
+			image: volume.cover ? assetUrl(volume.cover) : undefined,
+		}),
 	};
 }
 

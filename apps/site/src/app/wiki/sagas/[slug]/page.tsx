@@ -1,5 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { ogMeta } from "@/lib/og";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -22,11 +23,17 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const data = await dbUniverse.saga(slug);
 	if (!data) return { title: "Saga — DBFR" };
+	const description =
+		data.description ??
+		`Saga ${data.name} de ${SERIES_LABELS[data.series] ?? data.series}.`;
 	return {
 		title: `${data.name} — Saga Dragon Ball | DBFR`,
-		description:
-			data.description ??
-			`Saga ${data.name} de ${SERIES_LABELS[data.series] ?? data.series}.`,
+		description,
+		...ogMeta({
+			title: `${data.name} — DBFR`,
+			description,
+			image: data.image ? assetUrl(data.image) : undefined,
+		}),
 	};
 }
 
