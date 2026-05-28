@@ -61,9 +61,20 @@ const OVERRIDES: Record<string, string> = {
 	"Famicom Jump II: Saikyō no Shichinin": "Famicom Jump II: Saikyō no Shichinin",
 	"Jump Super Stars": "Jump Super Stars",
 	"Jump Ultimate Stars": "Jump Ultimate Stars",
-	"J-Stars Victory VS": "J-Stars Victory VS",
+	"J-Stars Victory VS": "J-Stars Victory Vs",
 	"Jump Force": "Jump Force",
 };
+
+// Jeux crossover (Shōnen Jump) : page Wikipédia exacte et fiable, mais leur
+// chapeau ne cite pas toujours « Dragon Ball » littéralement → on lève la garde
+// de mention DB pour ces titres précis (le mapping est sûr).
+const CROSSOVER = new Set([
+	"Jump Super Stars",
+	"Jump Ultimate Stars",
+	"J-Stars Victory VS",
+	"Jump Force",
+	"Famicom Jump: Hero Retsuden",
+]);
 
 const UA = "DBFR-wiki-enrichment/1.0 (https://dbfr.vercel.app; wiki Dragon Ball France)";
 const sql = postgres(NEON_URL, { max: 2, prepare: false });
@@ -71,16 +82,20 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 type Summary = { type?: string; title?: string; extract?: string };
 
-async function wikiSummary(lang: string, title: string): Promise<string | null> {
+async function wikiSummary(
+	lang: string,
+	title: string,
+	requireDbMention: boolean,
+): Promise<string | null> {
 	const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
 	try {
 		const res = await fetch(url, { headers: { "user-agent": UA, accept: "application/json" } });
 		if (!res.ok) return null;
 		const d = (await res.json()) as Summary;
-		if (d.type !== "standard") return null; // homonymie / absente → skip
+		if (d.type !== "standard") return null; // homonymie / absente / erreur → skip
 		const ex = (d.extract ?? "").trim();
 		if (ex.length < 80) return null;
-		if (!/dragon\s*ball/i.test(ex)) return null; // garde hors-sujet
+		if (requireDbMention && !/dragon\s*ball/i.test(ex)) return null; // garde hors-sujet
 		return ex;
 	} catch {
 		return null;
@@ -105,12 +120,13 @@ for (const g of games) {
 	if (processed >= LIMIT) break;
 	processed++;
 	const lookup = OVERRIDES[g.title] ?? g.title;
-	const fr = await wikiSummary("fr", lookup);
+	const requireDb = !CROSSOVER.has(g.title);
+	const fr = await wikiSummary("fr", lookup, requireDb);
 	await sleep(300);
 	let text = fr;
 	let lang = "Wikipédia (fr)";
 	if (!text) {
-		text = await wikiSummary("en", lookup);
+		text = await wikiSummary("en", lookup, requireDb);
 		lang = "Wikipedia (en)";
 		await sleep(300);
 	}
