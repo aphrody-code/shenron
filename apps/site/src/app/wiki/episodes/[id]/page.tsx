@@ -110,23 +110,27 @@ export default async function EpisodeDetailPage({
 	const seriesLabel = SERIES_LABELS[ep.series] ?? ep.series;
 	const epNum = String(ep.number_in_series).padStart(3, "0");
 
-	const player = ep.video_url ? (
-		<VideoPlayer
-			src={ep.video_url}
-			title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
-			poster={ep.image ? assetUrl(ep.image) : undefined}
-			subtitles={ep.subtitles ?? undefined}
-		/>
-	) : ep.stream_url ? (
-		<VideoPlayer
-			src={assetUrl(`/api/hls/${ep.id}/master.m3u8`)}
-			title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
-			poster={ep.image ? assetUrl(ep.image) : undefined}
-			subtitles={ep.subtitles ?? undefined}
-		/>
-	) : ep.players && ep.players.length > 0 ? (
-		<EpisodeLecteurs players={ep.players} />
-	) : ep.image ? (
+	// Priorité aux lecteurs voir-anime (VF/VOSTFR, sources réelles maintenues à
+	// jour) : ils priment sur `video_url`/`stream_url` qui pouvaient contenir des
+	// flux de test (mux.dev) ou des tokens HLS périmés (IP-bound, ~12 h).
+	const player =
+		ep.players && ep.players.length > 0 ? (
+			<EpisodeLecteurs players={ep.players} />
+		) : ep.video_url ? (
+			<VideoPlayer
+				src={ep.video_url}
+				title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
+				poster={ep.image ? assetUrl(ep.image) : undefined}
+				subtitles={ep.subtitles ?? undefined}
+			/>
+		) : ep.stream_url ? (
+			<VideoPlayer
+				src={assetUrl(`/api/hls/${ep.id}/master.m3u8`)}
+				title={`Épisode ${ep.number_in_series} : ${ep.title ?? ""}`}
+				poster={ep.image ? assetUrl(ep.image) : undefined}
+				subtitles={ep.subtitles ?? undefined}
+			/>
+		) : ep.image ? (
 		<div className="dbz-panel p-2 aspect-video bg-dbz-bg overflow-hidden">
 			<img
 				src={assetUrl(ep.image)}
