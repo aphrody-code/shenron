@@ -134,7 +134,7 @@ export default async function AdminFilmsPage() {
 										</td>
 										<td className="p-2 text-[11px] text-white/55">
 											{m.release_date
-												? new Date(m.release_date).toLocaleDateString("fr-FR")
+												? new Date(m.release_date * 1000).toLocaleDateString("fr-FR")
 												: "—"}
 										</td>
 										<td className="p-2 text-xs text-white/70">

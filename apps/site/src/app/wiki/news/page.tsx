@@ -73,7 +73,7 @@ export default async function NewsPage({
 							<div className="p-8 flex flex-col justify-center flex-1">
 								<div className="flex items-center gap-3 mb-4">
 									<span className="scouter-text text-xs text-dbz-orange/60">
-										{new Date(item.published_at).toLocaleDateString("fr-FR", {
+										{new Date(item.published_at * 1000).toLocaleDateString("fr-FR", {
 											day: "numeric",
 											month: "long",
 											year: "numeric",

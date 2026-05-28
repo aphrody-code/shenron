@@ -85,7 +85,7 @@ export default async function GameDetailPage({
 						<div className="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-widest">
 							{game.releaseDate && (
 								<span className="px-3 py-1 bg-white/5 border border-white/10 text-white/60">
-									📅 {new Date(game.releaseDate).getFullYear()}
+									📅 {new Date(game.releaseDate * 1000).getFullYear()}
 								</span>
 							)}
 							{game.developer && (

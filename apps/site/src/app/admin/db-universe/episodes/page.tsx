@@ -141,7 +141,7 @@ export default async function AdminEpisodesPage({
 									</td>
 									<td className="p-2 text-[11px] text-white/55">
 										{ep.air_date
-											? new Date(ep.air_date).toLocaleDateString("fr-FR")
+											? new Date(ep.air_date * 1000).toLocaleDateString("fr-FR")
 											: "—"}
 									</td>
 									<td className="p-2 text-right">

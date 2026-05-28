@@ -154,7 +154,7 @@ export default async function AdminGamesPage() {
 										</td>
 										<td className="p-2 text-[11px] text-white/55">
 											{g.release_date
-												? new Date(g.release_date).toLocaleDateString("fr-FR")
+												? new Date(g.release_date * 1000).toLocaleDateString("fr-FR")
 												: "—"}
 										</td>
 										<td className="p-2 text-xs text-white/70">

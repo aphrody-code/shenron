@@ -94,7 +94,7 @@ export default async function EpisodeDetailPage({
 					<div className="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-widest">
 						{ep.air_date && (
 							<span className="px-3 py-1 bg-white/5 border border-white/10 text-white/60">
-								📅 {new Date(ep.air_date).toLocaleDateString("fr-FR", { day: 'numeric', month: 'long', year: 'numeric' })}
+								📅 {new Date(ep.air_date * 1000).toLocaleDateString("fr-FR", { day: 'numeric', month: 'long', year: 'numeric' })}
 							</span>
 						)}
 						<span className="px-3 py-1 bg-dbz-orange/10 border border-dbz-orange/30 text-dbz-orange">

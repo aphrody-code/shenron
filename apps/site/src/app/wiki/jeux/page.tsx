@@ -89,7 +89,7 @@ export default async function JeuxPage() {
 										<div>
 											<dt className="inline text-white/45">Sortie : </dt>
 											<dd className="inline">
-												{new Date(g.release_date).toLocaleDateString("fr-FR", {
+												{new Date(g.release_date * 1000).toLocaleDateString("fr-FR", {
 													day: "numeric",
 													month: "long",
 													year: "numeric",

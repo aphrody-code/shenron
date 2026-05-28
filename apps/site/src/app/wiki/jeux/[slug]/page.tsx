@@ -80,7 +80,7 @@ export default async function GamePage({
 							Date de sortie
 						</dt>
 						<dd className="text-white text-[15px]">
-							{new Date(g.release_date).toLocaleDateString("fr-FR", {
+							{new Date(g.release_date * 1000).toLocaleDateString("fr-FR", {
 								day: "numeric",
 								month: "long",
 								year: "numeric",

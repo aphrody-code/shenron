@@ -190,7 +190,7 @@ export default async function EpisodesIndex({
 									<div className="flex items-center gap-4">
 										<span className="text-[11px] text-white/40 whitespace-nowrap font-display tracking-widest uppercase hidden sm:block">
 											{ep.air_date
-												? new Date(ep.air_date).toLocaleDateString("fr-FR", {
+												? new Date(ep.air_date * 1000).toLocaleDateString("fr-FR", {
 														month: "short",
 														year: "numeric",
 													})

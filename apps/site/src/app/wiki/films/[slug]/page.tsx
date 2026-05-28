@@ -110,7 +110,7 @@ export default async function FilmPage({
 										Sortie
 									</dt>
 									<dd className="font-display text-white">
-										{new Date(m.release_date).toLocaleDateString("fr-FR", {
+										{new Date(m.release_date * 1000).toLocaleDateString("fr-FR", {
 											day: "numeric",
 											month: "long",
 											year: "numeric",

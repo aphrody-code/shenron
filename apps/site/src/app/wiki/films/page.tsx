@@ -80,7 +80,7 @@ export default async function FilmsPage() {
 										)}
 										<div className="text-[11px] font-display tracking-[0.12em] uppercase text-white/55 mb-3 flex gap-3 flex-wrap">
 											{m.release_date && (
-												<span>{new Date(m.release_date).getFullYear()}</span>
+												<span>{new Date(m.release_date * 1000).getFullYear()}</span>
 											)}
 											{m.duration_min && <span>{m.duration_min} min</span>}
 										</div>
