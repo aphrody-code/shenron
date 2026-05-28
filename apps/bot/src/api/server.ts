@@ -457,6 +457,106 @@ const ASSET_CONTENT_TYPES: Record<string, string> = {
  * stockés `./assets/dbz/...` : le client peut soit normaliser côté front (préfixer
  * juste `/`), soit nous y faisons match exact via le pathname.
  */
+// ── Proxy HLS ───────────────────────────────────────────────────────────────
+// Relaie le flux vidéo résolu (voir-anime → m3u8/segments) en injectant le
+// Referer côté serveur. CRITIQUE : le flux est lié à l'IP du résolveur (le VPS),
+// donc c'est le bot (même IP) qui doit fetch — pas Vercel. La map est écrite par
+// resolve-streams.ts dans data/streams.json. Signature HMAC anti open-proxy.
+type HlsStream = { url: string; headers: Record<string, string>; type: string; at: number };
+const HLS_SECRET = crypto.randomUUID();
+let _hlsCache: { mtime: number; data: Record<string, HlsStream> } | null = null;
+
+async function loadStreams(): Promise<Record<string, HlsStream>> {
+	try {
+		const f = Bun.file("data/streams.json");
+		const mtime = f.lastModified;
+		if (!_hlsCache || _hlsCache.mtime !== mtime) {
+			_hlsCache = { mtime, data: (await f.json()) as Record<string, HlsStream> };
+		}
+		return _hlsCache.data;
+	} catch {
+		return {};
+	}
+}
+
+function hlsSign(value: string): string {
+	return new Bun.CryptoHasher("sha256", HLS_SECRET).update(value).digest("hex").slice(0, 24);
+}
+
+function hlsRewrite(text: string, baseUrl: string, id: string, referer: string): string {
+	const abs = (uri: string) => {
+		try {
+			return new URL(uri, baseUrl).toString();
+		} catch {
+			return uri;
+		}
+	};
+	const seg = (uri: string) => {
+		const a = abs(uri);
+		return `/api/hls/${id}/seg?u=${encodeURIComponent(a)}&r=${encodeURIComponent(referer)}&sig=${hlsSign(`${a}|${referer}`)}`;
+	};
+	return text
+		.split("\n")
+		.map((line) => {
+			const l = line.trim();
+			if (!l) return line;
+			if (l.startsWith("#")) {
+				return line.replace(/URI="([^"]+)"/g, (_m, uri) => `URI="${seg(uri)}"`);
+			}
+			return seg(l);
+		})
+		.join("\n");
+}
+
+const HLS_CORS = { "Access-Control-Allow-Origin": "*", Vary: "Origin" } as const;
+
+async function hlsMaster(id: string): Promise<Response> {
+	const s = (await loadStreams())[id];
+	if (!s?.url) return new Response("flux indisponible", { status: 404 });
+	const ref = s.headers?.Referer ?? s.headers?.referer ?? "";
+	let up: Response;
+	try {
+		up = await fetch(s.url, {
+			headers: ref ? { Referer: ref, Origin: new URL(ref).origin } : {},
+		});
+	} catch {
+		return new Response("source injoignable", { status: 502 });
+	}
+	if (!up.ok) return new Response("source en erreur", { status: 502 });
+	const out = hlsRewrite(await up.text(), s.url, id, ref);
+	return new Response(out, {
+		headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store", ...HLS_CORS },
+	});
+}
+
+async function hlsSeg(req: Request, id: string): Promise<Response> {
+	const url = new URL(req.url);
+	const u = url.searchParams.get("u") ?? "";
+	const r = url.searchParams.get("r") ?? "";
+	const sig = url.searchParams.get("sig") ?? "";
+	if (!u || hlsSign(`${u}|${r}`) !== sig) return new Response("signature invalide", { status: 403 });
+	let up: Response;
+	try {
+		up = await fetch(u, { headers: r ? { Referer: r, Origin: new URL(r).origin } : {} });
+	} catch {
+		return new Response("segment injoignable", { status: 502 });
+	}
+	if (!up.ok) return new Response("segment en erreur", { status: up.status });
+	const ct = up.headers.get("content-type");
+	if ((ct ?? "").includes("mpegurl") || /\.m3u8(\?|$)/i.test(u)) {
+		const text = await up.text();
+		if (text.startsWith("#EXTM3U")) {
+			return new Response(hlsRewrite(text, u, id, r), {
+				headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store", ...HLS_CORS },
+			});
+		}
+		return new Response(text, { headers: { "content-type": ct ?? "text/plain", ...HLS_CORS } });
+	}
+	return new Response(up.body, {
+		headers: { "content-type": ct ?? "video/mp2t", "cache-control": "public, max-age=3600", ...HLS_CORS },
+	});
+}
+
 async function serveAsset(pathname: string, req?: Request): Promise<Response> {
 	const sub = decodeURIComponent(pathname.replace(/^\/assets\//, ""));
 	if (!sub || sub.includes("..") || sub.startsWith("/") || sub.includes("\0")) {
@@ -1492,6 +1592,11 @@ export class ApiServer {
 						if (!ep) throw new HttpError(404, "Épisode inconnu");
 						return ep;
 					}),
+
+				// Proxy HLS : le site joue le flux dans son player via ces routes
+				// (le bot fetch depuis l'IP du VPS = IP de résolution → CDN OK).
+				"/api/hls/:id/master.m3u8": (req) => hlsMaster(req.params.id),
+				"/api/hls/:id/seg": (req) => hlsSeg(req, req.params.id),
 
 				"/api/public/wiki/movies": (req) =>
 					publicCachedJson(req, 60 * 60_000, async () => {

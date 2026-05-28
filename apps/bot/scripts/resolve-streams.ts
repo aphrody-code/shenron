@@ -30,6 +30,14 @@ const STALE_H = process.env.STALE_H ? Number(process.env.STALE_H) : 8;
 const CONCURRENCY = process.env.CONCURRENCY ? Number(process.env.CONCURRENCY) : 2;
 const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
 
+// Map local lu par le proxy HLS du bot (le bot n'a pas d'accès Neon en runtime,
+// et le flux est IP-bound → c'est le bot, même IP que le résolveur, qui fetch).
+const STREAMS_JSON = `${import.meta.dir}/../data/streams.json`;
+type StreamEntry = { url: string; headers: Record<string, string>; type: string; at: number };
+const store: Record<string, StreamEntry> = await Bun.file(STREAMS_JSON)
+	.json()
+	.catch(() => ({}));
+
 const sql = postgres(NEON_URL, { max: 3, prepare: false });
 await sql`ALTER TABLE bot.db_episodes ADD COLUMN IF NOT EXISTS stream_url text`;
 await sql`ALTER TABLE bot.db_episodes ADD COLUMN IF NOT EXISTS stream_headers jsonb`;
@@ -73,6 +81,12 @@ async function resolveOne(r: Row): Promise<void> {
 			    stream_provider = ${res.provider ?? null},
 			    stream_at = ${Date.now()}
 			WHERE id = ${r.id}`;
+		store[String(r.id)] = {
+			url: res.url,
+			headers: res.headers ?? {},
+			type: res.type,
+			at: Date.now(),
+		};
 		console.log(`  ✓ ${r.series} ${r.number_in_series} [${res.provider}] ${res.type}`);
 	} else {
 		console.log(`  · ${r.series} ${r.number_in_series} — ${res.error ?? "non résolu"}`);
@@ -94,5 +108,6 @@ async function worker() {
 	}
 }
 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, todo.length) || 1 }, worker));
-console.log(`✓ Terminé : ${ok}/${todo.length} traités.`);
+await Bun.write(STREAMS_JSON, JSON.stringify(store));
+console.log(`✓ Terminé : ${ok}/${todo.length} traités. streams.json = ${Object.keys(store).length} entrées.`);
 await sql.end();

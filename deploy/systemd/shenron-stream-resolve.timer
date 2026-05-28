@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh periodique des flux video episodes (tokens ~12 h) toutes les 2 h
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=2h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

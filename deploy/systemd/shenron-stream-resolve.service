@@ -1,0 +1,22 @@
+[Unit]
+Description=Resolution des flux video episodes (voir-anime -> HLS) vers Neon, pour le proxy HLS du site
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/shenron
+EnvironmentFile=/home/ubuntu/.shenron-neon.env
+# Batch borne par invocation ; re-resout ce qui est vide ou perime (> STALE_H h).
+# Le resolveur lance un navigateur headless (bxc) en sous-process -> hors du bot durci.
+Environment=LIMIT=40
+Environment=STALE_H=8
+Environment=CONCURRENCY=2
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ubuntu/.bun/bin/bun apps/bot/scripts/resolve-streams.ts
+TimeoutStartSec=1800
+Nice=15
+
+[Install]
+WantedBy=multi-user.target
