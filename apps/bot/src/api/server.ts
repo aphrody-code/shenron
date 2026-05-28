@@ -508,7 +508,6 @@ function hlsRewrite(text: string, baseUrl: string, id: string, referer: string):
 		.join("\n");
 }
 
-const HLS_CORS = { "Access-Control-Allow-Origin": "*", Vary: "Origin" } as const;
 
 async function hlsMaster(id: string): Promise<Response> {
 	const s = (await loadStreams())[id];
@@ -525,7 +524,7 @@ async function hlsMaster(id: string): Promise<Response> {
 	if (!up.ok) return new Response("source en erreur", { status: 502 });
 	const out = hlsRewrite(await up.text(), s.url, id, ref);
 	return new Response(out, {
-		headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store", ...HLS_CORS },
+		headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store" },
 	});
 }
 
@@ -547,13 +546,13 @@ async function hlsSeg(req: Request, id: string): Promise<Response> {
 		const text = await up.text();
 		if (text.startsWith("#EXTM3U")) {
 			return new Response(hlsRewrite(text, u, id, r), {
-				headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store", ...HLS_CORS },
+				headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store" },
 			});
 		}
-		return new Response(text, { headers: { "content-type": ct ?? "text/plain", ...HLS_CORS } });
+		return new Response(text, { headers: { "content-type": ct ?? "text/plain" } });
 	}
 	return new Response(up.body, {
-		headers: { "content-type": ct ?? "video/mp2t", "cache-control": "public, max-age=3600", ...HLS_CORS },
+		headers: { "content-type": ct ?? "video/mp2t", "cache-control": "public, max-age=3600" },
 	});
 }
 
