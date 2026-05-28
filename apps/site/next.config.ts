@@ -64,8 +64,11 @@ const nextConfig: NextConfig = {
 		],
 		deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
 		imageSizes: [16, 32, 48, 64, 96, 128, 192, 256, 384],
-		// Cache minimum après optimization Vercel
-		minimumCacheTTL: 31_536_000, // 1 an (assets bot sont immutable)
+		// Cache minimum après optimization Vercel. Les posters/images wiki sont
+		// éditables en place (remplacement via l'admin sans changer le nom de
+		// fichier) → 1 an cachait l'ancienne image pendant un an. 1 jour garde un
+		// fort taux de cache tout en laissant les remplacements se propager.
+		minimumCacheTTL: 86_400, // 1 jour
 		dangerouslyAllowSVG: false,
 	},
 
