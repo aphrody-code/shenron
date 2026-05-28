@@ -1,19 +1,12 @@
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { getCurrentUser } from "@/lib/session";
 import { CommandMenu } from "@/components/CommandMenu";
+import { NavAuth } from "@/components/NavAuth";
+import { MobileNav } from "@/components/MobileNav";
 
-// Lazy : SignInDiscord/SignOut (Better Auth client SDK) selon l'état de session,
-// MobileNav (état drawer + Better Auth) seulement sur viewport <lg.
-const SignInDiscord = dynamic(() =>
-	import("@/components/SignInDiscord").then((m) => m.SignInDiscord),
-);
-const SignOut = dynamic(() =>
-	import("@/components/SignOut").then((m) => m.SignOut),
-);
-const MobileNav = dynamic(() =>
-	import("@/components/MobileNav").then((m) => m.MobileNav),
-);
+// Nav 100 % statique : aucune lecture de session côté serveur (pas de
+// `headers()`), sinon TOUTES les pages basculeraient en rendu dynamique et ne
+// seraient jamais mises en cache CDN/ISR. L'état d'auth (avatar, admin, sign-in)
+// est hydraté côté client via `/api/me` (cf. NavAuth / MobileNav + useMe).
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
@@ -27,12 +20,7 @@ const PUBLIC_LINKS = [
 	{ href: "/wiki/search", label: "Recherche" },
 ];
 
-export async function SiteNav() {
-	const me = await getCurrentUser();
-	const isAdmin = me?.user?.roleAdmin === true;
-	const username = me?.user?.username ?? null;
-	const avatar = me?.user?.avatar ?? null;
-
+export function SiteNav() {
 	return (
 		<header className="sticky top-0 z-50 w-full">
 			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
@@ -68,71 +56,13 @@ export async function SiteNav() {
 					))}
 				</nav>
 
-				{/* Zone identité desktop */}
+				{/* Zone identité desktop — îlot client (auth via /api/me) */}
 				<div className="hidden lg:flex items-center gap-2 shrink-0">
 					<CommandMenu />
-					{isAdmin && (
-						<Link
-							href="/admin/dashboard"
-							className="font-display font-semibold text-[13px] tracking-normal text-dbz-orange hover:text-black hover:bg-dbz-orange px-3 py-1.5 rounded-full border border-dbz-orange/50 transition-colors"
-						>
-							Admin
-						</Link>
-					)}
-					{me ? (
-						<>
-							<Link
-								href="/profil/me"
-								className="flex items-center gap-2.5 pl-1 pr-3.5 py-1 rounded-full hover:bg-white/[0.06] transition-colors group"
-							>
-								{avatar && (
-									<img
-										src={avatar}
-										alt=""
-										width={28}
-										height={28}
-										className="w-7 h-7 rounded-full ring-1 ring-white/15 group-hover:ring-dbz-orange transition"
-									/>
-								)}
-								<span className="font-display text-[13px] font-medium tracking-wide text-white max-w-[120px] truncate">
-									{username ?? "Mon profil"}
-								</span>
-							</Link>
-							<SignOut
-								className="grid place-items-center w-9 h-9 rounded-full text-white/55 hover:text-dbz-orange hover:bg-white/[0.06] transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
-								aria-label="Se déconnecter"
-							>
-								<svg
-									width="18"
-									height="18"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									aria-hidden="true"
-								>
-									<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-									<polyline points="16 17 21 12 16 7" />
-									<line x1="21" y1="12" x2="9" y2="12" />
-								</svg>
-							</SignOut>
-						</>
-					) : (
-						<SignInDiscord className="inline-flex items-center h-9 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-normal transition-colors">
-							Connexion
-						</SignInDiscord>
-					)}
+					<NavAuth />
 				</div>
 
-				<MobileNav
-					links={PUBLIC_LINKS}
-					isAdmin={isAdmin}
-					authenticated={!!me}
-					username={username}
-					avatar={avatar}
-				/>
+				<MobileNav links={PUBLIC_LINKS} />
 			</div>
 		</header>
 	);
