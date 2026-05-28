@@ -68,6 +68,13 @@ export type Episode = {
 	stream_url: string | null;
 };
 
+export type EpisodeNavItem = {
+	id: number;
+	number_in_series: number;
+	title: string;
+	image: string | null;
+};
+
 export type Movie = {
 	id: number;
 	slug: string;
@@ -486,6 +493,70 @@ export const dbUniverse = {
 				.from(botEpisodes)
 				.where(series ? eq(botEpisodes.series, series) : sql`true`);
 			return { episodes: rows.map(toEpisode), total: Number(n ?? 0) };
+		}),
+
+	/**
+	 * Épisode précédent / suivant + un échantillon d'épisodes voisins de la même
+	 * série, pour la navigation cinématique de la page épisode.
+	 */
+	episodeNav: (series: string, number: number) =>
+		safe(async () => {
+			const lite = {
+				id: botEpisodes.id,
+				number_in_series: botEpisodes.numberInSeries,
+				title: botEpisodes.title,
+				image: botEpisodes.image,
+			};
+			const [prev] = await db
+				.select(lite)
+				.from(botEpisodes)
+				.where(
+					and(
+						eq(botEpisodes.series, series),
+						lt(botEpisodes.numberInSeries, number),
+					),
+				)
+				.orderBy(desc(botEpisodes.numberInSeries))
+				.limit(1);
+			const [next] = await db
+				.select(lite)
+				.from(botEpisodes)
+				.where(
+					and(
+						eq(botEpisodes.series, series),
+						gt(botEpisodes.numberInSeries, number),
+					),
+				)
+				.orderBy(asc(botEpisodes.numberInSeries))
+				.limit(1);
+			// Fenêtre de 12 épisodes voisins (centrée approximativement) pour le strip.
+			const around = await db
+				.select(lite)
+				.from(botEpisodes)
+				.where(
+					and(
+						eq(botEpisodes.series, series),
+						gt(botEpisodes.numberInSeries, number - 7),
+						lt(botEpisodes.numberInSeries, number + 7),
+					),
+				)
+				.orderBy(asc(botEpisodes.numberInSeries));
+			const lift = (
+				e: typeof prev | undefined,
+			): EpisodeNavItem | null =>
+				e
+					? {
+							id: e.id,
+							number_in_series: e.number_in_series ?? 0,
+							title: e.title ?? "",
+							image: e.image,
+						}
+					: null;
+			return {
+				prev: lift(prev),
+				next: lift(next),
+				around: around.map((e) => lift(e)!).filter(Boolean),
+			};
 		}),
 
 	movies: () =>

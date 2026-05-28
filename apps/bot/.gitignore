@@ -2,5 +2,7 @@
 # Artefacts générés (mirror assets, export JSON, corpus RAG) — VPS only
 data/export/
 data/rag/
+# Cache des flux HLS résolus (tokens éphémères ~12 h, regénéré par le timer) — VPS only
+data/streams.json
 assets/ext/
 assets/wiki/

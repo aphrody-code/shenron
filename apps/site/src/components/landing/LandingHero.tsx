@@ -12,12 +12,27 @@ import { DragonBallsOrbit } from "./DragonBallsOrbit";
 export function LandingHero() {
 	return (
 		<section className="relative min-h-[100vh] flex items-center overflow-hidden border-b border-white/[0.06]">
-			{/* Fond cosmique CSS pur */}
+			{/* Key-art DB en fond, fortement flouté + animé (Ken Burns) : apporte de
+			    la matière sans nuire au LCP ni à la lisibilité (le gradient passe
+			    par-dessus, le flou efface tout texte de la bannière). */}
+			<div
+				aria-hidden
+				className="absolute inset-0 overflow-hidden pointer-events-none"
+			>
+				<img
+					src="/banners/banner-13.png"
+					alt=""
+					className="h-full w-full object-cover blur-3xl scale-125 opacity-30 ken-burns ken-burns-slow"
+					loading="eager"
+					decoding="async"
+				/>
+			</div>
+			{/* Fond cosmique CSS pur (par-dessus le key-art flouté) */}
 			<div
 				className="absolute inset-0 pointer-events-none"
 				style={{
 					background:
-						"radial-gradient(ellipse 90% 70% at 65% 50%, rgba(255,178,0,0.35), transparent 60%), radial-gradient(ellipse 70% 60% at 20% 80%, rgba(255,107,26,0.25), transparent 60%), radial-gradient(ellipse 60% 50% at 80% 20%, rgba(217,33,33,0.18), transparent 60%), #0a0a0a",
+						"radial-gradient(ellipse 90% 70% at 65% 50%, rgba(255,178,0,0.30), transparent 60%), radial-gradient(ellipse 70% 60% at 20% 80%, rgba(255,107,26,0.22), transparent 60%), radial-gradient(ellipse 60% 50% at 80% 20%, rgba(217,33,33,0.16), transparent 60%), rgba(10,10,10,0.55)",
 				}}
 			/>
 			<div className="absolute inset-0 speed-lines opacity-40 pointer-events-none hero-pulse" />
