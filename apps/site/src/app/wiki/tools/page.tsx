@@ -39,7 +39,7 @@ export default async function ToolsPage() {
 					return (
 						<section key={key} className="reveal-up">
 							<div className="flex items-center gap-6 mb-10">
-								<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
 									{label}
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />

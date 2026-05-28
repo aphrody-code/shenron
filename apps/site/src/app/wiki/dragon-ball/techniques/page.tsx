@@ -58,7 +58,7 @@ export default async function TechniquesPage() {
 				{typeOrder.map((type) => (
 					<section key={type} className="reveal-up">
 						<div className="flex items-center gap-6 mb-8">
-							<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest">
 								{type}
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />

@@ -120,7 +120,7 @@ export default async function WikiIndex() {
 			{/* Navigation sections */}
 			<section>
 				<div className="flex items-center gap-6 mb-10">
-					<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest whitespace-nowrap">
+					<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
 						Catégories
 					</h2>
 					<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
@@ -149,7 +149,7 @@ export default async function WikiIndex() {
 				<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
 					<div className="flex items-center justify-between gap-6 mb-8">
 						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-orange uppercase tracking-widest">
 								Guerriers
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
@@ -197,7 +197,7 @@ export default async function WikiIndex() {
 				<section className="reveal-up" style={{ animationDelay: "0.2s" }}>
 					<div className="flex items-center justify-between gap-6 mb-8">
 						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-yellow uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-yellow uppercase tracking-widest">
 								Films
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-yellow/50 to-transparent" />
@@ -253,7 +253,7 @@ export default async function WikiIndex() {
 				<section className="reveal-up" style={{ animationDelay: "0.3s" }}>
 					<div className="flex items-center justify-between gap-6 mb-8">
 						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest">
 								Épisodes
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
@@ -309,7 +309,7 @@ export default async function WikiIndex() {
 				<section className="reveal-up" style={{ animationDelay: "0.4s" }}>
 					<div className="flex items-center justify-between gap-6 mb-8">
 						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest">
 								Planètes
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />

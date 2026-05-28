@@ -146,7 +146,7 @@ export default async function FilmPage({
 					{youtubeId && (
 						<section className="space-y-4">
 							<div className="flex items-center gap-6">
-								<h2 className="font-saiyan text-2xl text-white uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-2xl text-white uppercase tracking-widest">
 									Trailer Officiel
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-red/50 to-transparent" />

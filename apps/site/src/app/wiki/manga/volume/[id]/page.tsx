@@ -69,7 +69,7 @@ export default async function MangaVolumePage({
 
 					<section className="space-y-6">
 						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
 								Sommaire des Chapitres
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />

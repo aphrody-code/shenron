@@ -70,7 +70,7 @@ export default async function ArcPage({
 			{episodes.length > 0 && (
 				<section className="mb-20">
 					<div className="flex items-center gap-6 mb-10">
-						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
 							Épisodes de l'Arc ({episodes.length})
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />

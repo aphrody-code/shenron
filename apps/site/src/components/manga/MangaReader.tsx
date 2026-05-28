@@ -186,7 +186,7 @@ export function MangaReader({
 	return (
 		<div
 			ref={containerRef}
-			className="flex h-full w-full flex-col bg-black"
+			className="flex h-[78vh] min-h-[420px] w-full min-w-0 flex-col overflow-hidden rounded-lg bg-black [&:fullscreen]:h-screen [&:fullscreen]:min-h-screen [&:fullscreen]:rounded-none"
 			data-manga-reader
 		>
 			{/* Barre de contrôles */}
@@ -279,7 +279,7 @@ export function MangaReader({
 			</div>
 
 			{/* Zone de lecture */}
-			<div className="relative min-h-0 flex-1 bg-dbz-bg">
+			<div className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-dbz-bg">
 				{total === 0 ? (
 					<div className="flex h-full items-center justify-center text-sm text-dbz-blue-light">
 						Aucune planche disponible.

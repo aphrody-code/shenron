@@ -42,7 +42,7 @@ export default async function DragonBallWikiIndex() {
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-32">
 				<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
 					<div className="flex items-center gap-6 mb-12">
-						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
 							Films & Hors-Séries
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
@@ -102,7 +102,7 @@ export default async function DragonBallWikiIndex() {
 
 				<section className="reveal-up" style={{ animationDelay: "0.2s" }}>
 					<div className="flex items-center gap-6 mb-12">
-						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
 							PERSONNAGES
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
@@ -153,7 +153,7 @@ export default async function DragonBallWikiIndex() {
 
 				<section className="reveal-up" style={{ animationDelay: "0.3s" }}>
 					<div className="flex items-center gap-6 mb-12">
-						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest">
 							PLANÈTES
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
@@ -195,7 +195,7 @@ export default async function DragonBallWikiIndex() {
 
 				<section className="reveal-up" style={{ animationDelay: "0.4s" }}>
 					<div className="flex items-center gap-6 mb-12">
-						<h2 className="font-saiyan text-4xl md:text-5xl text-white uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-white uppercase tracking-widest">
 							JEUX VIDÉO
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />

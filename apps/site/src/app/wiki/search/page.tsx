@@ -74,7 +74,7 @@ export default async function SearchPage({
 			{rag && rag.results.length > 0 && (
 				<section className="mb-16 reveal-up">
 					<div className="flex items-center gap-6 mb-6">
-						<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest">
 							Réponses Scouter ({rag.results.length})
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
@@ -110,7 +110,7 @@ export default async function SearchPage({
 					{results.characters.length > 0 && (
 						<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
 							<div className="flex items-center gap-6 mb-8">
-								<h2 className="font-saiyan text-3xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-3xl text-dbz-orange uppercase tracking-widest">
 									Guerriers Détectés ({results.characters.length})
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
@@ -155,7 +155,7 @@ export default async function SearchPage({
 					{results.planets.length > 0 && (
 						<section className="reveal-up" style={{ animationDelay: "0.2s" }}>
 							<div className="flex items-center gap-6 mb-8">
-								<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest">
 									Localisations ({results.planets.length})
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
@@ -205,7 +205,7 @@ export default async function SearchPage({
 						{results.sagas.length > 0 && (
 							<section className="reveal-up" style={{ animationDelay: "0.3s" }}>
 								<div className="flex items-center gap-6 mb-6">
-									<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+									<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 										Chronologie
 									</h2>
 									<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
@@ -239,7 +239,7 @@ export default async function SearchPage({
 						{results.movies.length > 0 && (
 							<section className="reveal-up" style={{ animationDelay: "0.4s" }}>
 								<div className="flex items-center gap-6 mb-6">
-									<h2 className="font-saiyan text-2xl text-dbz-red uppercase tracking-widest whitespace-nowrap">
+									<h2 className="font-saiyan text-2xl text-dbz-red uppercase tracking-widest">
 										Archives Cinéma
 									</h2>
 									<div className="h-px flex-1 bg-gradient-to-r from-dbz-red/50 to-transparent" />
@@ -276,7 +276,7 @@ export default async function SearchPage({
 					{results.games.length > 0 && (
 						<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
 							<div className="flex items-center gap-6 mb-6">
-								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest">
 									Jeux ({results.games.length})
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />
@@ -295,7 +295,7 @@ export default async function SearchPage({
 					{results.episodes.length > 0 && (
 						<section className="reveal-up" style={{ animationDelay: "0.5s" }}>
 							<div className="flex items-center gap-6 mb-6">
-								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest">
 									Épisodes ({results.episodes.length})
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />
@@ -322,7 +322,7 @@ export default async function SearchPage({
 					{results.techniques.length > 0 && (
 						<section className="reveal-up" style={{ animationDelay: "0.55s" }}>
 							<div className="flex items-center gap-6 mb-6">
-								<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+								<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 									Techniques ({results.techniques.length})
 								</h2>
 								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/40 to-transparent" />

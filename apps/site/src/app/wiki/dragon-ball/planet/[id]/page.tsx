@@ -38,10 +38,10 @@ export default async function PlanetPage({
 					</div>
 				</div>
 
-				<div className="flex-1 space-y-8">
+				<div className="flex-1 min-w-0 space-y-8">
 					<div className="reveal-up" style={{ animationDelay: "0.1s" }}>
 						<h1
-							className="text-5xl md:text-6xl lg:text-8xl font-saiyan text-white mb-4 leading-none"
+							className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-saiyan text-white mb-4 leading-none break-words"
 							style={{ textShadow: "0 0 20px rgba(75,168,255,0.2)" }}
 						>
 							{planet.name}
@@ -88,7 +88,7 @@ export default async function PlanetPage({
 			{planet.characters && planet.characters.length > 0 && (
 				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.4s" }}>
 					<div className="flex items-center gap-6">
-						<h2 className="font-saiyan text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest whitespace-nowrap">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
 							HABITANTS DÉTECTÉS
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />

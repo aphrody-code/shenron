@@ -100,7 +100,7 @@ export default async function ProfilePage({
 								/>
 							</div>
 							<div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-dbz-orange text-white px-4 py-1 border-2 border-dbz-orange-dark z-20 shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">
-								<span className="font-saiyan text-2xl uppercase whitespace-nowrap">
+								<span className="font-saiyan text-2xl uppercase">
 									LVL {user.level ?? 0}
 								</span>
 							</div>

@@ -44,7 +44,7 @@ export default async function MangaReaderPage({
 	if (!chapter) notFound();
 
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-10 lg:py-16 reveal-up">
+		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-10 lg:py-16 reveal-up overflow-x-hidden">
 			<Link
 				href="/wiki/manga"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-8 link-underline"
@@ -58,7 +58,7 @@ export default async function MangaReaderPage({
 					Chapitre {chapter.chapter_number}
 				</span>
 				{chapter.title && (
-					<h1 className="font-saiyan text-4xl lg:text-6xl text-white tracking-widest leading-tight">
+					<h1 className="font-saiyan text-2xl sm:text-4xl lg:text-6xl text-white tracking-widest leading-tight break-words">
 						{chapter.title}
 					</h1>
 				)}

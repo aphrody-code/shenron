@@ -72,7 +72,7 @@ export default async function RaceDetailPage({
 				{race.characters && race.characters.length > 0 && (
 					<section className="space-y-10">
 						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-4xl text-white uppercase tracking-widest whitespace-nowrap">
+							<h2 className="font-saiyan text-2xl sm:text-4xl text-white uppercase tracking-widest">
 								Représentants Connus ({race.characters.length})
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
