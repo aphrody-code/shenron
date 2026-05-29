@@ -47,7 +47,7 @@ export function useEventStream(enabled: boolean = true): void {
 
     const es = new EventSource("/api/events", { withCredentials: true });
 
-    es.onmessage = (msg) => {
+    es.addEventListener("message", (msg) => {
       try {
         const event = JSON.parse(msg.data) as BusEvent;
         if (event.name === "ping" || event.name === "hello") return;
@@ -60,12 +60,12 @@ export function useEventStream(enabled: boolean = true): void {
       } catch {
         // ignore parse errors
       }
-    };
+    });
 
-    es.onerror = () => {
+    es.addEventListener("error", () => {
       // EventSource gère automatiquement la reconnexion (3s par défaut)
       // On ne ferme pas explicitement pour laisser ce mécanisme jouer.
-    };
+    });
 
     return () => es.close();
   }, [enabled, qc]);

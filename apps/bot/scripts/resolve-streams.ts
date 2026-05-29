@@ -21,8 +21,8 @@ import postgres from "postgres";
 
 const NEON_URL = process.env.DATABASE_URL;
 if (!NEON_URL) {
-	console.error("✗ DATABASE_URL (Neon) requis.");
-	process.exit(1);
+  console.error("✗ DATABASE_URL (Neon) requis.");
+  process.exit(1);
 }
 const ONLY = process.env.ONLY_SERIES?.trim() || null;
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : Number.POSITIVE_INFINITY;
@@ -35,8 +35,8 @@ const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
 const STREAMS_JSON = `${import.meta.dir}/../data/streams.json`;
 type StreamEntry = { url: string; headers: Record<string, string>; type: string; at: number };
 const store: Record<string, StreamEntry> = await Bun.file(STREAMS_JSON)
-	.json()
-	.catch(() => ({}));
+  .json()
+  .catch(() => ({}));
 
 const sql = postgres(NEON_URL, { max: 3, prepare: false });
 await sql`ALTER TABLE bot.db_episodes ADD COLUMN IF NOT EXISTS stream_url text`;
@@ -55,59 +55,70 @@ const rows = (await sql`
 `) as unknown as Row[];
 
 const todo = Number.isFinite(LIMIT) ? rows.slice(0, LIMIT) : rows;
-console.log(`→ ${todo.length} épisode(s) à résoudre (stale>${STALE_H}h, concurrency=${CONCURRENCY})`);
+console.log(
+  `→ ${todo.length} épisode(s) à résoudre (stale>${STALE_H}h, concurrency=${CONCURRENCY})`,
+);
 
-type Resolved = { type?: string; url?: string; headers?: Record<string, string>; provider?: string; error?: string };
+type Resolved = {
+  type?: string;
+  url?: string;
+  headers?: Record<string, string>;
+  provider?: string;
+  error?: string;
+};
 
 async function resolveOne(r: Row): Promise<void> {
-	const proc = Bun.spawn(
-		["bun", "scripts/resolve-episode.ts", r.series, String(r.number_in_series)],
-		{ cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" },
-	);
-	const out = await new Response(proc.stdout).text();
-	await proc.exited;
-	let res: Resolved = {};
-	const line = out.trim().split("\n").filter(Boolean).pop() ?? "";
-	try {
-		res = JSON.parse(line) as Resolved;
-	} catch {
-		res = { error: "parse" };
-	}
-	if (res.url && (res.type === "hls" || res.type === "mp4")) {
-		await sql`
+  const proc = Bun.spawn(
+    ["bun", "scripts/resolve-episode.ts", r.series, String(r.number_in_series)],
+    { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" },
+  );
+  const out = await new Response(proc.stdout).text();
+  await proc.exited;
+  let res: Resolved = {};
+  // oxlint-disable-next-line unicorn/prefer-array-find -- .pop() gets the LAST non-empty line, not the first
+  const line = out.trim().split("\n").filter(Boolean).pop() ?? "";
+  try {
+    res = JSON.parse(line) as Resolved;
+  } catch {
+    res = { error: "parse" };
+  }
+  if (res.url && (res.type === "hls" || res.type === "mp4")) {
+    await sql`
 			UPDATE bot.db_episodes
 			SET stream_url = ${res.url},
 			    stream_headers = ${JSON.stringify(res.headers ?? {})}::jsonb,
 			    stream_provider = ${res.provider ?? null},
 			    stream_at = ${Date.now()}
 			WHERE id = ${r.id}`;
-		store[String(r.id)] = {
-			url: res.url,
-			headers: res.headers ?? {},
-			type: res.type,
-			at: Date.now(),
-		};
-		console.log(`  ✓ ${r.series} ${r.number_in_series} [${res.provider}] ${res.type}`);
-	} else {
-		console.log(`  · ${r.series} ${r.number_in_series} — ${res.error ?? "non résolu"}`);
-	}
+    store[String(r.id)] = {
+      url: res.url,
+      headers: res.headers ?? {},
+      type: res.type,
+      at: Date.now(),
+    };
+    console.log(`  ✓ ${r.series} ${r.number_in_series} [${res.provider}] ${res.type}`);
+  } else {
+    console.log(`  · ${r.series} ${r.number_in_series} — ${res.error ?? "non résolu"}`);
+  }
 }
 
 let idx = 0;
 let ok = 0;
 async function worker() {
-	for (;;) {
-		const i = idx++;
-		if (i >= todo.length) break;
-		try {
-			await resolveOne(todo[i]);
-			ok++;
-		} catch (e) {
-			console.log(`  ! ${todo[i].series} ${todo[i].number_in_series} ${String(e).slice(0, 80)}`);
-		}
-	}
+  for (;;) {
+    const i = idx++;
+    if (i >= todo.length) break;
+    try {
+      await resolveOne(todo[i]);
+      ok++;
+    } catch (e) {
+      console.log(`  ! ${todo[i].series} ${todo[i].number_in_series} ${String(e).slice(0, 80)}`);
+    }
+  }
 }
 await Promise.all(Array.from({ length: Math.min(CONCURRENCY, todo.length) || 1 }, worker));
 await Bun.write(STREAMS_JSON, JSON.stringify(store));
-console.log(`✓ Terminé : ${ok}/${todo.length} traités. streams.json = ${Object.keys(store).length} entrées.`);
+console.log(
+  `✓ Terminé : ${ok}/${todo.length} traités. streams.json = ${Object.keys(store).length} entrées.`,
+);
 await sql.end();
