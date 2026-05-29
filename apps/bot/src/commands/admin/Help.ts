@@ -1,4 +1,11 @@
-import { Bot, Discord, MetadataStorage, Slash, type DApplicationCommand } from "@rpbey/discordy";
+import {
+  Bot,
+  Discord,
+  Guard,
+  MetadataStorage,
+  Slash,
+  type DApplicationCommand,
+} from "@rpbey/discordy";
 import {
   EmbedBuilder,
   MessageFlags,
@@ -6,6 +13,7 @@ import {
   type CommandInteraction,
 } from "discord.js";
 import { env } from "~/lib/env";
+import { GuildOnly } from "~/guards/GuildOnly";
 
 // Mapping statique nom de commande → groupe (premier match l'emporte). Pour
 // les sous-commandes (slash group), on regarde aussi `command.group`.
@@ -70,6 +78,7 @@ const GROUPS: Array<{ title: string; cmds: Set<string>; groups?: Set<string>; mo
 
 @Discord()
 @Bot("whis")
+@Guard(GuildOnly)
 export class HelpCommand {
   @Slash({ name: "help", description: "Liste des commandes du bot" })
   async help(interaction: CommandInteraction) {
