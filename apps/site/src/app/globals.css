@@ -4,6 +4,33 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* === Animations de transition de page (View Transitions API) === */
+@view-transition {
+  navigation: auto;
+}
+
+/* Animations fluides lors de la navigation */
+::view-transition-old(root) {
+  animation: 180ms cubic-bezier(0.4, 0, 0.2, 1) both fade-out;
+}
+::view-transition-new(root) {
+  animation: 240ms cubic-bezier(0.4, 0, 0.2, 1) both fade-in;
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

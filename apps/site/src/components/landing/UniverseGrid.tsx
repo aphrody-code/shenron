@@ -9,50 +9,16 @@ type Pillar = {
 	accent: "gold" | "red" | "white";
 };
 
-const PILLARS: Pillar[] = [
-	{
-		title: "Personnages",
-		desc: "Goku, Vegeta, Freezer, Cell, Buu, Beerus, Jiren.",
-		href: "/wiki/dragon-ball",
-		count: "58 fiches",
-		accent: "gold",
-	},
-	{
-		title: "Planètes & Univers",
-		desc: "Terre, Namek, Vegeta, Yardrat, le Monde du Vide.",
-		href: "/wiki",
-		count: "20 mondes",
-		accent: "white",
-	},
-	{
-		title: "Sagas & arcs",
-		desc: "Pilaf, Saiyans, Freezer, Cell, Buu, God, Tournoi du Pouvoir, Super Hero.",
-		href: "/wiki",
-		count: "Anime & Manga",
-		accent: "red",
-	},
-	{
-		title: "Actualités Dragon Ball",
-		desc: "Sorties anime, manga Super, films, jeux vidéo, événements.",
-		href: "/actualites",
-		count: "Mises à jour régulières",
-		accent: "gold",
-	},
-	{
-		title: "Lexique japonais",
-		desc: "Noms en 日本語, romaji canon, attaques (Kamehameha, Genkidama, Galick Gun).",
-		href: "/wiki/dragon-ball",
-		count: "Termes traduits",
-		accent: "white",
-	},
-	{
-		title: "Communauté",
-		desc: "Fans français, théories, events et tournois Dragon Ball.",
-		href: "https://discord.gg/dbfr",
-		count: "Discord actif",
-		accent: "red",
-	},
-];
+interface UniverseGridProps {
+	wikiCounts: {
+		sagas: number;
+		episodes: number;
+		movies: number;
+		characters: number;
+		planets: number;
+		chapters: number;
+	};
+}
 
 const ACCENT_BORDER: Record<Pillar["accent"], string> = {
 	gold: "hover:border-dbz-orange/70 hover:shadow-[0_0_0_1px_var(--color-dbz-orange)]",
@@ -66,7 +32,52 @@ const ACCENT_TEXT: Record<Pillar["accent"], string> = {
 	white: "text-white",
 };
 
-export function UniverseGrid() {
+export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
+	const pillars: Pillar[] = [
+		{
+			title: "Personnages",
+			desc: "Goku, Vegeta, Freezer, Cell, Buu, Beerus, Jiren.",
+			href: "/wiki/dragon-ball",
+			count: wikiCounts.characters > 0 ? `${wikiCounts.characters} fiches personnages` : "58 fiches",
+			accent: "gold",
+		},
+		{
+			title: "Planètes & Univers",
+			desc: "Terre, Namek, Vegeta, Yardrat, le Monde du Vide.",
+			href: "/wiki",
+			count: wikiCounts.planets > 0 ? `${wikiCounts.planets} planètes & mondes` : "20 mondes",
+			accent: "white",
+		},
+		{
+			title: "Sagas, Arcs & Épisodes",
+			desc: `Suivez les aventures à travers ${wikiCounts.sagas || 12} sagas et ${wikiCounts.episodes || 131} épisodes avec lecteurs et téléchargements.`,
+			href: "/wiki/episodes",
+			count: wikiCounts.episodes > 0 ? `${wikiCounts.episodes} épisodes répertoriés` : "Anime & Manga",
+			accent: "red",
+		},
+		{
+			title: "Films & OAVs",
+			desc: "Tous les films de Dragon Ball, Z, GT, Super en streaming et téléchargement direct.",
+			href: "/wiki/films",
+			count: wikiCounts.movies > 0 ? `${wikiCounts.movies} films de légende` : "Mises à jour",
+			accent: "gold",
+		},
+		{
+			title: "Manga & Scan Reader",
+			desc: "Lisez les chapitres de Dragon Ball Super en ligne grâce à notre pipeline de scraping natif.",
+			href: "/wiki/manga",
+			count: wikiCounts.chapters > 0 ? `${wikiCounts.chapters} chapitres DBS disponibles` : "Termes traduits",
+			accent: "white",
+		},
+		{
+			title: "Communauté & Bot",
+			desc: "Rejoignez le serveur Discord DBFR avec notre bot interactif à 6 personas.",
+			href: "https://discord.gg/dbfr",
+			count: "6 Personas en ligne",
+			accent: "red",
+		},
+	];
+
 	return (
 		<section className="relative py-24 md:py-32 border-b border-white/[0.06]">
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10">
@@ -86,7 +97,7 @@ export function UniverseGrid() {
 				</div>
 
 				<div className="reveal-up-stagger grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] border border-white/[0.06] rounded-2xl overflow-hidden">
-					{PILLARS.map((p, _i) => (
+					{pillars.map((p, _i) => (
 						<div key={p.title}>
 							<Link
 								href={p.href}
