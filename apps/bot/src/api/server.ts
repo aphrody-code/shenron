@@ -503,19 +503,91 @@ function hlsRewrite(text: string, baseUrl: string, id: string, referer: string):
     .join("\n");
 }
 
-async function hlsMaster(id: string): Promise<Response> {
-  const s = (await loadStreams())[id];
-  if (!s?.url) return new Response("flux indisponible", { status: 404 });
-  const ref = s.headers?.Referer ?? s.headers?.referer ?? "";
-  let up: Response;
+async function resolveStreamOnDemand(id: string): Promise<HlsStream | null> {
   try {
-    up = await fetch(s.url, {
-      headers: ref ? { Referer: ref, Origin: new URL(ref).origin } : {},
-    });
-  } catch {
-    return new Response("source injoignable", { status: 502 });
+    const dbs = container.resolve(DatabaseService);
+    const row = dbs.sqlite
+      .query("SELECT series, number_in_series FROM db_episodes WHERE id = ?")
+      .get(Number(id)) as { series: string; number_in_series: number } | undefined;
+    if (!row) {
+      console.error(`[HLS] Episode ID ${id} introuvable en base SQLite.`);
+      return null;
+    }
+    console.log(`[HLS] Résolution à la volée de l'épisode ${id} (${row.series} ${row.number_in_series})...`);
+    const BXC_DIR = "/home/ubuntu/bxc";
+    const proc = Bun.spawn(
+      ["bun", "scripts/resolve-episode.ts", row.series, String(row.number_in_series)],
+      { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" }
+    );
+    const out = await new Response(proc.stdout).text();
+    await proc.exited;
+    // oxlint-disable-next-line unicorn/prefer-array-find -- getting the last non-empty line
+    const line = out.trim().split("\n").filter(Boolean).pop() ?? "";
+    const res = JSON.parse(line) as { type?: string; url?: string; headers?: Record<string, string>; provider?: string; error?: string };
+    if (res.url && (res.type === "hls" || res.type === "mp4")) {
+      const entry: HlsStream = {
+        url: res.url,
+        headers: res.headers ?? {},
+        type: res.type,
+        at: Date.now(),
+      };
+      const streams = await loadStreams();
+      streams[id] = entry;
+      await Bun.write("data/streams.json", JSON.stringify(streams));
+      console.log(`[HLS] Résolution réussie pour l'épisode ${id} : ${res.url}`);
+      return entry;
+    } else {
+      console.error(`[HLS] Échec de résolution pour l'épisode ${id} : ${res.error ?? "inconnu"}`);
+      return null;
+    }
+  } catch (err) {
+    console.error(`[HLS] Erreur lors de la résolution de l'épisode ${id} :`, err);
+    return null;
   }
-  if (!up.ok) return new Response("source en erreur", { status: 502 });
+}
+
+async function hlsMaster(id: string): Promise<Response> {
+  let s = (await loadStreams())[id];
+  if (!s?.url) {
+    const newS = await resolveStreamOnDemand(id);
+    if (!newS) return new Response("flux indisponible", { status: 404 });
+    s = newS;
+  }
+
+  let ref = s.headers?.Referer ?? s.headers?.referer ?? "";
+  const isStale = Date.now() - (s.at ?? 0) > 8 * 3600 * 1000; // Expire après 8h
+  let up: Response | null = null;
+
+  if (!isStale) {
+    try {
+      up = await fetch(s.url, {
+        headers: ref ? { Referer: ref, Origin: new URL(ref).origin } : {},
+      });
+    } catch {
+      // Ignoré, retente résolution
+    }
+  }
+
+  if (!up || !up.ok) {
+    console.log(`[HLS] Flux expiré ou injoignable pour master ${id}, actualisation...`);
+    const newS = await resolveStreamOnDemand(id);
+    if (newS) {
+      s = newS;
+      ref = s.headers?.Referer ?? s.headers?.referer ?? "";
+      try {
+        up = await fetch(s.url, {
+          headers: ref ? { Referer: ref, Origin: new URL(ref).origin } : {},
+        });
+      } catch {
+        return new Response("source injoignable après actualisation", { status: 502 });
+      }
+    }
+  }
+
+  if (!up || !up.ok) {
+    return new Response("source en erreur", { status: 502 });
+  }
+
   const out = hlsRewrite(await up.text(), s.url, id, ref);
   return new Response(out, {
     headers: { "content-type": "application/vnd.apple.mpegurl", "cache-control": "no-store" },
@@ -552,21 +624,53 @@ async function hlsSeg(req: Request, id: string): Promise<Response> {
 }
 
 async function hlsDownload(id: string): Promise<Response> {
-  const s = (await loadStreams())[id];
-  if (!s?.url) return new Response("flux indisponible", { status: 404 });
-  const ref = s.headers?.Referer ?? s.headers?.referer ?? "";
-  const headers: Record<string, string> = {};
+  let s = (await loadStreams())[id];
+  if (!s?.url) {
+    const newS = await resolveStreamOnDemand(id);
+    if (!newS) return new Response("flux indisponible", { status: 404 });
+    s = newS;
+  }
+
+  let ref = s.headers?.Referer ?? s.headers?.referer ?? "";
+  let headers: Record<string, string> = {};
   if (ref) {
     headers["Referer"] = ref;
     headers["Origin"] = new URL(ref).origin;
   }
-  let up: Response;
-  try {
-    up = await fetch(s.url, { headers });
-  } catch {
-    return new Response("source injoignable", { status: 502 });
+
+  const isStale = Date.now() - (s.at ?? 0) > 8 * 3600 * 1000;
+  let up: Response | null = null;
+
+  if (!isStale) {
+    try {
+      up = await fetch(s.url, { headers });
+    } catch {
+      // Ignoré, retente
+    }
   }
-  if (!up.ok) return new Response("source en erreur", { status: 502 });
+
+  if (!up || !up.ok) {
+    console.log(`[HLS] Flux expiré ou injoignable pour download ${id}, actualisation...`);
+    const newS = await resolveStreamOnDemand(id);
+    if (newS) {
+      s = newS;
+      ref = s.headers?.Referer ?? s.headers?.referer ?? "";
+      headers = {};
+      if (ref) {
+        headers["Referer"] = ref;
+        headers["Origin"] = new URL(ref).origin;
+      }
+      try {
+        up = await fetch(s.url, { headers });
+      } catch {
+        return new Response("source injoignable après actualisation", { status: 502 });
+      }
+    }
+  }
+
+  if (!up || !up.ok) {
+    return new Response("source en erreur", { status: 502 });
+  }
 
   let text = await up.text();
   let mediaPlaylistUrl = s.url;
