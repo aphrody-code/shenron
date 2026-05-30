@@ -167,18 +167,19 @@ export default async function FilmPage({
 					</header>
 
 					{player && (
-						<div className="shadow-2xl shadow-black/50 rounded-lg overflow-hidden">
+						<div className="shadow-2xl shadow-black/50 rounded-lg overflow-hidden relative group/player">
 							{player}
+							{(m.video_url || m.stream_url) && (
+								<div className="absolute top-3 right-3 z-20">
+									<EpisodeDownload
+										episodeId={`movie-${m.id}`}
+										videoUrl={m.video_url}
+										streamUrl={m.stream_url}
+										title={m.title}
+									/>
+								</div>
+							)}
 						</div>
-					)}
-
-					{(m.video_url || m.stream_url) && (
-						<EpisodeDownload
-							episodeId={`movie-${m.id}`}
-							videoUrl={m.video_url}
-							streamUrl={m.stream_url}
-							title={m.title}
-						/>
 					)}
 
 					{m.synopsis && (

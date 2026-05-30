@@ -640,8 +640,8 @@ async function hlsDownload(id: string): Promise<Response> {
 
   return new Response(stream, {
     headers: {
-      "Content-Type": "video/mp2t",
-      "Content-Disposition": `attachment; filename="episode-${id}.ts"`,
+      "Content-Type": "video/mp4",
+      "Content-Disposition": `attachment; filename="episode-${id}.mp4"`,
       "Cache-Control": "no-store",
     }
   });

@@ -214,19 +214,18 @@ export default async function EpisodeDetailPage({
 
 				{/* === Player === */}
 				{player && (
-					<div className="reveal-up mb-12 shadow-2xl shadow-black/50 rounded-lg">
+					<div className="reveal-up mb-12 shadow-2xl shadow-black/50 rounded-lg relative group/player">
 						{player}
-					</div>
-				)}
-
-				{(ep.video_url || ep.stream_url) && (
-					<div className="mb-12">
-						<EpisodeDownload
-							episodeId={ep.id}
-							videoUrl={ep.video_url}
-							streamUrl={ep.stream_url}
-							title={ep.title}
-						/>
+						{(ep.video_url || ep.stream_url) && (
+							<div className="absolute top-3 right-3 z-20">
+								<EpisodeDownload
+									episodeId={ep.id}
+									videoUrl={ep.video_url}
+									streamUrl={ep.stream_url}
+									title={ep.title}
+								/>
+							</div>
+						)}
 					</div>
 				)}
 
