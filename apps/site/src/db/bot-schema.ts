@@ -147,6 +147,17 @@ export const botMovies = bot.table("db_movies", {
 	malId: int("mal_id"),
 	anilistId: int("anilist_id"),
 	trailerUrl: text("trailer_url"),
+	videoUrl: text("video_url"),
+	subtitles: jsonb("subtitles").$type<
+		{ lang: string; label: string; src: string }[]
+	>(),
+	players: jsonb("players").$type<
+		{ name: string; provider: string; embedUrl: string }[]
+	>(),
+	streamUrl: text("stream_url"),
+	streamHeaders: jsonb("stream_headers").$type<Record<string, string>>(),
+	streamProvider: text("stream_provider"),
+	streamAt: bigint("stream_at", { mode: "number" }),
 });
 
 export const botGames = bot.table("db_games", {

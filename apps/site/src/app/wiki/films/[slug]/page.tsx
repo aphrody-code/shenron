@@ -5,6 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { VideoPlayer } from "@/components/episodes/VideoPlayer";
+import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
+import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 
 export const revalidate = 3600;
 
@@ -58,6 +61,25 @@ export default async function FilmPage({
 		return match ? match[1] : null;
 	};
 	const youtubeId = getYoutubeId(m.trailer_url);
+
+	const player =
+		m.players && m.players.length > 0 ? (
+			<VideoLecteurs players={m.players} />
+		) : m.video_url ? (
+			<VideoPlayer
+				src={m.video_url}
+				title={`Film : ${m.title ?? ""}`}
+				poster={m.poster ? assetUrl(m.poster) : undefined}
+				subtitles={m.subtitles ?? undefined}
+			/>
+		) : m.stream_url ? (
+			<VideoPlayer
+				src={assetUrl(`/api/hls/movie-${m.id}/master.m3u8`)}
+				title={`Film : ${m.title ?? ""}`}
+				poster={m.poster ? assetUrl(m.poster) : undefined}
+				subtitles={m.subtitles ?? undefined}
+			/>
+		) : null;
 
 	return (
 		<div className="mx-auto max-w-[1180px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
@@ -143,6 +165,21 @@ export default async function FilmPage({
 							)}
 						</dl>
 					</header>
+
+					{player && (
+						<div className="shadow-2xl shadow-black/50 rounded-lg overflow-hidden">
+							{player}
+						</div>
+					)}
+
+					{(m.video_url || m.stream_url) && (
+						<EpisodeDownload
+							episodeId={`movie-${m.id}`}
+							videoUrl={m.video_url}
+							streamUrl={m.stream_url}
+							title={m.title}
+						/>
+					)}
 
 					{m.synopsis && (
 						<section className="dbz-panel p-8 relative overflow-hidden">

@@ -81,7 +81,14 @@ export class JailCommands {
     // Discord (depuis fin 2024) n'auto-anime PLUS les GIFs setImage via URL externe :
     // il faut les attacher comme AttachmentBuilder + référencer attachment://name.
     // On essaie d'abord le fichier local assets/sanctions/jail.gif.
-    const jailLocal = `${process.cwd()}/assets/sanctions/jail.gif`;
+    let jailLocal = `${process.cwd()}/assets/sanctions/jail.gif`;
+    if (!existsSync(jailLocal)) {
+      jailLocal = `${process.cwd()}/apps/bot/assets/sanctions/jail.gif`;
+    }
+    if (!existsSync(jailLocal)) {
+      jailLocal = `${import.meta.dir}/../../../assets/sanctions/jail.gif`;
+    }
+
     const jailAttachment = existsSync(jailLocal)
       ? new AttachmentBuilder(jailLocal, { name: "jail.gif" })
       : null;
@@ -126,7 +133,12 @@ export class JailCommands {
       // Log détaillé en log channel uniquement (pas de bruit dans le salon courant).
       detailedEmbed.addFields({ name: "DM", value: dmOk ? "✅ envoyé" : "❌ DM fermés", inline: true });
     }
-    await this.logs.send(interaction.client, "sanction", detailedEmbed);
+    await this.logs.send(
+      interaction.client,
+      "sanction",
+      detailedEmbed,
+      jailAttachment ? [jailAttachment] : undefined,
+    );
   }
 
   // ────────────────────────────── /unjail

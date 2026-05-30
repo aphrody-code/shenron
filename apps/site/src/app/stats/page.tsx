@@ -1,28 +1,10 @@
 import { PageHeader } from "@/components/PageHeader";
+import { getShenronStats } from "@/lib/shenron";
 
-const SHENRON_API_URL =
-	process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
-
+export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
-async function getStats() {
-	try {
-		const res = await fetch(`${SHENRON_API_URL}/api/public/stats`, {
-			next: { revalidate: 30 },
-		});
-		if (!res.ok) return null;
-		return (await res.json()) as {
-			users: number;
-			totalXp: number;
-			totalZeni: number;
-			achievementsUnlocked: number;
-			shopItems: number;
-			inventoryItems: number;
-		};
-	} catch {
-		return null;
-	}
-}
+
 
 function StatCard({
 	label,
@@ -51,13 +33,13 @@ function StatCard({
 }
 
 export default async function StatsPage() {
-	const stats = await getStats();
+	const stats = await getShenronStats();
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-5xl">
 			<PageHeader title="STATISTIQUES" />
 
-			{!stats ? (
+			{!stats || stats.users === 0 ? (
 				<div className="dbz-panel p-8 text-center">
 					<p className="text-2xl font-saiyan text-red-500 uppercase">
 						Bot inaccessible

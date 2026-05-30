@@ -551,6 +551,98 @@ async function hlsSeg(req: Request, id: string): Promise<Response> {
   });
 }
 
+async function hlsDownload(id: string): Promise<Response> {
+  const s = (await loadStreams())[id];
+  if (!s?.url) return new Response("flux indisponible", { status: 404 });
+  const ref = s.headers?.Referer ?? s.headers?.referer ?? "";
+  const headers = ref ? { Referer: ref, Origin: new URL(ref).origin } : {};
+  let up: Response;
+  try {
+    up = await fetch(s.url, { headers });
+  } catch {
+    return new Response("source injoignable", { status: 502 });
+  }
+  if (!up.ok) return new Response("source en erreur", { status: 502 });
+
+  let text = await up.text();
+  let mediaPlaylistUrl = s.url;
+
+  if (text.includes("#EXT-X-STREAM-INF")) {
+    const lines = text.split("\n");
+    let subUrl = "";
+    for (const line of lines) {
+      const l = line.trim();
+      if (l && !l.startsWith("#")) {
+        subUrl = l;
+        break;
+      }
+    }
+    if (subUrl) {
+      const resolvedSubUrl = new URL(subUrl, s.url).toString();
+      try {
+        const subUp = await fetch(resolvedSubUrl, { headers });
+        if (subUp.ok) {
+          text = await subUp.text();
+          mediaPlaylistUrl = resolvedSubUrl;
+        }
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  const lines = text.split("\n");
+  const segmentUrls: string[] = [];
+  for (const line of lines) {
+    const l = line.trim();
+    if (l && !l.startsWith("#")) {
+      try {
+        segmentUrls.push(new URL(l, mediaPlaylistUrl).toString());
+      } catch {
+        segmentUrls.push(l);
+      }
+    }
+  }
+
+  if (segmentUrls.length === 0) {
+    return new Response("aucun segment trouve", { status: 400 });
+  }
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        for (let i = 0; i < segmentUrls.length; i++) {
+          const segUrl = segmentUrls[i];
+          const res = await fetch(segUrl, { headers });
+          if (!res.ok) {
+            console.error(`Failed to fetch HLS segment ${i}: ${segUrl}`);
+            continue;
+          }
+          if (res.body) {
+            const reader = res.body.getReader();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              controller.enqueue(value);
+            }
+          }
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    }
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "video/mp2t",
+      "Content-Disposition": `attachment; filename="episode-${id}.ts"`,
+      "Cache-Control": "no-store",
+    }
+  });
+}
+
 async function serveAsset(pathname: string, req?: Request): Promise<Response> {
   const sub = decodeURIComponent(pathname.replace(/^\/assets\//, ""));
   if (!sub || sub.includes("..") || sub.startsWith("/") || sub.includes("\0")) {
@@ -1594,6 +1686,7 @@ export class ApiServer {
         // (le bot fetch depuis l'IP du VPS = IP de résolution → CDN OK).
         "/api/hls/:id/master.m3u8": (req) => hlsMaster(req.params.id),
         "/api/hls/:id/seg": (req) => hlsSeg(req, req.params.id),
+        "/api/hls/:id/download": (req) => hlsDownload(req.params.id),
 
         "/api/public/wiki/movies": (req) =>
           publicCachedJson(req, 60 * 60_000, async () => {

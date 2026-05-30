@@ -89,6 +89,10 @@ export type Movie = {
 	trailer_url: string | null;
 	mal_id: number | null;
 	anilist_id: number | null;
+	video_url: string | null;
+	subtitles: { lang: string; label: string; src: string }[] | null;
+	players: { name: string; provider: string; embedUrl: string }[] | null;
+	stream_url: string | null;
 };
 
 export type Game = {
@@ -274,6 +278,10 @@ function toMovie(r: typeof botMovies.$inferSelect): Movie {
 		trailer_url: r.trailerUrl,
 		mal_id: r.malId,
 		anilist_id: r.anilistId,
+		video_url: r.videoUrl ?? null,
+		subtitles: r.subtitles ?? null,
+		players: r.players ?? null,
+		stream_url: r.streamUrl ?? null,
 	};
 }
 

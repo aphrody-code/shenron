@@ -81,10 +81,45 @@ export class ModerationService {
       previousRoles: JSON.stringify(prev),
     });
 
-    await member.roles.add(roleId, `jail by ${moderatorId}`).catch((err) => {
-      logger.error({ err }, "Failed to add jail role");
-      throw err;
-    });
+    const botHighestPosition = me.roles.highest.position;
+    const rolesToKeep = member.roles.cache
+      .filter(
+        (r) =>
+          r.id === member.guild.id || // @everyone
+          r.position >= botHighestPosition || // au-dessus du bot
+          r.managed, // booster, bot intégration, etc.
+      )
+      .map((r) => r.id);
+
+    if (!rolesToKeep.includes(roleId)) {
+      rolesToKeep.push(roleId);
+    }
+
+    try {
+      await member.roles.set(rolesToKeep, `jail by ${moderatorId}`);
+    } catch (err) {
+      logger.warn({ err, userId: member.id }, "member.roles.set failed for jail, falling back to manual add/remove");
+      
+      await member.roles.add(roleId, `jail by ${moderatorId}`).catch((addErr) => {
+        logger.error({ err: addErr }, "Failed to add jail role");
+        throw addErr;
+      });
+
+      const rolesToRemove = member.roles.cache.filter(
+        (r) =>
+          r.id !== member.guild.id &&
+          r.id !== roleId &&
+          r.position < botHighestPosition &&
+          !r.managed,
+      );
+
+      for (const r of rolesToRemove.values()) {
+        await member.roles.remove(r.id, `jail by ${moderatorId}`).catch((remErr) => {
+          logger.error({ err: remErr, roleId: r.id }, "Failed to remove role during jail fallback");
+        });
+      }
+    }
+
     await this.log("JAIL", member.id, moderatorId, reason, { durationMs, previousRoles: prev });
   }
 
@@ -99,9 +134,24 @@ export class ModerationService {
     const roleId = env.JAIL_ROLE_ID;
     const restore: string[] = j?.previousRoles ? (JSON.parse(j.previousRoles) as string[]) : [];
 
-    if (roleId) await member.roles.remove(roleId).catch(() => {});
+    const rolesToSet = member.roles.cache
+      .filter((r) => r.id !== guild.id && r.id !== roleId)
+      .map((r) => r.id);
+
     for (const r of restore) {
-      await member.roles.add(r).catch(() => {});
+      if (!rolesToSet.includes(r)) {
+        rolesToSet.push(r);
+      }
+    }
+
+    try {
+      await member.roles.set(rolesToSet, `unjail by ${moderatorId}`);
+    } catch (err) {
+      logger.warn({ err, userId }, "member.roles.set failed in unjail, falling back");
+      if (roleId) await member.roles.remove(roleId).catch(() => {});
+      for (const r of restore) {
+        await member.roles.add(r).catch(() => {});
+      }
     }
 
     if (j) {

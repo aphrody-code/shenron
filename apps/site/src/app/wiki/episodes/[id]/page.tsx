@@ -12,7 +12,8 @@ import type { Metadata } from "next";
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { isCurrentUserAdmin } from "@/lib/session";
 import { EpisodeMediaEditor } from "./EpisodeMediaEditor";
-import { EpisodeLecteurs } from "@/components/episodes/EpisodeLecteurs";
+import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
+import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 import { KenBurns } from "@/components/KenBurns";
 
 export const dynamic = "force-dynamic";
@@ -123,7 +124,7 @@ export default async function EpisodeDetailPage({
 	// flux de test (mux.dev) ou des tokens HLS périmés (IP-bound, ~12 h).
 	const player =
 		ep.players && ep.players.length > 0 ? (
-			<EpisodeLecteurs players={ep.players} />
+			<VideoLecteurs players={ep.players} />
 		) : ep.video_url ? (
 			<VideoPlayer
 				src={ep.video_url}
@@ -215,6 +216,17 @@ export default async function EpisodeDetailPage({
 				{player && (
 					<div className="reveal-up mb-12 shadow-2xl shadow-black/50 rounded-lg">
 						{player}
+					</div>
+				)}
+
+				{(ep.video_url || ep.stream_url) && (
+					<div className="mb-12">
+						<EpisodeDownload
+							episodeId={ep.id}
+							videoUrl={ep.video_url}
+							streamUrl={ep.stream_url}
+							title={ep.title}
+						/>
 					</div>
 				)}
 

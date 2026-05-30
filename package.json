@@ -5,6 +5,9 @@
 	"type": "module",
 	"comment-overrides": "Force une copie UNIQUE de @types/react (sinon skew 19.2.14/19.2.15 entre workspaces → casse l'augmentation JSX @pixi/react et les types Base UI).",
 	"overrides": {
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"next": "16.3.0-canary.21",
 		"@types/react": "19.2.15",
 		"@types/react-dom": "19.2.3"
 	},
@@ -14,9 +17,9 @@
 			"packages/*"
 		],
 		"catalog": {
-			"react": "canary",
-			"react-dom": "canary",
-			"next": "canary",
+			"react": "^19.0.0",
+			"react-dom": "^19.0.0",
+			"next": "16.3.0-canary.21",
 			"@next/bundle-analyzer": "^16.2.6",
 			"@next/eslint-plugin-next": "^16.2.6",
 			"eslint-config-next": "^16.2.6",

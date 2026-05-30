@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 29/05/2026
+# 📚 Base de Connaissance Unifiée — 30/05/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -34,6 +34,7 @@
 - [Déploiement de Shenron](#deploy-md)
 - [DESIGN.md — Système graphique DBFR](#design-md)
 - [GEMINI.md — Shenron Monorepo](#gemini-md)
+- [Shenron Monorepo — Learning Memory](#memory-md)
 - [PROMPT.md — Sprint DBFR (Shenron bot + site public)](#prompt-md)
 - [1. Bun ≥ 1.3](#readme-md)
 - [Recon report — https://anilist.co/](#apps-bot-data-rag-anilist-md)
@@ -3076,6 +3077,28 @@ This project is under autonomous management. Priority is given to:
 1.  **Config Autonomy:** You are authorized to update `.gemini/settings.json` without confirmation to optimize discovery, context, or execution speed.
 2.  **Learning Memory:** Every error or suboptimal strategy must be root-caused and logged in `MEMORY.md`. Use this memory to skip failed paths in future turns.
 3.  **No Friction:** Never stop for confirmation unless data loss is irreversible. Operate at the highest possible speed (Directive Omega).
+
+
+---
+
+<a name="memory-md"></a>
+## 📄 Fichier : `MEMORY.md`
+
+**Titre original :** Shenron Monorepo — Learning Memory
+
+### Shenron Monorepo — Learning Memory
+
+## 1. Drizzle Schema Pushes with Custom Postgres Schemas
+* **Issue:** In PostgreSQL, Drizzle Kit targets the `"public"` schema by default. When using custom schemas (e.g., `"bot"`), configuring `schemaFilter` in `drizzle.config.ts` causes Drizzle Kit to detect untracked tables created dynamically by the bot/sync scripts (such as `invites_log`, `jails`, `users`) and prompt to drop them, risking massive data loss.
+* **Solution:** Avoid running `drizzle-kit push` on database environments with dynamic custom schemas unless the schemas are fully mapped. Instead, apply schema changes using raw SQL migration queries (e.g. `ALTER TABLE bot.db_movies ADD COLUMN IF NOT EXISTS ...`).
+
+## 2. BXC Scraping under Cloudflare
+* **Issue:** French manga scan portals (`lelscanfr.com`, `scan-vf.net`) block standard HTTP fetch requests with HTTP 403.
+* **Solution:** Use Bxc's headless browser engine via `bxc recon <url> --profile static --json` to bypass Cloudflare and retrieve the structured image asset links.
+
+## 3. Agent Browser Sandbox in Virtual Environments
+* **Issue:** Running browser automation inside VM environments fails with Chrome FATAL zygote sandbox errors.
+* **Solution:** Always invoke the browser using the `--args "--no-sandbox"` flag (e.g., `agent-browser open <url> --args "--no-sandbox"`) to ensure successful launches.
 
 
 ---
