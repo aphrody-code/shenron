@@ -555,7 +555,11 @@ async function hlsDownload(id: string): Promise<Response> {
   const s = (await loadStreams())[id];
   if (!s?.url) return new Response("flux indisponible", { status: 404 });
   const ref = s.headers?.Referer ?? s.headers?.referer ?? "";
-  const headers = ref ? { Referer: ref, Origin: new URL(ref).origin } : {};
+  const headers: Record<string, string> = {};
+  if (ref) {
+    headers["Referer"] = ref;
+    headers["Origin"] = new URL(ref).origin;
+  }
   let up: Response;
   try {
     up = await fetch(s.url, { headers });
