@@ -76,6 +76,9 @@ export function VideoPlayer({ src, title, poster, subtitles }: VideoPlayerProps)
 							break;
 						default:
 							instance.destroy();
+							if (videoRef.current) {
+								videoRef.current.src = src;
+							}
 					}
 				});
 				instance.loadSource(src);

@@ -69,7 +69,7 @@ type Resolved = {
 
 async function resolveOne(r: Row): Promise<void> {
   const proc = Bun.spawn(
-    ["bun", "scripts/resolve-episode.ts", r.series, String(r.number_in_series)],
+    ["/home/ubuntu/.bun/bin/bun", "scripts/resolve-episode.ts", r.series, String(r.number_in_series)],
     { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" },
   );
   const out = await new Response(proc.stdout).text();

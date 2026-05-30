@@ -516,7 +516,7 @@ async function resolveStreamOnDemand(id: string): Promise<HlsStream | null> {
     console.log(`[HLS] Résolution à la volée de l'épisode ${id} (${row.series} ${row.number_in_series})...`);
     const BXC_DIR = "/home/ubuntu/bxc";
     const proc = Bun.spawn(
-      ["bun", "scripts/resolve-episode.ts", row.series, String(row.number_in_series)],
+      ["/home/ubuntu/.bun/bin/bun", "scripts/resolve-episode.ts", row.series, String(row.number_in_series)],
       { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" }
     );
     const out = await new Response(proc.stdout).text();
@@ -586,6 +586,21 @@ async function hlsMaster(id: string): Promise<Response> {
 
   if (!up || !up.ok) {
     return new Response("source en erreur", { status: 502 });
+  }
+
+  if (s.type === "mp4") {
+    const contentType = up.headers.get("content-type") ?? "video/mp4";
+    const contentLength = up.headers.get("content-length");
+    const playHeaders: Record<string, string> = {
+      "Content-Type": contentType,
+      "Cache-Control": "public, max-age=3600",
+    };
+    if (contentLength) {
+      playHeaders["Content-Length"] = contentLength;
+    }
+    return new Response(up.body, {
+      headers: playHeaders,
+    });
   }
 
   const out = hlsRewrite(await up.text(), s.url, id, ref);
@@ -670,6 +685,22 @@ async function hlsDownload(id: string): Promise<Response> {
 
   if (!up || !up.ok) {
     return new Response("source en erreur", { status: 502 });
+  }
+
+  if (s.type === "mp4") {
+    const contentType = up.headers.get("content-type") ?? "video/mp4";
+    const contentLength = up.headers.get("content-length");
+    const downloadHeaders: Record<string, string> = {
+      "Content-Type": contentType,
+      "Content-Disposition": `attachment; filename="episode-${id}.mp4"`,
+      "Cache-Control": "no-store",
+    };
+    if (contentLength) {
+      downloadHeaders["Content-Length"] = contentLength;
+    }
+    return new Response(up.body, {
+      headers: downloadHeaders,
+    });
   }
 
   let text = await up.text();
