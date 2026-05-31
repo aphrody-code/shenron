@@ -13,127 +13,135 @@ import { mkdirSync, writeFileSync } from "node:fs";
 
 const DB = new URL("../data/bot.db", import.meta.url).pathname;
 const OUT = new URL("../data/rag/", import.meta.url).pathname;
-const BXC = "/home/ubuntu/bxc";
+const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
+const BXC_PROFILE = process.env.BXC_PROFILE ?? "fast"; // recon: static|fast|http|stealth|max
 mkdirSync(OUT, { recursive: true });
 
 const db = new Database(DB, { readonly: true });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const sources = db
-	.query(`SELECT id, name, url FROM db_sources WHERE url LIKE 'http%'`)
-	.all() as { id: string; name: string; url: string }[];
+const sources = db.query(`SELECT id, name, url FROM db_sources WHERE url LIKE 'http%'`).all() as {
+  id: string;
+  name: string;
+  url: string;
+}[];
 
 // Seeds high-value (pages riches en texte, pas juste des landing pages)
 const SEEDS: { id: string; name: string; url: string }[] = [
-	{
-		id: "fandom-goku",
-		name: "Goku (Fandom EN)",
-		url: "https://dragonball.fandom.com/wiki/Goku",
-	},
-	{
-		id: "fandom-vegeta",
-		name: "Vegeta (Fandom EN)",
-		url: "https://dragonball.fandom.com/wiki/Vegeta",
-	},
-	{
-		id: "fandom-frieza",
-		name: "Frieza (Fandom EN)",
-		url: "https://dragonball.fandom.com/wiki/Frieza",
-	},
-	{
-		id: "fandom-saiyan",
-		name: "Saiyan (Fandom EN)",
-		url: "https://dragonball.fandom.com/wiki/Saiyan",
-	},
-	{
-		id: "fandom-transformations",
-		name: "Transformations",
-		url: "https://dragonball.fandom.com/wiki/Transformation",
-	},
-	{
-		id: "fandom-kihistory",
-		name: "Ki",
-		url: "https://dragonball.fandom.com/wiki/Ki",
-	},
-	{
-		id: "wiki-dbz",
-		name: "Dragon Ball Z (Wikipedia)",
-		url: "https://en.wikipedia.org/wiki/Dragon_Ball_Z",
-	},
-	{
-		id: "wiki-db",
-		name: "Dragon Ball (Wikipedia)",
-		url: "https://en.wikipedia.org/wiki/Dragon_Ball",
-	},
-	{
-		id: "wiki-dbsuper",
-		name: "Dragon Ball Super (Wikipedia)",
-		url: "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
-	},
+  {
+    id: "fandom-goku",
+    name: "Goku (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Goku",
+  },
+  {
+    id: "fandom-vegeta",
+    name: "Vegeta (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Vegeta",
+  },
+  {
+    id: "fandom-frieza",
+    name: "Frieza (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Frieza",
+  },
+  {
+    id: "fandom-saiyan",
+    name: "Saiyan (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Saiyan",
+  },
+  {
+    id: "fandom-transformations",
+    name: "Transformations",
+    url: "https://dragonball.fandom.com/wiki/Transformation",
+  },
+  {
+    id: "fandom-kihistory",
+    name: "Ki",
+    url: "https://dragonball.fandom.com/wiki/Ki",
+  },
+  {
+    id: "wiki-dbz",
+    name: "Dragon Ball Z (Wikipedia)",
+    url: "https://en.wikipedia.org/wiki/Dragon_Ball_Z",
+  },
+  {
+    id: "wiki-db",
+    name: "Dragon Ball (Wikipedia)",
+    url: "https://en.wikipedia.org/wiki/Dragon_Ball",
+  },
+  {
+    id: "wiki-dbsuper",
+    name: "Dragon Ball Super (Wikipedia)",
+    url: "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
+  },
 ];
 
+// Préférer le wrapper bin/bxc (exécute le binaire standalone compilé, bien plus
+// rapide que `bun run` du source) ; fallback `bun run bxc` si le binaire manque.
+const BXC_BIN = `${BXC_DIR}/bin/bxc`;
+const hasBin = await Bun.file(BXC_BIN).exists();
+
 async function recon(url: string): Promise<string | null> {
-	const proc = Bun.spawn(
-		["bun", "run", "bxc", "recon", url, "--profile", "fast"],
-		{
-			cwd: BXC,
-			stdout: "pipe",
-			stderr: "ignore",
-		},
-	);
-	const out = await new Response(proc.stdout).text();
-	const code = await proc.exited;
-	if (code !== 0 || out.length < 50) return null;
-	return out;
+  const cmd = hasBin
+    ? [BXC_BIN, "recon", url, "--profile", BXC_PROFILE]
+    : ["bun", "run", "bxc", "recon", url, "--profile", BXC_PROFILE];
+  const proc = Bun.spawn(cmd, {
+    cwd: hasBin ? undefined : BXC_DIR,
+    stdout: "pipe",
+    stderr: "ignore",
+  });
+  const out = await new Response(proc.stdout).text();
+  const code = await proc.exited;
+  if (code !== 0 || out.length < 50) return null;
+  return out;
 }
 
 async function main() {
-	const all = [...sources, ...SEEDS];
-	const corpus: Array<{
-		id: string;
-		name: string;
-		url: string;
-		chars: number;
-		markdown: string;
-	}> = [];
-	for (const s of all) {
-		let md: string | null = null;
-		for (let a = 0; a < 2 && !md; a++) {
-			md = await recon(s.url);
-			if (!md) await sleep(1500);
-		}
-		await sleep(800);
-		if (!md) {
-			console.log(`✗ ${s.id} — recon KO (${s.url})`);
-			continue;
-		}
-		writeFileSync(`${OUT}${s.id}.md`, md);
-		corpus.push({
-			id: s.id,
-			name: s.name,
-			url: s.url,
-			chars: md.length,
-			markdown: md,
-		});
-		console.log(`✓ ${s.id} — ${md.length} chars`);
-	}
-	writeFileSync(
-		`${OUT}corpus.json`,
-		JSON.stringify(
-			{
-				generatedAt: new Date().toISOString(),
-				count: corpus.length,
-				docs: corpus,
-			},
-			null,
-			0,
-		),
-	);
-	console.log(`\n${corpus.length}/${all.length} sources → ${OUT}corpus.json`);
-	db.close();
+  const all = [...sources, ...SEEDS];
+  const corpus: Array<{
+    id: string;
+    name: string;
+    url: string;
+    chars: number;
+    markdown: string;
+  }> = [];
+  for (const s of all) {
+    let md: string | null = null;
+    for (let a = 0; a < 2 && !md; a++) {
+      md = await recon(s.url);
+      if (!md) await sleep(1500);
+    }
+    await sleep(800);
+    if (!md) {
+      console.log(`✗ ${s.id} — recon KO (${s.url})`);
+      continue;
+    }
+    writeFileSync(`${OUT}${s.id}.md`, md);
+    corpus.push({
+      id: s.id,
+      name: s.name,
+      url: s.url,
+      chars: md.length,
+      markdown: md,
+    });
+    console.log(`✓ ${s.id} — ${md.length} chars`);
+  }
+  writeFileSync(
+    `${OUT}corpus.json`,
+    JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        count: corpus.length,
+        docs: corpus,
+      },
+      null,
+      0,
+    ),
+  );
+  console.log(`\n${corpus.length}/${all.length} sources → ${OUT}corpus.json`);
+  db.close();
 }
 
 main().catch((e) => {
-	console.error(e);
-	process.exit(1);
+  console.error(e);
+  process.exit(1);
 });

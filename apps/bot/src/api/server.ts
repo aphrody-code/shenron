@@ -516,7 +516,7 @@ async function resolveStreamOnDemand(id: string): Promise<HlsStream | null> {
     console.log(
       `[HLS] Résolution à la volée de l'épisode ${id} (${row.series} ${row.number_in_series})...`,
     );
-    const BXC_DIR = "/home/ubuntu/bxc";
+    const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
     const proc = Bun.spawn(
       [
         "/home/ubuntu/.bun/bin/bun",
