@@ -1,13 +1,6 @@
 import { db } from "@/lib/db";
 import { getShenronPersonas, getShenronStats } from "@/lib/shenron";
-import { LandingHero } from "@/components/landing/LandingHero";
-import { StatsTicker } from "@/components/landing/StatsTicker";
-import { GamesShowcase } from "@/components/landing/GamesShowcase";
-import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
-import { UniverseGrid } from "@/components/landing/UniverseGrid";
-import { PersonasShowcase } from "@/components/landing/PersonasShowcase";
-import { BlogTeaser } from "@/components/landing/BlogTeaser";
-import { CtaFinal } from "@/components/landing/CtaFinal";
+import { HomeExperience } from "@/components/home/HomeExperience";
 import {
 	botSagas,
 	botEpisodes,
@@ -31,14 +24,15 @@ function getLatestPosts() {
 
 async function getWikiCounts() {
 	try {
-		const [sagas, episodes, movies, characters, planets, chapters] = await Promise.all([
-			db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
-			db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
-			db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
-			db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
-			db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
-			db.select({ count: sql<number>`count(*)::int` }).from(botMangaChapters),
-		]);
+		const [sagas, episodes, movies, characters, planets, chapters] =
+			await Promise.all([
+				db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
+				db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
+				db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
+				db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
+				db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
+				db.select({ count: sql<number>`count(*)::int` }).from(botMangaChapters),
+			]);
 		return {
 			sagas: sagas[0]?.count ?? 0,
 			episodes: episodes[0]?.count ?? 0,
@@ -71,39 +65,27 @@ export default async function Home() {
 	]);
 
 	return (
-		<div className="flex-1 flex flex-col">
-			<LandingHero />
-			{/* Vrais chiffres live du bot (membres, XP, zénis, succès) */}
-			<StatsTicker stats={stats} />
-			{/* Vrais mini-jeux jouables (2048 embarqué + PFC/Morpion/Bingo/Pendu) */}
-			<GamesShowcase />
-			{/* Vraies features → liens vers wiki / profil / shop / classement / blog */}
-			<FeaturesGrid />
-			<UniverseGrid wikiCounts={wikiCounts} />
-			<PersonasShowcase
-				personas={personas.map((p) => ({
-					id: p.id,
-					name: p.name,
-					avatar: p.avatar,
-				}))}
-			/>
-			{posts.length > 0 && (
-				<BlogTeaser
-					posts={posts.map((p) => ({
-						id: p.id,
-						slug: p.slug,
-						title: p.title,
-						excerpt: p.excerpt,
-						cover: p.cover,
-						createdAt: p.createdAt,
-						author: {
-							username: p.author.username,
-							avatar: p.author.avatar,
-						},
-					}))}
-				/>
-			)}
-			<CtaFinal />
-		</div>
+		<HomeExperience
+			stats={stats}
+			personas={personas.map((p) => ({
+				id: p.id,
+				name: p.name,
+				avatar: p.avatar,
+				online: p.online,
+			}))}
+			wikiCounts={wikiCounts}
+			posts={posts.map((p) => ({
+				id: p.id,
+				slug: p.slug,
+				title: p.title,
+				excerpt: p.excerpt,
+				cover: p.cover,
+				createdAt: p.createdAt,
+				author: {
+					username: p.author.username,
+					avatar: p.author.avatar,
+				},
+			}))}
+		/>
 	);
 }

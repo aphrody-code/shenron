@@ -1,0 +1,163 @@
+"use client";
+
+// État LIVE du bot pour la home : poll des stats publiques + personas en ligne
+// toutes les 25 s (gelé quand l'onglet est masqué) + flux SSE `a2a/events` pour
+// la pulsation temps réel. Tout est défensif (try/catch, fallback sur l'état SSR
+// initial) : la home reflète l'état réel mais ne casse jamais si l'API hoquette.
+import { useEffect, useRef, useState } from "react";
+
+const API_BASE =
+	process.env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://bot.dragonballfr.com";
+
+export interface BotStats {
+	users: number;
+	totalXp: number;
+	totalZeni: number;
+	achievementsUnlocked: number;
+	shopItems: number;
+	inventoryItems: number;
+}
+
+export interface PersonaLive {
+	id: string;
+	name: string;
+	avatar: string | null;
+	avatarUrl?: string | null;
+	online: boolean;
+}
+
+export interface LiveEvent {
+	key: number;
+	type: string;
+	label: string;
+}
+
+export interface LiveState {
+	stats: BotStats;
+	personas: PersonaLive[];
+	onlineCount: number;
+	connected: boolean;
+	events: LiveEvent[];
+	refreshedAt: number;
+}
+
+function labelForEvent(type: string, data: unknown): string {
+	const d = (data ?? {}) as Record<string, unknown>;
+	const who = (d.username as string) || (d.name as string) || "Un guerrier";
+	switch (type) {
+		case "level-up":
+		case "levelup":
+			return `${who} passe niveau ${d.level ?? ""}`.trim();
+		case "achievement":
+			return `${who} débloque un succès`;
+		case "message-xp":
+		case "xp":
+			return `${who} gagne de l'XP`;
+		case "fusion":
+			return `Fusion accomplie`;
+		default:
+			return type.replace(/[-_]/g, " ");
+	}
+}
+
+export function useLiveBotState(initial: {
+	stats: BotStats;
+	personas: PersonaLive[];
+}): LiveState {
+	const [stats, setStats] = useState<BotStats>(initial.stats);
+	const [personas, setPersonas] = useState<PersonaLive[]>(initial.personas);
+	const [connected, setConnected] = useState(false);
+	const [events, setEvents] = useState<LiveEvent[]>([]);
+	const [refreshedAt, setRefreshedAt] = useState(0);
+	const evKey = useRef(0);
+
+	// ── Poll stats + personas ───────────────────────────────────────────────
+	useEffect(() => {
+		let alive = true;
+		const ac = new AbortController();
+
+		async function pull() {
+			if (typeof document !== "undefined" && document.hidden) return;
+			try {
+				const [s, p] = await Promise.all([
+					fetch(`${API_BASE}/api/public/stats`, {
+						signal: ac.signal,
+						cache: "no-store",
+					}).then((r) => (r.ok ? r.json() : null)),
+					fetch(`${API_BASE}/api/public/personas`, {
+						signal: ac.signal,
+						cache: "no-store",
+					}).then((r) => (r.ok ? r.json() : null)),
+				]);
+				if (!alive) return;
+				if (s && typeof s.users === "number") setStats((prev) => ({ ...prev, ...s }));
+				const list = p?.personas;
+				if (Array.isArray(list) && list.length) setPersonas(list);
+				setRefreshedAt(performance.now());
+			} catch {
+				/* réseau capricieux → on garde l'état précédent */
+			}
+		}
+
+		const id = setInterval(pull, 25_000);
+		const onVis = () => {
+			if (!document.hidden) pull();
+		};
+		document.addEventListener("visibilitychange", onVis);
+		pull();
+		return () => {
+			alive = false;
+			ac.abort();
+			clearInterval(id);
+			document.removeEventListener("visibilitychange", onVis);
+		};
+	}, []);
+
+	// ── SSE temps réel (a2a/events public) ──────────────────────────────────
+	useEffect(() => {
+		if (typeof window === "undefined" || !("EventSource" in window)) return;
+		let es: EventSource | null = null;
+		let retry: ReturnType<typeof setTimeout> | null = null;
+
+		const connect = () => {
+			try {
+				es = new EventSource(`${API_BASE}/api/a2a/events`);
+			} catch {
+				return;
+			}
+			es.onopen = () => setConnected(true);
+			es.onmessage = (e) => {
+				let type = "event";
+				let data: unknown = null;
+				try {
+					const parsed = JSON.parse(e.data);
+					type = parsed.type ?? parsed.event ?? "event";
+					data = parsed.data ?? parsed;
+				} catch {
+					/* keep-alive / message brut */
+				}
+				if (type === "ping" || type === "keep-alive") return;
+				evKey.current += 1;
+				const ev: LiveEvent = {
+					key: evKey.current,
+					type,
+					label: labelForEvent(type, data),
+				};
+				setEvents((prev) => [ev, ...prev].slice(0, 6));
+			};
+			es.onerror = () => {
+				setConnected(false);
+				es?.close();
+				retry = setTimeout(connect, 8_000);
+			};
+		};
+		connect();
+		return () => {
+			es?.close();
+			if (retry) clearTimeout(retry);
+		};
+	}, []);
+
+	const onlineCount = personas.reduce((n, p) => n + (p.online ? 1 : 0), 0);
+	return { stats, personas, onlineCount, connected, events, refreshedAt };
+}
