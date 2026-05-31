@@ -2,7 +2,9 @@ import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
 	boolean,
+	index,
 	integer,
+	jsonb,
 	pgTable,
 	text,
 	timestamp,
@@ -132,6 +134,83 @@ export const baVerification = pgTable("ba_verification", {
 	createdAt: timestamp("createdAt"),
 	updatedAt: timestamp("updatedAt"),
 });
+
+// --- First-party web telemetry (RGPD-safe) ---
+//
+// Télémétrie web maison du SITE, séparée du gameplay du bot (XP/messages :
+// SQLite côté bot). Alimente recommandations + personnalisation selon les
+// habitudes de navigation. Privacy-first :
+//   - jamais d'IP brute : `visitorHash` = SHA-256(IP+UA+sel quotidien), rotaté
+//     chaque jour → ré-identification impossible passé 24 h.
+//   - `userId` rattaché seulement si session Better Auth (connecté).
+//   - `anonId` = cookie httpOnly signé (pseudonyme stable, pas un identifiant
+//     personnel) pour relier les vues d'un même visiteur anonyme.
+//   - aucune donnée non-essentielle écrite sans consentement (cf. ConsentGate).
+
+export const siteEvents = pgTable(
+	"site_events",
+	{
+		id: cuid(),
+		// Horodatage serveur (la source de vérité ; on ignore l'horloge client).
+		ts: timestamp("ts", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		// Type d'event (union typée côté client : wiki_view, search, cta_click…).
+		type: text("type").notNull(),
+		// Utilisateur connecté (Better Auth) — null si anonyme.
+		userId: text("userId"),
+		// Pseudonyme stable du visiteur anonyme (cookie httpOnly signé).
+		anonId: text("anonId").notNull(),
+		// Session de navigation (regroupe les events d'une même visite, ~30 min).
+		sessionId: text("sessionId").notNull(),
+		// Entité concernée (character, saga, movie, episode…) + son id, pour la reco.
+		entityType: text("entityType"),
+		entityId: text("entityId"),
+		// Chemin de la page (sans query string — pas de données perso dans l'URL).
+		path: text("path").notNull(),
+		// Référent interne/externe normalisé (host seul pour l'externe).
+		referrer: text("referrer"),
+		// Hash visiteur rotaté quotidiennement (anti-doublon, jamais d'IP brute).
+		visitorHash: text("visitorHash"),
+		// Propriétés libres typées par event (jsonb).
+		props: jsonb("props").$type<Record<string, unknown>>(),
+	},
+	(t) => [
+		index("site_events_user_idx").on(t.userId),
+		index("site_events_anon_idx").on(t.anonId),
+		index("site_events_entity_idx").on(t.entityType, t.entityId),
+		index("site_events_type_ts_idx").on(t.type, t.ts),
+	],
+);
+
+// Préférences dérivées (agrégat des events) — une ligne par identité
+// (userId si connu, sinon anonId). Rafraîchie par le module recommendations.
+export const userPreferences = pgTable(
+	"user_preferences",
+	{
+		id: cuid(),
+		// Clé d'identité : "u:<userId>" ou "a:<anonId>" (unique).
+		identity: text("identity").notNull().unique(),
+		userId: text("userId"),
+		anonId: text("anonId"),
+		// Préférences dérivées : ères favorites, persos/sagas vus, sections,
+		// langue, séries préférées… Forme libre, faite évoluer sans migration.
+		prefs: jsonb("prefs").$type<Record<string, unknown>>().notNull().default({}),
+		// Nombre d'events agrégés (fraîcheur / poids de confiance).
+		eventCount: integer("eventCount").notNull().default(0),
+		updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	},
+	(t) => [
+		index("user_preferences_user_idx").on(t.userId),
+		index("user_preferences_anon_idx").on(t.anonId),
+	],
+);
+
+export type SiteEvent = typeof siteEvents.$inferSelect;
+export type SiteEventInsert = typeof siteEvents.$inferInsert;
+export type UserPreferences = typeof userPreferences.$inferSelect;
 
 // --- Relations ---
 

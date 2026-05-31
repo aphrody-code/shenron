@@ -1,4 +1,5 @@
 import { JsonLd } from "@/components/JsonLd";
+import { TrackView } from "@/components/TrackView";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
@@ -90,6 +91,11 @@ export default async function CharacterPage({
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up">
 			<JsonLd data={breadcrumb} />
+			<TrackView
+				entityType="character"
+				entityId={character.id}
+				entityName={character.name}
+			/>
 			<Link
 				href="/wiki/dragon-ball"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"

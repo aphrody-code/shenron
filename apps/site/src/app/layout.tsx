@@ -9,6 +9,7 @@ import { GoogleTagManager } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { ConsentGate } from "@/components/ConsentGate";
 
 // FAB Discord lazy : composant client gated par localStorage, jamais critical.
 const DiscordInviteFAB = dynamic(() =>
@@ -120,6 +121,7 @@ export default function RootLayout({
 				</main>
 				<SiteFooter />
 				<DiscordInviteFAB />
+				<ConsentGate />
 				<Toaster
 					theme="dark"
 					position="bottom-right"
