@@ -89,6 +89,12 @@ const nextConfig: NextConfig = {
 		return [
 			{ source: "/wiki/dragon-ball/movies", destination: "/wiki/films", permanent: true },
 			{ source: "/wiki/dragon-ball/movie/:id", destination: "/wiki/films", permanent: true },
+			// Ancien index « Encyclopédie » fourre-tout → page Personnages dédiée.
+			// 308 dur au routing (un permanentRedirect() en composant dégradait en
+			// page 200 + <meta refresh>, cf. layout /wiki en streaming). Les routes
+			// détail enfants (/wiki/dragon-ball/character|planet|techniques/…) ne
+			// sont PAS capturées : la source est le chemin exact, sans wildcard.
+			{ source: "/wiki/dragon-ball", destination: "/wiki/personnages", permanent: true },
 		];
 	},
 

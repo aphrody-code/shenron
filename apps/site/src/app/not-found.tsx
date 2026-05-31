@@ -23,7 +23,7 @@ export default function NotFound() {
 							Retour à la base
 						</Link>
 						<Link href="/wiki" className="dbz-button-ghost !text-xs">
-							Explorer le Wiki
+							Explorer l'univers
 						</Link>
 					</div>
 				</div>
