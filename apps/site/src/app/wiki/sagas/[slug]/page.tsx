@@ -143,7 +143,7 @@ export default async function SagaPage({
 					>
 						VOIR LES ÉPISODES
 					</Link>
-					<Link href="/wiki/dragon-ball" className="dbz-button-ghost">
+					<Link href="/wiki/personnages" className="dbz-button-ghost">
 						PERSONNAGES
 					</Link>
 				</div>

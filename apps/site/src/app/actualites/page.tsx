@@ -65,7 +65,7 @@ export default async function ActualitesPage({
 					</p>
 					<div className="flex flex-wrap gap-3">
 						<Link
-							href="/wiki/dragon-ball"
+							href="/wiki"
 							className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase transition-colors"
 						>
 							Explorer le wiki

@@ -11,81 +11,75 @@ import Image from "next/image";
 
 export const revalidate = 3600;
 
-const SECTIONS = [
-	{
-		title: "Encyclopédie",
-		desc: "58 personnages, planètes, transformations, techniques.",
-		href: "/wiki/dragon-ball",
-		color: "border-dbz-orange text-dbz-orange",
-		accent: "dbz-orange",
-	},
-	{
-		title: "Sagas",
-		desc: "29 sagas de Dragon Ball à Daima, arc par arc.",
-		href: "/wiki/sagas",
-		color: "border-dbz-red text-dbz-red",
-		accent: "dbz-red",
-	},
-	{
-		title: "Films",
-		desc: "25 long-métrages avec posters et trailers.",
-		href: "/wiki/films",
-		color: "border-dbz-yellow text-dbz-yellow",
-		accent: "dbz-yellow",
-	},
-	{
-		title: "Épisodes",
-		desc: "652 épisodes avec vignettes, toutes séries.",
-		href: "/wiki/episodes",
-		color: "border-dbz-blue-light text-dbz-blue-light",
-		accent: "dbz-blue-light",
-	},
-	{
-		title: "Manga",
-		desc: "146 volumes et 1417 chapitres (DB & Super).",
-		href: "/wiki/manga",
-		color: "border-white text-white",
-		accent: "white",
-	},
-	{
-		title: "Jeux Vidéo",
-		desc: "58 titres officiels avec covers.",
-		href: "/wiki/jeux",
-		color: "border-green-400 text-green-400",
-		accent: "green-400",
-	},
-	{
-		title: "Races",
-		desc: "15 races avec personnages représentants.",
-		href: "/wiki/races",
-		color: "border-purple-400 text-purple-400",
-		accent: "purple-400",
-	},
-	{
-		title: "Techniques",
-		desc: "120 techniques et capacités spéciales.",
-		href: "/wiki/dragon-ball/techniques",
-		color: "border-dbz-red text-dbz-red",
-		accent: "dbz-red",
-	},
-	{
-		title: "Actualités",
-		desc: "942 articles et news de l'univers DBZ.",
-		href: "/wiki/news",
-		color: "border-dbz-orange text-dbz-orange",
-		accent: "dbz-orange",
-	},
-	{
-		title: "Recherche",
-		desc: "Scouter global : personnages, planètes, films.",
-		href: "/wiki/search",
-		color: "border-green-500 text-green-500",
-		accent: "green-500",
-	},
-];
+// Sections du hub — descriptions dérivées des comptes RÉELS de la DB (Neon),
+// plus aucun nombre codé en dur (la DB grossit, les libellés suivent).
+function buildSections(c: Record<string, number>) {
+	return [
+		{
+			title: "Personnages",
+			desc: `${c.characters} guerriers — Saiyans, Nameks, dieux, androïdes.`,
+			href: "/wiki/personnages",
+			color: "border-dbz-orange text-dbz-orange",
+		},
+		{
+			title: "Planètes",
+			desc: `${c.planets} mondes à travers les douze univers.`,
+			href: "/wiki/planetes",
+			color: "border-dbz-blue-light text-dbz-blue-light",
+		},
+		{
+			title: "Sagas",
+			desc: `${c.sagas} sagas de Dragon Ball à Daima, arc par arc.`,
+			href: "/wiki/sagas",
+			color: "border-dbz-red text-dbz-red",
+		},
+		{
+			title: "Films",
+			desc: `${c.movies} long-métrages avec posters et trailers.`,
+			href: "/wiki/films",
+			color: "border-dbz-yellow text-dbz-yellow",
+		},
+		{
+			title: "Épisodes",
+			desc: `${c.episodes} épisodes avec vignettes, toutes séries.`,
+			href: "/wiki/episodes",
+			color: "border-dbz-blue-light text-dbz-blue-light",
+		},
+		{
+			title: "Manga",
+			desc: `${c.mangaVolumes} volumes et ${c.mangaChapters} chapitres (DB & Super).`,
+			href: "/wiki/manga",
+			color: "border-white text-white",
+		},
+		{
+			title: "Jeux Vidéo",
+			desc: `${c.games} titres officiels avec jaquettes.`,
+			href: "/wiki/jeux",
+			color: "border-green-400 text-green-400",
+		},
+		{
+			title: "Races",
+			desc: `${c.races} races avec personnages représentants.`,
+			href: "/wiki/races",
+			color: "border-purple-400 text-purple-400",
+		},
+		{
+			title: "Techniques",
+			desc: `${c.techniques} techniques et capacités spéciales.`,
+			href: "/wiki/dragon-ball/techniques",
+			color: "border-dbz-red text-dbz-red",
+		},
+		{
+			title: "Recherche",
+			desc: "Scouter global : personnages, planètes, films, techniques.",
+			href: "/wiki/search",
+			color: "border-green-500 text-green-500",
+		},
+	];
+}
 
 export default async function WikiIndex() {
-	const [characters, movies, planets, races, techniques, episodesData] =
+	const [characters, movies, planets, races, techniques, episodesData, counts] =
 		await Promise.all([
 			getShenronCharacters(),
 			getShenronMovies(),
@@ -93,7 +87,26 @@ export default async function WikiIndex() {
 			getShenronRaces(),
 			getShenronTechniques(),
 			dbUniverse.episodes("DBZ", 6, 0),
+			dbUniverse.counts(),
 		]);
+
+	const c = counts ?? {
+		characters: characters.length,
+		planets: planets.length,
+		sagas: 0,
+		arcs: 0,
+		movies: movies.length,
+		episodes: 0,
+		games: 0,
+		races: races.length,
+		techniques: techniques.length,
+		transformations: 0,
+		mangaVolumes: 0,
+		mangaChapters: 0,
+		news: 0,
+		tools: 0,
+	};
+	const SECTIONS = buildSections(c);
 
 	const featuredChars = characters.slice(0, 8);
 	const featuredMovies = movies.slice(0, 6);
@@ -112,7 +125,7 @@ export default async function WikiIndex() {
 				<p className="text-lg text-gray-400 max-w-3xl leading-relaxed font-sans">
 					{characters.length} personnages &middot; {planets.length} planètes
 					&middot; {movies.length} films &middot; {techniques.length} techniques
-					&middot; {races.length} races &middot; 652 épisodes. Tout
+					&middot; {races.length} races &middot; {c.episodes} épisodes. Tout
 					l&apos;univers Dragon Ball en français.
 				</p>
 			</header>
@@ -155,10 +168,10 @@ export default async function WikiIndex() {
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
 						</div>
 						<Link
-							href="/wiki/dragon-ball"
+							href="/wiki/personnages"
 							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
 						>
-							Voir tous →
+							Voir tous ({c.characters}) →
 						</Link>
 					</div>
 					<div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4">
@@ -262,7 +275,7 @@ export default async function WikiIndex() {
 							href="/wiki/episodes"
 							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
 						>
-							652 épisodes →
+							{c.episodes} épisodes →
 						</Link>
 					</div>
 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
@@ -315,7 +328,7 @@ export default async function WikiIndex() {
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
 						</div>
 						<Link
-							href="/wiki/dragon-ball"
+							href="/wiki/planetes"
 							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
 						>
 							{planets.length} mondes →

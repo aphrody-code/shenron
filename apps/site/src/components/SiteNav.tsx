@@ -10,7 +10,7 @@ import { MobileNav } from "@/components/MobileNav";
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
-	{ href: "/wiki/dragon-ball", label: "Personnages" },
+	{ href: "/wiki/personnages", label: "Personnages" },
 	{ href: "/wiki/sagas", label: "Sagas" },
 	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
 	{ href: "/wiki/films", label: "Films" },

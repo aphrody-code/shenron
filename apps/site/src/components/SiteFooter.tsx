@@ -4,7 +4,7 @@ const COLUMNS = [
 	{
 		title: "Explorer",
 		links: [
-			{ href: "/wiki/dragon-ball", label: "Wiki personnages" },
+			{ href: "/wiki/personnages", label: "Wiki personnages" },
 			{ href: "/wiki", label: "Planètes & sagas" },
 			{ href: "/actualites", label: "Actualités" },
 			{ href: "/leaderboard", label: "Classement" },

@@ -9,7 +9,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: "Races Dragon Ball — DBFR",
 	description:
-		"Les 15 races de l'univers Dragon Ball : Saiyans, Nameks, Humains, Cyborgs, Démons du Froid.",
+		"Les races de l'univers Dragon Ball : Saiyans, Nameks, Humains, Cyborgs, Démons du Froid.",
 };
 
 export default async function RacesPage() {

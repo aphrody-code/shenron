@@ -12,7 +12,7 @@
  */
 import "server-only";
 import { and, asc, desc, eq, gt, ilike, isNotNull, lt, or, sql } from "drizzle-orm";
-import type { PgColumn } from "drizzle-orm/pg-core";
+import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import {
@@ -430,6 +430,42 @@ function fuzzyOrder(term: string, cols: PgColumn[]) {
 }
 
 export const dbUniverse = {
+	/**
+	 * Compte réel de chaque table wiki (Neon `bot.*`), source unique pour les
+	 * libellés « N personnages / N films … » — fini les nombres codés en dur qui
+	 * se désynchronisent dès que la DB grossit. Un seul round-trip groupé.
+	 */
+	counts: () =>
+		safe(async () => {
+			const tables = {
+				characters: botCharacters,
+				planets: botPlanets,
+				sagas: botSagas,
+				arcs: botArcs,
+				movies: botMovies,
+				episodes: botEpisodes,
+				games: botGames,
+				races: botRaces,
+				techniques: botTechniques,
+				transformations: botTransformations,
+				mangaVolumes: botMangaVolumes,
+				mangaChapters: botMangaChapters,
+				news: botNews,
+				tools: botTools,
+			} satisfies Record<string, PgTable>;
+			const entries = await Promise.all(
+				(Object.entries(tables) as [keyof typeof tables, PgTable][]).map(
+					async ([key, table]) => {
+						const [{ n }] = await db
+							.select({ n: sql<number>`count(*)::int` })
+							.from(table);
+						return [key, Number(n ?? 0)] as const;
+					},
+				),
+			);
+			return Object.fromEntries(entries) as Record<keyof typeof tables, number>;
+		}),
+
 	sagas: () =>
 		safe(async () => ({
 			sagas: (

@@ -30,10 +30,10 @@ export function CharactersTeaser({
 						/>
 					</div>
 					<Link
-						href="/wiki/dragon-ball"
+						href="/wiki/personnages"
 						className="font-display font-semibold text-[13px] tracking-[0.12em] uppercase text-white hover:text-dbz-orange transition-colors border-b border-white/30 hover:border-dbz-orange pb-1"
 					>
-						Voir les 58 personnages
+						Voir tous les personnages
 					</Link>
 				</div>
 

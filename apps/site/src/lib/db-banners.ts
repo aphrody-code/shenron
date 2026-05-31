@@ -22,6 +22,8 @@ export const SERIES_BANNERS: Record<string, string> = {
 };
 
 export const SAGAS_HERO = `${API}/db/dbofficial/207-battle2026_banner.jpg`;
+export const CHARACTERS_HERO = `${API}/db/dbofficial/207-battle2026_banner.jpg`;
+export const PLANETS_HERO = `${API}/db/toei/189-DB-DAIMA-HP-Header-1920x595.png`;
 export const FILMS_HERO = `${API}/db/dbofficial/231-240719_DAIMA_DBOS_Banner-news_EN_770-404.jpg`;
 export const GAMES_HERO = `${API}/db/toei/101-bandai_dragon_ball_super_figurines_toys.jpeg`;
 export const NEWS_HERO = `${API}/db/dbofficial/207-battle2026_banner.jpg`;

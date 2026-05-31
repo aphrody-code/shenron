@@ -393,8 +393,8 @@ export function HomeExperience({
 					</header>
 					<div className="home-grid-stats">
 						{[
-							{ k: "characters", label: "Personnages", href: "/wiki/dragon-ball" },
-							{ k: "planets", label: "Planètes", href: "/wiki" },
+							{ k: "characters", label: "Personnages", href: "/wiki/personnages" },
+							{ k: "planets", label: "Planètes", href: "/wiki/planetes" },
 							{ k: "sagas", label: "Sagas", href: "/wiki/sagas" },
 							{ k: "episodes", label: "Épisodes", href: "/wiki/episodes" },
 							{ k: "movies", label: "Films", href: "/wiki/films" },

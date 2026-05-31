@@ -78,7 +78,7 @@ export function LandingHero() {
 
 					<div className="flex flex-wrap items-center gap-4">
 						<Link
-							href="/wiki/dragon-ball"
+							href="/wiki"
 							className="inline-flex items-center h-12 px-7 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[14px] tracking-[0.10em] uppercase transition-colors"
 						>
 							Explorer le wiki

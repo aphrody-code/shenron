@@ -18,7 +18,7 @@ const FEATURES: Feature[] = [
 	},
 	{
 		title: "Wiki Dragon Ball",
-		desc: "58 personnages, 20 planètes, noms japonais et romaji.",
+		desc: "Personnages, planètes, sagas, noms japonais et romaji.",
 		href: "/wiki",
 		cta: "Explorer",
 		accent: "cyan",

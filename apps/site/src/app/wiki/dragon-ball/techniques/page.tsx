@@ -11,7 +11,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: "Techniques Dragon Ball — DBFR",
 	description:
-		"Catalogue des 120 techniques et capacités de l'univers Dragon Ball : Kamehameha, Genkidama, Final Flash et plus.",
+		"Catalogue des techniques et capacités de l'univers Dragon Ball : Kamehameha, Genkidama, Final Flash et plus.",
 };
 
 export default async function TechniquesPage() {
