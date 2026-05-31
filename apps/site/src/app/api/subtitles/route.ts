@@ -8,16 +8,11 @@
  * figé sur l'API bot (`SHENRON_API_URL`). Aucune URL arbitraire n'est fetchée.
  * Same-origin pour le navigateur → pas de souci CORS sur `<track>`.
  */
-import { env } from "@/lib/env";
+import { ASSET_BASE } from "@/lib/config";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const ASSET_BASE = (env.SHENRON_API_URL ?? "https://bot.dragonballfr.com").replace(
-	/\/+$/,
-	"",
-);
 
 // Chemin d'asset sous-titres autorisé : seulement sous assets/subtitles/.
 const SRC_RE = /^assets\/subtitles\/[A-Za-z0-9._\-/]+\.(srt|vtt)$/;

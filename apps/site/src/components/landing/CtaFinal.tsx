@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { DISCORD_INVITE } from "@/lib/config";
 
 export function CtaFinal() {
-	const inviteUrl =
-		process.env.NEXT_PUBLIC_DISCORD_INVITE_URL ?? "https://discord.gg/dbfr";
+	const inviteUrl = DISCORD_INVITE;
 	return (
 		<section className="relative py-32 md:py-40 overflow-hidden">
 			{/* Nébuleuse radiale finale */}

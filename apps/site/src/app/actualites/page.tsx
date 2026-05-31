@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { DISCORD_INVITE } from "@/lib/config";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -71,7 +72,7 @@ export default async function ActualitesPage({
 							Explorer le wiki
 						</Link>
 						<a
-							href="https://discord.gg/dbfr"
+							href={DISCORD_INVITE}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="inline-flex items-center h-10 px-5 rounded-full border border-white/20 hover:border-dbz-orange text-white font-display font-semibold text-[12px] tracking-[0.10em] uppercase transition-colors"

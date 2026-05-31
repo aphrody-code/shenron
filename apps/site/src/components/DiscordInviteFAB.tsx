@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DISCORD_INVITE } from "@/lib/config";
 
 export function DiscordInviteFAB() {
 	const [isVisible, setIsVisible] = useState(false);
@@ -19,9 +20,7 @@ export function DiscordInviteFAB() {
 		setIsVisible(false);
 	};
 
-	const inviteUrl =
-		process.env.NEXT_PUBLIC_DISCORD_INVITE_URL ??
-		"https://discord.gg/votre_invite_ici";
+	const inviteUrl = DISCORD_INVITE;
 
 	return (
 		<div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50">

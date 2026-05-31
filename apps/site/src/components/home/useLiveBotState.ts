@@ -5,9 +5,7 @@
 // la pulsation temps réel. Tout est défensif (try/catch, fallback sur l'état SSR
 // initial) : la home reflète l'état réel mais ne casse jamais si l'API hoquette.
 import { useEffect, useRef, useState } from "react";
-
-const API_BASE =
-	process.env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://bot.dragonballfr.com";
+import { API_URL as API_BASE } from "@/lib/config";
 
 export interface BotStats {
 	users: number;

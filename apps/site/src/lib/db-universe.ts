@@ -14,7 +14,7 @@ import "server-only";
 import { and, asc, desc, eq, gt, ilike, isNotNull, lt, or, sql } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
-import { env } from "@/lib/env";
+import { API_URL } from "@/lib/config";
 import {
 	botArcs,
 	botEpisodes,
@@ -38,9 +38,9 @@ export { assetUrl } from "@/lib/assets";
 export type { EpisodeFrame } from "@/db/bot-schema";
 
 // API REST du bot — uniquement pour le RAG (index FTS5 `rag_chunks`, NON
-// miroité dans Neon). Lue paresseusement (server-only).
+// miroité dans Neon). Base résolue par `@/lib/config` (source unique des URL).
 function apiBase(): string {
-	return (env.SHENRON_API_URL ?? "https://bot.dragonballfr.com").replace(/\/+$/, "");
+	return API_URL;
 }
 
 export type Saga = {

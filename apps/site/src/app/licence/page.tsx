@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata: Metadata = {
 	title: "Licence & usage — DBFR",
@@ -137,7 +138,7 @@ export default function LicencePage() {
 					<li>
 						Serveur Discord :{" "}
 						<a
-							href="https://discord.gg/dbfr"
+							href={DISCORD_INVITE}
 							target="_blank"
 							rel="noopener noreferrer"
 						>

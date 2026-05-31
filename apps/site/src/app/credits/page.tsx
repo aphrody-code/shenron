@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata: Metadata = {
 	title: "Crédits & sources — DBFR",
@@ -212,7 +213,7 @@ export default function CreditsPage() {
 				</p>
 				<div className="flex flex-wrap gap-3">
 					<a
-						href="https://discord.gg/dbfr"
+						href={DISCORD_INVITE}
 						target="_blank"
 						rel="noopener noreferrer"
 						className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[13px] tracking-[0.10em] uppercase transition-colors"

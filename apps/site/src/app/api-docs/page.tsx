@@ -1,7 +1,6 @@
 import { getCurrentUser } from "@/lib/session";
 import { notFound } from "next/navigation";
-
-const SHENRON_API = process.env.SHENRON_API_URL ?? "https://bot.dragonballfr.com";
+import { API_URL as SHENRON_API } from "@/lib/config";
 
 const PUBLIC_ROUTES = [
 	{

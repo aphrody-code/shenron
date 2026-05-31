@@ -6,9 +6,9 @@
  */
 import { isCurrentUserAdmin } from "@/lib/session";
 import { env } from "@/lib/env";
+import { API_URL as API } from "@/lib/config";
 import { NextRequest, NextResponse } from "next/server";
 
-const API = env.SHENRON_API_URL;
 const TOKEN = env.SHENRON_ADMIN_TOKEN ?? "";
 
 export const runtime = "nodejs";

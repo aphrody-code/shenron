@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE } from "@/lib/config";
 import { SectionHeading } from "./SectionHeading";
 
 type Pillar = {
@@ -72,7 +73,7 @@ export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
 		{
 			title: "Communauté & Bot",
 			desc: "Rejoignez le serveur Discord DBFR avec notre bot interactif à 6 personas.",
-			href: "https://discord.gg/dbfr",
+			href: DISCORD_INVITE,
 			count: "6 Personas en ligne",
 			accent: "red",
 		},

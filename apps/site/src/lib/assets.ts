@@ -6,12 +6,7 @@
  * Components (jeu 2048, carte profil, admin DB). Les y laisser ferait fuiter
  * `postgres`/`drizzle` dans le bundle client.
  */
-import { env } from "@/lib/env";
-
-// Base publique des assets servis par le bot (images wiki, banners, etc.).
-const ASSET_BASE = (
-	env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://bot.dragonballfr.com"
-).replace(/\/+$/, "");
+import { ASSET_BASE } from "@/lib/config";
 
 /**
  * Normalise un chemin d'asset DB (`./assets/...` ou `assets/...`) en URL

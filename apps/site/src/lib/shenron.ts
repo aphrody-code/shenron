@@ -13,11 +13,9 @@ import {
 	botTransformations,
 } from "@/db/bot-schema";
 
-// Default = bot.dragonballfr.com (API du bot). PAS dragonballfr.com (site Vercel)
-// (le site lui-même) → sans cet env posé en prod, tous les appels runtime
-// partiraient vers le site et boucleraient en 404.
-const SHENRON_API_URL =
-	process.env.SHENRON_API_URL || "https://bot.dragonballfr.com";
+// Base de l'API bot résolue par `@/lib/config` (source unique des URL). PAS
+// dragonballfr.com (le site lui-même) → sinon les appels runtime boucleraient.
+import { API_URL as SHENRON_API_URL } from "@/lib/config";
 
 export interface ShenronUser {
 	discordId: string;

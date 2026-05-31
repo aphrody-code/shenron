@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE } from "@/lib/config";
 
 const COLUMNS = [
 	{
@@ -13,7 +14,7 @@ const COLUMNS = [
 	{
 		title: "Communauté",
 		links: [
-			{ href: "https://discord.gg/dbfr", label: "Rejoindre le Discord" },
+			{ href: DISCORD_INVITE, label: "Rejoindre le Discord" },
 			{ href: "/personas", label: "Le bot du serveur" },
 			{ href: "/shop", label: "Boutique zénis" },
 			{ href: "/jeux", label: "Mini-jeux" },

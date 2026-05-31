@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentGate } from "@/components/ConsentGate";
+import { SITE_URL } from "@/lib/config";
 
 // FAB Discord lazy : composant client gated par localStorage, jamais critical.
 const DiscordInviteFAB = dynamic(() =>
@@ -48,7 +49,7 @@ const notoJP = Noto_Sans_JP({
 // composant ne charge donc ces .ttf décoratifs.
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://dragonballfr.com"),
+	metadataBase: new URL(SITE_URL),
 
 	title: {
 		default: "DBFR — Dragon Ball France",

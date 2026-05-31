@@ -2,9 +2,7 @@
  * Helper interne admin pour consommer l'API publique du bot avec no-cache.
  * L'admin doit voir la vraie data temps-réel, pas la version cachée Vercel.
  */
-import { env } from "@/lib/env";
-
-const API = env.SHENRON_API_URL ?? "https://bot.dragonballfr.com";
+import { API_URL as API } from "@/lib/config";
 
 // L'API bot est incohérente sur le casing : certains endpoints (movies, games,
 // sagas via Drizzle) renvoient du camelCase, d'autres (episodes, sources, assets

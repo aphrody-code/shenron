@@ -9,6 +9,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { botEpisodes } from "@/db/bot-schema";
 import { env } from "@/lib/env";
+import { API_URL } from "@/lib/config";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -97,7 +98,7 @@ export async function uploadEpisodeSubtitle(
 	upstream.append("episodeId", String(episodeId));
 	upstream.append("lang", lang);
 	try {
-		const res = await fetch(`${env.SHENRON_API_URL}/api/assets/upload-subtitle`, {
+		const res = await fetch(`${API_URL}/api/assets/upload-subtitle`, {
 			method: "POST",
 			headers: { authorization: `Bearer ${token}` },
 			body: upstream,

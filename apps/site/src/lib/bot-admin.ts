@@ -6,8 +6,8 @@
  * Pour le browser, passer par le proxy `/api/bot-admin/[...path]` (forwarde + auth).
  */
 import "server-only";
+import { API_URL as API } from "@/lib/config";
 
-const API = process.env.SHENRON_API_URL ?? "https://bot.dragonballfr.com";
 const TOKEN = process.env.SHENRON_ADMIN_TOKEN ?? "";
 
 export class BotAdminError extends Error {

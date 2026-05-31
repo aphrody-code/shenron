@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import { assetUrl } from "@/lib/db-universe";
 import { env } from "@/lib/env";
+import { API_URL } from "@/lib/config";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -143,7 +144,7 @@ export async function uploadWikiImage(
 	const upstream = new FormData();
 	upstream.append("file", file, file.name);
 	try {
-		const res = await fetch(`${env.SHENRON_API_URL}/api/assets/upload`, {
+		const res = await fetch(`${API_URL}/api/assets/upload`, {
 			method: "POST",
 			headers: { authorization: `Bearer ${token}` },
 			body: upstream,

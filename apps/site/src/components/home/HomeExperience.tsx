@@ -16,6 +16,7 @@ import {
 	type BotStats,
 	type PersonaLive,
 } from "./useLiveBotState";
+import { DISCORD_INVITE } from "@/lib/config";
 
 export interface WikiCounts {
 	sagas: number;
@@ -35,7 +36,7 @@ export interface HomePost {
 	author: { username: string | null; avatar: string | null };
 }
 
-const DISCORD_URL = "https://discord.gg/dbfr";
+const DISCORD_URL = DISCORD_INVITE;
 
 const GUARDIAN_ROLES: Record<
 	string,

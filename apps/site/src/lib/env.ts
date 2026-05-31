@@ -50,10 +50,16 @@ export const env = createEnv({
 		// Base publique de l'API bot (assets self-hostés) — utilisable côté client
 		// (ex. assetUrl dans le jeu 2048). Distincte de SHENRON_API_URL (server-only).
 		NEXT_PUBLIC_SHENRON_API_URL: z.string().url().optional(),
+		// URL publique du site + invitation Discord — résolues dans `@/lib/config`
+		// (source unique des URL). Déclarées ici pour validation/typage.
+		NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+		NEXT_PUBLIC_DISCORD_INVITE_URL: z.string().url().optional(),
 	},
 	experimental__runtimeEnv: {
 		NEXT_PUBLIC_SHENRON_ASSETS_URL: process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL,
 		NEXT_PUBLIC_SHENRON_API_URL: process.env.NEXT_PUBLIC_SHENRON_API_URL,
+		NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+		NEXT_PUBLIC_DISCORD_INVITE_URL: process.env.NEXT_PUBLIC_DISCORD_INVITE_URL,
 	},
 	// Skip validation au build (Vercel injecte les env vars au runtime,
 	// pas toutes en build-time). Le runtime crash de toute façon si une

@@ -10,10 +10,10 @@
  */
 import { getCurrentUser } from "@/lib/session";
 import { env } from "@/lib/env";
+import { API_URL as API } from "@/lib/config";
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "node:crypto";
 
-const API = env.SHENRON_API_URL;
 const USER_SECRET = env.SHENRON_USER_SECRET ?? "";
 
 export const runtime = "nodejs";

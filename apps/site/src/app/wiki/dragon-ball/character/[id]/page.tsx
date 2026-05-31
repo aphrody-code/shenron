@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cache } from "react";
 import type { BreadcrumbList, WithContext } from "schema-dts";
+import { SITE_URL as SITE } from "@/lib/config";
 
 export const revalidate = 3600;
 
@@ -15,8 +16,6 @@ export async function generateStaticParams() {
 	const list = await getShenronCharacters();
 	return list.map((c) => ({ id: String(c.id) }));
 }
-
-const SITE = "https://dragonballfr.com";
 
 // Mémoïsé par requête : generateMetadata + le composant partagent un seul fetch.
 const getChar = cache((id: number) => getShenronCharacter(id));
