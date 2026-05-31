@@ -577,6 +577,31 @@ html {
   }
 }
 
+/* ── BackgroundImage / HeroBackground — parallax scroll-driven scopé ──────
+   Le `<BackgroundImage variant="parallax">` translate son image au fil du
+   scroll de SON propre conteneur (view-timeline local), pas de la page.
+   Progressive enhancement : sans support, l'image reste statique (pas de
+   fallback JS — c'est purement décoratif). `prefers-reduced-motion` neutralise.
+   La variante `fixed` (background-attachment) et `kenburns` (classe .ken-burns
+   existante) sont gérées côté composant. */
+@supports ((animation-timeline: view()) and (animation-range: entry)) {
+  .bg-parallax-host {
+    view-timeline: --bg-parallax block;
+  }
+  .bg-parallax-layer {
+    animation: bg-parallax linear both;
+    animation-timeline: --bg-parallax;
+    animation-range: cover;
+  }
+}
+@keyframes bg-parallax {
+  from { transform: translate3d(0, -8%, 0) scale(1.18); }
+  to   { transform: translate3d(0, 8%, 0) scale(1.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-parallax-layer { animation: none !important; transform: scale(1.05); }
+}
+
 /* ── Mise en page wiki (pages libres WikiPage) ───────────────────────────
    Classes utilitaires utilisables dans le markdown/HTML des pages wiki pour
    placer des images à côté du texte, des galeries, des infobox. Le rédacteur
