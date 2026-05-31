@@ -14,40 +14,11 @@
  * Bun-only : `Bun.write`, `Bun.file`, `Bun.spawn`. Pas de node/npm/tsx.
  */
 
-/** Séries DBZ reconnues côté `db_episodes.series`. */
-export type Series = "DB" | "DBZ" | "DBGT" | "DBS" | "DB_DAIMA" | "DBZ_KAI";
-
-/**
- * Une frame extraite/scrapée. Schéma stable, repris du `AnimeFrameImport` rpbey
- * et adapté au modèle shenron (asset self-host sous `apps/bot/assets/`).
- */
-export interface EpisodeFrame {
-  /** Provenance : "ffmpeg" (vidéo locale) ou "fandom" (screencap wiki). */
-  source: "ffmpeg" | "fandom";
-  /** Id stable côté source (ex. `ffmpeg:dbz:001:00042`, `fandom:<pageid>`). */
-  sourceId: string;
-  /** URL/chemin d'origine (page wiki, ou chemin de la vidéo source). */
-  sourceUrl: string | null;
-  /** Numéro d'épisode dans la série (= `db_episodes.number_in_series`). */
-  episodeNumber: number;
-  /**
-   * Chemin d'asset bot RELATIF (`./assets/ext/db_episodes_frames/...`) — servi
-   * via `bot.dragonballfr.com/assets/...`. null pour un dry-run (frame non écrite).
-   */
-  imagePath: string | null;
-  /** Timecode dans l'épisode en secondes (ffmpeg), ou null (fandom). */
-  timecodeSec: number | null;
-  width: number | null;
-  height: number | null;
-  /** Noms de personnages présents (rempli par le merge, livrable séparé). */
-  characterNames: string[];
-  tags: string[];
-  caption: string | null;
-  /** Frame marquante (ex. scene-cut fort, épisode de combat). */
-  isNotable: boolean;
-  /** Ordre stable pour l'affichage. */
-  sortOrder: number;
-}
+// Le type `EpisodeFrame` (et `Series`) vit désormais dans `src/db/episode-frames.ts`
+// pour que le schéma Drizzle puisse le `$type<EpisodeFrame[]>()` sans inverser la
+// dépendance src → scripts. On le ré-exporte ici pour préserver l'API du pipeline.
+export type { EpisodeFrame, Series } from "../../src/db/episode-frames.ts";
+import type { EpisodeFrame, Series } from "../../src/db/episode-frames.ts";
 
 /** Enveloppe du dataset écrit sur disque, par (série, épisode). */
 export interface FramesDataset {

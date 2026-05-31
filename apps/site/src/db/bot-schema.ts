@@ -14,6 +14,49 @@ import { bigint, jsonb, pgSchema, text } from "drizzle-orm/pg-core";
 
 export const bot = pgSchema("bot");
 
+/**
+ * Frame de scène d'épisode (extraite par le pipeline bot, montée en preview).
+ *
+ * CONTRAT PARTAGÉ avec `apps/bot` — SOURCE DE VÉRITÉ = `apps/bot/src/db/episode-frames.ts`
+ * (type `EpisodeFrame`). Le site ne peut pas importer depuis `apps/bot` → on
+ * REDÉFINIT le type ici, IDENTIQUE au bot (le jsonb Neon `bot.db_episodes.frames`
+ * remonte tel quel). Champs clés pour l'affichage :
+ *  - `imagePath`  : chemin relatif `./assets/ext/db_episodes_frames/...` → passer
+ *                   par `assetUrl()` pour l'URL absolue (bot.dragonballfr.com).
+ *                   `null` pour un dry-run → frame à filtrer avant rendu.
+ *  - `timecodeSec` : position de la frame dans l'épisode (s), ou null.
+ *  - `characterNames` : personnages détectés/annotés sur la frame.
+ *  - `isNotable`  : frame marquante (mise en avant, candidate hero).
+ *  - `caption`/`tags` : métadonnées éditoriales optionnelles (légende, badges).
+ */
+export type EpisodeFrame = {
+	/** Provenance : "ffmpeg" (vidéo locale) ou "fandom" (screencap wiki). */
+	source: "ffmpeg" | "fandom";
+	/** Id stable côté source (ex. `ffmpeg:dbz:001:00042`, `fandom:<pageid>`). */
+	sourceId: string;
+	/** URL/chemin d'origine (page wiki, ou chemin de la vidéo source). */
+	sourceUrl: string | null;
+	/** Numéro d'épisode dans la série (= `db_episodes.number_in_series`). */
+	episodeNumber: number;
+	/**
+	 * Chemin d'asset bot RELATIF (`./assets/ext/db_episodes_frames/...`) — servi
+	 * via `bot.dragonballfr.com/assets/...`. `null` pour un dry-run (frame non écrite).
+	 */
+	imagePath: string | null;
+	/** Timecode dans l'épisode en secondes (ffmpeg), ou null (fandom). */
+	timecodeSec: number | null;
+	width: number | null;
+	height: number | null;
+	/** Noms de personnages présents (rempli par le merge, livrable séparé). */
+	characterNames: string[];
+	tags: string[];
+	caption: string | null;
+	/** Frame marquante (ex. scene-cut fort, épisode de combat). */
+	isNotable: boolean;
+	/** Ordre stable pour l'affichage. */
+	sortOrder: number;
+};
+
 /** bigint Neon → number JS (les ID wiki sont petits, < 2^53). */
 const int = (name: string) => bigint(name, { mode: "number" });
 
@@ -131,6 +174,11 @@ export const botEpisodes = bot.table("db_episodes", {
 	streamHeaders: jsonb("stream_headers").$type<Record<string, string>>(),
 	streamProvider: text("stream_provider"),
 	streamAt: bigint("stream_at", { mode: "number" }),
+	// Scènes d'épisode : frames extraites (jsonb) + montage MP4 preview animé.
+	// Colonnes posées sur Neon ; alimentées par le pipeline bot (extraction +
+	// montage). Le reverse-sync Neon→SQLite les ignore (intersection de colonnes).
+	frames: jsonb("frames").$type<EpisodeFrame[]>(),
+	scenePreview: text("scene_preview"),
 });
 
 export const botMovies = bot.table("db_movies", {

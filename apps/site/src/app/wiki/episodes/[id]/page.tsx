@@ -15,6 +15,9 @@ import { EpisodeMediaEditor } from "./EpisodeMediaEditor";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 import { KenBurns } from "@/components/KenBurns";
+import { AnimatedMedia } from "@/components/media/AnimatedMedia";
+import { BackgroundImage } from "@/components/media/BackgroundImage";
+import { EpisodeScenes } from "./EpisodeScenes";
 
 export const dynamic = "force-dynamic";
 
@@ -149,6 +152,38 @@ export default async function EpisodeDetailPage({
 		</div>
 	) : null;
 
+	// === Scènes d'épisode (additif, dégradation gracieuse) ===
+	// On ne garde que les frames réellement écrites (imagePath non null : un
+	// dry-run du pipeline laisse `imagePath === null`).
+	const frames = (ep.frames ?? []).filter((f) => f.imagePath != null);
+	const hasFrames = frames.length > 0;
+	// Première frame (poster du preview) + meilleure frame marquante (hero fallback).
+	const firstFrame = frames[0] ?? null;
+	const notableFrame = frames.find((f) => f.isNotable) ?? firstFrame;
+
+	// Bloc « scène » mis en avant : MP4 preview animé > frame marquante en
+	// ken-burns. N'apparaît que si on a un montage ou des frames — sinon null,
+	// le comportement actuel de la page reste strictement inchangé.
+	const sceneHero = ep.scene_preview ? (
+		<AnimatedMedia
+			src={assetUrl(ep.scene_preview)}
+			poster={
+				firstFrame?.imagePath ? assetUrl(firstFrame.imagePath) : undefined
+			}
+			alt={`Aperçu animé — ${ep.title}`}
+			className="aspect-video w-full rounded-xl"
+		/>
+	) : notableFrame?.imagePath ? (
+		<div className="relative aspect-video w-full overflow-hidden rounded-xl">
+			<BackgroundImage
+				variant="kenburns"
+				src={assetUrl(notableFrame.imagePath)}
+				alt={`Scène marquante — ${ep.title}`}
+				overlay="bottom"
+			/>
+		</div>
+	) : null;
+
 	return (
 		<div className="relative">
 			{/* === Backdrop cinématique plein cadre (vignette épisode floutée) === */}
@@ -229,6 +264,16 @@ export default async function EpisodeDetailPage({
 					</div>
 				)}
 
+				{/* === Aperçu animé de scène (montage MP4 / frame marquante) ===
+				    Affiché en complément du player s'il existe un montage ou des
+				    frames. Si aucun player n'existe par ailleurs, ce bloc tient
+				    lieu de visuel principal. */}
+				{sceneHero && (
+					<div className="reveal-up mb-12 shadow-2xl shadow-black/50 rounded-xl overflow-hidden">
+						{sceneHero}
+					</div>
+				)}
+
 				{isAdmin && (
 					<div className="mb-12">
 						<EpisodeMediaEditor
@@ -251,6 +296,15 @@ export default async function EpisodeDetailPage({
 								<WikiMarkdown body={ep.synopsis} />
 							</div>
 						</section>
+					)}
+
+					{/* === Scènes : grille des frames extraites (îlot client) === */}
+					{hasFrames && (
+						<EpisodeScenes
+							frames={frames}
+							title={ep.title}
+							episodeNumber={ep.number_in_series}
+						/>
 					)}
 
 					{youtubeId && (

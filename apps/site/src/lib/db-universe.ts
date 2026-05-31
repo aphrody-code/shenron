@@ -31,9 +31,11 @@ import {
 	botTools,
 	botTransformations,
 } from "@/db/bot-schema";
+import type { EpisodeFrame } from "@/db/bot-schema";
 
 // Re-export pour back-compat des pages serveur qui importaient assetUrl ici.
 export { assetUrl } from "@/lib/assets";
+export type { EpisodeFrame } from "@/db/bot-schema";
 
 // API REST du bot — uniquement pour le RAG (index FTS5 `rag_chunks`, NON
 // miroité dans Neon). Lue paresseusement (server-only).
@@ -66,6 +68,9 @@ export type Episode = {
 	subtitles: { lang: string; label: string; src: string }[] | null;
 	players: { name: string; provider: string; embedUrl: string }[] | null;
 	stream_url: string | null;
+	// Scènes d'épisode : frames extraites + montage MP4 preview animé.
+	frames: EpisodeFrame[] | null;
+	scene_preview: string | null;
 };
 
 export type EpisodeNavItem = {
@@ -266,6 +271,8 @@ function toEpisode(r: typeof botEpisodes.$inferSelect): Episode {
 		subtitles: r.subtitles ?? null,
 		players: r.players ?? null,
 		stream_url: r.streamUrl ?? null,
+		frames: r.frames ?? null,
+		scene_preview: r.scenePreview ?? null,
 	};
 }
 
