@@ -61,6 +61,14 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 
 Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
+### Site compagnon
+
+Un site Next.js public accompagne le bot, en prod sur **[dragonballfr.com](https://dragonballfr.com)** (canonical ; alias legacy `dbfr.vercel.app` conservés). L'API REST et les assets du bot sont exposés sur **`bot.dragonballfr.com`** (alias `bot.rpbey.fr`).
+
+- **Home cinématique** (`apps/site/src/components/home/`) : accueil full-page scroll-snap, une scène plein écran par ère Dragon Ball avec fonds animés des meilleures scènes, navigation molette / clavier / tactile, et état live du bot en temps réel.
+- **Wiki Dragon Ball** : personnages, sagas, films, jeux, manga, épisodes — lu directement dans Postgres (Neon, schéma `bot`) côté serveur, sans API bot.
+- **Scènes d'épisode** (`/wiki/episodes/[id]`) : galeries de frames stockées en `db_episodes.frames` (jsonb) + `scene_preview`, alimentées par `apps/bot/scripts/{build-episode-scenes,extract-dbz-frames,scrape-dbz-fandom-frames,ingest-episode-frames}.ts`.
+
 ## Fonctionnalités
 
 ### Modération

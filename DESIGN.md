@@ -172,6 +172,18 @@ flips 3D, glitch FX. Notre DB est moderne 2026, pas Flash 2008.
 
 ## 6. Composants signature
 
+### Home cinématique (`apps/site/src/components/home/`)
+Page d'accueil full-page **scroll-snap** : chaque ère Dragon Ball est une scène
+plein écran avec fond animé tiré des meilleures scènes du manga/anime.
+- Navigation **molette / clavier (↑↓, Page, Home/End) / tactile** entre scènes.
+- Langage visuel : **sombre cinématique**, accent or DB `#ffb200`, fonds en
+  **ken-burns** (pan/zoom lent) avec **color grade par ère** (saga = teinte),
+  **grain** photographique léger et **aura ki** radiale en overlay.
+- Typo : titres **Google Sans Flex en poids lourds** (display 800-900) pour
+  l'impact cinéma, sous-titres JP discrets.
+- **État live du bot** affiché en temps réel (`useLiveBotState` → personas
+  online / stats). Composants : `HomeExperience.tsx`, `SceneBackdrop.tsx`.
+
 ### Header (`SiteNav.tsx`)
 - Sticky top-0, hauteur 64px
 - Surface : `rgba(10,10,10,0.82) + backdrop-blur-xl + backdrop-saturate-150`
