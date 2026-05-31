@@ -55,7 +55,7 @@ export const metadata: Metadata = {
 		template: "%s — DBFR",
 	},
 	description:
-		"Le portail Dragon Ball en français : wiki, personnages, sagas, films, jeux et actualités anime + manga.",
+		"Un voyage à travers l'univers Dragon Ball en français : personnages, sagas, planètes, films, jeux et actualités anime + manga.",
 	manifest: "/manifest.webmanifest",
 	icons: {
 		icon: [

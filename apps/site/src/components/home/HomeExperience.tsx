@@ -43,7 +43,7 @@ const GUARDIAN_ROLES: Record<
 > = {
 	shenron: { role: "Administration · API", line: "Exauce les vœux", kanji: "神龍" },
 	beerus: { role: "Modération", line: "La destruction veille", kanji: "破壊神" },
-	whis: { role: "Utilitaires · Wiki", line: "L'ange qui guide", kanji: "天使" },
+	whis: { role: "Utilitaires · Codex", line: "L'ange qui guide", kanji: "天使" },
 	"grand prêtre": { role: "Observation · Logs", line: "Le témoin suprême", kanji: "大神官" },
 	enma: { role: "Tribunal des âmes", line: "Le juge de l'au-delà", kanji: "閻魔大王" },
 	kaïo: { role: "Jeux · Économie", line: "Maître du Kaïō-ken", kanji: "界王" },
@@ -337,13 +337,13 @@ export function HomeExperience({
 						<em>France</em>
 					</h1>
 					<p className="home-lede">
-						Le portail canon de l'univers Dragon Ball — wiki vivant,
-						six divinités sur Discord, et la communauté francophone réunie
-						en un seul lieu.
+						Un voyage à travers tout l'univers Dragon Ball : personnages,
+						planètes, sagas, films et manga — en français, sourcé canon. Et
+						six gardiens qui veillent sur la communauté.
 					</p>
 					<div className="home-cta-row">
 						<Link href="/wiki" className="home-cta home-cta--primary">
-							Explorer le wiki
+							Commencer le voyage
 						</Link>
 						<a
 							href={DISCORD_URL}
@@ -384,11 +384,14 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.universe} active={active === idx("universe")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">01 — L'anthologie</span>
-						<h2 className="home-title">Tout l'univers, sourcé&nbsp;canon</h2>
+						<span className="home-eyebrow">01 — Le voyage</span>
+						<h2 className="home-title">
+							Voyage à travers l'univers
+						</h2>
 						<p className="home-sub">
 							Personnages, planètes, sagas, épisodes, films et chapitres —
-							une base de données vérifiée, en lien avec les ayants droit.
+							chaque recoin de la saga, vérifié et en lien avec les ayants
+							droit. Choisis ta destination.
 						</p>
 					</header>
 					<div className="home-grid-stats">
@@ -614,7 +617,8 @@ export function HomeExperience({
 					</h2>
 					<p className="home-sub">
 						Rejoins {formatBig(live.stats.users)} guerriers sur le serveur
-						Discord, ou plonge dans le wiki le plus complet en français.
+						Discord, ou poursuis ton voyage dans l'univers Dragon Ball le plus
+						complet en français.
 					</p>
 					<div className="home-cta-row">
 						<a
@@ -626,7 +630,7 @@ export function HomeExperience({
 							Rejoindre le Discord
 						</a>
 						<Link href="/wiki" className="home-cta home-cta--ghost">
-							Ouvrir le wiki
+							Explorer l'univers
 						</Link>
 					</div>
 				</div>
