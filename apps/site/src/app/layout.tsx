@@ -5,6 +5,7 @@ import "./globals.css";
 import dynamic from "next/dynamic";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleTagManager } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -90,9 +91,22 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="fr" className="dark">
+			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties
+			    (next/script optimisé, route-aware). Container GTM-KLSS5787. */}
+			<GoogleTagManager gtmId="GTM-KLSS5787" />
 			<body
 				className={`${sansFlex.variable} ${notoJP.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
+				{/* GTM noscript — fallback sans JS, juste après l'ouverture de <body>. */}
+				<noscript>
+					<iframe
+						src="https://www.googletagmanager.com/ns.html?id=GTM-KLSS5787"
+						height="0"
+						width="0"
+						style={{ display: "none", visibility: "hidden" }}
+						title="Google Tag Manager"
+					/>
+				</noscript>
 				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
 				<div className="scroll-progress" aria-hidden />
 				{/* Starfield drift cosmique — fixe en arrière-plan, pure CSS */}
