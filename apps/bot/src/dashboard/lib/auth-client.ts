@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-	baseURL: "https://shenron.rpbey.fr",
+	baseURL: "https://bot.dragonballfr.com",
 });

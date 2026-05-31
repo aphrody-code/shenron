@@ -196,7 +196,7 @@ export class ShopPanelCommands {
 		// rendue par l'API card preview (URL absolue construite depuis
 		// API_PUBLIC_URL si dispo, sinon path relatif).
 		if (type === "card" && items[0]) {
-			const base = Bun.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+			const base = Bun.env.API_PUBLIC_URL ?? "https://bot.dragonballfr.com";
 			embed.setImage(`${base}/assets/cards/${encodeURIComponent(items[0].key)}.png`);
 		}
 

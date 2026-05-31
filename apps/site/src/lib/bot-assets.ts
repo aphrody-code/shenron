@@ -9,14 +9,14 @@
 
 const PUBLIC_ASSETS_URL =
 	process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ??
-	process.env.NEXT_PUBLIC_SHENRON_API_URL ?? // client-exposed (bot.rpbey.fr)
+	process.env.NEXT_PUBLIC_SHENRON_API_URL ?? // client-exposed (bot.dragonballfr.com)
 	process.env.SHENRON_API_URL ??
-	"https://bot.rpbey.fr";
+	"https://bot.dragonballfr.com";
 
 const BASE = PUBLIC_ASSETS_URL.replace(/\/+$/, "");
 
 /**
- * `botAsset("dbz/goku.png")` → `https://shenron.rpbey.fr/assets/dbz/goku.png`
+ * `botAsset("dbz/goku.png")` → `https://bot.dragonballfr.com/assets/dbz/goku.png`
  * Accepte aussi les paths DB stockés `./assets/dbz/x.png` ou `/assets/dbz/x.png`.
  */
 export function botAsset(path: string): string {

@@ -10,7 +10,7 @@ import { env } from "@/lib/env";
 
 // Base publique des assets servis par le bot (images wiki, banners, etc.).
 const ASSET_BASE = (
-	env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://bot.rpbey.fr"
+	env.NEXT_PUBLIC_SHENRON_API_URL ?? "https://bot.dragonballfr.com"
 ).replace(/\/+$/, "");
 
 /**

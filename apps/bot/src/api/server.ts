@@ -513,17 +513,30 @@ async function resolveStreamOnDemand(id: string): Promise<HlsStream | null> {
       console.error(`[HLS] Episode ID ${id} introuvable en base SQLite.`);
       return null;
     }
-    console.log(`[HLS] Résolution à la volée de l'épisode ${id} (${row.series} ${row.number_in_series})...`);
+    console.log(
+      `[HLS] Résolution à la volée de l'épisode ${id} (${row.series} ${row.number_in_series})...`,
+    );
     const BXC_DIR = "/home/ubuntu/bxc";
     const proc = Bun.spawn(
-      ["/home/ubuntu/.bun/bin/bun", "scripts/resolve-episode.ts", row.series, String(row.number_in_series)],
-      { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" }
+      [
+        "/home/ubuntu/.bun/bin/bun",
+        "scripts/resolve-episode.ts",
+        row.series,
+        String(row.number_in_series),
+      ],
+      { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" },
     );
     const out = await new Response(proc.stdout).text();
     await proc.exited;
     // oxlint-disable-next-line unicorn/prefer-array-find -- getting the last non-empty line
     const line = out.trim().split("\n").filter(Boolean).pop() ?? "";
-    const res = JSON.parse(line) as { type?: string; url?: string; headers?: Record<string, string>; provider?: string; error?: string };
+    const res = JSON.parse(line) as {
+      type?: string;
+      url?: string;
+      headers?: Record<string, string>;
+      provider?: string;
+      error?: string;
+    };
     if (res.url && (res.type === "hls" || res.type === "mp4")) {
       const entry: HlsStream = {
         url: res.url,
@@ -770,7 +783,7 @@ async function hlsDownload(id: string): Promise<Response> {
       } catch (err) {
         controller.error(err);
       }
-    }
+    },
   });
 
   return new Response(stream, {
@@ -778,7 +791,7 @@ async function hlsDownload(id: string): Promise<Response> {
       "Content-Type": "video/mp4",
       "Content-Disposition": `attachment; filename="episode-${id}.mp4"`,
       "Cache-Control": "no-store",
-    }
+    },
   });
 }
 
@@ -1438,7 +1451,7 @@ export class ApiServer {
 
             // Bannière : priorité 1) banner explicitement équipé via /inventaire equip,
             // 2) bannière du level reward atteint, 3) carte équipée legacy, 4) null.
-            const siteBase = Bun.env.SITE_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+            const siteBase = Bun.env.SITE_PUBLIC_URL ?? "https://dragonballfr.com";
 
             let bannerUrl: string | null = null;
             if (user.equippedBanner) {
@@ -1466,7 +1479,7 @@ export class ApiServer {
               }
             }
             if (!bannerUrl && user.equippedCard) {
-              const apiBase = Bun.env.API_PUBLIC_URL ?? "https://shenron.rpbey.fr";
+              const apiBase = Bun.env.API_PUBLIC_URL ?? "https://bot.dragonballfr.com";
               bannerUrl = `${apiBase}/assets/cards/${encodeURIComponent(user.equippedCard)}.png`;
             }
 
@@ -2081,10 +2094,10 @@ export class ApiServer {
               "Bridge A2A pour la coordination des agents DBFR (Claude Code ↔ Gemini CLI). Miroir HTTP du canal MCP `coord` (.coord/messages.jsonl + .coord/tasks.json). Compatible @a2a-js/sdk.",
             version: "1.1.0",
             protocolVersion: "0.3.0",
-            url: "https://shenron.rpbey.fr/api/a2a/jsonrpc",
+            url: "https://bot.dragonballfr.com/api/a2a/jsonrpc",
             provider: {
-              organization: "DBFR / shenron.rpbey.fr",
-              url: "https://shenron.rpbey.fr",
+              organization: "DBFR / dragonballfr.com",
+              url: "https://dragonballfr.com",
             },
             capabilities: {
               streaming: true,
@@ -4405,6 +4418,8 @@ function admin<R extends Request & { params: any }>(
 
 // ── Routes publiques : CORS allowlist + rate-limit 60 req/min/IP ─────────
 const PUBLIC_CORS_ORIGINS = new Set([
+  "https://dragonballfr.com",
+  "https://www.dragonballfr.com",
   "https://shenron.rpbey.fr",
   "https://dbfr.vercel.app",
   "http://localhost:3000",
@@ -4414,7 +4429,7 @@ const publicRateBuckets = new Map<string, { count: number; resetAt: number }>();
 
 function publicCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
-  const allow = PUBLIC_CORS_ORIGINS.has(origin) ? origin : "https://shenron.rpbey.fr";
+  const allow = PUBLIC_CORS_ORIGINS.has(origin) ? origin : "https://dragonballfr.com";
 
   return {
     "Access-Control-Allow-Origin": allow,
@@ -4464,7 +4479,7 @@ async function publicRoute(
 }
 
 // ── publicCachedJson : 2 niveaux de cache (mémoire + HTTP) ──────────────
-// Le site Vercel (`dbfr.vercel.app`) fetch ces routes avec `next: { revalidate: 60 }` —
+// Le site Vercel (`dragonballfr.com`) fetch ces routes avec `next: { revalidate: 60 }` —
 // le Cache-Control `public, s-maxage=…, stale-while-revalidate=…` permet à
 // l'edge Vercel + au browser de mettre en cache. Le memo cache local (TTL
 // court) absorbe les hits parallèles pendant le warming d'un déploiement

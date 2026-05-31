@@ -35,7 +35,7 @@ import { describe, expect, it } from "bun:test";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const BASE = (process.env.SITE_URL ?? "https://dbfr.vercel.app").replace(
+const BASE = (process.env.SITE_URL ?? "https://dragonballfr.com").replace(
 	/\/+$/,
 	"",
 );

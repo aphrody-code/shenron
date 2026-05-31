@@ -26,7 +26,7 @@ export type SanctionAction =
 	| "unjail"
 	| "purge";
 
-const BASE = "https://shenron.rpbey.fr/assets/sanctions";
+const BASE = "https://bot.dragonballfr.com/assets/sanctions";
 
 const DEFAULT_GIFS: Record<SanctionAction, string> = {
 	jail: `${BASE}/jail.gif`,

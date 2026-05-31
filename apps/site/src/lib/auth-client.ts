@@ -10,12 +10,12 @@ import { createAuthClient } from "better-auth/react";
  * vers le mauvais host et provoquer des redirects en boucle.
  *
  * On lit `window.location.origin` en runtime (composant client), fallback
- * NEXT_PUBLIC_SITE_URL ou dbfr.vercel.app pour le SSR initial.
+ * NEXT_PUBLIC_SITE_URL ou dragonballfr.com pour le SSR initial.
  */
 const baseURL =
 	typeof window !== "undefined"
 		? window.location.origin
-		: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://shenron.rpbey.fr");
+		: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://dragonballfr.com");
 export const authClient = createAuthClient({
 	baseURL,
 });

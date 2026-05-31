@@ -36,7 +36,7 @@ Conversation Discord entre Yoyo (dev) et Omar / kazu_solo (admin DBFR). Demandes
 
 ### Routes API publiques à ajouter (Track A)
 
-À exposer depuis `apps/shenron/src/api/` pour le site (CORS allowlist `https://dbfr.fr`, `https://shenron.rpbey.fr`).
+À exposer depuis `apps/shenron/src/api/` pour le site (CORS allowlist `https://dbfr.fr`, `https://dragonballfr.com` (ex- `shenron.rpbey.fr` / `dbfr.vercel.app`, legacy)).
 
 - `GET /api/public/user/:discordId` → `{ level, xp, zeni, banner, achievements, inventory }` (read-only, rate-limit 60 req/min/IP, **pas d'auth**).
 - `GET /api/public/shop` → catalogue items publics.

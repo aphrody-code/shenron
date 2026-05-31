@@ -31,7 +31,7 @@ const LICENSES = [
 	{
 		key: "FAIR-USE-EDITORIAL",
 		name: "Fair use éditorial fan-site (non commercial)",
-		url: "https://dbfr.vercel.app/licence",
+		url: "https://dragonballfr.com/licence",
 		requiresAttribution: true,
 		shareAlike: false,
 	},

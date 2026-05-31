@@ -51,7 +51,10 @@ echo "  ✓ units installées · guild-sync.timer laissé désactivé (opt-in)"
 if [[ $DO_NGINX -eq 1 ]]; then
   echo "▶ vhosts nginx ($NGINX_SRC → /etc/nginx/conf.d/)"
   echo "  prérequis : zone 'limit_req zone=rpb_api …' dans nginx.conf (http{}),"
-  echo "  et certs letsencrypt pour bot.rpbey.fr / shenron.rpbey.fr."
+  echo "  et certs letsencrypt pour bot.dragonballfr.com / dragonballfr.com"
+  echo "  (+ legacy bot.rpbey.fr / shenron.rpbey.fr conservés)."
+  # Le glob *.conf inclut bot.dragonballfr.com.conf (nouveau vhost API bot) en
+  # plus de bot.rpbey.fr.conf / shenron.conf.
   sudo cp "$NGINX_SRC"/*.conf /etc/nginx/conf.d/
   if sudo nginx -t; then
     sudo systemctl reload nginx

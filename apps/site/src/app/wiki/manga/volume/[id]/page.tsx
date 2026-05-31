@@ -4,6 +4,7 @@ import { assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { VolumeChaptersList } from "@/components/manga/VolumeChaptersList";
 
 export const revalidate = 3600;
 
@@ -62,6 +63,37 @@ export default async function MangaVolumePage({
 							</div>
 						)}
 					</div>
+
+					{/* Métadonnées du Tome */}
+					<div className="mt-8 space-y-4 border-t border-white/10 pt-6 font-display text-xs">
+						<div className="flex justify-between">
+							<span className="text-white/40">Série :</span>
+							<span className="text-white font-bold">{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"}</span>
+						</div>
+						{volume.title_ja && (
+							<div className="flex justify-between">
+								<span className="text-white/40">Titre Original :</span>
+								<span className="text-white font-bold font-mono">{volume.title_ja}</span>
+							</div>
+						)}
+						{volume.published_at && (
+							<div className="flex justify-between">
+								<span className="text-white/40">Publication :</span>
+								<span className="text-white font-bold">
+									{new Date(volume.published_at * 1000).toLocaleDateString('fr-FR', {
+										year: 'numeric',
+										month: 'long',
+									})}
+								</span>
+							</div>
+						)}
+						{volume.isbn && (
+							<div className="flex justify-between flex-wrap gap-2">
+								<span className="text-white/40">ISBN :</span>
+								<span className="text-white font-mono font-bold break-all">{volume.isbn}</span>
+							</div>
+						)}
+					</div>
 				</div>
 
 				<div className="flex-1 space-y-10">
@@ -83,29 +115,7 @@ export default async function MangaVolumePage({
 							<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 						</div>
 						
-						<div className="grid gap-3">
-							{volume.chapters.map((ch) => (
-								<div
-									key={ch.id}
-									className="dbz-panel p-5 flex items-center justify-between hover:bg-white/5 transition-colors group"
-								>
-									<div className="flex items-center gap-6">
-										<span className="scouter-text text-xl text-dbz-orange min-w-[60px]">
-											#{ch.chapter_number}
-										</span>
-										<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
-											{ch.title || `Chapitre ${ch.chapter_number}`}
-										</p>
-									</div>
-									<span className="text-dbz-orange/40 font-scouter text-xs tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-										SCAN_READY
-									</span>
-								</div>
-							))}
-							{volume.chapters.length === 0 && (
-								<p className="text-white/40 italic">Aucun chapitre répertorié pour ce volume.</p>
-							)}
-						</div>
+						<VolumeChaptersList chapters={volume.chapters} />
 					</section>
 				</div>
 			</div>

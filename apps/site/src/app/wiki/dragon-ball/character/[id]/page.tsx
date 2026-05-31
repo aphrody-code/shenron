@@ -15,7 +15,7 @@ export async function generateStaticParams() {
 	return list.map((c) => ({ id: String(c.id) }));
 }
 
-const SITE = "https://shenron.rpbey.fr";
+const SITE = "https://dragonballfr.com";
 
 // Mémoïsé par requête : generateMetadata + le composant partagent un seul fetch.
 const getChar = cache((id: number) => getShenronCharacter(id));

@@ -16,8 +16,12 @@ const nextConfig: NextConfig = {
 		formats: ["image/avif", "image/webp"],
 		// Bot expose les assets DB via /db/* (Cache-Control immutable + Vary:Accept côté bot).
 		remotePatterns: [
-			// API/assets du bot — hôte public actuel (shenron.rpbey.fr pointe vers
-			// Vercel désormais, le bot vit sur bot.rpbey.fr).
+			// API/assets du bot — hôte public actuel (bot.dragonballfr.com). Les
+			// anciens hôtes (bot.rpbey.fr / shenron.rpbey.fr) restent autorisés
+			// pendant la transition de domaine pour ne pas casser les images encore
+			// servies sur les anciennes URL.
+			{ protocol: "https", hostname: "bot.dragonballfr.com", pathname: "/db/**" },
+			{ protocol: "https", hostname: "bot.dragonballfr.com", pathname: "/assets/**" },
 			{ protocol: "https", hostname: "bot.rpbey.fr", pathname: "/db/**" },
 			{ protocol: "https", hostname: "bot.rpbey.fr", pathname: "/assets/**" },
 			{

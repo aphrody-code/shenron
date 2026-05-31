@@ -76,7 +76,7 @@ const CROSSOVER = new Set([
 	"Famicom Jump: Hero Retsuden",
 ]);
 
-const UA = "DBFR-wiki-enrichment/1.0 (https://dbfr.vercel.app; wiki Dragon Ball France)";
+const UA = "DBFR-wiki-enrichment/1.0 (https://dragonballfr.com; wiki Dragon Ball France)";
 const sql = postgres(NEON_URL, { max: 2, prepare: false });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

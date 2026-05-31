@@ -907,7 +907,7 @@ function ThemeEditor({
 /**
  * Grille d'images d'un dossier d'assets du bot. Mode picker si `onPick` fourni
  * (clic = sélection), sinon clic = copie du chemin relatif. Images chargées en
- * direct depuis le bot (botAsset → bot.rpbey.fr/assets/, public, sans auth).
+ * direct depuis le bot (botAsset → bot.dragonballfr.com/assets/, public, sans auth).
  */
 function AssetGrid({
 	dir,

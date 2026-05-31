@@ -1,6 +1,6 @@
 import { PageHeader } from "@/components/PageHeader";
 
-const API = process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+const API = process.env.SHENRON_API_URL ?? "https://bot.dragonballfr.com";
 
 const SAMPLES = [
 	{

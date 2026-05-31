@@ -7,7 +7,7 @@
  */
 import "server-only";
 
-const API = process.env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+const API = process.env.SHENRON_API_URL ?? "https://bot.dragonballfr.com";
 const TOKEN = process.env.SHENRON_ADMIN_TOKEN ?? "";
 
 export class BotAdminError extends Error {

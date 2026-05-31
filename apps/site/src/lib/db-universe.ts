@@ -38,7 +38,7 @@ export { assetUrl } from "@/lib/assets";
 // API REST du bot — uniquement pour le RAG (index FTS5 `rag_chunks`, NON
 // miroité dans Neon). Lue paresseusement (server-only).
 function apiBase(): string {
-	return (env.SHENRON_API_URL ?? "https://bot.rpbey.fr").replace(/\/+$/, "");
+	return (env.SHENRON_API_URL ?? "https://bot.dragonballfr.com").replace(/\/+$/, "");
 }
 
 export type Saga = {
@@ -131,6 +131,9 @@ export type MangaVolume = {
 	volume_number: number;
 	title: string | null;
 	cover: string | null;
+	title_ja?: string | null;
+	published_at?: number | null;
+	isbn?: string | null;
 };
 
 export type MangaChapter = {
@@ -140,6 +143,7 @@ export type MangaChapter = {
 	title: string | null;
 	volume_id: number | null;
 	cover: string | null;
+	pages?: string[] | null;
 };
 
 /** Chapitre + ses pages, pour le lecteur de scan. `prev`/`next` = chapitres
@@ -148,6 +152,8 @@ export type MangaChapterRead = MangaChapter & {
 	pages: string[];
 	prev: number | null;
 	next: number | null;
+	prevPages?: string[] | null;
+	nextPages?: string[] | null;
 };
 
 export type News = {
@@ -328,6 +334,9 @@ function toMangaVolume(r: typeof botMangaVolumes.$inferSelect): MangaVolume {
 		volume_number: r.volumeNumber ?? 0,
 		title: r.title,
 		cover: r.cover,
+		title_ja: r.titleJa,
+		published_at: r.publishedAt,
+		isbn: r.isbn,
 	};
 }
 
@@ -339,6 +348,7 @@ function toMangaChapter(r: typeof botMangaChapters.$inferSelect): MangaChapter {
 		title: r.title,
 		volume_id: r.volumeId,
 		cover: r.cover,
+		pages: r.pages,
 	};
 }
 
@@ -701,7 +711,7 @@ export const dbUniverse = {
 				.limit(1);
 			if (!c) return null;
 			const [prev] = await db
-				.select({ id: botMangaChapters.id })
+				.select({ id: botMangaChapters.id, pages: botMangaChapters.pages })
 				.from(botMangaChapters)
 				.where(
 					and(
@@ -713,7 +723,7 @@ export const dbUniverse = {
 				.orderBy(desc(botMangaChapters.chapterNumber))
 				.limit(1);
 			const [next] = await db
-				.select({ id: botMangaChapters.id })
+				.select({ id: botMangaChapters.id, pages: botMangaChapters.pages })
 				.from(botMangaChapters)
 				.where(
 					and(
@@ -729,6 +739,8 @@ export const dbUniverse = {
 				pages: Array.isArray(c.pages) ? c.pages : [],
 				prev: prev?.id ?? null,
 				next: next?.id ?? null,
+				prevPages: Array.isArray(prev?.pages) ? prev?.pages : [],
+				nextPages: Array.isArray(next?.pages) ? next?.pages : [],
 			};
 		}),
 

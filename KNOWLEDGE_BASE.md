@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 30/05/2026
+# 📚 Base de Connaissance Unifiée — 31/05/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -1838,6 +1838,12 @@ Use this skill automatically when migrating features from the old stack to the `
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
 
+## [Unreleased] — 2026-05-31
+
+### Ops
+
+- **`ops(domaine)` : migration prod vers `dragonballfr.com`** — le site bascule sur `https://dragonballfr.com` (canonical, OG, liens publics) et l'API/assets du bot sur `https://bot.dragonballfr.com`. Les alias historiques `rpbey.fr` / `dbfr.vercel.app` (site) et `bot.rpbey.fr` (API) restent conservés (redirections / origines de confiance), mais ne sont plus le domaine de référence.
+
 ## [Unreleased] — 2026-04-25
 
 ### Added
@@ -1925,7 +1931,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 
 **Sources de vérité** :
 - Bot prod : service systemd `shenron.service` sur le VPS (`WorkingDirectory=/home/ubuntu/shenron/apps/bot`).
-- Site prod : Vercel projet `dbfr` (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`), **seul domaine valide : `https://dbfr.vercel.app`**. vhost VPS `shenron.rpbey.fr` proxifie aussi le bot.
+- Site prod : Vercel projet `dbfr` (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`), **domaine de prod : `https://dragonballfr.com`** (alias historique `dbfr.vercel.app` conservé). L'API bot est servie côté VPS sur `bot.dragonballfr.com` (ex- `bot.rpbey.fr`) ; vhost VPS `shenron.rpbey.fr` proxifie aussi le bot (legacy).
 - DB bot : SQLite local `apps/bot/data/bot.db` (snapshot quotidien via timer VPS).
 - DB site : **Postgres distinct** (Neon ou autre, via `DATABASE_URL`) — ce n'est PAS la même DB que le bot.
 
@@ -2021,7 +2027,8 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 
 | Service | Port | Vhost | Stack |
 |---|---|---|---|
-| shenron | 5006 | shenron.rpbey.fr | Bun + discordx + drizzle + bun:sqlite + canvas |
+| (site Vercel) | — | dragonballfr.com (ex- shenron.rpbey.fr) | Next.js 16 sur Vercel (projet `dbfr`) |
+| shenron | 5006 | bot.dragonballfr.com (ex- bot.rpbey.fr) | Bun + discordx + drizzle + bun:sqlite + canvas |
 | shenron-backup.timer | — | — | `VACUUM INTO` quotidien 03:00 UTC → `apps/bot/backups/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
 | shenron-neon-sync.timer | — | — | Forward SQLite → Neon (runtime + `db_news`, wiki exclu) toutes les 30 min |
@@ -3159,7 +3166,7 @@ Conversation Discord entre Yoyo (dev) et Omar / kazu_solo (admin DBFR). Demandes
 
 ### Routes API publiques à ajouter (Track A)
 
-À exposer depuis `apps/shenron/src/api/` pour le site (CORS allowlist `https://dbfr.fr`, `https://shenron.rpbey.fr`).
+À exposer depuis `apps/shenron/src/api/` pour le site (CORS allowlist `https://dbfr.fr`, `https://dragonballfr.com` (ex- `shenron.rpbey.fr` / `dbfr.vercel.app`, legacy)).
 
 - `GET /api/public/user/:discordId` → `{ level, xp, zeni, banner, achievements, inventory }` (read-only, rate-limit 60 req/min/IP, **pas d'auth**).
 - `GET /api/public/shop` → catalogue items publics.
@@ -6007,7 +6014,8 @@ de vérité des units systemd, des vhosts nginx et des scripts d'ops.
 | `deploy/systemd/shenron-guild-sync.{service,timer}` | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut). |
 | `deploy/systemd/shenron-neon-sync.{service,timer}` | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min. |
 | `deploy/systemd/shenron-neon-pull.{service,timer}` | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
-| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`). |
+| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine prod. |
+| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique. |
 | `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api`. |
 | `deploy/install.sh` | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`). |
 | `scripts/backup-shenron-sqlite.sh` | Script du backup (appelé par le timer). |
@@ -6055,8 +6063,16 @@ déclarée dans le bloc `http {}` de `nginx.conf` (infra mutualisée, hors repo)
 limit_req_zone $binary_remote_addr zone=rpb_api:10m rate=30r/s;
 ```
 
-ainsi que des certificats letsencrypt pour `bot.rpbey.fr` et
-`shenron.rpbey.fr` (`certbot --nginx -d …`).
+ainsi que des certificats letsencrypt pour les domaines servis :
+
+```bash
+sudo certbot --nginx -d bot.dragonballfr.com   # API bot (domaine prod)
+sudo certbot --nginx -d bot.rpbey.fr            # API bot (alias historique)
+sudo certbot --nginx -d shenron.rpbey.fr        # dashboard SPA (alias historique)
+```
+
+Le site (`dragonballfr.com`) est servi par Vercel, hors nginx VPS — pas de cert
+local pour l'apex.
 
 ## Alternative sans VPS (conteneur)
 

@@ -13,11 +13,11 @@ import {
 	botTransformations,
 } from "@/db/bot-schema";
 
-// Default = bot.rpbey.fr (API du bot). PAS shenron.rpbey.fr qui pointe sur Vercel
+// Default = bot.dragonballfr.com (API du bot). PAS dragonballfr.com (site Vercel)
 // (le site lui-même) → sans cet env posé en prod, tous les appels runtime
 // partiraient vers le site et boucleraient en 404.
 const SHENRON_API_URL =
-	process.env.SHENRON_API_URL || "https://bot.rpbey.fr";
+	process.env.SHENRON_API_URL || "https://bot.dragonballfr.com";
 
 export interface ShenronUser {
 	discordId: string;

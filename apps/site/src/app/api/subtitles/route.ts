@@ -14,7 +14,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const ASSET_BASE = (env.SHENRON_API_URL ?? "https://bot.rpbey.fr").replace(
+const ASSET_BASE = (env.SHENRON_API_URL ?? "https://bot.dragonballfr.com").replace(
 	/\/+$/,
 	"",
 );

@@ -349,7 +349,7 @@ function renderCell(v: unknown, col?: string): ReactNode {
 	const s = String(v);
 
 	// Détection image : chemin DB relatif type "./assets/dbz/characters/goku.webp"
-	// → résolu vers le host du bot (bot.rpbey.fr) via assetUrl (strip "./", pas de /db/).
+	// → résolu vers le host du bot (bot.dragonballfr.com) via assetUrl (strip "./", pas de /db/).
 	const isImageCol = col && /image|cover|poster|photo|avatar/i.test(col);
 	const isImagePath = /\.(png|jpe?g|webp|gif|avif)$/i.test(s);
 	if (isImageCol && isImagePath && s.length < 200) {

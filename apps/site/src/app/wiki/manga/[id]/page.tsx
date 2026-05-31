@@ -69,6 +69,12 @@ export default async function MangaReaderPage({
 				title={chapterTitle(chapter)}
 				prevHref={chapter.prev ? `/wiki/manga/${chapter.prev}` : null}
 				nextHref={chapter.next ? `/wiki/manga/${chapter.next}` : null}
+				prevPages={chapter.prevPages}
+				nextPages={chapter.nextPages}
+				chapterId={chapter.id}
+				chapterNumber={chapter.chapter_number}
+				series={chapter.series}
+				chapterTitle={chapter.title}
 			/>
 		</div>
 	);

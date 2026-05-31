@@ -20,7 +20,7 @@ if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (sour
 const db = new Database(DB);
 mkdirSync(ASSETS, { recursive: true });
 
-const UA = "ShenronBot/1.0 (https://dbfr.vercel.app; wiki enrichment)";
+const UA = "ShenronBot/1.0 (https://dragonballfr.com; wiki enrichment)";
 
 // 1) recherche le titre de page Wikipedia le plus pertinent, 2) lit son image
 // de tête via l'API REST summary (`originalimage`) — qui expose la box art

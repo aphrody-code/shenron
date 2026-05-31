@@ -6,7 +6,7 @@
 const API = (
 	process.env.NEXT_PUBLIC_SHENRON_API_URL ??
 	process.env.SHENRON_API_URL ??
-	"https://bot.rpbey.fr"
+	"https://bot.dragonballfr.com"
 ).replace(/\/+$/, "");
 
 export const SERIES_BANNERS: Record<string, string> = {

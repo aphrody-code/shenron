@@ -52,6 +52,12 @@ export type MangaReaderProps = {
 	direction?: "rtl" | "ltr";
 	prevHref?: string | null;
 	nextHref?: string | null;
+	prevPages?: string[] | null;
+	nextPages?: string[] | null;
+	chapterId?: number;
+	chapterNumber?: number;
+	series?: string;
+	chapterTitle?: string | null;
 };
 
 type ViewMode = "paged" | "vertical";
@@ -77,9 +83,44 @@ export function MangaReader({
 	direction = "rtl",
 	prevHref = null,
 	nextHref = null,
+	prevPages = null,
+	nextPages = null,
+	chapterId,
+	chapterNumber,
+	series,
+	chapterTitle,
 }: MangaReaderProps): ReactElement {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const swiperRef = useRef<SwiperClass | null>(null);
+
+	useEffect(() => {
+		if (!chapterId) return;
+		try {
+			const saved = localStorage.getItem("dbfr_read_chapters");
+			let readIds: number[] = [];
+			if (saved) {
+				const parsed = JSON.parse(saved);
+				if (Array.isArray(parsed)) {
+					readIds = parsed.map(Number);
+				}
+			}
+			if (!readIds.includes(chapterId)) {
+				readIds.push(chapterId);
+				localStorage.setItem("dbfr_read_chapters", JSON.stringify(readIds));
+			}
+
+			// Save last read info
+			const lastReadInfo = {
+				id: chapterId,
+				chapter_number: chapterNumber ?? 0,
+				title: chapterTitle || null,
+				series: series || "DBS",
+			};
+			localStorage.setItem("dbfr_last_read_chapter", JSON.stringify(lastReadInfo));
+		} catch (e) {
+			console.error("Failed to save read chapter", e);
+		}
+	}, [chapterId, chapterNumber, series, chapterTitle]);
 
 	const [mode, setMode] = useState<ViewMode>("paged");
 	const [dir, setDir] = useState<"rtl" | "ltr">(direction);
@@ -95,6 +136,35 @@ export function MangaReader({
 	const urls = useMemo(() => pages.map((p) => assetUrl(p)), [pages]);
 	const total = urls.length;
 	const baseId = useId();
+
+	// Préchargement intelligent des planches en arrière-plan
+	useEffect(() => {
+		if (urls.length === 0) return;
+		// 1. Précharge la page courante, la précédente (retour arrière) et les 3 suivantes
+		const indices = [current, current - 1, current + 1, current + 2, current + 3];
+		for (const idx of indices) {
+			if (idx >= 0 && idx < urls.length) {
+				const img = new Image();
+				img.src = urls[idx];
+			}
+		}
+
+		// 2. Précharge les 3 premières pages du chapitre suivant en arrière-plan
+		if (nextPages && nextPages.length > 0) {
+			nextPages.slice(0, 3).forEach((page) => {
+				const img = new Image();
+				img.src = assetUrl(page);
+			});
+		}
+
+		// 3. Précharge les 3 dernières pages du chapitre précédent en arrière-plan (si l'utilisateur veut revenir en arrière)
+		if (prevPages && prevPages.length > 0) {
+			prevPages.slice(-3).forEach((page) => {
+				const img = new Image();
+				img.src = assetUrl(page);
+			});
+		}
+	}, [current, urls, prevPages, nextPages]);
 
 	/* ----------------------------- Fullscreen ----------------------------- */
 
@@ -312,7 +382,7 @@ export function MangaReader({
 										<img
 											src={url}
 											alt={`${title} — page ${i + 1}`}
-											loading="lazy"
+											loading={Math.abs(i - current) <= 1 ? "eager" : "lazy"}
 											draggable={false}
 											className="max-h-full max-w-full object-contain"
 										/>
@@ -377,7 +447,7 @@ export function MangaReader({
 									<img
 										src={urls[vi.index]}
 										alt={`${title} — page ${vi.index + 1}`}
-										loading="lazy"
+										loading={Math.abs(vi.index - current) <= 1 ? "eager" : "lazy"}
 										draggable={false}
 										className="h-auto w-full max-w-3xl object-contain"
 									/>
@@ -387,6 +457,37 @@ export function MangaReader({
 					</div>
 				)}
 			</div>
+
+			{/* Thumbnail strip / Page navigation at the bottom */}
+			{mode === "paged" && total > 0 && (
+				<div className="z-10 bg-black/90 border-t border-dbz-border px-4 py-3 flex items-center gap-4 overflow-x-auto scrollbar-thin">
+					<div className="flex gap-2 mx-auto">
+						{urls.map((url, idx) => (
+							<button
+								key={url + "-thumb-" + idx}
+								type="button"
+								onClick={() => {
+									setCurrent(idx);
+									swiperRef.current?.slideTo(idx);
+								}}
+								className={`relative flex-shrink-0 w-12 h-16 rounded overflow-hidden border-2 transition-all ${
+									current === idx ? "border-dbz-orange scale-105 shadow-[0_0_10px_rgba(255,178,0,0.4)]" : "border-white/10 hover:border-white/30"
+								}`}
+							>
+								<img
+									src={url}
+									alt={`Page ${idx + 1}`}
+									className="w-full h-full object-cover"
+									loading="lazy"
+								/>
+								<span className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] font-bold text-white text-center font-mono">
+									{idx + 1}
+								</span>
+							</button>
+						))}
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

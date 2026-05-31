@@ -8,7 +8,7 @@ import { env } from "./env";
 // valeur d'env polluée (ex. BETTER_AUTH_URL posée via `echo` qui ajoute un \n
 // final → redirectURI "https://dbfr.vercel.app\n/api/auth/..." malformé →
 // Discord rejette le callback). Ne jamais concaténer une env URL brute.
-const SITE_URL = (env.BETTER_AUTH_URL ?? "https://dbfr.vercel.app")
+const SITE_URL = (env.BETTER_AUTH_URL ?? "https://dragonballfr.com")
 	.trim()
 	.replace(/\/+$/, "");
 
@@ -22,6 +22,8 @@ export const auth = betterAuth({
 	// Doc: https://better-auth.com/docs/guides/dynamic-base-url#vercel-deployment
 	baseURL: {
 		allowedHosts: [
+			"dragonballfr.com",
+			"www.dragonballfr.com",
 			"shenron.rpbey.fr",
 			"dbfr.vercel.app",
 			"*.vercel.app",
@@ -109,6 +111,8 @@ export const auth = betterAuth({
 	// table jamais peuplée. Le lazy upsert dans session.ts capture le bon
 	// moment (premier appel post-login).
 	trustedOrigins: [
+		"https://dragonballfr.com",
+		"https://www.dragonballfr.com",
 		"https://shenron.rpbey.fr",
 		"https://dbfr.vercel.app",
 		"http://localhost:3000",

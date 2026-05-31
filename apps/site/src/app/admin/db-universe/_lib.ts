@@ -4,7 +4,7 @@
  */
 import { env } from "@/lib/env";
 
-const API = env.SHENRON_API_URL ?? "https://shenron.rpbey.fr";
+const API = env.SHENRON_API_URL ?? "https://bot.dragonballfr.com";
 
 // L'API bot est incohérente sur le casing : certains endpoints (movies, games,
 // sagas via Drizzle) renvoient du camelCase, d'autres (episodes, sources, assets

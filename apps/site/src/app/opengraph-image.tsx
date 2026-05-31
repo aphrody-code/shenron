@@ -96,7 +96,7 @@ export default function OpengraphImage() {
 						letterSpacing: 2,
 					}}
 				>
-					dbfr.vercel.app
+					dragonballfr.com
 				</div>
 			</div>
 		),

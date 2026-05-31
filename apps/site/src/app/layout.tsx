@@ -46,7 +46,7 @@ const notoJP = Noto_Sans_JP({
 // composant ne charge donc ces .ttf décoratifs.
 
 export const metadata: Metadata = {
-	metadataBase: new URL("https://shenron.rpbey.fr"),
+	metadataBase: new URL("https://dragonballfr.com"),
 
 	title: {
 		default: "DBFR — Dragon Ball France",
