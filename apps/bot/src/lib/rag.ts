@@ -16,7 +16,9 @@
 import type { Database } from "bun:sqlite";
 
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
-const EMBED_TIMEOUT_MS = Number(process.env.EMBED_TIMEOUT_MS ?? 1500);
+// 3s : l'embed est rapide (~30ms) mais peut faire la queue derrière un rerank
+// (~1.4s) sur le sidecar WASM mono-thread sous burst.
+const EMBED_TIMEOUT_MS = Number(process.env.EMBED_TIMEOUT_MS ?? 3000);
 // Timeout large : le sidecar (onnxruntime WASM mono-thread) sérialise les
 // inférences → sous concurrence, un rerank peut faire la queue. La réponse est
 // cachée 5 min et /ask défère, donc le pire-cas cache-miss est absorbé.
