@@ -159,6 +159,17 @@ sudo systemctl status shenron
 journalctl -fu shenron                # logs en direct
 ```
 
+### Sidecar embeddings RAG (`shenron-embed.service`)
+
+La recherche RAG hybride+rerank charge ses 2 modèles transformers.js dans un **sidecar isolé** — jamais dans le process bot (qui reste à `MemoryMax=1.5G`).
+
+| Service | Port | Mémoire | Rôle |
+|---|---|---|---|
+| `shenron-embed.service` | `127.0.0.1:5007` | `MemoryMax=3G` | Sidecar embeddings (`multilingual-e5-small` + `bge-reranker-base`), 2 modèles chauds |
+
+- **Activation** : `bash deploy/install.sh` active l'unit avec les autres (units vendorées dans `deploy/systemd/`). Au **1er boot**, le service télécharge ~410 Mo de modèles dans `apps/bot/.models` (gitignored, cache persistant).
+- **Rebuild du corpus RAG** : après tout changement du wiki, `bun --filter @shenron/bot run rag:build` (embed in-process, offline) puis `sudo systemctl restart shenron`.
+
 ### Version compilée (binaire standalone)
 
 Avec `bun build --compile`, tu n'as même plus besoin de Bun au runtime :

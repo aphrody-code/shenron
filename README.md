@@ -54,7 +54,7 @@ Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** �
 |---|---|---|
 | **Shenron** | Admin · héberge l'API REST (5006) + dashboard | `/admin /config /ids /niveau /succes` |
 | **Beerus** | Modération | `/warn /mute /ban /kick /clear /purge /role /lock /slowmode /nick /note /stats /sstats` |
-| **Whis** | Utility | `/help /scan /ticket /wiki /races /planete` |
+| **Whis** | Utility | `/help /scan /ticket /wiki /races /planete /ask` |
 | **Grand Prêtre** | Logs | (events only — `MessageLog`, `JoinLeave`, `BioRole`, `AuditLog`, `InteractionLog`) |
 | **Enma** | Détention | `/jail /unjail` |
 | **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
@@ -66,6 +66,7 @@ Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyring
 Un site Next.js public accompagne le bot, en prod sur **[dragonballfr.com](https://dragonballfr.com)** (canonical ; alias legacy `dbfr.vercel.app` conservés). L'API REST et les assets du bot sont exposés sur **`bot.dragonballfr.com`** (alias `bot.rpbey.fr`).
 
 - **Home cinématique** (`apps/site/src/components/home/`) : accueil full-page scroll-snap, une scène plein écran par ère Dragon Ball avec fonds animés des meilleures scènes, navigation molette / clavier / tactile, et état live du bot en temps réel.
+- **Animations cinématiques** (`apps/site/src/components/ViewTransition.tsx`) : **View Transitions API** (morph d'élément partagé grille→fiche personnages/planètes, slides directionnels), scroll-driven animations CSS natives (`animation-timeline: view()`), ki-glow au survol — `prefers-reduced-motion` respecté, cache CDN préservé, zéro framer-motion.
 - **Wiki Dragon Ball** : personnages, sagas, films, jeux, manga, épisodes — lu directement dans Postgres (Neon, schéma `bot`) côté serveur, sans API bot.
 - **Scènes d'épisode** (`/wiki/episodes/[id]`) : galeries de frames stockées en `db_episodes.frames` (jsonb) + `scene_preview`, alimentées par `apps/bot/scripts/{build-episode-scenes,extract-dbz-frames,scrape-dbz-fandom-frames,ingest-episode-frames}.ts`.
 
@@ -109,6 +110,7 @@ Un site Next.js public accompagne le bot, en prod sur **[dragonballfr.com](https
 - `/wiki <personnage>` — fiche complète avec transformations (autocomplete)
 - `/races <race>` — liste des personnages par race
 - `/planete <planète>` — fiche planète
+- `/ask <question>` — question en langage naturel FR → **recherche RAG hybride+rerank** sur le wiki → réponse sourcée (résultats classés, snippets, liens vers le site) + bouton « Ouvrir le meilleur résultat ». Persona Whis
 - Données seedées depuis [dragonball-api.com](https://dragonball-api.com) avec images locales
 
 ### Outils
@@ -137,6 +139,28 @@ Le bot expose une API REST `Bun.serve` interne (`127.0.0.1:5006` par défaut) **
 **Services exposables** (whitelist d'actions) : `achievements.{refresh,list,grant}`, `economy.{addZeni,removeZeni}`, `level.{addXP,getUser}`, `settings.{list,set,unset}`, `translate.probe`, `moderation.{countWarns,removeLastWarn}`, `wiki.{search,count}`.
 
 Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour exposer hors VPS, ajouter un vhost nginx (`api.shenron.example`) qui proxy vers `127.0.0.1:5006` + injecte TLS.
+
+### API publique : REST + GraphQL + OpenAPI
+
+Au-delà du dashboard admin, le même `Bun.serve` expose une **surface publique** (CORS ouvert, sans Bearer) consommée par le site, l'app et la commande `/ask` :
+
+| Surface | Endpoint | Détail |
+|---|---|---|
+| **REST** | `/api/public/rag/search` + wiki / insights / médias | endpoints publics du wiki et de la recherche |
+| **GraphQL** | `/graphql` | read-only, code-first **Pothos** + **graphql-yoga**, GraphiQL activé, garde-fou profondeur max 10. Expose le wiki (`characters`, `planets`, `sagas`, `episodes`, `techniques`, `transformations`, `movies`, `games`, `races`) + relations + `ragSearch` + `counts` |
+| **OpenAPI 3.1** | `/api/openapi.json` | spec statique (CORS public, cache 1 h) couvrant la surface REST publique (RAG / Wiki / Insights / Médias) |
+| **Docs** | `/api/docs` | UI interactive **Scalar** (CDN, zéro dépendance) |
+
+### Recherche RAG (hybride + rerank)
+
+La recherche sémantique du wiki est un pipeline **2 étages, 100 % local** (FR + JP), sans clé ni service externe :
+
+1. **Récupération hybride** — BM25 (`rag_chunks` FTS5) + embeddings denses multilingues (`Xenova/multilingual-e5-small`, 384d, cosinus exact) fusionnés en **RRF** (k=60).
+2. **Reranking cross-encoder** (`Xenova/bge-reranker-base`) du top-15.
+
+Les modèles tournent dans un **sidecar dédié** (`shenron-embed.service`, port 5007, `MemoryMax=3G`) — le process bot (1.5G) ne charge jamais de modèle : `src/lib/embeddings.ts` (heavy) n'est importé que par le sidecar, `src/lib/rag.ts` (runtime léger) fetch HTTP le sidecar. **Dégradation gracieuse** sur 3 niveaux (`hybrid+rerank → hybrid → lexical`).
+
+Consommateurs : `/api/public/rag/search` (REST), `ragSearch` (GraphQL), commande Discord `/ask`, recherche du site. Build offline du corpus : `bun --filter @shenron/bot run rag:build` (voir [DEPLOY.md](DEPLOY.md#sidecar-embeddings-rag-shenron-embedservice)).
 
 ## Stack technique
 
@@ -521,6 +545,7 @@ Le vocal est automatiquement créé en rejoignant le hub configuré, et supprim�
 | `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos) |
 | `/races <race>` | Personnages par race (Saiyan, Namekian, Android…) |
 | `/planete <planète>` | Fiche planète |
+| `/ask <question>` | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
 
 </details>
 
