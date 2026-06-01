@@ -1,5 +1,6 @@
 import { JsonLd } from "@/components/JsonLd";
 import { TrackView } from "@/components/TrackView";
+import { ViewTransition } from "@/components/ViewTransition";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
@@ -96,21 +97,27 @@ export default async function CharacterPage({
 				entityName={character.name}
 			/>
 			<Link
-				href="/wiki/dragon-ball"
+				href="/wiki/personnages"
+				// `nav-back` → slide directionnel inverse (retour vers la grille).
+				transitionTypes={["nav-back"]}
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
 			>
-				<span>← Retour à l'index</span>
+				<span>← Retour aux personnages</span>
 			</Link>
 
 			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 				<div className="w-full lg:w-2/5 xl:w-1/3">
 					<div className="dbz-panel p-6 border-2 border-dbz-orange/30 bg-dbz-card relative overflow-hidden group">
 						<div className="absolute inset-0 halftone opacity-20 group-hover:opacity-30 transition-opacity" />
-						<img
-							src={assetUrl(character.image)}
-							alt={character.name}
-							className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,178,0,0.3)] group-hover:scale-105 transition-transform duration-700"
-						/>
+						{/* Cible du morph partagé : même `name` que le thumbnail de la grille
+						    → l'image se déplie en continuité depuis la tuile cliquée. */}
+						<ViewTransition name={`character-img-${character.id}`} share="morph">
+							<img
+								src={assetUrl(character.image)}
+								alt={character.name}
+								className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,178,0,0.3)] group-hover:scale-105 transition-transform duration-700"
+							/>
+						</ViewTransition>
 						<div className="absolute inset-0 bg-gradient-to-t from-dbz-orange/10 to-transparent" />
 					</div>
 				</div>

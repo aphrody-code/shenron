@@ -1,4 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { ViewTransition } from "@/components/ViewTransition";
 import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -24,21 +25,25 @@ export default async function PlanetPage({
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up">
 			<Link
-				href="/wiki/dragon-ball"
+				href="/wiki/planetes"
+				transitionTypes={["nav-back"]}
 				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
 			>
-				<span>← Retour à l'index</span>
+				<span>← Retour aux planètes</span>
 			</Link>
 
 			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 				<div className="w-full lg:w-2/5 xl:w-1/2">
 					<div className="dbz-panel p-8 border-2 border-dbz-blue-light/30 bg-dbz-bg relative overflow-hidden group">
 						<div className="absolute inset-0 starfield opacity-30 group-hover:opacity-40 transition-opacity" />
-						<img
-							src={assetUrl(planet.image)}
-							alt={planet.name}
-							className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(75,168,255,0.3)] group-hover:scale-110 transition-transform duration-1000"
-						/>
+						{/* Cible du morph partagé avec la tuile de la grille /wiki/planetes. */}
+						<ViewTransition name={`planet-img-${planet.id}`} share="morph">
+							<img
+								src={assetUrl(planet.image)}
+								alt={planet.name}
+								className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(75,168,255,0.3)] group-hover:scale-110 transition-transform duration-1000"
+							/>
+						</ViewTransition>
 						<div className="absolute inset-0 bg-gradient-to-t from-dbz-blue/40 to-transparent" />
 					</div>
 				</div>

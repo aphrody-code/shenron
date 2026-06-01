@@ -1078,3 +1078,185 @@ html[data-home] { scroll-snap-type: y proximity; }
   .scene-img--live, .scene-aura.ki-pulse, .home-scroll-hint__arrow { animation: none !important; }
   html[data-home] { scroll-behavior: auto; }
 }
+
+/* =========================================================================
+ * VIEW TRANSITIONS — morph d'élément partagé (grille → fiche) + slides
+ * directionnels nav-forward/nav-back. Activé par React `<ViewTransition>`
+ * (next.config experimental.viewTransition). Sans support navigateur, la
+ * navigation reste normale (progressive enhancement, aucun fallback JS).
+ * ========================================================================= */
+
+/* --- Morph : adoucit l'interpolation pixel par un léger flou mi-parcours --- */
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: vt-morph-blur;
+}
+@keyframes vt-morph-blur {
+  40% { filter: blur(2.5px); }
+}
+
+/* --- Slides directionnels (nav-forward = on entre, nav-back = on revient) --- */
+::view-transition-old(.nav-forward) {
+  --vt-slide: -56px;
+  animation:
+    150ms ease-in both vt-fade reverse,
+    400ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --vt-slide: 56px;
+  animation:
+    220ms ease-out 130ms both vt-fade,
+    420ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide;
+}
+::view-transition-old(.nav-back) {
+  --vt-slide: 56px;
+  animation:
+    150ms ease-in both vt-fade reverse,
+    400ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --vt-slide: -56px;
+  animation:
+    220ms ease-out 130ms both vt-fade,
+    420ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide;
+}
+@keyframes vt-slide {
+  from { translate: var(--vt-slide); }
+  to   { translate: 0; }
+}
+@keyframes vt-fade {
+  from { opacity: 0; filter: blur(3px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+
+/* --- Ancrage de la nav : elle ne glisse jamais (repère spatial fixe) --- */
+::view-transition-group(site-header) { animation: none; z-index: 100; }
+::view-transition-old(site-header) { display: none; }
+::view-transition-new(site-header) { animation: none; }
+
+/* --- Reduced motion : swap instantané (comportement par défaut du navigateur) */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* =========================================================================
+ * KI-CARD — micro-interaction de survol : liseré d'énergie ki qui balaye le
+ * cadre (gradient conique animé via @property `--ki-angle`, GPU-friendly :
+ * seul l'angle d'un masque/gradient varie). Posé sur les tuiles de grille
+ * (.ki-card + span .ki-card__glow). Désactivé en reduced-motion.
+ * ========================================================================= */
+@property --ki-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.ki-card { position: relative; }
+.ki-card__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  /* Anneau d'énergie : un secteur lumineux qui tourne autour du cadre. */
+  background: conic-gradient(
+    from var(--ki-angle),
+    transparent 0deg,
+    color-mix(in oklab, var(--color-dbz-orange) 85%, transparent) 18deg,
+    transparent 55deg,
+    transparent 360deg
+  );
+  /* On ne garde que le contour (anneau de ~2px), pas le remplissage. */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 1.5px;
+  mix-blend-mode: screen;
+}
+.ki-card__glow--blue {
+  background: conic-gradient(
+    from var(--ki-angle),
+    transparent 0deg,
+    color-mix(in oklab, var(--color-dbz-blue-light) 90%, transparent) 18deg,
+    transparent 55deg,
+    transparent 360deg
+  );
+}
+.ki-card:hover .ki-card__glow {
+  opacity: 1;
+  animation: ki-sweep 1.5s linear infinite;
+}
+@keyframes ki-sweep {
+  to { --ki-angle: 360deg; }
+}
+
+/* =========================================================================
+ * REVEAL-GRID — apparition staggerée des tuiles au scroll (scroll-driven,
+ * natif). Chaque enfant fade+monte quand il entre dans le viewport. Pas de
+ * JS, pas d'IntersectionObserver. Fallback : enfants visibles d'emblée.
+ * ========================================================================= */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-grid > * {
+      animation: grid-pop linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 22%;
+    }
+  }
+}
+@keyframes grid-pop {
+  from { opacity: 0; transform: translateY(22px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* =========================================================================
+ * HERO — raffinement ken-burns : dérive de luminosité/échelle plus organique
+ * sur la scène active (s'ajoute au ken-burns existant côté .scene-img--live
+ * sans le remplacer). Ajoute aussi une respiration douce de l'aura.
+ * ========================================================================= */
+@media (prefers-reduced-motion: no-preference) {
+  .scene-img--live {
+    /* Surcharge fine : zoom + pan + très légère bascule de teinte cinéma. */
+    animation: scene-ken 30s ease-in-out infinite alternate;
+  }
+  .home-hero .home-wordmark span {
+    /* Lueur dorée qui pulse lentement sur le wordmark (filter only → GPU). */
+    animation: wordmark-glow 7s ease-in-out infinite;
+  }
+}
+@keyframes scene-ken {
+  0% {
+    transform: scale(1.06) translate3d(0, 0, 0);
+    filter: saturate(1) brightness(1);
+  }
+  100% {
+    transform: scale(1.18) translate3d(-1.8%, -2.4%, 0);
+    filter: saturate(1.08) brightness(1.04);
+  }
+}
+@keyframes wordmark-glow {
+  0%, 100% { filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.6)); }
+  50% {
+    filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.6))
+            drop-shadow(0 0 24px color-mix(in oklab, var(--accent, #ffb200) 45%, transparent));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-img--live, .home-hero .home-wordmark span { animation: none !important; }
+  .ki-card:hover .ki-card__glow { animation: none !important; }
+}

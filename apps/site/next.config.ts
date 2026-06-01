@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	// View Transitions API (React `<ViewTransition>`) — morph d'élément partagé
+	// grille→fiche, slides directionnels. Sans support navigateur, navigation
+	// normale sans animation (progressive enhancement). Cf. components/ViewTransition.tsx.
+	experimental: {
+		viewTransition: true,
+	},
+
 	// Image optimization Vercel CDN — AVIF prioritaire, WebP fallback.
 	// Docs : https://nextjs.org/docs/app/api-reference/components/image#formats
 	// Note : chaque format est caché séparément (storage ↑ mais latence ↓ après warm).

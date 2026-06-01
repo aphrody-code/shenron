@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { assetUrl } from "@/lib/assets";
+import { ViewTransition } from "@/components/ViewTransition";
 
 // Grille personnages filtrable (client). Importe `@/lib/assets` (client-safe),
 // JAMAIS db-universe/shenron (server-only → `postgres` fuiterait dans le bundle).
@@ -122,29 +123,39 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 					Aucun guerrier ne correspond à « {query} ».
 				</p>
 			) : (
-				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
+				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 reveal-grid">
 					{filtered.map((c) => (
 						<Link
 							key={c.id}
 							href={`/wiki/dragon-ball/character/${c.id}`}
-							className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
+							// `nav-forward` → slide directionnel à l'arrivée sur la fiche
+							// (View Transitions). La fiche tag son "retour" en nav-back.
+							transitionTypes={["nav-forward"]}
+							className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300 ki-card"
 						>
 							<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
 								<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
 								{c.image ? (
-									// eslint-disable-next-line @next/next/no-img-element
-									<img
-										src={assetUrl(c.image)}
-										alt={c.name}
-										loading="lazy"
-										className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
-									/>
+									// Morph d'élément partagé : ce thumbnail et l'image héro de la
+									// fiche partagent `character-img-${id}` → la grille « se déplie »
+									// en grande image au clic (et inversement au retour).
+									<ViewTransition name={`character-img-${c.id}`} share="morph">
+										{/* eslint-disable-next-line @next/next/no-img-element */}
+										<img
+											src={assetUrl(c.image)}
+											alt={c.name}
+											loading="lazy"
+											className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+										/>
+									</ViewTransition>
 								) : (
 									<div className="flex h-full w-full items-center justify-center bg-zinc-900">
 										<span className="text-zinc-700 font-saiyan text-xl">?</span>
 									</div>
 								)}
 								<div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent z-20" />
+								{/* Liseré ki au survol (conic sweep piloté par @property) */}
+								<span aria-hidden className="ki-card__glow" />
 								<div className="absolute inset-x-0 bottom-0 p-2 z-30">
 									{c.race && (
 										<p className="scouter-text text-[8px] text-dbz-orange/90 mb-0.5 truncate">
