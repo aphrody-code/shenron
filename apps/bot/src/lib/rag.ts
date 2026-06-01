@@ -17,6 +17,9 @@ import type { Database } from "bun:sqlite";
 
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 const EMBED_TIMEOUT_MS = Number(process.env.EMBED_TIMEOUT_MS ?? 1500);
+const RERANK_TIMEOUT_MS = Number(process.env.RERANK_TIMEOUT_MS ?? 4000);
+const RERANK_ENABLED = process.env.RAG_RERANK !== "0";
+const RERANK_POOL = 20; // nombre de candidats RRF envoyés au cross-encoder
 const RRF_K = 60;
 
 export interface RagHit {
@@ -93,6 +96,23 @@ async function embedRemote(text: string): Promise<Float32Array | null> {
   }
 }
 
+/** Rerank cross-encoder via le sidecar. Renvoie un score/passage, ou null si KO. */
+async function rerankRemote(query: string, passages: string[]): Promise<number[] | null> {
+  try {
+    const res = await fetch(`${EMBED_URL}/rerank`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ query, passages }),
+      signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { scores: number[] };
+    return Array.isArray(j.scores) ? j.scores : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Top-K cosinus exact (vecteurs déjà normalisés → cosinus = produit scalaire). */
 function cosineTopK(
   c: VectorCache,
@@ -120,15 +140,19 @@ function ftsMatch(raw: string): string | null {
   return tokens.map((t) => `"${t}"`).join(" OR ");
 }
 
+export type RagMode = "hybrid+rerank" | "hybrid" | "lexical";
+
 /**
- * Recherche hybride. Renvoie au plus `limit` hits fusionnés (RRF) ou, à défaut
- * de signal sémantique, le classement BM25.
+ * Pipeline RAG : récupération hybride (BM25 + dense, fusion RRF) puis reranking
+ * cross-encoder du top-{@link RERANK_POOL} (2e étage, précision). Dégrade en
+ * hybride sans rerank si le cross-encoder est indisponible, ou en BM25 seul si
+ * le signal sémantique manque. Renvoie au plus `limit` hits.
  */
 export async function hybridSearch(
   db: Database,
   raw: string,
   limit: number,
-): Promise<{ results: RagHit[]; mode: "hybrid" | "lexical" }> {
+): Promise<{ results: RagHit[]; mode: RagMode }> {
   const query = raw.trim();
   const match = ftsMatch(query);
   if (!match) return { results: [], mode: "lexical" };
@@ -144,7 +168,7 @@ export async function hybridSearch(
   const bmById = new Map<number, RagHit>();
   for (const h of bm) bmById.set(h.rowid, h);
 
-  // Signal sémantique (best-effort).
+  // Étage 1 — signal sémantique (best-effort).
   const c = loadVectors(db);
   const qv = c ? await embedRemote(query) : null;
   const dense = c && qv ? cosineTopK(c, qv, POOL) : [];
@@ -158,24 +182,56 @@ export async function hybridSearch(
   bm.forEach((h, r) => fused.set(h.rowid, (fused.get(h.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
   dense.forEach((d, r) => fused.set(d.rowid, (fused.get(d.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
 
+  // On garde un pool large pour le reranking (pas seulement `limit`).
   const ordered = [...fused.entries()]
     .toSorted((a, b) => b[1] - a[1])
-    .slice(0, limit)
+    .slice(0, RERANK_POOL)
     .map(([rowid]) => rowid);
 
-  // Hydrate les métadonnées des hits sémantiques absents de BM25.
-  const missing = ordered.filter((id) => !bmById.has(id));
-  if (missing.length) {
-    const ph = missing.map(() => "?").join(",");
-    const extra = db
-      .query(
-        `SELECT rowid, kind, title, url, substr(content, 1, 160) AS snippet ` +
-          `FROM rag_chunks WHERE rowid IN (${ph})`,
-      )
-      .all(...missing) as RagHit[];
-    for (const h of extra) bmById.set(h.rowid, h);
+  // Hydrate kind/title/url + contenu (pour le rerank) de tous les candidats.
+  const ph = ordered.map(() => "?").join(",");
+  const rows = db
+    .query(`SELECT rowid, kind, title, url, content FROM rag_chunks WHERE rowid IN (${ph})`)
+    .all(...ordered) as (RagHit & { content: string })[];
+  const rowById = new Map<number, RagHit & { content: string }>();
+  for (const r of rows) rowById.set(r.rowid, r);
+
+  // Candidats dans l'ordre RRF ; snippet d'affichage = surlignage BM25 si dispo,
+  // sinon préfixe du contenu.
+  let candidates = ordered
+    .map((id) => {
+      const r = rowById.get(id);
+      if (!r) return null;
+      const snippet = bmById.get(id)?.snippet ?? r.content.slice(0, 160);
+      return {
+        rowid: r.rowid,
+        kind: r.kind,
+        title: r.title,
+        url: r.url,
+        snippet,
+        content: r.content,
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  // Étage 2 — reranking cross-encoder (best-effort).
+  let mode: RagMode = "hybrid";
+  if (RERANK_ENABLED && candidates.length > 1) {
+    // 400 chars suffisent : le cross-encoder tronque à 512 tokens. Au-delà, on
+    // paie la tokenisation sans gain (4.8s vs 1.4s pour 20 passages).
+    const passages = candidates.map((c2) => `${c2.title}. ${c2.content}`.slice(0, 400));
+    const scores = await rerankRemote(query, passages);
+    if (scores && scores.length === candidates.length) {
+      candidates = candidates
+        .map((cand, i) => ({ cand, score: scores[i] }))
+        .toSorted((a, b) => b.score - a.score)
+        .map((x) => x.cand);
+      mode = "hybrid+rerank";
+    }
   }
 
-  const results = ordered.map((id) => bmById.get(id)).filter((h): h is RagHit => Boolean(h));
-  return { results, mode: "hybrid" };
+  const results: RagHit[] = candidates
+    .slice(0, limit)
+    .map(({ rowid, kind, title, url, snippet }) => ({ rowid, kind, title, url, snippet }));
+  return { results, mode };
 }

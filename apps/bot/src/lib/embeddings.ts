@@ -14,10 +14,20 @@
  * sidecar (`embed-server.ts`, process isolé) l'importent. Le runtime du bot
  * passe par `lib/rag.ts` → HTTP vers le sidecar.
  */
-import { env as hfEnv, type FeatureExtractionPipeline, pipeline } from "@huggingface/transformers";
+import {
+  AutoModelForSequenceClassification,
+  AutoTokenizer,
+  env as hfEnv,
+  type FeatureExtractionPipeline,
+  type PreTrainedModel,
+  type PreTrainedTokenizer,
+  pipeline,
+} from "@huggingface/transformers";
 
 export const EMBED_MODEL = "Xenova/multilingual-e5-small";
 export const EMBED_DIM = 384;
+// Cross-encoder de reranking (multilingue, scores de pertinence query↔passage).
+export const RERANK_MODEL = "Xenova/bge-reranker-base";
 
 // Cache modèle dans un chemin maîtrisé (apps/bot/.models) — doit figurer dans
 // ReadWritePaths du service systemd `shenron-embed` (ProtectSystem=strict).
@@ -70,6 +80,42 @@ export async function embedTexts(
 export async function embedQuery(text: string): Promise<Float32Array> {
   const [v] = await embedTexts([text], "query", 1);
   return v;
+}
+
+let rerankerPromise: Promise<{
+  tokenizer: PreTrainedTokenizer;
+  model: PreTrainedModel;
+}> | null = null;
+
+/** Charge (une seule fois) le cross-encoder de reranking. */
+function getReranker() {
+  rerankerPromise ??= (async () => {
+    const tokenizer = await AutoTokenizer.from_pretrained(RERANK_MODEL);
+    const model = await AutoModelForSequenceClassification.from_pretrained(RERANK_MODEL, {
+      dtype: "q8",
+    });
+    return { tokenizer, model };
+  })();
+  return rerankerPromise;
+}
+
+/**
+ * Score de pertinence cross-encoder pour une requête vs chaque passage.
+ * Renvoie un score ∈ [0,1] (sigmoid du logit) par passage, dans l'ordre fourni.
+ * Plus précis que le cosinus bi-encoder → 2e étage du pipeline RAG (rerank).
+ */
+export async function rerankTexts(query: string, passages: string[]): Promise<number[]> {
+  if (passages.length === 0) return [];
+  const { tokenizer, model } = await getReranker();
+  const inputs = tokenizer(
+    Array.from({ length: passages.length }, () => query),
+    { text_pair: passages, padding: true, truncation: true },
+  );
+  const output = (await model(inputs)) as { logits: { sigmoid(): { tolist(): number[][] } } };
+  return output.logits
+    .sigmoid()
+    .tolist()
+    .map((row) => row[0]);
 }
 
 /** Sérialise un vecteur float32 en BLOB SQLite (little-endian natif). */

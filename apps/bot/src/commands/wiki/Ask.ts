@@ -114,10 +114,9 @@ export class AskCommands {
     }
 
     embed.setFooter({
-      text:
-        mode === "hybrid"
-          ? `Recherche hybride · BM25 + embeddings sémantiques · ${results.length} résultats`
-          : `Recherche lexicale · ${results.length} résultats`,
+      text: mode.startsWith("hybrid")
+        ? `Recherche hybride · BM25 + embeddings${mode === "hybrid+rerank" ? " + rerank IA" : ""} · ${results.length} résultats`
+        : `Recherche lexicale · ${results.length} résultats`,
     });
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(

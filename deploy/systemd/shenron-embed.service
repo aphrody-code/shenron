@@ -28,9 +28,9 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-# Le modèle + onnxruntime WASM tiennent < 1 Go ; 2 Go de marge (RAM libre dédiée).
-MemoryMax=2G
-MemoryHigh=1.5G
+# 2 modèles (e5-small + bge-reranker) + onnxruntime WASM ; 3 Go de marge (RAM libre dédiée).
+MemoryMax=3G
+MemoryHigh=2.5G
 TasksMax=128
 LimitNOFILE=65536
 OOMScoreAdjust=-200
