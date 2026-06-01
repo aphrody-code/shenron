@@ -76,3 +76,6 @@ reference/
 apps/bot/public/db/
 scratch/
 
+
+# transformers.js model cache (RAG embeddings)
+apps/bot/.models/

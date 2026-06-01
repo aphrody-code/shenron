@@ -41,8 +41,10 @@ sudo cp "$SYSTEMD_SRC"/*.service "$SYSTEMD_SRC"/*.timer /etc/systemd/system/
 sudo systemctl daemon-reload
 
 echo "▶ activation service + timers (backup 03:00, neon-sync /30min, neon-pull /15min)"
-sudo systemctl enable shenron.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer
+sudo systemctl enable shenron.service shenron-embed.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer
 sudo systemctl enable --now shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer >/dev/null 2>&1 || true
+# Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
+sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # guild-sync : réconciliation lourde (scan Discord + reparse 24h). Disponible
 # mais laissée désactivée par défaut. Pour l'activer :
 #   sudo systemctl enable --now shenron-guild-sync.timer

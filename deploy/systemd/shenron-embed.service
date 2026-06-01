@@ -1,0 +1,65 @@
+[Unit]
+Description=shenron-embed — sidecar embeddings RAG (multilingual-e5-small, transformers.js)
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitBurst=10
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron/apps/bot
+
+Environment=NODE_ENV=production
+Environment=EMBED_PORT=5007
+Environment=EMBED_HOST=127.0.0.1
+Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/bot/.bun-cache
+# Cache modèle ONNX hors node_modules (writable sous ProtectSystem=strict).
+Environment=TRANSFORMERS_CACHE=/home/ubuntu/shenron/apps/bot/.models
+
+ExecStart=/home/ubuntu/.bun/bin/bun embed-server.ts
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=20
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5
+
+# Le modèle + onnxruntime WASM tiennent < 1 Go ; 2 Go de marge (RAM libre dédiée).
+MemoryMax=2G
+MemoryHigh=1.5G
+TasksMax=128
+LimitNOFILE=65536
+OOMScoreAdjust=-200
+# Batch/sidecar : priorité basse vs bot interactif.
+CPUWeight=80
+IOWeight=80
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+ReadWritePaths=/home/ubuntu/shenron/apps/bot/.bun-cache /home/ubuntu/shenron/apps/bot/.models
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-embed
+
+[Install]
+WantedBy=multi-user.target
