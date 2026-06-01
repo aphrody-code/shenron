@@ -17,9 +17,12 @@ import type { Database } from "bun:sqlite";
 
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 const EMBED_TIMEOUT_MS = Number(process.env.EMBED_TIMEOUT_MS ?? 1500);
-const RERANK_TIMEOUT_MS = Number(process.env.RERANK_TIMEOUT_MS ?? 4000);
+// Timeout large : le sidecar (onnxruntime WASM mono-thread) sérialise les
+// inférences → sous concurrence, un rerank peut faire la queue. La réponse est
+// cachée 5 min et /ask défère, donc le pire-cas cache-miss est absorbé.
+const RERANK_TIMEOUT_MS = Number(process.env.RERANK_TIMEOUT_MS ?? 6000);
 const RERANK_ENABLED = process.env.RAG_RERANK !== "0";
-const RERANK_POOL = 20; // nombre de candidats RRF envoyés au cross-encoder
+const RERANK_POOL = 15; // nombre de candidats RRF envoyés au cross-encoder
 const RRF_K = 60;
 
 export interface RagHit {
