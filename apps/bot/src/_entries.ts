@@ -23,6 +23,7 @@ import "./commands/moderation/Moderation";
 import "./commands/ticket/Ticket";
 import "./commands/utility/Invitations";
 import "./commands/vocal/Vocal";
+import "./commands/wiki/Ask";
 import "./commands/wiki/Wiki";
 import "./events/AuditLog";
 import "./events/BioRole";
