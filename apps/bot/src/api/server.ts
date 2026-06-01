@@ -81,6 +81,7 @@ import { LeaderboardService, type LeaderboardEntry } from "~/services/Leaderboar
 import { LevelService } from "~/services/LevelService";
 import { levelForXP, nextThresholdFrom } from "~/lib/xp";
 import { hybridSearch } from "~/lib/rag";
+import { graphqlHandler } from "~/api/graphql";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
@@ -4281,6 +4282,11 @@ export class ApiServer {
 
       async fetch(req) {
         const url = new URL(req.url);
+
+        // GraphQL — API publique read-only du wiki (Pothos + yoga, GraphiQL).
+        if (url.pathname === "/graphql" || url.pathname.startsWith("/graphql/")) {
+          return graphqlHandler(req);
+        }
 
         // Better Auth — intercepte /api/auth/* (sign-in, callback, signout, get-session).
         if (url.pathname.startsWith("/api/auth/")) {
