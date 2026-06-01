@@ -82,6 +82,7 @@ import { LevelService } from "~/services/LevelService";
 import { levelForXP, nextThresholdFrom } from "~/lib/xp";
 import { hybridSearch } from "~/lib/rag";
 import { graphqlHandler } from "~/api/graphql";
+import { openapiSpec, scalarHtml } from "~/api/openapi";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
 // Le HTML doit être au root du package pour que les chunks soient générés à la racine.
 import dashboardHtml from "../../dashboard.html";
@@ -4286,6 +4287,24 @@ export class ApiServer {
         // GraphQL — API publique read-only du wiki (Pothos + yoga, GraphiQL).
         if (url.pathname === "/graphql" || url.pathname.startsWith("/graphql/")) {
           return graphqlHandler(req);
+        }
+
+        // OpenAPI 3.1 — spec de l'API publique REST + UI Scalar interactive.
+        if (url.pathname === "/api/openapi.json") {
+          return Response.json(openapiSpec, {
+            headers: {
+              "Cache-Control": "public, max-age=3600",
+              ...publicCorsHeaders(req),
+            },
+          });
+        }
+        if (url.pathname === "/api/docs" || url.pathname === "/api/docs/") {
+          return new Response(scalarHtml, {
+            headers: {
+              "Content-Type": "text/html; charset=utf-8",
+              "Cache-Control": "public, max-age=3600",
+            },
+          });
         }
 
         // Better Auth — intercepte /api/auth/* (sign-in, callback, signout, get-session).
