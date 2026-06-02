@@ -7,7 +7,7 @@
 	"overrides": {
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"next": "16.3.0-canary.21",
+		"next": "16.3.0-canary.37",
 		"@types/react": "19.2.15",
 		"@types/react-dom": "19.2.3"
 	},
@@ -19,7 +19,7 @@
 		"catalog": {
 			"react": "^19.0.0",
 			"react-dom": "^19.0.0",
-			"next": "16.3.0-canary.21",
+			"next": "16.3.0-canary.37",
 			"@next/bundle-analyzer": "^16.2.6",
 			"@next/eslint-plugin-next": "^16.2.6",
 			"eslint-config-next": "^16.2.6",
