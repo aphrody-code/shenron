@@ -9,11 +9,24 @@ apps/*/dist/
 # Bun
 .bun/
 
-# SQLite data (runtime)
+# SQLite data (runtime) — JAMAIS committer (contient la data utilisateurs / PII)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
 data/*.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
+
+# Exports runtime sensibles (PII membres Discord) — régénérables, jamais committer
+apps/bot/data/guild-scan.json
+apps/bot/data/.recovery-checkpoint.json
+apps/bot/data/backups/
+**/guild-scan*.json
+**/.recovery-checkpoint.json
 
 # Drizzle generated migrations are committed, but keep cache out
 .drizzle/
