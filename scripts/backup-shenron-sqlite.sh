@@ -3,8 +3,10 @@
 # Conserve les 14 derniers jours. Cron quotidien 03:00 UTC.
 set -euo pipefail
 
-SRC="/home/ubuntu/shenron/apps/bot/data/bot.db"
-DEST_DIR="/home/ubuntu/vps/data/backups/shenron-sqlite"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SRC="$PROJECT_ROOT/apps/bot/data/bot.db"
+DEST_DIR="$PROJECT_ROOT/data/backups/shenron-sqlite"
 TS=$(date -u +%Y%m%d-%H%M%S)
 DEST="$DEST_DIR/bot-$TS.db"
 

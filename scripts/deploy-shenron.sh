@@ -17,7 +17,9 @@
 #   bash scripts/deploy-shenron.sh --build   # build seul (skip restart)
 set -euo pipefail
 
-APP_DIR="/home/ubuntu/shenron/apps/bot"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+APP_DIR="$PROJECT_ROOT/apps/bot"
 SERVICE="shenron"
 
 PULL=0
@@ -34,7 +36,7 @@ for arg in "$@"; do
 done
 
 cd "$APP_DIR"
-export PATH="/home/ubuntu/.bun/bin:$PATH"
+export PATH="$HOME/.bun/bin:$PATH"
 
 # Snapshot du commit courant pour rollback automatique en cas d'echec.
 PREVIOUS_HEAD=$(git rev-parse HEAD 2>/dev/null || echo "")

@@ -79,3 +79,4 @@ scratch/
 
 # transformers.js model cache (RAG embeddings)
 apps/bot/.models/
+.env*.local

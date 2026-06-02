@@ -4,14 +4,16 @@
 # + backup avant + après.
 set -euo pipefail
 
-cd /home/ubuntu/shenron/apps/bot
-export PATH="/home/ubuntu/.bun/bin:$PATH"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT/apps/bot"
+export PATH="$HOME/.bun/bin:$PATH"
 
 TS=$(date -u +%Y%m%d-%H%M%S)
 echo "[$TS] === shenron guild sync start ==="
 
 # 1) Backup pré-sync
-bash /home/ubuntu/shenron/scripts/backup-shenron-sqlite.sh
+bash "$PROJECT_ROOT/scripts/backup-shenron-sqlite.sh"
 
 # 2) Scan Discord live (refresh data/guild-scan.json)
 bun scripts/scan-ids.ts 2>&1 | tail -3

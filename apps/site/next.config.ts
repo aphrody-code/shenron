@@ -102,6 +102,7 @@ const nextConfig: NextConfig = {
 			// détail enfants (/wiki/dragon-ball/character|planet|techniques/…) ne
 			// sont PAS capturées : la source est le chemin exact, sans wildcard.
 			{ source: "/wiki/dragon-ball", destination: "/wiki/personnages", permanent: true },
+			{ source: "/profil", destination: "/profil/me", permanent: true },
 		];
 	},
 

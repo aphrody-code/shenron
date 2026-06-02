@@ -11,9 +11,11 @@
 import { Database } from "bun:sqlite";
 import { mkdirSync, writeFileSync } from "node:fs";
 
+import os from "node:os";
+
 const DB = new URL("../data/bot.db", import.meta.url).pathname;
 const OUT = new URL("../data/rag/", import.meta.url).pathname;
-const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
+const BXC_DIR = process.env.BXC_DIR ?? `${os.homedir()}/bxc`;
 const BXC_PROFILE = process.env.BXC_PROFILE ?? "fast"; // recon: static|fast|http|stealth|max
 mkdirSync(OUT, { recursive: true });
 

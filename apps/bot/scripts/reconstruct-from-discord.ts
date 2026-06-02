@@ -46,7 +46,7 @@ type ScannedUser = {
 };
 
 const scan = JSON.parse(
-	readFileSync("/home/ubuntu/shenron/apps/bot/data/guild-scan.json", "utf-8"),
+	readFileSync(new URL("../data/guild-scan.json", import.meta.url), "utf-8"),
 ) as { users: ScannedUser[] };
 
 const dbs = container.resolve(DatabaseService);

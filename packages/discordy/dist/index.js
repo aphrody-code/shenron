@@ -31,9 +31,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// ../../node_modules/.bun/reflect-metadata@0.2.2/node_modules/reflect-metadata/Reflect.js
+// ../../node_modules/reflect-metadata/Reflect.js
 var require_Reflect = __commonJS({
-  "../../node_modules/.bun/reflect-metadata@0.2.2/node_modules/reflect-metadata/Reflect.js"() {
+  "../../node_modules/reflect-metadata/Reflect.js"() {
     "use strict";
     var Reflect2;
     (function(Reflect3) {

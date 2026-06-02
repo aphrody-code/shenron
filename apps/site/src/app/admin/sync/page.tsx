@@ -187,7 +187,7 @@ export default async function AdminSyncPage() {
 					</p>
 					<pre className="bg-dbz-bg border border-dbz-border p-3 text-xs text-dbz-yellow overflow-x-auto rounded">
 						{`# Synchronisation rapide membres + rôles de niveau (< 30 s)
-bash /home/ubuntu/vps/scripts/ops/shenron-guild-sync.sh
+bash /home/ubuntu/shenron/scripts/shenron-guild-sync.sh
 
 # OU via systemd (équivalent)
 sudo systemctl start shenron-guild-sync.service

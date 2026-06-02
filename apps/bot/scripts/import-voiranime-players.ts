@@ -20,9 +20,11 @@ if (!NEON_URL) {
 	process.exit(1);
 }
 
+import os from "node:os";
+
 const JSON_PATH =
 	process.env.VOIRANIME_JSON ??
-	"/home/ubuntu/bxc/data/voiranime/dragon-ball-full.json";
+	`${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
 
 // série DB → slug principal voiranime (VOSTFR).
 const SERIES_SLUG: Record<string, string> = {

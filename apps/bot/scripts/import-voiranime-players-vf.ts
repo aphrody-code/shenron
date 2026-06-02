@@ -28,9 +28,11 @@ if (!NEON_URL) {
 	process.exit(1);
 }
 
+import os from "node:os";
+
 const JSON_PATH =
 	process.env.VOIRANIME_JSON ??
-	"/home/ubuntu/bxc/data/voiranime/dragon-ball-full.json";
+	`${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
 
 // série DB → slugs voiranime { vostfr, vf }. vf optionnel (Daima n'a pas de VF
 // sur voir-anime à ce jour).

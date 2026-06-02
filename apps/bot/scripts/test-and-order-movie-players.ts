@@ -1,6 +1,9 @@
+import os from "node:os";
+import { join } from "node:path";
 import postgres from "postgres";
-// eslint-disable-next-line import/no-absolute-path
-import { VoiranimeScraper } from "/home/ubuntu/bxc/src/scrapers/voiranime.ts";
+
+const bxcPath = process.env.BXC_DIR ?? join(os.homedir(), "bxc");
+const { VoiranimeScraper } = await import(join(bxcPath, "src/scrapers/voiranime.ts"));
 
 const NEON_URL = process.env.DATABASE_URL;
 if (!NEON_URL) {

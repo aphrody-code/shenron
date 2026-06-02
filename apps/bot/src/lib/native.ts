@@ -1,31 +1,18 @@
+import { LEVEL_THRESHOLDS } from "./constants";
+
 /**
- * Pont vers le crate Rust `apps/shenron/native/` exposé via napi-rs.
- *
- * Le `.node` est chargé par le loader généré (`native/index.js`) qui sélectionne
- * le bon binaire selon la plateforme (`shenron-native.linux-x64-gnu.node`).
- *
- * Bench réel (Bun 1.3.14, payload 1390b, host VPS) :
- *   level_for_xp x1M  : TS 31ms · Rust 163ms · ratio 0.19× (Rust plus lent !)
- *   fnv1a(1.4kb) x50k : TS 195ms · Rust 104ms · ratio 1.87× (Rust gagne)
- *
- * Conclusion : l'overhead FFI napi est ~130ns par appel — pour des fonctions
- * sub-microseconde sur Bun JIT, le coût FFI annule le gain Rust. À porter
- * en Rust : seulement les fonctions avec boucle interne >1kb input ou
- * computation lourde (hash, compress, parse complexe, image transform).
- *
- * Fonctions exposées :
- * - `xpProgress` — formes riches du palier suivant (utile pour route cached,
- *   pas pour hot-path : le simple `levelForXP` reste TS dans `xp.ts`).
- * - `fnv1aHex` / `etagOf` — gain net pour hash de payloads JSON (utilisé
- *   par les routes publiques caching).
- * - `parseDuration` / `formatDuration` — wrappé pour cohérence avec le code
- *   TS existant. Gain Rust marginal car appelé une fois par sanction.
+ * Pure TypeScript implementation of the duration/hash/XP methods
+ * that previously linked to the deleted napi-rs Rust native FFI crate.
  */
-import * as rust from "../../native";
 
 /** Niveau DBZ atteint pour un montant d'XP donné. 0 si en-dessous du palier 1. */
 export function levelForXP(xp: number): number {
-	return rust.levelForXp(xp);
+	let level = 0;
+	for (const t of LEVEL_THRESHOLDS) {
+		if (xp >= t.xp) level = t.level;
+		else break;
+	}
+	return level;
 }
 
 /** Progression vers le palier suivant. `undefined` si déjà au niveau max (10). */
@@ -36,36 +23,105 @@ export type XpProgress = {
 	needed: number;
 };
 export function xpProgress(xp: number): XpProgress | undefined {
-	return rust.nextThresholdFrom(xp) ?? undefined;
+	const next = LEVEL_THRESHOLDS.find((t) => t.xp > xp);
+	if (!next) return undefined;
+	return {
+		current: xp,
+		nextLevel: next.level,
+		nextLevelXp: next.xp,
+		needed: next.xp - xp,
+	};
 }
 
 /** Hash FNV-1a 32-bit hex (8 chars padded). */
 export function fnv1aHex(input: string): string {
-	return rust.fnv1AHex(input);
+	let h = 0x811c9dc5;
+	const encoder = new TextEncoder();
+	const bytes = encoder.encode(input);
+	for (const b of bytes) {
+		h ^= b;
+		h = Math.imul(h, 0x01000193);
+	}
+	return (h >>> 0).toString(16).padStart(8, "0");
 }
 
 /**
  * ETag value pour le header HTTP (avec quotes englobantes — format spec).
- * Accepte string ou Uint8Array (pour compat avec le code existant qui hashait
- * directement les bytes JSON).
  */
 export function etagOf(input: string | Uint8Array): string {
 	const s =
 		typeof input === "string" ? input : new TextDecoder("utf-8").decode(input);
-	return `"${rust.fnv1AHex(s)}"`;
+	return `"${fnv1aHex(s)}"`;
 }
 
 /**
  * Parse `"10m"`, `"1h"`, `"7d"`, `"2w"` → millisecondes.
- * `undefined` si format invalide. Drop-in replacement de l'impl TS historique.
+ * `undefined` si format invalide.
  */
 export function parseDuration(input?: string): number | undefined {
 	if (!input) return undefined;
-	const r = rust.parseDurationMs(input);
-	return r ?? undefined;
+	const trimmed = input.trim();
+	if (trimmed.length === 0) return undefined;
+
+	let i = 0;
+	while (i < trimmed.length && trimmed.charCodeAt(i) >= 48 && trimmed.charCodeAt(i) <= 57) {
+		i++;
+	}
+	if (i === 0) return undefined;
+
+	const n = parseInt(trimmed.slice(0, i), 10);
+	if (isNaN(n)) return undefined;
+
+	let j = i;
+	while (j < trimmed.length && (trimmed[j] === " " || trimmed[j] === "\t")) {
+		j++;
+	}
+	if (j >= trimmed.length) return undefined;
+
+	const unit = trimmed[j].toLowerCase();
+	let mult: number;
+	switch (unit) {
+		case "s":
+			mult = 1000;
+			break;
+		case "m":
+			mult = 60000;
+			break;
+		case "h":
+			mult = 3600000;
+			break;
+		case "d":
+			mult = 86400000;
+			break;
+		case "w":
+			mult = 604800000;
+			break;
+		default:
+			return undefined;
+	}
+
+	for (let k = j + 1; k < trimmed.length; k++) {
+		if (trimmed[k] !== " " && trimmed[k] !== "\t") {
+			return undefined;
+		}
+	}
+
+	return n * mult;
 }
 
 /** Format d'une durée en ms vers `"3j"`, `"4h"`, `"15min"`, `"42s"`. */
 export function formatDuration(ms: number): string {
-	return rust.formatDuration(ms);
+	const abs = Math.abs(ms);
+	const divRound = (n: number, d: number) => Math.floor((n + d / 2) / d);
+
+	if (abs >= 86400000) {
+		return `${divRound(abs, 86400000)}j`;
+	}
+	if (abs >= 3600000) {
+		return `${divRound(abs, 3600000)}h`;
+	}
+	if (abs >= 60000) {
+		return `${divRound(abs, 60000)}min`;
+	}
+	return `${divRound(abs, 1000)}s`;
 }

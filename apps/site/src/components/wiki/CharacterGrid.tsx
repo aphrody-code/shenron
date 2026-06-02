@@ -140,7 +140,6 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 									// fiche partagent `character-img-${id}` → la grille « se déplie »
 									// en grande image au clic (et inversement au retour).
 									<ViewTransition name={`character-img-${c.id}`} share="morph">
-										{/* eslint-disable-next-line @next/next/no-img-element */}
 										<img
 											src={assetUrl(c.image)}
 											alt={c.name}

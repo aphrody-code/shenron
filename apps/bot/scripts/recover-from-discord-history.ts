@@ -52,7 +52,7 @@ const CONCURRENCY = Number(argVal("--concurrency", "6"));
 const DRY_RUN = args.has("--dry-run");
 const RESUME = args.has("--resume");
 const CHECKPOINT_PATH =
-	"/home/ubuntu/shenron/apps/bot/data/.recovery-checkpoint.json";
+	new URL("../data/.recovery-checkpoint.json", import.meta.url).pathname;
 const CUTOFF_MS = Date.now() - DAYS * 86_400_000;
 
 const log = (...m: unknown[]) => console.log(...m);

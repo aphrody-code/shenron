@@ -1,3 +1,0 @@
-# Build artifacts cargo
-target/
-# Cargo.lock conservé (lock cross-machine)

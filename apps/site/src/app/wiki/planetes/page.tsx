@@ -40,7 +40,6 @@ export default async function PlanetesPage() {
 								<span aria-hidden className="ki-card__glow ki-card__glow--blue" />
 								{p.image ? (
 									<ViewTransition name={`planet-img-${p.id}`} share="morph">
-										{/* eslint-disable-next-line @next/next/no-img-element */}
 										<img
 											src={assetUrl(p.image)}
 											alt={p.name}

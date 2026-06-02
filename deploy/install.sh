@@ -30,14 +30,26 @@ for a in "$@"; do
   esac
 done
 
-EXPECTED="/home/ubuntu/shenron"
-if [[ "$REPO" != "$EXPECTED" ]]; then
-  echo "⚠ repo en $REPO (≠ $EXPECTED attendu par les units). Vérifie les chemins" >&2
-  echo "  absolus dans deploy/systemd/*.service avant de continuer." >&2
-fi
+CURRENT_USER=$(whoami)
+CURRENT_GROUP=$(id -gn)
+CURRENT_HOME=$HOME
+CURRENT_REPO=$REPO
 
 echo "▶ installation des units systemd ($SYSTEMD_SRC → /etc/systemd/system/)"
-sudo cp "$SYSTEMD_SRC"/*.service "$SYSTEMD_SRC"/*.timer /etc/systemd/system/
+# Create a temporary directory to build the modified service files dynamically
+TEMP_DIR=$(mktemp -d)
+cp "$SYSTEMD_SRC"/*.service "$SYSTEMD_SRC"/*.timer "$TEMP_DIR"
+
+# Replace User, Group, and hardcoded paths dynamically
+for f in "$TEMP_DIR"/*.service; do
+  sed -i "s|User=ubuntu|User=$CURRENT_USER|g" "$f"
+  sed -i "s|Group=ubuntu|Group=$CURRENT_GROUP|g" "$f"
+  sed -i "s|/home/ubuntu/shenron|$CURRENT_REPO|g" "$f"
+  sed -i "s|/home/ubuntu|$CURRENT_HOME|g" "$f"
+done
+
+sudo cp "$TEMP_DIR"/*.service "$TEMP_DIR"/*.timer /etc/systemd/system/
+rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
 echo "▶ activation service + timers (backup 03:00, neon-sync /30min, neon-pull /15min)"

@@ -17,6 +17,7 @@
  *              BXC_DIR (défaut /home/ubuntu/bxc).
  * Usage : via systemd-run avec EnvironmentFile.
  */
+import os from "node:os";
 import postgres from "postgres";
 
 const NEON_URL = process.env.DATABASE_URL;
@@ -28,7 +29,7 @@ const ONLY = process.env.ONLY_SERIES?.trim() || null;
 const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : Number.POSITIVE_INFINITY;
 const STALE_H = process.env.STALE_H ? Number(process.env.STALE_H) : 8;
 const CONCURRENCY = process.env.CONCURRENCY ? Number(process.env.CONCURRENCY) : 2;
-const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
+const BXC_DIR = process.env.BXC_DIR ?? `${os.homedir()}/bxc`;
 
 // Map local lu par le proxy HLS du bot (le bot n'a pas d'accès Neon en runtime,
 // et le flux est IP-bound → c'est le bot, même IP que le résolveur, qui fetch).
@@ -69,7 +70,7 @@ type Resolved = {
 
 async function resolveOne(r: Row): Promise<void> {
   const proc = Bun.spawn(
-    ["/home/ubuntu/.bun/bin/bun", "scripts/resolve-episode.ts", r.series, String(r.number_in_series)],
+    [process.execPath, "scripts/resolve-episode.ts", r.series, String(r.number_in_series)],
     { cwd: BXC_DIR, stdout: "pipe", stderr: "ignore" },
   );
   const out = await new Response(proc.stdout).text();

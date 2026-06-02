@@ -17,8 +17,8 @@ import {
 } from "node:fs";
 import { join, extname, relative } from "node:path";
 
-const REF = "/home/ubuntu/shenron/reference/db-recon/assets";
-const DEST = "/home/ubuntu/shenron/apps/bot/public/db";
+const REF = new URL("../../../../reference/db-recon/assets", import.meta.url).pathname;
+const DEST = new URL("../../public/db", import.meta.url).pathname;
 
 // Mapping bucket → {source, license, attribution}
 const BUCKETS: Record<

@@ -18,9 +18,11 @@ if (!NEON_URL) {
 	process.exit(1);
 }
 
+import os from "node:os";
+
 const JSON_PATH =
 	process.env.VOIRANIME_JSON ??
-	"/home/ubuntu/bxc/data/voiranime/dragon-ball-full.json";
+	`${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
 
 const MOVIE_MAP: Record<number, { vostfr: string | null; vf: string | null }> = {
 	12: { vostfr: "dragon-ball-super-broly", vf: "dragon-ball-super-broly-vf" },

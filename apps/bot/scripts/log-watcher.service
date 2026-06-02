@@ -15,7 +15,7 @@
 # Logs :
 #   journalctl --user -fu shenron-log-watcher
 #
-# Prérequis : GITHUB_PAT dans /home/ubuntu/vps/.env (ou un autre EnvironmentFile).
+# Prérequis : GITHUB_PAT dans /home/ubuntu/shenron/.env (ou un autre EnvironmentFile).
 
 [Unit]
 Description=Shenron log watcher — crée des issues GitHub sur ERROR
@@ -34,7 +34,7 @@ RestartSec=10s
 
 # Env : GITHUB_TOKEN (= GITHUB_PAT) + GITHUB_REPOSITORY
 Environment=GITHUB_REPOSITORY=aphrody-code/shenron
-EnvironmentFile=/home/ubuntu/vps/.env
+EnvironmentFile=/home/ubuntu/shenron/.env
 # log-watcher lit GITHUB_TOKEN ; on alias depuis GITHUB_PAT si besoin :
 Environment=GITHUB_TOKEN=${GITHUB_PAT}
 

@@ -16,6 +16,7 @@
 // db_news est une table RUNTIME (forward-syncée SQLite→Neon), PAS du wiki
 // éditorial → on n'importe PAS ./_db (qui charge wiki-write-guard et exit(1)).
 // Connexion SQLite locale dédiée, sans la garde wiki.
+import os from "node:os";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { Database } from "bun:sqlite";
 import { dbNews } from "../../src/db/schema";
@@ -25,7 +26,7 @@ const sqlite = new Database(Bun.env.DATABASE_PATH ?? "./data/bot.db");
 sqlite.exec("PRAGMA foreign_keys = ON");
 const db = drizzle(sqlite, { schema: { dbNews } });
 
-const BXC_DIR = process.env.BXC_DIR ?? "/home/ubuntu/bxc";
+const BXC_DIR = process.env.BXC_DIR ?? `${os.homedir()}/bxc`;
 const BXC_PROFILE = process.env.BXC_PROFILE ?? "fast";
 const DRY_RUN = process.argv.includes("--dry-run");
 
