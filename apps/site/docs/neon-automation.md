@@ -62,7 +62,6 @@ Tous **déjà provisionnés** (vérifié) — aucune étape humaine restante :
 | `VERCEL_TOKEN` | secret | override env preview + deploy prod |
 | `VERCEL_ORG_ID` | secret | `team_guWQJZI4ZmSLj2K3RWuU4VqM` |
 | `VERCEL_PROJECT_ID` | secret | `prj_wxLn9COQIo9HAOUVis08ppKXx7zI` (projet `dbfr`) |
-| `GH_PACKAGES_TOKEN` | secret | auth registre `@aphrody-code/*` + `@rpbey/*` pour `bun install` |
 
 > La connexion prod n'est **jamais** stockée en secret : `migrate-prod` la résout à
 > la volée via `neonctl connection-string --api-key $NEON_API_KEY --project-id …

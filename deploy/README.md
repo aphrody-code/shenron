@@ -80,6 +80,6 @@ run `apps/bot`) permettent un déploiement Fly.io (workflow
 `.github/workflows/deploy-fly.yml`, déclenché si `FLY_API_TOKEN` configuré).
 Le site est déjà 100 % Vercel. Seul le SQLite (`DATABASE_PATH=/data/bot.db`)
 suppose un volume persistant — sur Fly, le mount `shenron_data` → `/data`.
-Build : `docker build -f Dockerfile --build-arg GH_PACKAGES_TOKEN=<PAT> .`
-(le token sert au fork privé `@aphrody-code/canvas` ; les `@rpbey/*` sont des
-workspaces locaux).
+Build : `docker build -f Dockerfile .`
+(le fork `@aphrody/canvas` vient du npm public — aucune auth de registre ;
+les `@rpbey/*` sont des workspaces locaux).

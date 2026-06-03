@@ -85,7 +85,7 @@ Un site Next.js public accompagne le bot, en prod sur **[dragonballfr.com](https
 - XP texte (15–25 par message, cooldown 60 s)
 - XP vocal (20 par minute, exclu si micro coupé)
 - Paliers DBZ (`1k` → `9M` unités) avec bonus zéni et rôles cumulables
-- Cartes de profil rendues via `@napi-rs/canvas` — 8 thèmes (`default`, `goku`, `vegeta`, `kaio`, `ssj`, `blue`, `rose`, `ultra`) + backgrounds custom
+- Cartes de profil rendues via `@aphrody/canvas` — 8 thèmes (`default`, `goku`, `vegeta`, `kaio`, `ssj`, `blue`, `rose`, `ultra`) + backgrounds custom
 - Shop : cartes, badges, couleurs, titres
 - Fusion (`/fusion` : canvas dual-portrait avec halo rainbow à l'acceptation) : bonus **+10 %** XP et zéni partagés
 - Quête quotidienne : +200 zéni par jour, streak tracking
@@ -173,68 +173,53 @@ Consommateurs : `/api/public/rag/search` (REST), `ragSearch` (GraphQL), commande
 | Database | `bun:sqlite` + `drizzle-orm` 0.44 |
 | Validation | `zod` 4 |
 | Logging | `pino` + `pino-pretty` |
-| Canvas | `@napi-rs/canvas` (profil, scan, top podium, fusion, gauges) |
+| Canvas | `@aphrody/canvas` (profil, scan, top podium, fusion, gauges) |
 | Lint | `oxlint` (Rust, 135 règles actives) |
 | Tests | `bun:test` — 42 smoke tests, 1 par slash command |
 
 ## Démarrage rapide (2 minutes)
 
-### One-liner
+### Clone + install
 
-Choisis celui qui correspond à ton shell / environnement.
+Le repo est un monorepo Bun (workspaces `apps/*` + `packages/*`). Deux façons
+de récupérer le code :
 
-**🐧 Linux / macOS (bash)**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh | bash
-```
-
-**🪟 Windows (PowerShell)**
-
-```powershell
-irm https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.ps1 | iex
-```
-
-**🥟 Bun (cross-platform — Linux, macOS, Windows)**
+**🌱 Clone shallow (sans historique git, le plus rapide)**
 
 ```bash
-bun run https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.ts
+bunx tiged aphrody-code/shenron shenron && cd shenron && bun install
 ```
 
-**📦 npm / bunx (si tu as déjà Node)**
+(`tiged` = clone shallow · fonctionne aussi avec `degit`)
 
-```bash
-bunx tiged aphrody-code/shenron shenron && cd shenron && bash scripts/setup.sh
-```
-
-(`tiged` = clone shallow sans git history · fonctionne aussi avec `degit`)
-
-**Variables d'env (toutes variantes)** :
-
-| Variable | Effet | Défaut |
-|---|---|---|
-| `SHENRON_DIR` | Dossier d'installation | `./shenron` |
-| `SHENRON_BRANCH` | Branche git | `main` |
-| `SHENRON_REPO` | URL du repo | `https://github.com/aphrody-code/shenron.git` |
-| `SKIP_WIKI_SEED=1` | Skip le fetch wiki (~60 s) | off |
-
-Exemple :
-
-```bash
-curl -fsSL .../install.sh | SHENRON_DIR=/opt/shenron SHENRON_BRANCH=dev bash
-```
-
-### Pas à pas (équivalent)
+**📦 Clone git classique**
 
 ```bash
 git clone https://github.com/aphrody-code/shenron.git
 cd shenron
-bash scripts/setup.sh        # installe Bun si absent, deps, .env, migrations, seeds
-bash scripts/doctor.sh       # check santé (token, DB, perms)
-bash scripts/start.sh        # lance en mode watch
+bun install
 ```
 
-Le `setup.sh` s'arrêtera en te demandant d'ouvrir `.env` si tu n'as pas encore tes identifiants Discord. Les sections ci-dessous expliquent **où les trouver**.
+Puis crée ton `.env` à partir du template et lance le bot en mode watch :
+
+```bash
+cp apps/bot/.env.example apps/bot/.env   # remplis DISCORD_TOKEN / GUILD_ID / OWNER_ID
+bun --filter @shenron/bot dev
+```
+
+> Tant que `DISCORD_TOKEN` / `GUILD_ID` / `OWNER_ID` ne sont pas renseignés, le
+> bot refuse de démarrer. Les sections ci-dessous expliquent **où les trouver**.
+
+### Déploiement Linux + systemd (VPS)
+
+Pour provisionner shenron en service systemd (units + timers + nginx) depuis le
+repo lui-même, utilise l'installeur dédié :
+
+```bash
+bash deploy/install.sh           # units systemd + (re)load + enable timers
+bash deploy/install.sh --nginx   # idem + vhosts nginx
+bash deploy/install.sh --start   # idem + démarre/redémarre le bot
+```
 
 > [!TIP]
 > Si tu préfères tout faire à la main : voir [Installation manuelle](#installation-manuelle).
@@ -309,7 +294,7 @@ Libs utilisées par Shenron :
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
 - [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
-- [`@napi-rs/canvas`](https://github.com/Brooooooklyn/canvas) — rendu 2D natif
+- [`@aphrody/canvas`](https://www.npmjs.com/package/@aphrody/canvas) — rendu 2D natif (fork de `@napi-rs/canvas`)
 
 ### Structure Discord à préparer (optionnel mais recommandé)
 
@@ -698,7 +683,7 @@ src/
 │   ├── VocalTempoService
 │   ├── LogService
 │   ├── InviteTracker
-│   ├── CardService             @napi-rs/canvas — 8 thèmes avec backgrounds NASA
+│   ├── CardService             @aphrody/canvas — 8 thèmes avec backgrounds NASA
 │   ├── LeaderboardService      canvas podium (/top)
 │   ├── FusionService           canvas dual-portrait (/fusion propose + success)
 │   ├── GaugeService            canvas scouter gauge double-police (/gay, /raciste)

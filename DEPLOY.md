@@ -56,7 +56,7 @@ Ce que fait le script :
 1. Crée l'app `shenron-bot` en région `cdg` (Paris) si elle n'existe pas
 2. Provisionne le volume persistant `shenron_data` (3 GB SSD, mount `/data`)
 3. Extrait chaque variable de `.env` et la pousse en secret Fly (masquée)
-4. `fly deploy` avec `--build-arg GH_PACKAGES_TOKEN` (env, pour le fork `@aphrody-code/canvas`)
+4. `fly deploy` (le fork `@aphrody/canvas` vient du npm public, aucune auth requise)
 
 **Variables d'env du script** :
 
@@ -64,7 +64,6 @@ Ce que fait le script :
 APP=mon-bot           # défaut : shenron-bot
 REGION=ams            # défaut : cdg
 VOLUME_SIZE=5         # défaut : 3 (GB)
-GH_PACKAGES_TOKEN=… # fork privé @aphrody-code/canvas (GitHub Packages)
 ```
 
 ### Ce qui tourne dans le conteneur
@@ -111,11 +110,12 @@ Le plus classique — tu as le code dans `~/shenron`, tu veux qu'il tourne en se
 ### Installation
 
 ```bash
-# Sur le VPS
-curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh | bash
+# Sur le VPS : récupère le code puis provisionne le service systemd
+git clone https://github.com/aphrody-code/shenron.git
 cd shenron
-# Édite .env
-bash scripts/doctor.sh              # valide tout
+bun install
+cp apps/bot/.env.example apps/bot/.env   # édite : DISCORD_TOKEN / GUILD_ID / OWNER_ID
+bash deploy/install.sh --start           # units systemd + timers + démarre le bot
 ```
 
 ### Unit systemd
