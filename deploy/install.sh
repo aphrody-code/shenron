@@ -60,7 +60,12 @@ sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # guild-sync : réconciliation lourde (scan Discord + reparse 24h). Disponible
 # mais laissée désactivée par défaut. Pour l'activer :
 #   sudo systemctl enable --now shenron-guild-sync.timer
-echo "  ✓ units installées · guild-sync.timer laissé désactivé (opt-in)"
+# wiki-crawl : scrape planches manga (bxc headless) -> Neon, 1×/jour 04:30.
+# Opt-in (dépend de bxc + réseau sortant lourd). Pour l'activer :
+#   sudo systemctl enable --now shenron-wiki-crawl.timer
+# stream-resolve : résolution flux vidéo (bxc headless) -> Neon, /2h. Opt-in :
+#   sudo systemctl enable --now shenron-stream-resolve.timer
+echo "  ✓ units installées · guild-sync/wiki-crawl/stream-resolve.timer laissés désactivés (opt-in)"
 
 if [[ $DO_NGINX -eq 1 ]]; then
   echo "▶ vhosts nginx ($NGINX_SRC → /etc/nginx/conf.d/)"

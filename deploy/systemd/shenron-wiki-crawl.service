@@ -1,0 +1,22 @@
+[Unit]
+Description=Wiki-crawl : scrape des planches manga DB Super (scan-vf/lelscanfr) vers Neon (bot.db_manga_chapters)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/shenron
+EnvironmentFile=/home/ubuntu/.shenron-neon.env
+# Le scraper lance `bxc recon` (navigateur headless / contournement Cloudflare)
+# en sous-process -> a besoin de bxc sur le PATH, hors du bot durci.
+# Borne par invocation (--limit) pour rester idempotent et léger ; --force omis
+# (ne ré-écrit que les chapitres sans planches). Écrit UNIQUEMENT bot.db_manga_chapters
+# (jsonb Neon-only), jamais public.* (tables du site).
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ubuntu/.bun/bin/bun apps/bot/scripts/ingest/scrape-manga-chapters.ts --limit 20
+TimeoutStartSec=1800
+Nice=15
+
+[Install]
+WantedBy=multi-user.target

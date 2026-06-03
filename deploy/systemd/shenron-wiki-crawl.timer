@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh periodique du wiki-crawl manga (planches DB Super -> Neon) une fois par jour
+
+[Timer]
+OnBootSec=20min
+OnCalendar=*-*-* 04:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -96,7 +96,8 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 ## DB & migrations
 
 - **Bot** : `bun:sqlite` via Drizzle. Migrations dans `apps/bot/drizzle/`. Fichier prod : `apps/bot/data/bot.db`.
-- **Site** : Postgres via Drizzle. Migrations dans `apps/site/drizzle/`. URL via `DATABASE_URL`.
+- **Site** : Postgres (Neon) via Drizzle. Migrations générées dans `apps/site/src/db/migrations/`. URL via `DATABASE_URL`.
+- **Automatisation Neon ↔ GitHub ↔ Vercel** : branche Neon par PR + migrations Drizzle + env preview Vercel câblée + migrate prod au deploy + cleanup à la fermeture. Workflows `.github/workflows/neon-branch.yml` & `deploy-vercel.yml` (job `migrate-prod` gaté). Doc complète : **[`apps/site/docs/neon-automation.md`](apps/site/docs/neon-automation.md)**. Secrets/vars repo déjà provisionnés (`NEON_API_KEY`, `NEON_PROJECT_ID=patient-star-28731823`, `VERCEL_*`) — zéro étape humaine. Wiki-crawl manga récurrent → timer `shenron-wiki-crawl` (opt-in).
 - Schéma partagé conceptuellement mais **physiquement séparé** (provider différent). Préfixe `ba_` pour better-auth tables (`ba_user`, `ba_session`, `ba_account`, `ba_verification`).
 - **Source de vérité du wiki = Neon `bot.*`** (depuis `a572e3f`). Sync **bidirectionnelle** par rôle de table (liste `apps/bot/scripts/_wiki-editorial.ts`) :
   - **Forward `sync-sqlite-to-neon.ts`** (timer `shenron-neon-sync.timer`, 30 min) : runtime (users/économie/…) **+ `db_news`** SQLite→Neon. **Exclut le wiki éditorial.**
