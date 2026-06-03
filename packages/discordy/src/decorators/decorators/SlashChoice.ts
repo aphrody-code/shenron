@@ -11,8 +11,8 @@ import {
   DApplicationCommandOptionChoice,
   MetadataStorage,
   type SlashChoiceType,
-} from "../../index.js";
-import type { NotEmpty } from "../../types/index.js";
+} from "../../index.ts";
+import type { NotEmpty } from "../../types/index.ts";
 
 /**
  * The slash command option can implement autocompletion for string and number types

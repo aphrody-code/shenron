@@ -14,7 +14,7 @@ import {
   type NotEmpty,
   SlashNameValidator,
   type VerifyName,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Handle a slash command with a defined name

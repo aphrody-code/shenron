@@ -23,7 +23,7 @@ import type {
   User,
 } from "discord.js";
 
-import type { DApplicationCommand, IGuild } from "../../index.js";
+import type { DApplicationCommand, IGuild } from "../../index.ts";
 
 export interface ApplicationCommandOptions<
   T extends string,

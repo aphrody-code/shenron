@@ -16,8 +16,8 @@ import {
   DSimpleCommand,
   type GuardFunction,
   MetadataStorage,
-} from "../../index.js";
-import type { Method } from "../classes/Method.js";
+} from "../../index.ts";
+import type { Method } from "../classes/Method.ts";
 
 /**
  * Define middleware for buttons, events, select menus, simple commands, slashes, etc.

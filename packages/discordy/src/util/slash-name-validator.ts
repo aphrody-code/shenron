@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import { SpecialCharactersList } from "../types/index.js";
+import { SpecialCharactersList } from "../types/index.ts";
 
 /**
  * Slash name validator

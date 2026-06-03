@@ -4,5 +4,5 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./classes/index.js";
-export * from "./decorators/index.js";
+export * from "./classes/index.ts";
+export * from "./decorators/index.ts";

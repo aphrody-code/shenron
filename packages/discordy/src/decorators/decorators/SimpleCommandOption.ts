@@ -11,7 +11,7 @@ import {
   DSimpleCommandOption,
   MetadataStorage,
   type SimpleCommandOptionOptions,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Add a simple command option

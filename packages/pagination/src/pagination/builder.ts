@@ -11,7 +11,7 @@ import {
   StringSelectMenuBuilder,
 } from "discord.js";
 
-import { createPagination } from "../utils/index.js";
+import { createPagination } from "../utils/index.ts";
 import {
   defaultIds,
   defaultPerPageItem,
@@ -20,7 +20,7 @@ import {
   type IPaginate,
   type PaginationItem,
   type PaginationOptions,
-} from "./index.js";
+} from "./index.ts";
 
 export class PaginationBuilder {
   private readonly item: PaginationItem;

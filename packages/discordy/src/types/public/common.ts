@@ -6,7 +6,7 @@
  */
 import type { ClientEvents, LocalizationMap, RestEvents } from "discord.js";
 
-import type { Client, IGuild, Next, NotEmpty } from "../../index.js";
+import type { Client, IGuild, Next, NotEmpty } from "../../index.ts";
 
 /**
  * Type the arguments of an event

@@ -13,7 +13,7 @@ import {
   MetadataStorage,
   SimpleCommandOptionType,
   type SimpleOptionType,
-} from "../index.js";
+} from "../index.ts";
 
 /**
  * Simple command message

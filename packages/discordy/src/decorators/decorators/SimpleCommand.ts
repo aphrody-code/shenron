@@ -10,7 +10,7 @@ import {
   DSimpleCommand,
   MetadataStorage,
   type SimpleCommandOptions,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Handle a simple command with a defined name

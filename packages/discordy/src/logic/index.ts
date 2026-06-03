@@ -4,5 +4,5 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./managers/index.js";
-export * from "./metadata/MetadataStorage.js";
+export * from "./managers/index.ts";
+export * from "./metadata/MetadataStorage.ts";

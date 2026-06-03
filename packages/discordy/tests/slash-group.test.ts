@@ -21,13 +21,13 @@ import {
   SlashChoice,
   SlashGroup,
   SlashOption,
-} from "../src/index.js";
+} from "../src/index.ts";
 
 import {
   FakeInteraction,
   FakeOption,
   InteractionType,
-} from "./util/interaction.js";
+} from "./util/interaction.ts";
 
 /*
     Define test code

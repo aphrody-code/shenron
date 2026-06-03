@@ -7,9 +7,9 @@ import "reflect-metadata";
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import type { ButtonInteraction, Interaction } from "discord.js";
-import { ButtonComponent, Client, Discord, Guard } from "../src/index.js";
+import { ButtonComponent, Client, Discord, Guard } from "../src/index.ts";
 
-import { FakeInteraction, InteractionType } from "./util/interaction.js";
+import { FakeInteraction, InteractionType } from "./util/interaction.ts";
 
 /*
     Define test code

@@ -12,8 +12,8 @@ import type {
   User,
 } from "discord.js";
 
-import type { SimpleCommandMessage } from "../../index.js";
-import type { IGuild, IPrefix, NotEmpty } from "../index.js";
+import type { SimpleCommandMessage } from "../../index.ts";
+import type { IGuild, IPrefix, NotEmpty } from "../index.ts";
 
 export type ArgSplitter =
   | string

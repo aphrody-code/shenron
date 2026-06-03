@@ -15,7 +15,7 @@ import {
   DSimpleCommand,
   MetadataStorage,
   type NotEmpty,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Execute your application button, event, select menu, simple command, slash by defined bot

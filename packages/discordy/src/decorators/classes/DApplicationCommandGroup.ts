@@ -9,7 +9,7 @@ import { Decorator } from "@rpbey/internal";
 import type {
   DApplicationCommand,
   DApplicationCommandOption,
-} from "../index.js";
+} from "../index.ts";
 
 interface CreateStructure<T> {
   name: string;

@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import { Method } from "./Method.js";
+import { Method } from "./Method.ts";
 
 interface CreateStructure {
   botIds?: string[];

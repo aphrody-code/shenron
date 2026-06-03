@@ -7,8 +7,8 @@
 import type { CommandInteraction } from "discord.js";
 import { Discord, Guard, On, Slash, type ArgsOf } from "@rpbey/discordy";
 
-import { ErrorHandler } from "../guards/Error.js";
-import { NotBot } from "../guards/NotBot.js";
+import { ErrorHandler } from "../guards/Error.ts";
+import { NotBot } from "../guards/NotBot.ts";
 
 @Discord()
 export class Example {

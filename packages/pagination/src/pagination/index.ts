@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./builder.js";
-export * from "./pagination.js";
-export * from "./resolver.js";
-export * from "./types.js";
+export * from "./builder.ts";
+export * from "./pagination.ts";
+export * from "./resolver.ts";
+export * from "./types.ts";

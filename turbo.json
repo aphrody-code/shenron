@@ -1,5 +1,6 @@
 {
 	"$schema": "https://turborepo.com/schema.json",
+	"globalDependencies": ["tsconfig.json", "bunfig.toml", ".oxfmtrc.json"],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
@@ -26,8 +27,14 @@
 			]
 		},
 		"lint": {},
+		"lint:fix": {
+			"cache": false
+		},
 		"type-check": {},
 		"test": {},
+		"clean": {
+			"cache": false
+		},
 		"dev": {
 			"cache": false,
 			"persistent": true

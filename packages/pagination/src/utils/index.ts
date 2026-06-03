@@ -4,4 +4,4 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./paginate.js";
+export * from "./paginate.ts";

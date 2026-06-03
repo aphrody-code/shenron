@@ -20,7 +20,7 @@ import {
   type ModalSubmitInteraction,
 } from "discord.js";
 
-import type { Client, DComponent } from "../../index.js";
+import type { Client, DComponent } from "../../index.ts";
 
 export class InteractionHandler {
   constructor(private client: Client) {}

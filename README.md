@@ -783,7 +783,27 @@ L'ordre de bootstrap dans `src/index.ts` est critique :
 
 ## Déploiement
 
+### Réactivation propre et complète (VPS)
+
+Pour réactiver proprement l'ensemble des services de Shenron sur le VPS (nettoyage des caches, réinstallation propre des dépendances, application des migrations SQLite, génération des commandes statiques, compilation CSS du dashboard, build de l'index RAG, mise à jour des units systemd et démarrage des services/timers) :
+
+```bash
+bash scripts/reactivate.sh
+```
+
+Ce script effectue les actions suivantes :
+1. Nettoie les dossiers `node_modules` et les caches de build.
+2. Installe proprement toutes les dépendances via `bun install`.
+3. Applique les migrations de base de données SQLite.
+4. Génère les entrées statiques du bot (`gen:entries`).
+5. Compile les styles CSS Tailwind v4 du Dashboard.
+6. Génère l'index RAG (`rag:build`).
+7. Met à jour et recharge les configurations systemd.
+8. Active et démarre les services (`shenron.service`, `shenron-embed.service`) et les timers de synchronisation/sauvegarde (`shenron-backup.timer`, `shenron-neon-sync.timer`, `shenron-neon-pull.timer`).
+9. Effectue un healthcheck sur le port d'API locale (5006).
+
 ### Binaire standalone
+
 
 ```bash
 bun run compile           # produit dist/shenron (inclut tout, pas de node_modules requis)

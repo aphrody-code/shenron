@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./common.js";
-export * from "./comparison.js";
-export * from "./resolve-guilds.js";
-export * from "./slash-name-validator.js";
+export * from "./common.ts";
+export * from "./comparison.ts";
+export * from "./resolve-guilds.ts";
+export * from "./slash-name-validator.ts";

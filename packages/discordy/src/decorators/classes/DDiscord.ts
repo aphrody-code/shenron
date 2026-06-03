@@ -15,7 +15,7 @@ import type {
   DReaction,
   DSimpleCommand,
   IGuild,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * @category Decorator

@@ -10,7 +10,7 @@ import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
 } from "discord.js";
-import type { Method } from "../../decorators/classes/Method.js";
+import type { Method } from "../../decorators/classes/Method.ts";
 import {
   ComponentType,
   DApplicationCommand,
@@ -26,7 +26,7 @@ import {
   EventManager,
   type ISimpleCommandByName,
   toStringArray,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * @category Internal

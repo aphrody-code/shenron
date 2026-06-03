@@ -18,7 +18,7 @@ import type {
   DApplicationCommandOptionChoice,
   SlashAutoCompleteOption,
   TransformerFunction,
-} from "../../index.js";
+} from "../../index.ts";
 
 interface CreateStructure {
   autocomplete?: SlashAutoCompleteOption;

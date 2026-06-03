@@ -20,6 +20,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 ### Bot (VPS)
 - Le code vit ici dans `~/shenron/`. Le service systemd lit directement ce path.
 - Déploiement = `git pull` dans `~/shenron/` puis `sudo systemctl restart shenron`. Le script **in-repo** `scripts/deploy-shenron.sh` automatise (pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto).
+- Réactivation complète = `bash scripts/reactivate.sh` (Nettoyage de tous les caches, bun install, migration DB, régénération des entrées, build RAG, compile CSS du dashboard, re-setup systemd et redémarrage propre de tous les services et timers de production).
 - **Aucun build préalable** : Bun exécute `src/index.ts` en direct (TS natif).
 - Backup DB quotidien : timer VPS `shenron-backup.timer` (03:00 UTC) → `VACUUM INTO` snapshot.
 - Sync DB↔Discord quotidien : timer VPS `shenron-guild-sync.timer` (04:00 UTC).

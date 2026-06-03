@@ -16,8 +16,8 @@ import {
   type SimpleCommandMessage,
   SimpleCommandOptionType,
   type SimpleOptionType,
-} from "../../index.js";
-import { Method } from "./Method.js";
+} from "../../index.ts";
+import { Method } from "./Method.ts";
 
 interface CreateStructure {
   aliases?: string[];

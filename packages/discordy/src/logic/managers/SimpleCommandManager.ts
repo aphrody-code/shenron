@@ -12,8 +12,8 @@ import {
   SimpleCommandMessage,
   SimpleCommandParseType,
   toStringArray,
-} from "../../index.js";
-import { escapeRegExp } from "../../util/lodash-replacements.js";
+} from "../../index.ts";
+import { escapeRegExp } from "../../util/lodash-replacements.ts";
 
 export class SimpleCommandManager {
   constructor(private client: Client) {}

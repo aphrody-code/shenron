@@ -1,11 +1,24 @@
+# Optimise la RAM globale en activant le mode smol de Bun
+smol = true
+
 [install]
+# Hoist deps autant que possible (vitesse + déduplication)
+hoist = true
+saveTextLockfile = true
 exact = false
-cache = true
 registry = "https://registry.npmjs.org/"
+
+[install.cache]
+# Chemin absolu — Bun n'expand PAS le ~ dans bunfig
+dir = "/home/ubuntu/.bun/install/cache"
 
 [install.scopes]
 "@rpbey" = { url = "https://registry.npmjs.org/" }
 
-# Bun JSC tuning runtime monorepo
 [run]
+# Permet d'utiliser bun comme task runner sans préfixe
+bun = true
 silent = false
+
+[test]
+coverage = false

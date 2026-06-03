@@ -11,13 +11,13 @@ import {
   type CommandInteraction,
   type Interaction,
 } from "discord.js";
-import { Client, Discord, Guard, Guild, Slash, SlashOption } from "../src/index.js";
+import { Client, Discord, Guard, Guild, Slash, SlashOption } from "../src/index.ts";
 
 import {
   FakeInteraction,
   FakeOption,
   InteractionType,
-} from "./util/interaction.js";
+} from "./util/interaction.ts";
 
 interface Data {
   passed: boolean;

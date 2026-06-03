@@ -20,7 +20,7 @@ import {
   type SlashGroupOptions,
   SlashNameValidator,
   type VerifyName,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Assign a group to a method or class

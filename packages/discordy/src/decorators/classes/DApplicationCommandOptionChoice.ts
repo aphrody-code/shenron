@@ -10,7 +10,7 @@ import type { LocalizationMap } from "discord.js";
 import type {
   ApplicationCommandOptionChoiceDataEx,
   SlashChoiceType,
-} from "../../types/index.js";
+} from "../../types/index.ts";
 
 /**
  * @category Decorator

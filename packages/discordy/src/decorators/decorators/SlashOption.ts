@@ -27,7 +27,7 @@ import {
   type SlashOptionOptions,
   type TransformerFunction,
   type VerifyName,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Add a slash command option

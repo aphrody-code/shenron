@@ -6,8 +6,8 @@
  */
 import type { MethodDecoratorEx } from "@rpbey/internal";
 
-import { ComponentType, DComponent, MetadataStorage } from "../../index.js";
-import type { ComponentOptions } from "../../types/index.js";
+import { ComponentType, DComponent, MetadataStorage } from "../../index.ts";
+import type { ComponentOptions } from "../../types/index.ts";
 
 /**
  * Interact with buttons with a defined identifier

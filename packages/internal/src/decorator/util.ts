@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import type { Decorator } from "./classes/Decorator.js";
+import type { Decorator } from "./classes/Decorator.ts";
 
 /**
  * Finds all decorators that are applied to the same location as a reference decorator.

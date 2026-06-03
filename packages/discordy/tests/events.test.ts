@@ -6,7 +6,7 @@ import "reflect-metadata";
  * -------------------------------------------------------------------------------------------------------
  */
 import { Events } from "discord.js";
-import { Client, Discord, Guard, type GuardFunction, On } from "../src/index.js";
+import { Client, Discord, Guard, type GuardFunction, On } from "../src/index.ts";
 
 const guard1: GuardFunction = async (
   [message]: [string],

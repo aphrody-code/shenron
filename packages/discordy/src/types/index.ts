@@ -4,5 +4,5 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./core/index.js";
-export * from "./public/index.js";
+export * from "./core/index.ts";
+export * from "./public/index.ts";

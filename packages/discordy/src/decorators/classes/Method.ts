@@ -11,7 +11,7 @@ import {
   type DDiscord,
   DGuard,
   type GuardFunction,
-} from "../../index.js";
+} from "../../index.ts";
 
 /**
  * Base class for method decorators that can be executed with guard middleware.
