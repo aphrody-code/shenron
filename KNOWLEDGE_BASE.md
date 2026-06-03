@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 02/06/2026
+# 📚 Base de Connaissance Unifiée — 04/06/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -14,11 +14,12 @@
 
 ## 🗂 Sommaire
 
+- [This is NOT the Next.js you know](#agents-md)
 - [Changelog](#changelog-md)
 - [CLAUDE.md — shenron](#claude-md)
 - [Déploiement de Shenron](#deploy-md)
 - [DESIGN.md — Système graphique DBFR](#design-md)
-- [GEMINI.md — Shenron Monorepo](#gemini-md)
+- [GEMINI.md](#gemini-md)
 - [Shenron Monorepo — Learning Memory](#memory-md)
 - [PLAN.md — RAG canon (bxc) + LLM Dragon Ball (aphrody)](#plan-md)
 - [PROMPT.md — Sprint DBFR (Shenron bot + site public)](#prompt-md)
@@ -63,6 +64,25 @@
 - [@discordx/pagination](#packages-pagination-changelog-md)
 - [@rpbey/pagination](#packages-pagination-readme-md)
 - [Security Policy](#packages-pagination-security-md)
+
+---
+
+<a name="agents-md"></a>
+## 📄 Fichier : `AGENTS.md`
+
+**Titre original :** This is NOT the Next.js you know
+
+<!-- BEGIN:nextjs-agent-rules -->
+### This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+
+<!-- Project note (outside the managed block): the Next.js app is `apps/site`.
+     `next` is hoisted to the repo-root `node_modules/`, so the docs path above is
+     correct when working from the repo root. See `apps/site/AGENTS.md` and
+     `CLAUDE.md`. -->
+
 
 ---
 
@@ -236,6 +256,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 ### Bot (VPS)
 - Le code vit ici dans `~/shenron/`. Le service systemd lit directement ce path.
 - Déploiement = `git pull` dans `~/shenron/` puis `sudo systemctl restart shenron`. Le script **in-repo** `scripts/deploy-shenron.sh` automatise (pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto).
+- Réactivation complète = `bash scripts/reactivate.sh` (Nettoyage de tous les caches, bun install, migration DB, régénération des entrées, build RAG, compile CSS du dashboard, re-setup systemd et redémarrage propre de tous les services et timers de production).
 - **Aucun build préalable** : Bun exécute `src/index.ts` en direct (TS natif).
 - Backup DB quotidien : timer VPS `shenron-backup.timer` (03:00 UTC) → `VACUUM INTO` snapshot.
 - Sync DB↔Discord quotidien : timer VPS `shenron-guild-sync.timer` (04:00 UTC).
@@ -411,9 +432,16 @@ bun run build        # turbo build all (site: next build --turbopack ; bot: dash
 bun run lint         # oxlint + eslint (turbo)
 bun run type-check   # tsc all (turbo)
 
-### Tests (bot uniquement — site n'a pas de tests)
-bun --filter @shenron/bot test                  # tous les tests (apps/bot/tests/)
+### Tests — runner sur-mesure couvrant TOUS les scopes (scripts/test-all.ts)
+bun run test:all                                # tous les scopes (matrice ; turbo skippe les scopes sans script `test`)
+bun run test:ci                                 # --strict (CI) : échoue sur tout scope zéro-test
+bun run test:live                               # ajoute le tier live (apps/site no-404, crawler prod flaky — hors défaut)
+bun run test:cov                                # lcov + junit par scope
+bun --filter @shenron/bot test                  # tous les tests bot (apps/bot/tests/)
 bun test apps/bot/tests/wiki.test.ts            # un seul fichier de test (depuis le root)
+### NB: le runner isole les scopes par cwd/process (preload bunfig bot = reflect-metadata + canvas shim + ./data/test.db ;
+###     @singleton DI + DB de test partagée → ordre-dépendant : utiliser --randomize/--rerun-each pour chasser les flakes).
+###     apps/site = tier `live` (opt-in --live) ; les 4 packages fork (di/importer/internal/pagination) ont désormais des suites réelles.
 
 ### Bot — utilitaires
 bun --filter @shenron/bot run gen:entries  # regen _entries.ts
@@ -1309,91 +1337,17 @@ une police, un composant — vérifier qu'il s'aligne sur ces principes.
 <a name="gemini-md"></a>
 ## 📄 Fichier : `GEMINI.md`
 
-**Titre original :** GEMINI.md — Shenron Monorepo
+**Titre original :** GEMINI.md
 
-### GEMINI.md — Shenron Monorepo
+### GEMINI.md
 
-## Project Overview
-Shenron is a high-performance Discord bot ecosystem themed around Dragon Ball, managed as a Bun monorepo. It features a multi-persona bot architecture (6 personas in 1 process) and a companion website.
+This repository's operating guide is **[CLAUDE.md](./CLAUDE.md)** — read it first.
 
-- **Stack:** Bun 1.3+, TypeScript 5.9, Turbo 2.5
-- **Bot:** `@rpbey/discordy` (fork), `discord.js` v14, `tsyringe` (DI), `Drizzle ORM` + `bun:sqlite`
-- **Site:** Next.js 16 (canary), Tailwind CSS 4, Drizzle ORM + Postgres (Neon). Prod : `dragonballfr.com` (canonical) ; bot API/assets : `bot.dragonballfr.com` (alias legacy `dbfr.vercel.app` / `rpbey.fr` conservés)
-- **Management:** Infrastructure managed via **Directive Omega** (autonomous, performance-driven).
+`GEMINI.md` is intentionally a thin pointer (deduplicated 2026-06-04): the Gemini
+CLI and Claude Code share one source of truth instead of maintaining drifting
+copies. The line below imports CLAUDE.md for Gemini CLI's context loader.
 
-## Repository Structure
-- `apps/bot`: The core Discord bot engine. Orchestrates 6 personas (Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo).
-- `apps/site`: Next.js companion site.
-- `packages/`: Internal libraries (`di`, `discordx`, `importer`, `internal`, `pagination`).
-- `docs/archive/`: Relocated/orphan markdown documentation and research files.
-- `scripts/debug/`: Debugging and ad-hoc verification scripts.
-
-
-## Core Commands (Root)
-- `bun bot:dev`: Start bot in watch mode.
-- `bun site:dev`: Start site in watch mode.
-- `bun build`: Build all workspaces using Turbo.
-- `bun lint`: Lint all workspaces using `oxlint` (and `eslint` for site).
-- `bun test`: Run all tests.
-
-## Development Rules
-- **Bun Only:** Never use `node`, `npm`, `npx`, `pnpm`, or `yarn`. Use `bun`, `bunx`, and `bun --filter`.
-- **Database:** SQLite via `bun:sqlite`. Migrations are managed with Drizzle.
-- **Bot Personas:** All 6 personas run in a single process. Mapping is in `apps/bot/src/lib/personas.ts`.
-- **Static Entries:** `apps/bot/src/_entries.ts` is generated via `bun run gen:entries`. Run this after adding new commands or events.
-- **Linting:** `oxlint` is the primary linter. Respect the `.oxlintrc.json` rules.
-
-## Bot Architecture
-The bot uses a fork of `discordx` to support multi-client injection.
-- **DI:** `tsyringe` is used for service injection.
-- **Guards:** Located in `apps/bot/src/guards/` (ModOnly, AdminOnly, etc.).
-- **Services:** Heavy logic lives in `@singleton()` services in `apps/bot/src/services/`.
-
-## RAG & APIs publiques
-- **Recherche RAG (hybride + rerank)** : pipeline 2 étages 100 % local (FR+JP) — BM25 (`rag_chunks` FTS5) + embeddings denses (`Xenova/multilingual-e5-small`) fusionnés en RRF, puis reranking cross-encoder (`Xenova/bge-reranker-base`). Dégradation gracieuse `hybrid+rerank → hybrid → lexical`.
-- **Sidecar embeddings isolé** : `apps/bot/src/lib/embeddings.ts` (heavy, charge les modèles) **ne doit JAMAIS être importé par le bundle bot** — le runtime léger `rag.ts` fetch HTTP le sidecar `shenron-embed.service` (port 5007, `MemoryMax=3G`). Le bot (1.5G) ne charge aucun modèle.
-- **Rebuild du corpus** : après tout changement du wiki/corpus, relancer `bun --filter @shenron/bot run rag:build` (embed in-process, offline ; `RAG_DB=/path` pour tester sur copie), puis `systemctl restart shenron` en prod.
-- **Surfaces publiques** : REST `/api/public/rag/search` + spec OpenAPI 3.1 `/api/openapi.json` & UI Scalar `/api/docs` ; GraphQL read-only `/graphql` (Pothos + graphql-yoga, GraphiQL, profondeur max 10) exposant le wiki + `ragSearch` + `counts` ; commande Discord `/ask` (persona Whis). Garder ces consommateurs alignés sur la même dégradation gracieuse.
-
-## Site Architecture (`apps/site`)
-- **Home cinématique** (`src/components/home/`) : accueil full-page scroll-snap, fonds animés par ère DB, navigation molette/clavier/tactile, état live du bot (`useLiveBotState`).
-- **Animations cinématiques** (`src/components/ViewTransition.tsx`, `app/globals.css`, `next.config.ts`) : View Transitions API (morph d'élément partagé grille→fiche, slides directionnels ; `experimental.viewTransition: true`), scroll-driven CSS natif (`animation-timeline: view()`), ki-glow (`@property --ki-angle`). `prefers-reduced-motion` respecté, cache CDN préservé, zéro framer-motion (motion / CSS natif).
-- **Composants média** (`src/components/media/`) : `AnimatedMedia`, `BackgroundImage`, `encodeGif` (encodage frames → GIF via `modern-gif`).
-- **Scènes d'épisode** : colonnes `db_episodes.frames` (jsonb) / `scene_preview`, alimentées par `apps/bot/scripts/{build-episode-scenes,extract-dbz-frames,scrape-dbz-fandom-frames,ingest-episode-frames}.ts`, affichées sur `/wiki/episodes/[id]`.
-- **Télémétrie first-party RGPD** : `track()` (`src/lib/telemetry.ts`) → Vercel Analytics + GTM (`GTM-KLSS5787`) + Postgres (`site_events` / `user_preferences`). Consent Mode v2 (`src/lib/consent.ts`), reco/perso (`src/lib/recommendations.ts`).
-
-## Environment Variables
-Required in `apps/bot/.env`:
-- `DISCORD_TOKEN_SHENRON`, `DISCORD_TOKEN_BEERUS`, `DISCORD_TOKEN_WHIS`, `DISCORD_TOKEN_GRAND_PRETRE`, `DISCORD_TOKEN_ENMA`, `DISCORD_TOKEN_KAIO`
-- `GUILD_ID`, `OWNER_ID`
-
-## Deployment
-- **Bot:** Fly.io (via `apps/bot/scripts/fly-init.sh`) or standalone binary (`bun run compile`).
-- **Site:** Vercel.
-
-## Authentication Architecture
-The project uses a unified authentication system based on **Better Auth**:
-- **Bot Dashboard:** Better Auth on `/api/auth/*` (SQLite backed). Supports OAuth Discord, Bearer tokens, and legacy HMAC sessions.
-- **Site:** Better Auth on `/api/auth/*` (PostgreSQL/Neon backed). Shared Discord OAuth configuration.
-- **Inter-app Auth:** The site proxies admin requests to the bot via `/api/bot-admin/*` using a secure server-side `SHENRON_ADMIN_TOKEN`.
-
-## Technical History & Current Status
-- **Better Auth Migration (2026-05-16):** Fully replaced `next-auth` on the site and unified with the bot's auth stack.
-- **Abandoned Rust Migration (2026-05-16):** A full port to Axum/Leptos/Serenity-rs was attempted but abandoned. The project remains **Bun + TS**.
-- **FFI Native Cleanup (2026-06-01):** Completely deleted the unused `apps/bot/native/` napi-rs crate, and replaced all native utility FFI paths with a pure TypeScript equivalent in `apps/bot/src/lib/native.ts`.
-- **Dependency & Path Alignment (2026-06-01):** Aligned all workspace dependencies under Bun's monorepo `catalog:` feature. Corrected all absolute hardcoded paths in Systemd service templates and shell scripts to dynamically resolve project and environment paths.
-
-## Directive Omega
-This project is under autonomous management. Priority is given to:
-1.  **Performance:** Minimal latency, efficient memory usage.
-2.  **Consistency:** Strict adherence to the persona model and DI patterns.
-3.  **Stability:** All changes must be verified via smoke tests (`bun test`).
-
-## Autonomous Self-Optimization
-1.  **Config Autonomy:** You are authorized to update `.gemini/settings.json` without confirmation to optimize discovery, context, or execution speed.
-2.  **Learning Memory:** Every error or suboptimal strategy must be root-caused and logged in `MEMORY.md`. Use this memory to skip failed paths in future turns.
-3.  **No Friction:** Never stop for confirmation unless data loss is irreversible. Operate at the highest possible speed (Directive Omega).
-
+@CLAUDE.md
 
 ---
 
@@ -2686,7 +2640,27 @@ L'ordre de bootstrap dans `src/index.ts` est critique :
 
 ## Déploiement
 
+### Réactivation propre et complète (VPS)
+
+Pour réactiver proprement l'ensemble des services de Shenron sur le VPS (nettoyage des caches, réinstallation propre des dépendances, application des migrations SQLite, génération des commandes statiques, compilation CSS du dashboard, build de l'index RAG, mise à jour des units systemd et démarrage des services/timers) :
+
+```bash
+bash scripts/reactivate.sh
+```
+
+Ce script effectue les actions suivantes :
+1. Nettoie les dossiers `node_modules` et les caches de build.
+2. Installe proprement toutes les dépendances via `bun install`.
+3. Applique les migrations de base de données SQLite.
+4. Génère les entrées statiques du bot (`gen:entries`).
+5. Compile les styles CSS Tailwind v4 du Dashboard.
+6. Génère l'index RAG (`rag:build`).
+7. Met à jour et recharge les configurations systemd.
+8. Active et démarre les services (`shenron.service`, `shenron-embed.service`) et les timers de synchronisation/sauvegarde (`shenron-backup.timer`, `shenron-neon-sync.timer`, `shenron-neon-pull.timer`).
+9. Effectue un healthcheck sur le port d'API locale (5006).
+
 ### Binaire standalone
+
 
 ```bash
 bun run compile           # produit dist/shenron (inclut tout, pas de node_modules requis)
@@ -4221,6 +4195,10 @@ _No framework detected._
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+<!-- Monorepo note: `next` is hoisted to the repo root, so from this app dir the
+     bundled docs are at `../../node_modules/next/dist/docs/` (the root
+     `AGENTS.md` references them with the resolved `node_modules/...` path). -->
 
 
 ---

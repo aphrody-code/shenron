@@ -196,9 +196,16 @@ bun run build        # turbo build all (site: next build --turbopack ; bot: dash
 bun run lint         # oxlint + eslint (turbo)
 bun run type-check   # tsc all (turbo)
 
-# Tests (bot uniquement — site n'a pas de tests)
-bun --filter @shenron/bot test                  # tous les tests (apps/bot/tests/)
+# Tests — runner sur-mesure couvrant TOUS les scopes (scripts/test-all.ts)
+bun run test:all                                # tous les scopes (matrice ; turbo skippe les scopes sans script `test`)
+bun run test:ci                                 # --strict (CI) : échoue sur tout scope zéro-test
+bun run test:live                               # ajoute le tier live (apps/site no-404, crawler prod flaky — hors défaut)
+bun run test:cov                                # lcov + junit par scope
+bun --filter @shenron/bot test                  # tous les tests bot (apps/bot/tests/)
 bun test apps/bot/tests/wiki.test.ts            # un seul fichier de test (depuis le root)
+# NB: le runner isole les scopes par cwd/process (preload bunfig bot = reflect-metadata + canvas shim + ./data/test.db ;
+#     @singleton DI + DB de test partagée → ordre-dépendant : utiliser --randomize/--rerun-each pour chasser les flakes).
+#     apps/site = tier `live` (opt-in --live) ; les 4 packages fork (di/importer/internal/pagination) ont désormais des suites réelles.
 
 # Bot — utilitaires
 bun --filter @shenron/bot run gen:entries  # regen _entries.ts
