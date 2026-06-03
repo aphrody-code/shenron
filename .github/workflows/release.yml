@@ -30,13 +30,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: canary
-      - name: Auth GitHub Packages
-        shell: bash
-        env:
-          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
-
+      # @aphrody/canvas is on public npm and @rpbey/* are in-repo workspaces,
+      # so no GitHub Packages auth is needed.
       - run: bun install --frozen-lockfile
       - run: bun --filter @shenron/bot gen:entries
 
@@ -114,10 +109,13 @@ jobs:
 
             Vérifie l'intégrité via `SHA256SUMS.txt`.
 
-            ## Installation
+            ## Installation depuis les sources
 
             ```bash
-            curl -fsSL https://raw.githubusercontent.com/aphrody-code/shenron/main/scripts/install.sh | bash
+            git clone https://github.com/aphrody-code/shenron.git
+            cd shenron && bun install
+            cp apps/bot/.env.example apps/bot/.env   # remplis DISCORD_TOKEN / GUILD_ID / OWNER_ID
+            bun --filter @shenron/bot dev
             ```
           files: |
             artifacts/shenron-*

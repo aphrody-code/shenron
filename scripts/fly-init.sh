@@ -7,7 +7,9 @@
 #
 # Variables (override possible) :
 #   APP=shenron-bot   REGION=cdg   VOLUME_SIZE=3   ENV_FILE=apps/bot/.env
-#   FLY_ORG=personal  GH_PACKAGES_TOKEN=<PAT pour @aphrody-code/canvas>
+#   FLY_ORG=personal
+#
+# @aphrody/canvas est sur le npm public → aucune auth de registre requise.
 #
 # Les secrets sont poussés via `fly secrets import` (stdin) → jamais affichés.
 # ─────────────────────────────────────────────────────────────────────────
@@ -53,7 +55,6 @@ fi
 
 echo "▶ deploy (build au root, run apps/bot)"
 "$FLY" deploy -a "$APP" \
-  --build-arg GH_PACKAGES_TOKEN="${GH_PACKAGES_TOKEN:-}" \
   --wait-timeout 300
 
 echo "✓ fly-init terminé — logs : $FLY logs -a $APP"

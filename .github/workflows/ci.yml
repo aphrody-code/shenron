@@ -44,13 +44,8 @@ jobs:
           key: bun-${{ matrix.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: bun-${{ matrix.os }}-
 
-      - name: Auth GitHub Packages (@aphrody-code/*, @rpbey/*)
-        env:
-          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
-        run: |
-          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
-          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > ~/.npmrc
-
+      # @aphrody/canvas is on public npm and @rpbey/* are in-repo workspaces,
+      # so no GitHub Packages auth is needed.
       - name: Install
         run: bun install --frozen-lockfile
 
