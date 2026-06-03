@@ -4,6 +4,6 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./classes/Decorator.ts";
-export * from "./classes/Modifier.ts";
-export * from "./util.ts";
+export * from "./classes/Decorator.js";
+export * from "./classes/Modifier.js";
+export * from "./util.js";

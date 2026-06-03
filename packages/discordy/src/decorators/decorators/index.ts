@@ -4,20 +4,20 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./Bot.ts";
-export * from "./ButtonComponent.ts";
-export * from "./ContextMenu.ts";
-export * from "./Discord.ts";
-export * from "./Guard.ts";
-export * from "./Guild.ts";
-export * from "./ModalComponent.ts";
-export * from "./On.ts";
-export * from "./Once.ts";
-export * from "./Reaction.ts";
-export * from "./SelectMenuComponent.ts";
-export * from "./SimpleCommand.ts";
-export * from "./SimpleCommandOption.ts";
-export * from "./Slash.ts";
-export * from "./SlashChoice.ts";
-export * from "./SlashGroup.ts";
-export * from "./SlashOption.ts";
+export * from "./Bot.js";
+export * from "./ButtonComponent.js";
+export * from "./ContextMenu.js";
+export * from "./Discord.js";
+export * from "./Guard.js";
+export * from "./Guild.js";
+export * from "./ModalComponent.js";
+export * from "./On.js";
+export * from "./Once.js";
+export * from "./Reaction.js";
+export * from "./SelectMenuComponent.js";
+export * from "./SimpleCommand.js";
+export * from "./SimpleCommandOption.js";
+export * from "./Slash.js";
+export * from "./SlashChoice.js";
+export * from "./SlashGroup.js";
+export * from "./SlashOption.js";

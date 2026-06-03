@@ -4,5 +4,5 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./Mixin/ApplicationCommandMixin.ts";
-export * from "./SimpleCommandMessage.ts";
+export * from "./Mixin/ApplicationCommandMixin.js";
+export * from "./SimpleCommandMessage.js";

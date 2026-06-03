@@ -6,7 +6,7 @@
  */
 import type { ClassDecoratorEx } from "@rpbey/internal";
 
-import { DDiscord, MetadataStorage } from "../../index.ts";
+import { DDiscord, MetadataStorage } from "../../index.js";
 
 /**
  * Create a metadata instance for the class

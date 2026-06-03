@@ -4,8 +4,8 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import { getLinkedObjects } from "../util.ts";
-import { Decorator } from "./Decorator.ts";
+import { getLinkedObjects } from "../util.js";
+import { Decorator } from "./Decorator.js";
 
 export type ModificationFunction<TTarget extends Decorator> = (
   targetDecorator: TTarget,

@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export type * from "./common.ts";
-export * from "./enum.ts";
-export * from "./simple command.ts";
-export type * from "./slash.ts";
+export type * from "./common.js";
+export * from "./enum.js";
+export * from "./simple command.js";
+export type * from "./slash.js";

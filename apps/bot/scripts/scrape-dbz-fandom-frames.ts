@@ -44,7 +44,7 @@ import {
   pad,
   resolveEpisode,
   writeDatasetIfNonEmpty,
-} from "./lib/frames-common.ts";
+} from "./lib/frames-common.js";
 
 const API = "https://dragonball.fandom.com/api.php";
 const ROOT = new URL("../", import.meta.url).pathname; // apps/bot/

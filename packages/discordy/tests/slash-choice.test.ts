@@ -12,13 +12,13 @@ import {
   type CommandInteraction,
   type Interaction,
 } from "discord.js";
-import { Client, Discord, Slash, SlashChoice, SlashOption } from "../src/index.ts";
+import { Client, Discord, Slash, SlashChoice, SlashOption } from "../src/index.js";
 
 import {
   FakeInteraction,
   FakeOption,
   InteractionType,
-} from "./util/interaction.ts";
+} from "./util/interaction.js";
 
 /*
   Define test code

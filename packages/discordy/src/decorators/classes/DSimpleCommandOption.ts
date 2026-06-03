@@ -6,7 +6,7 @@
  */
 import { Decorator } from "@rpbey/internal";
 
-import { SimpleCommandOptionType } from "../../index.ts";
+import { SimpleCommandOptionType } from "../../index.js";
 
 interface CreateStructure {
   description?: string;

@@ -9,8 +9,8 @@ import type {
   Message,
 } from "discord.js";
 
-import type { ArgSplitter, GuardFunction, IGuild } from "../../index.ts";
-import type { Awaitable, ILogger, IPrefixResolver } from "../index.ts";
+import type { ArgSplitter, GuardFunction, IGuild } from "../../index.js";
+import type { Awaitable, ILogger, IPrefixResolver } from "../index.js";
 
 export interface SimpleCommandConfig {
   /**

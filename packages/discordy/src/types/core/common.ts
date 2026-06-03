@@ -17,7 +17,7 @@ import type {
   DReaction,
   DSimpleCommand,
   SimpleCommandMessage,
-} from "../../index.ts";
+} from "../../index.js";
 
 export type Awaitable<T> = Promise<T> | T;
 

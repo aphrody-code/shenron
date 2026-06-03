@@ -17,8 +17,8 @@
 // Le type `EpisodeFrame` (et `Series`) vit désormais dans `src/db/episode-frames.ts`
 // pour que le schéma Drizzle puisse le `$type<EpisodeFrame[]>()` sans inverser la
 // dépendance src → scripts. On le ré-exporte ici pour préserver l'API du pipeline.
-export type { EpisodeFrame, Series } from "../../src/db/episode-frames.ts";
-import type { EpisodeFrame, Series } from "../../src/db/episode-frames.ts";
+export type { EpisodeFrame, Series } from "../../src/db/episode-frames.js";
+import type { EpisodeFrame, Series } from "../../src/db/episode-frames.js";
 
 /** Enveloppe du dataset écrit sur disque, par (série, épisode). */
 export interface FramesDataset {

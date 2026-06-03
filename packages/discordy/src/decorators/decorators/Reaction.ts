@@ -6,8 +6,8 @@
  */
 import type { MethodDecoratorEx } from "@rpbey/internal";
 
-import { MetadataStorage, type ReactionOptions } from "../../index.ts";
-import { DReaction } from "../classes/DReaction.ts";
+import { MetadataStorage, type ReactionOptions } from "../../index.js";
+import { DReaction } from "../classes/DReaction.js";
 
 /**
  * Handle a reaction with a specified emoji

@@ -4,14 +4,14 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./DApplicationCommand.ts";
-export * from "./DApplicationCommandGroup.ts";
-export * from "./DApplicationCommandOption.ts";
-export * from "./DApplicationCommandOptionChoice.ts";
-export * from "./DComponent.ts";
-export * from "./DDiscord.ts";
-export * from "./DGuard.ts";
-export * from "./DOn.ts";
-export * from "./DReaction.ts";
-export * from "./DSimpleCommand.ts";
-export * from "./DSimpleCommandOption.ts";
+export * from "./DApplicationCommand.js";
+export * from "./DApplicationCommandGroup.js";
+export * from "./DApplicationCommandOption.js";
+export * from "./DApplicationCommandOptionChoice.js";
+export * from "./DComponent.js";
+export * from "./DDiscord.js";
+export * from "./DGuard.js";
+export * from "./DOn.js";
+export * from "./DReaction.js";
+export * from "./DSimpleCommand.js";
+export * from "./DSimpleCommandOption.js";

@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import type { Pagination, PaginationItem } from "./index.ts";
+import type { Pagination, PaginationItem } from "./index.js";
 
 export type Resolver = (
   page: number,

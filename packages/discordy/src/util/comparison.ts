@@ -6,9 +6,9 @@
  */
 import type { ApplicationCommand } from "discord.js";
 
-import type { DApplicationCommand } from "../decorators/index.ts";
-import type { ApplicationCommandDataEx } from "../types/index.ts";
-import { deepEqual, omitKeys } from "./lodash-replacements.ts";
+import type { DApplicationCommand } from "../decorators/index.js";
+import type { ApplicationCommandDataEx } from "../types/index.js";
+import { deepEqual, omitKeys } from "./lodash-replacements.js";
 
 /**
  * Transform bigint to string

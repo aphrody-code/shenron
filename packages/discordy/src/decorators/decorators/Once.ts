@@ -11,7 +11,7 @@ import {
   type EventOptions,
   MetadataStorage,
   type RestEventOptions,
-} from "../../index.ts";
+} from "../../index.js";
 
 /**
  * Handle discord events once only with a defined handler

@@ -6,7 +6,7 @@
  */
 import { Decorator } from "@rpbey/internal";
 
-import type { GuardFunction } from "../../index.ts";
+import type { GuardFunction } from "../../index.js";
 
 /**
  * @category Decorator

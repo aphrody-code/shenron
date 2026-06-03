@@ -9,9 +9,9 @@ import "reflect-metadata";
 
 export * from "@rpbey/di";
 export * from "@rpbey/internal";
-export * from "./Client.ts";
-export * from "./classes/index.ts";
-export * from "./decorators/index.ts";
-export * from "./logic/index.ts";
-export * from "./types/index.ts";
-export * from "./util/index.ts";
+export * from "./Client.js";
+export * from "./classes/index.js";
+export * from "./decorators/index.js";
+export * from "./logic/index.js";
+export * from "./types/index.js";
+export * from "./util/index.js";

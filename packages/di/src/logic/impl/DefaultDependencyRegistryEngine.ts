@@ -4,8 +4,8 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import type { InstanceOf } from "../../index.ts";
-import type { IDependencyRegistryEngine } from "../IDependencyRegistryEngine.ts";
+import type { InstanceOf } from "../../index.js";
+import type { IDependencyRegistryEngine } from "../IDependencyRegistryEngine.js";
 
 export class DefaultDependencyRegistryEngine
   implements IDependencyRegistryEngine

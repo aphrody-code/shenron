@@ -6,8 +6,8 @@
  */
 import type { MethodDecoratorEx } from "@rpbey/internal";
 
-import { ComponentType, DComponent, MetadataStorage } from "../../index.ts";
-import type { ComponentOptions } from "../../types/index.ts";
+import { ComponentType, DComponent, MetadataStorage } from "../../index.js";
+import type { ComponentOptions } from "../../types/index.js";
 
 /**
  * Interact with select menu with a defined identifier

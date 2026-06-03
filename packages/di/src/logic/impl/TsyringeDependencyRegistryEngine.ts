@@ -10,8 +10,8 @@ import type {
   InjectionToken,
 } from "tsyringe";
 
-import type { Constructable, InstanceOf } from "../../index.ts";
-import { AbstractConfigurableDependencyInjector } from "../AbstractConfigurableDependencyInjector.ts";
+import type { Constructable, InstanceOf } from "../../index.js";
+import { AbstractConfigurableDependencyInjector } from "../AbstractConfigurableDependencyInjector.js";
 
 type Factory = <T>(factoryFunc: FactoryFunction<T>) => FactoryFunction<T>;
 

@@ -4,8 +4,8 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import { type Client, type IGuild, resolveIGuilds } from "../../index.ts";
-import { Method } from "./Method.ts";
+import { type Client, type IGuild, resolveIGuilds } from "../../index.js";
+import { Method } from "./Method.js";
 
 interface CreateStructure {
   aliases?: string[];

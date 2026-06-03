@@ -11,7 +11,7 @@ import {
   ComponentType,
   DComponent,
   MetadataStorage,
-} from "../../index.ts";
+} from "../../index.js";
 
 /**
  * Create modal interaction handler

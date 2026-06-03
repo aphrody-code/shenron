@@ -13,7 +13,7 @@ import {
   type DComponent,
   type DSimpleCommandOption,
   SimpleCommandOptionType,
-} from "../../index.ts";
+} from "../../index.js";
 
 export class DebugManager {
   constructor(private client: Client) {}

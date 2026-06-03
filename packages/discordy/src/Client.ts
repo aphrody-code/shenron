@@ -42,7 +42,7 @@ import {
   SimpleCommandManager,
   type SimpleCommandMessage,
   type SimpleCommandParseType,
-} from "./index.ts";
+} from "./index.js";
 
 /**
  * Extended Discord.js client with discordx functionality

@@ -14,7 +14,7 @@ import {
   DSimpleCommand,
   type IGuild,
   MetadataStorage,
-} from "../../index.ts";
+} from "../../index.js";
 
 /**
  * Use buttons, events, select menus, simple commands and slashes for a defined guild only

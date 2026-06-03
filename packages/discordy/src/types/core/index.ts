@@ -4,6 +4,6 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export type * from "./ClientOptions.ts";
-export type * from "./common.ts";
-export * from "./literal.ts";
+export type * from "./ClientOptions.js";
+export type * from "./common.js";
+export * from "./literal.js";

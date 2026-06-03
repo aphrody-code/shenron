@@ -48,7 +48,7 @@ import {
   pad,
   resolveEpisode,
   writeDatasetIfNonEmpty,
-} from "./lib/frames-common.ts";
+} from "./lib/frames-common.js";
 
 const SERIES_VALUES: Series[] = ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA", "DBZ_KAI"];
 const ROOT = new URL("../", import.meta.url).pathname; // apps/bot/

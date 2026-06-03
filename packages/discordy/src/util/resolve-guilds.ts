@@ -11,7 +11,7 @@ import type {
   DReaction,
   IGuild,
   SimpleCommandMessage,
-} from "../index.ts";
+} from "../index.js";
 
 /**
  * Resolve IGuilds

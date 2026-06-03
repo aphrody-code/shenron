@@ -4,7 +4,7 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import type { InstanceOf } from "../index.ts";
+import type { InstanceOf } from "../index.js";
 
 /**
  * Interface to facilitate the ability to add custom IOC containers by conforming to the proxy of adding and retrieval of services

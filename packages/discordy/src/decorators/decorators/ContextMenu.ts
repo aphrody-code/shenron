@@ -11,8 +11,8 @@ import {
   type ApplicationCommandOptions,
   DApplicationCommand,
   MetadataStorage,
-} from "../../index.ts";
-import type { NotEmpty } from "../../types/index.ts";
+} from "../../index.js";
+import type { NotEmpty } from "../../types/index.js";
 
 /**
  * Interact with context menu with a defined identifier

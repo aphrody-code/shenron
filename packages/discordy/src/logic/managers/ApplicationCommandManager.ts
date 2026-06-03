@@ -20,7 +20,7 @@ import {
   type DApplicationCommand,
   isApplicationCommandEqual,
   resolveIGuilds,
-} from "../../index.ts";
+} from "../../index.js";
 
 export class ApplicationCommandManager {
   constructor(private client: Client) {}

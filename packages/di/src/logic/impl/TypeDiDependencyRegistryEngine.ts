@@ -6,8 +6,8 @@
  */
 import { type Container, type Service, Token } from "typedi";
 
-import type { Constructable, InstanceOf } from "../../index.ts";
-import { AbstractConfigurableDependencyInjector } from "../AbstractConfigurableDependencyInjector.ts";
+import type { Constructable, InstanceOf } from "../../index.js";
+import { AbstractConfigurableDependencyInjector } from "../AbstractConfigurableDependencyInjector.js";
 
 export class TypeDiDependencyRegistryEngine extends AbstractConfigurableDependencyInjector<
   typeof Container

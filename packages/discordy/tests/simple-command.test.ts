@@ -15,7 +15,7 @@ import {
   type SimpleCommandMessage,
   SimpleCommandOption,
   SimpleCommandOptionType,
-} from "../src/index.ts";
+} from "../src/index.js";
 
 interface Data {
   passed: boolean;

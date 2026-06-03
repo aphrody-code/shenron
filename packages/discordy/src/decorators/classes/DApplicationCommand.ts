@@ -20,8 +20,8 @@ import {
   DApplicationCommandOption,
   type IGuild,
   resolveIGuilds,
-} from "../../index.ts";
-import { Method } from "./Method.ts";
+} from "../../index.js";
+import { Method } from "./Method.js";
 
 interface CreateStructure {
   botIds?: string[];

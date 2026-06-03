@@ -27,7 +27,7 @@ import {
   type PaginationResolver,
   type PaginationSendTo,
   SelectMenuPageId,
-} from "./index.ts";
+} from "./index.js";
 
 export class Pagination<T extends PaginationResolver = PaginationResolver> {
   //#region Properties & Constructor

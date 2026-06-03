@@ -4,6 +4,6 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./DefaultDependencyRegistryEngine.ts";
-export * from "./TsyringeDependencyRegistryEngine.ts";
-export * from "./TypeDiDependencyRegistryEngine.ts";
+export * from "./DefaultDependencyRegistryEngine.js";
+export * from "./TsyringeDependencyRegistryEngine.js";
+export * from "./TypeDiDependencyRegistryEngine.js";

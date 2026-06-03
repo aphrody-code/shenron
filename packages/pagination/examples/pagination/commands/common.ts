@@ -16,7 +16,7 @@ import {
 } from "discord.js";
 import { Discord, On, Slash, type ArgsOf } from "@rpbey/discordy";
 
-import { GeneratePages } from "../util/common.ts";
+import { GeneratePages } from "../util/common.js";
 
 @Discord()
 export class Example {

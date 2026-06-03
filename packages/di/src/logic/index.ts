@@ -4,6 +4,6 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-export * from "./AbstractConfigurableDependencyInjector.ts";
-export type * from "./IDependencyRegistryEngine.ts";
-export * from "./impl/index.ts";
+export * from "./AbstractConfigurableDependencyInjector.js";
+export type * from "./IDependencyRegistryEngine.js";
+export * from "./impl/index.js";

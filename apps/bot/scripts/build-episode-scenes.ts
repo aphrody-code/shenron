@@ -39,7 +39,7 @@
  */
 import { mkdir, readdir, stat, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { type EpisodeFrame, type Series, pad, resolveEpisode } from "./lib/frames-common.ts";
+import { type EpisodeFrame, type Series, pad, resolveEpisode } from "./lib/frames-common.js";
 
 const SERIES_VALUES: Series[] = ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA", "DBZ_KAI"];
 const ROOT = new URL("../", import.meta.url).pathname; // apps/bot/
