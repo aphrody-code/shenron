@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Vercel CLI
-        run: npm i -g vercel@latest
+        run: bun install -g vercel@latest
       - name: Deploy (production)
         run: vercel deploy --prod --yes --token="$VERCEL_TOKEN"
         env:

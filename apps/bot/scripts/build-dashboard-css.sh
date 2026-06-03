@@ -23,7 +23,7 @@ echo "⚠ bunx @tailwindcss/cli a échoué (probable SIGSEGV oxide sous Bun) →
 # On force le vrai npx node : /usr/local/bin/npx (symlink fnm stable) en
 # priorité, sinon le premier npx du PATH qui n'est pas le shim Bun.
 NPX=""
-for cand in /usr/local/bin/npx "$(command -v npx 2>/dev/null || true)"; do
+for cand in /usr/local/bin/bunx "$(command -v bunx 2>/dev/null || true)"; do
 	if [ -n "$cand" ] && [ -x "$cand" ] && ! readlink -f "$cand" 2>/dev/null | grep -q "/.bun/"; then
 		NPX="$cand"
 		break
@@ -31,7 +31,7 @@ for cand in /usr/local/bin/npx "$(command -v npx 2>/dev/null || true)"; do
 done
 
 if [ -z "$NPX" ]; then
-	echo "✗ aucun npx node trouvé pour le fallback (installe node ou répare /usr/local/bin/npx)" >&2
+	echo "✗ aucun bunx node trouvé pour le fallback (installe node ou répare /usr/local/bin/npx)" >&2
 	exit 1
 fi
 
