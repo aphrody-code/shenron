@@ -60,8 +60,11 @@ jobs:
       - name: Lint (oxlint)
         run: bun run lint
 
-      - name: Tests
-        run: bun run test
+      - name: Tests (every scope, strict — fails on any uncovered scope)
+        # Custom runner covers EVERY workspace member (turbo skips script-less
+        # ones); --strict fails the build on a zero-test scope; the live tier
+        # (site no-404 prod crawler) is opt-in (--live) and stays out of CI.
+        run: bun run test:ci
 
       # Pas de step build ici : la cible de prod n'a pas de bundle préalable.
       # - Le bot tourne `bun src/index.ts` en direct (systemd VPS + Docker Fly),
