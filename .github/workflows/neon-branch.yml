@@ -1,0 +1,147 @@
+name: Neon · PR database branch
+
+# Per-PR Neon database branching + Drizzle migrations + Vercel preview wiring.
+#
+# Flow (cf. docs/neon-automation.md) :
+#   PR ouverte/sync  -> crée la branche Neon `preview/pr-<n>-<head>` (fork de la
+#                       branche par défaut `main`), applique les migrations
+#                       Drizzle générées (`drizzle-kit migrate`, idempotent),
+#                       pousse la DATABASE_URL de la branche en env Vercel
+#                       *preview* scopée sur le git-ref de la PR, et poste le
+#                       schema-diff vs `main` en commentaire.
+#   PR fermée/merge  -> supprime la branche Neon + l'override env Vercel preview.
+#
+# Le binaire `apps/site` (projet Vercel `dbfr`, rootDirectory=apps/site) lit
+# `DATABASE_URL` depuis l'env Vercel ; en surchargeant l'env preview pour le
+# git-branch de la PR, chaque déploiement preview tape SA branche Neon isolée.
+# La prod (`public.*` sur la branche Neon par défaut) n'est jamais touchée ici.
+#
+# Secrets/vars requis (déjà provisionnés sur le repo, cf. docs/neon-automation.md) :
+#   secrets.NEON_API_KEY      — clé API Neon (injectée par la Neon GitHub App)
+#   vars.NEON_PROJECT_ID      — patient-star-28731823
+#   secrets.VERCEL_TOKEN      — token Vercel (env preview override)
+#   secrets.VERCEL_ORG_ID / secrets.VERCEL_PROJECT_ID — projet dbfr
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+concurrency:
+  # Sérialise par PR : pas de course create/delete sur la même branche Neon.
+  group: neon-branch-pr-${{ github.event.number }}
+  cancel-in-progress: false
+
+# branch_name doit être stable & unique par PR : on dérive un slug du head ref.
+env:
+  NEON_BRANCH_NAME: preview/pr-${{ github.event.number }}-${{ github.head_ref }}
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # PR ouverte / mise à jour : créer/rafraîchir la branche + migrer + wirer Vercel
+  # ----------------------------------------------------------------------------
+  setup:
+    name: Create Neon branch + migrate + wire preview
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      branch_db_url: ${{ steps.create-branch.outputs.db_url_with_pooler }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Neon branch
+        id: create-branch
+        uses: neondatabase/create-branch-action@v5
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          # Idempotent : si la branche existe déjà (synchronize), l'action la
+          # réutilise au lieu d'échouer.
+          branch_name: ${{ env.NEON_BRANCH_NAME }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          # La VPS écrit bun.lock en lockfileVersion 2 ; seul `canary` (>=1.4) le
+          # lit (cf. ci.yml). `latest` (<1.4) casse avec "Unknown lockfile version".
+          bun-version: canary
+
+      - name: Cache ~/.bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-neon-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-neon-
+
+      - name: Auth GitHub Packages (@aphrody-code/*, @rpbey/*)
+        env:
+          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
+          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > ~/.npmrc
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Apply Drizzle migrations to the PR branch
+        # `migrate` applique les migrations GÉNÉRÉES (src/db/migrations + journal)
+        # et est idempotent (table drizzle.__drizzle_migrations). La branche est
+        # un fork de `main` (schéma déjà présent) → seules les NOUVELLES
+        # migrations de la PR sont appliquées. On ne LOG JAMAIS l'URL.
+        working-directory: apps/site
+        env:
+          DATABASE_URL: ${{ steps.create-branch.outputs.db_url_with_pooler }}
+        run: bunx drizzle-kit migrate
+
+      - name: Wire Vercel preview env -> Neon PR branch DATABASE_URL
+        # Surcharge l'env Vercel *preview* scopée sur le git-branch de la PR pour
+        # que le déploiement preview de `dbfr` tape la branche Neon isolée.
+        # Idempotent : on retire l'override existant avant de (re)l'ajouter.
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GIT_BRANCH: ${{ github.head_ref }}
+          BRANCH_DB_URL: ${{ steps.create-branch.outputs.db_url_with_pooler }}
+        run: |
+          bun install -g vercel@latest
+          # Retire un override preview précédent pour ce git-branch (no-op si absent).
+          vercel env rm DATABASE_URL preview "$GIT_BRANCH" --yes --token="$VERCEL_TOKEN" 2>/dev/null || true
+          # (Re)pousse la DATABASE_URL de la branche Neon, scopée au git-branch.
+          printf '%s' "$BRANCH_DB_URL" | vercel env add DATABASE_URL preview "$GIT_BRANCH" --token="$VERCEL_TOKEN"
+
+      - name: Post schema diff (PR branch vs default) as a PR comment
+        uses: neondatabase/schema-diff-action@v1
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          compare_branch: ${{ env.NEON_BRANCH_NAME }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+          database: neondb
+
+  # ----------------------------------------------------------------------------
+  # PR fermée / mergée : nettoyer la branche Neon + l'override env Vercel preview
+  # ----------------------------------------------------------------------------
+  cleanup:
+    name: Delete Neon branch + preview env
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Delete Neon branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: ${{ env.NEON_BRANCH_NAME }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - name: Remove Vercel preview env override for this git-branch
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GIT_BRANCH: ${{ github.head_ref }}
+        run: |
+          bun install -g vercel@latest || npm i -g vercel@latest
+          vercel env rm DATABASE_URL preview "$GIT_BRANCH" --yes --token="$VERCEL_TOKEN" 2>/dev/null || true

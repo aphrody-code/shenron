@@ -4,6 +4,13 @@ name: Deploy site to Vercel (production)
 # nativement au repo (GitHub App sans accès au repo privé), donc on déclenche
 # le déploiement prod ici sur chaque push `main`. `vercel deploy --prod` upload
 # la source et laisse Vercel builder (rootDirectory=apps/site côté projet).
+#
+# Pipeline : push main -> (migrate-prod, conditionnel) -> deploy.
+# Les migrations Drizzle de prod sont appliquées AVANT le déploiement, et
+# seulement si le schéma/les migrations ont changé (gate dorny/paths-filter).
+# `drizzle-kit migrate` est idempotent (table drizzle.__drizzle_migrations) ;
+# la connexion prod est résolue à la volée via neonctl + NEON_API_KEY (jamais
+# loggée). Cf. docs/neon-automation.md.
 
 on:
   push:
@@ -22,7 +29,69 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # ----------------------------------------------------------------------------
+  # Migrations prod : uniquement si le schéma / les migrations Drizzle ont changé
+  # ----------------------------------------------------------------------------
+  migrate-prod:
+    name: Migrate production Neon branch
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      changed: ${{ steps.filter.outputs.schema }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect schema / migration changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            schema:
+              - "apps/site/src/db/schema.ts"
+              - "apps/site/src/db/migrations/**"
+              - "apps/site/drizzle.config.ts"
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.filter.outputs.schema == 'true'
+        with:
+          bun-version: canary
+
+      - name: Auth GitHub Packages (@aphrody-code/*, @rpbey/*)
+        if: steps.filter.outputs.schema == 'true'
+        env:
+          GH_PKG: ${{ secrets.GH_PACKAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > .npmrc
+          printf "@rpbey:registry=https://npm.pkg.github.com\n@aphrody-code:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "$GH_PKG" > ~/.npmrc
+
+      - name: Install
+        if: steps.filter.outputs.schema == 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Apply Drizzle migrations to production
+        # Résout la connection string de la branche Neon par défaut (= prod) via
+        # neonctl + NEON_API_KEY (jamais loggée : passée par env à drizzle-kit).
+        # `migrate` est idempotent — applique uniquement les migrations non encore
+        # enregistrées dans drizzle.__drizzle_migrations.
+        if: steps.filter.outputs.schema == 'true'
+        working-directory: apps/site
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          DATABASE_URL="$(bunx neonctl@2 connection-string \
+            --api-key "$NEON_API_KEY" \
+            --project-id "$NEON_PROJECT_ID" \
+            --database-name neondb \
+            --pooled)"
+          export DATABASE_URL
+          bunx drizzle-kit migrate
+
+  # ----------------------------------------------------------------------------
+  # Déploiement prod : attend la migration (skip transparent si rien à migrer)
+  # ----------------------------------------------------------------------------
   deploy:
+    needs: migrate-prod
     runs-on: ubuntu-latest
     environment: production
     env:
