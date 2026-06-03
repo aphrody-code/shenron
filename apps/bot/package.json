@@ -39,7 +39,7 @@
     "db:push": "bunx drizzle-kit push"
   },
   "dependencies": {
-    "@aphrody-code/canvas": "0.1.99-fork.4",
+    "@aphrody/canvas": "^0.1.99",
     "@huggingface/transformers": "^4.2.0",
     "@pothos/core": "^4",
     "@rpbey/di": "workspace:*",

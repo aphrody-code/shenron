@@ -20,7 +20,7 @@
       "name": "@shenron/bot",
       "version": "0.1.0",
       "dependencies": {
-        "@aphrody-code/canvas": "0.1.99-fork.4",
+        "@aphrody/canvas": "^0.1.99",
         "@huggingface/transformers": "^4.2.0",
         "@pothos/core": "^4",
         "@rpbey/di": "workspace:*",
@@ -231,9 +231,9 @@
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
 
-    "@aphrody-code/canvas": ["@aphrody-code/canvas@0.1.99-fork.4", "https://npm.pkg.github.com/download/@aphrody-code/canvas/0.1.99-fork.4/0bd4a3bf06f84008bc8f5c7d3be6087ddb8bea3f", { "optionalDependencies": { "@aphrody-code/canvas-linux-x64-gnu": "0.1.99-fork.4" } }, "sha512-tvJqLfiHoRmVqKGSiUfRAjvHlEdQC6xA98M/0Wx1SMLEoyyZUMeuCnKt5oL6kuR0As9OftaiVHRbGsQwCEx2MA=="],
+    "@aphrody/canvas": ["@aphrody/canvas@0.1.99", "", { "optionalDependencies": { "@aphrody/canvas-linux-x64-gnu": "0.1.99" } }, "sha512-PNx6lZzGmv6xmbs6nY3u9X8PHNmEOG3hcnZvss/HoGuG81r6JQxoGiBoH3JVdB24Dcrt2WW8lRPzGSuRJU9umA=="],
 
-    "@aphrody-code/canvas-linux-x64-gnu": ["@aphrody-code/canvas-linux-x64-gnu@0.1.99-fork.4", "https://npm.pkg.github.com/download/@aphrody-code/canvas-linux-x64-gnu/0.1.99-fork.4/3804d322ab8b8e66e85ccb8134925636064d959f", { "os": "linux", "cpu": "x64" }, "sha512-B8TTrM2hGnX8v0r8/asa6RM8TPJHxzicOTeyNhJTGv2U0y2H1KybLpdTFMUDMqkhxgCP5209L74Gpb9/L3D4Sg=="],
+    "@aphrody/canvas-linux-x64-gnu": ["@aphrody/canvas-linux-x64-gnu@0.1.99", "", { "os": "linux", "cpu": "x64" }, "sha512-kG1Y2hggfPVboSjj6my9qrrDDVwQBHEXcmG0bCxUQdgK7u6JSaF3xzhw9k93x2gg+MmwJFlaKW9jTr/gZCTYjg=="],
 
     "@auth/core": ["@auth/core@0.41.2", "", { "dependencies": { "@panva/hkdf": "^1.2.1", "jose": "^6.0.6", "oauth4webapi": "^3.3.0", "preact": "10.24.3", "preact-render-to-string": "6.5.11" }, "peerDependencies": { "@simplewebauthn/browser": "^9.0.1", "@simplewebauthn/server": "^9.0.2", "nodemailer": "^7.0.7" }, "optionalPeers": ["@simplewebauthn/browser", "@simplewebauthn/server", "nodemailer"] }, "sha512-Hx5MNBxN2fJTbJKGUKAA0wca43D0Akl3TvufY54Gn8lop7F+34vU1zA1pn0vQfIoVuLIrpfc2nkyjwIaPJMW7w=="],
 

@@ -256,7 +256,7 @@ async function reEncode(
   ) {
     return srcBuffer;
   }
-  const { loadImage, createCanvas } = await import("@aphrody-code/canvas");
+  const { loadImage, createCanvas } = await import("@aphrody/canvas");
   const img = await loadImage(srcBuffer as unknown as Buffer);
   const cv = createCanvas(img.width, img.height);
   cv.getContext("2d").drawImage(img as never, 0, 0);
@@ -3183,7 +3183,7 @@ export class ApiServer {
           }),
         },
 
-        // ── Canvas (rendu PNG via @aphrody-code/canvas) ────────────────────
+        // ── Canvas (rendu PNG via @aphrody/canvas) ────────────────────
         // Tous les services renvoient Buffer<PNG>, on les wrappe en Response.
         // Cache HTTP 60 s pour amortir le coût Skia (100 ms - 1 s par render).
         "/api/canvas/profile/:userId": admin((req) =>

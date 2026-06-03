@@ -13,7 +13,7 @@
  */
 import "../src/lib/preload";
 import { mkdir } from "node:fs/promises";
-import { loadImage, createCanvas } from "@aphrody-code/canvas";
+import { loadImage, createCanvas } from "@aphrody/canvas";
 
 const SIZES = [16, 32, 48, 96, 180, 192, 512];
 

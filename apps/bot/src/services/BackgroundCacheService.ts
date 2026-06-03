@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { Buffer } from "node:buffer";
 import { singleton } from "tsyringe";
-import { loadImage, type Image } from "@aphrody-code/canvas";
+import { loadImage, type Image } from "@aphrody/canvas";
 import { logger } from "~/lib/logger";
 
 /**

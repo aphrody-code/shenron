@@ -4,7 +4,7 @@ import {
 	loadImage,
 	type Image,
 	type SKRSContext2D,
-} from "@aphrody-code/canvas";
+} from "@aphrody/canvas";
 import type { User } from "discord.js";
 import {
 	drawGauge,

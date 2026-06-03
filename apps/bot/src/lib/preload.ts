@@ -8,7 +8,7 @@ import { mock } from "bun:test";
 // bundling HTML runtime (testé), d'où le pre-build via CLI.
 
 // ─── Shim canvas pour environnements sans binding natif ─────────────────────
-// Le binding natif @aphrody-code/canvas (skia) est compilé contre une GLIBC
+// Le binding natif @aphrody/canvas (skia) est compilé contre une GLIBC
 // récente absente des runners CI (GLIBC 2.43) et n'a pas de binaire darwin. S'il
 // ne charge pas, on substitue un shim no-op : imports et DI ne crashent plus,
 // les smoke tests tournent (le rendu réel est couvert par canvas-render.test.ts,
@@ -25,7 +25,7 @@ if (
 	process.arch === "x64"
 ) {
 	try {
-		await import("@aphrody-code/canvas");
+		await import("@aphrody/canvas");
 		canvasNativeOk = true;
 	} catch {
 		canvasNativeOk = false;
@@ -62,7 +62,7 @@ if (!canvasNativeOk) {
 		encode: async () => Buffer.alloc(0),
 		toDataURL: () => "data:image/png;base64,",
 	});
-	mock.module("@aphrody-code/canvas", () => ({
+	mock.module("@aphrody/canvas", () => ({
 		createCanvas: () => fakeCanvas(),
 		loadImage: async () => new FakeImage(),
 		Image: FakeImage,
