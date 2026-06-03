@@ -1,0 +1,20 @@
+{"q": "Qui est Goku ?", "expect": ["Goku"]}
+{"q": "What is the Kamehameha technique?", "expect": ["Kamehameha"]}
+{"q": "Sur quelle planète vivent les Namékiens ?", "expect": ["Namek"]}
+{"q": "Qui est le tyran de l'espace, principal antagoniste de la saga Namek ?", "expect": ["Freezer", "Frieza"]}
+{"q": "Quelle race est Vegeta ?", "expect": ["Saiyan"]}
+{"q": "Tell me about Piccolo the Namekian", "expect": ["Piccolo"]}
+{"q": "Comment Goku a-t-il appris la téléportation sur Yardrat ?", "expect": ["Yardrat"]}
+{"q": "Qui est Bardock, le père de Goku ?", "expect": ["Bardock"]}
+{"q": "Quelle est la fusion de Goten et Trunks ?", "expect": ["Gotenks"]}
+{"q": "Parle-moi de la saga Cell", "expect": ["Saga Cell"]}
+{"q": "Qu'est-ce que la Genki Dama, l'orbe d'énergie de Goku ?", "expect": ["énergie", "Goku"]}
+{"q": "Who is the android created by Dr. Gero number 17?", "expect": ["Android 17"]}
+{"q": "Quel est le ki de Freezer ?", "expect": ["Freezer", "530"]}
+{"q": "Raconte la saga Majin Boo", "expect": ["Saga Majin Boo"]}
+{"q": "What race is Frieza?", "expect": ["Frieza Race", "Race de Freezer"]}
+{"q": "Qui est Maître Roshi, l'ermite des tortues ?", "expect": ["Master Roshi", "Roshi"]}
+{"q": "Quelle est la planète natale des Saiyans ?", "expect": ["Vegeta"]}
+{"q": "Tell me about the Super Saiyan transformation", "expect": ["Super Saiyan", "Saiyan"]}
+{"q": "Qui est Krillin, le meilleur ami de Goku ?", "expect": ["Krillin", "Krilin"]}
+{"q": "Parle-moi du Tournoi du Pouvoir", "expect": ["Tournoi du Pouvoir"]}

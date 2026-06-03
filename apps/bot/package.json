@@ -33,6 +33,7 @@
     "db:seed-all": "bun src/db/seed-triggers.ts && bun src/db/seed-level-rewards.ts && bun src/db/seed-shop-banners.ts",
     "db:sync-news": "bun scripts/sync-news.ts",
     "rag:build": "bun scripts/rag-build.ts",
+    "rag:eval": "bun scripts/rag-eval.ts",
     "embed": "bun embed-server.ts",
     "db:studio": "bunx drizzle-kit studio",
     "db:push": "bunx drizzle-kit push"
