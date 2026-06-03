@@ -30,6 +30,11 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
+      # ubuntu-latest has no Bun preinstalled — without this the next step died
+      # with `bun: command not found` (exit 127), so no deploy ever ran.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0-canary.1
       - name: Install Vercel CLI
         run: bun install -g vercel@latest
       - name: Deploy (production)
