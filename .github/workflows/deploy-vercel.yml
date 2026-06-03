@@ -34,7 +34,7 @@ jobs:
       # with `bun: command not found` (exit 127), so no deploy ever ran.
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.0-canary.1
+          bun-version: canary
       - name: Install Vercel CLI
         run: bun install -g vercel@latest
       - name: Deploy (production)

@@ -36,7 +36,7 @@ jobs:
           # Match the VPS Bun that writes bun.lock (lockfileVersion 2 +
           # configVersion 0); `latest` (stable <1.4) errors "Unknown lockfile
           # version".
-          bun-version: 1.4.0-canary.1
+          bun-version: canary
       - name: Cache ~/.bun
         uses: actions/cache@v4
         with:
