@@ -24,7 +24,7 @@ export class AutoEvalService {
     logger.info("[AUTO-EVAL] Lancement du pipeline d'auto-évaluation en arrière-plan...");
 
     try {
-      // 1. Lancer rag-eval.ts
+      // 1. Lancer rag-eval.ts (métriques de retrieval, lecture seule)
       const ragProc = Bun.spawn(["bun", "scripts/rag-eval.ts"], {
         stdout: "inherit",
         stderr: "inherit",
@@ -32,13 +32,13 @@ export class AutoEvalService {
       await ragProc.exited;
       logger.info("[AUTO-EVAL] Fin de l'évaluation RAG.");
 
-      // 2. Lancer eval-llm.ts pour le persona whis
-      const llmProc = Bun.spawn(["bun", "scripts/llm/eval-llm.ts", "--persona", "whis", "--all"], {
+      // 2. Éval HONNÊTE de notre LLM maison (non-vide + grounding, sans juge LLM flaky).
+      const llmProc = Bun.spawn(["bun", "scripts/llm/eval-own.ts", "--persona", "whis"], {
         stdout: "inherit",
         stderr: "inherit",
       });
       await llmProc.exited;
-      logger.info("[AUTO-EVAL] Fin de l'évaluation LLM.");
+      logger.info("[AUTO-EVAL] Fin de l'évaluation du modèle maison.");
 
       // 3. Vérifier les métriques et envoyer l'alerte si nécessaire
       if (this.client) {
@@ -60,30 +60,33 @@ export class AutoEvalService {
 
     try {
       const ragReportRaw = await redis.get("dbz:eval:report:rag");
-      const llmReportRaw = await redis.get("dbz:eval:report:llm:latest");
+      const ownReportRaw = await redis.get("dbz:eval:report:own");
 
-      if (!ragReportRaw || !llmReportRaw) {
+      if (!ragReportRaw || !ownReportRaw) {
         logger.info("[AUTO-EVAL] Rapports d'évaluation insuffisants dans Redis pour envoyer une alerte.");
         return;
       }
 
       const ragReport = JSON.parse(ragReportRaw);
-      const llmReport = JSON.parse(llmReportRaw);
+      const ownReport = JSON.parse(ownReportRaw);
 
-      const recall5 = ragReport.lexical?.recall5 ?? 0;
-      const avgPersona = llmReport.avgPersona ?? 0;
-      const avgFact = llmReport.avgFact ?? 0;
+      // Meilleur Recall@5 servi (le sidecar sert tout en hybrid -> lexical=0, ne pas s'y fier).
+      const rows: Array<{ recall?: Record<string, number> }> = ragReport.rows ?? [];
+      const recall5 = Math.max(
+        ragReport.lexical?.recall5 ?? 0,
+        ...rows.map((r) => r.recall?.[5] ?? r.recall?.["5"] ?? 0),
+      );
+      const nonEmptyPct = ownReport.nonEmptyPct ?? 0;
+      const groundingPct = ownReport.groundingPct ?? 0;
 
       const thresholdRecall = 0.70;
-      const thresholdScore = 3.5;
-
       const isRagDegraded = recall5 < thresholdRecall;
-      const isLlmStyleDegraded = avgPersona < thresholdScore;
-      const isLlmFactDegraded = avgFact < thresholdScore;
+      const isReliabilityDegraded = nonEmptyPct < 95; // doit rester ~100% (repli extractif)
+      const isGroundingDegraded = groundingPct < 50;
 
-      if (isRagDegraded || isLlmStyleDegraded || isLlmFactDegraded) {
+      if (isRagDegraded || isReliabilityDegraded || isGroundingDegraded) {
         logger.warn(
-          { recall5, avgPersona, avgFact },
+          { recall5, nonEmptyPct, groundingPct },
           "[AUTO-EVAL] Métriques de qualité dégradées ! Envoi d'une alerte divine..."
         );
 
@@ -105,13 +108,13 @@ export class AutoEvalService {
                 inline: false,
               },
               {
-                name: "Score de Style LLM (Ton)",
-                value: `${isLlmStyleDegraded ? "🔴" : "🟢"} **${avgPersona.toFixed(2)}/5** (Seuil: ${thresholdScore}/5)`,
+                name: "Fiabilité (réponses non vides)",
+                value: `${isReliabilityDegraded ? "🔴" : "🟢"} **${nonEmptyPct.toFixed(1)}%** (Seuil: 95%)`,
                 inline: true,
               },
               {
-                name: "Exactitude RAG (Facts)",
-                value: `${isLlmFactDegraded ? "🔴" : "🟢"} **${avgFact.toFixed(2)}/5** (Seuil: ${thresholdScore}/5)`,
+                name: "Grounding (faits ancrés)",
+                value: `${isGroundingDegraded ? "🔴" : "🟢"} **${groundingPct.toFixed(1)}%** (Seuil: 50%)`,
                 inline: true,
               },
             ],

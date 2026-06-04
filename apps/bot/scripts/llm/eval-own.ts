@@ -95,19 +95,25 @@ async function main() {
 
   try {
     const { redis } = await import("bun");
-    await redis.set(
-      "dbz:eval:report:own",
-      JSON.stringify({
-        model: "dbz-own",
-        nonEmptyPct,
-        groundingPct,
-        avgLatencyMs: Math.round(avgLat),
-        cases: n,
-        date: new Date().toISOString(),
-        rows,
-      }),
-    );
-    console.log("✓ Rapport poussé dans Redis (dbz:eval:report:own).");
+    const report = {
+      model: "dbz-own",
+      nonEmptyPct,
+      groundingPct,
+      avgLatencyMs: Math.round(avgLat),
+      cases: n,
+      // Proxy /5 HONNÊTE : avgFact = grounding (faits réellement présents). Pas de score de style
+      // inventé (notre éval objective ne mesure pas le ton) -> avgPersona/avgConcise volontairement omis.
+      avgFact: Math.round((groundingPct / 100) * 5 * 100) / 100,
+      reliability5: Math.round((nonEmptyPct / 100) * 5 * 100) / 100,
+      evaluated: n,
+      persona,
+      date: new Date().toISOString(),
+      rows,
+    };
+    await redis.set("dbz:eval:report:own", JSON.stringify(report));
+    // Compat dashboard existant (lit dbz:eval:report:llm:latest) — champs honnêtes uniquement.
+    await redis.set("dbz:eval:report:llm:latest", JSON.stringify(report));
+    console.log("✓ Rapports poussés dans Redis (dbz:eval:report:own + llm:latest).");
   } catch (err) {
     console.error("✗ Échec écriture Redis :", err);
   }
