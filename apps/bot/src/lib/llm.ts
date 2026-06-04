@@ -113,13 +113,31 @@ function looksSpanish(t: string): boolean {
   return n >= 2;
 }
 
+const EN_MARKERS = [
+  " their ", " using ", " against ", " from ", " which ", " they ", " with ", " this ", " user ",
+  " raises ", " allows ", " of the ", " in the ", " known as ", " is a ", " was ", " has ", " his ",
+  " her ", " into ", " also ", " able to ", " in order ", " through ", " however ",
+];
+function looksEnglish(t: string): boolean {
+  const low = " " + t.toLowerCase() + " ";
+  if (low.includes(" the ")) return true; // signal EN très fort (jamais en français)
+  let n = 0;
+  for (const m of EN_MARKERS) if (low.includes(m)) n++;
+  return n >= 2;
+}
+
+/** Le bot répond en FRANÇAIS natif ; on écarte tout contenu source non français (ES/EN). */
+function looksForeign(t: string): boolean {
+  return looksSpanish(t) || looksEnglish(t);
+}
+
 /**
  * Garde-fou d'ancrage : un modèle maison de 29M peut halluciner des faits. On n'accepte sa réponse
  * que si elle est réellement ANCRÉE dans le contexte RAG (recouvrement lexical suffisant) et exempte
  * de fuite linguistique. Sinon -> chaîne de repli (extractif ancré). Garantit la justesse factuelle.
  */
 function isGrounded(answer: string, context: string): boolean {
-  if (looksSpanish(answer)) return false;
+  if (looksForeign(answer)) return false;
   const a = answer.toLowerCase();
   const ctx = context.toLowerCase();
   const words = a.match(WORD_RE) ?? [];
@@ -223,7 +241,7 @@ function bestSentences(text: string, query: string, max = 2): string {
   const sentences = text
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 25 && !looksSpanish(s)); // FR uniquement
+    .filter((s) => s.length > 25 && !looksForeign(s)); // FR uniquement
   if (sentences.length === 0) return "";
   const scored = sentences.map((s, i) => {
     const terms = s.toLowerCase().match(WORD_RE) ?? [];
