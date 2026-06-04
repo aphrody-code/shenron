@@ -9,13 +9,16 @@ export async function GET(req: NextRequest) {
   const q = searchParams.get("q") ?? "";
   const persona = searchParams.get("persona") ?? "whis";
   const context = searchParams.get("context") ?? "";
+  const session = searchParams.get("session") ?? ""; // mémoire de conversation par navigateur
 
   if (!q) {
     return NextResponse.json({ error: "Missing query parameter 'q'" }, { status: 400 });
   }
 
   try {
-    const botUrl = `${API_URL}/api/public/rag/chat?q=${encodeURIComponent(q)}&persona=${encodeURIComponent(persona)}&context=${encodeURIComponent(context)}`;
+    const botUrl =
+      `${API_URL}/api/public/rag/chat?q=${encodeURIComponent(q)}&persona=${encodeURIComponent(persona)}` +
+      `&context=${encodeURIComponent(context)}${session ? `&session=${encodeURIComponent(session)}` : ""}`;
     const res = await fetch(botUrl, {
       method: "GET",
       // Caching disabled for real-time conversation queries

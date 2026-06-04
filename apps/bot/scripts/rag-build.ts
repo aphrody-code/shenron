@@ -179,6 +179,12 @@ console.log(`✓ rag_chunks construit : ${n} chunks insérés (${total} total).`
 // embedTexts). Vecteurs L2-normalisés → cosinus = produit scalaire au runtime.
 db.run(`DROP TABLE IF EXISTS rag_vectors`);
 db.run(`CREATE TABLE rag_vectors (rowid INTEGER PRIMARY KEY, vec BLOB NOT NULL)`);
+
+// --no-vectors : build FTS/lexical rapide (le RAG dégrade en BM25 sans vecteurs).
+if (process.argv.includes("--no-vectors")) {
+  console.log("→ --no-vectors : rag_vectors laissé vide (mode lexical BM25). Lancer un build complet plus tard pour l'hybride.");
+  process.exit(0);
+}
 db.run(
   `CREATE TABLE IF NOT EXISTS rag_meta (model TEXT, dim INTEGER, count INTEGER, built_at INTEGER)`,
 );

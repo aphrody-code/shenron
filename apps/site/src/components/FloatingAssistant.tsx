@@ -115,7 +115,18 @@ export function FloatingAssistant() {
     setIsLoading(true);
 
     try {
-      const url = `/api/chat?q=${encodeURIComponent(userMessage)}&persona=${persona}&context=${encodeURIComponent(pageContext)}`;
+      // Session stable par navigateur -> mémoire de conversation côté bot.
+      let sid = "";
+      try {
+        sid = localStorage.getItem("dbfr_chat_session") || "";
+        if (!sid) {
+          sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+          localStorage.setItem("dbfr_chat_session", sid);
+        }
+      } catch {
+        /* localStorage indisponible */
+      }
+      const url = `/api/chat?q=${encodeURIComponent(userMessage)}&persona=${persona}&context=${encodeURIComponent(pageContext)}${sid ? `&session=${encodeURIComponent(sid)}` : ""}`;
       const res = await fetch(url);
       
       if (!res.ok) {
