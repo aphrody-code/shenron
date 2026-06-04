@@ -1,33 +1,33 @@
 /**
- * crawl-fandom-rag.ts — Crawl MASSIF du wiki Dragon Ball (fandom FR) vers le corpus RAG.
+ * crawl-fandom-rag.ts — Crawl MASSIF & CONCURRENT du wiki Dragon Ball vers le corpus RAG.
  *
- * Récupère TOUS les personnages, techniques, lieux, races, transformations, sagas, films et
- * chapitres de manga (texte intégral des pages via l'API extracts), et les fusionne dans
- * data/rag/corpus.json. `rag-build.ts` les chunke ensuite -> le LLM/RAG connaît tout l'univers.
+ * Récupère le texte intégral des pages (API extracts) de catégories entières (avec récursion
+ * d'1 niveau dans les sous-catégories), en PARALLÈLE (pool de concurrence). Multi-wiki (fr/en).
+ * Écrit un shard JSON ({generatedAt,count,docs}) fusionnable dans data/rag/corpus.json.
  *
- * Récursion d'1 niveau dans les sous-catégories pour maximiser la couverture. Rate-limité, idempotent
- * (dédoublonnage par slug). Usage : bun apps/bot/scripts/crawl-fandom-rag.ts [--lang fr] [--max N]
+ * Usage : bun scripts/crawl-fandom-rag.ts --lang fr|en [--cats "A,B"] [--out file.json]
+ *         [--concurrency 16] [--max N]
  */
-const LANG = (() => {
-  const i = process.argv.indexOf("--lang");
-  return i !== -1 ? process.argv[i + 1] : "fr";
-})();
-const MAX = (() => {
-  const i = process.argv.indexOf("--max");
-  return i !== -1 ? Number(process.argv[i + 1]) : Infinity;
-})();
-const API = `https://dragonball.fandom.com/${LANG}/api.php`;
-const CORPUS = new URL("../data/rag/corpus.json", import.meta.url).pathname;
+function arg(name: string, def?: string): string | undefined {
+  const i = process.argv.indexOf(`--${name}`);
+  return i !== -1 ? process.argv[i + 1] : def;
+}
 
-const CATEGORIES = [
-  "Personnages", "Personnages de Dragon Ball", "Personnages de Dragon Ball Z",
-  "Personnages de Dragon Ball Super", "Saiyans", "Namekiens", "Techniques", "Transformations",
-  "Races", "Planètes", "Lieux", "Sagas", "Films", "Combats", "Objets", "Chapitres",
-];
+const LANG = arg("lang", "fr")!;
+const CONCURRENCY = Number(arg("concurrency", "16"));
+const MAX = Number(arg("max", String(Infinity)));
+const OUT = arg("out", new URL("../data/rag/corpus.json", import.meta.url).pathname)!;
+const API = LANG === "en" ? "https://dragonball.fandom.com/api.php" : `https://dragonball.fandom.com/${LANG}/api.php`;
+
+const DEFAULT_CATS: Record<string, string[]> = {
+  fr: ["Personnages", "Techniques", "Transformations", "Races", "Planètes", "Lieux", "Sagas", "Films", "Combats", "Objets", "Chapitres", "Tomes"],
+  en: ["Characters", "Techniques", "Transformations", "Races", "Planets", "Locations", "Sagas", "Movies", "Battles", "Items", "Manga chapters", "Volumes"],
+};
+const CATS = (arg("cats") ?? DEFAULT_CATS[LANG] ?? DEFAULT_CATS.fr).split(",").map((c) => c.trim()).filter(Boolean);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const slug = (s: string) =>
-  "fd-" +
+  `fd-${LANG}-` +
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 
 async function apiGet(params: Record<string, string>): Promise<any> {
@@ -37,24 +37,15 @@ async function apiGet(params: Record<string, string>): Promise<any> {
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
-      const res = await fetch(url.toString(), { headers: { "user-agent": "shenron-rag-crawler/1.0" } });
-      if (res.status === 429) {
-        await sleep(2000);
-        continue;
-      }
-      if (!res.ok) {
-        await sleep(400);
-        continue;
-      }
+      const res = await fetch(url.toString(), { headers: { "user-agent": "shenron-rag-crawler/2.0" } });
+      if (res.status === 429) { await sleep(1500); continue; }
+      if (!res.ok) { await sleep(300); continue; }
       return await res.json();
-    } catch {
-      await sleep(600);
-    }
+    } catch { await sleep(400); }
   }
   return null;
 }
 
-/** Membres (pages + sous-catégories) d'une catégorie. */
 async function categoryMembers(cat: string): Promise<{ pages: string[]; subcats: string[] }> {
   const pages: string[] = [];
   const subcats: string[] = [];
@@ -64,90 +55,67 @@ async function categoryMembers(cat: string): Promise<{ pages: string[]; subcats:
       action: "query", list: "categorymembers", cmtitle: `Category:${cat}`,
       cmlimit: "500", cmtype: "page|subcat", ...(cmcontinue ? { cmcontinue } : {}),
     });
-    const members = data?.query?.categorymembers ?? [];
-    for (const m of members) {
+    for (const m of data?.query?.categorymembers ?? []) {
       if (m.ns === 0) pages.push(m.title);
-      else if (m.ns === 14) subcats.push(m.title.replace(/^Cat[ée]gorie:/i, "").replace(/^Category:/i, ""));
+      else if (m.ns === 14) subcats.push(String(m.title).replace(/^Cat[ée]gorie:/i, "").replace(/^Category:/i, ""));
     }
     cmcontinue = data?.continue?.cmcontinue;
-    if (cmcontinue) await sleep(150);
+    if (cmcontinue) await sleep(80);
   } while (cmcontinue);
   return { pages, subcats };
 }
 
-/** Texte intégral d'une page (extract explaintext). */
 async function pageExtract(title: string): Promise<string> {
-  const data = await apiGet({
-    action: "query", prop: "extracts", explaintext: "1", redirects: "1", titles: title,
-  });
-  const pagesObj = data?.query?.pages ?? {};
-  const first = Object.values(pagesObj)[0] as any;
+  const data = await apiGet({ action: "query", prop: "extracts", explaintext: "1", redirects: "1", titles: title });
+  const first = Object.values(data?.query?.pages ?? {})[0] as any;
   return (first?.extract ?? "").trim();
+}
+
+/** Pool de concurrence. */
+async function pool<T>(items: T[], n: number, fn: (item: T, idx: number) => Promise<void>): Promise<void> {
+  let i = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(n, items.length) }, async () => {
+      while (i < items.length) {
+        const idx = i++;
+        await fn(items[idx], idx);
+      }
+    }),
+  );
 }
 
 async function main(): Promise<void> {
   // 1. Collecte des titres (catégories + 1 niveau de sous-catégories)
   const titles = new Set<string>();
-  const seenCats = new Set<string>();
-  const queue = [...CATEGORIES];
-  let depth1 = 0;
+  const seen = new Set<string>();
+  const queue = [...CATS];
+  let recursed = 0;
   while (queue.length) {
     const cat = queue.shift()!;
-    if (seenCats.has(cat)) continue;
-    seenCats.add(cat);
+    if (seen.has(cat)) continue;
+    seen.add(cat);
     const { pages, subcats } = await categoryMembers(cat);
     for (const p of pages) titles.add(p);
-    console.log(`[CRAWL] Category:${cat} -> ${pages.length} pages (total titres: ${titles.size})`);
-    // 1 niveau de récursion sur les sous-catégories non encore vues
-    if (depth1 < 40) {
-      for (const sc of subcats) {
-        if (!seenCats.has(sc) && !queue.includes(sc)) {
-          queue.push(sc);
-          depth1++;
-        }
-      }
-    }
-    await sleep(120);
+    if (recursed < 60) for (const sc of subcats) if (!seen.has(sc) && !queue.includes(sc)) { queue.push(sc); recursed++; }
   }
-  console.log(`[CRAWL] ${titles.size} pages uniques à récupérer.`);
+  const list = [...titles].slice(0, MAX === Infinity ? undefined : MAX);
+  console.log(`[CRAWL ${LANG}] ${list.length} pages à récupérer (concurrence ${CONCURRENCY})`);
 
-  // 2. Charger le corpus existant
-  let corpus: { generatedAt: string; count: number; docs: any[] } = { generatedAt: "", count: 0, docs: [] };
-  try {
-    corpus = JSON.parse(await Bun.file(CORPUS).text());
-  } catch {
-    /* nouveau */
-  }
-  const byId = new Map<string, any>(corpus.docs.map((d) => [d.id, d]));
-
-  // 3. Récupérer le texte de chaque page
-  let added = 0;
-  let n = 0;
-  for (const title of titles) {
-    if (n++ >= MAX) break;
+  // 2. Récupération concurrente des extraits
+  const docs: any[] = [];
+  let done = 0;
+  await pool(list, CONCURRENCY, async (title) => {
     const text = await pageExtract(title);
-    await sleep(120);
-    if (text.length < 200) continue; // ignorer les ébauches vides
-    const id = slug(title);
-    const url = `https://dragonball.fandom.com/${LANG}/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
+    done++;
+    if (done % 100 === 0) console.log(`[CRAWL ${LANG}] ${done}/${list.length} (${docs.length} retenus)`);
+    if (text.length < 200) return;
+    const url = `https://dragonball.fandom.com/${LANG === "en" ? "" : LANG + "/"}wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`;
     const markdown = `# ${title}\n\n${text}`;
-    const existed = byId.has(id);
-    byId.set(id, { id, name: title, url, chars: markdown.length, markdown });
-    if (!existed) added++;
-    if (n % 50 === 0) console.log(`[CRAWL] ${n}/${titles.size} récupérés (${added} nouveaux)`);
-  }
+    docs.push({ id: slug(title), name: `${title} (${LANG})`, url, chars: markdown.length, markdown });
+  });
 
-  // 4. Réécrire le corpus
-  const docs = [...byId.values()];
-  await Bun.write(
-    CORPUS,
-    JSON.stringify({ generatedAt: new Date().toISOString(), count: docs.length, docs }, null, 0),
-  );
-  console.log(`[CRAWL] TERMINÉ — ${docs.length} docs au total (${added} nouveaux). -> ${CORPUS}`);
-  console.log(`[CRAWL] Prochaine étape : bun scripts/rag-build.ts`);
+  await Bun.write(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), count: docs.length, docs }, null, 0));
+  console.log(`[CRAWL ${LANG}] TERMINÉ — ${docs.length} docs -> ${OUT}`);
 }
 
-main().catch((e) => {
-  console.error("[CRAWL] erreur :", e);
-  process.exit(1);
-});
+main().catch((e) => { console.error(`[CRAWL ${LANG}] erreur :`, e); process.exit(1); });
