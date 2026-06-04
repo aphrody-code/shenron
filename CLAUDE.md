@@ -4,7 +4,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 
 **Sources de vérité** :
 - Bot prod : service systemd `shenron.service` sur le VPS (`WorkingDirectory=/home/ubuntu/shenron/apps/bot`).
-- Site prod : Vercel projet `dbfr` (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`), **domaine de prod : `https://dragonballfr.com`** (alias historique `dbfr.vercel.app` conservé). L'API bot est servie côté VPS sur `bot.dragonballfr.com` (ex- `bot.rpbey.fr`) ; vhost VPS `shenron.rpbey.fr` proxifie aussi le bot (legacy).
+- Site prod : Vercel projet `dbfr` (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`), **domaine de prod unique : `https://dragonballfr.com`** (les alias historiques `dbfr.vercel.app` et `www.dragonballfr.com` sont redirigés de manière permanente vers l'apex). L'API bot est servie côté VPS sur `bot.dragonballfr.com` (ex- `bot.rpbey.fr` / `shenron.rpbey.fr` legacy).
 - DB bot : SQLite local `apps/bot/data/bot.db` (snapshot quotidien via timer VPS).
 - DB site : **Postgres distinct** (Neon ou autre, via `DATABASE_URL`) — ce n'est PAS la même DB que le bot.
 

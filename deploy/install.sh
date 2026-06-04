@@ -52,9 +52,9 @@ sudo cp "$TEMP_DIR"/*.service "$TEMP_DIR"/*.timer /etc/systemd/system/
 rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
-echo "▶ activation service + timers (backup 03:00, neon-sync /30min, neon-pull /15min)"
-sudo systemctl enable shenron.service shenron-embed.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer
-sudo systemctl enable --now shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer >/dev/null 2>&1 || true
+echo "▶ activation service + timers (backup 03:00, neon-sync /30min, neon-pull /15min, drive-sync daily)"
+sudo systemctl enable shenron.service shenron-embed.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
+sudo systemctl enable --now shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer >/dev/null 2>&1 || true
 # Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
 sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # guild-sync : réconciliation lourde (scan Discord + reparse 24h). Disponible

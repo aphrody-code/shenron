@@ -13,9 +13,9 @@ de vérité des units systemd, des vhosts nginx et des scripts d'ops.
 | `deploy/systemd/shenron-guild-sync.{service,timer}` | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut). |
 | `deploy/systemd/shenron-neon-sync.{service,timer}` | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min. |
 | `deploy/systemd/shenron-neon-pull.{service,timer}` | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
-| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine prod. |
-| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique. |
-| `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api`. |
+| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine unique prod. |
+| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique (redirigé). |
+| `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api` (redirigé). |
 | `deploy/install.sh` | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`). |
 | `scripts/backup-shenron-sqlite.sh` | Script du backup (appelé par le timer). |
 | `scripts/shenron-guild-sync.sh` | Script de la réconciliation. |
@@ -65,9 +65,9 @@ limit_req_zone $binary_remote_addr zone=rpb_api:10m rate=30r/s;
 ainsi que des certificats letsencrypt pour les domaines servis :
 
 ```bash
-sudo certbot --nginx -d bot.dragonballfr.com   # API bot (domaine prod)
-sudo certbot --nginx -d bot.rpbey.fr            # API bot (alias historique)
-sudo certbot --nginx -d shenron.rpbey.fr        # dashboard SPA (alias historique)
+sudo certbot --nginx -d bot.dragonballfr.com   # API bot (domaine unique prod)
+sudo certbot --nginx -d bot.rpbey.fr            # API bot (alias historique redirigé)
+sudo certbot --nginx -d shenron.rpbey.fr        # dashboard SPA (alias historique redirigé)
 ```
 
 Le site (`dragonballfr.com`) est servi par Vercel, hors nginx VPS — pas de cert

@@ -63,7 +63,7 @@ Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyring
 
 ### Site compagnon
 
-Un site Next.js public accompagne le bot, en prod sur **[dragonballfr.com](https://dragonballfr.com)** (canonical ; alias legacy `dbfr.vercel.app` conservés). L'API REST et les assets du bot sont exposés sur **`bot.dragonballfr.com`** (alias `bot.rpbey.fr`).
+Un site Next.js public accompagne le bot, accessible uniquement via l'URL unique **[dragonballfr.com](https://dragonballfr.com)** (les domaines secondaires comme `dbfr.vercel.app` ou `www.dragonballfr.com` redirigent de manière permanente vers celle-ci). L'API REST et les assets du bot sont exposés sur **`bot.dragonballfr.com`** (avec redirection depuis les anciens alias).
 
 - **Home cinématique** (`apps/site/src/components/home/`) : accueil full-page scroll-snap, une scène plein écran par ère Dragon Ball avec fonds animés des meilleures scènes, navigation molette / clavier / tactile, et état live du bot en temps réel.
 - **Animations cinématiques** (`apps/site/src/components/ViewTransition.tsx`) : **View Transitions API** (morph d'élément partagé grille→fiche personnages/planètes, slides directionnels), scroll-driven animations CSS natives (`animation-timeline: view()`), ki-glow au survol — `prefers-reduced-motion` respecté, cache CDN préservé, zéro framer-motion.

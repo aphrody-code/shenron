@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 04/06/2026
+# 📚 Base de Connaissance Unifiée — 05/06/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -50,6 +50,7 @@
 - [Recon report — https://fr.dragon-ball-official.com/news/](#docs-archive-news-md)
 - [Recon report — https://en.bandainamcoent.eu/dragon-ball/dragon-ball-sparking-zero](#docs-archive-sparking-fast-md)
 - [Recon report — https://en.bandainamcoent.eu/dragon-ball/dragon-ball-sparking-zero](#docs-archive-sparking-md)
+- [Système de Synchronisation Google Drive (Wiki Assets)](#docs-drive-md)
 - [@discordx/di](#packages-di-changelog-md)
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
@@ -241,7 +242,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 
 **Sources de vérité** :
 - Bot prod : service systemd `shenron.service` sur le VPS (`WorkingDirectory=/home/ubuntu/shenron/apps/bot`).
-- Site prod : Vercel projet `dbfr` (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`), **domaine de prod : `https://dragonballfr.com`** (alias historique `dbfr.vercel.app` conservé). L'API bot est servie côté VPS sur `bot.dragonballfr.com` (ex- `bot.rpbey.fr`) ; vhost VPS `shenron.rpbey.fr` proxifie aussi le bot (legacy).
+- Site prod : Vercel projet `dbfr` (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`), **domaine de prod unique : `https://dragonballfr.com`** (les alias historiques `dbfr.vercel.app` et `www.dragonballfr.com` sont redirigés de manière permanente vers l'apex). L'API bot est servie côté VPS sur `bot.dragonballfr.com` (ex- `bot.rpbey.fr` / `shenron.rpbey.fr` legacy).
 - DB bot : SQLite local `apps/bot/data/bot.db` (snapshot quotidien via timer VPS).
 - DB site : **Postgres distinct** (Neon ou autre, via `DATABASE_URL`) — ce n'est PAS la même DB que le bot.
 
@@ -1922,7 +1923,7 @@ Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyring
 
 ### Site compagnon
 
-Un site Next.js public accompagne le bot, en prod sur **[dragonballfr.com](https://dragonballfr.com)** (canonical ; alias legacy `dbfr.vercel.app` conservés). L'API REST et les assets du bot sont exposés sur **`bot.dragonballfr.com`** (alias `bot.rpbey.fr`).
+Un site Next.js public accompagne le bot, accessible uniquement via l'URL unique **[dragonballfr.com](https://dragonballfr.com)** (les domaines secondaires comme `dbfr.vercel.app` ou `www.dragonballfr.com` redirigent de manière permanente vers celle-ci). L'API REST et les assets du bot sont exposés sur **`bot.dragonballfr.com`** (avec redirection depuis les anciens alias).
 
 - **Home cinématique** (`apps/site/src/components/home/`) : accueil full-page scroll-snap, une scène plein écran par ère Dragon Ball avec fonds animés des meilleures scènes, navigation molette / clavier / tactile, et état live du bot en temps réel.
 - **Animations cinématiques** (`apps/site/src/components/ViewTransition.tsx`) : **View Transitions API** (morph d'élément partagé grille→fiche personnages/planètes, slides directionnels), scroll-driven animations CSS natives (`animation-timeline: view()`), ki-glow au survol — `prefers-reduced-motion` respecté, cache CDN préservé, zéro framer-motion.
@@ -4408,9 +4409,9 @@ de vérité des units systemd, des vhosts nginx et des scripts d'ops.
 | `deploy/systemd/shenron-guild-sync.{service,timer}` | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut). |
 | `deploy/systemd/shenron-neon-sync.{service,timer}` | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min. |
 | `deploy/systemd/shenron-neon-pull.{service,timer}` | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
-| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine prod. |
-| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique. |
-| `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api`. |
+| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine unique prod. |
+| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique (redirigé). |
+| `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api` (redirigé). |
 | `deploy/install.sh` | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`). |
 | `scripts/backup-shenron-sqlite.sh` | Script du backup (appelé par le timer). |
 | `scripts/shenron-guild-sync.sh` | Script de la réconciliation. |
@@ -4460,9 +4461,9 @@ limit_req_zone $binary_remote_addr zone=rpb_api:10m rate=30r/s;
 ainsi que des certificats letsencrypt pour les domaines servis :
 
 ```bash
-sudo certbot --nginx -d bot.dragonballfr.com   # API bot (domaine prod)
-sudo certbot --nginx -d bot.rpbey.fr            # API bot (alias historique)
-sudo certbot --nginx -d shenron.rpbey.fr        # dashboard SPA (alias historique)
+sudo certbot --nginx -d bot.dragonballfr.com   # API bot (domaine unique prod)
+sudo certbot --nginx -d bot.rpbey.fr            # API bot (alias historique redirigé)
+sudo certbot --nginx -d shenron.rpbey.fr        # dashboard SPA (alias historique redirigé)
 ```
 
 Le site (`dragonballfr.com`) est servi par Vercel, hors nginx VPS — pas de cert
@@ -5107,6 +5108,69 @@ _No framework detected._
 .alert-info a {}
 .alert-info a:focus {}
 /* ... 3056 more (use --snapshot-dir to dump full list) */
+```
+
+
+---
+
+<a name="docs-drive-md"></a>
+## 📄 Fichier : `docs/drive.md`
+
+**Titre original :** Système de Synchronisation Google Drive (Wiki Assets)
+
+### Système de Synchronisation Google Drive (Wiki Assets)
+
+Ce document décrit le fonctionnement de la synchronisation automatique du dossier Google Drive contenant les médias du Wiki dans le projet **Shenron**.
+
+---
+
+## 📋 Informations du Dossier Drive
+
+*   **URL du dossier** : `https://drive.google.com/drive/folders/1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
+*   **Identifiant du dossier** : `1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
+*   **Dossier local de destination** : `apps/bot/assets/wiki/` (situé dans le répertoire racine de Shenron)
+
+---
+
+## ⚙️ Architecture de Synchronisation
+
+La synchronisation s'articule autour de trois éléments principaux :
+
+1.  **Script Python de Téléchargement Parallèle (`scripts/download_gdrive.py`)** :
+    *   Résout récursivement les dossiers du Drive via `gdown`.
+    *   Télécharge les fichiers de manière asynchrone (multithreading avec pool de threads).
+    *   Supporte la reprise des téléchargements partiels/interrompus (`--resume`).
+    *   Gère automatiquement l'installation locale de ses dépendances via le moteur de script `uv`.
+
+2.  **Wrapper Shell (`scripts/shenron-drive-sync.sh`)** :
+    *   Encapsule l'appel au script Python avec des paramètres optimaux (par exemple, concurrence limitée à 4 téléchargements pour éviter le bannissement d'API / limitation de débit par Google).
+    *   Marqué comme exécutable.
+
+3.  **Planification systemd (`deploy/systemd/`)** :
+    *   **`shenron-drive-sync.service`** : Tâche unitaire (`Type=oneshot`) qui exécute le script shell.
+    *   **`shenron-drive-sync.timer`** : Planifie le service pour qu'il s'exécute quotidiennement (`OnCalendar=daily`).
+
+---
+
+## 🚀 Commandes d'Administration
+
+### Lancement manuel de la synchronisation
+Vous pouvez exécuter le script de synchronisation manuellement à tout moment :
+```bash
+bash scripts/shenron-drive-sync.sh
+```
+
+### Vérification de l'état du Timer systemd
+Pour vérifier la planification automatique et l'heure du prochain passage :
+```bash
+systemctl list-timers "shenron-drive-sync*"
+systemctl status shenron-drive-sync.timer
+```
+
+### Consultation des journaux (Logs) du service
+Pour consulter la sortie de la dernière synchronisation effectuée par systemd :
+```bash
+journalctl -u shenron-drive-sync.service -n 50 --no-pager
 ```
 
 

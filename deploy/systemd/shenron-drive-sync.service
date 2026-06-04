@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: Apache-2.0
+
+[Unit]
+Description=Sync Wiki assets from Google Drive
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/shenron
+ExecStart=/home/ubuntu/shenron/scripts/shenron-drive-sync.sh
+TimeoutStartSec=1800
+Nice=10
