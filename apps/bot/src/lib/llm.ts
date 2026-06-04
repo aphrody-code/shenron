@@ -95,8 +95,19 @@ async function withSlot<T>(fn: () => Promise<T>): Promise<T> {
 // Backends
 // ---------------------------------------------------------------------------
 const WORD_RE = /[a-zàâäéèêëïîôûùüçñ]{4,}/g;
-// Marqueurs d'une fuite linguistique (espagnol) que le petit modèle produit parfois.
-const FOREIGN_RE = /\b(misma|pel[ií]cula|conocido|como uno|el hijo|de los|millones|qui[eé]n)\b/i;
+// Détecteur d'espagnol (le wiki mélange FR/ES ; on veut un bot 100% FR).
+const ES_MARKERS = [
+  " está", " según", " también", " después", " aunque", " siendo", " conocido", " película",
+  " ciudad", " además", " pesar de", " poco después", " es el ", " es la ", " como ", " que se ",
+  " del ", " por ", " hacia ", " mismo ", " había ", " príncipe", " guerrero", " su poder",
+];
+function looksSpanish(t: string): boolean {
+  if (/[ñ¿¡]/.test(t)) return true;
+  const low = " " + t.toLowerCase() + " ";
+  let n = 0;
+  for (const m of ES_MARKERS) if (low.includes(m)) n++;
+  return n >= 2;
+}
 
 /**
  * Garde-fou d'ancrage : un modèle maison de 29M peut halluciner des faits. On n'accepte sa réponse
@@ -104,8 +115,8 @@ const FOREIGN_RE = /\b(misma|pel[ií]cula|conocido|como uno|el hijo|de los|millo
  * de fuite linguistique. Sinon -> chaîne de repli (extractif ancré). Garantit la justesse factuelle.
  */
 function isGrounded(answer: string, context: string): boolean {
+  if (looksSpanish(answer)) return false;
   const a = answer.toLowerCase();
-  if (FOREIGN_RE.test(a)) return false;
   const ctx = context.toLowerCase();
   const words = a.match(WORD_RE) ?? [];
   if (words.length < 3) return false;
@@ -208,8 +219,8 @@ function bestSentences(text: string, query: string, max = 2): string {
   const sentences = text
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 25);
-  if (sentences.length === 0) return text;
+    .filter((s) => s.length > 25 && !looksSpanish(s)); // FR uniquement
+  if (sentences.length === 0) return "";
   const scored = sentences.map((s, i) => {
     const terms = s.toLowerCase().match(WORD_RE) ?? [];
     let score = 0;
@@ -233,10 +244,12 @@ function extractiveAnswer(
 ): string {
   if (hits.length === 0) return PERSONA_NOTFOUND[personaId] ?? PERSONA_NOTFOUND.whis;
   let body = "";
-  for (const h of hits.slice(0, 2)) {
+  // Parcourt jusqu'à 4 hits pour trouver du contenu FR (les chunks ES sont sautés).
+  for (const h of hits.slice(0, 4)) {
     const text = startAtSentence(cleanChunk(contentMap.get(h.rowid) || h.snippet || ""));
     if (text.length < 20) continue;
-    const picked = bestSentences(text, query, 2);
+    const picked = bestSentences(text, query, 2); // "" si tout est espagnol
+    if (!picked) continue;
     body += (body ? " " : "") + picked;
     if (body.length >= 300) break;
   }
