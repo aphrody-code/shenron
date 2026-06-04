@@ -38,14 +38,14 @@ export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
 		{
 			title: "Personnages",
 			desc: "Goku, Vegeta, Freezer, Cell, Buu, Beerus, Jiren.",
-			href: "/wiki/personnages",
+			href: "/wiki/personnages?tab=personnages",
 			count: wikiCounts.characters > 0 ? `${wikiCounts.characters} fiches personnages` : "Fiches personnages",
 			accent: "gold",
 		},
 		{
 			title: "Planètes & Univers",
 			desc: "Terre, Namek, Vegeta, Yardrat, le Monde du Vide.",
-			href: "/wiki/planetes",
+			href: "/wiki/personnages?tab=planetes",
 			count: wikiCounts.planets > 0 ? `${wikiCounts.planets} planètes & mondes` : "Planètes & mondes",
 			accent: "white",
 		},

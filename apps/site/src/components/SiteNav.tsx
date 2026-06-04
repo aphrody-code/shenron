@@ -10,14 +10,13 @@ import { MobileNav } from "@/components/MobileNav";
 
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
-	{ href: "/wiki/personnages", label: "Personnages" },
+	{ href: "/wiki/personnages", label: "Univers" },
 	{ href: "/wiki/sagas", label: "Sagas" },
 	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
 	{ href: "/wiki/films", label: "Films" },
 	{ href: "/wiki/manga", label: "Manga" },
 	{ href: "/wiki/jeux", label: "Jeux" },
 	{ href: "/actualites", label: "News" },
-	{ href: "/wiki/search", label: "Recherche" },
 ];
 
 export function SiteNav() {

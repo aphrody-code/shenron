@@ -397,8 +397,8 @@ export function HomeExperience({
 					</header>
 					<div className="home-grid-stats">
 						{[
-							{ k: "characters", label: "Personnages", href: "/wiki/personnages" },
-							{ k: "planets", label: "Planètes", href: "/wiki/planetes" },
+							{ k: "characters", label: "Personnages", href: "/wiki/personnages?tab=personnages" },
+							{ k: "planets", label: "Planètes", href: "/wiki/personnages?tab=planetes" },
 							{ k: "sagas", label: "Sagas", href: "/wiki/sagas" },
 							{ k: "episodes", label: "Épisodes", href: "/wiki/episodes" },
 							{ k: "movies", label: "Films", href: "/wiki/films" },

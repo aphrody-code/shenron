@@ -18,13 +18,13 @@ function buildSections(c: Record<string, number>) {
 		{
 			title: "Personnages",
 			desc: `${c.characters} guerriers — Saiyans, Nameks, dieux, androïdes.`,
-			href: "/wiki/personnages",
+			href: "/wiki/personnages?tab=personnages",
 			color: "border-dbz-orange text-dbz-orange",
 		},
 		{
 			title: "Planètes",
 			desc: `${c.planets} mondes à travers les douze univers.`,
-			href: "/wiki/planetes",
+			href: "/wiki/personnages?tab=planetes",
 			color: "border-dbz-blue-light text-dbz-blue-light",
 		},
 		{
@@ -68,12 +68,6 @@ function buildSections(c: Record<string, number>) {
 			desc: `${c.techniques} techniques et capacités spéciales.`,
 			href: "/wiki/dragon-ball/techniques",
 			color: "border-dbz-red text-dbz-red",
-		},
-		{
-			title: "Recherche",
-			desc: "Scouter global : personnages, planètes, films, techniques.",
-			href: "/wiki/search",
-			color: "border-green-500 text-green-500",
 		},
 	];
 }

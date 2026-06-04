@@ -25,7 +25,7 @@ export default async function PlanetPage({
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up">
 			<Link
-				href="/wiki/planetes"
+				href="/wiki/personnages?tab=planetes"
 				transitionTypes={["nav-back"]}
 				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
 			>
