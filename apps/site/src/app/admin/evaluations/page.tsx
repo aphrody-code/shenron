@@ -34,20 +34,17 @@ interface EvalReport {
       cases: number;
     };
   } | null;
+  // Rapport HONNÊTE de notre LLM maison (eval-own : non-vide + grounding, pas de juge de style).
   llm: {
-    avgPersona: number;
+    model: string;
+    nonEmptyPct: number;
+    groundingPct: number;
+    avgLatencyMs: number;
     avgFact: number;
-    avgConcise: number;
-    evaluated: number;
+    cases: number;
     persona: string;
     date: string;
-    resultsTable: {
-      question: string;
-      tone: string;
-      facts: string;
-      brevity: string;
-      justification: string;
-    }[];
+    rows?: { q: string; cov: string; len: number; ms: number; sample: string }[];
   } | null;
 }
 
@@ -99,7 +96,7 @@ export default function EvaluationsDashboard() {
 
   // Calcul du statut global
   const ragScore = reports?.rag?.lexical.recall5 ?? 0;
-  const llmScore = reports?.llm ? (reports.llm.avgPersona + reports.llm.avgFact + reports.llm.avgConcise) / 3 : 0;
+  const llmScore = reports?.llm ? reports.llm.avgFact : 0; // grounding ramené sur /5 (mesure honnête)
   
   let globalStatus = "stable";
   let statusColor = "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
@@ -178,17 +175,17 @@ export default function EvaluationsDashboard() {
           </div>
         </div>
 
-        {/* KPI 2 : Persona Tone */}
+        {/* KPI 2 : Fiabilité (réponses non vides) de notre LLM maison */}
         <div className="card">
           <div className="mb-2 flex items-center justify-between text-zinc-400">
-            <h3 className="text-xs font-medium uppercase tracking-wide">Score Style LLM</h3>
+            <h3 className="text-xs font-medium uppercase tracking-wide">Fiabilité LLM</h3>
             <Award className="h-4 w-4 text-amber-400" />
           </div>
           <p className="text-3xl font-bold text-white">
-            {reports?.llm ? `${reports.llm.avgPersona.toFixed(2)}/5` : "N/A"}
+            {reports?.llm ? `${reports.llm.nonEmptyPct.toFixed(0)}%` : "N/A"}
           </p>
           <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-400">
-            <span>Évalué par le Grand Prêtre ({reports?.llm?.persona.toUpperCase()})</span>
+            <span>Réponses non vides — {reports?.llm?.model ?? "dbz-own"}</span>
           </div>
         </div>
 
@@ -229,30 +226,30 @@ export default function EvaluationsDashboard() {
             <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-3">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <Brain className="h-5 w-5 text-amber-400" />
-                Jugement du Grand Prêtre (Dernier Run)
+                Notre LLM maison (dernier run)
               </h2>
               {reports?.llm && (
-                <span className="text-xs bg-zinc-800 border border-zinc-700 px-2.5 py-1 rounded text-zinc-300">
-                  Persona : {reports.llm.persona.toUpperCase()}
+                <span className="text-xs bg-zinc-800 border border-zinc-700 px-2.5 py-1 rounded text-zinc-300 font-mono">
+                  {reports.llm.model} · {reports.llm.cases} cas
                 </span>
               )}
             </div>
 
             {reports?.llm ? (
               <div className="space-y-6">
-                {/* Score breakdown */}
+                {/* Métriques objectives (pas de juge de style — mesures reproductibles) */}
                 <div className="grid grid-cols-3 gap-4 bg-zinc-900/50 p-4 rounded-xl border border-zinc-800">
                   <div className="text-center">
-                    <div className="text-xs text-zinc-400 uppercase font-medium">Style / Voix</div>
-                    <div className="text-2xl font-bold text-amber-400 mt-1">{reports.llm.avgPersona.toFixed(2)}/5</div>
+                    <div className="text-xs text-zinc-400 uppercase font-medium">Réponses non vides</div>
+                    <div className="text-2xl font-bold text-emerald-400 mt-1">{reports.llm.nonEmptyPct.toFixed(0)}%</div>
                   </div>
                   <div className="text-center border-x border-zinc-800">
-                    <div className="text-xs text-zinc-400 uppercase font-medium">Exactitude RAG</div>
-                    <div className="text-2xl font-bold text-emerald-400 mt-1">{reports.llm.avgFact.toFixed(2)}/5</div>
+                    <div className="text-xs text-zinc-400 uppercase font-medium">Grounding (faits)</div>
+                    <div className="text-2xl font-bold text-amber-400 mt-1">{reports.llm.groundingPct.toFixed(0)}%</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xs text-zinc-400 uppercase font-medium">Concision</div>
-                    <div className="text-2xl font-bold text-blue-400 mt-1">{reports.llm.avgConcise.toFixed(2)}/5</div>
+                    <div className="text-xs text-zinc-400 uppercase font-medium">Latence moy.</div>
+                    <div className="text-2xl font-bold text-blue-400 mt-1">{Math.round(reports.llm.avgLatencyMs)}<span className="text-sm">ms</span></div>
                   </div>
                 </div>
 
@@ -260,17 +257,17 @@ export default function EvaluationsDashboard() {
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-3">Questions évaluées</h3>
                   <div className="space-y-3">
-                    {reports.llm.resultsTable.map((t, idx) => (
+                    {(reports.llm.rows ?? []).map((t, idx) => (
                       <div key={idx} className="bg-zinc-900/30 p-4 rounded-xl border border-zinc-800/80 space-y-2">
                         <div className="flex justify-between items-start gap-2">
-                          <span className="font-medium text-sm text-white">Q: "{t.question}"</span>
+                          <span className="font-medium text-sm text-white">Q: "{t.q}"</span>
                           <div className="flex gap-2 text-xs font-mono shrink-0">
-                            <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">Style {t.tone}</span>
-                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Facts {t.facts}</span>
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Grounding {t.cov}</span>
+                            <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">{t.ms}ms</span>
                           </div>
                         </div>
                         <p className="text-xs text-zinc-400 italic bg-black/20 p-2.5 rounded border border-zinc-800">
-                          ⚖️ {t.justification}
+                          {t.sample}…
                         </p>
                       </div>
                     ))}
