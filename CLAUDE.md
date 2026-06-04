@@ -129,6 +129,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 | (site Vercel) | — | dragonballfr.com (ex- shenron.rpbey.fr) | Next.js 16 sur Vercel (projet `dbfr`) |
 | shenron | 5006 | bot.dragonballfr.com (ex- bot.rpbey.fr) | Bun + discordx + drizzle + bun:sqlite + canvas. Sert aussi **GraphQL** `/graphql` (Pothos+yoga, GraphiQL) et **OpenAPI** `/api/openapi.json` + UI Scalar `/api/docs` |
 | shenron-embed | 5007 (loopback) | — | Sidecar embeddings RAG (multilingual-e5-small, transformers.js). Modèle chaud, isolé du bot. Cf. RAG hybride |
+| shenron-llm | 5009 (loopback) | — | **Notre LLM Dragon Ball maison** (décodeur Transformer 29,3M from-scratch, PyTorch CPU). Sert `generateLlmAnswer` du bot + chat site. Jamais de modèle tiers au runtime. Cf. [`docs/llm-maison.md`](docs/llm-maison.md) |
 | shenron-backup.timer | — | — | `VACUUM INTO` quotidien 03:00 UTC → `apps/bot/backups/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
 | shenron-neon-sync.timer | — | — | Forward SQLite → Neon (runtime + `db_news`, wiki exclu) toutes les 30 min |

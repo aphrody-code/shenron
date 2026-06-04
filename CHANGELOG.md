@@ -5,6 +5,10 @@ Versionnement : date + courte description.
 
 ## [Unreleased] — 2026-06-02
 
+### Added
+
+- **LLM Dragon Ball maison (from-scratch)** — décodeur Transformer 29,3 M (BPE, RMSNorm/SwiGLU) entraîné de zéro sur CPU (606k tokens corpus + 850 SFT ancrés depuis le wiki), servi sur **:5009** (`shenron-llm.service`) et branché dans le bot/site. Chaîne `generateLlmAnswer` **résiliente, jamais vide** : cache → notre modèle (garde d'ancrage anti-hallucination) → repli extractif ancré (faits RAG en voix persona). 100% réponses non vides (vs 8/20 avant), ~75% grounding. Réponses autonomes Discord (Grand Prêtre proactif + Whis sur mention) et chat site (FloatingAssistant) désormais sur notre LLM. Indexation Redis complète (users via auteurs de messages, lore + sentiment). Éval honnête `eval-own.ts` (non-vide + grounding, sans juge flaky) + dashboard `/admin/evaluations` aligné. Doc : [`docs/llm-maison.md`](docs/llm-maison.md).
+
 ### Changed
 
 - **Next.js bumpé `16.3.0-canary.21` → `.37`** (catalog racine + override + `@next/env`) — doctrine nightly. Type-check, lint, `next build` et déploiement prod verts.
