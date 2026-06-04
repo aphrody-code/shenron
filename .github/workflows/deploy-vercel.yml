@@ -21,6 +21,7 @@ on:
       - "package.json"
       - "bun.lock"
       - "turbo.json"
+      - "vercel.json"
       - ".github/workflows/deploy-vercel.yml"
   workflow_dispatch: {}
 
