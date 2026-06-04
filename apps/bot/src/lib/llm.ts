@@ -95,49 +95,14 @@ async function withSlot<T>(fn: () => Promise<T>): Promise<T> {
 // Backends
 // ---------------------------------------------------------------------------
 const WORD_RE = /[a-zàâäéèêëïîôûùüçñ]{4,}/g;
-// Détecteur d'espagnol (le wiki mélange FR/ES ; on veut un bot 100% FR).
-const ES_MARKERS = [
-  " está", " según", " también", " después", " aunque", " siendo", " conocido", " película",
-  " ciudad", " además", " pesar", " pero ", " es el ", " es la ", " como ", " que se ", " del ",
-  " por ", " hacia ", " desde ", " hasta ", " mismo", " había", " fue ", " hijo ", " príncipe",
-  " guerrero", " villano", " años ", " se une", " junto ", " antiguos", " uno de ", " su poder",
-];
-function looksSpanish(t: string): boolean {
-  if (/[ñ¿¡]/.test(t)) return true;
-  const low = " " + t.toLowerCase() + " ";
-  // Signaux ES forts (jamais en français) : articles "los/las", terminaisons -ción / -mente.
-  if (low.includes(" los ") || low.includes(" las ")) return true;
-  if (/[a-z]ción\b/.test(low) || /[a-z]mente\b/.test(low)) return true;
-  let n = 0;
-  for (const m of ES_MARKERS) if (low.includes(m)) n++;
-  return n >= 2;
-}
-
-const EN_MARKERS = [
-  " their ", " using ", " against ", " from ", " which ", " they ", " with ", " this ", " user ",
-  " raises ", " allows ", " of the ", " in the ", " known as ", " is a ", " was ", " has ", " his ",
-  " her ", " into ", " also ", " able to ", " in order ", " through ", " however ",
-];
-function looksEnglish(t: string): boolean {
-  const low = " " + t.toLowerCase() + " ";
-  if (low.includes(" the ")) return true; // signal EN très fort (jamais en français)
-  let n = 0;
-  for (const m of EN_MARKERS) if (low.includes(m)) n++;
-  return n >= 2;
-}
-
-/** Le bot répond en FRANÇAIS natif ; on écarte tout contenu source non français (ES/EN). */
-function looksForeign(t: string): boolean {
-  return looksSpanish(t) || looksEnglish(t);
-}
 
 /**
  * Garde-fou d'ancrage : un modèle maison de 29M peut halluciner des faits. On n'accepte sa réponse
- * que si elle est réellement ANCRÉE dans le contexte RAG (recouvrement lexical suffisant) et exempte
- * de fuite linguistique. Sinon -> chaîne de repli (extractif ancré). Garantit la justesse factuelle.
+ * que si elle est réellement ANCRÉE dans le contexte RAG (recouvrement lexical suffisant) — les
+ * SOURCES sont la vérité ultime. Pas de filtre de langue : les sources officielles peuvent être en
+ * anglais et restent valides (le bot parle français nativement, mais la vérité vient des sources).
  */
 function isGrounded(answer: string, context: string): boolean {
-  if (looksForeign(answer)) return false;
   const a = answer.toLowerCase();
   const ctx = context.toLowerCase();
   const words = a.match(WORD_RE) ?? [];
@@ -241,7 +206,7 @@ function bestSentences(text: string, query: string, max = 2): string {
   const sentences = text
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 25 && !looksForeign(s)); // FR uniquement
+    .filter((s) => s.length > 25);
   if (sentences.length === 0) return "";
   const scored = sentences.map((s, i) => {
     const terms = s.toLowerCase().match(WORD_RE) ?? [];
@@ -266,11 +231,10 @@ function extractiveAnswer(
 ): string {
   if (hits.length === 0) return PERSONA_NOTFOUND[personaId] ?? PERSONA_NOTFOUND.whis;
   let body = "";
-  // Parcourt jusqu'à 4 hits pour trouver du contenu FR (les chunks ES sont sautés).
-  for (const h of hits.slice(0, 4)) {
+  for (const h of hits.slice(0, 3)) {
     const text = startAtSentence(cleanChunk(contentMap.get(h.rowid) || h.snippet || ""));
     if (text.length < 20) continue;
-    const picked = bestSentences(text, query, 2); // "" si tout est espagnol
+    const picked = bestSentences(text, query, 2);
     if (!picked) continue;
     body += (body ? " " : "") + picked;
     if (body.length >= 300) break;
