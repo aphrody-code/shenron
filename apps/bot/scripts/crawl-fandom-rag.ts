@@ -65,10 +65,29 @@ async function categoryMembers(cat: string): Promise<{ pages: string[]; subcats:
   return { pages, subcats };
 }
 
+/** Strip wikitext -> texte lisible (Fandom n'a pas TextExtracts ; on parse le wikitext brut). */
+function stripWikitext(wt: string): string {
+  let t = wt;
+  for (let i = 0; i < 6; i++) t = t.replace(/\{\{[^{}]*\}\}/g, " "); // templates (nesting léger)
+  t = t.replace(/\{\|[\s\S]*?\|\}/g, " "); // tables
+  t = t.replace(/<ref[^>]*>[\s\S]*?<\/ref>/gi, " ").replace(/<ref[^>]*\/>/gi, " ");
+  t = t.replace(/\[\[(?:Fichier|File|Image|Cat[ée]gorie|Category):[^\]]*\]\]/gi, " ");
+  t = t.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1"); // [[a|b]]->b
+  t = t.replace(/\[https?:\/\/\S+\s+([^\]]*)\]/g, "$1").replace(/\[https?:\/\/\S+\]/g, " ");
+  t = t.replace(/<[^>]+>/g, " ");
+  t = t.replace(/'{2,}/g, "");
+  t = t.replace(/^=+\s*(.*?)\s*=+\s*$/gm, "$1.");
+  t = t.replace(/^[*#:;]+\s*/gm, "");
+  t = t.replace(/[{}|]/g, " ");
+  return t.replace(/\n{2,}/g, "\n").replace(/[ \t]+/g, " ").trim();
+}
+
+const MAX_PAGE_CHARS = 12000;
 async function pageExtract(title: string): Promise<string> {
-  const data = await apiGet({ action: "query", prop: "extracts", explaintext: "1", redirects: "1", titles: title });
-  const first = Object.values(data?.query?.pages ?? {})[0] as any;
-  return (first?.extract ?? "").trim();
+  const data = await apiGet({ action: "parse", page: title, prop: "wikitext", redirects: "1" });
+  const wt = data?.parse?.wikitext?.["*"] ?? "";
+  if (!wt) return "";
+  return stripWikitext(wt).slice(0, MAX_PAGE_CHARS);
 }
 
 /** Pool de concurrence. */
