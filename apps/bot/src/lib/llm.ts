@@ -197,8 +197,36 @@ function startAtSentence(t: string): string {
   return cap > 0 && cap < 60 ? t.slice(cap) : t;
 }
 
-/** Repli extractif ancré : jamais vide, toujours basé sur le contexte RAG, nettoyé. */
+const STOPWORDS = new Set([
+  "quel", "quelle", "quels", "quelles", "est", "que", "qui", "quoi", "dans", "pour", "avec", "une",
+  "des", "les", "son", "sur", "the", "what", "who", "race", "tell", "about", "moi", "parle", "raconte",
+]);
+
+/** Sélectionne les phrases d'un texte les plus pertinentes pour la question (recouvrement de termes). */
+function bestSentences(text: string, query: string, max = 2): string {
+  const qterms = new Set((query.toLowerCase().match(WORD_RE) ?? []).filter((w) => !STOPWORDS.has(w)));
+  const sentences = text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 25);
+  if (sentences.length === 0) return text;
+  const scored = sentences.map((s, i) => {
+    const terms = s.toLowerCase().match(WORD_RE) ?? [];
+    let score = 0;
+    for (const w of terms) if (qterms.has(w)) score++;
+    return { s, i, score };
+  });
+  const hasMatch = scored.some((x) => x.score > 0);
+  const chosen = hasMatch
+    ? [...scored].sort((a, b) => b.score - a.score).slice(0, max).filter((x) => x.score > 0)
+    : scored.slice(0, max); // aucune correspondance -> début du texte
+  // restituer dans l'ordre du texte
+  return chosen.sort((a, b) => a.i - b.i).map((x) => x.s).join(" ");
+}
+
+/** Repli extractif ancré : jamais vide, basé sur les phrases RAG pertinentes à la question. */
 function extractiveAnswer(
+  query: string,
   hits: RagHit[],
   contentMap: Map<number, string>,
   personaId: string,
@@ -206,14 +234,13 @@ function extractiveAnswer(
   if (hits.length === 0) return PERSONA_NOTFOUND[personaId] ?? PERSONA_NOTFOUND.whis;
   let body = "";
   for (const h of hits.slice(0, 2)) {
-    let text = cleanChunk(contentMap.get(h.rowid) || h.snippet || "");
-    text = startAtSentence(text);
+    const text = startAtSentence(cleanChunk(contentMap.get(h.rowid) || h.snippet || ""));
     if (text.length < 20) continue;
-    body += (body ? " " : "") + text;
-    if (body.length >= 320) break;
+    const picked = bestSentences(text, query, 2);
+    body += (body ? " " : "") + picked;
+    if (body.length >= 300) break;
   }
   body = body.slice(0, 460).trim();
-  // couper proprement à la dernière fin de phrase
   const lastDot = Math.max(body.lastIndexOf(". "), body.lastIndexOf("! "), body.lastIndexOf("? "));
   if (lastDot > 100) body = body.slice(0, lastDot + 1);
   if (body.length < 20) return PERSONA_NOTFOUND[personaId] ?? PERSONA_NOTFOUND.whis;
@@ -284,7 +311,7 @@ ${query}`;
 
   // 5. Repli extractif ancré — garantit une réponse non vide
   if (!answer) {
-    answer = extractiveAnswer(hits, contentMap, pid);
+    answer = extractiveAnswer(query, hits, contentMap, pid);
   }
 
   // 6. Cache seulement les réponses générées par un modèle (pas le repli extractif brut)

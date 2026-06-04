@@ -84,9 +84,11 @@ interface SftRow {
 const sftRows: SftRow[] = [];
 function addSft(context: string, instruction: string, fact: string, persona?: Persona): void {
   const p = persona ?? nextPersona();
-  const out = style(p, fact);
   if (!instruction.trim() || !fact.trim() || fact.length < 8) return;
-  sftRows.push({ context: context.replace(/\s+/g, " ").trim(), persona: p, instruction: instruction.trim(), output: out });
+  if (isSpanish(fact)) return; // ne pas entraîner sur des réponses espagnoles
+  const out = style(p, fact);
+  // Contexte court (<=300c) -> le petit modèle trouve plus facilement le fait à recopier.
+  sftRows.push({ context: trimNice(context.replace(/\s+/g, " ").trim(), 300), persona: p, instruction: instruction.trim(), output: out });
 }
 
 const clean = (s: unknown): string =>
@@ -95,14 +97,29 @@ const clean = (s: unknown): string =>
     .replace(/\s+/g, " ")
     .trim();
 
+// Détecte un texte espagnol (le wiki mélange FR/ES ; l'espagnol bruite notre petit modèle FR).
+const ES_MARKERS = [
+  " está", " según", " también", " después", " aunque", " siendo", " conocido", " película",
+  " ciudad", " además", " través", " el que", " los que", " es el ", " es la ", " guerrero",
+  " hijo de", " su poder", " príncipe", " mismo", " había", " fue ", " pero ",
+];
+function isSpanish(t: string): boolean {
+  if (/[ñ¿¡]/.test(t)) return true;
+  const low = " " + t.toLowerCase() + " ";
+  let n = 0;
+  for (const m of ES_MARKERS) if (low.includes(m)) n++;
+  return n >= 2;
+}
+
 // ---------- 1. CORPUS DE PRÉ-ENTRAÎNEMENT ----------
 const corpusLines: string[] = [];
 function addCorpus(text: string): void {
   const t = clean(text);
   if (t.length < 60) return;
-  // Filtrer les passages massivement CJK (japonais) qui bruitent un petit modèle FR.
+  // Filtrer les passages massivement CJK (japonais) et l'espagnol (bruit pour un petit modèle FR).
   const cjk = (t.match(/[぀-ヿ一-鿿]/g) || []).length;
   if (cjk > t.length * 0.15) return;
+  if (isSpanish(t)) return;
   corpusLines.push(t);
 }
 
