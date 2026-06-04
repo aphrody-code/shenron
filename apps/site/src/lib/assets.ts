@@ -17,6 +17,9 @@ export function assetUrl(path: string | null | undefined): string {
 	if (!path) return "";
 	if (path.startsWith("http")) return path;
 	const clean = path.replace(/^\.?\/*/, "");
+	if (clean.startsWith("assets/wiki/")) {
+		return `/wiki/${clean.substring("assets/wiki/".length)}`;
+	}
 	return `${ASSET_BASE}/${clean}`;
 }
 

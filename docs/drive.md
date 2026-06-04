@@ -8,7 +8,7 @@ Ce document décrit le fonctionnement de la synchronisation automatique du dossi
 
 *   **URL du dossier** : `https://drive.google.com/drive/folders/1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
 *   **Identifiant du dossier** : `1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
-*   **Dossier local de destination** : `apps/bot/assets/wiki/` (situé dans le répertoire racine de Shenron)
+*   **Dossier local de destination** : `apps/site/public/wiki/` (situé dans le répertoire racine de Shenron)
 
 ---
 

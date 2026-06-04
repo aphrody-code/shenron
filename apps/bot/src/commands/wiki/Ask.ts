@@ -12,7 +12,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { FeatureEnabled } from "~/guards/FeatureEnabled";
 import { DatabaseService } from "~/db/index";
-import { hybridSearch } from "~/lib/rag";
+import { hybridSearch, generateAnswer } from "~/lib/rag";
 
 const SITE = "https://dragonballfr.com";
 
@@ -95,34 +95,46 @@ export class AskCommands {
       return;
     }
 
+    // RAG LLM Génératif : Whis rédige une réponse personnalisée basée sur le contexte
+    let answer = "";
+    try {
+      answer = await generateAnswer(this.dbs.sqlite, q, results);
+    } catch (err) {
+      console.error("Génération de réponse LLM échouée:", err);
+    }
+
     const top = results[0]!;
     const embed = new EmbedBuilder()
       .setColor(0x38bdf8)
-      .setAuthor({ name: "Les archives de Shenron" })
+      .setAuthor({ name: "Whis · Guide de l'Univers 7" })
       .setTitle(`❓ ${q.slice(0, 240)}`)
       .setDescription(
-        "Voici ce que révèlent les archives de l'univers Dragon Ball, du plus pertinent au moins pertinent :",
+        answer || "Je n'ai pas trouvé de réponse claire dans nos archives, jeune guerrier. Cependant, voici les documents pertinents :"
       );
 
-    for (const r of results) {
-      const meta = KIND_META[r.kind] ?? { icon: "•", label: r.kind };
-      const snippet = (r.snippet || "").replace(/\s+/g, " ").trim().slice(0, 280);
-      embed.addFields({
-        name: `${meta.icon} ${r.title}`.slice(0, 256),
-        value: `${snippet || "—"}\n[Consulter →](${siteUrl(r.url)})`.slice(0, 1024),
-      });
-    }
+    // Ajout des sources consultées
+    const sourcesText = results
+      .map((r) => {
+        const meta = KIND_META[r.kind] ?? { icon: "•", label: r.kind };
+        return `${meta.icon} [${r.title}](${siteUrl(r.url)})`;
+      })
+      .join("  ·  ");
+
+    embed.addFields({
+      name: "📜 Sources consultées",
+      value: sourcesText.slice(0, 1024),
+    });
 
     embed.setFooter({
       text: mode.startsWith("hybrid")
-        ? `Recherche hybride · BM25 + embeddings${mode === "hybrid+rerank" ? " + rerank IA" : ""} · ${results.length} résultats`
-        : `Recherche lexicale · ${results.length} résultats`,
+        ? `RAG LLM · Recherche hybride + rerank · ${results.length} sources`
+        : `RAG LLM · Recherche lexicale · ${results.length} sources`,
     });
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
-        .setLabel("Ouvrir le meilleur résultat")
+        .setLabel("Ouvrir la meilleure source")
         .setURL(siteUrl(top.url)),
     );
 

@@ -19,6 +19,7 @@ export type Era =
 export interface HomeScene {
 	readonly id: string;
 	readonly image: string;
+	readonly video?: string;
 	readonly title: string;
 	readonly kicker: string;
 	readonly era: Era;
@@ -45,6 +46,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "goku-origin",
 		image: "./assets/dbz/characters/goku_normal.webp",
+		video: "/wiki/gokupiccolojr.mp4",
 		title: "Son Goku",
 		kicker: "L'enfant venu des étoiles",
 		era: "origin",
@@ -53,6 +55,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "vegeta-saiyan",
 		image: "./assets/dbz/characters/vegeta_normal.webp",
+		video: "/wiki/vegetagokukaioken.mp4",
 		title: "Vegeta",
 		kicker: "Le prince des Saiyans",
 		era: "saiyan",
@@ -61,6 +64,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "freezer-namek",
 		image: "./assets/dbz/characters/Freezer.webp",
+		video: "/wiki/freezergoku2.mp4",
 		title: "Freezer",
 		kicker: "L'empereur de l'univers",
 		era: "namek",
@@ -69,6 +73,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "c17-android",
 		image: "./assets/dbz/characters/17_Artwork.webp",
+		video: "/wiki/trunks.mp4",
 		title: "C-17",
 		kicker: "La menace cybernétique",
 		era: "android",
@@ -77,6 +82,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "buu-majin",
 		image: "./assets/dbz/characters/BuuGordo_Universo7.webp",
+		video: "/wiki/kidbuu.mp4",
 		title: "Majin Boo",
 		kicker: "La terreur née de la magie",
 		era: "buu",
@@ -85,6 +91,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "beerus-divine",
 		image: "./assets/dbz/characters/Beerus_DBS_Broly_Artwork.webp",
+		video: "/wiki/beerus.mp4",
 		title: "Beerus",
 		kicker: "Le dieu de la destruction",
 		era: "divine",
@@ -93,6 +100,7 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	{
 		id: "broly-legend",
 		image: "./assets/dbz/characters/Broly_DBS_Base.webp",
+		video: "/wiki/ssjba.mp4",
 		title: "Broly",
 		kicker: "Le Super Saiyan légendaire",
 		era: "saiyan",
@@ -105,6 +113,7 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 	universe: {
 		id: "gohan-universe",
 		image: "./assets/dbz/characters/gohan.webp",
+		video: "/wiki/cellgoku.mp4",
 		title: "L'anthologie",
 		kicker: "Tout l'univers Dragon Ball",
 		era: "namek",
@@ -113,6 +122,7 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 	guardians: {
 		id: "beerus-guardians",
 		image: "./assets/dbz/characters/Beerus_DBS_Broly_Artwork.webp",
+		video: "/wiki/gfokufreezerjiren.mp4",
 		title: "Les gardiens",
 		kicker: "Six divinités, un seul serveur",
 		era: "divine",
@@ -121,6 +131,7 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 	community: {
 		id: "vegeta-community",
 		image: "./assets/dbz/characters/vegeta_normal.webp",
+		video: "/wiki/majinvegeta.mp4",
 		title: "La communauté",
 		kicker: "Des milliers de guerriers",
 		era: "saiyan",
@@ -129,6 +140,7 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 	play: {
 		id: "goku-play",
 		image: "./assets/dbz/characters/goku_normal.webp",
+		video: "/wiki/gokussj4daima.mp4",
 		title: "Le terrain",
 		kicker: "Jeux, économie, fusions",
 		era: "origin",
@@ -137,6 +149,7 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 	summon: {
 		id: "shenron-summon",
 		image: "./assets/dbz/characters/picolo_normal.webp",
+		video: "/wiki/gloorio.mp4",
 		title: "L'invocation",
 		kicker: "Fais ton vœu",
 		era: "summon",

@@ -183,7 +183,7 @@ export function HomeExperience({
 		return () => obs.disconnect();
 	}, [sections.length]);
 
-	// Molette → une section par geste (libère aux extrémités pour nav/footer)
+	// Molette → une section par geste avec boucle infinie cyclique
 	useEffect(() => {
 		const onWheel = (e: WheelEvent) => {
 			if (Math.abs(e.deltaY) < 12) return;
@@ -192,8 +192,7 @@ export function HomeExperience({
 				return;
 			}
 			const dir = e.deltaY > 0 ? 1 : -1;
-			const target = active + dir;
-			if (target < 0 || target >= sections.length) return; // bord → natif
+			const target = (active + dir + sections.length) % sections.length;
 			e.preventDefault();
 			goTo(target);
 		};
@@ -201,7 +200,7 @@ export function HomeExperience({
 		return () => window.removeEventListener("wheel", onWheel);
 	}, [active, sections.length, goTo]);
 
-	// Clavier
+	// Clavier avec boucle infinie cyclique
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
 			const tag = (e.target as HTMLElement)?.tagName;
@@ -212,13 +211,13 @@ export function HomeExperience({
 				case " ":
 				case "j":
 					e.preventDefault();
-					goTo(active + 1);
+					goTo((active + 1) % sections.length);
 					break;
 				case "ArrowUp":
 				case "PageUp":
 				case "k":
 					e.preventDefault();
-					goTo(active - 1);
+					goTo((active - 1 + sections.length) % sections.length);
 					break;
 				case "Home":
 					e.preventDefault();
@@ -234,7 +233,7 @@ export function HomeExperience({
 		return () => window.removeEventListener("keydown", onKey);
 	}, [active, sections.length, goTo]);
 
-	// Tactile (swipe vertical)
+	// Tactile (swipe vertical avec boucle infinie cyclique)
 	useEffect(() => {
 		let startY = 0;
 		const onStart = (e: TouchEvent) => {
@@ -243,7 +242,10 @@ export function HomeExperience({
 		const onEnd = (e: TouchEvent) => {
 			if (lockRef.current) return;
 			const dy = startY - (e.changedTouches[0]?.clientY ?? startY);
-			if (Math.abs(dy) > 64) goTo(active + (dy > 0 ? 1 : -1));
+			if (Math.abs(dy) > 64) {
+				const dir = dy > 0 ? 1 : -1;
+				goTo((active + dir + sections.length) % sections.length);
+			}
 		};
 		window.addEventListener("touchstart", onStart, { passive: true });
 		window.addEventListener("touchend", onEnd, { passive: true });
@@ -251,7 +253,7 @@ export function HomeExperience({
 			window.removeEventListener("touchstart", onStart);
 			window.removeEventListener("touchend", onEnd);
 		};
-	}, [active, goTo]);
+	}, [active, sections.length, goTo]);
 
 	// Rotation lente des scènes héro (crossfade)
 	const [heroIdx, setHeroIdx] = useState(0);

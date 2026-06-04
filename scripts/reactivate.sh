@@ -19,7 +19,7 @@ echo "▶ Nettoyage des dossiers temporaires et des caches..."
 rm -rf node_modules apps/*/node_modules packages/*/node_modules .turbo apps/*/.turbo packages/*/.turbo apps/site/.next apps/bot/.bun-cache apps/site/.bun-cache
 
 # Recréer les répertoires nécessaires aux bacs à sable (namespaces) de systemd
-mkdir -p apps/bot/.bun-cache apps/bot/.models apps/bot/dist apps/bot/assets/wiki apps/bot/assets/subtitles
+mkdir -p apps/bot/.bun-cache apps/bot/.models apps/bot/dist apps/site/public/wiki apps/bot/assets/subtitles
 
 # 2. Installation propre des dépendances
 echo "▶ Installation propre des dépendances via Bun..."

@@ -809,7 +809,10 @@ async function serveAsset(pathname: string, req?: Request): Promise<Response> {
   if (!contentType) {
     return new Response("Extension non autorisée", { status: 403 });
   }
-  const file = Bun.file(`assets/${sub}`);
+  const filePath = sub.startsWith("wiki/")
+    ? `../site/public/${sub}`
+    : `assets/${sub}`;
+  const file = Bun.file(filePath);
   if (!(await file.exists())) {
     return new Response("Asset introuvable", { status: 404 });
   }
@@ -4083,10 +4086,11 @@ export class ApiServer {
             }
             const name = `${crypto.randomUUID()}${ext}`;
             const rel = `assets/wiki/${name}`;
+            const writePath = `../site/public/wiki/${name}`;
             try {
               const { mkdir } = await import("node:fs/promises");
-              await mkdir("assets/wiki", { recursive: true });
-              await Bun.write(rel, file);
+              await mkdir("../site/public/wiki", { recursive: true });
+              await Bun.write(writePath, file);
             } catch (err) {
               return Response.json(
                 { error: err instanceof Error ? err.message : "écriture échouée" },
@@ -4168,11 +4172,12 @@ export class ApiServer {
           const glob = new Glob("**/*.{png,jpg,jpeg,webp,gif}");
           const files: { path: string; url: string; name: string }[] = [];
           try {
+            const cwd = dir === "wiki" ? "../site/public/wiki" : `assets/${dir}`;
             for await (const f of glob.scan({
-              cwd: `assets/${dir}`,
+              cwd,
               onlyFiles: true,
             })) {
-              const rel = `assets/${dir}/${f}`;
+              const rel = dir === "wiki" ? `assets/wiki/${f}` : `assets/${dir}/${f}`;
               files.push({ path: rel, url: `/${rel}`, name: f });
               if (files.length >= 1000) break;
             }

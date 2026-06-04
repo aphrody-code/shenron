@@ -30,17 +30,30 @@ export function SceneBackdrop({
 				opacity: visible ? 1 : 0,
 			}}
 		>
-			{/* Image — object-cover, recadrage haut (visages), ken-burns si actif */}
-			<Image
-				src={assetUrl(scene.image)}
-				alt=""
-				fill
-				priority={priority}
-				sizes="100vw"
-				className={`scene-img object-cover object-[center_22%] ${
-					active ? "scene-img--live" : ""
-				}`}
-			/>
+			{/* Fond multimédia : vidéo en arrière-plan si disponible avec transition fluide, sinon image statique */}
+			{scene.video ? (
+				<video
+					src={scene.video}
+					autoPlay
+					loop
+					muted
+					playsInline
+					className={`scene-img object-cover object-center absolute inset-0 w-full h-full transition-all duration-1000 ${
+						active ? "scale-105 opacity-80" : "scale-100 opacity-20"
+					}`}
+				/>
+			) : (
+				<Image
+					src={assetUrl(scene.image)}
+					alt=""
+					fill
+					priority={priority}
+					sizes="100vw"
+					className={`scene-img object-cover object-[center_22%] ${
+						active ? "scene-img--live" : ""
+					}`}
+				/>
+			)}
 
 			{/* Color grade d'ère — teinte l'image vers l'accent, fondu vers le noir */}
 			<div className="scene-grade absolute inset-0" />

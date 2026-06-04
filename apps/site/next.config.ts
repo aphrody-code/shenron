@@ -106,6 +106,16 @@ const nextConfig: NextConfig = {
 		];
 	},
 
+	async rewrites() {
+		const botHost = process.env.NEXT_PUBLIC_SHENRON_API_URL || "https://bot.dragonballfr.com";
+		return [
+			{
+				source: "/wiki/:path*",
+				destination: `${botHost}/assets/wiki/:path*`,
+			},
+		];
+	},
+
 	async headers() {
 		return [
 			{

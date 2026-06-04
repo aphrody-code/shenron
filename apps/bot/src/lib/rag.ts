@@ -240,3 +240,53 @@ export async function hybridSearch(
     .map(({ rowid, kind, title, url, snippet }) => ({ rowid, kind, title, url, snippet }));
   return { results, mode };
 }
+
+/**
+ * RAG Génératif : Construit un prompt avec le contexte récupéré et interroge le LLM
+ * via la commande système native d'aphrody. Retourne la réponse rédigée.
+ */
+export async function generateAnswer(
+  db: Database,
+  query: string,
+  hits: RagHit[],
+): Promise<string> {
+  const rowids = hits.map((h) => h.rowid);
+  if (rowids.length === 0) return "";
+  const ph = rowids.map(() => "?").join(",");
+  const rows = db
+    .query(`SELECT rowid, content FROM rag_chunks WHERE rowid IN (${ph})`)
+    .all(...rowids) as { rowid: number; content: string }[];
+  const contentMap = new Map(rows.map((r) => [r.rowid, r.content]));
+
+  let context = "";
+  for (const h of hits) {
+    const text = contentMap.get(h.rowid) || h.snippet;
+    context += `### Document : ${h.title} (Type: ${h.kind})\n${text}\n\n`;
+  }
+
+  const systemPrompt = `Tu es Whis, l'ange guide et protecteur de l'Univers 7 du serveur Discord Dragon Ball France.
+Réponds à la question de l'utilisateur de manière polie, chaleureuse et pédagogue, dans le style caractéristique de Whis (ex. 'Oh oh', utiliser 'jeune guerrier' ou 'disciple', ton bienveillant et un peu amusé).
+Appuie-toi UNIQUEMENT sur les faits décrits dans le contexte suivant. Si le contexte ne contient pas l'information, réponds poliment que tu ne trouves pas cela dans les archives.
+
+[Contexte du Wiki]
+${context}
+
+[Question]
+${query}`;
+
+  try {
+    const proc = Bun.spawn([
+      "/home/ubuntu/.local/bin/aphrody",
+      "antigravity",
+      "chat",
+      "--prompt",
+      systemPrompt,
+    ]);
+    const stdout = await new Response(proc.stdout).text();
+    const json = JSON.parse(stdout);
+    return json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  } catch (err) {
+    console.error("Erreur de génération LLM via aphrody:", err);
+    return "";
+  }
+}
