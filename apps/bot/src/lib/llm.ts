@@ -102,7 +102,7 @@ const WORD_RE = /[a-zàâäéèêëïîôûùüçñ]{4,}/g;
  * SOURCES sont la vérité ultime. Pas de filtre de langue : les sources officielles peuvent être en
  * anglais et restent valides (le bot parle français nativement, mais la vérité vient des sources).
  */
-function isGrounded(answer: string, context: string): boolean {
+export function isGrounded(answer: string, context: string): boolean {
   const a = answer.toLowerCase();
   const ctx = context.toLowerCase();
   const words = a.match(WORD_RE) ?? [];
@@ -176,7 +176,7 @@ async function tryGemini(systemPrompt: string): Promise<string> {
 }
 
 /** Nettoie un chunk RAG brut (URLs, footers "Source:", puces, listes de navigation). */
-function cleanChunk(t: string): string {
+export function cleanChunk(t: string): string {
   return t
     .replace(/https?:\/\/\S+/g, " ")
     .replace(/Source\s*:\s*/gi, " ")
@@ -187,7 +187,7 @@ function cleanChunk(t: string): string {
 }
 
 /** Démarre au début d'une vraie phrase (évite un fragment coupé en début de chunk). */
-function startAtSentence(t: string): string {
+export function startAtSentence(t: string): string {
   if (/^[A-ZÀ-Þ"«]/.test(t)) return t;
   const m = t.search(/[.!?]\s+[A-ZÀ-Þ]/);
   if (m >= 0 && m < t.length * 0.5) return t.slice(m + 1).trim();
@@ -201,7 +201,7 @@ const STOPWORDS = new Set([
 ]);
 
 /** Sélectionne les phrases d'un texte les plus pertinentes pour la question (recouvrement de termes). */
-function bestSentences(text: string, query: string, max = 2): string {
+export function bestSentences(text: string, query: string, max = 2): string {
   const qterms = new Set((query.toLowerCase().match(WORD_RE) ?? []).filter((w) => !STOPWORDS.has(w)));
   const sentences = text
     .split(/(?<=[.!?])\s+/)
@@ -223,7 +223,7 @@ function bestSentences(text: string, query: string, max = 2): string {
 }
 
 /** Repli extractif ancré : jamais vide, basé sur les phrases RAG pertinentes à la question. */
-function extractiveAnswer(
+export function extractiveAnswer(
   query: string,
   hits: RagHit[],
   contentMap: Map<number, string>,
