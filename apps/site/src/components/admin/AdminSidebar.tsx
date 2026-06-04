@@ -8,6 +8,7 @@ import {
 	RefreshCw,
 	Settings,
 	Bot,
+	Brain,
 	CalendarDays,
 	Clock,
 	Server,
@@ -145,6 +146,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Statistiques",
 		description: "Chiffres globaux d'utilisation",
 		icon: <BarChart2 className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/evaluations",
+		label: "Évaluations IA",
+		description: "RAG & Jugement du Grand Prêtre",
+		icon: <Brain className="h-4 w-4" />,
 		section: "systeme",
 	},
 	{

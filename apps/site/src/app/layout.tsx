@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentGate } from "@/components/ConsentGate";
+import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { SITE_URL } from "@/lib/config";
 
 // FAB Discord lazy : composant client gated par localStorage, jamais critical.
@@ -122,6 +123,7 @@ export default function RootLayout({
 				</main>
 				<SiteFooter />
 				<DiscordInviteFAB />
+				<FloatingAssistant />
 				<ConsentGate />
 				<Toaster
 					theme="dark"

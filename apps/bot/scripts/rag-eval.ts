@@ -248,6 +248,32 @@ async function main(): Promise<void> {
       (hybridAvailable ? "" : " (hybrid/+rerank non mesurés : sidecar down)"),
   );
 
+  // Enregistrer le rapport RAG dans Redis pour le dashboard
+  try {
+    const { redis } = await import("bun");
+    const report = {
+      chunkCount,
+      date: new Date().toISOString(),
+      rows: rows.map(r => ({
+        mode: r.mode,
+        recall: r.m.recall,
+        mrr: r.m.mrr,
+        ndcg: r.m.ndcg,
+        cases: r.m.cases
+      })),
+      lexical: {
+        recall5: lexical.recall[5],
+        mrr: lexical.mrr,
+        ndcg: lexical.ndcg,
+        cases: lexN
+      }
+    };
+    await redis.set("dbz:eval:report:rag", JSON.stringify(report));
+    console.log("✓ Rapport RAG poussé dans Redis.");
+  } catch (err) {
+    console.error("✗ Impossible d'enregistrer le rapport RAG dans Redis :", err);
+  }
+
   db.close();
 
   if (ci) {

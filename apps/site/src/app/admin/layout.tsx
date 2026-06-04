@@ -4,6 +4,8 @@ import { QueryProvider } from "@/components/admin/QueryProvider";
 import type { Metadata } from "next";
 
 // L'espace admin n'est pas indexable par les moteurs de recherche
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
 	title: {
 		default: "Administration · Dragon Ball France",

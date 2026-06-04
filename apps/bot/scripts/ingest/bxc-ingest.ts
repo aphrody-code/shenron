@@ -27,7 +27,7 @@ sqlite.exec("PRAGMA foreign_keys = ON");
 const db = drizzle(sqlite, { schema: { dbNews } });
 
 const BXC_DIR = process.env.BXC_DIR ?? `${os.homedir()}/bxc`;
-const BXC_PROFILE = process.env.BXC_PROFILE ?? "fast";
+const BXC_PROFILE = process.env.BXC_PROFILE ?? "max";
 const DRY_RUN = process.argv.includes("--dry-run");
 
 const SOURCES = [

@@ -26,6 +26,7 @@ import "./commands/vocal/Vocal";
 import "./commands/wiki/Ask";
 import "./commands/wiki/Wiki";
 import "./events/AuditLog";
+import "./events/AutonomousChat";
 import "./events/BioRole";
 import "./events/InteractionLog";
 import "./events/JailExpiry";

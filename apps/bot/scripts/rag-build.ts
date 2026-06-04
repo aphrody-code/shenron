@@ -117,6 +117,46 @@ for (const e of q(
   );
 }
 
+for (const a of q(`SELECT id, saga_id, slug, name, name_ja, description FROM db_arcs`)) {
+  const saga = q(`SELECT name FROM db_sagas WHERE id = ${a.saga_id}`)[0] as Row | undefined;
+  const sagaName = saga ? s(saga.name) : "";
+  add(
+    "arc",
+    s(a.name),
+    `/wiki/sagas`,
+    `Arc narratif ${s(a.name)} (${s(a.name_ja)})${sagaName ? ` de la saga ${sagaName}` : ""}. ${s(a.description)}`,
+  );
+}
+
+for (const v of q(`SELECT id, series, volume_number, title, title_ja, isbn FROM db_manga_volumes`)) {
+  add(
+    "manga_volume",
+    `Volume ${s(v.volume_number)} — ${s(v.title)}`,
+    `/wiki/manga`,
+    `Volume ${s(v.volume_number)} du manga ${s(v.series)}${v.title ? ` intitulé ${s(v.title)}` : ""}${v.title_ja ? ` (${s(v.title_ja)})` : ""}.${v.isbn ? ` ISBN: ${s(v.isbn)}` : ""}`,
+  );
+}
+
+for (const ch of q(`SELECT id, series, chapter_number, title, title_ja, volume_id FROM db_manga_chapters`)) {
+  const vol = ch.volume_id ? (q(`SELECT volume_number FROM db_manga_volumes WHERE id = ${ch.volume_id}`)[0] as Row | undefined) : undefined;
+  const volCtx = vol ? ` (Volume ${s(vol.volume_number)})` : "";
+  add(
+    "manga_chapter",
+    `Chapitre ${s(ch.chapter_number)} — ${s(ch.title)}`,
+    `/wiki/manga`,
+    `Chapitre ${s(ch.chapter_number)} du manga ${s(ch.series)}${volCtx}${ch.title ? ` intitulé ${s(ch.title)}` : ""}${ch.title_ja ? ` (${s(ch.title_ja)})` : ""}`,
+  );
+}
+
+for (const t of q(`SELECT id, slug, name, description, author, language, category, stars FROM db_tools`)) {
+  add(
+    "tool",
+    s(t.name),
+    `/wiki/outils`,
+    `Outil ou ressource communautaire ${s(t.name)} (${s(t.category)}). Créateur: ${s(t.author)}. Langue: ${s(t.language)}. Étoiles: ${s(t.stars)}. Description: ${s(t.description)}`,
+  );
+}
+
 // ── Corpus scrapé (chunké) ──────────────────────────────────────────────────
 if (existsSync(CORPUS)) {
   const corpus = JSON.parse(await Bun.file(CORPUS).text()) as {

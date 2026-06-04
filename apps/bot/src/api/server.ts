@@ -82,6 +82,7 @@ import { LeaderboardService, type LeaderboardEntry } from "~/services/Leaderboar
 import { LevelService } from "~/services/LevelService";
 import { levelForXP, nextThresholdFrom } from "~/lib/xp";
 import { hybridSearch } from "~/lib/rag";
+import { generateLlmAnswer } from "~/lib/llm";
 import { graphqlHandler } from "~/api/graphql";
 import { openapiSpec, scalarHtml } from "~/api/openapi";
 // HTML import — Bun.serve bundle automatiquement scripts/CSS référencés.
@@ -912,6 +913,7 @@ export class ApiServer {
       port: env.API_PORT,
       hostname: env.API_HOST,
       development: false,
+      idleTimeout: 120,
 
       routes: {
         // ── Dashboard SPA (HTML imports — Bun bundle scripts/CSS) ─────
@@ -1969,6 +1971,76 @@ export class ApiServer {
               return { q: raw, results: [], error: "index_unavailable" };
             }
           }),
+
+        // Endpoint de chat génératif RAG-grounded avec injection de contexte page-level
+        "/api/public/rag/chat": async (req) => {
+          const url = new URL(req.url);
+          const q = (url.searchParams.get("q") ?? "").trim();
+          const persona = (url.searchParams.get("persona") ?? "whis").toLowerCase();
+          const pageContext = (url.searchParams.get("context") ?? "").trim();
+          
+          if (q.length < 2) {
+            return Response.json({ 
+              answer: "Posez une question un peu plus précise, jeune guerrier.", 
+              hits: [],
+              mode: "lexical" 
+            });
+          }
+
+          const dbs = container.resolve(DatabaseService);
+          try {
+            const { results, mode } = await hybridSearch(dbs.sqlite, q, 5);
+            
+            // Si le contexte de la page est fourni, on l'injecte comme document prioritaire
+            const hits = [...results];
+            if (pageContext) {
+              hits.unshift({
+                rowid: -1,
+                kind: "page_context",
+                title: "Page consultée actuellement",
+                url: "",
+                snippet: pageContext,
+              });
+            }
+
+            const answer = await generateLlmAnswer(dbs.sqlite, q, hits, persona);
+            return Response.json({ answer, hits: results, mode });
+          } catch (err) {
+            console.error("Erreur API rag/chat:", err);
+            return Response.json({ error: "generation_failed" }, { status: 500 });
+          }
+        },
+
+        // Stats du cache sémantique Redis
+        "/api/public/eval/cache-stats": async () => {
+          try {
+            const { redis } = await import("bun");
+            const stats = await redis.hgetall("dbz:scache:stats");
+            const hits = Number(stats?.hits ?? 0);
+            const misses = Number(stats?.misses ?? 0);
+            const total = hits + misses;
+            const hitRate = total > 0 ? (hits / total) * 100 : 0;
+            return Response.json({ hits, misses, total, hitRate });
+          } catch (err) {
+            return Response.json({ error: "redis_error" }, { status: 500 });
+          }
+        },
+
+        // Rapports d'évaluations du Grand Prêtre et de pertinence du RAG
+        "/api/public/eval/reports": async () => {
+          try {
+            const { redis } = await import("bun");
+            const ragReportRaw = await redis.get("dbz:eval:report:rag");
+            const llmReportRaw = await redis.get("dbz:eval:report:llm:latest");
+            
+            const rag = ragReportRaw ? JSON.parse(ragReportRaw) : null;
+            const llm = llmReportRaw ? JSON.parse(llmReportRaw) : null;
+            
+            return Response.json({ rag, llm });
+          } catch (err) {
+            return Response.json({ error: "redis_error" }, { status: 500 });
+          }
+        },
 
         "/api/public/news": (req) =>
           publicCachedJson(req, 5 * 60_000, async () => {

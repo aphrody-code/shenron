@@ -16,7 +16,7 @@ import os from "node:os";
 const DB = new URL("../data/bot.db", import.meta.url).pathname;
 const OUT = new URL("../data/rag/", import.meta.url).pathname;
 const BXC_DIR = process.env.BXC_DIR ?? `${os.homedir()}/bxc`;
-const BXC_PROFILE = process.env.BXC_PROFILE ?? "fast"; // recon: static|fast|http|stealth|max
+const BXC_PROFILE = process.env.BXC_PROFILE ?? "max"; // recon/scrape: static|fast|http|stealth|max
 mkdirSync(OUT, { recursive: true });
 
 const db = new Database(DB, { readonly: true });
@@ -61,6 +61,46 @@ const SEEDS: { id: string; name: string; url: string }[] = [
     url: "https://dragonball.fandom.com/wiki/Ki",
   },
   {
+    id: "fandom-whis",
+    name: "Whis (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Whis",
+  },
+  {
+    id: "fandom-beerus",
+    name: "Beerus (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Beerus",
+  },
+  {
+    id: "fandom-grand-priest",
+    name: "Grand Priest (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Grand_Priest",
+  },
+  {
+    id: "fandom-piccolo",
+    name: "Piccolo (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Piccolo",
+  },
+  {
+    id: "fandom-gohan",
+    name: "Gohan (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Gohan",
+  },
+  {
+    id: "fandom-bulma",
+    name: "Bulma (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Bulma",
+  },
+  {
+    id: "fandom-dragon-balls",
+    name: "Dragon Balls (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Dragon_Ball_(object)",
+  },
+  {
+    id: "fandom-fusion",
+    name: "Fusion (Fandom EN)",
+    url: "https://dragonball.fandom.com/wiki/Fusion",
+  },
+  {
     id: "wiki-dbz",
     name: "Dragon Ball Z (Wikipedia)",
     url: "https://en.wikipedia.org/wiki/Dragon_Ball_Z",
@@ -75,6 +115,11 @@ const SEEDS: { id: string; name: string; url: string }[] = [
     name: "Dragon Ball Super (Wikipedia)",
     url: "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
   },
+  {
+    id: "wiki-toriyama",
+    name: "Akira Toriyama (Wikipedia)",
+    url: "https://en.wikipedia.org/wiki/Akira_Toriyama",
+  },
 ];
 
 // Préférer le wrapper bin/bxc (exécute le binaire standalone compilé, bien plus
@@ -84,8 +129,8 @@ const hasBin = await Bun.file(BXC_BIN).exists();
 
 async function recon(url: string): Promise<string | null> {
   const cmd = hasBin
-    ? [BXC_BIN, "recon", url, "--profile", BXC_PROFILE]
-    : ["bun", "run", "bxc", "recon", url, "--profile", BXC_PROFILE];
+    ? [BXC_BIN, "scrape", url, "--markdown", "--profile", BXC_PROFILE]
+    : ["bun", "run", "bxc", "scrape", url, "--markdown", "--profile", BXC_PROFILE];
   const proc = Bun.spawn(cmd, {
     cwd: hasBin ? undefined : BXC_DIR,
     stdout: "pipe",

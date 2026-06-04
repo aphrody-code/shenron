@@ -13,6 +13,7 @@ WorkingDirectory=/home/ubuntu/shenron/apps/bot
 
 EnvironmentFile=/home/ubuntu/shenron/apps/bot/.env
 Environment=NODE_ENV=production
+Environment=HOME=/home/ubuntu
 Environment=BUN_CONFIG_MAX_HTTP_REQUESTS=2048
 Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/bot/.bun-cache
 Environment=BUN_JSC_forceRAMSize=536870912
@@ -41,7 +42,7 @@ IOWeight=200
 
 NoNewPrivileges=true
 ProtectSystem=strict
-ProtectHome=read-only
+ProtectHome=false
 PrivateTmp=true
 PrivateDevices=true
 ProtectKernelTunables=true
@@ -56,7 +57,7 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@obsolete @privileged
 
-ReadWritePaths=/home/ubuntu/shenron/apps/bot/.bun-cache /home/ubuntu/shenron/apps/bot/data /home/ubuntu/shenron/apps/bot/dist /home/ubuntu/shenron/node_modules /home/ubuntu/shenron/apps/site/public/wiki /home/ubuntu/shenron/apps/bot/assets/subtitles
+ReadWritePaths=/home/ubuntu/shenron/apps/bot/.bun-cache /home/ubuntu/shenron/apps/bot/data /home/ubuntu/shenron/apps/bot/dist /home/ubuntu/shenron/node_modules /home/ubuntu/shenron/apps/site/public/wiki /home/ubuntu/shenron/apps/bot/assets/subtitles /home/ubuntu/.gemini
 
 StandardOutput=journal
 StandardError=journal
