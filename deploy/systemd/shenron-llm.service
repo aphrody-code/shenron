@@ -1,0 +1,61 @@
+[Unit]
+Description=shenron-llm — serveur d'inférence de NOTRE LLM Dragon Ball maison (decoder Transformer from-scratch, PyTorch CPU)
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitBurst=10
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron/apps/bot
+
+Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=1
+# Threads CPU dédiés à l'inférence (laisse de la marge au bot interactif + sidecar embed).
+Environment=DBZ_THREADS=8
+Environment=OMP_NUM_THREADS=8
+
+ExecStart=/home/ubuntu/shenron/apps/bot/data/llm/.venv/bin/python /home/ubuntu/shenron/apps/bot/data/llm/dbz_llm.py serve --port 5009
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=20
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5
+
+# Modèle ~29M params fp32 (~120 Mo) + runtime PyTorch CPU. 2 Go de marge.
+MemoryMax=2G
+MemoryHigh=1500M
+TasksMax=128
+LimitNOFILE=65536
+OOMScoreAdjust=-150
+CPUWeight=90
+IOWeight=80
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-llm
+
+[Install]
+WantedBy=multi-user.target

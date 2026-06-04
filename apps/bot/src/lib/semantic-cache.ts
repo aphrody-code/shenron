@@ -10,7 +10,8 @@ import { createHash } from "node:crypto";
 
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 const EMBED_TIMEOUT_MS = Number(process.env.EMBED_TIMEOUT_MS ?? 3000);
-const CACHE_SIMILARITY_THRESHOLD = Number(process.env.SEMANTIC_CACHE_THRESHOLD ?? 0.90);
+// Seuil élevé : à 0.90 des entités différentes se télescopaient (Krillin -> réponse Goku).
+const CACHE_SIMILARITY_THRESHOLD = Number(process.env.SEMANTIC_CACHE_THRESHOLD ?? 0.97);
 const MAX_CACHE_SIZE = 500; // LRU de 500 entrées par persona
 const CACHE_TTL_SECONDS = 30 * 24 * 60; // 30 jours de rétention (Redis SET EX accepte les secondes)
 

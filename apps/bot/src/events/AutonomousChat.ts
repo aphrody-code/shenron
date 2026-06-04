@@ -1,6 +1,14 @@
 /**
- * AutonomousChat.ts — Événement messageCreate pour l'indexation Redis temps réel
- * et les réponses autonomes (Whis, Beerus, Shenron) basées sur le LLM RAG-grounded.
+ * AutonomousChat.ts — messageCreate : indexation Redis temps réel + réponses autonomes
+ * (mention, interpellation par nom, ou proactif) grondées par RAG + NOTRE LLM maison.
+ *
+ * Intents (cf. personas.ts) :
+ *   - whis a GuildMessages -> reçoit les messages, contenu dispo sur @mention (exempté MessageContent).
+ *   - grandPretre a GuildMessages + MessageContent -> contenu COMPLET sur tous les messages :
+ *     c'est donc lui le persona PROACTIF (lecture du lore) ET l'indexeur temps réel (contenu pour
+ *     les analytics lore/sentiment). Anti-collision : un seul persona proactif.
+ *   - beerus/shenron n'ont pas GuildMessages -> leur handler reste inerte tant que l'intent n'est
+ *     pas ajouté (changement sûr et non privilégié, à activer plus tard si besoin).
  */
 import { inject, injectable } from "tsyringe";
 import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
@@ -10,111 +18,126 @@ import { hybridSearch } from "~/lib/rag";
 import { generateLlmAnswer } from "~/lib/llm";
 import { logger } from "~/lib/logger";
 
+/** Persona qui assure l'indexation temps réel (a MessageContent -> voit le contenu). */
+const INDEXER_PERSONA = "grandpretre";
+/** Personas autorisés au déclenchement proactif (anti-collision multi-bots ; MessageContent requis). */
+const PROACTIVE_PERSONAS = new Set(["grandpretre"]);
+
+const LORE_KEYWORDS = [
+  "goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus",
+  "bulma", "krillin", "broly", "bardock", "kamehameha", "fusion", "daima", "saiyan", "namek",
+];
+
+const ASK_MORE: Record<string, string> = {
+  whis: "Oh oh, posez une question plus précise sur nos archives, je vous prie.",
+  beerus: "Parle plus clairement, ou je détruis ta planète !",
+  shenron: "Exprime ton souhait plus clairement, mortel.",
+  grandpretre: "Formulez votre requête avec plus de précision, créature.",
+  kaio: "Hé hé, sois plus précis, jeune combattant !",
+  enma: "Précise ta demande. Suivant !",
+};
+const NO_RESULT: Record<string, string> = {
+  whis: "Oh oh, mes archives de l'Univers 7 restent bien silencieuses à ce sujet.",
+  beerus: "Cette question est insignifiante. Même mes archives n'en parlent pas.",
+  shenron: "Je ne peux accomplir ce souhait, cette information m'est inconnue.",
+  grandpretre: "Même l'omniscience ne trouve rien à ce sujet dans nos archives.",
+  kaio: "Ah ! Là tu me poses une colle, mes notes sont muettes là-dessus.",
+  enma: "Dossier introuvable. Au suivant !",
+};
+
 class BaseAutonomousChat {
   constructor(
     protected dbs: DatabaseService,
     protected redisIndexer: RedisIndexerService,
-    protected personaId: "whis" | "beerus" | "shenron",
+    protected personaId: "whis" | "beerus" | "shenron" | "grandpretre" | "kaio",
   ) {}
 
   async handleMessage(message: ArgsOf<"messageCreate">[0]) {
     if (!message.inGuild() || message.author.bot) return;
 
-    // 1. Indexation automatique en temps réel dans Redis
-    try {
-      this.redisIndexer.indexSingleMessage(
-        message.id,
-        message.content || "",
-        message.author.id,
-        message.channelId,
-        message.createdAt,
-      );
-    } catch (e) {
-      logger.error(e as Error, "[REDIS INDEX] Échec d'indexation temps réel");
+    // 1. Indexation temps réel — un seul persona (celui qui a MessageContent) pour éviter les doublons.
+    if (this.personaId === INDEXER_PERSONA) {
+      try {
+        this.redisIndexer.indexSingleMessage(
+          message.id,
+          message.content || "",
+          message.author.id,
+          message.channelId,
+          message.createdAt,
+          {
+            id: message.author.id,
+            username: message.author.username,
+            displayName: message.member?.displayName ?? message.author.globalName ?? message.author.username,
+            bot: message.author.bot,
+          },
+        );
+      } catch (e) {
+        logger.error(e as Error, "[REDIS INDEX] Échec indexation temps réel");
+      }
     }
 
-    // 2. Réponses autonomes si le bot est mentionné, interpellé ou de manière proactive
+    // 2. Décider d'une réponse autonome.
     const botUser = message.client.user;
     if (!botUser) return;
 
+    const content = (message.content || "").toLowerCase();
     const isMentioned = message.mentions.has(botUser.id);
-    const lowercaseContent = (message.content || "").toLowerCase();
-    
-    // Vérifier si le message interpelle le nom de la persona
-    const isNameCalled = lowercaseContent.includes(this.personaId);
-
+    const isNameCalled = content.length > 0 && content.includes(this.personaId);
     let shouldRespond = isMentioned || isNameCalled;
 
-    // Déclenchement proactif intelligent (seulement pour Whis pour éviter les collisions multi-bots)
-    if (!shouldRespond && this.personaId === "whis") {
-      const isQuestion = lowercaseContent.includes("?") || 
-                         /^(comment|pourquoi|qui|quel|quelle|où|est-ce|combien)/i.test(lowercaseContent);
-      
-      const LORE_KEYWORDS = ["goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus", "bulma", "krillin", "broly", "bardock", "kamehameha", "fusion", "daima"];
-      const containsDbzTerms = LORE_KEYWORDS.some(k => lowercaseContent.includes(k));
-      
-      // 3% de chance de s'insérer de manière autonome pour guider les mortels
+    if (!shouldRespond && PROACTIVE_PERSONAS.has(this.personaId)) {
+      const isQuestion =
+        content.includes("?") || /^(comment|pourquoi|qui|quel|quelle|où|est-ce|combien)/i.test(content);
+      const containsDbzTerms = LORE_KEYWORDS.some((k) => content.includes(k));
       if (isQuestion && containsDbzTerms && Math.random() < 0.03) {
         shouldRespond = true;
-        logger.info(`[PROACTIVE CHAT] Whis s'active proactivement pour la question : "${message.content}"`);
+        logger.info(`[PROACTIVE CHAT] ${this.personaId} s'active : "${message.content?.slice(0, 80)}"`);
       }
     }
 
-    if (shouldRespond) {
-      logger.info(`[AUTONOMOUS CHAT] ${this.personaId.toUpperCase()} s'active dans le salon ${message.channelId}`);
-      
-      // Nettoyer la question (retirer la mention)
-      const query = message.content
-        .replace(new RegExp(`<@!?${botUser.id}>`, "g"), "")
-        .replace(new RegExp(this.personaId, "gi"), "")
-        .trim();
+    if (!shouldRespond) return;
 
-      if (query.length < 3) {
-        if (this.personaId === "whis") {
-          await message.reply("Oh oh, posez une question plus précise sur nos archives, s'il vous plaît !");
-        } else if (this.personaId === "beerus") {
-          await message.reply("Parle plus clairement si tu ne veux pas que je te détruise !");
-        } else {
-          await message.reply("Exprime ton souhait plus clairement...");
-        }
+    logger.info(`[AUTONOMOUS CHAT] ${this.personaId} s'active dans ${message.channelId}`);
+    const query = (message.content || "")
+      .replace(new RegExp(`<@!?${botUser.id}>`, "g"), "")
+      .replace(new RegExp(this.personaId, "gi"), "")
+      .trim();
+
+    if (query.length < 3) {
+      await message.reply(ASK_MORE[this.personaId] ?? ASK_MORE.whis).catch(() => {});
+      return;
+    }
+
+    try {
+      await message.channel.sendTyping().catch(() => {});
+      const { results } = await hybridSearch(this.dbs.sqlite, query, 5);
+      if (results.length === 0) {
+        await message.reply(NO_RESULT[this.personaId] ?? NO_RESULT.whis).catch(() => {});
         return;
       }
-
-      // Indiquer que le bot écrit
-      await message.channel.sendTyping();
-
-      try {
-        // Exécuter la recherche sémantique
-        const { results } = await hybridSearch(this.dbs.sqlite, query, 5);
-        
-        if (results.length === 0) {
-          if (this.personaId === "whis") {
-            await message.reply("Oh oh, mes archives de l'Univers 7 restent bien silencieuses à ce sujet.");
-          } else if (this.personaId === "beerus") {
-            await message.reply("Cette question est insignifiante. Même mes archives n'en parlent pas.");
-          } else {
-            await message.reply("Je ne peux accomplir ce souhait, cette information m'est inconnue.");
-          }
-          return;
-        }
-
-        // Générer la réponse personnalisée grondée
-        const answer = await generateLlmAnswer(this.dbs.sqlite, query, results, this.personaId);
-        
-        if (answer) {
-          await message.reply(answer);
-        } else {
-          // Fallback gracieux si échec LLM
-          if (this.personaId === "whis") {
-            await message.reply("Je rencontre une petite perturbation spirituelle pour formuler ma réponse, veuillez m'en excuser.");
-          } else {
-            await message.reply("Mes pouvoirs de communication sont perturbés...");
-          }
-        }
-      } catch (err) {
-        logger.error(err as Error, `[AUTONOMOUS CHAT] Échec de génération pour ${this.personaId}`);
-      }
+      // generateLlmAnswer ne renvoie jamais vide (notre LLM -> repli extractif ancré).
+      const answer = await generateLlmAnswer(this.dbs.sqlite, query, results, this.personaId);
+      await message.reply(answer || NO_RESULT[this.personaId] || NO_RESULT.whis).catch(() => {});
+    } catch (err) {
+      logger.error(err as Error, `[AUTONOMOUS CHAT] Échec génération pour ${this.personaId}`);
     }
+  }
+}
+
+@Discord()
+@Bot("grandPretre")
+@injectable()
+export class GrandPretreAutonomousChat extends BaseAutonomousChat {
+  constructor(
+    @inject(DatabaseService) dbs: DatabaseService,
+    @inject(RedisIndexerService) redisIndexer: RedisIndexerService,
+  ) {
+    super(dbs, redisIndexer, "grandpretre");
+  }
+
+  @On({ event: "messageCreate" })
+  async onMessage([message]: ArgsOf<"messageCreate">) {
+    await this.handleMessage(message);
   }
 }
 

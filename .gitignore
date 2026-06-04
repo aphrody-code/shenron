@@ -93,3 +93,14 @@ scratch/
 # transformers.js model cache (RAG embeddings)
 apps/bot/.models/
 .env*.local
+
+# LLM maison — artefacts générés sur la machine (entraînés en local, comme l'index RAG ; non commités)
+apps/bot/data/llm/.venv/
+apps/bot/data/llm/*.pt
+apps/bot/data/llm/*.gguf
+apps/bot/data/llm/corpus.txt
+apps/bot/data/llm/sft.jsonl
+apps/bot/data/llm/dbz-sft.jsonl
+apps/bot/data/llm/dbz_tokenizer.json
+apps/bot/data/llm/dbz_model_config.json
+apps/bot/data/llm/_tok_train.txt

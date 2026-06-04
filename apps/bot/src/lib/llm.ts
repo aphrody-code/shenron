@@ -1,15 +1,24 @@
 /**
  * llm.ts — Génération de réponses en langage naturel grondées sur le RAG.
  *
- * Supporte deux modes configurables via l'environnement :
- * 1. `gemini` : utilise le service distant unifié via `aphrody antigravity chat`.
- * 2. `local` : interroge une instance llama.cpp locale (ex: llama-server sur le port 5008)
- *    faisant tourner un modèle de base quantifié (ex. Llama-3.2-3B-Instruct) sur CPU.
+ * Par défaut, le bot tourne sur NOTRE propre LLM Dragon Ball maison (entraîné from-scratch,
+ * servi par `dbz_llm.py serve` sur :5009 — cf. apps/bot/data/llm/). Aucun modèle tiers en prod.
+ *
+ * Chaîne de génération résiliente — ne renvoie JAMAIS vide (c'était la cause des 12/20 réponses
+ * vides de l'ancien gateway distant) :
+ *   1. Cache sémantique Redis (court-circuit).
+ *   2. Notre modèle maison (OWN_LLM_URL) — avec timeout.
+ *   3. (optionnel, OFF par défaut) gateway distant aphrody/Gemini — seulement si
+ *      LLM_ALLOW_REMOTE_FALLBACK=1, avec timeout + retry.
+ *   4. Repli extractif ancré : compose une réponse à partir du meilleur chunk RAG dans la voix
+ *      du persona. Toujours non vide, toujours grondé.
+ *
+ * Une garde de concurrence en-process empêche une rafale de requêtes d'écrouler le backend.
  */
 import { Database } from "bun:sqlite";
 import { getSemanticCache, setSemanticCache } from "./semantic-cache";
 
-export type LlmBackend = "gemini" | "local";
+export type LlmBackend = "own" | "gemini" | "local";
 
 export interface RagHit {
   rowid: number;
@@ -19,19 +28,202 @@ export interface RagHit {
   snippet: string;
 }
 
+const OWN_URL = process.env.OWN_LLM_URL ?? "http://127.0.0.1:5009/generate";
+const OWN_TIMEOUT_MS = Number(process.env.OWN_LLM_TIMEOUT_MS ?? 60_000);
+const ALLOW_REMOTE = process.env.LLM_ALLOW_REMOTE_FALLBACK === "1";
+const GEMINI_BIN = process.env.APHRODY_BIN ?? "/home/ubuntu/.local/bin/aphrody";
+const GEMINI_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS ?? 25_000);
+const MAX_CONCURRENCY = Number(process.env.LLM_MAX_CONCURRENCY ?? 2);
+
 const PERSONA_PROMPTS: Record<string, string> = {
   whis: `Tu es Whis, l'ange guide et protecteur de l'Univers 7.
-Réponds à la question de l'utilisateur de manière extrêmement polie, chaleureuse, pédagogue et calme, dans le style caractéristique de Whis (ex. 'Oh oh', utiliser 'jeune guerrier' ou 'disciple', ton bienveillant et un peu amusé).`,
+Réponds de manière extrêmement polie, chaleureuse, pédagogue et calme, dans le style de Whis (ex. 'Oh oh', 'jeune disciple', ton bienveillant et un peu amusé).`,
   beerus: `Tu es Beerus, le Dieu de la Destruction de l'Univers 7.
-Réponds à la question avec arrogance, impatience et exigence, tout en restant informatif. Tu es facilement agacé mais tu connais bien ton univers (ex: 'Ne me fais pas perdre mon temps', 'Si la réponse ne me plaît pas, je détruis ta planète').`,
+Réponds avec arrogance, impatience et exigence, tout en restant informatif (ex: 'Ne me fais pas perdre mon temps').`,
   shenron: `Tu es Shenron, le Dragon Sacré de la Terre.
-Réponds de manière solennelle, majestueuse, brève et grave, comme un être divin accordant un vœu (ex: 'Je t'écoute', 'Ton vœu est exaucé dans la limite de mes pouvoirs').`,
+Réponds de manière solennelle, majestueuse, brève et grave (ex: 'Je t'écoute', 'Ton vœu est exaucé').`,
+  grandpretre: `Tu es le Grand Prêtre, guide suprême de tous les univers.
+Réponds avec une autorité omnisciente, calme et absolue.`,
+  kaio: `Tu es Kaïo (le Roi Kaï du Nord), mentor jovial et farceur.
+Réponds avec humour et bienveillance, en glissant une blague, mais reste informatif.`,
+  enma: `Tu es Enma Daïô, le juge des âmes.
+Réponds de manière stricte, imposante et administrative, comme un juge expéditif.`,
 };
 
+// Préfaces persona pour le repli extractif (jamais vide).
+const PERSONA_PREFACE: Record<string, string> = {
+  whis: "Oh oh, jeune disciple, voici ce que disent les archives de l'Univers 7 :",
+  beerus: "Hmpf. Mes archives disent ceci, alors écoute bien :",
+  shenron: "Mortel, voici la vérité que renferment les archives :",
+  grandpretre: "Du haut de l'omniscience, les archives révèlent :",
+  kaio: "Hé hé ! D'après mes notes :",
+  enma: "Suivant ! D'après mon registre :",
+};
+const PERSONA_NOTFOUND: Record<string, string> = {
+  whis: "Oh oh, je suis navré, jeune disciple, mais les archives de l'Univers 7 restent silencieuses à ce sujet.",
+  beerus: "Cette question est insignifiante : même mes archives n'en disent rien.",
+  shenron: "Cette connaissance échappe à mes pouvoirs, mortel.",
+  grandpretre: "Même l'omniscience ne trouve rien à ce sujet dans nos archives.",
+  kaio: "Ah ! Là tu me poses une colle, mes notes sont muettes là-dessus.",
+  enma: "Dossier introuvable. Au suivant !",
+};
+
+function persona(id: string): string {
+  return (id || "whis").toLowerCase().replace(/[^a-z]/g, "");
+}
+
+// ---------------------------------------------------------------------------
+// Garde de concurrence (sémaphore en-process)
+// ---------------------------------------------------------------------------
+let active = 0;
+const waiters: Array<() => void> = [];
+async function withSlot<T>(fn: () => Promise<T>): Promise<T> {
+  if (active >= MAX_CONCURRENCY) {
+    await new Promise<void>((r) => waiters.push(r));
+  }
+  active++;
+  try {
+    return await fn();
+  } finally {
+    active--;
+    const next = waiters.shift();
+    if (next) next();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Backends
+// ---------------------------------------------------------------------------
+const WORD_RE = /[a-zàâäéèêëïîôûùüçñ]{4,}/g;
+// Marqueurs d'une fuite linguistique (espagnol) que le petit modèle produit parfois.
+const FOREIGN_RE = /\b(misma|pel[ií]cula|conocido|como uno|el hijo|de los|millones|qui[eé]n)\b/i;
+
 /**
- * Génère une réponse rédigée en langage naturel basée sur les documents RAG extraits.
- * Dégradation gracieuse : en cas d'erreur de génération, retourne une chaîne vide
- * pour laisser le bot utiliser les sources brutes.
+ * Garde-fou d'ancrage : un modèle maison de 29M peut halluciner des faits. On n'accepte sa réponse
+ * que si elle est réellement ANCRÉE dans le contexte RAG (recouvrement lexical suffisant) et exempte
+ * de fuite linguistique. Sinon -> chaîne de repli (extractif ancré). Garantit la justesse factuelle.
+ */
+function isGrounded(answer: string, context: string): boolean {
+  const a = answer.toLowerCase();
+  if (FOREIGN_RE.test(a)) return false;
+  const ctx = context.toLowerCase();
+  const words = a.match(WORD_RE) ?? [];
+  if (words.length < 3) return false;
+  const uniq = [...new Set(words)];
+  let hits = 0;
+  for (const w of uniq) if (ctx.includes(w)) hits++;
+  // au moins 55% des mots de contenu de la réponse doivent provenir du contexte
+  return hits / uniq.length >= 0.55;
+}
+
+/** Notre modèle maison (serveur dbz_llm.py sur :5009). Réponse acceptée seulement si ancrée. */
+async function tryOwn(context: string, personaId: string, query: string): Promise<string> {
+  try {
+    const res = await fetch(OWN_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ context, persona: personaId, query, max_new_tokens: 160, temperature: 0.5 }),
+      signal: AbortSignal.timeout(OWN_TIMEOUT_MS),
+    });
+    if (!res.ok) return "";
+    const j = (await res.json()) as { answer?: string };
+    const ans = (j.answer ?? "").trim();
+    if (!ans) return "";
+    // Rejette les hallucinations -> le repli extractif ancré prendra le relais.
+    return isGrounded(ans, context) ? ans : "";
+  } catch {
+    return ""; // serveur down / timeout -> on bascule
+  }
+}
+
+/** Gateway distant aphrody/Gemini — fallback OPTIONNEL (OFF par défaut), avec timeout + kill. */
+async function tryGemini(systemPrompt: string): Promise<string> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const proc = Bun.spawn([GEMINI_BIN, "antigravity", "chat", "--prompt", systemPrompt], {
+        stdout: "pipe",
+        stderr: "ignore",
+      });
+      const killer = setTimeout(() => {
+        try {
+          proc.kill();
+        } catch {
+          /* déjà mort */
+        }
+      }, GEMINI_TIMEOUT_MS);
+      let stdout = "";
+      try {
+        stdout = await new Response(proc.stdout).text();
+      } finally {
+        clearTimeout(killer);
+      }
+      await proc.exited.catch(() => {});
+      const raw = stdout.trim();
+      if (raw) {
+        try {
+          const json = JSON.parse(raw);
+          const t = json.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (t) return String(t).trim();
+        } catch {
+          /* texte brut */
+        }
+        return raw;
+      }
+    } catch {
+      /* retry */
+    }
+    if (attempt === 0) await Bun.sleep(500);
+  }
+  return "";
+}
+
+/** Nettoie un chunk RAG brut (URLs, footers "Source:", puces, listes de navigation). */
+function cleanChunk(t: string): string {
+  return t
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/Source\s*:\s*/gi, " ")
+    .replace(/[•·▪►◦|]+/g, " ")
+    .replace(/\([^)]*\d{2,}\)/g, " ") // résidus type "(340)" des listes
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Démarre au début d'une vraie phrase (évite un fragment coupé en début de chunk). */
+function startAtSentence(t: string): string {
+  if (/^[A-ZÀ-Þ"«]/.test(t)) return t;
+  const m = t.search(/[.!?]\s+[A-ZÀ-Þ]/);
+  if (m >= 0 && m < t.length * 0.5) return t.slice(m + 1).trim();
+  const cap = t.search(/[A-ZÀ-Þ]/);
+  return cap > 0 && cap < 60 ? t.slice(cap) : t;
+}
+
+/** Repli extractif ancré : jamais vide, toujours basé sur le contexte RAG, nettoyé. */
+function extractiveAnswer(
+  hits: RagHit[],
+  contentMap: Map<number, string>,
+  personaId: string,
+): string {
+  if (hits.length === 0) return PERSONA_NOTFOUND[personaId] ?? PERSONA_NOTFOUND.whis;
+  let body = "";
+  for (const h of hits.slice(0, 2)) {
+    let text = cleanChunk(contentMap.get(h.rowid) || h.snippet || "");
+    text = startAtSentence(text);
+    if (text.length < 20) continue;
+    body += (body ? " " : "") + text;
+    if (body.length >= 320) break;
+  }
+  body = body.slice(0, 460).trim();
+  // couper proprement à la dernière fin de phrase
+  const lastDot = Math.max(body.lastIndexOf(". "), body.lastIndexOf("! "), body.lastIndexOf("? "));
+  if (lastDot > 100) body = body.slice(0, lastDot + 1);
+  if (body.length < 20) return PERSONA_NOTFOUND[personaId] ?? PERSONA_NOTFOUND.whis;
+  const pre = PERSONA_PREFACE[personaId] ?? PERSONA_PREFACE.whis;
+  const src = hits[0]?.title ? ` (Archives : ${hits[0].title})` : "";
+  return `${pre} ${body}${src}`;
+}
+
+/**
+ * Génère une réponse grondée sur les documents RAG. Ne renvoie jamais vide.
  */
 export async function generateLlmAnswer(
   db: Database,
@@ -39,107 +231,68 @@ export async function generateLlmAnswer(
   hits: RagHit[],
   personaId = "whis",
 ): Promise<string> {
-  // 1. Tenter le cache sémantique Redis pour court-circuiter le RAG et le LLM
+  const pid = persona(personaId);
+
+  // 1. Cache sémantique
   try {
-    const cached = await getSemanticCache(query, personaId);
-    if (cached) {
-      return cached.answer;
-    }
+    const cached = await getSemanticCache(query, pid);
+    if (cached) return cached.answer;
   } catch (err) {
-    console.error("[LLM] Échec du lookup de cache sémantique :", err);
+    console.error("[LLM] Échec lookup cache sémantique :", err);
   }
 
-  const rowids = hits.map((h) => h.rowid);
-  if (rowids.length === 0) return "";
-
-  // Récupérer le contenu complet des chunks
-  const ph = rowids.map(() => "?").join(",");
-  const rows = db
-    .query(`SELECT rowid, content FROM rag_chunks WHERE rowid IN (${ph})`)
-    .all(...rowids) as { rowid: number; content: string }[];
-  const contentMap = new Map(rows.map((r) => [r.rowid, r.content]));
+  // 2. Assembler le contexte RAG (contenu complet des chunks)
+  const rowids = hits.map((h) => h.rowid).filter((r) => Number.isFinite(r));
+  const contentMap = new Map<number, string>();
+  if (rowids.length > 0) {
+    const ph = rowids.map(() => "?").join(",");
+    const rows = db
+      .query(`SELECT rowid, content FROM rag_chunks WHERE rowid IN (${ph})`)
+      .all(...rowids) as { rowid: number; content: string }[];
+    for (const r of rows) contentMap.set(r.rowid, r.content);
+  }
 
   let context = "";
   for (const h of hits) {
     const text = contentMap.get(h.rowid) || h.snippet;
-    context += `### Document : ${h.title} (Type: ${h.kind})\n${text}\n\n`;
+    if (text) context += `### ${h.title} (${h.kind})\n${text}\n\n`;
   }
 
-  const personaPrompt = PERSONA_PROMPTS[personaId] || PERSONA_PROMPTS.whis;
+  const personaPrompt = PERSONA_PROMPTS[pid] || PERSONA_PROMPTS.whis;
   const systemPrompt = `${personaPrompt}
-Sois extrêmement concis, direct et rapide dans ta réponse. Reste court, ne dépasse pas 2 à 3 paragraphes maximum (environ 100 à 150 mots au total).
-Appuie-toi UNIQUEMENT sur les faits décrits dans le contexte suivant. Si le contexte ne contient pas l'information requise pour répondre, réponds poliment que tu ne trouves pas cela dans les archives de l'Univers 7. N'invente AUCUN fait hors du contexte.
+Sois concis (2-3 phrases, ~120 mots max). Appuie-toi UNIQUEMENT sur le contexte ci-dessous ; n'invente AUCUN fait.
 
 [Contexte du Wiki]
 ${context}
 
-[Question de l'utilisateur]
+[Question]
 ${query}`;
 
-  const backend = (process.env.LLM_BACKEND || "gemini") as LlmBackend;
-  const localUrl = process.env.LOCAL_LLM_URL ?? "http://127.0.0.1:5008/v1/chat/completions";
-
-  let finalAnswer = "";
-
-  if (backend === "local") {
-    try {
-      console.log(`[LLM] Requête locale vers llama.cpp : ${localUrl}`);
-      const res = await fetch(localUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "local",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: query },
-          ],
-          temperature: 0.2,
-          max_tokens: 512,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`llama-server HTTP error ${res.status}`);
-      }
-
-      const json = (await res.json()) as any;
-      finalAnswer = json.choices?.[0]?.message?.content ?? "";
-    } catch (err) {
-      console.error("[LLM] Échec du backend local llama.cpp. Bascule vers Gemini distant...", err);
-      // Fallback à Gemini si le serveur local est down
-    }
+  // 3. Notre modèle maison (primaire)
+  let answer = "";
+  let fromModel = false;
+  if (context.trim().length > 0) {
+    answer = await withSlot(() => tryOwn(context, pid, query));
+    if (answer) fromModel = true;
   }
 
-  if (!finalAnswer) {
-    // Backend par défaut : aphrody CLI (Gemini)
-    try {
-      const proc = Bun.spawn([
-        "/home/ubuntu/.local/bin/aphrody",
-        "antigravity",
-        "chat",
-        "--prompt",
-        systemPrompt,
-      ]);
-      const stdout = await new Response(proc.stdout).text();
-      
-      try {
-        const json = JSON.parse(stdout);
-        finalAnswer = json.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-      } catch {
-        // En cas de non-JSON ou d'erreur, on garde la réponse brute
-        finalAnswer = stdout;
-      }
-    } catch (err) {
-      console.error("[LLM] Échec de génération via le gateway distant aphrody:", err);
-    }
+  // 4. Fallback distant (opt-in seulement)
+  if (!answer && ALLOW_REMOTE) {
+    answer = await withSlot(() => tryGemini(systemPrompt));
+    if (answer) fromModel = true;
   }
 
-  // Si on a obtenu une réponse (locale ou distante), on la met en cache sémantique Redis
-  if (finalAnswer && finalAnswer.trim().length > 0) {
-    setSemanticCache(query, finalAnswer, personaId).catch((err) => {
-      console.error("[LLM] Erreur d'écriture en cache sémantique :", err);
-    });
+  // 5. Repli extractif ancré — garantit une réponse non vide
+  if (!answer) {
+    answer = extractiveAnswer(hits, contentMap, pid);
   }
 
-  return finalAnswer;
+  // 6. Cache seulement les réponses générées par un modèle (pas le repli extractif brut)
+  if (fromModel && answer.trim().length > 0) {
+    setSemanticCache(query, answer, pid).catch((err) =>
+      console.error("[LLM] Erreur écriture cache :", err),
+    );
+  }
+
+  return answer;
 }

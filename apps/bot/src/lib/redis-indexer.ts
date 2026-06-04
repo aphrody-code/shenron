@@ -1,15 +1,34 @@
 /**
- * redis-indexer.ts — Gestionnaire de l'indexation Redis.
- * Spawne le worker Bun en arrière-plan et gère la file d'attente d'indexation.
+ * redis-indexer.ts — Gestionnaire de l'indexation Redis (salons, utilisateurs, messages).
+ *
+ * Spawne un Bun Worker en arrière-plan (indexation parallèle, hors event-loop) et lui pousse :
+ *   - tous les salons,
+ *   - les utilisateurs (déduits des AUTEURS de messages -> aucun intent privilégié GuildMembers requis ;
+ *     en bonus, la liste des membres si l'intent est disponible),
+ *   - un backfill PROFOND des messages (pagination, pas seulement les 50 derniers) + le temps réel.
+ *
+ * Cf. piège CLAUDE.md : sans l'intent MessageContent, `content` est vide pour les messages qui ne
+ * mentionnent pas le bot — mais l'indexation des métadonnées (auteur, salon, date) reste valable.
  */
 import { Client, ChannelType } from "discord.js";
 import { injectable, singleton } from "tsyringe";
+
+export interface IndexedAuthor {
+  id: string;
+  username: string;
+  displayName: string;
+  bot: boolean;
+}
 
 @singleton()
 @injectable()
 export class RedisIndexerService {
   private worker: Worker | null = null;
   private isIndexationActive = false;
+  /** Backfill max de messages par salon (pagination). Le temps réel couvre tout le nouveau flux ;
+   *  ce backfill profond (8x l'ancien cap de 50) tourne au boot + cron sans marteler l'API Discord.
+   *  0 = illimité (déconseillé sur gros serveurs). Surcharge via REDIS_INDEX_MAX_MESSAGES. */
+  private readonly maxBackfill = Number(process.env.REDIS_INDEX_MAX_MESSAGES ?? 400);
 
   constructor() {
     this.initWorker();
@@ -19,16 +38,15 @@ export class RedisIndexerService {
     try {
       const workerUrl = new URL("../workers/indexer.ts", import.meta.url);
       this.worker = new Worker(workerUrl.href, { type: "module" });
-      
+
       this.worker.onmessage = (event) => {
         const { status, type, count, error } = event.data;
         if (status === "success") {
-          console.log(`[REDIS INDEXER] Succès de type ${type} : ${count} items indexés.`);
+          console.log(`[REDIS INDEXER] ${type} : ${count} items indexés.`);
         } else {
           console.error(`[REDIS INDEXER] Erreur type ${type} :`, error || "Échec d'insertion");
         }
       };
-
       this.worker.onerror = (err) => {
         console.error(`[REDIS INDEXER] Erreur globale du Worker :`, err);
       };
@@ -37,33 +55,33 @@ export class RedisIndexerService {
     }
   }
 
-  /** Lance l'indexation complète de tous les serveurs connectés */
+  /** Indexation complète de tous les serveurs connectés. */
   async indexAll(client: Client) {
     if (this.isIndexationActive) {
       console.warn("[REDIS INDEXER] Une indexation est déjà en cours.");
       return;
     }
-
+    if (!this.worker) {
+      console.error("[REDIS INDEXER] Worker indisponible, indexation annulée.");
+      return;
+    }
     this.isIndexationActive = true;
-    console.log("[REDIS INDEXER] Démarrage de l'indexation complète dans Redis...");
+    console.log("[REDIS INDEXER] Démarrage de l'indexation complète...");
 
     try {
-      const guilds = Array.from(client.guilds.cache.values());
-      
-      for (const guild of guilds) {
-        // 1. Indexation des salons
+      for (const guild of client.guilds.cache.values()) {
+        // 1. Salons
         const channels = Array.from(guild.channels.cache.values()).map((ch) => ({
           id: ch.id,
           name: ch.name || "",
           type: String(ch.type),
           parentId: ch.parentId,
         }));
-        
-        if (channels.length > 0 && this.worker) {
+        if (channels.length > 0) {
           this.worker.postMessage({ type: "INDEX_CHANNELS", data: channels });
         }
 
-        // 2. Indexation des utilisateurs (membres)
+        // 2. Membres (bonus, seulement si l'intent GuildMembers est dispo — sinon ignoré sans erreur).
         try {
           const membersList = await guild.members.fetch();
           const users = Array.from(membersList.values()).map((m) => ({
@@ -73,45 +91,42 @@ export class RedisIndexerService {
             bot: m.user.bot,
             joinedAt: m.joinedAt?.toISOString() || null,
           }));
-
-          if (users.length > 0 && this.worker) {
-            // Découpage en paquets de 100 pour ne pas saturer
-            const chunkSize = 100;
-            for (let i = 0; i < users.length; i += chunkSize) {
-              this.worker.postMessage({
-                type: "INDEX_USERS",
-                data: users.slice(i, i + chunkSize),
-              });
-            }
+          for (let i = 0; i < users.length; i += 100) {
+            this.worker.postMessage({ type: "INDEX_USERS", data: users.slice(i, i + 100) });
           }
-        } catch (err) {
-          console.error(`[REDIS INDEXER] Impossible de fetch les membres de la guilde ${guild.name}:`, err);
+        } catch {
+          // Pas d'intent GuildMembers -> on s'appuiera sur les auteurs de messages (ci-dessous).
         }
 
-        // 3. Indexation des derniers messages des salons textuels
+        // 3. Messages : backfill PROFOND par pagination (et non plus 50 max) sur les salons textuels.
         const textChannels = guild.channels.cache.filter(
-          (c) => c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement
+          (c) => c.type === ChannelType.GuildText || c.type === ChannelType.GuildAnnouncement,
         );
-
-        for (const [chId, ch] of textChannels) {
+        for (const [, ch] of textChannels) {
           if (!ch.isTextBased()) continue;
-          
+          let before: string | undefined;
+          let fetched = 0;
           try {
-            const fetched = await ch.messages.fetch({ limit: 50 });
-            const messages = Array.from(fetched.values()).map((m) => ({
-              id: m.id,
-              content: m.content || "",
-              authorId: m.author.id,
-              channelId: m.channelId,
-              createdAt: m.createdAt.toISOString(),
-            }));
-
-            if (messages.length > 0 && this.worker) {
+            while (this.maxBackfill === 0 || fetched < this.maxBackfill) {
+              const batch = await ch.messages.fetch({ limit: 100, before });
+              if (batch.size === 0) break;
+              const messages = Array.from(batch.values()).map((m) => ({
+                id: m.id,
+                content: m.content || "",
+                authorId: m.author.id,
+                channelId: m.channelId,
+                createdAt: m.createdAt.toISOString(),
+                authorName: m.author.username,
+                authorDisplay: m.member?.displayName ?? m.author.globalName ?? m.author.username,
+                authorBot: m.author.bot,
+              }));
               this.worker.postMessage({ type: "INDEX_MESSAGES", data: messages });
+              fetched += batch.size;
+              before = batch.last()?.id; // le plus ancien du lot -> page vers le passé
+              if (batch.size < 100) break;
             }
-          } catch (e) {
-            // Souvent des problèmes de permissions de lecture dans certains salons
-            // On ignore silencieusement
+          } catch {
+            // permissions de lecture manquantes sur ce salon -> on ignore
           }
         }
       }
@@ -123,18 +138,30 @@ export class RedisIndexerService {
     }
   }
 
-  /** Indexation temps-réel d'un message unique */
-  indexSingleMessage(msgId: string, content: string, authorId: string, channelId: string, createdAt: Date) {
+  /** Indexation temps-réel d'un message unique (+ son auteur). */
+  indexSingleMessage(
+    msgId: string,
+    content: string,
+    authorId: string,
+    channelId: string,
+    createdAt: Date,
+    author?: IndexedAuthor,
+  ) {
     if (!this.worker) return;
     this.worker.postMessage({
       type: "INDEX_MESSAGES",
-      data: [{
-        id: msgId,
-        content,
-        authorId,
-        channelId,
-        createdAt: createdAt.toISOString(),
-      }],
+      data: [
+        {
+          id: msgId,
+          content,
+          authorId,
+          channelId,
+          createdAt: createdAt.toISOString(),
+          authorName: author?.username,
+          authorDisplay: author?.displayName,
+          authorBot: author?.bot,
+        },
+      ],
     });
   }
 }

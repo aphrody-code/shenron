@@ -1,5 +1,14 @@
 /**
- * indexer.ts — Worker Bun pour l'indexation Redis parallèle utilisant le client natif de Bun.
+ * indexer.ts — Worker Bun d'indexation Redis parallèle (client natif Bun `redis`).
+ *
+ * Écrit, hors de l'event-loop du bot :
+ *   - salons (dbz:channel:*), utilisateurs (dbz:user:*), messages (dbz:message:*) ;
+ *   - analytics de lore : compteurs de mentions de personnages (dbz:{user,channel,global}:lore) ;
+ *   - sentiment par mots-clés (dbz:{user,global}:sentiment).
+ *
+ * Les utilisateurs sont aussi déduits des AUTEURS de messages -> peuple dbz:user:* même sans
+ * l'intent privilégié GuildMembers. La détection de lore utilise des limites de mots (\b) pour
+ * éviter les faux positifs ("cell" dans "excellent").
  */
 import { redis } from "bun";
 
@@ -9,7 +18,6 @@ interface IndexChannel {
   type: string;
   parentId?: string | null;
 }
-
 interface IndexUser {
   id: string;
   username: string;
@@ -17,13 +25,15 @@ interface IndexUser {
   bot: boolean;
   joinedAt?: string | null;
 }
-
 interface IndexMessage {
   id: string;
   content: string;
   authorId: string;
   channelId: string;
   createdAt: string;
+  authorName?: string;
+  authorDisplay?: string;
+  authorBot?: boolean;
 }
 
 type WorkerMessage =
@@ -31,102 +41,93 @@ type WorkerMessage =
   | { type: "INDEX_USERS"; data: IndexUser[] }
   | { type: "INDEX_MESSAGES"; data: IndexMessage[] };
 
-// Déclarer l'écouteur d'événements du worker
 declare var self: Worker;
 
 const LORE_ENTITIES = [
-  "goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks",
-  "piccolo", "whis", "beerus", "bulma", "krillin", "broly", "bardock",
-  "kamehameha", "fusion", "daima"
+  "goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus",
+  "bulma", "krillin", "broly", "bardock", "kamehameha", "fusion", "daima", "saiyan", "namek", "shenron",
 ];
+// Limites de mots pour éviter les faux positifs ("cell" dans "excellent").
+const LORE_RE: Array<[string, RegExp]> = LORE_ENTITIES.map((e) => [e, new RegExp(`\\b${e}\\b`, "i")]);
 
-const POSITIVE_WORDS = ["cool", "génial", "super", "aimer", "adore", "bien", "fort", "incroyable", "magnifique", "hype"];
-const NEGATIVE_WORDS = ["nul", "mauvais", "déteste", "triste", "colère", "mort", "faible", "moche", "horrible", "déçu"];
+const POSITIVE_WORDS = ["cool", "génial", "super", "aimer", "adore", "bien", "fort", "incroyable", "magnifique", "hype", "stylé", "ouf"];
+const NEGATIVE_WORDS = ["nul", "mauvais", "déteste", "triste", "colère", "faible", "moche", "horrible", "déçu", "naze"];
+const POS_RE = POSITIVE_WORDS.map((w) => new RegExp(`\\b${w}`, "i"));
+const NEG_RE = NEGATIVE_WORDS.map((w) => new RegExp(`\\b${w}`, "i"));
+
+function upsertUser(promises: Promise<unknown>[], id: string, username: string, displayName: string, bot: boolean): void {
+  promises.push(
+    redis.hset(`dbz:user:${id}`, {
+      id,
+      username,
+      displayName: displayName || username,
+      bot: bot ? "true" : "false",
+    }),
+  );
+  promises.push(redis.sadd("dbz:users", id));
+}
 
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
   const { type, data } = event.data;
-  console.log(`[WORKER] Message reçu : type=${type}, items=${data?.length}`);
-
+  console.log(`[WORKER] type=${type}, items=${data?.length}`);
   try {
-    const promises: Promise<any>[] = [];
+    const promises: Promise<unknown>[] = [];
 
     if (type === "INDEX_CHANNELS") {
       for (const ch of data) {
-        const key = `dbz:channel:${ch.id}`;
-        promises.push(redis.hset(key, {
-          id: ch.id,
-          name: ch.name,
-          type: ch.type,
-          parentId: ch.parentId ?? ""
-        }));
+        promises.push(redis.hset(`dbz:channel:${ch.id}`, { id: ch.id, name: ch.name, type: ch.type, parentId: ch.parentId ?? "" }));
         promises.push(redis.sadd("dbz:channels", ch.id));
       }
     } else if (type === "INDEX_USERS") {
       for (const u of data) {
-        const key = `dbz:user:${u.id}`;
-        promises.push(redis.hset(key, {
-          id: u.id,
-          username: u.username,
-          displayName: u.displayName,
-          bot: u.bot ? "true" : "false",
-          joinedAt: u.joinedAt ?? ""
-        }));
-        promises.push(redis.sadd("dbz:users", u.id));
+        upsertUser(promises, u.id, u.username, u.displayName, u.bot);
+        if (u.joinedAt) promises.push(redis.hset(`dbz:user:${u.id}`, { joinedAt: u.joinedAt }));
       }
     } else if (type === "INDEX_MESSAGES") {
       for (const msg of data) {
-        const key = `dbz:message:${msg.id}`;
-        promises.push(redis.hset(key, {
-          id: msg.id,
-          content: msg.content,
-          authorId: msg.authorId,
-          channelId: msg.channelId,
-          createdAt: msg.createdAt
-        }));
-        
+        promises.push(
+          redis.hset(`dbz:message:${msg.id}`, {
+            id: msg.id,
+            content: msg.content,
+            authorId: msg.authorId,
+            channelId: msg.channelId,
+            createdAt: msg.createdAt,
+          }),
+        );
         promises.push(redis.rpush(`dbz:channel:${msg.channelId}:messages`, msg.id));
         promises.push(redis.ltrim(`dbz:channel:${msg.channelId}:messages`, -1000, -1));
 
-        // Extraction de Lore DBZ et analyse analytique
-        const contentLower = msg.content.toLowerCase();
-        for (const entity of LORE_ENTITIES) {
-          if (contentLower.includes(entity)) {
+        // Indexer l'auteur (peuple dbz:user:* sans intent GuildMembers).
+        if (msg.authorName) {
+          upsertUser(promises, msg.authorId, msg.authorName, msg.authorDisplay || msg.authorName, !!msg.authorBot);
+        }
+        promises.push(redis.hincrby(`dbz:user:${msg.authorId}:stats`, "messages", 1));
+
+        // Analytics de lore (limites de mots).
+        const content = msg.content || "";
+        for (const [entity, re] of LORE_RE) {
+          if (re.test(content)) {
             promises.push(redis.hincrby(`dbz:user:${msg.authorId}:lore`, entity, 1));
             promises.push(redis.hincrby(`dbz:channel:${msg.channelId}:lore`, entity, 1));
-            promises.push(redis.hincrby(`dbz:global:lore`, entity, 1));
+            promises.push(redis.hincrby("dbz:global:lore", entity, 1));
           }
         }
 
-        // Analyse de sentiment basique
+        // Sentiment par mots-clés.
         let pos = 0;
         let neg = 0;
-        for (const w of POSITIVE_WORDS) {
-          if (contentLower.includes(w)) pos++;
-        }
-        for (const w of NEGATIVE_WORDS) {
-          if (contentLower.includes(w)) neg++;
-        }
-
-        if (pos > neg) {
-          promises.push(redis.hincrby(`dbz:user:${msg.authorId}:sentiment`, "positive", 1));
-          promises.push(redis.hincrby(`dbz:global:sentiment`, "positive", 1));
-        } else if (neg > pos) {
-          promises.push(redis.hincrby(`dbz:user:${msg.authorId}:sentiment`, "negative", 1));
-          promises.push(redis.hincrby(`dbz:global:sentiment`, "negative", 1));
-        } else {
-          promises.push(redis.hincrby(`dbz:user:${msg.authorId}:sentiment`, "neutral", 1));
-          promises.push(redis.hincrby(`dbz:global:sentiment`, "neutral", 1));
-        }
+        for (const re of POS_RE) if (re.test(content)) pos++;
+        for (const re of NEG_RE) if (re.test(content)) neg++;
+        const bucket = pos > neg ? "positive" : neg > pos ? "negative" : "neutral";
+        promises.push(redis.hincrby(`dbz:user:${msg.authorId}:sentiment`, bucket, 1));
+        promises.push(redis.hincrby("dbz:global:sentiment", bucket, 1));
       }
     }
 
-    console.log(`[WORKER] Exécution de ${promises.length} écritures Redis en parallèle...`);
     await Promise.all(promises);
-    console.log(`[WORKER] Écritures terminées pour le type ${type}.`);
-    
     self.postMessage({ status: "success", type, count: data.length });
   } catch (err) {
-    console.error(`[WORKER] Erreur fatale dans onmessage :`, err);
+    console.error(`[WORKER] Erreur fatale :`, err);
     self.postMessage({ status: "fatal", error: String(err), type });
   }
 };
