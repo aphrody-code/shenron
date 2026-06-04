@@ -58,6 +58,15 @@ interface CacheStats {
   hitRate: number;
 }
 
+interface LoreStats {
+  lore: Record<string, string>; // redis renvoie du string
+  sentiment: Record<string, string>;
+  metrics: {
+    totalUsers: number;
+    totalChannels: number;
+  };
+}
+
 export default function EvaluationsDashboard() {
   // Query pour les rapports d'évaluations (RAG & LLM)
   const { data: reports, isLoading: isReportsLoading, refetch: refetchReports } = useQuery<EvalReport>({
@@ -73,12 +82,20 @@ export default function EvaluationsDashboard() {
     refetchInterval: 10000, // rafraîchir toutes les 10s pour le temps réel
   });
 
+  // Query pour les stats analytiques de lore et sentiments de la communauté
+  const { data: loreStats, isLoading: isLoreLoading, refetch: refetchLore } = useQuery<LoreStats>({
+    queryKey: ["admin", "eval", "lore-stats"],
+    queryFn: () => api.get<LoreStats>("/public/eval/lore-stats"),
+    refetchInterval: 10000, // rafraîchir toutes les 10s
+  });
+
   const handleRefreshAll = () => {
     refetchReports();
     refetchCache();
+    refetchLore();
   };
 
-  const isLoading = isReportsLoading || isCacheLoading;
+  const isLoading = isReportsLoading || isCacheLoading || isLoreLoading;
 
   // Calcul du statut global
   const ragScore = reports?.rag?.lexical.recall5 ?? 0;
@@ -433,6 +450,104 @@ export default function EvaluationsDashboard() {
                 <span className="text-white font-medium">llama.cpp fallback (3B GGUF)</span>
               </div>
             </div>
+          </div>
+
+          {/* Activité de Lore & Sentiment (Redis) */}
+          <div className="card">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 border-b border-zinc-800 pb-3">
+              <Brain className="h-5 w-5 text-brand-400" />
+              Activité de Lore & Sentiments (Redis)
+            </h2>
+            {loreStats ? (
+              <div className="space-y-4 text-xs">
+                {/* Métriques d'indexation */}
+                <div className="grid grid-cols-2 gap-2 bg-zinc-900/50 p-2.5 rounded-lg border border-zinc-800 text-center">
+                  <div>
+                    <span className="text-[10px] text-zinc-500 uppercase font-semibold">Salons Indexés</span>
+                    <div className="text-sm font-bold text-white font-mono mt-0.5">{loreStats.metrics.totalChannels}</div>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-zinc-500 uppercase font-semibold">Guerriers Indexés</span>
+                    <div className="text-sm font-bold text-white font-mono mt-0.5">{loreStats.metrics.totalUsers}</div>
+                  </div>
+                </div>
+
+                {/* Analyse des sentiments */}
+                <div className="space-y-1.5">
+                  <span className="text-zinc-400 font-medium">Sentiment Communautaire</span>
+                  {(() => {
+                    const pos = Number(loreStats.sentiment.positive ?? 0);
+                    const neu = Number(loreStats.sentiment.neutral ?? 0);
+                    const neg = Number(loreStats.sentiment.negative ?? 0);
+                    const total = pos + neu + neg;
+                    if (total === 0) return <div className="text-zinc-500">Aucun message indexé.</div>;
+                    
+                    const pctPos = (pos / total) * 100;
+                    const pctNeu = (neu / total) * 100;
+                    const pctNeg = (neg / total) * 100;
+
+                    return (
+                      <div className="space-y-1">
+                        <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden flex">
+                          <div style={{ width: `${pctPos}%` }} className="bg-emerald-500" title="Positif" />
+                          <div style={{ width: `${pctNeu}%` }} className="bg-zinc-500" title="Neutre" />
+                          <div style={{ width: `${pctNeg}%` }} className="bg-rose-500" title="Négatif" />
+                        </div>
+                        <div className="flex justify-between text-[9px] text-zinc-500">
+                          <span className="text-emerald-400">{pctPos.toFixed(0)}% Pos</span>
+                          <span>{pctNeu.toFixed(0)}% Neu</span>
+                          <span className="text-rose-400">{pctNeg.toFixed(0)}% Nég</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Top entités de lore citées */}
+                <div className="space-y-2">
+                  <span className="text-zinc-400 font-medium block">Top Mentions Dragon Ball</span>
+                  {(() => {
+                    const sorted = Object.entries(loreStats.lore)
+                      .map(([name, val]) => [name, Number(val)] as [string, number])
+                      .filter(([, val]) => val > 0)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 5);
+
+                    if (sorted.length === 0) {
+                      return <div className="text-zinc-500">En attente de détection de lore...</div>;
+                    }
+
+                    const maxVal = Math.max(...sorted.map(([, v]) => v));
+
+                    return (
+                      <div className="space-y-2">
+                        {sorted.map(([name, val]) => {
+                          const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+                          return (
+                            <div key={name} className="space-y-0.5">
+                              <div className="flex justify-between text-[10px]">
+                                <span className="font-semibold text-zinc-300 capitalize">{name}</span>
+                                <span className="text-amber-400 font-mono font-medium">{val} mentions</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden">
+                                <div 
+                                  style={{ width: `${pct}%` }} 
+                                  className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-zinc-500">
+                Aucune analyse disponible.
+              </div>
+            )}
           </div>
         </div>
       </div>

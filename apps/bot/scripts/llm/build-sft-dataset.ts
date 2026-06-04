@@ -127,8 +127,8 @@ async function main() {
   }[];
 
   console.log(`[DISTILL] Total chunks trouvés : ${chunks.length}`);
-  const todo = chunks.filter((c) => !processedChunks.has(c.id));
-  console.log(`[DISTILL] Chunks restant à traiter : ${todo.length}`);
+  const todo = chunks.filter((c) => !processedChunks.has(c.id)).slice(0, 30);
+  console.log(`[DISTILL] Chunks restant à traiter (limité à 30 pour ce run) : ${todo.length}`);
 
   if (todo.length === 0) {
     console.log("[DISTILL] Tous les chunks ont été traités !");

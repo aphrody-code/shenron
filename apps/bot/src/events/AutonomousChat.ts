@@ -33,7 +33,7 @@ class BaseAutonomousChat {
       logger.error(e as Error, "[REDIS INDEX] Échec d'indexation temps réel");
     }
 
-    // 2. Réponses autonomes si le bot est mentionné ou interpellé
+    // 2. Réponses autonomes si le bot est mentionné, interpellé ou de manière proactive
     const botUser = message.client.user;
     if (!botUser) return;
 
@@ -43,8 +43,25 @@ class BaseAutonomousChat {
     // Vérifier si le message interpelle le nom de la persona
     const isNameCalled = lowercaseContent.includes(this.personaId);
 
-    if (isMentioned || isNameCalled) {
-      logger.info(`[AUTONOMOUS CHAT] ${this.personaId.toUpperCase()} interpellé dans le salon ${message.channelId}`);
+    let shouldRespond = isMentioned || isNameCalled;
+
+    // Déclenchement proactif intelligent (seulement pour Whis pour éviter les collisions multi-bots)
+    if (!shouldRespond && this.personaId === "whis") {
+      const isQuestion = lowercaseContent.includes("?") || 
+                         /^(comment|pourquoi|qui|quel|quelle|où|est-ce|combien)/i.test(lowercaseContent);
+      
+      const LORE_KEYWORDS = ["goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus", "bulma", "krillin", "broly", "bardock", "kamehameha", "fusion", "daima"];
+      const containsDbzTerms = LORE_KEYWORDS.some(k => lowercaseContent.includes(k));
+      
+      // 3% de chance de s'insérer de manière autonome pour guider les mortels
+      if (isQuestion && containsDbzTerms && Math.random() < 0.03) {
+        shouldRespond = true;
+        logger.info(`[PROACTIVE CHAT] Whis s'active proactivement pour la question : "${message.content}"`);
+      }
+    }
+
+    if (shouldRespond) {
+      logger.info(`[AUTONOMOUS CHAT] ${this.personaId.toUpperCase()} s'active dans le salon ${message.channelId}`);
       
       // Nettoyer la question (retirer la mention)
       const query = message.content

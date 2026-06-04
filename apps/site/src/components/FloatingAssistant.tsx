@@ -67,7 +67,29 @@ export function FloatingAssistant() {
     if (typeof window !== "undefined") {
       const title = document.title || "Wiki Dragon Ball";
       setPageTitle(title);
-      setPageContext(`L'utilisateur consulte actuellement la page ${pathname} intitulée "${title}".`);
+      
+      // Recherche de l'élément contenant le texte principal de la fiche wiki
+      const mainContentEl = document.querySelector("article") || 
+                            document.querySelector("#wiki-content") || 
+                            document.querySelector(".prose") || 
+                            document.querySelector("main");
+      
+      let text = "";
+      if (mainContentEl) {
+        // Extraire le texte brut, nettoyer les espaces blancs et sauts de ligne excessifs
+        text = (mainContentEl.textContent || "")
+          .replace(/\s+/g, " ")
+          .replace(/[\n\r\t]/g, " ")
+          .trim();
+        
+        // Tronquer le texte pour éviter des requêtes URL excessivement lourdes
+        if (text.length > 2500) {
+          text = text.substring(0, 2500) + "...";
+        }
+      }
+      
+      const contextString = `L'utilisateur consulte actuellement la page ${pathname} ("${title}"). Voici le contenu textuel de cette page pour vous guider :\n${text}`;
+      setPageContext(contextString);
     }
   }, [pathname]);
 

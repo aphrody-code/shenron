@@ -18,10 +18,14 @@ import os
 import sys
 import json
 import argparse
+from os.path import join
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
+
+# --- CONFIGURATION DES CHEMINS ---
+OUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # --- CONFIGURATION MATÉRIELLE ---
 # Configurer PyTorch pour utiliser exactement 12 threads CPU

@@ -187,8 +187,8 @@ export async function setSemanticCache(
           cleanupPromises.push(redis.del(`dbz:scache:${persona}:${h}:query`));
           cleanupPromises.push(redis.del(`dbz:scache:${persona}:${h}:answer`));
           cleanupPromises.push(redis.del(`dbz:scache:${persona}:${h}:vector`));
+          cleanupPromises.push(redis.zrem(lruKey, h));
         }
-        cleanupPromises.push(redis.zrem(lruKey, ...toRemove));
         await Promise.all(cleanupPromises);
         console.log(`[SEMANTIC CACHE PURGE] Supprimé ${toRemove.length} éléments obsolètes.`);
       }

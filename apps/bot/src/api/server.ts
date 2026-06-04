@@ -2042,6 +2042,30 @@ export class ApiServer {
           }
         },
 
+        // Statistiques analytiques de lore et de sentiment issues de l'indexation Redis
+        "/api/public/eval/lore-stats": async () => {
+          try {
+            const { redis } = await import("bun");
+            const lore = await redis.hgetall("dbz:global:lore") ?? {};
+            const sentiment = await redis.hgetall("dbz:global:sentiment") ?? {};
+            
+            const totalUsers = await redis.scard("dbz:users") ?? 0;
+            const totalChannels = await redis.scard("dbz:channels") ?? 0;
+
+            return Response.json({
+              lore,
+              sentiment,
+              metrics: {
+                totalUsers,
+                totalChannels,
+              }
+            });
+          } catch (err) {
+            console.error("Erreur API eval/lore-stats:", err);
+            return Response.json({ error: "redis_error" }, { status: 500 });
+          }
+        },
+
         "/api/public/news": (req) =>
           publicCachedJson(req, 5 * 60_000, async () => {
             const url = new URL(req.url);
