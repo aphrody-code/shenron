@@ -1,5 +1,5 @@
 [Unit]
-Description=shenron-llm — serveur d'inférence de NOTRE LLM Dragon Ball maison (decoder Transformer from-scratch, PyTorch CPU)
+Description=shenron-llm — serveur LLM local (llama.cpp, Qwen2.5-3B-Instruct, CPU) servant le chat conversationnel du bot/site
 After=network.target network-online.target
 Wants=network-online.target
 StartLimitBurst=10
@@ -9,15 +9,14 @@ StartLimitIntervalSec=600
 Type=simple
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/shenron/apps/bot
+WorkingDirectory=/home/ubuntu/llama.cpp
 
-Environment=PYTHONDONTWRITEBYTECODE=1
-Environment=PYTHONUNBUFFERED=1
-# Threads CPU dédiés à l'inférence (laisse de la marge au bot interactif + sidecar embed).
-Environment=DBZ_THREADS=8
-Environment=OMP_NUM_THREADS=8
-
-ExecStart=/home/ubuntu/shenron/apps/bot/data/llm/.venv/bin/python /home/ubuntu/shenron/apps/bot/data/llm/dbz_llm.py serve --port 5009
+# llama.cpp lie dynamiquement ses libs (libllama/libggml) -> LD_LIBRARY_PATH requis.
+Environment=LD_LIBRARY_PATH=/home/ubuntu/llama.cpp/build/bin
+# OpenAI-compatible sur :5008 (cf. LOCAL_LLM_URL dans apps/bot/src/lib/llm.ts).
+ExecStart=/home/ubuntu/llama.cpp/build/bin/llama-server \
+  -m /home/ubuntu/shenron/apps/bot/.models/qwen2.5-3b-instruct-q4_k_m.gguf \
+  --host 127.0.0.1 --port 5008 -c 4096 -t 11 --threads-batch 11 --no-webui
 
 ExecStop=/bin/kill -SIGTERM $MAINPID
 TimeoutStopSec=20
@@ -27,10 +26,10 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-# Modèle ~29M params fp32 (~120 Mo) + runtime PyTorch CPU. 2 Go de marge.
-MemoryMax=2G
-MemoryHigh=1500M
-TasksMax=128
+# Qwen2.5-3B Q4_K_M (~1.9 Go) + KV cache (ctx 4096) + overhead. 5 Go de marge.
+MemoryMax=5G
+MemoryHigh=4G
+TasksMax=256
 LimitNOFILE=65536
 OOMScoreAdjust=-150
 CPUWeight=90

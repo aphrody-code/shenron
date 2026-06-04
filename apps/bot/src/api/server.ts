@@ -1978,6 +1978,7 @@ export class ApiServer {
           const q = (url.searchParams.get("q") ?? "").trim();
           const persona = (url.searchParams.get("persona") ?? "whis").toLowerCase();
           const pageContext = (url.searchParams.get("context") ?? "").trim();
+          const session = (url.searchParams.get("session") ?? "").trim();
           
           if (q.length < 2) {
             return Response.json({ 
@@ -2003,7 +2004,7 @@ export class ApiServer {
               });
             }
 
-            const answer = await generateLlmAnswer(dbs.sqlite, q, hits, persona);
+            const answer = await generateLlmAnswer(dbs.sqlite, q, hits, persona, session ? { sessionId: `site:${session}` } : {});
             return Response.json({ answer, hits: results, mode });
           } catch (err) {
             console.error("Erreur API rag/chat:", err);

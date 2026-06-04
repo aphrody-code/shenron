@@ -110,14 +110,13 @@ class BaseAutonomousChat {
 
     try {
       await message.channel.sendTyping().catch(() => {});
+      // On récupère des faits RAG (peuvent être vides : le modèle gère le bavardage tout seul).
       const { results } = await hybridSearch(this.dbs.sqlite, query, 5);
-      if (results.length === 0) {
-        await message.reply(NO_RESULT[this.personaId] ?? NO_RESULT.whis).catch(() => {});
-        return;
-      }
-      // generateLlmAnswer ne renvoie jamais vide (notre LLM -> repli extractif ancré).
-      const answer = await generateLlmAnswer(this.dbs.sqlite, query, results, this.personaId);
-      await message.reply(answer || NO_RESULT[this.personaId] || NO_RESULT.whis).catch(() => {});
+      // Mémoire par salon -> vraie conversation avec contexte.
+      const answer = await generateLlmAnswer(this.dbs.sqlite, query, results, this.personaId, {
+        sessionId: `discord:${message.channelId}`,
+      });
+      await message.reply(answer).catch(() => {});
     } catch (err) {
       logger.error(err as Error, `[AUTONOMOUS CHAT] Échec génération pour ${this.personaId}`);
     }
