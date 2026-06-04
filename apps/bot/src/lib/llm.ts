@@ -98,12 +98,16 @@ const WORD_RE = /[a-zàâäéèêëïîôûùüçñ]{4,}/g;
 // Détecteur d'espagnol (le wiki mélange FR/ES ; on veut un bot 100% FR).
 const ES_MARKERS = [
   " está", " según", " también", " después", " aunque", " siendo", " conocido", " película",
-  " ciudad", " además", " pesar de", " poco después", " es el ", " es la ", " como ", " que se ",
-  " del ", " por ", " hacia ", " mismo ", " había ", " príncipe", " guerrero", " su poder",
+  " ciudad", " además", " pesar", " pero ", " es el ", " es la ", " como ", " que se ", " del ",
+  " por ", " hacia ", " desde ", " hasta ", " mismo", " había", " fue ", " hijo ", " príncipe",
+  " guerrero", " villano", " años ", " se une", " junto ", " antiguos", " uno de ", " su poder",
 ];
 function looksSpanish(t: string): boolean {
   if (/[ñ¿¡]/.test(t)) return true;
   const low = " " + t.toLowerCase() + " ";
+  // Signaux ES forts (jamais en français) : articles "los/las", terminaisons -ción / -mente.
+  if (low.includes(" los ") || low.includes(" las ")) return true;
+  if (/[a-z]ción\b/.test(low) || /[a-z]mente\b/.test(low)) return true;
   let n = 0;
   for (const m of ES_MARKERS) if (low.includes(m)) n++;
   return n >= 2;
