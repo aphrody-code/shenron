@@ -17,4 +17,8 @@ echo "▶ Starting Google Drive Wiki Sync..."
   -o "$REPO/apps/site/public/wiki" \
   -c 4
 
+# gdown télécharge en 0600 -> nginx (www-data) ne peut pas lire. Rendre lisible (les vidéos
+# de la home sont servies par nginx depuis ce dossier, cf. deploy/nginx/bot.dragonballfr.com.conf).
+chmod -R a+rX "$REPO/apps/site/public/wiki" 2>/dev/null || true
+
 echo "✓ Google Drive Wiki Sync Completed!"
