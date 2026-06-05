@@ -58,6 +58,9 @@ export function FloatingAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [pageContext, setPageContext] = useState("");
   const [pageTitle, setPageTitle] = useState("");
+  const [pageEntity, setPageEntity] = useState("");
+  const [pageSourceId, setPageSourceId] = useState("");
+  const [pageLang, setPageLang] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const theme = PERSONA_THEMES[persona];
@@ -87,6 +90,28 @@ export function FloatingAssistant() {
           text = text.substring(0, 2500) + "...";
         }
       }
+      
+      // Extraction des métadonnées de filtrage RAG
+      const metadataEl = document.querySelector("[data-entity], [data-source-id], [data-lang]");
+      let entity = metadataEl?.getAttribute("data-entity") || "";
+      if (!entity) {
+        if (pathname.includes("/character/") || pathname.includes("/planet/") || pathname.includes("/techniques/") || pathname.includes("/games/")) {
+          entity = title.replace(/\s*—\s*DBFR.*/i, "").replace(/\s*\|\s*DBFR.*/i, "").trim();
+          entity = entity.replace(/\s*\(.*\)/g, "").trim();
+        }
+      }
+
+      const sourceId = metadataEl?.getAttribute("data-source-id") || 
+                       (pathname.includes("/character/") ? "db_characters" :
+                        pathname.includes("/planet/") ? "db_planets" :
+                        pathname.includes("/techniques/") ? "db_techniques" :
+                        pathname.includes("/games/") ? "db_games" : "");
+      
+      const lang = metadataEl?.getAttribute("data-lang") || "fr";
+
+      setPageEntity(entity);
+      setPageSourceId(sourceId);
+      setPageLang(lang);
       
       const contextString = `L'utilisateur consulte actuellement la page ${pathname} ("${title}"). Voici le contenu textuel de cette page pour vous guider :\n${text}`;
       setPageContext(contextString);
@@ -126,7 +151,10 @@ export function FloatingAssistant() {
       } catch {
         /* localStorage indisponible */
       }
-      const url = `/api/chat?q=${encodeURIComponent(userMessage)}&persona=${persona}&context=${encodeURIComponent(pageContext)}${sid ? `&session=${encodeURIComponent(sid)}` : ""}`;
+      let url = `/api/chat?q=${encodeURIComponent(userMessage)}&persona=${persona}&context=${encodeURIComponent(pageContext)}${sid ? `&session=${encodeURIComponent(sid)}` : ""}`;
+      if (pageEntity) url += `&entity=${encodeURIComponent(pageEntity)}`;
+      if (pageSourceId) url += `&sourceId=${encodeURIComponent(pageSourceId)}`;
+      if (pageLang) url += `&lang=${encodeURIComponent(pageLang)}`;
       const res = await fetch(url);
       
       if (!res.ok) {

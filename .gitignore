@@ -20,6 +20,7 @@ data/*.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
+data/backups/
 
 # Exports runtime sensibles (PII membres Discord) — régénérables, jamais committer
 apps/bot/data/guild-scan.json

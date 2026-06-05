@@ -39,7 +39,12 @@ export default async function TechniqueDetailPage({
 	if (!tech) notFound();
 
 	return (
-		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<article
+			data-entity={tech.name}
+			data-source-id="db_techniques"
+			data-lang="fr"
+			className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up"
+		>
 			<Link
 				href="/wiki/dragon-ball/techniques"
 				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
@@ -113,6 +118,6 @@ export default async function TechniqueDetailPage({
 					</section>
 				)}
 			</div>
-		</div>
+		</article>
 	);
 }

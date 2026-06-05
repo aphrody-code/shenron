@@ -23,7 +23,12 @@ export default async function PlanetPage({
 	if (!planet) notFound();
 
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up">
+		<article
+			data-entity={planet.name}
+			data-source-id="db_planets"
+			data-lang="fr"
+			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
+		>
 			<Link
 				href="/wiki/personnages?tab=planetes"
 				transitionTypes={["nav-back"]}
@@ -130,6 +135,6 @@ export default async function PlanetPage({
 					</div>
 				</section>
 			)}
-		</div>
+		</article>
 	);
 }

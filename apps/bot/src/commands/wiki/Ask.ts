@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import { Bot, Discord, Guard, Slash, SlashOption } from "@rpbey/discordy";
+import { Bot, Discord, Guard, Slash, SlashChoice, SlashOption } from "@rpbey/discordy";
 import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
@@ -12,7 +12,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { FeatureEnabled } from "~/guards/FeatureEnabled";
 import { DatabaseService } from "~/db/index";
-import { hybridSearch, generateAnswer } from "~/lib/rag";
+import { hybridSearch, generateAnswer, type SearchOptions } from "~/lib/rag";
 
 const SITE = "https://dragonballfr.com";
 
@@ -64,6 +64,29 @@ export class AskCommands {
       required: true,
     })
     question: string,
+    @SlashOption({
+      name: "personnage",
+      description: "Filtrer les archives par personnage (ex. Son Goku, Vegeta)",
+      type: ApplicationCommandOptionType.String,
+      required: false,
+    })
+    entity: string | undefined,
+    @SlashChoice({ name: "Français", value: "fr" })
+    @SlashChoice({ name: "Anglais", value: "en" })
+    @SlashOption({
+      name: "langue",
+      description: "Filtrer par langue des documents (fr ou en)",
+      type: ApplicationCommandOptionType.String,
+      required: false,
+    })
+    lang: string | undefined,
+    @SlashOption({
+      name: "source",
+      description: "Filtrer par table/source de données (ex. db_characters, fandom-fr)",
+      type: ApplicationCommandOptionType.String,
+      required: false,
+    })
+    sourceId: string | undefined,
     interaction: CommandInteraction,
   ) {
     await interaction.deferReply();
@@ -78,7 +101,12 @@ export class AskCommands {
     let results: Awaited<ReturnType<typeof hybridSearch>>["results"] = [];
     let mode = "lexical";
     try {
-      const out = await hybridSearch(this.dbs.sqlite, q, 5);
+      const opts: SearchOptions = {
+        lang: lang || undefined,
+        entity: entity || undefined,
+        sourceId: sourceId || undefined,
+      };
+      const out = await hybridSearch(this.dbs.sqlite, q, 5, opts);
       results = out.results;
       mode = out.mode;
     } catch {
@@ -125,10 +153,16 @@ export class AskCommands {
       value: sourcesText.slice(0, 1024),
     });
 
+    const filterLabels: string[] = [];
+    if (entity) filterLabels.push(`personnage: ${entity}`);
+    if (lang) filterLabels.push(`langue: ${lang === "fr" ? "Français" : "Anglais"}`);
+    if (sourceId) filterLabels.push(`source: ${sourceId}`);
+    const filterText = filterLabels.length > 0 ? ` · Filtres : ${filterLabels.join(", ")}` : "";
+
     embed.setFooter({
-      text: mode.startsWith("hybrid")
+      text: (mode.startsWith("hybrid")
         ? `RAG LLM · Recherche hybride + rerank · ${results.length} sources`
-        : `RAG LLM · Recherche lexicale · ${results.length} sources`,
+        : `RAG LLM · Recherche lexicale · ${results.length} sources`) + filterText,
     });
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(

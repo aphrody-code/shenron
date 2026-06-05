@@ -89,7 +89,12 @@ export default async function CharacterPage({
 	};
 
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up">
+		<article
+			data-entity={character.name}
+			data-source-id="db_characters"
+			data-lang="fr"
+			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
+		>
 			<JsonLd data={breadcrumb} />
 			<TrackView
 				entityType="character"
@@ -298,7 +303,7 @@ export default async function CharacterPage({
 					</div>
 				</section>
 			)}
-		</div>
+		</article>
 	);
 }
 

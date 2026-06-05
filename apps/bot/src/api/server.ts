@@ -1962,10 +1962,13 @@ export class ApiServer {
             const url = new URL(req.url);
             const raw = (url.searchParams.get("q") ?? "").trim();
             const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 8), 1), 25);
+            const lang = url.searchParams.get("lang") || undefined;
+            const entity = url.searchParams.get("entity") || undefined;
+            const sourceId = url.searchParams.get("sourceId") || undefined;
             if (raw.length < 2) return { q: raw, results: [], mode: "lexical" };
             const dbs = container.resolve(DatabaseService);
             try {
-              const { results, mode } = await hybridSearch(dbs.sqlite, raw, limit);
+              const { results, mode } = await hybridSearch(dbs.sqlite, raw, limit, { lang, entity, sourceId });
               return { q: raw, results, mode };
             } catch {
               return { q: raw, results: [], error: "index_unavailable" };
@@ -1979,6 +1982,9 @@ export class ApiServer {
           const persona = (url.searchParams.get("persona") ?? "whis").toLowerCase();
           const pageContext = (url.searchParams.get("context") ?? "").trim();
           const session = (url.searchParams.get("session") ?? "").trim();
+          const lang = url.searchParams.get("lang") || undefined;
+          const entity = url.searchParams.get("entity") || undefined;
+          const sourceId = url.searchParams.get("sourceId") || undefined;
           
           if (q.length < 2) {
             return Response.json({ 
@@ -1990,7 +1996,7 @@ export class ApiServer {
 
           const dbs = container.resolve(DatabaseService);
           try {
-            const { results, mode } = await hybridSearch(dbs.sqlite, q, 5);
+            const { results, mode } = await hybridSearch(dbs.sqlite, q, 5, { lang, entity, sourceId });
             
             // Si le contexte de la page est fourni, on l'injecte comme document prioritaire
             const hits = [...results];

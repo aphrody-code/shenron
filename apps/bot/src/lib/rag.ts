@@ -120,19 +120,28 @@ async function rerankRemote(query: string, passages: string[]): Promise<number[]
   }
 }
 
+export interface SearchOptions {
+  lang?: string;
+  entity?: string;
+  sourceId?: string;
+}
+
 /** Top-K cosinus exact (vecteurs déjà normalisés → cosinus = produit scalaire). */
 function cosineTopK(
   c: VectorCache,
   q: Float32Array,
   k: number,
+  allowedRowids?: Set<number> | null,
 ): { rowid: number; score: number }[] {
   const { mat, dim, n, rowids } = c;
   const scored: { rowid: number; score: number }[] = [];
   for (let i = 0; i < n; i++) {
+    const rowid = rowids[i];
+    if (allowedRowids && !allowedRowids.has(rowid)) continue;
     let dot = 0;
     const off = i * dim;
     for (let d = 0; d < dim; d++) dot += mat[off + d] * q[d];
-    scored.push({ rowid: rowids[i], score: dot });
+    scored.push({ rowid, score: dot });
   }
   return scored.toSorted((a, b) => b.score - a.score).slice(0, k);
 }
@@ -159,18 +168,58 @@ export async function hybridSearch(
   db: Database,
   raw: string,
   limit: number,
+  options?: SearchOptions,
 ): Promise<{ results: RagHit[]; mode: RagMode }> {
   const query = raw.trim();
   const match = ftsMatch(query);
   if (!match) return { results: [], mode: "lexical" };
 
+  // Récupération des rowids autorisés si des filtres sont présents
+  let allowedRowids: Set<number> | null = null;
+  if (options?.lang || options?.entity || options?.sourceId) {
+    let filterSql = "SELECT rowid FROM rag_chunks WHERE 1=1";
+    const filterParams: any[] = [];
+    if (options.lang) {
+      filterSql += " AND lang = ?";
+      filterParams.push(options.lang);
+    }
+    if (options.entity) {
+      filterSql += " AND entity = ?";
+      filterParams.push(options.entity);
+    }
+    if (options.sourceId) {
+      filterSql += " AND source_id = ?";
+      filterParams.push(options.sourceId);
+    }
+    const rows = db.query(filterSql).all(...filterParams) as { rowid: number }[];
+    allowedRowids = new Set(rows.map((r) => r.rowid));
+  }
+
   const POOL = 50;
-  const bm = db
-    .query(
-      "SELECT rowid, kind, title, url, snippet(rag_chunks, 3, '', '', '…', 18) AS snippet " +
-        "FROM rag_chunks WHERE rag_chunks MATCH ? ORDER BY rank LIMIT ?",
-    )
-    .all(match, POOL) as RagHit[];
+
+  // Construction de la requête FTS avec filtres
+  let bmSql =
+    "SELECT rowid, kind, title, url, snippet(rag_chunks, 3, '', '', '…', 18) AS snippet " +
+    "FROM rag_chunks WHERE rag_chunks MATCH ?";
+  const bmParams: any[] = [match];
+
+  if (options?.lang) {
+    bmSql += " AND lang = ?";
+    bmParams.push(options.lang);
+  }
+  if (options?.entity) {
+    bmSql += " AND entity = ?";
+    bmParams.push(options.entity);
+  }
+  if (options?.sourceId) {
+    bmSql += " AND source_id = ?";
+    bmParams.push(options.sourceId);
+  }
+
+  bmSql += " ORDER BY rank LIMIT ?";
+  bmParams.push(POOL);
+
+  const bm = db.query(bmSql).all(...bmParams) as RagHit[];
 
   const bmById = new Map<number, RagHit>();
   for (const h of bm) bmById.set(h.rowid, h);
@@ -178,7 +227,7 @@ export async function hybridSearch(
   // Étage 1 — signal sémantique (best-effort).
   const c = loadVectors(db);
   const qv = c ? await embedRemote(query) : null;
-  const dense = c && qv ? cosineTopK(c, qv, POOL) : [];
+  const dense = c && qv ? cosineTopK(c, qv, POOL, allowedRowids) : [];
 
   if (dense.length === 0) {
     return { results: bm.slice(0, limit), mode: "lexical" };

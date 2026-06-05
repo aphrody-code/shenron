@@ -935,10 +935,14 @@ export const dbUniverse = {
 
 	// RAG : recherche lexicale (BM25) sur l'index FTS5 `rag_chunks` du bot —
 	// NON miroité dans Neon, donc reste servi par l'API REST du bot.
-	rag: async (q: string, limit = 8) => {
+	rag: async (q: string, limit = 8, options?: { lang?: string; entity?: string; sourceId?: string }) => {
 		try {
+			let url = `${apiBase()}/api/public/rag/search?q=${encodeURIComponent(q)}&limit=${limit}`;
+			if (options?.lang) url += `&lang=${encodeURIComponent(options.lang)}`;
+			if (options?.entity) url += `&entity=${encodeURIComponent(options.entity)}`;
+			if (options?.sourceId) url += `&sourceId=${encodeURIComponent(options.sourceId)}`;
 			const r = await fetch(
-				`${apiBase()}/api/public/rag/search?q=${encodeURIComponent(q)}&limit=${limit}`,
+				url,
 				{ next: { revalidate: 300 } },
 			);
 			if (!r.ok) return null;

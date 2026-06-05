@@ -44,7 +44,12 @@ export default async function GameDetailPage({
 	if (!game) notFound();
 
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<article
+			data-entity={game.title}
+			data-source-id="db_games"
+			data-lang="fr"
+			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up"
+		>
 			<Link
 				href="/wiki/dragon-ball"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
@@ -137,6 +142,6 @@ export default async function GameDetailPage({
 					)}
 				</div>
 			</div>
-		</div>
+		</article>
 	);
 }
