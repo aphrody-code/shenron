@@ -1,12 +1,19 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import type { HomeScene } from "@/lib/home-scenes";
 
 /**
- * Fond cinématique d'un panneau : image (ken-burns quand actif) + color grade
- * d'ère + vignette + grain + aura d'énergie + letterbox. Empilable (les scènes
- * héro se font un crossfade par `opacity`). Pas de hook → léger, rendu dans
- * l'arbre client de HomeExperience.
+ * Fond cinématique d'un panneau : vidéo (uniquement quand le panneau est ACTIF — une seule joue à la
+ * fois) ou image statique, + color grade d'ère + vignette + grain + aura ki + letterbox.
+ *
+ * Exploitation correcte des MP4 :
+ *  - une seule vidéo chargée/jouée à la fois (preload="none" + play()/pause() pilotés par `active`) ;
+ *  - poster = frame extraite (affichage instantané, zéro flash noir) ;
+ *  - reduced-motion / save-data → image seule (pas de vidéo) ;
+ *  - source = version web légère `.web.mp4` (720p/~2Mbps/faststart, servie par le VPS).
  */
 export function SceneBackdrop({
 	scene,
@@ -19,6 +26,32 @@ export function SceneBackdrop({
 	priority?: boolean;
 	visible?: boolean;
 }) {
+	const videoRef = useRef<HTMLVideoElement>(null);
+	const [allowVideo, setAllowVideo] = useState(false);
+
+	// Côté client uniquement : autoriser la vidéo sauf reduced-motion / économiseur de données.
+	useEffect(() => {
+		const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+		const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
+		setAllowVideo(!reduce && !conn?.saveData);
+	}, []);
+
+	const hasVideo = !!scene.video && allowVideo;
+	const shouldPlay = hasVideo && active && visible;
+	const videoSrc = scene.video ? assetUrl(scene.video.replace(/\.mp4$/i, ".web.mp4")) : "";
+	const poster = scene.poster ? assetUrl(scene.poster) : assetUrl(scene.image);
+
+	// Une seule vidéo active joue ; les autres se mettent en pause (et ne préchargent pas).
+	useEffect(() => {
+		const v = videoRef.current;
+		if (!v) return;
+		if (shouldPlay) {
+			v.play().catch(() => {});
+		} else {
+			v.pause();
+		}
+	}, [shouldPlay]);
+
 	return (
 		<div
 			aria-hidden
@@ -30,15 +63,15 @@ export function SceneBackdrop({
 				opacity: visible ? 1 : 0,
 			}}
 		>
-			{/* Fond multimédia : vidéo en arrière-plan si disponible avec transition fluide, sinon image statique */}
-			{scene.video ? (
+			{hasVideo ? (
 				<video
-					src={assetUrl(scene.video.replace(/\.mp4$/i, ".web.mp4"))}
-					poster={assetUrl(scene.image)}
-					autoPlay
+					ref={videoRef}
+					src={videoSrc}
+					poster={poster}
 					loop
 					muted
 					playsInline
+					preload={active ? "auto" : "none"}
 					className={`scene-img object-cover object-center absolute inset-0 w-full h-full transition-all duration-1000 ${
 						active ? "scale-105 opacity-80" : "scale-100 opacity-20"
 					}`}
@@ -62,9 +95,7 @@ export function SceneBackdrop({
 			<div className="absolute inset-0 bg-gradient-to-t from-dbz-bg via-dbz-bg/40 to-dbz-bg/70" />
 			<div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-dbz-bg/80 to-transparent" />
 			{/* Aura d'énergie — halo radial accentué, pulse quand actif */}
-			<div
-				className={`scene-aura absolute inset-0 ${active ? "ki-pulse" : ""}`}
-			/>
+			<div className={`scene-aura absolute inset-0 ${active ? "ki-pulse" : ""}`} />
 			{/* Grain argentique + scanlines HUD discrètes */}
 			<div className="film-grain absolute inset-0 opacity-[0.18]" />
 			{/* Letterbox cinéma */}

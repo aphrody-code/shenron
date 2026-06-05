@@ -19,6 +19,8 @@ export type Era =
 export interface HomeScene {
 	readonly id: string;
 	readonly image: string;
+	/** Poster (frame extraite de la vidéo) — affichage instantané + repli reduced-motion/save-data. */
+	readonly poster?: string;
 	readonly video?: string;
 	readonly title: string;
 	readonly kicker: string;
@@ -106,6 +108,18 @@ export const HERO_SCENES: readonly HomeScene[] = [
 		era: "saiyan",
 		accent: ERA_ACCENT.saiyan,
 	},
+	// Clips additionnels — poster = frame extraite (le clip sert d'image aussi).
+	{ id: "bardock", image: "/wiki/bardock.poster.webp", poster: "/wiki/bardock.poster.webp", video: "/wiki/bardock.mp4", title: "Bardock", kicker: "Le père de Son Goku", era: "saiyan", accent: ERA_ACCENT.saiyan },
+	{ id: "raditz", image: "/wiki/radditz.poster.webp", poster: "/wiki/radditz.poster.webp", video: "/wiki/radditz.mp4", title: "Raditz", kicker: "Le frère venu de l'espace", era: "saiyan", accent: ERA_ACCENT.saiyan },
+	{ id: "guldo", image: "/wiki/guldo.poster.webp", poster: "/wiki/guldo.poster.webp", video: "/wiki/guldo.mp4", title: "Le commando Ginyu", kicker: "Les mercenaires de Freezer", era: "namek", accent: ERA_ACCENT.namek },
+	{ id: "burter-jeice", image: "/wiki/buuttajeice.poster.webp", poster: "/wiki/buuttajeice.poster.webp", video: "/wiki/buuttajeice.mp4", title: "Burter & Jeice", kicker: "L'éclair et le feu", era: "namek", accent: ERA_ACCENT.namek },
+	{ id: "miraigohan", image: "/wiki/miraigohan.poster.webp", poster: "/wiki/miraigohan.poster.webp", video: "/wiki/miraigohan.mp4", title: "Gohan du futur", kicker: "Le dernier rempart", era: "android", accent: ERA_ACCENT.android },
+	{ id: "super17", image: "/wiki/sc17.poster.webp", poster: "/wiki/sc17.poster.webp", video: "/wiki/sc17.mp4", title: "Super C-17", kicker: "La fusion cybernétique", era: "android", accent: ERA_ACCENT.android },
+	{ id: "buuhan", image: "/wiki/buuhan.poster.webp", poster: "/wiki/buuhan.poster.webp", video: "/wiki/buuhan.mp4", title: "Buuhan", kicker: "L'absorption ultime", era: "buu", accent: ERA_ACCENT.buu },
+	{ id: "hit", image: "/wiki/hitgokukaioken.poster.webp", poster: "/wiki/hitgokukaioken.poster.webp", video: "/wiki/hitgokukaioken.mp4", title: "Hit", kicker: "L'assassin du 6e univers", era: "divine", accent: ERA_ACCENT.divine },
+	{ id: "vegeta-daima", image: "/wiki/vegetadaima.poster.webp", poster: "/wiki/vegetadaima.poster.webp", video: "/wiki/vegetadaima.mp4", title: "Vegeta", kicker: "Fierté intacte", era: "divine", accent: ERA_ACCENT.divine },
+	{ id: "taopaipai", image: "/wiki/taopaipai.poster.webp", poster: "/wiki/taopaipai.poster.webp", video: "/wiki/taopaipai.mp4", title: "Tao Pai Pai", kicker: "L'assassin légendaire", era: "origin", accent: ERA_ACCENT.origin },
+	{ id: "tenshinhan", image: "/wiki/tenshihan.poster.webp", poster: "/wiki/tenshihan.poster.webp", video: "/wiki/tenshihan.mp4", title: "Tenshinhan", kicker: "Le maître des arts martiaux", era: "origin", accent: ERA_ACCENT.origin },
 ];
 
 /** Fond dédié par section (id de section → scène). */
