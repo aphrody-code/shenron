@@ -5,13 +5,15 @@ import "./globals.css";
 import dynamic from "next/dynamic";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleTagManager } from "@next/third-parties/google";
+import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentGate } from "@/components/ConsentGate";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { SITE_URL } from "@/lib/config";
+import { env } from "@/lib/env";
+import Script from "next/script";
 
 // FAB Discord lazy : composant client gated par localStorage, jamais critical.
 const DiscordInviteFAB = dynamic(() =>
@@ -80,6 +82,12 @@ export const metadata: Metadata = {
 	twitter: {
 		card: "summary_large_image",
 	},
+	verification: {
+		google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "google-site-verification-token",
+	},
+	other: {
+		"google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-XXXXXXXXXX",
+	},
 };
 
 export const viewport = {
@@ -92,18 +100,31 @@ export default function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const gtmId = env.NEXT_PUBLIC_GTM_ID || "GTM-KLSS5787";
+	const gaId = env.NEXT_PUBLIC_GA_ID || "G-XXXXXXXXXX";
+
 	return (
 		<html lang="fr" className="dark">
-			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties
-			    (next/script optimisé, route-aware). Container GTM-KLSS5787. */}
-			<GoogleTagManager gtmId="GTM-KLSS5787" />
+			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties */}
+			<GoogleTagManager gtmId={gtmId} />
+			{/* Google Analytics GA4 — injecté de manière optimisée via le composant officiel */}
+			<GoogleAnalytics gaId={gaId} />
+			{/* Google AdSense Script */}
+			{env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+				<Script
+					async
+					src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+					crossOrigin="anonymous"
+					strategy="afterInteractive"
+				/>
+			)}
 			<body
 				className={`${sansFlex.variable} ${notoJP.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
 				{/* GTM noscript — fallback sans JS, juste après l'ouverture de <body>. */}
 				<noscript>
 					<iframe
-						src="https://www.googletagmanager.com/ns.html?id=GTM-KLSS5787"
+						src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
 						height="0"
 						width="0"
 						style={{ display: "none", visibility: "hidden" }}

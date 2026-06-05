@@ -54,12 +54,20 @@ export const env = createEnv({
 		// (source unique des URL). Déclarées ici pour validation/typage.
 		NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 		NEXT_PUBLIC_DISCORD_INVITE_URL: z.string().url().optional(),
+		NEXT_PUBLIC_GTM_ID: z.string().optional(),
+		NEXT_PUBLIC_GA_ID: z.string().optional(),
+		NEXT_PUBLIC_ADSENSE_CLIENT: z.string().optional(),
+		NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
 	},
 	experimental__runtimeEnv: {
 		NEXT_PUBLIC_SHENRON_ASSETS_URL: process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL,
 		NEXT_PUBLIC_SHENRON_API_URL: process.env.NEXT_PUBLIC_SHENRON_API_URL,
 		NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
 		NEXT_PUBLIC_DISCORD_INVITE_URL: process.env.NEXT_PUBLIC_DISCORD_INVITE_URL,
+		NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
+		NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
+		NEXT_PUBLIC_ADSENSE_CLIENT: process.env.NEXT_PUBLIC_ADSENSE_CLIENT,
+		NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
 	},
 	// Skip validation au build (Vercel injecte les env vars au runtime,
 	// pas toutes en build-time). Le runtime crash de toute façon si une
