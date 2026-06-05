@@ -189,4 +189,14 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 		era: "namek",
 		accent: ERA_ACCENT.namek,
 	},
+	news: {
+		id: "vegeta-daima-news",
+		image: "/wiki/vegetadaima.poster.webp",
+		poster: "/wiki/vegetadaima.poster.webp",
+		video: "/wiki/vegetadaima.mp4",
+		title: "Actualités",
+		kicker: "Les dernières nouvelles",
+		era: "divine",
+		accent: ERA_ACCENT.divine,
+	},
 };

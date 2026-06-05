@@ -718,7 +718,7 @@ export function HomeExperience({
 					className="home-section"
 					aria-label="Actualités"
 				>
-					<SceneBackdrop scene={SECTION_SCENE.summon} active={active === idx("news")} />
+					<SceneBackdrop scene={SECTION_SCENE.news} active={active === idx("news")} />
 					<div className="home-panel">
 						<header className="home-panel__head reveal-up">
 							<span className="home-eyebrow">05 — Actualités</span>
