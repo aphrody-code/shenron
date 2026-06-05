@@ -33,7 +33,7 @@ export function SceneBackdrop({
 			{/* Fond multimédia : vidéo en arrière-plan si disponible avec transition fluide, sinon image statique */}
 			{scene.video ? (
 				<video
-					src={assetUrl(scene.video)}
+					src={assetUrl(scene.video.replace(/\.mp4$/i, ".web.mp4"))}
 					poster={assetUrl(scene.image)}
 					autoPlay
 					loop

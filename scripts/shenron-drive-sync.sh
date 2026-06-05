@@ -21,4 +21,7 @@ echo "▶ Starting Google Drive Wiki Sync..."
 # de la home sont servies par nginx depuis ce dossier, cf. deploy/nginx/bot.dragonballfr.com.conf).
 chmod -R a+rX "$REPO/apps/site/public/wiki" 2>/dev/null || true
 
+# Ré-encode web (720p/~2Mbps/sans audio/faststart) des MP4 -> <x>.web.mp4 servis à la home.
+bash "$DIR/optimize-wiki-videos.sh" "$REPO/apps/site/public/wiki" || true
+
 echo "✓ Google Drive Wiki Sync Completed!"
