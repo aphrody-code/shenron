@@ -8,6 +8,8 @@ import type { Metadata } from "next";
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
+import { JsonLd } from "@/components/JsonLd";
+import type { Movie as MovieSchema, WithContext } from "schema-dts";
 
 export const revalidate = 3600;
 
@@ -81,8 +83,19 @@ export default async function FilmPage({
 			/>
 		) : null;
 
+	const jsonLdData: WithContext<MovieSchema> = {
+		"@context": "https://schema.org",
+		"@type": "Movie",
+		"name": m.title,
+		"image": m.poster ? assetUrl(m.poster) : undefined,
+		"description": m.synopsis ?? undefined,
+		"dateCreated": m.release_date ? new Date(m.release_date * 1000).toISOString().split("T")[0] : undefined,
+		"duration": m.duration_min ? `PT${m.duration_min}M` : undefined,
+	};
+
 	return (
 		<div className="mx-auto max-w-[1180px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+			<JsonLd data={jsonLdData} />
 			<Link
 				href="/wiki/films"
 				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-8 link-underline"

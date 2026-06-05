@@ -4,12 +4,37 @@ import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { JsonLd } from "@/components/JsonLd";
+import type { Place, WithContext } from "schema-dts";
+import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
 	const list = await getShenronPlanets();
 	return list.map((p) => ({ id: String(p.id) }));
+}
+
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+	const { id } = await params;
+	const planet = await getShenronPlanet(parseInt(id));
+	if (!planet) return { title: "Planète — DBFR" };
+	const description = planet.description ?? `Fiche encyclopédique de la planète ${planet.name} dans Dragon Ball.`;
+	return {
+		title: `${planet.name} — Planète | DBFR`,
+		description,
+		...ogMeta({
+			title: `${planet.name} — DBFR`,
+			description,
+			image: planet.image ? assetUrl(planet.image) : undefined,
+			type: "website",
+		}),
+	};
 }
 
 export default async function PlanetPage({
@@ -22,6 +47,15 @@ export default async function PlanetPage({
 
 	if (!planet) notFound();
 
+	const jsonLdData: WithContext<Place> = {
+		"@context": "https://schema.org",
+		"@type": "Place",
+		"name": planet.name,
+		"image": planet.image ? assetUrl(planet.image) : undefined,
+		"description": planet.description ?? undefined,
+		"additionalType": "https://en.wikipedia.org/wiki/Planet",
+	};
+
 	return (
 		<article
 			data-entity={planet.name}
@@ -29,6 +63,7 @@ export default async function PlanetPage({
 			data-lang="fr"
 			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
 		>
+			<JsonLd data={jsonLdData} />
 			<Link
 				href="/wiki/personnages?tab=planetes"
 				transitionTypes={["nav-back"]}

@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cache } from "react";
-import type { BreadcrumbList, WithContext } from "schema-dts";
+import type { BreadcrumbList, Person, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
 
 export const revalidate = 3600;
@@ -88,6 +88,19 @@ export default async function CharacterPage({
 		],
 	};
 
+	const personSchema: WithContext<Person> = {
+		"@context": "https://schema.org",
+		"@type": "Person",
+		"name": character.name,
+		"image": character.image ? assetUrl(character.image) : undefined,
+		"description": character.description ? plainText(character.description) : undefined,
+		"alternateName": character.nameJa ?? undefined,
+		"homeLocation": character.originPlanet ? {
+			"@type": "Place",
+			"name": character.originPlanet.name,
+		} : undefined,
+	};
+
 	return (
 		<article
 			data-entity={character.name}
@@ -96,6 +109,7 @@ export default async function CharacterPage({
 			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
 		>
 			<JsonLd data={breadcrumb} />
+			<JsonLd data={personSchema} />
 			<TrackView
 				entityType="character"
 				entityId={character.id}

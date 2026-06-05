@@ -4,6 +4,8 @@ import { ogMeta } from "@/lib/og";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import type { CreativeWork, WithContext } from "schema-dts";
 
 export const revalidate = 3600;
 
@@ -54,8 +56,21 @@ export default async function SagaPage({
 	const arcs = data.arcs ?? [];
 	const seriesLabel = SERIES_LABELS[saga.series] ?? saga.series;
 
+	const jsonLdData: WithContext<CreativeWork> = {
+		"@context": "https://schema.org",
+		"@type": "CreativeWork",
+		"name": saga.name,
+		"image": saga.image ? assetUrl(saga.image) : undefined,
+		"description": saga.description ?? undefined,
+		"isPartOf": {
+			"@type": "CreativeWorkSeries",
+			"name": seriesLabel,
+		},
+	};
+
 	return (
 		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+			<JsonLd data={jsonLdData} />
 			<Link
 				href="/wiki/sagas"
 				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"

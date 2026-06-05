@@ -5,6 +5,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import type { DefinedTerm, WithContext } from "schema-dts";
+import { SITE_URL } from "@/lib/config";
+import { ogMeta } from "@/lib/og";
 
 export const revalidate = 3600;
 
@@ -21,10 +25,15 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const tech = await getShenronTechnique(slug);
 	if (!tech) return { title: "Technique Dragon Ball — DBFR" };
+	const description = tech.description ?? `Fiche détaillée de la technique ${tech.name}.`;
 	return {
 		title: `${tech.name} — Technique Dragon Ball | DBFR`,
-		description:
-			tech.description ?? `Fiche détaillée de la technique ${tech.name}.`,
+		description,
+		...ogMeta({
+			title: `${tech.name} — DBFR`,
+			description,
+			image: tech.creatorImage ? assetUrl(tech.creatorImage) : undefined,
+		}),
 	};
 }
 
@@ -38,6 +47,15 @@ export default async function TechniqueDetailPage({
 
 	if (!tech) notFound();
 
+	const jsonLdData: WithContext<DefinedTerm> = {
+		"@context": "https://schema.org",
+		"@type": "DefinedTerm",
+		"name": tech.name,
+		"description": tech.description ?? undefined,
+		"termCode": String(tech.id),
+		"inDefinedTermSet": `${SITE_URL}/wiki/dragon-ball/techniques`,
+	};
+
 	return (
 		<article
 			data-entity={tech.name}
@@ -45,6 +63,7 @@ export default async function TechniqueDetailPage({
 			data-lang="fr"
 			className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up"
 		>
+			<JsonLd data={jsonLdData} />
 			<Link
 				href="/wiki/dragon-ball/techniques"
 				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"

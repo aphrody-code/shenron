@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import type { VideoGame, WithContext } from "schema-dts";
 
 export const revalidate = 3600;
 
@@ -48,8 +50,22 @@ export default async function GamePage({
 		.map((p) => p.trim())
 		.filter(Boolean);
 
+	const jsonLdData: WithContext<VideoGame> = {
+		"@context": "https://schema.org",
+		"@type": "VideoGame",
+		"name": g.title,
+		"image": g.cover ? assetUrl(g.cover) : undefined,
+		"description": g.description ?? undefined,
+		"genre": "Fighting",
+		"author": g.developer ? { "@type": "Organization", "name": g.developer } : undefined,
+		"publisher": g.publisher ? { "@type": "Organization", "name": g.publisher } : undefined,
+		"gamePlatform": platforms,
+		"datePublished": g.release_date ? new Date(g.release_date * 1000).toISOString().split("T")[0] : undefined,
+	};
+
 	return (
 		<div className="mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
+			<JsonLd data={jsonLdData} />
 			<Link
 				href="/wiki/jeux"
 				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-8"

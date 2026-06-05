@@ -1,0 +1,41 @@
+# Shenron - Dragon Ball Wiki & Public APIs
+
+Shenron is a comprehensive French database and interactive wiki dedicated to the Dragon Ball universe. It features details about characters, sagas, narrative arcs, anime episodes, movies, video games, manga chapters, techniques, and races. Shenron also includes public REST API endpoints and a grounded Retrieval-Augmented Generation (RAG) assistant proxy.
+
+## Core Hubs & Navigation
+- [/wiki](https://shenron.dragonballfr.com/wiki): The main hub for the Dragon Ball archives.
+- [/wiki/dragon-ball/techniques](https://shenron.dragonballfr.com/wiki/dragon-ball/techniques): Database of techniques, special abilities, and ki attacks.
+- [/wiki/personnages](https://shenron.dragonballfr.com/wiki/personnages): Directory of characters and inhabitants across all twelve universes.
+- [/wiki/planetes](https://shenron.dragonballfr.com/wiki/personnages?tab=planetes): List of planets, including their status (intact or destroyed).
+- [/wiki/sagas](https://shenron.dragonballfr.com/wiki/sagas): Interactive index of Dragon Ball sagas (from classic DB to Daima) and their narrative arcs.
+- [/wiki/episodes](https://shenron.dragonballfr.com/wiki/episodes): Guide for anime episodes from all series with images, titles, timecodes, and streams.
+- [/wiki/films](https://shenron.dragonballfr.com/wiki/films): Detailed movie list including posters, release dates, and trailers.
+- [/wiki/jeux](https://shenron.dragonballfr.com/wiki/jeux): Directory of official Dragon Ball video games with platform listings.
+- [/wiki/manga](https://shenron.dragonballfr.com/wiki/manga): Index of manga volumes and chapters (DB, DBS).
+- [/wiki/races](https://shenron.dragonballfr.com/wiki/races): Database of species/races in the Dragon Ball universe.
+- [/actualites](https://shenron.dragonballfr.com/wiki/news): Latest Dragon Ball news fetched from official feeds.
+- [/commands](https://shenron.dragonballfr.com/commands): Guide to the Discord bot's slash commands.
+
+## Public API Endpoints
+All API endpoints return JSON data and are rate-limited.
+
+### 1. Site Search & AI Chat
+- **GET** `/api/search?q={query}`: Cross-entity wiki search (returns character, planet, saga, movie, game, episode, technique matches). Optimized with pg_trgm for fault tolerance.
+- **GET** `/api/chat?q={query}&persona={whis|goku|vegeta|bulma|freezer|roshi}&context={context}&session={session}&lang={lang}`: Proxy to the grounded RAG chat endpoint. Returns conversational AI answers utilizing the wiki database.
+
+### 2. Bot & Wiki Data APIs
+*(Served at the bot's base URL / proxied)*
+- **GET** `/api/public/wiki/characters`: Retrieve character list (supports search filter via `?q=`).
+- **GET** `/api/public/wiki/characters/:id`: Retrieve detailed information for a single character (including transformations and origin planet).
+- **GET** `/api/public/wiki/planets`: Retrieve planet list.
+- **GET** `/api/public/wiki/planets/:id`: Retrieve detailed information for a single planet.
+- **GET** `/api/public/stats`: Overall platform statistics (total users, XP, zeni, achievements unlocked, inventory count, shop items).
+- **GET** `/api/public/personas`: List the 6 bot personas, their status, pings, and slash command usage statistics.
+- **GET** `/api/public/commands`: Complete list of Discord slash commands categorized by bot persona.
+- **GET** `/api/public/leaderboard?limit=100&enrich=1`: Retrieve top users by XP including Discord avatars and usernames.
+- **GET** `/api/public/shop`: Complete catalog of shop items (cards, badges, colors, titles, banners).
+- **GET** `/api/public/user/:discordId`: Retrieve enriched user profile (XP, level, zeni, inventory, active banner, achievements).
+
+### 3. Dynamic Canvas Generator (Image generation for embeds)
+- **GET** `/api/public/profile/:id/card.png?theme={theme}`: Generate profile card canvas (supports various color themes).
+- **GET** `/api/public/profile/:id/scan.png`: Generate scouter canvas image for a user's battle power scan.
