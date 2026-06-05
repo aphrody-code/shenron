@@ -97,8 +97,8 @@ Réponds UNIQUEMENT par le JSON brut, aucun autre texte, pas de balise Markdown 
         try {
           proc.kill();
         } catch {}
-        reject(new Error("Timeout de 60s dépassé"));
-      }, 60000);
+        reject(new Error("Timeout de 120s dépassé"));
+      }, 120000);
     });
 
     const readPromise = (async () => {

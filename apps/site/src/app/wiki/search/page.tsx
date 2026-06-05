@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,60 @@ export const metadata: Metadata = {
 	description:
 		"Recherche cross-entity dans tout l'univers Dragon Ball : personnages, planètes, sagas, films, jeux.",
 };
+
+async function WhisScouterPanel({ query }: { query: string }) {
+	if (!query || query.length < 2) return null;
+	const aiAnswer = await dbUniverse.ragChat(query, "whis");
+	if (!aiAnswer || !aiAnswer.answer) return null;
+	return (
+		<section className="mb-12 reveal-up">
+			<div className="flex items-center gap-6 mb-6">
+				<h2 className="font-display font-bold text-lg text-cyan-400 tracking-wider flex items-center gap-2">
+					<span className="text-xl">🥋</span> ASSISTANT WHIS (ANALYSE LORE)
+				</h2>
+				<div className="h-px flex-1 bg-gradient-to-r from-cyan-500/30 to-transparent" />
+			</div>
+			<div className="dbz-panel p-6 border-l-4 border-l-cyan-500 bg-cyan-950/15 backdrop-blur-md rounded-r-xl">
+				<p className="text-cyan-100 text-base leading-relaxed italic">
+					« {aiAnswer.answer} »
+				</p>
+				<div className="mt-4 flex items-center justify-between text-[10px] text-zinc-500">
+					<span>
+						Mode :{" "}
+						{aiAnswer.mode === "hybrid+rerank"
+							? "Recherche Hybride + Rerank (SOTA)"
+							: aiAnswer.mode === "hybrid"
+								? "Recherche Hybride dense/lexicale"
+								: "Recherche Lexicale"}
+					</span>
+					<span>Consigne : grondé sur les archives du temple</span>
+				</div>
+			</div>
+		</section>
+	);
+}
+
+function WhisScouterSkeleton() {
+	return (
+		<section className="mb-12 reveal-up animate-pulse">
+			<div className="flex items-center gap-6 mb-6">
+				<h2 className="font-display font-bold text-lg text-cyan-400/50 tracking-wider flex items-center gap-2">
+					<span className="text-xl opacity-50">🥋</span> ASSISTANT WHIS (ANALYSE LORE EN COURS...)
+				</h2>
+				<div className="h-px flex-1 bg-gradient-to-r from-cyan-500/20 to-transparent" />
+			</div>
+			<div className="dbz-panel p-6 border-l-4 border-l-cyan-500/30 bg-cyan-950/5 backdrop-blur-md rounded-r-xl space-y-2">
+				<div className="h-4 bg-cyan-500/10 rounded w-3/4"></div>
+				<div className="h-4 bg-cyan-500/10 rounded w-5/6"></div>
+				<div className="h-4 bg-cyan-500/10 rounded w-1/2"></div>
+				<div className="mt-4 flex items-center justify-between text-[10px] text-zinc-500/50 pt-2">
+					<div className="h-2 bg-cyan-500/5 rounded w-24"></div>
+					<div className="h-2 bg-cyan-500/5 rounded w-32"></div>
+				</div>
+			</div>
+		</section>
+	);
+}
 
 export default async function SearchPage({
 	searchParams,
@@ -21,7 +76,10 @@ export default async function SearchPage({
 	const q = (sp.q ?? "").trim();
 	const [results, rag] =
 		q.length >= 2
-			? await Promise.all([dbUniverse.search(q), dbUniverse.rag(q, 8)])
+			? await Promise.all([
+					dbUniverse.search(q),
+					dbUniverse.rag(q, 8),
+				])
 			: [null, null];
 
 	return (
@@ -69,6 +127,12 @@ export default async function SearchPage({
 						⚠️ Énergie insuffisante : Au moins 2 caractères requis.
 					</p>
 				</div>
+			)}
+
+			{q.length >= 2 && (
+				<Suspense fallback={<WhisScouterSkeleton />}>
+					<WhisScouterPanel query={q} />
+				</Suspense>
 			)}
 
 			{rag && rag.results.length > 0 && (

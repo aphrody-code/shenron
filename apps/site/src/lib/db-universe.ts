@@ -933,8 +933,6 @@ export const dbUniverse = {
 			};
 		}),
 
-	// RAG : recherche lexicale (BM25) sur l'index FTS5 `rag_chunks` du bot —
-	// NON miroité dans Neon, donc reste servi par l'API REST du bot.
 	rag: async (q: string, limit = 8, options?: { lang?: string; entity?: string; sourceId?: string }) => {
 		try {
 			let url = `${apiBase()}/api/public/rag/search?q=${encodeURIComponent(q)}&limit=${limit}`;
@@ -954,6 +952,26 @@ export const dbUniverse = {
 					url: string;
 					snippet: string;
 				}[];
+			};
+		} catch {
+			return null;
+		}
+	},
+
+	ragChat: async (q: string, persona = "whis") => {
+		try {
+			const url = `${apiBase()}/api/public/rag/chat?q=${encodeURIComponent(q)}&persona=${encodeURIComponent(persona)}`;
+			const r = await fetch(url, { cache: "no-store" });
+			if (!r.ok) return null;
+			return (await r.json()) as {
+				answer: string;
+				hits: {
+					kind: string;
+					title: string;
+					url: string;
+					snippet: string;
+				}[];
+				mode: string;
 			};
 		} catch {
 			return null;

@@ -105,6 +105,24 @@ async function main() {
       addAlias("son gohanu", target);
     } else if (nameLower === "goten") {
       addAlias("son goten", target);
+    } else if (nameLower === "gotenks") {
+      addAlias("gotex", target);
+      addAlias("gotenx", target);
+    } else if (nameLower === "gogeta") {
+      addAlias("gogéta", target);
+    } else if (nameLower === "vegetto" || nameLower === "vegito") {
+      addAlias("vegetto", target);
+      addAlias("vegito", target);
+      addAlias("bégito", target);
+      addAlias("begito", target);
+    } else if (nameLower === "jiren") {
+      addAlias("jiren le gris", target);
+    } else if (nameLower === "yamcha") {
+      addAlias("yamcha", target);
+      addAlias("yamchaa", target);
+    } else if (nameLower === "tenshinhan" || nameLower === "tien") {
+      addAlias("tien", target);
+      addAlias("ten shin han", target);
     } else if (nameLower === "roshi" || nameLower === "master roshi") {
       addAlias("tortue geniale", target);
       addAlias("tortue géniale", target);
@@ -159,16 +177,30 @@ async function main() {
     if (nameLower === "kamehameha") {
       addAlias("kame-hame-ha", target);
       addAlias("kamehame ha", target);
-    } else if (nameLower === "genki dama") {
+    } else if (nameLower === "genki dama" || nameLower === "spirit bomb") {
       addAlias("genkidama", target);
       addAlias("orbe d energie", target);
+      addAlias("orbe d'énergie", target);
+      addAlias("spirit bomb", target);
     } else if (nameLower === "kaioken") {
       addAlias("kaio-ken", target);
       addAlias("kaio ken", target);
-    } else if (nameLower === "makankosappo") {
+    } else if (nameLower === "makankosappo" || nameLower === "special beam cannon") {
       addAlias("makan kosappo", target);
       addAlias("murasakibara", target);
       addAlias("canon demoniaque", target);
+      addAlias("canon démoniaque", target);
+      addAlias("special beam cannon", target);
+    } else if (nameLower === "final flash") {
+      addAlias("flash final", target);
+    } else if (nameLower === "masenko") {
+      addAlias("masenkô", target);
+    } else if (nameLower === "kienzan" || nameLower === "destructo disc") {
+      addAlias("kien-zan", target);
+      addAlias("kien zan", target);
+      addAlias("destructo disc", target);
+      addAlias("disque d energie", target);
+      addAlias("disque d'énergie", target);
     }
   }
 

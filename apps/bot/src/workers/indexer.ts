@@ -11,6 +11,7 @@
  * éviter les faux positifs ("cell" dans "excellent").
  */
 import { redis } from "bun";
+import { readFileSync, existsSync } from "node:fs";
 
 interface IndexChannel {
   id: string;
@@ -43,17 +44,58 @@ type WorkerMessage =
 
 declare var self: Worker;
 
+// ── Chargement de la table d'alias pour la canonicalisation (PLAN A3) ───────
+const ALIAS_MAP_PATH = new URL("../../data/rag/alias-map.json", import.meta.url).pathname;
+let aliasMap: Record<string, { canonical: string; type: string; id: string }> = {};
+let aliasRegex: RegExp | null = null;
+
+if (existsSync(ALIAS_MAP_PATH)) {
+  try {
+    aliasMap = JSON.parse(readFileSync(ALIAS_MAP_PATH, "utf-8"));
+    const keys = Object.keys(aliasMap).toSorted((a, b) => b.length - a.length);
+    if (keys.length > 0) {
+      const escapedKeys = keys.map(k => k.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
+      aliasRegex = new RegExp(`\\b(${escapedKeys.join('|')})\\b`, 'gi');
+      console.log(`[WORKER] Table d'alias chargée : ${keys.length} règles. Regex compilée.`);
+    }
+  } catch (err) {
+    console.error("[WORKER] Impossible de charger alias-map.json sémantique:", err);
+  }
+}
+
+// Fallback legacy au cas où alias-map.json n'est pas encore construit
 const LORE_ENTITIES = [
-  "goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus",
-  "bulma", "krillin", "broly", "bardock", "kamehameha", "fusion", "daima", "saiyan", "namek", "shenron",
+  "goku", "vegeta", "freezer", "frieza", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus",
+  "bulma", "krillin", "krilin", "broly", "bardock", "kamehameha", "fusion", "daima", "saiyan", "namek", "shenron",
+  "gotenks", "gogeta", "vegetto", "vegito", "jiren", "yamcha", "tenshinhan", "chichi", "raditz", "nappa", "zeno",
+  "hit", "kaio", "c17", "c18", "oolong", "roshi", "pan", "uub", "dabra", "babidi", "majin", "morpion", "bingo"
 ];
-// Limites de mots pour éviter les faux positifs ("cell" dans "excellent").
 const LORE_RE: Array<[string, RegExp]> = LORE_ENTITIES.map((e) => [e, new RegExp(`\\b${e}\\b`, "i")]);
 
-const POSITIVE_WORDS = ["cool", "génial", "super", "aimer", "adore", "bien", "fort", "incroyable", "magnifique", "hype", "stylé", "ouf"];
-const NEGATIVE_WORDS = ["nul", "mauvais", "déteste", "triste", "colère", "faible", "moche", "horrible", "déçu", "naze"];
+// Liste étendue de sentiments sans accents (la recherche se fera sur le texte normalisé)
+const POSITIVE_WORDS = [
+  "cool", "genial", "super", "aimer", "adore", "bien", "fort", "incroyable", "magnifique", "hype", "style", "ouf",
+  "gg", "win", "gagne", "propre", "masterclass", "banger", "kiffe", "top", "merci", "bravo", "parfait", "solide",
+  "extraordinaire", "sublime", "legendaire", "chef d oeuvre", "reussi", "excellent", "kiff", "kiffer"
+];
+const NEGATIVE_WORDS = [
+  "nul", "mauvais", "deteste", "triste", "colere", "faible", "moche", "horrible", "decu", "naze",
+  "lose", "perdu", "rage", "seum", "relou", "chiant", "pete", "bug", "haine", "mechant", "abuse", "mort",
+  "poubelle", "cringe", "laid", "eclate", "defaite", "flop", "nulachier", "bugge", "lag", "lague"
+];
 const POS_RE = POSITIVE_WORDS.map((w) => new RegExp(`\\b${w}`, "i"));
 const NEG_RE = NEGATIVE_WORDS.map((w) => new RegExp(`\\b${w}`, "i"));
+
+// Normalisation du texte (minuscules, sans accents ni caractères spéciaux)
+function normalizeKey(str: string): string {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Enlève les accents
+    .replace(/[^a-z0-9]/g, " ")     // Remplace les caractères spéciaux par des espaces
+    .replace(/\s+/g, " ")           // Effondre les espaces multiples
+    .trim();
+}
 
 function upsertUser(promises: Promise<unknown>[], id: string, username: string, displayName: string, bot: boolean): void {
   promises.push(
@@ -103,21 +145,41 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
         }
         promises.push(redis.hincrby(`dbz:user:${msg.authorId}:stats`, "messages", 1));
 
-        // Analytics de lore (limites de mots).
+        // Analytics de lore (limites de mots & canonicalisation sémantique).
         const content = msg.content || "";
-        for (const [entity, re] of LORE_RE) {
-          if (re.test(content)) {
-            promises.push(redis.hincrby(`dbz:user:${msg.authorId}:lore`, entity, 1));
-            promises.push(redis.hincrby(`dbz:channel:${msg.channelId}:lore`, entity, 1));
-            promises.push(redis.hincrby("dbz:global:lore", entity, 1));
+        const normContent = " " + normalizeKey(content) + " ";
+        const foundEntities = new Set<string>();
+
+        if (aliasRegex) {
+          const matches = normContent.match(aliasRegex);
+          if (matches) {
+            for (const m of matches) {
+              const canonical = aliasMap[m.toLowerCase()]?.canonical;
+              if (canonical) {
+                foundEntities.add(canonical);
+              }
+            }
+          }
+        } else {
+          // Fallback legacy si la regex / alias-map n'est pas chargée
+          for (const [entity, re] of LORE_RE) {
+            if (re.test(content)) {
+              foundEntities.add(entity);
+            }
           }
         }
 
-        // Sentiment par mots-clés.
+        for (const entity of foundEntities) {
+          promises.push(redis.hincrby(`dbz:user:${msg.authorId}:lore`, entity, 1));
+          promises.push(redis.hincrby(`dbz:channel:${msg.channelId}:lore`, entity, 1));
+          promises.push(redis.hincrby("dbz:global:lore", entity, 1));
+        }
+
+        // Sentiment par mots-clés sur texte normalisé (plus de faux-négatifs d'accents).
         let pos = 0;
         let neg = 0;
-        for (const re of POS_RE) if (re.test(content)) pos++;
-        for (const re of NEG_RE) if (re.test(content)) neg++;
+        for (const re of POS_RE) if (re.test(normContent)) pos++;
+        for (const re of NEG_RE) if (re.test(normContent)) neg++;
         const bucket = pos > neg ? "positive" : neg > pos ? "negative" : "neutral";
         promises.push(redis.hincrby(`dbz:user:${msg.authorId}:sentiment`, bucket, 1));
         promises.push(redis.hincrby("dbz:global:sentiment", bucket, 1));

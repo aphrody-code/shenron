@@ -63,6 +63,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "reflect-metadata": "^0.2.2",
+    "sqlite-vec": "catalog:",
     "tailwind-merge": "^3.5.0",
     "tsyringe": "^4.10.0",
     "zod": "catalog:"

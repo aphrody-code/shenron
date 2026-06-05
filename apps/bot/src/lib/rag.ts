@@ -14,6 +14,7 @@
  * vers le sidecar (process isolé du bot). Voir `lib/embeddings.ts`.
  */
 import type { Database } from "bun:sqlite";
+import * as sqliteVec from "sqlite-vec";
 import { generateLlmAnswer } from "./llm";
 
 
@@ -37,52 +38,43 @@ export interface RagHit {
   snippet: string;
 }
 
-/** Matrice de vecteurs chargée en mémoire (cache process, invalidée par version). */
-interface VectorCache {
-  rowids: Int32Array;
-  mat: Float32Array; // n × dim, contigu
-  dim: number;
-  n: number;
-  version: number; // rag_meta.built_at
-}
-
-let cache: VectorCache | null = null;
-
-/** Charge / rafraîchit le cache vectoriel depuis SQLite (no-op si à jour). */
-function loadVectors(db: Database): VectorCache | null {
-  let version = 0;
-  let dim = 0;
+/** Effectue une recherche vectorielle native k-NN via l'extension sqlite-vec. */
+function nativeVectorSearch(
+  db: Database,
+  qv: Float32Array,
+  k: number,
+  allowedRowids?: Set<number> | null,
+): { rowid: number; score: number }[] {
+  sqliteVec.load(db);
   try {
-    const meta = db.query("SELECT built_at, dim FROM rag_meta LIMIT 1").get() as {
-      built_at: number;
-      dim: number;
-    } | null;
-    if (!meta) return null;
-    version = meta.built_at;
-    dim = meta.dim;
-  } catch {
-    return null; // tables pas encore construites
+    let rows: { rowid: number; distance: number }[] = [];
+    if (allowedRowids) {
+      // Si des filtres sémantiques/lexicaux (langue/personnage) sont actifs,
+      // on récupère un pool plus large puis on filtre avec allowedRowids en JS.
+      const poolSize = Math.max(k * 4, 100);
+      const rawRows = db.query(
+        "SELECT rowid, distance FROM vec_chunks WHERE embedding MATCH ?1 ORDER BY distance LIMIT ?2"
+      ).all(qv, poolSize) as { rowid: number; distance: number }[];
+      
+      rows = rawRows.filter((r) => allowedRowids.has(r.rowid)).slice(0, k);
+    } else {
+      rows = db.query(
+        "SELECT rowid, distance FROM vec_chunks WHERE embedding MATCH ?1 ORDER BY distance LIMIT ?2"
+      ).all(qv, k) as { rowid: number; distance: number }[];
+    }
+    
+    // RRF (Reciprocal Rank Fusion) n'a besoin que du classement relatif.
+    // Plus la distance L2 est petite (distance de match), plus le vecteur est proche.
+    // On mappe le score à -distance pour conserver un score de pertinence décroissant.
+    return rows.map((r) => ({
+      rowid: r.rowid,
+      score: -r.distance,
+    }));
+  } catch (err) {
+    // Dégradation gracieuse si la table vec_chunks n'a pas encore été créée (ex. premier boot)
+    console.warn("[RAG] Index vectoriel (vec_chunks) indisponible, repli lexical.", err);
+    return [];
   }
-  if (cache && cache.version === version && cache.dim === dim) return cache;
-
-  const rows = db.query("SELECT rowid, vec FROM rag_vectors ORDER BY rowid").all() as {
-    rowid: number;
-    vec: Uint8Array;
-  }[];
-  if (rows.length === 0) return null;
-
-  const n = rows.length;
-  const rowids = new Int32Array(n);
-  const mat = new Float32Array(n * dim);
-  for (let i = 0; i < n; i++) {
-    rowids[i] = rows[i].rowid;
-    const blob = rows[i].vec;
-    // blob = float32 little-endian ; réinterprète sans copie quand aligné.
-    const f32 = new Float32Array(blob.buffer, blob.byteOffset, blob.byteLength / 4);
-    mat.set(f32.subarray(0, dim), i * dim);
-  }
-  cache = { rowids, mat, dim, n, version };
-  return cache;
 }
 
 /** Embed la requête via le sidecar. Renvoie null si indisponible (timeout/erreur). */
@@ -124,26 +116,6 @@ export interface SearchOptions {
   lang?: string;
   entity?: string;
   sourceId?: string;
-}
-
-/** Top-K cosinus exact (vecteurs déjà normalisés → cosinus = produit scalaire). */
-function cosineTopK(
-  c: VectorCache,
-  q: Float32Array,
-  k: number,
-  allowedRowids?: Set<number> | null,
-): { rowid: number; score: number }[] {
-  const { mat, dim, n, rowids } = c;
-  const scored: { rowid: number; score: number }[] = [];
-  for (let i = 0; i < n; i++) {
-    const rowid = rowids[i];
-    if (allowedRowids && !allowedRowids.has(rowid)) continue;
-    let dot = 0;
-    const off = i * dim;
-    for (let d = 0; d < dim; d++) dot += mat[off + d] * q[d];
-    scored.push({ rowid, score: dot });
-  }
-  return scored.toSorted((a, b) => b.score - a.score).slice(0, k);
 }
 
 /** Tokenise une requête naturelle en clause FTS5 OR (recall large). */
@@ -225,9 +197,8 @@ export async function hybridSearch(
   for (const h of bm) bmById.set(h.rowid, h);
 
   // Étage 1 — signal sémantique (best-effort).
-  const c = loadVectors(db);
-  const qv = c ? await embedRemote(query) : null;
-  const dense = c && qv ? cosineTopK(c, qv, POOL, allowedRowids) : [];
+  const qv = await embedRemote(query);
+  const dense = qv ? nativeVectorSearch(db, qv, POOL, allowedRowids) : [];
 
   if (dense.length === 0) {
     return { results: bm.slice(0, limit), mode: "lexical" };

@@ -24,6 +24,7 @@ const LLM_URL = process.env.LOCAL_LLM_URL ?? "http://127.0.0.1:5008/v1/chat/comp
 const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS ?? 90_000);
 const MAX_CONCURRENCY = Number(process.env.LLM_MAX_CONCURRENCY ?? 3);
 const HISTORY_TURNS = Number(process.env.LLM_HISTORY_TURNS ?? 6); // messages gardés (3 échanges)
+const LLM_BACKEND = process.env.LLM_BACKEND ?? "local";
 
 const PERSONA_SYSTEM: Record<string, string> = {
   whis: "Tu es Whis, l'ange-guide enjoué et très poli de l'Univers 7 (tu dis souvent \"Oh oh\", tu appelles l'autre \"jeune disciple\"). Tu es bienveillant, calme et un peu taquin.",
@@ -132,6 +133,54 @@ async function callModel(messages: Array<{ role: string; content: string }>): Pr
   }
 }
 
+/** Utilise la CLI d'aphrody pour interroger le modèle distant Gemini en cas de repli */
+async function callAphrodyLlm(system: string, userContent: string): Promise<string> {
+  const prompt = `System: ${system}\n\nUser: ${userContent}`;
+  try {
+    const proc = Bun.spawn([
+      "/home/ubuntu/.local/bin/aphrody",
+      "antigravity",
+      "chat",
+      "--prompt",
+      prompt,
+    ], {
+      stdout: "pipe",
+      stderr: "ignore",
+    });
+
+    let timer: Timer | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        try {
+          proc.kill();
+        } catch {}
+        reject(new Error("Timeout Gemini"));
+      }, 90000);
+    });
+
+    const readPromise = (async () => {
+      const text = await new Response(proc.stdout).text();
+      await proc.exited;
+      return text;
+    })();
+
+    const stdout = await Promise.race([readPromise, timeoutPromise]);
+    if (timer) clearTimeout(timer);
+
+    let rawText = stdout;
+    try {
+      const parsed = JSON.parse(stdout);
+      rawText = parsed.candidates?.[0]?.content?.parts?.[0]?.text || stdout;
+    } catch {
+      // Fallback
+    }
+    return rawText.trim();
+  } catch (err) {
+    console.error("[LLM] Échec génération aphrody (Gemini):", err);
+    return "";
+  }
+}
+
 /**
  * Génère une réponse conversationnelle. `hits` = faits RAG (peuvent être vides pour du bavardage).
  * `opts.sessionId` active la mémoire (historique par salon/utilisateur).
@@ -145,6 +194,21 @@ export async function generateLlmAnswer(
 ): Promise<string> {
   const pid = persona(personaId);
   const chit = isChitchat(query);
+
+  // ── Cache sémantique Redis (PLAN B1) ──
+  if (!chit) {
+    try {
+      const { getSemanticCache } = await import("./semantic-cache");
+      const cacheHit = await getSemanticCache(query, pid);
+      if (cacheHit && cacheHit.answer) {
+        console.log(`[LLM] Cache sémantique touché pour "${query}" -> persona ${pid}`);
+        await appendHistory(opts.sessionId, query, cacheHit.answer);
+        return cacheHit.answer;
+      }
+    } catch (err) {
+      console.error("[LLM] Erreur lors de l'interrogation du cache sémantique:", err);
+    }
+  }
 
   const rules = [
     "Réponds en FRANÇAIS, naturellement, dans ton style, comme une vraie conversation.",
@@ -166,8 +230,27 @@ export async function generateLlmAnswer(
 
   const messages = [{ role: "system", content: system }, ...history, { role: "user", content: userContent }];
 
-  let answer = await withSlot(() => callModel(messages));
+  let answer = "";
+  if (LLM_BACKEND === "gemini" || LLM_BACKEND === "aphrody") {
+    answer = await callAphrodyLlm(system, userContent);
+  } else {
+    answer = await withSlot(() => callModel(messages));
+    if (!answer) {
+      console.log("[LLM] Modèle local en échec. Repli sur aphrody (Gemini)...");
+      answer = await callAphrodyLlm(system, userContent);
+    }
+  }
   if (!answer) answer = FALLBACK[pid] ?? FALLBACK.whis;
+
+  // Enregistrer dans le cache sémantique s'il ne s'agit pas de chitchat et que la génération a réussi
+  if (!chit && answer && answer !== (FALLBACK[pid] ?? FALLBACK.whis)) {
+    try {
+      const { setSemanticCache } = await import("./semantic-cache");
+      await setSemanticCache(query, answer, pid);
+    } catch (err) {
+      console.error("[LLM] Erreur lors de l'enregistrement dans le cache sémantique:", err);
+    }
+  }
 
   await appendHistory(opts.sessionId, query, answer);
   return answer;
