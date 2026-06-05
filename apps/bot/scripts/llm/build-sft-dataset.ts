@@ -86,8 +86,29 @@ Réponds UNIQUEMENT par le JSON brut, aucun autre texte, pas de balise Markdown 
       "chat",
       "--prompt",
       prompt,
-    ]);
-    const stdout = await new Response(proc.stdout).text();
+    ], {
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    let timer: Timer | null = null;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        try {
+          proc.kill();
+        } catch {}
+        reject(new Error("Timeout de 60s dépassé"));
+      }, 60000);
+    });
+
+    const readPromise = (async () => {
+      const text = await new Response(proc.stdout).text();
+      await proc.exited;
+      if (timer) clearTimeout(timer);
+      return text;
+    })();
+
+    const stdout = await Promise.race([readPromise, timeoutPromise]);
     
     let rawText = stdout;
     try {

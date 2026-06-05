@@ -44,7 +44,7 @@ async function findOrCreateNotebook(title: string): Promise<string | null> {
   const lines = listRes.stdout.split("\n");
   for (const line of lines) {
     if (line.includes(title)) {
-      const match = line.match(/^([a-zA-Z0-9_\-]+)\s+/);
+      const match = line.match(/^([a-zA-Z0-9_-]+)\s+/);
       if (match) {
         console.log(`✓ Notebook existant trouvé : ID = ${match[1]}`);
         return match[1];
@@ -62,8 +62,8 @@ async function findOrCreateNotebook(title: string): Promise<string | null> {
 
   // Recherche de l'ID créé dans la sortie
   // Souvent format: Created notebook: ID_NOTEBOOK
-  const idMatch = createRes.stdout.match(/Created\s+(?:notebook)?\s*:?\s*([a-zA-Z0-9_\-]+)/i) ||
-                  createRes.stdout.match(/([a-zA-Z0-9_\-]+)/);
+  const idMatch = createRes.stdout.match(/Created\s+(?:notebook)?\s*:?\s*([a-zA-Z0-9_-]+)/i) ||
+                  createRes.stdout.match(/([a-zA-Z0-9_-]+)/);
   if (idMatch) {
     console.log(`✓ Notebook créé avec succès : ID = ${idMatch[1]}`);
     return idMatch[1];
@@ -74,7 +74,7 @@ async function findOrCreateNotebook(title: string): Promise<string | null> {
   const list2 = await runCmd(["notebooklm", "list"]);
   for (const line of list2.stdout.split("\n")) {
     if (line.includes(title)) {
-      const match = line.match(/^([a-zA-Z0-9_\-]+)\s+/);
+      const match = line.match(/^([a-zA-Z0-9_-]+)\s+/);
       if (match) return match[1];
     }
   }

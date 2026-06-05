@@ -22,6 +22,7 @@
  *          exit 0 toujours (outil de mesure, pas un gate dur par défaut).
  */
 import { Database } from "bun:sqlite";
+import { redis } from "bun";
 import { hybridSearch, type RagHit, type RagMode } from "../src/lib/rag";
 
 const DB = process.env.RAG_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
@@ -250,7 +251,6 @@ async function main(): Promise<void> {
 
   // Enregistrer le rapport RAG dans Redis pour le dashboard
   try {
-    const { redis } = await import("bun");
     const report = {
       chunkCount,
       date: new Date().toISOString(),
