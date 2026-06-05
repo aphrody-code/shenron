@@ -2,6 +2,7 @@ import "reflect-metadata";
 import "./setup";
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { container } from "tsyringe";
+import * as sqliteVec from "sqlite-vec";
 import { DatabaseService } from "../src/db/index";
 import { hybridSearch, type RagHit } from "../src/lib/rag";
 
@@ -11,17 +12,18 @@ describe("RAG Metadata Filtering", () => {
 
   beforeAll(async () => {
     dbs = container.resolve(DatabaseService);
+    sqliteVec.load(dbs.sqlite);
 
     // Initialisation des tables FTS5 et vecteurs pour le test
     dbs.sqlite.run("DROP TABLE IF EXISTS rag_chunks");
-    dbs.sqlite.run("DROP TABLE IF EXISTS rag_vectors");
+    dbs.sqlite.run("DROP TABLE IF EXISTS vec_chunks");
     dbs.sqlite.run("DROP TABLE IF EXISTS rag_meta");
 
     dbs.sqlite.run(
       `CREATE VIRTUAL TABLE rag_chunks USING fts5(kind, title, url, content, lang, source_id, entity, tokenize='unicode61 remove_diacritics 2')`
     );
     dbs.sqlite.run(
-      `CREATE TABLE rag_vectors (rowid INTEGER PRIMARY KEY, vec BLOB NOT NULL)`
+      `CREATE VIRTUAL TABLE vec_chunks USING vec0(embedding float[384])`
     );
     dbs.sqlite.run(
       `CREATE TABLE rag_meta (model TEXT, dim INTEGER, count INTEGER, built_at INTEGER)`
@@ -32,13 +34,12 @@ describe("RAG Metadata Filtering", () => {
       "INSERT INTO rag_chunks (rowid, kind, title, url, content, lang, source_id, entity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
     const insVector = dbs.sqlite.query(
-      "INSERT INTO rag_vectors (rowid, vec) VALUES (?, ?)"
+      "INSERT INTO vec_chunks (rowid, embedding) VALUES (?, ?)"
     );
 
-    // Helper pour générer un blob de vecteur factice (384 dimensions)
+    // Helper pour générer un Float32Array de vecteur factice (384 dimensions)
     const mockVecBlob = (val: number) => {
-      const f32 = new Float32Array(384).fill(val);
-      return new Uint8Array(f32.buffer);
+      return new Float32Array(384).fill(val);
     };
 
     // Chunk 1: Goku en Français (db_characters)
@@ -69,11 +70,30 @@ describe("RAG Metadata Filtering", () => {
     // Mock fetch pour l'API embeddings
     global.fetch = async (url, options) => {
       const urlStr = url.toString();
-      if (urlStr.endsWith("/embed")) {
-        // Renvoie un vecteur d'interrogation fictif
+      console.log(`[MOCK FETCH] Request URL: ${urlStr}`);
+      if (urlStr.includes("/embed")) {
+        console.log(`[MOCK FETCH] Matched /embed, returning mock vector.`);
         return new Response(
           JSON.stringify({
             vectors: [Array(384).fill(0.1)],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
+      if (urlStr.includes("/rerank")) {
+        console.log(`[MOCK FETCH] Matched /rerank, returning mock scores.`);
+        let count = 1;
+        try {
+          if (options?.body) {
+            const body = JSON.parse(options.body as string);
+            if (Array.isArray(body.passages)) {
+              count = body.passages.length;
+            }
+          }
+        } catch {}
+        return new Response(
+          JSON.stringify({
+            scores: Array(count).fill(0.5),
           }),
           { status: 200, headers: { "content-type": "application/json" } }
         );
