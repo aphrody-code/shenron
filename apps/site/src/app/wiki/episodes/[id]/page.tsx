@@ -18,6 +18,9 @@ import { KenBurns } from "@/components/KenBurns";
 import { AnimatedMedia } from "@/components/media/AnimatedMedia";
 import { BackgroundImage } from "@/components/media/BackgroundImage";
 import { EpisodeScenes } from "./EpisodeScenes";
+import { JsonLd } from "@/components/JsonLd";
+import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
+import { SITE_URL as SITE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -184,8 +187,39 @@ export default async function EpisodeDetailPage({
 		</div>
 	) : null;
 
+	const episodeSchema: WithContext<TVEpisode> = {
+		"@context": "https://schema.org",
+		"@type": "TVEpisode",
+		episodeNumber: String(ep.number_in_series),
+		name: ep.title,
+		description: ep.synopsis ?? undefined,
+		image: ep.image ? assetUrl(ep.image) : undefined,
+		partOfSeries: {
+			"@type": "TVSeries",
+			name: seriesLabel,
+		},
+		datePublished: ep.air_date ? new Date(ep.air_date * 1000).toISOString() : undefined,
+	};
+
+	const breadcrumbSchema: WithContext<BreadcrumbList> = {
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: [
+			{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE}/` },
+			{
+				"@type": "ListItem",
+				position: 2,
+				name: "Épisodes",
+				item: `${SITE}/wiki/episodes`,
+			},
+			{ "@type": "ListItem", position: 3, name: `${seriesLabel} — Épisode ${ep.number_in_series}` },
+		],
+	};
+
 	return (
 		<div className="relative">
+			<JsonLd data={episodeSchema} />
+			<JsonLd data={breadcrumbSchema} />
 			{/* === Backdrop cinématique plein cadre (vignette épisode floutée) === */}
 			<div className="absolute inset-x-0 top-0 h-[70vh] -z-0 overflow-hidden">
 				{ep.image ? (

@@ -9,6 +9,9 @@ import Image from "next/image";
 import { getCurrentUser } from "@/lib/session";
 import { CommentForm } from "./CommentForm";
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import type { BlogPosting, BreadcrumbList, WithContext } from "schema-dts";
+import { SITE_URL as SITE } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -77,8 +80,56 @@ export default async function PostPage({
 		limit: 3,
 	});
 
+	const blogPostingSchema: WithContext<BlogPosting> = {
+		"@context": "https://schema.org",
+		"@type": "BlogPosting",
+		headline: post.title,
+		description: post.excerpt ?? undefined,
+		image: post.cover ? [post.cover] : undefined,
+		datePublished: post.createdAt.toISOString(),
+		dateModified: post.createdAt.toISOString(),
+		author: post.author
+			? {
+					"@type": "Person",
+					name: post.author.username ?? "DBFR",
+			  }
+			: {
+					"@type": "Organization",
+					name: "DBFR",
+			  },
+		publisher: {
+			"@type": "Organization",
+			name: "DBFR",
+			logo: {
+				"@type": "ImageObject",
+				url: `${SITE}/favicon-96.png`,
+			},
+		},
+		mainEntityOfPage: {
+			"@type": "WebPage",
+			"@id": `${SITE}/post/${post.slug}`,
+		},
+	};
+
+	const breadcrumbSchema: WithContext<BreadcrumbList> = {
+		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		itemListElement: [
+			{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE}/` },
+			{
+				"@type": "ListItem",
+				position: 2,
+				name: "Actualités",
+				item: `${SITE}/actualites`,
+			},
+			{ "@type": "ListItem", position: 3, name: post.title },
+		],
+	};
+
 	return (
 		<>
+			<JsonLd data={blogPostingSchema} />
+			<JsonLd data={breadcrumbSchema} />
 			<article className="mx-auto max-w-[820px] px-6 lg:px-10 py-16 lg:py-24">
 				<Link
 					href="/actualites"
