@@ -20,6 +20,7 @@
  * Usage : bun apps/bot/scripts/rag-build.ts
  */
 import { Database } from "bun:sqlite";
+import * as sqliteVec from "sqlite-vec";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { EMBED_DIM, EMBED_MODEL, embedTexts, vecToBlob } from "../src/lib/embeddings";
@@ -34,6 +35,7 @@ if (!existsSync(DBP)) {
 }
 
 const db = new Database(DBP);
+sqliteVec.load(db);
 
 // ── Chargement de la table d'alias pour la canonicalisation (PLAN A3) ───────
 let aliasMap: Record<string, { canonical: string; type: string; id: string }> = {};
@@ -445,12 +447,12 @@ if (existsSync(CORPUS)) {
 const total = (db.query(`SELECT COUNT(*) c FROM rag_chunks`).get() as { c: number }).c;
 console.log(`✓ rag_chunks construit : ${n} chunks insérés (${total} total).`);
 
-// ── Embeddings denses (volet sémantique du retrieval hybride) ───────────────
-db.run(`DROP TABLE IF EXISTS rag_vectors`);
-db.run(`CREATE TABLE rag_vectors (rowid INTEGER PRIMARY KEY, vec BLOB NOT NULL)`);
+// ── Embeddings denses (volet sémantique du retrieval hybride avec sqlite-vec) ──
+db.run(`DROP TABLE IF EXISTS vec_chunks`);
+db.run(`CREATE VIRTUAL TABLE vec_chunks USING vec0(embedding float[${EMBED_DIM}])`);
 
 if (process.argv.includes("--no-vectors")) {
-  console.log("→ --no-vectors : rag_vectors laissé vide (mode lexical BM25). Lancer un build complet plus tard pour l'hybride.");
+  console.log("→ --no-vectors : vec_chunks laissé vide (mode lexical BM25). Lancer un build complet plus tard pour l'hybride.");
   db.close();
   process.exit(0);
 }
@@ -465,16 +467,55 @@ const chunks = db.query(`SELECT rowid, title, content FROM rag_chunks ORDER BY r
   content: string;
 }[];
 
-console.log(`→ embeddings (${EMBED_MODEL}, ${EMBED_DIM}d) sur ${chunks.length} chunks…`);
+console.log(`→ embeddings via sidecar (http://127.0.0.1:5007) sur ${chunks.length} chunks…`);
 const embT0 = Date.now();
 const texts = chunks.map((c) => `${c.title}. ${c.content}`.slice(0, 1200));
 
-const vectors = await embedTexts(texts, "passage");
+const vectors: Float32Array[] = [];
+const BATCH_SIZE = 64;
 
-const insVec = db.query(`INSERT INTO rag_vectors (rowid, vec) VALUES (?, ?)`);
+for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+  const batchTexts = texts.slice(i, i + BATCH_SIZE);
+  
+  let success = false;
+  let retries = 15;
+  while (!success && retries > 0) {
+    try {
+      const res = await fetch("http://127.0.0.1:5007/embed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texts: batchTexts, kind: "passage" }),
+      });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const data = await res.json() as { vectors: number[][] };
+      for (const v of data.vectors) {
+        vectors.push(new Float32Array(v));
+      }
+      success = true;
+    } catch (err) {
+      retries--;
+      if (retries === 0) {
+        console.error(`\n✗ Échec d'embedding pour le lot ${i} - ${i + batchTexts.length}:`, err);
+        process.exit(1);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
+  
+  if (i % 1024 === 0 || i + BATCH_SIZE >= texts.length) {
+    const pct = ((vectors.length / texts.length) * 100).toFixed(1);
+    process.stdout.write(`\r  [RAG BUILD] Embedding progress: ${pct}% (${vectors.length}/${texts.length})`);
+  }
+}
+console.log("\n✓ Étape d'embedding terminée.");
+
+const insVec = db.query(`INSERT INTO vec_chunks (rowid, embedding) VALUES (?, ?)`);
 const tx = db.transaction(() => {
   for (let i = 0; i < chunks.length; i++) {
-    insVec.run(chunks[i].rowid, vecToBlob(vectors[i]));
+    // sqlite-vec supporte directement l'insertion de Float32Array (ou son buffer) dans Bun
+    insVec.run(chunks[i].rowid, vectors[i]);
   }
 });
 tx();

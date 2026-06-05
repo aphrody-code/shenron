@@ -68,7 +68,9 @@ Bun.serve({
       }
       try {
         const scores = await rerankTexts(query, passages);
-        return Response.json({ scores });
+        const res = Response.json({ scores });
+        Bun.gc(true);
+        return res;
       } catch (e) {
         console.error("[embed] rerank error", e);
         return Response.json({ error: "rerank_failed" }, { status: 500 });
@@ -94,7 +96,9 @@ Bun.serve({
       const kind: EmbedKind = body.kind === "passage" ? "passage" : "query";
       try {
         const vecs = await embedTexts(texts, kind);
-        return Response.json({ vectors: vecs.map((v) => Array.from(v)) });
+        const res = Response.json({ vectors: vecs.map((v) => Array.from(v)) });
+        Bun.gc(true);
+        return res;
       } catch (e) {
         console.error("[embed] error", e);
         return Response.json({ error: "embed_failed" }, { status: 500 });
