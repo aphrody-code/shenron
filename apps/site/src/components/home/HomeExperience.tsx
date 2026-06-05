@@ -35,6 +35,21 @@ export interface HomePost {
 	createdAt: Date | string;
 	author: { username: string | null; avatar: string | null };
 }
+export interface FeaturedCharacter {
+	id: number;
+	name: string;
+	nameJa: string | null;
+	race: string | null;
+	ki: string | null;
+	image: string | null;
+}
+export interface SagaTeaser {
+	id: number;
+	slug: string | null;
+	name: string;
+	series: string | null;
+	description: string | null;
+}
 
 const DISCORD_URL = DISCORD_INVITE;
 
@@ -109,11 +124,15 @@ export function HomeExperience({
 	stats,
 	personas,
 	wikiCounts,
+	characters,
+	sagas,
 	posts,
 }: {
 	stats: BotStats;
 	personas: PersonaLive[];
 	wikiCounts: WikiCounts;
+	characters: FeaturedCharacter[];
+	sagas: SagaTeaser[];
 	posts: HomePost[];
 }) {
 	const live = useLiveBotState({ stats, personas });
@@ -124,6 +143,8 @@ export function HomeExperience({
 			[
 				{ id: "hero", label: "Accueil", kanji: "序" },
 				{ id: "universe", label: "L'univers", kanji: "宇宙" },
+				{ id: "personnages", label: "Personnages", kanji: "戦士" },
+				{ id: "sagas", label: "Les sagas", kanji: "物語" },
 				{ id: "guardians", label: "Les gardiens", kanji: "神" },
 				{ id: "community", label: "Communauté", kanji: "仲間" },
 				{ id: "play", label: "Le terrain", kanji: "遊" },
@@ -421,6 +442,110 @@ export function HomeExperience({
 			</section>
 
 			{/* ── 3. LES GARDIENS (6 personas, statut live) ────────────────────── */}
+				{/* PERSONNAGES EMBLÉMATIQUES (univers) */}
+				<section
+					ref={setRef(idx("personnages"))}
+					id="personnages"
+					className="home-section"
+					aria-label="Personnages"
+				>
+					<SceneBackdrop
+						scene={SECTION_SCENE.personnages}
+						active={active === idx("personnages")}
+					/>
+					<div className="home-panel">
+						<header className="home-panel__head reveal-up">
+							<span className="home-eyebrow">02 — Les héros</span>
+							<h2 className="home-title">Les personnages de légende</h2>
+							<p className="home-sub">
+								Saiyans, dieux, démons et terriens — explore les figures qui ont
+								façonné Dragon Ball, fiche par fiche.
+							</p>
+						</header>
+						<div className="grid grid-cols-3 gap-3 reveal-up sm:grid-cols-4 lg:grid-cols-6">
+							{characters.map((c) => (
+								<Link
+									key={c.id}
+									href={`/wiki/dragon-ball/character/${c.id}`}
+									className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
+								>
+									{c.image && (
+										// eslint-disable-next-line @next/next/no-img-element
+										<img
+											src={assetUrl(c.image)}
+											alt={c.name}
+											loading="lazy"
+											className="absolute inset-0 h-full w-full object-cover object-top opacity-85 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+										/>
+									)}
+									<span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-2.5 pb-2.5 pt-10">
+										<span className="block text-[13px] font-bold leading-tight text-white">
+											{c.name}
+										</span>
+										{c.race && (
+											<span className="mt-0.5 block text-[9px] uppercase tracking-[0.14em] text-white/55">
+												{c.race}
+											</span>
+										)}
+									</span>
+								</Link>
+							))}
+						</div>
+						<Link href="/wiki/personnages" className="home-cta home-cta--ghost">
+							Tous les personnages
+						</Link>
+					</div>
+				</section>
+
+				{/* LES SAGAS — le voyage chronologique (univers) */}
+				<section
+					ref={setRef(idx("sagas"))}
+					id="sagas"
+					className="home-section"
+					aria-label="Les sagas"
+				>
+					<SceneBackdrop
+						scene={SECTION_SCENE.sagas}
+						active={active === idx("sagas")}
+					/>
+					<div className="home-panel">
+						<header className="home-panel__head reveal-up">
+							<span className="home-eyebrow">03 — La chronologie</span>
+							<h2 className="home-title">Le voyage à travers les sagas</h2>
+							<p className="home-sub">
+								Des origines à la divinité — suis la saga complète : Dragon Ball,
+								Z, Super et GT, arc après arc.
+							</p>
+						</header>
+						<div className="grid gap-4 reveal-up sm:grid-cols-2 lg:grid-cols-4">
+							{sagas.map((s) => (
+								<Link
+									key={s.id}
+									href="/wiki/sagas"
+									className="group flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/30 p-4 transition-colors hover:border-[var(--accent)]"
+								>
+									{s.series && (
+										<span className="text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
+											{s.series}
+										</span>
+									)}
+									<span className="text-[15px] font-bold leading-tight text-white">
+										{s.name}
+									</span>
+									{s.description && (
+										<span className="line-clamp-3 text-[12px] leading-snug text-white/55">
+											{s.description}
+										</span>
+									)}
+								</Link>
+							))}
+						</div>
+						<Link href="/wiki/sagas" className="home-cta home-cta--ghost">
+							Toutes les sagas
+						</Link>
+					</div>
+				</section>
+
 			<section
 				ref={setRef(idx("guardians"))}
 				id="guardians"

@@ -54,15 +54,55 @@ async function getWikiCounts() {
 	}
 }
 
+async function getFeaturedCharacters() {
+	try {
+		return await db
+			.select({
+				id: botCharacters.id,
+				name: botCharacters.name,
+				nameJa: botCharacters.nameJa,
+				race: botCharacters.race,
+				ki: botCharacters.ki,
+				image: botCharacters.image,
+			})
+			.from(botCharacters);
+	} catch (e) {
+		console.error("Failed to fetch characters:", e);
+		return [];
+	}
+}
+
+async function getSagas() {
+	try {
+		return await db
+			.select({
+				id: botSagas.id,
+				slug: botSagas.slug,
+				name: botSagas.name,
+				series: botSagas.series,
+				description: botSagas.description,
+				image: botSagas.image,
+			})
+			.from(botSagas)
+			.orderBy(botSagas.orderIdx);
+	} catch (e) {
+		console.error("Failed to fetch sagas:", e);
+		return [];
+	}
+}
+
 export default async function Home() {
-	const [posts, personas, stats, wikiCounts] = await Promise.all([
-		getLatestPosts().catch(
-			() => [] as Awaited<ReturnType<typeof getLatestPosts>>,
-		),
-		getShenronPersonas().catch(() => []),
-		getShenronStats(),
-		getWikiCounts(),
-	]);
+	const [posts, personas, stats, wikiCounts, characters, sagas] =
+		await Promise.all([
+			getLatestPosts().catch(
+				() => [] as Awaited<ReturnType<typeof getLatestPosts>>,
+			),
+			getShenronPersonas().catch(() => []),
+			getShenronStats(),
+			getWikiCounts(),
+			getFeaturedCharacters(),
+			getSagas(),
+		]);
 
 	return (
 		<HomeExperience
@@ -74,6 +114,24 @@ export default async function Home() {
 				online: p.online,
 			}))}
 			wikiCounts={wikiCounts}
+			characters={characters
+				.filter((c) => !!c.image)
+				.slice(0, 12)
+				.map((c) => ({
+					id: c.id,
+					name: c.name,
+					nameJa: c.nameJa,
+					race: c.race,
+					ki: c.ki,
+					image: c.image,
+				}))}
+			sagas={sagas.slice(0, 8).map((s) => ({
+				id: s.id,
+				slug: s.slug,
+				name: s.name,
+				series: s.series,
+				description: s.description,
+			}))}
 			posts={posts.map((p) => ({
 				id: p.id,
 				slug: p.slug,
