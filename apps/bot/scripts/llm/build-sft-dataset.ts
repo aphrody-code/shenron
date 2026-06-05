@@ -136,12 +136,12 @@ async function main() {
     return;
   }
 
-  const concurrency = 5; // Traitement parallèle modéré
+  const concurrency = 1; // Traitement séquentiel pour respecter le rate-limit de l'API
   let successCount = 0;
 
   for (let i = 0; i < todo.length; i += concurrency) {
     const batch = todo.slice(i, i + concurrency);
-    console.log(`\n→ Batch ${Math.floor(i / concurrency) + 1}/${Math.ceil(todo.length / concurrency)} (chunks ${i + 1} à ${i + batch.length})…`);
+    console.log(`\n→ Chunk ${i + 1}/${todo.length} ("${batch[0].title}")…`);
 
     const promises = batch.map(async (chunk) => {
       const items = await callAphrodyGenerator(chunk.title, chunk.content, chunk.url);
@@ -160,8 +160,8 @@ async function main() {
     await Promise.all(promises);
     saveState();
     
-    // Petite pause de politesse
-    await new Promise((r) => setTimeout(r, 1000));
+    // Pause de politesse pour respecter le quota
+    await new Promise((r) => setTimeout(r, 2000));
   }
 
   console.log(`\n=== DISTILLATION COMPLETE ===`);
