@@ -45,7 +45,10 @@ function read(): ConsentState {
 }
 
 // Hydrate au chargement du module (client).
-if (isBrowser) current = read();
+if (isBrowser) {
+	current = read();
+	syncGoogleConsent(current);
+}
 
 /** État de consentement courant (lecture synchrone). */
 export function getConsent(): ConsentState {

@@ -105,6 +105,23 @@ export default function RootLayout({
 
 	return (
 		<html lang="fr" className="dark">
+			<head>
+				{/* Initialisation par défaut du Consent Mode v2 de Google avant le chargement des scripts */}
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+							window.dataLayer = window.dataLayer || [];
+							function gtag(){window.dataLayer.push(arguments);}
+							gtag('consent', 'default', {
+								'analytics_storage': 'denied',
+								'ad_storage': 'denied',
+								'ad_user_data': 'denied',
+								'ad_personalization': 'denied'
+							});
+						`,
+					}}
+				/>
+			</head>
 			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties */}
 			<GoogleTagManager gtmId={gtmId} />
 			{/* Google Analytics GA4 — injecté de manière optimisée via le composant officiel */}
