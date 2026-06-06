@@ -73,15 +73,26 @@ const sqlite = new Database(SQLITE_PATH, { readonly: true });
 const sql = postgres(NEON_URL, { max: 4, prepare: false });
 
 async function main() {
-	const tables = (
-		sqlite
-			.query(
-				`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`,
-			)
-			.all() as { name: string }[]
-	)
+	const master = sqlite
+		.query(
+			`SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`,
+		)
+		.all() as { name: string; sql: string }[];
+
+	// Tables virtuelles (FTS5 db_search/rag_chunks, vec0 vec_chunks depuis la
+	// migration sqlite-vec) : non portables vers Postgres, et `PRAGMA table_info`
+	// y lève "no such module: <fts5|vec0>" car l'extension n'est pas chargée dans
+	// cette connexion read-only. On les exclut AINSI QUE leurs tables shadow
+	// `<vtab>_*` générées par le module (ex. vec_chunks_{chunks,info,rowids,...}).
+	const virtualTables = master
+		.filter((r) => /^\s*CREATE\s+VIRTUAL\s+TABLE/i.test(r.sql ?? ""))
+		.map((r) => r.name);
+	const isVirtualOrShadow = (n: string) =>
+		virtualTables.some((v) => n === v || n.startsWith(`${v}_`));
+
+	const tables = master
 		.map((r) => r.name)
-		.filter((n) => !SKIP.has(n) && !n.startsWith("rag_chunks"));
+		.filter((n) => !SKIP.has(n) && !isVirtualOrShadow(n));
 
 	await sql`CREATE SCHEMA IF NOT EXISTS bot`;
 	// Recherche floue du site (/wiki/search) : proximité trigramme + accents.
