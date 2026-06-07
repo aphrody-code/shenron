@@ -41,9 +41,7 @@ export const API_URL = trimSlash(
  * Même hôte que l'API par défaut ; un CDN dédié peut être posé via
  * `NEXT_PUBLIC_SHENRON_ASSETS_URL`.
  */
-export const ASSET_BASE = trimSlash(
-	(process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ?? API_URL).trim()
-);
+export const ASSET_BASE = trimSlash((process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ?? API_URL).trim());
 
 /** URL publique du site (OG, liens absolus, metadataBase). Sans slash final. */
 export const SITE_URL = trimSlash(

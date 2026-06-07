@@ -157,17 +157,15 @@ export class AuditLogEventHandler {
 	async onChannelDelete([channel]: ArgsOf<"channelDelete">) {
 		if (!("guild" in channel) || !channel.guild) return;
 		const exec = await this.fetchExecutor(channel.guild, AuditLogEvent.ChannelDelete, channel.id);
-		const embed = this.logs
-			.makeEmbed("➖ Salon supprimé", 0xef4444)
-			.addFields(
-				{
-					name: "Salon",
-					value: `#${"name" in channel ? channel.name : "?"} (${channel.id})`,
-					inline: true,
-				},
-				{ name: "Type", value: ChannelType[channel.type] ?? String(channel.type), inline: true },
-				{ name: "Par", value: exec ? `<@${exec.id}>` : "Inconnu", inline: true }
-			);
+		const embed = this.logs.makeEmbed("➖ Salon supprimé", 0xef4444).addFields(
+			{
+				name: "Salon",
+				value: `#${"name" in channel ? channel.name : "?"} (${channel.id})`,
+				inline: true,
+			},
+			{ name: "Type", value: ChannelType[channel.type] ?? String(channel.type), inline: true },
+			{ name: "Par", value: exec ? `<@${exec.id}>` : "Inconnu", inline: true }
+		);
 		await this.logs.send(channel.client, "audit", embed);
 	}
 

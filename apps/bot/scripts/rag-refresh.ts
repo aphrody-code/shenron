@@ -12,7 +12,7 @@
 import { copyFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-const ROOT = new URL("../../", import.meta.url).pathname;
+const ROOT = new URL("../../../", import.meta.url).pathname;
 const BOT_DIR = join(ROOT, "apps/bot");
 const DB_PROD = join(BOT_DIR, "data/bot.db");
 const DB_TMP = "/tmp/rag.db";
