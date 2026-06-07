@@ -38,6 +38,53 @@ function padText(text: string, length: number): string {
   return text + " ".repeat(paddingNeeded);
 }
 
+// Charger les secrets/tokens pour les APIs natives (GitHub, Vercel, Neon, Discord)
+function getApiKey(keyName: string): string | undefined {
+  if (process.env[keyName]) return process.env[keyName];
+
+  const siteEnvPath = join(ROOT, "apps/site/.env");
+  const botEnvPath = join(ROOT, "apps/bot/.env");
+  const globalNeonPath = "/home/ubuntu/.neon-api.env";
+
+  const paths = [globalNeonPath, siteEnvPath, botEnvPath];
+  for (const p of paths) {
+    if (existsSync(p)) {
+      try {
+        const content = readFileSync(p, "utf-8");
+        const match = content.match(new RegExp(`^${keyName}\\s*=\\s*["']?(.*?)["']?$`, "m"));
+        if (match && match[1]) return match[1].trim();
+      } catch {}
+    }
+  }
+  return undefined;
+}
+
+function loadBotEnv(): Record<string, string> {
+  const env: Record<string, string> = {};
+  const botEnvPath = join(ROOT, "apps/bot/.env");
+  if (existsSync(botEnvPath)) {
+    try {
+      const content = readFileSync(botEnvPath, "utf-8");
+      const lines = content.split("\n");
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+          const idx = trimmed.indexOf("=");
+          if (idx !== -1) {
+            const key = trimmed.slice(0, idx).trim();
+            let val = trimmed.slice(idx + 1).trim();
+            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+              val = val.slice(1, -1);
+            }
+            env[key] = val;
+          }
+        }
+      }
+    } catch {}
+  }
+  return env;
+}
+
 // Récupérer la DATABASE_URL depuis les différents fichiers d'environnement
 function getDatabaseUrl(): string | undefined {
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
@@ -403,6 +450,80 @@ async function runDb(sub: string, extra?: string) {
       console.log(`  shenron db sync pull    (Récupérer Neon Postgres vers SQLite local)`);
       process.exit(1);
     }
+  } else if (sub === "branches") {
+    const neonKey = getApiKey("NEON_API_KEY");
+    const projectId = "patient-star-28731823";
+    if (!neonKey) {
+      console.error(`❌ ${c.red}Erreur : NEON_API_KEY requise.${c.r}`);
+      process.exit(1);
+    }
+    console.log(`\n🐘 ${c.b}Récupération des branches Neon Postgres...${c.r}`);
+    try {
+      const res = await fetch(`https://console.neon.tech/api/v2/projects/${projectId}/branches`, {
+        headers: {
+          "Accept": "application/json",
+          "Authorization": `Bearer ${neonKey}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json() as any;
+      const branches = data.branches || [];
+      console.log(`\n${c.b}Branches Neon Postgres (${branches.length}) :${c.r}`);
+      branches.forEach((b: any) => {
+        const defaultStr = b.primary ? ` [${c.green}PRÉDÉFINIE/PROD${c.r}]` : "";
+        console.log(`  ● ${c.b}${b.name}${c.r}${defaultStr} (${c.dim}${b.id}${c.r})`);
+        console.log(`     └─ Statut : ${c.dim}${b.current_state}${c.r} · Parent : ${c.dim}${b.parent_id || "aucun"}${c.r}`);
+      });
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur API Neon : ${err.message}${c.r}`);
+    }
+  } else if (sub === "create-branch") {
+    const neonKey = getApiKey("NEON_API_KEY");
+    const projectId = "patient-star-28731823";
+    if (!neonKey) {
+      console.error(`❌ ${c.red}Erreur : NEON_API_KEY requise.${c.r}`);
+      process.exit(1);
+    }
+    const branchName = extra;
+    if (!branchName) {
+      console.error(`❌ ${c.red}Erreur : Un nom de branche est requis.${c.r}`);
+      console.log(`Usage : bun shenron db create-branch <nom_de_branche> [parent_id]`);
+      process.exit(1);
+    }
+    const parentId = process.argv[4];
+    
+    console.log(`\n🐘 ${c.b}Création de la branche Neon "${branchName}"...${c.r}`);
+    try {
+      const bodyPayload: any = {
+        branch: { name: branchName }
+      };
+      if (parentId) {
+        bodyPayload.branch.parent_id = parentId;
+      }
+      
+      const res = await fetch(`https://console.neon.tech/api/v2/projects/${projectId}/branches`, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${neonKey}`
+        },
+        body: JSON.stringify(bodyPayload)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json() as any;
+      const newB = data.branch;
+      console.log(`\n✅ ${c.green}Branche Neon créée avec succès !${c.r}`);
+      console.log(`  ● Nom    : ${c.b}${newB.name}${c.r}`);
+      console.log(`  ● ID     : ${c.dim}${newB.id}${c.r}`);
+      console.log(`  ● Parent : ${c.dim}${newB.parent_id || "aucun"}${c.r}`);
+      
+      if (data.connection_uris && data.connection_uris[0]) {
+        console.log(`  ● URL de connexion (pooler) : ${c.cyan}${data.connection_uris[0].connection_uri}${c.r}`);
+      }
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur API Neon : ${err.message}${c.r}`);
+    }
   }
 }
 
@@ -723,6 +844,92 @@ async function runGit(sub: string) {
     } else {
       console.log("Commit annulé.");
     }
+  } else if (sub === "prs") {
+    const ghToken = getApiKey("GITHUB_TOKEN") || getApiKey("GH_TOKEN") || getApiKey("GITHUB_PERSONAL_ACCESS_TOKEN");
+    if (!ghToken) {
+      console.error(`❌ ${c.red}Erreur : GITHUB_TOKEN requis.${c.r}`);
+      process.exit(1);
+    }
+    console.log(`\n🐙 ${c.b}Récupération des Pull Requests ouvertes sur GitHub...${c.r}`);
+    try {
+      const res = await fetch("https://api.github.com/repos/aphrody-code/shenron/pulls?state=open", {
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": `Bearer ${ghToken}`,
+          "User-Agent": "Shenron-CLI"
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const prs = await res.json() as any[];
+      console.log(`\n${c.b}Pull Requests ouvertes (${prs.length}) :${c.r}`);
+      if (prs.length === 0) {
+        console.log(`  ${c.dim}Aucune PR ouverte.${c.r}`);
+      } else {
+        prs.forEach((pr) => {
+          console.log(`  ● ${c.green}#${pr.number}${c.r} ${c.b}${pr.title}${c.r}`);
+          console.log(`     └─ Auteur : ${c.dim}${pr.user?.login}${c.r} · Branche : ${c.cyan}${pr.head?.ref}${c.r}`);
+        });
+      }
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur API GitHub : ${err.message}${c.r}`);
+    }
+  } else if (sub === "runs") {
+    const ghToken = getApiKey("GITHUB_TOKEN") || getApiKey("GH_TOKEN") || getApiKey("GITHUB_PERSONAL_ACCESS_TOKEN");
+    if (!ghToken) {
+      console.error(`❌ ${c.red}Erreur : GITHUB_TOKEN requis.${c.r}`);
+      process.exit(1);
+    }
+    console.log(`\n🐙 ${c.b}Récupération des derniers runs de workflows...${c.r}`);
+    try {
+      const res = await fetch("https://api.github.com/repos/aphrody-code/shenron/actions/runs?per_page=5", {
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": `Bearer ${ghToken}`,
+          "User-Agent": "Shenron-CLI"
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json() as any;
+      const runs = data.workflow_runs || [];
+      console.log(`\n${c.b}Derniers runs GitHub Actions :${c.r}`);
+      runs.forEach((run: any) => {
+        let statusColor = c.yellow;
+        if (run.conclusion === "success") statusColor = c.green;
+        else if (run.conclusion === "failure") statusColor = c.red;
+        const conclusion = run.conclusion || run.status;
+        console.log(`  ● [${statusColor}${conclusion.toUpperCase()}${c.r}] ${c.b}${run.name}${c.r} (#${run.run_number})`);
+        console.log(`     └─ Trigger : ${c.dim}${run.event}${c.r} sur ${c.cyan}${run.head_branch}${c.r} · Par : ${c.dim}${run.triggering_actor?.login}${c.r}`);
+      });
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur API GitHub : ${err.message}${c.r}`);
+    }
+  } else if (sub === "deploy-site") {
+    const ghToken = getApiKey("GITHUB_TOKEN") || getApiKey("GH_TOKEN") || getApiKey("GITHUB_PERSONAL_ACCESS_TOKEN");
+    if (!ghToken) {
+      console.error(`❌ ${c.red}Erreur : GITHUB_TOKEN requis.${c.r}`);
+      process.exit(1);
+    }
+    console.log(`\n🚀 ${c.b}Déclenchement du workflow de déploiement de production sur GitHub Actions...${c.r}`);
+    try {
+      const res = await fetch("https://api.github.com/repos/aphrody-code/shenron/actions/workflows/deploy-vercel.yml/dispatches", {
+        method: "POST",
+        headers: {
+          "Accept": "application/vnd.github+json",
+          "Authorization": `Bearer ${ghToken}`,
+          "User-Agent": "Shenron-CLI",
+          "X-GitHub-Api-Version": "2022-11-28"
+        },
+        body: JSON.stringify({ ref: "main" })
+      });
+      if (res.status === 204) {
+        console.log(`\n✅ ${c.green}Workflow de déploiement déclenché avec succès sur la branche main !${c.r}`);
+        console.log(`Suivez le run en tapant : ${c.cyan}bun shenron git runs${c.r}`);
+      } else {
+        throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      }
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur lors du déclenchement du déploiement : ${err.message}${c.r}`);
+    }
   }
 }
 
@@ -745,6 +952,71 @@ async function runBot(sub: string) {
   } else if (sub === "logs") {
     console.log(`\n📋 ${c.b}Affichage et surveillance des logs du bot${c.r}...`);
     await $`bun --filter @shenron/bot run watch-logs`.cwd(ROOT);
+  } else if (sub === "status") {
+    console.log(`\n🔮 ${c.b}STATUT DES PERSONAS DU BOT SUR DISCORD${c.r}`);
+    const botEnv = loadBotEnv();
+    const personas = [
+      { name: "Shenron", tokenKey: "DISCORD_TOKEN" },
+      { name: "Beerus", tokenKey: "DISCORD_TOKEN_BEERUS" },
+      { name: "Whis", tokenKey: "DISCORD_TOKEN_WHIS" },
+      { name: "Grand Prêtre", tokenKey: "DISCORD_TOKEN_GRAND_PRETRE" },
+      { name: "Enma", tokenKey: "DISCORD_TOKEN_ENMA" },
+      { name: "Kaïo", tokenKey: "DISCORD_TOKEN_KAIO" }
+    ];
+    
+    let guildToken: string | undefined = undefined;
+    for (const p of personas) {
+      if (botEnv[p.tokenKey]) {
+        guildToken = botEnv[p.tokenKey];
+        break;
+      }
+    }
+    
+    const guildId = "934894610545770506";
+    if (guildToken) {
+      try {
+        const res = await fetch(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, {
+          headers: { "Authorization": `Bot ${guildToken}` }
+        });
+        if (res.ok) {
+          const g = await res.json() as any;
+          if (g) {
+            console.log(`\n🏰 ${c.b}Serveur Discord : ${g.name}${c.r}`);
+            console.log(`   ├─ Membres Totaux : ${c.green}${g.approximate_member_count?.toLocaleString()}${c.r}`);
+            console.log(`   └─ Membres En Ligne: ${c.cyan}${g.approximate_presence_count?.toLocaleString()}${c.r}`);
+          }
+        }
+      } catch {}
+    }
+    
+    console.log(`\n${c.b}Statut des Personas :${c.r}`);
+    console.log(`  ${c.b}${padText("Persona", 16)} | Statut  | ${padText("Tag Discord", 24)} | Latence${c.r}`);
+    console.log(`  ${"-".repeat(16)}-+---------+-${"-".repeat(24)}-+---------`);
+    
+    for (const p of personas) {
+      const token = botEnv[p.tokenKey];
+      if (!token) {
+        console.log(`  ${padText(p.name, 16)} | ${c.red}ABSENT${c.r}  | ${padText("-", 24)} | -`);
+        continue;
+      }
+      
+      const start = Date.now();
+      try {
+        const res = await fetch("https://discord.com/api/v10/users/@me", {
+          headers: { "Authorization": `Bot ${token}` }
+        });
+        const elapsed = Date.now() - start;
+        if (res.ok) {
+          const user = await res.json() as any;
+          const tag = `${user.username}#${user.discriminator || "0000"}`;
+          console.log(`  ${padText(p.name, 16)} | ${c.green}ONLINE${c.r}  | ${padText(tag, 24)} | ${elapsed}ms`);
+        } else {
+          console.log(`  ${padText(p.name, 16)} | ${c.yellow}HTTP ${res.status}${c.r} | ${padText("-", 24)} | ${elapsed}ms`);
+        }
+      } catch (e: any) {
+        console.log(`  ${padText(p.name, 16)} | ${c.red}OFFLINE${c.r} | ${padText("-", 24)} | ${e.message}`);
+      }
+    }
   } else {
     console.error(`❌ ${c.red}Sous-commande bot inconnue : ${sub}${c.r}`);
     console.log(`Usage :`);
@@ -767,6 +1039,65 @@ async function runSite(sub: string) {
   } else if (sub === "typecheck") {
     console.log(`\n🧪 ${c.b}Vérification des types du Site (tsc)${c.r}...`);
     await $`bun --filter @shenron/site type-check`.cwd(ROOT);
+  } else if (sub === "deployments") {
+    const vercelToken = getApiKey("VERCEL_TOKEN");
+    const projectId = "prj_wxLn9COQIo9HAOUVis08ppKXx7zI";
+    const teamId = "team_guWQJZI4ZmSLj2K3RWuU4VqM";
+    if (!vercelToken) {
+      console.error(`❌ ${c.red}Erreur : VERCEL_TOKEN requis.${c.r}`);
+      process.exit(1);
+    }
+    console.log(`\n▲ ${c.b}Récupération des derniers déploiements Vercel...${c.r}`);
+    try {
+      const res = await fetch(`https://api.vercel.com/v6/deployments?projectId=${projectId}&teamId=${teamId}&limit=5`, {
+        headers: {
+          "Authorization": `Bearer ${vercelToken}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json() as any;
+      const deployments = data.deployments || [];
+      console.log(`\n${c.b}Derniers déploiements Vercel (${deployments.length}) :${c.r}`);
+      deployments.forEach((d: any) => {
+        let stateColor = c.yellow;
+        if (d.state === "READY") stateColor = c.green;
+        else if (d.state === "ERROR" || d.state === "CANCELED") stateColor = c.red;
+        console.log(`  ● [${stateColor}${d.state}${c.r}] ${c.b}https://${d.url}${c.r}`);
+        console.log(`     └─ Branche : ${c.cyan}${d.meta?.githubCommitRef || "N/A"}${c.r} · Message : ${c.dim}${d.meta?.githubCommitMessage?.split("\n")[0] || "N/A"}${c.r}`);
+      });
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur API Vercel : ${err.message}${c.r}`);
+    }
+  } else if (sub === "info") {
+    const vercelToken = getApiKey("VERCEL_TOKEN");
+    const projectId = "prj_wxLn9COQIo9HAOUVis08ppKXx7zI";
+    const teamId = "team_guWQJZI4ZmSLj2K3RWuU4VqM";
+    if (!vercelToken) {
+      console.error(`❌ ${c.red}Erreur : VERCEL_TOKEN requis.${c.r}`);
+      process.exit(1);
+    }
+    console.log(`\n▲ ${c.b}Récupération des détails du projet Vercel...${c.r}`);
+    try {
+      const res = await fetch(`https://api.vercel.com/v9/projects/${projectId}?teamId=${teamId}`, {
+        headers: {
+          "Authorization": `Bearer ${vercelToken}`
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const p = await res.json() as any;
+      console.log(`\n${c.b}Projet Vercel : ${p.name}${c.r}`);
+      console.log(`  ├─ Framework   : ${c.dim}${p.framework}${c.r}`);
+      console.log(`  ├─ Node Version: ${c.dim}${p.nodeVersion}${c.r}`);
+      console.log(`  ├─ Repository  : ${c.dim}https://github.com/${p.link?.org}/${p.link?.repo}${c.r}`);
+      console.log(`  └─ Domaines configurés :`);
+      if (p.targets?.production?.domainAliases) {
+        p.targets.production.domainAliases.forEach((alias: string) => {
+          console.log(`     └─ ${c.green}https://${alias}${c.r}`);
+        });
+      }
+    } catch (err: any) {
+      console.error(`❌ ${c.red}Erreur API Vercel : ${err.message}${c.r}`);
+    }
   } else {
     console.error(`❌ ${c.red}Sous-commande site inconnue : ${sub}${c.r}`);
     console.log(`Usage :`);
@@ -890,20 +1221,25 @@ ${c.b}Commandes principales :${c.r}
      ${c.dim}--restart${c.r}                   Redémarrer le bot sans compilation CSS
      ${c.dim}--build${c.r}                     Compiler uniquement le CSS (skip restart)
 
-  ${c.green}bot${c.r} [doctor|gen-entries|seed|logs]  Administrer l'application Discord (Bot)
+  ${c.green}bot${c.r} [doctor|gen-entries|seed|logs|status] Administrer l'application Discord (Bot)
      ${c.dim}doctor${c.r}                      Vérifier le runtime, le token et la santé
      ${c.dim}gen-entries${c.r}                 Générer src/_entries.ts pour auto-load commands
      ${c.dim}seed${c.r}                        Initialiser les triggers et rewards SQLite
      ${c.dim}logs${c.r}                        Inspecter les logs applicatifs du bot
+     ${c.dim}status${c.r}                      Afficher le statut live Discord de chaque persona
 
-  ${c.green}site${c.r} [build|typecheck]          Gérer le site Next.js de production
+  ${c.green}site${c.r} [build|typecheck|deployments|info] Gérer le site Next.js de production
      ${c.dim}build${c.r}                       Compiler le site avec Next compiler (Turbopack)
      ${c.dim}typecheck${c.r}                   Lancer le compilateur TypeScript sur le code site
+     ${c.dim}deployments${c.r}               Lister les derniers déploiements Vercel (API cloud)
+     ${c.dim}info${c.r}                      Afficher les informations du projet Vercel (API cloud)
 
-  ${c.green}db${c.r} [status|migrate|sync]       Gérer SQLite & Neon (Postgres)
+  ${c.green}db${c.r} [status|migrate|sync|branches|create-branch] Gérer SQLite & Neon (Postgres)
      ${c.dim}status${c.r}                      Taille, connexion et comparaison des tables
      ${c.dim}migrate [bot|site|all]${c.r}       Exécuter les migrations Drizzle
      ${c.dim}sync [push|pull]${c.r}              Transférer la DB (push SQLite➔Neon, pull Neon➔SQLite)
+     ${c.dim}branches${c.r}                  Lister les branches Neon Postgres (API cloud)
+     ${c.dim}create-branch <nom> [parent]${c.r} Créer une nouvelle branche Neon (API cloud)
 
   ${c.green}rag${c.r} [status|build|refresh|eval]  Gérer l'index RAG et les embeddings
      ${c.dim}status${c.r}                      Diagnostic du RAG, chunks et sidecar embed
@@ -938,9 +1274,12 @@ ${c.b}Commandes principales :${c.r}
      ${c.dim}check${c.r}                       Lancer lint + type-check + format check
      ${c.dim}fix${c.r}                         Appliquer oxlint --fix + oxfmt
 
-  ${c.green}git${c.r} [status|commit]             Gestion Git & conventions
+  ${c.green}git${c.r} [status|commit|prs|runs|deploy-site] Gestion Git & conventions
      ${c.dim}status${c.r}                      Statut de travail & contrôle conventions commit
      ${c.dim}commit${c.r}                      Assistant de commit interactif (CLAUDE.md)
+     ${c.dim}prs${c.r}                         Lister les pull requests ouvertes sur GitHub
+     ${c.dim}runs${c.r}                        Lister les derniers runs GitHub Actions
+     ${c.dim}deploy-site${c.r}                 Déclencher le déploiement Vercel via GitHub API
 `);
 }
 
@@ -980,7 +1319,7 @@ async function main() {
     }
       
     case "db": {
-      const dbSub = ["status", "migrate", "sync"].includes(sub) ? sub : "status";
+      const dbSub = ["status", "migrate", "sync", "branches", "create-branch"].includes(sub) ? sub : "status";
       const dbExtra = args[2];
       await runDb(dbSub, dbExtra);
       break;
@@ -1033,19 +1372,19 @@ async function main() {
     }
       
     case "git": {
-      const gitSub = ["status", "check", "commit"].includes(sub) ? sub : "status";
+      const gitSub = ["status", "check", "commit", "prs", "runs", "deploy-site"].includes(sub) ? sub : "status";
       await runGit(gitSub);
       break;
     }
     
     case "bot": {
-      const botSub = ["doctor", "gen-entries", "seed", "logs"].includes(sub) ? sub : "doctor";
+      const botSub = ["doctor", "gen-entries", "seed", "logs", "status"].includes(sub) ? sub : "doctor";
       await runBot(botSub);
       break;
     }
     
     case "site": {
-      const siteSub = ["build", "typecheck"].includes(sub) ? sub : "build";
+      const siteSub = ["build", "typecheck", "deployments", "info"].includes(sub) ? sub : "build";
       await runSite(siteSub);
       break;
     }
