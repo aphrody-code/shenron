@@ -23,10 +23,7 @@ export function SiteNav() {
 	return (
 		// `view-transition-name` → la nav reste fixe pendant les slides
 		// directionnels (point d'ancrage spatial). CSS dans globals.css.
-		<header
-			className="sticky top-0 z-50 w-full"
-			style={{ viewTransitionName: "site-header" }}
-		>
+		<header className="sticky top-0 z-50 w-full" style={{ viewTransitionName: "site-header" }}>
 			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
 
 			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 h-16 flex items-center gap-8">

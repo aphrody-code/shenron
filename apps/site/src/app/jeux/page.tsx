@@ -87,27 +87,18 @@ export default function JeuxPage() {
 						/>
 						<div className="relative z-10 flex flex-col flex-1">
 							<div className="flex items-baseline justify-between mb-1">
-								<h2 className={`text-3xl font-saiyan uppercase ${g.palette}`}>
-									{g.name}
-								</h2>
+								<h2 className={`text-3xl font-saiyan uppercase ${g.palette}`}>{g.name}</h2>
 								<code className="text-dbz-orange font-mono">{g.cmd}</code>
 							</div>
 							<div className="flex items-center gap-3 mb-3">
 								<span className="text-[10px] uppercase tracking-widest text-dbz-blue-light">
 									Mode : {g.variant}
 								</span>
-								<span className="scouter-text text-[10px] tracking-widest">
-									⚡ {g.power}
-								</span>
+								<span className="scouter-text text-[10px] tracking-widest">⚡ {g.power}</span>
 							</div>
-							<p className="text-sm text-gray-300 leading-relaxed flex-1">
-								{g.desc}
-							</p>
+							<p className="text-sm text-gray-300 leading-relaxed flex-1">{g.desc}</p>
 							{g.play ? (
-								<a
-									href={g.play}
-									className="dbz-button mt-4 self-start !text-sm"
-								>
+								<a href={g.play} className="dbz-button mt-4 self-start !text-sm">
 									JOUER
 								</a>
 							) : (
@@ -121,16 +112,13 @@ export default function JeuxPage() {
 			</div>
 
 			<section className="mt-10 dbz-panel hud-frame p-6 text-center relative overflow-hidden">
-				<div
-					className="absolute inset-0 halftone opacity-20 pointer-events-none"
-					aria-hidden
-				/>
+				<div className="absolute inset-0 halftone opacity-20 pointer-events-none" aria-hidden />
 				<p className="font-saiyan text-2xl text-dbz-orange uppercase mb-2 relative z-10 ki-pulse">
 					Récompenses
 				</p>
 				<p className="text-sm text-gray-300 relative z-10">
-					Victoire : <span className="text-dbz-yellow font-bold">+100 ¥</span> ·
-					Défaite : <span className="text-red-400 font-bold">−50 ¥</span>
+					Victoire : <span className="text-dbz-yellow font-bold">+100 ¥</span> · Défaite :{" "}
+					<span className="text-red-400 font-bold">−50 ¥</span>
 				</p>
 			</section>
 		</div>

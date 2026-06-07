@@ -7,13 +7,7 @@
  * flash, tremblement, charge de power level). Aucun style global redéfini.
  */
 
-import {
-	useEffect,
-	useRef,
-	useState,
-	type CSSProperties,
-	type ReactNode,
-} from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import styles from "./games.module.css";
 
 type AuraColor = "orange" | "yellow" | "blue" | "red" | "green" | "purple";
@@ -163,10 +157,7 @@ export function KiReactor({
 	className?: string;
 }) {
 	return (
-		<div
-			className={`relative grid place-items-center ${className}`}
-			aria-hidden
-		>
+		<div className={`relative grid place-items-center ${className}`} aria-hidden>
 			<div
 				className={`absolute inset-0 rounded-full speed-lines ${active ? styles.kiSpin : ""}`}
 				style={{ opacity: active ? 0.8 : 0.35 }}

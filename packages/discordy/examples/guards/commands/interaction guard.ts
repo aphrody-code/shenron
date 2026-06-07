@@ -4,23 +4,22 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import {
-  ApplicationCommandType,
-  type ContextMenuCommandInteraction,
-} from "discord.js";
+import { ApplicationCommandType, type ContextMenuCommandInteraction } from "discord.js";
 import { ContextMenu, Discord, Guard, type GuardFunction } from "@rpbey/discordy";
 
-export const InteractionGuard: GuardFunction<
-  ContextMenuCommandInteraction
-> = async (_interaction, _client, next) => {
-  await next();
+export const InteractionGuard: GuardFunction<ContextMenuCommandInteraction> = async (
+	_interaction,
+	_client,
+	next
+) => {
+	await next();
 };
 
 @Discord()
 export class Example {
-  @ContextMenu({ name: "Check details", type: ApplicationCommandType.User })
-  @Guard(InteractionGuard)
-  userHandler(interaction: ContextMenuCommandInteraction): void {
-    console.log(`Selected user: ${interaction.targetId}`);
-  }
+	@ContextMenu({ name: "Check details", type: ApplicationCommandType.User })
+	@Guard(InteractionGuard)
+	userHandler(interaction: ContextMenuCommandInteraction): void {
+		console.log(`Selected user: ${interaction.targetId}`);
+	}
 }

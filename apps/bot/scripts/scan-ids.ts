@@ -1,10 +1,5 @@
 import "reflect-metadata";
-import {
-	Client,
-	GatewayIntentBits,
-	ChannelType,
-	type GuildChannel,
-} from "discord.js";
+import { Client, GatewayIntentBits, ChannelType, type GuildChannel } from "discord.js";
 import { env } from "~/lib/env";
 
 const OUT = `${import.meta.dir}/../data/guild-scan.json`;
@@ -55,8 +50,7 @@ const channelTypeLabel = (t: ChannelType) => {
 const channels = [...guild.channels.cache.values()]
 	.toSorted(
 		(a, b) =>
-			a.type - b.type ||
-			((a as GuildChannel).position ?? 0) - ((b as GuildChannel).position ?? 0),
+			a.type - b.type || ((a as GuildChannel).position ?? 0) - ((b as GuildChannel).position ?? 0)
 	)
 	.map((c) => {
 		const gc = c as GuildChannel;
@@ -65,9 +59,7 @@ const channels = [...guild.channels.cache.values()]
 			name: c.name,
 			type: channelTypeLabel(c.type),
 			parentId: gc.parentId ?? null,
-			parentName: gc.parentId
-				? (guild.channels.cache.get(gc.parentId)?.name ?? null)
-				: null,
+			parentName: gc.parentId ? (guild.channels.cache.get(gc.parentId)?.name ?? null) : null,
 			position: gc.position ?? null,
 		};
 	});
@@ -118,9 +110,7 @@ const payload = {
 
 await Bun.write(OUT, JSON.stringify(payload, null, 2));
 console.log(`✓ ${OUT}`);
-console.log(
-	`   channels=${channels.length}  roles=${roles.length}  users=${users.length}`,
-);
+console.log(`   channels=${channels.length}  roles=${roles.length}  users=${users.length}`);
 
 await client.destroy();
 process.exit(0);

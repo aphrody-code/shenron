@@ -12,21 +12,21 @@ import { NotBot } from "../guards/NotBot.js";
 
 @Discord()
 export class Example {
-  @On()
-  @Guard(NotBot)
-  messageCreate([message]: ArgsOf<Events.MessageCreate>): void {
-    console.log(message.content);
-  }
+	@On()
+	@Guard(NotBot)
+	messageCreate([message]: ArgsOf<Events.MessageCreate>): void {
+		console.log(message.content);
+	}
 
-  @Slash({ description: "hello" })
-  @Guard(NotBot)
-  hello(interaction: CommandInteraction): void {
-    console.log(interaction);
-  }
+	@Slash({ description: "hello" })
+	@Guard(NotBot)
+	hello(interaction: CommandInteraction): void {
+		console.log(interaction);
+	}
 
-  @Slash({ description: "errorGuard", name: "error-guard" })
-  @Guard(ErrorHandler, NotBot)
-  errorGuard(): void {
-    throw Error("My custom error");
-  }
+	@Slash({ description: "errorGuard", name: "error-guard" })
+	@Guard(ErrorHandler, NotBot)
+	errorGuard(): void {
+		throw Error("My custom error");
+	}
 }

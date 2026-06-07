@@ -20,9 +20,7 @@ type Options = {
  */
 export function useLiveEvents({ max = 100, filter }: Options = {}) {
 	const [events, setEvents] = useState<BotEvent[]>([]);
-	const [status, setStatus] = useState<"connecting" | "open" | "closed">(
-		"connecting",
-	);
+	const [status, setStatus] = useState<"connecting" | "open" | "closed">("connecting");
 	const sourceRef = useRef<EventSource | null>(null);
 
 	useEffect(() => {

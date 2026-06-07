@@ -44,13 +44,11 @@ function parseSubtitles(raw: string): SubtitleTrack[] {
 		if (!t || typeof t !== "object") continue;
 		const lang = String((t as Record<string, unknown>).lang ?? "").trim();
 		const src = String((t as Record<string, unknown>).src ?? "").trim();
-		const label =
-			String((t as Record<string, unknown>).label ?? "").trim() || lang;
+		const label = String((t as Record<string, unknown>).label ?? "").trim() || lang;
 		// `src` = chemin d'asset bot (.vtt/.srt) ou URL .vtt. On rejette tout le
 		// reste pour éviter d'injecter une source douteuse dans le lecteur.
 		const okSrc =
-			/^assets\/subtitles\/[\w.\-/]+\.(srt|vtt)$/.test(src) ||
-			/^https?:\/\/\S+\.vtt$/.test(src);
+			/^assets\/subtitles\/[\w.\-/]+\.(srt|vtt)$/.test(src) || /^https?:\/\/\S+\.vtt$/.test(src);
 		if (lang && okSrc) out.push({ lang, label, src });
 	}
 	return out;
@@ -82,11 +80,13 @@ export async function updateEpisodeMedia(episodeId: number, formData: FormData) 
  */
 export async function uploadEpisodeSubtitle(
 	episodeId: number,
-	formData: FormData,
+	formData: FormData
 ): Promise<{ src: string } | { error: string }> {
 	await requireAdmin();
 	const file = formData.get("file");
-	const lang = String(formData.get("lang") ?? "").trim().toLowerCase();
+	const lang = String(formData.get("lang") ?? "")
+		.trim()
+		.toLowerCase();
 	if (!(file instanceof File) || file.size === 0) return { error: "Aucun fichier" };
 	if (!/^[a-z]{2,5}(-[a-z]{2,5})?$/.test(lang)) return { error: "Langue invalide (ex. fr)" };
 
@@ -104,9 +104,7 @@ export async function uploadEpisodeSubtitle(
 			body: upstream,
 			cache: "no-store",
 		});
-		const data = (await res.json().catch(() => null)) as
-			| { src?: string; error?: string }
-			| null;
+		const data = (await res.json().catch(() => null)) as { src?: string; error?: string } | null;
 		if (!res.ok || !data?.src) {
 			return { error: data?.error ?? `Upload échoué (${res.status})` };
 		}

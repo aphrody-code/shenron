@@ -48,8 +48,7 @@ function getSecret(): string {
 	// SESSION_SECRET dédié si défini ; sinon dérive d'API_ADMIN_TOKEN (rétro-compat).
 	// Avantage : rotation API_ADMIN_TOKEN sans invalider les sessions OAuth.
 	if (env.SESSION_SECRET) return env.SESSION_SECRET;
-	if (!env.API_ADMIN_TOKEN)
-		throw new Error("SESSION_SECRET ou API_ADMIN_TOKEN requis");
+	if (!env.API_ADMIN_TOKEN) throw new Error("SESSION_SECRET ou API_ADMIN_TOKEN requis");
 	return env.API_ADMIN_TOKEN;
 }
 
@@ -75,13 +74,9 @@ async function hmac(payload: string): Promise<string> {
 		new TextEncoder().encode(getSecret()),
 		{ name: "HMAC", hash: "SHA-256" },
 		false,
-		["sign"],
+		["sign"]
 	);
-	const sig = await crypto.subtle.sign(
-		"HMAC",
-		key,
-		new TextEncoder().encode(payload),
-	);
+	const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
 	return b64url(sig);
 }
 
@@ -110,9 +105,7 @@ export async function createSession(user?: CreateSessionUser): Promise<string> {
 	return `${encoded}.${sig}`;
 }
 
-export async function verifySession(
-	cookie: string | null,
-): Promise<SessionPayload | null> {
+export async function verifySession(cookie: string | null): Promise<SessionPayload | null> {
 	if (!cookie) return null;
 	const [encoded, sig] = cookie.split(".");
 	if (!encoded || !sig) return null;
@@ -121,8 +114,7 @@ export async function verifySession(
 		// Comparaison constant-time
 		if (sig.length !== expected.length) return null;
 		let diff = 0;
-		for (let i = 0; i < sig.length; i++)
-			diff |= sig.charCodeAt(i) ^ expected.charCodeAt(i);
+		for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expected.charCodeAt(i);
 		if (diff !== 0) return null;
 		const json = new TextDecoder().decode(b64urlDecode(encoded));
 		const payload = JSON.parse(json) as SessionPayload;

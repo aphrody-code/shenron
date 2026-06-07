@@ -58,10 +58,9 @@ export default async function AdminAssetsPage({
 			/>
 
 			<p className="text-sm text-white/50 mb-5">
-				Galerie des images de l&apos;encyclopédie, organisées par catégorie
-				source. Cliquez sur une image pour l&apos;ouvrir en pleine taille.
-				Survolez pour voir l&apos;attribution et la licence. Modifiez ou
-				supprimez un média via les boutons sous chaque image.
+				Galerie des images de l&apos;encyclopédie, organisées par catégorie source. Cliquez sur une
+				image pour l&apos;ouvrir en pleine taille. Survolez pour voir l&apos;attribution et la
+				licence. Modifiez ou supprimez un média via les boutons sous chaque image.
 			</p>
 
 			<div className="flex justify-end mb-4">
@@ -69,10 +68,7 @@ export default async function AdminAssetsPage({
 			</div>
 
 			{/* Navigation catégories */}
-			<nav
-				className="mb-6 flex flex-wrap gap-2"
-				aria-label="Catégorie d'assets"
-			>
+			<nav className="mb-6 flex flex-wrap gap-2" aria-label="Catégorie d'assets">
 				{BUCKETS.map((b) => (
 					<Link
 						key={b.key}
@@ -94,9 +90,8 @@ export default async function AdminAssetsPage({
 						Aucun média dans cette catégorie
 					</p>
 					<p className="text-white/40 text-sm">
-						La catégorie{" "}
-						<strong className="text-white/60">{bucketLabel}</strong> ne contient
-						pas encore d&apos;images.
+						La catégorie <strong className="text-white/60">{bucketLabel}</strong> ne contient pas
+						encore d&apos;images.
 					</p>
 				</div>
 			) : (

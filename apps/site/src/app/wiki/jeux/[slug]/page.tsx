@@ -23,8 +23,7 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const g = await dbUniverse.game(slug);
 	if (!g) return { title: "Jeu — DBFR" };
-	const description =
-		g.description ?? `${g.title} (${g.developer ?? "Bandai Namco"}).`;
+	const description = g.description ?? `${g.title} (${g.developer ?? "Bandai Namco"}).`;
 	return {
 		title: `${g.title} — Jeu vidéo Dragon Ball | DBFR`,
 		description,
@@ -36,11 +35,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function GamePage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const g = await dbUniverse.game(slug);
 	if (!g) notFound();
@@ -53,14 +48,16 @@ export default async function GamePage({
 	const jsonLdData: WithContext<VideoGame> = {
 		"@context": "https://schema.org",
 		"@type": "VideoGame",
-		"name": g.title,
-		"image": g.cover ? assetUrl(g.cover) : undefined,
-		"description": g.description ?? undefined,
-		"genre": "Fighting",
-		"author": g.developer ? { "@type": "Organization", "name": g.developer } : undefined,
-		"publisher": g.publisher ? { "@type": "Organization", "name": g.publisher } : undefined,
-		"gamePlatform": platforms,
-		"datePublished": g.release_date ? new Date(g.release_date * 1000).toISOString().split("T")[0] : undefined,
+		name: g.title,
+		image: g.cover ? assetUrl(g.cover) : undefined,
+		description: g.description ?? undefined,
+		genre: "Fighting",
+		author: g.developer ? { "@type": "Organization", name: g.developer } : undefined,
+		publisher: g.publisher ? { "@type": "Organization", name: g.publisher } : undefined,
+		gamePlatform: platforms,
+		datePublished: g.release_date
+			? new Date(g.release_date * 1000).toISOString().split("T")[0]
+			: undefined,
 	};
 
 	return (
@@ -93,11 +90,7 @@ export default async function GamePage({
 					<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-3">
 						{g.title}
 					</h1>
-					{g.title_ja && (
-						<p className="font-jp text-[20px] text-dbz-orange/85">
-							{g.title_ja}
-						</p>
-					)}
+					{g.title_ja && <p className="font-jp text-[20px] text-dbz-orange/85">{g.title_ja}</p>}
 				</div>
 			</header>
 

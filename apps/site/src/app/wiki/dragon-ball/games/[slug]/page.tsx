@@ -33,11 +33,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function GameDetailPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function GameDetailPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const game = await getShenronGame(slug);
 
@@ -73,7 +69,7 @@ export default async function GameDetailPage({
 							</div>
 						)}
 					</div>
-					
+
 					{game.officialUrl && (
 						<a
 							href={game.officialUrl}
@@ -95,9 +91,7 @@ export default async function GameDetailPage({
 							{game.title}
 						</h1>
 						{game.titleJa && (
-							<p className="font-jp text-2xl text-dbz-orange/80 mb-8">
-								{game.titleJa}
-							</p>
+							<p className="font-jp text-2xl text-dbz-orange/80 mb-8">{game.titleJa}</p>
 						)}
 						<div className="flex flex-wrap gap-4 text-xs font-bold uppercase tracking-widest">
 							{game.releaseDate && (
@@ -120,10 +114,15 @@ export default async function GameDetailPage({
 
 					{game.platforms && (
 						<section className="space-y-4">
-							<h2 className="font-saiyan text-2xl text-white uppercase tracking-widest">Plateformes</h2>
+							<h2 className="font-saiyan text-2xl text-white uppercase tracking-widest">
+								Plateformes
+							</h2>
 							<div className="flex flex-wrap gap-2">
 								{game.platforms.split(",").map((p) => (
-									<span key={p} className="px-4 py-2 bg-dbz-bg border border-dbz-border text-white font-bold text-[10px] uppercase tracking-widest rounded">
+									<span
+										key={p}
+										className="px-4 py-2 bg-dbz-bg border border-dbz-border text-white font-bold text-[10px] uppercase tracking-widest rounded"
+									>
 										{p.trim()}
 									</span>
 								))}
@@ -134,7 +133,9 @@ export default async function GameDetailPage({
 					{game.description && (
 						<section className="dbz-panel p-8 relative overflow-hidden">
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-							<h2 className="font-saiyan text-2xl text-dbz-orange mb-4 uppercase tracking-widest">Présentation</h2>
+							<h2 className="font-saiyan text-2xl text-dbz-orange mb-4 uppercase tracking-widest">
+								Présentation
+							</h2>
 							<div className="prose prose-invert max-w-none wiki-content">
 								<WikiMarkdown body={game.description} />
 							</div>

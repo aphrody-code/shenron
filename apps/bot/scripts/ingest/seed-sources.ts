@@ -153,6 +153,4 @@ const src = await db.select().from(dbSources);
 if (src.length === 0) {
 	await db.insert(dbSources).values(SOURCES);
 }
-console.log(
-	`OK seed-sources : ${LICENSES.length} licences, ${SOURCES.length} sources`,
-);
+console.log(`OK seed-sources : ${LICENSES.length} licences, ${SOURCES.length} sources`);

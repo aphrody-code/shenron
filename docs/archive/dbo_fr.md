@@ -21,12 +21,12 @@ _No framework detected._
 
 ## Asset hosts (40 total)
 
-| Host | Asset count |
-|---|---|
-| `fr.dragon-ball-official.com` | 35 |
-| `platform.twitter.com` | 2 |
-| `www.googletagmanager.com` | 2 |
-| `cdn.cookielaw.org` | 1 |
+| Host                          | Asset count |
+| ----------------------------- | ----------- |
+| `fr.dragon-ball-official.com` | 35          |
+| `platform.twitter.com`        | 2           |
+| `www.googletagmanager.com`    | 2           |
+| `cdn.cookielaw.org`           | 1           |
 
 ### script (15)
 
@@ -78,4 +78,5 @@ _No framework detected._
 ## CSS selectors (0 total) — sample top 50
 
 ```css
+
 ```

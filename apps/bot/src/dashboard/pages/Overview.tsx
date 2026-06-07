@@ -22,10 +22,8 @@ export function Overview() {
 	const avgPing =
 		bots.data && onlineCount > 0
 			? Math.round(
-					bots.data.bots
-						.filter((b) => b.online)
-						.reduce((s, b) => s + Math.max(0, b.wsPing), 0) /
-						Math.max(1, onlineCount),
+					bots.data.bots.filter((b) => b.online).reduce((s, b) => s + Math.max(0, b.wsPing), 0) /
+						Math.max(1, onlineCount)
 				)
 			: null;
 
@@ -46,9 +44,7 @@ export function Overview() {
 				</KPICard>
 
 				<KPICard title="Joueurs en base" icon={<Users className="h-4 w-4" />}>
-					<p className="text-3xl font-bold text-brand-400">
-						{stats.data?.stats.totalUsers ?? "—"}
-					</p>
+					<p className="text-3xl font-bold text-brand-400">{stats.data?.stats.totalUsers ?? "—"}</p>
 					<p className="mt-2 text-xs text-zinc-400">
 						{stats.data?.stats.totalActiveUsers ?? "—"} actifs ·{" "}
 						{stats.data?.stats.totalGuilds ?? "—"} serveur
@@ -56,10 +52,7 @@ export function Overview() {
 					</p>
 				</KPICard>
 
-				<KPICard
-					title="Latence moyenne"
-					icon={<Activity className="h-4 w-4" />}
-				>
+				<KPICard title="Latence moyenne" icon={<Activity className="h-4 w-4" />}>
 					<p className="text-3xl font-bold">
 						{avgPing !== null ? avgPing : "—"}
 						<span className="text-sm text-zinc-500"> ms</span>
@@ -74,14 +67,11 @@ export function Overview() {
 						{health.data ? formatBytes(health.data.pid.rss).split(" ")[0] : "—"}
 						<span className="text-sm text-zinc-500">
 							{" "}
-							{health.data
-								? formatBytes(health.data.pid.rss).split(" ")[1]
-								: ""}
+							{health.data ? formatBytes(health.data.pid.rss).split(" ")[1] : ""}
 						</span>
 					</p>
 					<p className="mt-2 text-xs text-zinc-400">
-						CPU {health.data?.pid.cpu ?? "—"} % · machine{" "}
-						{health.data?.host.cpu.usage ?? "—"} %
+						CPU {health.data?.pid.cpu ?? "—"} % · machine {health.data?.host.cpu.usage ?? "—"} %
 					</p>
 				</KPICard>
 			</div>
@@ -114,9 +104,7 @@ export function Overview() {
 							<dd>
 								{formatBytes(health.data.host.memory.used)} /{" "}
 								{formatBytes(health.data.host.memory.total)}{" "}
-								<span className="text-zinc-500">
-									({health.data.host.memory.usage} %)
-								</span>
+								<span className="text-zinc-500">({health.data.host.memory.usage} %)</span>
 							</dd>
 						</div>
 						<div className="flex justify-between border-b border-zinc-900 py-1">
@@ -177,8 +165,7 @@ function BotCard({ bot }: { bot: BotSummary }) {
 				<p className="mt-0.5 text-xs text-zinc-500">
 					{bot.online ? (
 						<>
-							{bot.wsPing} ms · uptime{" "}
-							{bot.uptime ? formatDuration(bot.uptime) : "—"}
+							{bot.wsPing} ms · uptime {bot.uptime ? formatDuration(bot.uptime) : "—"}
 						</>
 					) : (
 						"Hors ligne"

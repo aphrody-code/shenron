@@ -24,8 +24,7 @@ export function PageHero({
 	right?: ReactNode;
 	height?: "sm" | "md" | "lg";
 }) {
-	const h =
-		height === "sm" ? "h-[300px]" : height === "lg" ? "h-[520px]" : "h-[420px]";
+	const h = height === "sm" ? "h-[300px]" : height === "lg" ? "h-[520px]" : "h-[420px]";
 	return (
 		<section
 			className={`relative ${h} w-full overflow-hidden border-b border-white/[0.08] vignette film-grain`}
@@ -58,11 +57,7 @@ export function PageHero({
 					<h1 className="font-display font-bold text-[42px] md:text-[60px] leading-[1.02] tracking-[-0.015em] text-white mb-4 drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
 						{title}
 					</h1>
-					{lead && (
-						<p className="text-[17px] leading-relaxed text-white/85 max-w-xl">
-							{lead}
-						</p>
-					)}
+					{lead && <p className="text-[17px] leading-relaxed text-white/85 max-w-xl">{lead}</p>}
 				</div>
 				{right && <div className="shrink-0 ml-6 hidden md:block">{right}</div>}
 			</div>

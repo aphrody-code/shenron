@@ -66,10 +66,10 @@ export const WIKI_TABLES: Record<string, ResolvedTable> = Object.fromEntries(
 		if (!table) throw new Error(`[wiki-admin] table Drizzle absente: ${name}`);
 		// Les clés camelCase exposées par l'objet Drizzle (colonnes du select).
 		const columns = Object.keys(table).filter(
-			(k) => table[k] && typeof table[k] === "object" && "name" in table[k],
+			(k) => table[k] && typeof table[k] === "object" && "name" in table[k]
 		);
 		return [name, { ...spec, table, columns }];
-	}),
+	})
 );
 
 export function isWikiTable(name: string): name is keyof typeof WIKI_TABLES {
@@ -102,11 +102,7 @@ function coerceValue(spec: ResolvedTable, key: string, value: unknown): unknown 
  * Filtre + coerce un body entrant aux colonnes mutables uniquement (whitelist).
  * `forInsert` autorise en plus la pk simple si fournie (jamais générée si absente).
  */
-function buildValues(
-	spec: ResolvedTable,
-	body: Row,
-	{ forInsert }: { forInsert: boolean },
-): Row {
+function buildValues(spec: ResolvedTable, body: Row, { forInsert }: { forInsert: boolean }): Row {
 	const out: Row = {};
 	const allowed = new Set(spec.mutableColumns);
 	// À l'insert, on autorise aussi la/les pk si explicitement fournies.
@@ -141,9 +137,7 @@ function pkCondition(spec: ResolvedTable, id: string): SQL {
 	const keys = pkCamelKeys(spec);
 	const parts = keys.length > 1 ? id.split(/[,:]/) : [id];
 	if (parts.length !== keys.length) {
-		throw new Error(
-			`pk composite ${spec.name} attend ${keys.length} valeurs (reçu "${id}")`,
-		);
+		throw new Error(`pk composite ${spec.name} attend ${keys.length} valeurs (reçu "${id}")`);
 	}
 	const conds = keys.map((key, i) => {
 		const raw = parts[i]?.trim() ?? "";
@@ -166,17 +160,13 @@ function toSnakeRow(row: Row): Row {
 
 export async function listWiki(
 	table: string,
-	{ limit = 50, offset = 0 }: { limit?: number; offset?: number } = {},
+	{ limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}
 ): Promise<{ rows: Row[]; total: number; limit: number; offset: number }> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
 	const lim = Math.min(500, Math.max(1, limit));
 	const off = Math.max(0, offset);
-	const rows = (await db
-		.select()
-		.from(spec.table)
-		.limit(lim)
-		.offset(off)) as Row[];
+	const rows = (await db.select().from(spec.table).limit(lim).offset(off)) as Row[];
 	const [{ value: total = 0 } = { value: 0 }] = await db
 		.select({ value: count() })
 		.from(spec.table);
@@ -186,11 +176,7 @@ export async function listWiki(
 export async function getWikiRow(table: string, id: string): Promise<Row | null> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
-	const rows = (await db
-		.select()
-		.from(spec.table)
-		.where(pkCondition(spec, id))
-		.limit(1)) as Row[];
+	const rows = (await db.select().from(spec.table).where(pkCondition(spec, id)).limit(1)) as Row[];
 	return rows[0] ?? null;
 }
 
@@ -208,11 +194,7 @@ export async function insertWiki(table: string, data: Row): Promise<Row> {
 	return inserted[0] ?? values;
 }
 
-export async function updateWiki(
-	table: string,
-	id: string,
-	data: Row,
-): Promise<Row> {
+export async function updateWiki(table: string, id: string, data: Row): Promise<Row> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
 	const values = buildValues(spec, data, { forInsert: false });
@@ -220,11 +202,7 @@ export async function updateWiki(
 		throw new Error("Aucune colonne mutable fournie.");
 	}
 	const cond = pkCondition(spec, id);
-	const updated = (await db
-		.update(spec.table)
-		.set(values)
-		.where(cond)
-		.returning()) as Row[];
+	const updated = (await db.update(spec.table).set(values).where(cond).returning()) as Row[];
 	// 0 ligne matchée = pk introuvable → ne JAMAIS renvoyer un faux succès
 	// (l'admin croirait avoir sauvegardé). Le route handler mappe ça en 404.
 	if (updated.length === 0) {
@@ -247,7 +225,7 @@ export async function deleteWiki(table: string, id: string): Promise<void> {
  */
 export async function listWikiSnake(
 	table: string,
-	{ limit = 500, offset = 0 }: { limit?: number; offset?: number } = {},
+	{ limit = 500, offset = 0 }: { limit?: number; offset?: number } = {}
 ): Promise<Row[]> {
 	const { rows } = await listWiki(table, { limit, offset });
 	return rows.map(toSnakeRow);
@@ -256,10 +234,7 @@ export async function listWikiSnake(
 // ── Lectures dédiées db-universe (snake_case, miroir des endpoints publics) ──
 
 /** Épisodes d'une série, triés par numéro (snake_case). */
-export async function listEpisodesBySeries(
-	series: string,
-	limit = 500,
-): Promise<Row[]> {
+export async function listEpisodesBySeries(series: string, limit = 500): Promise<Row[]> {
 	const t = botSchema.botEpisodes;
 	const rows = (await db
 		.select()
@@ -301,10 +276,7 @@ export async function listSourcesWithLicense(): Promise<Row[]> {
 }
 
 /** Assets filtrés par préfixe de chemin (bucket), id desc, snake_case. */
-export async function listAssetsByBucket(
-	bucket: string,
-	limit = 60,
-): Promise<Row[]> {
+export async function listAssetsByBucket(bucket: string, limit = 60): Promise<Row[]> {
 	const t = botSchema.botAssets;
 	const rows = (await db
 		.select({

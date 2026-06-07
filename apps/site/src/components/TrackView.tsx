@@ -14,12 +14,7 @@ import { trackWikiView, type TelemetryEvent } from "@/lib/telemetry";
 
 type WikiViewProps = Extract<TelemetryEvent, { name: "wiki_view" }>["props"];
 
-export function TrackView({
-	entityType,
-	entityId,
-	entityName,
-	series,
-}: WikiViewProps) {
+export function TrackView({ entityType, entityId, entityName, series }: WikiViewProps) {
 	useEffect(() => {
 		trackWikiView(entityType, entityId, { entityName, series });
 		// Re-track si on navigue d'une fiche à l'autre (clé id change).

@@ -43,12 +43,7 @@ const schema = {
 	],
 	attributes: {
 		...defaultSchema.attributes,
-		"*": [
-			...(defaultSchema.attributes?.["*"] ?? []),
-			"className",
-			"style",
-			"id",
-		],
+		"*": [...(defaultSchema.attributes?.["*"] ?? []), "className", "style", "id"],
 		img: [
 			...(defaultSchema.attributes?.img ?? []),
 			"src",

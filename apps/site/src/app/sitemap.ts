@@ -109,7 +109,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 6. Épisodes
-		const episodes = await db.select({ id: botEpisodes.id, airDate: botEpisodes.airDate }).from(botEpisodes);
+		const episodes = await db
+			.select({ id: botEpisodes.id, airDate: botEpisodes.airDate })
+			.from(botEpisodes);
 		for (const ep of episodes) {
 			sitemapEntries.push({
 				url: `${SITE_URL}/wiki/episodes/${ep.id}`,
@@ -120,7 +122,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 7. Films
-		const movies = await db.select({ slug: botMovies.slug, releaseDate: botMovies.releaseDate }).from(botMovies);
+		const movies = await db
+			.select({ slug: botMovies.slug, releaseDate: botMovies.releaseDate })
+			.from(botMovies);
 		for (const movie of movies) {
 			sitemapEntries.push({
 				url: `${SITE_URL}/wiki/films/${movie.slug}`,
@@ -131,7 +135,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 8. Jeux
-		const games = await db.select({ slug: botGames.slug, releaseDate: botGames.releaseDate }).from(botGames);
+		const games = await db
+			.select({ slug: botGames.slug, releaseDate: botGames.releaseDate })
+			.from(botGames);
 		for (const game of games) {
 			sitemapEntries.push({
 				url: `${SITE_URL}/wiki/jeux/${game.slug}`,
@@ -142,7 +148,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 9. Manga Tomes/Volumes
-		const vols = await db.select({ id: botMangaVolumes.id, publishedAt: botMangaVolumes.publishedAt }).from(botMangaVolumes);
+		const vols = await db
+			.select({ id: botMangaVolumes.id, publishedAt: botMangaVolumes.publishedAt })
+			.from(botMangaVolumes);
 		for (const vol of vols) {
 			sitemapEntries.push({
 				url: `${SITE_URL}/wiki/manga/volume/${vol.id}`,
@@ -153,7 +161,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 10. Manga Chapitres
-		const chaps = await db.select({ id: botMangaChapters.id, publishedAt: botMangaChapters.publishedAt }).from(botMangaChapters);
+		const chaps = await db
+			.select({ id: botMangaChapters.id, publishedAt: botMangaChapters.publishedAt })
+			.from(botMangaChapters);
 		for (const chap of chaps) {
 			sitemapEntries.push({
 				url: `${SITE_URL}/wiki/manga/${chap.id}`,
@@ -164,7 +174,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 11. Blog posts
-		const blogPosts = await db.select({ slug: posts.slug, updatedAt: posts.updatedAt }).from(posts).where(eq(posts.published, true));
+		const blogPosts = await db
+			.select({ slug: posts.slug, updatedAt: posts.updatedAt })
+			.from(posts)
+			.where(eq(posts.published, true));
 		for (const post of blogPosts) {
 			sitemapEntries.push({
 				url: `${SITE_URL}/post/${post.slug}`,

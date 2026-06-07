@@ -25,9 +25,7 @@ export default async function NewWikiPagePage({
 					← RETOUR
 				</Link>
 			</div>
-			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">
-				NOUVELLE PAGE WIKI
-			</h1>
+			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">NOUVELLE PAGE WIKI</h1>
 
 			<WikiEditor
 				categories={allCategories.map((c) => ({ id: c.id, name: c.name }))}

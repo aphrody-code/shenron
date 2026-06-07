@@ -21,14 +21,14 @@ _No framework detected._
 
 ## Asset hosts (76 total)
 
-| Host | Asset count |
-|---|---|
-| `` | 48 |
-| `en.bandainamcoent.eu` | 9 |
-| `cdn.jsdelivr.net` | 9 |
-| `static.bandainamcoent.eu` | 8 |
-| `p325k7wa.twic.pics` | 1 |
-| `www.youtube-nocookie.com` | 1 |
+| Host                       | Asset count |
+| -------------------------- | ----------- |
+| ``                         | 48          |
+| `en.bandainamcoent.eu`     | 9           |
+| `cdn.jsdelivr.net`         | 9           |
+| `static.bandainamcoent.eu` | 8           |
+| `p325k7wa.twic.pics`       | 1           |
+| `www.youtube-nocookie.com` | 1           |
 
 ### stylesheet (10)
 
@@ -85,55 +85,141 @@ _No framework detected._
 ## CSS selectors (3106 total) — sample top 50
 
 ```css
-#block-views-block-block-news-title-block-1 .arrow {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .result .slick-slide:hover {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .row .news-exposed:hover {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .row .slick-slide.slick-current.slick-active .news-exposed {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line:nth-of-type(2n) .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line:nth-of-type(odd) .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-discover-brand-block-1 .view-discover-brand .view-content .field-content .discover_link_brand a:hover {}
-#block-views-block-galerie-personnages-block-2 .view-galerie-personnages .modale .slider-characterImage .modal-row .content {}
-#block-views-block-galerie-personnages-block-2 .view-galerie-personnages .modale .slider-characterImage .modal-row .header {}
-#block-views-block-introduction-teaser-block-1 .view-introduction-teaser .row .col-lg-5 .view-footer .view-platform-title .view-content .group-date .views-row {}
-#block-views-block-newsletter-block-1 .view-content {}
-#features-filter .form-item.form-type-checkbox {}
-#navbar-administration.navbar-oriented .navbar-tray-vertical {}
-#overlay-container {}
-#toolbar {}
-* {}
-*:after {}
-*:before {}
-.affix {}
-.ajax-progress {}
-.ajax-progress-bar {}
-.ajax-progress-bar .message {}
-.ajax-progress-bar .percentage {}
-.ajax-progress-bar .progress {}
-.ajax-progress-fullscreen {}
-.ajax-progress-throbber .message {}
-.ajax-progress-throbber .throbber {}
-.ajax-progress.ajax-progress-fullscreen {}
-.alert {}
-.alert .alert-link {}
-.alert a {}
-.alert a.btn {}
-.alert a.btn:focus {}
-.alert a.btn:hover {}
-.alert h4 {}
-.alert-danger {}
-.alert-danger .alert-link {}
-.alert-danger a {}
-.alert-danger a:focus {}
-.alert-danger a:hover {}
-.alert-danger hr {}
-.alert-dismissable {}
-.alert-dismissable .close {}
-.alert-dismissible {}
-.alert-dismissible .close {}
-.alert-info {}
-.alert-info .alert-link {}
-.alert-info a {}
-.alert-info a:focus {}
+#block-views-block-block-news-title-block-1 .arrow {
+}
+#block-views-block-block-news-title-block-1 .view-block-news-title .result .slick-slide:hover {
+}
+#block-views-block-block-news-title-block-1 .view-block-news-title .row .news-exposed:hover {
+}
+#block-views-block-block-news-title-block-1
+	.view-block-news-title
+	.row
+	.slick-slide.slick-current.slick-active
+	.news-exposed {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line:nth-of-type(2n)
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line:nth-of-type(odd)
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-discover-brand-block-1
+	.view-discover-brand
+	.view-content
+	.field-content
+	.discover_link_brand
+	a:hover {
+}
+#block-views-block-galerie-personnages-block-2
+	.view-galerie-personnages
+	.modale
+	.slider-characterImage
+	.modal-row
+	.content {
+}
+#block-views-block-galerie-personnages-block-2
+	.view-galerie-personnages
+	.modale
+	.slider-characterImage
+	.modal-row
+	.header {
+}
+#block-views-block-introduction-teaser-block-1
+	.view-introduction-teaser
+	.row
+	.col-lg-5
+	.view-footer
+	.view-platform-title
+	.view-content
+	.group-date
+	.views-row {
+}
+#block-views-block-newsletter-block-1 .view-content {
+}
+#features-filter .form-item.form-type-checkbox {
+}
+#navbar-administration.navbar-oriented .navbar-tray-vertical {
+}
+#overlay-container {
+}
+#toolbar {
+}
+* {
+}
+*:after {
+}
+*:before {
+}
+.affix {
+}
+.ajax-progress {
+}
+.ajax-progress-bar {
+}
+.ajax-progress-bar .message {
+}
+.ajax-progress-bar .percentage {
+}
+.ajax-progress-bar .progress {
+}
+.ajax-progress-fullscreen {
+}
+.ajax-progress-throbber .message {
+}
+.ajax-progress-throbber .throbber {
+}
+.ajax-progress.ajax-progress-fullscreen {
+}
+.alert {
+}
+.alert .alert-link {
+}
+.alert a {
+}
+.alert a.btn {
+}
+.alert a.btn:focus {
+}
+.alert a.btn:hover {
+}
+.alert h4 {
+}
+.alert-danger {
+}
+.alert-danger .alert-link {
+}
+.alert-danger a {
+}
+.alert-danger a:focus {
+}
+.alert-danger a:hover {
+}
+.alert-danger hr {
+}
+.alert-dismissable {
+}
+.alert-dismissable .close {
+}
+.alert-dismissible {
+}
+.alert-dismissible .close {
+}
+.alert-info {
+}
+.alert-info .alert-link {
+}
+.alert-info a {
+}
+.alert-info a:focus {
+}
 /* ... 3056 more (use --snapshot-dir to dump full list) */
 ```

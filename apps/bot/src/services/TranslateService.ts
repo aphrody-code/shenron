@@ -166,9 +166,7 @@ export class TranslateService {
 		}
 		// 2. LibreTranslate up ?
 		try {
-			const base = (
-				env.LIBRETRANSLATE_URL ?? DEFAULT_LIBRETRANSLATE_URL
-			).replace(/\/+$/, "");
+			const base = (env.LIBRETRANSLATE_URL ?? DEFAULT_LIBRETRANSLATE_URL).replace(/\/+$/, "");
 			const res = await fetch(`${base}/languages`, {
 				signal: AbortSignal.timeout(3_000),
 			});
@@ -195,7 +193,7 @@ export class TranslateService {
 		try {
 			const res = await fetch(
 				"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=fr&dt=t&q=ok",
-				{ signal: AbortSignal.timeout(3_000) },
+				{ signal: AbortSignal.timeout(3_000) }
 			);
 			this.googleAvailable = res.ok;
 		} catch {
@@ -223,16 +221,8 @@ export class TranslateService {
 		google: boolean | null;
 		libretranslate: boolean | null;
 	} {
-		const flags = [
-			this.lingvaAvailable,
-			this.googleAvailable,
-			this.libretranslateAvailable,
-		];
-		const translate = flags.includes(true)
-			? true
-			: flags.every((f) => f === false)
-				? false
-				: null;
+		const flags = [this.lingvaAvailable, this.googleAvailable, this.libretranslateAvailable];
+		const translate = flags.includes(true) ? true : flags.every((f) => f === false) ? false : null;
 		return {
 			ocr: this.tesseractAvailable,
 			translate,
@@ -264,16 +254,13 @@ export class TranslateService {
 	 * Override env reste prioritaire.
 	 */
 	private async lingvaInstancesDynamic(): Promise<string[]> {
-		const raw = await getString("translate.lingva_instances", "").catch(
-			() => "",
-		);
+		const raw = await getString("translate.lingva_instances", "").catch(() => "");
 		if (!raw.trim()) return this.lingvaInstances();
 		let list: string[] = [];
 		if (raw.trim().startsWith("[")) {
 			try {
 				const parsed = JSON.parse(raw);
-				if (Array.isArray(parsed))
-					list = parsed.filter((s) => typeof s === "string");
+				if (Array.isArray(parsed)) list = parsed.filter((s) => typeof s === "string");
 			} catch {
 				/* fallback CSV */
 			}
@@ -313,8 +300,7 @@ export class TranslateService {
 				throw new Error("URL pointe vers une adresse interne — refusée.");
 			}
 		}
-		if (host === "localhost")
-			throw new Error("URL pointe vers localhost — refusée.");
+		if (host === "localhost") throw new Error("URL pointe vers localhost — refusée.");
 		return parsed;
 	}
 
@@ -322,10 +308,7 @@ export class TranslateService {
 	 * OCR via tesseract CLI. Hard cap 10 MiB sur l'image pour éviter le freeze
 	 * de tesseract sur des PNG malicieux ; hard timeout 30 s.
 	 */
-	async ocrFromUrl(
-		imageUrl: string,
-		langs = DEFAULT_TESSERACT_LANGS,
-	): Promise<OcrResult> {
+	async ocrFromUrl(imageUrl: string, langs = DEFAULT_TESSERACT_LANGS): Promise<OcrResult> {
 		this.validateImageUrl(imageUrl);
 
 		const res = await fetch(imageUrl, {
@@ -335,29 +318,23 @@ export class TranslateService {
 		const contentLength = Number(res.headers.get("content-length") ?? 0);
 		if (contentLength > MAX_IMAGE_BYTES) {
 			throw new Error(
-				`Image trop grosse (${(contentLength / 1024 / 1024).toFixed(1)} MiB > 10 MiB).`,
+				`Image trop grosse (${(contentLength / 1024 / 1024).toFixed(1)} MiB > 10 MiB).`
 			);
 		}
 		const buf = Buffer.from(await res.arrayBuffer());
 		if (buf.byteLength > MAX_IMAGE_BYTES) {
 			throw new Error(
-				`Image trop grosse (${(buf.byteLength / 1024 / 1024).toFixed(1)} MiB > 10 MiB).`,
+				`Image trop grosse (${(buf.byteLength / 1024 / 1024).toFixed(1)} MiB > 10 MiB).`
 			);
 		}
 
 		try {
-			const proc = Bun.spawn(
-				["tesseract", "stdin", "stdout", "-l", langs, "--psm", "6"],
-				{
-					stdin: "pipe",
-					stdout: "pipe",
-					stderr: "pipe",
-				},
-			);
-			const killer = setTimeout(
-				() => proc.kill(),
-				TESSERACT_TIMEOUT_MS,
-			).unref();
+			const proc = Bun.spawn(["tesseract", "stdin", "stdout", "-l", langs, "--psm", "6"], {
+				stdin: "pipe",
+				stdout: "pipe",
+				stderr: "pipe",
+			});
+			const killer = setTimeout(() => proc.kill(), TESSERACT_TIMEOUT_MS).unref();
 			proc.stdin.write(buf);
 			await proc.stdin.end();
 			const [stdout, stderr, exitCode] = await Promise.all([
@@ -368,9 +345,7 @@ export class TranslateService {
 			clearTimeout(killer);
 			if (exitCode !== 0) {
 				const tail = stderr.split("\n").slice(-3).join(" ").trim();
-				throw new Error(
-					`tesseract exit ${exitCode}: ${tail || "erreur inconnue"}`,
-				);
+				throw new Error(`tesseract exit ${exitCode}: ${tail || "erreur inconnue"}`);
 			}
 			return { text: stdout.replace(/\r/g, "").trim(), language: langs };
 		} catch (err) {
@@ -378,7 +353,7 @@ export class TranslateService {
 				this.tesseractAvailable = false;
 				throw new Error(
 					"`tesseract` introuvable. Installer avec : `sudo apt install tesseract-ocr tesseract-ocr-fra tesseract-ocr-eng tesseract-ocr-jpn`",
-					{ cause: err },
+					{ cause: err }
 				);
 			}
 			throw err;
@@ -393,11 +368,7 @@ export class TranslateService {
 	 * @param target   Code langue cible (fr, en, ja, …) — case-insensitive.
 	 * @param source   Optionnel — si omis : auto-détection.
 	 */
-	async translate(
-		text: string,
-		target = "fr",
-		source?: string,
-	): Promise<TranslateResult> {
+	async translate(text: string, target = "fr", source?: string): Promise<TranslateResult> {
 		if (!(await getBool("features.translate", true))) {
 			throw new Error("Traduction désactivée (features.translate).");
 		}
@@ -409,20 +380,14 @@ export class TranslateService {
 				provider: "lingva",
 			};
 		}
-		const truncated =
-			text.length > MAX_TRANSLATE_CHARS
-				? text.slice(0, MAX_TRANSLATE_CHARS)
-				: text;
+		const truncated = text.length > MAX_TRANSLATE_CHARS ? text.slice(0, MAX_TRANSLATE_CHARS) : text;
 
 		// 1. Lingva (Google quality, sans clé, plusieurs instances)
 		if (this.lingvaAvailable !== false) {
 			try {
 				return await this.lingva(truncated, target, source);
 			} catch (err) {
-				logger.warn(
-					{ err: (err as Error).message },
-					"Lingva failed, fallback Google",
-				);
+				logger.warn({ err: (err as Error).message }, "Lingva failed, fallback Google");
 			}
 		}
 
@@ -431,10 +396,7 @@ export class TranslateService {
 			try {
 				return await this.googleGtx(truncated, target, source);
 			} catch (err) {
-				logger.warn(
-					{ err: (err as Error).message },
-					"Google gtx failed, fallback LibreTranslate",
-				);
+				logger.warn({ err: (err as Error).message }, "Google gtx failed, fallback LibreTranslate");
 			}
 		}
 
@@ -446,11 +408,7 @@ export class TranslateService {
 	 * Traduction via Lingva Translate. Tente toutes les instances configurées
 	 * jusqu'à un succès. Marque `lingvaAvailable=false` si toutes échouent.
 	 */
-	async lingva(
-		text: string,
-		target = "fr",
-		source?: string,
-	): Promise<TranslateResult> {
+	async lingva(text: string, target = "fr", source?: string): Promise<TranslateResult> {
 		const tgt = normalizeLang(target);
 		const src = normalizeLang(source);
 		const path = `/api/v1/${encodeURIComponent(src)}/${encodeURIComponent(tgt)}/${encodeURIComponent(text)}`;
@@ -494,11 +452,7 @@ export class TranslateService {
 	 * concatène les `chunks[i][0]` pour reconstituer le texte traduit, et on
 	 * lit la lang détectée en `data[2]`.
 	 */
-	async googleGtx(
-		text: string,
-		target = "fr",
-		source?: string,
-	): Promise<TranslateResult> {
+	async googleGtx(text: string, target = "fr", source?: string): Promise<TranslateResult> {
 		const tgt = normalizeLang(target);
 		const src = normalizeLang(source);
 		const params = new URLSearchParams({
@@ -521,8 +475,7 @@ export class TranslateService {
 		});
 		if (!res.ok) {
 			// 429 / 403 → mémorise pour stop-essayer pendant ce process
-			if (res.status === 429 || res.status === 403)
-				this.googleAvailable = false;
+			if (res.status === 429 || res.status === 403) this.googleAvailable = false;
 			throw new Error(`Google gtx HTTP ${res.status}`);
 		}
 		const data = (await res.json()) as unknown[];
@@ -530,9 +483,7 @@ export class TranslateService {
 			throw new Error("Google gtx: format inattendu.");
 		}
 		const chunks = data[0] as Array<unknown[]>;
-		const translated = chunks
-			.map((c) => (typeof c[0] === "string" ? c[0] : ""))
-			.join("");
+		const translated = chunks.map((c) => (typeof c[0] === "string" ? c[0] : "")).join("");
 		if (!translated) throw new Error("Google gtx: réponse vide.");
 		const detected = typeof data[2] === "string" ? data[2] : src;
 		return {
@@ -549,11 +500,7 @@ export class TranslateService {
 	 *
 	 * Timeout court (8 s) — au-delà l'utilisateur n'attend plus.
 	 */
-	async libretranslate(
-		text: string,
-		target = "fr",
-		source?: string,
-	): Promise<TranslateResult> {
+	async libretranslate(text: string, target = "fr", source?: string): Promise<TranslateResult> {
 		if (!text.trim()) {
 			return {
 				source: text,
@@ -562,10 +509,7 @@ export class TranslateService {
 				provider: "libretranslate",
 			};
 		}
-		const base = (env.LIBRETRANSLATE_URL ?? DEFAULT_LIBRETRANSLATE_URL).replace(
-			/\/+$/,
-			"",
-		);
+		const base = (env.LIBRETRANSLATE_URL ?? DEFAULT_LIBRETRANSLATE_URL).replace(/\/+$/, "");
 		const endpoint = `${base}/translate`;
 
 		const body: Record<string, string> = {
@@ -584,16 +528,14 @@ export class TranslateService {
 		}).catch((err) => {
 			if (err?.name === "TimeoutError") {
 				throw new Error(
-					`LibreTranslate timeout (>${LIBRETRANSLATE_TIMEOUT_MS / 1000}s) — vérifie que ${base} est up.`,
+					`LibreTranslate timeout (>${LIBRETRANSLATE_TIMEOUT_MS / 1000}s) — vérifie que ${base} est up.`
 				);
 			}
 			throw err;
 		});
 		if (!res.ok) {
 			const msg = await res.text().catch(() => "");
-			throw new Error(
-				`LibreTranslate HTTP ${res.status}: ${msg.slice(0, 200)}`,
-			);
+			throw new Error(`LibreTranslate HTTP ${res.status}: ${msg.slice(0, 200)}`);
 		}
 		const data = (await res.json()) as {
 			translatedText?: string;
@@ -608,10 +550,7 @@ export class TranslateService {
 		};
 	}
 
-	async ocrAndTranslate(
-		imageUrl: string,
-		target = "fr",
-	): Promise<TranslateResult | null> {
+	async ocrAndTranslate(imageUrl: string, target = "fr"): Promise<TranslateResult | null> {
 		if (!(await getBool("features.translate", true))) {
 			throw new Error("Traduction désactivée (features.translate).");
 		}

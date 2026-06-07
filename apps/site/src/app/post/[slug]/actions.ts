@@ -10,7 +10,7 @@ const MAX_LEN = 2000;
 
 export async function postCommentAction(
 	slug: string,
-	formData: FormData,
+	formData: FormData
 ): Promise<{ ok: boolean; error?: string }> {
 	const body = String(formData.get("body") ?? "").trim();
 	if (!body) return { ok: false, error: "Commentaire vide" };

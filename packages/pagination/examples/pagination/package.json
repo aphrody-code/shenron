@@ -1,9 +1,9 @@
 {
-  "name": "pagination-example",
-  "private": true,
-  "dependencies": {
-    "@rpbey/importer": "workspace:^",
-    "@rpbey/pagination": "workspace:^",
-    "@rpbey/discordy": "workspace:^"
-  }
+	"name": "pagination-example",
+	"private": true,
+	"dependencies": {
+		"@rpbey/discordy": "workspace:^",
+		"@rpbey/importer": "workspace:^",
+		"@rpbey/pagination": "workspace:^"
+	}
 }

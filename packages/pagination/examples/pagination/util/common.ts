@@ -8,14 +8,14 @@ import type { PaginationItem } from "@rpbey/pagination";
 import { EmbedBuilder } from "discord.js";
 
 export function GeneratePages(limit?: number): PaginationItem[] {
-  const pages = Array.from(Array(limit ?? 20).keys()).map((i) => {
-    return { content: `I am ${String(i + 1)}`, embed: `Demo ${String(i + 1)}` };
-  });
+	const pages = Array.from(Array(limit ?? 20).keys()).map((i) => {
+		return { content: `I am ${String(i + 1)}`, embed: `Demo ${String(i + 1)}` };
+	});
 
-  return pages.map((page) => {
-    return {
-      content: page.content,
-      embeds: [new EmbedBuilder().setTitle(page.embed)],
-    };
-  });
+	return pages.map((page) => {
+		return {
+			content: page.content,
+			embeds: [new EmbedBuilder().setTitle(page.embed)],
+		};
+	});
 }

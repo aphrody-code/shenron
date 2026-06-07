@@ -29,9 +29,7 @@ export function ButtonComponent(): MethodDecoratorEx;
  *
  * @category Decorator
  */
-export function ButtonComponent<T extends string>(
-  options: ComponentOptions<T>,
-): MethodDecoratorEx;
+export function ButtonComponent<T extends string>(options: ComponentOptions<T>): MethodDecoratorEx;
 
 /**
  * Interact with buttons with a defined identifier
@@ -54,13 +52,13 @@ export function ButtonComponent<T extends string>(
  * @category Decorator
  */
 export function ButtonComponent(options?: ComponentOptions): MethodDecoratorEx {
-  return (target, key) => {
-    const button = DComponent.create({
-      botIds: options?.botIds,
-      guilds: options?.guilds,
-      id: options?.id ?? key,
-      type: ComponentType.Button,
-    }).decorate(target.constructor, key, target[key]);
-    MetadataStorage.instance.addComponentButton(button);
-  };
+	return (target, key) => {
+		const button = DComponent.create({
+			botIds: options?.botIds,
+			guilds: options?.guilds,
+			id: options?.id ?? key,
+			type: ComponentType.Button,
+		}).decorate(target.constructor, key, target[key]);
+		MetadataStorage.instance.addComponentButton(button);
+	};
 }

@@ -6,9 +6,7 @@
 export type MorpionCell = "." | "X" | "O";
 export type MorpionMark = "X" | "O";
 
-export const MORPION_WIN_LINES: ReadonlyArray<
-	readonly [number, number, number]
-> = [
+export const MORPION_WIN_LINES: ReadonlyArray<readonly [number, number, number]> = [
 	[0, 1, 2],
 	[3, 4, 5],
 	[6, 7, 8],
@@ -43,10 +41,7 @@ export function evaluateBoard(board: MorpionCell[]): MorpionOutcome {
  * IA défensive : gagner > bloquer > centre > coin > random.
  * `botMark` permet de réutiliser le moteur pour le bot jouant X ou O.
  */
-export function decideMorpionMove(
-	board: MorpionCell[],
-	botMark: MorpionMark = "O",
-): number {
+export function decideMorpionMove(board: MorpionCell[], botMark: MorpionMark = "O"): number {
 	const opponent: MorpionMark = botMark === "O" ? "X" : "O";
 	for (const mark of [botMark, opponent] as const) {
 		for (const [a, b, c] of MORPION_WIN_LINES) {
@@ -66,7 +61,7 @@ export function decideMorpionMove(
 export function applyMorpionMove(
 	board: MorpionCell[],
 	cell: number,
-	mark: MorpionMark,
+	mark: MorpionMark
 ): { ok: true; board: MorpionCell[] } | { ok: false; error: string } {
 	if (!Number.isInteger(cell) || cell < 0 || cell > 8) {
 		return { ok: false, error: "Cellule invalide" };

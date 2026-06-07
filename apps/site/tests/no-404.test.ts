@@ -35,10 +35,7 @@ import { describe, expect, it } from "bun:test";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
-const BASE = (process.env.SITE_URL ?? "https://dragonballfr.com").replace(
-	/\/+$/,
-	"",
-);
+const BASE = (process.env.SITE_URL ?? "https://dragonballfr.com").replace(/\/+$/, "");
 
 const APP_DIR = join(import.meta.dir, "..", "src", "app");
 const CONCURRENCY = 8;
@@ -156,7 +153,7 @@ async function check(path: string): Promise<Check> {
 async function mapLimit<T, R>(
 	items: T[],
 	limit: number,
-	fn: (item: T) => Promise<R>,
+	fn: (item: T) => Promise<R>
 ): Promise<R[]> {
 	const results: R[] = Array.from({ length: items.length });
 	let cursor = 0;
@@ -166,7 +163,7 @@ async function mapLimit<T, R>(
 				const i = cursor++;
 				results[i] = await fn(items[i]!);
 			}
-		})(),
+		})()
 	);
 	await Promise.all(workers);
 	return results;
@@ -250,7 +247,7 @@ describe(`no-404 — site (${BASE})`, () => {
 		.map((route) =>
 			route
 				.replace(/\/\[\[?\.\.\.[^\]]+\]\]?/g, "/_probe") // [...all] → /_probe
-				.replace(/\/\[[^\]]+\]/g, "/_probe"),
+				.replace(/\/\[[^\]]+\]/g, "/_probe")
 		); // [x] → /_probe
 	// Sondes GET ciblées sur les endpoints publics (en plus de la racine).
 	const apiProbes = [
@@ -272,12 +269,7 @@ describe(`no-404 — site (${BASE})`, () => {
 		const crawled = await crawl(CRAWL_SEEDS);
 
 		// 2. Union dédupliquée : static pages + API (énumérées) + sondes API + crawl.
-		const all = new Set<string>([
-			...staticPagePaths,
-			...apiPaths,
-			...apiProbes,
-			...crawled,
-		]);
+		const all = new Set<string>([...staticPagePaths, ...apiPaths, ...apiProbes, ...crawled]);
 		const urls = [...all].sort();
 
 		// 3. Vérification concurrente.
@@ -288,9 +280,7 @@ describe(`no-404 — site (${BASE})`, () => {
 
 		// Rapport lisible en cas d'échec.
 		const fmt = (rs: Check[]) =>
-			rs
-				.map((r) => `  ${String(r.status).padStart(3)}  ${r.url}`)
-				.join("\n");
+			rs.map((r) => `  ${String(r.status).padStart(3)}  ${r.url}`).join("\n");
 
 		const summary =
 			`\nURLs testées : ${urls.length}` +
@@ -304,12 +294,12 @@ describe(`no-404 — site (${BASE})`, () => {
 
 		if (notFound.length) {
 			throw new Error(
-				`${notFound.length} URL(s) renvoient 404 (régression) :\n${fmt(notFound)}\n${summary}`,
+				`${notFound.length} URL(s) renvoient 404 (régression) :\n${fmt(notFound)}\n${summary}`
 			);
 		}
 		if (serverErr.length) {
 			throw new Error(
-				`${serverErr.length} URL(s) renvoient 5xx (bug serveur) :\n${fmt(serverErr)}\n${summary}`,
+				`${serverErr.length} URL(s) renvoient 5xx (bug serveur) :\n${fmt(serverErr)}\n${summary}`
 			);
 		}
 

@@ -82,11 +82,7 @@ function ConfirmDialog({
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
 					</div>
-					<button
-						type="button"
-						onClick={onCancel}
-						className="ml-auto btn btn-ghost px-1 py-1"
-					>
+					<button type="button" onClick={onCancel} className="ml-auto btn btn-ghost px-1 py-1">
 						<X className="h-4 w-4" />
 					</button>
 				</div>
@@ -114,8 +110,7 @@ export default function LevelsPage() {
 	});
 	const distribution = useQuery({
 		queryKey: ["levels", "distribution"],
-		queryFn: () =>
-			api.get<{ buckets: DistributionBucket[] }>("/levels/distribution"),
+		queryFn: () => api.get<{ buckets: DistributionBucket[] }>("/levels/distribution"),
 	});
 	const rewards = useQuery({
 		queryKey: ["levels", "rewards"],
@@ -131,11 +126,10 @@ export default function LevelsPage() {
 					<h2 className="text-lg font-semibold">Niveaux et XP</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Cette page vous permet de consulter les paliers d&apos;expérience, la
-					répartition des joueurs, gérer les récompenses de niveau et modifier
-					manuellement l&apos;XP ou les zénis d&apos;un membre. Le palier ultime
-					&laquo;&nbsp;It&apos;s over 9 millions&nbsp;!&nbsp;&raquo; correspond
-					à 9&nbsp;000&nbsp;000 XP.
+					Cette page vous permet de consulter les paliers d&apos;expérience, la répartition des
+					joueurs, gérer les récompenses de niveau et modifier manuellement l&apos;XP ou les zénis
+					d&apos;un membre. Le palier ultime &laquo;&nbsp;It&apos;s over 9
+					millions&nbsp;!&nbsp;&raquo; correspond à 9&nbsp;000&nbsp;000 XP.
 				</p>
 			</div>
 
@@ -152,10 +146,7 @@ export default function LevelsPage() {
 				distribution={distribution.data?.buckets}
 				loading={distribution.isLoading}
 			/>
-			<RewardsCard
-				rewards={rewards.data?.rewards ?? []}
-				loading={rewards.isLoading}
-			/>
+			<RewardsCard rewards={rewards.data?.rewards ?? []} loading={rewards.isLoading} />
 			<TopsCard />
 			<ManualActionsCard />
 		</div>
@@ -202,8 +193,7 @@ function XpRatesCard({
 			key: "xp.message.cooldown_ms",
 			label: "Délai entre messages (ms)",
 			icon: <MessageSquare className="h-4 w-4" />,
-			tooltip:
-				"Temps d'attente en millisecondes entre deux gains d'XP par message.",
+			tooltip: "Temps d'attente en millisecondes entre deux gains d'XP par message.",
 		},
 		{
 			key: "xp.voice.per_minute",
@@ -231,9 +221,9 @@ function XpRatesCard({
 				Taux d&apos;XP et de zénis
 			</h3>
 			<p className="mb-3 text-xs text-zinc-500">
-				Valeurs actuellement en vigueur sur le serveur. Pour modifier ces
-				paramètres, rendez-vous sur la page <strong>Paramètres</strong> ou
-				utilisez la commande <code>/config</code> dans Discord.
+				Valeurs actuellement en vigueur sur le serveur. Pour modifier ces paramètres, rendez-vous
+				sur la page <strong>Paramètres</strong> ou utilisez la commande <code>/config</code> dans
+				Discord.
 			</p>
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{rates.map((r) => {
@@ -274,10 +264,7 @@ function ThresholdsCard({
 }) {
 	if (!config) return null;
 	const total = (distribution ?? []).reduce((s, b) => s + b.count, 0);
-	const max = Math.max(
-		...(distribution ?? [{ count: 1 }]).map((b) => b.count),
-		1,
-	);
+	const max = Math.max(...(distribution ?? [{ count: 1 }]).map((b) => b.count), 1);
 
 	return (
 		<div className="card">
@@ -286,8 +273,7 @@ function ThresholdsCard({
 				Paliers DBZ — répartition des joueurs
 			</h3>
 			<p className="mb-3 text-xs text-zinc-500">
-				Chaque barre représente le nombre de joueurs dans ce palier d&apos;XP.
-				Total :{" "}
+				Chaque barre représente le nombre de joueurs dans ce palier d&apos;XP. Total :{" "}
 				<strong>
 					{total} joueur{total !== 1 ? "s" : ""}
 				</strong>{" "}
@@ -306,9 +292,7 @@ function ThresholdsCard({
 					const count = bucket?.count ?? 0;
 					return (
 						<div key={t.level} className="flex items-center gap-3">
-							<span className="w-20 font-mono text-xs text-zinc-400">
-								niveau {t.level}
-							</span>
+							<span className="w-20 font-mono text-xs text-zinc-400">niveau {t.level}</span>
 							<span className="w-32 text-right font-mono text-xs text-zinc-500">
 								{minXp.toLocaleString("fr-FR")} – {t.xp.toLocaleString("fr-FR")}
 							</span>
@@ -326,12 +310,8 @@ function ThresholdsCard({
 				})}
 				{distribution?.find((b) => b.level === 11)?.count ? (
 					<div className="flex items-center gap-3">
-						<span className="w-20 font-mono text-xs text-amber-400">
-							au-delà
-						</span>
-						<span className="w-32 text-right font-mono text-xs text-zinc-500">
-							&gt; 9 000 000
-						</span>
+						<span className="w-20 font-mono text-xs text-amber-400">au-delà</span>
+						<span className="w-32 text-right font-mono text-xs text-zinc-500">&gt; 9 000 000</span>
 						<div className="relative h-5 flex-1 overflow-hidden rounded bg-zinc-800">
 							<div
 								className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all"
@@ -350,13 +330,7 @@ function ThresholdsCard({
 	);
 }
 
-function RewardsCard({
-	rewards,
-	loading,
-}: {
-	rewards: LevelReward[];
-	loading: boolean;
-}) {
+function RewardsCard({ rewards, loading }: { rewards: LevelReward[]; loading: boolean }) {
 	const qc = useQueryClient();
 	const [editing, setEditing] = useState<LevelReward | null>(null);
 	const [adding, setAdding] = useState(false);
@@ -400,15 +374,10 @@ function RewardsCard({
 						Récompenses de palier ({rewards.length})
 					</h3>
 					<p className="mt-0.5 text-xs text-zinc-500">
-						Rôles et bonus zénis attribués automatiquement à chaque montée de
-						niveau.
+						Rôles et bonus zénis attribués automatiquement à chaque montée de niveau.
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={() => setAdding(true)}
-					className="btn btn-primary"
-				>
+				<button type="button" onClick={() => setAdding(true)} className="btn btn-primary">
 					<Plus className="h-3 w-3" />
 					Ajouter une récompense
 				</button>
@@ -458,9 +427,7 @@ function RewardsCard({
 						<tbody className="divide-y divide-zinc-800">
 							{rewards.map((r) => (
 								<tr key={r.level}>
-									<td className="px-3 py-2 font-bold text-brand-400">
-										{r.level}
-									</td>
+									<td className="px-3 py-2 font-bold text-brand-400">{r.level}</td>
 									<td className="px-3 py-2 text-sm">
 										<RoleBadge roleId={r.roleId} />
 									</td>
@@ -528,12 +495,8 @@ function RewardForm({
 }) {
 	const [level, setLevel] = useState(String(initial?.level ?? ""));
 	const [roleId, setRoleId] = useState(initial?.roleId ?? "");
-	const [xpThreshold, setXpThreshold] = useState(
-		String(initial?.xpThreshold ?? ""),
-	);
-	const [zeniBonus, setZeniBonus] = useState(
-		String(initial?.zeniBonus ?? "1000"),
-	);
+	const [xpThreshold, setXpThreshold] = useState(String(initial?.xpThreshold ?? ""));
+	const [zeniBonus, setZeniBonus] = useState(String(initial?.zeniBonus ?? "1000"));
 
 	const submit = (e: FormEvent) => {
 		e.preventDefault();
@@ -572,15 +535,11 @@ function RewardForm({
 					/>
 				</div>
 				<div className="sm:col-span-3">
-					<label className="mb-1 block text-xs text-zinc-400">
-						Rôle Discord à attribuer
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Rôle Discord à attribuer</label>
 					<RolePicker value={roleId} onChange={setRoleId} />
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						Seuil XP requis
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Seuil XP requis</label>
 					<input
 						className="input"
 						type="number"
@@ -591,9 +550,7 @@ function RewardForm({
 					/>
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						Bonus zénis offerts
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Bonus zénis offerts</label>
 					<input
 						className="input"
 						type="number"
@@ -622,10 +579,7 @@ function TopsCard() {
 	const [limit, setLimit] = useState(10);
 	const top = useQuery({
 		queryKey: ["levels", "top", metric, limit],
-		queryFn: () =>
-			api.get<{ users: TopUser[] }>(
-				`/levels/top?metric=${metric}&limit=${limit}`,
-			),
+		queryFn: () => api.get<{ users: TopUser[] }>(`/levels/top?metric=${metric}&limit=${limit}`),
 	});
 
 	const formatMetric = (u: TopUser): string => {
@@ -698,13 +652,8 @@ function TopsCard() {
 			<div className="space-y-1.5">
 				{top.data?.users.map((u, i) => (
 					<div key={u.id} className="flex items-center gap-3 text-sm">
-						<span className="w-8 text-right font-mono text-xs text-zinc-500">
-							#{i + 1}
-						</span>
-						<span
-							className="w-44 truncate font-mono text-xs text-zinc-300"
-							title={u.id}
-						>
+						<span className="w-8 text-right font-mono text-xs text-zinc-500">#{i + 1}</span>
+						<span className="w-44 truncate font-mono text-xs text-zinc-300" title={u.id}>
 							{u.id.slice(0, 6)}…{u.id.slice(-4)}
 							<span
 								className="ml-1 text-[10px] text-zinc-600"
@@ -717,9 +666,7 @@ function TopsCard() {
 							niveau {u.lastLevelReached} · {u.xp.toLocaleString("fr-FR")} XP ·{" "}
 							{u.zeni.toLocaleString("fr-FR")} zénis
 						</span>
-						<span className="text-right font-mono text-sm text-brand-400">
-							{formatMetric(u)}
-						</span>
+						<span className="text-right font-mono text-sm text-brand-400">{formatMetric(u)}</span>
 					</div>
 				))}
 				{top.data?.users.length === 0 && (
@@ -781,16 +728,13 @@ function ManualActionsCard() {
 				Modification manuelle d&apos;un joueur
 			</h3>
 			<p className="text-xs text-zinc-500">
-				Permet d&apos;ajouter, retirer ou définir directement l&apos;XP ou les
-				zénis d&apos;un membre. Renseignez son identifiant Discord (suite de
-				chiffres visible dans les paramètres Discord avec le mode développeur
-				activé).
+				Permet d&apos;ajouter, retirer ou définir directement l&apos;XP ou les zénis d&apos;un
+				membre. Renseignez son identifiant Discord (suite de chiffres visible dans les paramètres
+				Discord avec le mode développeur activé).
 			</p>
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				<div className="lg:col-span-2">
-					<label className="mb-1 block text-xs text-zinc-400">
-						Identifiant Discord du joueur
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Identifiant Discord du joueur</label>
 					<input
 						className="input font-mono text-xs"
 						value={userId}
@@ -800,9 +744,7 @@ function ManualActionsCard() {
 					/>
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						Ce que l&apos;on modifie
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Ce que l&apos;on modifie</label>
 					<select
 						className="input"
 						value={target}
@@ -824,9 +766,7 @@ function ManualActionsCard() {
 					</select>
 				</div>
 				<div className="lg:col-span-2">
-					<label className="mb-1 block text-xs text-zinc-400">
-						Montant (négatif pour retirer)
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Montant (négatif pour retirer)</label>
 					<input
 						className="input"
 						type="number"
@@ -843,9 +783,7 @@ function ManualActionsCard() {
 				className="btn btn-primary"
 			>
 				<Save className="h-3 w-3" />
-				{mutation.isPending
-					? "Application en cours…"
-					: "Appliquer la modification"}
+				{mutation.isPending ? "Application en cours…" : "Appliquer la modification"}
 			</button>
 			{lastResult && (
 				<div

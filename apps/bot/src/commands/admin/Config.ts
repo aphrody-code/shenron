@@ -39,7 +39,7 @@ export class ConfigCommand {
 		@inject(SettingsService) private settings: SettingsService,
 		@inject(DatabaseService) private dbs: DatabaseService,
 		@inject(EconomyService) private eco: EconomyService,
-		@inject(FusionRoleService) private fusionRoles: FusionRoleService,
+		@inject(FusionRoleService) private fusionRoles: FusionRoleService
 	) {}
 
 	@Slash({ name: "list", description: "Lister toutes les valeurs runtime" })
@@ -81,7 +81,7 @@ export class ConfigCommand {
 			required: true,
 		})
 		value: string,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		try {
 			await this.settings.set(key, value);
@@ -107,7 +107,7 @@ export class ConfigCommand {
 			required: true,
 		})
 		key: string,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		await this.settings.unset(key);
 		await interaction.reply({
@@ -122,7 +122,7 @@ export class ConfigCommand {
 			{ name: "Annonces (général)", value: "channel.announce" },
 			{ name: "Accomplissements", value: "channel.achievement" },
 			{ name: "Niveau & XP", value: "channel.level" },
-			{ name: "Salon des commandes", value: "channel.commands" },
+			{ name: "Salon des commandes", value: "channel.commands" }
 		)
 		@SlashOption({
 			name: "type",
@@ -138,7 +138,7 @@ export class ConfigCommand {
 			required: true,
 		})
 		channel: Channel,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		try {
 			await this.settings.set(type, channel.id);
@@ -188,7 +188,7 @@ export class ConfigCommand {
 			minValue: 0,
 		})
 		zeniBonus: number | undefined,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		// Sanity check : le bot doit pouvoir attribuer ce rôle (position < bot.highest)
 		const botMember = await interaction.guild?.members.fetchMe();
@@ -198,7 +198,7 @@ export class ConfigCommand {
 					errorEmbed(
 						"Rôle au-dessus du bot",
 						`${role} (position ${role.position}) ≥ rôle bot (${botMember.roles.highest.position}). ` +
-							"Range le rôle du bot au-dessus dans les paramètres serveur, sinon l'attribution échouera silencieusement.",
+							"Range le rôle du bot au-dessus dans les paramètres serveur, sinon l'attribution échouera silencieusement."
 					),
 				],
 				flags: MessageFlags.Ephemeral,
@@ -222,7 +222,7 @@ export class ConfigCommand {
 			embeds: [
 				successEmbed(
 					"Level reward enregistré",
-					`Niveau **${level}** → ${role}\nSeuil XP: \`${computed}\` · Bonus: **${bonus} z**`,
+					`Niveau **${level}** → ${role}\nSeuil XP: \`${computed}\` · Bonus: **${bonus} z**`
 				),
 			],
 			flags: MessageFlags.Ephemeral,
@@ -239,7 +239,7 @@ export class ConfigCommand {
 			minValue: 1,
 		})
 		level: number,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		await this.dbs.db.delete(levelRewards).where(eq(levelRewards.level, level));
 		await interaction.reply({
@@ -253,7 +253,13 @@ export class ConfigCommand {
 		const rows = await this.dbs.db.select().from(levelRewards).orderBy(levelRewards.level);
 		if (!rows.length) {
 			await interaction.reply({
-				embeds: [brandedEmbed({ title: "📜 Level rewards", description: "*(aucune configurée)*", kind: "muted" })],
+				embeds: [
+					brandedEmbed({
+						title: "📜 Level rewards",
+						description: "*(aucune configurée)*",
+						kind: "muted",
+					}),
+				],
 				flags: MessageFlags.Ephemeral,
 			});
 			return;
@@ -263,7 +269,7 @@ export class ConfigCommand {
 				name: `Niveau ${r.level}`,
 				value: `<@&${r.roleId}> · seuil \`${r.xpThreshold}\` XP · +${r.zeniBonus} z`,
 				inline: false,
-			})),
+			}))
 		);
 		await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 	}
@@ -287,14 +293,12 @@ export class ConfigCommand {
 			maxValue: 100,
 		})
 		multiplier: number,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		try {
 			await this.settings.set(`${XP_BOOST_ROLE_PREFIX}${role.id}`, String(multiplier));
 			await interaction.reply({
-				embeds: [
-					successEmbed("Boost XP enregistré", `${role} → multiplier **×${multiplier}**`),
-				],
+				embeds: [successEmbed("Boost XP enregistré", `${role} → multiplier **×${multiplier}**`)],
 				flags: MessageFlags.Ephemeral,
 			});
 		} catch (err) {
@@ -314,7 +318,7 @@ export class ConfigCommand {
 			required: true,
 		})
 		role: Role,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		await this.settings.unset(`${XP_BOOST_ROLE_PREFIX}${role.id}`);
 		await interaction.reply({
@@ -347,7 +351,7 @@ export class ConfigCommand {
 			boosts
 				.toSorted((a, b) => b.multiplier - a.multiplier)
 				.slice(0, 25)
-				.map((b) => ({ name: `<@&${b.roleId}>`, value: `×${b.multiplier}`, inline: true })),
+				.map((b) => ({ name: `<@&${b.roleId}>`, value: `×${b.multiplier}`, inline: true }))
 		);
 		await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 	}
@@ -363,7 +367,15 @@ export class ConfigCommand {
 
 		const fusions = await this.eco.listAllFusions();
 		if (fusions.length === 0) {
-			await interaction.editReply({ embeds: [brandedEmbed({ title: "💫 Sync fusion", description: "*(aucune fusion active)*", kind: "muted" })] });
+			await interaction.editReply({
+				embeds: [
+					brandedEmbed({
+						title: "💫 Sync fusion",
+						description: "*(aucune fusion active)*",
+						kind: "muted",
+					}),
+				],
+			});
 			return;
 		}
 		for (const f of fusions) {
@@ -374,4 +386,3 @@ export class ConfigCommand {
 		});
 	}
 }
-

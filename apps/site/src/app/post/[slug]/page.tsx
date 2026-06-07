@@ -51,11 +51,7 @@ function readingTime(body: string): number {
 	return Math.max(1, Math.round(words / 220)); // ~220 wpm FR
 }
 
-export default async function PostPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const post = await db.query.posts.findFirst({
 		where: (p, { eq }) => eq(p.slug, slug),
@@ -74,8 +70,7 @@ export default async function PostPage({
 	const minutes = readingTime(post.body);
 
 	const relatedPosts = await db.query.posts.findMany({
-		where: (p, { eq, and, ne }) =>
-			and(eq(p.published, true), ne(p.id, post.id)),
+		where: (p, { eq, and, ne }) => and(eq(p.published, true), ne(p.id, post.id)),
 		orderBy: (p, { desc }) => desc(p.createdAt),
 		limit: 3,
 	});
@@ -92,11 +87,11 @@ export default async function PostPage({
 			? {
 					"@type": "Person",
 					name: post.author.username ?? "DBFR",
-			  }
+				}
 			: {
 					"@type": "Organization",
 					name: "DBFR",
-			  },
+				},
 		publisher: {
 			"@type": "Organization",
 			name: "DBFR",
@@ -143,16 +138,13 @@ export default async function PostPage({
 						dateTime={post.createdAt.toISOString()}
 						className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4 block"
 					>
-						{format(post.createdAt, "d MMMM yyyy", { locale: fr })} · {minutes}{" "}
-						min de lecture
+						{format(post.createdAt, "d MMMM yyyy", { locale: fr })} · {minutes} min de lecture
 					</time>
 					<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-6">
 						{post.title}
 					</h1>
 					{post.excerpt && (
-						<p className="text-[19px] leading-relaxed text-white/75">
-							{post.excerpt}
-						</p>
+						<p className="text-[19px] leading-relaxed text-white/75">{post.excerpt}</p>
 					)}
 					<div className="flex items-center gap-3 mt-8 pb-8 border-b border-white/[0.06]">
 						{post.author.avatar && (
@@ -193,9 +185,7 @@ export default async function PostPage({
 				<section className="mt-16 pt-12 border-t border-white/[0.06]">
 					<h2 className="font-display font-bold text-[24px] text-white mb-8">
 						Commentaires{" "}
-						<span className="text-white/40 font-normal text-[18px]">
-							· {post.comments.length}
-						</span>
+						<span className="text-white/40 font-normal text-[18px]">· {post.comments.length}</span>
 					</h2>
 
 					{post.comments.length > 0 && (

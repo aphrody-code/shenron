@@ -35,9 +35,7 @@ export function CommentForm({ slug }: { slug: string }) {
 				{error ? (
 					<span className="text-xs text-fuchsia-300">✗ {error}</span>
 				) : (
-					<span className="text-xs text-white/40">
-						Markdown basique supporté
-					</span>
+					<span className="text-xs text-white/40">Markdown basique supporté</span>
 				)}
 				<button
 					type="submit"

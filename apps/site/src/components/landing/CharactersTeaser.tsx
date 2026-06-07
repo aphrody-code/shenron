@@ -10,11 +10,7 @@ export type CharacterTeaser = {
 	image: string | null;
 };
 
-export function CharactersTeaser({
-	characters,
-}: {
-	characters: CharacterTeaser[];
-}) {
+export function CharactersTeaser({ characters }: { characters: CharacterTeaser[] }) {
 	const withImages = characters.filter((c) => !!c.image);
 	if (withImages.length === 0) return null;
 
@@ -44,7 +40,7 @@ export function CharactersTeaser({
 								href={`/wiki/dragon-ball/character/${c.id}`}
 								className="group block relative aspect-[3/4] rounded-xl overflow-hidden bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border border-white/[0.08] hover:border-dbz-orange transition-all"
 							>
-								{ }
+								{}
 								<img
 									src={assetUrl(c.image)}
 									alt={c.name}
@@ -56,9 +52,7 @@ export function CharactersTeaser({
 										{c.name}
 									</p>
 									{c.nameJa && (
-										<p className="font-jp text-[11px] text-dbz-orange/85 mt-0.5">
-											{c.nameJa}
-										</p>
+										<p className="font-jp text-[11px] text-dbz-orange/85 mt-0.5">{c.nameJa}</p>
 									)}
 									{c.race && (
 										<p className="font-display text-[10px] tracking-[0.14em] uppercase text-white/55 mt-1">

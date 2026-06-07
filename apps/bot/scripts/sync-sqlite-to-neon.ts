@@ -19,8 +19,7 @@ import { Database } from "bun:sqlite";
 import postgres from "postgres";
 import { WIKI_EDITORIAL } from "./_wiki-editorial";
 
-const SQLITE_PATH =
-	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
+const SQLITE_PATH = process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
 const NEON_URL = process.env.DATABASE_URL;
 if (!NEON_URL) {
 	console.error("✗ DATABASE_URL (Neon) requis dans l'environnement.");
@@ -75,7 +74,7 @@ const sql = postgres(NEON_URL, { max: 4, prepare: false });
 async function main() {
 	const master = sqlite
 		.query(
-			`SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`,
+			`SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`
 		)
 		.all() as { name: string; sql: string }[];
 
@@ -90,16 +89,14 @@ async function main() {
 	const isVirtualOrShadow = (n: string) =>
 		virtualTables.some((v) => n === v || n.startsWith(`${v}_`));
 
-	const tables = master
-		.map((r) => r.name)
-		.filter((n) => !SKIP.has(n) && !isVirtualOrShadow(n));
+	const tables = master.map((r) => r.name).filter((n) => !SKIP.has(n) && !isVirtualOrShadow(n));
 
 	await sql`CREATE SCHEMA IF NOT EXISTS bot`;
 	// Recherche floue du site (/wiki/search) : proximité trigramme + accents.
 	await sql`CREATE EXTENSION IF NOT EXISTS pg_trgm`;
 	await sql`CREATE EXTENSION IF NOT EXISTS unaccent`;
 	await sql.unsafe(
-		`COMMENT ON SCHEMA bot IS 'Miroir read-only de la SQLite du bot Shenron (sync VPS sqlite-to-neon). Ne pas ecrire a la main.'`,
+		`COMMENT ON SCHEMA bot IS 'Miroir read-only de la SQLite du bot Shenron (sync VPS sqlite-to-neon). Ne pas ecrire a la main.'`
 	);
 
 	const report: { table: string; src: number; dst: number; ok: boolean }[] = [];
@@ -117,10 +114,10 @@ async function main() {
 			? `, PRIMARY KEY (${pkCols.map((c) => `"${c}"`).join(",")})`
 			: "";
 
-		const rows = sqlite
-			.query(`SELECT * FROM "${t}"`)
-			.safeIntegers(true)
-			.all() as Record<string, unknown>[];
+		const rows = sqlite.query(`SELECT * FROM "${t}"`).safeIntegers(true).all() as Record<
+			string,
+			unknown
+		>[];
 
 		// Normalise : Uint8Array (BLOB) → Buffer pour bytea
 		for (const row of rows) {
@@ -134,9 +131,7 @@ async function main() {
 
 		await sql.begin(async (tx) => {
 			await tx.unsafe(`DROP TABLE IF EXISTS bot."${t}" CASCADE`);
-			await tx.unsafe(
-				`CREATE TABLE bot."${t}" (${defs.join(", ")}${pkClause})`,
-			);
+			await tx.unsafe(`CREATE TABLE bot."${t}" (${defs.join(", ")}${pkClause})`);
 			const BATCH = 500;
 			for (let i = 0; i < rows.length; i += BATCH) {
 				const chunk = rows.slice(i, i + BATCH);
@@ -144,20 +139,15 @@ async function main() {
 			}
 		});
 
-		const [{ count }] =
-			await sql`SELECT count(*)::int AS count FROM bot.${sql(t)}`;
+		const [{ count }] = await sql`SELECT count(*)::int AS count FROM bot.${sql(t)}`;
 		const ok = rows.length === Number(count);
 		report.push({ table: t, src: rows.length, dst: Number(count), ok });
-		console.log(
-			`${ok ? "✓" : "✗"} bot.${t.padEnd(28)} sqlite=${rows.length} neon=${count}`,
-		);
+		console.log(`${ok ? "✓" : "✗"} bot.${t.padEnd(28)} sqlite=${rows.length} neon=${count}`);
 	}
 
 	const total = report.reduce((s, r) => s + r.dst, 0);
 	const bad = report.filter((r) => !r.ok);
-	console.log(
-		`\n${report.length} tables mirrorées · ${total} lignes · ${bad.length} mismatch`,
-	);
+	console.log(`\n${report.length} tables mirrorées · ${total} lignes · ${bad.length} mismatch`);
 
 	await sql.end();
 	sqlite.close();

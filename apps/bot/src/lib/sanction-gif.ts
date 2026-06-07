@@ -41,9 +41,7 @@ const DEFAULT_GIFS: Record<SanctionAction, string> = {
 	unwarn: `${BASE}/unwarn.gif`,
 };
 
-export async function gifFor(
-	action: SanctionAction,
-): Promise<string | undefined> {
+export async function gifFor(action: SanctionAction): Promise<string | undefined> {
 	try {
 		const settings = container.resolve(SettingsService);
 		const override = await settings.getRaw(`gif.${action}`);

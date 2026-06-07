@@ -46,11 +46,7 @@ export interface EventDef {
  * son propre canal (DM, canal d'invocation, canal du ticket). Le service ne
  * tente PAS de fallback env.
  */
-export const VIRTUAL_CHANNEL_KEYS = new Set([
-	"channel.dm",
-	"channel.invocation",
-	"channel.ticket",
-]);
+export const VIRTUAL_CHANNEL_KEYS = new Set(["channel.dm", "channel.invocation", "channel.ticket"]);
 
 export const EVENTS: readonly EventDef[] = [
 	{
@@ -138,8 +134,7 @@ export const EVENTS: readonly EventDef[] = [
 	},
 	{
 		event: "zeni_drop",
-		description:
-			"Drop aléatoire de zenis sur message (probabilité zeni.message_chance)",
+		description: "Drop aléatoire de zenis sur message (probabilité zeni.message_chance)",
 		defaultTemplate: "💰 {user} ramasse **{zeni} zénis** !",
 		defaultChannelKey: "channel.zeni",
 		variables: [
@@ -150,8 +145,7 @@ export const EVENTS: readonly EventDef[] = [
 	},
 	{
 		event: "zeni_game_win",
-		description:
-			"Victoire à un jeu (Bingo/Morpion/Pendu/Pfc) — annonce centralisée",
+		description: "Victoire à un jeu (Bingo/Morpion/Pendu/Pfc) — annonce centralisée",
 		defaultTemplate: "🏆 {user} gagne **{zeni} zénis** au {game} !",
 		defaultChannelKey: "channel.zeni",
 		variables: [
@@ -164,8 +158,7 @@ export const EVENTS: readonly EventDef[] = [
 	{
 		event: "anti_link_jail",
 		description: "Auto-jail quand un lien Discord externe est posté",
-		defaultTemplate:
-			"{user} a été jailé automatiquement (lien Discord externe détecté).",
+		defaultTemplate: "{user} a été jailé automatiquement (lien Discord externe détecté).",
 		defaultChannelKey: "channel.log_sanction",
 		variables: [
 			{ name: "user", description: "Mention" },
@@ -188,8 +181,7 @@ export const EVENTS: readonly EventDef[] = [
 	{
 		event: "giveaway_winner",
 		description: "Annonce du gagnant d'un tirage",
-		defaultTemplate:
-			"Tirage terminé ! {winners} remporte(nt) **{prize}** ! Bravo guerriers.",
+		defaultTemplate: "Tirage terminé ! {winners} remporte(nt) **{prize}** ! Bravo guerriers.",
 		defaultChannelKey: "channel.giveaway",
 		variables: [
 			{ name: "winners", description: "Liste des mentions gagnantes" },
@@ -238,8 +230,7 @@ export const EVENTS: readonly EventDef[] = [
 	{
 		event: "mod_purge_announce",
 		description: "Annonce publique d'une purge dans le salon d'invocation",
-		defaultTemplate:
-			"<@{moderator}> a purgé **{deleted}** message(s){targetClause}.",
+		defaultTemplate: "<@{moderator}> a purgé **{deleted}** message(s){targetClause}.",
 		defaultChannelKey: "channel.invocation",
 		variables: [
 			{
@@ -283,10 +274,7 @@ export function findEvent(event: string): EventDef | undefined {
  * pour faciliter le debug. Échappe rien — les templates sont admin-only donc
  * pas d'XSS, et le contenu va dans Discord (pas du HTML).
  */
-export function renderTemplate(
-	template: string,
-	vars: Record<string, unknown>,
-): string {
+export function renderTemplate(template: string, vars: Record<string, unknown>): string {
 	return template.replace(/\{(\w+)\}/g, (m, key) => {
 		const v = vars[key];
 		if (v === undefined || v === null) return m;

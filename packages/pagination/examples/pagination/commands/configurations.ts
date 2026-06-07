@@ -12,18 +12,18 @@ import { GeneratePages } from "../util/common.js";
 
 @Discord()
 export class Example {
-  // example: simple slash with menu pagination
-  @Slash({
-    description: "Custom page name for select menu",
-    name: "config-example",
-  })
-  async configExample(interaction: CommandInteraction): Promise<void> {
-    const pagination = new Pagination(interaction, GeneratePages(), {
-      selectMenu: {
-        pageText: "My custom page: {page}, Index: {page}",
-      },
-    });
+	// example: simple slash with menu pagination
+	@Slash({
+		description: "Custom page name for select menu",
+		name: "config-example",
+	})
+	async configExample(interaction: CommandInteraction): Promise<void> {
+		const pagination = new Pagination(interaction, GeneratePages(), {
+			selectMenu: {
+				pageText: "My custom page: {page}, Index: {page}",
+			},
+		});
 
-    await pagination.send();
-  }
+		await pagination.send();
+	}
 }

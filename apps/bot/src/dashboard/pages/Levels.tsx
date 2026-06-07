@@ -60,8 +60,7 @@ export function Levels() {
 	});
 	const distribution = useQuery({
 		queryKey: ["levels", "distribution"],
-		queryFn: () =>
-			api.get<{ buckets: DistributionBucket[] }>("/levels/distribution"),
+		queryFn: () => api.get<{ buckets: DistributionBucket[] }>("/levels/distribution"),
 	});
 	const rewards = useQuery({
 		queryKey: ["levels", "rewards"],
@@ -76,17 +75,13 @@ export function Levels() {
 					<h2 className="text-lg font-semibold">Système de niveaux et XP</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Configuration des paliers, distribution des joueurs, classements et
-					actions manuelles. Le palier final « It's over 9 millions ! »
-					correspond à 9 000 000 XP.
+					Configuration des paliers, distribution des joueurs, classements et actions manuelles. Le
+					palier final « It's over 9 millions ! » correspond à 9 000 000 XP.
 				</p>
 			</div>
 
 			<XpRatesCard config={config.data} loading={config.isLoading} />
-			<ThresholdsCard
-				config={config.data}
-				distribution={distribution.data?.buckets}
-			/>
+			<ThresholdsCard config={config.data} distribution={distribution.data?.buckets} />
 			<RewardsCard rewards={rewards.data?.rewards ?? []} />
 			<TopsCard />
 			<ManualActionsCard />
@@ -108,8 +103,7 @@ function XpRatesCard({
 	config: ConfigResponse | undefined;
 	loading: boolean;
 }) {
-	if (loading)
-		return <div className="text-zinc-500">Chargement de la configuration…</div>;
+	if (loading) return <div className="text-zinc-500">Chargement de la configuration…</div>;
 	const rates = [
 		{
 			key: "xp.message.min",
@@ -153,10 +147,7 @@ function XpRatesCard({
 					const value = effective(config, r.key);
 					const overridden = config?.overrides[r.key] !== undefined;
 					return (
-						<div
-							key={r.key}
-							className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
-						>
+						<div key={r.key} className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
 							<div className="mb-1 flex items-center gap-2 text-xs text-zinc-400">
 								{r.icon}
 								<span>{r.label}</span>
@@ -164,19 +155,15 @@ function XpRatesCard({
 							<p className="text-xl font-bold text-brand-400">{value}</p>
 							<p className="mt-1 text-xs text-zinc-500">
 								<code>{r.key}</code>
-								{overridden && (
-									<span className="ml-2 badge badge-warning">
-										surcharge active
-									</span>
-								)}
+								{overridden && <span className="ml-2 badge badge-warning">surcharge active</span>}
 							</p>
 						</div>
 					);
 				})}
 			</div>
 			<p className="mt-3 text-xs text-zinc-500">
-				Modifier ces valeurs depuis la page <code>/settings</code> ou via la
-				commande <code>/config</code> dans Discord.
+				Modifier ces valeurs depuis la page <code>/settings</code> ou via la commande{" "}
+				<code>/config</code> dans Discord.
 			</p>
 		</div>
 	);
@@ -191,10 +178,7 @@ function ThresholdsCard({
 }) {
 	if (!config) return null;
 	const total = (distribution ?? []).reduce((s, b) => s + b.count, 0);
-	const max = Math.max(
-		...(distribution ?? [{ count: 1 }]).map((b) => b.count),
-		1,
-	);
+	const max = Math.max(...(distribution ?? [{ count: 1 }]).map((b) => b.count), 1);
 
 	return (
 		<div className="card">
@@ -209,9 +193,7 @@ function ThresholdsCard({
 					const count = bucket?.count ?? 0;
 					return (
 						<div key={t.level} className="flex items-center gap-3">
-							<span className="w-20 font-mono text-xs text-zinc-400">
-								niveau {t.level}
-							</span>
+							<span className="w-20 font-mono text-xs text-zinc-400">niveau {t.level}</span>
 							<span className="w-32 text-right font-mono text-xs text-zinc-500">
 								{minXp.toLocaleString("fr-FR")} – {t.xp.toLocaleString("fr-FR")}
 							</span>
@@ -229,12 +211,8 @@ function ThresholdsCard({
 				})}
 				{distribution?.find((b) => b.level === 11)?.count ? (
 					<div className="flex items-center gap-3">
-						<span className="w-20 font-mono text-xs text-amber-400">
-							au-delà
-						</span>
-						<span className="w-32 text-right font-mono text-xs text-zinc-500">
-							&gt; 9 000 000
-						</span>
+						<span className="w-20 font-mono text-xs text-amber-400">au-delà</span>
+						<span className="w-32 text-right font-mono text-xs text-zinc-500">&gt; 9 000 000</span>
 						<div className="relative h-5 flex-1 overflow-hidden rounded bg-zinc-800">
 							<div
 								className="h-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all"
@@ -284,11 +262,7 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
 					Récompenses de palier ({rewards.length})
 				</h3>
-				<button
-					type="button"
-					onClick={() => setAdding(true)}
-					className="btn btn-primary"
-				>
+				<button type="button" onClick={() => setAdding(true)} className="btn btn-primary">
 					<Plus className="h-3 w-3" />
 					Ajouter une récompense
 				</button>
@@ -307,9 +281,7 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 					<tbody className="divide-y divide-zinc-800">
 						{rewards.map((r) => (
 							<tr key={r.level}>
-								<td className="px-3 py-2 font-bold text-brand-400">
-									{r.level}
-								</td>
+								<td className="px-3 py-2 font-bold text-brand-400">{r.level}</td>
 								<td className="px-3 py-2 text-sm">
 									<RoleBadge roleId={r.roleId} />
 								</td>
@@ -331,11 +303,7 @@ function RewardsCard({ rewards }: { rewards: LevelReward[] }) {
 										<button
 											type="button"
 											onClick={() => {
-												if (
-													confirm(
-														`Supprimer la récompense du niveau ${r.level} ?`,
-													)
-												)
+												if (confirm(`Supprimer la récompense du niveau ${r.level} ?`))
 													remove.mutate(r.level);
 											}}
 											className="btn btn-ghost px-2 text-red-400"
@@ -378,12 +346,8 @@ function RewardForm({
 }) {
 	const [level, setLevel] = useState(String(initial?.level ?? ""));
 	const [roleId, setRoleId] = useState(initial?.roleId ?? "");
-	const [xpThreshold, setXpThreshold] = useState(
-		String(initial?.xpThreshold ?? ""),
-	);
-	const [zeniBonus, setZeniBonus] = useState(
-		String(initial?.zeniBonus ?? "1000"),
-	);
+	const [xpThreshold, setXpThreshold] = useState(String(initial?.xpThreshold ?? ""));
+	const [zeniBonus, setZeniBonus] = useState(String(initial?.zeniBonus ?? "1000"));
 
 	const submit = (e: FormEvent) => {
 		e.preventDefault();
@@ -414,9 +378,7 @@ function RewardForm({
 					/>
 				</div>
 				<div className="sm:col-span-3">
-					<label className="mb-1 block text-xs text-zinc-400">
-						Rôle Discord à attribuer
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Rôle Discord à attribuer</label>
 					<RolePicker value={roleId} onChange={setRoleId} />
 				</div>
 				<div>
@@ -431,9 +393,7 @@ function RewardForm({
 					/>
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						Bonus zénis
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Bonus zénis</label>
 					<input
 						className="input"
 						type="number"
@@ -462,10 +422,7 @@ function TopsCard() {
 	const [limit, setLimit] = useState(10);
 	const top = useQuery({
 		queryKey: ["levels", "top", metric, limit],
-		queryFn: () =>
-			api.get<{ users: TopUser[] }>(
-				`/levels/top?metric=${metric}&limit=${limit}`,
-			),
+		queryFn: () => api.get<{ users: TopUser[] }>(`/levels/top?metric=${metric}&limit=${limit}`),
 	});
 
 	const formatMetric = (u: TopUser): string => {
@@ -486,9 +443,7 @@ function TopsCard() {
 	return (
 		<div className="card">
 			<div className="mb-3 flex flex-wrap items-center gap-3">
-				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					Classements
-				</h3>
+				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">Classements</h3>
 				<div className="flex flex-wrap gap-1">
 					{(
 						[
@@ -525,17 +480,13 @@ function TopsCard() {
 			<div className="space-y-1.5">
 				{top.data?.users.map((u, i) => (
 					<div key={u.id} className="flex items-center gap-3 text-sm">
-						<span className="w-8 text-right font-mono text-xs text-zinc-500">
-							#{i + 1}
-						</span>
+						<span className="w-8 text-right font-mono text-xs text-zinc-500">#{i + 1}</span>
 						<code className="w-44 truncate text-xs">{u.id}</code>
 						<span className="flex-1 truncate text-xs text-zinc-400">
 							niveau {u.lastLevelReached} · {u.xp.toLocaleString("fr-FR")} XP ·{" "}
 							{u.zeni.toLocaleString("fr-FR")} zénis
 						</span>
-						<span className="text-right font-mono text-sm text-brand-400">
-							{formatMetric(u)}
-						</span>
+						<span className="text-right font-mono text-sm text-brand-400">{formatMetric(u)}</span>
 					</div>
 				))}
 				{top.data?.users.length === 0 && (
@@ -562,10 +513,7 @@ function ManualActionsCard() {
 				amount: Number(amount),
 			}),
 		onSuccess: (data) => setLastResult(JSON.stringify(data, null, 2)),
-		onError: (err) =>
-			setLastResult(
-				`Erreur : ${err instanceof Error ? err.message : String(err)}`,
-			),
+		onError: (err) => setLastResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
 	});
 
 	const submit = (e: FormEvent) => {
@@ -580,14 +528,12 @@ function ManualActionsCard() {
 				Action manuelle sur un joueur
 			</h3>
 			<p className="text-xs text-zinc-500">
-				Ajoute ou définit l'XP ou les zénis d'un membre. Utilise l'identifiant
-				Discord (snowflake) du joueur.
+				Ajoute ou définit l'XP ou les zénis d'un membre. Utilise l'identifiant Discord (snowflake)
+				du joueur.
 			</p>
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				<div className="lg:col-span-2">
-					<label className="mb-1 block text-xs text-zinc-400">
-						ID du joueur
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">ID du joueur</label>
 					<input
 						className="input font-mono text-xs"
 						value={userId}

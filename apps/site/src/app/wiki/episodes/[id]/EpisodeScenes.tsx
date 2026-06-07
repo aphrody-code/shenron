@@ -49,11 +49,7 @@ function formatTimecode(sec: number | null): string | null {
 }
 
 /** Charge une image cross-origin en canvas pour l'encodage GIF. */
-function loadFrameCanvas(
-	src: string,
-	width: number,
-	height: number,
-): Promise<HTMLCanvasElement> {
+function loadFrameCanvas(src: string, width: number, height: number): Promise<HTMLCanvasElement> {
 	return new Promise((resolve, reject) => {
 		const img = new Image();
 		img.crossOrigin = "anonymous";
@@ -104,11 +100,9 @@ export function EpisodeScenes({
 	const renderable = useMemo(
 		() =>
 			frames
-				.filter(
-					(f): f is SceneFrame & { imagePath: string } => f.imagePath != null,
-				)
+				.filter((f): f is SceneFrame & { imagePath: string } => f.imagePath != null)
 				.sort((a, b) => a.sortOrder - b.sortOrder),
-		[frames],
+		[frames]
 	);
 
 	// Sélection des frames pour l'export GIF (indices dans `renderable`).
@@ -128,10 +122,7 @@ export function EpisodeScenes({
 		});
 	}, []);
 
-	const orderedSelection = useMemo(
-		() => [...selected].sort((a, b) => a - b),
-		[selected],
-	);
+	const orderedSelection = useMemo(() => [...selected].sort((a, b) => a - b), [selected]);
 
 	const exportGif = useCallback(async () => {
 		setBusy(true);
@@ -141,8 +132,8 @@ export function EpisodeScenes({
 			const height = 270;
 			const canvases = await Promise.all(
 				orderedSelection.map((i) =>
-					loadFrameCanvas(assetUrl(renderable[i].imagePath), width, height),
-				),
+					loadFrameCanvas(assetUrl(renderable[i].imagePath), width, height)
+				)
 			);
 			const blob = await encodeFramesToGif({
 				width,

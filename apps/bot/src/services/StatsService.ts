@@ -19,36 +19,36 @@ import { env } from "~/lib/env";
  */
 
 export interface PidUsage {
-	cpu: number;          // % CPU
-	memory: number;       // bytes
-	uptime: number;       // ms
-	rss: number;          // bytes
+	cpu: number; // % CPU
+	memory: number; // bytes
+	uptime: number; // ms
+	rss: number; // bytes
 }
 
 export interface HostUsage {
-	cpu: { count: number; usage: number };  // count of cores, % overall
+	cpu: { count: number; usage: number }; // count of cores, % overall
 	memory: { total: number; free: number; used: number; usage: number };
 	platform: string;
-	uptime: number;       // s
+	uptime: number; // s
 }
 
 export interface LatencyStats {
-	ws: number;           // ms
-	db: number;           // ms
+	ws: number; // ms
+	db: number; // ms
 }
 
 export interface TotalStats {
 	totalUsers: number;
 	totalGuilds: number;
-	totalActiveUsers: number;  // users avec messageCount > 0
-	totalCommands: number;     // commands enregistrées sur le client
+	totalActiveUsers: number; // users avec messageCount > 0
+	totalCommands: number; // commands enregistrées sur le client
 }
 
 @singleton()
 export class StatsService {
 	constructor(
 		@inject(DatabaseService) private dbs: DatabaseService,
-		@inject(Client) private client: Client,
+		@inject(Client) private client: Client
 	) {}
 
 	getLatency(): LatencyStats {

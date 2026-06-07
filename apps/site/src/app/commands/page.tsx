@@ -27,10 +27,7 @@ export default async function CommandsPage({
 	searchParams: Promise<{ persona?: string; q?: string }>;
 }) {
 	const params = await searchParams;
-	const [commands, personas] = await Promise.all([
-		getShenronCommands(),
-		getShenronPersonas(),
-	]);
+	const [commands, personas] = await Promise.all([getShenronCommands(), getShenronPersonas()]);
 
 	const filterPersona = params.persona;
 	const query = params.q?.toLowerCase() ?? "";
@@ -68,11 +65,7 @@ export default async function CommandsPage({
 						}`}
 					>
 						{p.avatar && (
-							<img
-								src={p.avatar}
-								alt=""
-								className="w-5 h-5 rounded-full border border-current"
-							/>
+							<img src={p.avatar} alt="" className="w-5 h-5 rounded-full border border-current" />
 						)}
 						{PERSONA_LABELS[p.id] ?? p.id} ({p.commandCount})
 					</a>
@@ -81,9 +74,7 @@ export default async function CommandsPage({
 
 			{/* Search */}
 			<form className="mb-8 max-w-md mx-auto">
-				{filterPersona && (
-					<input type="hidden" name="persona" value={filterPersona} />
-				)}
+				{filterPersona && <input type="hidden" name="persona" value={filterPersona} />}
 				<input
 					name="q"
 					defaultValue={query}
@@ -101,16 +92,14 @@ export default async function CommandsPage({
 							? cmds.filter(
 									(c) =>
 										c.name.toLowerCase().includes(query) ||
-										c.description.toLowerCase().includes(query),
+										c.description.toLowerCase().includes(query)
 								)
 							: cmds;
 						if (filtered.length === 0) return null;
 						const colorClass = PERSONA_COLORS[pid] ?? "";
 						return (
 							<section key={pid}>
-								<h2
-									className={`text-3xl font-saiyan uppercase mb-4 border-b-4 pb-2 ${colorClass}`}
-								>
+								<h2 className={`text-3xl font-saiyan uppercase mb-4 border-b-4 pb-2 ${colorClass}`}>
 									{PERSONA_LABELS[pid] ?? pid} ({filtered.length})
 								</h2>
 								<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -131,9 +120,7 @@ export default async function CommandsPage({
 											</div>
 											<p className="text-xs text-gray-300 leading-snug">
 												{c.description || (
-													<span className="italic text-gray-600">
-														(sans description)
-													</span>
+													<span className="italic text-gray-600">(sans description)</span>
 												)}
 											</p>
 											{c.options && c.options.length > 0 && (
@@ -143,21 +130,11 @@ export default async function CommandsPage({
 													</summary>
 													<ul className="mt-1 space-y-1">
 														{c.options.slice(0, 8).map((o, i) => (
-															<li
-																key={i}
-																className="text-[10px] font-mono text-gray-400"
-															>
-																<span className="text-dbz-yellow">
-																	{o.name}
-																</span>
-																{o.required && (
-																	<span className="text-red-400 ml-1">*</span>
-																)}
+															<li key={i} className="text-[10px] font-mono text-gray-400">
+																<span className="text-dbz-yellow">{o.name}</span>
+																{o.required && <span className="text-red-400 ml-1">*</span>}
 																{o.description && (
-																	<span className="text-gray-600">
-																		{" "}
-																		— {o.description}
-																	</span>
+																	<span className="text-gray-600"> — {o.description}</span>
 																)}
 															</li>
 														))}

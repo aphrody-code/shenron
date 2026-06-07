@@ -23,8 +23,8 @@ export function CtaFinal() {
 					REJOINS-NOUS
 				</p>
 				<p className="text-white/70 text-lg mb-10 max-w-xl mx-auto">
-					Rejoins le serveur Discord et lie ton compte. XP, zénis, mini-jeux et
-					un wiki complet t'attendent.
+					Rejoins le serveur Discord et lie ton compte. XP, zénis, mini-jeux et un wiki complet
+					t'attendent.
 				</p>
 				<div className="flex flex-wrap items-center justify-center gap-4">
 					<a

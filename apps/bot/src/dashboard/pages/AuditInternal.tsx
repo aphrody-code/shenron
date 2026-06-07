@@ -83,14 +83,10 @@ export function AuditInternal() {
 			<div className="card">
 				<div className="flex items-center gap-2">
 					<FileSearch className="h-5 w-5 text-brand-400" />
-					<h2 className="text-lg font-semibold">
-						Journal interne — action_logs
-					</h2>
+					<h2 className="text-lg font-semibold">Journal interne — action_logs</h2>
 					<button
 						type="button"
-						onClick={() =>
-							qc.invalidateQueries({ queryKey: ["audit", "internal"] })
-						}
+						onClick={() => qc.invalidateQueries({ queryKey: ["audit", "internal"] })}
 						className="ml-auto btn btn-ghost px-2"
 						title="Rafraîchir"
 					>
@@ -98,9 +94,8 @@ export function AuditInternal() {
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Toutes les actions modé/level/economy enregistrées par les services.
-					Un autre journal (Discord native audit log) est disponible sur la page{" "}
-					<code>/audit</code>.
+					Toutes les actions modé/level/economy enregistrées par les services. Un autre journal
+					(Discord native audit log) est disponible sur la page <code>/audit</code>.
 				</p>
 				<div className="mt-3 grid gap-2 sm:grid-cols-3">
 					<div>
@@ -145,9 +140,7 @@ export function AuditInternal() {
 						>
 							<Filter className="h-3 w-3" /> Réinit
 						</button>
-						<span className="ml-auto text-xs text-zinc-500">
-							{logs.data?.total ?? 0} entrée(s)
-						</span>
+						<span className="ml-auto text-xs text-zinc-500">{logs.data?.total ?? 0} entrée(s)</span>
 					</div>
 				</div>
 			</div>
@@ -169,19 +162,12 @@ export function AuditInternal() {
 					<tbody>
 						{logs.data?.rows.map((row) => (
 							<tr key={row.id} className="border-t border-zinc-800 align-top">
-								<td
-									className={`px-3 py-2 font-semibold ${ACTION_COLORS[row.action] ?? ""}`}
-								>
+								<td className={`px-3 py-2 font-semibold ${ACTION_COLORS[row.action] ?? ""}`}>
 									{row.action}
 								</td>
 								<td className="px-3 py-2 font-mono">{row.userId ?? "—"}</td>
-								<td className="px-3 py-2 font-mono">
-									{row.moderatorId ?? "—"}
-								</td>
-								<td
-									className="px-3 py-2 max-w-xs truncate"
-									title={row.reason ?? ""}
-								>
+								<td className="px-3 py-2 font-mono">{row.moderatorId ?? "—"}</td>
+								<td className="px-3 py-2 max-w-xs truncate" title={row.reason ?? ""}>
 									{row.reason ?? "—"}
 								</td>
 								<td className="px-3 py-2 max-w-xs">
@@ -231,10 +217,7 @@ function MetaCell({ raw }: { raw: string }) {
 		/* keep raw */
 	}
 	return (
-		<details
-			open={open}
-			onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
-		>
+		<details open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
 			<summary className="cursor-pointer text-zinc-400 hover:text-zinc-200">
 				{open ? "Masquer" : `${raw.slice(0, 50)}${raw.length > 50 ? "…" : ""}`}
 			</summary>

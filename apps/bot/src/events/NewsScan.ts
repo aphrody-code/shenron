@@ -24,7 +24,7 @@ import { logger } from "~/lib/logger";
 export class NewsScanEvent {
 	constructor(
 		@inject(NewsService) private news: NewsService,
-		@inject(SettingsService) private settings: SettingsService,
+		@inject(SettingsService) private settings: SettingsService
 	) {}
 
 	private async isAnnounceSource(channelId: string, channelType: number) {
@@ -42,8 +42,7 @@ export class NewsScanEvent {
 	async onCreate([message]: ArgsOf<"messageCreate">) {
 		if (!message.inGuild()) return;
 		if (!this.isHumanOrWebhook(message.author.bot, message.webhookId)) return;
-		if (!(await this.isAnnounceSource(message.channelId, message.channel.type)))
-			return;
+		if (!(await this.isAnnounceSource(message.channelId, message.channel.type))) return;
 		const ok = await this.news.saveFromDiscord(message);
 		if (ok) logger.info(`[NewsScan] annonce captée → ${message.url}`);
 	}

@@ -16,7 +16,12 @@ const DB = new URL("../data/bot.db", import.meta.url).pathname;
 const ASSETS = new URL("../assets/ext/db_games/", import.meta.url).pathname;
 const FORCE = process.argv.includes("--force");
 const DRY = process.argv.includes("--dry-run");
-if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) {
+	console.error(
+		"Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."
+	);
+	process.exit(1);
+}
 const db = new Database(DB);
 mkdirSync(ASSETS, { recursive: true });
 
@@ -71,11 +76,7 @@ async function wikiImage(title: string): Promise<string | null> {
 	const queries =
 		isCrossover || hasFranchise
 			? [`${title} video game`, title]
-			: [
-					`Dragon Ball ${title} video game`,
-					`Dragon Ball Z ${title}`,
-					`${title} video game`,
-				];
+			: [`Dragon Ball ${title} video game`, `Dragon Ball Z ${title}`, `${title} video game`];
 
 	for (const q of queries) {
 		const page = await wikiTitle(q);
@@ -108,9 +109,7 @@ async function download(url: string, dest: string): Promise<boolean> {
 }
 
 const where = FORCE ? "" : "WHERE cover IS NULL OR cover = ''";
-const games = db
-	.query(`SELECT id, title FROM db_games ${where} ORDER BY id`)
-	.all() as {
+const games = db.query(`SELECT id, title FROM db_games ${where} ORDER BY id`).all() as {
 	id: number;
 	title: string;
 }[];
@@ -143,6 +142,4 @@ for (const g of games) {
 	}
 	await new Promise((r) => setTimeout(r, 250)); // courtoisie Wikipedia
 }
-console.log(
-	`\n✓ ${ok} cover(s) ${DRY ? "trouvées (dry)" : "enregistrées"}, ${fail} échec(s)`,
-);
+console.log(`\n✓ ${ok} cover(s) ${DRY ? "trouvées (dry)" : "enregistrées"}, ${fail} échec(s)`);

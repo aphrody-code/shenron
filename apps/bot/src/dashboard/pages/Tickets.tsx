@@ -1,10 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Lock,
-	Ticket as TicketIcon,
-	RefreshCw,
-	ExternalLink,
-} from "lucide-react";
+import { Lock, Ticket as TicketIcon, RefreshCw, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { api } from "../lib/api";
 
@@ -20,10 +15,7 @@ interface TicketRow {
 	createdAt: string;
 }
 
-const KIND_LABEL: Record<
-	TicketRow["kind"],
-	{ emoji: string; label: string; color: string }
-> = {
+const KIND_LABEL: Record<TicketRow["kind"], { emoji: string; label: string; color: string }> = {
 	report: { emoji: "🚨", label: "Signaler", color: "text-red-400" },
 	achat: { emoji: "🛒", label: "Achat", color: "text-blue-400" },
 	shop: { emoji: "🏪", label: "Shop", color: "text-amber-400" },
@@ -38,9 +30,7 @@ export function Tickets() {
 		queryKey: ["tickets", filter],
 		queryFn: () =>
 			api.get<{ rows: TicketRow[]; total: number }>(
-				filter === "all"
-					? "/tickets"
-					: `/tickets?closed=${filter === "closed"}`,
+				filter === "all" ? "/tickets" : `/tickets?closed=${filter === "closed"}`
 			),
 	});
 

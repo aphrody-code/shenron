@@ -26,14 +26,19 @@ _No framework detected._
 ## Asset hosts (0 total)
 
 | Host | Asset count |
-|---|---|
+| ---- | ----------- |
 
 ## CSS selectors (5 total) — sample top 50
 
 ```css
-#challenge-error-text {}
-* {}
-.main-content {}
-body {}
-html {}
+#challenge-error-text {
+}
+* {
+}
+.main-content {
+}
+body {
+}
+html {
+}
 ```

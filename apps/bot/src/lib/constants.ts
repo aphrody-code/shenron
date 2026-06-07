@@ -33,8 +33,7 @@ export const VOCAL_TEMPO_EMPTY_DELAY_MS = 60_000;
 export const FUSION_XP_BONUS_RATIO = 0.1;
 export const FUSION_ZENI_BONUS_RATIO = 0.1;
 
-export const DISCORD_INVITE_REGEX =
-	/discord(?:app)?\.(?:gg|com\/invite)\/[A-Za-z0-9-]+/i;
+export const DISCORD_INVITE_REGEX = /discord(?:app)?\.(?:gg|com\/invite)\/[A-Za-z0-9-]+/i;
 
 /** Rôle distribué automatiquement à tout membre (à l'arrivée + backfill au boot). */
 export const AUTO_ROLE_ID = "935209502104510564";

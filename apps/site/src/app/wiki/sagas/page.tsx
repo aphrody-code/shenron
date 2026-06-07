@@ -23,15 +23,7 @@ const SERIES_LABELS: Record<string, string> = {
 	DB_DAIMA: "Dragon Ball Daima",
 };
 
-const SERIES_ORDER = [
-	"DB",
-	"DBZ",
-	"DBGT",
-	"DBS",
-	"DBS_MANGA",
-	"DBS_MOVIE",
-	"DB_DAIMA",
-];
+const SERIES_ORDER = ["DB", "DBZ", "DBGT", "DBS", "DBS_MANGA", "DBS_MOVIE", "DB_DAIMA"];
 
 export default async function SagasPage() {
 	const data = await dbUniverse.sagas();
@@ -41,9 +33,7 @@ export default async function SagasPage() {
 	const bySeries = SERIES_ORDER.map((s) => ({
 		key: s,
 		label: SERIES_LABELS[s] ?? s,
-		sagas: sagas
-			.filter((sg) => sg.series === s)
-			.sort((a, b) => a.order_idx - b.order_idx),
+		sagas: sagas.filter((sg) => sg.series === s).sort((a, b) => a.order_idx - b.order_idx),
 	})).filter((g) => g.sagas.length > 0);
 
 	return (
@@ -59,8 +49,7 @@ export default async function SagasPage() {
 				{bySeries.map((g) => (
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
-							{g.label}{" "}
-							<span className="text-white/40">— {g.sagas.length}</span>
+							{g.label} <span className="text-white/40">— {g.sagas.length}</span>
 						</h2>
 						<ol className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
 							{g.sagas.map((s: Saga) => (
@@ -108,9 +97,7 @@ export default async function SagasPage() {
 													{s.name}
 												</h3>
 												{s.name_ja && (
-													<p className="font-jp text-[12px] text-dbz-orange/80 mb-3">
-														{s.name_ja}
-													</p>
+													<p className="font-jp text-[12px] text-dbz-orange/80 mb-3">{s.name_ja}</p>
 												)}
 												{s.description && (
 													<p className="text-[13px] leading-relaxed text-white/65 line-clamp-3">

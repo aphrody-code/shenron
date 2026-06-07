@@ -2,9 +2,9 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface BusEvent {
-  name: string;
-  payload: unknown;
-  ts?: number;
+	name: string;
+	payload: unknown;
+	ts?: number;
 }
 
 /**
@@ -15,20 +15,20 @@ interface BusEvent {
  * affichée se rafraîchit automatiquement, sans poll.
  */
 const EVENT_INVALIDATIONS: Record<string, string[][]> = {
-  "setting:changed": [["settings"], ["settings", "current"]],
-  "setting:reset": [["settings"], ["settings", "current"]],
-  "levels:rewards:changed": [["levels", "rewards"]],
-  "messages:template:changed": [["messages"]],
-  "cron:run": [["cron"]],
-  "audit:new": [["audit"]],
-  "user:level-up": [
-    ["levels", "distribution"],
-    ["bot", "users", "top"],
-  ],
-  "economy:changed": [
-    ["bot", "users", "top"],
-    ["stats", "totals"],
-  ],
+	"setting:changed": [["settings"], ["settings", "current"]],
+	"setting:reset": [["settings"], ["settings", "current"]],
+	"levels:rewards:changed": [["levels", "rewards"]],
+	"messages:template:changed": [["messages"]],
+	"cron:run": [["cron"]],
+	"audit:new": [["audit"]],
+	"user:level-up": [
+		["levels", "distribution"],
+		["bot", "users", "top"],
+	],
+	"economy:changed": [
+		["bot", "users", "top"],
+		["stats", "totals"],
+	],
 };
 
 /**
@@ -39,34 +39,34 @@ const EVENT_INVALIDATIONS: Record<string, string[][]> = {
  * coupure réseau.
  */
 export function useEventStream(enabled: boolean = true): void {
-  const qc = useQueryClient();
+	const qc = useQueryClient();
 
-  useEffect(() => {
-    if (!enabled) return;
-    if (typeof window === "undefined" || !("EventSource" in window)) return;
+	useEffect(() => {
+		if (!enabled) return;
+		if (typeof window === "undefined" || !("EventSource" in window)) return;
 
-    const es = new EventSource("/api/events", { withCredentials: true });
+		const es = new EventSource("/api/events", { withCredentials: true });
 
-    es.addEventListener("message", (msg) => {
-      try {
-        const event = JSON.parse(msg.data) as BusEvent;
-        if (event.name === "ping" || event.name === "hello") return;
-        const keys = EVENT_INVALIDATIONS[event.name];
-        if (keys) {
-          for (const key of keys) {
-            qc.invalidateQueries({ queryKey: key });
-          }
-        }
-      } catch {
-        // ignore parse errors
-      }
-    });
+		es.addEventListener("message", (msg) => {
+			try {
+				const event = JSON.parse(msg.data) as BusEvent;
+				if (event.name === "ping" || event.name === "hello") return;
+				const keys = EVENT_INVALIDATIONS[event.name];
+				if (keys) {
+					for (const key of keys) {
+						qc.invalidateQueries({ queryKey: key });
+					}
+				}
+			} catch {
+				// ignore parse errors
+			}
+		});
 
-    es.addEventListener("error", () => {
-      // EventSource gère automatiquement la reconnexion (3s par défaut)
-      // On ne ferme pas explicitement pour laisser ce mécanisme jouer.
-    });
+		es.addEventListener("error", () => {
+			// EventSource gère automatiquement la reconnexion (3s par défaut)
+			// On ne ferme pas explicitement pour laisser ce mécanisme jouer.
+		});
 
-    return () => es.close();
-  }, [enabled, qc]);
+		return () => es.close();
+	}, [enabled, qc]);
 }

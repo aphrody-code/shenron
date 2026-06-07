@@ -26,13 +26,13 @@ import { Discord, Slash } from "@rpbey/discordy";
 @Discord()
 @injectable()
 class Commands {
-  constructor(private readonly db: DatabaseService) {}
+	constructor(private readonly db: DatabaseService) {}
 
-  @Slash({ name: "stats" })
-  async stats(i: CommandInteraction) {
-    const count = await this.db.userCount();
-    await i.reply(`Users: ${count}`);
-  }
+	@Slash({ name: "stats" })
+	async stats(i: CommandInteraction) {
+		const count = await this.db.userCount();
+		await i.reply(`Users: ${count}`);
+	}
 }
 ```
 

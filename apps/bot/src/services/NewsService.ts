@@ -63,9 +63,7 @@ export class NewsService {
 
 	/** Première image exploitable d'un message (attachment image > embed image/thumbnail). */
 	private extractImage(message: Message): string | null {
-		const att = message.attachments.find((a) =>
-			(a.contentType ?? "").startsWith("image/"),
-		);
+		const att = message.attachments.find((a) => (a.contentType ?? "").startsWith("image/"));
 		if (att) return att.url;
 		for (const e of message.embeds) {
 			if (e.image?.url) return e.image.url;
@@ -100,7 +98,10 @@ export class NewsService {
 				.replace(/[ \t]+/g, " ")
 				.trim();
 		// Pour le titre : en plus, on enlève la syntaxe markdown de tête (#, >, *, -).
-		const titleLine = (s: string) => stripTokens(s).replace(/^[#>*\-\s]+/, "").trim();
+		const titleLine = (s: string) =>
+			stripTokens(s)
+				.replace(/^[#>*\-\s]+/, "")
+				.trim();
 
 		const lines = body.split("\n").map(stripTokens);
 		const nonEmpty = lines.filter(Boolean);
@@ -112,11 +113,10 @@ export class NewsService {
 			message.channel && "name" in message.channel
 				? (message.channel.name ?? "Annonce")
 				: "Annonce";
-		const title = (
-			titleLine(nonEmpty[0] ?? "") ||
-			message.embeds[0]?.title ||
-			channelName
-		).slice(0, NEWS_TITLE_MAX);
+		const title = (titleLine(nonEmpty[0] ?? "") || message.embeds[0]?.title || channelName).slice(
+			0,
+			NEWS_TITLE_MAX
+		);
 		// Excerpt = corps après la 1re ligne, markdown préservé (newlines compris).
 		const firstIdx = lines.findIndex(Boolean);
 		const excerpt =

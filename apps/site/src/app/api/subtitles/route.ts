@@ -19,9 +19,7 @@ const SRC_RE = /^assets\/subtitles\/[A-Za-z0-9._\-/]+\.(srt|vtt)$/;
 
 /** SRT → WebVTT : en-tête + timecodes `,ms` → `.ms`, normalise les CRLF. */
 function srtToVtt(srt: string): string {
-	const body = srt
-		.replace(/\r+/g, "")
-		.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2");
+	const body = srt.replace(/\r+/g, "").replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2");
 	return `WEBVTT\n\n${body.trim()}\n`;
 }
 

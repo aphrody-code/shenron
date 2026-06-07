@@ -11,6 +11,7 @@ Privilégier le canal privé de GitHub :
 À défaut, contact direct : **contact@aphrody-code.dev**.
 
 Merci d'inclure si possible :
+
 - une description de la faille et de son impact ;
 - les étapes de reproduction (PoC) ;
 - les versions / commits concernés.

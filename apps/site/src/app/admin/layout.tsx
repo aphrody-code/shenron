@@ -19,11 +19,7 @@ export const metadata: Metadata = {
 	},
 };
 
-export default async function AdminLayout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
 	// Vérifie que l'utilisateur est bien admin — redirige sinon
 	await requireAdmin();
 
@@ -33,10 +29,7 @@ export default async function AdminLayout({
 				<AdminSidebar />
 				{/* Zone de contenu principale — min-w-0 pour autoriser le shrink flex
 				    (sinon les tableaux larges débordent et chevauchent la sidebar) */}
-				<main
-					className="flex-1 min-w-0 p-4 md:p-10 relative z-10"
-					id="admin-content"
-				>
+				<main className="flex-1 min-w-0 p-4 md:p-10 relative z-10" id="admin-content">
 					{children}
 				</main>
 			</div>

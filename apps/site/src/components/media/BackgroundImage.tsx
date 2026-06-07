@@ -89,12 +89,7 @@ export function BackgroundImage({
 	const isFixed = variant === "fixed";
 
 	// Classe d'animation appliquée à la couche image.
-	const motionClass =
-		variant === "kenburns"
-			? "ken-burns"
-			: isParallax
-				? "bg-parallax-layer"
-				: "";
+	const motionClass = variant === "kenburns" ? "ken-burns" : isParallax ? "bg-parallax-layer" : "";
 
 	const overlayClass = OVERLAY_CLASS[overlay];
 
@@ -113,9 +108,7 @@ export function BackgroundImage({
 				priority={priority}
 				loading={priority ? "eager" : "lazy"}
 				sizes={sizes}
-				className={`object-cover object-center ${motionClass} ${
-					blur ? "scale-110 blur-2xl" : ""
-				}`}
+				className={`object-cover object-center ${motionClass} ${blur ? "scale-110 blur-2xl" : ""}`}
 				style={
 					// `fixed` : on simule le background-attachment via une couche figée
 					// (background-attachment: fixed est buggé sur mobile/Safari).
@@ -123,9 +116,7 @@ export function BackgroundImage({
 				}
 			/>
 
-			{overlayClass && (
-				<div className={`pointer-events-none absolute inset-0 ${overlayClass}`} />
-			)}
+			{overlayClass && <div className={`pointer-events-none absolute inset-0 ${overlayClass}`} />}
 
 			{children && <div className="relative z-10 h-full">{children}</div>}
 		</div>
@@ -169,13 +160,7 @@ export function HeroBackground({
 		<section
 			className={`relative w-full overflow-hidden border-b border-white/[0.08] ${h} ${className}`}
 		>
-			<BackgroundImage
-				src={src}
-				alt={alt}
-				variant={variant}
-				overlay={overlay}
-				priority
-			/>
+			<BackgroundImage src={src} alt={alt} variant={variant} overlay={overlay} priority />
 			{children && (
 				<div className="relative z-10 mx-auto flex h-full max-w-[1280px] items-end px-6 pb-14 lg:px-10">
 					<div className="reveal-up max-w-2xl flex-1">{children}</div>

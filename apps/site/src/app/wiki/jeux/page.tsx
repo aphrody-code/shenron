@@ -58,13 +58,9 @@ export default async function JeuxPage() {
 								</div>
 							)}
 							<div className="p-6">
-								<h3 className="font-display font-bold text-[20px] text-white mb-1.5">
-									{g.title}
-								</h3>
+								<h3 className="font-display font-bold text-[20px] text-white mb-1.5">{g.title}</h3>
 								{g.title_ja && (
-									<p className="font-jp text-[12px] text-dbz-orange/80 mb-4">
-										{g.title_ja}
-									</p>
+									<p className="font-jp text-[12px] text-dbz-orange/80 mb-4">{g.title_ja}</p>
 								)}
 								{g.description && (
 									<p className="text-[12.5px] leading-relaxed text-white/55 mb-4 line-clamp-3">

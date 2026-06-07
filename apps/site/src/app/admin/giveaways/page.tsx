@@ -1,13 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Gift,
-	RefreshCw,
-	ExternalLink,
-	FastForward,
-	Users,
-} from "lucide-react";
+import { Gift, RefreshCw, ExternalLink, FastForward, Users } from "lucide-react";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
 
@@ -44,9 +38,7 @@ export default function GiveawaysPage() {
 		queryKey: ["giveaways", filter],
 		queryFn: () =>
 			api.get<{ rows: GiveawayRow[]; total: number }>(
-				filter === "all"
-					? "/giveaways"
-					: `/giveaways?ended=${filter === "ended"}`,
+				filter === "all" ? "/giveaways" : `/giveaways?ended=${filter === "ended"}`
 			),
 	});
 
@@ -58,15 +50,12 @@ export default function GiveawaysPage() {
 	return (
 		<div className="space-y-6">
 			<header>
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					TIRAGES AU SORT
-				</h1>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">TIRAGES AU SORT</h1>
 				<p className="text-sm text-white/60 mb-1">
 					Gérez les tirages au sort actifs et passés sur votre serveur.
 				</p>
 				<p className="text-xs text-white/30 uppercase tracking-widest">
-					Créés via la commande <strong>/giveaway</strong> · tirage automatique
-					toutes les minutes
+					Créés via la commande <strong>/giveaway</strong> · tirage automatique toutes les minutes
 				</p>
 			</header>
 
@@ -81,11 +70,7 @@ export default function GiveawaysPage() {
 								onClick={() => setFilter(f)}
 								className={`dbz-button !text-xs !py-1 !px-3 ${filter === f ? "" : "opacity-50 hover:opacity-80"}`}
 							>
-								{f === "active"
-									? "En cours"
-									: f === "ended"
-										? "Terminés"
-										: "Tous"}
+								{f === "active" ? "En cours" : f === "ended" ? "Terminés" : "Tous"}
 							</button>
 						))}
 					</div>
@@ -106,12 +91,8 @@ export default function GiveawaysPage() {
 
 			{giveaways.isLoading && (
 				<div className="dbz-panel p-8 text-center">
-					<p className="font-saiyan text-dbz-orange text-xl mb-2">
-						CHARGEMENT…
-					</p>
-					<p className="text-sm text-white/40">
-						Récupération des tirages au sort.
-					</p>
+					<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
+					<p className="text-sm text-white/40">Récupération des tirages au sort.</p>
 				</div>
 			)}
 
@@ -119,36 +100,29 @@ export default function GiveawaysPage() {
 				<div className="dbz-panel p-6 text-center border-l-4 border-red-500">
 					<p className="font-saiyan text-red-400 mb-2">Erreur de chargement</p>
 					<p className="text-sm text-white/40">
-						Impossible de récupérer les tirages. Vérifiez que le bot est en
-						ligne.
+						Impossible de récupérer les tirages. Vérifiez que le bot est en ligne.
 					</p>
 				</div>
 			)}
 
-			{!giveaways.isLoading &&
-				!giveaways.isError &&
-				giveaways.data?.rows.length === 0 && (
-					<div className="dbz-panel p-8 text-center">
-						<p className="font-saiyan text-dbz-yellow text-xl mb-2">
-							AUCUN TIRAGE
-						</p>
-						<p className="text-sm text-white/40">
-							{filter === "active"
-								? "Aucun tirage au sort en cours. Utilisez /giveaway sur Discord pour en créer un."
-								: filter === "ended"
-									? "Aucun tirage terminé pour le moment."
-									: "Aucun tirage au sort enregistré."}
-						</p>
-					</div>
-				)}
+			{!giveaways.isLoading && !giveaways.isError && giveaways.data?.rows.length === 0 && (
+				<div className="dbz-panel p-8 text-center">
+					<p className="font-saiyan text-dbz-yellow text-xl mb-2">AUCUN TIRAGE</p>
+					<p className="text-sm text-white/40">
+						{filter === "active"
+							? "Aucun tirage au sort en cours. Utilisez /giveaway sur Discord pour en créer un."
+							: filter === "ended"
+								? "Aucun tirage terminé pour le moment."
+								: "Aucun tirage au sort enregistré."}
+					</p>
+				</div>
+			)}
 
 			{forceEnd.isError && (
 				<div className="dbz-panel p-3 border-l-4 border-red-500">
 					<p className="text-sm text-red-400">
 						Erreur lors de la clôture :{" "}
-						{forceEnd.error instanceof Error
-							? forceEnd.error.message
-							: "erreur inconnue"}
+						{forceEnd.error instanceof Error ? forceEnd.error.message : "erreur inconnue"}
 					</p>
 				</div>
 			)}
@@ -166,12 +140,8 @@ export default function GiveawaysPage() {
 								<div className="flex-1 min-w-0">
 									{/* Titre + état */}
 									<div className="flex items-center gap-2 flex-wrap mb-2">
-										<span className="font-saiyan text-white text-lg truncate">
-											{g.title}
-										</span>
-										<span className="text-xs text-white/30 font-mono">
-											#{g.id}
-										</span>
+										<span className="font-saiyan text-white text-lg truncate">{g.title}</span>
+										<span className="text-xs text-white/30 font-mono">#{g.id}</span>
 										{g.ended ? (
 											<span className="px-2 py-0.5 text-xs font-bold bg-white/5 text-white/40 border border-white/10 rounded uppercase">
 												Terminé
@@ -243,13 +213,9 @@ export default function GiveawaysPage() {
 											</div>
 										</div>
 									)}
-									{g.ended &&
-										winnerIds.length === 0 &&
-										g.winnerIds !== null && (
-											<p className="text-sm text-white/30 mt-2">
-												Aucun gagnant désigné.
-											</p>
-										)}
+									{g.ended && winnerIds.length === 0 && g.winnerIds !== null && (
+										<p className="text-sm text-white/30 mt-2">Aucun gagnant désigné.</p>
+									)}
 								</div>
 
 								{/* Actions */}
@@ -270,7 +236,7 @@ export default function GiveawaysPage() {
 											onClick={() => {
 												if (
 													confirm(
-														`Clôturer le tirage "${g.title}" maintenant ?\n\nLe gagnant sera tiré au sort immédiatement.`,
+														`Clôturer le tirage "${g.title}" maintenant ?\n\nLe gagnant sera tiré au sort immédiatement.`
 													)
 												)
 													forceEnd.mutate(g.id);

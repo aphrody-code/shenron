@@ -48,11 +48,7 @@ function ConfirmDialog({
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
 					</div>
-					<button
-						type="button"
-						onClick={onCancel}
-						className="ml-auto btn btn-ghost px-1 py-1"
-					>
+					<button type="button" onClick={onCancel} className="ml-auto btn btn-ghost px-1 py-1">
 						<X className="h-4 w-4" />
 					</button>
 				</div>
@@ -82,9 +78,7 @@ export default function TriggersPage() {
 	const qc = useQueryClient();
 	const [editing, setEditing] = useState<AchievementTrigger | null>(null);
 	const [creating, setCreating] = useState(false);
-	const [confirmDelete, setConfirmDelete] = useState<AchievementTrigger | null>(
-		null,
-	);
+	const [confirmDelete, setConfirmDelete] = useState<AchievementTrigger | null>(null);
 	const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
 	const showSuccess = (msg: string) => {
@@ -96,7 +90,7 @@ export default function TriggersPage() {
 		queryKey: ["triggers", "list"],
 		queryFn: () =>
 			api.get<{ rows: AchievementTrigger[]; total: number }>(
-				"/database/achievement_triggers?limit=200",
+				"/database/achievement_triggers?limit=200"
 			),
 	});
 
@@ -145,24 +139,17 @@ export default function TriggersPage() {
 						onClick={() => refresh.mutate()}
 						title="Recharger le cache des déclencheurs côté bot"
 					>
-						<RefreshCw
-							className={`h-3 w-3 ${refresh.isPending ? "animate-spin" : ""}`}
-						/>
+						<RefreshCw className={`h-3 w-3 ${refresh.isPending ? "animate-spin" : ""}`} />
 						Recharger le cache
 					</button>
-					<button
-						type="button"
-						className="btn btn-primary"
-						onClick={() => setCreating(true)}
-					>
+					<button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
 						<Plus className="h-3 w-3" /> Créer un déclencheur
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Un déclencheur surveille les messages des joueurs. Quand un message
-					correspond à l&apos;expression régulière définie, le succès
-					correspondant est attribué automatiquement (une seule fois par
-					joueur). Pensez à recharger le cache après toute modification.
+					Un déclencheur surveille les messages des joueurs. Quand un message correspond à
+					l&apos;expression régulière définie, le succès correspondant est attribué automatiquement
+					(une seule fois par joueur). Pensez à recharger le cache après toute modification.
 				</p>
 			</div>
 
@@ -221,11 +208,7 @@ export default function TriggersPage() {
 					onSaved={() => {
 						qc.invalidateQueries({ queryKey: ["triggers"] });
 						refresh.mutate();
-						showSuccess(
-							editing
-								? "Déclencheur modifié."
-								: "Déclencheur créé et cache rechargé.",
-						);
+						showSuccess(editing ? "Déclencheur modifié." : "Déclencheur créé et cache rechargé.");
 					}}
 				/>
 			)}
@@ -256,22 +239,14 @@ function TriggerCard({
 			<div className="flex items-start gap-3">
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2">
-						<code className="text-sm font-semibold text-brand-300">
-							{trigger.code}
-						</code>
-						{!trigger.enabled && (
-							<span className="badge badge-error">Désactivé</span>
-						)}
-						{!valid && (
-							<span className="badge badge-error">Expression invalide</span>
-						)}
+						<code className="text-sm font-semibold text-brand-300">{trigger.code}</code>
+						{!trigger.enabled && <span className="badge badge-error">Désactivé</span>}
+						{!valid && <span className="badge badge-error">Expression invalide</span>}
 					</div>
 					{trigger.description ? (
 						<p className="mt-1 text-xs text-zinc-400">{trigger.description}</p>
 					) : (
-						<p className="mt-1 text-xs italic text-zinc-600">
-							Aucune description
-						</p>
+						<p className="mt-1 text-xs italic text-zinc-600">Aucune description</p>
 					)}
 					<div className="mt-2 flex items-center gap-2">
 						<code className="rounded bg-zinc-900 px-2 py-1 font-mono text-[11px]">
@@ -314,7 +289,7 @@ function TriggerEditor({
 			pattern: "",
 			flags: "i",
 			enabled: true,
-		},
+		}
 	);
 	const [error, setError] = useState<string | null>(null);
 
@@ -332,10 +307,7 @@ function TriggerEditor({
 			if (isCreate) {
 				return api.post("/database/achievement_triggers", payload);
 			}
-			return api.put(
-				`/database/achievement_triggers/${encodeURIComponent(payload.code)}`,
-				payload,
-			);
+			return api.put(`/database/achievement_triggers/${encodeURIComponent(payload.code)}`, payload);
 		},
 		onSuccess: () => {
 			onSaved();
@@ -368,11 +340,7 @@ function TriggerEditor({
 					<h3 className="text-lg font-semibold">
 						{isCreate ? "Créer un déclencheur" : `Modifier « ${draft.code} »`}
 					</h3>
-					<button
-						type="button"
-						onClick={onClose}
-						className="ml-auto btn btn-ghost px-2"
-					>
+					<button type="button" onClick={onClose} className="ml-auto btn btn-ghost px-2">
 						<X className="h-3 w-3" />
 					</button>
 				</div>
@@ -402,9 +370,7 @@ function TriggerEditor({
 							className={`btn ${draft.enabled ? "btn-primary" : "btn-ghost"} w-full`}
 							onClick={() => setDraft({ ...draft, enabled: !draft.enabled })}
 						>
-							{draft.enabled
-								? "Actif — surveille les messages"
-								: "Désactivé — ignoré"}
+							{draft.enabled ? "Actif — surveille les messages" : "Désactivé — ignoré"}
 						</button>
 					</div>
 					<div className="sm:col-span-2">
@@ -414,16 +380,12 @@ function TriggerEditor({
 						<input
 							className="input w-full"
 							value={draft.description ?? ""}
-							onChange={(e) =>
-								setDraft({ ...draft, description: e.target.value })
-							}
+							onChange={(e) => setDraft({ ...draft, description: e.target.value })}
 							placeholder="Déclenché quand le joueur écrit 'Kamehameha' dans un message."
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">
-							Expression régulière (pattern)
-						</label>
+						<label className="block text-xs text-zinc-500">Expression régulière (pattern)</label>
 						<input
 							className="input w-full font-mono text-xs"
 							value={draft.pattern}
@@ -509,14 +471,12 @@ function RegexTester() {
 				<h3 className="font-semibold">Testeur d&apos;expression</h3>
 			</div>
 			<p className="mt-1 text-xs text-zinc-500">
-				Testez votre expression régulière en temps réel avant de la créer. Le
-				moteur JavaScript et celui du bot partagent la même syntaxe.
+				Testez votre expression régulière en temps réel avant de la créer. Le moteur JavaScript et
+				celui du bot partagent la même syntaxe.
 			</p>
 			<div className="mt-3 grid gap-2 sm:grid-cols-[1fr_120px]">
 				<div>
-					<label className="mb-1 block text-xs text-zinc-500">
-						Expression (pattern)
-					</label>
+					<label className="mb-1 block text-xs text-zinc-500">Expression (pattern)</label>
 					<input
 						className="input w-full font-mono text-xs"
 						value={pattern}
@@ -525,9 +485,7 @@ function RegexTester() {
 					/>
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-500">
-						Options (flags)
-					</label>
+					<label className="mb-1 block text-xs text-zinc-500">Options (flags)</label>
 					<input
 						className="input w-full font-mono text-xs"
 						value={flags}
@@ -537,9 +495,7 @@ function RegexTester() {
 				</div>
 			</div>
 			<div className="mt-2">
-				<label className="mb-1 block text-xs text-zinc-500">
-					Message à tester
-				</label>
+				<label className="mb-1 block text-xs text-zinc-500">Message à tester</label>
 				<textarea
 					className="input w-full"
 					rows={2}
@@ -558,8 +514,8 @@ function RegexTester() {
 						<div className="flex items-center gap-1">
 							<Check className="h-3 w-3" />
 							<span>
-								Correspondance trouvée : <code>&quot;{result.match}&quot;</code>{" "}
-								à la position {result.index}
+								Correspondance trouvée : <code>&quot;{result.match}&quot;</code> à la position{" "}
+								{result.index}
 							</span>
 						</div>
 						{result.groups && result.groups.length > 0 && (
@@ -574,9 +530,7 @@ function RegexTester() {
 						)}
 					</div>
 				) : (
-					<span className="text-zinc-500">
-						Aucune correspondance dans ce message.
-					</span>
+					<span className="text-zinc-500">Aucune correspondance dans ce message.</span>
 				)}
 			</div>
 		</div>

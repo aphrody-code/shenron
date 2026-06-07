@@ -2,13 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-	FileSearch,
-	Loader2,
-	AlertTriangle,
-	ChevronLeft,
-	ChevronRight,
-} from "lucide-react";
+import { FileSearch, Loader2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 import { api } from "@/lib/admin-api";
 import { formatRelative } from "@/lib/admin-format";
 
@@ -107,7 +101,7 @@ export default function AuditPage() {
 		queryKey: ["audit", "local", page],
 		queryFn: () =>
 			api.get<{ rows: ActionLog[]; total: number }>(
-				`/database/action_logs?limit=${limit}&offset=${offset}`,
+				`/database/action_logs?limit=${limit}&offset=${offset}`
 			),
 		enabled: source === "local",
 	});
@@ -176,8 +170,8 @@ export default function AuditPage() {
 						<p className="font-semibold">Impossible de charger le journal.</p>
 						{source === "discord" && (
 							<p className="text-xs text-white/40 mt-0.5">
-								Vérifiez que le bot possède la permission &quot;Voir le journal
-								d&apos;audit&quot; sur le serveur.
+								Vérifiez que le bot possède la permission &quot;Voir le journal d&apos;audit&quot;
+								sur le serveur.
 							</p>
 						)}
 					</div>
@@ -199,23 +193,18 @@ export default function AuditPage() {
 						</thead>
 						<tbody className="divide-y divide-zinc-800 text-xs">
 							{discord.data.audit_log_entries.map((e) => {
-								const author = discord.data!.users.find(
-									(u) => u.id === e.user_id,
-								);
+								const author = discord.data!.users.find((u) => u.id === e.user_id);
 								return (
 									<tr key={e.id} className="hover:bg-zinc-900/30">
 										<td className="px-3 py-2">
 											<span className="badge">
-												{ACTION_TYPE_LABELS[e.action_type] ??
-													`Type ${e.action_type}`}
+												{ACTION_TYPE_LABELS[e.action_type] ?? `Type ${e.action_type}`}
 											</span>
 										</td>
 										<td className="px-3 py-2 font-mono">
 											{author?.username ?? (
 												<span title={e.user_id ?? ""}>
-													{e.user_id
-														? `${e.user_id.slice(0, 6)}…${e.user_id.slice(-4)}`
-														: "—"}
+													{e.user_id ? `${e.user_id.slice(0, 6)}…${e.user_id.slice(-4)}` : "—"}
 												</span>
 											)}
 										</td>
@@ -229,11 +218,7 @@ export default function AuditPage() {
 											)}
 										</td>
 										<td className="px-3 py-2 text-zinc-400">
-											{e.reason ?? (
-												<span className="italic text-zinc-600">
-													Aucun motif
-												</span>
-											)}
+											{e.reason ?? <span className="italic text-zinc-600">Aucun motif</span>}
 										</td>
 										<td className="px-3 py-2 text-zinc-500">
 											{e.changes?.map((c) => c.key).join(", ") || "—"}
@@ -275,11 +260,7 @@ export default function AuditPage() {
 										<tr key={r.id} className="hover:bg-zinc-900/30">
 											<td
 												className="px-3 py-2 text-zinc-400"
-												title={
-													createdMs
-														? new Date(createdMs).toLocaleString("fr-FR")
-														: ""
-												}
+												title={createdMs ? new Date(createdMs).toLocaleString("fr-FR") : ""}
 											>
 												{createdMs ? formatRelative(createdMs) : "—"}
 											</td>
@@ -300,19 +281,14 @@ export default function AuditPage() {
 											<td className="px-3 py-2 font-mono">
 												{r.moderatorId ? (
 													<span title={r.moderatorId}>
-														{r.moderatorId.slice(0, 6)}…
-														{r.moderatorId.slice(-4)}
+														{r.moderatorId.slice(0, 6)}…{r.moderatorId.slice(-4)}
 													</span>
 												) : (
 													"—"
 												)}
 											</td>
 											<td className="px-3 py-2 text-zinc-400 max-w-[160px] truncate">
-												{r.reason ?? (
-													<span className="italic text-zinc-600">
-														Aucun motif
-													</span>
-												)}
+												{r.reason ?? <span className="italic text-zinc-600">Aucun motif</span>}
 											</td>
 											<td
 												className="max-w-xs truncate px-3 py-2 text-zinc-500"
@@ -346,8 +322,7 @@ export default function AuditPage() {
 							Précédent
 						</button>
 						<span className="text-sm text-zinc-400">
-							Page {page + 1} sur{" "}
-							{Math.max(1, Math.ceil((data.total ?? 0) / limit))}
+							Page {page + 1} sur {Math.max(1, Math.ceil((data.total ?? 0) / limit))}
 							<span className="ml-1 text-zinc-600">
 								({data.total} entrée{data.total !== 1 ? "s" : ""})
 							</span>

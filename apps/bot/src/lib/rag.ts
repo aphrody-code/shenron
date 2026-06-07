@@ -17,7 +17,6 @@ import type { Database } from "bun:sqlite";
 import * as sqliteVec from "sqlite-vec";
 import { generateLlmAnswer } from "./llm";
 
-
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 // 3s : l'embed est rapide (~30ms) mais peut faire la queue derrière un rerank
 // (~1.4s) sur le sidecar WASM mono-thread sous burst.
@@ -31,101 +30,105 @@ const RERANK_POOL = 15; // nombre de candidats RRF envoyés au cross-encoder
 const RRF_K = 60;
 
 export interface RagHit {
-  rowid: number;
-  kind: string;
-  title: string;
-  url: string;
-  snippet: string;
+	rowid: number;
+	kind: string;
+	title: string;
+	url: string;
+	snippet: string;
 }
 
 /** Effectue une recherche vectorielle native k-NN via l'extension sqlite-vec. */
 function nativeVectorSearch(
-  db: Database,
-  qv: Float32Array,
-  k: number,
-  allowedRowids?: Set<number> | null,
+	db: Database,
+	qv: Float32Array,
+	k: number,
+	allowedRowids?: Set<number> | null
 ): { rowid: number; score: number }[] {
-  sqliteVec.load(db);
-  try {
-    let rows: { rowid: number; distance: number }[] = [];
-    if (allowedRowids) {
-      // Si des filtres sémantiques/lexicaux (langue/personnage) sont actifs,
-      // on récupère un pool plus large puis on filtre avec allowedRowids en JS.
-      const poolSize = Math.max(k * 4, 100);
-      const rawRows = db.query(
-        "SELECT rowid, distance FROM vec_chunks WHERE embedding MATCH ?1 ORDER BY distance LIMIT ?2"
-      ).all(qv, poolSize) as { rowid: number; distance: number }[];
-      
-      rows = rawRows.filter((r) => allowedRowids.has(r.rowid)).slice(0, k);
-    } else {
-      rows = db.query(
-        "SELECT rowid, distance FROM vec_chunks WHERE embedding MATCH ?1 ORDER BY distance LIMIT ?2"
-      ).all(qv, k) as { rowid: number; distance: number }[];
-    }
-    
-    // RRF (Reciprocal Rank Fusion) n'a besoin que du classement relatif.
-    // Plus la distance L2 est petite (distance de match), plus le vecteur est proche.
-    // On mappe le score à -distance pour conserver un score de pertinence décroissant.
-    return rows.map((r) => ({
-      rowid: r.rowid,
-      score: -r.distance,
-    }));
-  } catch (err) {
-    // Dégradation gracieuse si la table vec_chunks n'a pas encore été créée (ex. premier boot)
-    console.warn("[RAG] Index vectoriel (vec_chunks) indisponible, repli lexical.", err);
-    return [];
-  }
+	sqliteVec.load(db);
+	try {
+		let rows: { rowid: number; distance: number }[] = [];
+		if (allowedRowids) {
+			// Si des filtres sémantiques/lexicaux (langue/personnage) sont actifs,
+			// on récupère un pool plus large puis on filtre avec allowedRowids en JS.
+			const poolSize = Math.max(k * 4, 100);
+			const rawRows = db
+				.query(
+					"SELECT rowid, distance FROM vec_chunks WHERE embedding MATCH ?1 ORDER BY distance LIMIT ?2"
+				)
+				.all(qv, poolSize) as { rowid: number; distance: number }[];
+
+			rows = rawRows.filter((r) => allowedRowids.has(r.rowid)).slice(0, k);
+		} else {
+			rows = db
+				.query(
+					"SELECT rowid, distance FROM vec_chunks WHERE embedding MATCH ?1 ORDER BY distance LIMIT ?2"
+				)
+				.all(qv, k) as { rowid: number; distance: number }[];
+		}
+
+		// RRF (Reciprocal Rank Fusion) n'a besoin que du classement relatif.
+		// Plus la distance L2 est petite (distance de match), plus le vecteur est proche.
+		// On mappe le score à -distance pour conserver un score de pertinence décroissant.
+		return rows.map((r) => ({
+			rowid: r.rowid,
+			score: -r.distance,
+		}));
+	} catch (err) {
+		// Dégradation gracieuse si la table vec_chunks n'a pas encore été créée (ex. premier boot)
+		console.warn("[RAG] Index vectoriel (vec_chunks) indisponible, repli lexical.", err);
+		return [];
+	}
 }
 
 /** Embed la requête via le sidecar. Renvoie null si indisponible (timeout/erreur). */
 async function embedRemote(text: string): Promise<Float32Array | null> {
-  try {
-    const res = await fetch(`${EMBED_URL}/embed`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ texts: [text], kind: "query" }),
-      signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
-    });
-    if (!res.ok) return null;
-    const j = (await res.json()) as { vectors: number[][] };
-    const v = j.vectors?.[0];
-    return v ? Float32Array.from(v) : null;
-  } catch {
-    return null;
-  }
+	try {
+		const res = await fetch(`${EMBED_URL}/embed`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ texts: [text], kind: "query" }),
+			signal: AbortSignal.timeout(EMBED_TIMEOUT_MS),
+		});
+		if (!res.ok) return null;
+		const j = (await res.json()) as { vectors: number[][] };
+		const v = j.vectors?.[0];
+		return v ? Float32Array.from(v) : null;
+	} catch {
+		return null;
+	}
 }
 
 /** Rerank cross-encoder via le sidecar. Renvoie un score/passage, ou null si KO. */
 async function rerankRemote(query: string, passages: string[]): Promise<number[] | null> {
-  try {
-    const res = await fetch(`${EMBED_URL}/rerank`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query, passages }),
-      signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
-    });
-    if (!res.ok) return null;
-    const j = (await res.json()) as { scores: number[] };
-    return Array.isArray(j.scores) ? j.scores : null;
-  } catch {
-    return null;
-  }
+	try {
+		const res = await fetch(`${EMBED_URL}/rerank`, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ query, passages }),
+			signal: AbortSignal.timeout(RERANK_TIMEOUT_MS),
+		});
+		if (!res.ok) return null;
+		const j = (await res.json()) as { scores: number[] };
+		return Array.isArray(j.scores) ? j.scores : null;
+	} catch {
+		return null;
+	}
 }
 
 export interface SearchOptions {
-  lang?: string;
-  entity?: string;
-  sourceId?: string;
+	lang?: string;
+	entity?: string;
+	sourceId?: string;
 }
 
 /** Tokenise une requête naturelle en clause FTS5 OR (recall large). */
 function ftsMatch(raw: string): string | null {
-  const tokens = raw
-    .replace(/["*()]/g, " ")
-    .split(/\s+/)
-    .filter((t) => t.length > 1);
-  if (tokens.length === 0) return null;
-  return tokens.map((t) => `"${t}"`).join(" OR ");
+	const tokens = raw
+		.replace(/["*()]/g, " ")
+		.split(/\s+/)
+		.filter((t) => t.length > 1);
+	if (tokens.length === 0) return null;
+	return tokens.map((t) => `"${t}"`).join(" OR ");
 }
 
 export type RagMode = "hybrid+rerank" | "hybrid" | "lexical";
@@ -137,140 +140,136 @@ export type RagMode = "hybrid+rerank" | "hybrid" | "lexical";
  * le signal sémantique manque. Renvoie au plus `limit` hits.
  */
 export async function hybridSearch(
-  db: Database,
-  raw: string,
-  limit: number,
-  options?: SearchOptions,
+	db: Database,
+	raw: string,
+	limit: number,
+	options?: SearchOptions
 ): Promise<{ results: RagHit[]; mode: RagMode }> {
-  const query = raw.trim();
-  const match = ftsMatch(query);
-  if (!match) return { results: [], mode: "lexical" };
+	const query = raw.trim();
+	const match = ftsMatch(query);
+	if (!match) return { results: [], mode: "lexical" };
 
-  // Récupération des rowids autorisés si des filtres sont présents
-  let allowedRowids: Set<number> | null = null;
-  if (options?.lang || options?.entity || options?.sourceId) {
-    let filterSql = "SELECT rowid FROM rag_chunks WHERE 1=1";
-    const filterParams: any[] = [];
-    if (options.lang) {
-      filterSql += " AND lang = ?";
-      filterParams.push(options.lang);
-    }
-    if (options.entity) {
-      filterSql += " AND entity = ?";
-      filterParams.push(options.entity);
-    }
-    if (options.sourceId) {
-      filterSql += " AND source_id = ?";
-      filterParams.push(options.sourceId);
-    }
-    const rows = db.query(filterSql).all(...filterParams) as { rowid: number }[];
-    allowedRowids = new Set(rows.map((r) => r.rowid));
-  }
+	// Récupération des rowids autorisés si des filtres sont présents
+	let allowedRowids: Set<number> | null = null;
+	if (options?.lang || options?.entity || options?.sourceId) {
+		let filterSql = "SELECT rowid FROM rag_chunks WHERE 1=1";
+		const filterParams: any[] = [];
+		if (options.lang) {
+			filterSql += " AND lang = ?";
+			filterParams.push(options.lang);
+		}
+		if (options.entity) {
+			filterSql += " AND entity = ?";
+			filterParams.push(options.entity);
+		}
+		if (options.sourceId) {
+			filterSql += " AND source_id = ?";
+			filterParams.push(options.sourceId);
+		}
+		const rows = db.query(filterSql).all(...filterParams) as { rowid: number }[];
+		allowedRowids = new Set(rows.map((r) => r.rowid));
+	}
 
-  const POOL = 50;
+	const POOL = 50;
 
-  // Construction de la requête FTS avec filtres
-  let bmSql =
-    "SELECT rowid, kind, title, url, snippet(rag_chunks, 3, '', '', '…', 18) AS snippet " +
-    "FROM rag_chunks WHERE rag_chunks MATCH ?";
-  const bmParams: any[] = [match];
+	// Construction de la requête FTS avec filtres
+	let bmSql =
+		"SELECT rowid, kind, title, url, snippet(rag_chunks, 3, '', '', '…', 18) AS snippet " +
+		"FROM rag_chunks WHERE rag_chunks MATCH ?";
+	const bmParams: any[] = [match];
 
-  if (options?.lang) {
-    bmSql += " AND lang = ?";
-    bmParams.push(options.lang);
-  }
-  if (options?.entity) {
-    bmSql += " AND entity = ?";
-    bmParams.push(options.entity);
-  }
-  if (options?.sourceId) {
-    bmSql += " AND source_id = ?";
-    bmParams.push(options.sourceId);
-  }
+	if (options?.lang) {
+		bmSql += " AND lang = ?";
+		bmParams.push(options.lang);
+	}
+	if (options?.entity) {
+		bmSql += " AND entity = ?";
+		bmParams.push(options.entity);
+	}
+	if (options?.sourceId) {
+		bmSql += " AND source_id = ?";
+		bmParams.push(options.sourceId);
+	}
 
-  bmSql += " ORDER BY rank LIMIT ?";
-  bmParams.push(POOL);
+	bmSql += " ORDER BY rank LIMIT ?";
+	bmParams.push(POOL);
 
-  const bm = db.query(bmSql).all(...bmParams) as RagHit[];
+	const bm = db.query(bmSql).all(...bmParams) as RagHit[];
 
-  const bmById = new Map<number, RagHit>();
-  for (const h of bm) bmById.set(h.rowid, h);
+	const bmById = new Map<number, RagHit>();
+	for (const h of bm) bmById.set(h.rowid, h);
 
-  // Étage 1 — signal sémantique (best-effort).
-  const qv = await embedRemote(query);
-  const dense = qv ? nativeVectorSearch(db, qv, POOL, allowedRowids) : [];
+	// Étage 1 — signal sémantique (best-effort).
+	const qv = await embedRemote(query);
+	const dense = qv ? nativeVectorSearch(db, qv, POOL, allowedRowids) : [];
 
-  if (dense.length === 0) {
-    return { results: bm.slice(0, limit), mode: "lexical" };
-  }
+	if (dense.length === 0) {
+		return { results: bm.slice(0, limit), mode: "lexical" };
+	}
 
-  // Fusion RRF des deux classements.
-  const fused = new Map<number, number>();
-  bm.forEach((h, r) => fused.set(h.rowid, (fused.get(h.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
-  dense.forEach((d, r) => fused.set(d.rowid, (fused.get(d.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
+	// Fusion RRF des deux classements.
+	const fused = new Map<number, number>();
+	bm.forEach((h, r) => fused.set(h.rowid, (fused.get(h.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
+	dense.forEach((d, r) => fused.set(d.rowid, (fused.get(d.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
 
-  // On garde un pool large pour le reranking (pas seulement `limit`).
-  const ordered = [...fused.entries()]
-    .toSorted((a, b) => b[1] - a[1])
-    .slice(0, RERANK_POOL)
-    .map(([rowid]) => rowid);
+	// On garde un pool large pour le reranking (pas seulement `limit`).
+	const ordered = [...fused.entries()]
+		.toSorted((a, b) => b[1] - a[1])
+		.slice(0, RERANK_POOL)
+		.map(([rowid]) => rowid);
 
-  // Hydrate kind/title/url + contenu (pour le rerank) de tous les candidats.
-  const ph = ordered.map(() => "?").join(",");
-  const rows = db
-    .query(`SELECT rowid, kind, title, url, content FROM rag_chunks WHERE rowid IN (${ph})`)
-    .all(...ordered) as (RagHit & { content: string })[];
-  const rowById = new Map<number, RagHit & { content: string }>();
-  for (const r of rows) rowById.set(r.rowid, r);
+	// Hydrate kind/title/url + contenu (pour le rerank) de tous les candidats.
+	const ph = ordered.map(() => "?").join(",");
+	const rows = db
+		.query(`SELECT rowid, kind, title, url, content FROM rag_chunks WHERE rowid IN (${ph})`)
+		.all(...ordered) as (RagHit & { content: string })[];
+	const rowById = new Map<number, RagHit & { content: string }>();
+	for (const r of rows) rowById.set(r.rowid, r);
 
-  // Candidats dans l'ordre RRF ; snippet d'affichage = surlignage BM25 si dispo,
-  // sinon préfixe du contenu.
-  let candidates = ordered
-    .map((id) => {
-      const r = rowById.get(id);
-      if (!r) return null;
-      const snippet = bmById.get(id)?.snippet ?? r.content.slice(0, 160);
-      return {
-        rowid: r.rowid,
-        kind: r.kind,
-        title: r.title,
-        url: r.url,
-        snippet,
-        content: r.content,
-      };
-    })
-    .filter((x): x is NonNullable<typeof x> => x !== null);
+	// Candidats dans l'ordre RRF ; snippet d'affichage = surlignage BM25 si dispo,
+	// sinon préfixe du contenu.
+	let candidates = ordered
+		.map((id) => {
+			const r = rowById.get(id);
+			if (!r) return null;
+			const snippet = bmById.get(id)?.snippet ?? r.content.slice(0, 160);
+			return {
+				rowid: r.rowid,
+				kind: r.kind,
+				title: r.title,
+				url: r.url,
+				snippet,
+				content: r.content,
+			};
+		})
+		.filter((x): x is NonNullable<typeof x> => x !== null);
 
-  // Étage 2 — reranking cross-encoder (best-effort).
-  let mode: RagMode = "hybrid";
-  if (RERANK_ENABLED && candidates.length > 1) {
-    // 400 chars suffisent : le cross-encoder tronque à 512 tokens. Au-delà, on
-    // paie la tokenisation sans gain (4.8s vs 1.4s pour 20 passages).
-    const passages = candidates.map((c2) => `${c2.title}. ${c2.content}`.slice(0, 400));
-    const scores = await rerankRemote(query, passages);
-    if (scores && scores.length === candidates.length) {
-      candidates = candidates
-        .map((cand, i) => ({ cand, score: scores[i] }))
-        .toSorted((a, b) => b.score - a.score)
-        .map((x) => x.cand);
-      mode = "hybrid+rerank";
-    }
-  }
+	// Étage 2 — reranking cross-encoder (best-effort).
+	let mode: RagMode = "hybrid";
+	if (RERANK_ENABLED && candidates.length > 1) {
+		// 400 chars suffisent : le cross-encoder tronque à 512 tokens. Au-delà, on
+		// paie la tokenisation sans gain (4.8s vs 1.4s pour 20 passages).
+		const passages = candidates.map((c2) => `${c2.title}. ${c2.content}`.slice(0, 400));
+		const scores = await rerankRemote(query, passages);
+		if (scores && scores.length === candidates.length) {
+			candidates = candidates
+				.map((cand, i) => ({ cand, score: scores[i] }))
+				.toSorted((a, b) => b.score - a.score)
+				.map((x) => x.cand);
+			mode = "hybrid+rerank";
+		}
+	}
 
-  const results: RagHit[] = candidates
-    .slice(0, limit)
-    .map(({ rowid, kind, title, url, snippet }) => ({ rowid, kind, title, url, snippet }));
-  return { results, mode };
+	const results: RagHit[] = candidates
+		.slice(0, limit)
+		.map(({ rowid, kind, title, url, snippet }) => ({ rowid, kind, title, url, snippet }));
+	return { results, mode };
 }
 
 /**
  * RAG Génératif : Construit un prompt avec le contexte récupéré et interroge le LLM
  * via le module unifié llm.ts.
  */
-export async function generateAnswer(
-  db: Database,
-  query: string,
-  hits: RagHit[],
-): Promise<string> {
-  return generateLlmAnswer(db, query, hits, "whis");
+export async function generateAnswer(db: Database, query: string, hits: RagHit[]): Promise<string> {
+	return generateLlmAnswer(db, query, hits, "whis");
 }

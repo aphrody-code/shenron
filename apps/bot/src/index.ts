@@ -139,22 +139,18 @@ for (const [id, client] of clients) {
 			if (gid === env.GUILD_ID) continue;
 			logger.warn(
 				{ persona: id, gid, name: guild.name },
-				"guild non-prod détectée, leave en cours",
+				"guild non-prod détectée, leave en cours"
 			);
-			await guild
-				.leave()
-				.catch((err) => logger.error({ err, gid }, "guild.leave failed"));
+			await guild.leave().catch((err) => logger.error({ err, gid }, "guild.leave failed"));
 		}
 
 		await client.initApplicationCommands();
 		logger.info(
-			`✓ ${PERSONAS[id].name} connecté en tant que ${client.user?.username} (botId=${id})`,
+			`✓ ${PERSONAS[id].name} connecté en tant que ${client.user?.username} (botId=${id})`
 		);
 
 		if (id === "shenron") {
-			await runBootAudit(client).catch((err) =>
-				logger.error({ err }, "boot-audit failed"),
-			);
+			await runBootAudit(client).catch((err) => logger.error({ err }, "boot-audit failed"));
 			try {
 				container.resolve(ApiServer).start();
 			} catch (err) {
@@ -167,13 +163,9 @@ for (const [id, client] of clients) {
 		if (guild.id === env.GUILD_ID) return;
 		logger.warn(
 			{ persona: id, gid: guild.id, name: guild.name },
-			"guild non-prod a invité le bot, leave instantané",
+			"guild non-prod a invité le bot, leave instantané"
 		);
-		await guild
-			.leave()
-			.catch((err) =>
-				logger.error({ err, gid: guild.id }, "guild.leave failed"),
-			);
+		await guild.leave().catch((err) => logger.error({ err, gid: guild.id }, "guild.leave failed"));
 	});
 
 	client.on("interactionCreate", (interaction) => {
@@ -210,10 +202,7 @@ process.on("uncaughtException", (err) => {
 try {
 	await clients.get("shenron")!.login(PERSONAS.shenron.token);
 } catch (err) {
-	logger.fatal(
-		{ err },
-		"Shenron failed to start — aborting (no API REST possible)",
-	);
+	logger.fatal({ err }, "Shenron failed to start — aborting (no API REST possible)");
 	process.exit(1);
 }
 
@@ -223,12 +212,9 @@ await Promise.allSettled(
 		try {
 			await clients.get(id)!.login(PERSONAS[id].token);
 		} catch (err) {
-			logger.error(
-				{ err, persona: id },
-				`Login failed for ${PERSONAS[id].name} — bot disabled`,
-			);
+			logger.error({ err, persona: id }, `Login failed for ${PERSONAS[id].name} — bot disabled`);
 		}
-	}),
+	})
 );
 
 // ── Auto-seed wiki si DB vide (self-healing après perte bot.db) ─────────
@@ -248,7 +234,7 @@ void (async () => {
 					characters: result.characters,
 					transformations: result.transformations,
 				},
-				"wiki auto-seeded on boot",
+				"wiki auto-seeded on boot"
 			);
 		}
 	} catch (err) {

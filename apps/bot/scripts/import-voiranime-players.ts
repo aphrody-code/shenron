@@ -23,8 +23,7 @@ if (!NEON_URL) {
 import os from "node:os";
 
 const JSON_PATH =
-	process.env.VOIRANIME_JSON ??
-	`${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
+	process.env.VOIRANIME_JSON ?? `${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
 
 // série DB → slug principal voiranime (VOSTFR).
 const SERIES_SLUG: Record<string, string> = {
@@ -62,7 +61,7 @@ for (const [series, slug] of Object.entries(SERIES_SLUG)) {
 					name: p.name,
 					provider: p.provider,
 					embedUrl: p.embedUrl,
-				})),
+				}))
 			);
 		}
 	}
@@ -83,5 +82,7 @@ for (const [series, slug] of Object.entries(SERIES_SLUG)) {
 	console.log(`  ✓ ${series} (${slug}) : ${byNum.size} épisodes avec lecteurs côté voiranime`);
 }
 
-console.log(`✓ Terminé : ${updated} épisodes avec lecteurs importés, ${noMatch} sans correspondance.`);
+console.log(
+	`✓ Terminé : ${updated} épisodes avec lecteurs importés, ${noMatch} sans correspondance.`
+);
 await sql.end();

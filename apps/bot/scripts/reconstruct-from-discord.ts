@@ -22,10 +22,7 @@ import { users } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 
-const ROLE_TO_LEVEL: Record<
-	string,
-	{ level: number; xp: number; zeni: number }
-> = {
+const ROLE_TO_LEVEL: Record<string, { level: number; xp: number; zeni: number }> = {
 	"1058910891124457482": { level: 1, xp: 1_000, zeni: 1_000 + 1_000 },
 	"1058910426164908075": { level: 2, xp: 5_000, zeni: 1_000 + 2_000 },
 	"1058910477847109743": { level: 3, xp: 10_000, zeni: 1_000 + 3_000 },
@@ -46,7 +43,7 @@ type ScannedUser = {
 };
 
 const scan = JSON.parse(
-	readFileSync(new URL("../data/guild-scan.json", import.meta.url), "utf-8"),
+	readFileSync(new URL("../data/guild-scan.json", import.meta.url), "utf-8")
 ) as { users: ScannedUser[] };
 
 const dbs = container.resolve(DatabaseService);
@@ -62,8 +59,7 @@ for (const m of scan.users) {
 		continue;
 	}
 	// Trouve le PLUS HAUT level reward qu'il possède
-	let best: { level: number; xp: number; zeni: number; roleId: string } | null =
-		null;
+	let best: { level: number; xp: number; zeni: number; roleId: string } | null = null;
 	for (const rid of m.roles) {
 		const lr = ROLE_TO_LEVEL[rid];
 		if (lr && (!best || lr.level > best.level)) {
@@ -93,11 +89,7 @@ for (const m of scan.users) {
 		continue;
 	}
 
-	const existing = await db
-		.select({ id: users.id })
-		.from(users)
-		.where(eq(users.id, m.id))
-		.limit(1);
+	const existing = await db.select({ id: users.id }).from(users).where(eq(users.id, m.id)).limit(1);
 
 	if (existing.length === 0) {
 		await db.insert(users).values({
@@ -128,7 +120,7 @@ for (const m of scan.users) {
 console.log(`\n✓ ${imported} users reconstructed (${skipped} bots skipped)`);
 console.log("Distribution par niveau récupéré :");
 for (const [lvl, count] of Object.entries(byLevel).toSorted(
-	(a, b) => Number(a[0]) - Number(b[0]),
+	(a, b) => Number(a[0]) - Number(b[0])
 )) {
 	console.log(`  L${lvl.padStart(2)} → ${count} users`);
 }

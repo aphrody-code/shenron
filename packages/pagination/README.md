@@ -13,15 +13,15 @@ import { Pagination, PaginationType } from "@rpbey/pagination";
 import { EmbedBuilder } from "discord.js";
 
 const pages = [
-  { embeds: [new EmbedBuilder().setTitle("Page 1")] },
-  { embeds: [new EmbedBuilder().setTitle("Page 2")] },
-  { embeds: [new EmbedBuilder().setTitle("Page 3")] },
+	{ embeds: [new EmbedBuilder().setTitle("Page 1")] },
+	{ embeds: [new EmbedBuilder().setTitle("Page 2")] },
+	{ embeds: [new EmbedBuilder().setTitle("Page 3")] },
 ];
 
 const pagination = new Pagination(interaction, pages, {
-  type: PaginationType.Button,
-  enableExit: true,
-  time: 60_000,
+	type: PaginationType.Button,
+	enableExit: true,
+	time: 60_000,
 });
 
 await pagination.send();

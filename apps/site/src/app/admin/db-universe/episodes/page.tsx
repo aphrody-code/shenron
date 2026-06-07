@@ -7,15 +7,7 @@ export const dynamic = "force-dynamic";
 
 const TABLE = "db_episodes";
 
-const SERIES = [
-	"DB",
-	"DBZ",
-	"DBZ_KAI",
-	"DBZ_KAI_FINAL",
-	"DBGT",
-	"DBS",
-	"DB_DAIMA",
-];
+const SERIES = ["DB", "DBZ", "DBZ_KAI", "DBZ_KAI_FINAL", "DBGT", "DBS", "DB_DAIMA"];
 
 const SERIES_LABELS: Record<string, string> = {
 	DB: "Dragon Ball",
@@ -61,9 +53,8 @@ export default async function AdminEpisodesPage({
 			/>
 
 			<p className="text-sm text-white/50 mb-5">
-				Consultez la liste des épisodes par série. Sélectionnez une série
-				ci-dessous pour filtrer l&apos;affichage. Le numéro MAL renvoie vers la
-				fiche MyAnimeList de l&apos;anime.
+				Consultez la liste des épisodes par série. Sélectionnez une série ci-dessous pour filtrer
+				l&apos;affichage. Le numéro MAL renvoie vers la fiche MyAnimeList de l&apos;anime.
 			</p>
 
 			<div className="flex justify-end mb-4">
@@ -94,10 +85,8 @@ export default async function AdminEpisodesPage({
 					</p>
 					<p className="text-white/40 text-sm">
 						Les épisodes de{" "}
-						<strong className="text-white/60">
-							{SERIES_LABELS[series] ?? series}
-						</strong>{" "}
-						n&apos;ont pas encore été importés.
+						<strong className="text-white/60">{SERIES_LABELS[series] ?? series}</strong> n&apos;ont
+						pas encore été importés.
 					</p>
 				</div>
 			) : (
@@ -134,15 +123,11 @@ export default async function AdminEpisodesPage({
 									<td className="p-2">
 										<div className="text-sm text-white">{ep.title}</div>
 										{ep.title_ja && (
-											<div className="font-jp text-xs text-dbz-yellow/75 mt-0.5">
-												{ep.title_ja}
-											</div>
+											<div className="font-jp text-xs text-dbz-yellow/75 mt-0.5">{ep.title_ja}</div>
 										)}
 									</td>
 									<td className="p-2 text-[11px] text-white/55">
-										{ep.air_date
-											? new Date(ep.air_date * 1000).toLocaleDateString("fr-FR")
-											: "—"}
+										{ep.air_date ? new Date(ep.air_date * 1000).toLocaleDateString("fr-FR") : "—"}
 									</td>
 									<td className="p-2 text-right">
 										{ep.mal_id ? (

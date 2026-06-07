@@ -15,8 +15,7 @@ const fakeUser = (id: string, name: string) =>
 		id,
 		username: name,
 		displayName: name,
-		displayAvatarURL: () =>
-			`https://cdn.discordapp.com/embed/avatars/${Number(id) % 5}.png`,
+		displayAvatarURL: () => `https://cdn.discordapp.com/embed/avatars/${Number(id) % 5}.png`,
 	}) as any;
 
 const OUT = "/tmp/shenron-canvas";
@@ -26,8 +25,7 @@ mkdirSync(OUT, { recursive: true });
 // Le rendu réel exige le binding natif skia. Sur les runners CI (GLIBC trop
 // ancienne / pas de binaire darwin) le shim no-op de preload.ts est actif et
 // produit des buffers vides — on skip alors ces assertions de taille.
-const canvasNativeOk =
-	(globalThis as Record<string, unknown>).shenronCanvasNativeOk !== false;
+const canvasNativeOk = (globalThis as Record<string, unknown>).shenronCanvasNativeOk !== false;
 const d = canvasNativeOk ? describe : describe.skip;
 
 d("canvas rendering — visual smoke", () => {

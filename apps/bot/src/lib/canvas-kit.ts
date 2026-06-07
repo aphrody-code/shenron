@@ -42,10 +42,7 @@ function registerFonts(): void {
 		try {
 			GlobalFonts.registerFromPath(`${FONT_DIR}${file}`, family);
 		} catch (err) {
-			logger.debug(
-				{ err, file, family },
-				"Font non chargée (fallback sans-serif)",
-			);
+			logger.debug({ err, file, family }, "Font non chargée (fallback sans-serif)");
 		}
 	}
 }
@@ -99,7 +96,7 @@ export function roundRectPath(
 	y: number,
 	w: number,
 	h: number,
-	r: number,
+	r: number
 ): void {
 	const radius = Math.min(r, w / 2, h / 2);
 	ctx.beginPath();
@@ -115,12 +112,7 @@ export function roundRectPath(
 	ctx.closePath();
 }
 
-export function circlePath(
-	ctx: SKRSContext2D,
-	cx: number,
-	cy: number,
-	r: number,
-): void {
+export function circlePath(ctx: SKRSContext2D, cx: number, cy: number, r: number): void {
 	ctx.beginPath();
 	ctx.arc(cx, cy, r, 0, Math.PI * 2);
 	ctx.closePath();
@@ -135,7 +127,7 @@ export function fillRadialGlow(
 	cy: number,
 	r: number,
 	hex: string,
-	opacity = 0.8,
+	opacity = 0.8
 ): void {
 	const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
 	grad.addColorStop(0, rgba(hex, opacity));
@@ -152,7 +144,7 @@ export function drawScanlines(
 	w: number,
 	h: number,
 	color: string,
-	step = 4,
+	step = 4
 ): void {
 	ctx.save();
 	ctx.strokeStyle = color;
@@ -177,7 +169,7 @@ export function drawGauge(
 	opts: { bg: string; fill: string; stroke?: string; radius?: number } = {
 		bg: "#1f2937",
 		fill: "#fbbf24",
-	},
+	}
 ): void {
 	const clamped = Math.max(0, Math.min(1, ratio));
 	const radius = opts.radius ?? h / 2;
@@ -221,7 +213,7 @@ export function textWithShadow(
 	text: string,
 	x: number,
 	y: number,
-	options: TextShadowOptions,
+	options: TextShadowOptions
 ): void {
 	ctx.save();
 	ctx.font = options.font;
@@ -249,7 +241,7 @@ export function textStroked(
 	text: string,
 	x: number,
 	y: number,
-	options: TextStrokedOptions,
+	options: TextStrokedOptions
 ): void {
 	ctx.save();
 	ctx.font = options.font;
@@ -291,7 +283,7 @@ export function textDoubleFont(
 	text: string,
 	x: number,
 	y: number,
-	opts: TextDoubleFontOptions,
+	opts: TextDoubleFontOptions
 ): void {
 	ctx.save();
 	if (opts.align) ctx.textAlign = opts.align;
@@ -304,11 +296,7 @@ export function textDoubleFont(
 		ctx.shadowColor = opts.back.color;
 		ctx.shadowBlur = opts.back.blur;
 	}
-	ctx.fillText(
-		text,
-		x + (opts.back.offsetX ?? 2),
-		y + (opts.back.offsetY ?? 2),
-	);
+	ctx.fillText(text, x + (opts.back.offsetX ?? 2), y + (opts.back.offsetY ?? 2));
 	ctx.restore();
 
 	// Couche avant : nette
@@ -326,7 +314,7 @@ export function drawStar(
 	cy: number,
 	r: number,
 	points = 5,
-	color = "#ffffff",
+	color = "#ffffff"
 ): void {
 	ctx.save();
 	ctx.beginPath();
@@ -350,16 +338,9 @@ export function drawDragonBall(
 	cx: number,
 	cy: number,
 	r: number,
-	starCount: number,
+	starCount: number
 ): void {
-	const grad = ctx.createRadialGradient(
-		cx - r / 3,
-		cy - r / 3,
-		r / 8,
-		cx,
-		cy,
-		r,
-	);
+	const grad = ctx.createRadialGradient(cx - r / 3, cy - r / 3, r / 8, cx, cy, r);
 	grad.addColorStop(0, "#fef3c7");
 	grad.addColorStop(0.35, "#f59e0b");
 	grad.addColorStop(1, "#c2410c");
@@ -378,14 +359,7 @@ export function drawDragonBall(
 	} else {
 		for (let i = 0; i < starCount; i++) {
 			const angle = (i * 2 * Math.PI) / starCount - Math.PI / 2;
-			drawStar(
-				ctx,
-				cx + Math.cos(angle) * ring,
-				cy + Math.sin(angle) * ring,
-				starR,
-				5,
-				"#b91c1c",
-			);
+			drawStar(ctx, cx + Math.cos(angle) * ring, cy + Math.sin(angle) * ring, starR, 5, "#b91c1c");
 		}
 	}
 
@@ -396,7 +370,7 @@ export function drawDragonBall(
 		0,
 		cx - r / 3,
 		cy - r / 3,
-		r / 2.5,
+		r / 2.5
 	);
 	shine.addColorStop(0, "rgba(255, 255, 255, 0.6)");
 	shine.addColorStop(1, "rgba(255, 255, 255, 0)");
@@ -418,7 +392,7 @@ export function drawImageCover(
 	dx: number,
 	dy: number,
 	dw: number,
-	dh: number,
+	dh: number
 ): void {
 	const srcRatio = img.width / img.height;
 	const dstRatio = dw / dh;

@@ -35,29 +35,23 @@ export function Commands() {
 
 	const commands = useQuery({
 		queryKey: ["bot", "commands", "expanded"],
-		queryFn: () =>
-			api.get<{ commands: CommandLeaf[] }>("/bot/commands/expanded"),
+		queryFn: () => api.get<{ commands: CommandLeaf[] }>("/bot/commands/expanded"),
 		staleTime: 60_000,
 	});
 
 	const rules = useQuery({
 		queryKey: ["commands", "permissions"],
-		queryFn: () =>
-			api.get<{ rules: PermissionRule[] }>("/bot/commands/permissions"),
+		queryFn: () => api.get<{ rules: PermissionRule[] }>("/bot/commands/permissions"),
 		staleTime: 30_000,
 	});
 
 	const upsert = useMutation({
-		mutationFn: (rule: PermissionRule) =>
-			api.post("/bot/commands/permissions", rule),
-		onSuccess: () =>
-			qc.invalidateQueries({ queryKey: ["commands", "permissions"] }),
+		mutationFn: (rule: PermissionRule) => api.post("/bot/commands/permissions", rule),
+		onSuccess: () => qc.invalidateQueries({ queryKey: ["commands", "permissions"] }),
 	});
 	const remove = useMutation({
-		mutationFn: (name: string) =>
-			api.post("/bot/commands/permissions/delete", { name }),
-		onSuccess: () =>
-			qc.invalidateQueries({ queryKey: ["commands", "permissions"] }),
+		mutationFn: (name: string) => api.post("/bot/commands/permissions/delete", { name }),
+		onSuccess: () => qc.invalidateQueries({ queryKey: ["commands", "permissions"] }),
 	});
 
 	const ruleByName = useMemo(() => {
@@ -81,8 +75,7 @@ export function Commands() {
 			.toSorted((a, b) => a.group.localeCompare(b.group));
 	}, [commands.data]);
 
-	const overriddenCount =
-		ruleByName.size - (ruleByName.has(GLOBAL_KEY) ? 1 : 0);
+	const overriddenCount = ruleByName.size - (ruleByName.has(GLOBAL_KEY) ? 1 : 0);
 	const globalRule = ruleByName.get(GLOBAL_KEY);
 
 	if (commands.isLoading || rules.isLoading) {
@@ -97,16 +90,14 @@ export function Commands() {
 					<h2 className="text-lg font-semibold">Permissions des commandes</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					{commands.data?.commands.length ?? 0} commandes · {overriddenCount}{" "}
-					règle{overriddenCount > 1 ? "s" : ""} active
-					{overriddenCount > 1 ? "s" : ""}. Le owner et les membres avec la
-					permission Discord <strong>Administrator</strong> bypassent toujours
-					les règles.
+					{commands.data?.commands.length ?? 0} commandes · {overriddenCount} règle
+					{overriddenCount > 1 ? "s" : ""} active
+					{overriddenCount > 1 ? "s" : ""}. Le owner et les membres avec la permission Discord{" "}
+					<strong>Administrator</strong> bypassent toujours les règles.
 				</p>
 				<p className="mt-2 text-xs text-zinc-500">
-					Cache bot 30 s. Lookup hiérarchique : règle exacte (
-					<code>admin reload</code>) → joker du groupe (<code>admin *</code>) →
-					joker global (<code>*</code>).
+					Cache bot 30 s. Lookup hiérarchique : règle exacte (<code>admin reload</code>) → joker du
+					groupe (<code>admin *</code>) → joker global (<code>*</code>).
 				</p>
 			</div>
 
@@ -201,8 +192,7 @@ function GroupSection({
 	const [open, setOpen] = useState(false);
 	const wildcardName = `${group} *`;
 	const wildcardRule = ruleByName.get(wildcardName);
-	const overridden =
-		items.filter((c) => ruleByName.has(c.name)).length + (wildcardRule ? 1 : 0);
+	const overridden = items.filter((c) => ruleByName.has(c.name)).length + (wildcardRule ? 1 : 0);
 	const hasMultipleLeaves = items.length > 1 || items[0]?.name !== group;
 
 	return (
@@ -304,16 +294,12 @@ function RuleEditor({
 					<div className="flex items-center gap-2">
 						<code className="text-sm font-medium">{label}</code>
 						{isOverridden && (
-							<span
-								className={`badge ${rule?.enabled ? "badge-warning" : "badge-error"}`}
-							>
+							<span className={`badge ${rule?.enabled ? "badge-warning" : "badge-error"}`}>
 								{rule?.enabled ? "règle active" : "désactivée"}
 							</span>
 						)}
 					</div>
-					{description && (
-						<p className="mt-0.5 text-xs text-zinc-400">{description}</p>
-					)}
+					{description && <p className="mt-0.5 text-xs text-zinc-400">{description}</p>}
 					{summary && <p className="mt-1 text-xs text-zinc-500">{summary}</p>}
 				</div>
 				<div className="flex shrink-0 items-center gap-2">
@@ -343,9 +329,7 @@ function RuleEditor({
 						<input
 							type="checkbox"
 							checked={draft.enabled}
-							onChange={(e) =>
-								setDraft({ ...draft, enabled: e.target.checked })
-							}
+							onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })}
 							className="h-4 w-4 accent-brand-500"
 						/>
 						<Power className="h-4 w-4 text-zinc-500" />
@@ -393,11 +377,7 @@ function RuleEditor({
 						>
 							Enregistrer
 						</button>
-						<button
-							type="button"
-							onClick={() => setEditing(false)}
-							className="btn btn-ghost"
-						>
+						<button type="button" onClick={() => setEditing(false)} className="btn btn-ghost">
 							Annuler
 						</button>
 					</div>
@@ -413,15 +393,15 @@ function summarizeRule(rule: PermissionRule | undefined): string {
 	if (!rule.enabled) parts.push("désactivée");
 	if (rule.allowedRoles.length > 0)
 		parts.push(
-			`${rule.allowedRoles.length} rôle${rule.allowedRoles.length > 1 ? "s" : ""} autorisé${rule.allowedRoles.length > 1 ? "s" : ""}`,
+			`${rule.allowedRoles.length} rôle${rule.allowedRoles.length > 1 ? "s" : ""} autorisé${rule.allowedRoles.length > 1 ? "s" : ""}`
 		);
 	if (rule.deniedRoles.length > 0)
 		parts.push(
-			`${rule.deniedRoles.length} rôle${rule.deniedRoles.length > 1 ? "s" : ""} interdit${rule.deniedRoles.length > 1 ? "s" : ""}`,
+			`${rule.deniedRoles.length} rôle${rule.deniedRoles.length > 1 ? "s" : ""} interdit${rule.deniedRoles.length > 1 ? "s" : ""}`
 		);
 	if (rule.deniedUsers.length > 0)
 		parts.push(
-			`${rule.deniedUsers.length} user${rule.deniedUsers.length > 1 ? "s" : ""} interdit${rule.deniedUsers.length > 1 ? "s" : ""}`,
+			`${rule.deniedUsers.length} user${rule.deniedUsers.length > 1 ? "s" : ""} interdit${rule.deniedUsers.length > 1 ? "s" : ""}`
 		);
 	return parts.join(" · ");
 }

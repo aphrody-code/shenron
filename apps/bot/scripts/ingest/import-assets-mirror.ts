@@ -8,13 +8,7 @@ import { db } from "./_db";
 import { dbAssets } from "../../src/db/schema";
 import { eq } from "drizzle-orm";
 import { createHash } from "node:crypto";
-import {
-	readdirSync,
-	readFileSync,
-	statSync,
-	mkdirSync,
-	copyFileSync,
-} from "node:fs";
+import { readdirSync, readFileSync, statSync, mkdirSync, copyFileSync } from "node:fs";
 import { join, extname, relative } from "node:path";
 
 const REF = new URL("../../../../reference/db-recon/assets", import.meta.url).pathname;
@@ -164,11 +158,7 @@ for (const bucket of Object.keys(BUCKETS)) {
 			const buf = readFileSync(srcPath);
 			const sha = createHash("sha256").update(buf).digest("hex");
 
-			const existing = await db
-				.select()
-				.from(dbAssets)
-				.where(eq(dbAssets.path, relPath))
-				.limit(1);
+			const existing = await db.select().from(dbAssets).where(eq(dbAssets.path, relPath)).limit(1);
 			if (existing.length > 0) {
 				skipped++;
 				continue;
@@ -194,20 +184,11 @@ for (const bucket of Object.keys(BUCKETS)) {
 			imported++;
 		} catch (e) {
 			errored++;
-			console.error(
-				`  err ${bucket}/${f}:`,
-				e instanceof Error ? e.message : e,
-			);
+			console.error(`  err ${bucket}/${f}:`, e instanceof Error ? e.message : e);
 		}
 	}
-	console.log(
-		`  ${bucket} : importés=${imported - errored} (skipped=${skipped}, err=${errored})`,
-	);
+	console.log(`  ${bucket} : importés=${imported - errored} (skipped=${skipped}, err=${errored})`);
 }
 
-console.log(
-	`\nDONE : imported=${imported}, skipped=${skipped}, errored=${errored}`,
-);
-console.log(
-	`Total db_assets rows : ${(await db.select().from(dbAssets)).length}`,
-);
+console.log(`\nDONE : imported=${imported}, skipped=${skipped}, errored=${errored}`);
+console.log(`Total db_assets rows : ${(await db.select().from(dbAssets)).length}`);

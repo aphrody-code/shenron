@@ -1,8 +1,8 @@
 {
-  "name": "tsyringe-example",
-  "private": true,
-  "dependencies": {
-    "@rpbey/discordy": "workspace:^",
-    "tsyringe": "^4.10.0"
-  }
+	"name": "tsyringe-example",
+	"private": true,
+	"dependencies": {
+		"@rpbey/discordy": "workspace:^",
+		"tsyringe": "^4.10.0"
+	}
 }

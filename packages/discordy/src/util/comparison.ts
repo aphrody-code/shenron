@@ -16,9 +16,9 @@ import { deepEqual, omitKeys } from "./lodash-replacements.js";
  * @returns
  */
 function jsonToString(obj: unknown): string {
-  return JSON.stringify(obj, (_key, value) =>
-    typeof value === "bigint" ? value.toString() : value,
-  );
+	return JSON.stringify(obj, (_key, value) =>
+		typeof value === "bigint" ? value.toString() : value
+	);
 }
 
 /**
@@ -29,19 +29,19 @@ function jsonToString(obj: unknown): string {
  * @param onMatch
  */
 export function RecursivelyMatchField(
-  object: Record<string, any>,
-  keys: string[],
-  onMatch: (object: any, key: string) => void,
+	object: Record<string, any>,
+	keys: string[],
+	onMatch: (object: any, key: string) => void
 ): void {
-  Object.keys(object).forEach((k) => {
-    if (keys.includes(k)) {
-      onMatch(object, k);
-    }
+	Object.keys(object).forEach((k) => {
+		if (keys.includes(k)) {
+			onMatch(object, k);
+		}
 
-    if (object[k] && typeof object[k] === "object") {
-      RecursivelyMatchField(object[k], keys, onMatch);
-    }
-  });
+		if (object[k] && typeof object[k] === "object") {
+			RecursivelyMatchField(object[k], keys, onMatch);
+		}
+	});
 }
 
 /**
@@ -53,60 +53,60 @@ export function RecursivelyMatchField(
  * @returns
  */
 export function isApplicationCommandEqual(
-  findCommand: ApplicationCommand,
-  DCommand: DApplicationCommand,
-  isGuild?: true,
+	findCommand: ApplicationCommand,
+	DCommand: DApplicationCommand,
+	isGuild?: true
 ): boolean {
-  const commandJson = findCommand.toJSON() as ApplicationCommandDataEx;
-  const rawData = DCommand.toJSON();
+	const commandJson = findCommand.toJSON() as ApplicationCommandDataEx;
+	const rawData = DCommand.toJSON();
 
-  // replace undefined fields with null
-  RecursivelyMatchField(
-    commandJson,
-    ["descriptionLocalizations", "nameLocalizations"],
-    (object, key) => {
-      if (object[key] === undefined) {
-        object[key] = null;
-      }
-    },
-  );
+	// replace undefined fields with null
+	RecursivelyMatchField(
+		commandJson,
+		["descriptionLocalizations", "nameLocalizations"],
+		(object, key) => {
+			if (object[key] === undefined) {
+				object[key] = null;
+			}
+		}
+	);
 
-  // replace null fields with undefined
-  RecursivelyMatchField(
-    commandJson,
-    ["descriptionLocalized", "nameLocalized", "dmPermission", "nsfw"],
-    (object, key) => {
-      if (object[key] === null) {
-        object[key] = undefined;
-      }
-    },
-  );
+	// replace null fields with undefined
+	RecursivelyMatchField(
+		commandJson,
+		["descriptionLocalized", "nameLocalized", "dmPermission", "nsfw"],
+		(object, key) => {
+			if (object[key] === null) {
+				object[key] = undefined;
+			}
+		}
+	);
 
-  // remove unwanted fields
-  if (isGuild) {
-    RecursivelyMatchField(rawData, ["dmPermission"], (object, key) => {
-      object[key] = undefined;
-    });
-  }
+	// remove unwanted fields
+	if (isGuild) {
+		RecursivelyMatchField(rawData, ["dmPermission"], (object, key) => {
+			object[key] = undefined;
+		});
+	}
 
-  const firstJson = JSON.parse(
-    jsonToString(
-      omitKeys(commandJson, [
-        "applicationId",
-        "defaultPermission",
-        "descriptionLocalized",
-        "guild",
-        "guildId",
-        "handler",
-        "id",
-        "nameLocalized",
-        "permissions",
-        "version",
-      ]),
-    ),
-  );
+	const firstJson = JSON.parse(
+		jsonToString(
+			omitKeys(commandJson, [
+				"applicationId",
+				"defaultPermission",
+				"descriptionLocalized",
+				"guild",
+				"guildId",
+				"handler",
+				"id",
+				"nameLocalized",
+				"permissions",
+				"version",
+			])
+		)
+	);
 
-  const secondJson = JSON.parse(jsonToString(rawData));
+	const secondJson = JSON.parse(jsonToString(rawData));
 
-  return deepEqual(firstJson, secondJson);
+	return deepEqual(firstJson, secondJson);
 }

@@ -44,7 +44,12 @@ const SAGA_TO_CHARACTER: Record<number, number> = {
 	29: 1, // Daima → Goku
 };
 
-if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) {
+	console.error(
+		"Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."
+	);
+	process.exit(1);
+}
 const db = new Database("apps/bot/data/bot.db");
 db.exec("PRAGMA busy_timeout = 5000;");
 
@@ -60,9 +65,11 @@ let skipped = 0;
 const missing: number[] = [];
 
 const tx = db.transaction(() => {
-	const sagas = db
-		.query("SELECT id, name, image FROM db_sagas ORDER BY id")
-		.all() as Array<{ id: number; name: string; image: string | null }>;
+	const sagas = db.query("SELECT id, name, image FROM db_sagas ORDER BY id").all() as Array<{
+		id: number;
+		name: string;
+		image: string | null;
+	}>;
 	for (const s of sagas) {
 		if (s.image) {
 			skipped++;
@@ -83,6 +90,6 @@ tx();
 
 console.log(
 	`\n✓ sagas mises à jour : ${updated} · déjà avec image : ${skipped}` +
-		(missing.length ? ` · sans mapping : ${missing.join(", ")}` : ""),
+		(missing.length ? ` · sans mapping : ${missing.join(", ")}` : "")
 );
 db.close();

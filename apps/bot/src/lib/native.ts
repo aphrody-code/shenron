@@ -49,8 +49,7 @@ export function fnv1aHex(input: string): string {
  * ETag value pour le header HTTP (avec quotes englobantes — format spec).
  */
 export function etagOf(input: string | Uint8Array): string {
-	const s =
-		typeof input === "string" ? input : new TextDecoder("utf-8").decode(input);
+	const s = typeof input === "string" ? input : new TextDecoder("utf-8").decode(input);
 	return `"${fnv1aHex(s)}"`;
 }
 

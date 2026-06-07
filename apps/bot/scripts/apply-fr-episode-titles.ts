@@ -24,8 +24,7 @@ if (!NEON_URL) {
 }
 
 const MAP_PATH =
-	process.env.FR_TITLES_JSON ??
-	new URL("../data/fr-episode-titles.json", import.meta.url).pathname;
+	process.env.FR_TITLES_JSON ?? new URL("../data/fr-episode-titles.json", import.meta.url).pathname;
 
 type Mapping = Record<string, Record<string, string>>;
 const mapping = (await Bun.file(MAP_PATH).json()) as Mapping;
@@ -33,10 +32,7 @@ const mapping = (await Bun.file(MAP_PATH).json()) as Mapping;
 const sql = postgres(NEON_URL, { max: 2, prepare: false });
 
 let totalUpdated = 0;
-const perSeries: Record<
-	string,
-	{ updated: number; total: number; gaps: number[] }
-> = {};
+const perSeries: Record<string, { updated: number; total: number; gaps: number[] }> = {};
 
 for (const [series, byNum] of Object.entries(mapping)) {
 	const rows = (await sql`
@@ -63,7 +59,7 @@ for (const [series, byNum] of Object.entries(mapping)) {
 	totalUpdated += updated;
 	console.log(
 		`  ✓ ${series.padEnd(9)} : ${updated}/${rows.length} mis à jour` +
-			(gaps.length ? `  · ${gaps.length} sans FR : ${gaps.join(", ")}` : ""),
+			(gaps.length ? `  · ${gaps.length} sans FR : ${gaps.join(", ")}` : "")
 	);
 }
 

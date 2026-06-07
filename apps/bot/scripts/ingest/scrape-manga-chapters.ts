@@ -37,15 +37,13 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function runBxcRecon(url: string): Promise<string[]> {
 	const proc = Bun.spawn(["bxc", "recon", url, "--profile", "static", "--json"]);
 	const output = await new Response(proc.stdout).text();
-	
+
 	try {
 		const data = JSON.parse(output);
 		if (!data.assets) return [];
-		
+
 		// Filtrer les images d'assets
-		return data.assets
-			.filter((a: any) => a.type === "image")
-			.map((a: any) => a.url);
+		return data.assets.filter((a: any) => a.type === "image").map((a: any) => a.url);
 	} catch (err) {
 		return [];
 	}
@@ -93,11 +91,11 @@ async function main() {
 		WHERE series = 'DBS' 
 		  AND volume_id BETWEEN 124 AND 146
 	`;
-	
+
 	if (targetChapter !== null) {
 		query = sql`${query} AND chapter_number = ${targetChapter}`;
 	}
-	
+
 	query = sql`${query} ORDER BY chapter_number`;
 
 	const chapters = (await query) as unknown as {
@@ -125,8 +123,10 @@ async function main() {
 			continue;
 		}
 
-		console.log(`\n📖 Traitement du Chapitre ${ch.chapter_number} ("${ch.title ?? ''}") (ID: ${ch.id})...`);
-		
+		console.log(
+			`\n📖 Traitement du Chapitre ${ch.chapter_number} ("${ch.title ?? ""}") (ID: ${ch.id})...`
+		);
+
 		processed++;
 		const pages = await scrapeChapter(ch.chapter_number);
 
@@ -142,13 +142,17 @@ async function main() {
 			WHERE id = ${ch.id}
 		`;
 		updated++;
-		console.log(`✅ Chapitre ${ch.chapter_number} mis à jour dans la base avec ${pages.length} pages.`);
+		console.log(
+			`✅ Chapitre ${ch.chapter_number} mis à jour dans la base avec ${pages.length} pages.`
+		);
 
 		// Respecter les serveurs cibles
 		await sleep(2000);
 	}
 
-	console.log(`\n✨ Ingestion terminée : ${processed} traités, ${updated} mis à jour, ${skipped} sautés.`);
+	console.log(
+		`\n✨ Ingestion terminée : ${processed} traités, ${updated} mis à jour, ${skipped} sautés.`
+	);
 	await sql.end();
 }
 

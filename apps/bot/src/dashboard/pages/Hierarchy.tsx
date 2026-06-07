@@ -1,13 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	ArrowDown,
-	ArrowUp,
-	Crown,
-	Plus,
-	Save,
-	Trash2,
-	AlertTriangle,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, Crown, Plus, Save, Trash2, AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { RoleSelect, RoleBadge } from "../components/RoleSelect";
@@ -25,15 +17,13 @@ export function Hierarchy() {
 
 	const hierarchy = useQuery({
 		queryKey: ["moderation", "hierarchy"],
-		queryFn: () =>
-			api.get<{ levels: string[][]; raw: string }>("/moderation/hierarchy"),
+		queryFn: () => api.get<{ levels: string[][]; raw: string }>("/moderation/hierarchy"),
 	});
 
 	const save = useMutation({
 		mutationFn: (levels: string[][]) =>
 			api.put<{ ok: boolean }>("/moderation/hierarchy", { levels }),
-		onSuccess: () =>
-			qc.invalidateQueries({ queryKey: ["moderation", "hierarchy"] }),
+		onSuccess: () => qc.invalidateQueries({ queryKey: ["moderation", "hierarchy"] }),
 	});
 
 	const [draft, setDraft] = useState<string[][]>([]);
@@ -68,9 +58,7 @@ export function Hierarchy() {
 		setDirty(true);
 	};
 	const removeRole = (idx: number, roleId: string) => {
-		setDraft((d) =>
-			d.map((lvl, i) => (i === idx ? lvl.filter((r) => r !== roleId) : lvl)),
-		);
+		setDraft((d) => d.map((lvl, i) => (i === idx ? lvl.filter((r) => r !== roleId) : lvl)));
 		setDirty(true);
 	};
 
@@ -87,9 +75,8 @@ export function Hierarchy() {
 					<h2 className="text-lg font-semibold">Hiérarchie staff</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Niveaux du plus haut (index <code>0</code>) au plus bas. Un staff
-					sanctionne uniquement les membres de niveau{" "}
-					<em>strictement plus grand</em>. Les owners et bot-dev bypassent
+					Niveaux du plus haut (index <code>0</code>) au plus bas. Un staff sanctionne uniquement
+					les membres de niveau <em>strictement plus grand</em>. Les owners et bot-dev bypassent
 					toujours.
 				</p>
 				<div className="mt-3 flex items-center gap-2">
@@ -105,11 +92,7 @@ export function Hierarchy() {
 						<Save className="h-3 w-3" /> Enregistrer
 					</button>
 					{dirty && (
-						<button
-							type="button"
-							className="btn btn-ghost text-zinc-400"
-							onClick={reset}
-						>
+						<button type="button" className="btn btn-ghost text-zinc-400" onClick={reset}>
 							Annuler
 						</button>
 					)}
@@ -118,8 +101,7 @@ export function Hierarchy() {
 					)}
 					{save.isError && (
 						<span className="text-xs text-red-400">
-							<AlertTriangle className="inline h-3 w-3" />{" "}
-							{(save.error as Error)?.message}
+							<AlertTriangle className="inline h-3 w-3" /> {(save.error as Error)?.message}
 						</span>
 					)}
 				</div>
@@ -127,8 +109,8 @@ export function Hierarchy() {
 
 			{draft.length === 0 ? (
 				<div className="card text-center text-zinc-500">
-					Aucun niveau défini · les sanctions sont libres tant que la guard{" "}
-					<code>ModOnly</code> passe.
+					Aucun niveau défini · les sanctions sont libres tant que la guard <code>ModOnly</code>{" "}
+					passe.
 				</div>
 			) : (
 				<div className="space-y-3">
@@ -179,8 +161,7 @@ function LevelCard({
 	onRemove: () => void;
 }) {
 	const [pick, setPick] = useState("");
-	const labelHint =
-		index === 0 ? "(top — admin)" : index === total - 1 ? "(bas)" : "";
+	const labelHint = index === 0 ? "(top — admin)" : index === total - 1 ? "(bas)" : "";
 	return (
 		<div className="card">
 			<div className="flex items-center gap-2">
@@ -218,9 +199,7 @@ function LevelCard({
 				</div>
 			</div>
 			<div className="mt-3 flex flex-wrap gap-2">
-				{roles.length === 0 && (
-					<span className="text-xs italic text-zinc-500">aucun rôle</span>
-				)}
+				{roles.length === 0 && <span className="text-xs italic text-zinc-500">aucun rôle</span>}
 				{roles.map((r) => (
 					<span
 						key={r}

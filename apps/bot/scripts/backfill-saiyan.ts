@@ -15,10 +15,7 @@ import { env } from "~/lib/env";
 import { AUTO_ROLE_ID } from "~/lib/constants";
 
 const DRY = process.argv.includes("--dry");
-const TOKEN =
-	env.DISCORD_TOKEN_GRAND_PRETRE ??
-	env.DISCORD_TOKEN_KAIO ??
-	env.DISCORD_TOKEN_SHENRON;
+const TOKEN = env.DISCORD_TOKEN_GRAND_PRETRE ?? env.DISCORD_TOKEN_KAIO ?? env.DISCORD_TOKEN_SHENRON;
 if (!TOKEN) {
 	console.error("Need DISCORD_TOKEN_GRAND_PRETRE|KAIO|SHENRON");
 	process.exit(1);
@@ -43,7 +40,7 @@ if (!role) {
 }
 if (role.position >= me.roles.highest.position) {
 	console.error(
-		`Bot (${me.roles.highest.name} pos ${me.roles.highest.position}) ne peut pas assigner ${role.name} (pos ${role.position})`,
+		`Bot (${me.roles.highest.name} pos ${me.roles.highest.position}) ne peut pas assigner ${role.name} (pos ${role.position})`
 	);
 	process.exit(1);
 }

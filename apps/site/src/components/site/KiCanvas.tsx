@@ -1,13 +1,7 @@
 "use client";
 
 import { Application, extend, useApplication, useTick } from "@pixi/react";
-import {
-	Container,
-	Graphics,
-	Particle,
-	ParticleContainer,
-	RenderTexture,
-} from "pixi.js";
+import { Container, Graphics, Particle, ParticleContainer, RenderTexture } from "pixi.js";
 import { BloomFilter } from "pixi-filters";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import type {
@@ -35,31 +29,18 @@ export function KiCanvas({
 	const hostRef = useRef<HTMLDivElement | null>(null);
 
 	return (
-		<div
-			ref={hostRef}
-			className={className}
-			aria-hidden
-			style={{ pointerEvents: "none" }}
-		>
+		<div ref={hostRef} className={className} aria-hidden style={{ pointerEvents: "none" }}>
 			<Application
 				preference="webgpu"
 				backgroundAlpha={0}
 				antialias
 				autoStart
 				resizeTo={hostRef}
-				resolution={
-					typeof window !== "undefined"
-						? Math.min(window.devicePixelRatio ?? 1, 2)
-						: 1
-				}
+				resolution={typeof window !== "undefined" ? Math.min(window.devicePixelRatio ?? 1, 2) : 1}
 				autoDensity
 				powerPreference="high-performance"
 			>
-				<Scene
-					color={color}
-					colorAccent={colorAccent}
-					count={Math.floor(220 * density)}
-				/>
+				<Scene color={color} colorAccent={colorAccent} count={Math.floor(220 * density)} />
 			</Application>
 		</div>
 	);
@@ -98,20 +79,14 @@ function Halo({ color, colorAccent }: { color: number; colorAccent: number }) {
 			g.circle(cx, cy, r).fill({ color, alpha: 0.18 });
 			g.circle(cx, cy, r * 0.55).fill({ color: colorAccent, alpha: 0.22 });
 		},
-		[app, color, colorAccent],
+		[app, color, colorAccent]
 	);
 	return <pixiGraphics draw={draw} />;
 }
 
 /* ------- sun-burst rotatif + bloom (pixi-filters) ------- */
 
-function BurstWithBloom({
-	color,
-	colorAccent,
-}: {
-	color: number;
-	colorAccent: number;
-}) {
+function BurstWithBloom({ color, colorAccent }: { color: number; colorAccent: number }) {
 	const { app } = useApplication();
 	const ref = useRef<GraphicsT | null>(null);
 	const containerRef = useRef<ContainerT | null>(null);
@@ -122,7 +97,7 @@ function BurstWithBloom({
 			new BloomFilter({
 				strength: { x: 8, y: 8 },
 			}),
-		[],
+		[]
 	);
 
 	useEffect(() => {
@@ -143,7 +118,7 @@ function BurstWithBloom({
 					.fill({ color: i % 2 === 0 ? color : colorAccent, alpha: 0.1 });
 			}
 		},
-		[app, color, colorAccent],
+		[app, color, colorAccent]
 	);
 
 	useTick((t) => {
@@ -151,11 +126,7 @@ function BurstWithBloom({
 	});
 
 	return (
-		<pixiContainer
-			ref={containerRef}
-			x={app.screen.width / 2}
-			y={app.screen.height / 2}
-		>
+		<pixiContainer ref={containerRef} x={app.screen.width / 2} y={app.screen.height / 2}>
 			<pixiGraphics ref={ref} draw={draw} />
 		</pixiContainer>
 	);
@@ -171,9 +142,7 @@ type ParticleState = {
 	baseAlpha: number;
 };
 
-function makeCircleTexture(
-	app: ReturnType<typeof useApplication>["app"],
-): Texture {
+function makeCircleTexture(app: ReturnType<typeof useApplication>["app"]): Texture {
 	const size = 16;
 	const g = new Graphics()
 		.circle(size / 2, size / 2, size / 2 - 1)

@@ -26,18 +26,18 @@ export type RestArgsOf<K extends keyof RestEvents> = RestEvents[K];
  * Event options
  */
 export interface EventOptions {
-  botIds?: string[];
-  event: keyof ClientEvents;
-  priority?: number;
+	botIds?: string[];
+	event: keyof ClientEvents;
+	priority?: number;
 }
 
 /**
  * Rest event options
  */
 export interface RestEventOptions {
-  botIds?: string[];
-  event: keyof RestEvents;
-  priority?: number;
+	botIds?: string[];
+	event: keyof RestEvents;
+	priority?: number;
 }
 
 /**
@@ -45,46 +45,43 @@ export interface RestEventOptions {
  */
 
 export type GuardFunction<Type = any, DataType = any> = (
-  params: Type,
-  client: Client,
-  next: Next,
-  data: DataType,
+	params: Type,
+	client: Client,
+	next: Next,
+	data: DataType
 ) => any;
 
 /**
  * Custom logger
  */
 export interface ILogger {
-  error(...args: unknown[]): void;
-  info(...args: unknown[]): void;
-  log(...args: unknown[]): void;
-  warn(...args: unknown[]): void;
+	error(...args: unknown[]): void;
+	info(...args: unknown[]): void;
+	log(...args: unknown[]): void;
+	warn(...args: unknown[]): void;
 }
 
 /**
  * Reaction options
  */
 export interface ReactionOptions<T extends string = string> {
-  aliases?: string[];
-  botIds?: string[];
-  description?: string;
-  directMessage?: boolean;
-  emoji: NotEmpty<T>;
-  guilds?: IGuild[];
-  partial?: boolean;
-  remove?: boolean;
+	aliases?: string[];
+	botIds?: string[];
+	description?: string;
+	directMessage?: boolean;
+	emoji: NotEmpty<T>;
+	guilds?: IGuild[];
+	partial?: boolean;
+	remove?: boolean;
 }
 
 /**
  * Slash choice type
  */
-export interface SlashChoiceType<
-  T extends string = string,
-  X = string | number,
-> {
-  name: NotEmpty<T>;
-  nameLocalizations?: LocalizationMap;
-  value?: X;
+export interface SlashChoiceType<T extends string = string, X = string | number> {
+	name: NotEmpty<T>;
+	nameLocalizations?: LocalizationMap;
+	value?: X;
 }
 
 /**
@@ -92,7 +89,7 @@ export interface SlashChoiceType<
  */
 
 export interface ComponentOptions<T extends string = string> {
-  botIds?: string[];
-  guilds?: IGuild[];
-  id?: NotEmpty<T> | RegExp;
+	botIds?: string[];
+	guilds?: IGuild[];
+	id?: NotEmpty<T> | RegExp;
 }

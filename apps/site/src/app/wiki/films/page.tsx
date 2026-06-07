@@ -48,8 +48,7 @@ export default async function FilmsPage() {
 				{groups.map((g) => (
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
-							{g.label}{" "}
-							<span className="text-white/40">— {g.movies.length}</span>
+							{g.label} <span className="text-white/40">— {g.movies.length}</span>
 						</h2>
 						<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
 							{g.movies.map((m) => (
@@ -74,9 +73,7 @@ export default async function FilmsPage() {
 											{m.title}
 										</h3>
 										{m.title_ja && (
-											<p className="font-jp text-[11px] text-dbz-orange/80 mb-2">
-												{m.title_ja}
-											</p>
+											<p className="font-jp text-[11px] text-dbz-orange/80 mb-2">{m.title_ja}</p>
 										)}
 										<div className="text-[11px] font-display tracking-[0.12em] uppercase text-white/55 mb-3 flex gap-3 flex-wrap">
 											{m.release_date && (

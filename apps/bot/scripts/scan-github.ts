@@ -1,7 +1,7 @@
 /**
  * Script de scan GitHub pour les projets Dragon Ball / DBZ.
  * Utilise l'API Search de GitHub pour trouver des repos intéressants.
- * 
+ *
  * Usage: bun scripts/scan-github.ts [--json]
  */
 
@@ -25,7 +25,7 @@ interface Repo {
 
 async function searchGithub(query: string): Promise<Repo[]> {
 	console.log(`🔍 Recherche GitHub pour: "${query}"...`);
-	
+
 	const url = new URL("https://api.github.com/search/repositories");
 	url.searchParams.set("q", query);
 	url.searchParams.set("sort", "stars");
@@ -33,7 +33,7 @@ async function searchGithub(query: string): Promise<Repo[]> {
 	url.searchParams.set("per_page", "100");
 
 	const headers: Record<string, string> = {
-		"Accept": "application/vnd.github.v3+json",
+		Accept: "application/vnd.github.v3+json",
 		"User-Agent": "Shenron-Scanner-Bot",
 	};
 
@@ -44,7 +44,7 @@ async function searchGithub(query: string): Promise<Repo[]> {
 	}
 
 	const res = await fetch(url.toString(), { headers });
-	
+
 	if (!res.ok) {
 		const error = await res.text();
 		throw new Error(`GitHub API error (${res.status}): ${error}`);
@@ -64,10 +64,12 @@ async function main() {
 				allRepos.set(repo.full_name, repo);
 			}
 			// Petit sleep pour éviter le rate limit si pas de token
-			if (!GITHUB_TOKEN) await new Promise(r => setTimeout(r, 2000));
+			if (!GITHUB_TOKEN) await new Promise((r) => setTimeout(r, 2000));
 		}
 
-		const sortedRepos = Array.from(allRepos.values()).toSorted((a, b) => b.stargazers_count - a.stargazers_count);
+		const sortedRepos = Array.from(allRepos.values()).toSorted(
+			(a, b) => b.stargazers_count - a.stargazers_count
+		);
 
 		// Génération du rapport Markdown
 		let md = `# 🐉 Rapport de Scan GitHub — Dragon Ball\n\n`;
@@ -84,9 +86,9 @@ async function main() {
 		mkdirSync(OUTPUT_DIR, { recursive: true });
 		const filename = `github-scan-${new Date().toISOString().split("T")[0]}.md`;
 		const path = join(OUTPUT_DIR, filename);
-		
+
 		await Bun.write(path, md);
-		
+
 		console.log(`\n✅ Scan terminé !`);
 		console.log(`📊 ${sortedRepos.length} projets trouvés.`);
 		console.log(`📄 Rapport généré : ${path}`);
@@ -96,7 +98,6 @@ async function main() {
 			await Bun.write(jsonPath, JSON.stringify(sortedRepos, null, 2));
 			console.log(`📄 Données JSON : ${jsonPath}`);
 		}
-
 	} catch (err) {
 		console.error("❌ Erreur lors du scan:", err);
 		process.exit(1);

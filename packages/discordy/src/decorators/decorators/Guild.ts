@@ -7,13 +7,13 @@
 import { type ClassMethodDecorator, Modifier } from "@rpbey/internal";
 
 import {
-  DApplicationCommand,
-  DComponent,
-  DDiscord,
-  DReaction,
-  DSimpleCommand,
-  type IGuild,
-  MetadataStorage,
+	DApplicationCommand,
+	DComponent,
+	DDiscord,
+	DReaction,
+	DSimpleCommand,
+	type IGuild,
+	MetadataStorage,
 } from "../../index.js";
 
 /**
@@ -51,31 +51,29 @@ export function Guild(...guildIds: IGuild[]): ClassMethodDecorator;
  * @category Decorator
  */
 export function Guild(...guildIds: IGuild[]): ClassMethodDecorator {
-  return (target, key, descriptor?: PropertyDescriptor) => {
-    MetadataStorage.instance.addModifier(
-      Modifier.create<
-        DApplicationCommand | DSimpleCommand | DDiscord | DComponent | DReaction
-      >(
-        (original) => {
-          original.guilds = [...original.guilds, ...guildIds];
+	return (target, key, descriptor?: PropertyDescriptor) => {
+		MetadataStorage.instance.addModifier(
+			Modifier.create<DApplicationCommand | DSimpleCommand | DDiscord | DComponent | DReaction>(
+				(original) => {
+					original.guilds = [...original.guilds, ...guildIds];
 
-          if (original instanceof DDiscord) {
-            [
-              ...original.applicationCommands,
-              ...original.simpleCommands,
-              ...original.buttons,
-              ...original.selectMenus,
-            ].forEach((obj) => {
-              obj.guilds = [...obj.guilds, ...guildIds];
-            });
-          }
-        },
-        DApplicationCommand,
-        DSimpleCommand,
-        DDiscord,
-        DComponent,
-        DReaction,
-      ).attachToTarget(target, key, descriptor),
-    );
-  };
+					if (original instanceof DDiscord) {
+						[
+							...original.applicationCommands,
+							...original.simpleCommands,
+							...original.buttons,
+							...original.selectMenus,
+						].forEach((obj) => {
+							obj.guilds = [...obj.guilds, ...guildIds];
+						});
+					}
+				},
+				DApplicationCommand,
+				DSimpleCommand,
+				DDiscord,
+				DComponent,
+				DReaction
+			).attachToTarget(target, key, descriptor)
+		);
+	};
 }

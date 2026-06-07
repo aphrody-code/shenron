@@ -21,7 +21,7 @@ interface ApiOpts extends RequestInit {
 class ApiError extends Error {
 	constructor(
 		public status: number,
-		message: string,
+		message: string
 	) {
 		super(message);
 	}
@@ -45,8 +45,7 @@ async function request<T>(path: string, opts: ApiOpts = {}): Promise<T> {
 		// quand l'user est loggué via token admin sans OAuth Discord ; le caller gère)
 		// et /auth/me (utilisé pour probe la session ; doit pouvoir renvoyer 401 sans loop).
 		const isOptional = path.startsWith("/discord/") || path === "/auth/me";
-		if (!isOptional && typeof window !== "undefined")
-			window.location.href = "/login";
+		if (!isOptional && typeof window !== "undefined") window.location.href = "/login";
 		throw new ApiError(401, "Session expirée");
 	}
 	if (!res.ok) {
@@ -58,10 +57,8 @@ async function request<T>(path: string, opts: ApiOpts = {}): Promise<T> {
 
 export const api = {
 	get: <T = unknown>(path: string) => request<T>(path),
-	post: <T = unknown>(path: string, json?: unknown) =>
-		request<T>(path, { method: "POST", json }),
-	put: <T = unknown>(path: string, json?: unknown) =>
-		request<T>(path, { method: "PUT", json }),
+	post: <T = unknown>(path: string, json?: unknown) => request<T>(path, { method: "POST", json }),
+	put: <T = unknown>(path: string, json?: unknown) => request<T>(path, { method: "PUT", json }),
 	delete: <T = unknown>(path: string) => request<T>(path, { method: "DELETE" }),
 };
 

@@ -9,15 +9,13 @@ import { Discord, Reaction } from "@rpbey/discordy";
 
 @Discord()
 export class Example {
-  @Reaction({ emoji: "⭐", remove: true })
-  async starReaction(reaction: MessageReaction, user: User): Promise<void> {
-    await reaction.message.reply(
-      `Received a ${reaction.emoji.toString()} from ${user.toString()}`,
-    );
-  }
+	@Reaction({ emoji: "⭐", remove: true })
+	async starReaction(reaction: MessageReaction, user: User): Promise<void> {
+		await reaction.message.reply(`Received a ${reaction.emoji.toString()} from ${user.toString()}`);
+	}
 
-  @Reaction({ aliases: ["📍", "custom_emoji"], emoji: "📌" })
-  async pin(reaction: MessageReaction): Promise<void> {
-    await reaction.message.pin();
-  }
+	@Reaction({ aliases: ["📍", "custom_emoji"], emoji: "📌" })
+	async pin(reaction: MessageReaction): Promise<void> {
+		await reaction.message.pin();
+	}
 }

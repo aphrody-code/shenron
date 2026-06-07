@@ -7,8 +7,7 @@ export default function Loading() {
 				<div
 					className="absolute inset-0 rounded-full"
 					style={{
-						background:
-							"radial-gradient(circle, rgba(255,107,26,0.5), transparent 70%)",
+						background: "radial-gradient(circle, rgba(255,107,26,0.5), transparent 70%)",
 					}}
 				/>
 			</div>

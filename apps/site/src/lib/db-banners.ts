@@ -26,7 +26,5 @@ export const NEWS_HERO = `${API}/db/dbofficial/207-battle2026_banner.jpg`;
 export const HOME_HERO = `${API}/db/toei/189-DB-DAIMA-HP-Header-1920x595.png`;
 
 export function bannerForSeries(series: string): string {
-	return (
-		SERIES_BANNERS[series] ?? `${API}/db/dbofficial/207-battle2026_banner.jpg`
-	);
+	return SERIES_BANNERS[series] ?? `${API}/db/dbofficial/207-battle2026_banner.jpg`;
 }

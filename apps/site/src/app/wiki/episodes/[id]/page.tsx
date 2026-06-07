@@ -43,8 +43,7 @@ export async function generateMetadata({
 	const ep = await dbUniverse.episode(parseInt(id));
 	if (!ep) return { title: "Épisode Dragon Ball — DBFR" };
 	const description =
-		ep.synopsis ??
-		`Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`;
+		ep.synopsis ?? `Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`;
 	return {
 		title: `Épisode ${ep.number_in_series} : ${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series} | DBFR`,
 		description,
@@ -59,20 +58,12 @@ export async function generateMetadata({
 
 function getYoutubeId(url: string | null): string | null {
 	if (!url) return null;
-	const m = url.match(
-		/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/,
-	);
+	const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
 	return m && m[2].length === 11 ? m[2] : null;
 }
 
 /** Carte de navigation épisode précédent / suivant. */
-function NavCard({
-	ep,
-	dir,
-}: {
-	ep: EpisodeNavItem;
-	dir: "prev" | "next";
-}) {
+function NavCard({ ep, dir }: { ep: EpisodeNavItem; dir: "prev" | "next" }) {
 	return (
 		<Link
 			href={`/wiki/episodes/${ep.id}`}
@@ -107,11 +98,7 @@ function NavCard({
 	);
 }
 
-export default async function EpisodeDetailPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function EpisodeDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const ep = await dbUniverse.episode(parseInt(id));
 	if (!ep) notFound();
@@ -146,14 +133,14 @@ export default async function EpisodeDetailPage({
 				subtitles={ep.subtitles ?? undefined}
 			/>
 		) : ep.image ? (
-		<div className="dbz-panel p-2 aspect-video bg-dbz-bg overflow-hidden">
-			<img
-				src={assetUrl(ep.image)}
-				alt={ep.title}
-				className="w-full h-full object-cover rounded-lg opacity-90"
-			/>
-		</div>
-	) : null;
+			<div className="dbz-panel p-2 aspect-video bg-dbz-bg overflow-hidden">
+				<img
+					src={assetUrl(ep.image)}
+					alt={ep.title}
+					className="w-full h-full object-cover rounded-lg opacity-90"
+				/>
+			</div>
+		) : null;
 
 	// === Scènes d'épisode (additif, dégradation gracieuse) ===
 	// On ne garde que les frames réellement écrites (imagePath non null : un
@@ -170,9 +157,7 @@ export default async function EpisodeDetailPage({
 	const sceneHero = ep.scene_preview ? (
 		<AnimatedMedia
 			src={assetUrl(ep.scene_preview)}
-			poster={
-				firstFrame?.imagePath ? assetUrl(firstFrame.imagePath) : undefined
-			}
+			poster={firstFrame?.imagePath ? assetUrl(firstFrame.imagePath) : undefined}
 			alt={`Aperçu animé — ${ep.title}`}
 			className="aspect-video w-full rounded-xl"
 		/>
@@ -223,12 +208,7 @@ export default async function EpisodeDetailPage({
 			{/* === Backdrop cinématique plein cadre (vignette épisode floutée) === */}
 			<div className="absolute inset-x-0 top-0 h-[70vh] -z-0 overflow-hidden">
 				{ep.image ? (
-					<KenBurns
-						src={assetUrl(ep.image)}
-						variant="slow"
-						overlay="full"
-						blur
-					/>
+					<KenBurns src={assetUrl(ep.image)} variant="slow" overlay="full" blur />
 				) : (
 					<div className="absolute inset-0 aurora opacity-50" />
 				)}
@@ -264,9 +244,7 @@ export default async function EpisodeDetailPage({
 					</h1>
 
 					{ep.title_ja && (
-						<p className="font-jp text-xl lg:text-2xl text-dbz-orange/85 mb-4">
-							{ep.title_ja}
-						</p>
+						<p className="font-jp text-xl lg:text-2xl text-dbz-orange/85 mb-4">{ep.title_ja}</p>
 					)}
 
 					{ep.air_date && (
@@ -334,11 +312,7 @@ export default async function EpisodeDetailPage({
 
 					{/* === Scènes : grille des frames extraites (îlot client) === */}
 					{hasFrames && (
-						<EpisodeScenes
-							frames={frames}
-							title={ep.title}
-							episodeNumber={ep.number_in_series}
-						/>
+						<EpisodeScenes frames={frames} title={ep.title} episodeNumber={ep.number_in_series} />
 					)}
 
 					{youtubeId && (
@@ -366,16 +340,8 @@ export default async function EpisodeDetailPage({
 					{/* === Navigation précédent / suivant === */}
 					{nav && (nav.prev || nav.next) && (
 						<nav className="flex flex-col sm:flex-row gap-4">
-							{nav.prev ? (
-								<NavCard ep={nav.prev} dir="prev" />
-							) : (
-								<div className="flex-1" />
-							)}
-							{nav.next ? (
-								<NavCard ep={nav.next} dir="next" />
-							) : (
-								<div className="flex-1" />
-							)}
+							{nav.prev ? <NavCard ep={nav.prev} dir="prev" /> : <div className="flex-1" />}
+							{nav.next ? <NavCard ep={nav.next} dir="next" /> : <div className="flex-1" />}
 						</nav>
 					)}
 

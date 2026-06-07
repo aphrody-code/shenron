@@ -1,14 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
-import {
-	boolean,
-	index,
-	integer,
-	jsonb,
-	pgTable,
-	text,
-	timestamp,
-} from "drizzle-orm/pg-core";
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 const cuid = () =>
 	text("id")
@@ -180,7 +172,7 @@ export const siteEvents = pgTable(
 		index("site_events_anon_idx").on(t.anonId),
 		index("site_events_entity_idx").on(t.entityType, t.entityId),
 		index("site_events_type_ts_idx").on(t.type, t.ts),
-	],
+	]
 );
 
 // Préférences dérivées (agrégat des events) — une ligne par identité
@@ -205,7 +197,7 @@ export const userPreferences = pgTable(
 	(t) => [
 		index("user_preferences_user_idx").on(t.userId),
 		index("user_preferences_anon_idx").on(t.anonId),
-	],
+	]
 );
 
 export type SiteEvent = typeof siteEvents.$inferSelect;
@@ -229,18 +221,15 @@ export const commentsRelations = relations(comments, ({ one }) => ({
 	author: one(users, { fields: [comments.authorId], references: [users.id] }),
 }));
 
-export const wikiCategoriesRelations = relations(
-	wikiCategories,
-	({ one, many }) => ({
-		parent: one(wikiCategories, {
-			fields: [wikiCategories.parentId],
-			references: [wikiCategories.id],
-			relationName: "CategoryTree",
-		}),
-		children: many(wikiCategories, { relationName: "CategoryTree" }),
-		pages: many(wikiPages),
+export const wikiCategoriesRelations = relations(wikiCategories, ({ one, many }) => ({
+	parent: one(wikiCategories, {
+		fields: [wikiCategories.parentId],
+		references: [wikiCategories.id],
+		relationName: "CategoryTree",
 	}),
-);
+	children: many(wikiCategories, { relationName: "CategoryTree" }),
+	pages: many(wikiPages),
+}));
 
 export const wikiPagesRelations = relations(wikiPages, ({ one }) => ({
 	category: one(wikiCategories, {

@@ -5,7 +5,7 @@ import { container } from "tsyringe";
 async function main() {
 	const dbs = container.resolve(DatabaseService);
 	console.log("🛠️ Création manuelle de la table db_tools...");
-	
+
 	try {
 		dbs.runRaw(`
 			CREATE TABLE IF NOT EXISTS db_tools (
@@ -32,7 +32,6 @@ async function main() {
 			dbs.runRaw("ALTER TABLE db_movies ADD COLUMN trailer_url TEXT;");
 			console.log("✅ Colonne trailer_url ajoutée à db_movies.");
 		} catch (e) {}
-
 	} catch (err) {
 		console.error("❌ Erreur lors de la création de la table:", err);
 	} finally {

@@ -24,14 +24,11 @@ export function PermCreateForm() {
 	}
 	return (
 		<form onSubmit={onSubmit} className="dbz-panel p-5 space-y-3 mb-4">
-			<h3 className="font-saiyan text-xl text-fuchsia-300">
-				Ajouter / modifier une règle
-			</h3>
+			<h3 className="font-saiyan text-xl text-fuchsia-300">Ajouter / modifier une règle</h3>
 			<p className="text-xs text-zinc-400">
-				Définissez si un rôle ou un utilisateur peut utiliser une commande.
-				Portée = nom de la commande ou joker (<code>admin *</code>,{" "}
-				<code>*</code>). Une règle plus spécifique prime toujours sur une règle
-				plus générale.
+				Définissez si un rôle ou un utilisateur peut utiliser une commande. Portée = nom de la
+				commande ou joker (<code>admin *</code>, <code>*</code>). Une règle plus spécifique prime
+				toujours sur une règle plus générale.
 			</p>
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
 				<label>
@@ -79,12 +76,7 @@ export function PermCreateForm() {
 					/>
 				</label>
 				<label className="flex items-center gap-2 pt-5 sm:col-span-2">
-					<input
-						type="checkbox"
-						name="allow"
-						defaultChecked
-						className="w-4 h-4"
-					/>
+					<input type="checkbox" name="allow" defaultChecked className="w-4 h-4" />
 					<span className="font-scouter tracking-widest text-cyan-300 text-[10px]">
 						AUTORISER (décocher = INTERDIRE)
 					</span>
@@ -99,9 +91,7 @@ export function PermCreateForm() {
 					{pending ? "Enregistrement…" : "Créer / mettre à jour"}
 				</button>
 				{r && (
-					<span
-						className={`text-xs ${r.ok ? "text-green-300" : "text-red-400"}`}
-					>
+					<span className={`text-xs ${r.ok ? "text-green-300" : "text-red-400"}`}>
 						{r.ok ? "Règle appliquée" : `Erreur : ${r.error}`}
 					</span>
 				)}
@@ -130,7 +120,7 @@ export function PermDeleteButton({
 				start(async () => {
 					if (
 						!confirm(
-							`Supprimer la règle « ${command} / ${scope} » ?\n\nLes réglages par défaut s'appliqueront à nouveau.`,
+							`Supprimer la règle « ${command} / ${scope} » ?\n\nLes réglages par défaut s'appliqueront à nouveau.`
 						)
 					)
 						return;

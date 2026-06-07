@@ -13,14 +13,7 @@ import { env } from "./env";
  * - enma         : /jail, /unjail + JailExpiry + cron jail-expiry
  * - kaio         : jeux + économie + level + giveaway + vocal + fun + MessageXP/VoiceXP
  */
-export const PERSONA_IDS = [
-	"shenron",
-	"beerus",
-	"whis",
-	"grandPretre",
-	"enma",
-	"kaio",
-] as const;
+export const PERSONA_IDS = ["shenron", "beerus", "whis", "grandPretre", "enma", "kaio"] as const;
 export type PersonaId = (typeof PERSONA_IDS)[number];
 
 export interface PersonaConfig {
@@ -90,12 +83,6 @@ export const PERSONAS: Record<PersonaId, PersonaConfig> = {
 		name: "Kaïo",
 		token: env.DISCORD_TOKEN_KAIO,
 		appId: env.APPLICATION_ID_KAIO,
-		intents: [
-			I.Guilds,
-			I.GuildMembers,
-			I.GuildMessages,
-			I.MessageContent,
-			I.GuildVoiceStates,
-		],
+		intents: [I.Guilds, I.GuildMembers, I.GuildMessages, I.MessageContent, I.GuildVoiceStates],
 	},
 };

@@ -24,16 +24,11 @@ function signActing(discordId: string): {
 	sig: string;
 } {
 	const ts = String(Date.now());
-	const sig = createHmac("sha256", USER_SECRET)
-		.update(`${discordId}:${ts}`)
-		.digest("hex");
+	const sig = createHmac("sha256", USER_SECRET).update(`${discordId}:${ts}`).digest("hex");
 	return { ts, sig };
 }
 
-async function proxy(
-	req: NextRequest,
-	ctx: { params: Promise<{ path: string[] }> },
-) {
+async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
 	const me = await getCurrentUser();
 	if (!me?.discordId) {
 		return NextResponse.json({ error: "Login requis" }, { status: 401 });
@@ -41,7 +36,7 @@ async function proxy(
 	if (!USER_SECRET) {
 		return NextResponse.json(
 			{ error: "SHENRON_USER_SECRET non configuré côté site" },
-			{ status: 500 },
+			{ status: 500 }
 		);
 	}
 

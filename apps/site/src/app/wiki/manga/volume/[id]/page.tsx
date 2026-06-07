@@ -16,8 +16,7 @@ export async function generateMetadata({
 	const { id } = await params;
 	const volume = await dbUniverse.mangaVolume(parseInt(id));
 	if (!volume) return { title: "Volume Manga — DBFR" };
-	const description =
-		volume.title ?? `Volume ${volume.volume_number} du manga ${volume.series}.`;
+	const description = volume.title ?? `Volume ${volume.volume_number} du manga ${volume.series}.`;
 	return {
 		title: `${volume.series} Volume ${volume.volume_number} — Manga Dragon Ball | DBFR`,
 		description,
@@ -29,11 +28,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function MangaVolumePage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function MangaVolumePage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const volume = await dbUniverse.mangaVolume(parseInt(id));
 	if (!volume) notFound();
@@ -68,7 +63,9 @@ export default async function MangaVolumePage({
 					<div className="mt-8 space-y-4 border-t border-white/10 pt-6 font-display text-xs">
 						<div className="flex justify-between">
 							<span className="text-white/40">Série :</span>
-							<span className="text-white font-bold">{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"}</span>
+							<span className="text-white font-bold">
+								{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"}
+							</span>
 						</div>
 						{volume.title_ja && (
 							<div className="flex justify-between">
@@ -80,9 +77,9 @@ export default async function MangaVolumePage({
 							<div className="flex justify-between">
 								<span className="text-white/40">Publication :</span>
 								<span className="text-white font-bold">
-									{new Date(volume.published_at * 1000).toLocaleDateString('fr-FR', {
-										year: 'numeric',
-										month: 'long',
+									{new Date(volume.published_at * 1000).toLocaleDateString("fr-FR", {
+										year: "numeric",
+										month: "long",
 									})}
 								</span>
 							</div>
@@ -99,7 +96,8 @@ export default async function MangaVolumePage({
 				<div className="flex-1 space-y-10">
 					<header>
 						<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
-							{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"} · Volume {volume.volume_number}
+							{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"} · Volume{" "}
+							{volume.volume_number}
 						</p>
 						<h1 className="font-saiyan text-5xl lg:text-7xl text-white mb-6 tracking-widest leading-tight">
 							{volume.title || `VOLUME ${volume.volume_number}`}
@@ -114,7 +112,7 @@ export default async function MangaVolumePage({
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 						</div>
-						
+
 						<VolumeChaptersList chapters={volume.chapters} />
 					</section>
 				</div>

@@ -5,41 +5,38 @@
  * -------------------------------------------------------------------------------------------------------
  */
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  type ButtonInteraction,
-  type CommandInteraction,
-  type MessageActionRowComponentBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	type ButtonInteraction,
+	type CommandInteraction,
+	type MessageActionRowComponentBuilder,
 } from "discord.js";
 import { ButtonComponent, Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 export class Example {
-  @ButtonComponent({ id: "hello" })
-  async handler(interaction: ButtonInteraction): Promise<void> {
-    await interaction.reply(":wave:");
-  }
+	@ButtonComponent({ id: "hello" })
+	async handler(interaction: ButtonInteraction): Promise<void> {
+		await interaction.reply(":wave:");
+	}
 
-  @ButtonComponent({ id: "hello" })
-  handler2(interaction: ButtonInteraction): void {
-    console.log(`${interaction.user.toString()} says hello`);
-  }
+	@ButtonComponent({ id: "hello" })
+	handler2(interaction: ButtonInteraction): void {
+		console.log(`${interaction.user.toString()} says hello`);
+	}
 
-  @Slash({ description: "test" })
-  async test(interaction: CommandInteraction): Promise<void> {
-    const btn = new ButtonBuilder()
-      .setLabel("Hello")
-      .setStyle(ButtonStyle.Primary)
-      .setCustomId("hello");
+	@Slash({ description: "test" })
+	async test(interaction: CommandInteraction): Promise<void> {
+		const btn = new ButtonBuilder()
+			.setLabel("Hello")
+			.setStyle(ButtonStyle.Primary)
+			.setCustomId("hello");
 
-    const buttonRow =
-      new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-        btn,
-      );
+		const buttonRow = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(btn);
 
-    await interaction.reply({
-      components: [buttonRow],
-    });
-  }
+		await interaction.reply({
+			components: [buttonRow],
+		});
+	}
 }

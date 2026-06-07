@@ -6,12 +6,7 @@
  */
 import type { MethodDecoratorEx } from "@rpbey/internal";
 
-import {
-  type ComponentOptions,
-  ComponentType,
-  DComponent,
-  MetadataStorage,
-} from "../../index.js";
+import { type ComponentOptions, ComponentType, DComponent, MetadataStorage } from "../../index.js";
 
 /**
  * Create modal interaction handler
@@ -33,9 +28,7 @@ export function ModalComponent(): MethodDecoratorEx;
  *
  * @category Decorator
  */
-export function ModalComponent<T extends string>(
-  options: ComponentOptions<T>,
-): MethodDecoratorEx;
+export function ModalComponent<T extends string>(options: ComponentOptions<T>): MethodDecoratorEx;
 
 /**
  * Create modal interaction handler
@@ -48,14 +41,14 @@ export function ModalComponent<T extends string>(
  * @category Decorator
  */
 export function ModalComponent(options?: ComponentOptions): MethodDecoratorEx {
-  return (target, key) => {
-    const button = DComponent.create({
-      botIds: options?.botIds,
-      guilds: options?.guilds,
-      id: options?.id ?? key,
-      type: ComponentType.Modal,
-    }).decorate(target.constructor, key, target[key]);
+	return (target, key) => {
+		const button = DComponent.create({
+			botIds: options?.botIds,
+			guilds: options?.guilds,
+			id: options?.id ?? key,
+			type: ComponentType.Modal,
+		}).decorate(target.constructor, key, target[key]);
 
-    MetadataStorage.instance.addComponentModal(button);
-  };
+		MetadataStorage.instance.addComponentModal(button);
+	};
 }

@@ -10,33 +10,33 @@ import { Client } from "@rpbey/discordy";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: ignore
 export class Main {
-  private static client: Client;
+	private static client: Client;
 
-  static async start(): Promise<void> {
-    Main.client = new Client({
-      // botGuilds: [(client) => client.guilds.cache.map((guild) => guild.id)],
-      intents: [
-        IntentsBitField.Flags.Guilds,
-        IntentsBitField.Flags.GuildMessages,
-        IntentsBitField.Flags.GuildMembers,
-        IntentsBitField.Flags.GuildMessageReactions,
-        IntentsBitField.Flags.MessageContent,
-      ],
-      silent: false,
-    });
+	static async start(): Promise<void> {
+		Main.client = new Client({
+			// botGuilds: [(client) => client.guilds.cache.map((guild) => guild.id)],
+			intents: [
+				IntentsBitField.Flags.Guilds,
+				IntentsBitField.Flags.GuildMessages,
+				IntentsBitField.Flags.GuildMembers,
+				IntentsBitField.Flags.GuildMessageReactions,
+				IntentsBitField.Flags.MessageContent,
+			],
+			silent: false,
+		});
 
-    Main.Client.on(Events.ClientReady, () => {
-      console.log("Bot started...");
-    });
+		Main.Client.on(Events.ClientReady, () => {
+			console.log("Bot started...");
+		});
 
-    await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`);
+		await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`);
 
-    // let's start the bot
-    if (!Bun.env.BOT_TOKEN) {
-      throw Error("Could not find BOT_TOKEN in your environment");
-    }
-    await Main.client.login(Bun.env.BOT_TOKEN);
-  }
+		// let's start the bot
+		if (!Bun.env.BOT_TOKEN) {
+			throw Error("Could not find BOT_TOKEN in your environment");
+		}
+		await Main.client.login(Bun.env.BOT_TOKEN);
+	}
 }
 
 void Main.start();

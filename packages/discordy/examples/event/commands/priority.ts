@@ -8,25 +8,25 @@ import { Events } from "discord.js";
 import { Discord, On } from "@rpbey/discordy";
 
 enum PriorityLevel {
-  High,
-  Moderate,
-  Low,
+	High,
+	Moderate,
+	Low,
 }
 
 @Discord()
 export class Example {
-  @On({ event: Events.ClientReady, priority: PriorityLevel.Low })
-  onReady(): void {
-    console.log(PriorityLevel[PriorityLevel.Low]);
-  }
+	@On({ event: Events.ClientReady, priority: PriorityLevel.Low })
+	onReady(): void {
+		console.log(PriorityLevel[PriorityLevel.Low]);
+	}
 
-  @On({ event: Events.ClientReady, priority: PriorityLevel.High })
-  onReady3(): void {
-    console.log(PriorityLevel[PriorityLevel.High]);
-  }
+	@On({ event: Events.ClientReady, priority: PriorityLevel.High })
+	onReady3(): void {
+		console.log(PriorityLevel[PriorityLevel.High]);
+	}
 
-  @On({ event: Events.ClientReady, priority: PriorityLevel.Moderate })
-  onReady2(): void {
-    console.log(PriorityLevel[PriorityLevel.Moderate]);
-  }
+	@On({ event: Events.ClientReady, priority: PriorityLevel.Moderate })
+	onReady2(): void {
+		console.log(PriorityLevel[PriorityLevel.Moderate]);
+	}
 }

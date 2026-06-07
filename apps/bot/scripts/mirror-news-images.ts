@@ -32,9 +32,10 @@ mkdirSync(ASSET_DIR, { recursive: true });
 const db = new Database(DB_PATH);
 db.exec("PRAGMA busy_timeout = 5000;");
 
-const rows = db
-	.query('SELECT id, image FROM db_news WHERE image LIKE "http%"')
-	.all() as Array<{ id: number; image: string }>;
+const rows = db.query('SELECT id, image FROM db_news WHERE image LIKE "http%"').all() as Array<{
+	id: number;
+	image: string;
+}>;
 
 let mirrored = 0;
 let nulled = 0;
@@ -65,13 +66,9 @@ for (const r of rows) {
 	if (!ok) {
 		db.query("UPDATE db_news SET image = NULL WHERE id = ?").run(r.id);
 		nulled++;
-		console.log(
-			`  ✗ news#${r.id} mort → image NULL (${r.image.slice(0, 50)}…)`,
-		);
+		console.log(`  ✗ news#${r.id} mort → image NULL (${r.image.slice(0, 50)}…)`);
 	}
 }
 
-console.log(
-	`\n✓ news mirrorées : ${mirrored} · mises à null (mortes) : ${nulled}`,
-);
+console.log(`\n✓ news mirrorées : ${mirrored} · mises à null (mortes) : ${nulled}`);
 db.close();

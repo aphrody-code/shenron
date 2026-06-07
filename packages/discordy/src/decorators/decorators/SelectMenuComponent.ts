@@ -30,7 +30,7 @@ export function SelectMenuComponent(): MethodDecoratorEx;
  * @category Decorator
  */
 export function SelectMenuComponent<T extends string>(
-  options: ComponentOptions<T>,
+	options: ComponentOptions<T>
 ): MethodDecoratorEx;
 
 /**
@@ -43,17 +43,15 @@ export function SelectMenuComponent<T extends string>(
  *
  * @category Decorator
  */
-export function SelectMenuComponent(
-  options?: ComponentOptions,
-): MethodDecoratorEx {
-  return (target, key) => {
-    const button = DComponent.create({
-      botIds: options?.botIds,
-      guilds: options?.guilds,
-      id: options?.id ?? key,
-      type: ComponentType.SelectMenu,
-    }).decorate(target.constructor, key, target[key]);
+export function SelectMenuComponent(options?: ComponentOptions): MethodDecoratorEx {
+	return (target, key) => {
+		const button = DComponent.create({
+			botIds: options?.botIds,
+			guilds: options?.guilds,
+			id: options?.id ?? key,
+			type: ComponentType.SelectMenu,
+		}).decorate(target.constructor, key, target[key]);
 
-    MetadataStorage.instance.addComponentSelectMenu(button);
-  };
+		MetadataStorage.instance.addComponentSelectMenu(button);
+	};
 }

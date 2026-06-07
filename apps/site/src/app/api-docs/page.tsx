@@ -177,9 +177,7 @@ function RouteRow({
 					{r.method}
 				</span>
 			</td>
-			<td className="p-2 font-mono text-xs text-dbz-orange align-top">
-				{r.path}
-			</td>
+			<td className="p-2 font-mono text-xs text-dbz-orange align-top">{r.path}</td>
 			<td className="p-2 text-xs text-gray-300 align-top">{r.desc}</td>
 		</tr>
 	);
@@ -196,15 +194,14 @@ export default async function ApiDocsPage() {
 				<h1
 					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
 					style={{
-						textShadow:
-							"4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
+						textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
 					}}
 				>
 					API
 				</h1>
 				<p className="text-dbz-blue-light font-bold tracking-widest uppercase">
-					Base URL · <code className="text-dbz-orange">{SHENRON_API}</code> ·
-					OpenAPI 3.0.1 sur <code className="text-dbz-orange">/openapi</code>
+					Base URL · <code className="text-dbz-orange">{SHENRON_API}</code> · OpenAPI 3.0.1 sur{" "}
+					<code className="text-dbz-orange">/openapi</code>
 				</p>
 			</header>
 
@@ -213,8 +210,7 @@ export default async function ApiDocsPage() {
 					Routes publiques ({PUBLIC_ROUTES.length})
 				</h2>
 				<p className="text-xs text-gray-400 mb-3">
-					CORS open · rate-limit 60 req/min/IP · cache 30s à 1h selon endpoint ·
-					aucun token requis
+					CORS open · rate-limit 60 req/min/IP · cache 30s à 1h selon endpoint · aucun token requis
 				</p>
 				<div className="dbz-panel overflow-x-auto">
 					<table className="w-full min-w-[700px]">
@@ -246,12 +242,9 @@ export default async function ApiDocsPage() {
 				</h2>
 				<p className="text-xs text-gray-400 mb-3">
 					Authentification :{" "}
-					<code className="text-dbz-orange">
-						Authorization: Bearer $API_ADMIN_TOKEN
-					</code>{" "}
-					· accessible via le proxy site{" "}
-					<code className="text-dbz-orange">/api/bot-admin/[...]</code> si{" "}
-					<strong>roleAdmin</strong>
+					<code className="text-dbz-orange">Authorization: Bearer $API_ADMIN_TOKEN</code> ·
+					accessible via le proxy site <code className="text-dbz-orange">/api/bot-admin/[...]</code>{" "}
+					si <strong>roleAdmin</strong>
 				</p>
 				<div className="dbz-panel overflow-x-auto">
 					<table className="w-full min-w-[700px]">

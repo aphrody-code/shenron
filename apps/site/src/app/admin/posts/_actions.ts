@@ -45,17 +45,15 @@ export async function savePost(formData: FormData) {
 			})
 			.where(eq(posts.id, id));
 	} else {
-		await db
-			.insert(posts)
-			.values({
-				title,
-				slug,
-				excerpt,
-				body,
-				cover,
-				published,
-				authorId: me.user.id,
-			});
+		await db.insert(posts).values({
+			title,
+			slug,
+			excerpt,
+			body,
+			cover,
+			published,
+			authorId: me.user.id,
+		});
 	}
 
 	revalidatePath("/admin/posts");

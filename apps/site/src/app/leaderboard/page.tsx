@@ -8,10 +8,7 @@ export default async function LeaderboardPage() {
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-4xl">
-			<PageHeader
-				title="CLASSEMENT"
-				subtitle="Top 100 guerriers du serveur · XP cumulé"
-			/>
+			<PageHeader title="CLASSEMENT" subtitle="Top 100 guerriers du serveur · XP cumulé" />
 
 			{entries.length === 0 ? (
 				<div className="dbz-panel p-8 text-center">
@@ -63,10 +60,7 @@ export default async function LeaderboardPage() {
 										</span>
 									</td>
 									<td className="p-4">
-										<a
-											href={`/profil/${e.discordId}`}
-											className="flex items-center gap-3 group"
-										>
+										<a href={`/profil/${e.discordId}`} className="flex items-center gap-3 group">
 											{e.avatarUrl && (
 												<img
 													src={e.avatarUrl}
@@ -79,9 +73,7 @@ export default async function LeaderboardPage() {
 											</span>
 										</a>
 									</td>
-									<td className="p-4 text-right font-saiyan text-xl text-dbz-orange">
-										{e.level}
-									</td>
+									<td className="p-4 text-right font-saiyan text-xl text-dbz-orange">{e.level}</td>
 									<td className="p-4 text-right font-mono text-sm text-gray-300">
 										{e.xp.toLocaleString("fr-FR")}
 									</td>

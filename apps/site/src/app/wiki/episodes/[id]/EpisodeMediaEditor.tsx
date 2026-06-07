@@ -42,10 +42,8 @@ export function EpisodeMediaEditor({
 
 	const setTrack = (i: number, patch: Partial<Track>) =>
 		setTracks((ts) => ts.map((t, j) => (j === i ? { ...t, ...patch } : t)));
-	const addTrack = () =>
-		setTracks((ts) => [...ts, { lang: "fr", label: "Français", src: "" }]);
-	const removeTrack = (i: number) =>
-		setTracks((ts) => ts.filter((_, j) => j !== i));
+	const addTrack = () => setTracks((ts) => [...ts, { lang: "fr", label: "Français", src: "" }]);
+	const removeTrack = (i: number) => setTracks((ts) => ts.filter((_, j) => j !== i));
 
 	async function onUpload() {
 		const file = fileRef.current?.files?.[0];
@@ -64,8 +62,7 @@ export function EpisodeMediaEditor({
 			setUploadMsg(res.error);
 			return;
 		}
-		const label =
-			uploadLang === "fr" ? "Français" : uploadLang === "en" ? "English" : uploadLang;
+		const label = uploadLang === "fr" ? "Français" : uploadLang === "en" ? "English" : uploadLang;
 		setTracks((ts) => [
 			...ts.filter((t) => t.src !== res.src),
 			{ lang: uploadLang, label, src: res.src },

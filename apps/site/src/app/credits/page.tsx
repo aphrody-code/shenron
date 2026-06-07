@@ -102,10 +102,9 @@ export default function CreditsPage() {
 					Crédits & sources
 				</h1>
 				<p className="text-[17px] leading-relaxed text-white/70 max-w-2xl">
-					DBFR est un site <strong>communautaire de fans francophones</strong>,
-					édité bénévolement et <strong>sans but lucratif</strong>. Il n'est
-					affilié à aucun ayant droit. Cette page liste toutes les sources de
-					contenu, données et technologies utilisées.
+					DBFR est un site <strong>communautaire de fans francophones</strong>, édité bénévolement
+					et <strong>sans but lucratif</strong>. Il n'est affilié à aucun ayant droit. Cette page
+					liste toutes les sources de contenu, données et technologies utilisées.
 				</p>
 			</header>
 
@@ -117,10 +116,9 @@ export default function CreditsPage() {
 					<strong className="text-white">
 						Dragon Ball, Dragon Ball Z, Dragon Ball Super, Dragon Ball Daima
 					</strong>{" "}
-					et l'ensemble des personnages, lieux, attaques et éléments graphiques
-					qui en sont issus sont la propriété exclusive de leurs ayants droit.
-					Toutes les images de personnages, scans manga, stills anime et
-					artworks officiels présents sur ce site restent la propriété de :
+					et l'ensemble des personnages, lieux, attaques et éléments graphiques qui en sont issus
+					sont la propriété exclusive de leurs ayants droit. Toutes les images de personnages, scans
+					manga, stills anime et artworks officiels présents sur ce site restent la propriété de :
 				</p>
 				<ul className="grid gap-3">
 					{RIGHTS_HOLDERS.map((r) => (
@@ -149,16 +147,12 @@ export default function CreditsPage() {
 					Sources de données
 				</h2>
 				<p className="text-[15px] text-white/65 leading-relaxed mb-6">
-					Le contenu informatif (fiches personnages, planètes, dates d'épisodes,
-					synopsis) est agrégé depuis des APIs publiques et des wikis
-					communautaires :
+					Le contenu informatif (fiches personnages, planètes, dates d'épisodes, synopsis) est
+					agrégé depuis des APIs publiques et des wikis communautaires :
 				</p>
 				<ul className="grid gap-3">
 					{DATA_SOURCES.map((s) => (
-						<li
-							key={s.name}
-							className="p-5 rounded-xl bg-white/[0.04] border border-white/[0.06]"
-						>
+						<li key={s.name} className="p-5 rounded-xl bg-white/[0.04] border border-white/[0.06]">
 							<div className="flex items-start justify-between gap-4 flex-wrap">
 								<div className="flex-1">
 									<a
@@ -207,9 +201,9 @@ export default function CreditsPage() {
 					Signaler un contenu / demande de retrait
 				</h2>
 				<p className="text-[15px] text-white/80 leading-relaxed mb-4">
-					Si vous représentez un ayant droit et souhaitez voir un contenu retiré
-					(image, citation, lien), contactez-nous via le serveur Discord ou par
-					e-mail. Nous traitons toute demande sous 48 heures.
+					Si vous représentez un ayant droit et souhaitez voir un contenu retiré (image, citation,
+					lien), contactez-nous via le serveur Discord ou par e-mail. Nous traitons toute demande
+					sous 48 heures.
 				</p>
 				<div className="flex flex-wrap gap-3">
 					<a

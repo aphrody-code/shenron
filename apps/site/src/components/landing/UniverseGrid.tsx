@@ -39,21 +39,26 @@ export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
 			title: "Personnages",
 			desc: "Goku, Vegeta, Freezer, Cell, Buu, Beerus, Jiren.",
 			href: "/wiki/personnages?tab=personnages",
-			count: wikiCounts.characters > 0 ? `${wikiCounts.characters} fiches personnages` : "Fiches personnages",
+			count:
+				wikiCounts.characters > 0
+					? `${wikiCounts.characters} fiches personnages`
+					: "Fiches personnages",
 			accent: "gold",
 		},
 		{
 			title: "Planètes & Univers",
 			desc: "Terre, Namek, Vegeta, Yardrat, le Monde du Vide.",
 			href: "/wiki/personnages?tab=planetes",
-			count: wikiCounts.planets > 0 ? `${wikiCounts.planets} planètes & mondes` : "Planètes & mondes",
+			count:
+				wikiCounts.planets > 0 ? `${wikiCounts.planets} planètes & mondes` : "Planètes & mondes",
 			accent: "white",
 		},
 		{
 			title: "Sagas, Arcs & Épisodes",
 			desc: `Suivez les aventures à travers ${wikiCounts.sagas || 12} sagas et ${wikiCounts.episodes || 131} épisodes avec lecteurs et téléchargements.`,
 			href: "/wiki/episodes",
-			count: wikiCounts.episodes > 0 ? `${wikiCounts.episodes} épisodes répertoriés` : "Anime & Manga",
+			count:
+				wikiCounts.episodes > 0 ? `${wikiCounts.episodes} épisodes répertoriés` : "Anime & Manga",
 			accent: "red",
 		},
 		{
@@ -67,7 +72,10 @@ export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
 			title: "Manga & Scan Reader",
 			desc: "Lisez les chapitres de Dragon Ball Super en ligne grâce à notre pipeline de scraping natif.",
 			href: "/wiki/manga",
-			count: wikiCounts.chapters > 0 ? `${wikiCounts.chapters} chapitres DBS disponibles` : "Termes traduits",
+			count:
+				wikiCounts.chapters > 0
+					? `${wikiCounts.chapters} chapitres DBS disponibles`
+					: "Termes traduits",
 			accent: "white",
 		},
 		{
@@ -89,9 +97,7 @@ export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
 							<>
 								Tout Dragon Ball.
 								<br />
-								<span className="text-white/55">
-									En français, à jour, sans détour.
-								</span>
+								<span className="text-white/55">En français, à jour, sans détour.</span>
 							</>
 						}
 					/>
@@ -114,9 +120,7 @@ export function UniverseGrid({ wikiCounts }: UniverseGridProps) {
 								<h3 className="font-display font-bold text-[24px] tracking-tight text-white mb-3 group-hover:translate-x-1 transition-transform">
 									{p.title}
 								</h3>
-								<p className="text-[15px] leading-relaxed text-white/65">
-									{p.desc}
-								</p>
+								<p className="text-[15px] leading-relaxed text-white/65">{p.desc}</p>
 								<span
 									className={`mt-6 inline-flex items-center gap-1.5 text-[13px] font-medium ${ACCENT_TEXT[p.accent]} opacity-0 group-hover:opacity-100 transition-opacity`}
 								>

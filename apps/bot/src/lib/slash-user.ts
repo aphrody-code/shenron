@@ -9,9 +9,7 @@ import type { GuildMember, User } from "discord.js";
  *
  * Usage : `@SlashOption({ ... }, userTransformer)`
  */
-export const userTransformer = (
-	value: User | GuildMember | null | undefined,
-): User | undefined => {
+export const userTransformer = (value: User | GuildMember | null | undefined): User | undefined => {
 	if (!value) return undefined;
 	return "user" in value ? value.user : value;
 };

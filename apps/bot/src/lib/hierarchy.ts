@@ -42,14 +42,9 @@ export async function loadHierarchy(): Promise<Hierarchy> {
 		const parsed = JSON.parse(raw);
 		if (
 			!Array.isArray(parsed) ||
-			!parsed.every(
-				(lvl) => Array.isArray(lvl) && lvl.every((r) => typeof r === "string"),
-			)
+			!parsed.every((lvl) => Array.isArray(lvl) && lvl.every((r) => typeof r === "string"))
 		) {
-			logger.warn(
-				{ raw },
-				"moderation.hierarchy: format invalide, fallback []",
-			);
+			logger.warn({ raw }, "moderation.hierarchy: format invalide, fallback []");
 			cachedParsed = [];
 		} else {
 			cachedParsed = parsed as Hierarchy;
@@ -86,7 +81,7 @@ export function levelOf(member: GuildMember, hierarchy: Hierarchy): number {
  */
 export async function canModerate(
 	mod: GuildMember,
-	target: GuildMember,
+	target: GuildMember
 ): Promise<{ ok: boolean; reason?: string }> {
 	const isOwner = mod.id === env.OWNER_ID || mod.id === env.BOT_DEV_ID;
 	if (isOwner) return { ok: true };

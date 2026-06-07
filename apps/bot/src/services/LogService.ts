@@ -25,10 +25,7 @@ type LogCategory =
  * Permet au dashboard / `/config channel` de surcharger les destinations
  * sans redéploiement.
  */
-const CATEGORY_MAP: Record<
-	LogCategory,
-	{ settingKey: string; envFallback?: string }
-> = {
+const CATEGORY_MAP: Record<LogCategory, { settingKey: string; envFallback?: string }> = {
 	message: {
 		settingKey: "channel.log_message",
 		envFallback: env.LOG_MESSAGE_CHANNEL_ID,
@@ -65,9 +62,7 @@ const CATEGORY_MAP: Record<
 
 @singleton()
 export class LogService {
-	private async resolveChannelId(
-		category: LogCategory,
-	): Promise<string | undefined> {
+	private async resolveChannelId(category: LogCategory): Promise<string | undefined> {
 		const map = CATEGORY_MAP[category];
 		const settings = container.resolve(SettingsService);
 		const override = await settings.getSnowflake(map.settingKey);
@@ -78,7 +73,7 @@ export class LogService {
 		client: Client,
 		category: LogCategory,
 		embed: EmbedBuilder,
-		files?: AttachmentBuilder[],
+		files?: AttachmentBuilder[]
 	) {
 		const channelId = await this.resolveChannelId(category);
 		if (!channelId) return;

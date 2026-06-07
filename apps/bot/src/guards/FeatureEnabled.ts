@@ -1,9 +1,5 @@
 import type { GuardFunction } from "@rpbey/discordy";
-import type {
-	CommandInteraction,
-	ButtonInteraction,
-	ModalSubmitInteraction,
-} from "discord.js";
+import type { CommandInteraction, ButtonInteraction, ModalSubmitInteraction } from "discord.js";
 import { MessageFlags } from "discord.js";
 import { container } from "tsyringe";
 import { SettingsService } from "~/services/SettingsService";
@@ -18,7 +14,7 @@ import { SettingsService } from "~/services/SettingsService";
  */
 export function FeatureEnabled(
 	key: string,
-	label = "Cette fonctionnalité",
+	label = "Cette fonctionnalité"
 ): GuardFunction<CommandInteraction | ButtonInteraction | ModalSubmitInteraction> {
 	return async (interaction, _client, next) => {
 		const settings = container.resolve(SettingsService);

@@ -20,21 +20,13 @@ export default function GlobalError({
 				<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-4">
 					❯ ANOMALIE COSMIQUE ❮
 				</p>
-				<h1 className="title-jagged text-5xl md:text-7xl leading-none mb-6">
-					ERREUR
-				</h1>
+				<h1 className="title-jagged text-5xl md:text-7xl leading-none mb-6">ERREUR</h1>
 				<p className="text-white/70 mb-2">Quelque chose s'est mal passé.</p>
 				{error.digest && (
-					<p className="text-xs text-white/40 font-mono mb-6">
-						digest: {error.digest}
-					</p>
+					<p className="text-xs text-white/40 font-mono mb-6">digest: {error.digest}</p>
 				)}
 				<div className="flex items-center justify-center gap-3 mt-6">
-					<button
-						type="button"
-						onClick={() => reset()}
-						className="dbz-button !text-xs"
-					>
+					<button type="button" onClick={() => reset()} className="dbz-button !text-xs">
 						Réessayer
 					</button>
 					<Link href="/" className="dbz-button-ghost !text-xs">

@@ -7,5 +7,5 @@
  * @returns {string[]} A flat array of strings.
  */
 export function toStringArray(...input: (string | string[])[]): string[] {
-  return input.flatMap((item) => (Array.isArray(item) ? item : [item]));
+	return input.flatMap((item) => (Array.isArray(item) ? item : [item]));
 }

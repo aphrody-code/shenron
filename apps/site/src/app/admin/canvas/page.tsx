@@ -73,20 +73,10 @@ const ASSET_DIR_LABELS: Record<string, string> = {
 	wiki: "Uploads wiki",
 };
 
-const PROFILE_THEMES = [
-	"default",
-	"goku",
-	"vegeta",
-	"kaio",
-	"ssj",
-	"blue",
-	"rose",
-	"ultra",
-];
+const PROFILE_THEMES = ["default", "goku", "vegeta", "kaio", "ssj", "blue", "rose", "ultra"];
 
 const CANVAS_DESCRIPTIONS: Record<string, string> = {
-	profile:
-		"Carte de profil personnalisée avec avatar, niveau, barre d'XP et thème DBZ.",
+	profile: "Carte de profil personnalisée avec avatar, niveau, barre d'XP et thème DBZ.",
 	scan: "Lecture du niveau de Ki d'un membre, basée sur son XP.",
 	scouter: "Scouter humoristique (Gaydar de Bulma ou Racism-o-mètre).",
 	fusion: "Carte de fusion entre deux membres.",
@@ -127,28 +117,22 @@ export default function CanvasPage() {
 
 	const members = useQuery({
 		queryKey: ["discord", "members"],
-		queryFn: () =>
-			api.get<{ members: DiscordMember[] }>("/discord/members?limit=200"),
+		queryFn: () => api.get<{ members: DiscordMember[] }>("/discord/members?limit=200"),
 	});
 
 	const [selected, setSelected] = useState("profile");
 
 	const sampleUserId = useMemo(
-		() =>
-			(members.data?.members ?? []).find((m) => !m.id.startsWith("0"))?.id ??
-			"",
-		[members.data],
+		() => (members.data?.members ?? []).find((m) => !m.id.startsWith("0"))?.id ?? "",
+		[members.data]
 	);
 
 	return (
 		<div className="space-y-6">
 			<header>
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					CANVAS & THÈMES
-				</h1>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">CANVAS & THÈMES</h1>
 				<p className="text-sm text-white/60 mb-1">
-					Prévisualisez les images générées par le bot et éditez les thèmes des
-					cartes de profil.
+					Prévisualisez les images générées par le bot et éditez les thèmes des cartes de profil.
 				</p>
 				<p className="text-xs text-white/30 uppercase tracking-widest">
 					Rendu en direct via Skia · mise en cache 60 secondes
@@ -202,9 +186,7 @@ function PreviewSection({
 		return (
 			<div className="dbz-panel p-8 text-center">
 				<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
-				<p className="text-sm text-white/40">
-					Récupération des canvases disponibles.
-				</p>
+				<p className="text-sm text-white/40">Récupération des canvases disponibles.</p>
 			</div>
 		);
 
@@ -213,8 +195,7 @@ function PreviewSection({
 			<div className="dbz-panel p-8 text-center border-l-4 border-red-500">
 				<p className="font-saiyan text-red-400 text-xl mb-2">ERREUR</p>
 				<p className="text-sm text-white/40">
-					Impossible de charger la liste des canvases. Vérifiez que le bot est
-					en ligne.
+					Impossible de charger la liste des canvases. Vérifiez que le bot est en ligne.
 				</p>
 			</div>
 		);
@@ -312,9 +293,8 @@ function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 						Thèmes des cartes de profil
 					</p>
 					<p className="text-xs text-white/40">
-						Couleurs et fond utilisés par la commande de profil. Les
-						modifications sont appliquées en direct (cache bot purgé à
-						l&apos;enregistrement).
+						Couleurs et fond utilisés par la commande de profil. Les modifications sont appliquées
+						en direct (cache bot purgé à l&apos;enregistrement).
 					</p>
 				</div>
 				<button
@@ -348,8 +328,7 @@ function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 				))}
 				{!themes.isLoading && rows.length === 0 && (
 					<div className="dbz-panel p-6 col-span-full text-center text-sm text-white/40">
-						Aucun thème en base. Créez-en un — il s&apos;ajoutera aux thèmes
-						intégrés du bot.
+						Aucun thème en base. Créez-en un — il s&apos;ajoutera aux thèmes intégrés du bot.
 					</div>
 				)}
 			</div>
@@ -376,19 +355,13 @@ function ThemeCard({
 	onEdit: () => void;
 }) {
 	const previewUrl = sampleUserId
-		? proxyAsset(
-				`/canvas/profile/${sampleUserId}?theme=${encodeURIComponent(theme.id)}`,
-			)
+		? proxyAsset(`/canvas/profile/${sampleUserId}?theme=${encodeURIComponent(theme.id)}`)
 		: "";
 
 	return (
-		<div
-			className={`dbz-panel p-3 space-y-2 ${theme.enabled ? "" : "opacity-50"}`}
-		>
+		<div className={`dbz-panel p-3 space-y-2 ${theme.enabled ? "" : "opacity-50"}`}>
 			<div className="flex items-center gap-2">
-				<span className="font-saiyan text-dbz-yellow text-sm uppercase truncate">
-					{theme.name}
-				</span>
+				<span className="font-saiyan text-dbz-yellow text-sm uppercase truncate">{theme.name}</span>
 				{!theme.enabled && (
 					<span className="text-[10px] uppercase text-red-400 border border-red-500/40 rounded px-1">
 						Masqué
@@ -397,13 +370,7 @@ function ThemeCard({
 				<code className="ml-auto text-[10px] text-white/30">{theme.id}</code>
 			</div>
 			<div className="flex gap-1">
-				{[
-					theme.accent,
-					theme.aura,
-					theme.bgGrad1,
-					theme.bgGrad2,
-					theme.bgGrad3,
-				].map((c, i) => (
+				{[theme.accent, theme.aura, theme.bgGrad1, theme.bgGrad2, theme.bgGrad3].map((c, i) => (
 					<span
 						key={i}
 						className="h-4 flex-1 rounded-sm border border-black/30"
@@ -557,9 +524,7 @@ function RangeField({
 		<div>
 			<label className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 				<span>{label}</span>
-				<span className="text-dbz-yellow">
-					{format ? format(value) : value}
-				</span>
+				<span className="text-dbz-yellow">{format ? format(value) : value}</span>
 			</label>
 			<input
 				type="range"
@@ -608,8 +573,7 @@ function ThemeEditor({
 	});
 
 	const del = useMutation({
-		mutationFn: () =>
-			api.delete(`/card-themes/${encodeURIComponent(draft.id)}`),
+		mutationFn: () => api.delete(`/card-themes/${encodeURIComponent(draft.id)}`),
 		onSuccess: onSaved,
 		onError: (err) => setError((err as Error).message),
 	});
@@ -623,7 +587,7 @@ function ThemeEditor({
 		}
 		if (!/^[a-z0-9_-]+$/.test(draft.id)) {
 			setError(
-				"L'identifiant doit contenir uniquement des lettres minuscules, chiffres, tirets ou underscores.",
+				"L'identifiant doit contenir uniquement des lettres minuscules, chiffres, tirets ou underscores."
 			);
 			return;
 		}
@@ -633,7 +597,7 @@ function ThemeEditor({
 	const previewUrl =
 		sampleUserId && !isCreate
 			? proxyAsset(
-					`/canvas/profile/${sampleUserId}?theme=${encodeURIComponent(draft.id)}&_=${bust}`,
+					`/canvas/profile/${sampleUserId}?theme=${encodeURIComponent(draft.id)}&_=${bust}`
 				)
 			: "";
 
@@ -750,13 +714,7 @@ function ThemeEditor({
 								stops={[draft.bgGrad1, draft.bgGrad2, draft.bgGrad3]}
 								angle={draft.gradientAngle}
 								onStop={(i, v) =>
-									set(
-										i === 0
-											? { bgGrad1: v }
-											: i === 1
-												? { bgGrad2: v }
-												: { bgGrad3: v },
-									)
+									set(i === 0 ? { bgGrad1: v } : i === 1 ? { bgGrad2: v } : { bgGrad3: v })
 								}
 								onAngle={(deg) => set({ gradientAngle: deg })}
 							/>
@@ -865,11 +823,7 @@ function ThemeEditor({
 							className="dbz-button !text-xs !py-1.5 !px-4 flex items-center gap-1.5"
 						>
 							<Save className="h-3 w-3" />
-							{save.isPending
-								? "Enregistrement…"
-								: isCreate
-									? "Créer le thème"
-									: "Enregistrer"}
+							{save.isPending ? "Enregistrement…" : isCreate ? "Créer le thème" : "Enregistrer"}
 						</button>
 						<button
 							type="button"
@@ -884,7 +838,7 @@ function ThemeEditor({
 								onClick={() => {
 									if (
 										window.confirm(
-											`Supprimer le thème « ${draft.name} » ? Le bot retombera sur le thème intégré du même nom s'il existe.`,
+											`Supprimer le thème « ${draft.name} » ? Le bot retombera sur le thème intégré du même nom s'il existe.`
 										)
 									)
 										del.mutate();
@@ -909,19 +863,12 @@ function ThemeEditor({
  * (clic = sélection), sinon clic = copie du chemin relatif. Images chargées en
  * direct depuis le bot (botAsset → bot.dragonballfr.com/assets/, public, sans auth).
  */
-function AssetGrid({
-	dir,
-	onPick,
-}: {
-	dir: string;
-	onPick?: (path: string) => void;
-}) {
+function AssetGrid({ dir, onPick }: { dir: string; onPick?: (path: string) => void }) {
 	const [copied, setCopied] = useState<string | null>(null);
 
 	const assets = useQuery({
 		queryKey: ["assets", dir],
-		queryFn: () =>
-			api.get<AssetListResponse>(`/assets/list?dir=${encodeURIComponent(dir)}`),
+		queryFn: () => api.get<AssetListResponse>(`/assets/list?dir=${encodeURIComponent(dir)}`),
 	});
 
 	const files = assets.data?.files ?? [];
@@ -936,7 +883,7 @@ function AssetGrid({
 				setCopied(path);
 				setTimeout(() => setCopied(null), 1500);
 			},
-			() => {},
+			() => {}
 		);
 	};
 
@@ -976,9 +923,7 @@ function AssetGrid({
 						loading="lazy"
 					/>
 					<div className="p-1.5">
-						<code className="block truncate text-[10px] text-white/50">
-							{f.name}
-						</code>
+						<code className="block truncate text-[10px] text-white/50">{f.name}</code>
 					</div>
 					{copied === f.path && (
 						<span className="absolute inset-x-0 top-0 bg-emerald-600/90 text-center text-[10px] py-0.5 text-white">
@@ -996,8 +941,7 @@ function AssetGallery({ onPick }: { onPick?: (path: string) => void }) {
 
 	const list = useQuery({
 		queryKey: ["assets", dir],
-		queryFn: () =>
-			api.get<AssetListResponse>(`/assets/list?dir=${encodeURIComponent(dir)}`),
+		queryFn: () => api.get<AssetListResponse>(`/assets/list?dir=${encodeURIComponent(dir)}`),
 	});
 	const dirs = list.data?.dirs ?? Object.keys(ASSET_DIR_LABELS);
 
@@ -1040,11 +984,7 @@ function AssetPickerModal({
 					<h3 className="font-saiyan text-dbz-orange text-lg uppercase">
 						Choisir une image de fond
 					</h3>
-					<button
-						type="button"
-						onClick={onClose}
-						className="ml-auto dbz-button-ghost !px-2 !py-1"
-					>
+					<button type="button" onClick={onClose} className="ml-auto dbz-button-ghost !px-2 !py-1">
 						<X className="h-4 w-4" />
 					</button>
 				</div>
@@ -1059,16 +999,8 @@ function AssetPickerModal({
 	);
 }
 
-function CanvasPreview({
-	def,
-	members,
-}: {
-	def: CanvasDef;
-	members: DiscordMember[];
-}) {
-	const [params, setParams] = useState<Record<string, string>>(() =>
-		initialParams(def, members),
-	);
+function CanvasPreview({ def, members }: { def: CanvasDef; members: DiscordMember[] }) {
+	const [params, setParams] = useState<Record<string, string>>(() => initialParams(def, members));
 	const [bust, setBust] = useState(0);
 
 	const url = useMemo(() => buildUrl(def, params, bust), [def, params, bust]);
@@ -1079,12 +1011,8 @@ function CanvasPreview({
 			{/* Panneau paramètres */}
 			<div className="dbz-panel p-5 space-y-4 lg:col-span-1">
 				<div>
-					<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">
-						{def.name}
-					</h3>
-					<p className="text-xs text-white/40">
-						{CANVAS_DESCRIPTIONS[def.id] ?? def.description}
-					</p>
+					<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">{def.name}</h3>
+					<p className="text-xs text-white/40">{CANVAS_DESCRIPTIONS[def.id] ?? def.description}</p>
 				</div>
 
 				{def.id === "profile" && (
@@ -1102,9 +1030,7 @@ function CanvasPreview({
 							<select
 								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.theme ?? "default"}
-								onChange={(e) =>
-									setParams({ ...params, theme: e.target.value })
-								}
+								onChange={(e) => setParams({ ...params, theme: e.target.value })}
 							>
 								{PROFILE_THEMES.map((t) => (
 									<option key={t} value={t}>
@@ -1183,9 +1109,7 @@ function CanvasPreview({
 							<select
 								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.state ?? "success"}
-								onChange={(e) =>
-									setParams({ ...params, state: e.target.value })
-								}
+								onChange={(e) => setParams({ ...params, state: e.target.value })}
 							>
 								<option value="propose">Proposition de fusion</option>
 								<option value="success">Fusion réussie</option>
@@ -1214,9 +1138,7 @@ function CanvasPreview({
 							<select
 								className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 								value={params.metric ?? "xp"}
-								onChange={(e) =>
-									setParams({ ...params, metric: e.target.value })
-								}
+								onChange={(e) => setParams({ ...params, metric: e.target.value })}
 							>
 								<option value="xp">Points d&apos;expérience (XP)</option>
 								<option value="zeni">Zénis (monnaie)</option>
@@ -1232,9 +1154,7 @@ function CanvasPreview({
 								max="20"
 								className="w-full accent-dbz-orange"
 								value={params.limit ?? "10"}
-								onChange={(e) =>
-									setParams({ ...params, limit: e.target.value })
-								}
+								onChange={(e) => setParams({ ...params, limit: e.target.value })}
 							/>
 						</div>
 					</>
@@ -1264,17 +1184,10 @@ function CanvasPreview({
 
 			{/* Aperçu visuel */}
 			<div className="dbz-panel p-5 lg:col-span-2">
-				<h3 className="font-saiyan text-dbz-blue-light text-base uppercase mb-3">
-					Aperçu
-				</h3>
+				<h3 className="font-saiyan text-dbz-blue-light text-base uppercase mb-3">Aperçu</h3>
 				<div className="flex items-center justify-center rounded border border-dbz-border bg-black/30 p-4 min-h-[200px]">
 					{isValid ? (
-						<img
-							src={url}
-							alt={def.name}
-							className="max-w-full rounded"
-							loading="lazy"
-						/>
+						<img src={url} alt={def.name} className="max-w-full rounded" loading="lazy" />
 					) : (
 						<p className="text-sm text-white/30 text-center">
 							Renseignez les paramètres à gauche pour afficher l&apos;aperçu.
@@ -1313,7 +1226,7 @@ function MemberSelect({
 			!search ||
 			m.username.toLowerCase().includes(search.toLowerCase()) ||
 			m.displayName.toLowerCase().includes(search.toLowerCase()) ||
-			m.id.includes(search),
+			m.id.includes(search)
 	);
 
 	return (
@@ -1335,9 +1248,7 @@ function MemberSelect({
 				<option value="">— choisir un membre —</option>
 				{filtered.slice(0, 50).map((m) => (
 					<option key={m.id} value={m.id}>
-						{m.displayName !== m.username
-							? `${m.displayName} (${m.username})`
-							: m.username}
+						{m.displayName !== m.username ? `${m.displayName} (${m.username})` : m.username}
 					</option>
 				))}
 			</select>
@@ -1350,10 +1261,7 @@ function MemberSelect({
 	);
 }
 
-function initialParams(
-	def: CanvasDef,
-	members: DiscordMember[],
-): Record<string, string> {
+function initialParams(def: CanvasDef, members: DiscordMember[]): Record<string, string> {
 	const firstMember = members.find((m) => !m.id.startsWith("0"))?.id ?? "";
 	switch (def.id) {
 		case "profile":
@@ -1377,18 +1285,13 @@ function initialParams(
 }
 
 function paramsValid(def: CanvasDef, params: Record<string, string>): boolean {
-	if (def.id === "profile" || def.id === "scan" || def.id === "scouter")
-		return !!params.userId;
+	if (def.id === "profile" || def.id === "scan" || def.id === "scouter") return !!params.userId;
 	if (def.id === "fusion") return !!params.a && !!params.b;
 	if (def.id === "leaderboard") return true;
 	return false;
 }
 
-function buildUrl(
-	def: CanvasDef,
-	params: Record<string, string>,
-	bust: number,
-): string {
+function buildUrl(def: CanvasDef, params: Record<string, string>, bust: number): string {
 	const sp = new URLSearchParams();
 	let path = "";
 	switch (def.id) {

@@ -8,9 +8,7 @@ import { env } from "./env";
 // valeur d'env polluée (ex. BETTER_AUTH_URL posée via `echo` qui ajoute un \n
 // final → redirectURI "https://dbfr.vercel.app\n/api/auth/..." malformé →
 // Discord rejette le callback). Ne jamais concaténer une env URL brute.
-const SITE_URL = (env.BETTER_AUTH_URL ?? "https://dragonballfr.com")
-	.trim()
-	.replace(/\/+$/, "");
+const SITE_URL = (env.BETTER_AUTH_URL ?? "https://dragonballfr.com").trim().replace(/\/+$/, "");
 
 export const auth = betterAuth({
 	appName: "DBFR",
@@ -58,7 +56,7 @@ export const auth = betterAuth({
 				path,
 				e?.message ?? String(error),
 				e?.cause ? `cause=${JSON.stringify(e.cause)}` : "",
-				e?.stack ?? "",
+				e?.stack ?? ""
 			);
 		},
 	},

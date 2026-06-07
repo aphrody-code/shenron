@@ -35,11 +35,7 @@ const CHANNEL_KEYS: { key: string; label: string; virtual?: boolean }[] = [
 	{ key: "channel.ticket", label: "Salon du ticket", virtual: true },
 ];
 
-const VIRTUAL_CHANNEL_KEYS = new Set([
-	"channel.dm",
-	"channel.invocation",
-	"channel.ticket",
-]);
+const VIRTUAL_CHANNEL_KEYS = new Set(["channel.dm", "channel.invocation", "channel.ticket"]);
 
 export function Messages() {
 	const { data, isLoading } = useQuery({
@@ -52,8 +48,7 @@ export function Messages() {
 		if (!selected && data?.events[0]) setSelected(data.events[0].event);
 	}, [data, selected]);
 
-	if (isLoading)
-		return <div className="text-zinc-500">Chargement en cours…</div>;
+	if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
 	const events = data?.events ?? [];
 	const current = events.find((e) => e.event === selected);
@@ -66,10 +61,9 @@ export function Messages() {
 					<h2 className="text-lg font-semibold">Messages événementiels</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Configure le contenu et le salon de chaque message envoyé
-					automatiquement par le bot. Variables disponibles affichées par
-					événement. Les surcharges sont rechargées sous 30 secondes côté bot
-					(ou immédiatement après modification).
+					Configure le contenu et le salon de chaque message envoyé automatiquement par le bot.
+					Variables disponibles affichées par événement. Les surcharges sont rechargées sous 30
+					secondes côté bot (ou immédiatement après modification).
 				</p>
 			</div>
 
@@ -92,26 +86,18 @@ export function Messages() {
 							>
 								<div className="flex-1">
 									<code className="font-mono text-xs">{e.event}</code>
-									<p className="mt-0.5 text-xs text-zinc-500">
-										{e.description}
-									</p>
+									<p className="mt-0.5 text-xs text-zinc-500">{e.description}</p>
 								</div>
 								<div className="flex flex-col items-end gap-0.5">
-									{e.isCustom && (
-										<span className="badge badge-warning">surchargé</span>
-									)}
-									{!e.enabled && (
-										<span className="badge badge-error">désactivé</span>
-									)}
+									{e.isCustom && <span className="badge badge-warning">surchargé</span>}
+									{!e.enabled && <span className="badge badge-error">désactivé</span>}
 								</div>
 							</button>
 						))}
 					</div>
 				</div>
 
-				<div className="lg:col-span-2">
-					{current ? <EventEditor entry={current} /> : null}
-				</div>
+				<div className="lg:col-span-2">{current ? <EventEditor entry={current} /> : null}</div>
 			</div>
 		</div>
 	);
@@ -123,9 +109,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 	const [channelKey, setChannelKey] = useState(entry.channelKey);
 	const [enabled, setEnabled] = useState(entry.enabled);
 	const [previewVars, setPreviewVars] = useState<Record<string, string>>(() =>
-		Object.fromEntries(
-			entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]),
-		),
+		Object.fromEntries(entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]))
 	);
 	const [previewResult, setPreviewResult] = useState<string | null>(null);
 
@@ -134,9 +118,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 		setChannelKey(entry.channelKey);
 		setEnabled(entry.enabled);
 		setPreviewVars(
-			Object.fromEntries(
-				entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]),
-			),
+			Object.fromEntries(entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]))
 		);
 		setPreviewResult(null);
 	}, [entry]);
@@ -158,15 +140,10 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 
 	const preview = useMutation({
 		mutationFn: () =>
-			api.post<{ rendered: string }>(
-				`/messages/${entry.event}/preview`,
-				previewVars,
-			),
+			api.post<{ rendered: string }>(`/messages/${entry.event}/preview`, previewVars),
 		onSuccess: (data) => setPreviewResult(data.rendered),
 		onError: (err) =>
-			setPreviewResult(
-				`Erreur : ${err instanceof Error ? err.message : String(err)}`,
-			),
+			setPreviewResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
 	});
 
 	return (
@@ -174,9 +151,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 			<div className="card">
 				<div className="mb-3 flex items-center justify-between">
 					<div>
-						<code className="font-mono text-sm font-semibold text-brand-400">
-							{entry.event}
-						</code>
+						<code className="font-mono text-sm font-semibold text-brand-400">{entry.event}</code>
 						<p className="mt-0.5 text-xs text-zinc-400">{entry.description}</p>
 						{entry.embed && <span className="badge mt-1">Rendu en embed</span>}
 					</div>
@@ -192,9 +167,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 
 				<div className="space-y-3">
 					<div>
-						<label className="mb-1 block text-xs text-zinc-400">
-							Salon de destination
-						</label>
+						<label className="mb-1 block text-xs text-zinc-400">Salon de destination</label>
 						<select
 							className="input"
 							value={channelKey}
@@ -215,9 +188,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 					</div>
 
 					<div>
-						<label className="mb-1 block text-xs text-zinc-400">
-							Template du message
-						</label>
+						<label className="mb-1 block text-xs text-zinc-400">Template du message</label>
 						<textarea
 							className="input font-mono text-sm"
 							rows={4}
@@ -225,8 +196,8 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							onChange={(e) => setTemplate(e.target.value)}
 						/>
 						<p className="mt-1 text-xs text-zinc-500">
-							Variables : utilise <code>{"{nom}"}</code> pour insérer une
-							valeur. Les placeholders inconnus restent affichés tels quels.
+							Variables : utilise <code>{"{nom}"}</code> pour insérer une valeur. Les placeholders
+							inconnus restent affichés tels quels.
 						</p>
 					</div>
 
@@ -244,8 +215,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							<button
 								type="button"
 								onClick={() => {
-									if (confirm(`Supprimer la surcharge pour ${entry.event} ?`))
-										reset.mutate();
+									if (confirm(`Supprimer la surcharge pour ${entry.event} ?`)) reset.mutate();
 								}}
 								disabled={reset.isPending}
 								className="btn btn-ghost"
@@ -273,9 +243,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							<input
 								className="input text-xs"
 								value={previewVars[v.name] ?? ""}
-								onChange={(e) =>
-									setPreviewVars({ ...previewVars, [v.name]: e.target.value })
-								}
+								onChange={(e) => setPreviewVars({ ...previewVars, [v.name]: e.target.value })}
 							/>
 						</div>
 					))}
@@ -291,9 +259,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 				</button>
 				{previewResult && (
 					<div className="mt-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3 text-sm">
-						<p className="mb-1 text-xs uppercase tracking-wide text-zinc-500">
-							Aperçu rendu
-						</p>
+						<p className="mb-1 text-xs uppercase tracking-wide text-zinc-500">Aperçu rendu</p>
 						<p className="whitespace-pre-wrap text-zinc-100">{previewResult}</p>
 					</div>
 				)}
@@ -313,8 +279,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 
 function ResolvedChannel({ channelKey }: { channelKey: string }) {
 	if (VIRTUAL_CHANNEL_KEYS.has(channelKey)) {
-		const label =
-			CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
+		const label = CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
 		return (
 			<p className="mt-1 text-xs text-cyan-400">
 				🔗 Cible contextuelle : <strong>{label}</strong>{" "}
@@ -327,35 +292,28 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 	const settings = useQuery({
 		queryKey: ["settings", "all"],
 		queryFn: () =>
-			api.get<{ rows: { key: string; value: string }[] }>(
-				"/database/guild_settings?limit=200",
-			),
+			api.get<{ rows: { key: string; value: string }[] }>("/database/guild_settings?limit=200"),
 		staleTime: 30_000,
 	});
 	const channels = useQuery({
 		queryKey: ["discord", "channels"],
 		queryFn: () =>
-			api.get<{ channels: { id: string; name: string; type: number }[] }>(
-				"/discord/channels",
-			),
+			api.get<{ channels: { id: string; name: string; type: number }[] }>("/discord/channels"),
 		staleTime: 30_000,
 	});
-	const value = (settings.data as any)?.rows?.find(
-		(s: any) => s.key === channelKey,
-	)?.value;
+	const value = (settings.data as any)?.rows?.find((s: any) => s.key === channelKey)?.value;
 	if (!value) {
 		return (
 			<p className="mt-1 text-xs text-amber-400">
-				⚠ Pas de surcharge dans /settings · le bot tombera sur la valeur par
-				défaut de l'env si elle existe.
+				⚠ Pas de surcharge dans /settings · le bot tombera sur la valeur par défaut de l'env si elle
+				existe.
 			</p>
 		);
 	}
 	const c = channels.data?.channels.find((x) => x.id === value);
 	return (
 		<p className="mt-1 text-xs text-green-400">
-			→ {c ? `#${c.name}` : value}{" "}
-			<span className="text-zinc-500">({value})</span>
+			→ {c ? `#${c.name}` : value} <span className="text-zinc-500">({value})</span>
 		</p>
 	);
 }

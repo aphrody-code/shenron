@@ -39,10 +39,7 @@ interface CurrentSetting {
 	value: string;
 }
 
-const CATEGORY_META: Record<
-	string,
-	{ label: string; icon: React.ElementType; desc: string }
-> = {
+const CATEGORY_META: Record<string, { label: string; icon: React.ElementType; desc: string }> = {
 	xp: {
 		label: "XP & niveaux",
 		icon: Trophy,
@@ -125,13 +122,11 @@ export function Settings() {
 
 	const current = useQuery({
 		queryKey: ["settings", "current"],
-		queryFn: () =>
-			api.get<{ rows: CurrentSetting[] }>("/database/guild_settings?limit=200"),
+		queryFn: () => api.get<{ rows: CurrentSetting[] }>("/database/guild_settings?limit=200"),
 	});
 
 	const set = useMutation({
-		mutationFn: (data: { key: string; value: string }) =>
-			api.post("/services/settings/set", data),
+		mutationFn: (data: { key: string; value: string }) => api.post("/services/settings/set", data),
 		onSuccess: () => qc.invalidateQueries({ queryKey: ["settings"] }),
 	});
 	const unset = useMutation({
@@ -163,14 +158,12 @@ export function Settings() {
 	const xpBoostRoles = useMemo(() => {
 		const out: { roleId: string; multiplier: string }[] = [];
 		for (const [k, v] of valueMap) {
-			if (k.startsWith("xp.boost.role."))
-				out.push({ roleId: k.slice(14), multiplier: v });
+			if (k.startsWith("xp.boost.role.")) out.push({ roleId: k.slice(14), multiplier: v });
 		}
 		return out;
 	}, [valueMap]);
 
-	if (schema.isLoading)
-		return <div className="text-zinc-500">Chargement du schema…</div>;
+	if (schema.isLoading) return <div className="text-zinc-500">Chargement du schema…</div>;
 
 	return (
 		<div className="space-y-4">
@@ -180,9 +173,9 @@ export function Settings() {
 					<h2 className="text-lg font-semibold">Configuration complète</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					{schema.data?.keys.filter((k) => !k.prefix).length} clés configurables
-					· {overriddenCount} surcharges actives. Toute valeur sans surcharge
-					utilise la valeur par défaut affichée. Cache bot 30 s.
+					{schema.data?.keys.filter((k) => !k.prefix).length} clés configurables · {overriddenCount}{" "}
+					surcharges actives. Toute valeur sans surcharge utilise la valeur par défaut affichée.
+					Cache bot 30 s.
 				</p>
 			</div>
 
@@ -225,12 +218,8 @@ function CategorySection({
 		desc: "",
 	};
 	const Icon = meta.icon;
-	const [open, setOpen] = useState(
-		category === "features" || category === "channels",
-	);
-	const overridden = keys.filter(
-		(k) => !k.prefix && valueMap.has(k.key),
-	).length;
+	const [open, setOpen] = useState(category === "features" || category === "channels");
+	const overridden = keys.filter((k) => !k.prefix && valueMap.has(k.key)).length;
 	const total = keys.filter((k) => !k.prefix).length;
 
 	return (
@@ -306,23 +295,16 @@ function SettingRow({
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2">
 						<code className="text-sm font-medium">{def.key}</code>
-						{isOverridden && (
-							<span className="badge badge-warning">surchargé</span>
-						)}
+						{isOverridden && <span className="badge badge-warning">surchargé</span>}
 						{!isOverridden && def.default !== undefined && (
-							<span className="text-xs text-zinc-500">
-								défaut : {String(def.default)}
-							</span>
+							<span className="text-xs text-zinc-500">défaut : {String(def.default)}</span>
 						)}
 					</div>
 					<p className="mt-0.5 text-xs text-zinc-400">{def.description}</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-2">
 					{!editing && (
-						<SettingValuePreview
-							def={def}
-							value={current ?? def.default?.toString() ?? ""}
-						/>
+						<SettingValuePreview def={def} value={current ?? def.default?.toString() ?? ""} />
 					)}
 					<button
 						type="button"
@@ -385,14 +367,7 @@ function SettingValueInput({
 					: def.channelType === "any"
 						? [0, 2, 4, 5, 13, 15]
 						: [0, 5, 15];
-		return (
-			<ChannelSelect
-				value={value}
-				onChange={onChange}
-				types={types}
-				className="flex-1"
-			/>
-		);
+		return <ChannelSelect value={value} onChange={onChange} types={types} className="flex-1" />;
 	}
 	if (def.type === "snowflake" && def.key.startsWith("role.")) {
 		return <RoleSelect value={value} onChange={onChange} className="flex-1" />;
@@ -409,11 +384,7 @@ function SettingValueInput({
 	}
 	if (def.type === "bool") {
 		return (
-			<select
-				className="input flex-1"
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-			>
+			<select className="input flex-1" value={value} onChange={(e) => onChange(e.target.value)}>
 				<option value="">— Choisir —</option>
 				<option value="true">true (activé)</option>
 				<option value="false">false (désactivé)</option>
@@ -439,19 +410,13 @@ function SettingValueInput({
 		return <JsonEditor value={value} onChange={onChange} rows={6} />;
 	}
 	return (
-		<input
-			className="input flex-1"
-			value={value}
-			onChange={(e) => onChange(e.target.value)}
-		/>
+		<input className="input flex-1" value={value} onChange={(e) => onChange(e.target.value)} />
 	);
 }
 
 function GifPreview({ url }: { url: string }) {
 	if (!/^https:\/\//i.test(url))
-		return (
-			<span className="text-xs italic text-zinc-600">URL https requise</span>
-		);
+		return <span className="text-xs italic text-zinc-600">URL https requise</span>;
 	return (
 		<div className="flex items-center gap-2">
 			<img
@@ -475,15 +440,8 @@ function GifPreview({ url }: { url: string }) {
 	);
 }
 
-function SettingValuePreview({
-	def,
-	value,
-}: {
-	def: SettingDef;
-	value: string;
-}) {
-	if (!value)
-		return <span className="text-xs italic text-zinc-600">non défini</span>;
+function SettingValuePreview({ def, value }: { def: SettingDef; value: string }) {
+	if (!value) return <span className="text-xs italic text-zinc-600">non défini</span>;
 	if (def.key.startsWith("gif.")) {
 		return <GifPreview url={value} />;
 	}
@@ -496,9 +454,7 @@ function SettingValuePreview({
 	if (def.type === "bool") {
 		const on = value === "true" || value === "1";
 		return (
-			<span className={`badge ${on ? "badge-success" : "badge-error"}`}>
-				{on ? "ON" : "OFF"}
-			</span>
+			<span className={`badge ${on ? "badge-success" : "badge-error"}`}>{on ? "ON" : "OFF"}</span>
 		);
 	}
 	if (def.type === "int" || def.type === "float") {
@@ -508,27 +464,19 @@ function SettingValuePreview({
 			</code>
 		);
 	}
-	return (
-		<code className="rounded bg-zinc-800 px-2 py-1 text-xs font-mono">
-			{value}
-		</code>
-	);
+	return <code className="rounded bg-zinc-800 px-2 py-1 text-xs font-mono">{value}</code>;
 }
 
 function ChannelInline({ channelId }: { channelId: string }) {
 	const { data } = useQuery({
 		queryKey: ["discord", "channels"],
 		queryFn: () =>
-			api.get<{ channels: { id: string; name: string; type: number }[] }>(
-				"/discord/channels",
-			),
+			api.get<{ channels: { id: string; name: string; type: number }[] }>("/discord/channels"),
 		staleTime: 30_000,
 	});
 	const c = data?.channels.find((x) => x.id === channelId);
 	return (
-		<code className="rounded bg-zinc-800 px-2 py-1 text-xs">
-			{c ? `#${c.name}` : channelId}
-		</code>
+		<code className="rounded bg-zinc-800 px-2 py-1 text-xs">{c ? `#${c.name}` : channelId}</code>
 	);
 }
 
@@ -536,9 +484,7 @@ function RoleInline({ roleId }: { roleId: string }) {
 	const { data } = useQuery({
 		queryKey: ["discord", "roles"],
 		queryFn: () =>
-			api.get<{ roles: { id: string; name: string; color: number }[] }>(
-				"/discord/roles",
-			),
+			api.get<{ roles: { id: string; name: string; color: number }[] }>("/discord/roles"),
 		staleTime: 30_000,
 	});
 	const r = data?.roles.find((x) => x.id === roleId);
@@ -546,9 +492,7 @@ function RoleInline({ roleId }: { roleId: string }) {
 		<code
 			className="rounded bg-zinc-800 px-2 py-1 text-xs"
 			style={
-				r && r.color !== 0
-					? { color: `#${r.color.toString(16).padStart(6, "0")}` }
-					: undefined
+				r && r.color !== 0 ? { color: `#${r.color.toString(16).padStart(6, "0")}` } : undefined
 			}
 		>
 			{r ? `@${r.name}` : roleId}
@@ -575,17 +519,14 @@ function XpBoostRoleEditor({
 				Multiplicateurs XP par rôle ({entries.length})
 			</h4>
 			<p className="mb-3 text-xs text-zinc-500">
-				Si un membre a plusieurs rôles boostés, on prend le <strong>max</strong>{" "}
-				(ne stack pas).
+				Si un membre a plusieurs rôles boostés, on prend le <strong>max</strong> (ne stack pas).
 			</p>
 			<div className="space-y-2">
 				{entries.map((e) => (
 					<div key={e.roleId} className="flex items-center gap-2">
 						<RoleInline roleId={e.roleId} />
 						<span className="text-xs text-zinc-500">×</span>
-						<code className="rounded bg-zinc-800 px-2 py-1 text-xs">
-							{e.multiplier}
-						</code>
+						<code className="rounded bg-zinc-800 px-2 py-1 text-xs">{e.multiplier}</code>
 						<button
 							type="button"
 							onClick={() => onUnset(e.roleId)}

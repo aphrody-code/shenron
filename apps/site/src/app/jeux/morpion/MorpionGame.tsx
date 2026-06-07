@@ -101,10 +101,7 @@ export function MorpionGame() {
 
 	function startNew() {
 		const parsedStake = stake ? Number(stake) : undefined;
-		if (
-			parsedStake !== undefined &&
-			(!Number.isFinite(parsedStake) || parsedStake < 1)
-		) {
+		if (parsedStake !== undefined && (!Number.isFinite(parsedStake) || parsedStake < 1)) {
 			setError("Mise invalide");
 			return;
 		}
@@ -229,9 +226,7 @@ export function MorpionGame() {
 							}`}
 						>
 							<div className="flex items-baseline justify-between mb-2">
-								<span
-									className={`font-saiyan text-3xl ${OUTCOME_LABEL[finishedKey].color}`}
-								>
+								<span className={`font-saiyan text-3xl ${OUTCOME_LABEL[finishedKey].color}`}>
 									{OUTCOME_LABEL[finishedKey].label}
 								</span>
 								{state.balance !== undefined && (
@@ -262,9 +257,7 @@ export function MorpionGame() {
 
 			{error && (
 				<div className="dbz-panel p-4 border-l-8 border-red-400">
-					<span className="font-scouter text-xs tracking-widest text-red-400">
-						✗ {error}
-					</span>
+					<span className="font-scouter text-xs tracking-widest text-red-400">✗ {error}</span>
 				</div>
 			)}
 		</div>

@@ -26,11 +26,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function RaceDetailPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function RaceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const race = await getShenronRace(slug);
 
@@ -53,17 +49,13 @@ export default async function RaceDetailPage({
 						</p>
 						<div className="h-px w-12 bg-dbz-border" />
 					</div>
-					
+
 					<h1 className="font-saiyan text-5xl lg:text-8xl text-white mb-6 tracking-widest leading-tight">
 						{race.name}
 					</h1>
-					
-					{race.nameJa && (
-						<p className="font-jp text-3xl text-dbz-orange/80 mb-8">
-							{race.nameJa}
-						</p>
-					)}
-					
+
+					{race.nameJa && <p className="font-jp text-3xl text-dbz-orange/80 mb-8">{race.nameJa}</p>}
+
 					{race.description && (
 						<div className="dbz-panel p-10 relative overflow-hidden max-w-4xl">
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
@@ -82,7 +74,7 @@ export default async function RaceDetailPage({
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 						</div>
-						
+
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
 							{race.characters.map((char, idx) => (
 								<Link

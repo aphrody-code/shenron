@@ -20,7 +20,7 @@ export const formatDuration = nativeFormatDuration;
 export async function notifyMember(
 	target: User,
 	embed: EmbedBuilder,
-	vars?: Record<string, unknown>,
+	vars?: Record<string, unknown>
 ): Promise<boolean> {
 	try {
 		const templates = container.resolve(MessageTemplateService);

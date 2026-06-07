@@ -45,7 +45,7 @@ for (const src of files) {
 
 		const ratio = ((1 - webp.length / srcSize) * 100).toFixed(0);
 		console.log(
-			`  \x1b[32m✓\x1b[0m ${dst.padEnd(60)} ${(srcSize / 1024).toFixed(0).padStart(5)} KB → ${(webp.length / 1024).toFixed(0).padStart(4)} KB  \x1b[2m(-${ratio}%)\x1b[0m`,
+			`  \x1b[32m✓\x1b[0m ${dst.padEnd(60)} ${(srcSize / 1024).toFixed(0).padStart(5)} KB → ${(webp.length / 1024).toFixed(0).padStart(4)} KB  \x1b[2m(-${ratio}%)\x1b[0m`
 		);
 
 		// Supprime l'original
@@ -58,6 +58,4 @@ for (const src of files) {
 const totalInMB = (totalIn / 1024 / 1024).toFixed(1);
 const totalOutMB = (totalOut / 1024 / 1024).toFixed(1);
 const savedPct = ((1 - totalOut / totalIn) * 100).toFixed(0);
-console.log(
-	`\n→ ${totalInMB} MB → \x1b[1m${totalOutMB} MB\x1b[0m (-${savedPct}%)`,
-);
+console.log(`\n→ ${totalInMB} MB → \x1b[1m${totalOutMB} MB\x1b[0m (-${savedPct}%)`);

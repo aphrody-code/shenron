@@ -24,15 +24,14 @@ function getLatestPosts() {
 
 async function getWikiCounts() {
 	try {
-		const [sagas, episodes, movies, characters, planets, chapters] =
-			await Promise.all([
-				db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
-				db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
-				db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
-				db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
-				db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
-				db.select({ count: sql<number>`count(*)::int` }).from(botMangaChapters),
-			]);
+		const [sagas, episodes, movies, characters, planets, chapters] = await Promise.all([
+			db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
+			db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
+			db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
+			db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
+			db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
+			db.select({ count: sql<number>`count(*)::int` }).from(botMangaChapters),
+		]);
 		return {
 			sagas: sagas[0]?.count ?? 0,
 			episodes: episodes[0]?.count ?? 0,
@@ -92,17 +91,14 @@ async function getSagas() {
 }
 
 export default async function Home() {
-	const [posts, personas, stats, wikiCounts, characters, sagas] =
-		await Promise.all([
-			getLatestPosts().catch(
-				() => [] as Awaited<ReturnType<typeof getLatestPosts>>,
-			),
-			getShenronPersonas().catch(() => []),
-			getShenronStats(),
-			getWikiCounts(),
-			getFeaturedCharacters(),
-			getSagas(),
-		]);
+	const [posts, personas, stats, wikiCounts, characters, sagas] = await Promise.all([
+		getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
+		getShenronPersonas().catch(() => []),
+		getShenronStats(),
+		getWikiCounts(),
+		getFeaturedCharacters(),
+		getSagas(),
+	]);
 
 	return (
 		<HomeExperience

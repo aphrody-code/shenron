@@ -14,36 +14,36 @@
 # MAJ : `fly deploy` (ou GitHub Actions sur push main, si FLY_API_TOKEN configuré).
 
 app = "shenron-bot"
-primary_region = "cdg"          # Paris — latence Gateway Discord EU
+primary_region = "cdg" # Paris — latence Gateway Discord EU
 kill_signal = "SIGTERM"
-kill_timeout = 30               # close Gateway WebSocket proprement
+kill_timeout = 30 # close Gateway WebSocket proprement
 
 [build]
-  dockerfile = "Dockerfile"     # racine du repo
-  # GH_PACKAGES_TOKEN via `fly deploy --build-arg ...` (fork @aphrody-code/canvas)
+dockerfile = "Dockerfile" # racine du repo
+# GH_PACKAGES_TOKEN via `fly deploy --build-arg ...` (fork @aphrody-code/canvas)
 
 [env]
-  NODE_ENV = "production"
-  LOG_LEVEL = "info"
-  DATABASE_PATH = "/data/bot.db"
-  TZ = "Europe/Paris"
+NODE_ENV = "production"
+LOG_LEVEL = "info"
+DATABASE_PATH = "/data/bot.db"
+TZ = "Europe/Paris"
 
 # Volume persistant : DB SQLite + user data (la source de vérité runtime)
 [[mounts]]
-  source = "shenron_data"
-  destination = "/data"
-  initial_size = "3gb"
+source = "shenron_data"
+destination = "/data"
+initial_size = "3gb"
 
 # Migrations appliquées avant bascule du trafic. WORKDIR image = /app/apps/bot.
 [deploy]
-  release_command = "bun src/db/migrate.ts"
-  strategy = "immediate"        # single instance, pas de blue/green
+release_command = "bun src/db/migrate.ts"
+strategy = "immediate" # single instance, pas de blue/green
 
 # Single VM / single shard — Discord = 1 process Gateway par bot.
 [[vm]]
-  size = "shared-cpu-1x"
-  memory = "1gb"                # @napi-rs/canvas + 6 clients : 512M serré, 1G confortable
-  cpu_kind = "shared"
-  cpus = 1
+size = "shared-cpu-1x"
+memory = "1gb" # @napi-rs/canvas + 6 clients : 512M serré, 1G confortable
+cpu_kind = "shared"
+cpus = 1
 
 # Pas de [http_service] : worker pur, always-on, restart auto si crash.

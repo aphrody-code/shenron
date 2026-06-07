@@ -12,18 +12,18 @@ import type { GuardFunction } from "../../index.js";
  * @category Decorator
  */
 export class DGuard extends Decorator {
-  protected _fn: GuardFunction;
+	protected _fn: GuardFunction;
 
-  get fn(): GuardFunction {
-    return this._fn;
-  }
+	get fn(): GuardFunction {
+		return this._fn;
+	}
 
-  constructor(fn: GuardFunction) {
-    super();
-    this._fn = fn;
-  }
+	constructor(fn: GuardFunction) {
+		super();
+		this._fn = fn;
+	}
 
-  static create(fn: GuardFunction): DGuard {
-    return new DGuard(fn);
-  }
+	static create(fn: GuardFunction): DGuard {
+		return new DGuard(fn);
+	}
 }

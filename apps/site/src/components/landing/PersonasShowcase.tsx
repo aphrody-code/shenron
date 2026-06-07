@@ -50,10 +50,7 @@ export function PersonasShowcase({
 							const role = PERSONA_ROLES[p.id] ?? "";
 							const hue = FALLBACK_HUES[p.id] ?? "dbz-orange";
 							return (
-								<div
-									key={p.id}
-									className="dbz-panel p-6 group relative overflow-hidden"
-								>
+								<div key={p.id} className="dbz-panel p-6 group relative overflow-hidden">
 									<div
 										className={`absolute -top-12 -right-12 w-40 h-40 rounded-full bg-${hue} opacity-10 blur-3xl group-hover:opacity-30 transition-opacity duration-500`}
 									/>
@@ -62,7 +59,7 @@ export function PersonasShowcase({
 											<div
 												className={`absolute -inset-1 rounded-full bg-${hue} opacity-30 blur-md group-hover:opacity-70 transition-opacity`}
 											/>
-											{ }
+											{}
 											<img
 												src={p.avatar!}
 												alt={p.name}
@@ -77,9 +74,7 @@ export function PersonasShowcase({
 											>
 												{role}
 											</p>
-											<h3 className="font-saiyan text-2xl text-white leading-none">
-												{p.name}
-											</h3>
+											<h3 className="font-saiyan text-2xl text-white leading-none">{p.name}</h3>
 										</div>
 									</div>
 

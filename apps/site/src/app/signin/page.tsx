@@ -26,13 +26,10 @@ import { useEffect, useState } from "react";
 
 const ERROR_LABELS: Record<string, string> = {
 	access_denied: "Tu as annulé la connexion Discord.",
-	invalid_state:
-		"Session OAuth expirée. Essaie à nouveau, sans rafraîchir entre les étapes.",
-	oauth_failed:
-		"Discord a refusé la connexion. Vérifie tes paramètres de confidentialité.",
+	invalid_state: "Session OAuth expirée. Essaie à nouveau, sans rafraîchir entre les étapes.",
+	oauth_failed: "Discord a refusé la connexion. Vérifie tes paramètres de confidentialité.",
 	server_error: "Erreur côté serveur. Si ça persiste, signale-le sur Discord.",
-	missing_config:
-		"L'authentification Discord n'est pas configurée. Contacte un admin.",
+	missing_config: "L'authentification Discord n'est pas configurée. Contacte un admin.",
 };
 
 export default function SignInPage() {
@@ -57,9 +54,7 @@ export default function SignInPage() {
 		// 8s, on relâche le bouton + on affiche un message. Évite l'état zombie.
 		const failsafe = window.setTimeout(() => {
 			setLoading(false);
-			setError(
-				"Discord ne répond pas dans le temps imparti. Vérifie ta connexion et réessaie.",
-			);
+			setError("Discord ne répond pas dans le temps imparti. Vérifie ta connexion et réessaie.");
 		}, 8000);
 
 		try {
@@ -76,19 +71,13 @@ export default function SignInPage() {
 				window.clearTimeout(failsafe);
 				setLoading(false);
 				const code = result.error.code ?? "server_error";
-				setError(
-					ERROR_LABELS[code] ??
-						result.error.message ??
-						"Connexion impossible. Réessaie.",
-				);
+				setError(ERROR_LABELS[code] ?? result.error.message ?? "Connexion impossible. Réessaie.");
 			}
 		} catch (e) {
 			window.clearTimeout(failsafe);
 			setLoading(false);
 			setError(
-				e instanceof Error
-					? e.message
-					: "Connexion impossible. Vérifie ta connexion réseau.",
+				e instanceof Error ? e.message : "Connexion impossible. Vérifie ta connexion réseau."
 			);
 		}
 	}
@@ -114,8 +103,8 @@ export default function SignInPage() {
 						Rejoins DBFR
 					</h1>
 					<p className="text-[15px] text-white/65 leading-relaxed">
-						Lie ton compte Discord pour suivre ta progression, commenter les
-						actualités et accéder à ton profil de guerrier.
+						Lie ton compte Discord pour suivre ta progression, commenter les actualités et accéder à
+						ton profil de guerrier.
 					</p>
 				</header>
 
@@ -149,8 +138,8 @@ export default function SignInPage() {
 				)}
 
 				<div className="mt-8 pt-6 border-t border-white/[0.08] text-[12px] text-white/45 leading-relaxed text-center">
-					Aucun mot de passe stocké. L'authentification passe par Discord OAuth.
-					En te connectant tu acceptes nos{" "}
+					Aucun mot de passe stocké. L'authentification passe par Discord OAuth. En te connectant tu
+					acceptes nos{" "}
 					<Link
 						href="/licence"
 						className="underline decoration-white/30 hover:text-white hover:decoration-dbz-orange"

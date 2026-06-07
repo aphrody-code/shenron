@@ -1,11 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Gift,
-	RefreshCw,
-	ExternalLink,
-	FastForward,
-	Users,
-} from "lucide-react";
+import { Gift, RefreshCw, ExternalLink, FastForward, Users } from "lucide-react";
 import { useState } from "react";
 import { api } from "../lib/api";
 
@@ -32,9 +26,7 @@ export function Giveaways() {
 		queryKey: ["giveaways", filter],
 		queryFn: () =>
 			api.get<{ rows: GiveawayRow[]; total: number }>(
-				filter === "all"
-					? "/giveaways"
-					: `/giveaways?ended=${filter === "ended"}`,
+				filter === "all" ? "/giveaways" : `/giveaways?ended=${filter === "ended"}`
 			),
 	});
 
@@ -69,9 +61,8 @@ export function Giveaways() {
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Création via slash <code>/giveaway</code>. Le ticker boucle 1×/min
-					pour clore les tirages expirés. Ici tu peux forcer la clôture
-					immédiate, voir les participants et les gagnants.
+					Création via slash <code>/giveaway</code>. Le ticker boucle 1×/min pour clore les tirages
+					expirés. Ici tu peux forcer la clôture immédiate, voir les participants et les gagnants.
 				</p>
 				<div className="mt-3 flex gap-2">
 					{(["active", "ended", "all"] as const).map((f) => (
@@ -111,15 +102,12 @@ export function Giveaways() {
 									)}
 								</div>
 								<p className="mt-1 text-xs text-zinc-400">
-									Récompense :{" "}
-									<strong className="text-amber-400">{g.reward}</strong> ·{" "}
-									{g.winners} gagnant(s) · Hôte <code>{g.hostId}</code>
+									Récompense : <strong className="text-amber-400">{g.reward}</strong> · {g.winners}{" "}
+									gagnant(s) · Hôte <code>{g.hostId}</code>
 								</p>
 								<p className="text-xs text-zinc-400">
 									{g.ended ? "Clos" : "Fin"} le{" "}
-									<time dateTime={g.endsAt}>
-										{new Date(g.endsAt).toLocaleString("fr-FR")}
-									</time>
+									<time dateTime={g.endsAt}>{new Date(g.endsAt).toLocaleString("fr-FR")}</time>
 								</p>
 								<p className="mt-1 inline-flex items-center gap-1 text-xs text-zinc-300">
 									<Users className="h-3 w-3" /> {g.entries} participant(s)
@@ -152,11 +140,7 @@ export function Giveaways() {
 									<button
 										type="button"
 										onClick={() => {
-											if (
-												confirm(
-													`Forcer la clôture de "${g.title}" maintenant ?`,
-												)
-											)
+											if (confirm(`Forcer la clôture de "${g.title}" maintenant ?`))
 												forceEnd.mutate(g.id);
 										}}
 										disabled={forceEnd.isPending}

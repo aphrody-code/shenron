@@ -1,10 +1,5 @@
 import { singleton } from "tsyringe";
-import {
-	createCanvas,
-	loadImage,
-	type Image,
-	type SKRSContext2D,
-} from "@aphrody/canvas";
+import { createCanvas, loadImage, type Image, type SKRSContext2D } from "@aphrody/canvas";
 import type { User } from "discord.js";
 import {
 	drawGauge,
@@ -114,14 +109,7 @@ export class GaugeService {
 		ctx.globalCompositeOperation = "screen";
 		for (let i = 3; i > 0; i--) {
 			const auraR = AV_R + i * 12;
-			const g = ctx.createRadialGradient(
-				AV_CX,
-				AV_CY,
-				AV_R * 0.5,
-				AV_CX,
-				AV_CY,
-				auraR,
-			);
+			const g = ctx.createRadialGradient(AV_CX, AV_CY, AV_R * 0.5, AV_CX, AV_CY, auraR);
 			g.addColorStop(0, rgba(input.accent, 0.4));
 			g.addColorStop(1, rgba(input.accent, 0));
 			ctx.fillStyle = g;
@@ -154,19 +142,13 @@ export class GaugeService {
 		ctx.restore();
 
 		// Pseudo sous l'avatar
-		textWithShadow(
-			ctx,
-			input.user.username.toUpperCase().slice(0, 14),
-			AV_CX,
-			AV_CY + AV_R + 24,
-			{
-				font: "700 14px 'Google Sans Flex', sans-serif",
-				color: "#f1f5f9",
-				align: "center",
-				shadow: "rgba(0,0,0,0.8)",
-				blur: 4,
-			},
-		);
+		textWithShadow(ctx, input.user.username.toUpperCase().slice(0, 14), AV_CX, AV_CY + AV_R + 24, {
+			font: "700 14px 'Google Sans Flex', sans-serif",
+			color: "#f1f5f9",
+			align: "center",
+			shadow: "rgba(0,0,0,0.8)",
+			blur: 4,
+		});
 
 		// ── Pourcentage géant (droite) ─────────────────────────────────────
 		const PCT_CX = 460;

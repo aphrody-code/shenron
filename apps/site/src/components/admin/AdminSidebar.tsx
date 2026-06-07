@@ -456,7 +456,7 @@ export function AdminSidebar() {
 			(l) =>
 				l.label.toLowerCase().includes(needle) ||
 				l.description.toLowerCase().includes(needle) ||
-				l.href.toLowerCase().includes(needle),
+				l.href.toLowerCase().includes(needle)
 		);
 	}, [q]);
 
@@ -470,12 +470,11 @@ export function AdminSidebar() {
 					items: filtered.filter((l) => l.section === id),
 				};
 			}).filter((g) => g.items.length > 0),
-		[filtered],
+		[filtered]
 	);
 
 	const isActive = (href: string) =>
-		pathname === href ||
-		(href !== "/admin/dashboard" && pathname?.startsWith(href));
+		pathname === href || (href !== "/admin/dashboard" && pathname?.startsWith(href));
 
 	return (
 		<>
@@ -601,11 +600,7 @@ export function AdminSidebar() {
 													<Link
 														href={l.href}
 														onClick={() => setOpen(false)}
-														title={
-															collapsed
-																? `${l.label} — ${l.description}`
-																: l.description
-														}
+														title={collapsed ? `${l.label} — ${l.description}` : l.description}
 														className={`group relative flex items-center gap-3 px-2 py-2 border-l-2 rounded-r transition-colors ${
 															collapsed ? "md:justify-center md:gap-0" : ""
 														} ${
@@ -627,14 +622,10 @@ export function AdminSidebar() {
 														</span>
 
 														{/* Libellé + description — masqués en mode replié (desktop) */}
-														<div
-															className={`flex-1 min-w-0 ${collapsed ? "md:hidden" : ""}`}
-														>
+														<div className={`flex-1 min-w-0 ${collapsed ? "md:hidden" : ""}`}>
 															<span
 																className={`block font-display font-semibold text-[13px] leading-tight transition-colors ${
-																	active
-																		? "text-white"
-																		: "text-white/85 group-hover:text-white"
+																	active ? "text-white" : "text-white/85 group-hover:text-white"
 																}`}
 															>
 																{l.label}

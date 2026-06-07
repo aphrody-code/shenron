@@ -33,15 +33,17 @@ export class InvitationsCommand {
 
 	@Slash({ name: "invitations", description: "Voir qui un membre a invité" })
 	async invitations(
-		@SlashOption({
-			name: "membre",
-			description: "Cible (défaut : toi)",
-			type: ApplicationCommandOptionType.User,
-			required: false,
-		},
-		userTransformer)
+		@SlashOption(
+			{
+				name: "membre",
+				description: "Cible (défaut : toi)",
+				type: ApplicationCommandOptionType.User,
+				required: false,
+			},
+			userTransformer
+		)
 		target: User | undefined,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		const user = target ?? interaction.user;
 		const db = this.dbs.db;
@@ -83,7 +85,10 @@ export class InvitationsCommand {
 		const firstTs = first[0]?.joinedAt;
 
 		const recentLines = recent
-			.map((r) => `• <@${r.userId}> · <t:${Math.floor(r.joinedAt.getTime() / 1000)}:R> · code \`${r.code ?? "?"}\``)
+			.map(
+				(r) =>
+					`• <@${r.userId}> · <t:${Math.floor(r.joinedAt.getTime() / 1000)}:R> · code \`${r.code ?? "?"}\``
+			)
 			.join("\n");
 
 		const embed = new EmbedBuilder()
@@ -98,7 +103,7 @@ export class InvitationsCommand {
 					value: firstTs ? `<t:${Math.floor(firstTs.getTime() / 1000)}:R>` : "—",
 					inline: true,
 				},
-				{ name: "5 plus récents", value: recentLines || "—" },
+				{ name: "5 plus récents", value: recentLines || "—" }
 			)
 			.setFooter({ text: "Tracking depuis activation. Lien vanity = non tracké." });
 
@@ -107,15 +112,17 @@ export class InvitationsCommand {
 
 	@Slash({ name: "inviteur", description: "Voir qui a invité un membre" })
 	async inviter(
-		@SlashOption({
-			name: "membre",
-			description: "Membre dont on cherche l'inviteur",
-			type: ApplicationCommandOptionType.User,
-			required: true,
-		},
-		userTransformer)
+		@SlashOption(
+			{
+				name: "membre",
+				description: "Membre dont on cherche l'inviteur",
+				type: ApplicationCommandOptionType.User,
+				required: true,
+			},
+			userTransformer
+		)
 		target: User,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		const row = await this.dbs.db
 			.select()
@@ -153,7 +160,7 @@ export class InvitationsCommand {
 					name: "Rejoint",
 					value: `<t:${Math.floor(entry.joinedAt.getTime() / 1000)}:F>`,
 					inline: false,
-				},
+				}
 			);
 
 		await interaction.reply({ embeds: [embed] });

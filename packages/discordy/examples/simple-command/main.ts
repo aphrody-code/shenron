@@ -10,49 +10,49 @@ import { Client } from "@rpbey/discordy";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: ignore
 export class Main {
-  private static client: Client;
+	private static client: Client;
 
-  static async start(): Promise<void> {
-    Main.client = new Client({
-      // (client) => client.guilds.cache.map((guild) => guild.id)],
-      intents: [
-        IntentsBitField.Flags.Guilds,
-        IntentsBitField.Flags.GuildMessages,
-        IntentsBitField.Flags.DirectMessages,
-        IntentsBitField.Flags.MessageContent,
-      ],
-      // enable partials to receive direct messages
-      partials: [Partials.Channel, Partials.Message],
+	static async start(): Promise<void> {
+		Main.client = new Client({
+			// (client) => client.guilds.cache.map((guild) => guild.id)],
+			intents: [
+				IntentsBitField.Flags.Guilds,
+				IntentsBitField.Flags.GuildMessages,
+				IntentsBitField.Flags.DirectMessages,
+				IntentsBitField.Flags.MessageContent,
+			],
+			// enable partials to receive direct messages
+			partials: [Partials.Channel, Partials.Message],
 
-      silent: false,
+			silent: false,
 
-      simpleCommand: {
-        prefix: ["$", "!"],
-      },
-    });
+			simpleCommand: {
+				prefix: ["$", "!"],
+			},
+		});
 
-    Main.client.on(Events.MessageCreate, (message) => {
-      void Main.client.executeCommand(message);
-    });
+		Main.client.on(Events.MessageCreate, (message) => {
+			void Main.client.executeCommand(message);
+		});
 
-    Main.client.once(Events.ClientReady, () => {
-      void Main.client.initApplicationCommands();
+		Main.client.once(Events.ClientReady, () => {
+			void Main.client.initApplicationCommands();
 
-      console.log("Bot started");
-    });
+			console.log("Bot started");
+		});
 
-    Main.client.on(Events.InteractionCreate, (interaction) => {
-      Main.client.executeInteraction(interaction);
-    });
+		Main.client.on(Events.InteractionCreate, (interaction) => {
+			Main.client.executeInteraction(interaction);
+		});
 
-    await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`);
+		await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`);
 
-    // let's start the bot
-    if (!Bun.env.BOT_TOKEN) {
-      throw Error("Could not find BOT_TOKEN in your environment");
-    }
-    await Main.client.login(Bun.env.BOT_TOKEN);
-  }
+		// let's start the bot
+		if (!Bun.env.BOT_TOKEN) {
+			throw Error("Could not find BOT_TOKEN in your environment");
+		}
+		await Main.client.login(Bun.env.BOT_TOKEN);
+	}
 }
 
 void Main.start();

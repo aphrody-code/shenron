@@ -58,13 +58,13 @@ export class ShopPanelCommands {
 		const embed = new EmbedBuilder()
 			.setTitle("🏪 Boutique Shenron")
 			.setDescription(
-				"Cliquez sur **Ouvrir la boutique** pour parcourir les objets disponibles.\n\nVotre interaction est privée — personne ne verra vos choix.",
+				"Cliquez sur **Ouvrir la boutique** pour parcourir les objets disponibles.\n\nVotre interaction est privée — personne ne verra vos choix."
 			)
 			.addFields(
 				{ name: "🖼️ Cartes", value: "Backgrounds de profil exclusifs", inline: true },
 				{ name: "🎖️ Badges", value: "Pastilles à côté du pseudo", inline: true },
 				{ name: "🎨 Couleurs", value: "Rôles cosmétiques", inline: true },
-				{ name: "📜 Titres", value: "Phrases d'identité", inline: true },
+				{ name: "📜 Titres", value: "Phrases d'identité", inline: true }
 			)
 			.setColor(0xfbbf24);
 
@@ -78,7 +78,7 @@ export class ShopPanelCommands {
 				.setCustomId("shop:eprofil")
 				.setLabel("Mon inventaire")
 				.setEmoji("✏️")
-				.setStyle(ButtonStyle.Secondary),
+				.setStyle(ButtonStyle.Secondary)
 		);
 
 		await interaction.reply({ embeds: [embed], components: [row] });
@@ -97,7 +97,7 @@ export class ShopPanelCommands {
 					label,
 					value,
 					emoji: icon,
-				})),
+				}))
 			);
 		await interaction.reply({
 			content: "Quel type d'objet veux-tu voir ?",
@@ -119,7 +119,13 @@ export class ShopPanelCommands {
 			});
 			return;
 		}
-		const grouped: Record<ShopType, string[]> = { card: [], badge: [], color: [], title: [], banner: [] };
+		const grouped: Record<ShopType, string[]> = {
+			card: [],
+			badge: [],
+			color: [],
+			title: [],
+			banner: [],
+		};
 		for (const item of inv) grouped[item.itemType as ShopType].push(item.itemKey);
 		const embed = new EmbedBuilder()
 			.setTitle("✏️ Ton inventaire")
@@ -128,7 +134,7 @@ export class ShopPanelCommands {
 				...Object.entries(grouped).map(([type, keys]) => ({
 					name: `${TYPE_LABELS[type as ShopType].icon} ${TYPE_LABELS[type as ShopType].label}`,
 					value: keys.length ? keys.map((k) => `\`${k}\``).join(", ") : "—",
-				})),
+				}))
 			);
 		await interaction.reply({
 			content: "Utilise `/eprofil` pour équiper un objet précis.",
@@ -156,7 +162,7 @@ export class ShopPanelCommands {
 		const ownedSet = new Set(
 			(await this.eco.listInventory(interaction.user.id))
 				.filter((i) => i.itemType === type)
-				.map((i) => i.itemKey),
+				.map((i) => i.itemKey)
 		);
 
 		// Preview : pour les catégories liées à un rôle (color/title/badge),
@@ -166,9 +172,7 @@ export class ShopPanelCommands {
 		// l'API (cf. /assets/cards/<key>.png — content-nego AVIF/WebP côté serveur).
 		let embedColor = 0xfbbf24;
 		if ((type === "color" || type === "title" || type === "badge") && interaction.inCachedGuild()) {
-			const withRole = items
-				.filter((i) => i.roleId)
-				.toSorted((a, b) => b.price - a.price);
+			const withRole = items.filter((i) => i.roleId).toSorted((a, b) => b.price - a.price);
 			for (const it of withRole) {
 				const role = interaction.guild?.roles.cache.get(it.roleId!);
 				if (role && role.color !== 0) {
@@ -189,7 +193,7 @@ export class ShopPanelCommands {
 						const role = i.roleId ? ` <@&${i.roleId}>` : "";
 						return `**${i.name}** \`${i.key}\` — ${formatXP(i.price)} z${role}${owned}\n${i.description ?? ""}`;
 					})
-					.join("\n\n"),
+					.join("\n\n")
 			);
 
 		// Preview visuelle pour la catégorie "card" : 1ère carte du lot
@@ -209,8 +213,8 @@ export class ShopPanelCommands {
 					new ButtonBuilder()
 						.setCustomId(`shop:buy:${item.key}`)
 						.setLabel(`${item.name} · ${formatXP(item.price)}z`.slice(0, 80))
-						.setStyle(ButtonStyle.Success),
-				),
+						.setStyle(ButtonStyle.Success)
+				)
 			);
 			rows.push(row);
 		}
@@ -219,7 +223,7 @@ export class ShopPanelCommands {
 			new ButtonBuilder()
 				.setCustomId("shop:open")
 				.setLabel("← Autre catégorie")
-				.setStyle(ButtonStyle.Secondary),
+				.setStyle(ButtonStyle.Secondary)
 		);
 		await interaction.update({
 			content: "",
@@ -312,7 +316,7 @@ export class ShopPanelCommands {
 			required: false,
 		})
 		description: string | undefined,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		if (action === "add") {
@@ -330,7 +334,7 @@ export class ShopPanelCommands {
 				enabled: true,
 			});
 			await interaction.editReply(
-				`✅ Item **${key}** (${type}, ${price}z) créé/mis à jour${role ? ` avec rôle <@&${role.id}>` : ""}.`,
+				`✅ Item **${key}** (${type}, ${price}z) créé/mis à jour${role ? ` avec rôle <@&${role.id}>` : ""}.`
 			);
 			return;
 		}
@@ -339,7 +343,7 @@ export class ShopPanelCommands {
 			await interaction.editReply(
 				ok
 					? `✅ Rôle ${role ? `<@&${role.id}>` : "*(retiré)*"} associé à **${key}**.`
-					: `❌ Item **${key}** introuvable.`,
+					: `❌ Item **${key}** introuvable.`
 			);
 			return;
 		}
@@ -358,8 +362,6 @@ export class ShopPanelCommands {
 			roleId: item.roleId,
 			enabled: !item.enabled,
 		});
-		await interaction.editReply(
-			`✅ Item **${key}** ${!item.enabled ? "activé" : "désactivé"}.`,
-		);
+		await interaction.editReply(`✅ Item **${key}** ${!item.enabled ? "activé" : "désactivé"}.`);
 	}
 }

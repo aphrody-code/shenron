@@ -19,8 +19,7 @@ import { $ } from "bun";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
-const REPO =
-	Bun.env.SHENRON_REPO ?? "https://github.com/aphrody-code/shenron.git";
+const REPO = Bun.env.SHENRON_REPO ?? "https://github.com/aphrody-code/shenron.git";
 const BRANCH = Bun.env.SHENRON_BRANCH ?? "main";
 const TARGET = resolve(Bun.env.SHENRON_DIR ?? `${Bun.cwd}/shenron`);
 const SKIP_WIKI = Bun.env.SKIP_WIKI_SEED === "1";
@@ -66,8 +65,7 @@ if (existsSync(`${TARGET}/.git`)) {
 	await $`git -C ${TARGET} pull --quiet --ff-only`;
 } else if (existsSync(TARGET)) {
 	const entries = await Array.fromAsync(new Bun.Glob("*").scan(TARGET));
-	if (entries.length > 0)
-		die(`${TARGET} existe et n'est pas vide. Change SHENRON_DIR.`);
+	if (entries.length > 0) die(`${TARGET} existe et n'est pas vide. Change SHENRON_DIR.`);
 	await $`git clone --branch ${BRANCH} --quiet ${REPO} ${TARGET}`;
 	ok(`Cloné dans ${TARGET}`);
 } else {
@@ -93,15 +91,9 @@ if (!existsSync(envPath)) {
 	await $`chmod 600 ${envPath}`.nothrow().quiet();
 	ok(".env créé depuis .env.example (perms 600)");
 	warn("Tu dois éditer .env pour renseigner au minimum :");
-	console.log(
-		`    ${C.dim}- DISCORD_TOKEN  (portail dev Discord → Bot → Reset Token)${C.reset}`,
-	);
-	console.log(
-		`    ${C.dim}- GUILD_ID       (clic droit serveur → Copier l'ID)${C.reset}`,
-	);
-	console.log(
-		`    ${C.dim}- OWNER_ID       (clic droit sur toi → Copier l'ID)${C.reset}`,
-	);
+	console.log(`    ${C.dim}- DISCORD_TOKEN  (portail dev Discord → Bot → Reset Token)${C.reset}`);
+	console.log(`    ${C.dim}- GUILD_ID       (clic droit serveur → Copier l'ID)${C.reset}`);
+	console.log(`    ${C.dim}- OWNER_ID       (clic droit sur toi → Copier l'ID)${C.reset}`);
 } else {
 	ok(".env existant — conservé");
 }
@@ -120,9 +112,7 @@ const missing = ["DISCORD_TOKEN", "GUILD_ID", "OWNER_ID"].filter((k) => {
 if (missing.length > 0) {
 	warn(`.env incomplet — manquant : ${missing.join(", ")}`);
 	warn("Édite .env puis relance `bash scripts/setup.sh`.");
-	console.log(
-		`\n${C.green}━━━ Clone + deps OK. Édite .env pour continuer. ━━━${C.reset}\n`,
-	);
+	console.log(`\n${C.green}━━━ Clone + deps OK. Édite .env pour continuer. ━━━${C.reset}\n`);
 	console.log(`  ${C.dim}cd${C.reset} ${C.blue}${TARGET}${C.reset}`);
 	process.exit(0);
 }
@@ -142,8 +132,7 @@ if (!SKIP_WIKI) {
 	step("Seed wiki DBZ (~60 s)");
 	const res = await $`bun src/db/seed-wiki.ts`.cwd(TARGET).nothrow();
 	if (res.exitCode === 0) ok("Wiki DBZ seedé");
-	else
-		warn("Seed wiki a échoué — relance plus tard avec `bun run db:seed-wiki`");
+	else warn("Seed wiki a échoué — relance plus tard avec `bun run db:seed-wiki`");
 } else {
 	warn("Seed wiki sauté (SKIP_WIKI_SEED=1)");
 }
@@ -152,9 +141,7 @@ if (!SKIP_WIKI) {
 console.log(`\n${C.green}━━━ Installation terminée ━━━${C.reset}\n`);
 console.log(`  ${C.dim}cd${C.reset} ${C.blue}${TARGET}${C.reset}`);
 console.log(
-	`  ${C.dim}Démarrer :${C.reset} ${C.blue}bun run dev${C.reset}  (ou ${C.blue}bash scripts/start.sh${C.reset})`,
+	`  ${C.dim}Démarrer :${C.reset} ${C.blue}bun run dev${C.reset}  (ou ${C.blue}bash scripts/start.sh${C.reset})`
 );
-console.log(
-	`  ${C.dim}Health check :${C.reset} ${C.blue}bash scripts/doctor.sh${C.reset}`,
-);
+console.log(`  ${C.dim}Health check :${C.reset} ${C.blue}bash scripts/doctor.sh${C.reset}`);
 console.log("");

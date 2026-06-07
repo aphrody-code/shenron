@@ -19,9 +19,7 @@ import { existsSync, unlinkSync, chmodSync, appendFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 const SOCKET = Bun.env.A2A_SOCKET ?? "/tmp/dbfr-a2a.sock";
-const COORD_DIR =
-	Bun.env.COORD_DIR ??
-	`${process.cwd().replace(/\/apps\/bot\/?$/, "")}/.coord`;
+const COORD_DIR = Bun.env.COORD_DIR ?? `${process.cwd().replace(/\/apps\/bot\/?$/, "")}/.coord`;
 const MESSAGES = `${COORD_DIR}/messages.jsonl`;
 const TASKS = `${COORD_DIR}/tasks.json`;
 const LOCK = "/tmp/dbfr-tasks.lock";
@@ -86,9 +84,7 @@ function sseStream(): ReadableStream {
 				clearInterval(ping);
 			};
 			controller.enqueue(
-				enc.encode(
-					`data: ${JSON.stringify({ kind: "ready", ts: new Date().toISOString() })}\n\n`,
-				),
+				enc.encode(`data: ${JSON.stringify({ kind: "ready", ts: new Date().toISOString() })}\n\n`)
 			);
 		},
 		cancel() {
@@ -140,8 +136,7 @@ const server = Bun.serve({
 			switch (method) {
 				case "message/send": {
 					const incoming = params?.message;
-					if (!incoming?.parts?.length)
-						return rpcError(id, -32602, "parts required");
+					if (!incoming?.parts?.length) return rpcError(id, -32602, "parts required");
 					const text = incoming.parts
 						.filter((p: any) => p.kind === "text")
 						.map((p: any) => p.text)

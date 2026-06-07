@@ -5,11 +5,7 @@ import { deleteCategory, updateCategory } from "../../_actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditCategoryPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const category = await db.query.wikiCategories.findFirst({
 		where: (c, { eq }) => eq(c.id, id),
@@ -43,9 +39,7 @@ export default async function EditCategoryPage({
 					</button>
 				</form>
 			</div>
-			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">
-				ÉDITER : {category.name}
-			</h1>
+			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">ÉDITER : {category.name}</h1>
 
 			<form action={update} className="dbz-panel p-6 space-y-4">
 				<div>

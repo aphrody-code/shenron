@@ -19,9 +19,7 @@ export default async function NewCategoryPage() {
 					← RETOUR
 				</Link>
 			</div>
-			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">
-				NOUVELLE CATÉGORIE
-			</h1>
+			<h1 className="text-4xl font-saiyan text-dbz-orange mb-8">NOUVELLE CATÉGORIE</h1>
 
 			<form action={createCategory} className="dbz-panel p-6 space-y-4">
 				<div>

@@ -7,10 +7,7 @@ import type { SettingsService } from "~/services/SettingsService";
  *  - il porte le rôle configuré dans `role.booster` (rôle "Héros du peuple"
  *    custom — utile si l'admin nomme manuellement un booster sans Nitro).
  */
-export async function isBooster(
-	member: GuildMember,
-	settings: SettingsService,
-): Promise<boolean> {
+export async function isBooster(member: GuildMember, settings: SettingsService): Promise<boolean> {
 	if (member.premiumSince) return true;
 	const roleId = await settings.getRaw("role.booster");
 	if (roleId && member.roles.cache.has(roleId)) return true;
@@ -23,7 +20,7 @@ export async function isBooster(
  */
 export async function boosterXpMultiplier(
 	member: GuildMember,
-	settings: SettingsService,
+	settings: SettingsService
 ): Promise<number> {
 	if (!(await isBooster(member, settings))) return 1;
 	const mult = await settings.getFloat("xp.boost.boosters", 2.0);

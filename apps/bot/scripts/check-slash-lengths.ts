@@ -114,8 +114,7 @@ function checkObjectFields(file: string, src: string, decoratorName: string) {
 			const lit = extractStringLiteral(descMatch[1]!);
 			if (lit !== null) {
 				const len = approxStringLength(lit);
-				const max =
-					decoratorName === "SlashChoice" ? CHOICE_NAME_MAX : DESC_MAX;
+				const max = decoratorName === "SlashChoice" ? CHOICE_NAME_MAX : DESC_MAX;
 				if (len > max) {
 					issues.push({
 						file,
@@ -143,9 +142,7 @@ for await (const file of glob.scan({ cwd: root })) {
 }
 
 if (issues.length === 0) {
-	console.log(
-		`✓ check-slash-lengths — ${scanned} fichier(s) scanné(s), aucun problème.`,
-	);
+	console.log(`✓ check-slash-lengths — ${scanned} fichier(s) scanné(s), aucun problème.`);
 	process.exit(0);
 }
 
@@ -153,7 +150,5 @@ console.error(`✗ check-slash-lengths — ${issues.length} problème(s) :`);
 for (const i of issues) {
 	console.error(`  ${i.file}:${i.line}  [${i.rule}]  ${i.message}`);
 }
-console.error(
-	"\nDiscord refusera ces commandes au boot du bot. Fix puis relance.",
-);
+console.error("\nDiscord refusera ces commandes au boot du bot. Fix puis relance.");
 process.exit(1);

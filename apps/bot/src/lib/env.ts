@@ -12,18 +12,12 @@ const schema = z.object({
 	DISCORD_TOKEN_SHENRON: z.string().min(1).optional(),
 	DISCORD_TOKEN_BEERUS: z.string().min(1, "DISCORD_TOKEN_BEERUS is required"),
 	DISCORD_TOKEN_WHIS: z.string().min(1, "DISCORD_TOKEN_WHIS is required"),
-	DISCORD_TOKEN_GRAND_PRETRE: z
-		.string()
-		.min(1, "DISCORD_TOKEN_GRAND_PRETRE is required"),
+	DISCORD_TOKEN_GRAND_PRETRE: z.string().min(1, "DISCORD_TOKEN_GRAND_PRETRE is required"),
 	DISCORD_TOKEN_ENMA: z.string().min(1, "DISCORD_TOKEN_ENMA is required"),
 	DISCORD_TOKEN_KAIO: z.string().min(1, "DISCORD_TOKEN_KAIO is required"),
 
-	GUILD_ID: z
-		.string()
-		.regex(/^\d{17,20}$/, "GUILD_ID must be a Discord snowflake"),
-	OWNER_ID: z
-		.string()
-		.regex(/^\d{17,20}$/, "OWNER_ID must be a Discord snowflake"),
+	GUILD_ID: z.string().regex(/^\d{17,20}$/, "GUILD_ID must be a Discord snowflake"),
+	OWNER_ID: z.string().regex(/^\d{17,20}$/, "OWNER_ID must be a Discord snowflake"),
 	BOT_DEV_ID: z
 		.string()
 		.regex(/^\d{17,20}$/, "BOT_DEV_ID must be a Discord snowflake")
@@ -118,7 +112,7 @@ const schema = z.object({
 						.split(",")
 						.map((s) => s.trim())
 						.filter(Boolean)
-				: [],
+				: []
 		),
 	SESSION_SECRET: z.string().min(32).optional(),
 	BETTER_AUTH_URL: z.string().url().optional(),
@@ -131,12 +125,8 @@ const schema = z.object({
 
 	SERVER_INVITE_URL: z.string().default("discord.gg/"),
 
-	LOG_LEVEL: z
-		.enum(["trace", "debug", "info", "warn", "error", "fatal"])
-		.default("info"),
-	NODE_ENV: z
-		.enum(["development", "production", "test"])
-		.default("development"),
+	LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),
+	NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 
 const parsed = schema.safeParse(Bun.env);
@@ -152,9 +142,7 @@ const raw = parsed.data;
 const shenronToken = raw.DISCORD_TOKEN_SHENRON ?? raw.DISCORD_TOKEN;
 if (!shenronToken) {
 	console.error("✗ Invalid environment:");
-	console.error(
-		"  - DISCORD_TOKEN_SHENRON (or legacy DISCORD_TOKEN) is required",
-	);
+	console.error("  - DISCORD_TOKEN_SHENRON (or legacy DISCORD_TOKEN) is required");
 	process.exit(1);
 }
 const shenronAppId = raw.APPLICATION_ID_SHENRON ?? raw.APPLICATION_ID;

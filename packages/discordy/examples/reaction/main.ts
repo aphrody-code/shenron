@@ -10,39 +10,39 @@ import { Client } from "@rpbey/discordy";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: ignore
 export class Main {
-  private static client: Client;
+	private static client: Client;
 
-  static async start(): Promise<void> {
-    Main.client = new Client({
-      // botGuilds: [(client) => client.guilds.cache.map((guild) => guild.id)],
-      intents: [
-        IntentsBitField.Flags.Guilds,
-        IntentsBitField.Flags.GuildMessages,
-        IntentsBitField.Flags.GuildMembers,
-        IntentsBitField.Flags.GuildMessageReactions,
-      ],
-      partials: [Partials.Message, Partials.Channel, Partials.Reaction],
-      silent: false,
-    });
+	static async start(): Promise<void> {
+		Main.client = new Client({
+			// botGuilds: [(client) => client.guilds.cache.map((guild) => guild.id)],
+			intents: [
+				IntentsBitField.Flags.Guilds,
+				IntentsBitField.Flags.GuildMessages,
+				IntentsBitField.Flags.GuildMembers,
+				IntentsBitField.Flags.GuildMessageReactions,
+			],
+			partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+			silent: false,
+		});
 
-    Main.Client.on(Events.ClientReady, () => {
-      void Main.client.initApplicationCommands().then(() => {
-        console.log("Bot started...");
-      });
-    });
+		Main.Client.on(Events.ClientReady, () => {
+			void Main.client.initApplicationCommands().then(() => {
+				console.log("Bot started...");
+			});
+		});
 
-    Main.Client.on(Events.MessageReactionAdd, (reaction, user) => {
-      void Main.Client.executeReaction(reaction, user);
-    });
+		Main.Client.on(Events.MessageReactionAdd, (reaction, user) => {
+			void Main.Client.executeReaction(reaction, user);
+		});
 
-    await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`);
+		await importx(`${dirname(import.meta.url)}/commands/**/*.{js,ts}`);
 
-    // let's start the bot
-    if (!Bun.env.BOT_TOKEN) {
-      throw Error("Could not find BOT_TOKEN in your environment");
-    }
-    await Main.client.login(Bun.env.BOT_TOKEN);
-  }
+		// let's start the bot
+		if (!Bun.env.BOT_TOKEN) {
+			throw Error("Could not find BOT_TOKEN in your environment");
+		}
+		await Main.client.login(Bun.env.BOT_TOKEN);
+	}
 }
 
 void Main.start();

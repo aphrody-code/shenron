@@ -51,13 +51,12 @@ const DAYS = Number(argVal("--days", "30"));
 const CONCURRENCY = Number(argVal("--concurrency", "6"));
 const DRY_RUN = args.has("--dry-run");
 const RESUME = args.has("--resume");
-const CHECKPOINT_PATH =
-	new URL("../data/.recovery-checkpoint.json", import.meta.url).pathname;
+const CHECKPOINT_PATH = new URL("../data/.recovery-checkpoint.json", import.meta.url).pathname;
 const CUTOFF_MS = Date.now() - DAYS * 86_400_000;
 
 const log = (...m: unknown[]) => console.log(...m);
 log(
-	`🎯 GODMODE RECOVERY — last ${DAYS}d · concurrency ${CONCURRENCY} · ${DRY_RUN ? "DRY-RUN" : "WRITE"}`,
+	`🎯 GODMODE RECOVERY — last ${DAYS}d · concurrency ${CONCURRENCY} · ${DRY_RUN ? "DRY-RUN" : "WRITE"}`
 );
 
 // ─── Connect Discord (Grand Prêtre = MESSAGE_CONTENT + MEMBERS) ─────────
@@ -84,7 +83,7 @@ const textChannels = channels
 				c.type === ChannelType.GuildAnnouncement ||
 				c.type === ChannelType.PublicThread ||
 				c.type === ChannelType.PrivateThread) &&
-			c.viewable === true,
+			c.viewable === true
 	)
 	.toJSON();
 
@@ -99,7 +98,7 @@ const BOT_PERSONA_IDS = new Set(
 		env.APPLICATION_ID_GRAND_PRETRE,
 		env.APPLICATION_ID_ENMA,
 		env.APPLICATION_ID_KAIO,
-	].filter(Boolean) as string[],
+	].filter(Boolean) as string[]
 );
 
 // ─── Aggregators ────────────────────────────────────────────────────────
@@ -163,12 +162,7 @@ function parseBotMessage(msg: {
 		if (e.description) desc += " " + e.description;
 		if (e.fields) fields.push(...e.fields);
 	}
-	const all = [
-		msg.content,
-		title,
-		desc,
-		...fields.map((f) => `${f.name}:${f.value}`),
-	]
+	const all = [msg.content, title, desc, ...fields.map((f) => `${f.name}:${f.value}`)]
 		.join(" ")
 		.trim();
 	const lower = all.toLowerCase();
@@ -190,10 +184,7 @@ function parseBotMessage(msg: {
 	}
 
 	// ACHIEVEMENT — "🏆 Succès débloqué !"
-	if (
-		/succès|succes|achievement|débloqué|debloque/i.test(title) ||
-		/🏆/.test(title)
-	) {
+	if (/succès|succes|achievement|débloqué|debloque/i.test(title) || /🏆/.test(title)) {
 		const ids = extractMentions(msg.content + " " + desc);
 		const codeMatch = (desc + " " + all).match(/`([A-Z_0-9]{3,40})`/);
 		const nameField = fields.find((f) => /nom|name|titre/i.test(f.name));
@@ -208,18 +199,17 @@ function parseBotMessage(msg: {
 	}
 
 	// SANCTIONS — patterns flexibles
-	const sanctionType: SanctionHit["type"] | null =
-		/\bwarn(ed|é)?\b|avertissement/i.test(all)
-			? "warn"
-			: /\bjail(ed|é)?\b|emprisonn/i.test(all)
-				? "jail"
-				: /\bmute(d|é)?\b|réduit au silence/i.test(all)
-					? "mute"
-					: /\bban(ned|ni)?\b|banni/i.test(all)
-						? "ban"
-						: /\bkick(ed|é)?\b|expulsé/i.test(all)
-							? "kick"
-							: null;
+	const sanctionType: SanctionHit["type"] | null = /\bwarn(ed|é)?\b|avertissement/i.test(all)
+		? "warn"
+		: /\bjail(ed|é)?\b|emprisonn/i.test(all)
+			? "jail"
+			: /\bmute(d|é)?\b|réduit au silence/i.test(all)
+				? "mute"
+				: /\bban(ned|ni)?\b|banni/i.test(all)
+					? "ban"
+					: /\bkick(ed|é)?\b|expulsé/i.test(all)
+						? "kick"
+						: null;
 	if (sanctionType) {
 		const ids = extractMentions(all);
 		const reasonField = fields.find((f) => /raison|reason/i.test(f.name));
@@ -285,10 +275,7 @@ async function scanChannel(channel: GuildTextBasedChannel): Promise<{
 					if (cur) {
 						cur.messageCount++;
 						cur.lastMessageAt = Math.max(cur.lastMessageAt, m.createdTimestamp);
-						cur.firstMessageAt = Math.min(
-							cur.firstMessageAt,
-							m.createdTimestamp,
-						);
+						cur.firstMessageAt = Math.min(cur.firstMessageAt, m.createdTimestamp);
 					} else {
 						userAgg.set(id, {
 							messageCount: 1,
@@ -328,17 +315,13 @@ async function scanChannel(channel: GuildTextBasedChannel): Promise<{
 		stoppedReason = `error: ${e instanceof Error ? e.message : String(e)}`;
 	}
 	log(
-		`  ✓ #${channelName.padEnd(28)} scanned ${totalScanned.toString().padStart(6)} msgs (${stoppedReason})`,
+		`  ✓ #${channelName.padEnd(28)} scanned ${totalScanned.toString().padStart(6)} msgs (${stoppedReason})`
 	);
 	return { channelId: channel.id, messageCount: totalScanned, stoppedReason };
 }
 
 // ─── Concurrent pool ────────────────────────────────────────────────────
-async function runPool<T, R>(
-	items: T[],
-	limit: number,
-	fn: (item: T) => Promise<R>,
-): Promise<R[]> {
+async function runPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
 	const results: R[] = [];
 	let idx = 0;
 	const workers: Promise<void>[] = [];
@@ -349,7 +332,7 @@ async function runPool<T, R>(
 					const myIdx = idx++;
 					results[myIdx] = await fn(items[myIdx]);
 				}
-			})(),
+			})()
 		);
 	}
 	await Promise.all(workers);
@@ -364,9 +347,7 @@ if (RESUME && existsSync(CHECKPOINT_PATH)) {
 	log(`▶ Resuming, ${processedChannels.size} channels already done`);
 }
 const todo = textChannels.filter((c) => !processedChannels.has(c.id));
-log(
-	`▶ Scanning ${todo.length} channels (${textChannels.length - todo.length} skipped)`,
-);
+log(`▶ Scanning ${todo.length} channels (${textChannels.length - todo.length} skipped)`);
 
 // ─── Main scan ──────────────────────────────────────────────────────────
 const startScan = Date.now();
@@ -376,11 +357,7 @@ const results = await runPool(todo, CONCURRENCY, async (ch) => {
 	// Save checkpoint after each channel
 	writeFileSync(
 		CHECKPOINT_PATH,
-		JSON.stringify(
-			{ processedChannels: [...processedChannels], at: Date.now() },
-			null,
-			2,
-		),
+		JSON.stringify({ processedChannels: [...processedChannels], at: Date.now() }, null, 2)
 	);
 	return r;
 });
@@ -404,12 +381,11 @@ if (DRY_RUN) {
 		.slice(0, 10)
 		.forEach(([id, agg]) =>
 			log(
-				`    ${id}  ${agg.messageCount.toString().padStart(5)} msgs · last ${new Date(agg.lastMessageAt).toISOString()}`,
-			),
+				`    ${id}  ${agg.messageCount.toString().padStart(5)} msgs · last ${new Date(agg.lastMessageAt).toISOString()}`
+			)
 		);
 	if (levelUps.length) log(`  Sample level-up: ${JSON.stringify(levelUps[0])}`);
-	if (achievementHits.length)
-		log(`  Sample achievement: ${JSON.stringify(achievementHits[0])}`);
+	if (achievementHits.length) log(`  Sample achievement: ${JSON.stringify(achievementHits[0])}`);
 	await client.destroy();
 	process.exit(0);
 }
@@ -422,11 +398,7 @@ const db = dbs.db;
 // 1. Users : merge messageCount + lastMessageAt (sans toucher au xp/zeni déjà reconstruit)
 let userUpdates = 0;
 for (const [id, agg] of userAgg) {
-	const existing = await db
-		.select()
-		.from(users)
-		.where(eq(users.id, id))
-		.limit(1);
+	const existing = await db.select().from(users).where(eq(users.id, id)).limit(1);
 	if (existing.length === 0) {
 		// Nouvel utilisateur, insère
 		await db.insert(users).values({
@@ -457,8 +429,7 @@ log(`  ✓ ${userUpdates} users with messageCount + lastMessageAt`);
 const maxLevelByUser = new Map<string, { level: number; xp: number | null }>();
 for (const lu of levelUps) {
 	const cur = maxLevelByUser.get(lu.userId);
-	if (!cur || lu.level > cur.level)
-		maxLevelByUser.set(lu.userId, { level: lu.level, xp: lu.xp });
+	if (!cur || lu.level > cur.level) maxLevelByUser.set(lu.userId, { level: lu.level, xp: lu.xp });
 }
 let levelUpdates = 0;
 for (const [id, info] of maxLevelByUser) {

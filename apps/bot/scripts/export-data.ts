@@ -31,7 +31,7 @@ const SKIP = new Set([
 const tables = (
 	db
 		.query(
-			`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`,
+			`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`
 		)
 		.all() as { name: string }[]
 )
@@ -45,18 +45,12 @@ for (const t of tables) {
 	const json = JSON.stringify(rows);
 	writeFileSync(`${OUT}${t}.json`, json);
 	index.push({ table: t, rows: rows.length, bytes: json.length });
-	console.log(
-		`✓ ${t}: ${rows.length} lignes (${(json.length / 1024).toFixed(0)} KB)`,
-	);
+	console.log(`✓ ${t}: ${rows.length} lignes (${(json.length / 1024).toFixed(0)} KB)`);
 }
 
 writeFileSync(
 	`${OUT}index.json`,
-	JSON.stringify(
-		{ generatedAt: new Date().toISOString(), tables: index },
-		null,
-		2,
-	),
+	JSON.stringify({ generatedAt: new Date().toISOString(), tables: index }, null, 2)
 );
 const totalRows = index.reduce((s, r) => s + r.rows, 0);
 console.log(`\n${tables.length} tables, ${totalRows} lignes → ${OUT}`);

@@ -32,11 +32,11 @@ const va = new VoiranimeScraper();
 for (const row of rows) {
 	console.log(`\nFilm: ${row.title} (ID: ${row.id})`);
 	const players = row.players;
-	
+
 	const classA: Player[] = []; // Working HLS
 	const classB: Player[] = []; // Working MP4
 	const classC: Player[] = []; // Failed / unverified
-	
+
 	for (const p of players) {
 		console.log(`  Scrape/Test: ${p.name} (${p.provider})...`);
 		try {
@@ -85,13 +85,15 @@ for (const row of rows) {
 	}
 
 	const reordered = [...classA, ...classB, ...classC];
-	
+
 	await sql`
 		UPDATE bot.db_movies
 		SET players = ${sql.json(reordered)}
 		WHERE id = ${row.id}
 	`;
-	console.log(`  -> Reordered: ${classA.length} HLS, ${classB.length} MP4, ${classC.length} offline.`);
+	console.log(
+		`  -> Reordered: ${classA.length} HLS, ${classB.length} MP4, ${classC.length} offline.`
+	);
 }
 
 await va.close();

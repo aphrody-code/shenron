@@ -18,23 +18,19 @@ import { FakeInteraction, InteractionType } from "./util/interaction.js";
 // biome-ignore lint/suspicious/noExportsInTest: ignore
 @Discord()
 export class Example {
-  @ButtonComponent({ id: "hello" })
-  @Guard((_params, _client, next, data) => {
-    data.passed = true;
-    return next();
-  })
-  handler(
-    _interaction: ButtonInteraction,
-    _client: Client,
-    data: { passed: boolean },
-  ): unknown {
-    return [":wave:", data.passed];
-  }
+	@ButtonComponent({ id: "hello" })
+	@Guard((_params, _client, next, data) => {
+		data.passed = true;
+		return next();
+	})
+	handler(_interaction: ButtonInteraction, _client: Client, data: { passed: boolean }): unknown {
+		return [":wave:", data.passed];
+	}
 
-  @ButtonComponent({ id: "hello" })
-  handler2(): unknown {
-    return [":shake:", undefined];
-  }
+	@ButtonComponent({ id: "hello" })
+	handler2(): unknown {
+		return [":shake:", undefined];
+	}
 }
 
 /*
@@ -44,7 +40,7 @@ export class Example {
 const client = new Client({ intents: [] });
 
 beforeAll(async () => {
-  await client.build();
+	await client.build();
 });
 
 /*
@@ -52,24 +48,22 @@ beforeAll(async () => {
 */
 
 describe("Button", () => {
-  it("Should create the button structure", () => {
-    expect(client.buttonComponents[0]?.id).toEqual("hello");
-  });
+	it("Should create the button structure", () => {
+		expect(client.buttonComponents[0]?.id).toEqual("hello");
+	});
 
-  it("Should execute the button interaction", async () => {
-    const interaction = new FakeInteraction({
-      customId: "hello",
-      guildId: "discordy",
-      type: InteractionType.Button,
-    });
+	it("Should execute the button interaction", async () => {
+		const interaction = new FakeInteraction({
+			customId: "hello",
+			guildId: "discordy",
+			type: InteractionType.Button,
+		});
 
-    const res = await client.executeInteraction(
-      interaction as unknown as Interaction,
-    );
+		const res = await client.executeInteraction(interaction as unknown as Interaction);
 
-    expect(res).toEqual([
-      [":wave:", true],
-      [":shake:", undefined],
-    ]);
-  });
+		expect(res).toEqual([
+			[":wave:", true],
+			[":shake:", undefined],
+		]);
+	});
 });

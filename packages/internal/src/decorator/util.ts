@@ -41,23 +41,20 @@ import type { Decorator } from "./classes/Decorator.js";
  * @returns Array of decorators that are applied to the same location.
  */
 export function getLinkedObjects<TDecorator extends Decorator>(
-  referenceDecorator: Decorator,
-  decoratorCollection: TDecorator[],
+	referenceDecorator: Decorator,
+	decoratorCollection: TDecorator[]
 ): TDecorator[] {
-  return decoratorCollection.filter((candidateDecorator) => {
-    let isSameLocation =
-      referenceDecorator.from === candidateDecorator.from &&
-      referenceDecorator.key === candidateDecorator.key;
+	return decoratorCollection.filter((candidateDecorator) => {
+		let isSameLocation =
+			referenceDecorator.from === candidateDecorator.from &&
+			referenceDecorator.key === candidateDecorator.key;
 
-    // Ensure parameter decorators only link to decorators on the same parameter position
-    // This prevents parameter decorators from affecting all parameters in a method
-    if (
-      referenceDecorator.index !== undefined &&
-      candidateDecorator.index !== undefined
-    ) {
-      isSameLocation &&= referenceDecorator.index === candidateDecorator.index;
-    }
+		// Ensure parameter decorators only link to decorators on the same parameter position
+		// This prevents parameter decorators from affecting all parameters in a method
+		if (referenceDecorator.index !== undefined && candidateDecorator.index !== undefined) {
+			isSameLocation &&= referenceDecorator.index === candidateDecorator.index;
+		}
 
-    return isSameLocation;
-  });
+		return isSameLocation;
+	});
 }

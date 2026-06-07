@@ -1,14 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Plus,
-	Save,
-	ShoppingBag,
-	Trash2,
-	X,
-	Search,
-	Power,
-	PowerOff,
-} from "lucide-react";
+import { Plus, Save, ShoppingBag, Trash2, X, Search, Power, PowerOff } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { RoleSelect, RoleBadge } from "../components/RoleSelect";
@@ -25,10 +16,7 @@ interface ShopItem {
 	enabled: boolean;
 }
 
-const TYPE_META: Record<
-	ShopItem["type"],
-	{ emoji: string; label: string; color: string }
-> = {
+const TYPE_META: Record<ShopItem["type"], { emoji: string; label: string; color: string }> = {
 	card: { emoji: "🎴", label: "Carte profil", color: "text-amber-400" },
 	badge: { emoji: "🏅", label: "Badge", color: "text-fuchsia-400" },
 	color: { emoji: "🎨", label: "Couleur (rôle)", color: "text-blue-400" },
@@ -44,15 +32,11 @@ export function Shop() {
 
 	const items = useQuery({
 		queryKey: ["shop", "items"],
-		queryFn: () =>
-			api.get<{ rows: ShopItem[]; total: number }>(
-				"/database/shop_items?limit=500",
-			),
+		queryFn: () => api.get<{ rows: ShopItem[]; total: number }>("/database/shop_items?limit=500"),
 	});
 
 	const remove = useMutation({
-		mutationFn: (key: string) =>
-			api.delete(`/database/shop_items/${encodeURIComponent(key)}`),
+		mutationFn: (key: string) => api.delete(`/database/shop_items/${encodeURIComponent(key)}`),
 		onSuccess: () => qc.invalidateQueries({ queryKey: ["shop"] }),
 	});
 
@@ -62,11 +46,7 @@ export function Shop() {
 			if (typeFilter && r.type !== typeFilter) return false;
 			if (search) {
 				const s = search.toLowerCase();
-				if (
-					!r.key.toLowerCase().includes(s) &&
-					!r.name.toLowerCase().includes(s)
-				)
-					return false;
+				if (!r.key.toLowerCase().includes(s) && !r.name.toLowerCase().includes(s)) return false;
 			}
 			return true;
 		});
@@ -82,7 +62,7 @@ export function Shop() {
 					acc[r.type] = (acc[r.type] ?? 0) + 1;
 					return acc;
 				},
-				{} as Record<string, number>,
+				{} as Record<string, number>
 			),
 		};
 	}, [items.data]);
@@ -134,31 +114,22 @@ export function Shop() {
 
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{filtered.map((item) => (
-					<div
-						key={item.key}
-						className={`card ${item.enabled ? "" : "opacity-60"}`}
-					>
+					<div key={item.key} className={`card ${item.enabled ? "" : "opacity-60"}`}>
 						<div className="flex items-start gap-2">
 							<span className={`text-2xl ${TYPE_META[item.type].color}`}>
 								{TYPE_META[item.type].emoji}
 							</span>
 							<div className="flex-1 min-w-0">
 								<h3 className="truncate font-semibold">{item.name}</h3>
-								<code className="block truncate text-[10px] text-zinc-500">
-									{item.key}
-								</code>
+								<code className="block truncate text-[10px] text-zinc-500">{item.key}</code>
 							</div>
 							{!item.enabled && <span className="badge badge-error">OFF</span>}
 						</div>
 						{item.description && (
-							<p className="mt-2 line-clamp-2 text-xs text-zinc-400">
-								{item.description}
-							</p>
+							<p className="mt-2 line-clamp-2 text-xs text-zinc-400">{item.description}</p>
 						)}
 						<div className="mt-3 flex items-center gap-2">
-							<span className="badge badge-warning">
-								💰 {item.price.toLocaleString("fr-FR")} z
-							</span>
+							<span className="badge badge-warning">💰 {item.price.toLocaleString("fr-FR")} z</span>
 							{item.roleId && <RoleBadge roleId={item.roleId} />}
 						</div>
 						<div className="mt-3 flex items-center gap-1 border-t border-zinc-800 pt-3">
@@ -173,8 +144,7 @@ export function Shop() {
 								type="button"
 								className="btn btn-ghost px-2 text-red-400"
 								onClick={() => {
-									if (confirm(`Supprimer ${item.key} ?`))
-										remove.mutate(item.key);
+									if (confirm(`Supprimer ${item.key} ?`)) remove.mutate(item.key);
 								}}
 							>
 								<Trash2 className="h-3 w-3" />
@@ -223,7 +193,7 @@ function ShopItemEditor({
 			roleId: null,
 			meta: null,
 			enabled: true,
-		},
+		}
 	);
 	const [error, setError] = useState<string | null>(null);
 
@@ -232,10 +202,7 @@ function ShopItemEditor({
 			if (isCreate) {
 				return api.post("/database/shop_items", payload);
 			}
-			return api.put(
-				`/database/shop_items/${encodeURIComponent(payload.key)}`,
-				payload,
-			);
+			return api.put(`/database/shop_items/${encodeURIComponent(payload.key)}`, payload);
 		},
 		onSuccess: () => {
 			onSaved();
@@ -276,11 +243,7 @@ function ShopItemEditor({
 					<h3 className="text-lg font-semibold">
 						{isCreate ? "Créer un item shop" : `Modifier ${draft.key}`}
 					</h3>
-					<button
-						type="button"
-						onClick={onClose}
-						className="ml-auto btn btn-ghost px-2"
-					>
+					<button type="button" onClick={onClose} className="ml-auto btn btn-ghost px-2">
 						<X className="h-3 w-3" />
 					</button>
 				</div>
@@ -305,9 +268,7 @@ function ShopItemEditor({
 						<select
 							className="input w-full"
 							value={draft.type}
-							onChange={(e) =>
-								setDraft({ ...draft, type: e.target.value as ShopItem["type"] })
-							}
+							onChange={(e) => setDraft({ ...draft, type: e.target.value as ShopItem["type"] })}
 						>
 							{Object.entries(TYPE_META).map(([t, m]) => (
 								<option key={t} value={t}>
@@ -317,9 +278,7 @@ function ShopItemEditor({
 						</select>
 					</div>
 					<div className="sm:col-span-2">
-						<label className="block text-xs text-zinc-500">
-							Nom (affiché en boutique)
-						</label>
+						<label className="block text-xs text-zinc-500">Nom (affiché en boutique)</label>
 						<input
 							className="input w-full"
 							value={draft.name}
@@ -328,16 +287,12 @@ function ShopItemEditor({
 						/>
 					</div>
 					<div className="sm:col-span-2">
-						<label className="block text-xs text-zinc-500">
-							Description (optionnel)
-						</label>
+						<label className="block text-xs text-zinc-500">Description (optionnel)</label>
 						<textarea
 							className="input w-full"
 							rows={2}
 							value={draft.description ?? ""}
-							onChange={(e) =>
-								setDraft({ ...draft, description: e.target.value })
-							}
+							onChange={(e) => setDraft({ ...draft, description: e.target.value })}
 						/>
 					</div>
 					<div>
@@ -347,9 +302,7 @@ function ShopItemEditor({
 							type="number"
 							min={0}
 							value={draft.price}
-							onChange={(e) =>
-								setDraft({ ...draft, price: Number(e.target.value) || 0 })
-							}
+							onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) || 0 })}
 						/>
 					</div>
 					<div>
@@ -389,19 +342,13 @@ function ShopItemEditor({
 							className="input w-full font-mono text-xs"
 							rows={3}
 							value={draft.meta ?? ""}
-							onChange={(e) =>
-								setDraft({ ...draft, meta: e.target.value || null })
-							}
+							onChange={(e) => setDraft({ ...draft, meta: e.target.value || null })}
 							placeholder='{"image": "https://..."}'
 						/>
 					</div>
 				</div>
 				<div className="flex items-center gap-2 border-t border-zinc-800 pt-3">
-					<button
-						type="submit"
-						className="btn btn-primary"
-						disabled={save.isPending}
-					>
+					<button type="submit" className="btn btn-primary" disabled={save.isPending}>
 						<Save className="h-3 w-3" /> {isCreate ? "Créer" : "Enregistrer"}
 					</button>
 					<button type="button" className="btn btn-ghost" onClick={onClose}>

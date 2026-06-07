@@ -75,26 +75,16 @@ function pick<T>(arr: readonly T[]): T {
 	return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
-function apply(
-	template: string,
-	userId: string,
-	zeni: number,
-	streak: number,
-): string {
+function apply(template: string, userId: string, zeni: number, streak: number): string {
 	return template
 		.replaceAll("{user}", `<@${userId}>`)
 		.replaceAll("{zeni}", String(zeni))
 		.replaceAll("{streak}", String(streak));
 }
 
-export function randomDailyQuestMessage(
-	userId: string,
-	zeni: number,
-	streak: number,
-): string {
+export function randomDailyQuestMessage(userId: string, zeni: number, streak: number): string {
 	// 1% : événement rare (toutes streaks confondues)
-	if (Math.random() < 0.01)
-		return apply(pick(QUEST_RARE), userId, zeni, streak);
+	if (Math.random() < 0.01) return apply(pick(QUEST_RARE), userId, zeni, streak);
 	// Streak divine (30+)
 	if (streak >= 30 && Math.random() < 0.5)
 		return apply(pick(QUEST_STREAK_DIVINE), userId, zeni, streak);

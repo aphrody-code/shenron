@@ -40,9 +40,7 @@ export default async function RacesPage() {
 										{race.name}
 									</h2>
 									{race.nameJa && (
-										<p className="font-jp text-base text-dbz-orange/60 mt-1">
-											{race.nameJa}
-										</p>
+										<p className="font-jp text-base text-dbz-orange/60 mt-1">{race.nameJa}</p>
 									)}
 								</div>
 								<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl shrink-0 ml-4">

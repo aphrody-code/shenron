@@ -1,15 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-	Crown,
-	ShieldCheck,
-	Mail,
-	AlertCircle,
-	ExternalLink,
-	Calendar,
-	Globe,
-} from "lucide-react";
+import { Crown, ShieldCheck, Mail, AlertCircle, ExternalLink, Calendar, Globe } from "lucide-react";
 import { api, ApiError } from "@/lib/admin-api";
 import { authClient } from "@/lib/auth-client";
 
@@ -68,10 +60,7 @@ interface MemberResponse {
 /**
  * Construit l'URL d'avatar Discord.
  */
-function avatarUrl(
-	user: { id?: string; avatar?: string | null },
-	size = 256,
-): string | null {
+function avatarUrl(user: { id?: string; avatar?: string | null }, size = 256): string | null {
 	if (!user.id) return null;
 	if (!user.avatar) {
 		const idx = Number(BigInt(user.id) >> 22n) % 6;
@@ -81,10 +70,7 @@ function avatarUrl(
 	return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=${size}`;
 }
 
-function bannerUrl(
-	user: { id: string; banner: string | null },
-	size = 1024,
-): string | null {
+function bannerUrl(user: { id: string; banner: string | null }, size = 1024): string | null {
 	if (!user.banner) return null;
 	const ext = user.banner.startsWith("a_") ? "gif" : "webp";
 	return `https://cdn.discordapp.com/banners/${user.id}/${user.banner}.${ext}?size=${size}`;
@@ -94,8 +80,7 @@ export default function ProfilePage() {
 	// Session du SITE (Better Auth) — source de vérité de l'admin connecté.
 	// NB: le bot a sa propre session cookie, inaccessible via le proxy bearer
 	// (`/auth/me` → 404, `/discord/*` → 401). On lit donc la session locale.
-	const { data: siteSession, isPending: sessionPending } =
-		authClient.useSession();
+	const { data: siteSession, isPending: sessionPending } = authClient.useSession();
 	const sessionUser: SessionUser | undefined = siteSession?.user
 		? {
 				id: siteSession.user.id,
@@ -132,12 +117,8 @@ export default function ProfilePage() {
 	if (sessionPending || me.isLoading) {
 		return (
 			<div className="dbz-panel p-8 text-center">
-				<p className="text-dbz-blue-light font-saiyan text-xl mb-2">
-					CHARGEMENT…
-				</p>
-				<p className="text-sm text-white/40">
-					Récupération de votre profil Discord en cours.
-				</p>
+				<p className="text-dbz-blue-light font-saiyan text-xl mb-2">CHARGEMENT…</p>
+				<p className="text-sm text-white/40">Récupération de votre profil Discord en cours.</p>
 			</div>
 		);
 	}
@@ -146,14 +127,11 @@ export default function ProfilePage() {
 	if (me.isError || !me.data) {
 		const sUser = sessionUser;
 		const isOAuthMissing =
-			me.error instanceof ApiError &&
-			(me.error.status === 401 || me.error.status === 503);
+			me.error instanceof ApiError && (me.error.status === 401 || me.error.status === 503);
 		return (
 			<div className="space-y-4 max-w-2xl">
 				<header>
-					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-						MON PROFIL
-					</h1>
+					<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">MON PROFIL</h1>
 					<p className="text-sm text-white/50">
 						Consultez et gérez votre compte Discord lié au tableau de bord.
 					</p>
@@ -163,9 +141,7 @@ export default function ProfilePage() {
 					<div className="flex items-start gap-3">
 						<AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-dbz-yellow" />
 						<div className="flex-1 space-y-3">
-							<h3 className="font-saiyan text-dbz-yellow">
-								Profil Discord complet non disponible
-							</h3>
+							<h3 className="font-saiyan text-dbz-yellow">Profil Discord complet non disponible</h3>
 							<p className="text-sm text-white/70">
 								{isOAuthMissing
 									? "Vous êtes connecté via le jeton administrateur. Pour afficher votre avatar, votre bannière et vos serveurs Discord, connectez-vous via votre compte Discord."
@@ -218,12 +194,8 @@ export default function ProfilePage() {
 	return (
 		<div className="space-y-6 max-w-4xl">
 			<header>
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					MON PROFIL
-				</h1>
-				<p className="text-sm text-white/50">
-					Informations de votre compte Discord.
-				</p>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">MON PROFIL</h1>
+				<p className="text-sm text-white/50">Informations de votre compte Discord.</p>
 			</header>
 
 			{/* Carte profil */}
@@ -271,11 +243,7 @@ export default function ProfilePage() {
 					<Field
 						icon={<Mail className="h-4 w-4" />}
 						label="Adresse e-mail"
-						value={
-							u.email
-								? `${u.email}${u.verified ? " (vérifiée)" : " (non vérifiée)"}`
-								: "—"
-						}
+						value={u.email ? `${u.email}${u.verified ? " (vérifiée)" : " (non vérifiée)"}` : "—"}
 					/>
 					<Field
 						icon={<Globe className="h-4 w-4" />}
@@ -285,11 +253,7 @@ export default function ProfilePage() {
 					<Field
 						icon={<Crown className="h-4 w-4" />}
 						label="Badges publics"
-						value={
-							u.public_flags
-								? `Valeur : ${u.public_flags}`
-								: "Aucun badge spécial"
-						}
+						value={u.public_flags ? `Valeur : ${u.public_flags}` : "Aucun badge spécial"}
 					/>
 				</div>
 			</div>
@@ -312,12 +276,8 @@ export default function ProfilePage() {
 					</h3>
 					<dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
 						<div>
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">
-								Surnom
-							</dt>
-							<dd className="text-white font-medium">
-								{member.data.member.nick ?? "—"}
-							</dd>
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">Surnom</dt>
+							<dd className="text-white font-medium">{member.data.member.nick ?? "—"}</dd>
 						</div>
 						<div>
 							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1 flex items-center gap-1">
@@ -325,10 +285,11 @@ export default function ProfilePage() {
 								Date d&apos;arrivée
 							</dt>
 							<dd className="text-white font-medium">
-								{new Date(member.data.member.joined_at).toLocaleDateString(
-									"fr-FR",
-									{ year: "numeric", month: "long", day: "numeric" },
-								)}
+								{new Date(member.data.member.joined_at).toLocaleDateString("fr-FR", {
+									year: "numeric",
+									month: "long",
+									day: "numeric",
+								})}
 							</dd>
 						</div>
 						<div>
@@ -337,9 +298,7 @@ export default function ProfilePage() {
 							</dt>
 							<dd className="text-white font-medium">
 								{member.data.member.premium_since
-									? new Date(
-											member.data.member.premium_since,
-										).toLocaleDateString("fr-FR", {
+									? new Date(member.data.member.premium_since).toLocaleDateString("fr-FR", {
 											year: "numeric",
 											month: "long",
 											day: "numeric",
@@ -348,13 +307,10 @@ export default function ProfilePage() {
 							</dd>
 						</div>
 						<div>
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">
-								Statut
-							</dt>
+							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">Statut</dt>
 							<dd>
 								{member.data.member.communication_disabled_until &&
-								new Date(member.data.member.communication_disabled_until) >
-									new Date() ? (
+								new Date(member.data.member.communication_disabled_until) > new Date() ? (
 									<span className="px-2 py-0.5 text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/40 rounded">
 										Réduit au silence
 									</span>
@@ -375,9 +331,7 @@ export default function ProfilePage() {
 							</dt>
 							<dd>
 								{member.data.member.roles.length === 0 ? (
-									<span className="text-white/30 text-sm">
-										Aucun rôle attribué
-									</span>
+									<span className="text-white/30 text-sm">Aucun rôle attribué</span>
 								) : (
 									<div className="flex flex-wrap gap-1">
 										{member.data.member.roles.map((rid) => (
@@ -404,18 +358,13 @@ export default function ProfilePage() {
 					{guilds.data ? ` (${guilds.data.guilds.length})` : ""}
 				</h3>
 				<p className="text-xs text-white/30 mb-4">
-					Serveurs Discord où vous êtes présent. Le serveur du bot est mis en
-					avant.
+					Serveurs Discord où vous êtes présent. Le serveur du bot est mis en avant.
 				</p>
 				{guilds.isLoading && (
-					<div className="text-sm text-white/40">
-						Chargement de vos serveurs…
-					</div>
+					<div className="text-sm text-white/40">Chargement de vos serveurs…</div>
 				)}
 				{guilds.isError && (
-					<div className="text-sm text-white/40">
-						Liste des serveurs indisponible.
-					</div>
+					<div className="text-sm text-white/40">Liste des serveurs indisponible.</div>
 				)}
 				{guilds.data && guilds.data.guilds.length === 0 && (
 					<div className="text-sm text-white/40">Aucun serveur en commun.</div>
@@ -432,11 +381,7 @@ export default function ProfilePage() {
 								}`}
 							>
 								{g.iconUrl ? (
-									<img
-										src={g.iconUrl}
-										alt=""
-										className="h-10 w-10 rounded-full shrink-0"
-									/>
+									<img src={g.iconUrl} alt="" className="h-10 w-10 rounded-full shrink-0" />
 								) : (
 									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-dbz-border text-xs font-bold text-white shrink-0">
 										{g.name
@@ -448,20 +393,12 @@ export default function ProfilePage() {
 									</div>
 								)}
 								<div className="min-w-0 flex-1">
-									<p
-										className="truncate text-sm font-semibold text-white"
-										title={g.name}
-									>
-										{g.isCurrent ? (
-											<span className="text-dbz-orange">{g.name}</span>
-										) : (
-											g.name
-										)}
+									<p className="truncate text-sm font-semibold text-white" title={g.name}>
+										{g.isCurrent ? <span className="text-dbz-orange">{g.name}</span> : g.name}
 									</p>
 									<p className="text-xs text-white/40">
 										{g.owner && "Propriétaire · "}
-										{g.approximate_member_count?.toLocaleString("fr-FR") ?? "?"}{" "}
-										membres
+										{g.approximate_member_count?.toLocaleString("fr-FR") ?? "?"} membres
 										{g.isCurrent && " · serveur du bot"}
 									</p>
 								</div>
@@ -484,9 +421,7 @@ function SessionCard({ user }: { user: SessionUser | undefined }) {
 	const initials = (user.username ?? "??").slice(0, 2).toUpperCase();
 	return (
 		<div className="dbz-panel p-5">
-			<h3 className="font-saiyan text-dbz-yellow text-base mb-3 uppercase">
-				Session active
-			</h3>
+			<h3 className="font-saiyan text-dbz-yellow text-base mb-3 uppercase">Session active</h3>
 			<div className="flex items-center gap-4">
 				{user.avatarUrl ? (
 					<img
@@ -500,14 +435,9 @@ function SessionCard({ user }: { user: SessionUser | undefined }) {
 					</div>
 				)}
 				<div className="space-y-1 text-sm">
-					<div className="font-semibold text-white">
-						{user.username ?? "Utilisateur"}
-					</div>
+					<div className="font-semibold text-white">{user.username ?? "Utilisateur"}</div>
 					{user.id && (
-						<div
-							className="font-mono text-xs text-white/40"
-							title="Identifiant Discord"
-						>
+						<div className="font-mono text-xs text-white/40" title="Identifiant Discord">
 							{user.id}
 						</div>
 					)}
@@ -542,10 +472,7 @@ function Field({
 				{icon}
 				<span>{label}</span>
 			</div>
-			<p
-				className={`text-sm text-white ${mono ? "font-mono break-all" : ""}`}
-				title={hint}
-			>
+			<p className={`text-sm text-white ${mono ? "font-mono break-all" : ""}`} title={hint}>
 				{value}
 			</p>
 			{hint && <p className="text-[10px] text-white/20 mt-0.5">{hint}</p>}

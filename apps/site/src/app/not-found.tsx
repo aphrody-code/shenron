@@ -9,15 +9,9 @@ export default function NotFound() {
 					<p className="font-scouter text-xs tracking-[0.5em] text-fuchsia-300 mb-4">
 						❯ SECTEUR INCONNU ❮
 					</p>
-					<h1 className="title-jagged text-7xl md:text-9xl leading-none mb-6">
-						404
-					</h1>
-					<p className="text-white/70 mb-2">
-						Cette page s'est perdue dans le néant cosmique.
-					</p>
-					<p className="text-white/40 text-sm mb-8">
-						Le scouter ne capte aucun signal de vie ici.
-					</p>
+					<h1 className="title-jagged text-7xl md:text-9xl leading-none mb-6">404</h1>
+					<p className="text-white/70 mb-2">Cette page s'est perdue dans le néant cosmique.</p>
+					<p className="text-white/40 text-sm mb-8">Le scouter ne capte aucun signal de vie ici.</p>
 					<div className="flex flex-wrap items-center justify-center gap-3">
 						<Link href="/" className="dbz-button !text-xs">
 							Retour à la base

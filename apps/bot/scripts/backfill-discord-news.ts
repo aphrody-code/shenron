@@ -15,12 +15,7 @@
  */
 import "reflect-metadata";
 import { container } from "tsyringe";
-import {
-	Client,
-	GatewayIntentBits,
-	ChannelType,
-	type GuildTextBasedChannel,
-} from "discord.js";
+import { Client, GatewayIntentBits, ChannelType, type GuildTextBasedChannel } from "discord.js";
 import { env } from "~/lib/env";
 import { NewsService } from "~/services/NewsService";
 import { SettingsService } from "~/services/SettingsService";
@@ -57,13 +52,12 @@ const targets = all
 		(c): c is GuildTextBasedChannel =>
 			!!c &&
 			c.viewable === true &&
-			(c.type === ChannelType.GuildAnnouncement ||
-				(!!configured && c.id === configured)),
+			(c.type === ChannelType.GuildAnnouncement || (!!configured && c.id === configured))
 	)
 	.toJSON();
 
 log(
-	`✓ ${targets.length} salon(s) d'annonces : ${targets.map((c) => `#${c.name}`).join(", ") || "(aucun)"}`,
+	`✓ ${targets.length} salon(s) d'annonces : ${targets.map((c) => `#${c.name}`).join(", ") || "(aucun)"}`
 );
 
 let saved = 0;
@@ -73,10 +67,7 @@ for (const ch of targets) {
 		const isHumanOrWebhook = !m.author.bot || !!m.webhookId;
 		if (!isHumanOrWebhook) continue;
 		if (DRY_RUN) {
-			const preview = (m.content || m.embeds[0]?.title || "(image)").slice(
-				0,
-				60,
-			);
+			const preview = (m.content || m.embeds[0]?.title || "(image)").slice(0, 60);
 			log(`  · #${ch.name} → ${preview}`);
 			saved++;
 			continue;
@@ -85,8 +76,6 @@ for (const ch of targets) {
 	}
 }
 
-log(
-	`✓ ${saved} annonce(s) ${DRY_RUN ? "détectées (dry-run)" : "enregistrées"}`,
-);
+log(`✓ ${saved} annonce(s) ${DRY_RUN ? "détectées (dry-run)" : "enregistrées"}`);
 await client.destroy();
 process.exit(0);

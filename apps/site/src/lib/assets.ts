@@ -38,12 +38,10 @@ export function getProfileCardUrl(discordId: string, theme?: string): string {
  */
 export function subscribeBotEvents(
 	onEvent: (event: { type: string; data: unknown }) => void,
-	opts?: { types?: string[] },
+	opts?: { types?: string[] }
 ): () => void {
 	if (typeof window === "undefined") {
-		throw new Error(
-			"subscribeBotEvents() must be called from a Client Component",
-		);
+		throw new Error("subscribeBotEvents() must be called from a Client Component");
 	}
 	const url = `${ASSET_BASE}/api/a2a/events${
 		opts?.types?.length ? `?types=${opts.types.join(",")}` : ""

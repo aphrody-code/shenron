@@ -59,7 +59,7 @@ if (opts.help) {
 	console.log(
 		await Bun.file(import.meta.path)
 			.text()
-			.then((s) => s.match(/\/\*\*[\s\S]*?\*\//)?.[0] ?? ""),
+			.then((s) => s.match(/\/\*\*[\s\S]*?\*\//)?.[0] ?? "")
 	);
 	process.exit(0);
 }
@@ -134,9 +134,7 @@ const steps: Step[] = [
 const planned = steps.filter((s) => !s.skip);
 const skipped = steps.filter((s) => s.skip);
 
-console.log(
-	`→ Deploy plan (${planned.length} étape${planned.length > 1 ? "s" : ""}) :`,
-);
+console.log(`→ Deploy plan (${planned.length} étape${planned.length > 1 ? "s" : ""}) :`);
 for (const s of planned) console.log(`  ✓ ${s.name}`);
 if (skipped.length) {
 	console.log(`  (skipped: ${skipped.map((s) => s.name).join(", ")})`);
@@ -152,10 +150,7 @@ for (const step of planned) {
 	Bun.stdout.write(`\n▸ ${step.name}…`);
 	try {
 		const cmd = step.run();
-		if (
-			!VERBOSE &&
-			typeof (cmd as { quiet?: () => unknown }).quiet === "function"
-		) {
+		if (!VERBOSE && typeof (cmd as { quiet?: () => unknown }).quiet === "function") {
 			await (cmd as { quiet: () => Promise<unknown> }).quiet();
 		} else {
 			await cmd;

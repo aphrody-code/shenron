@@ -36,8 +36,8 @@ export default async function AdminGamesPage() {
 			/>
 
 			<p className="text-sm text-white/50 mb-6">
-				Catalogue des jeux vidéo Dragon Ball. Chaque fiche inclut les
-				plateformes, la date de sortie et le studio de développement.
+				Catalogue des jeux vidéo Dragon Ball. Chaque fiche inclut les plateformes, la date de sortie
+				et le studio de développement.
 			</p>
 
 			<div className="flex justify-end mb-6">
@@ -46,12 +46,8 @@ export default async function AdminGamesPage() {
 
 			{games.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
-						Aucun jeu enregistré
-					</p>
-					<p className="text-white/40 text-sm">
-						Les jeux s&apos;affichent ici une fois importés.
-					</p>
+					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">Aucun jeu enregistré</p>
+					<p className="text-white/40 text-sm">Les jeux s&apos;affichent ici une fois importés.</p>
 				</div>
 			) : (
 				<div className="overflow-x-auto">
@@ -114,9 +110,7 @@ export default async function AdminGamesPage() {
 											)}
 										</td>
 										<td className="p-2">
-											<div className="text-sm text-white font-medium">
-												{g.title}
-											</div>
+											<div className="text-sm text-white font-medium">{g.title}</div>
 											{g.title_ja && (
 												<div className="font-jp text-xs text-dbz-yellow/75 mt-0.5">
 													{g.title_ja}
@@ -132,9 +126,7 @@ export default async function AdminGamesPage() {
 													Site officiel
 												</a>
 											)}
-											<div className="text-[10px] text-white/30 font-mono mt-0.5">
-												{g.slug}
-											</div>
+											<div className="text-[10px] text-white/30 font-mono mt-0.5">{g.slug}</div>
 										</td>
 										<td className="p-2">
 											<div className="flex flex-wrap gap-1">
@@ -157,9 +149,7 @@ export default async function AdminGamesPage() {
 												? new Date(g.release_date * 1000).toLocaleDateString("fr-FR")
 												: "—"}
 										</td>
-										<td className="p-2 text-xs text-white/70">
-											{g.developer ?? "—"}
-										</td>
+										<td className="p-2 text-xs text-white/70">{g.developer ?? "—"}</td>
 										<td className="p-2">
 											<DbRowActions table={TABLE} id={g.id} />
 										</td>

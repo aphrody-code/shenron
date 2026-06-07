@@ -37,9 +37,7 @@ export default async function PersonasPage() {
 									/>
 								)}
 								<div className="flex-1">
-									<h2 className="text-3xl font-saiyan text-dbz-yellow">
-										{p.name}
-									</h2>
+									<h2 className="text-3xl font-saiyan text-dbz-yellow">{p.name}</h2>
 									<p className="text-xs font-bold text-dbz-blue-light uppercase tracking-widest mt-1">
 										{role}
 									</p>
@@ -51,29 +49,20 @@ export default async function PersonasPage() {
 
 							<div className="grid grid-cols-3 gap-2 text-center text-xs border-t-2 border-dbz-border pt-3">
 								<div>
-									<div className="font-saiyan text-2xl text-dbz-orange">
-										{p.commandCount}
-									</div>
+									<div className="font-saiyan text-2xl text-dbz-orange">{p.commandCount}</div>
 									<div className="text-gray-500 uppercase">cmds</div>
 								</div>
 								<div>
-									<div className="font-saiyan text-2xl text-dbz-yellow">
-										{p.wsPing}
-									</div>
+									<div className="font-saiyan text-2xl text-dbz-yellow">{p.wsPing}</div>
 									<div className="text-gray-500 uppercase">ms</div>
 								</div>
 								<div>
-									<div className="font-saiyan text-2xl text-dbz-blue-light">
-										{p.guildCount}
-									</div>
+									<div className="font-saiyan text-2xl text-dbz-blue-light">{p.guildCount}</div>
 									<div className="text-gray-500 uppercase">guild</div>
 								</div>
 							</div>
 
-							<Link
-								href={`/commands?persona=${p.id}`}
-								className="mt-4 dbz-button text-center"
-							>
+							<Link href={`/commands?persona=${p.id}`} className="mt-4 dbz-button text-center">
 								DÉCOUVRIR
 							</Link>
 						</article>

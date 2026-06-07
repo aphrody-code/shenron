@@ -10,8 +10,8 @@ import { Bot, Discord, Slash } from "@rpbey/discordy";
 @Discord()
 @Bot("botA") // A bot id is crucial
 export class Example {
-  @Slash({ description: "hello" })
-  async hello(interaction: CommandInteraction): Promise<void> {
-    await interaction.reply("I am bot A.");
-  }
+	@Slash({ description: "hello" })
+	async hello(interaction: CommandInteraction): Promise<void> {
+		await interaction.reply("I am bot A.");
+	}
 }

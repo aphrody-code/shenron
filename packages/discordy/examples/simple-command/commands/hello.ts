@@ -8,10 +8,8 @@ import { Discord, SimpleCommand, type SimpleCommandMessage } from "@rpbey/discor
 
 @Discord()
 export class Example {
-  @SimpleCommand({ aliases: ["hey", "hi"], name: "hello" })
-  async hello(command: SimpleCommandMessage): Promise<void> {
-    await command.message.reply(
-      "This command should work both with `!` and `$` as a prefix.",
-    );
-  }
+	@SimpleCommand({ aliases: ["hey", "hi"], name: "hello" })
+	async hello(command: SimpleCommandMessage): Promise<void> {
+		await command.message.reply("This command should work both with `!` and `$` as a prefix.");
+	}
 }

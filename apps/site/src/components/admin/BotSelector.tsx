@@ -32,9 +32,7 @@ export function useBotId(defaultId = "shenron") {
 
 	useEffect(() => {
 		const onPop = () => {
-			setId(
-				new URLSearchParams(window.location.search).get("bot") ?? defaultId,
-			);
+			setId(new URLSearchParams(window.location.search).get("bot") ?? defaultId);
 		};
 		window.addEventListener("popstate", onPop);
 		return () => window.removeEventListener("popstate", onPop);
@@ -75,10 +73,7 @@ export function BotSelector({ value, onChange, className }: BotSelectorProps) {
 		return (
 			<div className={`flex gap-2 ${className ?? ""}`}>
 				{["a", "b", "c", "d", "e", "f"].map((k) => (
-					<div
-						key={k}
-						className="h-10 w-32 animate-pulse rounded-lg bg-dbz-card"
-					/>
+					<div key={k} className="h-10 w-32 animate-pulse rounded-lg bg-dbz-card" />
 				))}
 			</div>
 		);
@@ -103,7 +98,6 @@ export function BotSelector({ value, onChange, className }: BotSelectorProps) {
 						}`}
 					>
 						{b.avatar ? (
-							 
 							<img
 								src={b.avatar}
 								alt=""
@@ -114,9 +108,7 @@ export function BotSelector({ value, onChange, className }: BotSelectorProps) {
 						)}
 						<span className="font-medium">{b.name}</span>
 						<span
-							className={`h-2 w-2 rounded-full ${
-								b.online ? "bg-emerald-400" : "bg-red-500"
-							}`}
+							className={`h-2 w-2 rounded-full ${b.online ? "bg-emerald-400" : "bg-red-500"}`}
 						/>
 					</button>
 				);

@@ -98,9 +98,7 @@ for (const b of SHOP_BANNERS) {
 		meta: JSON.stringify({ bannerPath: b.bannerPath }),
 		enabled: true,
 	});
-	console.log(
-		`  ✓ ${b.key.padEnd(28)} ${b.price.toString().padStart(5)} ¥ · ${b.name}`,
-	);
+	console.log(`  ✓ ${b.key.padEnd(28)} ${b.price.toString().padStart(5)} ¥ · ${b.name}`);
 }
 
 console.log(`✓ ${SHOP_BANNERS.length} shop banners seeded`);

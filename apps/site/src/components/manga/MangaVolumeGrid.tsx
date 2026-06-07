@@ -82,11 +82,7 @@ const ACHIEVEMENTS: Achievement[] = [
 	},
 ];
 
-export function MangaVolumeGrid({
-	dbVolumes,
-	dbsVolumes,
-	readableChapters,
-}: MangaVolumeGridProps) {
+export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: MangaVolumeGridProps) {
 	const [tab, setTab] = useState<"dbs" | "db" | "scans" | "achievements">("dbs");
 	const [lastRead, setLastRead] = useState<LastReadChapter | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -118,26 +114,17 @@ export function MangaVolumeGrid({
 	const q = searchQuery.toLowerCase().trim();
 	const filteredDbs = dbsVolumes.filter((vol) => {
 		if (!q) return true;
-		return (
-			vol.title?.toLowerCase().includes(q) ||
-			vol.volumeNumber.toString().includes(q)
-		);
+		return vol.title?.toLowerCase().includes(q) || vol.volumeNumber.toString().includes(q);
 	});
 
 	const filteredDb = dbVolumes.filter((vol) => {
 		if (!q) return true;
-		return (
-			vol.title?.toLowerCase().includes(q) ||
-			vol.volumeNumber.toString().includes(q)
-		);
+		return vol.title?.toLowerCase().includes(q) || vol.volumeNumber.toString().includes(q);
 	});
 
 	const filteredChapters = readableChapters.filter((ch) => {
 		if (!q) return true;
-		return (
-			ch.title?.toLowerCase().includes(q) ||
-			ch.chapter_number.toString().includes(q)
-		);
+		return ch.title?.toLowerCase().includes(q) || ch.chapter_number.toString().includes(q);
 	});
 
 	// Métriques de succès
@@ -171,8 +158,11 @@ export function MangaVolumeGrid({
 								REPRENDRE_LA_LECTURE // ACTIVE_SESSION
 							</span>
 							<p className="font-display font-extrabold text-white text-base">
-								{lastRead.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"} · Chapitre {lastRead.chapter_number}
-								{lastRead.title && <span className="text-white/60 font-normal"> — {lastRead.title}</span>}
+								{lastRead.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"} · Chapitre{" "}
+								{lastRead.chapter_number}
+								{lastRead.title && (
+									<span className="text-white/60 font-normal"> — {lastRead.title}</span>
+								)}
 							</p>
 						</div>
 					</div>
@@ -221,7 +211,7 @@ export function MangaVolumeGrid({
 						Succès ({unlockedCount}/{ACHIEVEMENTS.length})
 					</button>
 				</div>
-				
+
 				{tab !== "achievements" && (
 					<div className="relative w-full lg:w-72 flex-shrink-0">
 						<span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-dbz-orange/50">
@@ -371,10 +361,7 @@ export function MangaVolumeGrid({
 									/>
 								) : (
 									<div className="grid h-full w-full place-items-center">
-										<BookOpen
-											className="w-10 h-10 text-dbz-orange/20"
-											aria-hidden="true"
-										/>
+										<BookOpen className="w-10 h-10 text-dbz-orange/20" aria-hidden="true" />
 									</div>
 								)}
 								<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
@@ -405,18 +392,24 @@ export function MangaVolumeGrid({
 							<span className="scouter-text text-xs text-dbz-orange block tracking-wider font-mono">
 								PROFIL_COMBATTANT // LEVEL_METRICS
 							</span>
-							<p className="font-display font-black text-2xl text-white">
-								Statistiques de Lecture
-							</p>
+							<p className="font-display font-black text-2xl text-white">Statistiques de Lecture</p>
 						</div>
 						<div className="grid grid-cols-2 gap-8 text-center md:text-left">
 							<div>
-								<span className="block text-[10px] uppercase text-white/40 tracking-wider font-mono">Chapitres Lus</span>
-								<span className="font-saiyan text-3xl text-dbz-orange tracking-widest leading-none">{totalReadChapters}</span>
+								<span className="block text-[10px] uppercase text-white/40 tracking-wider font-mono">
+									Chapitres Lus
+								</span>
+								<span className="font-saiyan text-3xl text-dbz-orange tracking-widest leading-none">
+									{totalReadChapters}
+								</span>
 							</div>
 							<div>
-								<span className="block text-[10px] uppercase text-white/40 tracking-wider font-mono">Rang Débloqué</span>
-								<span className="font-saiyan text-2xl text-white tracking-widest leading-none block mt-1">{currentRank}</span>
+								<span className="block text-[10px] uppercase text-white/40 tracking-wider font-mono">
+									Rang Débloqué
+								</span>
+								<span className="font-saiyan text-2xl text-white tracking-widest leading-none block mt-1">
+									{currentRank}
+								</span>
 							</div>
 						</div>
 					</div>
@@ -428,18 +421,20 @@ export function MangaVolumeGrid({
 								<div
 									key={ach.id}
 									className={`dbz-panel p-6 border transition-all duration-300 relative overflow-hidden group ${
-										isUnlocked 
-											? "border-dbz-orange/30 bg-dbz-card shadow-[0_0_15px_rgba(255,178,0,0.05)] hover:border-dbz-orange" 
+										isUnlocked
+											? "border-dbz-orange/30 bg-dbz-card shadow-[0_0_15px_rgba(255,178,0,0.05)] hover:border-dbz-orange"
 											: "border-white/5 bg-zinc-950/20 opacity-60"
 									}`}
 								>
 									<div className="absolute inset-0 halftone opacity-5 pointer-events-none" />
 									<div className="relative z-10 flex items-start gap-4">
-										<div className={`p-3 rounded-lg border ${
-											isUnlocked 
-												? "bg-dbz-orange/10 text-dbz-orange border-dbz-orange/20" 
-												: "bg-zinc-900 text-zinc-600 border-zinc-800"
-										}`}>
+										<div
+											className={`p-3 rounded-lg border ${
+												isUnlocked
+													? "bg-dbz-orange/10 text-dbz-orange border-dbz-orange/20"
+													: "bg-zinc-900 text-zinc-600 border-zinc-800"
+											}`}
+										>
 											{isUnlocked ? <Trophy className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
 										</div>
 										<div className="space-y-1 flex-1">
@@ -447,9 +442,13 @@ export function MangaVolumeGrid({
 												<h4 className="font-display font-extrabold text-sm text-white group-hover:text-dbz-orange transition-colors">
 													{ach.title}
 												</h4>
-												<span className={`text-[8px] font-bold px-1.5 py-0.5 rounded font-mono uppercase ${
-													isUnlocked ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-zinc-800 text-zinc-500"
-												}`}>
+												<span
+													className={`text-[8px] font-bold px-1.5 py-0.5 rounded font-mono uppercase ${
+														isUnlocked
+															? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+															: "bg-zinc-800 text-zinc-500"
+													}`}
+												>
 													{isUnlocked ? "Obtenu" : `${totalReadChapters}/${ach.required}`}
 												</span>
 											</div>

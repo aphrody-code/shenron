@@ -18,7 +18,7 @@ export default defineConfig({
 		"ba_account",
 		"ba_verification",
 		"site_events",
-		"user_preferences"
+		"user_preferences",
 	],
 	verbose: true,
 	strict: true,

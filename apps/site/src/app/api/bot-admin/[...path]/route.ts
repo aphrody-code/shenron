@@ -14,10 +14,7 @@ const TOKEN = env.SHENRON_ADMIN_TOKEN ?? "";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function proxy(
-	req: NextRequest,
-	ctx: { params: Promise<{ path: string[] }> },
-) {
+async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
 	if (!(await isCurrentUserAdmin())) {
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}

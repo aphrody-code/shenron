@@ -13,26 +13,19 @@ export default async function AdminPosts() {
 				<div>
 					<h1 className="text-4xl font-saiyan text-dbz-orange">ARTICLES</h1>
 					<p className="text-sm text-white/50 mt-1">
-						Gérez les articles publiés sur le site. Un article publié est
-						visible par tous les visiteurs.
+						Gérez les articles publiés sur le site. Un article publié est visible par tous les
+						visiteurs.
 					</p>
 				</div>
-				<Link
-					href="/admin/posts/new"
-					className="dbz-button !text-base shrink-0"
-				>
+				<Link href="/admin/posts/new" className="dbz-button !text-base shrink-0">
 					Nouvel article
 				</Link>
 			</div>
 
 			{posts.length === 0 ? (
 				<div className="dbz-panel p-8 text-center">
-					<p className="font-saiyan text-dbz-yellow text-xl mb-2">
-						AUCUN ARTICLE
-					</p>
-					<p className="text-sm text-white/40 mb-4">
-						Aucun article n&apos;a encore été créé.
-					</p>
+					<p className="font-saiyan text-dbz-yellow text-xl mb-2">AUCUN ARTICLE</p>
+					<p className="text-sm text-white/40 mb-4">Aucun article n&apos;a encore été créé.</p>
 					<Link href="/admin/posts/new" className="dbz-button !text-sm">
 						Créer le premier article
 					</Link>
@@ -58,10 +51,7 @@ export default async function AdminPosts() {
 						</thead>
 						<tbody className="divide-y-2 divide-dbz-border">
 							{posts.map((post: any) => (
-								<tr
-									key={post.id}
-									className="hover:bg-dbz-blue-light/10 transition-colors group"
-								>
+								<tr key={post.id} className="hover:bg-dbz-blue-light/10 transition-colors group">
 									<td className="p-4 font-bold text-white group-hover:text-dbz-orange transition-colors">
 										{post.title}
 									</td>

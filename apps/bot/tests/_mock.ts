@@ -49,9 +49,7 @@ export interface MockInteraction {
 	client: unknown;
 }
 
-export function makeInteraction(
-	opts: Partial<MockInteraction> = {},
-): MockInteraction {
+export function makeInteraction(opts: Partial<MockInteraction> = {}): MockInteraction {
 	const calls: MockCall[] = [];
 	const fakeMessage: Record<string, unknown> = {
 		id: "msg-id",
@@ -122,18 +120,11 @@ export function makeUser(id = "33333333333333333", username = "target") {
 
 export function assertResponded(int: MockInteraction): void {
 	const responded = int.calls.some((c) =>
-		[
-			"reply",
-			"editReply",
-			"deferReply",
-			"followUp",
-			"showModal",
-			"send",
-		].includes(c.method),
+		["reply", "editReply", "deferReply", "followUp", "showModal", "send"].includes(c.method)
 	);
 	if (!responded) {
 		throw new Error(
-			`No response emitted. Recorded calls: ${int.calls.map((c) => c.method).join(", ") || "(none)"}`,
+			`No response emitted. Recorded calls: ${int.calls.map((c) => c.method).join(", ") || "(none)"}`
 		);
 	}
 }

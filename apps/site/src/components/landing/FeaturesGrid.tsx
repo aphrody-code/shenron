@@ -53,10 +53,7 @@ const FEATURES: Feature[] = [
 	},
 ];
 
-const ACCENT_MAP: Record<
-	Feature["accent"],
-	{ text: string; border: string; glow: string }
-> = {
+const ACCENT_MAP: Record<Feature["accent"], { text: string; border: string; glow: string }> = {
 	fuchsia: {
 		text: "text-dbz-yellow",
 		border: "border-dbz-orange/40",
@@ -84,9 +81,7 @@ export function FeaturesGrid() {
 		<section className="relative py-24 md:py-32 border-b border-dbz-border">
 			<div className="container mx-auto px-4">
 				<div className="text-center mb-16">
-					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">
-						EXPLORER
-					</p>
+					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">EXPLORER</p>
 					<h2 className="title-jagged text-4xl md:text-6xl leading-tight">
 						De quoi faire grimper ton Power Level.
 					</h2>
@@ -114,12 +109,8 @@ export function FeaturesGrid() {
 											{String(i + 1).padStart(2, "0")}
 										</span>
 									</div>
-									<h3 className="font-saiyan text-2xl text-white mb-2 leading-tight">
-										{f.title}
-									</h3>
-									<p className="text-sm text-white/60 leading-relaxed mb-5">
-										{f.desc}
-									</p>
+									<h3 className="font-saiyan text-2xl text-white mb-2 leading-tight">{f.title}</h3>
+									<p className="text-sm text-white/60 leading-relaxed mb-5">{f.desc}</p>
 									<div
 										className={`text-xs font-semibold ${a.text} group-hover:translate-x-1 transition-transform inline-flex items-center gap-1`}
 									>

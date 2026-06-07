@@ -4,26 +4,22 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import {
-  ApplicationCommandOptionType,
-  type Attachment,
-  type CommandInteraction,
-} from "discord.js";
+import { ApplicationCommandOptionType, type Attachment, type CommandInteraction } from "discord.js";
 import { Discord, Slash, SlashOption } from "@rpbey/discordy";
 
 @Discord()
 export class Example {
-  @Slash({ description: "attachment" })
-  async attachment(
-    @SlashOption({
-      description: "image",
-      name: "image",
-      required: true,
-      type: ApplicationCommandOptionType.Attachment,
-    })
-    attachment: Attachment,
-    interaction: CommandInteraction,
-  ): Promise<void> {
-    await interaction.reply(attachment.url);
-  }
+	@Slash({ description: "attachment" })
+	async attachment(
+		@SlashOption({
+			description: "image",
+			name: "image",
+			required: true,
+			type: ApplicationCommandOptionType.Attachment,
+		})
+		attachment: Attachment,
+		interaction: CommandInteraction
+	): Promise<void> {
+		await interaction.reply(attachment.url);
+	}
 }

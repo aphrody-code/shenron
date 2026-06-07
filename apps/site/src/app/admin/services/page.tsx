@@ -33,39 +33,29 @@ export default function ServicesPage() {
 	});
 
 	if (isLoading)
-		return (
-			<div className="text-zinc-500 text-sm">
-				Chargement des fonctionnalités…
-			</div>
-		);
+		return <div className="text-zinc-500 text-sm">Chargement des fonctionnalités…</div>;
 
 	// Regroupe par service
-	const grouped = (data?.actions ?? []).reduce<Record<string, ServiceAction[]>>(
-		(acc, a) => {
-			(acc[a.service] ??= []).push(a);
-			return acc;
-		},
-		{},
-	);
+	const grouped = (data?.actions ?? []).reduce<Record<string, ServiceAction[]>>((acc, a) => {
+		(acc[a.service] ??= []).push(a);
+		return acc;
+	}, {});
 
 	return (
 		<div className="space-y-4">
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 mb-2">
 					<Wrench className="h-5 w-5 text-dbz-orange" />
-					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
-						Fonctionnalités du bot
-					</h2>
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Fonctionnalités du bot</h2>
 				</div>
 				<p className="text-sm text-zinc-300">
-					Chaque fonctionnalité du bot expose des actions que vous pouvez
-					déclencher manuellement depuis ici — sans passer par Discord. Utile
-					pour forcer une mise à jour, recalculer des données ou tester un
-					comportement.
+					Chaque fonctionnalité du bot expose des actions que vous pouvez déclencher manuellement
+					depuis ici — sans passer par Discord. Utile pour forcer une mise à jour, recalculer des
+					données ou tester un comportement.
 				</p>
 				<p className="mt-1 text-xs text-dbz-blue-light">
-					Certaines actions modifient la base de données. Une confirmation vous
-					sera demandée avant exécution.
+					Certaines actions modifient la base de données. Une confirmation vous sera demandée avant
+					exécution.
 				</p>
 			</div>
 
@@ -105,8 +95,7 @@ function ActionRow({ action }: { action: ServiceAction }) {
 			return api.post(`/services/${action.service}/${action.action}`, parsed);
 		},
 		onSuccess: (data) => setResult(JSON.stringify(data, null, 2)),
-		onError: (err) =>
-			setResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
+		onError: (err) => setResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
 	});
 
 	const submit = (e: FormEvent) => {
@@ -117,7 +106,7 @@ function ActionRow({ action }: { action: ServiceAction }) {
 				: `avec le paramètre : ${body.trim().slice(0, 60)}`;
 		if (
 			!confirm(
-				`Exécuter l'action « ${action.action} » du service « ${action.service} » ${bodyPreview} ?\n\nCette action peut modifier des données.`,
+				`Exécuter l'action « ${action.action} » du service « ${action.service} » ${bodyPreview} ?\n\nCette action peut modifier des données.`
 			)
 		)
 			return;
@@ -136,21 +125,15 @@ function ActionRow({ action }: { action: ServiceAction }) {
 					className={`mt-0.5 h-4 w-4 shrink-0 text-dbz-blue-light transition-transform ${open ? "rotate-0" : "-rotate-90"}`}
 				/>
 				<div className="flex-1">
-					<code className="text-sm font-medium text-dbz-orange">
-						{action.action}
-					</code>
+					<code className="text-sm font-medium text-dbz-orange">{action.action}</code>
 					<p className="mt-0.5 text-xs text-zinc-400">{action.description}</p>
 				</div>
 			</button>
 
 			{open && (
-				<form
-					onSubmit={submit}
-					className="space-y-2 border-t border-dbz-border p-3"
-				>
+				<form onSubmit={submit} className="space-y-2 border-t border-dbz-border p-3">
 					<label className="block text-xs text-zinc-400">
-						Paramètres (JSON) — laisser <code>{"{}"}</code> si l'action n'en a
-						pas
+						Paramètres (JSON) — laisser <code>{"{}"}</code> si l'action n'en a pas
 					</label>
 					<textarea
 						className="w-full bg-dbz-bg border border-dbz-border p-2 font-mono text-xs rounded focus:border-dbz-orange outline-none"

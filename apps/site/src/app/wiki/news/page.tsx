@@ -58,9 +58,7 @@ export default async function NewsPage({
 									/>
 								) : (
 									<div className="w-full h-full flex items-center justify-center bg-zinc-900">
-										<span className="text-zinc-700 font-saiyan text-4xl">
-											NEWS
-										</span>
+										<span className="text-zinc-700 font-saiyan text-4xl">NEWS</span>
 									</div>
 								)}
 								<div className="absolute top-4 left-4 z-20">
@@ -81,8 +79,7 @@ export default async function NewsPage({
 									</span>
 									<div className="h-px w-8 bg-dbz-border" />
 									<span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
-										Source:{" "}
-										{new URL(item.source_url).hostname.replace("www.", "")}
+										Source: {new URL(item.source_url).hostname.replace("www.", "")}
 									</span>
 								</div>
 
@@ -103,9 +100,7 @@ export default async function NewsPage({
 									className="dbz-button-ghost self-start group/btn"
 								>
 									<span>Lire l'article</span>
-									<span className="ml-2 group-hover/btn:translate-x-1 transition-transform">
-										→
-									</span>
+									<span className="ml-2 group-hover/btn:translate-x-1 transition-transform">→</span>
 								</a>
 							</div>
 						</article>
@@ -124,21 +119,13 @@ export default async function NewsPage({
 				{(page > 1 || hasMore) && (
 					<nav className="mt-12 flex items-center justify-center gap-4">
 						{page > 1 && (
-							<Link
-								href={`/wiki/news?page=${page - 1}`}
-								className="dbz-button-ghost"
-							>
+							<Link href={`/wiki/news?page=${page - 1}`} className="dbz-button-ghost">
 								← Page précédente
 							</Link>
 						)}
-						<span className="scouter-text text-dbz-orange px-4">
-							PAGE {page}
-						</span>
+						<span className="scouter-text text-dbz-orange px-4">PAGE {page}</span>
 						{hasMore && (
-							<Link
-								href={`/wiki/news?page=${page + 1}`}
-								className="dbz-button-ghost"
-							>
+							<Link href={`/wiki/news?page=${page + 1}`} className="dbz-button-ghost">
 								Page suivante →
 							</Link>
 						)}

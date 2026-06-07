@@ -8,73 +8,33 @@ import { useEventStream } from "./lib/event-stream";
 
 // Pages lazy — code-split par route. Bun bundler génère un chunk par import().
 // Login + Overview restent eager (route critique au boot, ~70% du trafic dashboard).
-const Database = lazy(() =>
-	import("./pages/Database").then((m) => ({ default: m.Database })),
-);
-const TableView = lazy(() =>
-	import("./pages/TableView").then((m) => ({ default: m.TableView })),
-);
-const Cron = lazy(() =>
-	import("./pages/Cron").then((m) => ({ default: m.Cron })),
-);
-const Services = lazy(() =>
-	import("./pages/Services").then((m) => ({ default: m.Services })),
-);
+const Database = lazy(() => import("./pages/Database").then((m) => ({ default: m.Database })));
+const TableView = lazy(() => import("./pages/TableView").then((m) => ({ default: m.TableView })));
+const Cron = lazy(() => import("./pages/Cron").then((m) => ({ default: m.Cron })));
+const Services = lazy(() => import("./pages/Services").then((m) => ({ default: m.Services })));
 const Bot = lazy(() => import("./pages/Bot").then((m) => ({ default: m.Bot })));
-const Stats = lazy(() =>
-	import("./pages/Stats").then((m) => ({ default: m.Stats })),
-);
-const Audit = lazy(() =>
-	import("./pages/Audit").then((m) => ({ default: m.Audit })),
-);
+const Stats = lazy(() => import("./pages/Stats").then((m) => ({ default: m.Stats })));
+const Audit = lazy(() => import("./pages/Audit").then((m) => ({ default: m.Audit })));
 const Moderation = lazy(() =>
-	import("./pages/Moderation").then((m) => ({ default: m.Moderation })),
+	import("./pages/Moderation").then((m) => ({ default: m.Moderation }))
 );
-const Settings = lazy(() =>
-	import("./pages/Settings").then((m) => ({ default: m.Settings })),
-);
-const Logs = lazy(() =>
-	import("./pages/Logs").then((m) => ({ default: m.Logs })),
-);
-const Levels = lazy(() =>
-	import("./pages/Levels").then((m) => ({ default: m.Levels })),
-);
-const Messages = lazy(() =>
-	import("./pages/Messages").then((m) => ({ default: m.Messages })),
-);
-const CanvasPage = lazy(() =>
-	import("./pages/Canvas").then((m) => ({ default: m.CanvasPage })),
-);
-const Profile = lazy(() =>
-	import("./pages/Profile").then((m) => ({ default: m.Profile })),
-);
-const Webhooks = lazy(() =>
-	import("./pages/Webhooks").then((m) => ({ default: m.Webhooks })),
-);
-const Hierarchy = lazy(() =>
-	import("./pages/Hierarchy").then((m) => ({ default: m.Hierarchy })),
-);
-const Tickets = lazy(() =>
-	import("./pages/Tickets").then((m) => ({ default: m.Tickets })),
-);
+const Settings = lazy(() => import("./pages/Settings").then((m) => ({ default: m.Settings })));
+const Logs = lazy(() => import("./pages/Logs").then((m) => ({ default: m.Logs })));
+const Levels = lazy(() => import("./pages/Levels").then((m) => ({ default: m.Levels })));
+const Messages = lazy(() => import("./pages/Messages").then((m) => ({ default: m.Messages })));
+const CanvasPage = lazy(() => import("./pages/Canvas").then((m) => ({ default: m.CanvasPage })));
+const Profile = lazy(() => import("./pages/Profile").then((m) => ({ default: m.Profile })));
+const Webhooks = lazy(() => import("./pages/Webhooks").then((m) => ({ default: m.Webhooks })));
+const Hierarchy = lazy(() => import("./pages/Hierarchy").then((m) => ({ default: m.Hierarchy })));
+const Tickets = lazy(() => import("./pages/Tickets").then((m) => ({ default: m.Tickets })));
 const AuditInternal = lazy(() =>
-	import("./pages/AuditInternal").then((m) => ({ default: m.AuditInternal })),
+	import("./pages/AuditInternal").then((m) => ({ default: m.AuditInternal }))
 );
-const Shop = lazy(() =>
-	import("./pages/Shop").then((m) => ({ default: m.Shop })),
-);
-const Triggers = lazy(() =>
-	import("./pages/Triggers").then((m) => ({ default: m.Triggers })),
-);
-const Commands = lazy(() =>
-	import("./pages/Commands").then((m) => ({ default: m.Commands })),
-);
-const Giveaways = lazy(() =>
-	import("./pages/Giveaways").then((m) => ({ default: m.Giveaways })),
-);
-const Economy = lazy(() =>
-	import("./pages/Economy").then((m) => ({ default: m.Economy })),
-);
+const Shop = lazy(() => import("./pages/Shop").then((m) => ({ default: m.Shop })));
+const Triggers = lazy(() => import("./pages/Triggers").then((m) => ({ default: m.Triggers })));
+const Commands = lazy(() => import("./pages/Commands").then((m) => ({ default: m.Commands })));
+const Giveaways = lazy(() => import("./pages/Giveaways").then((m) => ({ default: m.Giveaways })));
+const Economy = lazy(() => import("./pages/Economy").then((m) => ({ default: m.Economy })));
 
 interface SessionUser {
 	id?: string;
@@ -115,7 +75,7 @@ export function App() {
 					authenticated: r.authenticated,
 					user: r.user,
 					checkedAt: Date.now(),
-				}),
+				})
 			)
 			.catch(() => setSession({ authenticated: false, checkedAt: Date.now() }));
 	}, []);
@@ -129,13 +89,7 @@ export function App() {
 	}
 
 	if (!session.authenticated) {
-		return (
-			<Login
-				onLogin={() =>
-					setSession({ authenticated: true, checkedAt: Date.now() })
-				}
-			/>
-		);
+		return <Login onLogin={() => setSession({ authenticated: true, checkedAt: Date.now() })} />;
 	}
 
 	const navigate = (path: string) => {
@@ -146,9 +100,7 @@ export function App() {
 	return (
 		<>
 			<Layout route={route} navigate={navigate}>
-				<Suspense fallback={PageFallback}>
-					{renderRoute(route, navigate)}
-				</Suspense>
+				<Suspense fallback={PageFallback}>{renderRoute(route, navigate)}</Suspense>
 			</Layout>
 			<DiscordLoginPrompt visible={session.user?.source === "token"} />
 		</>

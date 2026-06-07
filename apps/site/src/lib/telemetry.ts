@@ -21,11 +21,7 @@
  * n'importe quel Client Component ou handler d'event.
  */
 import { track as vercelTrack } from "@vercel/analytics";
-import {
-	type ConsentState,
-	getConsent,
-	onConsentChange,
-} from "@/lib/consent";
+import { type ConsentState, getConsent, onConsentChange } from "@/lib/consent";
 
 // --- Union typée des events du site -----------------------------------------
 
@@ -90,9 +86,7 @@ function isDoNotTrack(): boolean {
 		msDoNotTrack?: string;
 	};
 	const dnt =
-		nav.doNotTrack ??
-		(window as unknown as { doNotTrack?: string }).doNotTrack ??
-		nav.msDoNotTrack;
+		nav.doNotTrack ?? (window as unknown as { doNotTrack?: string }).doNotTrack ?? nav.msDoNotTrack;
 	return dnt === "1" || dnt === "yes";
 }
 
@@ -123,10 +117,7 @@ function getSessionId(): string {
 		if (raw) {
 			const parsed = JSON.parse(raw) as { id: string; at: number };
 			if (now - parsed.at < SESSION_TTL) {
-				sessionStorage.setItem(
-					SESSION_KEY,
-					JSON.stringify({ id: parsed.id, at: now }),
-				);
+				sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id: parsed.id, at: now }));
 				return parsed.id;
 			}
 		}
@@ -152,17 +143,12 @@ function pushDataLayer(name: AnyEventName, props: Record<string, unknown>): void
 
 /** Vercel Analytics : ne garde que les props scalaires (contrainte API). */
 function toScalarProps(
-	props: Record<string, unknown>,
+	props: Record<string, unknown>
 ): Record<string, string | number | boolean | null> {
 	const out: Record<string, string | number | boolean | null> = {};
 	for (const [k, v] of Object.entries(props)) {
 		if (v == null) out[k] = null;
-		else if (
-			typeof v === "string" ||
-			typeof v === "number" ||
-			typeof v === "boolean"
-		)
-			out[k] = v;
+		else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") out[k] = v;
 		else out[k] = String(v);
 	}
 	return out;
@@ -241,10 +227,7 @@ if (isBrowser) {
  * track("wiki_view", { entityType: "character", entityId: 42, entityName: "Goku" });
  * track("search", { query: "kamehameha", resultCount: 7 });
  */
-export function track<N extends AnyEventName>(
-	name: N,
-	props?: Record<string, unknown>,
-): void {
+export function track<N extends AnyEventName>(name: N, props?: Record<string, unknown>): void {
 	if (!isBrowser) return;
 	if (!canTrack()) return;
 
@@ -252,10 +235,8 @@ export function track<N extends AnyEventName>(
 	const path = window.location.pathname;
 	const referrer = document.referrer || null;
 	const sessionId = getSessionId();
-	const entityType =
-		typeof p.entityType === "string" ? p.entityType : null;
-	const entityId =
-		p.entityId != null ? String(p.entityId) : null;
+	const entityType = typeof p.entityType === "string" ? p.entityType : null;
+	const entityId = p.entityId != null ? String(p.entityId) : null;
 
 	// 1) Vercel Web Analytics (custom event).
 	try {
@@ -283,12 +264,9 @@ export function track<N extends AnyEventName>(
 
 /** Helper RSC-friendly : émet une `wiki_view` typée (sucre sur `track`). */
 export function trackWikiView(
-	entityType: Extract<
-		TelemetryEvent,
-		{ name: "wiki_view" }
-	>["props"]["entityType"],
+	entityType: Extract<TelemetryEvent, { name: "wiki_view" }>["props"]["entityType"],
 	entityId: string | number,
-	extra?: { entityName?: string; series?: string },
+	extra?: { entityName?: string; series?: string }
 ): void {
 	track("wiki_view", { entityType, entityId, ...extra });
 }

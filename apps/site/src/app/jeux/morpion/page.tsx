@@ -5,11 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default function MorpionPlayPage() {
 	return (
-		<GamePageLayout
-			path="/jeux/morpion"
-			title="MORPION"
-			subtitle={(u) => `${u} (X) ❯ VS BOT (O)`}
-		>
+		<GamePageLayout path="/jeux/morpion" title="MORPION" subtitle={(u) => `${u} (X) ❯ VS BOT (O)`}>
 			<MorpionGame />
 		</GamePageLayout>
 	);

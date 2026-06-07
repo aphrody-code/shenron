@@ -7,15 +7,15 @@
 import { type ClassMethodDecorator, Modifier } from "@rpbey/internal";
 
 import {
-  DApplicationCommand,
-  DComponent,
-  DDiscord,
-  DGuard,
-  DOn,
-  DReaction,
-  DSimpleCommand,
-  type GuardFunction,
-  MetadataStorage,
+	DApplicationCommand,
+	DComponent,
+	DDiscord,
+	DGuard,
+	DOn,
+	DReaction,
+	DSimpleCommand,
+	type GuardFunction,
+	MetadataStorage,
 } from "../../index.js";
 import type { Method } from "../classes/Method.js";
 
@@ -29,33 +29,25 @@ import type { Method } from "../classes/Method.js";
  */
 
 export function Guard<Type = any, DataType = any>(
-  ...fns: GuardFunction<Type, DataType>[]
+	...fns: GuardFunction<Type, DataType>[]
 ): ClassMethodDecorator {
-  return (
-    target: Record<string, any>,
-    key?: string,
-    descriptor?: PropertyDescriptor,
-  ) => {
-    const guards = fns.map((fn) => {
-      return DGuard.create(fn as () => unknown).attachToTarget(
-        target,
-        key,
-        descriptor,
-      );
-    });
+	return (target: Record<string, any>, key?: string, descriptor?: PropertyDescriptor) => {
+		const guards = fns.map((fn) => {
+			return DGuard.create(fn as () => unknown).attachToTarget(target, key, descriptor);
+		});
 
-    MetadataStorage.instance.addModifier(
-      Modifier.create<Method | DDiscord>(
-        (original) => {
-          original.guards = guards;
-        },
-        DComponent,
-        DApplicationCommand,
-        DSimpleCommand,
-        DOn,
-        DDiscord,
-        DReaction,
-      ).attachToTarget(target, key, descriptor),
-    );
-  };
+		MetadataStorage.instance.addModifier(
+			Modifier.create<Method | DDiscord>(
+				(original) => {
+					original.guards = guards;
+				},
+				DComponent,
+				DApplicationCommand,
+				DSimpleCommand,
+				DOn,
+				DDiscord,
+				DReaction
+			).attachToTarget(target, key, descriptor)
+		);
+	};
 }

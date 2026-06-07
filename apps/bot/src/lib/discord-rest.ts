@@ -19,99 +19,99 @@ const API = "https://discord.com/api/v10";
 export type AuthMode = "Bot" | "Bearer";
 
 export interface RateLimitInfo {
-  bucket: string | null;
-  remaining: number | null;
-  resetAfter: number | null; // secondes
-  scope: "user" | "shared" | "global" | null;
+	bucket: string | null;
+	remaining: number | null;
+	resetAfter: number | null; // secondes
+	scope: "user" | "shared" | "global" | null;
 }
 
 export interface DiscordResponse<T> {
-  data: T;
-  rateLimit: RateLimitInfo;
+	data: T;
+	rateLimit: RateLimitInfo;
 }
 
 export class DiscordRESTError extends Error {
-  constructor(
-    public status: number,
-    public code: number | null,
-    message: string,
-    public retryAfter?: number,
-  ) {
-    super(message);
-  }
+	constructor(
+		public status: number,
+		public code: number | null,
+		message: string,
+		public retryAfter?: number
+	) {
+		super(message);
+	}
 }
 
 function parseRateLimit(res: Response): RateLimitInfo {
-  return {
-    bucket: res.headers.get("X-RateLimit-Bucket"),
-    remaining: numOrNull(res.headers.get("X-RateLimit-Remaining")),
-    resetAfter: numOrNull(res.headers.get("X-RateLimit-Reset-After")),
-    scope: (res.headers.get("X-RateLimit-Scope") as RateLimitInfo["scope"]) ?? null,
-  };
+	return {
+		bucket: res.headers.get("X-RateLimit-Bucket"),
+		remaining: numOrNull(res.headers.get("X-RateLimit-Remaining")),
+		resetAfter: numOrNull(res.headers.get("X-RateLimit-Reset-After")),
+		scope: (res.headers.get("X-RateLimit-Scope") as RateLimitInfo["scope"]) ?? null,
+	};
 }
 
 function numOrNull(s: string | null): number | null {
-  if (s == null) return null;
-  const n = Number(s);
-  return Number.isFinite(n) ? n : null;
+	if (s == null) return null;
+	const n = Number(s);
+	return Number.isFinite(n) ? n : null;
 }
 
 export async function discordFetch<T = unknown>(
-  path: string,
-  opts: { mode: AuthMode; token?: string; method?: string; body?: unknown } = { mode: "Bot" },
+	path: string,
+	opts: { mode: AuthMode; token?: string; method?: string; body?: unknown } = { mode: "Bot" }
 ): Promise<DiscordResponse<T>> {
-  if (!path.startsWith("/")) path = "/" + path;
-  const url = `${API}${path}`;
-  const headers: Record<string, string> = {};
+	if (!path.startsWith("/")) path = "/" + path;
+	const url = `${API}${path}`;
+	const headers: Record<string, string> = {};
 
-  if (opts.mode === "Bot") {
-    if (!env.DISCORD_TOKEN) throw new DiscordRESTError(500, null, "DISCORD_TOKEN absent");
-    headers["Authorization"] = `Bot ${env.DISCORD_TOKEN}`;
-  } else {
-    if (!opts.token) throw new DiscordRESTError(401, null, "access_token requis");
-    headers["Authorization"] = `Bearer ${opts.token}`;
-  }
-  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+	if (opts.mode === "Bot") {
+		if (!env.DISCORD_TOKEN) throw new DiscordRESTError(500, null, "DISCORD_TOKEN absent");
+		headers["Authorization"] = `Bot ${env.DISCORD_TOKEN}`;
+	} else {
+		if (!opts.token) throw new DiscordRESTError(401, null, "access_token requis");
+		headers["Authorization"] = `Bearer ${opts.token}`;
+	}
+	if (opts.body !== undefined) headers["Content-Type"] = "application/json";
 
-  let res = await fetch(url, {
-    method: opts.method ?? "GET",
-    headers,
-    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-  });
+	let res = await fetch(url, {
+		method: opts.method ?? "GET",
+		headers,
+		body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+	});
 
-  // 429 → un retry après `retry_after` (cap 5s pour ne pas bloquer la requête du dashboard)
-  if (res.status === 429) {
-    const body = (await res.json().catch(() => ({}))) as { retry_after?: number; global?: boolean };
-    const wait = Math.min(5, body.retry_after ?? 1);
-    logger.warn(
-      { path, retryAfter: body.retry_after, global: body.global },
-      "Discord 429 — retry après",
-    );
-    await new Promise((r) => setTimeout(r, wait * 1000));
-    res = await fetch(url, {
-      method: opts.method ?? "GET",
-      headers,
-      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-    });
-  }
+	// 429 → un retry après `retry_after` (cap 5s pour ne pas bloquer la requête du dashboard)
+	if (res.status === 429) {
+		const body = (await res.json().catch(() => ({}))) as { retry_after?: number; global?: boolean };
+		const wait = Math.min(5, body.retry_after ?? 1);
+		logger.warn(
+			{ path, retryAfter: body.retry_after, global: body.global },
+			"Discord 429 — retry après"
+		);
+		await new Promise((r) => setTimeout(r, wait * 1000));
+		res = await fetch(url, {
+			method: opts.method ?? "GET",
+			headers,
+			body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+		});
+	}
 
-  const rl = parseRateLimit(res);
+	const rl = parseRateLimit(res);
 
-  if (!res.ok) {
-    const errBody = (await res.json().catch(() => ({}))) as {
-      message?: string;
-      code?: number;
-      retry_after?: number;
-    };
-    throw new DiscordRESTError(
-      res.status,
-      errBody.code ?? null,
-      errBody.message ?? `HTTP ${res.status}`,
-      errBody.retry_after,
-    );
-  }
+	if (!res.ok) {
+		const errBody = (await res.json().catch(() => ({}))) as {
+			message?: string;
+			code?: number;
+			retry_after?: number;
+		};
+		throw new DiscordRESTError(
+			res.status,
+			errBody.code ?? null,
+			errBody.message ?? `HTTP ${res.status}`,
+			errBody.retry_after
+		);
+	}
 
-  // 204 No Content
-  if (res.status === 204) return { data: undefined as T, rateLimit: rl };
-  return { data: (await res.json()) as T, rateLimit: rl };
+	// 204 No Content
+	if (res.status === 204) return { data: undefined as T, rateLimit: rl };
+	return { data: (await res.json()) as T, rateLimit: rl };
 }

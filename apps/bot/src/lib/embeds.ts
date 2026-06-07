@@ -9,12 +9,7 @@
  *   • Info     → 0x5865f2 (blurple)
  *   • Brand    → 0xfbbf24 (amber, identité shenron)
  */
-import {
-	EmbedBuilder,
-	type ColorResolvable,
-	type GuildMember,
-	type User,
-} from "discord.js";
+import { EmbedBuilder, type ColorResolvable, type GuildMember, type User } from "discord.js";
 
 export const COLORS = {
 	success: 0x57f287,
@@ -59,24 +54,15 @@ export function brandedEmbed(opts: {
 	return e;
 }
 
-export function successEmbed(
-	message: string,
-	description?: string,
-): EmbedBuilder {
+export function successEmbed(message: string, description?: string): EmbedBuilder {
 	return brandedEmbed({ title: `✅ ${message}`, description, kind: "success" });
 }
 
-export function errorEmbed(
-	message: string,
-	description?: string,
-): EmbedBuilder {
+export function errorEmbed(message: string, description?: string): EmbedBuilder {
 	return brandedEmbed({ title: `❌ ${message}`, description, kind: "error" });
 }
 
-export function warningEmbed(
-	message: string,
-	description?: string,
-): EmbedBuilder {
+export function warningEmbed(message: string, description?: string): EmbedBuilder {
 	return brandedEmbed({ title: `⚠️ ${message}`, description, kind: "warning" });
 }
 
@@ -131,7 +117,7 @@ export function levelUpEmbed(opts: {
 		.setThumbnail(member.displayAvatarURL({ size: 256 }))
 		.addFields(
 			{ name: "Niveau", value: `**${level}**`, inline: true },
-			{ name: "XP total", value: xp.toLocaleString("fr-FR"), inline: true },
+			{ name: "XP total", value: xp.toLocaleString("fr-FR"), inline: true }
 		)
 		.setTimestamp()
 		.setFooter(FOOTER_DBZ);
@@ -222,9 +208,7 @@ export function joinLeaveEmbed(opts: {
 			name: user.username,
 			iconURL: user.displayAvatarURL({ size: 128 }),
 		})
-		.setTitle(
-			kind === "join" ? "🌟 Nouveau combattant !" : "👋 Au revoir guerrier",
-		)
+		.setTitle(kind === "join" ? "🌟 Nouveau combattant !" : "👋 Au revoir guerrier")
 		.setDescription(message ?? `<@${user.id}>`)
 		.setThumbnail(user.displayAvatarURL({ size: 256 }))
 		.setTimestamp()
@@ -295,8 +279,7 @@ export function sanctionLogEmbed(opts: {
 	};
 	const { line, color } = phrase[action];
 	const embed = new EmbedBuilder().setColor(color).setDescription(line);
-	if (gifUrl && /^(https:\/\/|attachment:\/\/)/i.test(gifUrl))
-		embed.setImage(gifUrl);
+	if (gifUrl && /^(https:\/\/|attachment:\/\/)/i.test(gifUrl)) embed.setImage(gifUrl);
 	return embed;
 }
 
@@ -313,9 +296,7 @@ export function sanctionEmbed(opts: {
 	const isUndo = action.startsWith("un");
 	const embed = new EmbedBuilder()
 		.setColor(isUndo ? COLORS.success : DBZ_COLORS.power)
-		.setTitle(
-			`${SANCTION_EMOJI[action]} ${action.charAt(0).toUpperCase() + action.slice(1)}`,
-		)
+		.setTitle(`${SANCTION_EMOJI[action]} ${action.charAt(0).toUpperCase() + action.slice(1)}`)
 		.setDescription(`<@${target.id}>`)
 		.addFields(
 			{ name: "Modérateur", value: `<@${moderator.id}>`, inline: true },
@@ -323,14 +304,12 @@ export function sanctionEmbed(opts: {
 				name: "Cible",
 				value: `${target.username} \`${target.id}\``,
 				inline: true,
-			},
+			}
 		)
 		.setTimestamp()
 		.setFooter(FOOTER_DBZ);
 	if (reason) embed.addFields({ name: "Motif", value: reason });
-	if (duration)
-		embed.addFields({ name: "Durée", value: duration, inline: true });
-	if (gifUrl && /^(https:\/\/|attachment:\/\/)/i.test(gifUrl))
-		embed.setImage(gifUrl);
+	if (duration) embed.addFields({ name: "Durée", value: duration, inline: true });
+	if (gifUrl && /^(https:\/\/|attachment:\/\/)/i.test(gifUrl)) embed.setImage(gifUrl);
 	return embed;
 }

@@ -54,7 +54,7 @@ export class CommandPermissionsService {
 
 	constructor(
 		@inject(DatabaseService) private dbs: DatabaseService,
-		@inject(EventBusService) private bus: EventBusService,
+		@inject(EventBusService) private bus: EventBusService
 	) {}
 
 	private async refresh(): Promise<void> {
@@ -95,11 +95,7 @@ export class CommandPermissionsService {
 	 * @param userId ID du membre.
 	 * @param userRoleIds liste des rôles du membre dans la guild.
 	 */
-	async check(
-		name: string,
-		userId: string,
-		userRoleIds: readonly string[],
-	): Promise<CheckResult> {
+	async check(name: string, userId: string, userRoleIds: readonly string[]): Promise<CheckResult> {
 		const rule = await this.resolve(name);
 		if (!rule) return { allowed: true };
 

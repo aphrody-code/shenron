@@ -21,8 +21,7 @@ export function PageHeader({
 			<h1
 				className={`text-dbz-yellow ${size === "lg" ? "text-5xl md:text-7xl mb-4" : "text-5xl mb-2"}`}
 				style={{
-					textShadow:
-						"4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
+					textShadow: "4px 4px 0px rgba(255, 107, 26, 0.6), 0 0 24px rgba(75, 168, 255, 0.3)",
 				}}
 			>
 				{title}
@@ -33,9 +32,7 @@ export function PageHeader({
 						{subtitle}
 					</p>
 				) : (
-					<p className="font-scouter text-xs tracking-[0.3em] text-dbz-blue-light">
-						{subtitle}
-					</p>
+					<p className="font-scouter text-xs tracking-[0.3em] text-dbz-blue-light">{subtitle}</p>
 				))}
 		</header>
 	);

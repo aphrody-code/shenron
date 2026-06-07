@@ -10,10 +10,8 @@ import { Bot, Discord, Slash } from "@rpbey/discordy";
 @Discord()
 @Bot("botA", "botB") // A bot id is crucial
 export class Example {
-  @Slash({ description: "shared" })
-  async shared(interaction: CommandInteraction): Promise<void> {
-    await interaction.reply(
-      "This is a shared command and can be used by both bots",
-    );
-  }
+	@Slash({ description: "shared" })
+	async shared(interaction: CommandInteraction): Promise<void> {
+		await interaction.reply("This is a shared command and can be used by both bots");
+	}
 }

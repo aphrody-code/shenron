@@ -21,9 +21,7 @@ import { env } from "~/lib/env";
 import { levelForXP } from "~/lib/xp";
 
 const DRY = process.argv.includes("--dry");
-const GUILD_ID =
-	process.argv.find((a) => a.startsWith("--guild="))?.split("=")[1] ??
-	env.GUILD_ID;
+const GUILD_ID = process.argv.find((a) => a.startsWith("--guild="))?.split("=")[1] ?? env.GUILD_ID;
 const BOT_TOKEN = env.DISCORD_TOKEN_KAIO ?? env.DISCORD_TOKEN_SHENRON;
 
 if (!BOT_TOKEN) {
@@ -34,10 +32,7 @@ if (!BOT_TOKEN) {
 const dbs = container.resolve(DatabaseService);
 const db = dbs.db;
 
-const rewards = await db
-	.select()
-	.from(levelRewards)
-	.orderBy(levelRewards.level);
+const rewards = await db.select().from(levelRewards).orderBy(levelRewards.level);
 console.log(`Loaded ${rewards.length} level rewards`);
 if (rewards.length === 0) {
 	console.error("No level_rewards in DB. Configure via /admin/levels first.");
@@ -61,9 +56,7 @@ await guild.members.fetch();
 console.log(`Cached ${guild.members.cache.size} members`);
 
 const me = guild.members.me!;
-console.log(
-	`Bot highest role: ${me.roles.highest.name} (position ${me.roles.highest.position})`,
-);
+console.log(`Bot highest role: ${me.roles.highest.name} (position ${me.roles.highest.position})`);
 
 let added = 0;
 let skipped = 0;
@@ -90,9 +83,7 @@ for (const user of allUsers) {
 		}
 		const role = guild.roles.cache.get(reward.roleId);
 		if (!role) {
-			console.log(
-				`  ⚠ role ${reward.roleId} introuvable (level ${reward.level})`,
-			);
+			console.log(`  ⚠ role ${reward.roleId} introuvable (level ${reward.level})`);
 			skipped++;
 			continue;
 		}
@@ -102,14 +93,12 @@ for (const user of allUsers) {
 			continue;
 		}
 		if (DRY) {
-			console.log(
-				`  [DRY] would add ${role.name} to ${member.user.username} (lvl ${targetLevel})`,
-			);
+			console.log(`  [DRY] would add ${role.name} to ${member.user.username} (lvl ${targetLevel})`);
 		} else {
 			try {
 				await member.roles.add(reward.roleId, `Reconcile level ${targetLevel}`);
 				console.log(
-					`  ✓ +${role.name} → ${member.user.username} (lvl ${targetLevel}, xp ${user.xp})`,
+					`  ✓ +${role.name} → ${member.user.username} (lvl ${targetLevel}, xp ${user.xp})`
 				);
 				added++;
 				await new Promise((r) => setTimeout(r, 200)); // rate-limit

@@ -7,14 +7,14 @@
 import { type ClassMethodDecorator, Modifier } from "@rpbey/internal";
 
 import {
-  DApplicationCommand,
-  DComponent,
-  DDiscord,
-  DOn,
-  DReaction,
-  DSimpleCommand,
-  MetadataStorage,
-  type NotEmpty,
+	DApplicationCommand,
+	DComponent,
+	DDiscord,
+	DOn,
+	DReaction,
+	DSimpleCommand,
+	MetadataStorage,
+	type NotEmpty,
 } from "../../index.js";
 
 /**
@@ -55,44 +55,36 @@ export function Bot(...botIds: string[]): ClassMethodDecorator;
  * @category Decorator
  */
 export function Bot(...botIds: string[]): ClassMethodDecorator {
-  return (target, key, descriptor) => {
-    MetadataStorage.instance.addModifier(
-      Modifier.create<
-        | DApplicationCommand
-        | DSimpleCommand
-        | DDiscord
-        | DComponent
-        | DOn
-        | DReaction
-      >(
-        (original) => {
-          original.botIds = [
-            ...original.botIds,
-            ...botIds.filter((botId) => !original.botIds.includes(botId)),
-          ];
+	return (target, key, descriptor) => {
+		MetadataStorage.instance.addModifier(
+			Modifier.create<
+				DApplicationCommand | DSimpleCommand | DDiscord | DComponent | DOn | DReaction
+			>(
+				(original) => {
+					original.botIds = [
+						...original.botIds,
+						...botIds.filter((botId) => !original.botIds.includes(botId)),
+					];
 
-          if (original instanceof DDiscord) {
-            [
-              ...original.applicationCommands,
-              ...original.simpleCommands,
-              ...original.buttons,
-              ...original.selectMenus,
-              ...original.events,
-            ].forEach((ob) => {
-              ob.botIds = [
-                ...ob.botIds,
-                ...botIds.filter((botId) => !ob.botIds.includes(botId)),
-              ];
-            });
-          }
-        },
-        DApplicationCommand,
-        DSimpleCommand,
-        DDiscord,
-        DComponent,
-        DOn,
-        DReaction,
-      ).attachToTarget(target, key, descriptor),
-    );
-  };
+					if (original instanceof DDiscord) {
+						[
+							...original.applicationCommands,
+							...original.simpleCommands,
+							...original.buttons,
+							...original.selectMenus,
+							...original.events,
+						].forEach((ob) => {
+							ob.botIds = [...ob.botIds, ...botIds.filter((botId) => !ob.botIds.includes(botId))];
+						});
+					}
+				},
+				DApplicationCommand,
+				DSimpleCommand,
+				DDiscord,
+				DComponent,
+				DOn,
+				DReaction
+			).attachToTarget(target, key, descriptor)
+		);
+	};
 }

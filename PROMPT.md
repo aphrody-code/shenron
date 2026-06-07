@@ -51,20 +51,21 @@ Conversation Discord entre Yoyo (dev) et Omar / kazu_solo (admin DBFR). Demandes
 
 #### Pages publiques
 
-| Route | Contenu |
-|---|---|
-| `/` | Blog feed (10/page, tri date desc, cover + excerpt + auteur + date) |
-| `/post/[slug]` | Article markdown rendu (`react-markdown` + `remark-gfm`) + commentaires (auth requis) |
-| `/wiki` | Arbre catégories/sous-catégories paramétrable, sidebar nav |
-| `/wiki/[...slug]` | Page wiki rendue, breadcrumb |
-| `/about` | Page MDX statique courte |
-| `/shop` | Vitrine items (read `GET /api/public/shop` shenron). Achat reste sur Discord. |
+| Route                                 | Contenu                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `/`                                   | Blog feed (10/page, tri date desc, cover + excerpt + auteur + date)                                     |
+| `/post/[slug]`                        | Article markdown rendu (`react-markdown` + `remark-gfm`) + commentaires (auth requis)                   |
+| `/wiki`                               | Arbre catégories/sous-catégories paramétrable, sidebar nav                                              |
+| `/wiki/[...slug]`                     | Page wiki rendue, breadcrumb                                                                            |
+| `/about`                              | Page MDX statique courte                                                                                |
+| `/shop`                               | Vitrine items (read `GET /api/public/shop` shenron). Achat reste sur Discord.                           |
 | `/profil/me` ou `/profil/[discordId]` | Profil mirror Discord : XP, zéni, level, bannière, succès, inventaire (read `GET /api/public/user/:id`) |
-| `/admin/*` | CMS posts + wiki + catégories (guard role admin) |
+| `/admin/*`                            | CMS posts + wiki + catégories (guard role admin)                                                        |
 
 #### Composant global
 
 **`<DiscordInviteFAB />`** : bouton flottant `bottom-left`, présent sur toutes pages.
+
 - CTA : "Rejoindre le Discord" → `https://discord.gg/<INVITE>`.
 - `❌` top-right du FAB pour dismiss.
 - Persistance `localStorage.dbfr_fab_dismissed`.

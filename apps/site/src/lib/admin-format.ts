@@ -92,9 +92,7 @@ export function fmtDurationVerbose(ms: number | null | undefined): string {
 	const h = Math.floor(m / 60);
 	const rm = m % 60;
 	if (h < 24) {
-		return rm > 0
-			? `${h} heure${h > 1 ? "s" : ""} ${rm} min`
-			: `${h} heure${h > 1 ? "s" : ""}`;
+		return rm > 0 ? `${h} heure${h > 1 ? "s" : ""} ${rm} min` : `${h} heure${h > 1 ? "s" : ""}`;
 	}
 	const jours = Math.floor(h / 24);
 	const rh = h % 24;
@@ -107,9 +105,7 @@ export function fmtDurationVerbose(ms: number | null | undefined): string {
  * Version étendue de formatRelative — inclut les secondes et le pluriel correct.
  * Ex : "il y a 3 minutes", "dans 2 heures", "il y a 1 jour"
  */
-export function fmtRelativeVerbose(
-	value: number | string | null | undefined,
-): string {
+export function fmtRelativeVerbose(value: number | string | null | undefined): string {
 	if (!value) return "—";
 	const ts = typeof value === "string" ? new Date(value).getTime() : value;
 	if (Number.isNaN(ts)) return "—";

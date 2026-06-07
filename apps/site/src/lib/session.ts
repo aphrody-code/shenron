@@ -27,9 +27,7 @@ export type CurrentUser = {
  * chaque requête (pas seulement à la création) → robuste aux changements d'env.
  */
 function resolveRoleAdmin(discordId: string): boolean {
-	return (
-		discordId === env.OWNER_ID || env.OAUTH_ALLOWED_USERS.includes(discordId)
-	);
+	return discordId === env.OWNER_ID || env.OAUTH_ALLOWED_USERS.includes(discordId);
 }
 
 // Mémoïsation in-process de la jointure ba_account→users, par sessionUserId.
@@ -51,12 +49,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		.select({ account: baAccount, user: users })
 		.from(baAccount)
 		.leftJoin(users, eq(users.discordId, baAccount.accountId))
-		.where(
-			and(
-				eq(baAccount.userId, session.user.id),
-				eq(baAccount.providerId, "discord"),
-			),
-		)
+		.where(and(eq(baAccount.userId, session.user.id), eq(baAccount.providerId, "discord")))
 		.limit(1);
 
 	// Session valide mais compte pas encore lié (race au tout premier login) :
@@ -118,17 +111,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export async function requireUser(callbackURL?: string): Promise<CurrentUser> {
 	const me = await getCurrentUser();
 	if (!me) {
-		const cb = callbackURL
-			? `?callbackURL=${encodeURIComponent(callbackURL)}`
-			: "";
+		const cb = callbackURL ? `?callbackURL=${encodeURIComponent(callbackURL)}` : "";
 		redirect(`/signin${cb}`);
 	}
 	return me;
 }
 
-export async function requireAdmin(): Promise<
-	CurrentUser & { user: SiteUser }
-> {
+export async function requireAdmin(): Promise<CurrentUser & { user: SiteUser }> {
 	const me = await requireUser();
 	if (!me.user?.roleAdmin) redirect("/");
 	return me as CurrentUser & { user: SiteUser };

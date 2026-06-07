@@ -5,12 +5,7 @@
  * Rate-limit : 3 req/s — délai 400ms entre requêtes.
  */
 import { db } from "./_db";
-import {
-	dbEpisodes,
-	dbMovies,
-	dbMangaVolumes,
-	dbMangaChapters,
-} from "../../src/db/schema";
+import { dbEpisodes, dbMovies, dbMangaVolumes, dbMangaChapters } from "../../src/db/schema";
 import { eq, and } from "drizzle-orm";
 
 const SLEEP = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -106,12 +101,7 @@ for (const { malId, series } of ANIME_SERIES) {
 			const exists = await db
 				.select()
 				.from(dbEpisodes)
-				.where(
-					and(
-						eq(dbEpisodes.series, series),
-						eq(dbEpisodes.numberInSeries, ep.mal_id),
-					),
-				)
+				.where(and(eq(dbEpisodes.series, series), eq(dbEpisodes.numberInSeries, ep.mal_id)))
 				.limit(1);
 			if (exists.length === 0) {
 				await db.insert(dbEpisodes).values({
@@ -156,11 +146,7 @@ for (const m of MOVIES) {
 		continue;
 	}
 	const x = data.data;
-	const exists = await db
-		.select()
-		.from(dbMovies)
-		.where(eq(dbMovies.slug, m.slug))
-		.limit(1);
+	const exists = await db.select().from(dbMovies).where(eq(dbMovies.slug, m.slug)).limit(1);
 	if (exists.length > 0) {
 		await SLEEP(400);
 		continue;
@@ -196,12 +182,7 @@ for (const { malId, series } of MANGA) {
 		const exists = await db
 			.select()
 			.from(dbMangaVolumes)
-			.where(
-				and(
-					eq(dbMangaVolumes.series, series),
-					eq(dbMangaVolumes.volumeNumber, v),
-				),
-			)
+			.where(and(eq(dbMangaVolumes.series, series), eq(dbMangaVolumes.volumeNumber, v)))
 			.limit(1);
 		if (exists.length > 0) continue;
 		await db.insert(dbMangaVolumes).values({
@@ -219,6 +200,4 @@ for (const { malId, series } of MANGA) {
 }
 console.log(`\n[manga volumes] +${totalMv2}`);
 
-console.log(
-	`\nDONE Jikan ingest : ${totalEp} eps, ${totalMv} movies, ${totalMv2} volumes`,
-);
+console.log(`\nDONE Jikan ingest : ${totalEp} eps, ${totalMv} movies, ${totalMv2} volumes`);

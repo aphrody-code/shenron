@@ -63,11 +63,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function CharacterPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function CharacterPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const character = await getChar(parseInt(id, 10));
 
@@ -91,14 +87,16 @@ export default async function CharacterPage({
 	const personSchema: WithContext<Person> = {
 		"@context": "https://schema.org",
 		"@type": "Person",
-		"name": character.name,
-		"image": character.image ? assetUrl(character.image) : undefined,
-		"description": character.description ? plainText(character.description) : undefined,
-		"alternateName": character.nameJa ?? undefined,
-		"homeLocation": character.originPlanet ? {
-			"@type": "Place",
-			"name": character.originPlanet.name,
-		} : undefined,
+		name: character.name,
+		image: character.image ? assetUrl(character.image) : undefined,
+		description: character.description ? plainText(character.description) : undefined,
+		alternateName: character.nameJa ?? undefined,
+		homeLocation: character.originPlanet
+			? {
+					"@type": "Place",
+					name: character.originPlanet.name,
+				}
+			: undefined,
 	};
 
 	return (
@@ -110,11 +108,7 @@ export default async function CharacterPage({
 		>
 			<JsonLd data={breadcrumb} />
 			<JsonLd data={personSchema} />
-			<TrackView
-				entityType="character"
-				entityId={character.id}
-				entityName={character.name}
-			/>
+			<TrackView entityType="character" entityId={character.id} entityName={character.name} />
 			<Link
 				href="/wiki/personnages"
 				// `nav-back` → slide directionnel inverse (retour vers la grille).
@@ -152,7 +146,10 @@ export default async function CharacterPage({
 						{(character.nameJa || character.nameRomaji) && (
 							<div className="flex items-center flex-wrap gap-4 mb-6 text-gray-400">
 								{character.nameJa && (
-									<span className="text-2xl font-bold tracking-widest text-dbz-orange" style={{ fontFamily: '"Noto Sans JP", sans-serif' }}>
+									<span
+										className="text-2xl font-bold tracking-widest text-dbz-orange"
+										style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
+									>
 										{character.nameJa}
 									</span>
 								)}
@@ -180,7 +177,9 @@ export default async function CharacterPage({
 					{character.description && (
 						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-							<h3 className="text-dbz-orange font-saiyan text-3xl mb-4 uppercase tracking-widest">Archives / Lore</h3>
+							<h3 className="text-dbz-orange font-saiyan text-3xl mb-4 uppercase tracking-widest">
+								Archives / Lore
+							</h3>
 							<div className="prose prose-invert max-w-none wiki-content text-justify">
 								<WikiMarkdown body={character.description} />
 							</div>
@@ -188,15 +187,16 @@ export default async function CharacterPage({
 					)}
 
 					{(character.ki || character.maxKi) && (
-						<div className="grid grid-cols-1 sm:grid-cols-2 gap-6 reveal-up" style={{ animationDelay: "0.3s" }}>
+						<div
+							className="grid grid-cols-1 sm:grid-cols-2 gap-6 reveal-up"
+							style={{ animationDelay: "0.3s" }}
+						>
 							{character.ki && (
 								<div className="dbz-panel p-6 border-l-4 border-l-dbz-orange">
 									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
 										KI Actuel
 									</p>
-									<p className="scouter-text text-4xl text-dbz-orange">
-										{character.ki}
-									</p>
+									<p className="scouter-text text-4xl text-dbz-orange">{character.ki}</p>
 								</div>
 							)}
 							{character.maxKi && (
@@ -204,16 +204,14 @@ export default async function CharacterPage({
 									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
 										KI Maximum
 									</p>
-									<p className="scouter-text text-4xl text-dbz-red">
-										{character.maxKi}
-									</p>
+									<p className="scouter-text text-4xl text-dbz-red">{character.maxKi}</p>
 								</div>
 							)}
 						</div>
 					)}
 
 					{character.originPlanet && (
-						<Link 
+						<Link
 							href={`/wiki/dragon-ball/planet/${character.originPlanet.id}`}
 							className="dbz-panel p-6 flex items-center gap-6 hover:border-dbz-orange transition-all group reveal-up"
 							style={{ animationDelay: "0.4s" }}
@@ -233,7 +231,9 @@ export default async function CharacterPage({
 									{character.originPlanet.name}
 								</p>
 							</div>
-							<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">→</span>
+							<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
+								→
+							</span>
 						</Link>
 					)}
 				</div>
@@ -266,9 +266,7 @@ export default async function CharacterPage({
 									{transfo.name}
 								</h3>
 								{transfo.ki && (
-									<span className="scouter-text text-[10px] mt-2">
-										KI: {transfo.ki}
-									</span>
+									<span className="scouter-text text-[10px] mt-2">KI: {transfo.ki}</span>
 								)}
 							</div>
 						))}
@@ -305,7 +303,7 @@ export default async function CharacterPage({
 									</p>
 								)}
 								<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
-									<Link 
+									<Link
 										href={`/wiki/dragon-ball/techniques/${tech.slug}`}
 										className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
 									>
@@ -320,5 +318,3 @@ export default async function CharacterPage({
 		</article>
 	);
 }
-
-

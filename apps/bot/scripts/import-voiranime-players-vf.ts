@@ -31,8 +31,7 @@ if (!NEON_URL) {
 import os from "node:os";
 
 const JSON_PATH =
-	process.env.VOIRANIME_JSON ??
-	`${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
+	process.env.VOIRANIME_JSON ?? `${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
 
 // série DB → slugs voiranime { vostfr, vf }. vf optionnel (Daima n'a pas de VF
 // sur voir-anime à ce jour).
@@ -56,10 +55,7 @@ type VSeries = { slug: string; episodes: VEpisode[] };
 const doc = (await Bun.file(JSON_PATH).json()) as { series: VSeries[] };
 const bySlug = new Map(doc.series.map((s) => [s.slug, s]));
 
-function indexByNumber(
-	slug: string | undefined,
-	lang: "vf" | "vostfr",
-): Map<number, Player[]> {
+function indexByNumber(slug: string | undefined, lang: "vf" | "vostfr"): Map<number, Player[]> {
 	const out = new Map<number, Player[]>();
 	if (!slug) return out;
 	const s = bySlug.get(slug);
@@ -76,7 +72,7 @@ function indexByNumber(
 					provider: p.provider,
 					embedUrl: p.embedUrl,
 					lang,
-				})),
+				}))
 			);
 		}
 	}
@@ -89,8 +85,7 @@ await sql`ALTER TABLE bot.db_episodes ADD COLUMN IF NOT EXISTS players jsonb`;
 let updated = 0;
 let noMatch = 0;
 let vfTouched = 0;
-const perSeries: Record<string, { vf: number; vostfr: number; total: number }> =
-	{};
+const perSeries: Record<string, { vf: number; vostfr: number; total: number }> = {};
 
 for (const [series, slugs] of Object.entries(SERIES_SLUG)) {
 	const vfByNum = indexByNumber(slugs.vf, "vf");
@@ -126,12 +121,12 @@ for (const [series, slugs] of Object.entries(SERIES_SLUG)) {
 	perSeries[series] = { vf: sVf, vostfr: sVostfr, total: rows.length };
 	console.log(
 		`  ✓ ${series.padEnd(10)} : VF ${sVf}/${rows.length} · VOSTFR ${sVostfr}/${rows.length}` +
-			(slugs.vf ? "" : "  (pas de VF voir-anime)"),
+			(slugs.vf ? "" : "  (pas de VF voir-anime)")
 	);
 }
 
 console.log(
-	`\n✓ Terminé : ${updated} épisodes mis à jour (${vfTouched} avec VF), ${noMatch} sans aucune correspondance.`,
+	`\n✓ Terminé : ${updated} épisodes mis à jour (${vfTouched} avec VF), ${noMatch} sans aucune correspondance.`
 );
 console.log("Récap couverture VF par série :");
 for (const [s, c] of Object.entries(perSeries))

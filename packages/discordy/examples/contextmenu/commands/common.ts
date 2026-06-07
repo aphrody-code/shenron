@@ -5,33 +5,29 @@
  * -------------------------------------------------------------------------------------------------------
  */
 import {
-  ApplicationCommandType,
-  type MessageContextMenuCommandInteraction,
-  type UserContextMenuCommandInteraction,
+	ApplicationCommandType,
+	type MessageContextMenuCommandInteraction,
+	type UserContextMenuCommandInteraction,
 } from "discord.js";
 import { ContextMenu, Discord } from "@rpbey/discordy";
 
 @Discord()
 export class Example {
-  @ContextMenu({
-    name: "Hello from discordx",
-    type: ApplicationCommandType.Message,
-  })
-  async messageHandler(
-    interaction: MessageContextMenuCommandInteraction,
-  ): Promise<void> {
-    console.log("I am message");
-    await interaction.reply("message interaction works");
-  }
+	@ContextMenu({
+		name: "Hello from discordx",
+		type: ApplicationCommandType.Message,
+	})
+	async messageHandler(interaction: MessageContextMenuCommandInteraction): Promise<void> {
+		console.log("I am message");
+		await interaction.reply("message interaction works");
+	}
 
-  @ContextMenu({
-    name: "Hello from discordx",
-    type: ApplicationCommandType.User,
-  })
-  async userHandler(
-    interaction: UserContextMenuCommandInteraction,
-  ): Promise<void> {
-    console.log(`Selected user: ${interaction.targetId}`);
-    await interaction.reply("user interaction works");
-  }
+	@ContextMenu({
+		name: "Hello from discordx",
+		type: ApplicationCommandType.User,
+	})
+	async userHandler(interaction: UserContextMenuCommandInteraction): Promise<void> {
+		console.log(`Selected user: ${interaction.targetId}`);
+		await interaction.reply("user interaction works");
+	}
 }

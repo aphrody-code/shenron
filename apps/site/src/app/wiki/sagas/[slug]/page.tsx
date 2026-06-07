@@ -31,8 +31,7 @@ export async function generateMetadata({
 	const data = await dbUniverse.saga(slug);
 	if (!data) return { title: "Saga — DBFR" };
 	const description =
-		data.description ??
-		`Saga ${data.name} de ${SERIES_LABELS[data.series] ?? data.series}.`;
+		data.description ?? `Saga ${data.name} de ${SERIES_LABELS[data.series] ?? data.series}.`;
 	return {
 		title: `${data.name} — Saga Dragon Ball | DBFR`,
 		description,
@@ -44,11 +43,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function SagaPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function SagaPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const data = await dbUniverse.saga(slug);
 	if (!data) notFound();
@@ -59,12 +54,12 @@ export default async function SagaPage({
 	const jsonLdData: WithContext<CreativeWork> = {
 		"@context": "https://schema.org",
 		"@type": "CreativeWork",
-		"name": saga.name,
-		"image": saga.image ? assetUrl(saga.image) : undefined,
-		"description": saga.description ?? undefined,
-		"isPartOf": {
+		name: saga.name,
+		image: saga.image ? assetUrl(saga.image) : undefined,
+		description: saga.description ?? undefined,
+		isPartOf: {
 			"@type": "CreativeWorkSeries",
-			"name": seriesLabel,
+			name: seriesLabel,
 		},
 	};
 
@@ -90,11 +85,7 @@ export default async function SagaPage({
 					{saga.name}
 				</h1>
 
-				{saga.name_ja && (
-					<p className="font-jp text-2xl text-dbz-orange/80 mb-8">
-						{saga.name_ja}
-					</p>
-				)}
+				{saga.name_ja && <p className="font-jp text-2xl text-dbz-orange/80 mb-8">{saga.name_ja}</p>}
 
 				{saga.description && (
 					<div className="dbz-panel p-8 relative overflow-hidden">
@@ -131,11 +122,7 @@ export default async function SagaPage({
 										<h3 className="font-display font-bold text-xl text-white group-hover:text-dbz-orange transition-colors">
 											{a.name}
 										</h3>
-										{a.name_ja && (
-											<p className="font-jp text-sm text-white/40 mt-1">
-												{a.name_ja}
-											</p>
-										)}
+										{a.name_ja && <p className="font-jp text-sm text-white/40 mt-1">{a.name_ja}</p>}
 									</div>
 									<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
 										→
@@ -148,14 +135,9 @@ export default async function SagaPage({
 			)}
 
 			<section className="dbz-panel p-10 border-t-4 border-t-dbz-orange bg-dbz-card/30">
-				<h2 className="font-saiyan text-3xl text-white mb-6 tracking-widest">
-					EXPLORATION
-				</h2>
+				<h2 className="font-saiyan text-3xl text-white mb-6 tracking-widest">EXPLORATION</h2>
 				<div className="flex flex-wrap gap-4">
-					<Link
-						href={`/wiki/episodes?series=${saga.series}`}
-						className="dbz-button"
-					>
+					<Link href={`/wiki/episodes?series=${saga.series}`} className="dbz-button">
 						VOIR LES ÉPISODES
 					</Link>
 					<Link href="/wiki/personnages" className="dbz-button-ghost">

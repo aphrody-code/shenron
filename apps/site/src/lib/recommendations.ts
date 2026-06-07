@@ -91,8 +91,8 @@ async function computePreferences(id: Identity): Promise<DerivedPreferences> {
 				who,
 				eq(siteEvents.type, "wiki_view"),
 				gt(siteEvents.ts, since),
-				sql`${siteEvents.entityType} is not null and ${siteEvents.entityId} is not null`,
-			),
+				sql`${siteEvents.entityType} is not null and ${siteEvents.entityId} is not null`
+			)
 		)
 		.groupBy(siteEvents.entityType, siteEvents.entityId)
 		.orderBy(desc(sql`count(*)`))
@@ -117,9 +117,7 @@ async function computePreferences(id: Identity): Promise<DerivedPreferences> {
 			count: sql<number>`count(*)::int`,
 		})
 		.from(siteEvents)
-		.where(
-			and(who, gt(siteEvents.ts, since), sql`${siteEvents.props}->>'series' is not null`),
-		)
+		.where(and(who, gt(siteEvents.ts, since), sql`${siteEvents.props}->>'series' is not null`))
 		.groupBy(sql`${siteEvents.props}->>'series'`)
 		.orderBy(desc(sql`count(*)`))
 		.limit(5);
@@ -132,7 +130,11 @@ async function computePreferences(id: Identity): Promise<DerivedPreferences> {
 		})
 		.from(siteEvents)
 		.where(
-			and(who, eq(siteEvents.type, "home_section"), sql`${siteEvents.props}->>'section' is not null`),
+			and(
+				who,
+				eq(siteEvents.type, "home_section"),
+				sql`${siteEvents.props}->>'section' is not null`
+			)
 		)
 		.groupBy(sql`${siteEvents.props}->>'section'`)
 		.orderBy(desc(sql`count(*)`))
@@ -142,9 +144,7 @@ async function computePreferences(id: Identity): Promise<DerivedPreferences> {
 	const searches = await db
 		.select({ query: sql<string>`${siteEvents.props}->>'query'` })
 		.from(siteEvents)
-		.where(
-			and(who, eq(siteEvents.type, "search"), sql`${siteEvents.props}->>'query' is not null`),
-		)
+		.where(and(who, eq(siteEvents.type, "search"), sql`${siteEvents.props}->>'query' is not null`))
 		.orderBy(desc(siteEvents.ts))
 		.limit(30);
 
@@ -190,7 +190,7 @@ async function computePreferences(id: Identity): Promise<DerivedPreferences> {
  */
 export async function getUserPreferences(
 	id: Identity,
-	opts?: { maxAgeMs?: number; forceRefresh?: boolean },
+	opts?: { maxAgeMs?: number; forceRefresh?: boolean }
 ): Promise<DerivedPreferences> {
 	const key = identityKey(id);
 	if (!key) return EMPTY_PREFS;
@@ -266,7 +266,7 @@ export type Recommendation = EntityRef & {
  */
 export async function getRecommendations(
 	id: Identity,
-	ctx: RecommendationContext = {},
+	ctx: RecommendationContext = {}
 ): Promise<Recommendation[]> {
 	const limit = ctx.limit ?? 8;
 	const out = new Map<string, Recommendation>();
@@ -293,8 +293,8 @@ export async function getRecommendations(
 					eq(siteEvents.type, "wiki_view"),
 					eq(siteEvents.entityType, ctx.entityType),
 					eq(siteEvents.entityId, refId),
-					gt(siteEvents.ts, since),
-				),
+					gt(siteEvents.ts, since)
+				)
 			);
 
 		const coViews = await db
@@ -313,8 +313,8 @@ export async function getRecommendations(
 					gt(siteEvents.ts, since),
 					inArray(siteEvents.sessionId, sessionsSub),
 					sql`${siteEvents.entityType} is not null and ${siteEvents.entityId} is not null`,
-					sql`not (${siteEvents.entityType} = ${ctx.entityType} and ${siteEvents.entityId} = ${refId})`,
-				),
+					sql`not (${siteEvents.entityType} = ${ctx.entityType} and ${siteEvents.entityId} = ${refId})`
+				)
 			)
 			.groupBy(siteEvents.entityType, siteEvents.entityId)
 			.orderBy(desc(sql`count(distinct ${siteEvents.sessionId})`))
@@ -364,8 +364,10 @@ export async function getRecommendations(
 					gt(siteEvents.ts, since),
 					sql`${siteEvents.entityType} is not null and ${siteEvents.entityId} is not null`,
 					...(ctx.entityType ? [eq(siteEvents.entityType, ctx.entityType)] : []),
-					...(refKey ? [ne(sql`${siteEvents.entityType} || ':' || ${siteEvents.entityId}`, refKey)] : []),
-				),
+					...(refKey
+						? [ne(sql`${siteEvents.entityType} || ':' || ${siteEvents.entityId}`, refKey)]
+						: [])
+				)
 			)
 			.groupBy(siteEvents.entityType, siteEvents.entityId)
 			.orderBy(desc(sql`count(*)`))

@@ -26,9 +26,7 @@ async function WhisScouterPanel({ query }: { query: string }) {
 				<div className="h-px flex-1 bg-gradient-to-r from-cyan-500/30 to-transparent" />
 			</div>
 			<div className="dbz-panel p-6 border-l-4 border-l-cyan-500 bg-cyan-950/15 backdrop-blur-md rounded-r-xl">
-				<p className="text-cyan-100 text-base leading-relaxed italic">
-					« {aiAnswer.answer} »
-				</p>
+				<p className="text-cyan-100 text-base leading-relaxed italic">« {aiAnswer.answer} »</p>
 				<div className="mt-4 flex items-center justify-between text-[10px] text-zinc-500">
 					<span>
 						Mode :{" "}
@@ -75,12 +73,7 @@ export default async function SearchPage({
 	const sp = await searchParams;
 	const q = (sp.q ?? "").trim();
 	const [results, rag] =
-		q.length >= 2
-			? await Promise.all([
-					dbUniverse.search(q),
-					dbUniverse.rag(q, 8),
-				])
-			: [null, null];
+		q.length >= 2 ? await Promise.all([dbUniverse.search(q), dbUniverse.rag(q, 8)]) : [null, null];
 
 	return (
 		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
@@ -115,8 +108,8 @@ export default async function SearchPage({
 			{!results && q.length === 0 && (
 				<div className="dbz-panel p-8 max-w-2xl border-l-4 border-l-dbz-orange">
 					<p className="text-white/70 text-lg leading-relaxed">
-						Initialisation du Scouter... Tape un nom de personnage, planète,
-						saga, film ou jeu Dragon Ball pour lancer la recherche.
+						Initialisation du Scouter... Tape un nom de personnage, planète, saga, film ou jeu
+						Dragon Ball pour lancer la recherche.
 					</p>
 				</div>
 			)}
@@ -159,9 +152,7 @@ export default async function SearchPage({
 									</span>
 								</div>
 								{r.snippet && (
-									<p className="text-xs text-white/55 leading-relaxed line-clamp-2">
-										{r.snippet}
-									</p>
+									<p className="text-xs text-white/55 leading-relaxed line-clamp-2">{r.snippet}</p>
 								)}
 							</Link>
 						))}
@@ -242,9 +233,7 @@ export default async function SearchPage({
 												/>
 											) : (
 												<div className="w-full h-full flex items-center justify-center">
-													<span className="text-dbz-blue-light/20 font-saiyan text-2xl">
-														P
-													</span>
+													<span className="text-dbz-blue-light/20 font-saiyan text-2xl">P</span>
 												</div>
 											)}
 											<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-20" />
@@ -321,9 +310,7 @@ export default async function SearchPage({
 														{m.title}
 													</p>
 													{m.title_ja && (
-														<p className="font-jp text-[10px] text-white/40 mt-1">
-															{m.title_ja}
-														</p>
+														<p className="font-jp text-[10px] text-white/40 mt-1">{m.title_ja}</p>
 													)}
 												</div>
 												<span className="text-dbz-red opacity-0 group-hover:opacity-100 transition-opacity">
@@ -347,9 +334,17 @@ export default async function SearchPage({
 							</div>
 							<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
 								{results.games.map((g) => (
-									<Link key={g.id} href={`/wiki/jeux/${g.slug}`} className="block dbz-panel p-4 hover:bg-white/5 transition-colors group">
-										<p className="font-display font-bold text-white group-hover:text-dbz-blue-light transition-colors">{g.title}</p>
-										{g.title_ja && <p className="font-jp text-[10px] text-white/40 mt-1">{g.title_ja}</p>}
+									<Link
+										key={g.id}
+										href={`/wiki/jeux/${g.slug}`}
+										className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+									>
+										<p className="font-display font-bold text-white group-hover:text-dbz-blue-light transition-colors">
+											{g.title}
+										</p>
+										{g.title_ja && (
+											<p className="font-jp text-[10px] text-white/40 mt-1">{g.title_ja}</p>
+										)}
 									</Link>
 								))}
 							</div>
@@ -366,15 +361,29 @@ export default async function SearchPage({
 							</div>
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 								{results.episodes.map((e) => (
-									<Link key={e.id} href={`/wiki/episodes/${e.id}`} className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300">
+									<Link
+										key={e.id}
+										href={`/wiki/episodes/${e.id}`}
+										className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
+									>
 										<div className="relative aspect-video bg-dbz-bg overflow-hidden">
 											{e.image && (
-												<Image src={assetUrl(e.image)} alt={e.title} fill sizes="(max-width: 768px) 50vw, 16vw" className="object-cover opacity-90 group-hover:opacity-100 transition-all duration-700" />
+												<Image
+													src={assetUrl(e.image)}
+													alt={e.title}
+													fill
+													sizes="(max-width: 768px) 50vw, 16vw"
+													className="object-cover opacity-90 group-hover:opacity-100 transition-all duration-700"
+												/>
 											)}
 											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 											<div className="absolute inset-x-0 bottom-0 p-3">
-												<p className="scouter-text text-[11px] text-dbz-orange">{e.series} #{e.number_in_series}</p>
-												<p className="font-display font-bold text-xs text-white group-hover:text-dbz-blue-light transition-colors line-clamp-2">{e.title}</p>
+												<p className="scouter-text text-[11px] text-dbz-orange">
+													{e.series} #{e.number_in_series}
+												</p>
+												<p className="font-display font-bold text-xs text-white group-hover:text-dbz-blue-light transition-colors line-clamp-2">
+													{e.title}
+												</p>
 											</div>
 										</div>
 									</Link>
@@ -393,9 +402,19 @@ export default async function SearchPage({
 							</div>
 							<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
 								{results.techniques.map((t) => (
-									<Link key={t.id} href={`/wiki/dragon-ball/techniques/${t.slug}`} className="block dbz-panel p-4 hover:bg-white/5 transition-colors group">
-										<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">{t.name}</p>
-										{(t.name_ja || t.type) && <p className="font-jp text-[10px] text-white/40 mt-1">{t.name_ja ?? t.type}</p>}
+									<Link
+										key={t.id}
+										href={`/wiki/dragon-ball/techniques/${t.slug}`}
+										className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+									>
+										<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
+											{t.name}
+										</p>
+										{(t.name_ja || t.type) && (
+											<p className="font-jp text-[10px] text-white/40 mt-1">
+												{t.name_ja ?? t.type}
+											</p>
+										)}
 									</Link>
 								))}
 							</div>
@@ -415,26 +434,19 @@ export default async function SearchPage({
 								</h2>
 								<p className="text-white/60 text-lg leading-relaxed mb-8">
 									Le Scouter n'a trouvé aucun résultat pour «{" "}
-									<span className="text-dbz-orange font-bold">{q}</span> ».
-									Essaie un autre terme — un nom de personnage, un titre de
-									film, une saga ou une planète.
+									<span className="text-dbz-orange font-bold">{q}</span> ». Essaie un autre terme —
+									un nom de personnage, un titre de film, une saga ou une planète.
 								</p>
 								<div className="grid sm:grid-cols-2 gap-6 text-sm">
 									<div className="space-y-2">
-										<p className="text-dbz-orange font-bold uppercase tracking-widest">
-											Guerriers
-										</p>
-										<p className="text-white/40">
-											Goku, Vegeta, Beerus, Jiren, Broly...
-										</p>
+										<p className="text-dbz-orange font-bold uppercase tracking-widest">Guerriers</p>
+										<p className="text-white/40">Goku, Vegeta, Beerus, Jiren, Broly...</p>
 									</div>
 									<div className="space-y-2">
 										<p className="text-dbz-blue-light font-bold uppercase tracking-widest">
 											Mondes
 										</p>
-										<p className="text-white/40">
-											Terre, Namek, Vegeta, Yardrat, Kaio...
-										</p>
+										<p className="text-white/40">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
 									</div>
 								</div>
 							</div>

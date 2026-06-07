@@ -4,11 +4,7 @@ import { isCurrentUserAdmin } from "@/lib/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function WikiPage({
-	params,
-}: {
-	params: Promise<{ slug: string[] }>;
-}) {
+export default async function WikiPage({ params }: { params: Promise<{ slug: string[] }> }) {
 	const { slug } = await params;
 	const pageSlug = slug[slug.length - 1];
 
@@ -49,8 +45,7 @@ export default async function WikiPage({
 				<WikiMarkdown body={page.body} />
 			</div>
 			<div className="mt-16 pt-8 border-t border-dbz-border text-xs text-gray-500">
-				Dernière mise à jour le{" "}
-				{new Date(page.updatedAt).toLocaleDateString("fr-FR")}
+				Dernière mise à jour le {new Date(page.updatedAt).toLocaleDateString("fr-FR")}
 			</div>
 		</div>
 	);

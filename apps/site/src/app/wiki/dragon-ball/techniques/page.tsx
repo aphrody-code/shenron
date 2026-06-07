@@ -18,17 +18,14 @@ export default async function TechniquesPage() {
 	const techniques = await getShenronTechniques();
 
 	// Grouper par type
-	const byType = techniques.reduce<Record<string, typeof techniques>>(
-		(acc, t) => {
-			const key = t.type ?? "Autre";
-			if (!acc[key]) acc[key] = [];
-			acc[key].push(t);
-			return acc;
-		},
-		{},
-	);
+	const byType = techniques.reduce<Record<string, typeof techniques>>((acc, t) => {
+		const key = t.type ?? "Autre";
+		if (!acc[key]) acc[key] = [];
+		acc[key].push(t);
+		return acc;
+	}, {});
 	const typeOrder = Object.keys(byType).sort((a, b) =>
-		a === "Autre" ? 1 : b === "Autre" ? -1 : a.localeCompare(b),
+		a === "Autre" ? 1 : b === "Autre" ? -1 : a.localeCompare(b)
 	);
 
 	return (
@@ -86,9 +83,7 @@ export default async function TechniquesPage() {
 										</div>
 									) : (
 										<div className="h-16 w-16 shrink-0 flex items-center justify-center bg-dbz-bg border border-dbz-border rounded-lg">
-											<span className="text-dbz-blue-light/30 font-saiyan text-xs">
-												KI
-											</span>
+											<span className="text-dbz-blue-light/30 font-saiyan text-xs">KI</span>
 										</div>
 									)}
 									<div className="min-w-0 flex-1">

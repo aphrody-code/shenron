@@ -13,8 +13,7 @@ type PostData = {
 
 const field =
 	"w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none p-3 text-white text-sm rounded";
-const label =
-	"block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1";
+const label = "block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1";
 const hint = "text-[10px] text-white/30 mt-1";
 
 /**
@@ -39,9 +38,7 @@ export function PostForm({ post }: { post?: PostData }) {
 						className={field}
 						placeholder="ex : Mise à jour des saisons 2 de Dragon Ball"
 					/>
-					<p className={hint}>
-						Affiché en titre principal sur la page de l&apos;article.
-					</p>
+					<p className={hint}>Affiché en titre principal sur la page de l&apos;article.</p>
 				</div>
 
 				<div>
@@ -57,8 +54,8 @@ export function PostForm({ post }: { post?: PostData }) {
 					/>
 					<p className={hint}>
 						Utilisé dans l&apos;adresse de la page :{" "}
-						<code className="text-dbz-blue-light">/actualites/mon-article</code>
-						. Ne contient que des lettres, chiffres et tirets.
+						<code className="text-dbz-blue-light">/actualites/mon-article</code>. Ne contient que
+						des lettres, chiffres et tirets.
 					</p>
 				</div>
 
@@ -74,9 +71,7 @@ export function PostForm({ post }: { post?: PostData }) {
 						className={`${field} font-mono`}
 						placeholder="https://… (optionnel)"
 					/>
-					<p className={hint}>
-						Image affichée en haut de l&apos;article et dans les listes.
-					</p>
+					<p className={hint}>Image affichée en haut de l&apos;article et dans les listes.</p>
 				</div>
 
 				<div>
@@ -93,8 +88,7 @@ export function PostForm({ post }: { post?: PostData }) {
 						placeholder="Quelques phrases décrivant l'article, affichées dans les listes."
 					/>
 					<p className={hint}>
-						Visible sur la page d&apos;accueil et dans les listes
-						d&apos;articles.
+						Visible sur la page d&apos;accueil et dans les listes d&apos;articles.
 					</p>
 				</div>
 
@@ -114,8 +108,8 @@ export function PostForm({ post }: { post?: PostData }) {
 						}
 					/>
 					<p className={hint}>
-						Syntaxe Markdown supportée : titres (#), listes (- …), liens
-						([texte](url)), gras (**…**), etc.
+						Syntaxe Markdown supportée : titres (#), listes (- …), liens ([texte](url)), gras
+						(**…**), etc.
 					</p>
 				</div>
 
@@ -131,8 +125,8 @@ export function PostForm({ post }: { post?: PostData }) {
 							Publier l&apos;article
 						</span>
 						<p className={hint}>
-							Si coché, l&apos;article sera visible par tous les visiteurs du
-							site. Sinon, il reste en brouillon.
+							Si coché, l&apos;article sera visible par tous les visiteurs du site. Sinon, il reste
+							en brouillon.
 						</p>
 					</div>
 				</label>
@@ -154,7 +148,7 @@ export function PostForm({ post }: { post?: PostData }) {
 					onSubmit={(e) => {
 						if (
 							!confirm(
-								`Supprimer définitivement l'article "${post.title}" ?\n\nCette action est irréversible.`,
+								`Supprimer définitivement l'article "${post.title}" ?\n\nCette action est irréversible.`
 							)
 						) {
 							e.preventDefault();
@@ -163,12 +157,9 @@ export function PostForm({ post }: { post?: PostData }) {
 				>
 					<input type="hidden" name="id" value={post.id} />
 					<div>
-						<p className="text-sm font-bold text-red-400 mb-1">
-							Zone de danger
-						</p>
+						<p className="text-sm font-bold text-red-400 mb-1">Zone de danger</p>
 						<p className="text-sm text-white/50">
-							Supprimer définitivement cet article. Cette action est
-							irréversible.
+							Supprimer définitivement cet article. Cette action est irréversible.
 						</p>
 					</div>
 					<button

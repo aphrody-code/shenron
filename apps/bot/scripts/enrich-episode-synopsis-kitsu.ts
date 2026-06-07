@@ -33,7 +33,9 @@ const LIMIT = process.env.LIMIT ? Number(process.env.LIMIT) : Number.POSITIVE_IN
 const sql = postgres(NEON_URL, { max: 2, prepare: false });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type KitsuEp = { attributes: { number: number | null; synopsis: string | null; description: string | null } };
+type KitsuEp = {
+	attributes: { number: number | null; synopsis: string | null; description: string | null };
+};
 
 /** Récupère tous les synopsis d'une série Kitsu → Map<numéro, synopsis>. */
 async function kitsuSynopses(animeId: number): Promise<Map<number, string>> {
@@ -44,7 +46,7 @@ async function kitsuSynopses(animeId: number): Promise<Map<number, string>> {
 			try {
 				const res = await fetch(
 					`https://kitsu.io/api/edge/anime/${animeId}/episodes?page%5Blimit%5D=20&page%5Boffset%5D=${offset}`,
-					{ headers: { accept: "application/vnd.api+json" } },
+					{ headers: { accept: "application/vnd.api+json" } }
 				);
 				if (res.status === 429) {
 					await sleep(2500);

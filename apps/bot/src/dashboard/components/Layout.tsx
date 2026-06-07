@@ -74,8 +74,7 @@ interface Props {
 export function Layout({ route, navigate, children }: Props) {
 	const me = useQuery({
 		queryKey: ["auth", "me"],
-		queryFn: () =>
-			api.get<{ authenticated: boolean; user?: SessionUser }>("/auth/me"),
+		queryFn: () => api.get<{ authenticated: boolean; user?: SessionUser }>("/auth/me"),
 		refetchInterval: 0,
 		staleTime: 60_000,
 	});
@@ -102,8 +101,7 @@ export function Layout({ route, navigate, children }: Props) {
 
 				<nav className="flex-1 space-y-1 p-3">
 					{NAV.map(({ path, label, icon: Icon }) => {
-						const active =
-							route === path || (path !== "/" && route.startsWith(path));
+						const active = route === path || (path !== "/" && route.startsWith(path));
 						return (
 							<button
 								key={path}
@@ -113,7 +111,7 @@ export function Layout({ route, navigate, children }: Props) {
 									"flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
 									active
 										? "bg-brand-500/10 text-brand-400"
-										: "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100",
+										: "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
 								)}
 							>
 								<Icon className="h-4 w-4 shrink-0" />
@@ -132,12 +130,8 @@ export function Layout({ route, navigate, children }: Props) {
 								className="h-9 w-9 rounded-full object-cover"
 							/>
 							<div className="min-w-0 flex-1">
-								<p className="truncate text-sm font-medium text-zinc-100">
-									{user.username}
-								</p>
-								<p className="truncate text-xs text-zinc-500">
-									{user.email ?? `ID ${user.id}`}
-								</p>
+								<p className="truncate text-sm font-medium text-zinc-100">{user.username}</p>
+								<p className="truncate text-xs text-zinc-500">{user.email ?? `ID ${user.id}`}</p>
 							</div>
 						</div>
 					)}
@@ -146,11 +140,7 @@ export function Layout({ route, navigate, children }: Props) {
 							Session jeton (admin token)
 						</p>
 					)}
-					<button
-						type="button"
-						onClick={logout}
-						className="btn btn-ghost w-full justify-start"
-					>
+					<button type="button" onClick={logout} className="btn btn-ghost w-full justify-start">
 						<LogOut className="h-4 w-4" />
 						Déconnexion
 					</button>
@@ -160,9 +150,7 @@ export function Layout({ route, navigate, children }: Props) {
 			<main className="flex-1 overflow-x-hidden">
 				<header className="sticky top-0 z-10 flex items-center gap-3 border-b border-zinc-800 bg-zinc-950/90 px-6 py-3 backdrop-blur">
 					<Activity className="h-4 w-4 text-brand-400" />
-					<span className="text-sm font-medium text-zinc-300">
-						{routeLabel(route)}
-					</span>
+					<span className="text-sm font-medium text-zinc-300">{routeLabel(route)}</span>
 				</header>
 				<div className="p-6">{children}</div>
 			</main>

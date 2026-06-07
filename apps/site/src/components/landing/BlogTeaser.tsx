@@ -21,10 +21,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 			<div className="mx-auto max-w-[1280px] px-6 lg:px-10">
 				<div className="flex items-end justify-between flex-wrap gap-6 mb-12">
 					<div>
-						<SectionHeading
-							eyebrow="Actualités"
-							title="Dernières dépêches Dragon Ball"
-						/>
+						<SectionHeading eyebrow="Actualités" title="Dernières dépêches Dragon Ball" />
 					</div>
 					<Link
 						href="/actualites"
@@ -69,7 +66,6 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 								</p>
 								<div className="flex items-center gap-2.5 pt-4 border-t border-white/[0.06]">
 									{p.author.avatar && (
-										 
 										<img
 											src={p.author.avatar}
 											alt=""

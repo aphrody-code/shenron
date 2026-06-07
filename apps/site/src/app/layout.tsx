@@ -18,7 +18,7 @@ import Script from "next/script";
 
 // FAB Discord lazy : composant client gated par localStorage, jamais critical.
 const DiscordInviteFAB = dynamic(() =>
-	import("@/components/DiscordInviteFAB").then((m) => m.DiscordInviteFAB),
+	import("@/components/DiscordInviteFAB").then((m) => m.DiscordInviteFAB)
 );
 
 // Google Sans Flex — police officielle Google, open-source 2025 (variable font,
@@ -157,9 +157,7 @@ export default function RootLayout({
 					aria-hidden
 				/>
 				<SiteNav />
-				<main className="relative z-10 flex-1 w-full flex flex-col">
-					{children}
-				</main>
+				<main className="relative z-10 flex-1 w-full flex flex-col">{children}</main>
 				<SiteFooter />
 				<DiscordInviteFAB />
 				<FloatingAssistant />
@@ -171,8 +169,7 @@ export default function RootLayout({
 					closeButton
 					toastOptions={{
 						classNames: {
-							toast:
-								"!bg-dbz-card !border-dbz-border !text-white !font-display",
+							toast: "!bg-dbz-card !border-dbz-border !text-white !font-display",
 						},
 					}}
 				/>

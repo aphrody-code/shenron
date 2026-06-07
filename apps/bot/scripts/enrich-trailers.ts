@@ -11,15 +11,19 @@
  */
 import { Database } from "bun:sqlite";
 
-const DB =
-	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
+const DB = process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
 const KEY = process.env.YOUTUBE_API_KEY;
 if (!KEY) {
 	console.error("✗ YOUTUBE_API_KEY requis.");
 	process.exit(1);
 }
 
-if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) {
+	console.error(
+		"Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."
+	);
+	process.exit(1);
+}
 const db = new Database(DB);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -40,11 +44,11 @@ async function ytSearch(q: string): Promise<string | null> {
 async function enrich(
 	table: string,
 	titleCol: string,
-	suffix: string,
+	suffix: string
 ): Promise<{ added: number; total: number }> {
 	const rows = db
 		.query(
-			`SELECT id, ${titleCol} AS title, trailer_url FROM ${table} WHERE trailer_url IS NULL OR trailer_url=''`,
+			`SELECT id, ${titleCol} AS title, trailer_url FROM ${table} WHERE trailer_url IS NULL OR trailer_url=''`
 		)
 		.all() as { id: number; title: string; trailer_url: string | null }[];
 	const upd = db.query(`UPDATE ${table} SET trailer_url = ? WHERE id = ?`);
@@ -62,14 +66,10 @@ async function enrich(
 	}
 	const total = (
 		db
-			.query(
-				`SELECT COUNT(*) c FROM ${table} WHERE trailer_url IS NOT NULL AND trailer_url<>''`,
-			)
+			.query(`SELECT COUNT(*) c FROM ${table} WHERE trailer_url IS NOT NULL AND trailer_url<>''`)
 			.get() as { c: number }
 	).c;
-	const grand = (
-		db.query(`SELECT COUNT(*) c FROM ${table}`).get() as { c: number }
-	).c;
+	const grand = (db.query(`SELECT COUNT(*) c FROM ${table}`).get() as { c: number }).c;
 	console.log(`→ ${table} : +${added}, couverture ${total}/${grand}\n`);
 	return { added, total };
 }

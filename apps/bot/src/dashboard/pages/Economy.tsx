@@ -62,39 +62,29 @@ export function Economy() {
 
 	const top = useQuery({
 		queryKey: ["economy", "top"],
-		queryFn: () =>
-			api.get<{ rows: UserRow[] }>("/economy/leaderboard?limit=20"),
+		queryFn: () => api.get<{ rows: UserRow[] }>("/economy/leaderboard?limit=20"),
 	});
 
 	const txs = useQuery({
 		queryKey: ["economy", "txs"],
-		queryFn: () =>
-			api.get<{ rows: TransactionRow[] }>("/economy/transactions?limit=50"),
+		queryFn: () => api.get<{ rows: TransactionRow[] }>("/economy/transactions?limit=50"),
 	});
 
 	const settings = useQuery({
 		queryKey: ["settings", "all"],
 		queryFn: () =>
-			api.get<{ rows: { key: string; value: string }[] }>(
-				"/database/guild_settings?limit=200",
-			),
+			api.get<{ rows: { key: string; value: string }[] }>("/database/guild_settings?limit=200"),
 		staleTime: 30_000,
 	});
 	const channels = useQuery({
 		queryKey: ["discord", "channels"],
 		queryFn: () =>
-			api.get<{ channels: { id: string; name: string; type: number }[] }>(
-				"/discord/channels",
-			),
+			api.get<{ channels: { id: string; name: string; type: number }[] }>("/discord/channels"),
 		staleTime: 30_000,
 	});
 
-	const channelZeniId = settings.data?.rows.find(
-		(r) => r.key === "channel.zeni",
-	)?.value;
-	const channelZeniName = channels.data?.channels.find(
-		(c) => c.id === channelZeniId,
-	)?.name;
+	const channelZeniId = settings.data?.rows.find((r) => r.key === "channel.zeni")?.value;
+	const channelZeniName = channels.data?.channels.find((c) => c.id === channelZeniId)?.name;
 
 	const setSetting = useMutation({
 		mutationFn: ({ key, value }: { key: string; value: string }) =>
@@ -118,8 +108,7 @@ export function Economy() {
 		},
 	});
 	const setBalance = useMutation({
-		mutationFn: (body: { userId: string; amount: number }) =>
-			api.post("/economy/set", body),
+		mutationFn: (body: { userId: string; amount: number }) => api.post("/economy/set", body),
 		onSuccess: () => qc.invalidateQueries({ queryKey: ["economy"] }),
 	});
 
@@ -139,9 +128,8 @@ export function Economy() {
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Vue d'ensemble du système économique : circulation, top zenis,
-					transactions, et opérations admin (distribution masse, set direct,
-					salon des récompenses).
+					Vue d'ensemble du système économique : circulation, top zenis, transactions, et opérations
+					admin (distribution masse, set direct, salon des récompenses).
 				</p>
 			</div>
 
@@ -153,9 +141,8 @@ export function Economy() {
 				</h3>
 				<p className="mb-3 text-xs text-zinc-500">
 					Cible des notifications de récompense zeni : <code>daily_quest</code>,{" "}
-					<code>zeni_drop</code> (drop aléatoire sur message),{" "}
-					<code>zeni_game_win</code> (victoire à un jeu). Templates éditables
-					sur <code>/messages</code>.
+					<code>zeni_drop</code> (drop aléatoire sur message), <code>zeni_game_win</code> (victoire
+					à un jeu). Templates éditables sur <code>/messages</code>.
 				</p>
 				<div className="flex items-center gap-2">
 					<select
@@ -176,9 +163,7 @@ export function Economy() {
 								</option>
 							))}
 					</select>
-					{channelZeniName && (
-						<span className="badge badge-success">→ #{channelZeniName}</span>
-					)}
+					{channelZeniName && <span className="badge badge-success">→ #{channelZeniName}</span>}
 				</div>
 			</div>
 
@@ -223,16 +208,9 @@ export function Economy() {
 				{top.isLoading && <div className="text-zinc-500">Chargement…</div>}
 				<div className="space-y-1">
 					{top.data?.rows.map((u, i) => (
-						<div
-							key={u.id}
-							className="flex items-center gap-3 rounded p-2 hover:bg-zinc-800/40"
-						>
-							<span className="w-8 text-right font-mono text-sm text-zinc-500">
-								#{i + 1}
-							</span>
-							<code className="flex-1 truncate text-xs text-zinc-300">
-								{u.id}
-							</code>
+						<div key={u.id} className="flex items-center gap-3 rounded p-2 hover:bg-zinc-800/40">
+							<span className="w-8 text-right font-mono text-sm text-zinc-500">#{i + 1}</span>
+							<code className="flex-1 truncate text-xs text-zinc-300">{u.id}</code>
 							<span className="font-mono text-sm font-semibold text-amber-400">
 								{u.zeni.toLocaleString("fr-FR")} z
 							</span>
@@ -252,10 +230,7 @@ export function Economy() {
 					<Send className="h-4 w-4" />
 					Distribution masse
 				</h3>
-				<BulkGiveForm
-					onSubmit={(body) => give.mutate(body)}
-					pending={give.isPending}
-				/>
+				<BulkGiveForm onSubmit={(body) => give.mutate(body)} pending={give.isPending} />
 				{give.data && (
 					<p className="mt-2 text-xs text-emerald-400">
 						✓ Appliqué sur {give.data.applied ?? 0} membre(s).
@@ -263,10 +238,7 @@ export function Economy() {
 				)}
 				{give.error && (
 					<p className="mt-2 text-xs text-red-400">
-						✗{" "}
-						{give.error instanceof Error
-							? give.error.message
-							: String(give.error)}
+						✗ {give.error instanceof Error ? give.error.message : String(give.error)}
 					</p>
 				)}
 			</div>
@@ -278,9 +250,7 @@ export function Economy() {
 					Transactions récentes
 				</h3>
 				{txs.isLoading && <div className="text-zinc-500">Chargement…</div>}
-				{txs.data?.rows.length === 0 && (
-					<p className="text-zinc-500">Aucune transaction.</p>
-				)}
+				{txs.data?.rows.length === 0 && <p className="text-zinc-500">Aucune transaction.</p>}
 				<div className="space-y-1 max-h-[500px] overflow-y-auto">
 					{txs.data?.rows.map((t) => {
 						const meta = ACTION_LABEL[t.action] ?? {
@@ -288,26 +258,15 @@ export function Economy() {
 							color: "text-zinc-400",
 						};
 						return (
-							<div
-								key={t.id}
-								className="rounded border border-zinc-800 bg-zinc-950/40 p-2 text-xs"
-							>
+							<div key={t.id} className="rounded border border-zinc-800 bg-zinc-950/40 p-2 text-xs">
 								<div className="flex items-center gap-2">
-									<span className={`font-medium ${meta.color}`}>
-										{meta.label}
-									</span>
-									{t.userId && (
-										<code className="text-zinc-400">{t.userId}</code>
-									)}
+									<span className={`font-medium ${meta.color}`}>{meta.label}</span>
+									{t.userId && <code className="text-zinc-400">{t.userId}</code>}
 									<span className="ml-auto text-zinc-500">
 										{new Date(t.createdAt).toLocaleString("fr-FR")}
 									</span>
 								</div>
-								{t.meta && (
-									<pre className="mt-1 overflow-x-auto text-zinc-500">
-										{t.meta}
-									</pre>
-								)}
+								{t.meta && <pre className="mt-1 overflow-x-auto text-zinc-500">{t.meta}</pre>}
 							</div>
 						);
 					})}
@@ -334,9 +293,7 @@ function StatCard({
 		<div className="card">
 			<div className="flex items-start justify-between gap-2">
 				<div>
-					<p className="text-xs uppercase tracking-wide text-zinc-500">
-						{label}
-					</p>
+					<p className="text-xs uppercase tracking-wide text-zinc-500">{label}</p>
 					<p className="mt-1 font-mono text-2xl font-semibold">{value}</p>
 					<p className="mt-1 text-xs text-zinc-500">{sub}</p>
 				</div>
@@ -483,10 +440,9 @@ function BulkGiveForm({
 				</button>
 			</div>
 			<p className="text-xs text-zinc-500">
-				Montant négatif = retrait. Mode "all" itère sur tous les users en DB.
-				Mode "role" fetch tous les membres du serveur (peut prendre quelques
-				secondes). Toutes les opérations sont loguées en{" "}
-				<code>action_logs</code> avec source "dashboard".
+				Montant négatif = retrait. Mode "all" itère sur tous les users en DB. Mode "role" fetch tous
+				les membres du serveur (peut prendre quelques secondes). Toutes les opérations sont loguées
+				en <code>action_logs</code> avec source "dashboard".
 			</p>
 		</div>
 	);

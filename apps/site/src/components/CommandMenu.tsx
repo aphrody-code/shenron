@@ -154,7 +154,7 @@ export function CommandMenu() {
 			setResults(EMPTY);
 			router.push(href);
 		},
-		[router],
+		[router]
 	);
 
 	const total = count(results);
@@ -248,9 +248,7 @@ export function CommandMenu() {
 								<Item
 									key={`char-${c.id}`}
 									value={`char-${c.id}-${c.name}`}
-									onSelect={() =>
-										go(`/wiki/dragon-ball/character/${c.id}`)
-									}
+									onSelect={() => go(`/wiki/dragon-ball/character/${c.id}`)}
 									image={c.image}
 									title={c.name}
 									subtitle={c.name_ja ?? c.race ?? undefined}
@@ -412,9 +410,7 @@ function Item({
 						loading="lazy"
 					/>
 				) : (
-					<span className="font-saiyan text-xs text-white/25">
-						{title.charAt(0)}
-					</span>
+					<span className="font-saiyan text-xs text-white/25">{title.charAt(0)}</span>
 				)}
 			</span>
 			<span className="min-w-0 flex-1">
@@ -422,9 +418,7 @@ function Item({
 					{title}
 				</span>
 				{subtitle && (
-					<span className="block truncate font-display text-[11px] text-white/40">
-						{subtitle}
-					</span>
+					<span className="block truncate font-display text-[11px] text-white/40">{subtitle}</span>
 				)}
 			</span>
 			<span

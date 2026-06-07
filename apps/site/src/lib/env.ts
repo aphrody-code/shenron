@@ -18,11 +18,7 @@ export const env = createEnv({
 		BETTER_AUTH_URL: z.string().trim().url().optional(),
 		DISCORD_CLIENT_ID: z.string().trim().min(10),
 		DISCORD_CLIENT_SECRET: z.string().trim().min(10),
-		SHENRON_API_URL: z
-			.string()
-			.trim()
-			.url()
-			.default("https://bot.dragonballfr.com"),
+		SHENRON_API_URL: z.string().trim().url().default("https://bot.dragonballfr.com"),
 		SHENRON_ADMIN_TOKEN: z.string().trim().min(16).optional(),
 		SHENRON_USER_SECRET: z.string().trim().min(32).optional(),
 		OWNER_ID: z
@@ -39,11 +35,9 @@ export const env = createEnv({
 							.split(",")
 							.map((s) => s.trim())
 							.filter(Boolean)
-					: [],
+					: []
 			),
-		NODE_ENV: z
-			.enum(["development", "production", "test"])
-			.default("development"),
+		NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 	},
 	client: {
 		NEXT_PUBLIC_SHENRON_ASSETS_URL: z.string().url().optional(),

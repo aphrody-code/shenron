@@ -177,9 +177,7 @@ export default async function EpisodesIndex({
 											{ep.title}
 										</p>
 										{ep.title_ja && (
-											<p className="font-jp text-[12px] text-white/30 mt-1">
-												{ep.title_ja}
-											</p>
+											<p className="font-jp text-[12px] text-white/30 mt-1">{ep.title_ja}</p>
 										)}
 										{ep.synopsis && (
 											<p className="text-[12px] text-white/45 mt-1.5 line-clamp-2 hidden md:block">

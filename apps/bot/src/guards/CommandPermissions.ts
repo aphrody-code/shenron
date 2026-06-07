@@ -23,11 +23,7 @@ import { CommandPermissionsService } from "~/services/CommandPermissionsService"
  * pour les events non-interaction (sinon `EventManager.executeHandlers` avale
  * silencieusement les exceptions et les events ratent — bug subtil sur Bun).
  */
-export const CommandPermissions: GuardFunction<CommandInteraction> = async (
-	arg,
-	_client,
-	next,
-) => {
+export const CommandPermissions: GuardFunction<CommandInteraction> = async (arg, _client, next) => {
 	if (!(arg instanceof BaseInteraction)) {
 		await next();
 		return;

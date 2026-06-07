@@ -9,8 +9,8 @@ import { Discord, Slash } from "@rpbey/discordy";
 
 @Discord()
 export class CommandA {
-  @Slash({ description: "hello" })
-  async hello(interaction: CommandInteraction): Promise<void> {
-    await interaction.reply(":wave:");
-  }
+	@Slash({ description: "hello" })
+	async hello(interaction: CommandInteraction): Promise<void> {
+		await interaction.reply(":wave:");
+	}
 }

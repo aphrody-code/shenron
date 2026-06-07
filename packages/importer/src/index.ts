@@ -7,43 +7,43 @@
 import path from "node:path";
 
 export function isESM(): boolean {
-  return !!import.meta.url;
+	return !!import.meta.url;
 }
 
 export function dirname(url: string): string {
-  // When called with import.meta.url, prefer import.meta.dir (Bun-native)
-  if (url.startsWith("file://")) {
-    return import.meta.dir;
-  }
-  return path.dirname(url);
+	// When called with import.meta.url, prefer import.meta.dir (Bun-native)
+	if (url.startsWith("file://")) {
+		return import.meta.dir;
+	}
+	return path.dirname(url);
 }
 
 async function scan(pattern: string): Promise<string[]> {
-  const g = new Bun.Glob(pattern);
-  const out: string[] = [];
-  for await (const p of g.scan({ cwd: ".", absolute: true })) out.push(p);
-  return out;
+	const g = new Bun.Glob(pattern);
+	const out: string[] = [];
+	for await (const p of g.scan({ cwd: ".", absolute: true })) out.push(p);
+	return out;
 }
 
 export async function resolve(...paths: string[]): Promise<string[]> {
-  const imports: string[] = [];
+	const imports: string[] = [];
 
-  await Promise.all(
-    paths.map(async (ps) => {
-      const files = await scan(ps.split(path.sep).join("/"));
+	await Promise.all(
+		paths.map(async (ps) => {
+			const files = await scan(ps.split(path.sep).join("/"));
 
-      files.forEach((file) => {
-        if (!imports.includes(file)) {
-          imports.push(`file://${file}`);
-        }
-      });
-    }),
-  );
+			files.forEach((file) => {
+				if (!imports.includes(file)) {
+					imports.push(`file://${file}`);
+				}
+			});
+		})
+	);
 
-  return imports;
+	return imports;
 }
 
 export async function importx(...paths: string[]): Promise<void> {
-  const files = await resolve(...paths);
-  await Promise.all(files.map((file) => import(file)));
+	const files = await resolve(...paths);
+	await Promise.all(files.map((file) => import(file)));
 }

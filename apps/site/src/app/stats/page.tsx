@@ -4,8 +4,6 @@ import { getShenronStats } from "@/lib/shenron";
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
-
-
 function StatCard({
 	label,
 	value,
@@ -21,13 +19,9 @@ function StatCard({
 		<div className="dbz-panel p-6 text-center">
 			<div className={`text-5xl font-saiyan ${color} mb-2`}>
 				{value}
-				{suffix && (
-					<span className="text-2xl text-dbz-blue-light ml-1">{suffix}</span>
-				)}
+				{suffix && <span className="text-2xl text-dbz-blue-light ml-1">{suffix}</span>}
 			</div>
-			<div className="text-xs font-bold uppercase tracking-widest text-dbz-blue-light">
-				{label}
-			</div>
+			<div className="text-xs font-bold uppercase tracking-widest text-dbz-blue-light">{label}</div>
 		</div>
 	);
 }
@@ -41,9 +35,7 @@ export default async function StatsPage() {
 
 			{!stats || stats.users === 0 ? (
 				<div className="dbz-panel p-8 text-center">
-					<p className="text-2xl font-saiyan text-red-500 uppercase">
-						Bot inaccessible
-					</p>
+					<p className="text-2xl font-saiyan text-red-500 uppercase">Bot inaccessible</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 md:grid-cols-3 gap-4">

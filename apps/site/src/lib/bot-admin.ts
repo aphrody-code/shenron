@@ -14,7 +14,7 @@ export class BotAdminError extends Error {
 	constructor(
 		public status: number,
 		public path: string,
-		body?: string,
+		body?: string
 	) {
 		super(`bot-admin ${path} → ${status}${body ? `: ${body}` : ""}`);
 	}
@@ -23,7 +23,7 @@ export class BotAdminError extends Error {
 export const botAdmin = {
 	async fetch<T = unknown>(
 		path: string,
-		init?: RequestInit & { revalidate?: number; tags?: string[] },
+		init?: RequestInit & { revalidate?: number; tags?: string[] }
 	): Promise<T> {
 		const res = await fetch(`${API}${path}`, {
 			...init,
@@ -39,11 +39,7 @@ export const botAdmin = {
 			},
 		});
 		if (!res.ok) {
-			throw new BotAdminError(
-				res.status,
-				path,
-				await res.text().catch(() => undefined),
-			);
+			throw new BotAdminError(res.status, path, await res.text().catch(() => undefined));
 		}
 		return res.json() as Promise<T>;
 	},
@@ -118,8 +114,7 @@ export const botAdmin = {
 			body: "{}",
 		}),
 
-	services: () =>
-		botAdmin.fetch<{ services: string[] }>("/api/services", { revalidate: 60 }),
+	services: () => botAdmin.fetch<{ services: string[] }>("/api/services", { revalidate: 60 }),
 	serviceCall: (service: string, action: string, body?: unknown) =>
 		botAdmin.fetch(`/api/services/${service}/${action}`, {
 			method: "POST",
@@ -133,18 +128,15 @@ export const botAdmin = {
 	table: (table: string, limit = 100, offset = 0) =>
 		botAdmin.fetch<{ rows: unknown[]; total: number; columns: string[] }>(
 			`/api/database/${encodeURIComponent(table)}?limit=${limit}&offset=${offset}`,
-			{ revalidate: 10 },
+			{ revalidate: 10 }
 		),
 
 	health: () =>
-		botAdmin.fetch<{ online: boolean; uptime: number; version: string }>(
-			"/api/health/check",
-			{ revalidate: 5 },
-		),
-	healthUsage: () =>
-		botAdmin.fetch<unknown>("/api/health/usage", { revalidate: 10 }),
-	healthHost: () =>
-		botAdmin.fetch<unknown>("/api/health/host", { revalidate: 30 }),
+		botAdmin.fetch<{ online: boolean; uptime: number; version: string }>("/api/health/check", {
+			revalidate: 5,
+		}),
+	healthUsage: () => botAdmin.fetch<unknown>("/api/health/usage", { revalidate: 10 }),
+	healthHost: () => botAdmin.fetch<unknown>("/api/health/host", { revalidate: 30 }),
 	healthLogs: (lines = 100) =>
 		botAdmin.fetch<{
 			logs: Array<{
@@ -158,20 +150,19 @@ export const botAdmin = {
 		}>(`/api/health/logs?lines=${lines}`, { revalidate: 5 }),
 
 	stats: () =>
-		botAdmin.fetch<{ users: number; guilds: number; commands: number }>(
-			"/api/stats/totals",
-			{ revalidate: 30 },
-		),
+		botAdmin.fetch<{ users: number; guilds: number; commands: number }>("/api/stats/totals", {
+			revalidate: 30,
+		}),
 
 	auditLogs: (limit = 50, offset = 0) =>
 		botAdmin.fetch<{ logs: unknown[]; total?: number }>(
 			`/api/audit/logs?limit=${limit}&offset=${offset}`,
-			{ revalidate: 10 },
+			{ revalidate: 10 }
 		),
 	auditDiscord: (limit = 50, actionType?: string) =>
 		botAdmin.fetch<{ audit_logs?: unknown[]; entries?: unknown[] }>(
 			`/api/discord/audit-logs?limit=${limit}${actionType ? `&action_type=${actionType}` : ""}`,
-			{ revalidate: 30 },
+			{ revalidate: 30 }
 		),
 
 	economyStats: () =>
@@ -189,15 +180,13 @@ export const botAdmin = {
 			shopItemsActive: number;
 		}>("/api/economy/stats", { revalidate: 30 }),
 	economyLeaderboard: (limit = 50) =>
-		botAdmin.fetch<{ leaderboard: unknown[] }>(
-			`/api/economy/leaderboard?limit=${limit}`,
-			{ revalidate: 30 },
-		),
+		botAdmin.fetch<{ leaderboard: unknown[] }>(`/api/economy/leaderboard?limit=${limit}`, {
+			revalidate: 30,
+		}),
 	economyTransactions: (limit = 50) =>
-		botAdmin.fetch<{ transactions: unknown[] }>(
-			`/api/economy/transactions?limit=${limit}`,
-			{ revalidate: 30 },
-		),
+		botAdmin.fetch<{ transactions: unknown[] }>(`/api/economy/transactions?limit=${limit}`, {
+			revalidate: 30,
+		}),
 	economyGive: (userId: string, amount: number, reason?: string) =>
 		botAdmin.fetch("/api/economy/give", {
 			method: "POST",
@@ -217,8 +206,7 @@ export const botAdmin = {
 			botAdmin.fetch<{ members: unknown[] }>("/api/discord/members", {
 				revalidate: 60,
 			}),
-		guild: () =>
-			botAdmin.fetch<unknown>("/api/discord/guild", { revalidate: 60 }),
+		guild: () => botAdmin.fetch<unknown>("/api/discord/guild", { revalidate: 60 }),
 	},
 
 	canvas: {
@@ -292,12 +280,11 @@ export const botAdmin = {
 		botAdmin.fetch(`/api/giveaways/${id}/end`, { method: "POST", body: "{}" }),
 
 	levels: {
-		config: () =>
-			botAdmin.fetch<unknown>("/api/levels/config", { revalidate: 60 }),
+		config: () => botAdmin.fetch<unknown>("/api/levels/config", { revalidate: 60 }),
 		distribution: () =>
 			botAdmin.fetch<{ distribution: Array<{ level: number; count: number }> }>(
 				"/api/levels/distribution",
-				{ revalidate: 60 },
+				{ revalidate: 60 }
 			),
 		rewards: () =>
 			botAdmin.fetch<{
@@ -332,7 +319,7 @@ export const botAdmin = {
 			template?: string | null;
 			channelKey?: string | null;
 			enabled?: boolean;
-		},
+		}
 	) =>
 		botAdmin.fetch(`/api/messages/${encodeURIComponent(event)}`, {
 			method: "POST",
@@ -393,15 +380,12 @@ export const botAdmin = {
 		amount: number;
 		reason?: string;
 	}) =>
-		botAdmin.fetch<{ ok: boolean; applied?: number; amount?: number }>(
-			"/api/economy/give",
-			{ method: "POST", body: JSON.stringify(body) },
-		),
+		botAdmin.fetch<{ ok: boolean; applied?: number; amount?: number }>("/api/economy/give", {
+			method: "POST",
+			body: JSON.stringify(body),
+		}),
 
-	levelsTop: (
-		metric: "xp" | "zeni" | "voice" | "streak" | "messages" = "xp",
-		limit = 50,
-	) =>
+	levelsTop: (metric: "xp" | "zeni" | "voice" | "streak" | "messages" = "xp", limit = 50) =>
 		botAdmin.fetch<{
 			top: Array<{
 				rank: number;
@@ -514,7 +498,7 @@ export const botAdmin = {
 				}>;
 			}>("/api/shop", { revalidate: 30 }),
 		create: (
-			body: Record<string, unknown>,
+			body: Record<string, unknown>
 		): Promise<{ ok: boolean; key?: string; error?: string }> =>
 			botAdmin.fetch("/api/shop", {
 				method: "POST",
@@ -526,10 +510,10 @@ export const botAdmin = {
 				body: JSON.stringify(patch),
 			}),
 		toggle: (key: string) =>
-			botAdmin.fetch<{ ok: boolean; enabled: boolean }>(
-				`/api/shop/${encodeURIComponent(key)}`,
-				{ method: "PATCH", body: "{}" },
-			),
+			botAdmin.fetch<{ ok: boolean; enabled: boolean }>(`/api/shop/${encodeURIComponent(key)}`, {
+				method: "PATCH",
+				body: "{}",
+			}),
 		remove: (key: string) =>
 			botAdmin.fetch(`/api/shop/${encodeURIComponent(key)}`, {
 				method: "DELETE",
@@ -580,16 +564,12 @@ export const botAdmin = {
 	},
 
 	moderationActions: {
-		deleteWarn: (id: number) =>
-			botAdmin.fetch(`/api/moderation/warns/${id}`, { method: "DELETE" }),
+		deleteWarn: (id: number) => botAdmin.fetch(`/api/moderation/warns/${id}`, { method: "DELETE" }),
 		clearWarns: (userId: string) =>
-			botAdmin.fetch(
-				`/api/moderation/warns/clear/${encodeURIComponent(userId)}`,
-				{
-					method: "POST",
-					body: "{}",
-				},
-			),
+			botAdmin.fetch(`/api/moderation/warns/clear/${encodeURIComponent(userId)}`, {
+				method: "POST",
+				body: "{}",
+			}),
 		unjail: (userId: string) =>
 			botAdmin.fetch(`/api/moderation/jails/${encodeURIComponent(userId)}`, {
 				method: "DELETE",
@@ -613,11 +593,7 @@ export const botAdmin = {
 			body: JSON.stringify({ intervalMs }),
 		}),
 
-	webhooksCreate: (body: {
-		channel_id: string;
-		name: string;
-		avatar?: string | null;
-	}) =>
+	webhooksCreate: (body: { channel_id: string; name: string; avatar?: string | null }) =>
 		botAdmin.fetch("/api/webhooks/create", {
 			method: "POST",
 			body: JSON.stringify(body),

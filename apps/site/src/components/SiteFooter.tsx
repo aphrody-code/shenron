@@ -35,11 +35,7 @@ export function SiteFooter() {
 		<footer className="relative mt-auto bg-[#070707] border-t border-white/[0.06]">
 			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-16 grid gap-10 lg:grid-cols-[1.4fr_3fr]">
 				<div>
-					<Link
-						href="/"
-						className="flex items-baseline select-none mb-5"
-						aria-label="DBFR"
-					>
+					<Link href="/" className="flex items-baseline select-none mb-5" aria-label="DBFR">
 						<span className="font-display font-bold text-[28px] tracking-[0.06em] text-white leading-none">
 							DB
 						</span>
@@ -48,9 +44,8 @@ export function SiteFooter() {
 						</span>
 					</Link>
 					<p className="text-[14px] text-white/60 leading-relaxed max-w-sm">
-						Le plus grand serveur Dragon Ball francophone — wiki, actualités,
-						personnages, communauté Discord active. Site fan, non affilié aux
-						ayants droit.
+						Le plus grand serveur Dragon Ball francophone — wiki, actualités, personnages,
+						communauté Discord active. Site fan, non affilié aux ayants droit.
 					</p>
 				</div>
 
@@ -80,10 +75,9 @@ export function SiteFooter() {
 			<div className="border-t border-white/[0.06]">
 				<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/45">
 					<p className="leading-relaxed max-w-3xl">
-						© {new Date().getFullYear()} DBFR — site communautaire de fans.
-						Dragon Ball, Dragon Ball Z, Dragon Ball Super, Dragon Ball Daima et
-						tous les personnages associés sont © Bird Studio / Shueisha / Toei
-						Animation. Marque déposée Toei Animation.{" "}
+						© {new Date().getFullYear()} DBFR — site communautaire de fans. Dragon Ball, Dragon Ball
+						Z, Dragon Ball Super, Dragon Ball Daima et tous les personnages associés sont © Bird
+						Studio / Shueisha / Toei Animation. Marque déposée Toei Animation.{" "}
 						<Link
 							href="/credits"
 							className="underline decoration-white/30 hover:decoration-dbz-orange hover:text-white"

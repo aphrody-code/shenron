@@ -86,9 +86,7 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 					.filter((sub) => match(sub.name) || sub.pages.length > 0);
 				return { ...c, pages, children };
 			})
-			.filter(
-				(c) => match(c.name) || c.pages.length > 0 || c.children.length > 0,
-			);
+			.filter((c) => match(c.name) || c.pages.length > 0 || c.children.length > 0);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [categories, needle]);
 
@@ -96,12 +94,10 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 		<div className="w-full max-w-6xl mx-auto">
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
 				<div>
-					<h1 className="text-4xl font-saiyan text-dbz-orange">
-						GESTION DU WIKI
-					</h1>
+					<h1 className="text-4xl font-saiyan text-dbz-orange">GESTION DU WIKI</h1>
 					<p className="text-xs text-dbz-blue-light font-mono mt-1">
-						{totals.cats} catégorie{totals.cats > 1 ? "s" : ""} · {totals.pages}{" "}
-						page{totals.pages > 1 ? "s" : ""}
+						{totals.cats} catégorie{totals.cats > 1 ? "s" : ""} · {totals.pages} page
+						{totals.pages > 1 ? "s" : ""}
 					</p>
 				</div>
 				<div className="flex gap-3">
@@ -121,8 +117,8 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 					Encyclopédie
 				</h2>
 				<p className="text-sm text-gray-400 mb-4">
-					Éditer le contenu des fiches (descriptions, images, dates…). C'est ici
-					qu'on modifie films, épisodes, personnages, etc.
+					Éditer le contenu des fiches (descriptions, images, dates…). C'est ici qu'on modifie
+					films, épisodes, personnages, etc.
 				</p>
 				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
 					{ENCYCLO.map((e) => (
@@ -163,9 +159,7 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 				{filtered.length === 0 ? (
 					<div className="dbz-panel p-8 text-center">
 						<p className="text-2xl font-saiyan text-dbz-blue-light uppercase">
-							{needle
-								? "Aucun résultat"
-								: "Aucune catégorie. Créez la première."}
+							{needle ? "Aucun résultat" : "Aucune catégorie. Créez la première."}
 						</p>
 					</div>
 				) : (
@@ -202,10 +196,7 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 							{cat.pages.length > 0 && (
 								<ul className="space-y-1 ml-4 border-l-2 border-dbz-border pl-4">
 									{cat.pages.map((p) => (
-										<li
-											key={p.id}
-											className="flex justify-between items-center group gap-3"
-										>
+										<li key={p.id} className="flex justify-between items-center group gap-3">
 											<Link
 												href={`/wiki/${cat.slug}/${p.slug}`}
 												className="text-sm text-gray-300 hover:text-dbz-orange transition-colors truncate"
@@ -234,10 +225,7 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 							{cat.children.length > 0 && (
 								<div className="ml-4 space-y-3">
 									{cat.children.map((sub) => (
-										<div
-											key={sub.id}
-											className="border-l-2 border-dbz-blue/50 pl-4"
-										>
+										<div key={sub.id} className="border-l-2 border-dbz-blue/50 pl-4">
 											<div className="flex justify-between items-center mb-2">
 												<h3 className="font-saiyan text-lg text-dbz-blue-light">
 													{sub.name}
@@ -254,10 +242,7 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 											</div>
 											<ul className="space-y-1 text-sm">
 												{sub.pages.map((p) => (
-													<li
-														key={p.id}
-														className="flex justify-between group gap-3"
-													>
+													<li key={p.id} className="flex justify-between group gap-3">
 														<Link
 															href={`/wiki/${cat.slug}/${sub.slug}/${p.slug}`}
 															className="text-gray-400 hover:text-dbz-orange transition-colors truncate"

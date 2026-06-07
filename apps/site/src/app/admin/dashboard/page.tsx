@@ -95,10 +95,8 @@ export default function DashboardPage() {
 	const avgPing =
 		bots.data && onlineCount > 0
 			? Math.round(
-					bots.data.bots
-						.filter((b) => b.online)
-						.reduce((s, b) => s + Math.max(0, b.wsPing), 0) /
-						Math.max(1, onlineCount),
+					bots.data.bots.filter((b) => b.online).reduce((s, b) => s + Math.max(0, b.wsPing), 0) /
+						Math.max(1, onlineCount)
 				)
 			: null;
 
@@ -112,9 +110,8 @@ export default function DashboardPage() {
 							Bienvenue dans votre espace admin
 						</h1>
 						<p className="mt-2 text-white/60 text-sm leading-relaxed max-w-xl">
-							Depuis ici, gérez le bot Dragon Ball France : membres, économie,
-							encyclopédie, modération et bien plus. Utilisez le menu à gauche
-							ou les raccourcis ci-dessous.
+							Depuis ici, gérez le bot Dragon Ball France : membres, économie, encyclopédie,
+							modération et bien plus. Utilisez le menu à gauche ou les raccourcis ci-dessous.
 						</p>
 					</div>
 					<div className="hidden sm:flex items-center gap-2 shrink-0">
@@ -144,12 +141,8 @@ export default function DashboardPage() {
 						>
 							<span className={`mt-0.5 shrink-0 ${a.color}`}>{a.icon}</span>
 							<div className="min-w-0">
-								<p className={`font-display font-semibold text-sm ${a.color}`}>
-									{a.label}
-								</p>
-								<p className="mt-0.5 text-xs text-white/50 leading-snug">
-									{a.description}
-								</p>
+								<p className={`font-display font-semibold text-sm ${a.color}`}>{a.label}</p>
+								<p className="mt-0.5 text-xs text-white/50 leading-snug">{a.description}</p>
 							</div>
 						</Link>
 					))}
@@ -181,37 +174,28 @@ export default function DashboardPage() {
 							{stats.data ? fmtNum(stats.data.stats.totalUsers) : "—"}
 						</p>
 						<p className="mt-2 text-xs text-zinc-400">
-							{stats.data ? fmtNum(stats.data.stats.totalActiveUsers) : "—"}{" "}
-							actifs &middot;{" "}
+							{stats.data ? fmtNum(stats.data.stats.totalActiveUsers) : "—"} actifs &middot;{" "}
 							{stats.data ? fmtNum(stats.data.stats.totalGuilds) : "—"} serveur
 							{(stats.data?.stats.totalGuilds ?? 0) > 1 ? "s" : ""}
 						</p>
 					</KPICard>
 
-					<KPICard
-						label="Latence Discord"
-						icon={<Activity className="h-4 w-4" />}
-					>
+					<KPICard label="Latence Discord" icon={<Activity className="h-4 w-4" />}>
 						<p className="text-3xl font-bold">
 							{avgPing !== null ? avgPing : "—"}
 							<span className="text-sm text-zinc-500"> ms</span>
 						</p>
 						<p className="mt-2 text-xs text-zinc-400">
-							WebSocket &middot; base de données{" "}
-							{health.data?.latency.db ?? "—"}&nbsp;ms
+							WebSocket &middot; base de données {health.data?.latency.db ?? "—"}&nbsp;ms
 						</p>
 					</KPICard>
 
 					<KPICard label="Mémoire utilisée" icon={<Cpu className="h-4 w-4" />}>
 						<p className="text-3xl font-bold">
-							{health.data
-								? formatBytes(health.data.pid.rss).split(" ")[0]
-								: "—"}
+							{health.data ? formatBytes(health.data.pid.rss).split(" ")[0] : "—"}
 							<span className="text-sm text-zinc-500">
 								{" "}
-								{health.data
-									? formatBytes(health.data.pid.rss).split(" ")[1]
-									: ""}
+								{health.data ? formatBytes(health.data.pid.rss).split(" ")[1] : ""}
 							</span>
 						</p>
 						<p className="mt-2 text-xs text-zinc-400">
@@ -252,9 +236,7 @@ export default function DashboardPage() {
 							<dd>
 								{formatBytes(health.data.host.memory.used)} /{" "}
 								{formatBytes(health.data.host.memory.total)}{" "}
-								<span className="text-zinc-500">
-									({health.data.host.memory.usage} %)
-								</span>
+								<span className="text-zinc-500">({health.data.host.memory.usage} %)</span>
 							</dd>
 						</div>
 						<div className="flex justify-between border-b border-zinc-900 py-1">
@@ -320,8 +302,7 @@ function BotCard({ bot }: { bot: BotSummary }) {
 				<p className="mt-0.5 text-xs text-zinc-500">
 					{bot.online ? (
 						<>
-							{bot.wsPing} ms &middot; actif depuis{" "}
-							{bot.uptime ? formatDuration(bot.uptime) : "—"}
+							{bot.wsPing} ms &middot; actif depuis {bot.uptime ? formatDuration(bot.uptime) : "—"}
 						</>
 					) : (
 						"Hors ligne"

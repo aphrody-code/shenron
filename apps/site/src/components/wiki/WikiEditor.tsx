@@ -26,8 +26,7 @@ const CM_EXTENSIONS = [
 const SNIPPETS: { label: string; insert: string }[] = [
 	{
 		label: "Infobox",
-		insert:
-			'\n<aside class="wiki-infobox">\n\n**Titre**\n\n- Champ : valeur\n\n</aside>\n\n',
+		insert: '\n<aside class="wiki-infobox">\n\n**Titre**\n\n- Champ : valeur\n\n</aside>\n\n',
 	},
 	{
 		label: "Galerie",
@@ -243,9 +242,7 @@ export function WikiEditor({
 						+ {s.label}
 					</button>
 				))}
-				{uploadErr && (
-					<span className="text-sm text-red-400">⚠ {uploadErr}</span>
-				)}
+				{uploadErr && <span className="text-sm text-red-400">⚠ {uploadErr}</span>}
 			</div>
 
 			{/* Éditeur + preview côte à côte */}
@@ -269,9 +266,8 @@ export function WikiEditor({
 						className="border-2 border-dbz-border focus-within:border-dbz-orange text-sm overflow-hidden"
 					/>
 					<p className="text-xs text-gray-500 mt-2">
-						Classes dispo : <code>wiki-float-right</code>,{" "}
-						<code>wiki-float-left</code>, <code>wiki-infobox</code>,{" "}
-						<code>wiki-grid</code>, <code>wiki-clear</code>.
+						Classes dispo : <code>wiki-float-right</code>, <code>wiki-float-left</code>,{" "}
+						<code>wiki-infobox</code>, <code>wiki-grid</code>, <code>wiki-clear</code>.
 					</p>
 				</div>
 				<div className="dbz-panel p-4 overflow-auto">

@@ -121,7 +121,7 @@ Versionnement : date + courte description.
 - **`.env` rempli** depuis le scan :
   - `LOG_MESSAGE_CHANNEL_ID` / `LOG_SANCTION_CHANNEL_ID` / `LOG_ECONOMY_CHANNEL_ID` / `LOG_JOIN_LEAVE_CHANNEL_ID` / `LOG_LEVEL_ROLE_CHANNEL_ID` / `LOG_TICKET_CHANNEL_ID` → `1032622751845990401` (💾・logs, salon unique du serveur)
   - `MOD_NOTIFY_CHANNEL_ID` → `1142417515004317748` (🛠️・moderation)
-  - `JAIL_ROLE_ID` → `1405635615827034194` (**Jugé par Enma**, 6 jailed actifs) — substitué au badge cosmétique *JAIL* (0 membre)
+  - `JAIL_ROLE_ID` → `1405635615827034194` (**Jugé par Enma**, 6 jailed actifs) — substitué au badge cosmétique _JAIL_ (0 membre)
   - `URL_IN_BIO_ROLE_ID` → `935209498862317698` (.gg/dragonballfr)
   - `TICKET_CATEGORY_ID` → `1034596363096301719` (⌈🌟⌋ DB FR)
   - `SERVER_INVITE_URL` → `https://discord.gg/dragonballfr`

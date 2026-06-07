@@ -9,10 +9,10 @@ import type { IPaginate } from "../pagination/types.js";
 //#region Types and Interfaces
 
 export interface PaginationConfig {
-  totalItems: number;
-  currentPage?: number;
-  pageSize?: number;
-  maxPages?: number;
+	totalItems: number;
+	currentPage?: number;
+	pageSize?: number;
+	maxPages?: number;
 }
 
 //#endregion
@@ -40,34 +40,30 @@ const MIN_MAX_PAGES = 1;
  * @throws {Error} When validation fails
  */
 function validatePaginationInputs(
-  totalItems: number,
-  currentPage: number,
-  pageSize: number,
-  maxPages: number,
+	totalItems: number,
+	currentPage: number,
+	pageSize: number,
+	maxPages: number
 ): void {
-  if (!Number.isInteger(totalItems) || totalItems < MIN_TOTAL_ITEMS) {
-    throw new Error(
-      `Total items must be a non-negative integer, received: ${totalItems.toString()}`,
-    );
-  }
+	if (!Number.isInteger(totalItems) || totalItems < MIN_TOTAL_ITEMS) {
+		throw new Error(
+			`Total items must be a non-negative integer, received: ${totalItems.toString()}`
+		);
+	}
 
-  if (!Number.isInteger(currentPage) || currentPage < MIN_PAGE_NUMBER) {
-    throw new Error(
-      `Current page must be a non-negative integer, received: ${currentPage.toString()}`,
-    );
-  }
+	if (!Number.isInteger(currentPage) || currentPage < MIN_PAGE_NUMBER) {
+		throw new Error(
+			`Current page must be a non-negative integer, received: ${currentPage.toString()}`
+		);
+	}
 
-  if (!Number.isInteger(pageSize) || pageSize < MIN_PAGE_SIZE) {
-    throw new Error(
-      `Page size must be a positive integer, received: ${pageSize.toString()}`,
-    );
-  }
+	if (!Number.isInteger(pageSize) || pageSize < MIN_PAGE_SIZE) {
+		throw new Error(`Page size must be a positive integer, received: ${pageSize.toString()}`);
+	}
 
-  if (!Number.isInteger(maxPages) || maxPages < MIN_MAX_PAGES) {
-    throw new Error(
-      `Max pages must be a positive integer, received: ${maxPages.toString()}`,
-    );
-  }
+	if (!Number.isInteger(maxPages) || maxPages < MIN_MAX_PAGES) {
+		throw new Error(`Max pages must be a positive integer, received: ${maxPages.toString()}`);
+	}
 }
 
 //#endregion
@@ -81,7 +77,7 @@ function validatePaginationInputs(
  * @returns Total number of pages
  */
 function calculateTotalPages(totalItems: number, pageSize: number): number {
-  return Math.ceil(totalItems / pageSize);
+	return Math.ceil(totalItems / pageSize);
 }
 
 /**
@@ -91,8 +87,8 @@ function calculateTotalPages(totalItems: number, pageSize: number): number {
  * @returns Normalized current page within valid range
  */
 function normalizeCurrentPage(currentPage: number, totalPages: number): number {
-  if (totalPages === 0) return 0;
-  return Math.max(MIN_PAGE_NUMBER, Math.min(currentPage, totalPages - 1));
+	if (totalPages === 0) return 0;
+	return Math.max(MIN_PAGE_NUMBER, Math.min(currentPage, totalPages - 1));
 }
 
 /**
@@ -103,35 +99,35 @@ function normalizeCurrentPage(currentPage: number, totalPages: number): number {
  * @returns Object containing start and end page numbers
  */
 function calculatePageRange(
-  currentPage: number,
-  totalPages: number,
-  maxPages: number,
+	currentPage: number,
+	totalPages: number,
+	maxPages: number
 ): { startPage: number; endPage: number } {
-  if (totalPages <= maxPages) {
-    return { startPage: 0, endPage: totalPages - 1 };
-  }
+	if (totalPages <= maxPages) {
+		return { startPage: 0, endPage: totalPages - 1 };
+	}
 
-  const maxPagesBeforeCurrentPage = Math.floor(maxPages / 2);
-  const maxPagesAfterCurrentPage = Math.ceil(maxPages / 2) - 1;
+	const maxPagesBeforeCurrentPage = Math.floor(maxPages / 2);
+	const maxPagesAfterCurrentPage = Math.ceil(maxPages / 2) - 1;
 
-  if (currentPage <= maxPagesBeforeCurrentPage) {
-    // Current page is near the start
-    return { startPage: 0, endPage: maxPages - 1 };
-  }
+	if (currentPage <= maxPagesBeforeCurrentPage) {
+		// Current page is near the start
+		return { startPage: 0, endPage: maxPages - 1 };
+	}
 
-  if (currentPage + maxPagesAfterCurrentPage >= totalPages) {
-    // Current page is near the end
-    return {
-      startPage: totalPages - maxPages,
-      endPage: totalPages - 1,
-    };
-  }
+	if (currentPage + maxPagesAfterCurrentPage >= totalPages) {
+		// Current page is near the end
+		return {
+			startPage: totalPages - maxPages,
+			endPage: totalPages - 1,
+		};
+	}
 
-  // Current page is in the middle
-  return {
-    startPage: currentPage - maxPagesBeforeCurrentPage,
-    endPage: currentPage + maxPagesAfterCurrentPage,
-  };
+	// Current page is in the middle
+	return {
+		startPage: currentPage - maxPagesBeforeCurrentPage,
+		endPage: currentPage + maxPagesAfterCurrentPage,
+	};
 }
 
 /**
@@ -142,14 +138,14 @@ function calculatePageRange(
  * @returns Object containing start and end indexes
  */
 function calculateItemIndexes(
-  currentPage: number,
-  pageSize: number,
-  totalItems: number,
+	currentPage: number,
+	pageSize: number,
+	totalItems: number
 ): { startIndex: number; endIndex: number } {
-  const startIndex = currentPage * pageSize;
-  const endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1);
+	const startIndex = currentPage * pageSize;
+	const endIndex = Math.min(startIndex + pageSize - 1, totalItems - 1);
 
-  return { startIndex, endIndex };
+	return { startIndex, endIndex };
 }
 
 /**
@@ -159,8 +155,8 @@ function calculateItemIndexes(
  * @returns Array of page numbers
  */
 function generatePageNumbers(startPage: number, endPage: number): number[] {
-  const pageCount = endPage - startPage + 1;
-  return Array.from({ length: pageCount }, (_, index) => startPage + index);
+	const pageCount = endPage - startPage + 1;
+	return Array.from({ length: pageCount }, (_, index) => startPage + index);
 }
 
 //#endregion
@@ -184,46 +180,42 @@ function generatePageNumbers(startPage: number, endPage: number): number[] {
  * ```
  */
 export function createPagination(config: PaginationConfig): IPaginate {
-  const {
-    totalItems,
-    currentPage = DEFAULT_CURRENT_PAGE,
-    pageSize = DEFAULT_PAGE_SIZE,
-    maxPages = DEFAULT_MAX_PAGES,
-  } = config;
+	const {
+		totalItems,
+		currentPage = DEFAULT_CURRENT_PAGE,
+		pageSize = DEFAULT_PAGE_SIZE,
+		maxPages = DEFAULT_MAX_PAGES,
+	} = config;
 
-  try {
-    validatePaginationInputs(totalItems, currentPage, pageSize, maxPages);
+	try {
+		validatePaginationInputs(totalItems, currentPage, pageSize, maxPages);
 
-    const totalPages = calculateTotalPages(totalItems, pageSize);
-    const normalizedCurrentPage = normalizeCurrentPage(currentPage, totalPages);
-    const { startPage, endPage } = calculatePageRange(
-      normalizedCurrentPage,
-      totalPages,
-      maxPages,
-    );
-    const { startIndex, endIndex } = calculateItemIndexes(
-      normalizedCurrentPage,
-      pageSize,
-      totalItems,
-    );
-    const pages = generatePageNumbers(startPage, endPage);
+		const totalPages = calculateTotalPages(totalItems, pageSize);
+		const normalizedCurrentPage = normalizeCurrentPage(currentPage, totalPages);
+		const { startPage, endPage } = calculatePageRange(normalizedCurrentPage, totalPages, maxPages);
+		const { startIndex, endIndex } = calculateItemIndexes(
+			normalizedCurrentPage,
+			pageSize,
+			totalItems
+		);
+		const pages = generatePageNumbers(startPage, endPage);
 
-    return {
-      currentPage: normalizedCurrentPage,
-      endIndex,
-      endPage,
-      pageSize,
-      pages,
-      startIndex,
-      startPage,
-      totalItems,
-      totalPages,
-    };
-  } catch (error) {
-    throw new Error(
-      `Pagination creation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-    );
-  }
+		return {
+			currentPage: normalizedCurrentPage,
+			endIndex,
+			endPage,
+			pageSize,
+			pages,
+			startIndex,
+			startPage,
+			totalItems,
+			totalPages,
+		};
+	} catch (error) {
+		throw new Error(
+			`Pagination creation failed: ${error instanceof Error ? error.message : "Unknown error"}`
+		);
+	}
 }
 
 //#endregion

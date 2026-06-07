@@ -20,11 +20,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function ArcPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function ArcPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const data = await dbUniverse.arc(slug);
 	if (!data) notFound();
@@ -51,11 +47,7 @@ export default async function ArcPage({
 					{arc.name}
 				</h1>
 
-				{arc.name_ja && (
-					<p className="font-jp text-2xl text-dbz-orange/80 mb-8">
-						{arc.name_ja}
-					</p>
-				)}
+				{arc.name_ja && <p className="font-jp text-2xl text-dbz-orange/80 mb-8">{arc.name_ja}</p>}
 
 				{arc.description && (
 					<div className="dbz-panel p-8 relative overflow-hidden">
@@ -104,9 +96,7 @@ export default async function ArcPage({
 										{ep.title}
 									</p>
 									{ep.title_ja && (
-										<p className="font-jp text-xs text-white/30 mt-1 truncate">
-											{ep.title_ja}
-										</p>
+										<p className="font-jp text-xs text-white/30 mt-1 truncate">{ep.title_ja}</p>
 									)}
 								</div>
 								<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-xl shrink-0">

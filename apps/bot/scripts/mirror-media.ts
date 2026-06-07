@@ -73,14 +73,12 @@ async function main() {
 					} else {
 						fail++;
 					}
-				}),
+				})
 			);
 		}
 		console.log(`${table}.${col}: ${rows.length} distantes traitées`);
 	}
-	console.log(
-		`\nMirror : ${ok} téléchargées, ${skip} déjà locales, ${fail} échecs.`,
-	);
+	console.log(`\nMirror : ${ok} téléchargées, ${skip} déjà locales, ${fail} échecs.`);
 	db.close();
 }
 

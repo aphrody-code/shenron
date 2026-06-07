@@ -5,12 +5,12 @@
  * -------------------------------------------------------------------------------------------------------
  */
 import type {
-  Client,
-  DApplicationCommand,
-  DComponent,
-  DReaction,
-  IGuild,
-  SimpleCommandMessage,
+	Client,
+	DApplicationCommand,
+	DComponent,
+	DReaction,
+	IGuild,
+	SimpleCommandMessage,
 } from "../index.js";
 
 /**
@@ -21,20 +21,13 @@ import type {
  * @returns
  */
 export const resolveIGuilds = async (
-  client: Client,
-  command:
-    | DApplicationCommand
-    | DComponent
-    | DReaction
-    | SimpleCommandMessage
-    | undefined,
-  guilds: IGuild[],
+	client: Client,
+	command: DApplicationCommand | DComponent | DReaction | SimpleCommandMessage | undefined,
+	guilds: IGuild[]
 ): Promise<string[]> => {
-  const guildX = await Promise.all(
-    guilds.map(async (guild) =>
-      typeof guild === "function" ? guild(client, command) : guild,
-    ),
-  );
+	const guildX = await Promise.all(
+		guilds.map(async (guild) => (typeof guild === "function" ? guild(client, command) : guild))
+	);
 
-  return [...new Set(guildX.flat(1))];
+	return [...new Set(guildX.flat(1))];
 };

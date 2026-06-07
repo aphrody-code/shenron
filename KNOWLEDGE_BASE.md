@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 05/06/2026
+# 📚 Base de Connaissance Unifiée — 07/06/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -80,6 +80,14 @@
 - [Recon report — https://jikan.moe/](#apps-bot-data-rag-jikan-md)
 - [Recon report — https://kanzenshuu.com/](#apps-bot-data-rag-kanzenshuu-md)
 - [Recon report — https://kitsu.io/](#apps-bot-data-rag-kitsu-md)
+- [Recon report — https://en.wikipedia.org/wiki/Dragon_Ball](#apps-bot-data-rag-raw-generic-wiki-dragon-ball-md)
+- [Akira Toriyama Tankōbon Introductions](#apps-bot-data-rag-raw-guides-akira-toriyama-tankobon-introductions-md)
+- [Daizenshuu 1 - Shenlong Times Interview](#apps-bot-data-rag-raw-guides-daizenshuu-1-shenlong-times-md)
+- [Dragon Ball Forever - Toriyama Interview](#apps-bot-data-rag-raw-guides-dragon-ball-forever-toriyama-md)
+- [SEG: Character Volume - Truth About Dragon Ball](#apps-bot-data-rag-raw-guides-seg-character-volume-md)
+- [SEG: Story Volume - Truth About Dragon Ball](#apps-bot-data-rag-raw-guides-seg-story-volume-md)
+- [wiki-dragon-ball.md](#apps-bot-data-rag-raw-wikipedia-wiki-dragon-ball-md)
+- [Recon report — https://en.wikipedia.org/wiki/Dragon_Ball](#apps-bot-data-rag-raw-wikipedia-wiki-dragon-ball-recon-md)
 - [Recon report — https://shonenjumpplus.com/](#apps-bot-data-rag-shonenjump-plus-md)
 - [Recon report — https://www.shueisha.co.jp/](#apps-bot-data-rag-shueisha-md)
 - [Recon report — https://www.toei-animation.com/catalog/dragon-ball/](#apps-bot-data-rag-toei-animation-md)
@@ -98,8 +106,11 @@
 - [Recon report — https://fr.dragon-ball-official.com/news/](#docs-archive-news-md)
 - [Recon report — https://en.bandainamcoent.eu/dragon-ball/dragon-ball-sparking-zero](#docs-archive-sparking-fast-md)
 - [Recon report — https://en.bandainamcoent.eu/dragon-ball/dragon-ball-sparking-zero](#docs-archive-sparking-md)
+- [Cosmologie de Dragon Ball — Structure du Macrocosme & Au-delà (Daizenshuu 4 & 7)](#docs-dragon-ball-cosmology-md)
 - [Système de Synchronisation Google Drive (Wiki Assets)](#docs-drive-md)
 - [LLM Dragon Ball — assistant conversationnel local](#docs-llm-maison-md)
+- [Dragon Ball Lore — Akira Toriyama Databook Revelations (SEG)](#docs-toriyama-databook-seg-md)
+- [Lore de Dragon Ball — Citations & Philosophie d'Akira Toriyama (Daizenshuu)](#docs-toriyama-interviews-md)
 - [@discordx/di](#packages-di-changelog-md)
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
@@ -115,6 +126,7 @@
 - [@discordx/pagination](#packages-pagination-changelog-md)
 - [@rpbey/pagination](#packages-pagination-readme-md)
 - [Security Policy](#packages-pagination-security-md)
+- [Sources RAG Dragon Ball — Inventaire & Matrice de Curation](#reference-db-recon-sources-rag-md)
 
 ---
 
@@ -265,7 +277,7 @@ Versionnement : date + courte description.
 - **`.env` rempli** depuis le scan :
   - `LOG_MESSAGE_CHANNEL_ID` / `LOG_SANCTION_CHANNEL_ID` / `LOG_ECONOMY_CHANNEL_ID` / `LOG_JOIN_LEAVE_CHANNEL_ID` / `LOG_LEVEL_ROLE_CHANNEL_ID` / `LOG_TICKET_CHANNEL_ID` → `1032622751845990401` (💾・logs, salon unique du serveur)
   - `MOD_NOTIFY_CHANNEL_ID` → `1142417515004317748` (🛠️・moderation)
-  - `JAIL_ROLE_ID` → `1405635615827034194` (**Jugé par Enma**, 6 jailed actifs) — substitué au badge cosmétique *JAIL* (0 membre)
+  - `JAIL_ROLE_ID` → `1405635615827034194` (**Jugé par Enma**, 6 jailed actifs) — substitué au badge cosmétique _JAIL_ (0 membre)
   - `URL_IN_BIO_ROLE_ID` → `935209498862317698` (.gg/dragonballfr)
   - `TICKET_CATEGORY_ID` → `1034596363096301719` (⌈🌟⌋ DB FR)
   - `SERVER_INVITE_URL` → `https://discord.gg/dragonballfr`
@@ -576,12 +588,12 @@ Guide complet de mise en production — choix d'hébergement, flow CI/CD, secret
 
 ## Choisir sa cible de déploiement
 
-| Cible | Coût | Simplicité | Maintenance | Contrôle | Pour qui |
-|---|---|---|---|---|---|
-| **Fly.io** | ~3 $/mo | ★★★★★ | ★★★★★ | ★★★ | Démarrage rapide, zéro devops |
-| **VPS + systemd** | 3-8 €/mo | ★★★ | ★★ | ★★★★★ | Contrôle total, multi-bot sur même machine |
-| **Docker standalone** | selon host | ★★★★ | ★★★★ | ★★★★ | Homelab, k8s, infra déjà conteneurisée |
-| **Binaire compilé** | 0 € marginal | ★★ | ★★★ | ★★★★ | Embarqué, VPS minimal, pas de Docker |
+| Cible                 | Coût         | Simplicité | Maintenance | Contrôle | Pour qui                                   |
+| --------------------- | ------------ | ---------- | ----------- | -------- | ------------------------------------------ |
+| **Fly.io**            | ~3 $/mo      | ★★★★★      | ★★★★★       | ★★★      | Démarrage rapide, zéro devops              |
+| **VPS + systemd**     | 3-8 €/mo     | ★★★        | ★★          | ★★★★★    | Contrôle total, multi-bot sur même machine |
+| **Docker standalone** | selon host   | ★★★★       | ★★★★        | ★★★★     | Homelab, k8s, infra déjà conteneurisée     |
+| **Binaire compilé**   | 0 € marginal | ★★         | ★★★         | ★★★★     | Embarqué, VPS minimal, pas de Docker       |
 
 **Recommandation par profil :**
 
@@ -608,6 +620,7 @@ bash scripts/fly-init.sh
 ```
 
 Ce que fait le script :
+
 1. Crée l'app `shenron-bot` en région `cdg` (Paris) si elle n'existe pas
 2. Provisionne le volume persistant `shenron_data` (3 GB SSD, mount `/data`)
 3. Extrait chaque variable de `.env` et la pousse en secret Fly (masquée)
@@ -647,12 +660,12 @@ fly machine list --app shenron-bot      # VMs actives
 
 ### Coût
 
-| Poste | Prix (avril 2026) |
-|---|---|
-| VM `shared-cpu-1x` 1 GB | ~1,94 $/mo |
-| Volume 3 GB | ~0,45 $/mo |
+| Poste                   | Prix (avril 2026)                     |
+| ----------------------- | ------------------------------------- |
+| VM `shared-cpu-1x` 1 GB | ~1,94 $/mo                            |
+| Volume 3 GB             | ~0,45 $/mo                            |
 | Bande passante sortante | ~0,02 $/GB (généralement < 1 GB/mois) |
-| **Total estimé** | **~2,50-3 $/mo** |
+| **Total estimé**        | **~2,50-3 $/mo**                      |
 
 [Pricing Fly](https://fly.io/docs/about/pricing/).
 
@@ -718,8 +731,8 @@ journalctl -fu shenron                # logs en direct
 
 La recherche RAG hybride+rerank charge ses 2 modèles transformers.js dans un **sidecar isolé** — jamais dans le process bot (qui reste à `MemoryMax=1.5G`).
 
-| Service | Port | Mémoire | Rôle |
-|---|---|---|---|
+| Service                 | Port             | Mémoire        | Rôle                                                                                 |
+| ----------------------- | ---------------- | -------------- | ------------------------------------------------------------------------------------ |
 | `shenron-embed.service` | `127.0.0.1:5007` | `MemoryMax=3G` | Sidecar embeddings (`multilingual-e5-small` + `bge-reranker-base`), 2 modèles chauds |
 
 - **Activation** : `bash deploy/install.sh` active l'unit avec les autres (units vendorées dans `deploy/systemd/`). Au **1er boot**, le service télécharge ~410 Mo de modèles dans `apps/bot/.models` (gitignored, cache persistant).
@@ -788,7 +801,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: shenron }
 spec:
-  replicas: 1                          # IMPORTANT : Discord interdit le multi-process Gateway
+  replicas: 1 # IMPORTANT : Discord interdit le multi-process Gateway
   strategy: { type: Recreate }
   selector: { matchLabels: { app: shenron } }
   template:
@@ -801,7 +814,7 @@ spec:
             - secretRef: { name: shenron-env }
           resources:
             requests: { memory: "256Mi", cpu: "100m" }
-            limits:   { memory: "1Gi",   cpu: "1" }
+            limits: { memory: "1Gi", cpu: "1" }
           volumeMounts:
             - name: data
               mountPath: /data
@@ -853,10 +866,10 @@ fly secrets import < .env       # alternative
 
 Secrets configurés sur le repo :
 
-| Secret | Usage | Comment le générer |
-|---|---|---|
+| Secret              | Usage                              | Comment le générer                     |
+| ------------------- | ---------------------------------- | -------------------------------------- |
 | `GH_PACKAGES_TOKEN` | Auth `@rpbey/*` dans les workflows | PAT classic avec scope `read:packages` |
-| `FLY_API_TOKEN` | Déploiement CI/CD | `fly auth token` |
+| `FLY_API_TOKEN`     | Déploiement CI/CD                  | `fly auth token`                       |
 
 ### systemd
 
@@ -873,13 +886,13 @@ Utilise `EnvironmentFile=` pointant sur un `.env` en `chmod 600` + `User=` non-p
 
 ### Workflows actifs
 
-| Workflow | Trigger | Fait |
-|---|---|---|
-| `ci.yml` | push/PR main | type-check, lint, test, build (matrix Ubuntu + macOS) + compile Linux x64 |
-| `release.yml` | tag `v*` | Compile 5 targets (linux-x64/arm64, darwin-x64/arm64, windows-x64), SHA256SUMS, GitHub Release |
-| `deploy-fly.yml` | push main (après CI vert) | `flyctl deploy --remote-only` |
-| `update-deps.yml` | lundi 06:00 UTC | `bun update` → PR automatique si `bun.lock` change |
-| `codeql.yml` | push/PR + mardi 07:00 UTC | Scan sécurité JS/TS |
+| Workflow          | Trigger                   | Fait                                                                                           |
+| ----------------- | ------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ci.yml`          | push/PR main              | type-check, lint, test, build (matrix Ubuntu + macOS) + compile Linux x64                      |
+| `release.yml`     | tag `v*`                  | Compile 5 targets (linux-x64/arm64, darwin-x64/arm64, windows-x64), SHA256SUMS, GitHub Release |
+| `deploy-fly.yml`  | push main (après CI vert) | `flyctl deploy --remote-only`                                                                  |
+| `update-deps.yml` | lundi 06:00 UTC           | `bun update` → PR automatique si `bun.lock` change                                             |
+| `codeql.yml`      | push/PR + mardi 07:00 UTC | Scan sécurité JS/TS                                                                            |
 
 ### Flow de release
 
@@ -937,6 +950,7 @@ journalctl -fu shenron | GITHUB_TOKEN=<PAT> bun scripts/log-watcher.ts
 ```
 
 **Comportement** :
+
 - Nouvelle erreur → nouvelle issue `[auto] <message>` avec labels `bug` + `auto-detected`
 - Erreur déjà vue (fingerprint identique) dans une issue **ouverte** → commentaire (+count, timestamp)
 - Issue **fermée** avec le même fingerprint → ignoré (respect du jugement humain)
@@ -996,12 +1010,12 @@ sudo systemctl start shenron     # OU fly scale count 1 --app shenron-bot
 
 ### Mise à jour
 
-| Cible | Commande |
-|---|---|
-| Fly.io (manuel) | `fly deploy` |
-| Fly.io (auto) | `git push` (CI vert → deploy auto) |
-| systemd | `git pull && bun install && bun run gen:entries && sudo systemctl restart shenron` |
-| Docker | `docker pull … && docker stop shenron && docker run …` |
+| Cible           | Commande                                                                           |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Fly.io (manuel) | `fly deploy`                                                                       |
+| Fly.io (auto)   | `git push` (CI vert → deploy auto)                                                 |
+| systemd         | `git pull && bun install && bun run gen:entries && sudo systemctl restart shenron` |
+| Docker          | `docker pull … && docker stop shenron && docker run …`                             |
 
 ### Rollback
 
@@ -1045,13 +1059,14 @@ Les migrations Drizzle ne sont pas réversibles par défaut. Pour revert :
 
 Discord impose **un seul process Gateway par bot** tant qu'on est < 2 500 guilds.
 
-| Nombre de guilds | Config |
-|---|---|
-| 1 - 2 500 | 1 VM, `fly scale count 1`, `replicas: 1` |
-| 2 500 - 250 000 | Sharding manuel : définir `totalShards` dans discord.js |
-| > 250 000 | Architecture multi-process, Redis pour state partagé (hors scope Shenron) |
+| Nombre de guilds | Config                                                                    |
+| ---------------- | ------------------------------------------------------------------------- |
+| 1 - 2 500        | 1 VM, `fly scale count 1`, `replicas: 1`                                  |
+| 2 500 - 250 000  | Sharding manuel : définir `totalShards` dans discord.js                   |
+| > 250 000        | Architecture multi-process, Redis pour state partagé (hors scope Shenron) |
 
 Shenron est codé single-shard. Pour sharder il faudra :
+
 1. Passer à `ShardingManager` de discord.js
 2. Extraire la DB en service partagé (Postgres ou SQLite centralisé)
 3. Coordination cache (Redis)
@@ -1102,29 +1117,29 @@ Le style Dragon Ball est **chromatiquement chaud, contrasté, énergétique**.
 Pas de pastel, pas de gradients subtils — couleurs primaires saturées, blanc
 pur, noir profond. La signature : **orange ↔ bleu nuit ↔ jaune doré**.
 
-| Élément | Référence | Codes |
-|---|---|---|
-| Gi de Goku | DBZ anime, manga couleur | `#FF6B1A` orange chaud |
-| Ceinture / sky-blue Goku | Toriyama color guide | `#1976D2` bleu franc |
-| Étoile de Dragon Ball | Site DB Official, logos officiels | `#FFB200` doré orangé |
-| Logo "DRAGON BALL" rouge | Anime opening, jaquettes Bandai | `#E20613` rouge pur |
-| Kanji 神龍 (Shenron) | Manga vol. 17, anime intro | `#C8A02E` doré ancien |
-| Aura Super Saiyan | DBZ cellsaga, anime FX | `#FFD23F` jaune électrique |
-| Ki sphere | Kamehameha, Genkidama | bleu clair → blanc `#9BD9FF → #FFFFFF` |
-| Outline manga | trait Toriyama universel | `#0A0A0A` noir profond, jamais `#000` 100% |
+| Élément                  | Référence                         | Codes                                      |
+| ------------------------ | --------------------------------- | ------------------------------------------ |
+| Gi de Goku               | DBZ anime, manga couleur          | `#FF6B1A` orange chaud                     |
+| Ceinture / sky-blue Goku | Toriyama color guide              | `#1976D2` bleu franc                       |
+| Étoile de Dragon Ball    | Site DB Official, logos officiels | `#FFB200` doré orangé                      |
+| Logo "DRAGON BALL" rouge | Anime opening, jaquettes Bandai   | `#E20613` rouge pur                        |
+| Kanji 神龍 (Shenron)     | Manga vol. 17, anime intro        | `#C8A02E` doré ancien                      |
+| Aura Super Saiyan        | DBZ cellsaga, anime FX            | `#FFD23F` jaune électrique                 |
+| Ki sphere                | Kamehameha, Genkidama             | bleu clair → blanc `#9BD9FF → #FFFFFF`     |
+| Outline manga            | trait Toriyama universel          | `#0A0A0A` noir profond, jamais `#000` 100% |
 
 **Notre palette site** (`apps/site/src/app/globals.css`) :
 
 ```css
---color-dbz-bg:         #0a0a0a;   /* noir profond DB officiel */
---color-dbz-card:       #141410;   /* surface chaude warm-tinted */
---color-dbz-border:     #2a2a26;   /* hairline subtle */
---color-dbz-orange:     #ffb200;   /* doré signature Site Officiel JP/FR */
---color-dbz-orange-dark:#d99700;   /* press state */
---color-dbz-blue:       #1e244d;   /* deep navy lisible */
---color-dbz-blue-light: #cdcdcd;   /* gris clair DB officiel */
---color-dbz-yellow:     #ffb200;   /* alias accent doré */
---color-dbz-red:        #ff0000;   /* rouge logo DB officiel */
+--color-dbz-bg: #0a0a0a; /* noir profond DB officiel */
+--color-dbz-card: #141410; /* surface chaude warm-tinted */
+--color-dbz-border: #2a2a26; /* hairline subtle */
+--color-dbz-orange: #ffb200; /* doré signature Site Officiel JP/FR */
+--color-dbz-orange-dark: #d99700; /* press state */
+--color-dbz-blue: #1e244d; /* deep navy lisible */
+--color-dbz-blue-light: #cdcdcd; /* gris clair DB officiel */
+--color-dbz-yellow: #ffb200; /* alias accent doré */
+--color-dbz-red: #ff0000; /* rouge logo DB officiel */
 ```
 
 **Règle d'or** : un seul accent dominant par bloc. Le doré est notre couleur
@@ -1135,11 +1150,11 @@ DMCA, erreurs). Le bleu est un secondaire calme (gris clair `#cdcdcd`).
 
 ## 2. Typographie — système 3 polices
 
-| Tier | Police | Usage | Rationale |
-|---|---|---|---|
-| Display | **Oswald** (Google Fonts) | titres, nav, CTAs, labels | police signature `fr.dragon-ball-official.com` — condensée, gras, lisible en uppercase |
-| Body | **Google Sans Flex** (Google Fonts variable, v20 TTF servie en local) | paragraphes, listes, descriptions | police corps officielle Google, variable axes wght+wdth+ital, publiée sur fonts.google.com/specimen/Google+Sans+Flex (chargée en `localFont` car next/font/google registry ne la liste pas encore) |
-| Japonais | **Noto Sans JP** (Google Fonts) | 漢字, romaji, attaques (Kamehameha) | police officielle DB Site, support katakana + kanji complet |
+| Tier     | Police                                                                | Usage                               | Rationale                                                                                                                                                                                          |
+| -------- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Display  | **Oswald** (Google Fonts)                                             | titres, nav, CTAs, labels           | police signature `fr.dragon-ball-official.com` — condensée, gras, lisible en uppercase                                                                                                             |
+| Body     | **Google Sans Flex** (Google Fonts variable, v20 TTF servie en local) | paragraphes, listes, descriptions   | police corps officielle Google, variable axes wght+wdth+ital, publiée sur fonts.google.com/specimen/Google+Sans+Flex (chargée en `localFont` car next/font/google registry ne la liste pas encore) |
+| Japonais | **Noto Sans JP** (Google Fonts)                                       | 漢字, romaji, attaques (Kamehameha) | police officielle DB Site, support katakana + kanji complet                                                                                                                                        |
 
 **Hiérarchie de tailles** (calibrée sur `design.google` × DB Official) :
 
@@ -1166,26 +1181,30 @@ Official (vu en analyse `style-tree.json` sur leur nav et tagline).
 ## 3. Composition & layout
 
 ### Container
+
 - Max-width principal : **1280px** (analyse `design.google` = 1440px max, on adapte)
 - Max-width article : **920px**
 - Padding latéral : `px-6 lg:px-10` (24px mobile, 40px desktop)
 - Vertical rhythm : `py-16 lg:py-24` sections, `mb-12` titres → corps
 
 ### Grille
+
 - Listes cartes : `grid-cols-{1|sm:2|lg:3|lg:4}` selon densité (cards 320-380px idéale)
 - Personnages : portrait 3:4 (équivalent affiche cinéma)
 - Films/posters : 2:3 (standard MAL/AniList/Kitsu)
 
 ### Espacement
+
 - Card padding intérieur : `p-5` (20px) — `p-8` (32px) pour cards prioritaires
 - Gap entre items : `gap-3` (12px) compact, `gap-5` (20px) confortable, `gap-px` (1px)
-  + bg neutre pour grille bordée style "newspaper" (`UniverseGrid`)
+  - bg neutre pour grille bordée style "newspaper" (`UniverseGrid`)
 - Border-radius : **0.75rem (12px)** standard, `rounded-2xl` (16px) pour hero
   cards, `rounded-full` pour CTAs/pills
 - Hairline : `border-white/[0.06]` sur dark, jamais pleine ligne `border-white/20`
   (trop dur)
 
 ### Hiérarchie visuelle
+
 - **Eyebrow label** : micro-label uppercase orange `text-dbz-orange` au-dessus
   de chaque H1 → ancre la section dans une catégorie ("Univers Dragon Ball",
   "Cinéma", "Anime"…)
@@ -1199,6 +1218,7 @@ Official (vu en analyse `style-tree.json` sur leur nav et tagline).
 ## 4. Motifs & iconographie
 
 ### Symboles canon Dragon Ball à exploiter
+
 - ★ **Étoiles de Dragon Ball** (1 à 7) — héro visuel, animation orbite
 - 神龍 **Kanji Shenron** — accent décoratif vertical (kata-vert utility)
 - 八 **Symbole Saiyan / Bardock crest** — pour les badges race
@@ -1206,7 +1226,9 @@ Official (vu en analyse `style-tree.json` sur leur nav et tagline).
 - ⚡ **Genkidama** — sphère bleue avec halo
 
 ### Motifs DOM réutilisables
+
 Définis dans `globals.css` (`@layer utilities`) :
+
 - `.speed-lines` — repeating-conic-gradient radial, masque circulaire (manga FX)
 - `.halftone` — pointillés tramés style impression manga
 - `.starfield` + `.starfield-anim` — étoiles drift cosmique
@@ -1217,6 +1239,7 @@ Définis dans `globals.css` (`@layer utilities`) :
 - `.ki-pulse` — animation pulse 2.4s pour micro-labels accent
 
 ### Ne pas inventer
+
 Ne pas créer de "Dragon Ball Cyber-punk", "DB Vaporwave", "DB Glassmorphism
 violet". L'univers est **chaud, manga, énergique**. Pas de cool tones, pas de
 neon synthwave. Si on veut du moderne 2026 → **clean editorial Google × énergie
@@ -1235,6 +1258,7 @@ React-three-fiber. KiCanvas (`apps/site/src/components/site/KiCanvas.tsx`)
 est un composant client dynamic-imported (jamais dans le critical path).
 
 **Préférer toujours d'abord** :
+
 1. View Transitions API native (Chrome 111+, Safari 18+) → `next/transitions`
 2. CSS `@scroll-timeline` + `@view-timeline` (Chrome 115+) → animations
    scroll-linked sans JS
@@ -1244,16 +1268,16 @@ est un composant client dynamic-imported (jamais dans le critical path).
 
 **Réservées aux moments-clés**, pas saupoudrées partout.
 
-| Élément | Animation | Durée | Easing |
-|---|---|---|---|
-| Hero text reveal | `motion.h1 initial scale=0.9 → 1` | 700ms | spring bounce 0.35 |
-| CTA hover | `transform: translateY(-1px)` + box-shadow boost | 250ms | ease-out |
-| Card hover | `border-color` + `bg-white/[0.07]` | 300ms | ease |
-| Image hover (CharactersTeaser) | `scale-105` + `opacity 90→100` | 500ms | ease |
-| Drawer mobile | `top-16 inset-0` slide + backdrop-blur | 200ms | linear |
-| Scroll indicator | `scale-y 1→1.4 opacity 0.3→1` | 2s loop | ease-in-out |
-| Aura `.ki-pulse` | `scale 1→1.04 opacity 0.85→1` | 2.4s loop | ease-in-out |
-| `.starfield-anim` | `background-position` drift 600px | 240s linear | infinite |
+| Élément                        | Animation                                        | Durée       | Easing             |
+| ------------------------------ | ------------------------------------------------ | ----------- | ------------------ |
+| Hero text reveal               | `motion.h1 initial scale=0.9 → 1`                | 700ms       | spring bounce 0.35 |
+| CTA hover                      | `transform: translateY(-1px)` + box-shadow boost | 250ms       | ease-out           |
+| Card hover                     | `border-color` + `bg-white/[0.07]`               | 300ms       | ease               |
+| Image hover (CharactersTeaser) | `scale-105` + `opacity 90→100`                   | 500ms       | ease               |
+| Drawer mobile                  | `top-16 inset-0` slide + backdrop-blur           | 200ms       | linear             |
+| Scroll indicator               | `scale-y 1→1.4 opacity 0.3→1`                    | 2s loop     | ease-in-out        |
+| Aura `.ki-pulse`               | `scale 1→1.04 opacity 0.85→1`                    | 2.4s loop   | ease-in-out        |
+| `.starfield-anim`              | `background-position` drift 600px                | 240s linear | infinite           |
 
 **Bannir** : parallax scroll, animations chargement infinies (= placeholder),
 flips 3D, glitch FX. Notre DB est moderne 2026, pas Flash 2008.
@@ -1263,8 +1287,10 @@ flips 3D, glitch FX. Notre DB est moderne 2026, pas Flash 2008.
 ## 6. Composants signature
 
 ### Home cinématique (`apps/site/src/components/home/`)
+
 Page d'accueil full-page **scroll-snap** : chaque ère Dragon Ball est une scène
 plein écran avec fond animé tiré des meilleures scènes du manga/anime.
+
 - Navigation **molette / clavier (↑↓, Page, Home/End) / tactile** entre scènes.
 - Langage visuel : **sombre cinématique**, accent or DB `#ffb200`, fonds en
   **ken-burns** (pan/zoom lent) avec **color grade par ère** (saga = teinte),
@@ -1275,6 +1301,7 @@ plein écran avec fond animé tiré des meilleures scènes du manga/anime.
   online / stats). Composants : `HomeExperience.tsx`, `SceneBackdrop.tsx`.
 
 ### Header (`SiteNav.tsx`)
+
 - Sticky top-0, hauteur 64px
 - Surface : `rgba(10,10,10,0.82) + backdrop-blur-xl + backdrop-saturate-150`
 - Hairline doré : `border-b border-[rgba(255,178,0,0.18)]`
@@ -1284,28 +1311,33 @@ plein écran avec fond animé tiré des meilleures scènes du manga/anime.
 - Mobile : hamburger morphing croix + drawer fullscreen fond noir 97% opacité
 
 ### Footer (`SiteFooter.tsx`)
+
 - Surface `#070707` (légèrement plus dark que le bg pour ancrage)
 - 3 colonnes : Explorer / Communauté / Légal
 - Copyright très petit (12px text-white/45) — mention complète ayants droit
-  + lien `/credits`
+  - lien `/credits`
 
 ### Cards
+
 - Surface : `bg-white/[0.04] border border-white/[0.06] rounded-xl`
 - Hover : `border-dbz-orange/60` (le doré illumine au survol)
 - Padding : `p-5` standard, `p-8` pour hero/CTA cards
 - Pas de drop-shadow lourde — préférer border-color shifts
 
 ### Boutons CTA
+
 - Pill arrondie : `rounded-full h-12 px-7`
 - Primaire : `bg-dbz-orange hover:bg-white text-black font-bold tracking-[0.10em] uppercase`
 - Secondaire : `border border-white/20 hover:border-dbz-orange text-white`
 - Pas de gradient bouton (réservé aux héros titres avec `.title-jagged`)
 
 ### Badges
+
 - Pill compact : `text-[11px] font-display font-semibold tracking-[0.10em] uppercase`
 - Couleurs : `bg-dbz-orange/15 text-dbz-orange` pour platforms/races
 
 ### Image attribution
+
 Toutes les images servies via `/db/*` exposent des headers HTTP :
 `X-DB-Attribution: © Toei Animation`, `X-DB-License: FAIR-USE-EDITORIAL`,
 `X-DB-Source: toei-animation`, `X-DB-Served-Variant: avif|webp`. Le composant
@@ -1329,6 +1361,7 @@ front peut lire ces headers pour afficher tooltip de crédit au hover.
 ## 8. Règles dures (do / don't)
 
 ### À faire
+
 - **Hierarchy first** : un titre énorme, un lead court, des CTAs visibles
 - **Espace négatif généreux** : `py-16 lg:py-24` minimum entre sections
 - **Cohérence palette** : si tu poses du doré, c'est `--color-dbz-orange` —
@@ -1340,6 +1373,7 @@ front peut lire ces headers pour afficher tooltip de crédit au hover.
 - **Mobile-first** : tester sur 375px d'abord, desktop est l'amélioration
 
 ### À éviter
+
 - ❌ Lettre initiale dans rond coloré comme avatar fallback (interdit, voir
   commit `fix(site): zéro placeholder`)
 - ❌ "???" ou "Aucun résultat" comme valeur par défaut
@@ -1357,31 +1391,31 @@ front peut lire ces headers pour afficher tooltip de crédit au hover.
 
 Captures dans `reference/db-recon/`. Analyse exécutée le 2026-05-16 :
 
-| Site | Apport pour notre design |
-|---|---|
-| `fr.dragon-ball-official.com` | Police **Oswald**, palette noir/jaune/rouge, structure éditoriale |
-| `www.toei-animation.com/catalog/dragon-ball/` | Layout catalog cards grille, hover gold |
-| `en.bandainamcoent.eu/dragon-ball` | Hero gaming banners full-width, CTAs orange grands |
-| `design.google` | Typographie editorial Roboto Flex, espacement vertical, max-width 1440 |
-| `dragonball.fandom.com` | Densité info encyclopédique (à NE PAS copier — trop chargé) |
+| Site                                          | Apport pour notre design                                               |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| `fr.dragon-ball-official.com`                 | Police **Oswald**, palette noir/jaune/rouge, structure éditoriale      |
+| `www.toei-animation.com/catalog/dragon-ball/` | Layout catalog cards grille, hover gold                                |
+| `en.bandainamcoent.eu/dragon-ball`            | Hero gaming banners full-width, CTAs orange grands                     |
+| `design.google`                               | Typographie editorial Roboto Flex, espacement vertical, max-width 1440 |
+| `dragonball.fandom.com`                       | Densité info encyclopédique (à NE PAS copier — trop chargé)            |
 
 ---
 
 ## 10. Implémentation actuelle
 
-| Composant | Fichier | Statut |
-|---|---|---|
-| Palette + tokens | `apps/site/src/app/globals.css` | ✅ DB Official |
-| Polices | `apps/site/src/app/layout.tsx` | ✅ Roboto Flex + Oswald + Noto JP |
-| Header | `apps/site/src/components/SiteNav.tsx` | ✅ 2026 sticky glass |
-| Mobile nav | `apps/site/src/components/MobileNav.tsx` | ✅ drawer fullscreen |
-| Footer | `apps/site/src/components/SiteFooter.tsx` | ✅ 3 cols + copyright |
-| Hero landing | `apps/site/src/components/landing/LandingHero.tsx` | ✅ DB-first copy |
-| Univers grid | `apps/site/src/components/landing/UniverseGrid.tsx` | ✅ 6 piliers DB |
-| Cards persos | `apps/site/src/components/landing/CharactersTeaser.tsx` | ✅ filtrées sans placeholder |
-| Pages wiki | `apps/site/src/app/wiki/{sagas,films,jeux,episodes,search}/` | ✅ 5 listes + 3 détails |
-| Pages légales | `apps/site/src/app/{credits,licence}/page.tsx` | ✅ DMCA contact + licences |
-| Image pipeline | `apps/bot/scripts/optimize-assets.sh` + Content-Negotiation | ✅ AVIF/WebP/original |
+| Composant        | Fichier                                                      | Statut                            |
+| ---------------- | ------------------------------------------------------------ | --------------------------------- |
+| Palette + tokens | `apps/site/src/app/globals.css`                              | ✅ DB Official                    |
+| Polices          | `apps/site/src/app/layout.tsx`                               | ✅ Roboto Flex + Oswald + Noto JP |
+| Header           | `apps/site/src/components/SiteNav.tsx`                       | ✅ 2026 sticky glass              |
+| Mobile nav       | `apps/site/src/components/MobileNav.tsx`                     | ✅ drawer fullscreen              |
+| Footer           | `apps/site/src/components/SiteFooter.tsx`                    | ✅ 3 cols + copyright             |
+| Hero landing     | `apps/site/src/components/landing/LandingHero.tsx`           | ✅ DB-first copy                  |
+| Univers grid     | `apps/site/src/components/landing/UniverseGrid.tsx`          | ✅ 6 piliers DB                   |
+| Cards persos     | `apps/site/src/components/landing/CharactersTeaser.tsx`      | ✅ filtrées sans placeholder      |
+| Pages wiki       | `apps/site/src/app/wiki/{sagas,films,jeux,episodes,search}/` | ✅ 5 listes + 3 détails           |
+| Pages légales    | `apps/site/src/app/{credits,licence}/page.tsx`               | ✅ DMCA contact + licences        |
+| Image pipeline   | `apps/bot/scripts/optimize-assets.sh` + Content-Negotiation  | ✅ AVIF/WebP/original             |
 
 ---
 
@@ -1417,46 +1451,54 @@ copies. The line below imports CLAUDE.md for Gemini CLI's context loader.
 ### Shenron Monorepo — Learning Memory
 
 ## 1. Drizzle Schema Pushes with Custom Postgres Schemas
-* **Issue:** In PostgreSQL, Drizzle Kit targets the `"public"` schema by default. When using custom schemas (e.g., `"bot"`), configuring `schemaFilter` in `drizzle.config.ts` causes Drizzle Kit to detect untracked tables created dynamically by the bot/sync scripts (such as `invites_log`, `jails`, `users`) and prompt to drop them, risking massive data loss.
-* **Solution:** Avoid running `drizzle-kit push` on database environments with dynamic custom schemas unless the schemas are fully mapped. Instead, apply schema changes using raw SQL migration queries (e.g. `ALTER TABLE bot.db_movies ADD COLUMN IF NOT EXISTS ...`).
+
+- **Issue:** In PostgreSQL, Drizzle Kit targets the `"public"` schema by default. When using custom schemas (e.g., `"bot"`), configuring `schemaFilter` in `drizzle.config.ts` causes Drizzle Kit to detect untracked tables created dynamically by the bot/sync scripts (such as `invites_log`, `jails`, `users`) and prompt to drop them, risking massive data loss.
+- **Solution:** Avoid running `drizzle-kit push` on database environments with dynamic custom schemas unless the schemas are fully mapped. Instead, apply schema changes using raw SQL migration queries (e.g. `ALTER TABLE bot.db_movies ADD COLUMN IF NOT EXISTS ...`).
 
 ## 2. BXC Scraping under Cloudflare
-* **Issue:** French manga scan portals (`lelscanfr.com`, `scan-vf.net`) block standard HTTP fetch requests with HTTP 403.
-* **Solution:** Use Bxc's headless browser engine via `bxc recon <url> --profile static --json` to bypass Cloudflare and retrieve the structured image asset links.
+
+- **Issue:** French manga scan portals (`lelscanfr.com`, `scan-vf.net`) block standard HTTP fetch requests with HTTP 403.
+- **Solution:** Use Bxc's headless browser engine via `bxc recon <url> --profile static --json` to bypass Cloudflare and retrieve the structured image asset links.
 
 ## 3. Agent Browser Sandbox in Virtual Environments
-* **Issue:** Running browser automation inside VM environments fails with Chrome FATAL zygote sandbox errors.
-* **Solution:** Always invoke the browser using the `--args "--no-sandbox"` flag (e.g., `agent-browser open <url> --args "--no-sandbox"`) to ensure successful launches.
+
+- **Issue:** Running browser automation inside VM environments fails with Chrome FATAL zygote sandbox errors.
+- **Solution:** Always invoke the browser using the `--args "--no-sandbox"` flag (e.g., `agent-browser open <url> --args "--no-sandbox"`) to ensure successful launches.
 
 ## 4. TypeScript Union Inference with fetch Headers
-* **Issue:** When conditionally defining fetch headers as `ref ? { Referer: ref, Origin: new URL(ref).origin } : {}`, TypeScript infers the union type `{ Referer: string; Origin: string; } | { Referer?: undefined; Origin?: undefined; }`. When passed to `fetch(..., { headers })`, TS throws a TS2769 compilation error because the empty object structure fails index signature checks on `HeadersInit`.
-* **Solution:** Explicitly type the headers dictionary as `Record<string, string>` (e.g. `const headers: Record<string, string> = {}` and conditionally populate it) to ensure clean compatibility with `HeadersInit`.
+
+- **Issue:** When conditionally defining fetch headers as `ref ? { Referer: ref, Origin: new URL(ref).origin } : {}`, TypeScript infers the union type `{ Referer: string; Origin: string; } | { Referer?: undefined; Origin?: undefined; }`. When passed to `fetch(..., { headers })`, TS throws a TS2769 compilation error because the empty object structure fails index signature checks on `HeadersInit`.
+- **Solution:** Explicitly type the headers dictionary as `Record<string, string>` (e.g. `const headers: Record<string, string> = {}` and conditionally populate it) to ensure clean compatibility with `HeadersInit`.
 
 ## 5. Bun Spawn Executable Path in systemd Services
-* **Issue:** Spawning subprocesses via `Bun.spawn` with a raw executable name (e.g. `"bun"`) fails with `ENOENT` under systemd due to minimal `PATH` environments.
-* **Solution:** Always use the absolute executable path (e.g. `/home/ubuntu/.bun/bin/bun`) for Bun when spawning background tasks from the bot service or associated scripts (such as `resolve-streams.ts` or `server.ts`).
+
+- **Issue:** Spawning subprocesses via `Bun.spawn` with a raw executable name (e.g. `"bun"`) fails with `ENOENT` under systemd due to minimal `PATH` environments.
+- **Solution:** Always use the absolute executable path (e.g. `/home/ubuntu/.bun/bin/bun`) for Bun when spawning background tasks from the bot service or associated scripts (such as `resolve-streams.ts` or `server.ts`).
 
 ## 6. HLS Proxying for Progressive MP4 Sources
-* **Issue:** When resolving streams dynamically, some players return progressive MP4 files instead of HLS playlists. Parsing these as text playlists (`up.text()`) causes server memory spikes/leaks, parsing failures, and broken video downloads.
-* **Solution:** Intercept the stream type (`type === "mp4"`) before any text parsing occurs, and stream the response body directly to the client with appropriate headers (`video/mp4` and attachment disposition). Enhance the frontend player (using Hls.js) to fall back to native video element source loading if it encounters a fatal error during manifest parsing.
+
+- **Issue:** When resolving streams dynamically, some players return progressive MP4 files instead of HLS playlists. Parsing these as text playlists (`up.text()`) causes server memory spikes/leaks, parsing failures, and broken video downloads.
+- **Solution:** Intercept the stream type (`type === "mp4"`) before any text parsing occurs, and stream the response body directly to the client with appropriate headers (`video/mp4` and attachment disposition). Enhance the frontend player (using Hls.js) to fall back to native video element source loading if it encounters a fatal error during manifest parsing.
 
 ## 7. ESLint 9 Flat Config & FlatCompat under Bun
-* **Issue:** Under ESLint 9 with Bun, using `@eslint/eslintrc` `FlatCompat` to wrap legacy configurations (like `eslint-config-next`) fails with a cryptic `TypeError: JSON.stringify cannot serialize cyclic structures` when any validation error occurs (such as using `basePath` instead of `baseDirectory`).
-* **Solution:** Migrate to a native ESLint 9 Flat Config array format. For Next.js projects, import and spread `eslint-config-next` directly (e.g., `...nextConfig`) as it natively supports Flat Config format, and override rules in a subsequent flat config block.
+
+- **Issue:** Under ESLint 9 with Bun, using `@eslint/eslintrc` `FlatCompat` to wrap legacy configurations (like `eslint-config-next`) fails with a cryptic `TypeError: JSON.stringify cannot serialize cyclic structures` when any validation error occurs (such as using `basePath` instead of `baseDirectory`).
+- **Solution:** Migrate to a native ESLint 9 Flat Config array format. For Next.js projects, import and spread `eslint-config-next` directly (e.g., `...nextConfig`) as it natively supports Flat Config format, and override rules in a subsequent flat config block.
 
 ## 8. Missing `tsup` Monorepo Dependencies on Remote Environments
-* **Issue:** Internal package directories inside a Turborepo monorepo can use build tools (like `tsup`) that are expected to be available globally or via the root workspace. If missing from the root `devDependencies` or the Bun dependencies catalog, remote build environments (like Vercel or compilation containers) will fail with `command not found: tsup` errors during `turbo run build`.
-* **Solution:** Explicitly define and pin `tsup` in the root workspace `devDependencies` or monorepo dependency catalog to ensure availability during remote Turbo builds.
+
+- **Issue:** Internal package directories inside a Turborepo monorepo can use build tools (like `tsup`) that are expected to be available globally or via the root workspace. If missing from the root `devDependencies` or the Bun dependencies catalog, remote build environments (like Vercel or compilation containers) will fail with `command not found: tsup` errors during `turbo run build`.
+- **Solution:** Explicitly define and pin `tsup` in the root workspace `devDependencies` or monorepo dependency catalog to ensure availability during remote Turbo builds.
 
 ## 9. Systemd Protected Namespaces and Directory Initialization
-* **Issue:** Systemd services configured with namespace directories or sandboxing parameters (e.g., `ReadWritePaths=` or `ProtectSystem=`) will crash with a `226/NAMESPACE` startup error if any of the target directories inside the sandbox (such as a local `.bun-cache` folder inside the workspace) do not exist on the filesystem.
-* **Solution:** Ensure that all directories mapped in systemd configuration files (or folders where runtime engines automatically cache outputs) are pre-initialized during installation/deployment scripts (e.g. `mkdir -p apps/bot/.bun-cache`).
+
+- **Issue:** Systemd services configured with namespace directories or sandboxing parameters (e.g., `ReadWritePaths=` or `ProtectSystem=`) will crash with a `226/NAMESPACE` startup error if any of the target directories inside the sandbox (such as a local `.bun-cache` folder inside the workspace) do not exist on the filesystem.
+- **Solution:** Ensure that all directories mapped in systemd configuration files (or folders where runtime engines automatically cache outputs) are pre-initialized during installation/deployment scripts (e.g. `mkdir -p apps/bot/.bun-cache`).
 
 ## 10. Bun Bundler Asset Resolution in HTML Templates
-* **Issue:** Bun allows importing `.html` files directly in TypeScript, which triggers automatic bundling of all referenced assets in the HTML file. However, if a previous build step modified the HTML template to point to dynamic/hashed output assets (e.g., `<link href="./bot/dashboard-vdfat6mt.css">`), subsequent compilation attempts fail with `Could not resolve` errors.
-* **Solution:** Maintain the HTML template with references only to original source asset files (`./src/dashboard/styles.compiled.css`) and restore it (e.g., via `git checkout`) before running compiler/bundler commands.
 
-
+- **Issue:** Bun allows importing `.html` files directly in TypeScript, which triggers automatic bundling of all referenced assets in the HTML file. However, if a previous build step modified the HTML template to point to dynamic/hashed output assets (e.g., `<link href="./bot/dashboard-vdfat6mt.css">`), subsequent compilation attempts fail with `Could not resolve` errors.
+- **Solution:** Maintain the HTML template with references only to original source asset files (`./src/dashboard/styles.compiled.css`) and restore it (e.g., via `git checkout`) before running compiler/bundler commands.
 
 
 ---
@@ -1484,14 +1526,14 @@ adresse exactement ces deux manques.
 
 ## 0. Contraintes dures (à garder en tête partout)
 
-| Contrainte | Impact sur le plan |
-|---|---|
-| **VPS CPU-only** (Cirrus virtuel, pas de GPU) | Pas de fine-tuning/entraînement from-scratch on-VPS. Fine-tune = **GPU loué** (RunPod / Vast.ai / Modal) ou **distillation + RAG-grounded** (sans entraînement). Inférence d'un modèle 2-3B quantifié GGUF en CPU = viable mais lente. |
-| **aphrody n'est pas un trainer** | C'est un client Google AI (`antigravity chat`, `gemini`, `notebooklm`, `chat`, `agent`). Il sert à **générer** (distillation de dataset, réponses grondées) — pas à entraîner des poids. |
-| **bot à `MemoryMax=1.5G`** | Tout modèle (embeddings, reranker, LLM) vit dans un **sidecar isolé**, jamais dans le process bot. Pattern déjà établi : `shenron-embed.service`. |
+| Contrainte                                                           | Impact sur le plan                                                                                                                                                                                                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **VPS CPU-only** (Cirrus virtuel, pas de GPU)                        | Pas de fine-tuning/entraînement from-scratch on-VPS. Fine-tune = **GPU loué** (RunPod / Vast.ai / Modal) ou **distillation + RAG-grounded** (sans entraînement). Inférence d'un modèle 2-3B quantifié GGUF en CPU = viable mais lente.      |
+| **aphrody n'est pas un trainer**                                     | C'est un client Google AI (`antigravity chat`, `gemini`, `notebooklm`, `chat`, `agent`). Il sert à **générer** (distillation de dataset, réponses grondées) — pas à entraîner des poids.                                                    |
+| **bot à `MemoryMax=1.5G`**                                           | Tout modèle (embeddings, reranker, LLM) vit dans un **sidecar isolé**, jamais dans le process bot. Pattern déjà établi : `shenron-embed.service`.                                                                                           |
 | **Ayants droit officiels** (Bandai/Shueisha/Toei — cf. profil owner) | Accès légitime aux sources canon. **Préserver l'attribution** (`db_sources`/`db_licenses`) à chaque chunk. Respecter robots.txt / ToS des sources tierces, proxy résidentiel pour les IP datacenter filtrées (`dragonball.news`, `bandai`). |
-| **Wiki = Neon source de vérité, SQLite = replica** | Le corpus RAG (`rag_chunks`/`rag_vectors`) est **dérivé local** (pas du wiki éditorial) — pas concerné par les gardes `wiki-write-guard`. Mais les sources scrapées qui enrichissent `db_*` passent par Neon (`/api/wiki-admin`). |
-| **Coûts API Gemini** | La distillation (B3) peut générer des dizaines de milliers d'appels. Budgétiser, batcher, cacher, et plafonner. |
+| **Wiki = Neon source de vérité, SQLite = replica**                   | Le corpus RAG (`rag_chunks`/`rag_vectors`) est **dérivé local** (pas du wiki éditorial) — pas concerné par les gardes `wiki-write-guard`. Mais les sources scrapées qui enrichissent `db_*` passent par Neon (`/api/wiki-admin`).           |
+| **Coûts API Gemini**                                                 | La distillation (B3) peut générer des dizaines de milliers d'appels. Budgétiser, batcher, cacher, et plafonner.                                                                                                                             |
 
 ---
 
@@ -1504,13 +1546,15 @@ adresse exactement ces deux manques.
 
 Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc recon → `data/rag/<slug>.md` + `corpus.json`), `apps/bot/scripts/ingest/bxc-ingest.ts`, `apps/bot/scripts/rag-build.ts` (chunk + embed + rerank-ready).
 
-### A0 — Baseline & harnais d'évaluation *(préalable non négociable)*
+### A0 — Baseline & harnais d'évaluation _(préalable non négociable)_
+
 - Construire un **gold set** : 50-100 questions FR réalistes (langage naturel, paraphrases, noms JP) → doc(s) attendu(s). Fichier `apps/bot/tests/rag-gold.jsonl` (`{query, expected_urls[], expected_kinds[]}`).
 - Script d'éval `apps/bot/scripts/rag-eval.ts` : pour chaque question, lance `hybridSearch` (et les 3 modes : lexical / hybrid / hybrid+rerank) et calcule **Recall@{1,3,5,10}**, **MRR**, **nDCG@10**.
 - **Mesurer la baseline AVANT tout changement de corpus.** Tout commit d'enrichissement doit améliorer (ou ne pas régresser) ces métriques → **gate CI**.
 - Livrable : `apps/bot/reports/rag-eval-baseline.md`.
 
 ### A1 — Inventaire des sources & priorisation canon
+
 - Lister depuis `db_sources` + compléter. **Priorité canon décroissante** :
   1. **Kanzenshuu** (Daizenshuu, guides, traductions de référence) — la bible fan canon.
   2. **Fandom** FR + EN + JA (`dragonball.fandom.com`) — personnages, sagas, techniques, épisodes (déjà partiellement ingéré : `ingest-fandom-*.ts`).
@@ -1519,7 +1563,8 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 - Tagger chaque source : `license_key`, langue, type de contenu (lore / épisode / manga / jeu / news), fragilité (cert/IP).
 - Livrable : `reference/db-recon/SOURCES-RAG.md` (matrice source × couverture × licence × stratégie de fetch).
 
-### A2 — Récolte via bxc *(le cœur « bxc »)*
+### A2 — Récolte via bxc _(le cœur « bxc »)_
+
 - Étendre `rag-recon.ts` → `rag-harvest.ts` orchestrant les bons sous-outils bxc selon la source :
   - `bxc recon <url>` → HTML propre → Markdown (pages lore).
   - `bxc scrape --selector <css>` → extraction ciblée (tableaux de techniques, listes d'épisodes).
@@ -1532,19 +1577,22 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 - Livrable : corpus brut versionné (hash-tracké), rapport de couverture vs A1.
 
 ### A3 — Nettoyage & normalisation
+
 - Strip boilerplate (nav, pubs, "modifier", catégories Fandom), normaliser le markdown.
 - **Déduplication** cross-source : MinHash/SimHash sur shingles → fusionner les quasi-doublons (FR/EN qui se recouvrent), garder la version la plus riche + cumuler les attributions.
 - **Canonicalisation des entités** : aliasing des noms (Son Goku = Sangoku = Kakarot = 孫悟空) via une table d'alias → meilleur rappel cross-langue.
 - Détection de langue par chunk (champ `lang`).
 - Livrable : `data/rag/clean/*.md` + `alias-map.json`.
 
-### A4 — Chunking sémantique *(remplace le découpage naïf 900 chars)*
+### A4 — Chunking sémantique _(remplace le découpage naïf 900 chars)_
+
 - Découpage **phrase-aware** par fenêtres de 256-512 tokens avec **overlap** 15 %, respectant les frontières de section (titres markdown).
 - Métadonnées par chunk : `source_id`, `license_key`, `lang`, `entity` (résolu via alias-map), `section`, `url` profond.
 - Garder la donnée structurée `db_*` (déjà excellente) comme chunks « fiche » + ajouter les chunks « narratif » du corpus.
 - Livrable : `corpus.json` v2 (schéma enrichi) + `rag-build.ts` adapté pour ingérer ces métadonnées dans `rag_chunks` (colonnes `lang`, `source_id`, `entity`).
 
 ### A5 — Embeddings & index
+
 - `rag:build` ré-embed tout (`multilingual-e5-small` actuel). **Décision de scale** :
   - Corpus < ~20 k chunks → brute-force cosine actuel reste optimal (zéro changement).
   - Corpus > ~50 k chunks → passer à `sqlite-vec` (ANN) ou monter le modèle (`bge-m3`, `multilingual-e5-base` 768d) si l'éval le justifie. Décider **par les métriques A0**, pas par dogme.
@@ -1552,16 +1600,19 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 - Livrable : `rag_vectors` reconstruit + `rag_meta` versionné.
 
 ### A6 — Évaluation & A/B
+
 - Relancer `rag-eval.ts` → comparer à la baseline A0. Cibles : **Recall@5 ≥ 0.9**, **MRR ≥ 0.8** sur le gold set.
 - Ablations : lexical vs hybrid vs hybrid+rerank ; impact taille corpus ; impact modèle.
 - Livrable : `apps/bot/reports/rag-eval-<date>.md` + verdict go/no-go.
 
 ### A7 — Rafraîchissement continu
+
 - `bxc crawl-worker` en daemon + nouveau timer `shenron-rag-refresh.timer` (hebdo) → fetch incrémental (par hash), re-chunk des pages changées, **ré-embed incrémental** (seulement les nouveaux/modifiés chunks).
 - News : déjà `sync-news.ts` ; brancher l'ingest news dans le corpus RAG.
 - Livrable : `deploy/systemd/shenron-rag-refresh.{service,timer}` + doc.
 
 ### A8 — Garde-fous
+
 - **Attribution préservée** end-to-end (du chunk au snippet affiché) ; respect robots/ToS ; proxy pour les sources sensibles.
 - **Gate qualité** : aucun déploiement de corpus si l'éval régresse (CI).
 - Pas de fuite de contenu sous copyright dans des réponses verbatim longues (la génération B cite + paraphrase).
@@ -1576,15 +1627,16 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 
 ### B0 — Matrice de décision (quel « LLM » ?)
 
-| Approche | Entraînement | Infra | Délai | Qualité | Coût récurrent |
-|---|---|---|---|---|---|
-| **B1 RAG-grounded (Gemini via aphrody)** | aucun | aphrody → Google AI | **jours** | très haute (Gemini 2.x) | appels API |
-| **B2 NotebookLM** | aucun | aphrody notebooklm | jours | haute (grondé sources) | quota Google |
-| **B4 Fine-tune LoRA open model** | GPU loué | dataset B3 + RunPod | semaines | haute, **souveraine, offline** | GPU one-shot + inférence CPU |
+| Approche                                 | Entraînement | Infra               | Délai     | Qualité                        | Coût récurrent               |
+| ---------------------------------------- | ------------ | ------------------- | --------- | ------------------------------ | ---------------------------- |
+| **B1 RAG-grounded (Gemini via aphrody)** | aucun        | aphrody → Google AI | **jours** | très haute (Gemini 2.x)        | appels API                   |
+| **B2 NotebookLM**                        | aucun        | aphrody notebooklm  | jours     | haute (grondé sources)         | quota Google                 |
+| **B4 Fine-tune LoRA open model**         | GPU loué     | dataset B3 + RunPod | semaines  | haute, **souveraine, offline** | GPU one-shot + inférence CPU |
 
 **Recommandation** : livrer **B1 maintenant** (valeur immédiate, c'est le vrai « LLM Dragon Ball » au sens produit), construire **B3 (dataset)** en parallèle comme actif, garder **B4 (fine-tune)** comme objectif souveraineté/offline activable quand le dataset est mûr.
 
-### B1 — RAG-grounded generation *(SHIP EN PREMIER)*
+### B1 — RAG-grounded generation _(SHIP EN PREMIER)_
+
 - Nouveau module `apps/bot/src/lib/llm.ts` : `answer(question, persona)` =
   1. `hybridSearch(db, question, 8)` → passages (déjà SOTA).
   2. Construire un **prompt grondé** : contexte = passages cités + consignes anti-hallucination (« réponds UNIQUEMENT à partir du contexte ; si absent, dis-le ; cite les sources »).
@@ -1596,14 +1648,16 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 - Éval : faithfulness (la réponse est-elle dérivable du contexte ?), exactitude canon vs gold, cohérence persona.
 - Livrables : `lib/llm.ts`, `/ask` v2, page site `/ask`, `reports/llm-eval-b1.md`.
 
-### B2 — NotebookLM comme cerveau grondé *(alternative / complément éditorial)*
+### B2 — NotebookLM comme cerveau grondé _(alternative / complément éditorial)_
+
 - `aphrody notebooklm create` → notebook « Dragon Ball Canon ».
 - `aphrody notebooklm upload` → pousser le corpus A (URLs + `.md`) comme sources.
 - `aphrody notebooklm chat` → Q/R grondées ; `generate`/`download` → artefacts (audio overview FR, study guides) réutilisables côté site/Discord.
 - Usage : back-office éditorial (vérification canon, génération de synthèses), pas le hot-path runtime.
 - Livrable : notebook provisionné + script `scripts/notebooklm-sync.ts` (upload corpus).
 
-### B3 — Dataset d'instruction (distillation) *(l'actif pour B4)*
+### B3 — Dataset d'instruction (distillation) _(l'actif pour B4)_
+
 - Générer un dataset SFT Dragon Ball depuis le corpus A via **`aphrody antigravity chat` (Gemini)** :
   - Pour chaque entité/chunk → générer N paires `{instruction, input, output}` (questions factuelles, comparaisons de puissance, chronologie, « explique X », réécriture en voix de persona).
   - Schéma JSONL `apps/bot/data/llm/dbz-sft.jsonl` : `{instruction, input, output, persona, lang, source_urls[], quality}`.
@@ -1612,20 +1666,23 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 - Script `scripts/llm/build-sft-dataset.ts` (batché, repris sur interruption, plafond de coût).
 - Livrable : dataset versionné (hors git si volumineux — stockage objet) + `reports/dataset-card.md`.
 
-### B4 — Fine-tune (off-VPS, GPU loué) *(souveraineté / offline)*
+### B4 — Fine-tune (off-VPS, GPU loué) _(souveraineté / offline)_
+
 - **Base** : modèle ouvert multilingue petit — `google/gemma-2-2b-it` ou `Qwen/Qwen2.5-3B-Instruct` (bon FR+JP, quantifiable, inférence CPU viable).
 - **Méthode** : LoRA/QLoRA via **Unsloth** ou **llama-factory** sur GPU loué (RunPod/Vast.ai/Modal, ~A10/A100 quelques heures). Dataset = B3.
 - **Sortie** : merge LoRA → quantize **GGUF q4_k_m** (llama.cpp).
 - **Eval** : perplexité + benchmark canon (gold set), comparaison vs B1 (Gemini) — n'adopter B4 que si l'écart qualité/coût/souveraineté le justifie.
 - Livrable : `dbz-<base>-lora.gguf` + carte modèle.
 
-### B5 — Service d'inférence on-VPS *(si B4 adopté)*
+### B5 — Service d'inférence on-VPS _(si B4 adopté)_
+
 - `shenron-llm.service` : serveur **llama.cpp** (`llama-server`) chargeant le GGUF, loopback, MemoryMax dédié (2-3B q4 ≈ 2-3 Go RAM). On a la RAM (23 Go libres).
 - `lib/llm.ts` route vers le LLM local (même contrat que B1) → **assistant 100 % souverain, offline, sans coût API**.
 - Garder Gemini (B1) en fallback qualité.
 - Livrable : unit systemd + bascule config (`LLM_BACKEND=local|gemini`).
 
 ### B6 — Évaluation & sûreté (transverse B)
+
 - **Faithfulness / anti-hallucination** : la réponse doit être dérivable du contexte RAG (éval type RAGAS : answer-relevance, faithfulness, context-precision).
 - **Exactitude canon** vs gold set ; **refus** sur hors-canon (« je n'ai pas cette info dans les archives »).
 - **Cohérence persona** (Whis ≠ Beerus ≠ Shenron).
@@ -1635,13 +1692,13 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 
 ## Séquencement & jalons
 
-| Jalon | Contenu | Dépend de | Sortie mesurable |
-|---|---|---|---|
-| **M1** | A0 (éval) + B1 (RAG-grounded `/ask` v2) | RAG SOTA (fait) | gold set + `/ask` répond en FR grondé |
-| **M2** | A1→A6 (corpus canon complet via bxc) | M1 | Recall@5 ≥ 0.9, corpus ≥ 10× chunks |
-| **M3** | A7 (refresh continu) + B2 (NotebookLM) | M2 | timer hebdo + notebook canon |
-| **M4** | B3 (dataset distillation) | M2 (corpus) | `dbz-sft.jsonl` 20-50k, dataset-card |
-| **M5** | B4 + B5 (fine-tune + service local) | M4 | GGUF déployé, assistant offline souverain |
+| Jalon  | Contenu                                 | Dépend de       | Sortie mesurable                          |
+| ------ | --------------------------------------- | --------------- | ----------------------------------------- |
+| **M1** | A0 (éval) + B1 (RAG-grounded `/ask` v2) | RAG SOTA (fait) | gold set + `/ask` répond en FR grondé     |
+| **M2** | A1→A6 (corpus canon complet via bxc)    | M1              | Recall@5 ≥ 0.9, corpus ≥ 10× chunks       |
+| **M3** | A7 (refresh continu) + B2 (NotebookLM)  | M2              | timer hebdo + notebook canon              |
+| **M4** | B3 (dataset distillation)               | M2 (corpus)     | `dbz-sft.jsonl` 20-50k, dataset-card      |
+| **M5** | B4 + B5 (fine-tune + service local)     | M4              | GGUF déployé, assistant offline souverain |
 
 **Chemin critique court (valeur immédiate)** : M1 → M2. Le fine-tune (M5) est optionnel/souveraineté.
 
@@ -1653,14 +1710,14 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 
 ## Risques & mitigations
 
-| Risque | Mitigation |
-|---|---|
-| IP VPS filtrée par sources | proxy résidentiel `--proxy`, profils stealth/max, `bxc har` debug |
-| Coût Gemini (distillation) | batch + cache + plafond ; NotebookLM en alternative quota |
-| Hallucination LLM | grounding strict + faithfulness gate + refus hors-contexte + fallback liste RAG |
-| Pas de GPU | GPU loué one-shot (B4) ; sinon B1/B5 suffisent |
-| Régression corpus | gate éval (A0) en CI, build idempotent reconstruisible |
-| Droits/attribution | attribution par chunk préservée, paraphrase (pas de verbatim long), robots/ToS |
+| Risque                     | Mitigation                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| IP VPS filtrée par sources | proxy résidentiel `--proxy`, profils stealth/max, `bxc har` debug               |
+| Coût Gemini (distillation) | batch + cache + plafond ; NotebookLM en alternative quota                       |
+| Hallucination LLM          | grounding strict + faithfulness gate + refus hors-contexte + fallback liste RAG |
+| Pas de GPU                 | GPU loué one-shot (B4) ; sinon B1/B5 suffisent                                  |
+| Régression corpus          | gate éval (A0) en CI, build idempotent reconstruisible                          |
+| Droits/attribution         | attribution par chunk préservée, paraphrase (pas de verbatim long), robots/ToS  |
 
 ## Carte fichiers & commandes (récap)
 
@@ -1703,7 +1760,7 @@ aphrody notebooklm create / upload / chat           # B2
 
 ---
 
-*Plan vivant — cocher/mettre à jour au fil des jalons. Source de vérité runtime : `apps/bot/src/lib/rag.ts`. Contexte : `CLAUDE.md` (sections RAG hybride, sidecar, GraphQL/OpenAPI).*
+_Plan vivant — cocher/mettre à jour au fil des jalons. Source de vérité runtime : `apps/bot/src/lib/rag.ts`. Contexte : `CLAUDE.md` (sections RAG hybride, sidecar, GraphQL/OpenAPI)._
 
 
 ---
@@ -1766,20 +1823,21 @@ Conversation Discord entre Yoyo (dev) et Omar / kazu_solo (admin DBFR). Demandes
 
 #### Pages publiques
 
-| Route | Contenu |
-|---|---|
-| `/` | Blog feed (10/page, tri date desc, cover + excerpt + auteur + date) |
-| `/post/[slug]` | Article markdown rendu (`react-markdown` + `remark-gfm`) + commentaires (auth requis) |
-| `/wiki` | Arbre catégories/sous-catégories paramétrable, sidebar nav |
-| `/wiki/[...slug]` | Page wiki rendue, breadcrumb |
-| `/about` | Page MDX statique courte |
-| `/shop` | Vitrine items (read `GET /api/public/shop` shenron). Achat reste sur Discord. |
+| Route                                 | Contenu                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `/`                                   | Blog feed (10/page, tri date desc, cover + excerpt + auteur + date)                                     |
+| `/post/[slug]`                        | Article markdown rendu (`react-markdown` + `remark-gfm`) + commentaires (auth requis)                   |
+| `/wiki`                               | Arbre catégories/sous-catégories paramétrable, sidebar nav                                              |
+| `/wiki/[...slug]`                     | Page wiki rendue, breadcrumb                                                                            |
+| `/about`                              | Page MDX statique courte                                                                                |
+| `/shop`                               | Vitrine items (read `GET /api/public/shop` shenron). Achat reste sur Discord.                           |
 | `/profil/me` ou `/profil/[discordId]` | Profil mirror Discord : XP, zéni, level, bannière, succès, inventaire (read `GET /api/public/user/:id`) |
-| `/admin/*` | CMS posts + wiki + catégories (guard role admin) |
+| `/admin/*`                            | CMS posts + wiki + catégories (guard role admin)                                                        |
 
 #### Composant global
 
 **`<DiscordInviteFAB />`** : bouton flottant `bottom-left`, présent sur toutes pages.
+
 - CTA : "Rejoindre le Discord" → `https://discord.gg/<INVITE>`.
 - `❌` top-right du FAB pour dismiss.
 - Persistance `localStorage.dbfr_fab_dismissed`.
@@ -1913,10 +1971,9 @@ Récap final unique en fin de sprint : ce qui est fait, ce qui reste, URL previe
 
 **Titre original :** 1. Bun ≥ 1.3
 
-
 > ⚠️ **INFRASTRUCTURE GÉRÉE PAR ANTIGRAVITY (GOD MODE)**
 > Ce projet opère sous la **Directive Omega**. L'architecture, les dépendances, et le code sont gérés et refactorisés de manière 100% autonome. Aucune sécurité conservative n'est appliquée. La performance brute est l'unique métrique.
-\n# Shenron
+> \n# Shenron
 
 Bot Discord thémé Dragon Ball pour un serveur communautaire — modération avancée, système de niveaux en "unités" de ki, économie en zéni, jeux, tickets, vocaux temporaires, cartes de profil rendues en canvas, et wiki des personnages.
 
@@ -1965,14 +2022,14 @@ Le bot tourne exclusivement sur **[Bun](https://bun.com)** — pas de Node requi
 
 Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** — chaque persona = 1 application Discord distincte avec son propre token, son set de slash commands, et ses events :
 
-| Persona | Rôle | Commandes |
-|---|---|---|
-| **Shenron** | Admin · héberge l'API REST (5006) + dashboard | `/admin /config /ids /niveau /succes` |
-| **Beerus** | Modération | `/warn /mute /ban /kick /clear /purge /role /lock /slowmode /nick /note /stats /sstats` |
-| **Whis** | Utility | `/help /scan /ticket /wiki /races /planete /ask` |
-| **Grand Prêtre** | Logs | (events only — `MessageLog`, `JoinLeave`, `BioRole`, `AuditLog`, `InteractionLog`) |
-| **Enma** | Détention | `/jail /unjail` |
-| **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
+| Persona          | Rôle                                          | Commandes                                                                                                                    |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Shenron**      | Admin · héberge l'API REST (5006) + dashboard | `/admin /config /ids /niveau /succes`                                                                                        |
+| **Beerus**       | Modération                                    | `/warn /mute /ban /kick /clear /purge /role /lock /slowmode /nick /note /stats /sstats`                                      |
+| **Whis**         | Utility                                       | `/help /scan /ticket /wiki /races /planete /ask`                                                                             |
+| **Grand Prêtre** | Logs                                          | (events only — `MessageLog`, `JoinLeave`, `BioRole`, `AuditLog`, `InteractionLog`)                                           |
+| **Enma**         | Détention                                     | `/jail /unjail`                                                                                                              |
+| **Kaïo**         | Jeux + économie                               | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
 Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
@@ -2037,14 +2094,14 @@ Un site Next.js public accompagne le bot, accessible uniquement via l'URL unique
 
 Le bot expose une API REST `Bun.serve` interne (`127.0.0.1:5006` par défaut) **tscord-compatible** — surface alignée sur les controllers de [`@rpbey/tscord`](../../packages/tscord/), donc un fork de [`barthofu/tscord-dashboard`](https://github.com/barthofu/tscord-dashboard) peut consommer cette API directement.
 
-| Catégorie | Routes | Auth |
-|---|---|---|
-| **Public** | `/health/check` `/health/latency` `/openapi` `/` | aucune |
-| **Health admin** | `/health/usage` `/health/host` `/health/monitoring` | Bearer |
-| **Stats** | `/stats/totals` `/stats/interaction/last` `/stats/guilds/last` | Bearer |
-| **Bot** | `/bot/guilds` `/bot/commands` `/bot/commands/:name` | Bearer |
-| **Cron** | `GET /cron` · `POST /cron/:name/trigger` | Bearer |
-| **Services** | `GET /services` · `POST /services/:service/:action` | Bearer |
+| Catégorie         | Routes                                                                                                            | Auth   |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- | ------ |
+| **Public**        | `/health/check` `/health/latency` `/openapi` `/`                                                                  | aucune |
+| **Health admin**  | `/health/usage` `/health/host` `/health/monitoring`                                                               | Bearer |
+| **Stats**         | `/stats/totals` `/stats/interaction/last` `/stats/guilds/last`                                                    | Bearer |
+| **Bot**           | `/bot/guilds` `/bot/commands` `/bot/commands/:name`                                                               | Bearer |
+| **Cron**          | `GET /cron` · `POST /cron/:name/trigger`                                                                          | Bearer |
+| **Services**      | `GET /services` · `POST /services/:service/:action`                                                               | Bearer |
 | **Database CRUD** | `GET /database/tables` · `GET /database/:table` · `GET/PUT/DELETE /database/:table/:id` · `POST /database/:table` | Bearer |
 
 **Cron jobs registrés** (auto via `CronRegistry`) : `voice-xp-tick`, `jail-expiry`, `bio-role-scan`. Trigger manuel via dashboard.
@@ -2059,12 +2116,12 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 
 Au-delà du dashboard admin, le même `Bun.serve` expose une **surface publique** (CORS ouvert, sans Bearer) consommée par le site, l'app et la commande `/ask` :
 
-| Surface | Endpoint | Détail |
-|---|---|---|
-| **REST** | `/api/public/rag/search` + wiki / insights / médias | endpoints publics du wiki et de la recherche |
-| **GraphQL** | `/graphql` | read-only, code-first **Pothos** + **graphql-yoga**, GraphiQL activé, garde-fou profondeur max 10. Expose le wiki (`characters`, `planets`, `sagas`, `episodes`, `techniques`, `transformations`, `movies`, `games`, `races`) + relations + `ragSearch` + `counts` |
-| **OpenAPI 3.1** | `/api/openapi.json` | spec statique (CORS public, cache 1 h) couvrant la surface REST publique (RAG / Wiki / Insights / Médias) |
-| **Docs** | `/api/docs` | UI interactive **Scalar** (CDN, zéro dépendance) |
+| Surface         | Endpoint                                            | Détail                                                                                                                                                                                                                                                             |
+| --------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **REST**        | `/api/public/rag/search` + wiki / insights / médias | endpoints publics du wiki et de la recherche                                                                                                                                                                                                                       |
+| **GraphQL**     | `/graphql`                                          | read-only, code-first **Pothos** + **graphql-yoga**, GraphiQL activé, garde-fou profondeur max 10. Expose le wiki (`characters`, `planets`, `sagas`, `episodes`, `techniques`, `transformations`, `movies`, `games`, `races`) + relations + `ragSearch` + `counts` |
+| **OpenAPI 3.1** | `/api/openapi.json`                                 | spec statique (CORS public, cache 1 h) couvrant la surface REST publique (RAG / Wiki / Insights / Médias)                                                                                                                                                          |
+| **Docs**        | `/api/docs`                                         | UI interactive **Scalar** (CDN, zéro dépendance)                                                                                                                                                                                                                   |
 
 ### Recherche RAG (hybride + rerank)
 
@@ -2079,18 +2136,18 @@ Consommateurs : `/api/public/rag/search` (REST), `ragSearch` (GraphQL), commande
 
 ## Stack technique
 
-| Couche | Outil |
-|---|---|
-| Runtime | **Bun 1.3+** (aucune dépendance Node) |
-| Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
-| DI | `tsyringe` + `reflect-metadata` |
-| Database | `bun:sqlite` + `drizzle-orm` 0.44 |
-| Validation | `zod` 4 |
-| Logging | `pino` + `pino-pretty` |
-| Canvas | `@aphrody/canvas` (profil, scan, top podium, fusion, gauges) |
-| Lint | `oxlint` (Rust, 135 règles actives) |
-| Tests | `bun:test` — 42 smoke tests, 1 par slash command |
+| Couche     | Outil                                                                                                 |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| Runtime    | **Bun 1.3+** (aucune dépendance Node)                                                                 |
+| Langage    | TypeScript 5.9                                                                                        |
+| Framework  | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
+| DI         | `tsyringe` + `reflect-metadata`                                                                       |
+| Database   | `bun:sqlite` + `drizzle-orm` 0.44                                                                     |
+| Validation | `zod` 4                                                                                               |
+| Logging    | `pino` + `pino-pretty`                                                                                |
+| Canvas     | `@aphrody/canvas` (profil, scan, top podium, fusion, gauges)                                          |
+| Lint       | `oxlint` (Rust, 135 règles actives)                                                                   |
+| Tests      | `bun:test` — 42 smoke tests, 1 par slash command                                                      |
 
 ## Démarrage rapide (2 minutes)
 
@@ -2178,19 +2235,20 @@ https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot+applications.
 
 Sur `https://discord.com/developers/applications/<APP_ID>/information` (onglet **General Information**), tu peux remplir :
 
-| Champ | Valeur recommandée |
-|---|---|
-| **Name** | `Shenron` |
-| **Description** (≤ 400) | `Bot Discord thématique Dragon Ball — modération, niveaux (unités de ki), économie en zéni, tickets, vocaux tempo, cartes canvas, wiki DBZ. Bun-only.` |
-| **Tags** (5 max) | `Moderation` · `Levels` · `Economy` · `Games` · `Utility` |
-| **App Icon** | Upload depuis `assets/logo.webp` |
-| **Cover Image** | Upload depuis `assets/backgrounds/galaxy/spiral-galaxy-m83.webp` (optionnel, régénère via `bun run bg:fetch` si gitignoré) |
-| **Privacy Policy URL** | `https://github.com/aphrody-code/shenron/blob/main/PRIVACY.md` |
-| **Terms of Service URL** | `https://github.com/aphrody-code/shenron/blob/main/TERMS.md` |
-| **Interactions Endpoint URL** | **Laisser vide** — Shenron passe par la Gateway WebSocket, pas les webhooks HTTP |
-| **Install Link** | `Discord Provided Link` (utilise celui du header ci-dessus) |
+| Champ                         | Valeur recommandée                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Name**                      | `Shenron`                                                                                                                                              |
+| **Description** (≤ 400)       | `Bot Discord thématique Dragon Ball — modération, niveaux (unités de ki), économie en zéni, tickets, vocaux tempo, cartes canvas, wiki DBZ. Bun-only.` |
+| **Tags** (5 max)              | `Moderation` · `Levels` · `Economy` · `Games` · `Utility`                                                                                              |
+| **App Icon**                  | Upload depuis `assets/logo.webp`                                                                                                                       |
+| **Cover Image**               | Upload depuis `assets/backgrounds/galaxy/spiral-galaxy-m83.webp` (optionnel, régénère via `bun run bg:fetch` si gitignoré)                             |
+| **Privacy Policy URL**        | `https://github.com/aphrody-code/shenron/blob/main/PRIVACY.md`                                                                                         |
+| **Terms of Service URL**      | `https://github.com/aphrody-code/shenron/blob/main/TERMS.md`                                                                                           |
+| **Interactions Endpoint URL** | **Laisser vide** — Shenron passe par la Gateway WebSocket, pas les webhooks HTTP                                                                       |
+| **Install Link**              | `Discord Provided Link` (utilise celui du header ci-dessus)                                                                                            |
 
 Onglets connexes :
+
 - **Bot** → activer `Presence Intent`, `Server Members Intent`, `Message Content Intent`
 - **OAuth2** → URL Generator pour régénérer le lien d'invitation si tu changes de permissions
 - **Installation** → `User Install` désactivé (Shenron est guild-install uniquement)
@@ -2206,6 +2264,7 @@ Onglets connexes :
 - [Rate Limits](https://discord.com/developers/docs/topics/rate-limits) — éviter les 429
 
 Libs utilisées par Shenron :
+
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
 - [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
@@ -2234,6 +2293,7 @@ bun run ids -- --json        # sortie brute JSON (pipe, automation)
 ```
 
 L'heuristique reconnaît des noms courants (insensible à la casse/accents) :
+
 - Rôles : `jail`, `prison`, `mute` → `JAIL_ROLE_ID` · `bio`, `url`, `vip`, `pub` → `URL_IN_BIO_ROLE_ID`
 - Salons : `log-messages`, `log-sanctions`, `log-eco`, `log-join-leave`, `log-level`, `log-tickets`, `mod-notif`, `ticket` (catégorie), `hub`/`tempo` (vocal)
 
@@ -2249,12 +2309,12 @@ Les IDs non reconnus par l'heuristique s'affichent quand même, il suffit de cop
 
 ### Scripts bash disponibles
 
-| Script | Usage | Fait quoi |
-|---|---|---|
-| `bash scripts/setup.sh` | One-shot setup | Vérifie Bun, installe les deps, copie `.env.example` → `.env`, applique les migrations, seed les triggers, (optionnel) seed du wiki |
-| `bash scripts/doctor.sh` | Health check | Vérifie Bun, `node_modules`, `.env` (3 champs requis, valeurs masquées), DB + migrations, **valide le token** via REST Discord, détecte process en cours |
-| `bash scripts/start.sh` | Launcher | `--prod` (pas de watch) / `--compiled` (binaire `dist/shenron`) / `--bg` (détaché + logs datés dans `logs/`) |
-| `bun scripts/deploy.ts --help` | Pipeline de déploiement | Build + type-check + lint + migrations + restart systemd avec options granulaires |
+| Script                         | Usage                   | Fait quoi                                                                                                                                                |
+| ------------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bash scripts/setup.sh`        | One-shot setup          | Vérifie Bun, installe les deps, copie `.env.example` → `.env`, applique les migrations, seed les triggers, (optionnel) seed du wiki                      |
+| `bash scripts/doctor.sh`       | Health check            | Vérifie Bun, `node_modules`, `.env` (3 champs requis, valeurs masquées), DB + migrations, **valide le token** via REST Discord, détecte process en cours |
+| `bash scripts/start.sh`        | Launcher                | `--prod` (pas de watch) / `--compiled` (binaire `dist/shenron`) / `--bg` (détaché + logs datés dans `logs/`)                                             |
+| `bun scripts/deploy.ts --help` | Pipeline de déploiement | Build + type-check + lint + migrations + restart systemd avec options granulaires                                                                        |
 
 ### Installation manuelle
 
@@ -2288,16 +2348,16 @@ Toutes les variables sont validées via `zod` dans `src/lib/env.ts`. Les IDs Dis
 
 ### Variables requises
 
-| Variable | Type | Description |
-|---|---|---|
-| `DISCORD_TOKEN_SHENRON` (alias `DISCORD_TOKEN`) | string | Token du bot Shenron (admin + API REST) |
-| `DISCORD_TOKEN_BEERUS` | string | Token du bot Beerus (modération) |
-| `DISCORD_TOKEN_WHIS` | string | Token du bot Whis (utility) |
-| `DISCORD_TOKEN_GRAND_PRETRE` | string | Token du bot Grand Prêtre (logs — **privileged intents requis**) |
-| `DISCORD_TOKEN_ENMA` | string | Token du bot Enma (jail/unjail) |
-| `DISCORD_TOKEN_KAIO` | string | Token du bot Kaïo (jeux + éco — **MESSAGE CONTENT INTENT requis**) |
-| `GUILD_ID` | snowflake | ID du serveur — les 6 bots sont mono-guild forcé sur cette guild |
-| `OWNER_ID` | snowflake | ID du propriétaire (garde `OwnerOnly`, overrides statiques dans certaines commandes) |
+| Variable                                        | Type      | Description                                                                          |
+| ----------------------------------------------- | --------- | ------------------------------------------------------------------------------------ |
+| `DISCORD_TOKEN_SHENRON` (alias `DISCORD_TOKEN`) | string    | Token du bot Shenron (admin + API REST)                                              |
+| `DISCORD_TOKEN_BEERUS`                          | string    | Token du bot Beerus (modération)                                                     |
+| `DISCORD_TOKEN_WHIS`                            | string    | Token du bot Whis (utility)                                                          |
+| `DISCORD_TOKEN_GRAND_PRETRE`                    | string    | Token du bot Grand Prêtre (logs — **privileged intents requis**)                     |
+| `DISCORD_TOKEN_ENMA`                            | string    | Token du bot Enma (jail/unjail)                                                      |
+| `DISCORD_TOKEN_KAIO`                            | string    | Token du bot Kaïo (jeux + éco — **MESSAGE CONTENT INTENT requis**)                   |
+| `GUILD_ID`                                      | snowflake | ID du serveur — les 6 bots sont mono-guild forcé sur cette guild                     |
+| `OWNER_ID`                                      | snowflake | ID du propriétaire (garde `OwnerOnly`, overrides statiques dans certaines commandes) |
 
 > **Privileged intents** : Grand Prêtre nécessite `SERVER MEMBERS INTENT` + `PRESENCE INTENT` + `MESSAGE CONTENT INTENT` activés sur son app du dev portal Discord. Kaïo nécessite `MESSAGE CONTENT INTENT`. Sans ça, ces bots refusent le login (`Used disallowed intents`) — le service continue à tourner sans eux (login non-bloquant), Shenron seul est obligatoire.
 
@@ -2305,34 +2365,35 @@ Toutes les variables sont validées via `zod` dans `src/lib/env.ts`. Les IDs Dis
 
 ### Variables optionnelles
 
-| Variable | Description |
-|---|---|
-| `DATABASE_PATH` | Chemin vers le fichier SQLite (défaut : `./data/bot.db`) |
-| `LOG_MESSAGE_CHANNEL_ID` | Salon où envoyer les logs de messages supprimés/édités |
-| `LOG_SANCTION_CHANNEL_ID` | Salon logs sanctions (jail, mute, ban, warn, kick) |
-| `LOG_ECONOMY_CHANNEL_ID` | Salon logs économiques |
-| `LOG_JOIN_LEAVE_CHANNEL_ID` | Salon logs arrivées/départs (avec tracking de l'invitant) |
-| `LOG_LEVEL_ROLE_CHANNEL_ID` | Salon logs progression de niveau et attribution de rôles |
-| `LOG_TICKET_CHANNEL_ID` | Salon logs ouverture/fermeture de tickets |
-| `MOD_NOTIFY_CHANNEL_ID` | Salon où sont notifiés les mods à l'ouverture d'un ticket |
-| `JAIL_ROLE_ID` | Rôle appliqué par `/jail` (doit restreindre tous les salons sauf ticket) |
-| `URL_IN_BIO_ROLE_ID` | Rôle auto-attribué si l'invite est détectée dans le statut |
-| `TICKET_CATEGORY_ID` | Catégorie sous laquelle les tickets sont créés |
-| `VOCAL_TEMPO_HUB_ID` | Salon vocal hub — le rejoindre crée un vocal perso |
-| `ANNOUNCE_CHANNEL_ID` | Salon des annonces générales (quête quotidienne, level-up) |
-| `ACHIEVEMENT_CHANNEL_ID` | Salon dédié aux **🏆 accomplissements**. Si absent, retombe sur `ANNOUNCE_CHANNEL_ID`. Permet d'isoler les notifs de succès dans un canal cosmétique |
-| `COMMANDS_CHANNEL_ID` | Salon où les slash commands user (jeux, fun, profil) sont autorisées (les autres salons → message d'erreur) |
-| `LIBRETRANSLATE_URL` | Endpoint LibreTranslate (défaut : `http://127.0.0.1:5000` — assume self-host Docker, voir [setup-translate.sh](#scripts)) |
-| `LIBRETRANSLATE_API_KEY` | Clé optionnelle pour endpoint public `https://libretranslate.com` |
-| `API_ENABLED` | Démarrer ou pas l'API REST `Bun.serve` (défaut : `true`) |
-| `API_PORT` | Port d'écoute (défaut : `5006`) |
-| `API_HOST` | Bind address (défaut : `127.0.0.1` — exposer hors VPS via nginx vhost dédié) |
-| `API_ADMIN_TOKEN` | Bearer token pour routes admin. Si vide, routes admin → 503. Génère via `head -c 32 /dev/urandom \| base64` |
-| `SERVER_INVITE_URL` | URL d'invite du serveur (défaut : `discord.gg/`) — whitelist anti-lien + détection bio |
-| `LOG_LEVEL` | Niveau pino : `trace`, `debug`, `info`, `warn`, `error`, `fatal` (défaut : `info`) |
-| `NODE_ENV` | `development`, `production`, `test` (défaut : `development`) |
+| Variable                    | Description                                                                                                                                          |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_PATH`             | Chemin vers le fichier SQLite (défaut : `./data/bot.db`)                                                                                             |
+| `LOG_MESSAGE_CHANNEL_ID`    | Salon où envoyer les logs de messages supprimés/édités                                                                                               |
+| `LOG_SANCTION_CHANNEL_ID`   | Salon logs sanctions (jail, mute, ban, warn, kick)                                                                                                   |
+| `LOG_ECONOMY_CHANNEL_ID`    | Salon logs économiques                                                                                                                               |
+| `LOG_JOIN_LEAVE_CHANNEL_ID` | Salon logs arrivées/départs (avec tracking de l'invitant)                                                                                            |
+| `LOG_LEVEL_ROLE_CHANNEL_ID` | Salon logs progression de niveau et attribution de rôles                                                                                             |
+| `LOG_TICKET_CHANNEL_ID`     | Salon logs ouverture/fermeture de tickets                                                                                                            |
+| `MOD_NOTIFY_CHANNEL_ID`     | Salon où sont notifiés les mods à l'ouverture d'un ticket                                                                                            |
+| `JAIL_ROLE_ID`              | Rôle appliqué par `/jail` (doit restreindre tous les salons sauf ticket)                                                                             |
+| `URL_IN_BIO_ROLE_ID`        | Rôle auto-attribué si l'invite est détectée dans le statut                                                                                           |
+| `TICKET_CATEGORY_ID`        | Catégorie sous laquelle les tickets sont créés                                                                                                       |
+| `VOCAL_TEMPO_HUB_ID`        | Salon vocal hub — le rejoindre crée un vocal perso                                                                                                   |
+| `ANNOUNCE_CHANNEL_ID`       | Salon des annonces générales (quête quotidienne, level-up)                                                                                           |
+| `ACHIEVEMENT_CHANNEL_ID`    | Salon dédié aux **🏆 accomplissements**. Si absent, retombe sur `ANNOUNCE_CHANNEL_ID`. Permet d'isoler les notifs de succès dans un canal cosmétique |
+| `COMMANDS_CHANNEL_ID`       | Salon où les slash commands user (jeux, fun, profil) sont autorisées (les autres salons → message d'erreur)                                          |
+| `LIBRETRANSLATE_URL`        | Endpoint LibreTranslate (défaut : `http://127.0.0.1:5000` — assume self-host Docker, voir [setup-translate.sh](#scripts))                            |
+| `LIBRETRANSLATE_API_KEY`    | Clé optionnelle pour endpoint public `https://libretranslate.com`                                                                                    |
+| `API_ENABLED`               | Démarrer ou pas l'API REST `Bun.serve` (défaut : `true`)                                                                                             |
+| `API_PORT`                  | Port d'écoute (défaut : `5006`)                                                                                                                      |
+| `API_HOST`                  | Bind address (défaut : `127.0.0.1` — exposer hors VPS via nginx vhost dédié)                                                                         |
+| `API_ADMIN_TOKEN`           | Bearer token pour routes admin. Si vide, routes admin → 503. Génère via `head -c 32 /dev/urandom \| base64`                                          |
+| `SERVER_INVITE_URL`         | URL d'invite du serveur (défaut : `discord.gg/`) — whitelist anti-lien + détection bio                                                               |
+| `LOG_LEVEL`                 | Niveau pino : `trace`, `debug`, `info`, `warn`, `error`, `fatal` (défaut : `info`)                                                                   |
+| `NODE_ENV`                  | `development`, `production`, `test` (défaut : `development`)                                                                                         |
 
 > **Stack `/translate` (FOSS)** — pas de clé requise. Installer via `sudo bash scripts/setup-translate.sh` :
+>
 > - **Tesseract OCR** (Apache 2.0) installé en `apt` avec packs langue `fra/eng/jpn/spa/deu/ita`
 > - **LibreTranslate** (AGPL-3.0) lancé en Docker container (port 5000 bind 127.0.0.1, modèles `en,fr,ja,es,de,it`)
 >
@@ -2363,37 +2424,37 @@ Puis crée quelques entrées de shop en base (voir [Shop](#shop--customisation))
 <details>
 <summary><strong>Niveaux & profil</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/profil [membre]` | Carte de profil (canvas 1000×360, 8 thèmes avec backgrounds NASA) |
-| `/top` | Classement : **canvas podium 1-2-3** + liste 4-10, boutons Précédent/Suivant FR |
-| `/solde [membre]` | Voir le solde de zéni |
-| `/scan [membre]` | Scouter mini-card (canvas 500×200 avec scanlines et font DBS Scouter) |
+| Commande           | Description                                                                     |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `/profil [membre]` | Carte de profil (canvas 1000×360, 8 thèmes avec backgrounds NASA)               |
+| `/top`             | Classement : **canvas podium 1-2-3** + liste 4-10, boutons Précédent/Suivant FR |
+| `/solde [membre]`  | Voir le solde de zéni                                                           |
+| `/scan [membre]`   | Scouter mini-card (canvas 500×200 avec scanlines et font DBS Scouter)           |
 
 </details>
 
 <details>
 <summary><strong>Économie</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/shop` | Shop paginé (cartes, badges, couleurs, titres) |
-| `/buy <clé>` | Acheter un objet |
-| `/eprofil` | Éditer le profil (modal : carte / badge / couleur / titre) |
+| Commande           | Description                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `/shop`            | Shop paginé (cartes, badges, couleurs, titres)                                              |
+| `/buy <clé>`       | Acheter un objet                                                                            |
+| `/eprofil`         | Éditer le profil (modal : carte / badge / couleur / titre)                                  |
 | `/fusion <membre>` | **Canvas dual-portrait** (propose → success après accept) — bonus +10 % XP et zéni partagés |
-| `/defusion` | Rompre la fusion |
+| `/defusion`        | Rompre la fusion                                                                            |
 
 </details>
 
 <details>
 <summary><strong>Jeux</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/pfc <bot\|joueur> [adversaire]` | Pierre-Feuille-Ciseaux |
+| Commande                              | Description                                                                              |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `/pfc <bot\|joueur> [adversaire]`     | Pierre-Feuille-Ciseaux                                                                   |
 | `/morpion <bot\|joueur> [adversaire]` | Morpion (IA défensive : gagner > bloquer > centre > coin, ligne gagnante surlignée vert) |
-| `/bingo <bot\|joueur> [adversaire]` | Devine le nombre (1–100) |
-| `/pendu <bot\|joueur> [adversaire]` | Pendu avec mots DBZ — embed avec nb lettres, lettres trouvées/ratées, ASCII art |
+| `/bingo <bot\|joueur> [adversaire]`   | Devine le nombre (1–100)                                                                 |
+| `/pendu <bot\|joueur> [adversaire]`   | Pendu avec mots DBZ — embed avec nb lettres, lettres trouvées/ratées, ASCII art          |
 
 Gains : **+100 zéni** au gagnant · **-50 zéni** au perdant (mode joueur).
 
@@ -2404,22 +2465,22 @@ Gains : **+100 zéni** au gagnant · **-50 zéni** au perdant (mode joueur).
 <details>
 <summary><strong>Tickets</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/ticket-panel` | (admin) publie le panel à 4 boutons |
+| Commande                                  | Description                                   |
+| ----------------------------------------- | --------------------------------------------- |
+| `/ticket-panel`                           | (admin) publie le panel à 4 boutons           |
 | `/ticket add\|remove <utilisateur\|rôle>` | Ajouter / retirer quelqu'un du ticket courant |
-| `/close` | Fermer le ticket courant |
+| `/close`                                  | Fermer le ticket courant                      |
 
 </details>
 
 <details>
 <summary><strong>Vocaux temporaires</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/voc kick <membre>` | Expulser un membre du vocal |
-| `/voc ban <membre>` | Bannir un membre du vocal |
-| `/voc unban <membre>` | Débannir |
+| Commande              | Description                 |
+| --------------------- | --------------------------- |
+| `/voc kick <membre>`  | Expulser un membre du vocal |
+| `/voc ban <membre>`   | Bannir un membre du vocal   |
+| `/voc unban <membre>` | Débannir                    |
 
 Le vocal est automatiquement créé en rejoignant le hub configuré, et supprimé 60 secondes après le départ du dernier membre.
 
@@ -2428,64 +2489,64 @@ Le vocal est automatiquement créé en rejoignant le hub configuré, et supprim�
 <details>
 <summary><strong>Fun</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/gay <membre>` | **Canvas scouter gauge** — % déterministe par jour (override : `0` si cible = `OWNER_ID`) |
-| `/raciste <membre>` | **Canvas scouter gauge** rouge — override : `101` (overflow) si cible = `OWNER_ID` |
-| `/translate [image] [url] [langue]` | **OCR Tesseract + LibreTranslate** — 100 % FOSS, langues : FR/EN/ES/DE/IT/JA. Cap image 10 MiB, timeout tesseract 30 s, timeout LibreTranslate 8 s, garde SSRF (refuse IPs privées et `file://`) |
-| **menu contextuel "Traduire en VF"** | Clic droit sur un message → Apps → traduit la 1re image attachée |
+| Commande                             | Description                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/gay <membre>`                      | **Canvas scouter gauge** — % déterministe par jour (override : `0` si cible = `OWNER_ID`)                                                                                                        |
+| `/raciste <membre>`                  | **Canvas scouter gauge** rouge — override : `101` (overflow) si cible = `OWNER_ID`                                                                                                               |
+| `/translate [image] [url] [langue]`  | **OCR Tesseract + LibreTranslate** — 100 % FOSS, langues : FR/EN/ES/DE/IT/JA. Cap image 10 MiB, timeout tesseract 30 s, timeout LibreTranslate 8 s, garde SSRF (refuse IPs privées et `file://`) |
+| **menu contextuel "Traduire en VF"** | Clic droit sur un message → Apps → traduit la 1re image attachée                                                                                                                                 |
 
 </details>
 
 <details>
 <summary><strong>Wiki Dragon Ball</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos) |
-| `/races <race>` | Personnages par race (Saiyan, Namekian, Android…) |
-| `/planete <planète>` | Fiche planète |
-| `/ask <question>` | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
+| Commande             | Description                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos)                                                      |
+| `/races <race>`      | Personnages par race (Saiyan, Namekian, Android…)                                                                  |
+| `/planete <planète>` | Fiche planète                                                                                                      |
+| `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
 
 </details>
 
 ### Modération
 
-| Commande | Perm requise | Description |
-|---|---|---|
-| `/warn <membre> [raison]` | Moderate Members | Avertissement (persisté) |
-| `/unwarn <membre>` | Moderate Members | Retire le dernier warn actif |
-| `/mute <membre> <durée> [raison]` | Moderate Members | Timeout natif Discord (format `10m`, `1h`, `1d`) |
-| `/unmute <membre>` | Moderate Members | Retire le timeout |
-| `/jail <membre> [durée] [raison]` | Moderate Members | Isole dans le jail (rôles sauvegardés pour restauration) |
-| `/unjail <membre>` | Moderate Members | Libère et restaure les rôles |
-| `/ban <membre> [raison]` | Ban Members | Ban définitif |
-| `/unban <userid> [raison]` | Ban Members | Unban par ID |
-| `/kick <membre> [raison]` | Kick Members | Expulsion |
-| `/clear <nombre> [membre]` | Manage Messages | Purge jusqu'à 100 messages, filtre optionnel par auteur |
-| `/stats [membre]` | — | Stats de modération d'un membre |
-| `/sstats` | Administrator | Stats du serveur |
-| `/role give\|remove <rôle> [membre]` | Manage Roles | Attribution de rôle (si membre vide : action globale, réservée admin) |
+| Commande                             | Perm requise     | Description                                                           |
+| ------------------------------------ | ---------------- | --------------------------------------------------------------------- |
+| `/warn <membre> [raison]`            | Moderate Members | Avertissement (persisté)                                              |
+| `/unwarn <membre>`                   | Moderate Members | Retire le dernier warn actif                                          |
+| `/mute <membre> <durée> [raison]`    | Moderate Members | Timeout natif Discord (format `10m`, `1h`, `1d`)                      |
+| `/unmute <membre>`                   | Moderate Members | Retire le timeout                                                     |
+| `/jail <membre> [durée] [raison]`    | Moderate Members | Isole dans le jail (rôles sauvegardés pour restauration)              |
+| `/unjail <membre>`                   | Moderate Members | Libère et restaure les rôles                                          |
+| `/ban <membre> [raison]`             | Ban Members      | Ban définitif                                                         |
+| `/unban <userid> [raison]`           | Ban Members      | Unban par ID                                                          |
+| `/kick <membre> [raison]`            | Kick Members     | Expulsion                                                             |
+| `/clear <nombre> [membre]`           | Manage Messages  | Purge jusqu'à 100 messages, filtre optionnel par auteur               |
+| `/stats [membre]`                    | —                | Stats de modération d'un membre                                       |
+| `/sstats`                            | Administrator    | Stats du serveur                                                      |
+| `/role give\|remove <rôle> [membre]` | Manage Roles     | Attribution de rôle (si membre vide : action globale, réservée admin) |
 
 ### Administration
 
-| Commande | Description |
-|---|---|
-| `/niveau give\|remove niveau\|exp <montant> [membre\|rôle\|all]` | Modifier XP ou niveau |
-| `/zeni give\|remove <montant> [membre\|rôle\|all]` | Modifier le solde |
-| `/custom give\|remove <card\|badge\|color\|title\|succes> <clé> [membre\|rôle\|all]` | Donner / retirer un objet custom ou un succès |
-| `/giveaway <titre> <récompense> <gagnants> <durée> [salon] [description]` | Créer un giveaway |
-| `/succes set <code> <pattern> [description] [flags]` | Créer/éditer un trigger de succès |
-| `/succes list` | Lister les triggers |
-| `/succes remove <code>` | Supprimer un trigger |
-| `/ids [quoi: roles\|salons\|tout]` | Liste les IDs rôles/salons de la guild (ephemeral, pratique pour remplir `.env`) |
-| `/config list` | Liste les overrides runtime (XP rates, cooldowns, salons) avec leur valeur effective vs défaut |
-| `/config set <key> <value>` | Définit une surcharge runtime (clés : `xp.message.{min,max,cooldown_ms}`, `xp.voice.per_minute`, `zeni.daily_quest`) |
-| `/config unset <key>` | Supprime une surcharge (revient au défaut hardcodé) |
-| `/config channel <type> <salon>` | Raccourci pour redéfinir un salon (annonces, accomplissements, commandes) sans toucher au `.env` |
-| `/config level-reward-set <level> <role> [xp-threshold] [zeni-bonus]` | Configure un palier niveau → rôle. **Vérifie la hiérarchie de rôles** : refuse si le rôle est au-dessus de celui du bot (sinon attribution silencieusement cassée au level-up) |
-| `/config level-reward-remove <level>` | Supprime un palier |
-| `/config level-rewards` | Liste les paliers configurés |
+| Commande                                                                             | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/niveau give\|remove niveau\|exp <montant> [membre\|rôle\|all]`                     | Modifier XP ou niveau                                                                                                                                                          |
+| `/zeni give\|remove <montant> [membre\|rôle\|all]`                                   | Modifier le solde                                                                                                                                                              |
+| `/custom give\|remove <card\|badge\|color\|title\|succes> <clé> [membre\|rôle\|all]` | Donner / retirer un objet custom ou un succès                                                                                                                                  |
+| `/giveaway <titre> <récompense> <gagnants> <durée> [salon] [description]`            | Créer un giveaway                                                                                                                                                              |
+| `/succes set <code> <pattern> [description] [flags]`                                 | Créer/éditer un trigger de succès                                                                                                                                              |
+| `/succes list`                                                                       | Lister les triggers                                                                                                                                                            |
+| `/succes remove <code>`                                                              | Supprimer un trigger                                                                                                                                                           |
+| `/ids [quoi: roles\|salons\|tout]`                                                   | Liste les IDs rôles/salons de la guild (ephemeral, pratique pour remplir `.env`)                                                                                               |
+| `/config list`                                                                       | Liste les overrides runtime (XP rates, cooldowns, salons) avec leur valeur effective vs défaut                                                                                 |
+| `/config set <key> <value>`                                                          | Définit une surcharge runtime (clés : `xp.message.{min,max,cooldown_ms}`, `xp.voice.per_minute`, `zeni.daily_quest`)                                                           |
+| `/config unset <key>`                                                                | Supprime une surcharge (revient au défaut hardcodé)                                                                                                                            |
+| `/config channel <type> <salon>`                                                     | Raccourci pour redéfinir un salon (annonces, accomplissements, commandes) sans toucher au `.env`                                                                               |
+| `/config level-reward-set <level> <role> [xp-threshold] [zeni-bonus]`                | Configure un palier niveau → rôle. **Vérifie la hiérarchie de rôles** : refuse si le rôle est au-dessus de celui du bot (sinon attribution silencieusement cassée au level-up) |
+| `/config level-reward-remove <level>`                                                | Supprime un palier                                                                                                                                                             |
+| `/config level-rewards`                                                              | Liste les paliers configurés                                                                                                                                                   |
 
 ## Système XP & Zéni
 
@@ -2493,18 +2554,18 @@ Le XP est exposé aux users comme **"unités"** de ki. Les niveaux (1 à 10) ne 
 
 ### Paliers
 
-| Niveau | Unités | Flavor |
-|---:|---:|---|
-| 1 | 1 000 | Premier souffle (dépasse un humain normal) |
-| 2 | 5 000 | Niveau Krilin |
-| 3 | 10 000 | Saga Saiyan (tient tête à Nappa) |
-| 4 | 25 000 | Saga Namek (affronte les soldats de Freezer) |
-| 5 | 50 000 | Saga Cyborgs (Dr. Gero t'a à l'œil) |
-| 6 | 100 000 | Super Saiyan débloqué |
-| 7 | 250 000 | Super Saiyan 2 |
-| 8 | 500 000 | Super Saiyan 3 |
-| 9 | 1 000 000 | Super Saiyan Blue |
-| 10 | 9 000 000 | IT'S OVER 9 MILLION — Ultra Instinct |
+| Niveau |    Unités | Flavor                                       |
+| -----: | --------: | -------------------------------------------- |
+|      1 |     1 000 | Premier souffle (dépasse un humain normal)   |
+|      2 |     5 000 | Niveau Krilin                                |
+|      3 |    10 000 | Saga Saiyan (tient tête à Nappa)             |
+|      4 |    25 000 | Saga Namek (affronte les soldats de Freezer) |
+|      5 |    50 000 | Saga Cyborgs (Dr. Gero t'a à l'œil)          |
+|      6 |   100 000 | Super Saiyan débloqué                        |
+|      7 |   250 000 | Super Saiyan 2                               |
+|      8 |   500 000 | Super Saiyan 3                               |
+|      9 | 1 000 000 | Super Saiyan Blue                            |
+|     10 | 9 000 000 | IT'S OVER 9 MILLION — Ultra Instinct         |
 
 Chaque passage de palier déclenche un message DBZ-flavored, un bonus de **1 000 zéni**, et l'attribution du rôle configuré dans la table `level_rewards` (si présent).
 
@@ -2650,36 +2711,36 @@ L'ordre de bootstrap dans `src/index.ts` est critique :
 
 ### Bash (wrappers one-shot)
 
-| Script | Usage | Notes |
-|---|---|---|
-| `curl -fsSL .../install.sh \| bash` | Installer one-liner | Clone le repo + lance setup + doctor. Variables : `SHENRON_DIR`, `SHENRON_BRANCH`. |
-| `bash scripts/setup.sh` | Setup de A à Z | Installe Bun si absent, `bun install`, `.env` depuis l'exemple, migrations, seeds. Idempotent. |
-| `bash scripts/doctor.sh` | Health check | Vérifie Bun, deps, `.env`, DB, **ping le token via REST Discord**, détecte instances en cours. Code retour non-zéro si problème. |
-| `bash scripts/start.sh` | Launcher | Flags : `--prod` (pas de watch), `--compiled` (binaire `dist/shenron`), `--bg` (détaché, logs dans `logs/`) |
+| Script                                 | Usage                   | Notes                                                                                                                                                            |
+| -------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `curl -fsSL .../install.sh \| bash`    | Installer one-liner     | Clone le repo + lance setup + doctor. Variables : `SHENRON_DIR`, `SHENRON_BRANCH`.                                                                               |
+| `bash scripts/setup.sh`                | Setup de A à Z          | Installe Bun si absent, `bun install`, `.env` depuis l'exemple, migrations, seeds. Idempotent.                                                                   |
+| `bash scripts/doctor.sh`               | Health check            | Vérifie Bun, deps, `.env`, DB, **ping le token via REST Discord**, détecte instances en cours. Code retour non-zéro si problème.                                 |
+| `bash scripts/start.sh`                | Launcher                | Flags : `--prod` (pas de watch), `--compiled` (binaire `dist/shenron`), `--bg` (détaché, logs dans `logs/`)                                                      |
 | `sudo bash scripts/setup-translate.sh` | Stack `/translate` FOSS | Installe `tesseract-ocr` + packs langue (apt) + lance LibreTranslate en Docker (`127.0.0.1:5000`, modèles `en,fr,ja,es,de,it`). Idempotent. **Requiert Docker.** |
 
 ### Bun (tâches granulaires)
 
-| Script | Usage |
-|---|---|
-| `bun run dev` | Mode watch (hot reload) |
-| `bun run start` | Démarrage prod |
-| `bun run deploy -- --help` | Pipeline de déploiement composable (build, type-check, lint, migrate, seed, restart systemd) |
-| `bun run test` | Smoke tests — un test par slash command, DB isolée |
-| `bun run lint` / `lint:fix` | oxlint |
-| `bun run type-check` | `tsc --noEmit` |
-| `bun run build` | Bundle → `dist/index.js` |
-| `bun run compile` | Binaire standalone → `dist/shenron` |
-| `bun run gen:entries` | Régénère `src/_entries.ts` (à lancer après ajout de commande/event) |
-| `bun run db:migrate` | Applique les migrations SQL |
-| `bun run db:generate` | Génère une migration depuis `schema.ts` |
-| `bun run db:push` | Sync direct du schema sans migration (dev only) |
-| `bun run db:studio` | UI Drizzle |
-| `bun run db:seed-wiki` | Peuple le wiki depuis dragonball-api.com (~60 s) |
-| `bun run db:seed-triggers` | Seed les 15 triggers de succès (offline, instantané) |
-| `bun run db:seed-all` | Les deux |
-| `bun run ids` / `ids -- --patch` | Liste les IDs rôles+salons de la guild (REST), patch `.env` par heuristique nom |
-| `bun run bg:fetch` / `bg:optimize` / `bg:all` | Télécharge + compresse les 19 backgrounds NASA (1.7 MB WebP) |
+| Script                                        | Usage                                                                                        |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `bun run dev`                                 | Mode watch (hot reload)                                                                      |
+| `bun run start`                               | Démarrage prod                                                                               |
+| `bun run deploy -- --help`                    | Pipeline de déploiement composable (build, type-check, lint, migrate, seed, restart systemd) |
+| `bun run test`                                | Smoke tests — un test par slash command, DB isolée                                           |
+| `bun run lint` / `lint:fix`                   | oxlint                                                                                       |
+| `bun run type-check`                          | `tsc --noEmit`                                                                               |
+| `bun run build`                               | Bundle → `dist/index.js`                                                                     |
+| `bun run compile`                             | Binaire standalone → `dist/shenron`                                                          |
+| `bun run gen:entries`                         | Régénère `src/_entries.ts` (à lancer après ajout de commande/event)                          |
+| `bun run db:migrate`                          | Applique les migrations SQL                                                                  |
+| `bun run db:generate`                         | Génère une migration depuis `schema.ts`                                                      |
+| `bun run db:push`                             | Sync direct du schema sans migration (dev only)                                              |
+| `bun run db:studio`                           | UI Drizzle                                                                                   |
+| `bun run db:seed-wiki`                        | Peuple le wiki depuis dragonball-api.com (~60 s)                                             |
+| `bun run db:seed-triggers`                    | Seed les 15 triggers de succès (offline, instantané)                                         |
+| `bun run db:seed-all`                         | Les deux                                                                                     |
+| `bun run ids` / `ids -- --patch`              | Liste les IDs rôles+salons de la guild (REST), patch `.env` par heuristique nom              |
+| `bun run bg:fetch` / `bg:optimize` / `bg:all` | Télécharge + compresse les 19 backgrounds NASA (1.7 MB WebP)                                 |
 
 ## Déploiement
 
@@ -2692,6 +2753,7 @@ bash scripts/reactivate.sh
 ```
 
 Ce script effectue les actions suivantes :
+
 1. Nettoie les dossiers `node_modules` et les caches de build.
 2. Installe proprement toutes les dépendances via `bun install`.
 3. Applique les migrations de base de données SQLite.
@@ -2703,7 +2765,6 @@ Ce script effectue les actions suivantes :
 9. Effectue un healthcheck sur le port d'API locale (5006).
 
 ### Binaire standalone
-
 
 ```bash
 bun run compile           # produit dist/shenron (inclut tout, pas de node_modules requis)
@@ -2860,6 +2921,7 @@ Privilégier le canal privé de GitHub :
 À défaut, contact direct : **contact@aphrody-code.dev**.
 
 Merci d'inclure si possible :
+
 - une description de la faille et de son impact ;
 - les étapes de reproduction (PoC) ;
 - les versions / commits concernés.
@@ -19341,6 +19403,2360 @@ _No framework detected._
 
 ---
 
+<a name="apps-bot-data-rag-raw-generic-wiki-dragon-ball-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/generic/wiki-dragon-ball.md`
+
+**Titre original :** Recon report — https://en.wikipedia.org/wiki/Dragon_Ball
+
+### Recon report — https://en.wikipedia.org/wiki/Dragon_Ball
+
+Date: 2026-06-07 00:00 UTC
+Profile used: `max`
+
+## HTTP & CDN
+
+- **HTTP status**: 200
+- **Body bytes**: 565619 (552 KB)
+- **goto duration**: 842 ms
+- **Server**: `ATS/9.2.13`
+- **X-Powered-By**: `n/a`
+- **Content-Type**: `text/html; charset=UTF-8`
+- **CDN fingerprint**: ats/9.2.13
+- **Trace/Ray ID**: `n/a`
+- **Cache-Control**: `private, s-maxage=0, max-age=0, must-revalidate, no-transform`
+
+### CSP-allowed hosts (1)
+
+- `commons.wikimedia.org`
+
+## Frameworks (wappalyzergo)
+
+_No framework detected._
+
+## Asset hosts (23 total)
+
+| Host | Asset count |
+|---|---|
+| `upload.wikimedia.org` | 13 |
+| `en.wikipedia.org` | 10 |
+
+### stylesheet (2)
+
+- https://en.wikipedia.org/w/load.php?lang=en&amp;modules=ext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cext.wikimediamessages.styles%7Cjquery.makeCollapsible.styles%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022
+- https://en.wikipedia.org/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022
+
+### script (2)
+
+- https://en.wikipedia.org/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022
+- https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-en-25.svg
+
+### image (19)
+
+- https://en.wikipedia.org/static/images/icons/enwiki-25.svg
+- https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg
+- https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-en-25.svg
+- https://upload.wikimedia.org/wikipedia/en/thumb/1/1b/Semi-protection-shackle.svg/20px-Semi-protection-shackle.svg.png
+- https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Dragon_Ball_manga_1st_Japanese_edition_logo.svg/330px-Dragon_Ball_manga_1st_Japanese_edition_logo.svg.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Wiki_DragonBall_Earth.png/250px-Wiki_DragonBall_Earth.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/2/24/Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg/250px-Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg
+- https://upload.wikimedia.org/wikipedia/en/thumb/e/ea/Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg/250px-Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg
+- https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/Db_TCI.jpg/250px-Db_TCI.jpg
+- https://upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/40px-Commons-logo.svg.png
+- https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Wikiquote-logo.svg/40px-Wikiquote-logo.svg.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/20px-Symbol_category_class.svg.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/20px-Symbol_category_class.svg.png
+- https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Rubik%27s_cube_v3.svg/20px-Rubik%27s_cube_v3.svg.png
+- https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Wikipe-tan_face.svg/20px-Wikipe-tan_face.svg.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/8/8a/OOjs_UI_icon_edit-ltr-progressive.svg/20px-OOjs_UI_icon_edit-ltr-progressive.svg.png
+- https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1
+- https://en.wikipedia.org/static/images/footer/wikimedia.svg
+- https://en.wikipedia.org/w/resources/assets/mediawiki_compact.svg
+
+## CSS selectors (132 total) — sample top 50
+
+```css
+.mw-parser-output .citation .mw-selflink {}
+.mw-parser-output .citation q {}
+.mw-parser-output .citation:target {}
+.mw-parser-output .cs1-code {}
+.mw-parser-output .cs1-format {}
+.mw-parser-output .cs1-hidden-error {}
+.mw-parser-output .cs1-kern-left {}
+.mw-parser-output .cs1-kern-right {}
+.mw-parser-output .cs1-maint {}
+.mw-parser-output .cs1-visible-error {}
+.mw-parser-output .cs1-ws-icon a {}
+.mw-parser-output .hatnote {}
+.mw-parser-output .hatnote i {}
+.mw-parser-output .hatnote+link+.hatnote {}
+.mw-parser-output .hatnote+span.mw-empty-elt+.hatnote {}
+.mw-parser-output .hlist .mw-empty-li {}
+.mw-parser-output .hlist dd {}
+.mw-parser-output .hlist dd ol>li:first-child::before {}
+.mw-parser-output .hlist dd::after {}
+.mw-parser-output .hlist dd:last-child::after {}
+.mw-parser-output .hlist dl {}
+.mw-parser-output .hlist dt {}
+.mw-parser-output .hlist dt ol>li:first-child::before {}
+.mw-parser-output .hlist dt::after {}
+.mw-parser-output .hlist dt:last-child::after {}
+.mw-parser-output .hlist li {}
+.mw-parser-output .hlist li ol>li:first-child::before {}
+.mw-parser-output .hlist li::after {}
+.mw-parser-output .hlist li:last-child::after {}
+.mw-parser-output .hlist ol {}
+.mw-parser-output .hlist ol>li {}
+.mw-parser-output .hlist ol>li::before {}
+.mw-parser-output .hlist ul {}
+.mw-parser-output .id-lock-free.id-lock-free a {}
+.mw-parser-output .id-lock-limited.id-lock-limited a {}
+.mw-parser-output .id-lock-registration.id-lock-registration a {}
+.mw-parser-output .id-lock-subscription.id-lock-subscription a {}
+.mw-parser-output .infobox {}
+.mw-parser-output .infobox .navbar {}
+.mw-parser-output .infobox .side-box {}
+.mw-parser-output .infobox-3cols-child {}
+.mw-parser-output .infobox-subbox {}
+.mw-parser-output .navbar {}
+.mw-parser-output .navbar a>abbr {}
+.mw-parser-output .navbar a>span {}
+.mw-parser-output .navbar li {}
+.mw-parser-output .navbar ul {}
+.mw-parser-output .navbar-boxtext {}
+.mw-parser-output .navbar-brackets::after {}
+.mw-parser-output .navbar-brackets::before {}
+/* ... 82 more (use --snapshot-dir to dump full list) */
+```
+
+
+
+---
+
+<a name="apps-bot-data-rag-raw-guides-akira-toriyama-tankobon-introductions-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/guides/akira-toriyama-tankobon-introductions.md`
+
+**Titre original :** Akira Toriyama Tankōbon Introductions
+
+---
+title: "Akira Toriyama Tankōbon Introductions"
+source: "Kanzenshuu Guide Translations"
+url: "https://www.kanzenshuu.com/translations/akira-toriyama-tankobon-introductions/"
+license_key: "fan-translation-fairuse"
+lang: "en"
+---
+
+### Akira Toriyama Tankōbon Introductions
+
+* [Translations Archive](https://www.kanzenshuu.com/translations/)
+* [Akira Toriyama Tankōbon Introductions](https://www.kanzenshuu.com/translations/akira-toriyama-tankobon-introductions/)
+
+Translations Archive
+
+*Dragon Ball* Tankōbon Volumes 1-42
+----------
+
+![](/guides/manga/tankobon/01/cover.png)
+
+Akira Toriyama Introductions
+==========
+
+[Dragon Ball Volume 01: Son Goku and Friends](/manga/tankobon/vol-01/) / (10 September 1985)
+
+![](/guides/manga/tankobon/01/toriyama.jpg)The setting of *Dragon Ball* has a sort of Chinese feel to it, but it’s not necessarily limited to China. For the time period, as well, exactly when it takes place is indeterminate. The overall story is very simple, but I’d like to make up the finer details and the ending as I go along. That way, I can enjoy the suspense of wondering what I should do next, as well as the fact that I can draw anything I want to.
+
+[Dragon Ball Volume 02: A Critical Moment for the Dragon Balls](/manga/tankobon/vol-02/) / (10 January 1986)
+
+![](/guides/manga/tankobon/02/toriyama.jpg)Happy New Year. …Which means that I, who made my debut in comics at my 23rd New Year’s, have now come to my 30th. I’ve thoroughly managed to become a “real” cartoonist. Anyhow, this is a tough business: it seems like, if you’ve got work to do, then you’re so busy that there’s no time for sleep, but if you don’t have any work, then you don’t know what to do with yourself, and there’s nothing to do but sleep. I really hate being busy, but I also don’t like not knowing what to do, so I’m doing my best.
+
+[Dragon Ball Volume 03: The Tenka’ichi Budōkai Begins!!](/manga/tankobon/vol-03/) / (10 June 1986)
+
+![](/guides/manga/tankobon/03/toriyama.jpg)One night about half a year ago, I took in a stray cat. It was a rainy night, so I took pity on it and figured that I would at least let it stay in the house until the rain let up.
+
+But it was a really friendly, cute cat, so we ended up keeping it as part of the family. It’s a jet-black cat, so its name is Koge [“char”]. As a result, my assistant Matsuyama-*kun*, a major cat-hater, is in a state of terror every time he comes over to work.
+
+[Dragon Ball Volume 04: The Grand Finals](/manga/tankobon/vol-04/) / (09 October 1986)
+
+![](/guides/manga/tankobon/04/toriyama.jpg)These days, I’ve been slacking off on exercise, always doing lazy things like using the car or motorbike even on outings right in the neighborhood. As a result, my stomach has started to bulge out. Thinking, “I’ll be in trouble if it goes on like this!”, I decided I’d at least try and ride my bike to shape up. But my eyes always wander over to the women walking along the street, and I end up riding at a snail’s pace. To be frank, it doesn’t really amount to “exercise”.
+
+[Dragon Ball Volume 05: The Terror of Muscle Tower](/manga/tankobon/vol-05/) / (09 January 1987)
+
+![](/guides/manga/tankobon/05/toriyama.jpg)I’ve mentioned this lots of times already, but I really don’t like the cold. When you turn on the heat, your head goes into a daze, and when you turn it off, your hands get numb and you can’t hold your pen properly. Because of that, when it gets cold, I stop riding my motorbike and my bicycle almost completely, and use the car all the time instead. Frankly speaking, I’m a sissy of a rider. It’s enough for me to want to hibernate: Come on, spring! Get here soon! Every winter’s day is filled with longing.
+
+[Dragon Ball Volume 06: Bulma’s Big Blunder!!](/manga/tankobon/vol-06/) / (10 March 1987)
+
+![](/guides/manga/tankobon/06/toriyama.jpg)These days, the neighborhood where I live has been getting pretty busy, with new shops and roads being built. It’s quite convenient, but I don’t get to see weasels, pheasants, or bush warblers at all any more.
+
+The noise level has increased too. Being a country boy by nature, it seems like a slooow, quiet lifestyle suits me best. It might be pretty inconvenient, but I’d like to live much, much farther out in the country. This is the sort of thing I get to thinking about.
+
+[Dragon Ball Volume 07: General Blue’s Pursuit!!](/manga/tankobon/vol-07/) / (08 May 1987)
+
+![](/guides/manga/tankobon/07/toriyama.jpg)Just recently, my child was born. It’s a boy. At last, even I have become a father. I do think it’s too bad that my wife and I can’t just go off and have fun on a whim as easily as we used to. But once he’s a little older, the three of us can go places together, and more than anything, he’s cute, so I’ll forgive him. Having a child makes a good excuse to go to the toy store, as well. So with that in mind, I’m working while helping out with changing diapers.
+
+[Dragon Ball Volume 08: Son Goku’s Assault](/manga/tankobon/vol-08/) / (10 July 1987)
+
+![](/guides/manga/tankobon/08/toriyama.jpg)On days when I do inking, I get up around noon, eat, and then from 1 p.m., I begin inking with my assistant Matsuyama-*kun*; from 7 to 8, I eat dinner, walk my dog, and feed my bird; Matsuyama-*kun* goes home at 9, and I continue to work while watching TV; I get in the bath at 11; after that, I stretch out and relax while working; and I go to sleep around 4 a.m. This is the pattern that most of my inking days follow.
+
+[Dragon Ball Volume 09: When Worried, See Uranai Baba](/manga/tankobon/vol-09/) / (10 September 1987)
+
+![](/guides/manga/tankobon/09/toriyama.jpg)My son has now reached the age of five months, and every day, he’s brimming over with energy. However, his elder, my cat (Koge), is not taking it well. She has a rival now. Before my son was born, Koge never wanted much attention, but now, she’s all over us. She’ll go out of her way to sleep on her rival, my son’s, futon, and when I’m fanning my son with an *[uchiwa](http://en.wikipedia.org/wiki/uchiwa)*, she’ll lie down with him, as if to say, “fan me, too”. Can’t we just get along?
+
+[Dragon Ball Volume 10: The Twenty-Second Tenka’ichi Budōkai](/manga/tankobon/vol-10/) / (10 November 1987)
+
+![](/guides/manga/tankobon/10/toriyama.jpg)There’s practically nothing good about being nearsighted. When you go swimming at the pool or the beach, you can’t see any of the gals in their bathing suits! It often happens that I’ll think, “Oh!”, and hurry to put on my glasses, only for it to be an old lady, so I’ll hurry to take my glasses off again. There was even one time where the hot spring I went to had mixed bathing, but I had to swallow my tears because all I could see was a blur. Stupid nearsightedness! Everyone, please take care of your eyes.
+
+[Dragon Ball Volume 11: The World’s Greatest Super Battle!!](/manga/tankobon/vol-11/) / (10 February 1988)
+
+![](/guides/manga/tankobon/11/toriyama.jpg)This is the first time I’ve put up my photo in this section of a volume. This is me with my son, Sasuke. In putting up a picture of my son like this, it is of course true that I’m quite the doting parent, but it’s also a lifesaver, because it’s a bother always having to draw an illustration for this column. Maybe I’ll start doing this from now on, is my lazy idea. Next time, maybe I’ll use a photo of my cat Koge, or my dog Mato. Hmmm… This is nice and easy…
+
+[Dragon Ball Volume 12: The Terror of Demon King Piccolo!](/manga/tankobon/vol-12/) / (08 April 1988)
+
+![](/guides/manga/tankobon/12/toriyama.jpg)This is our family cat, “Koge”. You probably can’t tell what’s what since she’s jet-black, but anyway, it’s Koge. We took her in one night three years ago as a kitten, and she’s really nice and friendly. When she gave birth (since she’s female), we were really, really worried, and we made a huge fuss. She gave birth without incident to four healthy little ones. We were just so glad. By the way, the one who named her “Koge” was my wife.
+
+[Dragon Ball Volume 13: Son Goku’s Counterattack?!](/manga/tankobon/vol-13/) / (10 June 1988)
+
+![](/guides/manga/tankobon/13/toriyama.jpg)This is our family dog, Matryoshka. We took her name from the traditional Russian dolls. It’s a pain to call her “Matryoshka” all the time, though, so her nickname is “Mato”. Being a Siberian Husky, she’s quite good against the cold, so as someone sensitive to the cold, I absolutely envy her. Even though she’s female, she’s got lots and lots of energy, so my son is always crying from her pushing him around. No matter how busy I am, I play with her every day.
+
+[Dragon Ball Volume 14: Even More Action](/manga/tankobon/vol-14/) / (10 August 1988)
+
+![](/guides/manga/tankobon/14/toriyama.jpg)I can almost never go out to the movies anymore. There’s the fact that I’m busy, and also that my wife has to take care of our son, and can’t really go out without a care in the world. (There’s no way a nice guy like me would just leave his wife behind and go out by himself.) Because of that, I watch recent movies exclusively on rental videos, one after another. Even when I’m busy with work, I watch them without hesitation. My TV is on all through the night.
+
+[Dragon Ball Volume 15: Rivals Standing Their Ground!](/manga/tankobon/vol-15/) / (06 December 1988)
+
+![](/guides/manga/tankobon/15/toriyama.jpg)I’m running too low on material, be it illustrations or photos, to put in this space, so I’ve finally been forced to pull out a picture of myself from when I was a kid. Around then, I got these weird lumps, or growths, or something on my head, and ended up looking just like a Kewpie doll. Apparently, I had to get them surgically removed. Even now, the unbecoming scars from the surgery are still clearly visible on my head, so I can’t shave off my hair.
+
+[Dragon Ball Volume 16: The Dragon and Tiger Mutually Strike!](/manga/tankobon/vol-16/) / (10 February 1989)
+
+![](/guides/manga/tankobon/16/toriyama.jpg)Ta-daa! Would you believe it? I managed to get a whole 20-day vacation!! Awesome! Hey-hey!! And so forth. But just as I was getting carried away in my high spirits, I was laid up with a cold. A few days later, I somehow felt better and went out in the car, but just as I’d gotten back from finishing my errands, I caught my finger in the car door and put a crack in the bone. And while I was groaning in pain, my cold came back again. ……Dear God, thank you very much for my enjoyable vacation……  
+ (text of illustration: “This is the worst!”)
+
+[Dragon Ball Volume 17: An Unprecedented Terror](/manga/tankobon/vol-17/) / (10 May 1989)
+
+![](/guides/manga/tankobon/17/toriyama.jpg)In my case, apart from when Assistant-*kun* is here, I almost always work seated under the *kotatsu* in a room with a TV. It’s partly because I just can’t seem to get comfortable with a chair and a desk, and it’s partly because it feels lonesome if I’m not [working] while watching TV or a video. However, I mustn’t get fixated. So while I work, I end up watching it while pretending that I’m not. I’m such a good boy!!
+
+[Dragon Ball Volume 18: Son Gohan and Demon King Piccolo](/manga/tankobon/vol-18/) / (10 July 1989)
+
+![](/guides/manga/tankobon/18/toriyama.jpg)I’ve said this many times before, but anyway, I don’t like the cold, and I really hate winter, so much so that I’d like to hibernate like a bear. I often get invited to go skiing and such, and it’s not like I couldn’t, but I just have no desire to go out of my way to go someplace that’s even colder. But as much as I hate winter, I really love the hot summer, and get really excited for it. That’s why, even in my comics, it’s almost always summery. Summer is the greatest! If only there weren’t any mosquitoes…
+
+[Dragon Ball Volume 19: Hurry, Son Goku!](/manga/tankobon/vol-19/) / (10 November 1989)
+
+![](/guides/manga/tankobon/19/toriyama.jpg)I, probably just like all of you, love Disneyland. (Though I’ve only been able to go about six times…) More than anything, it’s because you can feel how professional it is, down to the littlest things. Come to think of it, what first got me interested in drawing was when I went to see *101 Dalmatians* at the movie theater when I was in nursery school, and was drawn in by how wonderful the art was. I am grateful.
+
+[Dragon Ball Volume 20: A Fateful Super Decisive Battle!!](/manga/tankobon/vol-20/) / (10 January 1990)
+
+![](/guides/manga/tankobon/20/toriyama.jpg)I have this habit where, if I want something, I’ll keep drawing it until I either get it or lose interest. When I was a kid, I wanted a horse, so every day I drew nothing but horses. Of course, I gave up on a horse, and next, I kept drawing pictures of monkeys. After that, I drew bicycles; just like that, I kept on drawing and drawing. Thanks to that, even though I was a naughty child, I at least got good at making pictures. That habit continues even now that drawing pictures has become my job.
+
+[Dragon Ball Volume 21: Go For It! The Planet Namek](/manga/tankobon/vol-21/) / (10 April 1990)
+
+![](/guides/manga/tankobon/21/toriyama.jpg)Aaaugh…! The thing I feared most happened again. The cavity that I’d left alone because I hate going to the dentist started to hurt. It was the day of the deadline for my manuscript, but the pain was so bad I couldn’t sleep. I just couldn’t bear it, so I ran to the dentist’s, but I was too late, and had to get it pulled. Then, I was forced to work while dealing with the pain. It may have been my fault, but it was still the worst, most hellish day…
+
+[Dragon Ball Volume 22: The Namekian Resistance](/manga/tankobon/vol-22/) / (10 July 1990)
+
+![](/guides/manga/tankobon/22/toriyama.jpg)Following on from the toothache, one of three lumps of fat on my left buttock became swollen and painful. It was right at the spot that bears the most weight when I sit, so I went to the hospital to have it removed, but they did it without anesthesia, and it hurt so much I thought I would die! About two weeks later, when that wound was just healing up, I had the other two lumps surgically removed, too. So in the end, for about one month, I was forced to work while sitting only on my right buttock. It was hell…
+
+[Dragon Ball Volume 23: The Terrible Ginyu Special-Squad](/manga/tankobon/vol-23/) / (08 October 1990)
+
+![](/guides/manga/tankobon/23/toriyama.jpg)I am relatively confident about my body’s hardiness, and I hardly ever even get stiff shoulders, but recently, my right arm has started to get stiff, and it’s finally gotten to the point that it’s actually painful. Come to think of it, it’s because I’ve been working without taking much time off for close to 11 years straight, from starting the serialization of *Dr. Slump* on to *Dragon Ball* now. I suppose I might as well have a doctor get me to stop and take three months or so of vacation…. (Although, it’s started to feel better since yesterday…. Crap…)  
+(text of illustration: “Ow-ow-ow…”)
+
+[Dragon Ball Volume 24: Goku or Ginyu?!](/manga/tankobon/vol-24/) / (10 January 1991)
+
+![](/guides/manga/tankobon/24/toriyama.jpg)At the end of October, I had the honor of becoming a father of two. This time, it’s a girl. Mother and daughter are both in good health, so I am very happy. When her big brother was first born, I swore firmly that I would a strict father, but I turned out to be very doting, losing all faith in myself. I thought that next time, for sure, I would be strict, but there’s no way I can do that with a girl. These days, I’m pushing back against it, [thinking] “What’s wrong with doting on your kids?!!”
+
+[Dragon Ball Volume 25: Freeza’s Super Transformation!!](/manga/tankobon/vol-25/) / (08 March 1991)
+
+![](/guides/manga/tankobon/25/toriyama.jpg)I like movies. When I was but a lad, I went to the movies at a pace of about four a week. Even when I was a primary-schooler, I’d often bring a boxed lunch with me, pedaling away on my bike to get to the theater in Nagoya, where I’d immerse myself for the entire day. The many films I watched in this way live on in my job of comics. When I’m coming up with a story or a sequence, it comes up in my head in the style of a cinematic image, which allows me to get my pencil moving. Ah, it sure was nice.
+
+[Dragon Ball Volume 26: Son Goku… Revived!!](/manga/tankobon/vol-26/) / (10 June 1991)
+
+![](/guides/manga/tankobon/26/toriyama.jpg)Our family dog has given birth to puppies. Three of them were born, but unfortunately, one of them died, so now there are two. Previously, when our cat gave birth, the mother didn’t do very well, so we did things like cutting the umbilical cords to help out. So for the dog, we took care starting several days in advance, just in case, but she managed to do just fine on her own. We really don’t want to part with the puppies, so we’d like to keep the both of them…
+
+[Dragon Ball Volume 27: The Legendary Super Saiyan](/manga/tankobon/vol-27/) / (07 August 1991)
+
+![](/guides/manga/tankobon/27/toriyama.jpg)To be honest, all this author has to say is, I’m always stuck for something to write here. When you’re busy working on a weekly serial, it’s not like there’s going to be anything all that special to write about. What’s even more painful is the “author’s comment” blurbs on the table of contents page in the back of *Shōnen Jump*. This is a secret, but for at least half of those comments, I let my editor Kondō-*san* write them for me. Every week, he asks me, “Anything to talk about?” But I’ve got nothing.
+
+[Dragon Ball Volume 28: The Boy From the Future](/manga/tankobon/vol-28/) / (08 November 1991)
+
+![](/guides/manga/tankobon/28/toriyama.jpg)I can’t just sit around and do nothing. I never feel comfortable if I’m not completely absorbed in something. Just like how sharks will die if they stop swimming. Anything is fine, no matter how pointless, but I have to be completely absorbed. Because of this, though, when there isn’t anything I want to do, I get really fidgety and pace around the room… It’d be nice if “work” was one of those things I could absorb myself in, as well…
+
+[Dragon Ball Volume 29: Goku, Defeated!](/manga/tankobon/vol-29/) / (10 March 1992)
+
+![](/guides/manga/tankobon/29/toriyama.jpg)I really hate mice. I have no problem whatsoever with things like snakes and spiders, but with mice alone I’m no good. But then suddenly, our home has become a house of mice. We’ve caught 14 using sticky sheets alone, but there are still more. I can’t work, I’m in such fear. If there’s even a little bump or rustle, I can’t stay in my workroom. Because of that, my manuscripts these days have been on the late side…
+
+[Dragon Ball Volume 30: An Evil Premonition](/manga/tankobon/vol-30/) / (10 June 1992)
+
+![](/guides/manga/tankobon/30/toriyama.jpg)These *Dragon Ball* volumes have finally reached number 30. Son Goku, who used to be a child, is now a father through and through. The reason I’m able to keep drawing the comic this long is thanks to the support from so many people. I am truly thankful. Even so, I’m in awe all the more at myself, that a fickle guy like me has managed to keep doing the same thing for over seven years.
+
+[Dragon Ball Volume 31: Cell Creeps Up](/manga/tankobon/vol-31/) / (04 August 1992)
+
+![](/guides/manga/tankobon/31/toriyama.jpg)At some point, my workroom turned into a storeroom. Magazines, plastic models, model guns, air guns, and other odds and ends keep increasing, and aren’t going to just disappear, so there’s become less and less space to walk around. Now, out of the entire week, I only use this room on the day my assistant Matsuyama-*kun* helps me out, and most of the time, I work in the living room with my children getting in the way.
+
+[Dragon Ball Volume 32: Cell’s Perfect Form, Achieved!!](/manga/tankobon/vol-32/) / (02 October 1992)
+
+![](/guides/manga/tankobon/32/toriyama.jpg)These days, acquaintances who see me for the first time in a while generally say this: “You’ve gained weight, haven’t you?” Yes, I have definitely gained weight. I am 174 cm tall, and yet I am 73 kg. That doesn’t seem like much, but areas like my arms, legs, and chest are the same as they were back when I was thin, so it’s just pathetic. Really, if I don’t get at least a little exercise, I will actually become like the above illustration. And I should diet, too… Augh! I ate too much again.
+
+[Dragon Ball Volume 33: The Cell Game Begins](/manga/tankobon/vol-33/) / (26 December 1992)
+
+![](/guides/manga/tankobon/33/toriyama.jpg)I think all of you can probably imagine, but a weekly serial is pretty tough work. Between *Dr. Slump* and now *Dragon Ball*, I’ve been doing a weekly serial for 13 years straight, so naturally, it’s gotten to be tough on me, both physically and mentally. I was never the type who naturally has a lot of willpower, after all. So, for the sake of both myself and my family, I’m starting to think it’s about time I work on something more slowly and carefully.
+
+[Dragon Ball Volume 34: The Warrior Who Surpassed Goku](/manga/tankobon/vol-34/) / (04 June 1993)
+
+![](/guides/manga/tankobon/34/toriyama.jpg)One of the nicer things about being a cartoonist is that you can determine your days off for yourself. When you’re going to a hot spring, or Disneyland, or some-such, you can avoid the crowds of Saturday and Sunday; it’s possible to just look up the weather, and say, OK! Tomorrow, let’s go on a trip. If it’s a weekday, there are rooms available at the hotels, after all. …But now my son is an elementary-schooler, and suddenly, it has become very difficult to use that sort of trick. The traffic is backed up! The trains are full! Yeeegh\~\~!!
+
+[Dragon Ball Volume 35: Farewell, Warriors](/manga/tankobon/vol-35/) / (03 September 1993)
+
+![](/guides/manga/tankobon/35/toriyama.jpg)With this volume, Son Goku has died. I’m not the kind of person who has much affection for the characters he draws, but as you’d expect, I did feel a bit sorry at the death of the main character I’ve been drawing for close to ten years. I thought about doing things some other way, but in the end, I felt that it was best for him to die. I did at least try not to make it too dark, but Son Goku-*kun*, I beg your sincere pardon. Please forgive me.
+
+[Dragon Ball Volume 36: The Birth of a New Hero!!](/manga/tankobon/vol-36/) / (04 November 1993)
+
+![](/guides/manga/tankobon/36/toriyama.jpg)When I got on my bike for the first time in a while, after riding for only a little bit, my legs got so tired they turned to mush. At Disneyland, when I ran around enthusiastically with my children, the next day I was laid up with a fever. When we went to the beach, and, thinking I had a pretty good arm, I showed off my skill at throwing stones, my arm got so sore that I couldn’t even draw. I am completely out of shape. I’ve got to give work a rest, and go play!
+
+[Dragon Ball Volume 37: The Plan Goes into Motion](/manga/tankobon/vol-37/) / (04 April 1994)
+
+![](/guides/manga/tankobon/37/toriyama.jpg)If I just hold out for a little longer, the nice, warm spring will be here at last, but now my kid’s gone and said, “Take me skiing!”. As I’ve written before, I am really no good against the cold, so I had been dreading those words more than anything. I can’t believe people go out of their way to go to cold places… Well, it’s not like I hate sports, so I’ll give it my best shot. At the time this book comes out, I bet I’ll have a cold and a fever…
+
+[Dragon Ball Volume 38: The Fated Showdown: Son Goku vs Vegeta](/manga/tankobon/vol-38/) / (04 August 1994)
+
+![](/guides/manga/tankobon/38/toriyama.jpg)For some reason, since this year started, it’s felt like things are getting even more hectic. On top of the *Dragon Ball* serialization, there’s also Famicom work, *V-Jump* work, work I’m doing with my friend on plastic models, and in my spare time, thinking up tens of architectural plans for my company, Bird Studio. And then, just as I’m letting out a scream of “Yeeegh!”, the family dog gets sick, and I’ve been taking her to the vet. (Thanks to that, she’s doing better.) I want time to play\~!!
+
+[Dragon Ball Volume 39: Farewell, Proud Warrior](/manga/tankobon/vol-39/) / (02 December 1994)
+
+![](/guides/manga/tankobon/39/toriyama.jpg)In what seems like such a short time, it’s been ten years since I started drawing Dragon Ball. Thinking about it, this number is astounding to a guy like me, who has no self-discipline, and I can only think that I’ve done a pretty good job for myself. This, in spite of the fact that, aside from my hobbies, I am an absolute slacker when it comes to work. Before I knew it, it’s like, “Ah! Crap! I accidentally put effort into something!” It’s about time I take another decade to sit around doing nothing!! Yep, I’m pretty sure I’m not cut out for weekly serials.
+
+[Dragon Ball Volume 40: The Earth Army’s Ultimate Secret Weapon!!](/manga/tankobon/vol-40/) / (03 March 1995)
+
+![](/guides/manga/tankobon/40/toriyama.jpg)Our nearly ten-year-old family dog Mato, whose photo was published in volume 13, has died. She had had kidney problems starting about half a year ago. Since then, I had continued taking her to the vet for her IV treatments, even on the day of my deadline, and even when I was miserable with a cold. Mato put up a good fight too, but in the end, there was really nothing we could do. Our saving grace was the kindly neighborhood vet, who devoted himself with such compassion. Thank you so very much.
+
+[Dragon Ball Volume 41: Do Your Best, Super Gotenks-*kun*](/manga/tankobon/vol-41/) / (02 June 1995)
+
+![](/guides/manga/tankobon/41/toriyama.jpg)As I write this, I have three *Dragon Ball* chapters left to draw before it comes to its auspicious conclusion. Thanks to the unfailing support of all you fans, it seems like it will be able to end as popular as always. Thank you!! I’m terribly sorry, but I just felt that I’d rather be able to draw a new comic at my own, somewhat more relaxed, pace. These volumes will end with number 42, which, just like this one, will have lots more pages than usual. Please be sure to pick it up!!
+
+[Dragon Ball Volume 42: Bye Bye, Dragon World](/manga/tankobon/vol-42/) / (04 August 1995)
+
+![](/guides/manga/tankobon/42/toriyama.jpg)At long last, it’s the final volume! I deliberately made the end low-key, as though the story might still continue; what did you think of it? To all of you read all the way to the end of 42 volumes, thank you for sticking with me for such a long time. I’d also like to express my thanks to those of you who sent me fan-letters and presents. I’m sorry I haven’t been able to reply at all. But “thank you!!” from the bottom of my heart. Goodbye.
+
+English Translation: SaiyaJedi
+
+---
+
+<a name="apps-bot-data-rag-raw-guides-daizenshuu-1-shenlong-times-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/guides/daizenshuu-1-shenlong-times.md`
+
+**Titre original :** Daizenshuu 1 - Shenlong Times Interview
+
+---
+title: "Daizenshuu 1 - Shenlong Times Interview"
+source: "Kanzenshuu Guide Translations"
+url: "https://www.kanzenshuu.com/translations/daizenshuu-1-shenlong-times/"
+license_key: "fan-translation-fairuse"
+lang: "en"
+---
+
+### Daizenshuu 1 - Shenlong Times Interview
+
+* [Translations Archive](https://www.kanzenshuu.com/translations/)
+* [Daizenshuu 1 - Shenlong Times](https://www.kanzenshuu.com/translations/daizenshuu-1-shenlong-times/)
+
+Translations Archive
+
+Dragon Ball Daizenshuu 1: Complete Illustrations
+----------
+
+![](/generalinfo/translations/daizenshuu/01-shenlong_times.jpg)
+
+Shenlong Times — 1st Issue
+==========
+
+Past Editors Round-Table Discussion — 1st Round
+----------
+
+*Dragon Ball*, which lasted ten years and six months, became a long-running manga even by *Weekly Shōnen Jump* standards. In that shadow there were the figures of the three successive editors who supported Akira Toriyama!
+
+**Kazuhiko Torishima (initial editor)** — Currently the head editor of *V-Jump*. He was the editor from the beginning of *Dragon Ball* until the end of the 23rd Tenka’ichi Budōkai. It’s rumored that he was the model for Piccolo Daimaō.
+
+**Yū Kondō (second editor)** — He was the editor from the appearance of Raditz to just before Cell achieved his perfect form. Currently serving as assistant chief editor of *Monthly Shōnen Jump*. It seems he was the model for Freeza.
+
+**Fuyuto Takeda (third editor)** — He was editor from the appearance of Cell in his perfect form until the final chapter. He is currently still serving as Akira Toriyama-*sensei*’s editor. He was the model for the original Majin Boo (Mr. Boo).
+
+The past editors tell the secrets of Akira Toriyama’s pictures!!
+
+**Fuyuto Takeda**  
+I am Takeda, the current editor. Since I’m the newest out of all the editors, I’ll chair. First, there are some things that I’d like to ask the original editor Torishima-*san*, who picked out Toriyama-*sensei*’s manuscript “I sent this in because I wanted the prize money”. I’m sure there are things he’ll be able to shed some light on.
+
+**Kazuhiko Torishima**  
+To say that I “picked him” seems a little… (laughs) The first manuscript that Toriyama-*kun* sent me was a *Star Wars* parody. Parodies can’t win any prize money. They’re not original and it’s difficult to publish them. Only, his lettering left an unusual impression on me. Sound effects are usually drawn as *katakana*, but he had drawn them as letters of the alphabet. I thought this was extraordinarily refreshing, groundbreaking, and kind of cool. So I contacted him.
+
+**Fuyuto Takeda**  
+So as it were, Toriyama-*san* has now become an author known throughout the world because he was noticed for his lettering, a rather minor part of a manga.
+
+**Kazuhiko Torishima**  
+Toriyama-*kun*’s big peculiarity is that he never read or studied manga, but rather studied basic pictures as a designer. The fact that he then hit upon drawing manga by chance after he was out of work is his biggest peculiarity.
+
+**Fuyuto Takeda**  
+So it’s in that way that *[Dr. Slump –] Arale-chan* and *Dragon Ball* began. So then, Kondō-*san* became the editor right around the time the Saiyan arc began. At that time, *Dragon Ball* was explosively popular; when *Jump* did a 1,000-ballot survey, at its height *Dragon Ball* got around 700 ballots.
+
+**Yū Kondō**  
+No, it was 815 ballots – that was in the Freeza arc.
+
+**Fuyuto Takeda**  
+That’s an incredible popularity rating, but how were the picture designs at that period?
+
+**Yū Kondō**  
+That’s when it started to change from what it had been before. When it started serialization, the story was comical, so the lines were round. Then, with the Tenka’ichi Budōkai, it switched to a fighting theme, so after that the fighting had to escalate. But when it comes to that, round lines don’t convey a sense of speed or intensity. So once he realized this, midway through the manga the round lines started to become square and sharp. When that happened, I said to Toriyama-*san*, “Aren’t the lines a little harsh now?”, and he said, “No, if I don’t do it like this then there’s no sense of speed.”
+
+**Fuyuto Takeda**  
+I see; speaking of the pictures, I often asked *Sensei* why he made the scenery in *Dragon Ball* relatively sparse, and he said that drawing things like cities was too troublesome. I asked him why Goku’s hair became white when he became a Super Saiyan, and he said it was because it was too much trouble to black it all in. (laughs) Was that really the only reason?
+
+**Kazuhiko Torishima**  
+That was really the only reason. (laughs) With the backgrounds for *Dr. Slump*, he just did these round mountains with some trees. I asked him, “Why this scenery?”, and he said “Because that’s the simplest.”
+
+**Yū Kondō**  
+You can see it in a flash; it’s pretty easy to see. When Goku transformed into a Super Saiyan, if his head turned white, then anyone who looked at it would be able to tell that this was a transformation. With Kame-Sen’nin, he has “*kame*” written on his back. It’s incredibly easy to understand.
+
+**Kazuhiko Torishima**  
+He came from doing design drawings, so he excels at using a design sensibility. He’s extraordinarily skillful at achieving a balance of dark and light. He said that since he lives out in the country, he didn’t have the money to buy screen tone. Since he didn’t use tone, his basis became black and white. That’s why he’s so skillful at how to use blacked-in areas and blank areas. Although you could say that drawing a lot of background is difficult, you could conversely say that he has the composition and design ability to create a scene without drawing them.
+
+**Fuyuto Takeda**  
+This is changing the subject a bit, but when he was asked what piece he liked or was pleased with out of all the color illustrations he drew in 10 years of *Dragon Ball*, it seems there was only one. This was the picture.
+
+**Kazuhiko Torishima**  
+The one with Goku and Gohan riding on a motorcycle with legs? (see page 88)
+
+**Fuyuto Takeda**  
+That’s right. He said that the balance was good, the composition was good, and that this was the only one he was pleased with. It really is great and all, but I personally don’t feel that it’s so excessively good that it lives up to that claim. What do you think?
+
+**Yū Kondō**  
+I guess I partly agree and partly disagree. The part where I agree is that this extraordinarily difficult to balance picture is frozen in a single instant. Wasn’t he able to draw that balance very satisfyingly? With the colors, doesn’t it leave a vivid impression? The coloring is completely different than the color at the beginning.
+
+**Kazuhiko Torishima**  
+Just like what I was saying earlier about the lines, the way he paints colors also changed. He got tired of the painting style he had, and looking ahead, he stopped using that painting style and changed to a different one. He’ll continue using that painting style until he sees that he’s had enough.
+
+**Fuyuto Takeda**  
+Could you see the change in the colors between the times of the first and second editor?
+
+**Yū Kondō**  
+*Dr. Slump* was very luxuriant. From the scenery to the characters, everything was full color, but with *Dragon Ball* the scenery was sparse and there was a lot of grey and light brown. It was the same with what Goku and the others wore. Doing that, it was inevitable that it would become close to monotone.
+
+**Kazuhiko Torishima**  
+With the painting supplies, during *Dr. Slump* he used markers, then in the middle he changed to color ink. I said, “Well, haven’t you become like a professional manga artist”, and he said, “I’ve got a wife now. I’m married.” (laughs)
+
+**Fuyuto Takeda**  
+It’s because his wife was also a manga artist. Now that you mention it, didn’t Kondō-*san* repaint one of *Sensei*’s illustrations?
+
+**Yū Kondō**  
+The cover illustration?
+
+**Fuyuto Takeda**  
+Yeah, that’s right.
+
+**Yū Kondō**  
+You heard wrong. I actually redrew the illustration. (laughs) For the cover of Toriyama-*san*’s first illustration collection, I thought a dragon image would be good, so I had him draw a dragon. Toriyama-*san* drew the entire thing on a single sheet of paper, with scales like the dragon King Ghidorah. But I came to think that it was a little weak for a cover. It seems like it was a great shock for him. (laughs)
+
+**Fuyuto Takeda**  
+Then, I became editor a little after Cell appeared.
+
+**Kazuhiko Torishima**  
+You can tell who was editor at the time by the enemy characters. After you’d been doing it a while you’d appear as an enemy. (laughs)
+
+**Yū Kondō**  
+I think Torishima-*san* and Takeda-*kun* really demonstrate that. (laughs)
+
+**Fuyuto Takeda**  
+Kondō-*san* himself has said that he’s Trunks, but I think that’s impossible. Kondō-*san* is Freeza. But then, you did go and redraw that picture. (laughs)
+
+Akira Toriyama’s “Me These Days”
+----------
+
+The diligent, half-assed, kindly, cold, cheerful, gloomy, unflappable, short-tempered, shy, perverted, silent, loudmouthed, even-he-doesn’t-really-know-how-severely-twisted bastard **Akira Toriyama’s Me These Days**.
+
+**Panel 1**  
+Hello, I’m Akira Toriyama.
+
+**Panel 2**  
+It’s too bad that *Dragon Ball*, which I drew for a very long time, has ended. Just kidding. I’m incredibly glad. Now I can just leisurely sit around!
+
+**Panel 3**  
+But having said that, it’s not like I’m actually lying around. I’m a lazy person, but if I’m not absent-mindedly doing something I can’t really relax. I can’t just veg out.
+
+**Panel 4**  
+Now that I’ve quit *Dragon Ball* and stopped weekly serialization, I don’t think that I’ll concentrate on a new manga or something. I’m the type of person to carefully do things at my own pace, and I don’t want to go back to weekly serialization.
+
+**Panel 5**  
+When I look at it, I don’t really like people, and socializing is really awful. Outside of my family, friends, and those connected to my job, I don’t think I actively want to meet anyone. I’ve always lived in the country, after all. Nevertheless, somehow or another people kept dropping in, so I had to move to even farther out in the sticks to live comfortably.
+
+**Panel 6**  
+Even a hick like me ended up having to come to Tokyo three times this month. Uhhhh… pardon me… I hate how the city has so many people.
+
+**Panel 7**  
+Since I’ve just finished serialization I don’t spend much time on stuff like this *What I’m Up to Nowadays* outside of my job. But since I’m seldom able to go out on my own, without my wife and children, I feel like I have to notify them of everything I do.
+
+**Panel 8**  
+But it seems I have to continue this manga until all of these *daizenshuu* are out… what should I do… I already want to stop now…
+
+I Love Dragon Ball #1: Jackie Chan
+----------
+
+We visited with famous experts in various fields who love *Dragon Ball*, and had them each explain their love! First up is international action star Jackie Chan!
+
+*Dragon Ball* is a work that I would love to try and make into a movie.
+
+For a long time I had heard from those around me that *Dragon Ball* was interesting. So I watched the anime, then read all of the Chinese edition of the manga. Naturally, as everyone had said it was pretty interesting. I guess the character I like most is of course Goku. The scene I like best is… there are too many to list, so I can’t decide on just one. There are so many fascinating scenes. It’s a work that I’d really like to make into a movie. *Dragon Ball* is packed with so many amazing ideas and imagination. However, to make it into a live-action movie I guess you’d need a lot of amazing special effects and an enormous budget.
+
+English Translation: Herms
+
+---
+
+<a name="apps-bot-data-rag-raw-guides-dragon-ball-forever-toriyama-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/guides/dragon-ball-forever-toriyama.md`
+
+**Titre original :** Dragon Ball Forever - Toriyama Interview
+
+---
+title: "Dragon Ball Forever - Toriyama Interview"
+source: "Kanzenshuu Guide Translations"
+url: "https://www.kanzenshuu.com/translations/dragon-ball-forever-dragon-ball-toriyama/"
+license_key: "fan-translation-fairuse"
+lang: "en"
+---
+
+### Dragon Ball Forever - Toriyama Interview
+
+* [Translations Archive](https://www.kanzenshuu.com/translations/)
+* [Dragon Ball Forever: Akira Toriyama With Dragon Ball](https://www.kanzenshuu.com/translations/dragon-ball-forever-dragon-ball-toriyama/)
+
+Translations Archive
+
+Kanzenban Official Guide: Dragon Ball Forever
+----------
+
+![](/generalinfo/translations/dbforever.jpg)
+
+Secrets from the making of *Dragon Ball* can now be told!!
+----------
+
+AKIRA TORIYAMA WITH DRAGON BALL
+==========
+
+A full nine years since the end of serialization, valuable episodes that had been held back can now be revealed!!
+
+Then and now, I hate deadlines more than anything…
+
+Now, I’m usually always thinking this: “I wonder if there’s time to build a plastic model.” Truth be told, that hasn’t changed one bit since back then. Well, I guess my lifestyle hasn’t changed that much even after the end of the serialization. However, since I started using a Mac, my method of drawing illustrations has changed. In drawing it, even I think that it’s got no flavor, but without new things like computers, I’d probably have turned against drawing completely. I get the feeling that it’s probably because I discovered how enjoyable it is to express all sorts of things by computer, that I’m still able to keep drawing.
+
+What’s the difference between back during the serialization and now? It hasn’t changed much, but… I’ve gotten fat. Also, my hair’s gotten thinner. (*laughs*) Inwardly, just the fact that I don’t have a serial now is much easier. I’m no good with having to do something on a set cycle. Even with stuff like the *Kanzenban* covers, it was nothing much in terms of the amount of work, but when they tell me I absolutely must finish by the 10th of each month……
+
+Weekly, monthly, or whatever, I’m just not good with being told I have to finish up according to a set schedule.
+
+Destroying towns quickly, and Goku gets held up?
+
+Thinking back on when I was doing the serialization… I liked Demon King Piccolo. I had never drawn a truly evil guy like Piccolo before, so it was fun. I always thought this when drawing villains, but the characters in *Dr. Slump* were all incredible goody-goodies, so I kind of wanted to tear that down. In terms of the scenes as well, I especially like the part where Piccolo destroys the city… and faces off against Goku. Perhaps it’s the influence of the giant-monster movies I watched as a kid… the most exciting parts for me while I was drawing them were those moments when Goku appears, after the villain has been doing incredibly evil things, and Goku has been holding back, holding back, and finally just can’t take it anymore. Because I wanted to draw that, I would make Goku show up late. Like leaving him inside the healing capsule for a long time. When the time for the fight finally came, the pattern would be pretty well set, wouldn’t it? So, rather than the battle itself, it was more important to see how much evil I could make the villains do, and how much of a tight spot I could put Goku’s allies in.
+
+Also, you know how Goku and company gradually stop fighting in town? Always fighting in some wasteland. The truth is, that’s because it was tiring drawing the backgrounds. Fights in town are rough… everyone gradually got stronger, and if they fought in town, they’d have to destroy buildings, right? So, when I drew towns, it was when I planned on destroying them later. I could draw them because it was a given that I’d destroy them. If it took too much time for my kid assistant<sup>1</sup>, it meant that next time I’d have to draw it myself. So, I’d want to destroy it so soon that I couldn’t help it. (*laughs*) Central City gets destroyed in about three panels. That’s because I’d decided to immediately destroy places with backgrounds that were a bit of a chore, like the city. Stuff like the *Budōkai* arena was also a chore. It was nothing but that sort of thing, really. It was a pain for my kid assistant to color Goku’s hair black, so I’d make him a blond (Super Saiyan)… well, it did have impact, though, and I think it turned out well in terms of results.
+
+If I had moved to Tokyo, *Dragon Ball* would never have been born…?!
+
+Considering how things were at the time, I suppose in a lot of ways, it was good that I was in the countryside. If I had moved to Tokyo, I might even have become a completely different person… although, ever since the start, I’ve never wanted to move to Tokyo. I just can’t handle there being so many people. At the very beginning, times like when I came to Tokyo after being called on by my editor Torishima-*san*, I especially hated. He even told me, “If you’re late for a deadline, I’ll make you come to Tokyo.” Just because I hated the idea of that, I desperately kept my deadlines. (*laughs*) Like hell I’d go to Tokyo. Even then, there was one time when I had a close call, and Torishima-*san* came to my workplace, and stayed next to me the whole time, watching me; it was incredibly difficult to work like that. It’s not like I would actually say it to his face, but just having him be close by was an incredible amount of pressure… I hated that. It might sound strange, but probably, if I had moved to Tokyo, I actually wouldn’t have been able to keep my deadlines.
+
+The secret to creating a setting is making it loose at first?!
+
+I’m good at, or rather, I like, giving names to characters. Putting them into groups… well, with the Ginyu Special-Squad, though, it wasn’t until after deciding that “this time, I’ll go with dairy products” that I came up with the characters. He’d be a cool character, but because was Bulma’s [=”bloomers”] child, I’d give him the name Trunks, and so forth.
+
+I was also relatively fond of coming up with background settings in my own mind, like the construction of Saiyan armor. Although they didn’t exist anywhere but inside my head, and because there weren’t many opportunities during the story’s developments, the rate at which they’re reflected in the work itself isn’t all that high, so much so that more aren’t reflected than are. When I came up with them, I’d enjoy making them from things I’d dug up from the past that were of no importance. Things the readers would probably have forgotten… like the Red Ribbon Army with respect to the Artificial Humans. As if to make the readers think that it actually meant something… the truth is that it didn’t, though. (*laughs*) Well, I suppose it’s because I think them up a bit loosely at first, that it’s easier to put them to use later. If you work out the developments tightly from the get-go, you won’t be able to make modifications if things go off-track. Even things like the uses of the *Nyoibō*… I truly did things half-cocked, yet everyone would think, “So that’s how it was!” …I’m terribly sorry, but really, I was thinking of nothing else except that I wanted to get things over with so I could go back to building my plastic models. (*laughs*)
+
+There were no models for *Dragon Ball*‘s characters?!
+
+Whenever I draw women, they all end up with rough personalities. I just can’t draw them more bubbly and upbeat. I can’t draw them docile and cute, either. Chi-Chi had a personality I kind of disliked. Maybe it was because Goku was unemployed… they’d have to have be piddling away the Ox Demon King’s fortune to get by, that family. That’s why Chi-Chi’s such a nag.
+
+In the case of men… perhaps with Trunks, there were parts I drew with female fans in mind. Even his silhouette; I mean, he’s got a sword on his back. That’s because Goku stopped using the *Nyoibō*. There are parts I drew completely with that aim, don’t you think? I did that a bit with Vegeta, too. Although even someone like Piccolo’s popular with women, it seems.
+
+Come to mention it, it seems there’s a rumor that the models for Piccolo, Freeza and Boo are my past editors<sup>2</sup>, but I don’t really recall consciously doing that… no, they might be, at the root of it; perhaps I reflected them unconsciously. Apart from that, they say that there are a variety of models for the characters, but it’s all lies… or rather, it’s all stories I’d never heard before. (*laughs*) I didn’t use any models. Although, I did have a bit of a Bruce Lee-esque image in mind, and such. For instance, with the glare on Goku’s game-face, I must have been thinking of Bruce Lee. Like his face when he appears on the scene, enraged. Goku’s usual eyes are hard to draw with a fighting pose. When he becomes a Super Saiyan and there are actual outlines around the whites of his eyes, though, I can draw him with a serious expression. Those times, I had the image of Bruce Lee… in that sense, there were models, but it’s not the case that the people around me became models for the characters. Maybe their personalities… but I wasn’t conscious of it.
+
+If you’re *drawing* manga, screen tone is unnecessary!!
+
+When I paint in the colors, I’ve used ink diluted from a felt-tip pen. The time it takes is the same as using regular ink, though. I’d squeak out a little bit with the felt-tip pen on the palette, dilute it with water, and use that. That’s telling me I should just buy color ink already, right? (*laughs*) No, it’s not because I’m cheap; it’s because going out to buy it would be a chore.
+
+Screen tone is a chore, too. Or rather, I don’t like it. I believe it’s not the work of “drawing”, cutting with a knife and pasting on. I don’t go as far as to make it a matter of policy, though… I’m perfectly fine with using a knife when I’m building plastic models. With illustrations, I dislike the idea of cutting and pasting. Although before that, they’re a chore first and foremost. (*laughs*) I find lots of things bothersome outside of manga, as well… or rather, I just don’t like going out all that much.
+
+When I first started drawing manga, I heard from Torishima-*san* that first you draw a storyboard, then the draft, then inking, so I told him I didn’t want to draw it three whole times. (*laughs*) So, I’d immediately go straight into the draft. Although, doing it like that, it would sometimes ultimately be inconsistent. I’d use terribly large panels for completely unimportant things, and then the crucial parts would end up in little ones… (*laughs*) I’d even think, “I wonder if it’s really OK to deliver the *coup de grâce* in a panel like this.”
+
+What kind of romance does a creator draw when he’s not good with women?!
+
+Ever since I was little, I’ve shied away from romance. (*laughs*) It’s not that I dislike women, but I’m not good with them. Back in elementary school, there was a fad of flipping up the girls’ skirts, but… I couldn’t do it. I wanted to be seen as aloof and manly… no, I wanted to do it, but I didn’t have the guts. (*laughs*) It’s not like I’m especially perverted or anything, just normally… it’s not like I was especially pure, either, you know. Maybe I was just bad with girls in general. Although, with my wife alone, we got along from the beginning. I believe myself to have a personality that appears simple, yet even I don’t understand, so I thought, “maybe someone who’s right for me doesn’t exist?” But my wife alone strangely suited me.
+
+My wife is also a cartoonist, but she even says things to me like, “You don’t have to do another serial any more, do you?” She knows about everything that’s tiring for me; perhaps it’s because she’s been by my side watching this whole time.
+
+I married my wife… back during *Dr. Slump*’s serialization, was it? I think Senbei-*san* was first. I remember someone asking me, “Senbei-*san* should be getting married pretty soon too, shouldn’t he?” and shooting back with, “He already has.” (*laughs*) This is true of Senbei-*san* too, but Goku got married in the blink of an eye, didn’t he. I figured it’d be quite the surprise if he suddenly just got married right there. Incidentally, Chi-Chi is not at all like my wife.
+
+I leave the management duties to my wife. Although I do feel a bit sorry for her. Collaborate? That wouldn’t do. There were times when she helped out a bit on *Dr. Slump*, though.
+
+My reason for living right now is car design!!
+
+My work apart from manga is games. *Dragon Quest*. Other than that, I’m also doing car design. That’s the most fun. I have a duty to keep it confidential, though, so I can’t say what car from which company.<sup>3</sup> It’s something close to concept sketches. Well, I like the area around the engine, so I try to think it through as far as an amateur can, doing it so that people could actually ride in it. Right now, that’s my reason for living. Having said that, it isn’t really that I’m working on it as a project; it’s just one among several thousand design candidates. I’m told my chances are about the same as *A Star is Born!*.<sup>4</sup>
+
+Actually, it’s fine with me if that design isn’t made into a car. The act of drawing the car design illustrations itself is fun. I’ve already submitted it, yet I’ve still gone and drawn a few more on my own, as a hobby…
+
+I like drawing original mechs… so I did that a lot in *Dragon Ball*. Well, they don’t have plans or anything, though. Basically, I’d come up with a rough idea while drawing on a separate sheet of paper, then just do the more detailed parts on the real thing. It takes more time to draw things like automobiles or tanks that actually exist. I figure, people can’t point out anything and say, “this is wrong,” when I drew something I came up with myself.
+
+Picture books where I had to draw even empty spaces and dialogue
+
+Picture-book work is fun, but on the other hand, there are also parts where you build up frustration. With manga, it’s enough to leave some empty spaces and arbitrary lettering, but with picture-books, you have to draw it. There are character-description-type parts, so when I did *Toccio the Angel*, I thought it was pretty frustrating.
+
+I only did it in the first place because talk of, “Why don’t you try drawing a picture book?” came to me. Really, I think I was a bit too conscious of picture-books in making the characters. There wasn’t much there that was exactly groundbreaking… I do wonder if it would have been better to go with that sort of characters, but it is a book I want little kids to read, after all. If I get the chance, maybe… I’d like to try doing an absurd picture book.
+
+Days spent re-reading *Dragon Ball* for the covers
+
+As for the work I’m doing now, I suppose designing game characters is most of it? Also, the *Kanzenban* covers are taking up a lot of weight. It’s pretty tough, finishing up one of them. I had completely forgotten the story, so I’d start by re-reading. I would also decide which characters to draw. At first, I had decided on “drawing the main character of that volume with Goku”, but for the second half, it shifted to a pattern of drawing a scene I’d found impressive while reading it. The time it takes to finish drawing is different depending on what it is. One day is pretty much impossible… some of them even take four days. It takes time, coming up with the layout, and choosing the characters… once I’ve made my decision, I can draw it in a day. For the first four volumes or so, I did it by scanning in something I’d drawn with a pen. After that, I did it all with a Mac, so no manuscripts exist. The sensation is quite different. I suppose the biggest thing is that I can’t tilt it like with paper when I’m drawing angled illustrations. Now, I just tilt myself. (*laughs*) When I re-read it, right at the beginning, I had an incredibly strong sense of, “Did I really draw something like this?… It’s surprisingly enjoyable.”
+
+Happy but also terribly shy about *Dragon Ball*‘s second boom
+
+Even nowadays, for there to be fans, and for a variety of things like books and games to be getting made… financially, I suppose you could say I’m happy. (*laughs*) There’s even talk of it becoming a live-action movie.<sup>5</sup> Hmm… well, I am happy, but I’m not overly fond of watching my own works. As long as it doesn’t get too extreme, I have no intention of opening my mouth about the contents of the script or anything… I have no particular requests with regards to the cast, either. I like movies, but my own works are no good; although it’s mostly because I’m so shy. I sometimes think to myself that that aspect is pretty cold for a creator. Though I think I seemed pretty cold during the serialization, as well, with the sense that drawing was my job. When it was made into games, I didn’t touch those much, either.
+
+The next work will be outrageous and absurd?!
+
+As for a theme I want to draw… I don’t have anything in particular. Although I do feel like I’m searching for one. Well, if I’m going to be drawing something, I’m always doing a world that’s absurd, so I think it would be something like that. I have this vague idea that I want to draw something that I too can think of as fun. I like cars, but I absolutely will not draw a manga about cars. I don’t feel like drawing one. Because I like the sort of thing that’s larger-than-life, and outrageously strong. A weekly serial in *Jump*?<sup>6</sup> No… my body probably couldn’t handle a long-term serial, now. I just don’t have that kind of strength anymore. Well, I do think it would be nice if I had it, though.
+
+Even if you’re someone I’m not good with, as long as you’re a reader…
+
+Now, there’s really nothing I can say to you all except thank you for reading. I really am glad that so many different people read it for this long. Even if they’re someone I’m not so good with, if they tell me “I’m reading it”, I think, “ah, they’re actually a decent person”. (*laughs*)
+
+**The following translator notes are included for the benefit of the reader as supplemental information.**
+
+<sup>1</sup>Toriyama’s assistant for *Dragon Ball* was **Takashi Matsuyama**, who is actually only two years younger than Toriyama himself.  
+<sup>2</sup>These would be Kazuhiko Torishima, Yū Kondō, and Fuyuto Takeda, respectively.  
+<sup>3</sup>Toriyama may be talking about what eventually became the **QVolt**, a small electric car whose appearance he designed, and which went on sale in limited quantities in March 2005 (slightly less than a year after the publication of this book).  
+<sup>4</sup>*[A Star is Born!](http://en.wikipedia.org/wiki/Star_Tanjō!)* (スター誕生！ *Sutā Tanjō!*) was a Japanese TV show that ran from 1971 to 1983. It was an audition program that sought to uncover the “stars of tomorrow”, similar to the idea of the American *Star Search*.  
+<sup>5</sup>This would eventually become the movie *Dragon Ball Evolution*. Although he had intended to take a hands-off approach, Toriyama did not approve of a number of the changes made in the movie’s development, and was actually ignored when he tried to offer advice on how to improve it. His [frustration and indignation](/translations/asahi-shimbun-digital-akira-toriyama-interview/) over his experience with that film seems to have been his primary motivation for becoming so deeply involved with the 2013 animated film, *[Dragon Ball Z: Battle of Gods](/movie/battle-of-gods/)*.  
+<sup>6</sup> Toriyama would briefly return to weekly serialization in 2013 with [*Jaco the Galactic Patrolman*](/manga/spin-offs/jaco/) over the course of several months.
+
+English Translation: SaiyaJedi
+
+---
+
+<a name="apps-bot-data-rag-raw-guides-seg-character-volume-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/guides/seg-character-volume.md`
+
+**Titre original :** SEG: Character Volume - Truth About Dragon Ball
+
+---
+title: "SEG: Character Volume - Truth About Dragon Ball"
+source: "Kanzenshuu Guide Translations"
+url: "https://www.kanzenshuu.com/translations/seg-character-volume-truth-about-dragon-ball/"
+license_key: "fan-translation-fairuse"
+lang: "en"
+---
+
+### SEG: Character Volume - Truth About Dragon Ball
+
+* [Translations Archive](https://www.kanzenshuu.com/translations/)
+* [SEG: Character Volume - Truth About Dragon Ball](https://www.kanzenshuu.com/translations/seg-character-volume-truth-about-dragon-ball/)
+
+Translations Archive
+
+Dragon Ball Super Exciting Guide: Character Volume (03 April 2009)
+----------
+
+![](/guides/databook/non-daizenshuu/seg_character/cover.jpg)
+
+The Truth About the “Dragon Ball” Manga
+==========
+
+“Toriyama Thought of It Like This” Special, Part 2
+----------
+
+**Toriyama-*sensei* answers your inquiries about *Dragon Ball*’s characters and universe!**
+
+Characters
+
+Why are characters’ names grouped into sets?
+
+It’s tough coming up with names for a lot of characters. If you group the names into sets, it’s easier to think of them. For example, the one in control of the Saiyans and other villainous aliens is Freeza. Strictly speaking, Freeza is “freezer”, but I envisioned a refrigerator when I named him. So, I grouped the names according to foods that go inside it. The Saiyans are vegetables [*yasai*, “vegetables”], and the Ginyu Special-Squad are dairy products [*gyūnyū*, “cows’ milk”], like that.
+
+What did you use as design motifs?
+
+For non-humanoid lifeforms, with Cell, I tried to make him bug-like, but apart from that, I didn’t use any motifs in particular. “Namekian” comes from snails/slugs [Namek = *namekuji*, “snail”], but the only part I used as a motif was the antennae.
+
+By the way, what’s Satan’s real name?
+
+Mr. Satan is a ring name; his real name is different. Mr. Satan’s real name is “Mark”. (It’s an anagram of “*akuma*” [“demon”/”devil”].)<sup>1</sup> In the area where Satan lives, names are not separated into surnames and given names, so his name is just Mark. His daughter Videl is not a ring name, but her real name. It’s an anagram of “devil”.
+
+World
+
+How did you come up with the ball-like cosmos?
+
+I think it’s something I came up with so both I and the readers would be able to grasp the atmosphere of it easily. The big ball in the center is the world known as “this life” and “the afterlife”, and the one who watches over it from outside is Kaiōshin. Only, at the bottom, as though in opposition, a Makaiōshin<sup>2</sup> exists, and governs evil. (Although right now, Kaiōshin’s power appears to be greater.)
+
+Is Kaiō-*sama* a hereditary position?
+
+Inside the big ball I mentioned before, there is a planet, called the World Core [*Kaishin-sei*] where the Kaiō are born and raised. It’s a world like a gigantic Planet Kaiō, and Kaiō-sama and his peers are born as Core People [*Shin-jin*]<sup>3</sup> from the fruit of the World Core’s giant World Tree [*Kaiju*]. The planet’s population is about 80. Core People are neither male nor female, and their average lifespan is said to be about 75,000 years. At a castle that’s like a school, they learn a variety of things, and live an easygoing life; however, if a Kaiō dies on one of the Kaiō Planets, the next Kaiō is chosen from among them by lottery. However, a Kaiōshin is chosen only from Core People who are born from a special golden fruit, which rarely occurs. In addition, there are occasionally delinquent Core People with evil hearts; these ones fall under the Makaiō.
+
+How do the Dragon Balls feel to the touch?
+
+I think they have the properties of a hard, natural resin. Even if a hole is drilled in them or they get damaged, after a wish is granted and they disperse, the damage disappears once they return to being orbs, and they become like new.
+
+How much is one zenny worth in yen? How much do Hoi-Poi Capsules cost?
+
+It’s easy to understand: I envisioned them as the same as yen. With Hoi-Poi capsules, their price of course varies depending on what’s inside them. For example, a standard four-seater aircar capsule would be something like 1,480,000 zenny (1,280,000 zenny for the aircar, plus a capsule fee of 200,000 zenny). For most things, if you bring them to one of Capsule Corporation’s dealerships, you can have them converted to the Capsule System and be able to shrink them down for 200,000 zenny.
+
+Of course, the price is higher than average for things like houses, which require more labor to convert to the Capsule System.
+
+Can Namekians get nutrition from water alone?
+
+I think the reason that Namekians can survive on water alone is because they have an enzyme in their bodies that converts water into nutrients.
+
+By the way, I named the “Ajissa” seedlings that the Namekians grow after hydrangeas [*ajisai*]. That’s because snails, the Namekians’ motif, like hydrangeas.
+
+Do Saiyans stay forever young?
+
+Saiyans are a warrior race, so their aging slows once they reach an age suitable for fighting, and they maintain great strength for a long time. However, their lifespan is not much different from Earthlings’, and when they reach a certain age, they rapidly grow frail.
+
+Incidentally, It’s not that their hairstyle never changes; Nappa went bald, after all. The states of Saiyan hair are also the same as Earthlings’; its properties are just a little bit different.
+
+How many planets do Freeza and his forces have? Also, is it a company-like organization?
+
+The planets he controls number in the several hundreds, I think. (Of course, this doesn’t include the ones he went and destroyed.)
+
+Since time immemorial, the Saiyans have been a warrior race leading a violent and inhuman existence, making their fortunes by attacking many planets. Furthermore, Freeza and his forces were able to bring even the Saiyans under his control through sheer power. He’s the godfather of the racket. However, they<sup>4</sup> were merely violent, and didn’t have an especially company-like organization.
+
+Special Techniques
+
+What techniques in Dragon Ball would you like to use?
+
+Many of the techniques used by Goku and company are so overpowered as to be dangerous, but if I were to get a bit stronger, I suppose I’d like to have techniques like this:
+
+Flight [*Bukū-jutsu*]
+
+I want to fly freely through the sky, of course!
+
+Teleportation [*Shunkan-Idō*]
+
+This would be super-convenient for getting anywhere!
+
+If you were to come up with a “new technique” for Goku, what sort of technique would it be?
+
+Hmm, I think if an idea for a new technique had come up, I would have drawn it during the serialization. (*laughs*)
+
+**The following translator notes are included for the benefit of the reader as supplemental information.**
+
+<sup>1</sup>“Mark” has the syllables of *ma – a – ku* in Japanese, which is rearranged from *akuma*, which means “demon” or “devil”.  
+<sup>2</sup>“Makaiōshin” has the usual *kanji* for “Kaiōshin” (界王神, “world-king-god”) with *ma* (魔, “demonic”) appended to the beginning.  
+<sup>3</sup>The *shin* in *Shin-jin* means “core” in the sense of an apple core, suggested by the image in the book which shows an apple-like fruit. The text itself however is evocative of the story of *Momotarō*, where the main character is born from a giant peach; hence Herms’s preferred translation of “Pit People”.  
+<sup>4</sup>It is unclear whether “they” refers to Freeza’s forces, the Saiyans, or both.
+
+English Translation: SaiyaJedi
+
+---
+
+<a name="apps-bot-data-rag-raw-guides-seg-story-volume-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/guides/seg-story-volume.md`
+
+**Titre original :** SEG: Story Volume - Truth About Dragon Ball
+
+---
+title: "SEG: Story Volume - Truth About Dragon Ball"
+source: "Kanzenshuu Guide Translations"
+url: "https://www.kanzenshuu.com/translations/seg-story-volume-truth-about-dragon-ball/"
+license_key: "fan-translation-fairuse"
+lang: "en"
+---
+
+### SEG: Story Volume - Truth About Dragon Ball
+
+* [Translations Archive](https://www.kanzenshuu.com/translations/)
+* [SEG: Story Volume - Truth About Dragon Ball](https://www.kanzenshuu.com/translations/seg-story-volume-truth-about-dragon-ball/)
+
+Translations Archive
+
+Dragon Ball Super Exciting Guide: Story Volume
+----------
+
+![](/guides/databook/non-daizenshuu/seg_story/cover.jpg)
+
+The Truth About the “Dragon Ball” Manga
+==========
+
+“Toriyama Thought of It Like This” Special
+----------
+
+**What are the secrets of *Dragon Ball*’s birth? We went and asked Toriyama-*sensei* himself.**
+
+Goku
+
+How was Goku born?
+
+When I came up with *Dragon Ball*, I thought I would try to combine the Kung-Fu movies of Jackie Chan and Bruce Lee<sup>1</sup>, which I loved so much that I’d watch them on video even while I was working, with the classic *Journey to the West*<sup>2</sup> to make an enjoyable manga. Naturally, the name “Son Goku” comes from the Monkey King of *Journey to the West*, as well. The reason Goku has a tail is also because I gave him a monkey motif. Only, in the original *Journey to the West*, they’re heading for India, but for *Dragon Ball*, I changed the ultimate objective to the easier-to-understand “gather seven orbs called ‘Dragon Balls’ in order to grant a wish” when starting the serialization. Be that as it may, my interest gradually shifted towards the growth and growing strength of the boy Goku, and it diverged more and more from the original concept based on *Journey to the West*.
+
+<sup>1</sup>**Kung-Fu movies of Jackie Chan and Bruce Lee** — Hong Kong films where a hero skilled at Chinese martial arts (Kung-Fu) has an active role and looks cool. Jackie Chan and Bruce Lee are stars of those Hong Kong films. They often strike a pose and say things like “*Acho!*“; this originally started with Bruce Lee.
+
+<sup>2</sup>***Journey to the West*** — An old Chinese story. It’s the story of how a great Buddhist monk, accompanied by the Monkey King [Sun Wukong], Pigsy [Zhu Bajie], and Sandy [Sha Wujing], heads to India in order to obtain sutras. The Goku of this story is a prankster. Whenever he does something bad, the Vajra Band [*Jin’ganglun*], which was placed on his forehead by the monk, squeezes hard; he makes use of an extending staff [*Ruyibang* / Nyoibō], the cloud somersault [*Jindouyun* / Kinto’un], and Sage Wizardry [Xianshu].
+
+Why does Goku’s hair turn gold when he becomes a Super Saiyan?
+
+I decided on the design for the Super Saiyan for, to be honest… a simple reason that will leave you saying “What?”. I always have only a single person, Assistant-*kun*<sup>3</sup>, helping me with my work. That Assistant-*kun*’s time was always taken up doing the black fill<sup>4</sup> of Goku’s hair, so the biggest reason was in order to save time. Because when he became a Super Saiyan, we wouldn’t have to do the black fill. It also had the effect of making it easy to tell from his appearance that Goku had gotten stronger, so it killed two birds with one stone. Only, at the time, it was considered that his strength would increase 50-fold when he became a Super Saiyan, but that was a bit of an exaggeration. My feeling as the creator is that, while drawing it, I felt that it was about a 10-fold change from what it was up to that point.
+
+<sup>3</sup>**Assistant-*kun*** — The person who helps out with things like backgrounds and finishing touches. When you’re serialized in *Weekly Shōnen Jump*, it’s obvious, of course, but the deadline always looms. Incidentally… having one assistant is *very* uncommon (normally you’d have more).
+
+<sup>4</sup>**Black Fill** — Solid black areas in manga, such as hair, are filled in with ink after drawing the outline with a pen. This is called black fill [“*beta-nuri*” in Japanese] When it covers a wide area, it takes some time for the ink to dry.
+
+Training
+
+How did you come up with the idea of training?
+
+With regards to training, there wasn’t anything in particular I used as a reference. I think it was, comparatively speaking, full of very orthodox things that anyone could come up with. There are training scenes in the film *Drunken Master*<sup>5</sup>, as well; I suppose that part also became a reference for me. To Goku, Kame-Sen’nin’s training in manners and studies was probably the toughest. As for me personally… I’m afraid of heights, so there’s absolutely no way I’d train by climbing Karin Tower.
+
+<sup>5</sup>***Drunken Master*** — A 1978 Hong Kong movie starring Jackie Chan. A punk kid picks a fight with a hired assassin and has the tables turned on him; in order to win in a rematch, he trains day after day, and masters a martial art where he gets stronger the more intoxicated he becomes.
+
+How did you come up with the *Kamehameha*?
+
+For the *Kamehameha*, I thought I’d see if I could express “ki” energy, which can’t be seen with the naked eye, in a boys’ magazine sort of way. When no one was around, I did a variety of poses, and decided on one that looked cool, which was that pose. Incidentally, for the name “Kamehameha”, I was wondering whether there was a decent name along the lines of “something-something-Ha”, when my wife<sup>6</sup> said as a joke, “Kamehameha would be fine, wouldn’t it?” so I used it as-is. Of course, it’s taken from King Kamehameha<sup>7</sup> of Hawaii. I get asked if I look at a lot of martial arts to get hints for techniques or poses; while I have watched a lot of Kung-Fu movies, surprisingly enough, I didn’t have all that much interest in the martial arts themselves.
+
+<sup>6</sup>**My Wife** — Toriyama-*sensei*’s wife is actually a former manga artist; they married during *Dr. Slump*’s serialization. She possesses magnificent drawing skill, and we hear that she would often help him with backgrounds and such at the beginning of *Dragon Ball*’s serialization.
+
+<sup>7</sup> — A hero who unified the islands of Hawaii, founded the Kingdom of Hawaii in 1810, and became its first king. Incidentally… the proper division of his name isn’t “Kamehame-Ha”, but “Ka-Mehameha”. “Ka” means “person” in Hawaiian, and “mehameha” means “lonely”; if you read them together, it becomes “the lonely one” ……A hero, yet he was called lonely; what a mysterious name.
+
+Decisive Battles
+
+Tell us your top five favorite battles!
+
+\#1 Goku vs Demon King Piccolo  
+Kanzenban Volumes 10-11 / Chapters 142–161
+
+To be honest, I’ve forgotten quite a lot of the story and events in *Dragon Ball*, but being the first time [Goku] brought down a frighteningly powerful foe… this battle is #1. Within myself, as well, I had come to see the direction<sup>8</sup> the story would go in after that.
+
+\#2 Young Trunks vs Mister Satan  
+Kanzenban Volume 29 / Chapter 436
+
+The character who it’s fair to say is my personal favorite, Mister Satan, appears. I enjoy his cheapness, and the brevity of the fight.
+
+\#3 Goku vs Recoom<sup>9</sup>  
+Kanzenban Volume 19 / Chapters 279–280
+
+Moreso than being a showdown between two people, I like how Goku, who we’ve been waiting for this whole time, has finally arrived! To exaggerate things a bit, it would be fair to say that I drew out the Freeza arc for so long just for the sake of this scene.
+
+\#4 (PART 1) Kuririn vs Bacterian<sup>10</sup>  
+Kanzenban Volume 3 / Chapter 36
+
+\#4 (PART 2) Gotenks vs Majin Boo (Evil)  
+Kanzenban Volume 33 / Chapters 489–495
+
+To be honest, I greatly prefer these sorts of silly fights to serious battles. In what I found truly enjoyable while drawing the series, stories full of this sort of idiocy were at the top.
+
+\#5 Goku vs Freeza  
+Kanzenban Volumes 21–22 / Chapters 308–327
+
+It’s where the Super Saiyan appears, to say the least. The time had come when I was finally able to follow through on my promise to Assistant-*kun*. And on top of that, I was able to express it very effectively, and the reception was good, so I have nothing else to add!
+
+<sup>8</sup>**The Direction the Story Would Go In** — After things are concluded with Piccolo, the anime becomes a separate series, called the “Z arc”. “DB”, which was set on Earth up to that point, had both Piccolo and Goku discovered to be aliens. It would up its scale to become a grand tale spanning the whole universe.
+
+<sup>9</sup>**Recoom** — A member of the Ginyu Special-Squad. He is the largest of the members, and possesses tremendous power and speed. For some reason, his way of speaking is quite playful, and his aesthetic sense is well-developed, so he has to call out the name of a technique in full before going on the attack.
+
+<sup>10</sup>**Bacterian** — A cowardly competitor, using his overwhelming stench to force his opponents into losing by ring-out without a fight. Later on, he was targeted by Piccolo’s henchman Tambourine as a “strong man who appeared at the Budōkai”, but if they had fought, would Tambourine have been able to withstand his smell?!
+
+What is the key to winning in battle?
+
+In battle, the most important thing is the size of your *ki*, and your control over it. *Ki* as a concept of course includes such spiritual powers as energy [*genki*], courage [*yūki*], and right-mindedness [*shōki*]<sup>11</sup>. No matter how much you train, there are limits to physical strength, and the only way to overcome that is through *ki*. I think Goku was able to approach the mightiest warriors in the universe through strengthening his *ki*.
+
+<sup>11</sup>**Energy, Courage, and Right-Mindedness** — The word “energy” [*genki*] is well-known, but if one asks if you do not have energy if you have even one sickness [*byōki*], it is difficult to come up with an answer. There are people who are healthy yet do not have any energy, and there are people who are sick, yet full of energy. Plus, even among people who have roughly the same power, for example, there were people who gritted their teeth and stood their ground when Demon King Piccolo attacked them, yet there were also people who trembled and fled. Thinking about it this way, perhaps you will understand that a variety of different “ki” are indispensable in battle. In the world of Chinese martial arts, exemplified by T’ai-chi Ch’uan, *ki* training and control is given great importance.
+
+In *Dragon Ball*, the dark mage Bobbidi invented a machine that measures and absorbs *ki*, but current science cannot measure *ki* levels or store it anywhere. However, when someone cheers you on, you can “receive energy and courage [*yūki*]” from them. “Ki” is something that cannot be seen with the eyes, yet it is there.
+
+Friendship
+
+Who would you like to be friends with? What would you like to do together with them?
+
+Hmm. The characters I draw are all pretty quirky to be friends with, and there are a lot of characters who might expose me to danger; to be honest, I’d really rather not be friends with them… (*laughs*) But, if I had to choose, I would go with the following five people.
+
+\#1 Bulma
+
+She’s bossy, but seems like she’d give me at least an air car if I became friends with her. She might make some incredible inventions for me!
+
+\#2 Son Gohan
+
+He isn’t too loud, he’s polite, and he works hard.
+
+\#3 Dende
+
+Same reason as Gohan. (*laughs*)
+
+\#4 Kame-Sen’nin
+
+It seems like we’d get along, with our perverted tendencies.
+
+\#5 Kuririn
+
+The truth is he’s quite a sensible person, and he seems like he’d be the easiest one to be around.
+
+English Translation: SaiyaJedi
+
+---
+
+<a name="apps-bot-data-rag-raw-wikipedia-wiki-dragon-ball-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/wikipedia/wiki-dragon-ball.md`
+
+**Titre original :** wiki-dragon-ball.md
+
+[Jump to content](#bodyContent)
+
+Main menu
+
+Main menu
+
+move to sidebar hide
+
+ Navigation
+
+* [Main page](/wiki/Main_Page)
+* [Contents](/wiki/Wikipedia:Contents)
+* [Current events](/wiki/Portal:Current_events)
+* [Random article](/wiki/Special:Random)
+* [About Wikipedia](/wiki/Wikipedia:About)
+* [Contact us](//en.wikipedia.org/wiki/Wikipedia:Contact_us)
+
+ Contribute
+
+* [Help](/wiki/Help:Contents)
+* [Learn to edit](/wiki/Help:Introduction)
+* [Community portal](/wiki/Wikipedia:Community_portal)
+* [Recent changes](/wiki/Special:RecentChanges)
+* [Upload file](/wiki/Wikipedia:File_upload_wizard)
+* [Special pages](/wiki/Special:SpecialPages)
+
+[<img class="mw-logo-icon" src="/static/images/icons/enwiki-25.svg" alt="" aria-hidden="true" height="50" width="50"> ![Wikipedia](/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg) <img class="mw-logo-tagline" alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11" style="width: 8.75em; height: 0.6875em;"> ](/wiki/Main_Page)
+
+[Search ](/wiki/Special:Search)
+
+Search
+
+Appearance
+
+* [Donate](https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=en.wikipedia.org&uselang=en)
+* [Create account](/w/index.php?title=Special:CreateAccount&returnto=Dragon+Ball)
+* [Log in](/w/index.php?title=Special:UserLogin&returnto=Dragon+Ball)
+
+Personal tools
+
+* [Donate](https://donate.wikimedia.org/?wmf_source=donate&wmf_medium=sidebar&wmf_campaign=en.wikipedia.org&uselang=en)
+* [Create account](/w/index.php?title=Special:CreateAccount&returnto=Dragon+Ball)
+* [Log in](/w/index.php?title=Special:UserLogin&returnto=Dragon+Ball)
+
+Contents
+----------
+
+move to sidebar hide
+
+* [
+
+  (Top)
+
+  ](#)
+* [
+
+  1 Setting
+
+  ](#Setting)
+
+* [
+
+  2 Production
+
+  ](#Production)
+
+* [
+
+  3 Manga
+
+  ](#Manga) Toggle Manga subsection
+  * [
+
+    3.1 Spin-offs
+
+    ](#Spin-offs)
+
+  * [
+
+    3.2 Crossovers
+
+    ](#Crossovers)
+
+  * [
+
+    3.3 Reception
+
+    ](#Reception)
+
+* [
+
+  4 Anime
+
+  ](#Anime) Toggle Anime subsection
+  * [
+
+    4.1 *Dragon Ball*
+
+    ](#Dragon_Ball)
+
+  * [
+
+    4.2 *Dragon Ball Z*
+
+    ](#Dragon_Ball_Z)
+
+  * [
+
+    4.3 *Dragon Ball GT*
+
+    ](#Dragon_Ball_GT)
+
+  * [
+
+    4.4 *Dragon Ball Z Kai*
+
+    ](#Dragon_Ball_Z_Kai)
+
+  * [
+
+    4.5 *Dragon Ball Super*
+
+    ](#Dragon_Ball_Super)
+
+  * [
+
+    4.6 *Super Dragon Ball Heroes*
+
+    ](#Super_Dragon_Ball_Heroes)
+
+  * [
+
+    4.7 *Dragon Ball Daima*
+
+    ](#Dragon_Ball_Daima)
+
+  * [
+
+    4.8 Other installments
+
+    ](#Other_installments)
+
+  * [
+
+    4.9 Reception
+
+    ](#Reception_2)
+
+* [
+
+  5 Other media
+
+  ](#Other_media) Toggle Other media subsection
+  * [
+
+    5.1 Anime films
+
+    ](#Anime_films)
+
+  * [
+
+    5.2 Live-action film
+
+    ](#Live-action_film)
+
+  * [
+
+    5.3 Theme park attractions
+
+    ](#Theme_park_attractions)
+
+  * [
+
+    5.4 Video games
+
+    ](#Video_games)
+
+  * [
+
+    5.5 Merchandise
+
+    ](#Merchandise)
+
+  * [
+
+    5.6 Soundtracks
+
+    ](#Soundtracks)
+
+  * [
+
+    5.7 Companion books
+
+    ](#Companion_books)
+
+  * [
+
+    5.8 Collectible cards
+
+    ](#Collectible_cards)
+
+  * [
+
+    5.9 Tabletop role-playing game
+
+    ](#Tabletop_role-playing_game)
+
+* [
+
+  6 Notes
+
+  ](#Notes)
+
+* [
+
+  7 References
+
+  ](#References)
+
+* [
+
+  8 External links
+
+  ](#External_links)
+
+Toggle the table of contents
+
+*Dragon Ball*
+==========
+
+105 languages
+
+* [Afrikaans](https://af.wikipedia.org/wiki/Dragon_Ball)
+* [Alemannisch](https://als.wikipedia.org/wiki/Dragon_Ball)
+* [አማርኛ](https://am.wikipedia.org/wiki/%E1%8B%98%E1%8A%95%E1%8B%B6%E1%8A%B3%E1%88%B5)
+* [Aragonés](https://an.wikipedia.org/wiki/Dragon_Ball)
+* [العربية](https://ar.wikipedia.org/wiki/%D8%AF%D8%B1%D8%A7%D8%BA%D9%88%D9%86_%D8%A8%D9%88%D9%84)
+* [الدارجة](https://ary.wikipedia.org/wiki/%D8%AF%D8%B1%D8%A7%DD%A3%D9%88%D9%86_%D8%A8%D9%88%D9%84)
+* [مصرى](https://arz.wikipedia.org/wiki/%D8%AF%D8%B1%D8%A7%D8%AC%D9%88%D9%86_%D8%A8%D9%88%D9%84)
+* [Asturianu](https://ast.wikipedia.org/wiki/Dragon_Ball)
+* [Azərbaycanca](https://az.wikipedia.org/wiki/Dragon_Ball)
+* [Boarisch](https://bar.wikipedia.org/wiki/Dragon_Ball)
+* [Беларуская](https://be.wikipedia.org/wiki/Dragon_Ball)
+* [Betawi](https://bew.wikipedia.org/wiki/Bola_Naga)
+* [Български](https://bg.wikipedia.org/wiki/Dragon_Ball)
+* [বাংলা](https://bn.wikipedia.org/wiki/%E0%A6%A1%E0%A7%8D%E0%A6%B0%E0%A6%BE%E0%A6%97%E0%A6%A8_%E0%A6%AC%E0%A6%B2)
+* [Brezhoneg](https://br.wikipedia.org/wiki/Dragon_Ball)
+* [Bosanski](https://bs.wikipedia.org/wiki/Dragonball)
+* [Català](https://ca.wikipedia.org/wiki/Bola_de_Drac)
+* [Cebuano](https://ceb.wikipedia.org/wiki/Dragon_Ball)
+* [کوردی](https://ckb.wikipedia.org/wiki/%D8%AF%D8%B1%D8%A7%DA%AF%DB%86%D9%86_%D8%A8%DB%86%DA%B5)
+* [Čeština](https://cs.wikipedia.org/wiki/Dragon_Ball)
+* [Cymraeg](https://cy.wikipedia.org/wiki/Dragon_Ball)
+* [Dansk](https://da.wikipedia.org/wiki/Dragon_Ball)
+* [Deutsch](https://de.wikipedia.org/wiki/Dragon_Ball)
+* [ދިވެހިބަސް](https://dv.wikipedia.org/wiki/Dragon_Ball)
+* [Ελληνικά](https://el.wikipedia.org/wiki/Dragon_Ball)
+* [Esperanto](https://eo.wikipedia.org/wiki/Dragon_Ball)
+* [Español](https://es.wikipedia.org/wiki/Dragon_Ball)
+* [Eesti](https://et.wikipedia.org/wiki/Dragon_Ball)
+* [Euskara](https://eu.wikipedia.org/wiki/Dragoi_Bola)
+* [فارسی](https://fa.wikipedia.org/wiki/%D8%AF%D8%B1%D8%A7%DA%AF%D9%88%D9%86_%D8%A8%D8%A7%D9%84)
+* [Suomi](https://fi.wikipedia.org/wiki/Dragon_Ball)
+* [Français](https://fr.wikipedia.org/wiki/Dragon_Ball)
+* [Arpetan](https://frp.wikipedia.org/wiki/Dragon_Ball)
+* [Galego](https://gl.wikipedia.org/wiki/Dragon_Ball)
+* [עברית](https://he.wikipedia.org/wiki/%D7%93%D7%A8%D7%92%D7%95%D7%9F_%D7%91%D7%95%D7%9C_(%D7%96%D7%99%D7%9B%D7%99%D7%95%D7%9F_%D7%9E%D7%93%D7%99%D7%94))
+* [हिन्दी](https://hi.wikipedia.org/wiki/%E0%A4%A1%E0%A5%8D%E0%A4%B0%E0%A5%88%E0%A4%97%E0%A4%A8_%E0%A4%AC%E0%A5%89%E0%A4%B2)
+* [Hrvatski](https://hr.wikipedia.org/wiki/Dragon_Ball)
+* [Kreyòl ayisyen](https://ht.wikipedia.org/wiki/Dragon_Ball)
+* [Magyar](https://hu.wikipedia.org/wiki/Dragon_Ball)
+* [Հայերեն](https://hy.wikipedia.org/wiki/%D5%8E%D5%AB%D5%B7%D5%A1%D5%BA%D5%AB_%D5%B4%D5%A1%D6%80%D5%A3%D5%A1%D6%80%D5%AB%D5%BF)
+* [Interlingua](https://ia.wikipedia.org/wiki/Dragon_Ball)
+* [Bahasa Indonesia](https://id.wikipedia.org/wiki/Dragon_Ball)
+* [Ido](https://io.wikipedia.org/wiki/Dragon_Ball)
+* [Íslenska](https://is.wikipedia.org/wiki/Dragonball)
+* [Italiano](https://it.wikipedia.org/wiki/Dragon_Ball)
+* [日本語](https://ja.wikipedia.org/wiki/%E3%83%89%E3%83%A9%E3%82%B4%E3%83%B3%E3%83%9C%E3%83%BC%E3%83%AB)
+* [Jawa](https://jv.wikipedia.org/wiki/Dragon_ball)
+* [ಕನ್ನಡ](https://kn.wikipedia.org/wiki/%E0%B2%A1%E0%B3%8D%E0%B2%B0%E0%B2%BE%E0%B2%97%E0%B2%A8%E0%B3%8D_%E0%B2%AC%E0%B2%BE%E0%B2%B2%E0%B3%8D)
+* [한국어](https://ko.wikipedia.org/wiki/%EB%93%9C%EB%9E%98%EA%B3%A4%EB%B3%BC)
+* [Kurdî](https://ku.wikipedia.org/wiki/Dragon_Ball)
+* [Latina](https://la.wikipedia.org/wiki/Dragon_Ball)
+* [Ladino](https://lad.wikipedia.org/wiki/Dragon_Ball)
+* [Lëtzebuergesch](https://lb.wikipedia.org/wiki/Dragon_Ball)
+* [Ladin](https://lld.wikipedia.org/wiki/Dragon_Ball)
+* [ລາວ](https://lo.wikipedia.org/wiki/%E0%BA%94%E0%BA%A3%E0%BA%B2%E0%BA%81%E0%BA%AD%E0%BA%99%E0%BA%9A%E0%BA%AD%E0%BA%A5)
+* [Lietuvių](https://lt.wikipedia.org/wiki/Dragon_Ball)
+* [Latviešu](https://lv.wikipedia.org/wiki/Dragon_Ball)
+* [Македонски](https://mk.wikipedia.org/wiki/%D0%97%D0%BC%D0%B5%D1%98%D1%81%D0%BA%D0%B0_%D1%82%D0%BE%D0%BF%D0%BA%D0%B0)
+* [മലയാളം](https://ml.wikipedia.org/wiki/%E0%B4%A1%E0%B5%8D%E0%B4%B0%E0%B4%BE%E0%B4%97%E0%B5%BA_%E0%B4%AC%E0%B5%8B%E0%B5%BE)
+* [Монгол](https://mn.wikipedia.org/wiki/Dragon_Ball)
+* [ꯃꯤꯇꯩ ꯂꯣꯟ](https://mni.wikipedia.org/wiki/%EA%AF%97%EA%AF%AD%EA%AF%94%EA%AF%A5%EA%AF%92%EA%AF%9F_%EA%AF%95%EA%AF%A3%EA%AF%9C)
+* [मराठी](https://mr.wikipedia.org/wiki/%E0%A4%A1%E0%A5%8D%E0%A4%B0%E0%A5%85%E0%A4%97%E0%A4%A8_%E0%A4%AC%E0%A5%89%E0%A4%B2)
+* [Bahasa Melayu](https://ms.wikipedia.org/wiki/Mutiara_Naga)
+* [Nāhuatl](https://nah.wikipedia.org/wiki/Dragon_Ball)
+* [Napulitano](https://nap.wikipedia.org/wiki/Dragon_Ball)
+* [Plattdüütsch](https://nds.wikipedia.org/wiki/Dragon_Ball)
+* [Nederlands](https://nl.wikipedia.org/wiki/Dragon_Ball)
+* [Norsk nynorsk](https://nn.wikipedia.org/wiki/Dragon_Ball)
+* [Norsk bokmål](https://no.wikipedia.org/wiki/Dragon_Ball)
+* [Occitan](https://oc.wikipedia.org/wiki/Dragon_Ball)
+* [Oromoo](https://om.wikipedia.org/wiki/Kubbaa_jaawuda)
+* [ਪੰਜਾਬੀ](https://pa.wikipedia.org/wiki/%E0%A8%A1%E0%A8%B0%E0%A9%88%E0%A8%97%E0%A8%A8_%E0%A8%AC%E0%A8%BE%E0%A8%B2)
+* [Papiamentu](https://pap.wikipedia.org/wiki/Dragon_Ball)
+* [Picard](https://pcd.wikipedia.org/wiki/Dragonball)
+* [Polski](https://pl.wikipedia.org/wiki/Dragon_Ball)
+* [Português](https://pt.wikipedia.org/wiki/Dragon_Ball)
+* [Română](https://ro.wikipedia.org/wiki/Dragon_Ball)
+* [Русский](https://ru.wikipedia.org/wiki/%D0%96%D0%B5%D0%BC%D1%87%D1%83%D0%B3_%D0%B4%D1%80%D0%B0%D0%BA%D0%BE%D0%BD%D0%B0)
+* [Саха тыла](https://sah.wikipedia.org/wiki/%D0%94%D1%80%D0%B0%D0%BA%D0%BE%D0%BD_%D1%87%D3%A9%D0%BC%D1%87%D2%AF%D2%AF%D0%B3%D1%8D)
+* [Sardu](https://sc.wikipedia.org/wiki/Dragon_Ball)
+* [Srpskohrvatski / српскохрватски](https://sh.wikipedia.org/wiki/Dragon_Ball)
+* [Simple English](https://simple.wikipedia.org/wiki/Dragon_Ball)
+* [Slovenčina](https://sk.wikipedia.org/wiki/Dragon_Ball)
+* [Slovenščina](https://sl.wikipedia.org/wiki/Dragonball)
+* [Soomaaliga](https://so.wikipedia.org/wiki/Dragon_Ball)
+* [Shqip](https://sq.wikipedia.org/wiki/Dragon_Ball)
+* [Српски / srpski](https://sr.wikipedia.org/wiki/Zmajeva_kugla)
+* [Sunda](https://su.wikipedia.org/wiki/Dragon_Ball)
+* [Svenska](https://sv.wikipedia.org/wiki/Dragon_Ball)
+* [తెలుగు](https://te.wikipedia.org/wiki/%E0%B0%A1%E0%B1%8D%E0%B0%B0%E0%B0%BE%E0%B0%97%E0%B0%A8%E0%B1%8D_%E0%B0%AC%E0%B0%BE%E0%B0%B2%E0%B1%8D)
+* [ไทย](https://th.wikipedia.org/wiki/%E0%B8%94%E0%B8%A3%E0%B8%B2%E0%B8%81%E0%B9%89%E0%B8%AD%E0%B8%99%E0%B8%9A%E0%B8%AD%E0%B8%A5)
+* [Tagalog](https://tl.wikipedia.org/wiki/Dragon_Ball)
+* [Türkçe](https://tr.wikipedia.org/wiki/Dragon_Ball)
+* [Українська](https://uk.wikipedia.org/wiki/Dragon_Ball)
+* [اردو](https://ur.wikipedia.org/wiki/%DA%88%D8%B1%DB%8C%DA%AF%D9%86_%DA%AF%DB%8C%D9%86%D8%AF)
+* [Vèneto](https://vec.wikipedia.org/wiki/Dragon_Ball)
+* [Tiếng Việt](https://vi.wikipedia.org/wiki/Dragon_Ball_%E2%80%93_7_vi%C3%AAn_ng%E1%BB%8Dc_r%E1%BB%93ng)
+* [Winaray](https://war.wikipedia.org/wiki/Dragon_Ball)
+* [吴语](https://wuu.wikipedia.org/wiki/%E4%B8%83%E9%BE%99%E7%8F%A0)
+* [ייִדיש](https://yi.wikipedia.org/wiki/%D7%93%D7%A8%D7%90%D7%92%D7%90%D7%9F_%D7%91%D7%90%D7%9C)
+* [Yorùbá](https://yo.wikipedia.org/wiki/Dragon_Ball)
+* [文言](https://zh-classical.wikipedia.org/wiki/%E4%B8%83%E9%BE%8D%E7%8F%A0)
+* [閩南語 / Bân-lâm-gí](https://zh-min-nan.wikipedia.org/wiki/Dragon_Ball)
+* [粵語](https://zh-yue.wikipedia.org/wiki/%E9%BE%8D%E7%8F%A0)
+* [中文](https://zh.wikipedia.org/wiki/%E4%B8%83%E9%BE%99%E7%8F%A0)
+
+[Edit links](https://www.wikidata.org/wiki/Special:EntityPage/Q2020#sitelinks-wikipedia)
+
+* [Article](/wiki/Dragon_Ball)
+* [Talk](/wiki/Talk:Dragon_Ball)
+
+English
+
+* [Read](/wiki/Dragon_Ball)
+* [View source](/w/index.php?title=Dragon_Ball&action=edit)
+* [View history](/w/index.php?title=Dragon_Ball&action=history)
+
+Tools
+
+Tools
+
+move to sidebar hide
+
+ Actions
+
+* [Read](/wiki/Dragon_Ball)
+* [View source](/w/index.php?title=Dragon_Ball&action=edit)
+* [View history](/w/index.php?title=Dragon_Ball&action=history)
+
+ General
+
+* [What links here](/wiki/Special:WhatLinksHere/Dragon_Ball)
+* [Related changes](/wiki/Special:RecentChangesLinked/Dragon_Ball)
+* [Upload file](//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard)
+* [Permanent link](/w/index.php?title=Dragon_Ball&oldid=1355748575)
+* [Page information](/w/index.php?title=Dragon_Ball&action=info)
+* [Cite this page](/w/index.php?title=Special:CiteThisPage&page=Dragon_Ball&id=1355748575&wpFormIdentifier=titleform)
+* [Get shortened URL](/w/index.php?title=Special:UrlShortener&url=https%3A%2F%2Fen.wikipedia.org%2Fwiki%2FDragon_Ball)
+
+ Print/export
+
+* [Download as PDF](/w/index.php?title=Special:DownloadAsPdf&page=Dragon_Ball&action=show-download-screen)
+* [Printable version](/w/index.php?title=Dragon_Ball&printable=yes)
+
+ In other projects
+
+* [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:Dragon_Ball)
+* [Wikiquote](https://en.wikiquote.org/wiki/Dragon_Ball)
+* [Wikidata item](https://www.wikidata.org/wiki/Special:EntityPage/Q2020)
+
+Appearance
+
+move to sidebar hide
+
+[<img alt="Page semi-protected" src="//upload.wikimedia.org/wikipedia/en/thumb/1/1b/Semi-protection-shackle.svg/20px-Semi-protection-shackle.svg.png" decoding="async" width="20" height="20" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/en/thumb/1/1b/Semi-protection-shackle.svg/40px-Semi-protection-shackle.svg.png 2x" data-file-width="512" data-file-height="512">](/wiki/Wikipedia:Protection_policy#semi)
+
+From Wikipedia, the free encyclopedia
+
+Japanese media franchise created by Akira Toriyama
+
+This article is about the media franchise in general. For other uses, see [Dragon Ball (disambiguation)](/wiki/Dragon_Ball_(disambiguation)).
+
+|                                                                                                                                                                                                                                                                                                          Dragon Ball                                                                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|[<img src="//upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Dragon_Ball_manga_1st_Japanese_edition_logo.svg/330px-Dragon_Ball_manga_1st_Japanese_edition_logo.svg.png" decoding="async" width="280" height="80" style="--mw-file-upright: 1.13" class="mw-file-element mw-file-upright" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Dragon_Ball_manga_1st_Japanese_edition_logo.svg/960px-Dragon_Ball_manga_1st_Japanese_edition_logo.svg.png 2x" data-file-width="2537" data-file-height="727">](/wiki/File:Dragon_Ball_manga_1st_Japanese_edition_logo.svg)<br/><br/>The logo for the original manga series|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                                                           Created by                                                                                                                                                                                                                                                                                                           |                                                                                                                                                                                                                                                           [Akira Toriyama](/wiki/Akira_Toriyama)                                                                                                                                                                                                                                                            |
+|                                                                                                                                                                                                                                                                                                         Original work                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                   [*Dragon Ball*](/wiki/Dragon_Ball_(manga)) (1984–1995)                                                                                                                                                                                                                                                    |
+|                                                                                                                                                                                                                                                                                                             Owner                                                                                                                                                                                                                                                                                                              |                                                                                                                                                                                                                                                 [Bird Studio](/wiki/Bird_Studio)/[Shueisha](/wiki/Shueisha)                                                                                                                                                                                                                                                 |
+|                                                                                                                                                                                                                                                                                                             Years                                                                                                                                                                                                                                                                                                              |                                                                                                                                                                                                                                                                        1984–present                                                                                                                                                                                                                                                                         |
+|                                                                                                                                                                                                                                                                                                       Print publications                                                                                                                                                                                                                                                                                                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                                                            Book(s)                                                                                                                                                                                                                                                                                                             |                                                                                                                                                                                                                                                             [Companion books](#Companion_books)                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                                                             Comics                                                                                                                                                                                                                                                                                                             |                                                                                                                                                                                                                                                                       [Manga](#Manga)                                                                                                                                                                                                                                                                       |
+|                                                                                                                                                                                                                                                                                                      Films and television                                                                                                                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                                                            Film(s)                                                                                                                                                                                                                                                                                                             |                                                                                                                                                                                                                                                      [List of films](/wiki/List_of_Dragon_Ball_films)                                                                                                                                                                                                                                                       |
+|                                                                                                                                                                                                                                                                                                         Short film(s)                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                   * *[Yo! Son Goku and His Friends Return!!](/wiki/Dragon_Ball:_Yo!_Son_Goku_and_His_Friends_Return!!)* (2008)<br/>* *[Episode of Bardock](/wiki/Dragon_Ball:_Episode_of_Bardock)* (2011)                                                                                                                                                                                   |
+|                                                                                                                                                                                                                                                                                                        Animated series                                                                                                                                                                                                                                                                                                         |* [List of anime](/wiki/List_of_Dragon_Ball_anime)<br/>* *[Dragon Ball](/wiki/Dragon_Ball_(TV_series))* (1986–1989)<br/>* *[Dragon Ball Z](/wiki/Dragon_Ball_Z)* (1989–1996)<br/>* *[Dragon Ball GT](/wiki/Dragon_Ball_GT)* (1996–1997)<br/>* *[Dragon Ball Z Kai](/wiki/Dragon_Ball_Z_Kai)* (2009–2011; 2014–2015)<br/>* *[Dragon Ball Super](/wiki/Dragon_Ball_Super_(TV_series))* (2015–2018)<br/>* *[Super Dragon Ball Heroes](/wiki/Super_Dragon_Ball_Heroes_(web_series))* (2018–2024)<br/>* *[Dragon Ball Daima](/wiki/Dragon_Ball_Daima)* (2024–2025)|
+|                                                                                                                                                                                                                                                                                                     Television special(s)                                                                                                                                                                                                                                                                                                      |                                                                                                                                              * *[Bardock – The Father of Goku](/wiki/Dragon_Ball_Z:_Bardock_%E2%80%93_The_Father_of_Goku)* (1990)<br/>* *[The History of Trunks](/wiki/Dragon_Ball_Z:_The_History_of_Trunks)* (1993)<br/>* *[A Hero's Legacy](/wiki/Dragon_Ball_GT:_A_Hero%27s_Legacy)* (1997)                                                                                                                                              |
+|                                                                                                                                                                                                                                                                                                        Direct-to-video                                                                                                                                                                                                                                                                                                         |                                                                                                                                                                   * *[Plan to Eradicate the Saiyans](/wiki/Dragon_Ball_Z_Side_Story:_Plan_to_Eradicate_the_Saiyans)* (1993)<br/>* *[Plan to Eradicate the Super Saiyans](/wiki/Dragon_Ball:_Plan_to_Eradicate_the_Super_Saiyans)* (2010)                                                                                                                                                                    |
+|                                                                                                                                                                                                                                                                                                             Games                                                                                                                                                                                                                                                                                                              |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                                                          Traditional                                                                                                                                                                                                                                                                                                           |                                                                                                                                                                     * [Carddass](/wiki/Carddass)<br/>* *[Dragon Ball Z: The Anime Adventure Game](/wiki/Dragon_Ball_Z:_The_Anime_Adventure_Game)*<br/>* *[Dragon Ball Collectible Card Game](/wiki/Dragon_Ball_Collectible_Card_Game)*                                                                                                                                                                      |
+|                                                                                                                                                                                                                                                                                                         Video game(s)                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                [List of video games](/wiki/List_of_Dragon_Ball_video_games)                                                                                                                                                                                                                                                 |
+|                                                                                                                                                                                                                                                                                                             Audio                                                                                                                                                                                                                                                                                                              |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                                                         Soundtrack(s)                                                                                                                                                                                                                                                                                                          |                                                                                                                                                                                                                                                [List of soundtracks](/wiki/List_of_Dragon_Ball_soundtracks)                                                                                                                                                                                                                                                 |
+|                                                                                                                                                                                                                                                                                                        Official website                                                                                                                                                                                                                                                                                                        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                                                                                                              [en.dragon-ball-official.com](https://en.dragon-ball-official.com/)                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+***Dragon Ball*** ([Japanese](/wiki/Japanese_language): ドラゴンボール, [Hepburn](/wiki/Hepburn_romanization): *Doragon Bōru*) is a Japanese [media franchise](/wiki/Media_franchise) created by [Akira Toriyama](/wiki/Akira_Toriyama). The [original manga](/wiki/Dragon_Ball_(manga)), written and illustrated by Toriyama, was [serialized](/wiki/Serial_(literature)) in *[Weekly Shōnen Jump](/wiki/Weekly_Sh%C5%8Dnen_Jump)* from 1984 to 1995, with the 519 individual chapters collected in 42 *[tankōbon](/wiki/Tank%C5%8Dbon)* volumes by its publisher [Shueisha](/wiki/Shueisha). *Dragon Ball* was originally inspired by the classical 16th-century Chinese novel *[Journey to the West](/wiki/Journey_to_the_West)*, combined with elements of [Hong Kong martial arts films](/wiki/Hong_Kong_martial_arts_films). *Dragon Ball* characters also use a variety of [East Asian martial arts](/wiki/List_of_martial_arts#Asia) styles, including [karate](/wiki/Karate)<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span class="cite-bracket">[</span>1<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Arts_2-0" class="reference"><a href="#cite_note-Arts-2"><span class="cite-bracket">[</span>2<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Gerardo-2021_3-0" class="reference"><a href="#cite_note-Gerardo-2021-3"><span class="cite-bracket">[</span>3<span class="cite-bracket">]</span></a></sup> and [Wing Chun](/wiki/Wing_Chun) ([kung fu](/wiki/Kung_fu_(term))).<sup id="cite_ref-Arts_2-1" class="reference"><a href="#cite_note-Arts-2"><span class="cite-bracket">[</span>2<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Gerardo-2021_3-1" class="reference"><a href="#cite_note-Gerardo-2021-3"><span class="cite-bracket">[</span>3<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span class="cite-bracket">[</span>4<span class="cite-bracket">]</span></a></sup> The series follows the adventures of protagonist [Son Goku](/wiki/Goku) from his childhood through adulthood as he trains in martial arts. He spends his childhood far from civilization until he meets a teenage girl named [Bulma](/wiki/Bulma), who encourages him to join her quest in exploring the world in search of the seven orbs known as the Dragon Balls, which summon a wish-granting dragon when gathered. Along his journey, Goku makes several other friends, becomes a family man, discovers his alien heritage, and battles a wide variety of villains, many of whom also seek the Dragon Balls.
+
+Toriyama's [manga](/wiki/Manga) was adapted and divided into two [anime](/wiki/Anime) series produced by [Toei Animation](/wiki/Toei_Animation): *[Dragon Ball](/wiki/Dragon_Ball_(TV_series))* and *[Dragon Ball Z](/wiki/Dragon_Ball_Z)*, which together were broadcast in Japan from 1986 to 1989 and 1989 to 1996, respectively. Additionally, the studio has developed [21 animated feature films](/wiki/List_of_Dragon_Ball_films) and three television specials, as well as an anime sequel series titled *[Dragon Ball GT](/wiki/Dragon_Ball_GT)* (1996–1997) and two anime midquel series titled *[Dragon Ball Super](/wiki/Dragon_Ball_Super_(TV_series))* (2015–2018) and *[Dragon Ball Daima](/wiki/Dragon_Ball_Daima)* (2024–2025). From 2009 to 2015, a revised version of *Dragon Ball Z* aired in Japan under the title *Dragon Ball Kai*, as a recut that follows the manga's story more faithfully by removing most of the anime-exclusive material, known as [filler](/wiki/Filler_(media)). Several companies have developed various types of merchandise based on the series, leading to a large [media franchise](/wiki/Media_franchise) that includes films (both animated and [live action](/wiki/Live_action)), [collectible trading card games](/wiki/Dragon_Ball_Collectible_Card_Game), [action figures](/wiki/Action_figure), [collections of soundtracks](/wiki/List_of_Dragon_Ball_soundtracks), and numerous [video games](/wiki/List_of_Dragon_Ball_video_games). All these have contributed to making *Dragon Ball* one of the [highest-grossing media franchises](/wiki/List_of_highest-grossing_media_franchises) of all time.
+
+The *Dragon Ball* manga has been published in over 40 countries and the anime has been broadcast in more than 80 countries. The manga's 42 collected *tankōbon* volumes have over 160 million copies sold in Japan and 260 million sold worldwide,<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span class="cite-bracket">[</span>5<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-11" class="reference"><a href="#cite_note-11"><span class="cite-bracket">[</span>a<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-13" class="reference"><a href="#cite_note-13"><span class="cite-bracket">[</span>c<span class="cite-bracket">]</span></a></sup> making it one of the [best-selling manga series](/wiki/List_of_best-selling_manga) of all time. *Dragon Ball* has been praised for its art, characterization, humor, and broad audience appeal. It is widely regarded as one of the greatest and most influential manga series of all time, with many [manga artists](/wiki/Mangaka) citing *Dragon Ball* as a source of inspiration for their own now-popular works. The anime, particularly *Dragon Ball Z*, is also highly popular around the world and is considered one of the most influential in increasing the popularity of Japanese animation in the [Western world](/wiki/Western_world). It has had a considerable impact on global [popular culture](/wiki/Popular_culture), referenced by and inspiring numerous artists, athletes, celebrities, filmmakers, musicians, and writers around the world.
+
+Setting
+----------
+
+See also: [List of *Dragon Ball* characters](/wiki/List_of_Dragon_Ball_characters)
+
+Earth, known as the Dragon World (ドラゴンワールド) and designated as "Planet 4032-877" by the celestial hierarchy, is the main setting of the Dragon Ball series, as well as related media such as *[Dr. Slump](/wiki/Dr._Slump)*, *[Neko Majin](/wiki/Neko_Majin)*, and *[Jaco the Galactic Patrolman](/wiki/Jaco_the_Galactic_Patrolman)*. It is mainly inhabited by Earthlings (地球人, *Chikyūjin*), a term used inclusively to refer to all of the intelligent races native to the planet, including humans, anthropomorphic beings, and monsters. Starting from the *Dragon Ball Z* series, various [extraterrestrial species](/wiki/Extraterrestrials_in_fiction) such as the Saiyans (サイヤ人, *Saiya-jin*) and [Namekians](/wiki/List_of_Dragon_Ball_characters#Namekians) (ナメック星人, *Namekku-seijin*) have played a more prominent role in franchise media.
+
+The narrative of *Dragon Ball* predominantly follows the adventures of the Saiyan [Son Goku](/wiki/Goku); upon meeting [Bulma](/wiki/Bulma) at the beginning of the series, the two embark on an adventure to gather the seven Dragon Balls, a set of orbs that summon the wish-granting dragon [Shenlong](/wiki/List_of_Dragon_Ball_characters#Shenron).<sup>[<a href="#ch.1">ch.&nbsp;1</a>]</sup> Goku later receives martial arts training from [Kame-Sen'nin](/wiki/Master_Roshi), meets his lifelong friend [Kuririn](/wiki/Krillin), and enters the *Tenkaichi Budōkai* (天下一武道会; lit. "Strongest Under the Heavens Martial Arts Tournament") to fight the world's strongest warriors. When [Piccolo Daimao](/wiki/List_of_Dragon_Ball_characters#King_Piccolo), and later his offspring [Piccolo](/wiki/Piccolo_(Dragon_Ball)), tries to conquer the planet, Goku receives training from Earth's deities to defeat them. Goku later sacrifices his life to save the planet from his estranged brother [Raditz](/wiki/List_of_Dragon_Ball_characters#Raditz),<sup>[<a href="#ch.205">ch.&nbsp;205</a>]</sup> but is revived after training in the afterlife under the tutelage of the [North Kaio](/wiki/List_of_Dragon_Ball_characters#Kai) to combat the other incoming Saiyans, [Nappa](/wiki/List_of_Dragon_Ball_characters#Nappa) and [Vegeta](/wiki/Vegeta). He later becomes a Super Saiyan and defeats the powerful alien tyrant [Frieza](/wiki/Frieza); this sets the tone of the rest of the series, with each enemy the characters face becoming stronger than the last, requiring them to attain further training.
+
+*Dragon Ball Super* establishes that the franchise is set in a [multiverse](/wiki/Multiverse)<sup id="cite_ref-14" class="reference"><a href="#cite_note-14"><span class="cite-bracket">[</span>11<span class="cite-bracket">]</span></a></sup> composed of twelve<sup id="cite_ref-Multiverse_15-0" class="reference"><a href="#cite_note-Multiverse-15"><span class="cite-bracket">[</span>d<span class="cite-bracket">]</span></a></sup> numbered universes, with the majority of the *Dragon Ball* series taking place in Universe 7 (第7宇宙, *Dai-Nana Uchū*; lit. "Number Seven Universe"). Each universe is ruled by a number of benevolent and malevolent deities, respectively called Kaioshin and Gods of Destruction who are appointed by a higher being called [Zeno](/wiki/List_of_Dragon_Ball_characters#Zeno), the watcher of the multiverse.
+
+Production
+----------
+
+See also: [List of *Dragon Ball* characters § Concept and design](/wiki/List_of_Dragon_Ball_characters#Concept_and_design), and [*Dragon Ball* (manga) § Production](/wiki/Dragon_Ball_(manga)#Production)
+
+[Akira Toriyama](/wiki/Akira_Toriyama) was an avid fan of [Hong Kong martial arts films](/wiki/Hong_Kong_martial_arts_films), particularly [Bruce Lee](/wiki/Bruce_Lee) films such as *[Enter the Dragon](/wiki/Enter_the_Dragon)* (1973) and [Jackie Chan](/wiki/Jackie_Chan) films such as *[Drunken Master](/wiki/Drunken_Master)* (1978), and wanted to create a manga inspired by the films of the genre.<sup id="cite_ref-Guide_16-0" class="reference"><a href="#cite_note-Guide-16"><span class="cite-bracket">[</span>12<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-17" class="reference"><a href="#cite_note-17"><span class="cite-bracket">[</span>13<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-18" class="reference"><a href="#cite_note-18"><span class="cite-bracket">[</span>14<span class="cite-bracket">]</span></a></sup> This led to Toriyama creating the 1983 [one-shot](/wiki/One-shot_(comics)) manga *Dragon Boy*, which he later redeveloped into *Dragon Ball*.<sup id="cite_ref-AnimeEncyc_19-0" class="reference"><a href="#cite_note-AnimeEncyc-19"><span class="cite-bracket">[</span>15<span class="cite-bracket">]</span></a></sup> Toriyama loosely modeled the plot and characters of *Dragon Ball* on the [classic Chinese novel](/wiki/Classic_Chinese_Novels) *[Journey to the West](/wiki/Journey_to_the_West)*,<sup id="cite_ref-Manga_Design_20-0" class="reference"><a href="#cite_note-Manga_Design-20"><span class="cite-bracket">[</span>16<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-AnimeEncyc_19-1" class="reference"><a href="#cite_note-AnimeEncyc-19"><span class="cite-bracket">[</span>15<span class="cite-bracket">]</span></a></sup> with Goku being [Sun Wukong](/wiki/Sun_Wukong) ("Son Goku" in Japanese), Bulma as [Tang Sanzang](/wiki/Tang_Sanzang), [Oolong](/wiki/List_of_Dragon_Ball_characters#Oolong) as [Zhu Bajie](/wiki/Zhu_Bajie), and [Yamcha](/wiki/List_of_Dragon_Ball_characters#Yamcha) being [Sha Wujing](/wiki/Sha_Wujing).<sup id="cite_ref-Story_21-0" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup> Toriyama wanted to write a story with the basic theme of *Journey to the West*, but with "a little [kung fu](/wiki/Kung_fu)"<sup id="cite_ref-TenkaDen_22-0" class="reference"><a href="#cite_note-TenkaDen-22"><span class="cite-bracket">[</span>18<span class="cite-bracket">]</span></a></sup> by combining the novel with elements from the kung fu films of Chan and Lee.<sup id="cite_ref-23" class="reference"><a href="#cite_note-23"><span class="cite-bracket">[</span>19<span class="cite-bracket">]</span></a></sup> The title *Dragon Ball* was inspired by *Enter the Dragon* and later [Bruceploitation](/wiki/Bruceploitation) knockoff [kung fu films](/wiki/Kung_fu_films), which frequently had the word "Dragon" in their titles,<sup id="cite_ref-Guide_16-1" class="reference"><a href="#cite_note-Guide-16"><span class="cite-bracket">[</span>12<span class="cite-bracket">]</span></a></sup> and the fighting scenes were influenced by Jackie Chan movies.<sup id="cite_ref-Illustrations_24-0" class="reference"><a href="#cite_note-Illustrations-24"><span class="cite-bracket">[</span>20<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Story_21-1" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup> Since it was serialized in a [shōnen](/wiki/Sh%C5%8Dnen_manga) [manga magazine](/wiki/Manga_magazine), he conceived the Dragon Balls to give it a game-like activity of gathering something, without thinking of what the characters would wish for.<sup id="cite_ref-TenkaDen_22-1" class="reference"><a href="#cite_note-TenkaDen-22"><span class="cite-bracket">[</span>18<span class="cite-bracket">]</span></a></sup> His concept of the Dragon Balls was inspired by the [epic](/wiki/Epic_(genre)) [Japanese novel](/wiki/Japanese_novel) *[Nansō Satomi Hakkenden](/wiki/Nans%C5%8D_Satomi_Hakkenden)* (1814–1842) from the late [Edo period](/wiki/Edo_period), which involved the heroes collecting eight [Buddhist](/wiki/Buddhist) [prayer beads](/wiki/Prayer_beads); Toriyama adapted this into collecting seven Dragon Balls.<sup id="cite_ref-25" class="reference"><a href="#cite_note-25"><span class="cite-bracket">[</span>21<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-26" class="reference"><a href="#cite_note-26"><span class="cite-bracket">[</span>22<span class="cite-bracket">]</span></a></sup>
+
+Toriyama originally thought the manga would last about a year or end once the Dragon Balls were collected.<sup id="cite_ref-Shenlong2_27-0" class="reference"><a href="#cite_note-Shenlong2-27"><span class="cite-bracket">[</span>23<span class="cite-bracket">]</span></a></sup> He stated that although the stories are purposefully easy to understand, he specifically aimed *Dragon Ball* at readers older than those of *Dr. Slump*.<sup id="cite_ref-28" class="reference"><a href="#cite_note-28"><span class="cite-bracket">[</span>24<span class="cite-bracket">]</span></a></sup> He also wanted to break from the Western influences common in *Dr. Slump*, deliberately incorporating for Chinese influences and scenery and referencing Chinese buildings and photographs of China his wife had bought.<sup id="cite_ref-World_29-0" class="reference"><a href="#cite_note-World-29"><span class="cite-bracket">[</span>25<span class="cite-bracket">]</span></a></sup> Toriyama wanted to set *Dragon Ball* in a fictional world largely based on Asia, taking inspiration from several [Asian cultures](/wiki/Culture_of_Asia) including [Japanese](/wiki/Culture_of_Japan), [Chinese](/wiki/Chinese_culture), [Indian](/wiki/India), [Central Asian](/wiki/Central_Asia), [Arabic](/wiki/Arabic_culture) and [Indonesian cultures](/wiki/Indonesian_culture).<sup id="cite_ref-30" class="reference"><a href="#cite_note-30"><span class="cite-bracket">[</span>26<span class="cite-bracket">]</span></a></sup> The island where the *Tenkaichi Budōkai* is held is modeled after [Bali](/wiki/Bali) (in Indonesia), which he, his wife and assistant visited in mid-1985, and for the area around [Bobbidi](/wiki/List_of_Dragon_Ball_characters#Babidi)'s spaceship, he consulted photos of Africa.<sup id="cite_ref-World_29-1" class="reference"><a href="#cite_note-World-29"><span class="cite-bracket">[</span>25<span class="cite-bracket">]</span></a></sup> Toriyama was also inspired by the [jinn](/wiki/Jinn) (genies) from *[The Arabian Nights](/wiki/The_Arabian_Nights)*.<sup id="cite_ref-31" class="reference"><a href="#cite_note-31"><span class="cite-bracket">[</span>27<span class="cite-bracket">]</span></a></sup>
+
+[<img src="//upload.wikimedia.org/wikipedia/en/thumb/0/05/Wiki_DragonBall_Earth.png/250px-Wiki_DragonBall_Earth.png" decoding="async" width="250" height="191" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/en/thumb/0/05/Wiki_DragonBall_Earth.png/500px-Wiki_DragonBall_Earth.png 2x" data-file-width="800" data-file-height="610">](/wiki/File:Wiki_DragonBall_Earth.png)The Earth of *Dragon Ball*, as published in *Daizenshuu 4: World Guide*
+
+During the early chapters of the manga, Toriyama's editor, [Kazuhiko Torishima](/wiki/Kazuhiko_Torishima), commented that Goku looked rather plain. To combat this, he added several characters such as Kame-Sen'nin and Kuririn, and created the *Tenkaichi Budōkai* martial arts tournament to focus the storyline on fighting. It was when the first *Tenkaichi Budōkai* began that *Dragon Ball* truly became popular, having recalled the races and tournaments in *Dr. Slump*.<sup id="cite_ref-Story_21-2" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup> Anticipating that readers would expect Goku to win the tournaments, Toriyama had him lose the first two while planning an eventual victory. This allowed for more character growth as the manga progressed. He said that Muscle Tower in the Red Ribbon Army storyline was inspired by the video game *[Spartan X](/wiki/Kung-Fu_Master_(video_game))* (known as *Kung-Fu Master* in the West), in which enemies appear in quick succession as the player ascends a tower (the game was in turn inspired by Jackie Chan's *[Wheels on Meals](/wiki/Wheels_on_Meals)* and Bruce Lee's *[Game of Death](/wiki/Game_of_Death)*). He then created Piccolo Daimao as a truly evil villain, and as a result named that arc the most interesting to draw.<sup id="cite_ref-Story_21-3" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup>
+
+Once Goku and company had become the strongest on Earth, they turned to extraterrestrial opponents including the Saiyans (サイヤ人, *Saiya-jin*); and Goku himself was [retconned](/wiki/Retroactive_continuity) from an Earthling to a Saiyan who was sent to Earth as a baby.<sup id="cite_ref-32" class="reference"><a href="#cite_note-32"><span class="cite-bracket">[</span>28<span class="cite-bracket">]</span></a></sup> Frieza, who forcibly took over planets to resell them, was created around the time of the [Japanese economic bubble](/wiki/Japanese_asset_price_bubble) and was inspired by [real estate](/wiki/Real_estate) [speculators](/wiki/Speculation), whom Toriyama called the "worst kind of people".<sup id="cite_ref-Story_21-4" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup> Finding the escalating enemies difficult, he created the Ginyu Force to add more balance to the series. When Toriyama created the Super Saiyan (超(スーパー)サイヤ人, *Sūpā Saiya-jin*) transformation during the Frieza arc, he was initially concerned that Goku's facial expressions as a Super Saiyan made him look like a villain, but decided it was acceptable since the transformation was brought about by anger.<sup id="cite_ref-33" class="reference"><a href="#cite_note-33"><span class="cite-bracket">[</span>29<span class="cite-bracket">]</span></a></sup> Goku's Super Saiyan form has blonde hair because it was easier to draw for Toriyama's assistant (who spent a lot of time blacking in Goku's hair), and has piercing eyes based on Bruce Lee's paralyzing glare.<sup id="cite_ref-34" class="reference"><a href="#cite_note-34"><span class="cite-bracket">[</span>30<span class="cite-bracket">]</span></a></sup> *Dragon Ball Z* character designer Tadayoshi Yamamuro also used Bruce Lee as a reference for Goku's Super Saiyan form, stating that, when he "first becomes a Super Saiyan, his slanting pose with that scowling look in his eyes is all Bruce Lee."<sup id="cite_ref-35" class="reference"><a href="#cite_note-35"><span class="cite-bracket">[</span>31<span class="cite-bracket">]</span></a></sup> Toriyama later added [time travel](/wiki/Time_travel) during the Cell arc, but said he had a hard time with it, only thinking of what to do that week and having to discuss it with his second editor Yu Kondo.<sup id="cite_ref-Story_21-5" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup> After Cell's death, Toriyama intended for Gohan to replace Goku as the series' [protagonist](/wiki/Protagonist), but later felt the character was not suited for the role and changed his mind.<sup id="cite_ref-Story_21-6" class="reference"><a href="#cite_note-Story-21"><span class="cite-bracket">[</span>17<span class="cite-bracket">]</span></a></sup>
+
+Going against the convention that the strongest characters should be the largest in terms of physical size, Toriyama designed many of *Dragon Ball*'s most powerful characters with small statures, including the protagonist, Goku.<sup id="cite_ref-SJ_interview_36-0" class="reference"><a href="#cite_note-SJ_interview-36"><span class="cite-bracket">[</span>32<span class="cite-bracket">]</span></a></sup> Toriyama later explained that he had Goku grow up as a means to make drawing fight scenes easier, even though his first editor [Kazuhiko Torishima](/wiki/Kazuhiko_Torishima) was initially against it because it was rare to have the main character of a manga series change drastically.<sup id="cite_ref-Chogashu_37-0" class="reference"><a href="#cite_note-Chogashu-37"><span class="cite-bracket">[</span>33<span class="cite-bracket">]</span></a></sup> When including fights in the manga, Toriyama had the characters go to uninhabited locations to avoid difficulties in drawing residents and destroyed buildings.<sup id="cite_ref-World_29-2" class="reference"><a href="#cite_note-World-29"><span class="cite-bracket">[</span>25<span class="cite-bracket">]</span></a></sup> Toriyama said that he did not plan the details of the story, resulting in strange occurrences and discrepancies later in the series, including changing the colors of the characters mid-story and few characters having [screentone](/wiki/Screentone) because he found it difficult to use.<sup id="cite_ref-Illustrations_24-1" class="reference"><a href="#cite_note-Illustrations-24"><span class="cite-bracket">[</span>20<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-TenkaDen_22-2" class="reference"><a href="#cite_note-TenkaDen-22"><span class="cite-bracket">[</span>18<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Shenlong2_27-1" class="reference"><a href="#cite_note-Shenlong2-27"><span class="cite-bracket">[</span>23<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-38" class="reference"><a href="#cite_note-38"><span class="cite-bracket">[</span>34<span class="cite-bracket">]</span></a></sup> After the completion of *Dragon Ball*, Toriyama continued to add to its story, mostly background information on its universe, through guidebooks published by Shueisha.
+
+During the second half of the series, Toriyama said that he had become more interested in coming up with the story than actually drawing it, and that the battles became more intense with him simplifying the lines.<sup id="cite_ref-Illustrations_24-2" class="reference"><a href="#cite_note-Illustrations-24"><span class="cite-bracket">[</span>20<span class="cite-bracket">]</span></a></sup> In 2013, he stated that because *Dragon Ball* is an action manga, the most important aspect is the sense of speed, so he did not draw very elaborate, going so far as to suggest one could say that he was not interested in the art.<sup id="cite_ref-Chogashu_37-1" class="reference"><a href="#cite_note-Chogashu-37"><span class="cite-bracket">[</span>33<span class="cite-bracket">]</span></a></sup> He also once said that his goal for the series was to tell an "unconventional and contradictory" story.<sup id="cite_ref-SJ_interview_36-1" class="reference"><a href="#cite_note-SJ_interview-36"><span class="cite-bracket">[</span>32<span class="cite-bracket">]</span></a></sup> In 2013, commenting on *Dragon Ball*'s global success, Toriyama said, "Frankly, I don't quite understand why it happened. While the manga was being serialized, the only thing I wanted as I kept drawing was to make Japanese boys happy.", "The role of my manga is to be a work of entertainment through and through. I dare say I don't care even if [my works] have left nothing behind, as long as they have entertained their readers."<sup id="cite_ref-AsahiInterview_39-0" class="reference"><a href="#cite_note-AsahiInterview-39"><span class="cite-bracket">[</span>35<span class="cite-bracket">]</span></a></sup>
+
+Manga
+----------
+
+Main article: [*Dragon Ball* (manga)](/wiki/Dragon_Ball_(manga))
+
+[<img src="//upload.wikimedia.org/wikipedia/en/thumb/2/24/Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg/250px-Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg" decoding="async" width="190" height="268" style="--mw-file-upright: 0.75" class="mw-file-element mw-file-upright" srcset="//upload.wikimedia.org/wikipedia/en/2/24/Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg 2x" data-file-width="265" data-file-height="374">](/wiki/File:Weekly_Sh%C5%8Dnen_Jump_No._51_(Dec._1984)_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg)*Dragon Ball* debuted in *Weekly Shōnen Jump* No. 51, on December 3, 1984, which is highly sought after among fans and collectors
+
+Written and illustrated by [Akira Toriyama](/wiki/Akira_Toriyama), *Dragon Ball* was serialized in the manga anthology *[Weekly Shōnen Jump](/wiki/Weekly_Sh%C5%8Dnen_Jump)* from December 3, 1984, to June 5, 1995,<sup id="cite_ref-40" class="reference"><a href="#cite_note-40"><span class="cite-bracket">[</span>36<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-41" class="reference"><a href="#cite_note-41"><span class="cite-bracket">[</span>37<span class="cite-bracket">]</span></a></sup> when Toriyama grew exhausted and felt he needed a break from drawing. The 519 individual chapters were collected in 42 *[tankōbon](/wiki/Tank%C5%8Dbon)* volumes by [Shueisha](/wiki/Shueisha) from September 10, 1985, through August 4, 1995.<sup id="cite_ref-sold_42-0" class="reference"><a href="#cite_note-sold-42"><span class="cite-bracket">[</span>38<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Shueisha_1_43-0" class="reference"><a href="#cite_note-Shueisha_1-43"><span class="cite-bracket">[</span>39<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-ShueishaZ_26_44-0" class="reference"><a href="#cite_note-ShueishaZ_26-44"><span class="cite-bracket">[</span>40<span class="cite-bracket">]</span></a></sup> Between December 4, 2002, and April 2, 2004, the chapters were re-released in a collection of 34 *[kanzenban](/wiki/Kanzenban)* volumes, which included a slightly rewritten ending, new covers, and color artwork from its *Weekly Shōnen Jump* run.<sup id="cite_ref-45" class="reference"><a href="#cite_note-45"><span class="cite-bracket">[</span>41<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-46" class="reference"><a href="#cite_note-46"><span class="cite-bracket">[</span>42<span class="cite-bracket">]</span></a></sup> The February 2013 issue of *[V Jump](/wiki/V_Jump)*, which was released in December 2012, announced that parts of the manga would be fully colored and re-released in 2013.<sup id="cite_ref-colorchozenshuu_47-0" class="reference"><a href="#cite_note-colorchozenshuu-47"><span class="cite-bracket">[</span>43<span class="cite-bracket">]</span></a></sup> 20 volumes, beginning from chapter 195 and grouped by story arcs, were released between February 4, 2013, and July 4, 2014.<sup id="cite_ref-48" class="reference"><a href="#cite_note-48"><span class="cite-bracket">[</span>44<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-49" class="reference"><a href="#cite_note-49"><span class="cite-bracket">[</span>45<span class="cite-bracket">]</span></a></sup> 12 volumes covering the first 194 chapters were published between January 4 and March 4, 2016.<sup id="cite_ref-50" class="reference"><a href="#cite_note-50"><span class="cite-bracket">[</span>46<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-51" class="reference"><a href="#cite_note-51"><span class="cite-bracket">[</span>47<span class="cite-bracket">]</span></a></sup> A *[sōshūhen](/wiki/S%C5%8Dsh%C5%ABhen)* edition that aimed to recreate the manga as it was originally serialized in *Weekly Shōnen Jump* with color pages, promotional text, and chapter previews, was published in 18 volumes between May 13, 2016, and January 13, 2017.<sup id="cite_ref-52" class="reference"><a href="#cite_note-52"><span class="cite-bracket">[</span>48<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-53" class="reference"><a href="#cite_note-53"><span class="cite-bracket">[</span>49<span class="cite-bracket">]</span></a></sup>
+
+### Spin-offs ###
+
+Another manga penned by Ōishi, the three-chapter *[Dragon Ball: Episode of Bardock](/wiki/Dragon_Ball:_Episode_of_Bardock)* that revolves around [Bardock](/wiki/Burdock_(Dragon_Ball)), Goku's father, was published in the monthly magazine *[V Jump](/wiki/V_Jump)* from August to October 2011.<sup id="cite_ref-54" class="reference"><a href="#cite_note-54"><span class="cite-bracket">[</span>50<span class="cite-bracket">]</span></a></sup>
+
+The final chapter of Toriyama's 2013 manga series *[Jaco the Galactic Patrolman](/wiki/Jaco_the_Galactic_Patrolman)* revealed that it is set before *Dragon Ball*, with several characters making appearances in it.<sup id="cite_ref-55" class="reference"><a href="#cite_note-55"><span class="cite-bracket">[</span>51<span class="cite-bracket">]</span></a></sup> *Jaco*'s collected volumes contain a bonus *Dragon Ball* chapter depicting Goku's mother.<sup id="cite_ref-56" class="reference"><a href="#cite_note-56"><span class="cite-bracket">[</span>52<span class="cite-bracket">]</span></a></sup>
+
+In December 2016, a [spin-off](/wiki/Spin-off_(media)) manga titled *Dragon Ball: That Time I Got Reincarnated as Yamcha* debuted in Shueisha's *[Shōnen Jump+](/wiki/Sh%C5%8Dnen_Jump%2B)* digital magazine. Written and illustrated by dragongarow LEE, it is about a high school boy who after an accident wakes up in the body of Yamcha in the *Dragon Ball* manga.<sup id="cite_ref-57" class="reference"><a href="#cite_note-57"><span class="cite-bracket">[</span>53<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-58" class="reference"><a href="#cite_note-58"><span class="cite-bracket">[</span>54<span class="cite-bracket">]</span></a></sup>
+
+### Crossovers ###
+
+Toriyama also created a short series, *[Neko Majin](/wiki/Neko_Majin)* (1999–2005), that became a self-parody of *Dragon Ball*.<sup id="cite_ref-59" class="reference"><a href="#cite_note-59"><span class="cite-bracket">[</span>55<span class="cite-bracket">]</span></a></sup> In 2006, a [crossover](/wiki/Fictional_crossover) between *[Kochira Katsushika-ku Kameari Kōen-mae Hashutsujo](/wiki/Kochira_Katsushika-ku_Kameari_K%C5%8Den-mae_Hashutsujo)* (or *Kochikame*) and *Dragon Ball* by Toriyama and *Kochikame* author [Osamu Akimoto](/wiki/Osamu_Akimoto) appeared in the *Super Kochikame* (超こち亀, *Chō Kochikame*) manga.<sup id="cite_ref-60" class="reference"><a href="#cite_note-60"><span class="cite-bracket">[</span>56<span class="cite-bracket">]</span></a></sup> That same year, Toriyama teamed up with [Eiichiro Oda](/wiki/Eiichiro_Oda) to create a crossover chapter of *Dragon Ball* and *[One Piece](/wiki/One_Piece)* titled *Cross Epoch*.<sup id="cite_ref-61" class="reference"><a href="#cite_note-61"><span class="cite-bracket">[</span>57<span class="cite-bracket">]</span></a></sup>
+
+### Reception ###
+
+Further information: [*Dragon Ball* (manga) § Reception](/wiki/Dragon_Ball_(manga)#Reception)
+
+See also: [Cultural impact of Dragon Ball](/wiki/Cultural_impact_of_Dragon_Ball)
+
+*Dragon Ball* is one of the most popular and influential manga series of all time, and it continues to enjoy high readership. It is credited as one of the main reasons manga circulation was at its highest between the mid-1980s and mid-1990s.<sup id="cite_ref-IbarakiInterview_62-0" class="reference"><a href="#cite_note-IbarakiInterview-62"><span class="cite-bracket">[</span>58<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-comipress-jump_63-0" class="reference"><a href="#cite_note-comipress-jump-63"><span class="cite-bracket">[</span>59<span class="cite-bracket">]</span></a></sup> During *Dragon Ball*'s initial run in *[Weekly Shōnen Jump](/wiki/Weekly_Sh%C5%8Dnen_Jump)*, the [manga magazine](/wiki/Manga_magazine) reached an average circulation of 6.53 million weekly sales, the highest in its history.<sup id="cite_ref-IbarakiInterview_62-1" class="reference"><a href="#cite_note-IbarakiInterview-62"><span class="cite-bracket">[</span>58<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-comipress-jump_63-1" class="reference"><a href="#cite_note-comipress-jump-63"><span class="cite-bracket">[</span>59<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-TimeMag_64-0" class="reference"><a href="#cite_note-TimeMag-64"><span class="cite-bracket">[</span>60<span class="cite-bracket">]</span></a></sup> During *Dragon Ball*'s serialization between 1984 and 1995, *Weekly Shōnen Jump* magazine had a total circulation of over 2.9 billion copies,<sup id="cite_ref-exlight_65-0" class="reference"><a href="#cite_note-exlight-65"><span class="cite-bracket">[</span>61<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Circulation_66-0" class="reference"><a href="#cite_note-Circulation-66"><span class="cite-bracket">[</span>e<span class="cite-bracket">]</span></a></sup> with those issues generating an estimated ¥554 billion ($6.9 billion) in sales revenue.<sup id="cite_ref-Circulation_66-1" class="reference"><a href="#cite_note-Circulation-66"><span class="cite-bracket">[</span>e<span class="cite-bracket">]</span></a></sup>
+
+*Dragon Ball* also sold a record number of collected *[tankōbon](/wiki/Tank%C5%8Dbon)* volumes for its time. By 2000, more than 126 million *tankōbon* copies had been sold in Japan alone.<sup id="cite_ref-LittleBoy_67-0" class="reference"><a href="#cite_note-LittleBoy-67"><span class="cite-bracket">[</span>62<span class="cite-bracket">]</span></a></sup> It sold over 150 million copies in Japan by 2008, making it the [best-selling manga](/wiki/List_of_best-selling_manga) ever at the time.<sup id="cite_ref-68" class="reference"><a href="#cite_note-68"><span class="cite-bracket">[</span>63<span class="cite-bracket">]</span></a></sup> By 2012, its sales in Japan had grown to pass 156 million, making it the second best-selling *Weekly Shōnen Jump* manga of all time, behind *[One Piece](/wiki/One_Piece)*.<sup id="cite_ref-156mil_69-0" class="reference"><a href="#cite_note-156mil-69"><span class="cite-bracket">[</span>64<span class="cite-bracket">]</span></a></sup> *Dragon Ball*'s *tankobon* volumes sold 159.5 million copies in Japan by February 2014,<sup id="cite_ref-jump2014_70-0" class="reference"><a href="#cite_note-jump2014-70"><span class="cite-bracket">[</span>65<span class="cite-bracket">]</span></a></sup> and have sold over 160 million copies in Japan as of 2016.<sup id="cite_ref-naver_71-0" class="reference"><a href="#cite_note-naver-71"><span class="cite-bracket">[</span>66<span class="cite-bracket">]</span></a></sup><sup class="noprint Inline-Template" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Identifying_reliable_sources#User-generated_content" class="mw-redirect" title="Wikipedia:Identifying reliable sources"><span title="This reference citation appears to be to a user-generated source. (January 2025)">user-generated source</span></a></i>]</sup>
+
+The manga is similarly popular overseas, having been translated and released in over 40 countries worldwide.<sup id="cite_ref-72" class="reference"><a href="#cite_note-72"><span class="cite-bracket">[</span>67<span class="cite-bracket">]</span></a></sup> The total number of *tankōbon* volumes worldwide sold have reached 350 million copies.<sup id="cite_ref-73" class="reference"><a href="#cite_note-73"><span class="cite-bracket">[</span>68<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-74" class="reference"><a href="#cite_note-74"><span class="cite-bracket">[</span>69<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-75" class="reference"><a href="#cite_note-75"><span class="cite-bracket">[</span>70<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-76" class="reference"><a href="#cite_note-76"><span class="cite-bracket">[</span>71<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-77" class="reference"><a href="#cite_note-77"><span class="cite-bracket">[</span>72<span class="cite-bracket">]</span></a></sup> When including pirated copies, an estimated total of more than 400 million official and unofficial copies combined have been sold worldwide.<sup id="cite_ref-Pirate_81-0" class="reference"><a href="#cite_note-Pirate-81"><span class="cite-bracket">[</span>h<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-China_79-1" class="reference"><a href="#cite_note-China-79"><span class="cite-bracket">[</span>f<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Korea_80-1" class="reference"><a href="#cite_note-Korea-80"><span class="cite-bracket">[</span>g<span class="cite-bracket">]</span></a></sup>
+
+For the 10th anniversary of the [Japan Media Arts Festival](/wiki/Japan_Media_Arts_Festival) in 2006, Japanese fans voted *Dragon Ball* the third greatest manga of all time.<sup id="cite_ref-82" class="reference"><a href="#cite_note-82"><span class="cite-bracket">[</span>74<span class="cite-bracket">]</span></a></sup> In a survey conducted by [Oricon](/wiki/Oricon) in 2007 among 1,000 people Goku ranked first place as the "Strongest Manga Character of All Time."<sup id="cite_ref-oricon_83-0" class="reference"><a href="#cite_note-oricon-83"><span class="cite-bracket">[</span>75<span class="cite-bracket">]</span></a></sup> Goku's journey and his ever-growing strength resulted in the character winning "the admiration of young boys everywhere".<sup id="cite_ref-Manga_Design_20-1" class="reference"><a href="#cite_note-Manga_Design-20"><span class="cite-bracket">[</span>16<span class="cite-bracket">]</span></a></sup> Manga artists, such as *[One Piece](/wiki/One_Piece)* creator [Eiichiro Oda](/wiki/Eiichiro_Oda) and *[Naruto](/wiki/Naruto)* creator [Masashi Kishimoto](/wiki/Masashi_Kishimoto), have stated that Goku inspired their series' main protagonists as well as series structure.<sup id="cite_ref-84" class="reference"><a href="#cite_note-84"><span class="cite-bracket">[</span>76<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-85" class="reference"><a href="#cite_note-85"><span class="cite-bracket">[</span>77<span class="cite-bracket">]</span></a></sup>
+
+Manga critic [Jason Thompson](/wiki/Jason_Thompson_(writer)) stated in 2011 that "*Dragon Ball* is by far the most influential shōnen manga of the last 30 years, and today, almost every *Shōnen Jump* artist lists it as one of their favorites and lifts from it in various ways."<sup id="cite_ref-ANNJT_86-0" class="reference"><a href="#cite_note-ANNJT-86"><span class="cite-bracket">[</span>78<span class="cite-bracket">]</span></a></sup> He says the series "turns from a gag/adventure manga to an nearly-pure fighting manga",<sup id="cite_ref-ANNJT_86-1" class="reference"><a href="#cite_note-ANNJT-86"><span class="cite-bracket">[</span>78<span class="cite-bracket">]</span></a></sup> and its basic formula of "lots of martial arts, lots of training sequences, a few jokes" became the model for other shōnen series, such as *Naruto*.<sup id="cite_ref-87" class="reference"><a href="#cite_note-87"><span class="cite-bracket">[</span>79<span class="cite-bracket">]</span></a></sup> Thompson also called Toriyama's art influential and cited it as a reason for the series' popularity.<sup id="cite_ref-ANNJT_86-2" class="reference"><a href="#cite_note-ANNJT-86"><span class="cite-bracket">[</span>78<span class="cite-bracket">]</span></a></sup> James S. Yadao, author of *The Rough Guide to Manga*, claims that the first several chapters of *Dragon Ball* "play out much like *[Saiyuki](/wiki/Journey_to_the_West)* with *[Dr. Slump](/wiki/Dr._Slump)*-like humour built in" and that *Dr. Slump*, Toriyama's previous manga, had a clear early influence on the series.<sup id="cite_ref-Yadao116_88-0" class="reference"><a href="#cite_note-Yadao116-88"><span class="cite-bracket">[</span>80<span class="cite-bracket">]</span></a></sup> He felt the series "established its unique identity" after the first occasion when Goku's group disbands and he trains under Kame-Sen'nin, and that was when the story developed "a far more action-packed, sinister tone" with "wilder" battles with aerial and spiritual elements and an increased death count, while humor still made an occasional appearance.<sup id="cite_ref-Yadao116_88-1" class="reference"><a href="#cite_note-Yadao116-88"><span class="cite-bracket">[</span>80<span class="cite-bracket">]</span></a></sup> Yadao claims that an art shift occurred when the characters "lose the rounded, innocent look that he established in *Dr. Slump* and gain sharper angles that leap off the page with their energy and intensity."<sup id="cite_ref-Yadao116117_89-0" class="reference"><a href="#cite_note-Yadao116117-89"><span class="cite-bracket">[</span>81<span class="cite-bracket">]</span></a></sup>
+
+*[Animerica](/wiki/Animerica)* felt the series had "worldwide appeal", using dramatic pacing and over-the-top martial arts action to "maintain tension levels and keep a crippler crossface hold on the audience's attention spans".<sup id="cite_ref-Animerica_90-0" class="reference"><a href="#cite_note-Animerica-90"><span class="cite-bracket">[</span>82<span class="cite-bracket">]</span></a></sup> In *Little Boy: The Art of Japan's Exploding Subculture*, Takashi Murakami commented that *Dragon Ball*'s "never-ending cyclical narrative moves forward plausibly, seamlessly, and with great finesse".<sup id="cite_ref-LittleBoy_67-1" class="reference"><a href="#cite_note-LittleBoy-67"><span class="cite-bracket">[</span>62<span class="cite-bracket">]</span></a></sup> Ridwan Khan from Animefringe.com commented that the manga had a "chubby" art style, but as the series continued, the characters became more refined, leaner, and more muscular. Khan preferred the manga over the slow pacing of the anime counterparts.<sup id="cite_ref-91" class="reference"><a href="#cite_note-91"><span class="cite-bracket">[</span>83<span class="cite-bracket">]</span></a></sup> Allen Divers of [Anime News Network](/wiki/Anime_News_Network) praised the story and humor of the manga as being effective at conveying all of the characters' personalities. Divers also called [Viz](/wiki/Viz_Media)'s translation one of the best of all the English editions of the series due to its faithfulness to the original Japanese.<sup id="cite_ref-92" class="reference"><a href="#cite_note-92"><span class="cite-bracket">[</span>84<span class="cite-bracket">]</span></a></sup> D. Aviva Rothschild of Rationalmagic.com remarked the first manga volume as "a superior humor title". They praised Goku's innocence and Bulma's insistence as one of the funniest parts of the series.<sup id="cite_ref-93" class="reference"><a href="#cite_note-93"><span class="cite-bracket">[</span>85<span class="cite-bracket">]</span></a></sup>
+
+The content of the manga has been controversial in the United States. In November 1999, [Toys "R" Us](/wiki/Toys_%22R%22_Us) removed Viz's *Dragon Ball* from their stores nationwide when a [Dallas](/wiki/Dallas) parent complained the series had "borderline soft porn" after he bought them for his four-year-old son.<sup id="cite_ref-Maryland_94-0" class="reference"><a href="#cite_note-Maryland-94"><span class="cite-bracket">[</span>86<span class="cite-bracket">]</span></a></sup> Commenting on the issue, [Susan J. Napier](/wiki/Susan_J._Napier) explained it as a cultural difference.<sup id="cite_ref-Maryland_94-1" class="reference"><a href="#cite_note-Maryland-94"><span class="cite-bracket">[</span>86<span class="cite-bracket">]</span></a></sup> After the ban, Viz reluctantly began to censor the series to keep wide distribution.<sup id="cite_ref-censorship2_95-0" class="reference"><a href="#cite_note-censorship2-95"><span class="cite-bracket">[</span>87<span class="cite-bracket">]</span></a></sup> However, in 2001, after releasing three volumes censored, Viz announced *Dragon Ball* would return uncensored and reprinted due to fan reactions.<sup id="cite_ref-censorship2_95-1" class="reference"><a href="#cite_note-censorship2-95"><span class="cite-bracket">[</span>87<span class="cite-bracket">]</span></a></sup> In October 2009, [Wicomico County Public Schools](/wiki/Wicomico_County_Public_Schools) in [Maryland](/wiki/Maryland) banned the *Dragon Ball* manga from their school district because it "depicts nudity, sexual contact between children and sexual innuendo among adults and children".<sup id="cite_ref-Maryland_94-2" class="reference"><a href="#cite_note-Maryland-94"><span class="cite-bracket">[</span>86<span class="cite-bracket">]</span></a></sup>
+
+In 2025, in reference to [Texas Senate Bill 20](/wiki/Texas_Senate_Bill_20), which creates new criminal offenses for those who possess, promote, or view visual material deemed [obscene](/wiki/Obscene), which is said to depict a child, whether it is an actual person, an animated or cartoon depiction, or an image of someone created through [computer software](/wiki/Computer_software) or [artificial intelligence](/wiki/Artificial_intelligence), Evan D. Mullicane of [Screen Rant](/wiki/Screen_Rant) said the vague wording of the legislation made it "dangerous" for manga and anime such as *Dragon Ball*.<sup id="cite_ref-mullicane2025_96-0" class="reference"><a href="#cite_note-mullicane2025-96"><span class="cite-bracket">[</span>88<span class="cite-bracket">]</span></a></sup>
+
+Anime
+----------
+
+Main article: [List of *Dragon Ball* anime](/wiki/List_of_Dragon_Ball_anime)
+
+*Dragon Ball* was adapted into an [anime](/wiki/Anime) [television](/wiki/Television_series) [metaseries](/wiki/Metaseries). *[Dragon Ball](/wiki/Dragon_Ball_(TV_series))* (1986–89), *[Dragon Ball Z](/wiki/Dragon_Ball_Z)* (1989–96), *[Dragon Ball Super](/wiki/Dragon_Ball_Super_(TV_series))* (2015–18) and *[Dragon Ball Daima](/wiki/Dragon_Ball_Daima)* (2024–25) are set in a uniform main continuity, while *[Dragon Ball GT](/wiki/Dragon_Ball_GT)* (1996–97) and *[Super Dragon Ball Heroes](/wiki/Super_Dragon_Ball_Heroes_(web_series))* (2018–24) explore several alternate continuities.
+
+### *Dragon Ball* ###
+
+Main article: [*Dragon Ball* (TV series)](/wiki/Dragon_Ball_(TV_series))
+
+Further information: [List of *Dragon Ball* episodes](/wiki/List_of_Dragon_Ball_episodes)
+
+[Toei Animation](/wiki/Toei_Animation) produced an [anime](/wiki/Anime) television series based on the first 194 manga chapters, also titled *Dragon Ball*. The series premiered in Japan on [Fuji TV](/wiki/Fuji_TV) on February 26, 1986, and ran until April 19, 1989, lasting 153 episodes.<sup id="cite_ref-AnimeEncyc_19-2" class="reference"><a href="#cite_note-AnimeEncyc-19"><span class="cite-bracket">[</span>15<span class="cite-bracket">]</span></a></sup> It is broadcast in 81 countries worldwide.<sup id="cite_ref-gamebiz_97-0" class="reference"><a href="#cite_note-gamebiz-97"><span class="cite-bracket">[</span>89<span class="cite-bracket">]</span></a></sup>
+
+### *Dragon Ball Z* ###
+
+Main article: [*Dragon Ball Z*](/wiki/Dragon_Ball_Z)
+
+Further information: [List of *Dragon Ball Z* episodes](/wiki/List_of_Dragon_Ball_Z_episodes)
+
+Instead of continuing the anime as *Dragon Ball*, Toei Animation decided to carry on with their adaptation under a new name and requested a title from Akira Toriyama. The newly named *Dragon Ball Z* (ドラゴンボールZ(ゼット), *Doragon Bōru Zetto*; commonly abbreviated as *DBZ*) picks up five years after the first series left off and adapts the final 325 chapters of the manga. It premiered in Japan on Fuji TV on April 26, 1989, taking over its predecessor's time slot, and ran for 291 episodes until its conclusion on January 31, 1996.<sup id="cite_ref-AnimeEncyc_19-3" class="reference"><a href="#cite_note-AnimeEncyc-19"><span class="cite-bracket">[</span>15<span class="cite-bracket">]</span></a></sup> Two television specials based on the *Z* series were aired on Fuji TV in Japan. The first special, *The One True Final Battle \~The Z Warrior Who Challenged Frieza – Son Goku's Father\~*, renamed *[Bardock – The Father of Goku](/wiki/Dragon_Ball_Z:_Bardock_%E2%80%93_The_Father_of_Goku)* by [Funimation](/wiki/Funimation), was shown on October 17, 1990.<sup id="cite_ref-Famitsu-2016-02-11_98-0" class="reference"><a href="#cite_note-Famitsu-2016-02-11-98"><span class="cite-bracket">[</span>90<span class="cite-bracket">]</span></a></sup> The second special, *Defiance in the Face of Despair!! The Remaining Super-Warriors: Gohan and Trunks*, renamed *[The History of Trunks](/wiki/Dragon_Ball_Z:_The_History_of_Trunks)* by Funimation, aired on February 24, 1993.<sup id="cite_ref-Famitsu-2016-02-11_98-1" class="reference"><a href="#cite_note-Famitsu-2016-02-11-98"><span class="cite-bracket">[</span>90<span class="cite-bracket">]</span></a></sup>
+
+### *Dragon Ball GT* ###
+
+Main article: [*Dragon Ball GT*](/wiki/Dragon_Ball_GT)
+
+Further information: [List of *Dragon Ball GT* episodes](/wiki/List_of_Dragon_Ball_GT_episodes)
+
+*Dragon Ball GT* (ドラゴンボールGT(ジーティー), *Doragon Bōru Jī Tī*; *G(rand) T(ouring)*)<sup id="cite_ref-GTDragonBox_99-0" class="reference"><a href="#cite_note-GTDragonBox-99"><span class="cite-bracket">[</span>91<span class="cite-bracket">]</span></a></sup> premiered on Fuji TV on February 7, 1996, and ran until November 19, 1997, for 64 episodes.<sup id="cite_ref-AnimeEncyc_19-4" class="reference"><a href="#cite_note-AnimeEncyc-19"><span class="cite-bracket">[</span>15<span class="cite-bracket">]</span></a></sup> Unlike the first two anime series, it is not based on Toriyama's original *Dragon Ball* manga,<sup id="cite_ref-100" class="reference"><a href="#cite_note-100"><span class="cite-bracket">[</span>92<span class="cite-bracket">]</span></a></sup> being created by Toei Animation as a sequel to the series or as Toriyama called it, a "[grand side story](/wiki/Gaiden) of the original *Dragon Ball.*"<sup id="cite_ref-GTDragonBox_99-1" class="reference"><a href="#cite_note-GTDragonBox-99"><span class="cite-bracket">[</span>91<span class="cite-bracket">]</span></a></sup> Toriyama designed the main cast, the spaceship used in the show, the design of three planets, and came up with the title and logo. In addition to this, Toriyama also oversaw production of the series, just as he had for the *Dragon Ball* and *Dragon Ball Z* anime. The television special episode, *Goku's Side Story! The Proof of his Courage is the Four-Star Ball*, or *[A Hero's Legacy](/wiki/Dragon_Ball_GT:_A_Hero%27s_Legacy)* as Funimation titled it for their dub, aired on March 26, 1997.<sup id="cite_ref-101" class="reference"><a href="#cite_note-101"><span class="cite-bracket">[</span>93<span class="cite-bracket">]</span></a></sup>
+
+### *Dragon Ball Z Kai* ###
+
+Main article: [*Dragon Ball Z Kai*](/wiki/Dragon_Ball_Z_Kai)
+
+Further information: [List of *Dragon Ball Z Kai* episodes](/wiki/List_of_Dragon_Ball_Z_Kai_episodes)
+
+In February 2009, *Dragon Ball Z* celebrated its 20th anniversary, with Toei Animation announcing that it would broadcast a re-edited and remastered version of the *Dragon Ball Z* anime under the name *Dragon Ball Kai* (ドラゴンボール改, *Doragon Bōru Kai*; lit. "Dragon Ball Revised"). The series would be re-edited to follow the manga more closely, eliminating scenes and episodes which were not featured in the original manga, resulting in a more faithful adaptation, as well as in a faster-paced and more focused story.<sup id="cite_ref-102" class="reference"><a href="#cite_note-102"><span class="cite-bracket">[</span>94<span class="cite-bracket">]</span></a></sup> The episodes were remastered for [HDTV](/wiki/High-definition_television), with rerecording of the vocal tracks by most of the original cast, and featured updated opening and ending sequences. On April 5, 2009, the series premiered in Japan on Fuji TV.<sup id="cite_ref-103" class="reference"><a href="#cite_note-103"><span class="cite-bracket">[</span>95<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-104" class="reference"><a href="#cite_note-104"><span class="cite-bracket">[</span>96<span class="cite-bracket">]</span></a></sup> *Dragon Ball Z Kai* reduced the episode count to 159 episodes (167 episodes internationally), from the original 291. Damaged frames were removed, resulting in some minor shots being remade from scratch in order to fix cropping, and others to address continuity issues.<sup id="cite_ref-105" class="reference"><a href="#cite_note-105"><span class="cite-bracket">[</span>97<span class="cite-bracket">]</span></a></sup> The majority of the international versions, including [Funimation Entertainment](/wiki/Funimation)'s English dub, are titled *Dragon Ball Z Kai*.<sup id="cite_ref-106" class="reference"><a href="#cite_note-106"><span class="cite-bracket">[</span>98<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-107" class="reference"><a href="#cite_note-107"><span class="cite-bracket">[</span>99<span class="cite-bracket">]</span></a></sup>
+
+### *Dragon Ball Super* ###
+
+Main article: [*Dragon Ball Super* (TV series)](/wiki/Dragon_Ball_Super_(TV_series))
+
+Further information: [List of *Dragon Ball Super* episodes](/wiki/List_of_Dragon_Ball_Super_episodes)
+
+On April 28, 2015, Toei Animation announced *Dragon Ball Super* (ドラゴンボール超, *Doragon Bōru Sūpā*), the first all-new *Dragon Ball* television series to be released in 18 years. It debuted on July 5 of that year and ran as a weekly series at 9:00 am on Fuji TV on Sundays until its series finale on March 25, 2018, after 131 episodes.<sup id="cite_ref-DBSdebut_108-0" class="reference"><a href="#cite_note-DBSdebut-108"><span class="cite-bracket">[</span>100<span class="cite-bracket">]</span></a></sup> [Masako Nozawa](/wiki/Masako_Nozawa) reprised her roles as Goku, Gohan, and [Goten](/wiki/List_of_Dragon_Ball_characters#Goten). Most of the original cast reprised their roles as well.<sup id="cite_ref-creditsDBS_109-0" class="reference"><a href="#cite_note-creditsDBS-109"><span class="cite-bracket">[</span>101<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-castDBS_110-0" class="reference"><a href="#cite_note-castDBS-110"><span class="cite-bracket">[</span>102<span class="cite-bracket">]</span></a></sup> [Koichi Yamadera](/wiki/Koichi_Yamadera) and [Masakazu Morita](/wiki/Masakazu_Morita) also reprise their roles, as [Beerus](/wiki/Beerus) and [Whis](/wiki/List_of_Dragon_Ball_characters#Whis), respectively.<sup id="cite_ref-castDBS_110-1" class="reference"><a href="#cite_note-castDBS-110"><span class="cite-bracket">[</span>102<span class="cite-bracket">]</span></a></sup>
+
+The story of the anime is set after the defeat of [Majin Buu](/wiki/Majin_Buu), when the Earth has become peaceful once again. Akira Toriyama is credited as the original creator, as well for "original story and character design concepts".<sup id="cite_ref-111" class="reference"><a href="#cite_note-111"><span class="cite-bracket">[</span>103<span class="cite-bracket">]</span></a></sup> It is also being adapted into a parallel manga.<sup id="cite_ref-112" class="reference"><a href="#cite_note-112"><span class="cite-bracket">[</span>104<span class="cite-bracket">]</span></a></sup>
+
+### *Super Dragon Ball Heroes* ###
+
+Main article: [*Super Dragon Ball Heroes* (web series)](/wiki/Super_Dragon_Ball_Heroes_(web_series))
+
+Further information: [List of *Super Dragon Ball Heroes* episodes](/wiki/List_of_Super_Dragon_Ball_Heroes_episodes) and [*Dragon Ball Heroes*](/wiki/Dragon_Ball_Heroes)
+
+In May 2018, an anime to promote the *[Super Dragon Ball Heroes](/wiki/Dragon_Ball_Heroes)* card and video game series was announced.<sup id="cite_ref-113" class="reference"><a href="#cite_note-113"><span class="cite-bracket">[</span>105<span class="cite-bracket">]</span></a></sup> It was released online from July 1, 2018,<sup id="cite_ref-114" class="reference"><a href="#cite_note-114"><span class="cite-bracket">[</span>106<span class="cite-bracket">]</span></a></sup> to August 8, 2024.<sup id="cite_ref-115" class="reference"><a href="#cite_note-115"><span class="cite-bracket">[</span>107<span class="cite-bracket">]</span></a></sup>
+
+### *Dragon Ball Daima* ###
+
+Main article: [*Dragon Ball Daima*](/wiki/Dragon_Ball_Daima)
+
+Dragon Ball Daima aired on [Fuji TV](/wiki/Fuji_TV) from October 2024 to February 2025. It features a storyline set after the events of the Majin Buu Saga of *[Dragon Ball Z](/wiki/Dragon_Ball_Z)* but before *[Dragon Ball Super](/wiki/Dragon_Ball_Super_(TV_series))* and the last few episodes of *[Dragon Ball Z](/wiki/Dragon_Ball_Z)*. It is the last work of [Akira Toriyama](/wiki/Akira_Toriyama).
+
+### Other installments ###
+
+The short film *[Dragon Ball: Yo! Son Goku and His Friends Return!!](/wiki/Dragon_Ball:_Yo!_Son_Goku_and_His_Friends_Return!!)* was created for the Jump Super Anime Tour,<sup id="cite_ref-116" class="reference"><a href="#cite_note-116"><span class="cite-bracket">[</span>108<span class="cite-bracket">]</span></a></sup> which celebrated *Weekly Shōnen Jump*'s 40th anniversary, and debuted on September 21, 2008.<sup id="cite_ref-117" class="reference"><a href="#cite_note-117"><span class="cite-bracket">[</span>109<span class="cite-bracket">]</span></a></sup> A short animated adaptation of Naho Ōishi's Bardock spinoff manga, *[Dragon Ball: Episode of Bardock](/wiki/Dragon_Ball:_Episode_of_Bardock)*, was shown on December 17–18, 2011, at the Jump Festa 2012 event.<sup id="cite_ref-info_118-0" class="reference"><a href="#cite_note-info-118"><span class="cite-bracket">[</span>110<span class="cite-bracket">]</span></a></sup>
+
+A two-episode [original video animation (OVA)](/wiki/Original_video_animation) titled *[Dragon Ball Z Side Story: Plan to Eradicate the Saiyans](/wiki/Dragon_Ball_Z_Side_Story:_Plan_to_Eradicate_the_Saiyans)* was created in 1993 as [strategy guides](/wiki/Strategy_guide) for the [Famicom](/wiki/Nintendo_Entertainment_System) video game of the [same name](/wiki/List_of_Dragon_Ball_video_games#1990s).<sup id="cite_ref-119" class="reference"><a href="#cite_note-119"><span class="cite-bracket">[</span>111<span class="cite-bracket">]</span></a></sup> A remake titled *[Dragon Ball: Plan to Eradicate the Super Saiyans](/wiki/Dragon_Ball:_Plan_to_Eradicate_the_Super_Saiyans)* was created as a bonus feature for the [PlayStation 3](/wiki/PlayStation_3) and [Xbox 360](/wiki/Xbox_360) video game *[Dragon Ball: Raging Blast 2](/wiki/Dragon_Ball:_Raging_Blast_2)*, which was released on November 11, 2010.<sup id="cite_ref-120" class="reference"><a href="#cite_note-120"><span class="cite-bracket">[</span>112<span class="cite-bracket">]</span></a></sup>
+
+A two-part hour-long [crossover](/wiki/Crossover_(fiction)) special between *Dragon Ball Z*, *[One Piece](/wiki/One_Piece)* and *[Toriko](/wiki/Toriko)*, referred to as *[Dream 9 Toriko & One Piece & Dragon Ball Z Super Collaboration Special!!](/wiki/Dream_9_Toriko_%26_One_Piece_%26_Dragon_Ball_Z_Super_Collaboration_Special!!)* aired on April 7, 2013.<sup id="cite_ref-crossover_121-0" class="reference"><a href="#cite_note-crossover-121"><span class="cite-bracket">[</span>113<span class="cite-bracket">]</span></a></sup>
+
+### Reception ###
+
+The anime adaptations have also been well-received and are better known in the Western world than the manga, with Anime News Network saying, "Few anime series have mainstreamed it the way *Dragon Ball Z* has. To a certain generation of television consumers its characters are as well known as any in the animated realm, and for many it was the first step into the wilderness of anime fandom."<sup id="cite_ref-122" class="reference"><a href="#cite_note-122"><span class="cite-bracket">[</span>114<span class="cite-bracket">]</span></a></sup> In a survey conducted by Oricon, "Japanese anime that I think is world-class" and "world-class Manga & Anime" "Dragon Ball" was selected as No. 1 with an overwhelming number of votes in both surveys.<sup id="cite_ref-123" class="reference"><a href="#cite_note-123"><span class="cite-bracket">[</span>115<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-124" class="reference"><a href="#cite_note-124"><span class="cite-bracket">[</span>116<span class="cite-bracket">]</span></a></sup> In 2000, satellite TV channel [Animax](/wiki/Animax) together with *[Brutus](/wiki/Brutus_(magazine))*, a men's lifestyle magazine, and [Tsutaya](/wiki/Culture_Convenience_Club), Japan's largest video rental chain, conducted a poll among 200,000 fans on the top anime series, with *Dragon Ball* coming in fourth.<sup id="cite_ref-125" class="reference"><a href="#cite_note-125"><span class="cite-bracket">[</span>117<span class="cite-bracket">]</span></a></sup> "Dragon Ball" won first place in the "100 Best Anime in Japan that has advanced to the world" questionnaire on TV Asahi 's " Decision! This is Japan's Best ".<sup id="cite_ref-126" class="reference"><a href="#cite_note-126"><span class="cite-bracket">[</span>118<span class="cite-bracket">]</span></a></sup> [TV Asahi](/wiki/TV_Asahi) conducted two polls in 2005 on the Top 100 Anime, with *Dragon Ball* coming in second in the nationwide survey conducted with multiple age-groups and in third in the online poll.<sup id="cite_ref-127" class="reference"><a href="#cite_note-127"><span class="cite-bracket">[</span>119<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-128" class="reference"><a href="#cite_note-128"><span class="cite-bracket">[</span>120<span class="cite-bracket">]</span></a></sup>
+
+*Dragon Ball* is one of the most successful franchises in animation history.<sup id="cite_ref-latimes_129-0" class="reference"><a href="#cite_note-latimes-129"><span class="cite-bracket">[</span>121<span class="cite-bracket">]</span></a></sup> The anime series is broadcast in more than 80 countries worldwide.<sup id="cite_ref-gamebiz_97-1" class="reference"><a href="#cite_note-gamebiz-97"><span class="cite-bracket">[</span>89<span class="cite-bracket">]</span></a></sup> In Japan, the first [sixteen anime films](/wiki/List_of_Dragon_Ball_films) up until *[Dragon Ball Z: Wrath of the Dragon](/wiki/Dragon_Ball_Z:_Wrath_of_the_Dragon)* (1995) sold 50 million tickets and grossed over ¥40 billion ($501 million) at the box office, in addition to selling over 500,000 home video units by 1996.<sup id="cite_ref-130" class="reference"><a href="#cite_note-130"><span class="cite-bracket">[</span>122<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-131" class="reference"><a href="#cite_note-131"><span class="cite-bracket">[</span>123<span class="cite-bracket">]</span></a></sup> Later DVD releases of the *Dragon Ball* anime series have topped Japan's sales charts on several occasions.<sup id="cite_ref-132" class="reference"><a href="#cite_note-132"><span class="cite-bracket">[</span>124<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-133" class="reference"><a href="#cite_note-133"><span class="cite-bracket">[</span>125<span class="cite-bracket">]</span></a></sup> In the United States, the anime series sold over 25 million DVD units by January 2012,<sup id="cite_ref-Funimation_134-0" class="reference"><a href="#cite_note-Funimation-134"><span class="cite-bracket">[</span>126<span class="cite-bracket">]</span></a></sup> and had sold more than 30 million DVD and [Blu-ray](/wiki/Blu-ray) units as of 2017.<sup id="cite_ref-latimes_129-1" class="reference"><a href="#cite_note-latimes-129"><span class="cite-bracket">[</span>121<span class="cite-bracket">]</span></a></sup> In [Latin America](/wiki/Latin_America), public screenings of the *Dragon Ball Super* finale in 2018 filled public spaces and stadiums in cities across the region, including stadiums holding tens of thousands of spectators.<sup id="cite_ref-wired_135-0" class="reference"><a href="#cite_note-wired-135"><span class="cite-bracket">[</span>127<span class="cite-bracket">]</span></a></sup>
+
+*Dragon Ball Z* also proved to be a ratings success in the United States, outperforming top shows such as *[Friends](/wiki/Friends)* and *[The X-Files](/wiki/The_X-Files)* in some parts of the country in [sweeps](/wiki/Sweeps) ratings during its first season.<sup id="cite_ref-136" class="reference"><a href="#cite_note-136"><span class="cite-bracket">[</span>128<span class="cite-bracket">]</span></a></sup> The premiere of season three of *Dragon Ball Z* in 1999, done by [Funimation](/wiki/Funimation_Entertainment)'s in-house dub, was the highest-rated program ever at the time on Cartoon Network.<sup id="cite_ref-137" class="reference"><a href="#cite_note-137"><span class="cite-bracket">[</span>129<span class="cite-bracket">]</span></a></sup> In 2002, in the week ending September 22, *Dragon Ball Z* was the #1 program of the week on all of television with tweens 9–14, boys 9–14 and males 12–24, with the Monday, Tuesday and Wednesday telecasts of *Dragon Ball Z* ranked as the top three programs in all of television, broadcast or cable, for delivery of boys 9–14.<sup id="cite_ref-138" class="reference"><a href="#cite_note-138"><span class="cite-bracket">[</span>130<span class="cite-bracket">]</span></a></sup> *Dragon Ball GT* also had high ratings<sup id="cite_ref-139" class="reference"><a href="#cite_note-139"><span class="cite-bracket">[</span>131<span class="cite-bracket">]</span></a></sup> In 2001, it was reported that the official website of *Dragon Ball Z* recorded 4.7 million hits per day and included 500,000+ registered fans.<sup id="cite_ref-140" class="reference"><a href="#cite_note-140"><span class="cite-bracket">[</span>132<span class="cite-bracket">]</span></a></sup> *Dragon Ball Z* topped the Lycos 50 list of the "most searched" items for the second consecutive year—the first time that any topic has ever been able to repeat its dominance over a two-year period.<sup id="cite_ref-141" class="reference"><a href="#cite_note-141"><span class="cite-bracket">[</span>133<span class="cite-bracket">]</span></a></sup> *Dragon Ball* ranked second overall in the search number ranking for the past 10 years, as reported by [LYCOS](/wiki/Lycos) in 2005.<sup id="cite_ref-142" class="reference"><a href="#cite_note-142"><span class="cite-bracket">[</span>134<span class="cite-bracket">]</span></a></sup> It ranked 3rd in Yahoo! in 2002 with the [PlayStation 2](/wiki/PlayStation_2) topping the list.<sup id="cite_ref-143" class="reference"><a href="#cite_note-143"><span class="cite-bracket">[</span>135<span class="cite-bracket">]</span></a></sup> Even after its conclusion, the *Dragon Ball* series has continued to maintain a high level of popularity, surpassing that of newer anime, and is also often rebroadcast, making it Funimation's most important anime license.<sup id="cite_ref-144" class="reference"><a href="#cite_note-144"><span class="cite-bracket">[</span>136<span class="cite-bracket">]</span></a></sup> The audience rating of the first *Dragon Ball Ka*i episode on [Nicktoons](/wiki/Nicktoons_(American_TV_channel)) is the highest since the station launched.<sup id="cite_ref-145" class="reference"><a href="#cite_note-145"><span class="cite-bracket">[</span>137<span class="cite-bracket">]</span></a></sup>
+
+Carl Kimlinger of Anime News Network summed up *Dragon Ball* as "an action-packed tale told with rare humor and something even rarer—a genuine sense of adventure."<sup id="cite_ref-DBseason2_146-0" class="reference"><a href="#cite_note-DBseason2-146"><span class="cite-bracket">[</span>138<span class="cite-bracket">]</span></a></sup> Both Kimlinger and colleague Theron Martin noted Funimation's reputation for drastic alterations of the script, but praised the dub.<sup id="cite_ref-DBseason2_146-1" class="reference"><a href="#cite_note-DBseason2-146"><span class="cite-bracket">[</span>138<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-DBseason3_147-0" class="reference"><a href="#cite_note-DBseason3-147"><span class="cite-bracket">[</span>139<span class="cite-bracket">]</span></a></sup> However, some critics and most fans of the Japanese version have been more critical with Funimation's English dub and script of *Dragon Ball Z* over the years. Jeffrey Harris of [IGN](/wiki/IGN) criticized the voices, including how Frieza's appearance combined with the feminine English voice left fans confused about Frieza's gender.<sup id="cite_ref-IGN_148-0" class="reference"><a href="#cite_note-IGN-148"><span class="cite-bracket">[</span>140<span class="cite-bracket">]</span></a></sup> Carlos Ross of T.H.E.M. Anime Reviews considered the series' characters to be different from stereotypical stock characters and noted that they undergo much more development.<sup id="cite_ref-149" class="reference"><a href="#cite_note-149"><span class="cite-bracket">[</span>141<span class="cite-bracket">]</span></a></sup> Despite praising *Dragon Ball Z* for its cast of characters, they criticized it for having long and repetitive fights.<sup id="cite_ref-150" class="reference"><a href="#cite_note-150"><span class="cite-bracket">[</span>142<span class="cite-bracket">]</span></a></sup>
+
+*Dragon Ball Z* is well-known, and often criticized, for its long, repetitive, dragged-out fights that span several episodes, with Martin commenting "DBZ practically turned drawing out fights into an art form."<sup id="cite_ref-DBZSeason6_151-0" class="reference"><a href="#cite_note-DBZSeason6-151"><span class="cite-bracket">[</span>143<span class="cite-bracket">]</span></a></sup> However, Jason Thompson of io9 explained that this comes from the fact that the anime was being aired alongside the manga.<sup id="cite_ref-152" class="reference"><a href="#cite_note-152"><span class="cite-bracket">[</span>144<span class="cite-bracket">]</span></a></sup> *Dragon Ball Z* was listed as the 78th best animated show in [IGN](/wiki/IGN)'s Top 100 Animated Series list,<sup id="cite_ref-ign100_153-0" class="reference"><a href="#cite_note-ign100-153"><span class="cite-bracket">[</span>145<span class="cite-bracket">]</span></a></sup> and was also listed as the 50th greatest cartoon in [*Wizard* magazine](/wiki/Wizard_(magazine))'s Top 100 Greatest Cartoons list.<sup id="cite_ref-154" class="reference"><a href="#cite_note-154"><span class="cite-bracket">[</span>146<span class="cite-bracket">]</span></a></sup>
+
+Harris commented that *Dragon Ball GT* "is downright repellent", mentioning that the material and characters had lost their novelty and fun. He also criticized the *GT* character designs of [Trunks](/wiki/Trunks_(Dragon_Ball)) and [Vegeta](/wiki/Vegeta) as being goofy.<sup id="cite_ref-IGN_148-1" class="reference"><a href="#cite_note-IGN-148"><span class="cite-bracket">[</span>140<span class="cite-bracket">]</span></a></sup> Zac Bertschy of Anime News Network also gave negative comments about *GT*, mentioning that the fights from the series were "a very simple childish exercise" and that many other anime were superior. The plot of *Dragon Ball GT* has also been criticized for following a formula that was already used in its predecessors.<sup id="cite_ref-155" class="reference"><a href="#cite_note-155"><span class="cite-bracket">[</span>147<span class="cite-bracket">]</span></a></sup>
+
+Other media
+----------
+
+See also: [List of *Dragon Ball* films](/wiki/List_of_Dragon_Ball_films)
+
+### Anime films ###
+
+Twenty animated theatrical films based on the *Dragon Ball* series have been released in Japan. The most recent films, *[Dragon Ball Z: Battle of Gods](/wiki/Dragon_Ball_Z:_Battle_of_Gods)* (2013), *[Dragon Ball Z: Resurrection 'F'](/wiki/Dragon_Ball_Z:_Resurrection_%27F%27)* (2015), *[Dragon Ball Super: Broly](/wiki/Dragon_Ball_Super:_Broly)* (2018), and *[Dragon Ball Super: Super Hero](/wiki/Dragon_Ball_Super:_Super_Hero)* (2022), were produced as full-length feature films and were given stand-alone theatrical releases in Japan, as well as limited theatrical releases in the U.S. They were also the first *Dragon Ball* films to have significant involvement from Toriyama. *Battle of Gods* and *Resurrection 'F'* were remade into the first and second arcs of the *Dragon Ball Super* anime, which told the same stories as the two films in expanded detail.<sup id="cite_ref-BattleGods_156-0" class="reference"><a href="#cite_note-BattleGods-156"><span class="cite-bracket">[</span>148<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-157" class="reference"><a href="#cite_note-157"><span class="cite-bracket">[</span>149<span class="cite-bracket">]</span></a></sup> The 1996 feature film, *[Dragon Ball: The Path to Power](/wiki/Dragon_Ball:_The_Path_to_Power)*, was also a full-length theatrical release with a running time of 80 minutes, and was produced to coincide with the 10th anniversary of the anime as a re-imagining of the first few arcs of the series.
+
+All previous films were mostly below [feature length](/wiki/Feature_length) (around 45–60 minutes each), making them only slightly longer than one or two episodes of the TV series; this is due to them being originally shown as back-to-back presentations alongside other Toei film productions. These films are also mostly alternate re-tellings of certain story arcs (like *The Path to Power*), or extra side-stories that do not correlate with the continuity of the series. The first three films, along with *The Path to Power*, are based on the original *Dragon Ball* anime series. The remaining thirteen older films are based on *Dragon Ball Z*. The first five films were shown at the Toei Manga Festival ([東映まんがまつり](https://ja.wikipedia.org/wiki/%E6%9D%B1%E6%98%A0%E3%81%BE%E3%82%93%E3%81%8C%E3%81%BE%E3%81%A4%E3%82%8A), *Tōei Manga Matsuri*), while the sixth through seventeenth films were shown at the Toei Anime Fair ([東映アニメフェア](https://ja.wikipedia.org/wiki/%E6%9D%B1%E6%98%A0%E3%82%A2%E3%83%8B%E3%83%A1%E3%83%95%E3%82%A7%E3%82%A2), *Toei Anime Fea*).
+
+### Live-action film ###
+
+Main article: [*Dragonball Evolution*](/wiki/Dragonball_Evolution)
+
+Two unofficial live-action *Dragon Ball* films were released in the early 1990s. The first was a 1990 Korean film titled *Dragon Ball: Ssawora Son Goku, Igyeora Son Goku* (드래곤볼 싸워라 손오공 이겨라 손오공; *Deulaegonbol Ssawola Son Ogong Igyeola Son Ogong*; lit. '*Dragon Ball: Fight Son Goku, Win Son Goku*'), while the second was a 1991 Taiwanese film titled *Dragon Ball: The Magic Begins* (新七龍珠; *Xīn qī lóng zhū*), which was also dubbed in English.<sup id="cite_ref-158" class="reference"><a href="#cite_note-158"><span class="cite-bracket">[</span>150<span class="cite-bracket">]</span></a></sup>
+
+An American [live-action](/wiki/Live_action) film titled *Dragonball Evolution* was produced by [20th Century Fox](/wiki/20th_Century_Fox) after it acquired the [feature film](/wiki/Feature_film) rights to the *Dragon Ball* franchise in March 2002.<sup id="cite_ref-159" class="reference"><a href="#cite_note-159"><span class="cite-bracket">[</span>151<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-itsofficial_160-0" class="reference"><a href="#cite_note-itsofficial-160"><span class="cite-bracket">[</span>152<span class="cite-bracket">]</span></a></sup> The film was directed by [James Wong](/wiki/James_Wong_(producer)) and produced by [Stephen Chow](/wiki/Stephen_Chow), and was released in the United States on April 10, 2009.<sup id="cite_ref-itsofficial_160-1" class="reference"><a href="#cite_note-itsofficial-160"><span class="cite-bracket">[</span>152<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-FoxJapan_161-0" class="reference"><a href="#cite_note-FoxJapan-161"><span class="cite-bracket">[</span>153<span class="cite-bracket">]</span></a></sup> The film was meant to lead into sequels,<sup id="cite_ref-162" class="reference"><a href="#cite_note-162"><span class="cite-bracket">[</span>154<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-163" class="reference"><a href="#cite_note-163"><span class="cite-bracket">[</span>155<span class="cite-bracket">]</span></a></sup>which were cancelled after the film flopped at the box office and became universally heralded as one of the worst adaptations of all time, being considered by critics and fans as unfaithful to the source material.<sup id="cite_ref-164" class="reference"><a href="#cite_note-164"><span class="cite-bracket">[</span>156<span class="cite-bracket">]</span></a></sup> Franchise creator Akira Toriyama also criticized the film, adding he was completely left out of the creative process despite having offered to help, going as far as to say: "the result was a movie, I couldn't even call *Dragon Ball*".<sup id="cite_ref-165" class="reference"><a href="#cite_note-165"><span class="cite-bracket">[</span>157<span class="cite-bracket">]</span></a></sup> Years after its release, the writer of the film, Ben Ramsey, released a public apology in which he admitted to have written the film "chasing for a payday" instead of "as a fan of the franchise".<sup id="cite_ref-166" class="reference"><a href="#cite_note-166"><span class="cite-bracket">[</span>158<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-167" class="reference"><a href="#cite_note-167"><span class="cite-bracket">[</span>159<span class="cite-bracket">]</span></a></sup>
+
+With the news of [20th Century Fox selling itself](/wiki/Acquisition_of_21st_Century_Fox_by_Disney), its assets, which include the film rights to the *Dragon Ball* franchise, would now be owned by its purchaser, [The Walt Disney Company](/wiki/The_Walt_Disney_Company).<sup id="cite_ref-168" class="reference"><a href="#cite_note-168"><span class="cite-bracket">[</span>160<span class="cite-bracket">]</span></a></sup> However, there have been no plans made by The Walt Disney Company to create a new live-action *Dragon Ball* movie.<sup id="cite_ref-169" class="reference"><a href="#cite_note-169"><span class="cite-bracket">[</span>161<span class="cite-bracket">]</span></a></sup> *Dragon Ball Super: Super Hero* was the first *Dragon Ball* film to be distributed in the U.S. by [Sony Pictures](/wiki/Sony_Pictures) after they acquired [Crunchyroll](/wiki/Crunchyroll) in 2021 and merged it with Funimation in 2022.<sup id="cite_ref-170" class="reference"><a href="#cite_note-170"><span class="cite-bracket">[</span>162<span class="cite-bracket">]</span></a></sup> The first three episodes of *Dragon Ball Daima* were given a theatrical release in the U.S. by Toei Animation and [Fathom Events](/wiki/Fathom_Events).<sup id="cite_ref-171" class="reference"><a href="#cite_note-171"><span class="cite-bracket">[</span>163<span class="cite-bracket">]</span></a></sup>
+
+### Theme park attractions ###
+
+"Dragon Ball Z: The Real 4D" debuted at [Universal Studios Japan](/wiki/Universal_Studios_Japan) in the summer of 2016. It features a battle between Goku and Frieza. Unlike most *Dragon Ball* animation, the attraction is animated with [CGI](/wiki/Computer_animation). A second attraction titled "Dragon Ball Z: The Real 4-D at Super Tenkaichi Budokai" debuted at Universal Studios Japan in the summer of 2017, which featured a battle between the heroes and [Broly](/wiki/Broly).
+
+### Video games ###
+
+Main article: [List of *Dragon Ball* video games](/wiki/List_of_Dragon_Ball_video_games)
+
+[<img src="//upload.wikimedia.org/wikipedia/en/thumb/e/ea/Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg/250px-Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg" decoding="async" width="250" height="166" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/en/e/ea/Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg 2x" data-file-width="387" data-file-height="257">](/wiki/File:Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg)A *Dragon Ball Z* arcade conversion kit that includes the PCB, instructions and operator's manual
+
+The *Dragon Ball* franchise has spawned multiple video games across various genres and platforms. Earlier games of the series included a system of card battling and were released for the [Famicom](/wiki/Nintendo_Entertainment_System) following the storyline of the series.<sup id="cite_ref-172" class="reference"><a href="#cite_note-172"><span class="cite-bracket">[</span>164<span class="cite-bracket">]</span></a></sup> Starting with the [Super Famicom](/wiki/Super_Nintendo_Entertainment_System) and [Mega Drive](/wiki/Sega_Genesis), most of the games were from the [fighting](/wiki/Fighting_game) genre or [RPG](/wiki/Role-playing_game) (role-playing game), such as the *Super Butoden* series.<sup id="cite_ref-173" class="reference"><a href="#cite_note-173"><span class="cite-bracket">[</span>165<span class="cite-bracket">]</span></a></sup> The first *Dragon Ball* game to be released in the United States was *[Dragon Ball GT: Final Bout](/wiki/Dragon_Ball_GT:_Final_Bout)* for the [PlayStation](/wiki/PlayStation_(console)) in 1997.<sup id="cite_ref-174" class="reference"><a href="#cite_note-174"><span class="cite-bracket">[</span>166<span class="cite-bracket">]</span></a></sup> For the [PlayStation 2](/wiki/PlayStation_2) and [PlayStation Portable](/wiki/PlayStation_Portable) games the characters were redone in 3D [cel-shaded](/wiki/Cel-shaded) graphics. These games included the *[Dragon Ball Z: Budokai](/wiki/Dragon_Ball_Z:_Budokai)* series and the *[Dragon Ball Z: Budokai Tenkaichi](/wiki/Dragon_Ball_Z:_Budokai_Tenkaichi)* series.<sup id="cite_ref-175" class="reference"><a href="#cite_note-175"><span class="cite-bracket">[</span>167<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-176" class="reference"><a href="#cite_note-176"><span class="cite-bracket">[</span>168<span class="cite-bracket">]</span></a></sup> *[Dragon Ball Z: Burst Limit](/wiki/Dragon_Ball_Z:_Burst_Limit)* was the first game of the franchise developed for the [PlayStation 3](/wiki/PlayStation_3) and [Xbox 360](/wiki/Xbox_360).<sup id="cite_ref-177" class="reference"><a href="#cite_note-177"><span class="cite-bracket">[</span>169<span class="cite-bracket">]</span></a></sup> *[Dragon Ball Xenoverse](/wiki/Dragon_Ball_Xenoverse)* was the first game of the franchise developed for the [PlayStation 4](/wiki/PlayStation_4) and [Xbox One](/wiki/Xbox_One).<sup id="cite_ref-178" class="reference"><a href="#cite_note-178"><span class="cite-bracket">[</span>170<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-179" class="reference"><a href="#cite_note-179"><span class="cite-bracket">[</span>171<span class="cite-bracket">]</span></a></sup> A [massively multiplayer online role-playing](/wiki/Massively_multiplayer_online_role-playing) game called *[Dragon Ball Online](/wiki/Dragon_Ball_Online)* was available in South Korea, Hong Kong, and Taiwan until the servers were shut down in 2013.<sup id="cite_ref-180" class="reference"><a href="#cite_note-180"><span class="cite-bracket">[</span>172<span class="cite-bracket">]</span></a></sup> A few years later fans started recreating the game. Today, "Dragon Ball Online Global" is a new, European version of *Dragon Ball Online* and it is being developed, while open beta server is running.<sup id="cite_ref-181" class="reference"><a href="#cite_note-181"><span class="cite-bracket">[</span>173<span class="cite-bracket">]</span></a></sup>
+
+The mobile game *[Dragon Ball Z: Dokkan Battle](/wiki/Dragon_Ball_Z:_Dokkan_Battle)* (2015) has received over 350 million downloads worldwide, as of 2021<sup class="plainlinks noexcerpt noprint asof-tag update" style="display:none;"><a class="external text" data-mw-original-href="//en.wikipedia.org/w/index.php?title=Dragon_Ball&amp;action=edit" href="https://en.wikipedia.org/w/index.php?title=Dragon_Ball&amp;action=edit">[update]</a></sup>.<sup id="cite_ref-182" class="reference"><a href="#cite_note-182"><span class="cite-bracket">[</span>174<span class="cite-bracket">]</span></a></sup> A notable recent release is *[Dragon Ball FighterZ](/wiki/Dragon_Ball_FighterZ)* (2018), a fighting game developed by [Arc System Works](/wiki/Arc_System_Works). The game received massive fan and critical acclaim for its fast paced frantic 3v3 battles and great visuals, also winning Best Fighting Game of 2018 at [The Game Awards](/wiki/The_Game_Awards)<sup id="cite_ref-183" class="reference"><a href="#cite_note-183"><span class="cite-bracket">[</span>175<span class="cite-bracket">]</span></a></sup> and many other awards and other nominations. It also has a large [eSports](/wiki/ESports) scene, where it is one of the most popular fighting games.<sup id="cite_ref-wired_135-1" class="reference"><a href="#cite_note-wired-135"><span class="cite-bracket">[</span>127<span class="cite-bracket">]</span></a></sup> It also did very well commercially, selling 4 million units across all platforms.<sup id="cite_ref-184" class="reference"><a href="#cite_note-184"><span class="cite-bracket">[</span>176<span class="cite-bracket">]</span></a></sup>
+
+### Merchandise ###
+
+In 1994, the licensee [Bandai](/wiki/Bandai) earned $140 million annually from sales of licensed *Dragon Ball* toys, video games and other character goods in Japan.<sup id="cite_ref-185" class="reference"><a href="#cite_note-185"><span class="cite-bracket">[</span>177<span class="cite-bracket">]</span></a></sup> In 1996, *Dragon Ball Z* grossed $2.95 billion in merchandise sales worldwide.<sup id="cite_ref-186" class="reference"><a href="#cite_note-186"><span class="cite-bracket">[</span>178<span class="cite-bracket">]</span></a></sup> As of early 1996, more than 100 companies outside Japan applied for character goods.<sup id="cite_ref-187" class="reference"><a href="#cite_note-187"><span class="cite-bracket">[</span>179<span class="cite-bracket">]</span></a></sup> Bandai sold over 2 billion *Dragon Ball* [Carddass](/wiki/Carddass) cards in Japan by 1998,<sup id="cite_ref-188" class="reference"><a href="#cite_note-188"><span class="cite-bracket">[</span>180<span class="cite-bracket">]</span></a></sup> and over 1 million Dragon Stars [action figures](/wiki/Action_figure) in the Americas and Europe as of 2018.<sup id="cite_ref-189" class="reference"><a href="#cite_note-189"><span class="cite-bracket">[</span>181<span class="cite-bracket">]</span></a></sup> In 2000, [Burger King](/wiki/Burger_King) sponsored a toy promotion to distribute 20 million *Dragon Ball Z* figures across North America.<sup id="cite_ref-bk_190-0" class="reference"><a href="#cite_note-bk-190"><span class="cite-bracket">[</span>182<span class="cite-bracket">]</span></a></sup> By 2011, the franchise had generated $5 billion in merchandise sales.<sup id="cite_ref-191" class="reference"><a href="#cite_note-191"><span class="cite-bracket">[</span>183<span class="cite-bracket">]</span></a></sup> In 2012, the franchise grossed ¥7.67 billion ($96.13 million) from licensed merchandise sales in Japan.<sup id="cite_ref-charabiz_192-0" class="reference"><a href="#cite_note-charabiz-192"><span class="cite-bracket">[</span>184<span class="cite-bracket">]</span></a></sup>
+
+### Soundtracks ###
+
+See also: [List of *Dragon Ball* soundtracks](/wiki/List_of_Dragon_Ball_soundtracks)
+
+Myriad [soundtracks](/wiki/Soundtrack) were released in the anime, movies and the games. The music for the first two anime *Dragon Ball* and *Z* and its films was composed by [Shunsuke Kikuchi](/wiki/Shunsuke_Kikuchi), while the music from *GT* was composed by Akihito Tokunaga and the music from *Kai* was composed by Kenji Yamamoto and Norihito Sumitomo. For the first anime, the soundtracks released were *Dragon Ball: Music Collection* in 1985 and *Dragon Ball: Complete Song Collection* in 1991; they were reissued in 2007 and 2003, respectively.<sup id="cite_ref-193" class="reference"><a href="#cite_note-193"><span class="cite-bracket">[</span>185<span class="cite-bracket">]</span></a></sup> For the second anime, the soundtrack series released were *[Dragon Ball Z Hit Song Collection Series](/wiki/Dragon_Ball_Z_Hit_Song_Collection_Series)*. It was produced and released by [Columbia Records](/wiki/Columbia_Records) of Japan from July 21, 1989, to March 20, 1996, the show's entire lifespan. On September 20, 2006, Columbia re-released the Hit Song Collection on their Animex 1300 series.<sup id="cite_ref-194" class="reference"><a href="#cite_note-194"><span class="cite-bracket">[</span>186<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-195" class="reference"><a href="#cite_note-195"><span class="cite-bracket">[</span>187<span class="cite-bracket">]</span></a></sup> Other CDs released are compilations, video games and films soundtracks as well as music from the English versions.<sup id="cite_ref-196" class="reference"><a href="#cite_note-196"><span class="cite-bracket">[</span>188<span class="cite-bracket">]</span></a></sup>
+
+### Companion books ###
+
+[<img src="//upload.wikimedia.org/wikipedia/en/thumb/d/d0/Db_TCI.jpg/250px-Db_TCI.jpg" decoding="async" width="190" height="279" style="--mw-file-upright: 0.75" class="mw-file-element mw-file-upright" srcset="//upload.wikimedia.org/wikipedia/en/d/d0/Db_TCI.jpg 2x" data-file-width="260" data-file-height="382">](/wiki/File:Db_TCI.jpg)Cover of *Dragon Ball: The Complete Illustrations*
+
+There have been numerous companion books to the *Dragon Ball* franchise. Chief among these are the *Daizenshuu* (大全集) series, comprising seven hardback main volumes and three supplemental softcover volumes, covering the manga and the first two anime series and their theatrical films. The first of these, *Dragon Ball: The Complete Illustrations* (*Daizenshuu* volume 1), first published in Japan in 1995, is the only one that was released in English, being printed in 2008 by [Viz Media](/wiki/Viz_Media).<sup id="cite_ref-197" class="reference"><a href="#cite_note-197"><span class="cite-bracket">[</span>189<span class="cite-bracket">]</span></a></sup> It contains all 264 colored illustrations Akira Toriyama drew for the *[Weekly Shōnen Jump](/wiki/Weekly_Sh%C5%8Dnen_Jump)* magazines' covers, bonus giveaways and specials, and all the covers for the 42 *[tankōbon](/wiki/Tank%C5%8Dbon)*. It also includes an interview with Toriyama on his work process. The remainder have never been released in English, and all are now out of print in Japan. From February 4 to May 9, 2013, condensed versions of the *Daizenshuu* with some updated information were released as the four-volume *Chōzenshū* (超全集) series.<sup id="cite_ref-colorchozenshuu_47-1" class="reference"><a href="#cite_note-colorchozenshuu-47"><span class="cite-bracket">[</span>43<span class="cite-bracket">]</span></a></sup> For *Dragon Ball GT*, the *Dragon Ball GT Perfect Files* were released in May and December 1997 by [Shueisha](/wiki/Shueisha)'s *Jump Comics Selection* imprint. They include series information, illustration galleries, behind-the-scenes information, and more. They were out of print for many years, but were re-released in April 2006 (accompanying the Japanese DVD release of *Dragon Ball GT*) and this edition is still in print.<sup id="cite_ref-198" class="reference"><a href="#cite_note-198"><span class="cite-bracket">[</span>190<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-199" class="reference"><a href="#cite_note-199"><span class="cite-bracket">[</span>191<span class="cite-bracket">]</span></a></sup>
+
+Coinciding with the 34-volume *[kanzenban](/wiki/Kanzenban)* re-release of the manga, and the release of the entire series on DVD for the first time in Japan, four new guidebooks were released in 2003 and 2004. *Dragon Ball Landmark* and *Dragon Ball Forever* cover the manga, using volume numbers for story points that reference the *kanzenban* release,<sup id="cite_ref-200" class="reference"><a href="#cite_note-200"><span class="cite-bracket">[</span>192<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-201" class="reference"><a href="#cite_note-201"><span class="cite-bracket">[</span>193<span class="cite-bracket">]</span></a></sup> while *Dragon Ball: Tenkaichi Densetsu* (ドラゴンボール 天下一伝説) and *Dragon Ball Z: Son Goku Densetsu* (ドラゴンボールZ 孫悟空伝説) cover the *Dragon Ball* and *Dragon Ball Z* anime, respectively.<sup id="cite_ref-202" class="reference"><a href="#cite_note-202"><span class="cite-bracket">[</span>194<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-203" class="reference"><a href="#cite_note-203"><span class="cite-bracket">[</span>195<span class="cite-bracket">]</span></a></sup> Much of the material in these books is reused from the earlier *Daizenshuu* volumes, but they include new textual material including substantial interviews with the creator, cast and production staff of the series. *Son Goku Densetsu* in particular showcases previously unpublished design sketches of Goku's father Bardock, drawn by character designer Katsuyoshi Nakatsuru prior to creator Akira Toriyama's revisions that resulted in the final version.
+
+Following the release of *Dragon Ball Kai* in Japan, four new guidebooks were released: the two-volume *Dragon Ball: Super Exciting Guide* (ドラゴンボール 超エキサイティングガイド) in 2009, covering the manga,<sup id="cite_ref-204" class="reference"><a href="#cite_note-204"><span class="cite-bracket">[</span>196<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-205" class="reference"><a href="#cite_note-205"><span class="cite-bracket">[</span>197<span class="cite-bracket">]</span></a></sup> and two-volume *Dragon Ball: Extreme Battle Collection* (ドラゴンボール 極限バトルコレクション) in 2010, covering the anime series.<sup id="cite_ref-206" class="reference"><a href="#cite_note-206"><span class="cite-bracket">[</span>198<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-207" class="reference"><a href="#cite_note-207"><span class="cite-bracket">[</span>199<span class="cite-bracket">]</span></a></sup> Despite the TV series airing during this time being *Kai*, the *Extreme Battle Collection* books reference the earlier *Z* series in content and episode numbers. These books also include new question-and-answer sessions with Akira Toriyama, revealing a few new details about the world and characters of the series. 2010 also saw the release of a new artbook, *Dragon Ball: Anime Illustrations Guide – The Golden Warrior* (ドラゴンボール アニメイラスト集 「黄金の戦士」); a sort of anime-counterpart to the manga-oriented *Complete Illustrations*, it showcases anime-original illustrations and includes interviews with the three principal character designers for the anime. Each of the Japanese "Dragon Box" DVD releases of the series and movies, which were released from 2003 to 2006, as well as the [Blu-ray](/wiki/Blu-ray) boxed sets of *Dragon Ball Kai*, released 2009 to 2011, come with a *Dragon Book* guide that contains details about the content therein. Each also contains a new interview with a member of the cast or staff of the series. These books have been reproduced textually for Funimation's release of the *Dragon Ball Z* Dragon Box sets from 2009 to 2011.
+
+### Collectible cards ###
+
+See also: [*Dragon Ball Collectible Card Game*](/wiki/Dragon_Ball_Collectible_Card_Game) and [*Dragon Ball Z Collectible Card Game*](/wiki/Dragon_Ball_Z_Collectible_Card_Game)
+
+Collectible cards based on the *Dragon Ball*, *Dragon Ball Z*, and *Dragon Ball GT* series have been released by [Bandai](/wiki/Bandai). These cards feature various scenes from the manga and anime stills, plus exclusive artwork from all three series. Bandai released the first set in the United States in July 2008.<sup id="cite_ref-208" class="reference"><a href="#cite_note-208"><span class="cite-bracket">[</span>200<span class="cite-bracket">]</span></a></sup>
+
+### Tabletop role-playing game ###
+
+*[Dragon Ball Z: The Anime Adventure Game](/wiki/Dragon_Ball_Z:_The_Anime_Adventure_Game)*, a [tabletop role-playing game](/wiki/Tabletop_role-playing_game) produced by [R. Talsorian Games](/wiki/R._Talsorian_Games), was published in 1999.<sup id="cite_ref-review_209-0" class="reference"><a href="#cite_note-review-209"><span class="cite-bracket">[</span>201<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-210" class="reference"><a href="#cite_note-210"><span class="cite-bracket">[</span>202<span class="cite-bracket">]</span></a></sup>
+
+Notes
+----------
+
+1. **[^](#cite_ref-11)** Other sources estimate the total [*Dragon Ball* tankōbon](/wiki/List_of_Dragon_Ball_manga_volumes) sales worldwide to be 260 or 300 million copies.<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span class="cite-bracket">[</span>6<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-7" class="reference"><a href="#cite_note-7"><span class="cite-bracket">[</span>7<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-8" class="reference"><a href="#cite_note-8"><span class="cite-bracket">[</span>8<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-9" class="reference"><a href="#cite_note-9"><span class="cite-bracket">[</span>9<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-10" class="reference"><a href="#cite_note-10"><span class="cite-bracket">[</span>10<span class="cite-bracket">]</span></a></sup> See *[Dragon Ball (manga) § Reception](/wiki/Dragon_Ball_(manga)#Reception)* for worldwide sales breakdown.
+2. **[^](#cite_ref-WSJ_12-0)** See *[Weekly Shōnen Jump § Manga series](/wiki/Weekly_Sh%C5%8Dnen_Jump#Manga_series)*
+3. **[^](#cite_ref-13)** In addition to tankōbon sales, *Dragon Ball* had a total estimated circulation of approximately 2.96 billion copies in *Weekly Shōnen Jump* magazine.<sup id="cite_ref-WSJ_12-0" class="reference"><a href="#cite_note-WSJ-12"><span class="cite-bracket">[</span>b<span class="cite-bracket">]</span></a></sup>
+4. **[^](#cite_ref-Multiverse_15-0)** Originally there were eighteen universes, but six of them were since erased by [Zeno](/wiki/List_of_Dragon_Ball_characters#Zeno), a supreme deity.
+5. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Circulation_66-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Circulation_66-1) See *[Weekly Shōnen Jump § Circulation figures](/wiki/Weekly_Sh%C5%8Dnen_Jump#Circulation_figures)*
+6. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-China_79-0) [<sup><i><b>b</b></i></sup>](#cite_ref-China_79-1) Additionally, more than 100 million unofficial pirated copies are estimated to have been sold in China, as of 2005.<sup id="cite_ref-chinakai_78-0" class="reference"><a href="#cite_note-chinakai-78"><span class="cite-bracket">[</span>73<span class="cite-bracket">]</span></a></sup>
+7. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Korea_80-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Korea_80-1) Additionally, more than 30 million unofficial pirated copies are estimated to have been sold in South Korea, as of 2014.<sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (May 2024)">citation needed</span></a></i>]</sup>
+8. **[^](#cite_ref-Pirate_81-0)** Tally does not include unofficial pirated copies. When including the over 130 million unofficial pirated copies sold in China and South Korea,<sup id="cite_ref-China_79-0" class="reference"><a href="#cite_note-China-79"><span class="cite-bracket">[</span>f<span class="cite-bracket">]</span></a></sup><sup id="cite_ref-Korea_80-0" class="reference"><a href="#cite_note-Korea-80"><span class="cite-bracket">[</span>g<span class="cite-bracket">]</span></a></sup> an estimated total of more than 470 million official and unofficial copies have been sold worldwide.
+
+References
+----------
+
+1. **[^](#cite_ref-1)**
+   > ["The Martial Arts of Dragon Ball Z"](https://www.nkkf.org/blogs/the-martial-arts-of-dragon-ball-z). *www.nkkf.org*. [Archived](https://web.archive.org/web/20230527135600/https://www.nkkf.org/blogs/the-martial-arts-of-dragon-ball-z) from the original on May 27, 2023. Retrieved May 27, 2023.
+
+2. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Arts_2-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Arts_2-1)
+   > Arts, Way of Martial. ["What Martial Arts Does Goku Use? (Do They Work In Real Life?)"](https://web.archive.org/web/20230527135559/https://wayofmartialarts.com/what-martial-arts-does-goku-use/). *Way of Martial Arts*. Archived from [the original](https://wayofmartialarts.com/what-martial-arts-does-goku-use/) on May 27, 2023. Retrieved May 27, 2023.
+
+3. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Gerardo-2021_3-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Gerardo-2021_3-1)
+   > Gerardo (April 19, 2021). ["What Martial Arts Does Goku Use in Dragon Ball Z?"](https://combatmuseum.com/what-martial-arts-does-goku-use-in-dragon-ball-z/). *Combat Museum*. [Archived](https://web.archive.org/web/20230527135559/https://combatmuseum.com/what-martial-arts-does-goku-use-in-dragon-ball-z/) from the original on May 27, 2023. Retrieved May 27, 2023.
+
+4. **[^](#cite_ref-4)**
+   > ["Dragon Ball: 10 Fictional Fighting Styles That Are Actually Based On Real Ones"](https://www.cbr.com/dragon-ball-fighting-based-real/). *CBR*. May 5, 2020. [Archived](https://web.archive.org/web/20230527135558/https://www.cbr.com/dragon-ball-fighting-based-real/) from the original on May 27, 2023. Retrieved May 27, 2023.
+
+5. **[^](#cite_ref-5)**
+   > ["DRAGON BALL SUPER: SUPER HERO GLOBAL THEATRICAL RELEASE DATES"](https://corp.toei-anim.co.jp/en/press/press-220615.html). *[Toei Animation](/wiki/Toei_Animation)*. June 15, 2022. [Archived](https://web.archive.org/web/20221212074137/https://corp.toei-anim.co.jp/en/press/press-220615.html) from the original on December 12, 2022. Retrieved July 13, 2023.
+
+6. **[^](#cite_ref-6)**
+   > Johnson, G. Allen (January 16, 2019). ["'Dragon Ball Super: Broly,' 20th film of anime empire, opens in Bay Area"](https://datebook.sfchronicle.com/movies-tv/dragon-ball-super-broly-20th-film-of-anime-empire-opens-in-bay-area). *[San Francisco Chronicle](/wiki/San_Francisco_Chronicle)*. [Archived](https://web.archive.org/web/20190116024917/http://datebook.sfchronicle.com/movies-tv/dragon-ball-super-broly-20th-film-of-anime-empire-opens-in-bay-area) from the original on January 16, 2019. Retrieved January 23, 2019.
+
+7. **[^](#cite_ref-7)**
+   > Booker, M. Keith (2014). [*Comics through Time: A History of Icons, Idols, and Ideas*](https://books.google.com/books?id=hnuQBQAAQBAJ&pg=RA2-PR39). [ABC-CLIO](/wiki/ABC-CLIO). p. xxxix. [ISBN](/wiki/ISBN_(identifier)) [9780313397516](/wiki/Special:BookSources/9780313397516). [Archived](https://web.archive.org/web/20190210092056/https://books.google.com/books?id=hnuQBQAAQBAJ&pg=RA2-PR39) from the original on February 10, 2019. Retrieved August 16, 2018.
+
+8. **[^](#cite_ref-8)**
+   > [『ドラゴンボール超』劇場版最新作、2022年に公開決定](https://corp.toei-anim.co.jp/ja/press/press1756269914992343745.html). *[Toei Animation](/wiki/Toei_Animation)* (in Japanese). May 9, 2021. [Archived](https://web.archive.org/web/20211025185940/https://corp.toei-anim.co.jp/ja/press/press1756269914992343745.html) from the original on October 25, 2021. Retrieved May 18, 2021.
+
+9. **[^](#cite_ref-9)**
+   > [ドラゴンボール超Dragon スーパーヒーロー："930倍"超巨大2.4メートルの超ムビチケ好調 3日間で受注200件 想定以上の売れ行き](https://mantan-web.jp/article/20220307dog00m200052000c.html). *Mantan Web* (in Japanese). March 7, 2022. [Archived](https://web.archive.org/web/20220421181024/https://mantan-web.jp/amp/article/20220307dog00m200052000c.html) from the original on April 21, 2022. Retrieved March 15, 2022.
+
+10. **[^](#cite_ref-10)**
+   > ["Top Manga Properties in 2008 - Rankings and Circulation Data"](http://comipress.com/article/2008/12/31/3733). Comipress. December 31, 2008. Retrieved November 28, 2013.
+
+   `{{[cite web](/wiki/Template:Cite_web)}}`: CS1 maint: deprecated archival service ([link](/wiki/Category:CS1_maint:_deprecated_archival_service))
+11. **[^](#cite_ref-14)** *SOS from the Future: A Dark New Enemy Appears!*, [Funimation](/wiki/Funimation) dub
+12. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Guide_16-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Guide_16-1)
+   > ["Akira Toriyama × Katsuyoshi Nakatsuru"](https://www.kanzenshuu.com/translations/son-goku-densetsu-toriyama-x-nakatsuru/). *TV Anime Guide: Dragon Ball Z Son Goku Densetsu*. [Shueisha](/wiki/Shueisha). 2003. [ISBN](/wiki/ISBN_(identifier)) [4088735463](/wiki/Special:BookSources/4088735463). [Archived](https://web.archive.org/web/20200903173254/https://www.kanzenshuu.com/translations/son-goku-densetsu-toriyama-x-nakatsuru/) from the original on September 3, 2020. Retrieved November 21, 2019.
+
+13. **[^](#cite_ref-17)**
+   > [*The Dragon Ball Z Legend: The Quest Continues*](https://archive.org/details/dragonballzlegen00iked). DH Publishing Inc. 2004. p. [7](https://archive.org/details/dragonballzlegen00iked/page/n8). [ISBN](/wiki/ISBN_(identifier)) [9780972312493](/wiki/Special:BookSources/9780972312493).
+
+14. **[^](#cite_ref-18)**
+   > ["Interview — Dragon Power / Ask Akira Toriyama!"](https://www.kanzenshuu.com/press-archive/shonen-jump-january-2003-interview-dragon-power-ask-akira-toriyama/). *[Shonen Jump](/wiki/Shonen_Jump_(magazine))* (1). January 2003. [Archived](https://web.archive.org/web/20200903173305/https://www.kanzenshuu.com/press-archive/shonen-jump-january-2003-interview-dragon-power-ask-akira-toriyama/) from the original on September 3, 2020. Retrieved June 23, 2020.
+
+15. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-AnimeEncyc_19-0) [<sup><i><b>b</b></i></sup>](#cite_ref-AnimeEncyc_19-1) [<sup><i><b>c</b></i></sup>](#cite_ref-AnimeEncyc_19-2) [<sup><i><b>d</b></i></sup>](#cite_ref-AnimeEncyc_19-3) [<sup><i><b>e</b></i></sup>](#cite_ref-AnimeEncyc_19-4)
+   > [Clements, Jonathan](/wiki/Jonathan_Clements); [Helen McCarthy](/wiki/Helen_McCarthy) (September 1, 2001). [*The Anime Encyclopedia: A Guide to Japanese Animation Since 1917*](https://archive.org/details/animeencyclopedi00clem) (1st ed.). Berkeley, California: Stone Bridge Press. pp. [101](https://archive.org/details/animeencyclopedi00clem/page/101)–102. [ISBN](/wiki/ISBN_(identifier)) [1-880656-64-7](/wiki/Special:BookSources/1-880656-64-7). [OCLC](/wiki/OCLC_(identifier)) [47255331](https://search.worldcat.org/oclc/47255331).
+
+16. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Manga_Design_20-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Manga_Design_20-1)
+   > Wiedemann, Julius (September 25, 2004). "Akira Toriyama". In Amano Masanao (ed.). *Manga Design*. [Taschen](/wiki/Taschen). p. 372. [ISBN](/wiki/ISBN_(identifier)) [3-8228-2591-3](/wiki/Special:BookSources/3-8228-2591-3).
+
+17. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Story_21-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Story_21-1) [<sup><i><b>c</b></i></sup>](#cite_ref-Story_21-2) [<sup><i><b>d</b></i></sup>](#cite_ref-Story_21-3) [<sup><i><b>e</b></i></sup>](#cite_ref-Story_21-4) [<sup><i><b>f</b></i></sup>](#cite_ref-Story_21-5) [<sup><i><b>g</b></i></sup>](#cite_ref-Story_21-6)
+   > [DRAGON BALL 大全集 2: STORY GUIDE](https://www.kanzenshuu.com/translations/daizenshuu-2-akira-toriyama-super-interview/) (in Japanese). [Shueisha](/wiki/Shueisha). 1995. pp. 261–265. [ISBN](/wiki/ISBN_(identifier)) [4-08-782752-6](/wiki/Special:BookSources/4-08-782752-6). [Archived](https://web.archive.org/web/20210205235616/https://www.kanzenshuu.com/translations/daizenshuu-2-akira-toriyama-super-interview/) from the original on February 5, 2021. Retrieved March 25, 2021.
+
+18. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-TenkaDen_22-0) [<sup><i><b>b</b></i></sup>](#cite_ref-TenkaDen_22-1) [<sup><i><b>c</b></i></sup>](#cite_ref-TenkaDen_22-2)
+   > DRAGON BALL 天下一伝説 (in Japanese). [Shueisha](/wiki/Shueisha). 2004. pp. 80–91. [ISBN](/wiki/ISBN_(identifier)) [4-08-873705-9](/wiki/Special:BookSources/4-08-873705-9).
+
+19. **[^](#cite_ref-23)**
+   > "The Truth About the "Dragon Ball" Manga: "Toriyama Thought of It Like This" Special". *Dragon Ball Super Exciting Guide: Story-Hen* (DRAGON BALL 超エキサイティングガイド ストーリー編) [*Dragon Ball Super Exciting Guide: Story Volume*]. Tōkyō: [Shūeisha](/wiki/Sh%C5%ABeisha). March 4, 2009. pp. 87–93. [ISBN](/wiki/ISBN_(identifier)) [978-4088748030](/wiki/Special:BookSources/978-4088748030).
+   > > When I came up with *Dragon Ball*, I thought I would try to combine the Kung-Fu movies of Jackie Chan and Bruce Lee, which I loved so much that I'd watch them on video even while I was working, with the classic *Journey to the West* to make an enjoyable manga.
+   >
+   >
+
+20. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Illustrations_24-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Illustrations_24-1) [<sup><i><b>c</b></i></sup>](#cite_ref-Illustrations_24-2)
+   > DRAGON BALL 大全集 1: COMPLETE ILLUSTRATIONS (in Japanese). [Shueisha](/wiki/Shueisha). 1995. pp. 206–207. [ISBN](/wiki/ISBN_(identifier)) [4-08-782754-2](/wiki/Special:BookSources/4-08-782754-2).
+
+21. **[^](#cite_ref-25)**
+   > Padula, Derek (2015). [*Dragon Ball Culture Volume 2: Adventure*](https://books.google.com/books?id=uxcqBgAAQBAJ&pg=PT53). Derek Padula. p. 53. [ISBN](/wiki/ISBN_(identifier)) [978-0-9831205-4-4](/wiki/Special:BookSources/978-0-9831205-4-4). [Archived](https://web.archive.org/web/20200903173249/https://books.google.com/books?id=uxcqBgAAQBAJ&pg=PT53) from the original on September 3, 2020. Retrieved April 29, 2020.
+
+22. **[^](#cite_ref-26)**
+   > "Akira Toriyama Q&A". *ドラゴンボール 冒険SPECIAL* [*Dragon Ball: Adventure Special*] (in Japanese). [Shueisha](/wiki/Shueisha). November 18, 1987.
+
+   * > ["A Full-Coverage Q&A With Toriyama!!: Is That So?! The Dragon Balls"](https://www.kanzenshuu.com/translations/adventure-special-toriyama-qa/). *Kanzenshuu*. [Archived](https://web.archive.org/web/20210910151803/https://www.kanzenshuu.com/translations/adventure-special-toriyama-qa/) from the original on September 10, 2021. Retrieved September 10, 2021.
+
+23. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Shenlong2_27-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Shenlong2_27-1)
+   > "Shenlong Times 2". *Dragon Ball 大全集 2: Story Guide [Dragon Ball Complete Works 2: Story Guide]* (in Japanese). [Shueisha](/wiki/Shueisha). 1995.
+
+24. **[^](#cite_ref-28)**
+   > ["Toriyama/Takahashi interview"](http://www.furinkan.com/takahashi/takahashi4.html). Furinkan.com. 1986. [Archived](https://web.archive.org/web/20170802142058/http://www.furinkan.com/takahashi/takahashi4.html) from the original on August 2, 2017. Retrieved May 18, 2014.
+
+25. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-World_29-0) [<sup><i><b>b</b></i></sup>](#cite_ref-World_29-1) [<sup><i><b>c</b></i></sup>](#cite_ref-World_29-2)
+   > DRAGON BALL 大全集 4: WORLD GUIDE. [Shueisha](/wiki/Shueisha). 1995. pp. 164–169. [ISBN](/wiki/ISBN_(identifier)) [4-08-782754-2](/wiki/Special:BookSources/4-08-782754-2).
+
+26. **[^](#cite_ref-30)**
+   > ["Jason Thompson's House of 1000 Manga"](https://www.animenewsnetwork.com/house-of-1000-manga/2011-03-10). *[Anime News Network](/wiki/Anime_News_Network)*. March 10, 2011. [Archived](https://web.archive.org/web/20190117184117/https://www.animenewsnetwork.com/house-of-1000-manga/2011-03-10) from the original on January 17, 2019. Retrieved January 28, 2019.
+
+27. **[^](#cite_ref-31)**
+   > ["Dragon Ball Collector — Interview with the Majin"](https://www.kanzenshuu.com/press-archive/shonen-jump-october-2007-dragon-ball-collector-interview-with-the-majin/). *[Shonen Jump](/wiki/Shonen_Jump_(magazine))*. No. 58. October 2007. [Archived](https://web.archive.org/web/20200903173250/https://www.kanzenshuu.com/press-archive/shonen-jump-october-2007-dragon-ball-collector-interview-with-the-majin/) from the original on September 3, 2020. Retrieved June 9, 2020.
+
+28. **[^](#cite_ref-32)**
+   > [Toriyama, Akira](/wiki/Akira_Toriyama) (2004). DRAGON BALL 天下一伝説 (in Japanese). [Shueisha](/wiki/Shueisha). pp. 80–91. [ISBN](/wiki/ISBN_(identifier)) [4-08-873705-9](/wiki/Special:BookSources/4-08-873705-9).
+
+29. **[^](#cite_ref-33)**
+   > [Toriyama, Akira](/wiki/Akira_Toriyama) (1995). DRAGON BALL 大全集 5: TV ANIMATION PART 2. [Shueisha](/wiki/Shueisha). pp. 206–210. [ISBN](/wiki/ISBN_(identifier)) [4-08-782755-0](/wiki/Special:BookSources/4-08-782755-0).
+
+30. **[^](#cite_ref-34)**
+   > ["Comic Legends: Why Did Goku's Hair Turn Blonde?"](https://www.cbr.com/goku-dragon-ball-blonde/). *[Comic Book Resources](/wiki/Comic_Book_Resources)*. January 1, 2018. [Archived](https://web.archive.org/web/20180719145451/https://www.cbr.com/goku-dragon-ball-blonde/) from the original on July 19, 2018. Retrieved November 21, 2019.
+
+31. **[^](#cite_ref-35)**
+   > "Dragon Ball Back Then Vol. 2: Interview with "Dragon Ball Z" character designer Tadayoshi Yamamuro". *Dragon Ball Anime Illustration: Kin'iro no Senshi* (ドラゴンボール アニメイラスト集 「黄金の戦士」) [*Dragon Ball Anime Illustration Collection: The Golden Warrior*] (in Japanese). Tōkyō: Hōmusha. April 21, 2010. pp. 50–1. [ISBN](/wiki/ISBN_(identifier)) [978-4834284133](/wiki/Special:BookSources/978-4834284133).
+
+32. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-SJ_interview_36-0) [<sup><i><b>b</b></i></sup>](#cite_ref-SJ_interview_36-1)
+   > "Interview with the Majin! Revisited". *[Shonen Jump](/wiki/Shonen_Jump_(magazine))*. **5** (11). [Viz Media](/wiki/Viz_Media): 388. November 2007. [ISSN](/wiki/ISSN_(identifier)) [1545-7818](https://search.worldcat.org/issn/1545-7818).
+
+33. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Chogashu_37-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Chogashu_37-1)
+   > DRAGON BALL 超画集 (in Japanese). [Shueisha](/wiki/Shueisha). 2013. pp. 224–225. [ISBN](/wiki/ISBN_(identifier)) [978-4-08-782520-6](/wiki/Special:BookSources/978-4-08-782520-6).
+
+34. **[^](#cite_ref-38)**
+   > DRAGON BALL 大全集 5: TV ANIMATION PART 2. [Shueisha](/wiki/Shueisha). 1995. pp. 206–210. [ISBN](/wiki/ISBN_(identifier)) [4-08-782755-0](/wiki/Special:BookSources/4-08-782755-0).
+
+35. **[^](#cite_ref-AsahiInterview_39-0)**
+   > Iwamoto, Tetsuo (March 27, 2013). ["Dragon Ball artist: 'I just wanted to make boys happy'"](http://ajw.asahi.com/article/cool_japan/culture/AJ201303270032). *[Asahi Shimbun](/wiki/Asahi_Shimbun)*. [Archived](https://web.archive.org/web/20130401232100/http://ajw.asahi.com/article/cool_japan/culture/AJ201303270032) from the original on April 1, 2013. Retrieved September 20, 2013.
+
+36. **[^](#cite_ref-40)**
+   > [週刊少年ジャンプ 1984/12/03 表示号数51](https://web.archive.org/web/20161009171854/http://mediaarts-db.jp/mg/magazines/322516). *Media Arts Database* (in Japanese). [Agency for Cultural Affairs](/wiki/Agency_for_Cultural_Affairs). Archived from [the original](http://mediaarts-db.jp/mg/magazines/322516) on October 9, 2016.
+
+37. **[^](#cite_ref-41)**
+   > [週刊少年ジャンプ 1995/06/05 表示号数25](https://web.archive.org/web/20160322110201/http://mediaarts-db.jp/mg/magazines/321985). *Media Arts Database* (in Japanese). Agency for Cultural Affairs. Archived from [the original](http://mediaarts-db.jp/mg/magazines/321985) on March 22, 2016.
+
+38. **[^](#cite_ref-sold_42-0)**
+   > ["Comipress News article on "The Rise and Fall of Weekly Shōnen Jump""](http://comipress.com/article/2007/05/06/1923). *comipress.com*. May 6, 2007. [Archived](https://web.archive.org/web/20120213050220/http://comipress.com/article/2007/05/06/1923) from the original on February 13, 2012. Retrieved June 2, 2008.
+
+39. **[^](#cite_ref-Shueisha_1_43-0)**
+   > [DRAGON BALL 1 ドラゴンボール](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-851831-4&mode=1) (in Japanese). [Shueisha](/wiki/Shueisha). [Archived](https://web.archive.org/web/20170313005147/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-851831-4&mode=1) from the original on March 13, 2017. Retrieved June 2, 2008.
+
+40. **[^](#cite_ref-ShueishaZ_26_44-0)**
+   > [DRAGON BALL 42 ドラゴンボール](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-851090-9&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20150929031254/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-851090-9&mode=1) from the original on September 29, 2015. Retrieved June 2, 2008.
+
+41. **[^](#cite_ref-45)**
+   > [DRAGON BALL 完全版 1](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873444-0&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20161006082655/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873444-0&mode=1) from the original on October 6, 2016. Retrieved August 28, 2016.
+
+42. **[^](#cite_ref-46)**
+   > [DRAGON BALL 完全版 34](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873477-7&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20161006083125/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873477-7&mode=1) from the original on October 6, 2016. Retrieved August 28, 2016.
+
+43. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-colorchozenshuu_47-0) [<sup><i><b>b</b></i></sup>](#cite_ref-colorchozenshuu_47-1)
+   > ["Dragon Ball Manga Reprinted in Full Color in Japan"](https://www.animenewsnetwork.com/news/2012-12-20/dragon-ball-manga-reprinted-in-full-color-in-japan). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173253/https://www.animenewsnetwork.com/news/2012-12-20/dragon-ball-manga-reprinted-in-full-color-in-japan) from the original on September 3, 2020. Retrieved December 21, 2012.
+
+44. **[^](#cite_ref-48)**
+   > [ドラゴンボール フルカラー サイヤ人編 1](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-870707-5&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20150927140936/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-870707-5&mode=1) from the original on September 27, 2015. Retrieved September 9, 2015.
+
+45. **[^](#cite_ref-49)**
+   > [ドラゴンボール フルカラー 魔人ブウ編 6](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-880112-4&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20160526200020/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-880112-4&mode=1) from the original on May 26, 2016. Retrieved September 9, 2015.
+
+46. **[^](#cite_ref-50)**
+   > [ドラゴンボール フルカラー 少年編 1](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-880571-9&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20161016213546/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-880571-9&mode=1) from the original on October 16, 2016. Retrieved August 28, 2016.
+
+47. **[^](#cite_ref-51)**
+   > [ドラゴンボール フルカラー ピッコロ大魔王編 4](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-880645-7&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20170802142103/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-880645-7&mode=1) from the original on August 2, 2017. Retrieved August 28, 2016.
+
+48. **[^](#cite_ref-52)**
+   > [DRAGON BALL総集編 超悟空伝 Legend1](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-111165-7&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20160731124344/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-111165-7&mode=1) from the original on July 31, 2016. Retrieved August 28, 2016.
+
+49. **[^](#cite_ref-53)**
+   > [DRAGON BALL総集編 超悟空伝 Legend18](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-111182-4&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20170802142058/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-111182-4&mode=1) from the original on August 2, 2017. Retrieved February 25, 2017.
+
+50. **[^](#cite_ref-54)**
+   > ["Dragon Ball Episode of Bardock Spinoff Manga Gets Anime"](https://www.animenewsnetwork.com/news/2011-11-21/dragon-ball-episode-of-bardock-spinoff-manga-gets-anime). *[Anime News Network](/wiki/Anime_News_Network)*. November 21, 2011. [Archived](https://web.archive.org/web/20200903173252/https://www.animenewsnetwork.com/news/2011-11-21/dragon-ball-episode-of-bardock-spinoff-manga-gets-anime) from the original on September 3, 2020. Retrieved December 15, 2012.
+
+51. **[^](#cite_ref-55)**
+   > "The Galactic Patrolman's Completed Mission". *[Weekly Shōnen Jump](/wiki/Weekly_Sh%C5%8Dnen_Jump)* (44). [Shueisha](/wiki/Shueisha). September 30, 2013.
+
+52. **[^](#cite_ref-56)**
+   > ["Dragon Ball Bonus Story to Run in Viz's Shonen Jump on Monday"](https://www.animenewsnetwork.com/news/2014-04-03/dragon-ball-bonus-story-to-run-in-viz-shonen-jump-on-monday). *[Anime News Network](/wiki/Anime_News_Network)*. April 3, 2014. [Archived](https://web.archive.org/web/20200903173254/https://www.animenewsnetwork.com/news/2014-04-03/dragon-ball-bonus-story-to-run-in-viz-shonen-jump-on-monday) from the original on September 3, 2020. Retrieved April 4, 2014.
+
+53. **[^](#cite_ref-57)**
+   > Chapman, Paul (December 12, 2016). [""Dragon Ball" Spin-Off Imagines a World Where Yamcha Totally Rules"](http://www.crunchyroll.com/anime-news/2016/12/11-1/dragon-ball-spin-off-imagines-a-world-where-yamcha-totally-rules). [Crunchyroll](/wiki/Crunchyroll). [Archived](https://web.archive.org/web/20161213114717/http://www.crunchyroll.com/anime-news/2016/12/11-1/dragon-ball-spin-off-imagines-a-world-where-yamcha-totally-rules) from the original on December 13, 2016. Retrieved February 25, 2017.
+
+54. **[^](#cite_ref-58)**
+   > ["Dragon Ball Gets Spinoff Manga About Yamcha as the Hero"](https://www.animenewsnetwork.com/news/2016-12-13/dragon-ball-gets-spinoff-manga-about-yamcha-as-the-hero/.109822). *[Anime News Network](/wiki/Anime_News_Network)*. December 13, 2016. Retrieved July 10, 2025.
+
+55. **[^](#cite_ref-59)**
+   > [ネコマジン 完全版](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-851090-9&mode=1) (in Japanese). Shueisha. [Archived](https://web.archive.org/web/20150929031254/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-851090-9&mode=1) from the original on September 29, 2015. Retrieved June 22, 2008.
+
+56. **[^](#cite_ref-60)**
+   > 超こち亀. [ASIN](/wiki/Amazon_Standard_Identification_Number) [4088740963](https://www.amazon.co.jp/dp/4088740963).
+
+57. **[^](#cite_ref-61)**
+   > ["Comics Spotlight on Shonen Jump #100"](https://www.wired.com/2011/03/comics-spotlight-on-shonen-jump-100/). *[Wired](/wiki/Wired_(website))*. [Archived](https://web.archive.org/web/20170520071025/https://www.wired.com/2011/03/comics-spotlight-on-shonen-jump-100/) from the original on May 20, 2017. Retrieved July 29, 2012.
+
+58. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-IbarakiInterview_62-0) [<sup><i><b>b</b></i></sup>](#cite_ref-IbarakiInterview_62-1)
+   > Ibaraki, Masahiko (March 31, 2008). ["The Reminiscence of My 25 Years with Shonen Jump"](http://comipress.com/article/2008/03/31/3452). *ComiPress*. Ohara, T. (trans). [Archived](https://web.archive.org/web/20150912001524/http://comipress.com/article/2008/03/31/3452) from the original on September 12, 2015.
+
+59. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-comipress-jump_63-0) [<sup><i><b>b</b></i></sup>](#cite_ref-comipress-jump_63-1)
+   > ["The Rise and Fall of Weekly Shonen Jump: A Look at the Circulation of Weekly Jump"](http://comipress.com/article/2007/05/06/1923). *ComiPress*. May 8, 2007. [Archived](https://web.archive.org/web/20170306083429/http://comipress.com/article/2007/05/06/1923) from the original on March 6, 2017.
+
+60. **[^](#cite_ref-TimeMag_64-0)**
+   > Garger, Ilya (February 17, 2003). ["Look, Up in the Sky!"](https://web.archive.org/web/20081024163537/http://www.time.com/time/magazine/article/0,9171,423567,00.html). *[Time](/wiki/Time_(magazine))*. [ISSN](/wiki/ISSN_(identifier)) [0040-781X](https://search.worldcat.org/issn/0040-781X). Archived from [the original](http://www.time.com/time/magazine/article/0,9171,423567,00.html) on October 24, 2008. Retrieved July 7, 2008.
+
+61. **[^](#cite_ref-exlight_65-0)**
+   > [週刊少年ジャンプの発行部数（最高653万部）](http://exlight.net/doc/business/jump/index.html). *exlight.net*. July 26, 2006. [Archived](https://web.archive.org/web/20200903173256/http://exlight.net/doc/business/jump/index.html) from the original on September 3, 2020. Retrieved February 8, 2019.
+
+62. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-LittleBoy_67-0) [<sup><i><b>b</b></i></sup>](#cite_ref-LittleBoy_67-1)
+   > Murakami, Takashi (May 15, 2005). ["Earth in My Window"](https://archive.org/details/littleboyartsofj0000unse/page/105). *Little Boy: The Art of Japan's Exploding Subculture*. Linda Hoaglund (translator). [Yale University Press](/wiki/Yale_University_Press), Japan Society. pp. [105–106](https://archive.org/details/littleboyartsofj0000unse/page/105). [ISBN](/wiki/ISBN_(identifier)) [0-300-10285-2](/wiki/Special:BookSources/0-300-10285-2).
+
+63. **[^](#cite_ref-68)**
+   > ["Top Manga Properties in 2008 – Rankings and Circulation Data"](http://www.comipress.com/article/2008/12/31/3733). *ComiPress*. December 31, 2008. [Archived](https://web.archive.org/web/20180701030442/http://www.comipress.com/article/2008/12/31/3733) from the original on July 1, 2018. Retrieved August 16, 2018.
+
+64. **[^](#cite_ref-156mil_69-0)**
+   > ["Top 10 Shonen Jump Manga by All-Time Volume Sales"](https://www.animenewsnetwork.com/news/2012-10-23/top-10-shonen-jump-manga-by-all-time-volume-sales). [Archived](https://web.archive.org/web/20161008192850/http://www.animenewsnetwork.com/news/2012-10-23/top-10-shonen-jump-manga-by-all-time-volume-sales) from the original on October 8, 2016. Retrieved November 17, 2012.
+
+65. **[^](#cite_ref-jump2014_70-0)**
+   > [Shueisha Media Guide 2014 少年コミック誌・青年コミック誌](https://web.archive.org/web/20140430025858/http://adnavi.shueisha.co.jp/mediaguide/2014/pdf/boys.pdf) [Boy's & Men's Comic Magazines] (PDF) (in Japanese). [Shueisha](/wiki/Shueisha). p. 2. Archived from [the original](http://adnavi.shueisha.co.jp/mediaguide/2014/pdf/boys.pdf) (PDF) on April 30, 2014. Retrieved April 22, 2017.
+
+66. **[^](#cite_ref-naver_71-0)**
+   > [やっぱり国産漫画はすごかった！日本の漫画&漫画家に与えられたギネス記録](https://web.archive.org/web/20190210092056/https://matome.naver.jp/odai/2152281850010813901/2152337959465347003). *[Naver Matome](/wiki/Naver)* (in Japanese). April 11, 2018. Archived from [the original](https://matome.naver.jp/odai/2152281850010813901/2152337959465347003) on February 10, 2019. Retrieved January 23, 2019.
+
+   <sup class="noprint Inline-Template" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Identifying_reliable_sources#User-generated_content" class="mw-redirect" title="Wikipedia:Identifying reliable sources"><span title="This reference citation appears to be to a user-generated source. (January 2025)">user-generated source</span></a></i>]</sup>
+67. **[^](#cite_ref-72)**
+   > [（熱血！マンガ学）DRAGON BALL 悟空の「成長物語」一大産業に 【大阪】](https://web.archive.org/web/20170807233512/http://book.asahi.com/reviews/column/2011072800053.html). *[Asahi Shimbun](/wiki/Asahi_Shimbun)*. May 13, 2008. Archived from [the original](http://book.asahi.com/reviews/column/2011072800053.html) on August 7, 2017. Retrieved August 7, 2017.
+
+68. **[^](#cite_ref-73)**
+   > ["Shueisha said in 2009 that Dragon Ball was at 350 million copies in circulation"](https://i.gzn.jp/img/2009/03/21/db_kai/db_kai_04_m.jpg) (in Japanese). January 17, 2022. [Archived](https://web.archive.org/web/20230326031250/https://i.gzn.jp/img/2009/03/21/db_kai/db_kai_04_m.jpg) from the original on March 26, 2023. Retrieved December 5, 2022.
+
+69. **[^](#cite_ref-74)**
+   > ["～映画「ドラゴンボールZ 神と神」公開記念！出でよ神龍!! 鳥山明先生、アンケート答えておくれーーーっ!!!!!SP～"](https://www.toei-anim.co.jp/movie/2013_dragonballz/news/30.html) (in Japanese). March 14, 2013. [Archived](https://web.archive.org/web/20221212212807/https://www.toei-anim.co.jp/movie/2013_dragonballz/news/30.html) from the original on December 12, 2022. Retrieved December 5, 2022.
+
+70. **[^](#cite_ref-75)**
+   > ["よりスピーディーに、より迫力を増して復活する「ドラゴンボール改」in TAF2009"](http://news.livedoor.com/article/detail/4071398/). *[Livedoor News](/wiki/Livedoor_News)* (in Japanese). [Livedoor](/wiki/Livedoor). March 21, 2009. [Archived](https://web.archive.org/web/20180816093643/http://news.livedoor.com/article/detail/4071398/) from the original on August 16, 2018. Retrieved January 23, 2019.
+
+71. **[^](#cite_ref-76)**
+   > ["映画「ドラゴンボール」テーマソングは浜崎あゆみ"](https://web.archive.org/web/20081212210945/http://sankei.jp.msn.com/entertainments/entertainers/081210/tnr0812100742001-n1.htm). *[MSN Sankei News](/wiki/MSN_Sankei_News)*. December 10, 2008. Archived from [the original](https://sankei.jp.msn.com/entertainments/entertainers/081210/tnr0812100742001-n1.htm) on December 12, 2008. Retrieved December 12, 2008.
+
+72. **[^](#cite_ref-77)**
+   > ["ピッコロは緑だけど触角なし......実写『ドラゴンボール』映像"](https://www.oricon.co.jp/news/61072/full/). *[Oricon News](/wiki/Oricon_News)* (in Japanese). December 15, 2008. [Archived](https://web.archive.org/web/20180816125800/https://www.oricon.co.jp/news/61072/full/) from the original on August 16, 2018. Retrieved August 16, 2018.
+
+73. **[^](#cite_ref-chinakai_78-0)** 岐路のアジア 第3部・ 漫画「日本発」根付く共通文化 朝日新聞（大阪版）2005年12月6日付朝刊 8面 国際欄
+74. **[^](#cite_ref-82)**
+   > ["Top 10 Anime and Manga at Japan Media Arts Festival"](https://www.animenewsnetwork.com/news/2006-10-04/top-10-anime-and-manga-at-japan-media-arts-festival). *[Anime News Network](/wiki/Anime_News_Network)*. October 4, 2006. Retrieved November 17, 2012.
+
+   `{{[cite web](/wiki/Template:Cite_web)}}`: CS1 maint: deprecated archival service ([link](/wiki/Category:CS1_maint:_deprecated_archival_service))
+75. **[^](#cite_ref-oricon_83-0)**
+   > [1000人が選んだ!漫画史上"最強"キャラクターランキング!](https://www.oricon.co.jp/news/45750/) (in Japanese). June 22, 2007. [Archived](https://web.archive.org/web/20200903173257/https://www.oricon.co.jp/news/45750/) from the original on September 3, 2020. Retrieved October 28, 2007.
+
+76. **[^](#cite_ref-84)**
+   > Oda, Eiichiro (2001). *One Piece Color Walk 1*. [Shueisha](/wiki/Shueisha). [ISBN](/wiki/ISBN_(identifier)) [4-08-859217-4](/wiki/Special:BookSources/4-08-859217-4).
+
+77. **[^](#cite_ref-85)**
+   > Kishimoto, Masashi (2007). *Uzumaki: the Art of Naruto*. [Viz Media](/wiki/Viz_Media). pp. 138–139. [ISBN](/wiki/ISBN_(identifier)) [978-1-4215-1407-9](/wiki/Special:BookSources/978-1-4215-1407-9).
+
+78. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-ANNJT_86-0) [<sup><i><b>b</b></i></sup>](#cite_ref-ANNJT_86-1) [<sup><i><b>c</b></i></sup>](#cite_ref-ANNJT_86-2)
+   > Thompson, Jason (March 10, 2011). ["Jason Thompson's House of 1000 Manga – Dragon Ball"](https://www.animenewsnetwork.com/house-of-1000-manga/2011-03-10). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20190117184117/https://www.animenewsnetwork.com/house-of-1000-manga/2011-03-10) from the original on January 17, 2019. Retrieved July 10, 2013.
+
+79. **[^](#cite_ref-87)**
+   > [Thompson, Jason](/wiki/Jason_Thompson_(writer)) (April 8, 2009). ["What is Dragon Ball?"](https://io9.gizmodo.com/5201656/what-is-dragon-ball). Io9. [Archived](https://web.archive.org/web/20200903173300/https://io9.gizmodo.com/what-is-dragon-ball-5201656) from the original on September 3, 2020. Retrieved December 9, 2009.
+
+80. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Yadao116_88-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Yadao116_88-1) Yadao, James S. *The Rough Guide to Manga*. [Penguin Books](/wiki/Penguin_Books), October 1, 2009. [p. 116](https://books.google.com/books?id=WcYex0sGmQ0C&dq=%22Son+Goku%22+Dragonball&pg=PA116) [Archived](https://web.archive.org/web/20140712174948/http://books.google.com/books?id=WcYex0sGmQ0C&pg=PA116&lpg=PA116&dq=%22Son+Goku%22+Dragonball&source=bl&ots=uSTEogMKka&sig=0zZQjDBgjmTZmZ6n-IiwVPbExzs&hl=en&sa=X&ei=WiJhUJPrDI6G9QTinYGgDg&ved=0CE0Q6AEwBg#v=onepage&q=%22Son%20Goku%22%20Dragonball&f=false) July 12, 2014, at the [Wayback Machine](/wiki/Wayback_Machine). [ISBN](/wiki/ISBN_(identifier)) [1405384239](/wiki/Special:BookSources/1405384239), 9781405384230. Available on [Google Books](/wiki/Google_Books). "Also in evidence is the influence of *[Dr. Slump](/wiki/Dr._Slump)*, especially in the early chapters, which play out much like *[Saiyuki](/wiki/Journey_to_the_West)* with *Dr. Slump*-like humour built in."
+81. **[^](#cite_ref-Yadao116117_89-0)** Yadao, James S. *The Rough Guide to Manga*. [Penguin Books](/wiki/Penguin_Books), October 1, 2009. [p. 116](https://books.google.com/books?id=WcYex0sGmQ0C&dq=%22Son+Goku%22+Dragonball&pg=PA116) [Archived](https://web.archive.org/web/20140712174948/http://books.google.com/books?id=WcYex0sGmQ0C&pg=PA116&lpg=PA116&dq=%22Son+Goku%22+Dragonball&source=bl&ots=uSTEogMKka&sig=0zZQjDBgjmTZmZ6n-IiwVPbExzs&hl=en&sa=X&ei=WiJhUJPrDI6G9QTinYGgDg&ved=0CE0Q6AEwBg#v=onepage&q=%22Son%20Goku%22%20Dragonball&f=false) July 12, 2014, at the [Wayback Machine](/wiki/Wayback_Machine)-117. [ISBN](/wiki/ISBN_(identifier)) [1405384239](/wiki/Special:BookSources/1405384239), 9781405384230. Available on [Google Books](/wiki/Google_Books).
+82. **[^](#cite_ref-Animerica_90-0)**
+   > "Anime Radar: News". *[Animerica](/wiki/Animerica)*. **9** (2). San Francisco, California: [Viz Media](/wiki/Viz_Media): 36. March 2001. [ISSN](/wiki/ISSN_(identifier)) [1067-0831](https://search.worldcat.org/issn/1067-0831). [OCLC](/wiki/OCLC_(identifier)) [27130932](https://search.worldcat.org/oclc/27130932).
+
+83. **[^](#cite_ref-91)**
+   > Khan, Ridwan (July 2003). ["Dragon Ball Vol.1 review"](https://web.archive.org/web/20081211064603/http://www.animefringe.com/magazine/2003/07/reviews/08/). Animefringe.com. Archived from [the original](http://www.animefringe.com/magazine/2003/07/reviews/08/) on December 11, 2008. Retrieved September 27, 2008.
+
+84. **[^](#cite_ref-92)**
+   > Divers, Allen (November 18, 2001). ["Dragon Ball (manga) Graphic Novel vol 5"](https://www.animenewsnetwork.com/review/dragon-ball-gn-5). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173258/https://www.animenewsnetwork.com/review/dragon-ball-gn-5) from the original on September 3, 2020. Retrieved September 27, 2008.
+
+85. **[^](#cite_ref-93)**
+   > ["Dragon Ball Volume 1 review"](http://www.rationalmagic.com/Comics/DragonBall1.html). Rationalmagic.com. [Archived](https://web.archive.org/web/20101127052226/http://rationalmagic.com/Comics/DragonBall1.html) from the original on November 27, 2010. Retrieved October 3, 2008.
+
+86. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Maryland_94-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Maryland_94-1) [<sup><i><b>c</b></i></sup>](#cite_ref-Maryland_94-2)
+   > ["Maryland School Library to Remove Dragon Ball Manga"](https://www.animenewsnetwork.com/news/2009-10-07/maryland-school-library-to-remove-dragon-ball-manga). *[Anime News Network](/wiki/Anime_News_Network)*. October 7, 2009. [Archived](https://web.archive.org/web/20200903173305/https://www.animenewsnetwork.com/news/2009-10-07/maryland-school-library-to-remove-dragon-ball-manga) from the original on September 3, 2020. Retrieved July 10, 2013.
+
+87. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-censorship2_95-0) [<sup><i><b>b</b></i></sup>](#cite_ref-censorship2_95-1)
+   > ["Viz explains censorship in Dragonball Manga"](https://www.animenewsnetwork.com/news/2000-08-21/viz-explains-censorship-in-dragonball-manga). *[Anime News Network](/wiki/Anime_News_Network)*. August 22, 2000. [Archived](https://web.archive.org/web/20200903173301/https://www.animenewsnetwork.com/news/2000-08-21/viz-explains-censorship-in-dragonball-manga) from the original on September 3, 2020. Retrieved March 30, 2013.
+
+88. **[^](#cite_ref-mullicane2025_96-0)**
+   > Mullicane, Evan D. (March 17, 2025). ["Anime Censorship Hits New High as Proposed U.S. Law Would Make Watching Some Shows Illegal"](https://screenrant.com/anime-censorship-texas-senate-bill-obscene/). *[Screenrant](/wiki/Screenrant)*. Retrieved July 2, 2025.
+
+   `{{[cite web](/wiki/Template:Cite_web)}}`: CS1 maint: deprecated archival service ([link](/wiki/Category:CS1_maint:_deprecated_archival_service))
+89. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-gamebiz_97-0) [<sup><i><b>b</b></i></sup>](#cite_ref-gamebiz_97-1)
+   > [深夜アニメの製作資金は約3億円...儲ける仕組みや製作委員会の構造とは 今こそ知っておきたいアニメビジネスの特徴を取材](https://gamebiz.jp/?p=163467). *Social Game Info* (in Japanese). June 17, 2016. [Archived](https://web.archive.org/web/20200903173320/https://gamebiz.jp/?p=163467) from the original on September 3, 2020. Retrieved January 24, 2019.
+
+90. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-Famitsu-2016-02-11_98-0) [<sup><i><b>b</b></i></sup>](#cite_ref-Famitsu-2016-02-11_98-1)
+   > [『ドラゴンボール』歴代主題歌を収録したテレビアニメ放送30周年記念"神"アルバムの収録曲全38曲を公開！](https://www.famitsu.com/news/201602/11099161.html). *[Famitsu](/wiki/Famitsu)* (in Japanese). February 11, 2016. [Archived](https://web.archive.org/web/20160212083151/http://www.famitsu.com/news/201602/11099161.html) from the original on February 12, 2016. Retrieved November 18, 2024.
+
+91. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-GTDragonBox_99-0) [<sup><i><b>b</b></i></sup>](#cite_ref-GTDragonBox_99-1) Akira Toriyama message in the *Dragon Book* included with the *Dragon Ball GT* Dragon Box DVD set.
+92. **[^](#cite_ref-100)**
+   > ["DBZ FAQ Update"](https://www.animenewsnetwork.com/news/2001-04-10/dbz-faq-update). April 10, 2001. [Archived](https://web.archive.org/web/20200903173334/https://www.animenewsnetwork.com/news/2001-04-10/dbz-faq-update) from the original on September 3, 2020. Retrieved June 5, 2008.
+
+93. **[^](#cite_ref-101)**
+   > [DRAGON BALL GT スペシャル 悟空外伝! 勇気の証しは四星球](https://mediaarts-db.artmuseums.go.jp/id/M39633). *Media Arts Database* (in Japanese). [National Center for Art Research](/wiki/National_Center_for_Art_Research). [Archived](https://web.archive.org/web/20241118012641/https://mediaarts-db.artmuseums.go.jp/id/M39633) from the original on November 18, 2024. Retrieved November 18, 2024.
+
+94. **[^](#cite_ref-102)**
+   > ｢ドラゴンボールZ｣放送開始20周年記念! HDリマスター坂で テレビアニメが堂々復活!! 孫悟空伝説再び!! その名も... DRAGON BALL KAI. *[V Jump](/wiki/V_Jump)* (in Japanese). Japan: [Shueisha](/wiki/Shueisha): 10. February 9, 2009.
+
+95. **[^](#cite_ref-103)**
+   > ["Dragon Ball Z to Rerun on Japanese TV in HD in April"](https://www.animenewsnetwork.com/news/2009-02-06/dragon-ball-z-to-rerun-on-japanese-tv-in-hd-in-april). *[Anime News Network](/wiki/Anime_News_Network)*. February 6, 2009. [Archived](https://web.archive.org/web/20200903173328/https://www.animenewsnetwork.com/news/2009-02-06/dragon-ball-z-to-rerun-on-japanese-tv-in-hd-in-april) from the original on September 3, 2020. Retrieved February 21, 2009.
+
+96. **[^](#cite_ref-104)**
+   > ["Japan's Remastered DBZ to Be Called Dragon Ball Kai"](https://www.animenewsnetwork.com/news/2009-02-19/japan-remastered-dbz-to-be-called-dragon-ball-kai). *[Anime News Network](/wiki/Anime_News_Network)*. February 19, 2009. [Archived](https://web.archive.org/web/20200903173331/https://www.animenewsnetwork.com/news/2009-02-19/japan-remastered-dbz-to-be-called-dragon-ball-kai) from the original on September 3, 2020. Retrieved February 21, 2009.
+
+97. **[^](#cite_ref-105)**
+   > Paschal, Jacob T. (May 19, 2010). ["What is Dragon Ball Kai? Part I: The History Of Kai"](https://www.toonzone.net/what-is-dragon-ball-kai-part-i-the-history-of-kai/). toonzone.com. [Archived](https://web.archive.org/web/20200903173326/https://animesuperhero.com/what-is-dragon-ball-kai-part-i-the-history-of-kai/) from the original on September 3, 2020. Retrieved April 28, 2015.
+
+98. **[^](#cite_ref-106)**
+   > ["Navarre Reveals Funimation's Dragon Ball Kai License"](https://www.animenewsnetwork.com/news/2010-02-02/navarre-reveals-funimation-dragon-ball-kai-license). *[Anime News Network](/wiki/Anime_News_Network)*. February 2, 2010. [Archived](https://web.archive.org/web/20200903173327/https://www.animenewsnetwork.com/news/2010-02-02/navarre-reveals-funimation-dragon-ball-kai-license) from the original on September 3, 2020. Retrieved February 2, 2010.
+
+99. **[^](#cite_ref-107)**
+   > Heldenfelds, Rich (March 11, 2010). ["Nickelodeon Announces Fall Plans"](https://web.archive.org/web/20070517083933/http://www.ohiomm.com/blogs/). *Ohiomm.com*. Akron Beach Journal. Archived from [the original](http://www.ohiomm.com/blogs/) on May 17, 2007. Retrieved September 5, 2012.
+
+100. **[^](#cite_ref-DBSdebut_108-0)**
+   > ["Dragon Ball Super TV Anime Debuts on July 5"](https://www.animenewsnetwork.com/daily-briefs/2015-06-04/dragon-ball-super-tv-anime-debuts-on-july-5/.88900). *Anime News Network*. June 4, 2015. [Archived](https://web.archive.org/web/20160126121146/http://www.animenewsnetwork.com/daily-briefs/2015-06-04/dragon-ball-super-tv-anime-debuts-on-july-5/.88900) from the original on January 26, 2016. Retrieved June 4, 2015.
+
+101. **[^](#cite_ref-creditsDBS_109-0)**
+   > [作品情報](https://web.archive.org/web/20150926185638/http://www.toei-anim.co.jp/tv/dragon_s/about/staffcast.html#sc20150701) [Credits] (in Japanese). [Toei Animation](/wiki/Toei_Animation). Archived from [the original](http://www.toei-anim.co.jp/tv/dragon_s/about/staffcast.html#sc20150701) on September 26, 2015. Retrieved August 17, 2015.
+
+102. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-castDBS_110-0) [<sup><i><b>b</b></i></sup>](#cite_ref-castDBS_110-1)
+   > ["Dragon Ball Super Main Visual Reveals 2 New Characters"](https://www.animenewsnetwork.com/news/2015-06-15/dragon-ball-super-main-visual-reveals-2-new-characters/.89281). *Anime News Network*. June 15, 2015. [Archived](https://web.archive.org/web/20200903173328/https://www.animenewsnetwork.com/news/2015-06-15/dragon-ball-super-main-visual-reveals-2-new-characters/.89281) from the original on September 3, 2020. Retrieved June 26, 2015.
+
+103. **[^](#cite_ref-111)**
+   > ["Dragon Ball Gets 1st New TV Anime in 18 Years in July"](https://www.animenewsnetwork.com/news/2015-04-28/dragon-ball-gets-1st-new-tv-anime-in-18-years-in-july/.87608). *[Anime News Network](/wiki/Anime_News_Network)*. April 28, 2015. [Archived](https://web.archive.org/web/20200903173328/https://www.animenewsnetwork.com/news/2015-04-28/dragon-ball-gets-1st-new-tv-anime-in-18-years-in-july/.87608) from the original on September 3, 2020. Retrieved February 20, 2020.
+
+104. **[^](#cite_ref-112)**
+   > Osborn, Alex (May 19, 2015). ["Dragon Ball Super Getting Companion Manga"](https://www.ign.com/articles/2015/05/19/dragon-ball-super-getting-companion-manga). *[IGN](/wiki/IGN)*. [Archived](https://web.archive.org/web/20200903173329/https://www.ign.com/articles/2015/05/19/dragon-ball-super-getting-companion-manga) from the original on September 3, 2020. Retrieved May 19, 2015.
+
+105. **[^](#cite_ref-113)**
+   > Pineda, Rafael Antonio (May 20, 2018). ["Super Dragon Ball Heroes Arcade Card Game Gets Promotional Anime This Summer"](https://www.animenewsnetwork.com/news/2018-05-20/super-dragon-ball-heroes-arcade-card-game-gets-promotional-anime-this-summer/.131705). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20180526190606/https://www.animenewsnetwork.com/news/2018-05-20/super-dragon-ball-heroes-arcade-card-game-gets-promotional-anime-this-summer/.131705) from the original on May 26, 2018. Retrieved November 18, 2024.
+
+106. **[^](#cite_ref-114)**
+   > Hodgkins, Crystalyn (June 28, 2018). ["Super Dragon Ball Heroes Promotional Anime's Trailer, July 1 Online Premiere Revealed"](https://www.animenewsnetwork.com/news/2018-06-28/super-dragon-ball-heroes-promotional-anime-trailer-july-1-online-premiere-revealed/.133513). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20180701202906/https://www.animenewsnetwork.com/news/2018-06-28/super-dragon-ball-heroes-promotional-anime-trailer-july-1-online-premiere-revealed/.133513) from the original on July 1, 2018. Retrieved November 18, 2024.
+
+107. **[^](#cite_ref-115)**
+   > 【公式】スーパードラゴンボールヒーローズ [@dbh\_10th] (August 8, 2024). [/#SDBH プロモーションCGムービー6話公開！「放て！渾身の一撃！かけ抜ける白銀の流星」\\ オゾットの館からの脱出に成功した悟空たち。果たしてオゾットの野望を打ち砕くことはできるのか!?魔の侵略者編最後の闘いが今始まる!! 視聴はこちら⏬ https://youtu.be/DVhLs7EOIpE #MM6弾](https://x.com/dbh_10th/status/1821486541006639417) ([Tweet](/wiki/Tweet_(social_media))) (in Japanese). Retrieved November 18, 2024 – via [X (formerly Twitter)](/wiki/X_(formerly_Twitter)).
+
+108. **[^](#cite_ref-116)**
+   > ["New DB, Tegami Bachi, Romance Dawn Anime DVD Offered"](https://www.animenewsnetwork.com/news/2008-12-22/new-db-tegami-bachi-romance-dawn-anime-dvd-offered). *[Anime News Network](/wiki/Anime_News_Network)*. December 12, 2008. [Archived](https://web.archive.org/web/20200903173336/https://www.animenewsnetwork.com/news/2008-12-22/new-db-tegami-bachi-romance-dawn-anime-dvd-offered) from the original on September 3, 2020. Retrieved December 16, 2012.
+
+109. **[^](#cite_ref-117)**
+   > [「ドラゴンボール」の新作アニメエピソードや「ONE PIECE」を期間限定で無料配信中](https://gigazine.net/news/20081127_dragonball_jumpland/). *[Gigazine](/w/index.php?title=Gigazine&action=edit&redlink=1) [[ja](https://ja.wikipedia.org/wiki/Gigazine)]* (in Japanese). November 27, 2008. Retrieved November 18, 2024.
+
+110. **[^](#cite_ref-info_118-0)**
+   > ["Dragon Ball Episode of Bardock Spinoff Manga Gets Anime"](https://www.animenewsnetwork.com/news/2011-11-21/dragon-ball-episode-of-bardock-spinoff-manga-gets-anime). *[Anime News Network](/wiki/Anime_News_Network)*. November 21, 2011. [Archived](https://web.archive.org/web/20200903173335/https://www.animenewsnetwork.com/news/2011-11-21/dragon-ball-episode-of-bardock-spinoff-manga-gets-anime) from the original on September 3, 2020. Retrieved December 16, 2012.
+
+111. **[^](#cite_ref-119)**
+   > ["List of OVA produced by Toei in the 1990s"](https://web.archive.org/web/20080420082913/http://www.toei-anim.co.jp/tv/ov1990.html). Archived from [the original](http://www.toei-anim.co.jp/tv/ov1990.html) on April 20, 2008. Retrieved September 27, 2008.
+
+112. **[^](#cite_ref-120)**
+   > ["*Dragon Ball: RB2* Game to Add New 1/2-Hour Anime"](https://www.animenewsnetwork.com/news/2010-08-09/dragon-ball/rb2-game-to-add-new-hour-anime). *[Anime News Network](/wiki/Anime_News_Network)*. August 9, 2010. [Archived](https://web.archive.org/web/20200903173337/https://www.animenewsnetwork.com/news/2010-08-09/dragon-ball/rb2-game-to-add-new-hour-anime) from the original on September 3, 2020. Retrieved December 16, 2012.
+
+113. **[^](#cite_ref-crossover_121-0)**
+   > ["Toriko, One Piece, Dragon Ball Z Get Crossover Anime Special"](https://www.animenewsnetwork.com/news/2013-02-05/toriko-one-piece-dragon-ball-z-get-crossover-anime-special). *[Anime News Network](/wiki/Anime_News_Network)*. February 5, 2013. [Archived](https://web.archive.org/web/20200903173441/https://www.animenewsnetwork.com/news/2013-02-05/toriko-one-piece-dragon-ball-z-get-crossover-anime-special) from the original on September 3, 2020. Retrieved February 6, 2013.
+
+114. **[^](#cite_ref-122)**
+   > ["Dragon Box Z Set 2"](https://www.animenewsnetwork.com/review/dragon-ball-z/dvd-dragon-box-z-set-2). *[Anime News Network](/wiki/Anime_News_Network)*. March 8, 2010. [Archived](https://web.archive.org/web/20130723161855/http://www.animenewsnetwork.com/review/dragon-ball-z/dvd-dragon-box-z-set-2) from the original on July 23, 2013. Retrieved July 10, 2013.
+
+115. **[^](#cite_ref-123)**
+   > ["世界に通用していると思う日本のアニメ、1位『ドラゴンボール』|ライフ関連ニュース|オリコン顧客満足度ランキング"](https://life.oricon.co.jp/news/68091/). *Oricon* (in Japanese). August 2, 2009. [Archived](https://web.archive.org/web/20220829205926/https://life.oricon.co.jp/news/68091/) from the original on August 29, 2022. Retrieved June 7, 2022.
+
+116. **[^](#cite_ref-124)**
+   > ["世界に通用しているマンガ&アニメランキング『日本が世界に誇る！傑作マンガ&アニメの頂点は？』"](https://www.oricon.co.jp/special/145/). *ORICON NEWS*. August 3, 2012. [Archived](https://web.archive.org/web/20220607092137/https://www.oricon.co.jp/special/145/) from the original on June 7, 2022. Retrieved June 7, 2022.
+
+117. **[^](#cite_ref-125)**
+   > ["Gundam Tops Anime Poll"](https://www.animenewsnetwork.com/news/2000-09-11/gundam-tops-anime-poll). *[Anime News Network](/wiki/Anime_News_Network)*. September 12, 2000. [Archived](https://web.archive.org/web/20130728123926/http://www.animenewsnetwork.com/news/2000-09-11/gundam-tops-anime-poll) from the original on July 28, 2013. Retrieved July 10, 2013.
+
+118. **[^](#cite_ref-126)**
+   > ["決定！これが日本のベスト"](https://web.archive.org/web/20041211224201/http://www.tv-asahi.co.jp/best/updating_dex/ranking/038.html). December 11, 2004. Archived from [the original](http://www.tv-asahi.co.jp/best/updating_dex/ranking/038.html) on December 11, 2004. Retrieved June 7, 2022.
+
+119. **[^](#cite_ref-127)**
+   > ["Part 2 – TV Asahi Top 100 Anime"](https://www.animenewsnetwork.com/news/2005-09-23/tv-asahi-top-100-anime-part-2). *[Anime News Network](/wiki/Anime_News_Network)*. September 23, 2005. [Archived](https://web.archive.org/web/20061206035734/http://www.animenewsnetwork.com/article.php?id=7458) from the original on December 6, 2006. Retrieved July 10, 2013.
+
+120. **[^](#cite_ref-128)**
+   > ["TV Asahi Top 100 Anime"](https://www.animenewsnetwork.com/news/2005-09-23/tv-asahi-top-100-anime). *[Anime News Network](/wiki/Anime_News_Network)*. September 23, 2005. [Archived](https://web.archive.org/web/20190102234354/https://www.animenewsnetwork.com/news/2005-09-23/tv-asahi-top-100-anime) from the original on January 2, 2019. Retrieved July 10, 2013.
+
+121. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-latimes_129-0) [<sup><i><b>b</b></i></sup>](#cite_ref-latimes_129-1)
+   > ["'Dragon Ball's' voice of Goku speaks for himself"](https://web.archive.org/web/20170630183914/http://www.latimes.com/entertainment/movies/la-ca-conversation-dragon-ball-goku-20170630-story.html). *[Los Angeles Times](/wiki/Los_Angeles_Times)*. June 30, 2017. Archived from [the original](https://www.latimes.com/entertainment/movies/la-ca-conversation-dragon-ball-goku-20170630-story.html) on June 30, 2017. Retrieved June 30, 2017.
+
+122. **[^](#cite_ref-130)**
+   > [DB劇場版(ビデオ、1995年時点)](http://i.imgur.com/gWooj7U.jpg). [Toei Company](/wiki/Toei_Company). 1996. [Archived](https://web.archive.org/web/20130628162653/http://i.imgur.com/gWooj7U.jpg) from the original on June 28, 2013. Retrieved January 25, 2019.
+
+123. **[^](#cite_ref-131)**
+   > [歴代ドラゴンボール映画作品一覧](https://nendai-ryuukou.com/article/088.html). 年代流行. [Archived](https://web.archive.org/web/20190513030416/https://nendai-ryuukou.com/article/088.html) from the original on May 13, 2019. Retrieved December 16, 2018.
+   > > 1995年7月公開『悟空がやらねば誰がやる』までの劇場版シリーズ16作の累計記録は、劇場版ビデオ50万本以上、興行収入400億円以上と、それぞれ1996年初頭時点におけるアニメ映画史上1位を記録した。
+   >
+   >
+
+124. **[^](#cite_ref-132)**
+   > ["Japanese Animation DVD Ranking, September 10–16"](https://www.animenewsnetwork.com/news/2008-09-20/japanese-animation-dvd-ranking-september-10-16). *[Anime News Network](/wiki/Anime_News_Network)*. September 20, 2008. [Archived](https://web.archive.org/web/20081020195444/http://www.animenewsnetwork.com/news/2008-09-20/japanese-animation-dvd-ranking-september-10-16) from the original on October 20, 2008. Retrieved October 11, 2008.
+
+125. **[^](#cite_ref-133)**
+   > ["Japanese Animation DVD Ranking, August 6–12"](https://www.animenewsnetwork.com/news/2008-08-14/japanese-animation-dvd-ranking-august-6-12). *[Anime News Network](/wiki/Anime_News_Network)*. August 14, 2008. [Archived](https://web.archive.org/web/20200903173340/https://www.animenewsnetwork.com/news/2008-08-14/japanese-animation-dvd-ranking-august-6-12) from the original on September 3, 2020. Retrieved October 11, 2008.
+
+126. **[^](#cite_ref-Funimation_134-0)**
+   > ["Funimation January 2012 Catalog"](http://www.thecnl.com/FunimationJan2012Catalog.pdf) (PDF). *thecnl.com*. [Archived](https://web.archive.org/web/20200903173313/http://www.thecnl.com/FunimationJan2012Catalog.pdf) (PDF) from the original on September 3, 2020. Retrieved July 30, 2017.
+
+127. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-wired_135-0) [<sup><i><b>b</b></i></sup>](#cite_ref-wired_135-1)
+   > Muncy, Julie (January 17, 2019). ["The Everlasting (and Still Growing) Appeal of 'Dragon Ball'"](https://www.wired.com/story/dragon-ball-resurgence/). *[Wired](/wiki/Wired_(magazine))*. [Archived](https://web.archive.org/web/20200903173456/https://www.wired.com/story/dragon-ball-resurgence/) from the original on September 3, 2020. Retrieved April 2, 2020.
+
+128. **[^](#cite_ref-136)**
+   > "Behind the Screens". *[Electronic Gaming Monthly](/wiki/Electronic_Gaming_Monthly)*. No. 98. [Ziff Davis](/wiki/Ziff_Davis). September 1997. p. 118.
+
+129. **[^](#cite_ref-137)**
+   > ["Gundam Wing leaving Toonami?!"](https://www.animenewsnetwork.com/news/2000-12-12/gundam-wing-leaving-toonami). *Anime News Network*. December 12, 2000. [Archived](https://web.archive.org/web/20081206234124/http://www.animenewsnetwork.com/news/2000-12-12/gundam-wing-leaving-toonami) from the original on December 6, 2008. Retrieved November 29, 2008.
+
+130. **[^](#cite_ref-138)**
+   > ["Dragonball Z Tops Ratings"](https://www.animenewsnetwork.com/news/2002-09-28/dragonball-z-tops-ratings). *[Anime News Network](/wiki/Anime_News_Network)*. September 22, 2002. [Archived](https://web.archive.org/web/20140407231015/http://www.animenewsnetwork.com/news/2002-09-28/dragonball-z-tops-ratings) from the original on April 7, 2014. Retrieved May 26, 2014.
+
+131. **[^](#cite_ref-139)**
+   > ["Dragon Ball GT's Awesome Debut"](https://web.archive.org/web/20210613203218/https://icv2.com/articles/comics/view/3871/dragon-ball-gts-awesome-debut). *icv2.com*. November 13, 2003. Archived from [the original](https://icv2.com/articles/comics/view/3871/dragon-ball-gts-awesome-debut) on June 13, 2021. Retrieved June 7, 2022.
+
+132. **[^](#cite_ref-140)**
+   > Azoulay, Julia F (June 1, 2001). ["Character study: CB offers a licensing show cheat sheet"](https://web.archive.org/web/20131105184928/http://www.highbeam.com/doc/1G1-80503701.html). *Children's Business*. Conde Nast Publications, Inc. Archived from [the original](http://www.highbeam.com/doc/1G1-80503701.html) on November 5, 2013. Retrieved May 28, 2013.
+
+133. **[^](#cite_ref-141)**
+   > ["DBZ Tops Lycos 50 for 2002"](https://web.archive.org/web/20210616194419/https://icv2.com/articles/comics/view/2118/dbz-tops-lycos-50-2002). *icv2.com*. December 9, 2002. Archived from [the original](https://icv2.com/articles/comics/view/2118/dbz-tops-lycos-50-2002) on June 16, 2021. Retrieved June 7, 2022.
+
+134. **[^](#cite_ref-142)**
+   > ["検索ワード過去10年ランク ドラゴンボールが2位（9/21）"](https://animeanime.jp/article/2005/09/21/415.html). *アニメ！アニメ！* (in Japanese). September 21, 2005. [Archived](https://web.archive.org/web/20220607182904/https://animeanime.jp/article/2005/09/21/415.html) from the original on June 7, 2022. Retrieved June 7, 2022.
+
+135. **[^](#cite_ref-143)**
+   > ["Britney loses out to PlayStation"](http://news.bbc.co.uk/2/hi/technology/2614403.stm). December 30, 2002. [Archived](https://web.archive.org/web/20220607182046/http://news.bbc.co.uk/2/hi/technology/2614403.stm) from the original on June 7, 2022. Retrieved June 7, 2022.
+
+136. **[^](#cite_ref-144)**
+   > ["米CNでドラゴンボールZの再放送開始（2/14）"](https://animeanime.jp/article/2006/02/14/702.html). *アニメ！アニメ！* (in Japanese). February 14, 2006. [Archived](https://web.archive.org/web/20230327003440/https://animeanime.jp/article/2006/02/14/702.html) from the original on March 27, 2023. Retrieved June 7, 2022.
+
+137. **[^](#cite_ref-145)**
+   > ["「ドラゴンボール改」が米国で好発進、放送局で開局以来最高視聴率。 | Narinari.com"](https://web.archive.org/web/20100608132845/http://www.narinari.com/Nd/20100613670.html). *www.narinari.com* (in Japanese). June 6, 2010. Archived from [the original](https://www.narinari.com/Nd/20100613670.html) on June 8, 2010.
+
+138. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-DBseason2_146-0) [<sup><i><b>b</b></i></sup>](#cite_ref-DBseason2_146-1)
+   > Kimlinger, Carl (December 14, 2009). ["Dragon Ball DVD Season 2 Uncut Set"](https://www.animenewsnetwork.com/review/dragon-ball/dvd-season-2). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173445/https://www.animenewsnetwork.com/review/dragon-ball/dvd-season-2) from the original on September 3, 2020. Retrieved July 10, 2013.
+
+139. **[^](#cite_ref-DBseason3_147-0)**
+   > Martin, Theron (December 14, 2009). ["Dragon Ball DVD Season 3"](https://www.animenewsnetwork.com/review/dragon-ball/dvd-season-3). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173328/https://www.animenewsnetwork.com/review/dragon-ball/dvd-season-3) from the original on September 3, 2020. Retrieved July 10, 2013.
+
+140. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-IGN_148-0) [<sup><i><b>b</b></i></sup>](#cite_ref-IGN_148-1)
+   > Harris, Jeffrey (November 12, 2007). ["Dragon Ball GT — The Lost Episodes DVD Box Set Review"](https://www.ign.com/articles/2007/11/12/dragon-ball-gt-the-lost-episodes-dvd-box-set-review). *IGN*. [Archived](https://web.archive.org/web/20121020031330/http://www.ign.com/articles/2007/11/12/dragon-ball-gt-the-lost-episodes-dvd-box-set-review) from the original on October 20, 2012. Retrieved October 3, 2008.
+
+141. **[^](#cite_ref-149)**
+   > Jones, Tim. ["Dragon Ball anime review"](http://www.themanime.org/viewreview.php?id=565). themanime.org. [Archived](https://web.archive.org/web/20100713023707/http://www.themanime.org/viewreview.php?id=565) from the original on July 13, 2010. Retrieved October 3, 2008.
+
+142. **[^](#cite_ref-150)**
+   > Ross, Carlos. ["Dragon Ball Z anime review"](http://www.themanime.org/viewreview.php?id=245). themanime.org. [Archived](https://web.archive.org/web/20200903173343/http://www.themanime.org/viewreview.php?id=245) from the original on September 3, 2020. Retrieved October 3, 2008.
+
+143. **[^](#cite_ref-DBZSeason6_151-0)**
+   > Martin, Theron (November 5, 2008). ["Dragon Ball Z DVD Season 6"](https://www.animenewsnetwork.com/review/dragon-ball-z/dvd-season-6). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173431/https://www.animenewsnetwork.com/review/dragon-ball-z/dvd-season-6) from the original on September 3, 2020. Retrieved July 10, 2013.
+
+144. **[^](#cite_ref-152)**
+   > [Thompson, Jason](/wiki/Jason_Thompson_(writer)) (April 8, 2009). ["Isn't Dragon Ball just a bunch of speedlines and ripped dudes with bad hair screaming "It's over 9,000!""](https://io9.gizmodo.com/5201669/isnt-dragon-ball-just-a-bunch-of-speedlines-and-ripped-dudes-with-bad-hair-screaming-its-over-9000). Io9. [Archived](https://web.archive.org/web/20200903173329/https://io9.gizmodo.com/isnt-dragon-ball-just-a-bunch-of-speedlines-and-ripped-5201669) from the original on September 3, 2020. Retrieved July 10, 2013.
+
+145. **[^](#cite_ref-ign100_153-0)**
+   > ["78. Dragon Ball Z"](https://web.archive.org/web/20100316183445/http://tv.ign.com/top-100-animated-tv-series/78.html). *IGN*. January 23, 2009. Archived from [the original](http://tv.ign.com/top-100-animated-tv-series/78.html) on March 16, 2010. Retrieved September 5, 2009.
+
+146. **[^](#cite_ref-154)**
+   > ["Wizard Magazine's Top 100 cartoons list"](http://www.listal.com/list/wizard-magazines-top-100-cartoons). Listal. [Archived](https://web.archive.org/web/20200903173437/https://www.listal.com/list/wizard-magazines-top-100-cartoons) from the original on September 3, 2020. Retrieved April 30, 2011.
+
+147. **[^](#cite_ref-155)**
+   > Bertschy, Zac (June 6, 2004). ["Dragon Ball GT DVD 8: Salvation"](https://www.animenewsnetwork.com/review/dragon-ball-gt/dvd-8). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173446/https://www.animenewsnetwork.com/review/dragon-ball-gt/dvd-8) from the original on September 3, 2020. Retrieved October 4, 2008.
+
+148. **[^](#cite_ref-BattleGods_156-0)**
+   > ["Akira Toriyama, Toei Make Dragon Ball Z Film Next March"](https://www.animenewsnetwork.com/news/2012-07-10/toei-toriyama-work-on-march-2013-dragon-ball-z-film). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20200903173330/https://www.animenewsnetwork.com/news/2012-07-10/toei-toriyama-work-on-march-2013-dragon-ball-z-film) from the original on September 3, 2020. Retrieved March 22, 2013.
+
+149. **[^](#cite_ref-157)**
+   > ["1st Key Visual For 2015 Dragon Ball Z Film Reveals Frieza"](https://www.animenewsnetwork.com/news/2014-11-17/1st-key-visual-for-2015-dragon-ball-z-film-reveals-frieza/.81112). *ANN*. [Archived](https://web.archive.org/web/20141118002540/http://www.animenewsnetwork.com/news/2014-11-17/1st-key-visual-for-2015-dragon-ball-z-film-reveals-frieza/.81112) from the original on November 18, 2014. Retrieved November 17, 2014.
+
+150. **[^](#cite_ref-158)**
+   > Gramuglia, Anthony (April 1, 2020). ["Dragon Ball: The '90s Bootleg, Live-Action Films Were Better Than Evolution"](https://www.cbr.com/dragon-ball-90s-bootleg-live-action-films/). *CBR*. Retrieved April 28, 2026.
+
+151. **[^](#cite_ref-159)**
+   > Gardner, Chris (March 12, 2002). "Fox draws deal for *DragonBall* live-action pics". *[The Hollywood Reporter](/wiki/The_Hollywood_Reporter)*. **372** (28).
+
+152. ^ [<sup><i><b>a</b></i></sup>](#cite_ref-itsofficial_160-0) [<sup><i><b>b</b></i></sup>](#cite_ref-itsofficial_160-1)
+   > Tatiana Siegel (November 13, 2007). ["*Dragonball* comes to bigscreen"](https://variety.com/2007/film/markets-festivals/dragonball-comes-to-bigscreen-1117975946/). *[Variety](/wiki/Variety_(magazine))*. [Archived](https://web.archive.org/web/20200903173334/https://variety.com/2007/film/markets-festivals/dragonball-comes-to-bigscreen-1117975946/) from the original on September 3, 2020. Retrieved November 14, 2007.
+
+153. **[^](#cite_ref-FoxJapan_161-0)**
+   > ["*DragonBall* Movie"](https://web.archive.org/web/20080623065852/http://www.foxjapan.com/movies/lineup/main.html#DB). Fox Japan. Archived from [the original](http://www.foxjapan.com/movies/lineup/main.html#DB) on June 23, 2008. Retrieved June 18, 2008.
+
+154. **[^](#cite_ref-162)**
+   > Parfitt, Orlando (March 30, 2009). ["Dragonball Sequels Exclusive"](https://www.ign.com/articles/2009/03/30/dragonball-sequels-exclusive). [Archived](https://web.archive.org/web/20200903173340/https://www.ign.com/articles/2009/03/30/dragonball-sequels-exclusive) from the original on September 3, 2020. Retrieved January 14, 2018.
+
+155. **[^](#cite_ref-163)**
+   > ["Dragonball Sequel Already Has A Script"](https://screenrant.com/dragonball-sequel-already-has-a-script/). *[Screen Rant](/wiki/Screen_Rant)*. April 5, 2009. [Archived](https://web.archive.org/web/20200903173341/https://screenrant.com/dragonball-sequel-already-has-a-script/) from the original on September 3, 2020. Retrieved January 14, 2018.
+
+156. **[^](#cite_ref-164)**
+   > ["REVIEW – DRAGONBALL: EVOLUTION (2009)"](http://cinemaestroreviews.blogspot.mx/2014/12/review-dragonball-evolution-2009.html). *cinemaestroreviews.blogspot.mx*. [Archived](https://web.archive.org/web/20171201031106/http://cinemaestroreviews.blogspot.mx/2014/12/review-dragonball-evolution-2009.html) from the original on December 1, 2017. Retrieved January 14, 2018.
+
+157. **[^](#cite_ref-165)**
+   > Ashcraft, Brian (April 2, 2013). ["Didn't Like Hollywood's Dragon Ball Movie? Well, Neither Did Dragon Ball's Creator"](https://kotaku.com/didnt-like-hollywoods-dragon-ball-movie-well-neithe-465066558). [Archived](https://web.archive.org/web/20200903173357/https://kotaku.com/didnt-like-hollywoods-dragon-ball-movie-well-neithe-465066558) from the original on September 3, 2020. Retrieved January 14, 2018.
+
+158. **[^](#cite_ref-166)**
+   > Padula, Derek (May 3, 2016). ["Dragon Ball Evolution Writer Apologizes to Fans"](http://thedaoofdragonball.com/blog/news/dragonball-evolution-writer-apologizes-to-fans/). [Archived](https://web.archive.org/web/20180103165732/http://thedaoofdragonball.com/blog/news/dragonball-evolution-writer-apologizes-to-fans/) from the original on January 3, 2018. Retrieved January 14, 2018.
+
+159. **[^](#cite_ref-167)**
+   > Barder, Ollie. ["'Dragonball Evolution' Writer Apologizes To Fans"](https://www.forbes.com/sites/olliebarder/2016/05/05/dragonball-evolution-writer-apologizes-to-fans/#70af23062e67). *[Forbes](/wiki/Forbes)*. [Archived](https://web.archive.org/web/20200903173347/https://www.forbes.com/sites/olliebarder/2016/05/05/dragonball-evolution-writer-apologizes-to-fans/#70af23062e67) from the original on September 3, 2020. Retrieved January 14, 2018.
+
+160. **[^](#cite_ref-168)**
+   > ["Could The Disney/Fox Acquisition Lead To New Live-Action 'Dragon Ball ' Movies and What Could That Look Like? – GWW"](https://thegww.com/could-the-disney-fox-acquisition-lead-to-new-live-action-dragon-ball-movies-and-what-that-could-look-like/). August 12, 2018. [Archived](https://web.archive.org/web/20200903173352/https://thegww.com/could-the-disney-fox-acquisition-lead-to-new-live-action-dragon-ball-movies-and-what-that-could-look-like/) from the original on September 3, 2020. Retrieved January 8, 2019.
+
+161. **[^](#cite_ref-169)**
+   > ["Is Disney really making a Dragon Ball movie? Explained"](https://www.sportskeeda.com/anime/is-disney-really-making-dragon-ball-movie-explained). December 9, 2022. [Archived](https://web.archive.org/web/20230725180721/https://www.sportskeeda.com/anime/is-disney-really-making-dragon-ball-movie-explained) from the original on July 25, 2023. Retrieved July 25, 2023.
+
+162. **[^](#cite_ref-170)**
+   > Egan, Toussaint (March 1, 2022). ["Funimation folds into Crunchyroll to create one giant anime platform"](https://www.polygon.com/22956330/funimation-crunchyroll-anime-merger). *[Polygon](/wiki/Polygon_(website))*. [Archived](https://web.archive.org/web/20220706032916/https://www.polygon.com/22956330/funimation-crunchyroll-anime-merger) from the original on July 6, 2022. Retrieved July 6, 2022.
+
+163. **[^](#cite_ref-171)**
+   > Mateo, Alex (September 24, 2024). ["Dragon Ball Daima Anime's Trailer Reveals U.S. Screening for English Dub on November 10–12, Previews Dub Voices"](https://www.animenewsnetwork.com/news/2024-09-24/dragon-ball-daima-anime-trailer-reveals-u.s-screening-for-english-dub-on-november-10-12-previews-/.215948). *[Anime News Network](/wiki/Anime_News_Network)*. [Archived](https://web.archive.org/web/20241010032144/https://www.animenewsnetwork.com/news/2024-09-24/dragon-ball-daima-anime-trailer-reveals-u.s-screening-for-english-dub-on-november-10-12-previews-/.215948) from the original on October 10, 2024. Retrieved October 14, 2024.
+
+164. **[^](#cite_ref-172)**
+   > ["Dragon Ball: Daimaou Fukkatsu"](https://www.gamespot.com/dragon-ball-daimaou-fukkatsu/). *[GameSpot](/wiki/GameSpot)*. [Archived](https://web.archive.org/web/20200903173345/https://www.gamespot.com/games/dragon-ball-daimaou-fukkatsu/) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+165. **[^](#cite_ref-173)**
+   > ["Dragon Ball Z Super Butouden"](https://web.archive.org/web/20081220080410/http://www.gamespot.com/snes/action/dragonballz/index.html?tag=result%3Btitle%3B3). *[GameSpot](/wiki/GameSpot)*. Archived from [the original](http://www.gamespot.com/snes/action/dragonballz/index.html?tag=result;title;3) on December 20, 2008. Retrieved September 26, 2008.
+
+166. **[^](#cite_ref-174)**
+   > ["Dragon Ball GT: Final Bout"](http://www.gamespot.com/ps/action/dragonballfinalbout/index.html?tag=result;title;0). *[GameSpot](/wiki/GameSpot)*. [Archived](https://web.archive.org/web/20110628222421/http://www.gamespot.com/ps/action/dragonballfinalbout/index.html?tag=result;title;0) from the original on June 28, 2011. Retrieved January 10, 2009.
+
+167. **[^](#cite_ref-175)**
+   > ["DBZ: Budokai to ship early"](https://www.animenewsnetwork.com/news/2002-11-13/dbz-budokai-to-ship-early). *[Anime News Network](/wiki/Anime_News_Network)*. November 13, 2002. [Archived](https://web.archive.org/web/20200903173348/https://www.animenewsnetwork.com/news/2002-11-13/dbz-budokai-to-ship-early) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+168. **[^](#cite_ref-176)**
+   > Mueller, Greg (August 15, 2005). ["Dragon Ball Z: Budokai Tenkaichi Hands-On"](https://www.gamespot.com/articles/dragon-ball-z-budokai-tenkaichi-hands-on/1100-6130926/). *[GameSpot](/wiki/GameSpot)*. [Archived](https://web.archive.org/web/20200903173348/https://www.gamespot.com/articles/dragon-ball-z-budokai-tenkaichi-hands-on/1100-6130926/) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+169. **[^](#cite_ref-177)**
+   > ["Atari Announces the Next Generation Chapter for Dragon Ball Z(R) Video Game Series"](http://phx.corporate-ir.net/phoenix.zhtml?c=66845&p=irol-newsArticle&t=Regular&id=1097059&) (Press release). [Atari](/wiki/Atari). January 16, 2008. Retrieved September 24, 2008.
+
+   `{{[cite press release](/wiki/Template:Cite_press_release)}}`: CS1 maint: deprecated archival service ([link](/wiki/Category:CS1_maint:_deprecated_archival_service))
+170. **[^](#cite_ref-178)**
+   > Te, Zorine (June 11, 2014). ["E3 2014: Powering Up Dragon Ball Xenoverse to the Next Generation"](http://www.gamespot.com/articles/e3-2014-powering-up-dragon-ball-xenoverse-to-the-next-generation/1100-6420430/). *[GameSpot](/wiki/GameSpot)*. [Archived](https://web.archive.org/web/20200903173355/https://www.gamespot.com/articles/e3-2014-powering-up-dragon-ball-xenoverse-to-the-next-generation/1100-6420430/) from the original on September 3, 2020. Retrieved April 19, 2015.
+
+171. **[^](#cite_ref-179)**
+   > Reparaz, Mikel (June 30, 2014). ["DBZ Goes Next-Gen With Dragon Ball Xenoverse"](https://www.ign.com/articles/2014/07/01/e3-2014-dbz-goes-next-gen-with-dragon-ball-xenoverse). *[IGN](/wiki/IGN)*. [Archived](https://web.archive.org/web/20200903173405/https://www.ign.com/articles/2014/07/01/e3-2014-dbz-goes-next-gen-with-dragon-ball-xenoverse) from the original on September 3, 2020. Retrieved April 20, 2015.
+
+172. **[^](#cite_ref-180)**
+   > [드래곤볼 온라인 서비스 종료 안내 (End of Dragon Ball Online)](http://dbo.netmarble.net/News/Notice/index.asp?seq=47263). Dragon Ball Online – Net Marble. August 26, 2013. [Archived](https://web.archive.org/web/20130911023525/http://dbo.netmarble.net/News/Notice/index.asp?seq=47263) from the original on September 11, 2013. Retrieved September 7, 2013.
+
+173. **[^](#cite_ref-181)**
+   > ["DragonBall Online Global – The Server Revival"](http://dboglobal.com/). *dboglobal.com*. [Archived](https://web.archive.org/web/20161120003730/http://www.dboglobal.com/) from the original on November 20, 2016. Retrieved November 30, 2016.
+
+174. **[^](#cite_ref-182)**
+   > [「ドラゴンボールZ ドッカンバトル」で世界累計3億5000万DL突破を記念したキャンペーンが開催](https://www.4gamer.net/games/275/G027529/20210828006/). *[4Gamer.net](/wiki/4Gamer.net)* (in Japanese). August 28, 2021. [Archived](https://web.archive.org/web/20210828073417/https://www.4gamer.net/games/275/G027529/20210828006/) from the original on August 28, 2021. Retrieved August 28, 2021.
+
+175. **[^](#cite_ref-183)**
+   > ["2018 | History | The Game Awards"](https://thegameawards.com/history/2018-2). *The Game Awards*. [Archived](https://web.archive.org/web/20200903173415/https://thegameawards.com/history/2018-2) from the original on September 3, 2020. Retrieved April 17, 2020.
+
+176. **[^](#cite_ref-184)**
+   > ["DBFZ sells over 4 Million, 2019 March"](https://nintendosoup.com/dragon-ball-xenoverse-2-and-dragon-ball-fighterz-have-sold-over-5-and-4-million-copies-respectively/). March 28, 2019. [Archived](https://web.archive.org/web/20200903173427/https://nintendosoup.com/dragon-ball-xenoverse-2-and-dragon-ball-fighterz-have-sold-over-5-and-4-million-copies-respectively/) from the original on September 3, 2020.
+
+177. **[^](#cite_ref-185)**
+   > ["Business Review Weekly: BRW"](https://books.google.com/books?id=mK2ZAAAAIAAJ). *[Business Review Weekly](/wiki/Business_Review_Weekly)*. **17** (1–7): 69. 1995. [Archived](https://web.archive.org/web/20240309183346/https://books.google.com/books?id=mK2ZAAAAIAAJ) from the original on March 9, 2024. Retrieved February 3, 2021.
+   > > Last year alone Bandai sold $140 million of Dragon Ball licensed toys, video games and other character goods in Japan alone.
+   >
+   >
+
+178. **[^](#cite_ref-186)**
+   > ["Manga, anime rooted in Japanese history"](https://www.newspapers.com/newspage/107097112/). *[The Indianapolis Star](/wiki/The_Indianapolis_Star)*. August 2, 1997. [Archived](https://web.archive.org/web/20180530035505/https://www.newspapers.com/newspage/107097112/) from the original on May 30, 2018. Retrieved February 3, 2021.
+
+179. **[^](#cite_ref-187)**
+   > *Dragon Ball: The Path to Power booklet*. 1996.
+
+180. **[^](#cite_ref-188)**
+   > ["Bandai's "Carddas" topped the total sales volume of 10 billion pieces"](https://gigazine.net/gsc_news/en/20120329-bandai-carddass/). *[GIGAZINE](https://ja.wikipedia.org/wiki/GIGAZINE)*. March 29, 2012. [Archived](https://web.archive.org/web/20200903173432/https://gigazine.net/gsc_news/en/20120329-bandai-carddass/) from the original on September 3, 2020. Retrieved January 25, 2019.
+
+181. **[^](#cite_ref-189)**
+   > ["30 Years of Dragon Ball Z"](https://web.archive.org/web/20190320221927/http://dc.cn.ubm-us.com/i/1078926-license-global-february-2019). *License Global*: T13. February 2019. Archived from [the original](http://dc.cn.ubm-us.com/i/1078926-license-global-february-2019) on March 20, 2019. Retrieved March 23, 2019.
+
+182. **[^](#cite_ref-bk_190-0)**
+   > ["Burger King Uses Kids' Meals to Promote Japanese Cartoon Series"](https://web.archive.org/web/20131105184943/http://www.highbeam.com/doc/1G1-62662281.html). *[Knight Ridder Tribune Business News](/wiki/Knight_Ridder_Tribune_Business_News)*. [Knight Ridder](/wiki/Knight_Ridder). June 5, 2000. Archived from [the original](http://www.highbeam.com/doc/1G1-62662281.html) on November 5, 2013. Retrieved May 1, 2013.
+
+183. **[^](#cite_ref-191)**
+   > ["Funimation January 2012 Catalog"](http://www.thecnl.com/FunimationJan2012Catalog.pdf) (PDF). *thecnl.com*. [Funimation](/wiki/Funimation). [Archived](https://web.archive.org/web/20200903173313/http://www.thecnl.com/FunimationJan2012Catalog.pdf) (PDF) from the original on September 3, 2020. Retrieved July 30, 2017.
+
+184. **[^](#cite_ref-charabiz_192-0)**
+   > ["在日本，地位最高的动漫是哆啦a梦么？"](https://web.archive.org/web/20180909185415/http://www.taojinjubao.com/zhihu/267465.html). *Taojinjubao*. Character Databank (CharaBiz). January 6, 2018. Archived from [the original](http://www.taojinjubao.com/zhihu/267465.html) on September 9, 2018. Retrieved March 23, 2019.
+
+185. **[^](#cite_ref-193)**
+   > ["Dragonball Music Collection"](http://www.cdjapan.co.jp/product/COCC-72015). CDJapan.com. [Archived](https://web.archive.org/web/20200903173437/https://www.cdjapan.co.jp/product/COCC-72015) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+186. **[^](#cite_ref-194)**
+   > ["DRAGONBALL Z Hit Kyoku Shu"](http://www.cdjapan.co.jp/product/COCX-33908). CDJapan.com. [Archived](https://web.archive.org/web/20200903173435/https://www.cdjapan.co.jp/product/COCX-33908) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+187. **[^](#cite_ref-195)**
+   > ["DRAGONBALL Z Hit Kyoku Shu 18½"](http://www.cdjapan.co.jp/product/COCX-33927). CDJapan.com. [Archived](https://web.archive.org/web/20200903173435/https://www.cdjapan.co.jp/product/COCX-33927) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+188. **[^](#cite_ref-196)**
+   > ["Dragon Ball Z Best Song Collection "Legend of Dragonworld""](http://www.cdjapan.co.jp/product/COCX-33567). CDJapan.com. [Archived](https://web.archive.org/web/20200903173434/https://www.cdjapan.co.jp/product/COCX-33567) from the original on September 3, 2020. Retrieved September 26, 2008.
+
+189. **[^](#cite_ref-197)**
+   > ["Dragon Ball: The Complete Illustrations"](https://web.archive.org/web/20131224115314/http://www.viz.com/books/print/dragon-ball-the-complete-illustrations-volume-1/7952). [Viz Media](/wiki/Viz_Media). Archived from [the original](http://www.viz.com/books/print/dragon-ball-the-complete-illustrations-volume-1/7952) on December 24, 2013. Retrieved July 20, 2013.
+
+190. **[^](#cite_ref-198)**
+   > [復刻版ドラゴンボールGTパーフェクトファイル vol．1](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-874089-0) [Dragon Ball GT: Perfect File vol.1]. Shueisha. [Archived](https://web.archive.org/web/20160116072915/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-874089-0) from the original on January 16, 2016. Retrieved December 22, 2013.
+
+191. **[^](#cite_ref-199)**
+   > [復刻版ドラゴンボールGTパーフェクトファイル vol．2](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-874090-4&mode=1) [Dragon Ball GT: Perfect File vol.2]. Shueisha. [Archived](https://web.archive.org/web/20080224024331/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-874090-4&mode=1) from the original on February 24, 2008. Retrieved December 22, 2013.
+
+192. **[^](#cite_ref-200)**
+   > ["Dragonball FOREVER"](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873702-4&mode=1). Shueisha. [Archived](https://web.archive.org/web/20160115143409/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873702-4&mode=1) from the original on January 15, 2016. Retrieved December 22, 2013.
+
+193. **[^](#cite_ref-201)**
+   > ["Dragonball LANDMARK"](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873478-5&mode=1). Shueisha. [Archived](https://web.archive.org/web/20160116073419/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873478-5&mode=1) from the original on January 16, 2016. Retrieved December 22, 2013.
+
+194. **[^](#cite_ref-202)**
+   > [テレビアニメ完全カイド「DRAGONBALL」～天下一伝説～](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873705-9) [Dragon Ball: Tenkaichi Densetsu]. Shueisha. [Archived](https://web.archive.org/web/20160116070910/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873705-9) from the original on January 16, 2016. Retrieved September 1, 2013.
+
+195. **[^](#cite_ref-203)**
+   > [テレビアニメ完全ガイド Dragonball Z 孫悟空伝説](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873546-3) [Dragon Ball Z: Son Goku Densetsu]. Shueisha. [Archived](https://web.archive.org/web/20160116072424/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=4-08-873546-3) from the original on January 16, 2016. Retrieved September 1, 2013.
+
+196. **[^](#cite_ref-204)**
+   > [DRAGON BALL 超エキサイティングガイド ストーリー編 (Dragon Ball: Super Exciting Guide Story)](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874803-0). Shueisha. [Archived](https://web.archive.org/web/20160115224344/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874803-0) from the original on January 15, 2016. Retrieved December 22, 2013.
+
+197. **[^](#cite_ref-205)**
+   > [DRAGON BALL 超エキサイティングガイド キャラクター編 (Dragon Ball: Super Exciting Guide Character)](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874804-7). Shueisha. [Archived](https://web.archive.org/web/20160116071414/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874804-7) from the original on January 16, 2016. Retrieved December 22, 2013.
+
+198. **[^](#cite_ref-206)**
+   > [DRAGON BALL 極限バトルコレクション ラウンド01](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874840-5&mode=1) [Dragon Ball: Extreme Battle Collection: Round 1]. Shueisha. [Archived](https://web.archive.org/web/20160116070520/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874840-5&mode=1) from the original on January 16, 2016. Retrieved December 22, 2013.
+
+199. **[^](#cite_ref-207)**
+   > [DRAGON BALL 極限バトルコレクション ラウンド02](http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874841-2&mode=1) [Dragon Ball: Extreme Battle Collection: Round 2]. Shueisha. [Archived](https://web.archive.org/web/20160115142824/http://books.shueisha.co.jp/CGI/search/syousai_put.cgi?isbn_cd=978-4-08-874841-2&mode=1) from the original on January 15, 2016. Retrieved December 22, 2013.
+
+200. **[^](#cite_ref-208)**
+   > ["Dragon Ball Collectible Card Game – Series #1: The Warriors Return"](http://www.bandai.com/cards/dragonball/cardlists_s1.html). Bandai. Retrieved September 7, 2013.
+
+   `{{[cite web](/wiki/Template:Cite_web)}}`: CS1 maint: deprecated archival service ([link](/wiki/Category:CS1_maint:_deprecated_archival_service))
+201. **[^](#cite_ref-review_209-0)**
+   > Pool, Robert (1999). ["Review ofDragon Ball Z: The Anime Adventure Game"](https://www.rpg.net/reviews/archive/classic/rev_2503.phtml). [RPGnet](/wiki/RPGnet). [Archived](https://web.archive.org/web/20200903173450/https://www.rpg.net/reviews/archive/classic/rev_2503.phtml) from the original on September 3, 2020. Retrieved November 4, 2017.
+
+202. **[^](#cite_ref-210)**
+   > ["Dragonball Z"](https://web.archive.org/web/20130703005332/http://www.talsorian.com/dbzindex.shtml). July 3, 2013. Archived from [the original](http://www.talsorian.com/dbzindex.shtml) on July 3, 2013. Retrieved January 14, 2018.
+
+External links
+----------
+
+[<img alt="Wikimedia Commons logo" src="//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/40px-Commons-logo.svg.png" decoding="async" width="30" height="40" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/60px-Commons-logo.svg.png 2x" data-file-width="1024" data-file-height="1376">](/wiki/File:Commons-logo.svg)
+
+Wikimedia Commons has media related to [Dragon Ball](https://commons.wikimedia.org/wiki/Category:Dragon_Ball).
+
+<img alt="" src="//upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Wikiquote-logo.svg/40px-Wikiquote-logo.svg.png" decoding="async" width="34" height="40" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Wikiquote-logo.svg/120px-Wikiquote-logo.svg.png 2x" data-file-width="300" data-file-height="355">
+
+Wikiquote has quotations related to ***[Dragon Ball](https://en.wikiquote.org/wiki/Special:Search/Dragon_Ball)***.
+
+* [Official *Dragon Ball* Site](https://dragon-ball-official.com/) (in Japanese, Spanish, English, French, and German)
+* [*Dragon Ball* official website](https://www.viz.com/dragon-ball) at [Viz Media](/wiki/Viz_Media)
+* [*Dragon Ball* official manga website](https://mangaplus.shueisha.co.jp/titles/100011) at *[Manga Plus](/wiki/Manga_Plus)*
+* [*Dragon Ball*](https://www.animenewsnetwork.com/encyclopedia/manga.php?id=297) (manga) at [Anime News Network](/wiki/Anime_News_Network)'s encyclopedia
+
+|                                                                                                    * [v](/wiki/Template:Dragon_Ball)<br/>* [t](/wiki/Template_talk:Dragon_Ball)<br/>* [e](/wiki/Special:EditPage/Template:Dragon_Ball)<br/><br/>*[Dragon Ball]()* by [Akira Toriyama](/wiki/Akira_Toriyama)                                                                                                    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                                                                                                                                                                                                     Manga                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * *[Dragon Ball](/wiki/Dragon_Ball_(manga))*<br/>* *[Episode of Bardock](/wiki/Dragon_Ball:_Episode_of_Bardock)*<br/>* *[Dragon Ball Super](/wiki/Dragon_Ball_Super)*<br/>* [Collected volumes](/wiki/List_of_Dragon_Ball_manga_volumes)<br/>  * [*Dragon Ball* chapters](/wiki/List_of_Dragon_Ball_chapters_(series))<br/>  * [*Dragon Ball Z* chapters](/wiki/List_of_Dragon_Ball_Z_chapters)<br/>  * [*Dragon Ball Super* chapters](/wiki/List_of_Dragon_Ball_Super_chapters)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|                                                                                                                                                                                    [Anime](/wiki/List_of_Dragon_Ball_anime)                                                                                                                                                                                    |                                                                                                                                                                                                                                                                                       | TV and   <br/>ONA series  |* *[Dragon Ball](/wiki/Dragon_Ball_(TV_series))*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_episodes)<br/><br/>* *[Dragon Ball Z](/wiki/Dragon_Ball_Z)*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_Z_episodes)<br/>    * [season 1](/wiki/Dragon_Ball_Z_season_1)<br/>    * [2](/wiki/Dragon_Ball_Z_season_2)<br/>    * [3](/wiki/Dragon_Ball_Z_season_3)<br/>    * [4](/wiki/Dragon_Ball_Z_season_4)<br/>    * [5](/wiki/Dragon_Ball_Z_season_5)<br/>    * [6](/wiki/Dragon_Ball_Z_season_6)<br/>    * [7](/wiki/Dragon_Ball_Z_season_7)<br/>    * [8](/wiki/Dragon_Ball_Z_season_8)<br/>    * [9](/wiki/Dragon_Ball_Z_season_9)<br/><br/>* *[Dragon Ball GT](/wiki/Dragon_Ball_GT)*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_GT_episodes)<br/><br/>* *[Dragon Ball Z Kai](/wiki/Dragon_Ball_Z_Kai)*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_Z_Kai_episodes)<br/><br/>* *[Dragon Ball Super](/wiki/Dragon_Ball_Super_(TV_series))*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_Super_episodes)<br/><br/>* *[Super Dragon Ball Heroes](/wiki/Super_Dragon_Ball_Heroes_(web_series))*<br/>  * [episodes](/wiki/List_of_Super_Dragon_Ball_Heroes_episodes)<br/><br/>* *[Dragon Ball Daima](/wiki/Dragon_Ball_Daima)*|<br/>|---------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|<br/>|TV specials   <br/>and OVAs|                                                                                                                                                                                                                                                                                              * *[Dragon Ball Z: Bardock – The Father of Goku](/wiki/Dragon_Ball_Z:_Bardock_%E2%80%93_The_Father_of_Goku)*<br/>* *[Dragon Ball Z: The History of Trunks](/wiki/Dragon_Ball_Z:_The_History_of_Trunks)*<br/>* *[Dragon Ball Z Side Story: Plan to Eradicate the Saiyans](/wiki/Dragon_Ball_Z_Side_Story:_Plan_to_Eradicate_the_Saiyans)*<br/>* *[Dragon Ball GT: A Hero's Legacy](/wiki/Dragon_Ball_GT:_A_Hero%27s_Legacy)*<br/>* *[Dragon Ball: Yo! Son Goku and His Friends Return!!](/wiki/Dragon_Ball:_Yo!_Son_Goku_and_His_Friends_Return!!)*<br/>* *[Dragon Ball: Episode of Bardock](/wiki/Dragon_Ball:_Episode_of_Bardock)*                                                                                                                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                        |
+|                                                                                                                                                                                            TV and   <br/>ONA series                                                                                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         * *[Dragon Ball](/wiki/Dragon_Ball_(TV_series))*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_episodes)<br/><br/>* *[Dragon Ball Z](/wiki/Dragon_Ball_Z)*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_Z_episodes)<br/>    * [season 1](/wiki/Dragon_Ball_Z_season_1)<br/>    * [2](/wiki/Dragon_Ball_Z_season_2)<br/>    * [3](/wiki/Dragon_Ball_Z_season_3)<br/>    * [4](/wiki/Dragon_Ball_Z_season_4)<br/>    * [5](/wiki/Dragon_Ball_Z_season_5)<br/>    * [6](/wiki/Dragon_Ball_Z_season_6)<br/>    * [7](/wiki/Dragon_Ball_Z_season_7)<br/>    * [8](/wiki/Dragon_Ball_Z_season_8)<br/>    * [9](/wiki/Dragon_Ball_Z_season_9)<br/><br/>* *[Dragon Ball GT](/wiki/Dragon_Ball_GT)*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_GT_episodes)<br/><br/>* *[Dragon Ball Z Kai](/wiki/Dragon_Ball_Z_Kai)*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_Z_Kai_episodes)<br/><br/>* *[Dragon Ball Super](/wiki/Dragon_Ball_Super_(TV_series))*<br/>  * [episodes](/wiki/List_of_Dragon_Ball_Super_episodes)<br/><br/>* *[Super Dragon Ball Heroes](/wiki/Super_Dragon_Ball_Heroes_(web_series))*<br/>  * [episodes](/wiki/List_of_Super_Dragon_Ball_Heroes_episodes)<br/><br/>* *[Dragon Ball Daima](/wiki/Dragon_Ball_Daima)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|                                                                                                                                                                                          TV specials   <br/>and OVAs                                                                                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * *[Dragon Ball Z: Bardock – The Father of Goku](/wiki/Dragon_Ball_Z:_Bardock_%E2%80%93_The_Father_of_Goku)*<br/>* *[Dragon Ball Z: The History of Trunks](/wiki/Dragon_Ball_Z:_The_History_of_Trunks)*<br/>* *[Dragon Ball Z Side Story: Plan to Eradicate the Saiyans](/wiki/Dragon_Ball_Z_Side_Story:_Plan_to_Eradicate_the_Saiyans)*<br/>* *[Dragon Ball GT: A Hero's Legacy](/wiki/Dragon_Ball_GT:_A_Hero%27s_Legacy)*<br/>* *[Dragon Ball: Yo! Son Goku and His Friends Return!!](/wiki/Dragon_Ball:_Yo!_Son_Goku_and_His_Friends_Return!!)*<br/>* *[Dragon Ball: Episode of Bardock](/wiki/Dragon_Ball:_Episode_of_Bardock)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                                                                                                                                                                                    [Films](/wiki/List_of_Dragon_Ball_films)                                                                                                                                                                                    ||   *Dragon Ball*   |                                                                                                                                                                                                                                                                                                                                      * *[Curse of the Blood Rubies](/wiki/Dragon_Ball:_Curse_of_the_Blood_Rubies)*<br/>* *[Sleeping Princess in Devil's Castle](/wiki/Dragon_Ball:_Sleeping_Princess_in_Devil%27s_Castle)*<br/>* *[Mystical Adventure](/wiki/Dragon_Ball:_Mystical_Adventure)*<br/>* *[The Path to Power](/wiki/Dragon_Ball:_The_Path_to_Power)*<br/>* *[Dragonball Evolution](/wiki/Dragonball_Evolution)*                                                                                                                                                                                                                                                                                                                                       |<br/>|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|<br/>|  *Dragon Ball Z*  |* *[Dead Zone](/wiki/Dragon_Ball_Z:_Dead_Zone)*<br/>* *[The World's Strongest](/wiki/Dragon_Ball_Z:_The_World%27s_Strongest)*<br/>* *[The Tree of Might](/wiki/Dragon_Ball_Z:_The_Tree_of_Might)*<br/>* *[Lord Slug](/wiki/Dragon_Ball_Z:_Lord_Slug)*<br/>* *[Cooler's Revenge](/wiki/Dragon_Ball_Z:_Cooler%27s_Revenge)*<br/>* *[The Return of Cooler](/wiki/Dragon_Ball_Z:_The_Return_of_Cooler)*<br/>* *[Super Android 13!](/wiki/Dragon_Ball_Z:_Super_Android_13!)*<br/>* *[Broly – The Legendary Super Saiyan](/wiki/Dragon_Ball_Z:_Broly_%E2%80%93_The_Legendary_Super_Saiyan)*<br/>* *[Bojack Unbound](/wiki/Dragon_Ball_Z:_Bojack_Unbound)*<br/>* *[Broly – Second Coming](/wiki/Dragon_Ball_Z:_Broly_%E2%80%93_Second_Coming)*<br/>* *[Bio-Broly](/wiki/Dragon_Ball_Z:_Bio-Broly)*<br/>* *[Fusion Reborn](/wiki/Dragon_Ball_Z:_Fusion_Reborn)*<br/>* *[Wrath of the Dragon](/wiki/Dragon_Ball_Z:_Wrath_of_the_Dragon)*<br/>* *[Battle of Gods](/wiki/Dragon_Ball_Z:_Battle_of_Gods)*<br/>* *[Resurrection 'F'](/wiki/Dragon_Ball_Z:_Resurrection_%27F%27)*|<br/>|*Dragon Ball Super*|                                                                                                                                                                                                                                                                                                                                                                                                                                                                               * *[Broly](/wiki/Dragon_Ball_Super:_Broly)*<br/>* *[Super Hero](/wiki/Dragon_Ball_Super:_Super_Hero)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ||
+|                                                                                                                                                                                                 *Dragon Ball*                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              * *[Curse of the Blood Rubies](/wiki/Dragon_Ball:_Curse_of_the_Blood_Rubies)*<br/>* *[Sleeping Princess in Devil's Castle](/wiki/Dragon_Ball:_Sleeping_Princess_in_Devil%27s_Castle)*<br/>* *[Mystical Adventure](/wiki/Dragon_Ball:_Mystical_Adventure)*<br/>* *[The Path to Power](/wiki/Dragon_Ball:_The_Path_to_Power)*<br/>* *[Dragonball Evolution](/wiki/Dragonball_Evolution)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|                                                                                                                                                                                                *Dragon Ball Z*                                                                                                                                                                                                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * *[Dead Zone](/wiki/Dragon_Ball_Z:_Dead_Zone)*<br/>* *[The World's Strongest](/wiki/Dragon_Ball_Z:_The_World%27s_Strongest)*<br/>* *[The Tree of Might](/wiki/Dragon_Ball_Z:_The_Tree_of_Might)*<br/>* *[Lord Slug](/wiki/Dragon_Ball_Z:_Lord_Slug)*<br/>* *[Cooler's Revenge](/wiki/Dragon_Ball_Z:_Cooler%27s_Revenge)*<br/>* *[The Return of Cooler](/wiki/Dragon_Ball_Z:_The_Return_of_Cooler)*<br/>* *[Super Android 13!](/wiki/Dragon_Ball_Z:_Super_Android_13!)*<br/>* *[Broly – The Legendary Super Saiyan](/wiki/Dragon_Ball_Z:_Broly_%E2%80%93_The_Legendary_Super_Saiyan)*<br/>* *[Bojack Unbound](/wiki/Dragon_Ball_Z:_Bojack_Unbound)*<br/>* *[Broly – Second Coming](/wiki/Dragon_Ball_Z:_Broly_%E2%80%93_Second_Coming)*<br/>* *[Bio-Broly](/wiki/Dragon_Ball_Z:_Bio-Broly)*<br/>* *[Fusion Reborn](/wiki/Dragon_Ball_Z:_Fusion_Reborn)*<br/>* *[Wrath of the Dragon](/wiki/Dragon_Ball_Z:_Wrath_of_the_Dragon)*<br/>* *[Battle of Gods](/wiki/Dragon_Ball_Z:_Battle_of_Gods)*<br/>* *[Resurrection 'F'](/wiki/Dragon_Ball_Z:_Resurrection_%27F%27)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                                                                                                                                                                                              *Dragon Ball Super*                                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * *[Broly](/wiki/Dragon_Ball_Super:_Broly)*<br/>* *[Super Hero](/wiki/Dragon_Ball_Super:_Super_Hero)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|                                                                                                                                                                                                     Music                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | [Soundtracks](/wiki/List_of_Dragon_Ball_soundtracks) |                                                                                                                                                                                                                                                                               * [*Dragon Ball Z Hit Song Collection* series](/wiki/Dragon_Ball_Z_Hit_Song_Collection_series)<br/>* *[Dragonball Evolution: Original Motion Picture Soundtrack](/wiki/Dragonball_Evolution_(soundtrack))*                                                                                                                                                                                                                                                                                |<br/>|------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|<br/>|[Songs and singles](/wiki/List_of_Dragon_Ball_singles)|* "[Makafushigi Adventure!](/wiki/Makafushigi_Adventure!)"<br/>* "[Cha-La Head-Cha-La](/wiki/Cha-La_Head-Cha-La)"<br/>* "[Dan Dan Kokoro Hikareteku](/wiki/Dan_Dan_Kokoro_Hikareteku)"<br/>* "[Hitori ja Nai](/wiki/Hitori_ja_Nai_(Deen_song))"<br/>* "[Don't You See!](/wiki/Don%27t_You_See!_(Zard_song))"<br/>* "[Blue Velvet](/wiki/Blue_Velvet_(Shizuka_Kudo_song))"<br/>* "[Tsume Tsume Tsume/F](/wiki/Tsume_Tsume_Tsume/F)"<br/>* "[Rule](/wiki/Rule/Sparkle)"<br/>* "[Dragon Soul](/wiki/Dragon_Soul)"<br/>* "[Yeah! Break! Care! Break!](/wiki/Yeah!_Break!_Care!_Break!)"<br/>* "['Z' no Chikai](/wiki/%22Z%22_no_Chikai)"<br/>* "[Chōzetsu Dynamic!](/wiki/Ch%C5%8Dzetsu_Dynamic!)"<br/>* "[Jaka Jaan](/wiki/Jaka_Jaan)"<br/>* "[Nakama](/wiki/Nakama_(song))"|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|                                                                                                                                                                              [Soundtracks](/wiki/List_of_Dragon_Ball_soundtracks)                                                                                                                                                                              |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    * [*Dragon Ball Z Hit Song Collection* series](/wiki/Dragon_Ball_Z_Hit_Song_Collection_series)<br/>* *[Dragonball Evolution: Original Motion Picture Soundtrack](/wiki/Dragonball_Evolution_(soundtrack))*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|                                                                                                                                                                             [Songs and singles](/wiki/List_of_Dragon_Ball_singles)                                                                                                                                                                             |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * "[Makafushigi Adventure!](/wiki/Makafushigi_Adventure!)"<br/>* "[Cha-La Head-Cha-La](/wiki/Cha-La_Head-Cha-La)"<br/>* "[Dan Dan Kokoro Hikareteku](/wiki/Dan_Dan_Kokoro_Hikareteku)"<br/>* "[Hitori ja Nai](/wiki/Hitori_ja_Nai_(Deen_song))"<br/>* "[Don't You See!](/wiki/Don%27t_You_See!_(Zard_song))"<br/>* "[Blue Velvet](/wiki/Blue_Velvet_(Shizuka_Kudo_song))"<br/>* "[Tsume Tsume Tsume/F](/wiki/Tsume_Tsume_Tsume/F)"<br/>* "[Rule](/wiki/Rule/Sparkle)"<br/>* "[Dragon Soul](/wiki/Dragon_Soul)"<br/>* "[Yeah! Break! Care! Break!](/wiki/Yeah!_Break!_Care!_Break!)"<br/>* "['Z' no Chikai](/wiki/%22Z%22_no_Chikai)"<br/>* "[Chōzetsu Dynamic!](/wiki/Ch%C5%8Dzetsu_Dynamic!)"<br/>* "[Jaka Jaan](/wiki/Jaka_Jaan)"<br/>* "[Nakama](/wiki/Nakama_(song))"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|                                                                                                                                                                                                     Games                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * [Video games](/wiki/List_of_Dragon_Ball_video_games)<br/>* *[Dragon Ball Z: The Anime Adventure Game](/wiki/Dragon_Ball_Z:_The_Anime_Adventure_Game)*<br/>* *[Dragon Ball Z Collectible Card Game](/wiki/Dragon_Ball_Z_Collectible_Card_Game)*<br/>* *[Dragon Ball Collectible Card Game](/wiki/Dragon_Ball_Collectible_Card_Game)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|                                                                                                                                                                               [Characters](/wiki/List_of_Dragon_Ball_characters)                                                                                                                                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              * [Goku](/wiki/Goku)<br/>* [Bulma](/wiki/Bulma)<br/>* [Master Roshi](/wiki/Master_Roshi)<br/>* [Yamcha](/wiki/Yamcha)<br/>* [Chi-Chi](/wiki/Chi-Chi_(Dragon_Ball))<br/>* [Krillin](/wiki/Krillin)<br/>* [Red Ribbon Army](/wiki/Red_Ribbon_Army)<br/>* [Tien Shinhan](/wiki/Tien_Shinhan)<br/>* [Piccolo](/wiki/Piccolo_(Dragon_Ball))<br/>* [Mr. Popo](/wiki/Mr._Popo)<br/>* [Gohan](/wiki/Gohan)<br/>* [Vegeta](/wiki/Vegeta)<br/>* [Frieza](/wiki/Frieza)<br/>* [Bardock](/wiki/Bardock)<br/>* [Trunks](/wiki/Trunks_(Dragon_Ball))<br/>* [Android 17](/wiki/Android_17_(Dragon_Ball))<br/>* [Android 18](/wiki/Android_18)<br/>* [Cell](/wiki/Cell_(Dragon_Ball))<br/>* [Mr. Satan](/wiki/Mr._Satan)<br/>* [Broly](/wiki/Broly)<br/>* [Videl](/wiki/Videl)<br/>* [Majin Buu](/wiki/Majin_Buu)<br/>* [Beerus](/wiki/Beerus)<br/>* [Zamasu](/wiki/Zamasu)<br/>* [Caulifla and Kale](/wiki/Caulifla_and_Kale)<br/>* [Jiren](/wiki/Jiren_(Dragon_Ball))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+|                                                                                                                                                                                                    Related                                                                                                                                                                                                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 * [Cultural impact](/wiki/Cultural_impact_of_Dragon_Ball)<br/>* [Kazuhiko Torishima](/wiki/Kazuhiko_Torishima)<br/>* *[Dr. Slump](/wiki/Dr._Slump)*<br/>* "[It's Over 9000!](/wiki/It%27s_Over_9000!)"<br/>* *[Neko Majin](/wiki/Neko_Majin)*<br/>* *[Jaco the Galactic Patrolman](/wiki/Jaco_the_Galactic_Patrolman)*<br/>* [Puff-puff](/wiki/Puff-puff_(onomatopoeia))<br/>* [TeamFourStar](/wiki/TeamFourStar)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+|* <img alt="" src="//upload.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/20px-Symbol_category_class.svg.png" decoding="async" width="16" height="16" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/40px-Symbol_category_class.svg.png 2x" data-file-width="180" data-file-height="185"> **[Category](/wiki/Category:Dragon_Ball)**|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+|                                                                               * [v](/wiki/Template:Dragon_Ball_video_games)<br/>* [t](/wiki/Template_talk:Dragon_Ball_video_games)<br/>* [e](/wiki/Special:EditPage/Template:Dragon_Ball_video_games)<br/><br/>*[Dragon Ball]()* [video games](/wiki/List_of_Dragon_Ball_video_games)                                                                                |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                                                                                                                                                                                                      *Butōden*                                                                                                                                                                                                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         * *[Super Butōden](/wiki/Dragon_Ball_Z:_Super_But%C5%8Dden)*<br/>* *[Super Butōden 2](/wiki/Dragon_Ball_Z:_Super_But%C5%8Dden_2)*<br/>* *[Super Butōden 3](/wiki/Dragon_Ball_Z:_Super_But%C5%8Dden_3)*<br/>* *[Shin Butōden](/wiki/Dragon_Ball_Z:_Shin_But%C5%8Dden)*<br/>* *[Ultimate Butōden](/wiki/Dragon_Ball_Kai:_Ultimate_But%C5%8Dden)*<br/>* *[Extreme Butōden](/wiki/Dragon_Ball_Z:_Extreme_But%C5%8Dden)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|                                                                                                                                                                                                 *Idainaru Densetsu*                                                                                                                                                                                                  |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            * *[Idainaru Son Goku Densetsu](/wiki/Dragon_Ball_Z:_Idainaru_Son_Goku_Densetsu)*<br/>* *[Idainaru Dragon Ball Densetsu](/wiki/Dragon_Ball_Z:_Idainaru_Dragon_Ball_Densetsu)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|                                                                                                                                                                                      *[Budokai](/wiki/Dragon_Ball_Z:_Budokai)*                                                                                                                                                                                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * *[Budokai](/wiki/Dragon_Ball_Z:_Budokai_(video_game))*<br/>* *[Budokai 2](/wiki/Dragon_Ball_Z:_Budokai_2)*<br/>* *[Budokai 3](/wiki/Dragon_Ball_Z:_Budokai_3)*<br/>* *[Shin Budokai](/wiki/Dragon_Ball_Z:_Shin_Budokai)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                                                                                                                                                                            *[Budokai Tenkaichi](/wiki/Dragon_Ball_Z:_Budokai_Tenkaichi)*                                                                                                                                                                             |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    * *[Budokai Tenkaichi](/wiki/Dragon_Ball_Z:_Budokai_Tenkaichi_(video_game))*<br/>* *[Budokai Tenkaichi 2](/wiki/Dragon_Ball_Z:_Budokai_Tenkaichi_2)*<br/>* *[Budokai Tenkaichi 3](/wiki/Dragon_Ball_Z:_Budokai_Tenkaichi_3)*<br/>* *[Tenkaichi Tag Team](/wiki/Dragon_Ball_Z:_Tenkaichi_Tag_Team)*<br/>* *[Sparking! Zero](/wiki/Dragon_Ball:_Sparking!_Zero)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|                                                                                                                                                                                                      *Origins*                                                                                                                                                                                                       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * *[Origins](/wiki/Dragon_Ball:_Origins)*<br/>* *[Origins 2](/wiki/Dragon_Ball:_Origins_2)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                                                                                                                                                                                                    *Raging Blast*                                                                                                                                                                                                    |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * *[Raging Blast](/wiki/Dragon_Ball:_Raging_Blast)*<br/>* *[Raging Blast 2](/wiki/Dragon_Ball:_Raging_Blast_2)*<br/>* *[Ultimate Tenkaichi](/wiki/Dragon_Ball_Z:_Ultimate_Tenkaichi)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|                                                                                                                                                                                                     *Xenoverse*                                                                                                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * *[Xenoverse](/wiki/Dragon_Ball_Xenoverse)*<br/>* *[Xenoverse 2](/wiki/Dragon_Ball_Xenoverse_2)*<br/>* *[Xenoverse 3](/wiki/Dragon_Ball_Xenoverse_3)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                                                                                                                                                                                                     Other series                                                                                                                                                                                                     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              * *[The Legacy of Goku](/wiki/Dragon_Ball_Z:_The_Legacy_of_Goku)*<br/>* *[Supersonic Warriors](/wiki/Dragon_Ball_Z:_Supersonic_Warriors)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|                                                                                                                                                                                               Standalone   <br/> games                                                                                                                                                                                               |* *[Side Story: Plan to Eradicate the Saiyans](/wiki/Dragon_Ball_Z_Side_Story:_Plan_to_Eradicate_the_Saiyans)*<br/>* *[Buyū Retsuden](/wiki/Dragon_Ball_Z:_Buy%C5%AB_Retsuden)*<br/>* *[Ultimate Battle 22](/wiki/Dragon_Ball_Z:_Ultimate_Battle_22)*<br/>* *[Hyper Dimension](/wiki/Dragon_Ball_Z:_Hyper_Dimension)*<br/>* *[Final Bout](/wiki/Dragon_Ball_GT:_Final_Bout)*<br/>* *[Legendary Super Warriors](/wiki/Dragon_Ball_Z:_Legendary_Super_Warriors)*<br/>* *[Taiketsu](/wiki/Dragon_Ball_Z:_Taiketsu)*<br/>* *[Advanced Adventure](/wiki/Dragon_Ball:_Advanced_Adventure)*<br/>* *[Sagas](/wiki/Dragon_Ball_Z:_Sagas)*<br/>* *[Transformation](/wiki/Dragon_Ball_GT:_Transformation)*<br/>* *[Super Dragon Ball Z](/wiki/Super_Dragon_Ball_Z)*<br/>* *[Harukanaru Densetsu](/wiki/Dragon_Ball_Z:_Harukanaru_Densetsu)*<br/>* *[Burst Limit](/wiki/Dragon_Ball_Z:_Burst_Limit)*<br/>* *[Infinite World](/wiki/Dragon_Ball_Z:_Infinite_World)*<br/>* *[Attack of the Saiyans](/wiki/Dragon_Ball_Z:_Attack_of_the_Saiyans)*<br/>* *[Revenge of King Piccolo](/wiki/Dragon_Ball:_Revenge_of_King_Piccolo)*<br/>* *[Evolution](/wiki/Dragonball_Evolution_(video_game))*<br/>* *[Online](/wiki/Dragon_Ball_Online)*<br/>* *[Heroes](/wiki/Dragon_Ball_Heroes)*<br/>* *[For Kinect](/wiki/Dragon_Ball_Z:_For_Kinect)*<br/>* *[Battle of Z](/wiki/Dragon_Ball_Z:_Battle_of_Z)*<br/>* *[Dokkan Battle](/wiki/Dragon_Ball_Z:_Dokkan_Battle)*<br/>* *[Fusions](/wiki/Dragon_Ball_Fusions)*<br/>* *[FighterZ](/wiki/Dragon_Ball_FighterZ)*<br/>* *[Legends](/wiki/Dragon_Ball_Legends)*<br/>* *[Kakarot](/wiki/Dragon_Ball_Z:_Kakarot)*|
+|                                                                                                                                                                                               Crossover   <br/> games                                                                                                                                                                                                |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              * *[Famicom Jump: Hero Retsuden](/wiki/Famicom_Jump:_Hero_Retsuden)*<br/>* *[Famicom Jump II: Saikyō no Shichinin](/wiki/Famicom_Jump_II:_Saiky%C5%8D_no_Shichinin)*<br/>* *[Jump Super Stars](/wiki/Jump_Super_Stars)*<br/>* *[Battle Stadium D.O.N](/wiki/Battle_Stadium_D.O.N)*<br/>* *[Jump Ultimate Stars](/wiki/Jump_Ultimate_Stars)*<br/>* *[J-Stars Victory VS](/wiki/J-Stars_Victory_VS)*<br/>* *[Jump Force](/wiki/Jump_Force)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+|* <img alt="" src="//upload.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/20px-Symbol_category_class.svg.png" decoding="async" width="16" height="16" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/40px-Symbol_category_class.svg.png 2x" data-file-width="180" data-file-height="185"> **[Category](/wiki/Category:Dragon_Ball_games)**|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+
+|* [v](/wiki/Template:Journey_to_the_West)<br/>* [t](/wiki/Template_talk:Journey_to_the_West)<br/>* [e](/wiki/Special:EditPage/Template:Journey_to_the_West)<br/><br/>[Wu Cheng'en](/wiki/Wu_Cheng%27en)'s *[Journey to the West](/wiki/Journey_to_the_West)*|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                                                                                                 [Characters](/wiki/List_of_Journey_to_the_West_characters)                                                                                                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   * [Sun Wukong](/wiki/Monkey_King)<br/>* [Tang Sanzang](/wiki/Tang_Sanzang)<br/>* [Zhu Bajie](/wiki/Zhu_Bajie)<br/>* [Sha Wujing](/wiki/Sha_Wujing)<br/>* [White Dragon Horse](/wiki/White_Dragon_Horse)<br/>* [Red Boy](/wiki/Red_Boy)<br/>* [Baigujing](/wiki/Baigujing)<br/>* [Xiezijing](/wiki/Xiezijing)<br/>* [Zhizhujing](/wiki/Zhizhujing)<br/>* [Huangmei Dawang](/wiki/Huangmei_Dawang)<br/>* [Princess Iron Fan](/wiki/Princess_Iron_Fan)<br/>* [Bull Demon King](/wiki/Bull_Demon_King)<br/>* [Six-Eared Macaque](/wiki/Six-Eared_Macaque)<br/>* [Heifeng Guai](/wiki/Heifeng_Guai)<br/>* [Zhenyuan Daxian](/wiki/Zhenyuan_Daxian)<br/>* [Puti Zushi](/wiki/Puti_Zushi)<br/>* [Little Crown Prince Zhang](/wiki/Little_Crown_Prince_Zhang)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|                                                                                                                           Films                                                                                                                            || Animated  |                                                                                                                    * *[Princess Iron Fan](/wiki/Princess_Iron_Fan_(1941_film))* (1941)<br/>* *[Alakazam the Great](/wiki/Alakazam_the_Great)* (1960)<br/>* *[Havoc in Heaven](/wiki/Havoc_in_Heaven)* (1961)<br/>* *[Starzinger](/wiki/Starzinger)* (1979)<br/>* *[The Monkey King Conquers the Demon](/wiki/The_Monkey_King_Conquers_the_Demon)* (1985)<br/>* *[Doraemon: The Record of Nobita's Parallel Visit to the West](/wiki/Doraemon:_The_Record_of_Nobita%27s_Parallel_Visit_to_the_West)* (1988)<br/>* *[Saiyuki: Requiem](/wiki/Saiyuki:_Requiem)* (2001)<br/>* *[Monkey King vs. Er Lang Shen](/wiki/Monkey_King_vs._Er_Lang_Shen)* (2007)<br/>* *[Monkey King: Hero Is Back](/wiki/Monkey_King:_Hero_Is_Back)* (2015)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(2023_film))* (2023)<br/>* *[Nobody](/wiki/Nobody_(2025_film))* (2025)                                                                                                                    |<br/>|-----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|<br/>|Live action|* *[The Cave of the Silken Web](/wiki/The_Cave_of_the_Silken_Web_(1927_film))* (1927)<br/>* *[Princess Iron Fan](/wiki/Princess_Iron_Fan_(1966_film))* (1966)<br/>* *[The Cave of the Silken Web](/wiki/The_Cave_of_the_Silken_Web_(1967_film))* (1967)<br/>* *[A Chinese Odyssey](/wiki/A_Chinese_Odyssey)* (1995)<br/>* *[A Chinese Tall Story](/wiki/A_Chinese_Tall_Story)* (2005)<br/>* *[Saiyūki](/wiki/Saiy%C5%ABki_(TV_series))* (2007)<br/>* *[The Forbidden Kingdom](/wiki/The_Forbidden_Kingdom)* (2008)<br/>* *[Journey to the West: Conquering the Demons](/wiki/Journey_to_the_West:_Conquering_the_Demons)* (2013)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(2014_film))* (2014)<br/>* *[The Monkey King 2](/wiki/The_Monkey_King_2)* (2016)<br/>* *[A Chinese Odyssey Part Three](/wiki/A_Chinese_Odyssey_Part_Three)* (2016)<br/>* *[Journey to the West: The Demons Strike Back](/wiki/Journey_to_the_West:_The_Demons_Strike_Back)* (2017)<br/>* *[Wu Kong](/wiki/Wu_Kong_(film))* (2017)<br/>* *[The Monkey King 3](/wiki/The_Monkey_King_3)* (2018)||
+|                                                                                                                          Animated                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * *[Princess Iron Fan](/wiki/Princess_Iron_Fan_(1941_film))* (1941)<br/>* *[Alakazam the Great](/wiki/Alakazam_the_Great)* (1960)<br/>* *[Havoc in Heaven](/wiki/Havoc_in_Heaven)* (1961)<br/>* *[Starzinger](/wiki/Starzinger)* (1979)<br/>* *[The Monkey King Conquers the Demon](/wiki/The_Monkey_King_Conquers_the_Demon)* (1985)<br/>* *[Doraemon: The Record of Nobita's Parallel Visit to the West](/wiki/Doraemon:_The_Record_of_Nobita%27s_Parallel_Visit_to_the_West)* (1988)<br/>* *[Saiyuki: Requiem](/wiki/Saiyuki:_Requiem)* (2001)<br/>* *[Monkey King vs. Er Lang Shen](/wiki/Monkey_King_vs._Er_Lang_Shen)* (2007)<br/>* *[Monkey King: Hero Is Back](/wiki/Monkey_King:_Hero_Is_Back)* (2015)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(2023_film))* (2023)<br/>* *[Nobody](/wiki/Nobody_(2025_film))* (2025)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                                                                                                                        Live action                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * *[The Cave of the Silken Web](/wiki/The_Cave_of_the_Silken_Web_(1927_film))* (1927)<br/>* *[Princess Iron Fan](/wiki/Princess_Iron_Fan_(1966_film))* (1966)<br/>* *[The Cave of the Silken Web](/wiki/The_Cave_of_the_Silken_Web_(1967_film))* (1967)<br/>* *[A Chinese Odyssey](/wiki/A_Chinese_Odyssey)* (1995)<br/>* *[A Chinese Tall Story](/wiki/A_Chinese_Tall_Story)* (2005)<br/>* *[Saiyūki](/wiki/Saiy%C5%ABki_(TV_series))* (2007)<br/>* *[The Forbidden Kingdom](/wiki/The_Forbidden_Kingdom)* (2008)<br/>* *[Journey to the West: Conquering the Demons](/wiki/Journey_to_the_West:_Conquering_the_Demons)* (2013)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(2014_film))* (2014)<br/>* *[The Monkey King 2](/wiki/The_Monkey_King_2)* (2016)<br/>* *[A Chinese Odyssey Part Three](/wiki/A_Chinese_Odyssey_Part_Three)* (2016)<br/>* *[Journey to the West: The Demons Strike Back](/wiki/Journey_to_the_West:_The_Demons_Strike_Back)* (2017)<br/>* *[Wu Kong](/wiki/Wu_Kong_(film))* (2017)<br/>* *[The Monkey King 3](/wiki/The_Monkey_King_3)* (2018)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|                                                                                                                         Television                                                                                                                         |                                                                                                                                             | Animated  |                                                                                                                                                     * *[Gokū no Daibōken](/wiki/Gok%C5%AB_no_Daib%C5%8Dken)* (1966)<br/>* *[Science Fiction Saiyuki Starzinger](/wiki/Starzinger)* (1978)<br/>* *[Monkey Magic](/wiki/Monkey_Magic_(Japanese_TV_series))* (1998)<br/>* *[Journey to the West: Legends of the Monkey King](/wiki/Journey_to_the_West:_Legends_of_the_Monkey_King)* (1998)<br/>* *[Saiyūki](/wiki/Saiyuki_(manga))* (1999)<br/>* *[Shinzo](/wiki/Shinzo)* (2000)<br/>* *[Monkey Typhoon](/wiki/Monkey_Typhoon)* (2002)<br/>* *[Patalliro Saiyuki!](/wiki/Patalliro!)* (2005)<br/>* *[Lego Monkie Kid](/wiki/Lego_Monkie_Kid)* (2020)<br/>* *[SD Gundam World Heroes](/wiki/SD_Gundam_World_Heroes)* (2021)                                                                                                                                                      |<br/>|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|<br/>|Live action|* *[Monkey](/wiki/Monkey_(TV_series))* (1978)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(1986_TV_series))* (1986)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(1996_TV_series))* (1996)<br/>* *[Journey to the West II](/wiki/Journey_to_the_West_II)* (1996)<br/>* *[Sunny Piggy](/wiki/Sunny_Piggy)* (2000)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(miniseries))* (2001)<br/>* *[The Monkey King: Quest for the Sutra](/wiki/The_Monkey_King:_Quest_for_the_Sutra)* (2002)<br/>* *[Saiyūki](/wiki/Saiy%C5%ABki_(TV_series))* (2006)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(2010_TV_series))* (2010)<br/>* *[Wu Cheng'en and Journey to the West](/wiki/Wu_Cheng%27en_and_Journey_to_the_West)* (2010)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(2011_TV_series))* (2011)<br/>* *[A Korean Odyssey](/wiki/A_Korean_Odyssey)* (2017)<br/>* *[The New Legends of Monkey](/wiki/The_New_Legends_of_Monkey)* (2018)|                                                                                                                                             |
+|                                                                                                                          Animated                                                                                                                          |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * *[Gokū no Daibōken](/wiki/Gok%C5%AB_no_Daib%C5%8Dken)* (1966)<br/>* *[Science Fiction Saiyuki Starzinger](/wiki/Starzinger)* (1978)<br/>* *[Monkey Magic](/wiki/Monkey_Magic_(Japanese_TV_series))* (1998)<br/>* *[Journey to the West: Legends of the Monkey King](/wiki/Journey_to_the_West:_Legends_of_the_Monkey_King)* (1998)<br/>* *[Saiyūki](/wiki/Saiyuki_(manga))* (1999)<br/>* *[Shinzo](/wiki/Shinzo)* (2000)<br/>* *[Monkey Typhoon](/wiki/Monkey_Typhoon)* (2002)<br/>* *[Patalliro Saiyuki!](/wiki/Patalliro!)* (2005)<br/>* *[Lego Monkie Kid](/wiki/Lego_Monkie_Kid)* (2020)<br/>* *[SD Gundam World Heroes](/wiki/SD_Gundam_World_Heroes)* (2021)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+|                                                                                                                        Live action                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * *[Monkey](/wiki/Monkey_(TV_series))* (1978)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(1986_TV_series))* (1986)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(1996_TV_series))* (1996)<br/>* *[Journey to the West II](/wiki/Journey_to_the_West_II)* (1996)<br/>* *[Sunny Piggy](/wiki/Sunny_Piggy)* (2000)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(miniseries))* (2001)<br/>* *[The Monkey King: Quest for the Sutra](/wiki/The_Monkey_King:_Quest_for_the_Sutra)* (2002)<br/>* *[Saiyūki](/wiki/Saiy%C5%ABki_(TV_series))* (2006)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(2010_TV_series))* (2010)<br/>* *[Wu Cheng'en and Journey to the West](/wiki/Wu_Cheng%27en_and_Journey_to_the_West)* (2010)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(2011_TV_series))* (2011)<br/>* *[A Korean Odyssey](/wiki/A_Korean_Odyssey)* (2017)<br/>* *[The New Legends of Monkey](/wiki/The_New_Legends_of_Monkey)* (2018)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                                                                                                                           Stage                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        * *[Monkey: Journey to the West](/wiki/Monkey:_Journey_to_the_West)* (play)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|                                                                                                                      Manga and comics                                                                                                                      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       * *[Patalliro Saiyuki!](/wiki/Patalliro!)* (1978)<br/>* *[Starzinger](/wiki/Starzinger)* (1979)<br/>* *[Dragon Ball]()* (1984)<br/>* *[Saiyūki](/wiki/Saiyuki_(manga))* (1997)<br/>* *[The Monkey King](/wiki/The_Monkey_King_(manga))* (1998)<br/>* *[Shinzo](/wiki/Shinzo)* (2000)<br/>* *[Monkey Typhoon](/wiki/Monkey_Typhoon)* (2001)<br/>* *[Xin](/wiki/Xin_(comics))* (2003)<br/>* *[American Born Chinese](/wiki/American_Born_Chinese_(graphic_novel))* (2006)<br/>* *[Saint](/wiki/Saint_(manhua))*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|                                                                                                                           Games                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * *[Ether Saga Odyssey](/wiki/Ether_Saga_Odyssey)*<br/>* *[Enslaved: Odyssey to the West](/wiki/Enslaved:_Odyssey_to_the_West)*<br/>* *[Fantasy Westward Journey](/wiki/Fantasy_Westward_Journey)*<br/>* *[Ganso Saiyūki: Super Monkey Daibōken](/wiki/Ganso_Saiy%C5%ABki:_Super_Monkey_Daib%C5%8Dken)*<br/>* *[Legend of Wukong](/wiki/Legend_of_Wukong)*<br/>* *[Monkey Hero](/wiki/Monkey_Hero)*<br/>* *[Monkey King: Hero Is Back](/wiki/Monkey_King:_Hero_Is_Back)*<br/>* *[Monkey Magic](/wiki/Monkey_Magic_(1999_video_game))*<br/>* *[Saiyuki: Journey West](/wiki/Saiyuki:_Journey_West)*<br/>* *[SonSon](/wiki/SonSon)*<br/>* *[Westward Journey Online II](/wiki/Westward_Journey_Online_II)*<br/>* *[Whomp 'Em](/wiki/Whomp_%27Em)*<br/>* *[Yūyūki](/wiki/Y%C5%ABy%C5%ABki)*<br/>* *[Black Myth: Wukong](/wiki/Black_Myth:_Wukong)*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                                                                                                                         Literature                                                                                                                         |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           * *[Monkey](/wiki/Monkey_(novel))* (1942 novel)<br/>* *[Griever: An American Monkey King in China](/wiki/Griever:_An_American_Monkey_King_in_China)* (1986 novel)<br/>* *[Tripmaster Monkey](/wiki/Tripmaster_Monkey)* (1989 novel)<br/>* [Four Great Classical Novels](/wiki/Classic_Chinese_Novels)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|                                                                                                                           Places                                                                                                                           |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     * [Gao Village](/wiki/Gao_Village)<br/>* [Liusha River](/wiki/Liusha_River_(fictional_river))<br/>* [Mount Huaguo](/wiki/Mount_Huaguo)<br/>* [Shuilian Cave](/wiki/Shuilian_Cave)<br/>* [Tongtian River](/wiki/Tongtian_River_(fictional_river))                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+|                                                                                                                           Other                                                                                                                            |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      * [List of media adaptations of *Journey to the West*](/wiki/List_of_media_adaptations_of_Journey_to_the_West)<br/>* [Monkey King Festival](/wiki/Monkey_King_Festival)<br/>* [Ruyi Jingu Bang](/wiki/Ruyi_Jingu_Bang)<br/>* *[Journey to the West](/wiki/Journey_to_the_West_(soundtrack))* (2008 soundtrack)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+
+[Portals](/wiki/Wikipedia:Contents/Portals):
+
+* [<img alt="icon" src="//upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Rubik%27s_cube_v3.svg/20px-Rubik%27s_cube_v3.svg.png" decoding="async" width="17" height="19" class="mw-file-element" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Rubik%27s_cube_v3.svg/40px-Rubik%27s_cube_v3.svg.png 2x" data-file-width="480" data-file-height="530">](/wiki/File:Rubik%27s_cube_v3.svg)
+
+
+---
+
+<a name="apps-bot-data-rag-raw-wikipedia-wiki-dragon-ball-recon-md"></a>
+## 📄 Fichier : `apps/bot/data/rag/raw/wikipedia/wiki-dragon-ball.recon.md`
+
+**Titre original :** Recon report — https://en.wikipedia.org/wiki/Dragon_Ball
+
+### Recon report — https://en.wikipedia.org/wiki/Dragon_Ball
+
+Date: 2026-06-07 00:00 UTC
+Profile used: `max`
+
+## HTTP & CDN
+
+- **HTTP status**: 200
+- **Body bytes**: 398340 (389 KB)
+- **goto duration**: 749 ms
+- **Server**: `ATS/9.2.13`
+- **X-Powered-By**: `n/a`
+- **Content-Type**: `text/html; charset=UTF-8`
+- **CDN fingerprint**: ats/9.2.13
+- **Trace/Ray ID**: `n/a`
+- **Cache-Control**: `private, s-maxage=0, max-age=0, must-revalidate, no-transform`
+
+### CSP-allowed hosts (1)
+
+- `commons.wikimedia.org`
+
+## Frameworks (wappalyzergo)
+
+_No framework detected._
+
+## Asset hosts (12 total)
+
+| Host | Asset count |
+|---|---|
+| `en.wikipedia.org` | 6 |
+| `upload.wikimedia.org` | 6 |
+
+### stylesheet (2)
+
+- https://en.wikipedia.org/w/load.php?lang=en&amp;modules=ext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediaBadges%7Cext.wikimediamessages.styles%7Cjquery.makeCollapsible.styles%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022
+- https://en.wikipedia.org/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022
+
+### script (1)
+
+- https://en.wikipedia.org/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022
+
+### image (9)
+
+- https://en.wikipedia.org/static/images/icons/enwiki-25.svg
+- https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg
+- https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-en-25.svg
+- https://upload.wikimedia.org/wikipedia/en/thumb/1/1b/Semi-protection-shackle.svg/20px-Semi-protection-shackle.svg.png
+- https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Dragon_Ball_manga_1st_Japanese_edition_logo.svg/330px-Dragon_Ball_manga_1st_Japanese_edition_logo.svg.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Wiki_DragonBall_Earth.png/250px-Wiki_DragonBall_Earth.png
+- https://upload.wikimedia.org/wikipedia/en/thumb/2/24/Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg/250px-Weekly_Sh%C5%8Dnen_Jump_No._51_%28Dec._1984%29_is_the_first_appearance_of_Goku._Cover_art_by_Akira_Toriyama.jpg
+- https://upload.wikimedia.org/wikipedia/en/thumb/e/ea/Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg/250px-Dragon_Ball_Z_arcade_conversion_kit_by_Banpresto.jpg
+- https://upload.wikimedia.org/wikipedia/en/thumb/d/d0/Db_TCI.jpg/250px-Db_TCI.jpg
+
+## CSS selectors (56 total) — sample top 50
+
+```css
+.mw-parser-output .citation .mw-selflink {}
+.mw-parser-output .citation q {}
+.mw-parser-output .citation:target {}
+.mw-parser-output .cs1-code {}
+.mw-parser-output .cs1-format {}
+.mw-parser-output .cs1-hidden-error {}
+.mw-parser-output .cs1-kern-left {}
+.mw-parser-output .cs1-kern-right {}
+.mw-parser-output .cs1-maint {}
+.mw-parser-output .cs1-visible-error {}
+.mw-parser-output .cs1-ws-icon a {}
+.mw-parser-output .hatnote {}
+.mw-parser-output .hatnote i {}
+.mw-parser-output .hatnote+link+.hatnote {}
+.mw-parser-output .hatnote+span.mw-empty-elt+.hatnote {}
+.mw-parser-output .id-lock-free.id-lock-free a {}
+.mw-parser-output .id-lock-limited.id-lock-limited a {}
+.mw-parser-output .id-lock-registration.id-lock-registration a {}
+.mw-parser-output .id-lock-subscription.id-lock-subscription a {}
+.mw-parser-output .infobox {}
+.mw-parser-output .infobox .navbar {}
+.mw-parser-output .infobox-3cols-child {}
+.mw-parser-output .infobox-subbox {}
+.mw-parser-output .plainlist ol {}
+.mw-parser-output .plainlist ol li {}
+.mw-parser-output .plainlist ul {}
+.mw-parser-output .plainlist ul li {}
+.mw-parser-output .references[data-mw-group=lower-alpha] {}
+.mw-parser-output .references[data-mw-group=lower-greek] {}
+.mw-parser-output .references[data-mw-group=lower-roman] {}
+.mw-parser-output .references[data-mw-group=upper-alpha] {}
+.mw-parser-output .references[data-mw-group=upper-roman] {}
+.mw-parser-output .reflist-columns-2 {}
+.mw-parser-output .reflist-columns-3 {}
+.mw-parser-output .templateruby.large {}
+.mw-parser-output .templateruby.large>rt {}
+.mw-parser-output .templateruby>rt {}
+.mw-parser-output cite.citation {}
+.mw-parser-output div.hatnote {}
+.mw-parser-output div.reflist-liststyle-lower-alpha .references {}
+.mw-parser-output div.reflist-liststyle-lower-greek .references {}
+.mw-parser-output div.reflist-liststyle-lower-roman .references {}
+.mw-parser-output div.reflist-liststyle-upper-alpha .references {}
+.mw-parser-output div.reflist-liststyle-upper-roman .references {}
+body.ns-0 .mw-parser-output .hatnote {}
+body.skin--responsive .mw-parser-output .infobox-table {}
+body.skin--responsive .mw-parser-output .infobox-table td {}
+body.skin--responsive .mw-parser-output .infobox-table th {}
+body.skin--responsive .mw-parser-output .infobox-table>caption {}
+body.skin--responsive .mw-parser-output .infobox-table>tbody {}
+/* ... 6 more (use --snapshot-dir to dump full list) */
+```
+
+
+
+---
+
 <a name="apps-bot-data-rag-shonenjump-plus-md"></a>
 ## 📄 Fichier : `apps/bot/data/rag/shonenjump-plus.md`
 
@@ -20270,29 +22686,29 @@ PR fermée / mergée
 
 ## Fichiers
 
-| Fichier | Rôle |
-|---|---|
-| `.github/workflows/neon-branch.yml` | Branche par PR + migrate + wire preview Vercel + schema-diff + cleanup |
-| `.github/workflows/deploy-vercel.yml` | `migrate-prod` (conditionnel) → `deploy` prod |
-| `apps/site/drizzle.config.ts` | `schema: src/db/schema.ts`, `out: src/db/migrations`, `dialect: postgresql` |
-| `apps/site/src/db/migrations/` | Migrations générées + `meta/_journal.json` (`drizzle-kit generate`) |
-| `apps/site/src/lib/db.ts` | Client Drizzle (`postgres-js`, `prepare:false` pour le pooler pgbouncer) |
+| Fichier                               | Rôle                                                                        |
+| ------------------------------------- | --------------------------------------------------------------------------- |
+| `.github/workflows/neon-branch.yml`   | Branche par PR + migrate + wire preview Vercel + schema-diff + cleanup      |
+| `.github/workflows/deploy-vercel.yml` | `migrate-prod` (conditionnel) → `deploy` prod                               |
+| `apps/site/drizzle.config.ts`         | `schema: src/db/schema.ts`, `out: src/db/migrations`, `dialect: postgresql` |
+| `apps/site/src/db/migrations/`        | Migrations générées + `meta/_journal.json` (`drizzle-kit generate`)         |
+| `apps/site/src/lib/db.ts`             | Client Drizzle (`postgres-js`, `prepare:false` pour le pooler pgbouncer)    |
 
 ## Secrets & variables GitHub (repo `aphrody-code/shenron`)
 
 Tous **déjà provisionnés** (vérifié) — aucune étape humaine restante :
 
-| Nom | Type | Valeur / source |
-|---|---|---|
-| `NEON_API_KEY` | secret | clé API Neon (Neon GitHub App). Utilisée par create/delete/schema-diff **et** par `neonctl` pour résoudre l'URL prod. |
-| `NEON_PROJECT_ID` | variable | `patient-star-28731823` (projet `shenron`, org `aphrody`) |
-| `VERCEL_TOKEN` | secret | override env preview + deploy prod |
-| `VERCEL_ORG_ID` | secret | `team_guWQJZI4ZmSLj2K3RWuU4VqM` |
-| `VERCEL_PROJECT_ID` | secret | `prj_wxLn9COQIo9HAOUVis08ppKXx7zI` (projet `dbfr`) |
+| Nom                 | Type     | Valeur / source                                                                                                       |
+| ------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `NEON_API_KEY`      | secret   | clé API Neon (Neon GitHub App). Utilisée par create/delete/schema-diff **et** par `neonctl` pour résoudre l'URL prod. |
+| `NEON_PROJECT_ID`   | variable | `patient-star-28731823` (projet `shenron`, org `aphrody`)                                                             |
+| `VERCEL_TOKEN`      | secret   | override env preview + deploy prod                                                                                    |
+| `VERCEL_ORG_ID`     | secret   | `team_guWQJZI4ZmSLj2K3RWuU4VqM`                                                                                       |
+| `VERCEL_PROJECT_ID` | secret   | `prj_wxLn9COQIo9HAOUVis08ppKXx7zI` (projet `dbfr`)                                                                    |
 
 > La connexion prod n'est **jamais** stockée en secret : `migrate-prod` la résout à
 > la volée via `neonctl connection-string --api-key $NEON_API_KEY --project-id …
-> --pooled` (branche par défaut), et la passe à `drizzle-kit` par variable
+--pooled` (branche par défaut), et la passe à `drizzle-kit` par variable
 > d'environnement — jamais loggée.
 
 ## Choix de design
@@ -20326,14 +22742,14 @@ runners GitHub hébergés), donc automatisés par **timers systemd** lisant
 lisent l'URL depuis l'env (zéro hardcode) et écrivent un schéma **isolé**
 (`bot.*`), jamais `public.*` du site.
 
-| Événement (script) | Cible DB | Automatisation | Cadence |
-|---|---|---|---|
-| `sync-sqlite-to-neon.ts` (runtime + `db_news` SQLite→Neon) | Neon `bot.*` | `shenron-neon-sync.timer` | 30 min |
-| `sync-neon-to-sqlite.ts` (wiki éditorial Neon→SQLite) | SQLite | `shenron-neon-pull.timer` | 15 min |
-| `resolve-streams.ts` (flux vidéo → Neon, bxc headless) | Neon `bot.*` | `shenron-stream-resolve.timer` (opt-in) | 2 h |
-| **`ingest/scrape-manga-chapters.ts`** (wiki-crawl planches manga, bxc headless) | Neon `bot.db_manga_chapters` | **`shenron-wiki-crawl.timer`** (opt-in, **ajouté**) | 1×/jour 04:30 |
-| `update-deps.yml` (bun update) | — | GitHub Actions `schedule` | lundi 06:00 UTC |
-| `codeql.yml` | — | GitHub Actions `schedule` | mardi 07:00 UTC |
+| Événement (script)                                                              | Cible DB                     | Automatisation                                      | Cadence         |
+| ------------------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------- | --------------- |
+| `sync-sqlite-to-neon.ts` (runtime + `db_news` SQLite→Neon)                      | Neon `bot.*`                 | `shenron-neon-sync.timer`                           | 30 min          |
+| `sync-neon-to-sqlite.ts` (wiki éditorial Neon→SQLite)                           | SQLite                       | `shenron-neon-pull.timer`                           | 15 min          |
+| `resolve-streams.ts` (flux vidéo → Neon, bxc headless)                          | Neon `bot.*`                 | `shenron-stream-resolve.timer` (opt-in)             | 2 h             |
+| **`ingest/scrape-manga-chapters.ts`** (wiki-crawl planches manga, bxc headless) | Neon `bot.db_manga_chapters` | **`shenron-wiki-crawl.timer`** (opt-in, **ajouté**) | 1×/jour 04:30   |
+| `update-deps.yml` (bun update)                                                  | —                            | GitHub Actions `schedule`                           | lundi 06:00 UTC |
+| `codeql.yml`                                                                    | —                            | GitHub Actions `schedule`                           | mardi 07:00 UTC |
 
 **Lacune comblée** : le wiki-crawl manga (`scrape-manga-chapters.ts`) était le
 seul événement récurrent touchant la base **sans** hook d'automatisation. Ajouté :
@@ -20376,23 +22792,23 @@ de vérité des units systemd, des vhosts nginx et des scripts d'ops.
 
 ## Contenu
 
-| Chemin | Rôle |
-|---|---|
-| `deploy/systemd/shenron.service` | Bot prod (`bun src/index.ts`, hardening, MemoryMax 1.5G). |
-| `deploy/systemd/shenron-backup.{service,timer}` | Backup SQLite `VACUUM INTO` quotidien 03:00 UTC (rétention 14j). |
-| `deploy/systemd/shenron-guild-sync.{service,timer}` | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut). |
-| `deploy/systemd/shenron-neon-sync.{service,timer}` | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min. |
-| `deploy/systemd/shenron-neon-pull.{service,timer}` | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
-| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine unique prod. |
-| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique (redirigé). |
-| `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api` (redirigé). |
-| `deploy/install.sh` | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`). |
-| `scripts/backup-shenron-sqlite.sh` | Script du backup (appelé par le timer). |
-| `scripts/shenron-guild-sync.sh` | Script de la réconciliation. |
-| `scripts/deploy-shenron.sh` | Pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto. |
-| `apps/bot/scripts/sync-sqlite-to-neon.ts` | Forward mirror runtime+news (timer neon-sync). |
-| `apps/bot/scripts/sync-neon-to-sqlite.ts` | Reverse mirror wiki Neon→SQLite (timer neon-pull). |
-| `Dockerfile`, `fly.toml`, `.dockerignore` (**racine**) | Cible conteneur / Fly.io monorepo-aware (alternative sans VPS). |
+| Chemin                                                 | Rôle                                                                               |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `deploy/systemd/shenron.service`                       | Bot prod (`bun src/index.ts`, hardening, MemoryMax 1.5G).                          |
+| `deploy/systemd/shenron-backup.{service,timer}`        | Backup SQLite `VACUUM INTO` quotidien 03:00 UTC (rétention 14j).                   |
+| `deploy/systemd/shenron-guild-sync.{service,timer}`    | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut).            |
+| `deploy/systemd/shenron-neon-sync.{service,timer}`     | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min.           |
+| `deploy/systemd/shenron-neon-pull.{service,timer}`     | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
+| `deploy/nginx/bot.dragonballfr.com.conf`               | Vhost API publique du bot (proxy `:5006`), domaine unique prod.                    |
+| `deploy/nginx/bot.rpbey.fr.conf`                       | Vhost API publique du bot (proxy `:5006`), alias historique (redirigé).            |
+| `deploy/nginx/shenron.conf`                            | Vhost dashboard SPA + upstream `shenron_api` (redirigé).                           |
+| `deploy/install.sh`                                    | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`).       |
+| `scripts/backup-shenron-sqlite.sh`                     | Script du backup (appelé par le timer).                                            |
+| `scripts/shenron-guild-sync.sh`                        | Script de la réconciliation.                                                       |
+| `scripts/deploy-shenron.sh`                            | Pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto.      |
+| `apps/bot/scripts/sync-sqlite-to-neon.ts`              | Forward mirror runtime+news (timer neon-sync).                                     |
+| `apps/bot/scripts/sync-neon-to-sqlite.ts`              | Reverse mirror wiki Neon→SQLite (timer neon-pull).                                 |
+| `Dockerfile`, `fly.toml`, `.dockerignore` (**racine**) | Cible conteneur / Fly.io monorepo-aware (alternative sans VPS).                    |
 
 ## Déploiement bare-metal (VPS systemd)
 
@@ -20469,46 +22885,46 @@ Statut : ✅ Expansion Majeure Terminée
 
 ## 📊 Statistiques de Couverture
 
-| Entité | Avant | Après | Source Principale |
-|---|---|---|---|
-| **Personnages** | 58 | 2783 | Jikan (MAL), Fandom FR/EN, AniList |
-| **Planètes** | 20 | 73 | Fandom FR, dragonball-api |
-| **Transformations** | 43 | 112 | Fandom FR, dragonball-api |
-| **Épisodes** | 0 | 557 | Jikan (MAL) |
-| **Films** | 0 | 14 | Jikan (MAL) |
-| **Volumes Manga** | 0 | 64 | AniList |
-| **Techniques** | 120 | 170 | Fandom FR/EN |
-| **Sagas** | 0 | 29 | Manuel (Canon) |
-| **Arcs** | 0 | 23 | Manuel (Canon) |
-| **Jeux** | 0 | 59 | Manuel (Canon) |
-| **News** | 0 | 5 | Site Officiel (Sitemap) |
+| Entité              | Avant | Après | Source Principale                  |
+| ------------------- | ----- | ----- | ---------------------------------- |
+| **Personnages**     | 58    | 2783  | Jikan (MAL), Fandom FR/EN, AniList |
+| **Planètes**        | 20    | 73    | Fandom FR, dragonball-api          |
+| **Transformations** | 43    | 112   | Fandom FR, dragonball-api          |
+| **Épisodes**        | 0     | 557   | Jikan (MAL)                        |
+| **Films**           | 0     | 14    | Jikan (MAL)                        |
+| **Volumes Manga**   | 0     | 64    | AniList                            |
+| **Techniques**      | 120   | 170   | Fandom FR/EN                       |
+| **Sagas**           | 0     | 29    | Manuel (Canon)                     |
+| **Arcs**            | 0     | 23    | Manuel (Canon)                     |
+| **Jeux**            | 0     | 59    | Manuel (Canon)                     |
+| **News**            | 0     | 5     | Site Officiel (Sitemap)            |
 
 ## 🛠 Travaux Réalisés
 
 1.  **Ingestion Massive de Personnages** :
-    *   Création de `ingest-characters.ts` pour extraire les personnages de toutes les séries anime via Jikan.
-    *   Création de `ingest-fandom-characters.ts` pour récupérer tous les noms de personnages depuis les catégories Fandom FR et EN.
-    *   Enrichissement multilingue (Japonais/Romaji) via AniList.
+    - Création de `ingest-characters.ts` pour extraire les personnages de toutes les séries anime via Jikan.
+    - Création de `ingest-fandom-characters.ts` pour récupérer tous les noms de personnages depuis les catégories Fandom FR et EN.
+    - Enrichissement multilingue (Japonais/Romaji) via AniList.
 
 2.  **Couverture Narrative** :
-    *   Peuplement des tables `db_sagas` et `db_races` via `seed-canon.ts`.
-    *   Création de `seed-arcs.ts` pour couvrir les arcs majeurs de DB, DBZ et DBS.
-    *   Ingestion de tous les épisodes et films via `ingest-jikan.ts`.
+    - Peuplement des tables `db_sagas` et `db_races` via `seed-canon.ts`.
+    - Création de `seed-arcs.ts` pour couvrir les arcs majeurs de DB, DBZ et DBS.
+    - Ingestion de tous les épisodes et films via `ingest-jikan.ts`.
 
 3.  **Expansion du Lore** :
-    *   Récupération des planètes et transformations supplémentaires via Fandom.
-    *   Mise à jour de `seed-manga.ts` pour générer tous les volumes basés sur les données AniList.
+    - Récupération des planètes et transformations supplémentaires via Fandom.
+    - Mise à jour de `seed-manga.ts` pour générer tous les volumes basés sur les données AniList.
 
 4.  **Maintenance & Fiabilité** :
-    *   Correction de bugs dans les scripts de seed (`join` non défini, slugs de sagas incorrects).
-    *   Résolution du **schema drift** (colonnes `banner_url` et `equipped_banner` manquantes localement).
-    *   Optimisation du script `unify-markdown.ts` pour éviter les segfaults sur les gros volumes de données (passage en mode append).
+    - Correction de bugs dans les scripts de seed (`join` non défini, slugs de sagas incorrects).
+    - Résolution du **schema drift** (colonnes `banner_url` et `equipped_banner` manquantes localement).
+    - Optimisation du script `unify-markdown.ts` pour éviter les segfaults sur les gros volumes de données (passage en mode append).
 
 ## 🚀 Prochaines Étapes
 
-*   **Images** : Beaucoup de nouveaux personnages ont des images placeholders. Un script de mirroring d'assets pourrait être lancé pour télécharger les images réelles.
-*   **Descriptions** : Les personnages Fandom n'ont que des descriptions génériques. Un scraper de texte wiki pourrait enrichir ces fiches.
-*   **Fusions** : La table `fusions` reste à peupler.
+- **Images** : Beaucoup de nouveaux personnages ont des images placeholders. Un script de mirroring d'assets pourrait être lancé pour télécharger les images réelles.
+- **Descriptions** : Les personnages Fandom n'ont que des descriptions génériques. Un scraper de texte wiki pourrait enrichir ces fiches.
+- **Fusions** : La table `fusions` reste à peupler.
 
 
 ---
@@ -20541,12 +22957,12 @@ _No framework detected._
 
 ## Asset hosts (40 total)
 
-| Host | Asset count |
-|---|---|
-| `fr.dragon-ball-official.com` | 35 |
-| `platform.twitter.com` | 2 |
-| `www.googletagmanager.com` | 2 |
-| `cdn.cookielaw.org` | 1 |
+| Host                          | Asset count |
+| ----------------------------- | ----------- |
+| `fr.dragon-ball-official.com` | 35          |
+| `platform.twitter.com`        | 2           |
+| `www.googletagmanager.com`    | 2           |
+| `cdn.cookielaw.org`           | 1           |
 
 ### script (15)
 
@@ -20598,6 +23014,7 @@ _No framework detected._
 ## CSS selectors (0 total) — sample top 50
 
 ```css
+
 ```
 
 
@@ -20636,16 +23053,21 @@ _No framework detected._
 ## Asset hosts (0 total)
 
 | Host | Asset count |
-|---|---|
+| ---- | ----------- |
 
 ## CSS selectors (5 total) — sample top 50
 
 ```css
-#challenge-error-text {}
-* {}
-.main-content {}
-body {}
-html {}
+#challenge-error-text {
+}
+* {
+}
+.main-content {
+}
+body {
+}
+html {
+}
 ```
 
 
@@ -20679,11 +23101,11 @@ _No framework detected._
 
 ## Asset hosts (35 total)
 
-| Host | Asset count |
-|---|---|
-| `fr.dragon-ball-official.com` | 32 |
-| `www.googletagmanager.com` | 2 |
-| `cdn.cookielaw.org` | 1 |
+| Host                          | Asset count |
+| ----------------------------- | ----------- |
+| `fr.dragon-ball-official.com` | 32          |
+| `www.googletagmanager.com`    | 2           |
+| `cdn.cookielaw.org`           | 1           |
 
 ### stylesheet (3)
 
@@ -20735,56 +23157,106 @@ _No framework detected._
 ## CSS selectors (465 total) — sample top 50
 
 ```css
-#bg-comics {}
-#btn-random {}
-#btn-random a {}
-#btn-random.footer-btm {}
-#btn-random.move {}
-#btn-random.move a {}
-#global-nav {}
-#global-nav .keywords-text ul li {}
-#global-nav ul {}
-#global-nav ul li {}
-#global-nav:after {}
-#header {}
-#header .contents {}
-#header .contents li {}
-#header .contents li:hover a {}
-#header .contents li:hover a:after {}
-#header .contents li:hover a:before {}
-#header .contents>li {}
-#header .contents>li a:after {}
-#header .contents>li+li {}
-#header .contents>li.about {}
-#header .contents>li.about a:after {}
-#header .contents>li.about a:before {}
-#header .contents>li.features {}
-#header .contents>li.features a:after {}
-#header .contents>li.features a:before {}
-#header .contents>li.highlights {}
-#header .contents>li.highlights a:after {}
-#header .contents>li.highlights a:before {}
-#header .contents>li.home {}
-#header .contents>li.home a:before {}
-#header .contents>li.news {}
-#header .contents>li.news a:after {}
-#header .contents>li.news a:before {}
-#header .contents>li.videos {}
-#header .contents>li.videos a:after {}
-#header .contents>li.videos a:before {}
-#header .contents>li>a {}
-#header .contents>li>a:after {}
-#header .contents>li>a:before {}
-#header .global-nav-inner {}
-#header .global-nav-inner::-webkit-scrollbar {}
-#header .global-nav-inner::-webkit-scrollbar-thumb {}
-#header .global-nav-inner::-webkit-scrollbar-track {}
-#header .global-sub-nav {}
-#header .global-sub-nav ul li {}
-#header .global-sub-nav ul li a {}
-#header .header-sns {}
-#header .header-sns li {}
-#header .header-sns li a {}
+#bg-comics {
+}
+#btn-random {
+}
+#btn-random a {
+}
+#btn-random.footer-btm {
+}
+#btn-random.move {
+}
+#btn-random.move a {
+}
+#global-nav {
+}
+#global-nav .keywords-text ul li {
+}
+#global-nav ul {
+}
+#global-nav ul li {
+}
+#global-nav:after {
+}
+#header {
+}
+#header .contents {
+}
+#header .contents li {
+}
+#header .contents li:hover a {
+}
+#header .contents li:hover a:after {
+}
+#header .contents li:hover a:before {
+}
+#header .contents > li {
+}
+#header .contents > li a:after {
+}
+#header .contents > li + li {
+}
+#header .contents > li.about {
+}
+#header .contents > li.about a:after {
+}
+#header .contents > li.about a:before {
+}
+#header .contents > li.features {
+}
+#header .contents > li.features a:after {
+}
+#header .contents > li.features a:before {
+}
+#header .contents > li.highlights {
+}
+#header .contents > li.highlights a:after {
+}
+#header .contents > li.highlights a:before {
+}
+#header .contents > li.home {
+}
+#header .contents > li.home a:before {
+}
+#header .contents > li.news {
+}
+#header .contents > li.news a:after {
+}
+#header .contents > li.news a:before {
+}
+#header .contents > li.videos {
+}
+#header .contents > li.videos a:after {
+}
+#header .contents > li.videos a:before {
+}
+#header .contents > li > a {
+}
+#header .contents > li > a:after {
+}
+#header .contents > li > a:before {
+}
+#header .global-nav-inner {
+}
+#header .global-nav-inner::-webkit-scrollbar {
+}
+#header .global-nav-inner::-webkit-scrollbar-thumb {
+}
+#header .global-nav-inner::-webkit-scrollbar-track {
+}
+#header .global-sub-nav {
+}
+#header .global-sub-nav ul li {
+}
+#header .global-sub-nav ul li a {
+}
+#header .header-sns {
+}
+#header .header-sns li {
+}
+#header .header-sns li a {
+}
 /* ... 415 more (use --snapshot-dir to dump full list) */
 ```
 
@@ -20819,14 +23291,14 @@ _No framework detected._
 
 ## Asset hosts (76 total)
 
-| Host | Asset count |
-|---|---|
-| `` | 48 |
-| `en.bandainamcoent.eu` | 9 |
-| `cdn.jsdelivr.net` | 9 |
-| `static.bandainamcoent.eu` | 8 |
-| `p325k7wa.twic.pics` | 1 |
-| `www.youtube-nocookie.com` | 1 |
+| Host                       | Asset count |
+| -------------------------- | ----------- |
+| ``                         | 48          |
+| `en.bandainamcoent.eu`     | 9           |
+| `cdn.jsdelivr.net`         | 9           |
+| `static.bandainamcoent.eu` | 8           |
+| `p325k7wa.twic.pics`       | 1           |
+| `www.youtube-nocookie.com` | 1           |
 
 ### stylesheet (10)
 
@@ -20883,56 +23355,142 @@ _No framework detected._
 ## CSS selectors (3106 total) — sample top 50
 
 ```css
-#block-views-block-block-news-title-block-1 .arrow {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .result .slick-slide:hover {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .row .news-exposed:hover {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .row .slick-slide.slick-current.slick-active .news-exposed {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line:nth-of-type(2n) .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line:nth-of-type(odd) .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-discover-brand-block-1 .view-discover-brand .view-content .field-content .discover_link_brand a:hover {}
-#block-views-block-galerie-personnages-block-2 .view-galerie-personnages .modale .slider-characterImage .modal-row .content {}
-#block-views-block-galerie-personnages-block-2 .view-galerie-personnages .modale .slider-characterImage .modal-row .header {}
-#block-views-block-introduction-teaser-block-1 .view-introduction-teaser .row .col-lg-5 .view-footer .view-platform-title .view-content .group-date .views-row {}
-#block-views-block-newsletter-block-1 .view-content {}
-#features-filter .form-item.form-type-checkbox {}
-#navbar-administration.navbar-oriented .navbar-tray-vertical {}
-#overlay-container {}
-#toolbar {}
-* {}
-*:after {}
-*:before {}
-.affix {}
-.ajax-progress {}
-.ajax-progress-bar {}
-.ajax-progress-bar .message {}
-.ajax-progress-bar .percentage {}
-.ajax-progress-bar .progress {}
-.ajax-progress-fullscreen {}
-.ajax-progress-throbber .message {}
-.ajax-progress-throbber .throbber {}
-.ajax-progress.ajax-progress-fullscreen {}
-.alert {}
-.alert .alert-link {}
-.alert a {}
-.alert a.btn {}
-.alert a.btn:focus {}
-.alert a.btn:hover {}
-.alert h4 {}
-.alert-danger {}
-.alert-danger .alert-link {}
-.alert-danger a {}
-.alert-danger a:focus {}
-.alert-danger a:hover {}
-.alert-danger hr {}
-.alert-dismissable {}
-.alert-dismissable .close {}
-.alert-dismissible {}
-.alert-dismissible .close {}
-.alert-info {}
-.alert-info .alert-link {}
-.alert-info a {}
-.alert-info a:focus {}
+#block-views-block-block-news-title-block-1 .arrow {
+}
+#block-views-block-block-news-title-block-1 .view-block-news-title .result .slick-slide:hover {
+}
+#block-views-block-block-news-title-block-1 .view-block-news-title .row .news-exposed:hover {
+}
+#block-views-block-block-news-title-block-1
+	.view-block-news-title
+	.row
+	.slick-slide.slick-current.slick-active
+	.news-exposed {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line:nth-of-type(2n)
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line:nth-of-type(odd)
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-discover-brand-block-1
+	.view-discover-brand
+	.view-content
+	.field-content
+	.discover_link_brand
+	a:hover {
+}
+#block-views-block-galerie-personnages-block-2
+	.view-galerie-personnages
+	.modale
+	.slider-characterImage
+	.modal-row
+	.content {
+}
+#block-views-block-galerie-personnages-block-2
+	.view-galerie-personnages
+	.modale
+	.slider-characterImage
+	.modal-row
+	.header {
+}
+#block-views-block-introduction-teaser-block-1
+	.view-introduction-teaser
+	.row
+	.col-lg-5
+	.view-footer
+	.view-platform-title
+	.view-content
+	.group-date
+	.views-row {
+}
+#block-views-block-newsletter-block-1 .view-content {
+}
+#features-filter .form-item.form-type-checkbox {
+}
+#navbar-administration.navbar-oriented .navbar-tray-vertical {
+}
+#overlay-container {
+}
+#toolbar {
+}
+* {
+}
+*:after {
+}
+*:before {
+}
+.affix {
+}
+.ajax-progress {
+}
+.ajax-progress-bar {
+}
+.ajax-progress-bar .message {
+}
+.ajax-progress-bar .percentage {
+}
+.ajax-progress-bar .progress {
+}
+.ajax-progress-fullscreen {
+}
+.ajax-progress-throbber .message {
+}
+.ajax-progress-throbber .throbber {
+}
+.ajax-progress.ajax-progress-fullscreen {
+}
+.alert {
+}
+.alert .alert-link {
+}
+.alert a {
+}
+.alert a.btn {
+}
+.alert a.btn:focus {
+}
+.alert a.btn:hover {
+}
+.alert h4 {
+}
+.alert-danger {
+}
+.alert-danger .alert-link {
+}
+.alert-danger a {
+}
+.alert-danger a:focus {
+}
+.alert-danger a:hover {
+}
+.alert-danger hr {
+}
+.alert-dismissable {
+}
+.alert-dismissable .close {
+}
+.alert-dismissible {
+}
+.alert-dismissible .close {
+}
+.alert-info {
+}
+.alert-info .alert-link {
+}
+.alert-info a {
+}
+.alert-info a:focus {
+}
 /* ... 3056 more (use --snapshot-dir to dump full list) */
 ```
 
@@ -20967,14 +23525,14 @@ _No framework detected._
 
 ## Asset hosts (76 total)
 
-| Host | Asset count |
-|---|---|
-| `` | 48 |
-| `en.bandainamcoent.eu` | 9 |
-| `cdn.jsdelivr.net` | 9 |
-| `static.bandainamcoent.eu` | 8 |
-| `p325k7wa.twic.pics` | 1 |
-| `www.youtube-nocookie.com` | 1 |
+| Host                       | Asset count |
+| -------------------------- | ----------- |
+| ``                         | 48          |
+| `en.bandainamcoent.eu`     | 9           |
+| `cdn.jsdelivr.net`         | 9           |
+| `static.bandainamcoent.eu` | 8           |
+| `p325k7wa.twic.pics`       | 1           |
+| `www.youtube-nocookie.com` | 1           |
 
 ### stylesheet (10)
 
@@ -21031,58 +23589,240 @@ _No framework detected._
 ## CSS selectors (3106 total) — sample top 50
 
 ```css
-#block-views-block-block-news-title-block-1 .arrow {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .result .slick-slide:hover {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .row .news-exposed:hover {}
-#block-views-block-block-news-title-block-1 .view-block-news-title .row .slick-slide.slick-current.slick-active .news-exposed {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line:nth-of-type(2n) .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-description-feature-block-1 .paragraph--type--title-key-feature-line:nth-of-type(odd) .key-feature-description .field--name-field-catch-phrase {}
-#block-views-block-discover-brand-block-1 .view-discover-brand .view-content .field-content .discover_link_brand a:hover {}
-#block-views-block-galerie-personnages-block-2 .view-galerie-personnages .modale .slider-characterImage .modal-row .content {}
-#block-views-block-galerie-personnages-block-2 .view-galerie-personnages .modale .slider-characterImage .modal-row .header {}
-#block-views-block-introduction-teaser-block-1 .view-introduction-teaser .row .col-lg-5 .view-footer .view-platform-title .view-content .group-date .views-row {}
-#block-views-block-newsletter-block-1 .view-content {}
-#features-filter .form-item.form-type-checkbox {}
-#navbar-administration.navbar-oriented .navbar-tray-vertical {}
-#overlay-container {}
-#toolbar {}
-* {}
-*:after {}
-*:before {}
-.affix {}
-.ajax-progress {}
-.ajax-progress-bar {}
-.ajax-progress-bar .message {}
-.ajax-progress-bar .percentage {}
-.ajax-progress-bar .progress {}
-.ajax-progress-fullscreen {}
-.ajax-progress-throbber .message {}
-.ajax-progress-throbber .throbber {}
-.ajax-progress.ajax-progress-fullscreen {}
-.alert {}
-.alert .alert-link {}
-.alert a {}
-.alert a.btn {}
-.alert a.btn:focus {}
-.alert a.btn:hover {}
-.alert h4 {}
-.alert-danger {}
-.alert-danger .alert-link {}
-.alert-danger a {}
-.alert-danger a:focus {}
-.alert-danger a:hover {}
-.alert-danger hr {}
-.alert-dismissable {}
-.alert-dismissable .close {}
-.alert-dismissible {}
-.alert-dismissible .close {}
-.alert-info {}
-.alert-info .alert-link {}
-.alert-info a {}
-.alert-info a:focus {}
+#block-views-block-block-news-title-block-1 .arrow {
+}
+#block-views-block-block-news-title-block-1 .view-block-news-title .result .slick-slide:hover {
+}
+#block-views-block-block-news-title-block-1 .view-block-news-title .row .news-exposed:hover {
+}
+#block-views-block-block-news-title-block-1
+	.view-block-news-title
+	.row
+	.slick-slide.slick-current.slick-active
+	.news-exposed {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line:nth-of-type(2n)
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-description-feature-block-1
+	.paragraph--type--title-key-feature-line:nth-of-type(odd)
+	.key-feature-description
+	.field--name-field-catch-phrase {
+}
+#block-views-block-discover-brand-block-1
+	.view-discover-brand
+	.view-content
+	.field-content
+	.discover_link_brand
+	a:hover {
+}
+#block-views-block-galerie-personnages-block-2
+	.view-galerie-personnages
+	.modale
+	.slider-characterImage
+	.modal-row
+	.content {
+}
+#block-views-block-galerie-personnages-block-2
+	.view-galerie-personnages
+	.modale
+	.slider-characterImage
+	.modal-row
+	.header {
+}
+#block-views-block-introduction-teaser-block-1
+	.view-introduction-teaser
+	.row
+	.col-lg-5
+	.view-footer
+	.view-platform-title
+	.view-content
+	.group-date
+	.views-row {
+}
+#block-views-block-newsletter-block-1 .view-content {
+}
+#features-filter .form-item.form-type-checkbox {
+}
+#navbar-administration.navbar-oriented .navbar-tray-vertical {
+}
+#overlay-container {
+}
+#toolbar {
+}
+* {
+}
+*:after {
+}
+*:before {
+}
+.affix {
+}
+.ajax-progress {
+}
+.ajax-progress-bar {
+}
+.ajax-progress-bar .message {
+}
+.ajax-progress-bar .percentage {
+}
+.ajax-progress-bar .progress {
+}
+.ajax-progress-fullscreen {
+}
+.ajax-progress-throbber .message {
+}
+.ajax-progress-throbber .throbber {
+}
+.ajax-progress.ajax-progress-fullscreen {
+}
+.alert {
+}
+.alert .alert-link {
+}
+.alert a {
+}
+.alert a.btn {
+}
+.alert a.btn:focus {
+}
+.alert a.btn:hover {
+}
+.alert h4 {
+}
+.alert-danger {
+}
+.alert-danger .alert-link {
+}
+.alert-danger a {
+}
+.alert-danger a:focus {
+}
+.alert-danger a:hover {
+}
+.alert-danger hr {
+}
+.alert-dismissable {
+}
+.alert-dismissable .close {
+}
+.alert-dismissible {
+}
+.alert-dismissible .close {
+}
+.alert-info {
+}
+.alert-info .alert-link {
+}
+.alert-info a {
+}
+.alert-info a:focus {
+}
 /* ... 3056 more (use --snapshot-dir to dump full list) */
 ```
+
+
+---
+
+<a name="docs-dragon-ball-cosmology-md"></a>
+## 📄 Fichier : `docs/dragon-ball-cosmology.md`
+
+**Titre original :** Cosmologie de Dragon Ball — Structure du Macrocosme & Au-delà (Daizenshuu 4 & 7)
+
+### Cosmologie de Dragon Ball — Structure du Macrocosme & Au-delà (Daizenshuu 4 & 7)
+
+Ce document détaille l'organisation de l'univers de Dragon Ball, appelée le **Macrocosme** (_Uchū_), d'après les guides officiels **Daizenshuu 4 : World Guide** et **Daizenshuu 7 : Dragon Ball Encyclopedia**. Ces informations sont cruciales pour comprendre la structure géographique et spirituelle dans laquelle évoluent les personnages.
+
+---
+
+## 🔮 Structure Globale du Macrocosme
+
+Le macrocosme de Dragon Ball se présente sous la forme d'une **sphère géante** divisée en deux hémisphères principaux, entourée d'un vide dimensionnel, avec des royaumes spécifiques en dehors ou en orbite.
+
+```mermaid
+graph TD
+    subgraph Macrocosme ["Le Macrocosme (Uchū)"]
+        direction TB
+        Realm1["Royaume des Kaiōshin (Kaiōshin-kai) - Orbite extérieure"]
+
+        subgraph Sphere ["Sphère Globale"]
+            direction TB
+            subgraph AuDela ["Hémisphère Supérieur : L'Au-delà (Ano-yo)"]
+                Palace["Palais d'Enma-daïō"]
+                Heaven["Le Paradis (Gokuraku)"]
+                KaioPlanets["Planètes des Kaiō & Grand Kaiō"]
+            end
+
+            subgraph MondePhysique ["Hémisphère Inférieur : Le Monde Vivant (Kono-yo)"]
+                Universe["L'Univers (Divisé en 4 Galaxies : Nord, Sud, Est, Ouest)"]
+            end
+
+            Hell["Le Royaume des Enfers (Jigoku) - Tout en bas de la Sphère"]
+        end
+    end
+
+    Realm1 -.-> Sphere
+```
+
+---
+
+## 🌌 L'Au-delà (Ano-yo)
+
+L'Au-delà (Ano-yo, le "Monde d'après") occupe l'**hémisphère supérieur** de la sphère du macrocosme. C'est un plan spirituel qui transcende les dimensions physiques du monde des vivants.
+
+### 1. Le Palais de King Enma (_Enma-daïō no Yakata_)
+
+- **Fonction :** C'est le centre administratif de l'Au-delà. Toutes les âmes des morts y transitent pour y être jugées par le roi Enma (_Enma-daïō_).
+- **Le Dossier des Âmes :** Enma utilise un grand registre pour décider de la destination des âmes (Paradis ou Enfer) en fonction de leurs actions passées.
+- **Lieux connexes :**
+  - **L'Aéroport de l'Au-delà :** Permet aux âmes purifiées ou autorisées d'être transportées vers le Paradis.
+  - **Le Chemin du Serpent (_Hebi no Michi_) :** Une route sinueuse de **1 million de kilomètres** de long partant du palais d'Enma et menant à la planète du Kaïo du Nord. C'est le seul moyen physique d'y accéder à pied (Goku mettra plusieurs mois pour le parcourir la première fois).
+
+### 2. Le Paradis (_Gokuraku_)
+
+- **Description :** Une planète gigantesque couverte de fleurs et de verdure, réservée aux âmes des personnes ayant accompli de bonnes actions.
+- **Taille :** D'après le _Daizenshuu 4_, le Paradis est si vaste qu'il occupe une part prépondérante de la moitié supérieure du macrocosme, équivalant presque à la superficie de l'univers physique du dessous.
+
+### 3. Les Enfers (_Jigoku_)
+
+- **Description :** Situé tout en bas du macrocosme (en dessous du monde des vivants et sous le palais d'Enma), l'Enfer est le lieu de punition et de purification des âmes malveillantes.
+- **Structure :** Il est composé de paysages chaotiques et désolés. C'est là que les âmes des méchants sont purifiées avant d'être réincarnées (sans leurs souvenirs).
+
+### 4. Le Royaume céleste des Kaïo
+
+- **Le Domaine des Kaïo :** Situé au-dessus du Paradis, il comprend les petites planètes des 4 Kaïo cardinaux (Nord, Sud, Est, Ouest) ainsi que la planète du Grand Kaïo (_Dai Kaïo-sei_), située au centre de ce plan.
+- **La Planète du Kaïo du Nord :** Une minuscule planète à la gravité **10 fois supérieure** à celle de la Terre, où vit Kaïo du Nord avec Bubbles et Gregory. Elle fut détruite par l'autodestruction de Cell.
+
+---
+
+## 🌍 Le Monde Vivant (Kono-yo)
+
+Le Monde Vivant (Kono-yo, le "Monde d'ici") occupe l'**hémisphère inférieur** du macrocosme.
+
+- **L'Univers physique :** C'est l'espace infini contenant les étoiles et les planètes (dont la Terre et la planète Namek).
+- **Les Quatre Galaxies :** L'univers est divisé administrativement par les Kaïo en 4 zones appelées galaxies (Galaxie du Nord, du Sud, de l'Est et de l'Ouest). Cette division est purement administrative pour la surveillance divine, l'espace physique étant continu.
+
+---
+
+## 👑 Le Royaume des Kaïoshin (Kaiōshin-kai)
+
+- **Position :** Ce royaume sacré existe **complètement en dehors** de la sphère géante du macrocosme. Il orbite autour de celle-ci à la manière d'une lune.
+- **Accès :** Seuls les Kaïoshin, leurs assistants ou les personnes invitées (grâce au déplacement instantané ou à la téléportation magique) peuvent y accéder.
+- **Nature :** C'est un monde paisible, pur et stérile, préservé de toute influence mortelle, conçu pour que les Dieux de la Création observent le macrocosme.
+
+---
+
+## 💫 Dimensions & Débats Cosmiques
+
+- **Le concept de "Transcendance dimensionnelle" :** Le _Daizenshuu 4_ indique que l'Au-delà est une dimension supérieure par rapport au monde physique des vivants, invisible et inaccessible pour les mortels sans intervention divine.
+- **Royaume des Démons (_Makai_) :** Situé dans une dimension de poche ou un espace caché au bas de l'univers physique, gouverné par les Makaiō et Makaiōshin (les divinités déchues ou nées de fruits malveillants).
 
 
 ---
@@ -21100,9 +23840,9 @@ Ce document décrit le fonctionnement de la synchronisation automatique du dossi
 
 ## 📋 Informations du Dossier Drive
 
-*   **URL du dossier** : `https://drive.google.com/drive/folders/1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
-*   **Identifiant du dossier** : `1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
-*   **Dossier local de destination** : `apps/site/public/wiki/` (situé dans le répertoire racine de Shenron)
+- **URL du dossier** : `https://drive.google.com/drive/folders/1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
+- **Identifiant du dossier** : `1I_qmhLcgrWEVBeO9YXEj_tqqhH3-9DmW`
+- **Dossier local de destination** : `apps/site/public/wiki/` (situé dans le répertoire racine de Shenron)
 
 ---
 
@@ -21111,38 +23851,44 @@ Ce document décrit le fonctionnement de la synchronisation automatique du dossi
 La synchronisation s'articule autour de trois éléments principaux :
 
 1.  **Script Python de Téléchargement Parallèle (`scripts/download_gdrive.py`)** :
-    *   Résout récursivement les dossiers du Drive via `gdown`.
-    *   Télécharge les fichiers de manière asynchrone (multithreading avec pool de threads).
-    *   Supporte la reprise des téléchargements partiels/interrompus (`--resume`).
-    *   Gère automatiquement l'installation locale de ses dépendances via le moteur de script `uv`.
+    - Résout récursivement les dossiers du Drive via `gdown`.
+    - Télécharge les fichiers de manière asynchrone (multithreading avec pool de threads).
+    - Supporte la reprise des téléchargements partiels/interrompus (`--resume`).
+    - Gère automatiquement l'installation locale de ses dépendances via le moteur de script `uv`.
 
 2.  **Wrapper Shell (`scripts/shenron-drive-sync.sh`)** :
-    *   Encapsule l'appel au script Python avec des paramètres optimaux (par exemple, concurrence limitée à 4 téléchargements pour éviter le bannissement d'API / limitation de débit par Google).
-    *   Marqué comme exécutable.
+    - Encapsule l'appel au script Python avec des paramètres optimaux (par exemple, concurrence limitée à 4 téléchargements pour éviter le bannissement d'API / limitation de débit par Google).
+    - Marqué comme exécutable.
 
 3.  **Planification systemd (`deploy/systemd/`)** :
-    *   **`shenron-drive-sync.service`** : Tâche unitaire (`Type=oneshot`) qui exécute le script shell.
-    *   **`shenron-drive-sync.timer`** : Planifie le service pour qu'il s'exécute quotidiennement (`OnCalendar=daily`).
+    - **`shenron-drive-sync.service`** : Tâche unitaire (`Type=oneshot`) qui exécute le script shell.
+    - **`shenron-drive-sync.timer`** : Planifie le service pour qu'il s'exécute quotidiennement (`OnCalendar=daily`).
 
 ---
 
 ## 🚀 Commandes d'Administration
 
 ### Lancement manuel de la synchronisation
+
 Vous pouvez exécuter le script de synchronisation manuellement à tout moment :
+
 ```bash
 bash scripts/shenron-drive-sync.sh
 ```
 
 ### Vérification de l'état du Timer systemd
+
 Pour vérifier la planification automatique et l'heure du prochain passage :
+
 ```bash
 systemctl list-timers "shenron-drive-sync*"
 systemctl status shenron-drive-sync.timer
 ```
 
 ### Consultation des journaux (Logs) du service
+
 Pour consulter la sortie de la dernière synchronisation effectuée par systemd :
+
 ```bash
 journalctl -u shenron-drive-sync.service -n 50 --no-pager
 ```
@@ -21217,6 +23963,151 @@ sudo systemctl restart shenron-llm shenron
   cf. piège CLAUDE.md). Vecteurs vidés au swap FTS → mode lexical jusqu'au build complet.
 - **Redis db0** : le bot (systemd, sans `REDIS_URL`) écrit db0 ; un shell avec `REDIS_URL=…/1` vise db1.
 - **Latence** : Qwen-3B Q4 sur CPU ≈ 8-15 tok/s → réponse en ~5-15 s (indicateur « écrit… » côté Discord).
+
+
+---
+
+<a name="docs-toriyama-databook-seg-md"></a>
+## 📄 Fichier : `docs/toriyama-databook-seg.md`
+
+**Titre original :** Dragon Ball Lore — Akira Toriyama Databook Revelations (SEG)
+
+### Dragon Ball Lore — Akira Toriyama Databook Revelations (SEG)
+
+Ce document compile les révélations canoniques d'Akira Toriyama issues de l'interview spéciale du **Super Exciting Guide (SEG) : Character Volume** (publié le 3 avril 2009). Ces informations complètent et éclairent le RAG de Shenron sur des aspects fondamentaux de l'univers.
+
+---
+
+## 🪐 Hiérarchie Cosmique & Origine des Dieux
+
+> [!IMPORTANT]
+> Les divinités de l'univers Dragon Ball (les Kaïo et Kaïoshin) partagent une origine biologique commune sur une planète spécifique du cosmos.
+
+### Origine des Kaïo (Kaïo-sama)
+
+Tous les Kaïo et Kaïoshin naissent sur une planète appelée la **Planète du Noyau du Monde** (_Kaishin-sei_). Cette planète géante abrite l'**Arbre du Monde** (_Kaiju_).
+
+- **Le Peuple du Noyau (_Shin-jin_) :** Les divinités naissent sous forme de fruits issus de cet arbre.
+- **Population & Sexe :** La population de cette planète est d'environ 80 habitants. Les Shin-jin ne sont ni mâles ni femelles.
+- **Durée de vie :** Leur espérance de vie moyenne est d'environ **75 000 ans**.
+- **Sélection des Kaïo :** Les Shin-jin vivent et apprennent dans un château-école. Lorsqu'un Kaïo meurt sur l'une des 4 planètes Kaïo, son successeur est choisi parmi les Shin-jin par tirage au sort (loterie).
+- **Origine des Kaïoshin :** Les Kaïoshin (Dieux de la Création) sont choisis uniquement parmi les Shin-jin nés de **fruits dorés spéciaux**, un événement extrêmement rare.
+
+### Les Makaiō & Makaiōshin
+
+- **Makaiōshin :** Gouvernent le mal et le Royaume des Démons (_Makai_), situés tout en bas du cosmos en opposition aux Kaïoshin.
+- **Origine :** Certains Shin-jin naissent avec un cœur malveillant (les Shin-jin délinquants). Ils tombent du monde céleste pour rejoindre le Royaume des Démons et deviennent des _Makaiō_.
+
+---
+
+## 👤 Identité & Étymologie des Personnages
+
+Toriyama explique sa méthodologie de nommage par ensembles de mots (sets) pour faciliter la création de personnages, tout en révélant les véritables noms civils de certains personnages clés.
+
+| Personnage         | Véritable Nom | Origine / Signification                                                                                                                      |
+| :----------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mr. Satan**      | **Mark**      | Anagramme de _Akuma_ (démon/diable en japonais). Satan est son nom de scène. Dans sa région, il n'existe pas de nom de famille.              |
+| **Videl**          | **Videl**     | Anagramme direct de _Devil_ (diable en anglais). C'est son vrai nom civil, pas un nom de scène.                                              |
+| **Freezer**        | _Freeza_      | Inspiré d'un réfrigérateur (_freezer_). Tous ses subordonnés et proches portent des noms de nourritures ou d'objets allant au réfrigérateur. |
+| **Saiyans**        | _Yasai_       | Anagramme de _Yasai_ (légume en japonais). Ex: Kakarot (Carotte), Vegeta (Végétal), Raditz (Radis).                                          |
+| **Commando Ginyu** | _Ginyū_       | Dérivés de produits laitiers (_Gyūnyū_ = lait). Ex: Recoom (Crème), Burter (Beurre), Jeice (Cheese/Fromage).                                 |
+
+---
+
+## 🧬 Biologie des Races Canon
+
+### Les Saiyans
+
+- **Vieillissement ralenti :** En tant que race de guerriers, le vieillissement des Saiyans ralentit considérablement dès qu'ils atteignent l'âge optimal pour le combat, leur permettant de conserver leur force maximale très longtemps.
+- **Espérance de vie :** Leur durée de vie totale n'est pas très supérieure à celle des humains de la Terre. Une fois qu'ils atteignent un certain âge de vieillesse, leur dégradation physique est extrêmement rapide.
+- **Chevelure :** Les cheveux des Saiyans peuvent changer. Toriyama cite l'exemple de **Nappa** qui est devenu chauve. Les propriétés capillaires sont similaires à celles des humains, bien que légèrement différentes.
+
+### Les Namekians
+
+- **Nutrition :** Les Namekians se nourrissent exclusivement d'eau grâce à une enzyme spéciale capable de convertir l'eau en nutriments essentiels.
+- **Les Ajissa :** Les semis d'Ajissa cultivés sur Namek sont nommés d'après les hortensias (_ajisai_), car les escargots (le motif de conception des Namekians) aiment les hortensias.
+
+---
+
+## 💰 Économie & Technologie de la Capsule Corporation
+
+- **La monnaie (Zenny) :** Toriyama a conçu la valeur de 1 Zenny comme étant équivalente à **1 Yen**.
+- **Technologie des capsules Hoi-Poi :**
+  - Le coût de conversion d'un objet standard au système de capsules Hoi-Poi chez un concessionnaire Capsule Corporation est d'environ **200 000 Zenny**.
+  - **Exemple de prix :** Un aéronef standard à 4 places coûte 1 480 000 Zenny (1 280 000 Zenny pour le véhicule + 200 000 Zenny pour la capsule).
+  - Les structures complexes comme les maisons coûtent plus cher à convertir en raison de la main-d'œuvre nécessaire.
+- **Propriétés des Dragon Balls :** Toriyama les conçoit comme ayant la texture d'une **résine naturelle dure**. Si une Dragon Ball est percée ou endommagée, les dégâts disparaissent complètement après que le vœu est exaucé et qu'elles se dispersent, redevenant parfaitement neuves.
+
+
+---
+
+<a name="docs-toriyama-interviews-md"></a>
+## 📄 Fichier : `docs/toriyama-interviews.md`
+
+**Titre original :** Lore de Dragon Ball — Citations & Philosophie d'Akira Toriyama (Daizenshuu)
+
+### Lore de Dragon Ball — Citations & Philosophie d'Akira Toriyama (Daizenshuu)
+
+Ce document compile les déclarations phares d'Akira Toriyama au sujet de ses choix créatifs, de sa relation avec ses personnages (Goku, Vegeta, Piccolo, Gohan, Mr. Satan), et de sa méthode de travail, principalement tirées des « Super Interviews » publiées dans la collection **Daizenshuu** (1995-1996) et archivées par Kanzenshuu.
+
+---
+
+## 🟢 Piccolo : Le Personnage Préféré de l'Auteur
+
+Malgré la popularité écrasante de Goku et Vegeta auprès des fans, Akira Toriyama a toujours maintenu que Piccolo était son personnage favori de la série.
+
+> « Je suppose que j'aime Piccolo le plus après tout... Je l'aime à peu près autant que j'aime Goku. Avec Piccolo, c'est facile de raconter ce qu'il pense ; son passé de méchant le rend plus intéressant à développer que Goku, qui est d'une pureté absolue. »
+>
+> _— Akira Toriyama, Daizenshuu 2 : Story Guide (1995)_
+
+- **Rachat spirituel :** Toriyama aimait particulièrement la dynamique de la relation mentor/élève que Piccolo a développée avec Son Gohan.
+- **Reconfirmation tardive :** En 2022, lors de la promotion du film _Dragon Ball Super: Super Hero_, Toriyama a réaffirmé cette préférence historique en déclarant : « Piccolo est mon personnage préféré. Il est toujours calme et c'est la première fois qu'il est au centre de l'action dans un film, ce qui m'a fait très plaisir. »
+
+---
+
+## 🔴 La Relation Ambiguë avec Vegeta
+
+Le traitement de Vegeta par Toriyama est un exemple parfait de la façon dont l'auteur gérait la popularité des personnages face à ses propres envies narratives.
+
+- **Une aversion initiale :** Toriyama a admis ne pas apprécier Vegeta au départ.
+  > « De tous les ennemis, Piccolo était mon préféré, et même après cela, je n'aimais pas beaucoup Vegeta. Mais je trouvais que c'était un personnage extrêmement utile pour faire progresser l'histoire. »
+  >
+  > _— Akira Toriyama, Daizenshuu 2 (1995)_
+- **Subversion des attentes des fans :** Toriyama a confessé à plusieurs reprises que plus les lecteurs lui demandaient de garder un personnage en vie ou de lui donner un rôle héroïque (comme pour Vegeta), plus il avait envie de le faire souffrir ou de le tuer dans l'intrigue, afin de garder un contrôle absolu et de surprendre le public.
+
+---
+
+## ⚡ L'Échec du Passage de Flambeau à Gohan
+
+Après le combat final contre Cell, Toriyama avait l'intention ferme de faire de Son Gohan le protagoniste principal de Dragon Ball.
+
+- **Le constat d'incompatibilité :** Au début de la saga Majin Buu, Toriyama s'est rendu compte que le caractère pacifiste et studieux de Gohan ne collait pas avec les exigences d'un héros de Shōnen.
+  > « J'avais l'intention de faire de Gohan le personnage principal... mais cela n'a pas fonctionné. J'ai senti que par rapport à Goku, Gohan n'était finalement pas adapté pour ce rôle. »
+  >
+  > _— Akira Toriyama, Daizenshuu 2 (1995)_
+- **Le retour de Goku :** Cela a conduit à la réintroduction progressive de Goku en tant que sauveur de la Terre à la fin de la saga Buu, reléguant Gohan à un rôle secondaire.
+
+---
+
+## 🤡 Mr. Satan (Hercule) et l'Importance du Gag
+
+Mr. Satan est l'un des personnages les plus chers à Toriyama en raison de sa nature comique.
+
+- **Un exutoire humoristique :** Venant du monde du manga humoristique (_Dr. Slump_), Toriyama s'est lassé des combats de plus en plus sérieux et destructeurs à la fin de Dragon Ball.
+- **Le plaisir du dessin :**
+  > « Dessiner Satan est super amusant. C'est l'un de mes personnages préférés à mettre en scène parce que je peux faire des gags ridicules avec lui. C'est beaucoup plus distrayant que de dessiner des combats intenses. »
+  >
+  > _— Akira Toriyama, Daizenshuu 2 (1995)_
+- **Rôle clé :** Malgré sa lâcheté apparente, Mr. Satan finit par sauver l'univers de manière inattendue en convainquant les Terriens de donner leur énergie pour le Genki Dama final contre Kid Buu.
+
+---
+
+## ✍️ La Philosophie d'Écriture de Toriyama
+
+Toriyama a souvent expliqué qu'il n'avait pas de plan à long terme lorsqu'il écrivait Dragon Ball semaine après semaine.
+
+- **Création improvisée :** Il aimait se surprendre lui-même et surprendre ses éditeurs (notamment Kazuhiko Torishima) en écrivant les chapitres au fur et à mesure sans savoir comment le combat allait se terminer.
+- **Simplification visuelle :** Beaucoup de choix de design célèbres (comme la transformation en Super Saiyan aux cheveux blonds/blancs) ont été décidés pour des raisons purement pratiques : les cheveux blonds permettaient à son assistant de gagner du temps en n'ayant pas à colorier les cheveux en noir à l'encre de Chine !
 
 
 ---
@@ -21300,13 +24191,13 @@ import { Discord, Slash } from "@rpbey/discordy";
 @Discord()
 @injectable()
 class Commands {
-  constructor(private readonly db: DatabaseService) {}
+	constructor(private readonly db: DatabaseService) {}
 
-  @Slash({ name: "stats" })
-  async stats(i: CommandInteraction) {
-    const count = await this.db.userCount();
-    await i.reply(`Users: ${count}`);
-  }
+	@Slash({ name: "stats" })
+	async stats(i: CommandInteraction) {
+		const count = await this.db.userCount();
+		await i.reply(`Users: ${count}`);
+	}
 }
 ```
 
@@ -21555,15 +24446,15 @@ import type { CommandInteraction } from "discord.js";
 
 @Discord()
 class Ping {
-  @Slash({ name: "ping", description: "Ping" })
-  async run(i: CommandInteraction) {
-    await i.reply({ content: "🏓", flags: MessageFlags.Ephemeral });
-  }
+	@Slash({ name: "ping", description: "Ping" })
+	async run(i: CommandInteraction) {
+		await i.reply({ content: "🏓", flags: MessageFlags.Ephemeral });
+	}
 }
 
 const client = new Client({
-  intents: [IntentsBitField.Flags.Guilds],
-  silent: false,
+	intents: [IntentsBitField.Flags.Guilds],
+	silent: false,
 });
 
 client.once("ready", () => client.initApplicationCommands());
@@ -21659,9 +24550,7 @@ bun add @rpbey/importer
 ```ts
 import { importx, dirname } from "@rpbey/importer";
 
-await importx(
-  `${dirname(import.meta.url)}/{events,commands,components}/**/*.{ts,js}`,
-);
+await importx(`${dirname(import.meta.url)}/{events,commands,components}/**/*.{ts,js}`);
 ```
 
 Every matched file is dynamically `import()`-ed; side-effects (like `@Discord` class declarations) register themselves in `MetadataStorage`.
@@ -21929,15 +24818,15 @@ import { Pagination, PaginationType } from "@rpbey/pagination";
 import { EmbedBuilder } from "discord.js";
 
 const pages = [
-  { embeds: [new EmbedBuilder().setTitle("Page 1")] },
-  { embeds: [new EmbedBuilder().setTitle("Page 2")] },
-  { embeds: [new EmbedBuilder().setTitle("Page 3")] },
+	{ embeds: [new EmbedBuilder().setTitle("Page 1")] },
+	{ embeds: [new EmbedBuilder().setTitle("Page 2")] },
+	{ embeds: [new EmbedBuilder().setTitle("Page 3")] },
 ];
 
 const pagination = new Pagination(interaction, pages, {
-  type: PaginationType.Button,
-  enableExit: true,
-  time: 60_000,
+	type: PaginationType.Button,
+	enableExit: true,
+	time: 60_000,
 });
 
 await pagination.send();
@@ -21975,6 +24864,47 @@ currently being supported with security updates.
 ## Reporting a Vulnerability
 
 Please report vulnerabilities via github issues, with the prefix starting with `SECURITY:`. If possible, please submit a PR for the fix.
+
+
+---
+
+<a name="reference-db-recon-sources-rag-md"></a>
+## 📄 Fichier : `reference/db-recon/SOURCES-RAG.md`
+
+**Titre original :** Sources RAG Dragon Ball — Inventaire & Matrice de Curation
+
+### Sources RAG Dragon Ball — Inventaire & Matrice de Curation
+
+Ce document répertorie et structure les sources de données canoniques et tierces utilisées pour alimenter la base de connaissances du RAG Dragon Ball (PLAN A1).
+
+---
+
+## Matrice des Sources
+
+| Priorité | Source ID | Nom de la Source | Couverture / Type de Contenu | Langue | Clé de Licence / Attribution | Vulnérabilité (Anti-Bot / IP) | Stratégie de Fetch / Curation |
+|:---:|:---|:---|:---|:---:|:---|:---|:---|
+| **1** | `kanzenshuu` | Kanzenshuu | Guides officiels traduits, Daizenshuu, interviews d'Akira Toriyama | EN | `FAIR-USE-EDITORIAL`<br>*(© Kanzenshuu — fan-site)* | Faible (IP datacenter acceptée) | `bxc recon` sur les guides de référence |
+| **2** | `fandom-fr` | Wiki Dragon Ball FR | Personnages, techniques, planètes, sagas, épisodes | FR | `CC-BY-SA-3`<br>*(Fandom FR)* | Moyenne (filtrage IP parfois, Cloudflare) | `crawl-fandom-rag.ts` (API MediaWiki `action=parse`) |
+| **2** | `fandom-en` | Dragon Ball Wiki EN | Personnages, techniques, planètes, sagas, épisodes (plus complet) | EN | `CC-BY-SA-3`<br>*(Fandom EN)* | Moyenne (filtrage IP parfois, Cloudflare) | `crawl-fandom-rag.ts` (API MediaWiki `action=parse`) |
+| **3** | `dbofficial-fr` | Site officiel DB (FR) | News officielles, fiches personnages, articles éditoriaux | FR | `FAIR-USE-EDITORIAL`<br>*(© Bird Studio / Shueisha / Toei)* | Élevée (Cloudflare, IP VPS filtrée) | `bxc scrape` avec proxy résidentiel |
+| **3** | `dbofficial-en` | Site officiel DB (EN) | News officielles, fiches personnages, articles éditoriaux | EN | `FAIR-USE-EDITORIAL`<br>*(© Bird Studio / Shueisha / Toei)* | Élevée (Cloudflare, IP VPS filtrée) | `bxc scrape` avec proxy résidentiel |
+| **3** | `shueisha` | Shueisha Corporate | Communiqués corporatifs, annonces de mangas / Jump | JA | `FAIR-USE-EDITORIAL`<br>*(© Shueisha)* | Faible | `bxc recon` ponctuel sur communiqués |
+| **3** | `shonenjump-plus` | Shōnen Jump+ | Résumés et chapitres de Dragon Ball Super en ligne | JA | `FAIR-USE-EDITORIAL`<br>*(© Shueisha)* | Moyenne | `bxc recon` sur les pages de chapitres |
+| **3** | `viz-media` | Viz Media | Traduction officielle de Dragon Ball Super (manga) | EN | `FAIR-USE-EDITORIAL`<br>*(© Viz Media / Shueisha)* | Moyenne | `bxc scrape` ciblé |
+| **3** | `toei-animation` | Toei Animation | Catalogue officiel de la franchise de films et séries animées | EN / JA | `FAIR-USE-EDITORIAL`<br>*(© Toei Animation)* | Faible | `bxc recon` sur les fiches œuvres |
+| **3** | `bandai-eu` | Bandai Namco EU | Informations sur les jeux vidéo (Sparking! ZERO, Kakarot, etc.) | EN | `FAIR-USE-EDITORIAL`<br>*(© Bandai Namco)* | Élevée (IP VPS filtrée) | `bxc scrape` avec proxy résidentiel |
+| **4** | `dragonball-api` | Dragon Ball API | Données brutes de personnages de base (utilité historique) | EN | `MIT`<br>*(dragonball-api.com)* | Faible | Requêtes REST API JSON |
+| **4** | `kitsu` | Kitsu.io | Métadonnées riches d'épisodes, synopsis et guides | EN | `API-PUBLIC`<br>*(Kitsu.io API)* | Faible | REST API (Kitsu API v1) |
+| **4** | `anilist` | AniList | Métadonnées d'épisodes, films et staff technique | EN | `API-PUBLIC`<br>*(AniList GraphQL API)* | Faible | GraphQL API query |
+| **4** | `jikan` | Jikan (MyAnimeList) | Métadonnées d'anime et personnages, dates de diffusion | EN | `API-PUBLIC`<br>*(MyAnimeList via Jikan)* | Faible | REST API |
+
+---
+
+## Règles d'Or de Curation (RAG Canon)
+
+1. **Priorité Canonique** : En cas de contradiction factuelle, les données de `kanzenshuu` et des guides officiels (Daizenshuu) priment sur les informations rédigées par les fans sur `fandom-fr`/`fandom-en`.
+2. **Attribution Obligatoire** : Chaque chunk extrait doit conserver sa clé de licence `license_key` et le texte d'attribution `attribution_template` dans les métadonnées de la table `rag_chunks` afin d'être restituable sous forme de citation cliquable dans `/ask`.
+3. **Opt-Out & Respect des ToS** : Respecter les en-têtes `robots.txt` et limiter le taux d'interrogation. Les requêtes sur les sites officiels (`dragon-ball-official.com` et `bandai`) doivent transiter par le proxy résidentiel configuré via `--proxy` pour éviter les blocages de sécurité des IP VPS.
 
 
 ---

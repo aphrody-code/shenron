@@ -16,6 +16,6 @@ export async function GET() {
 			avatar: me?.user?.avatar ?? null,
 			isAdmin: me?.user?.roleAdmin === true,
 		},
-		{ headers: { "Cache-Control": "private, no-store" } },
+		{ headers: { "Cache-Control": "private, no-store" } }
 	);
 }

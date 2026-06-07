@@ -37,10 +37,7 @@ export class CronRegistry {
 
 	register(job: CronJob): void {
 		if (this.jobs.has(job.name)) {
-			logger.warn(
-				{ name: job.name },
-				"CronRegistry: job déjà enregistré, skip",
-			);
+			logger.warn({ name: job.name }, "CronRegistry: job déjà enregistré, skip");
 			return;
 		}
 		const state: JobState = {
@@ -60,12 +57,9 @@ export class CronRegistry {
 		state.timer = setInterval(() => this.run(job.name), job.intervalMs);
 		state.timer.unref();
 		void this.applyOverride(job.name).catch((err) =>
-			logger.warn({ err, name: job.name }, "cron applyOverride failed"),
+			logger.warn({ err, name: job.name }, "cron applyOverride failed")
 		);
-		logger.debug(
-			{ name: job.name, intervalMs: job.intervalMs },
-			"cron registered",
-		);
+		logger.debug({ name: job.name, intervalMs: job.intervalMs }, "cron registered");
 	}
 
 	/** Lit l'override `cron.<name>.interval_ms` et reschedule si différent. */
@@ -95,10 +89,7 @@ export class CronRegistry {
 		const job = this.jobs.get(name);
 		if (!job) return;
 		if (intervalMs < 1_000) {
-			logger.warn(
-				{ name, intervalMs },
-				"cron reschedule: interval trop court (<1s), skip",
-			);
+			logger.warn({ name, intervalMs }, "cron reschedule: interval trop court (<1s), skip");
 			return;
 		}
 		if (job.timer) clearInterval(job.timer);
@@ -108,9 +99,7 @@ export class CronRegistry {
 		logger.info({ name, intervalMs }, "cron rescheduled");
 	}
 
-	async run(
-		name: string,
-	): Promise<{ ok: boolean; durationMs: number; error: string | null }> {
+	async run(name: string): Promise<{ ok: boolean; durationMs: number; error: string | null }> {
 		const job = this.jobs.get(name);
 		if (!job) return { ok: false, durationMs: 0, error: "job inconnu" };
 		const t0 = Bun.nanoseconds() / 1e6;
@@ -121,9 +110,7 @@ export class CronRegistry {
 			job.lastDurationMs = duration;
 			job.runCount++;
 			job.lastError = null;
-			container
-				.resolve(EventBusService)
-				.emit("cron:run", { name, ok: true, durationMs: duration });
+			container.resolve(EventBusService).emit("cron:run", { name, ok: true, durationMs: duration });
 			return { ok: true, durationMs: duration, error: null };
 		} catch (err) {
 			const msg = err instanceof Error ? err.message : String(err);

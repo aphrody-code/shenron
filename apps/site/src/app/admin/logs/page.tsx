@@ -14,8 +14,7 @@ interface LogEntry {
 }
 
 function colorClass(message: string): string {
-	if (/\bERROR\b|\berror\b|\bFAIL\b|\bfail\b/.test(message))
-		return "text-red-400";
+	if (/\bERROR\b|\berror\b|\bFAIL\b|\bfail\b/.test(message)) return "text-red-400";
 	if (/\bWARN\b|\bwarn\b/.test(message)) return "text-amber-400";
 	if (/\bINFO\b|\binfo\b/.test(message)) return "text-green-400";
 	return "text-zinc-300";
@@ -25,10 +24,7 @@ export default function LogsPage() {
 	const [lines, setLines] = useState(100);
 	const { data, isLoading, refetch, isFetching } = useQuery({
 		queryKey: ["logs", lines],
-		queryFn: () =>
-			api.get<{ logs: LogEntry[]; count: number }>(
-				`/health/logs?lines=${lines}`,
-			),
+		queryFn: () => api.get<{ logs: LogEntry[]; count: number }>(`/health/logs?lines=${lines}`),
 		refetchInterval: 10_000,
 	});
 
@@ -37,26 +33,21 @@ export default function LogsPage() {
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 mb-2">
 					<Terminal className="h-5 w-5 text-dbz-orange" />
-					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
-						Journal du bot
-					</h2>
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Journal du bot</h2>
 				</div>
 				<p className="text-sm text-zinc-300">
-					Ce journal regroupe tous les messages que le bot écrit en arrière-plan
-					: démarrages, erreurs, connexions Discord, exécutions de tâches… C'est
-					la première chose à consulter en cas de problème.
+					Ce journal regroupe tous les messages que le bot écrit en arrière-plan : démarrages,
+					erreurs, connexions Discord, exécutions de tâches… C'est la première chose à consulter en
+					cas de problème.
 				</p>
 				<p className="mt-1 text-xs text-dbz-blue-light">
-					Source : <code>journalctl -u shenron</code> · rafraîchissement
-					automatique toutes les 10 secondes · lignes les plus récentes en
-					premier
+					Source : <code>journalctl -u shenron</code> · rafraîchissement automatique toutes les 10
+					secondes · lignes les plus récentes en premier
 				</p>
 			</div>
 
 			<div className="dbz-panel p-3 flex flex-wrap items-center gap-3">
-				<label className="text-sm text-zinc-300">
-					Nombre de lignes affichées
-				</label>
+				<label className="text-sm text-zinc-300">Nombre de lignes affichées</label>
 				<select
 					className="bg-dbz-bg border border-dbz-border rounded px-2 py-1 text-sm text-zinc-200 focus:border-dbz-orange outline-none"
 					value={lines}
@@ -74,9 +65,7 @@ export default function LogsPage() {
 					disabled={isFetching}
 					className="dbz-button !text-xs !px-3 !py-1.5 ml-auto"
 				>
-					<RefreshCw
-						className={`h-3 w-3 inline-block mr-1 ${isFetching ? "animate-spin" : ""}`}
-					/>
+					<RefreshCw className={`h-3 w-3 inline-block mr-1 ${isFetching ? "animate-spin" : ""}`} />
 					{isFetching ? "Actualisation…" : "Actualiser"}
 				</button>
 				{data && (
@@ -106,12 +95,8 @@ export default function LogsPage() {
 								<span className="text-zinc-300">{log.raw}</span>
 							) : (
 								<>
-									<span className="text-zinc-600 mr-2 shrink-0">
-										{log.time}
-									</span>
-									<span className={colorClass(log.message ?? "")}>
-										{log.message}
-									</span>
+									<span className="text-zinc-600 mr-2 shrink-0">{log.time}</span>
+									<span className={colorClass(log.message ?? "")}>{log.message}</span>
 								</>
 							)}
 						</div>

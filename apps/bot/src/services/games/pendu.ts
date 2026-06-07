@@ -46,10 +46,7 @@ export function randomPenduWord(): string {
 	return PENDU_WORDS[Math.floor(Math.random() * PENDU_WORDS.length)]!;
 }
 
-export function createPenduState(
-	word: string,
-	maxErrors = PENDU_MAX_ERRORS_DEFAULT,
-): PenduState {
+export function createPenduState(word: string, maxErrors = PENDU_MAX_ERRORS_DEFAULT): PenduState {
 	return {
 		word: word.toLowerCase(),
 		found: new Set(),
@@ -72,7 +69,7 @@ export function evaluatePendu(state: PenduState): PenduOutcome {
  */
 export function guessPenduLetter(
 	state: PenduState,
-	letter: string,
+	letter: string
 ): { hit: boolean; alreadyPlayed: boolean } {
 	const l = letter.toLowerCase();
 	if (!/^[a-z]$/.test(l)) {
@@ -91,9 +88,7 @@ export function guessPenduLetter(
 
 /** Mot affiché avec underscores pour les non-devinées. */
 export function maskPenduWord(state: PenduState, hidden = "_"): string {
-	return [...state.word]
-		.map((c) => (state.found.has(c) ? c : hidden))
-		.join(" ");
+	return [...state.word].map((c) => (state.found.has(c) ? c : hidden)).join(" ");
 }
 
 /** ASCII frame courant. */

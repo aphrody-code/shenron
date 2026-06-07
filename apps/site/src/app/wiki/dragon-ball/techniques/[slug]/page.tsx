@@ -50,10 +50,10 @@ export default async function TechniqueDetailPage({
 	const jsonLdData: WithContext<DefinedTerm> = {
 		"@context": "https://schema.org",
 		"@type": "DefinedTerm",
-		"name": tech.name,
-		"description": tech.description ?? undefined,
-		"termCode": String(tech.id),
-		"inDefinedTermSet": `${SITE_URL}/wiki/dragon-ball/techniques`,
+		name: tech.name,
+		description: tech.description ?? undefined,
+		termCode: String(tech.id),
+		inDefinedTermSet: `${SITE_URL}/wiki/dragon-ball/techniques`,
 	};
 
 	return (
@@ -75,11 +75,7 @@ export default async function TechniqueDetailPage({
 				<header className="flex flex-col sm:flex-row gap-8 items-start">
 					{tech.creatorImage && (
 						<Link
-							href={
-								tech.creatorId
-									? `/wiki/dragon-ball/character/${tech.creatorId}`
-									: "#"
-							}
+							href={tech.creatorId ? `/wiki/dragon-ball/character/${tech.creatorId}` : "#"}
 							className="group relative w-40 sm:w-48 shrink-0 aspect-[3/4] rounded-xl overflow-hidden border border-white/10 bg-black"
 						>
 							<Image
@@ -94,9 +90,7 @@ export default async function TechniqueDetailPage({
 					)}
 					<div className="min-w-0">
 						<div className="flex items-center gap-4 mb-4">
-							<span className="scouter-text text-xl text-dbz-blue-light">
-								TECH_ID: {tech.id}
-							</span>
+							<span className="scouter-text text-xl text-dbz-blue-light">TECH_ID: {tech.id}</span>
 							<div className="h-px w-12 bg-dbz-border" />
 							<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-white/40">
 								{tech.type ?? "Capacité"}
@@ -111,11 +105,7 @@ export default async function TechniqueDetailPage({
 							<p className="text-white/70">
 								Créateur / utilisateur :{" "}
 								<Link
-									href={
-										tech.creatorId
-											? `/wiki/dragon-ball/character/${tech.creatorId}`
-											: "#"
-									}
+									href={tech.creatorId ? `/wiki/dragon-ball/character/${tech.creatorId}` : "#"}
 									className="text-dbz-orange font-bold hover:text-white transition-colors"
 								>
 									{tech.creatorName}

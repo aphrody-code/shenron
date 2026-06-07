@@ -34,7 +34,7 @@ async function main() {
 			if (!line.startsWith("| [")) continue;
 			if (line.includes("Projet | Stars")) continue; // Header
 
-			const parts = line.split("|").map(p => p.trim());
+			const parts = line.split("|").map((p) => p.trim());
 			if (parts.length < 5) continue;
 
 			const nameMatch = parts[1].match(/\[(.*?)\]\((.*?)\)/);
@@ -47,9 +47,9 @@ async function main() {
 			const description = parts[4];
 
 			// Filtrage : on ne veut que les projets qui ressemblent à des jeux ou outils de modding
-			const isGameRelated = 
-				description.toLowerCase().includes("game") || 
-				description.toLowerCase().includes("modding") || 
+			const isGameRelated =
+				description.toLowerCase().includes("game") ||
+				description.toLowerCase().includes("modding") ||
 				description.toLowerCase().includes("engine") ||
 				description.toLowerCase().includes("recompiled") ||
 				description.toLowerCase().includes("emulator") ||
@@ -61,12 +61,8 @@ async function main() {
 
 			if (isGameRelated && stars >= 5) {
 				const slug = slugify(fullName.replace("/", "-"));
-				
-				const exists = await db
-					.select()
-					.from(dbGames)
-					.where(eq(dbGames.slug, slug))
-					.limit(1);
+
+				const exists = await db.select().from(dbGames).where(eq(dbGames.slug, slug)).limit(1);
 
 				if (exists.length === 0) {
 					await db.insert(dbGames).values({
@@ -90,7 +86,6 @@ async function main() {
 		console.log(`\n📊 Importation terminée !`);
 		console.log(`✨ Nouveaux jeux importés : ${imported}`);
 		console.log(`⏭️ Déjà présents / ignorés : ${skipped}`);
-
 	} catch (err) {
 		console.error("❌ Erreur lors de l'importation:", err);
 		process.exit(1);

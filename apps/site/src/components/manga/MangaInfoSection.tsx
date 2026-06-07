@@ -16,7 +16,8 @@ export function MangaInfoSection() {
 					</h2>
 				</div>
 				<p className="text-white/50 font-display text-sm max-w-md">
-					Retrouvez l&apos;ensemble des éditeurs officiels ainsi que les meilleures plateformes pour suivre l&apos;œuvre originale d&apos;Akira Toriyama et de Toyotarou.
+					Retrouvez l&apos;ensemble des éditeurs officiels ainsi que les meilleures plateformes pour
+					suivre l&apos;œuvre originale d&apos;Akira Toriyama et de Toyotarou.
 				</p>
 			</div>
 
@@ -25,7 +26,7 @@ export function MangaInfoSection() {
 				{/* 1. Éditeurs Officiels */}
 				<div className="dbz-panel p-6 border border-white/5 bg-dbz-card relative overflow-hidden group hover:border-dbz-orange/40 hover:shadow-[0_0_20px_rgba(255,178,0,0.05)] transition-all duration-300">
 					<div className="absolute inset-0 halftone opacity-10 pointer-events-none" />
-					
+
 					<div className="relative z-10 space-y-6">
 						<div className="flex items-center gap-3">
 							<div className="p-3 bg-dbz-orange/10 rounded-lg text-dbz-orange border border-dbz-orange/20">
@@ -37,7 +38,8 @@ export function MangaInfoSection() {
 						</div>
 
 						<p className="text-xs text-white/40 leading-relaxed font-display">
-							Les maisons d&apos;édition détentrices des droits de publication et responsables de l&apos;impression des tomes physiques.
+							Les maisons d&apos;édition détentrices des droits de publication et responsables de
+							l&apos;impression des tomes physiques.
 						</p>
 
 						<div className="space-y-4 pt-2">
@@ -52,7 +54,9 @@ export function MangaInfoSection() {
 									</span>
 								</div>
 								<p className="text-xs text-white/60 font-display leading-relaxed">
-									Éditeur historique français depuis 1993. Publie l&apos;édition originale en 42 volumes, la Perfect Edition (Kanzenban), la version Full Color ainsi que Dragon Ball Super.
+									Éditeur historique français depuis 1993. Publie l&apos;édition originale en 42
+									volumes, la Perfect Edition (Kanzenban), la version Full Color ainsi que Dragon
+									Ball Super.
 								</p>
 								<a
 									href="https://www.glenat.com/manga"
@@ -75,7 +79,8 @@ export function MangaInfoSection() {
 									</span>
 								</div>
 								<p className="text-xs text-white/60 font-display leading-relaxed">
-									L&apos;éditeur japonais original de l&apos;œuvre d&apos;Akira Toriyama dans le légendaire magazine Weekly Shōnen Jump et de Toyotarou dans le V Jump.
+									L&apos;éditeur japonais original de l&apos;œuvre d&apos;Akira Toriyama dans le
+									légendaire magazine Weekly Shōnen Jump et de Toyotarou dans le V Jump.
 								</p>
 								<a
 									href="https://www.shueisha.co.jp"
@@ -105,7 +110,8 @@ export function MangaInfoSection() {
 						</div>
 
 						<p className="text-xs text-white/40 leading-relaxed font-display">
-							Les plateformes d&apos;origine ou sous licence officielle pour lire les tomes et chapitres au format numérique.
+							Les plateformes d&apos;origine ou sous licence officielle pour lire les tomes et
+							chapitres au format numérique.
 						</p>
 
 						<div className="space-y-4 pt-2">
@@ -120,7 +126,9 @@ export function MangaInfoSection() {
 									</span>
 								</div>
 								<p className="text-xs text-white/60 font-display leading-relaxed">
-									L&apos;application officielle mondiale de la Shueisha. Permet de lire gratuitement en ligne les derniers chapitres de Dragon Ball Super en simultané avec la publication japonaise.
+									L&apos;application officielle mondiale de la Shueisha. Permet de lire gratuitement
+									en ligne les derniers chapitres de Dragon Ball Super en simultané avec la
+									publication japonaise.
 								</p>
 								<a
 									href="https://mangaplus.shueisha.co.jp"
@@ -143,7 +151,8 @@ export function MangaInfoSection() {
 									</span>
 								</div>
 								<p className="text-xs text-white/60 font-display leading-relaxed">
-									Achetez et lisez l&apos;intégrale des volumes officiels de Dragon Ball, Dragon Ball Super et spinoffs au format ePub/numérique de haute qualité en français.
+									Achetez et lisez l&apos;intégrale des volumes officiels de Dragon Ball, Dragon
+									Ball Super et spinoffs au format ePub/numérique de haute qualité en français.
 								</p>
 								<a
 									href="https://www.izneo.com"
@@ -173,7 +182,8 @@ export function MangaInfoSection() {
 						</div>
 
 						<p className="text-xs text-white/40 leading-relaxed font-display">
-							Les plateformes et projets communautaires pour la lecture de scan-trads et de fan-mangas d&apos;exception.
+							Les plateformes et projets communautaires pour la lecture de scan-trads et de
+							fan-mangas d&apos;exception.
 						</p>
 
 						<div className="space-y-4 pt-2">
@@ -188,7 +198,9 @@ export function MangaInfoSection() {
 									</span>
 								</div>
 								<p className="text-xs text-white/60 font-display leading-relaxed">
-									Le fan-manga de référence absolue mondial par Salagir et Gogeta Jr, proposant une suite alternative de type tournoi gigantesque entre divers univers. Traduit en plus de 30 langues.
+									Le fan-manga de référence absolue mondial par Salagir et Gogeta Jr, proposant une
+									suite alternative de type tournoi gigantesque entre divers univers. Traduit en
+									plus de 30 langues.
 								</p>
 								<a
 									href="https://www.dragonball-multiverse.com"
@@ -211,7 +223,8 @@ export function MangaInfoSection() {
 									</span>
 								</div>
 								<p className="text-xs text-white/60 font-display leading-relaxed">
-									Sites communautaires hébergeant les versions scan-traduites en français par des équipes de fans dévoués pour tous les volumes de Dragon Ball et Dragon Ball Super.
+									Sites communautaires hébergeant les versions scan-traduites en français par des
+									équipes de fans dévoués pour tous les volumes de Dragon Ball et Dragon Ball Super.
 								</p>
 								<div className="flex gap-4 pt-1">
 									<a

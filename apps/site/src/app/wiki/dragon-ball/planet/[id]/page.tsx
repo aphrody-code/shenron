@@ -24,7 +24,8 @@ export async function generateMetadata({
 	const { id } = await params;
 	const planet = await getShenronPlanet(parseInt(id));
 	if (!planet) return { title: "Planète — DBFR" };
-	const description = planet.description ?? `Fiche encyclopédique de la planète ${planet.name} dans Dragon Ball.`;
+	const description =
+		planet.description ?? `Fiche encyclopédique de la planète ${planet.name} dans Dragon Ball.`;
 	return {
 		title: `${planet.name} — Planète | DBFR`,
 		description,
@@ -37,11 +38,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function PlanetPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function PlanetPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const planet = await getShenronPlanet(parseInt(id));
 
@@ -50,10 +47,10 @@ export default async function PlanetPage({
 	const jsonLdData: WithContext<Place> = {
 		"@context": "https://schema.org",
 		"@type": "Place",
-		"name": planet.name,
-		"image": planet.image ? assetUrl(planet.image) : undefined,
-		"description": planet.description ?? undefined,
-		"additionalType": "https://en.wikipedia.org/wiki/Planet",
+		name: planet.name,
+		image: planet.image ? assetUrl(planet.image) : undefined,
+		description: planet.description ?? undefined,
+		additionalType: "https://en.wikipedia.org/wiki/Planet",
 	};
 
 	return (
@@ -99,7 +96,10 @@ export default async function PlanetPage({
 						{(planet.nameJa || planet.nameRomaji) && (
 							<div className="flex items-center flex-wrap gap-4 mb-6 text-gray-400">
 								{planet.nameJa && (
-									<span className="text-2xl font-bold tracking-widest text-dbz-blue-light" style={{ fontFamily: '"Noto Sans JP", sans-serif' }}>
+									<span
+										className="text-2xl font-bold tracking-widest text-dbz-blue-light"
+										style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
+									>
 										{planet.nameJa}
 									</span>
 								)}
@@ -126,7 +126,9 @@ export default async function PlanetPage({
 					{planet.description && (
 						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
-							<h3 className="text-dbz-blue-light font-saiyan text-3xl mb-4 uppercase tracking-widest">Archives / Lore</h3>
+							<h3 className="text-dbz-blue-light font-saiyan text-3xl mb-4 uppercase tracking-widest">
+								Archives / Lore
+							</h3>
 							<div className="prose prose-invert max-w-none wiki-content text-justify">
 								<WikiMarkdown body={planet.description} />
 							</div>

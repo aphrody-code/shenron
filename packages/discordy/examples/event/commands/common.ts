@@ -9,20 +9,17 @@ import { Discord, On, type ArgsOf } from "@rpbey/discordy";
 
 @Discord()
 export class Example {
-  @On()
-  messageCreate([message]: ArgsOf<Events.MessageCreate>): void {
-    console.log(message.content);
-  }
+	@On()
+	messageCreate([message]: ArgsOf<Events.MessageCreate>): void {
+		console.log(message.content);
+	}
 
-  @On()
-  messageReactionAdd([
-    reaction,
-    user,
-  ]: ArgsOf<Events.MessageReactionAdd>): void {
-    const member = reaction.message.guild?.members.resolve(user.id);
-    if (member) {
-      console.log(member.roles.cache.map((r) => r.name));
-      // member.roles.add("role-id");
-    }
-  }
+	@On()
+	messageReactionAdd([reaction, user]: ArgsOf<Events.MessageReactionAdd>): void {
+		const member = reaction.message.guild?.members.resolve(user.id);
+		if (member) {
+			console.log(member.roles.cache.map((r) => r.name));
+			// member.roles.add("role-id");
+		}
+	}
 }

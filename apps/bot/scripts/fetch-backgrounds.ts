@@ -82,9 +82,7 @@ function slug(s: string): string {
 
 const mode = Bun.argv.includes("--download") ? "download" : "list";
 
-console.log(
-	`${mode === "download" ? "→ Téléchargement" : "→ Liste"} (mode: ${mode})\n`,
-);
+console.log(`${mode === "download" ? "→ Téléchargement" : "→ Liste"} (mode: ${mode})\n`);
 
 let total = 0;
 const report: Array<{
@@ -95,9 +93,7 @@ const report: Array<{
 }> = [];
 
 for (const t of THEMES) {
-	console.log(
-		`\x1b[1m── ${t.theme}\x1b[0m  (\x1b[2m${t.useFor.join(" · ")}\x1b[0m)`,
-	);
+	console.log(`\x1b[1m── ${t.theme}\x1b[0m  (\x1b[2m${t.useFor.join(" · ")}\x1b[0m)`);
 	const items = await search(t.query, 4);
 	if (mode === "download") {
 		await mkdir(`assets/backgrounds/${t.theme}`, { recursive: true });
@@ -117,14 +113,10 @@ for (const t of THEMES) {
 				const buf = Buffer.from(await res.arrayBuffer());
 				await Bun.write(path, buf);
 				const size = (buf.length / 1024).toFixed(0);
-				console.log(
-					`  \x1b[32m✓\x1b[0m ${path}  \x1b[2m(${size} KB) — ${title}\x1b[0m`,
-				);
+				console.log(`  \x1b[32m✓\x1b[0m ${path}  \x1b[2m(${size} KB) — ${title}\x1b[0m`);
 				report.push({ theme: t.theme, file: path, url: hd, title });
 			} catch (err) {
-				console.log(
-					`  \x1b[31m✗\x1b[0m ${filename}  \x1b[2m(${String(err)})\x1b[0m`,
-				);
+				console.log(`  \x1b[31m✗\x1b[0m ${filename}  \x1b[2m(${String(err)})\x1b[0m`);
 			}
 		} else {
 			console.log(`  ${hd}`);
@@ -135,12 +127,10 @@ for (const t of THEMES) {
 }
 
 console.log(
-	`\n${total} image(s) ${mode === "download" ? "téléchargée(s)" : "listée(s)"} · ${THEMES.length} thèmes`,
+	`\n${total} image(s) ${mode === "download" ? "téléchargée(s)" : "listée(s)"} · ${THEMES.length} thèmes`
 );
 if (mode === "list") {
-	console.log(
-		`\nPour télécharger : \x1b[34mbun scripts/fetch-backgrounds.ts --download\x1b[0m`,
-	);
+	console.log(`\nPour télécharger : \x1b[34mbun scripts/fetch-backgrounds.ts --download\x1b[0m`);
 }
 
 if (mode === "download") {
@@ -155,8 +145,8 @@ if (mode === "download") {
 				images: report,
 			},
 			null,
-			2,
-		),
+			2
+		)
 	);
 	console.log(`\n\x1b[32m✓\x1b[0m manifest : assets/backgrounds/manifest.json`);
 }

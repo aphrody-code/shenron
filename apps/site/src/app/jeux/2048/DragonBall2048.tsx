@@ -103,20 +103,15 @@ export default function DragonBall2048() {
 
 				for (let i = 0; i < GRID_SIZE; i++) {
 					let line = newTiles.filter((t) =>
-						direction === "UP" || direction === "DOWN" ? t.x === i : t.y === i,
+						direction === "UP" || direction === "DOWN" ? t.x === i : t.y === i
 					);
-					line.sort((a, b) =>
-						direction === "UP" || direction === "DOWN" ? a.y - b.y : a.x - b.x,
-					);
+					line.sort((a, b) => (direction === "UP" || direction === "DOWN" ? a.y - b.y : a.x - b.x));
 					if (direction === "DOWN" || direction === "RIGHT") line.reverse();
 
 					const mergedLine = moveInLine(line);
 
 					for (let j = 0; j < mergedLine.length; j++) {
-						const targetPos =
-							direction === "DOWN" || direction === "RIGHT"
-								? GRID_SIZE - 1 - j
-								: j;
+						const targetPos = direction === "DOWN" || direction === "RIGHT" ? GRID_SIZE - 1 - j : j;
 						if (direction === "UP" || direction === "DOWN") {
 							if (mergedLine[j].y !== targetPos) hasMoved = true;
 							mergedLine[j].y = targetPos;
@@ -132,13 +127,11 @@ export default function DragonBall2048() {
 					const emptySpots = [];
 					for (let x = 0; x < GRID_SIZE; x++) {
 						for (let y = 0; y < GRID_SIZE; y++) {
-							if (!newTiles.some((t) => t.x === x && t.y === y))
-								emptySpots.push({ x, y });
+							if (!newTiles.some((t) => t.x === x && t.y === y)) emptySpots.push({ x, y });
 						}
 					}
 					if (emptySpots.length > 0) {
-						const randomSpot =
-							emptySpots[Math.floor(Math.random() * emptySpots.length)];
+						const randomSpot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
 						newTiles.push({
 							id: generateId(),
 							value: Math.random() < 0.9 ? 2 : 4,
@@ -172,13 +165,12 @@ export default function DragonBall2048() {
 				return newTiles;
 			});
 		},
-		[gameOver, score],
+		[gameOver, score]
 	);
 
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
-			if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key))
-				e.preventDefault();
+			if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) e.preventDefault();
 			if (e.key === "ArrowUp") move("UP");
 			if (e.key === "ArrowDown") move("DOWN");
 			if (e.key === "ArrowLeft") move("LEFT");
@@ -189,9 +181,7 @@ export default function DragonBall2048() {
 	}, [move]);
 
 	// Touch/Swipe support
-	const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(
-		null,
-	);
+	const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
 
 	const handleTouchStart = (e: React.TouchEvent) => {
 		setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
@@ -225,8 +215,7 @@ export default function DragonBall2048() {
 			const canMove = tiles.some((t) => {
 				const neighbors = tiles.filter(
 					(n) =>
-						(Math.abs(n.x - t.x) === 1 && n.y === t.y) ||
-						(Math.abs(n.y - t.y) === 1 && n.x === t.x),
+						(Math.abs(n.x - t.x) === 1 && n.y === t.y) || (Math.abs(n.y - t.y) === 1 && n.x === t.x)
 				);
 				return neighbors.some((n) => n.value === t.value);
 			});
@@ -267,16 +256,11 @@ export default function DragonBall2048() {
 				)}
 				{/* Onde de choc de fusion + flash d'ascension */}
 				<KiShock trigger={mergePulse || null} color="yellow" />
-				{ascendFlash > 0 && (
-					<KiShock trigger={ascendFlash} color="yellow" flash />
-				)}
+				{ascendFlash > 0 && <KiShock trigger={ascendFlash} color="yellow" flash />}
 
 				<div className="grid grid-cols-4 grid-rows-4 gap-3 w-full h-full">
 					{Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => (
-						<div
-							key={i}
-							className="w-full h-full bg-zinc-800/50 rounded-lg shadow-inner"
-						/>
+						<div key={i} className="w-full h-full bg-zinc-800/50 rounded-lg shadow-inner" />
 					))}
 				</div>
 
@@ -293,9 +277,7 @@ export default function DragonBall2048() {
 						<div
 							key={tile.id}
 							className={`absolute rounded-lg flex flex-col items-center justify-center transition-all duration-150 ease-in-out ${
-								tile.isNew
-									? "scale-0 animate-[reveal-scale_0.2s_ease-out_forwards]"
-									: ""
+								tile.isNew ? "scale-0 animate-[reveal-scale_0.2s_ease-out_forwards]" : ""
 							} ${tile.isMerged ? "animate-[ki-pulse_0.3s_ease-out]" : ""} ${
 								isTop ? "ki-pulse" : ""
 							}`}
@@ -344,12 +326,8 @@ export default function DragonBall2048() {
 						<h2 className="text-6xl font-saiyan text-red-500 mb-2 tracking-widest drop-shadow-[0_0_15px_rgba(255,0,0,0.5)]">
 							K.O.
 						</h2>
-						<p className="text-zinc-300 font-display mb-2">
-							Tu as été vaincu !
-						</p>
-						<p className="scouter-text text-lg mb-6">
-							Ki final : {score.toLocaleString("fr-FR")}
-						</p>
+						<p className="text-zinc-300 font-display mb-2">Tu as été vaincu !</p>
+						<p className="scouter-text text-lg mb-6">Ki final : {score.toLocaleString("fr-FR")}</p>
 						<button onClick={initializeGame} className="dbz-button">
 							Renaître
 						</button>
@@ -359,12 +337,11 @@ export default function DragonBall2048() {
 
 			<div className="mt-8 text-center text-zinc-400 text-sm font-display max-w-md">
 				<p>
-					Utilise les <strong>flèches directionnelles</strong> pour fusionner
-					les personnages et augmenter leur niveau de puissance.
+					Utilise les <strong>flèches directionnelles</strong> pour fusionner les personnages et
+					augmenter leur niveau de puissance.
 				</p>
 				<p className="mt-2 text-dbz-orange/80">
-					Fusionne deux personnages identiques pour évoluer vers la
-					transformation suivante !
+					Fusionne deux personnages identiques pour évoluer vers la transformation suivante !
 				</p>
 			</div>
 		</div>

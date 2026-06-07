@@ -73,16 +73,15 @@ function buildSections(c: Record<string, number>) {
 }
 
 export default async function WikiIndex() {
-	const [characters, movies, planets, races, techniques, episodesData, counts] =
-		await Promise.all([
-			getShenronCharacters(),
-			getShenronMovies(),
-			getShenronPlanets(),
-			getShenronRaces(),
-			getShenronTechniques(),
-			dbUniverse.episodes("DBZ", 6, 0),
-			dbUniverse.counts(),
-		]);
+	const [characters, movies, planets, races, techniques, episodesData, counts] = await Promise.all([
+		getShenronCharacters(),
+		getShenronMovies(),
+		getShenronPlanets(),
+		getShenronRaces(),
+		getShenronTechniques(),
+		dbUniverse.episodes("DBZ", 6, 0),
+		dbUniverse.counts(),
+	]);
 
 	const c = counts ?? {
 		characters: characters.length,
@@ -117,19 +116,16 @@ export default async function WikiIndex() {
 					ARCHIVES SHENRON
 				</h1>
 				<p className="text-lg text-gray-400 max-w-3xl leading-relaxed font-sans">
-					{characters.length} personnages &middot; {planets.length} planètes
-					&middot; {movies.length} films &middot; {techniques.length} techniques
-					&middot; {races.length} races &middot; {c.episodes} épisodes. Tout
-					l&apos;univers Dragon Ball en français.
+					{characters.length} personnages &middot; {planets.length} planètes &middot;{" "}
+					{movies.length} films &middot; {techniques.length} techniques &middot; {races.length}{" "}
+					races &middot; {c.episodes} épisodes. Tout l&apos;univers Dragon Ball en français.
 				</p>
 			</header>
 
 			{/* Navigation sections */}
 			<section>
 				<div className="flex items-center gap-6 mb-10">
-					<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
-						Catégories
-					</h2>
+					<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">Catégories</h2>
 					<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
@@ -143,9 +139,7 @@ export default async function WikiIndex() {
 							<h2 className="text-xl font-saiyan uppercase tracking-widest mb-2 group-hover:translate-x-1 transition-transform">
 								{s.title}
 							</h2>
-							<p className="text-gray-400 text-xs font-sans leading-relaxed">
-								{s.desc}
-							</p>
+							<p className="text-gray-400 text-xs font-sans leading-relaxed">{s.desc}</p>
 						</Link>
 					))}
 				</div>
@@ -237,9 +231,7 @@ export default async function WikiIndex() {
 										/>
 									) : (
 										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-2xl">
-												?
-											</span>
+											<span className="text-zinc-700 font-saiyan text-2xl">?</span>
 										</div>
 									)}
 									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
@@ -290,9 +282,7 @@ export default async function WikiIndex() {
 										/>
 									) : (
 										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-xl">
-												EP
-											</span>
+											<span className="text-zinc-700 font-saiyan text-xl">EP</span>
 										</div>
 									)}
 									<div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
@@ -361,13 +351,10 @@ export default async function WikiIndex() {
 			<section className="dbz-panel p-10 bg-dbz-card/30 border-t-4 border-t-dbz-orange relative overflow-hidden">
 				<div className="absolute inset-0 halftone opacity-5 pointer-events-none" />
 				<div className="relative z-10">
-					<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
-						CONTRIBUTION
-					</h2>
+					<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">CONTRIBUTION</h2>
 					<p className="text-gray-300 max-w-3xl mb-8 font-sans">
-						Ces archives s&apos;appuient sur l&apos;API Shenron et sur les
-						ajouts de la communauté. Une erreur, un manque ? Signale-le sur
-						Discord.
+						Ces archives s&apos;appuient sur l&apos;API Shenron et sur les ajouts de la communauté.
+						Une erreur, un manque ? Signale-le sur Discord.
 					</p>
 					<Link href="/about" className="dbz-button-ghost">
 						EN SAVOIR PLUS

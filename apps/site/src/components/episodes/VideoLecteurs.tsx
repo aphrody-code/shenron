@@ -51,8 +51,8 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 				/>
 			</div>
 			<p className="text-[11px] text-white/35">
-				Lecteur externe « {current.name} ». Les liens peuvent expirer — relancer
-				l'import si un lecteur ne répond pas.
+				Lecteur externe « {current.name} ». Les liens peuvent expirer — relancer l'import si un
+				lecteur ne répond pas.
 			</p>
 		</div>
 	);

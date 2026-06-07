@@ -28,16 +28,9 @@ export default async function ShopPage() {
 		(acc[k] ??= []).push(it);
 		return acc;
 	}, {});
-	for (const k of Object.keys(grouped))
-		grouped[k].sort((a, b) => a.price - b.price);
+	for (const k of Object.keys(grouped)) grouped[k].sort((a, b) => a.price - b.price);
 
-	const TYPE_ORDER: ShenronShopItem["type"][] = [
-		"banner",
-		"card",
-		"badge",
-		"color",
-		"title",
-	];
+	const TYPE_ORDER: ShenronShopItem["type"][] = ["banner", "card", "badge", "color", "title"];
 
 	return (
 		<div className="container mx-auto px-4 py-8 md:py-16">
@@ -45,9 +38,8 @@ export default async function ShopPage() {
 				title="BOUTIQUE SHENRON"
 				subtitle={
 					<>
-						Cosmétiques exclusifs · achat via{" "}
-						<code className="text-dbz-orange">/shop</code> Discord · équipement
-						via <code className="text-dbz-orange">/inventaire equip</code>
+						Cosmétiques exclusifs · achat via <code className="text-dbz-orange">/shop</code> Discord
+						· équipement via <code className="text-dbz-orange">/inventaire equip</code>
 					</>
 				}
 			/>
@@ -97,9 +89,7 @@ export default async function ShopPage() {
 													</div>
 												</div>
 											</div>
-											<h3 className="text-lg text-white mb-2 leading-tight">
-												{item.name}
-											</h3>
+											<h3 className="text-lg text-white mb-2 leading-tight">{item.name}</h3>
 											<p className="text-gray-400 text-xs mb-4 flex-1 line-clamp-3">
 												{item.description}
 											</p>

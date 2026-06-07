@@ -6,12 +6,7 @@
  */
 import type { MethodDecoratorEx } from "@rpbey/internal";
 
-import {
-  DOn,
-  type EventOptions,
-  MetadataStorage,
-  type RestEventOptions,
-} from "../../index.js";
+import { DOn, type EventOptions, MetadataStorage, type RestEventOptions } from "../../index.js";
 
 /**
  * Handle discord events with a defined handler
@@ -24,18 +19,18 @@ import {
  * @category Decorator
  */
 export function On(options?: EventOptions): MethodDecoratorEx {
-  return (target, key, descriptor: PropertyDescriptor) => {
-    const clazz = target as unknown as new () => unknown;
-    const on = DOn.create({
-      botIds: options?.botIds,
-      event: options?.event ?? key,
-      once: false,
-      priority: options?.priority,
-      rest: false,
-    }).decorate(clazz.constructor, key, descriptor?.value);
+	return (target, key, descriptor: PropertyDescriptor) => {
+		const clazz = target as unknown as new () => unknown;
+		const on = DOn.create({
+			botIds: options?.botIds,
+			event: options?.event ?? key,
+			once: false,
+			priority: options?.priority,
+			rest: false,
+		}).decorate(clazz.constructor, key, descriptor?.value);
 
-    MetadataStorage.instance.addOn(on);
-  };
+		MetadataStorage.instance.addOn(on);
+	};
 }
 
 /**
@@ -49,16 +44,16 @@ export function On(options?: EventOptions): MethodDecoratorEx {
  * @category Decorator
  */
 On.rest =
-  (options?: RestEventOptions): MethodDecoratorEx =>
-  (target, key, descriptor?: PropertyDescriptor) => {
-    const clazz = target as unknown as new () => unknown;
-    const on = DOn.create({
-      botIds: options?.botIds,
-      event: options?.event ?? key,
-      once: false,
-      priority: options?.priority,
-      rest: true,
-    }).decorate(clazz.constructor, key, descriptor?.value);
+	(options?: RestEventOptions): MethodDecoratorEx =>
+	(target, key, descriptor?: PropertyDescriptor) => {
+		const clazz = target as unknown as new () => unknown;
+		const on = DOn.create({
+			botIds: options?.botIds,
+			event: options?.event ?? key,
+			once: false,
+			priority: options?.priority,
+			rest: true,
+		}).decorate(clazz.constructor, key, descriptor?.value);
 
-    MetadataStorage.instance.addOn(on);
-  };
+		MetadataStorage.instance.addOn(on);
+	};

@@ -159,14 +159,10 @@ export const botEpisodes = bot.table("db_episodes", {
 	// d'asset bot (assets/subtitles/...) en .vtt ou .srt, ou une URL .vtt.
 	// Colonne Neon-only (le reverse-sync l'ignore par intersection de colonnes ;
 	// seul le lecteur du site la lit).
-	subtitles: jsonb("subtitles").$type<
-		{ lang: string; label: string; src: string }[]
-	>(),
+	subtitles: jsonb("subtitles").$type<{ lang: string; label: string; src: string }[]>(),
 	// Lecteurs externes (voir-anime) : [{ name, provider, embedUrl }] affichés en
 	// iframe. Colonne Neon-only, rafraîchie par import-voiranime-players.ts.
-	players: jsonb("players").$type<
-		{ name: string; provider: string; embedUrl: string }[]
-	>(),
+	players: jsonb("players").$type<{ name: string; provider: string; embedUrl: string }[]>(),
 	// Flux résolu (HLS/mp4) + headers requis (Referer), pour le proxy HLS du
 	// site qui le relaie à notre player hls.js. Rafraîchi par resolve-streams.ts
 	// (tokens ~12 h). Colonnes Neon-only.
@@ -196,12 +192,8 @@ export const botMovies = bot.table("db_movies", {
 	anilistId: int("anilist_id"),
 	trailerUrl: text("trailer_url"),
 	videoUrl: text("video_url"),
-	subtitles: jsonb("subtitles").$type<
-		{ lang: string; label: string; src: string }[]
-	>(),
-	players: jsonb("players").$type<
-		{ name: string; provider: string; embedUrl: string }[]
-	>(),
+	subtitles: jsonb("subtitles").$type<{ lang: string; label: string; src: string }[]>(),
+	players: jsonb("players").$type<{ name: string; provider: string; embedUrl: string }[]>(),
 	streamUrl: text("stream_url"),
 	streamHeaders: jsonb("stream_headers").$type<Record<string, string>>(),
 	streamProvider: text("stream_provider"),

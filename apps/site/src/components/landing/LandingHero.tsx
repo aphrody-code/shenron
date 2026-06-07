@@ -15,10 +15,7 @@ export function LandingHero() {
 			{/* Key-art DB en fond, fortement flouté + animé (Ken Burns) : apporte de
 			    la matière sans nuire au LCP ni à la lisibilité (le gradient passe
 			    par-dessus, le flou efface tout texte de la bannière). */}
-			<div
-				aria-hidden
-				className="absolute inset-0 overflow-hidden pointer-events-none"
-			>
+			<div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
 				<img
 					src="/banners/banner-13.png"
 					alt=""
@@ -69,8 +66,8 @@ export function LandingHero() {
 					</h1>
 					<p className="text-lg md:text-2xl font-normal text-white/90 mb-3 max-w-xl">
 						Wiki, personnages,
-						<span className="text-dbz-orange font-semibold"> sagas</span> et
-						actualités anime &amp; manga, en français.
+						<span className="text-dbz-orange font-semibold"> sagas</span> et actualités anime &amp;
+						manga, en français.
 					</p>
 					<p className="text-sm text-white/60 mb-10 max-w-md">
 						Et un serveur Discord pour partager théories, news et fan-arts.

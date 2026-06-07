@@ -63,11 +63,7 @@ function ConfirmDialog({
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
 					</div>
-					<button
-						type="button"
-						onClick={onCancel}
-						className="ml-auto btn btn-ghost px-1 py-1"
-					>
+					<button type="button" onClick={onCancel} className="ml-auto btn btn-ghost px-1 py-1">
 						<X className="h-4 w-4" />
 					</button>
 				</div>
@@ -104,15 +100,11 @@ export default function ShopPage() {
 
 	const items = useQuery({
 		queryKey: ["shop", "items"],
-		queryFn: () =>
-			api.get<{ rows: ShopItem[]; total: number }>(
-				"/database/shop_items?limit=500",
-			),
+		queryFn: () => api.get<{ rows: ShopItem[]; total: number }>("/database/shop_items?limit=500"),
 	});
 
 	const remove = useMutation({
-		mutationFn: (key: string) =>
-			api.delete(`/database/shop_items/${encodeURIComponent(key)}`),
+		mutationFn: (key: string) => api.delete(`/database/shop_items/${encodeURIComponent(key)}`),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["shop"] });
 			showSuccess("Article supprimé définitivement.");
@@ -125,11 +117,7 @@ export default function ShopPage() {
 			if (typeFilter && r.type !== typeFilter) return false;
 			if (search) {
 				const s = search.toLowerCase();
-				if (
-					!r.key.toLowerCase().includes(s) &&
-					!r.name.toLowerCase().includes(s)
-				)
-					return false;
+				if (!r.key.toLowerCase().includes(s) && !r.name.toLowerCase().includes(s)) return false;
 			}
 			return true;
 		});
@@ -145,7 +133,7 @@ export default function ShopPage() {
 					acc[r.type] = (acc[r.type] ?? 0) + 1;
 					return acc;
 				},
-				{} as Record<string, number>,
+				{} as Record<string, number>
 			),
 		};
 	}, [items.data]);
@@ -171,8 +159,8 @@ export default function ShopPage() {
 					<ShoppingBag className="h-5 w-5 text-brand-400" />
 					<h2 className="text-lg font-semibold">Boutique</h2>
 					<span className="ml-2 text-xs text-zinc-500">
-						{stats.total} article{stats.total !== 1 ? "s" : ""} ·{" "}
-						{stats.enabled} actif{stats.enabled !== 1 ? "s" : ""}
+						{stats.total} article{stats.total !== 1 ? "s" : ""} · {stats.enabled} actif
+						{stats.enabled !== 1 ? "s" : ""}
 					</span>
 					<button
 						type="button"
@@ -183,9 +171,8 @@ export default function ShopPage() {
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Gérez les articles disponibles à l&apos;achat avec des zénis. Un
-					article désactivé reste en base mais n&apos;est plus affiché dans la
-					boutique.
+					Gérez les articles disponibles à l&apos;achat avec des zénis. Un article désactivé reste
+					en base mais n&apos;est plus affiché dans la boutique.
 				</p>
 				<div className="mt-3 grid gap-2 sm:grid-cols-3">
 					<div className="relative">
@@ -234,10 +221,7 @@ export default function ShopPage() {
 			{/* Grille d'articles */}
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 				{filtered.map((item) => (
-					<div
-						key={item.key}
-						className={cn("card", !item.enabled && "opacity-60")}
-					>
+					<div key={item.key} className={cn("card", !item.enabled && "opacity-60")}>
 						<div className="flex items-start gap-2">
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2">
@@ -246,22 +230,14 @@ export default function ShopPage() {
 									>
 										{(TYPE_META[item.type] ?? FALLBACK_TYPE_META).label}
 									</span>
-									{!item.enabled && (
-										<span className="badge badge-error text-[10px]">
-											Masqué
-										</span>
-									)}
+									{!item.enabled && <span className="badge badge-error text-[10px]">Masqué</span>}
 								</div>
 								<h3 className="mt-0.5 truncate font-semibold">{item.name}</h3>
-								<code className="block truncate text-[10px] text-zinc-500">
-									{item.key}
-								</code>
+								<code className="block truncate text-[10px] text-zinc-500">{item.key}</code>
 							</div>
 						</div>
 						{item.description && (
-							<p className="mt-2 line-clamp-2 text-xs text-zinc-400">
-								{item.description}
-							</p>
+							<p className="mt-2 line-clamp-2 text-xs text-zinc-400">{item.description}</p>
 						)}
 						<div className="mt-3 flex items-center gap-2">
 							<span className="badge badge-warning">
@@ -306,11 +282,7 @@ export default function ShopPage() {
 					}}
 					onSaved={() => {
 						qc.invalidateQueries({ queryKey: ["shop"] });
-						showSuccess(
-							editing
-								? "Article modifié avec succès."
-								: "Article créé avec succès.",
-						);
+						showSuccess(editing ? "Article modifié avec succès." : "Article créé avec succès.");
 					}}
 				/>
 			)}
@@ -338,7 +310,7 @@ function ShopItemEditor({
 			roleId: null,
 			meta: null,
 			enabled: true,
-		},
+		}
 	);
 	const [error, setError] = useState<string | null>(null);
 
@@ -347,10 +319,7 @@ function ShopItemEditor({
 			if (isCreate) {
 				return api.post("/database/shop_items", payload);
 			}
-			return api.put(
-				`/database/shop_items/${encodeURIComponent(payload.key)}`,
-				payload,
-			);
+			return api.put(`/database/shop_items/${encodeURIComponent(payload.key)}`, payload);
 		},
 		onSuccess: () => {
 			onSaved();
@@ -368,7 +337,7 @@ function ShopItemEditor({
 		}
 		if (!/^[a-z0-9_-]+$/.test(draft.key)) {
 			setError(
-				"L'identifiant doit contenir uniquement des lettres minuscules, chiffres, tirets ou underscores.",
+				"L'identifiant doit contenir uniquement des lettres minuscules, chiffres, tirets ou underscores."
 			);
 			return;
 		}
@@ -393,11 +362,7 @@ function ShopItemEditor({
 					<h3 className="text-lg font-semibold">
 						{isCreate ? "Créer un article" : `Modifier « ${draft.name} »`}
 					</h3>
-					<button
-						type="button"
-						onClick={onClose}
-						className="ml-auto btn btn-ghost px-2"
-					>
+					<button type="button" onClick={onClose} className="ml-auto btn btn-ghost px-2">
 						<X className="h-3 w-3" />
 					</button>
 				</div>
@@ -410,9 +375,7 @@ function ShopItemEditor({
 					<div>
 						<label className="block text-xs text-zinc-500">
 							Identifiant (slug)
-							<span className="ml-1 text-zinc-600">
-								— lettres minuscules et tirets
-							</span>
+							<span className="ml-1 text-zinc-600">— lettres minuscules et tirets</span>
 						</label>
 						<input
 							className="input w-full font-mono text-xs"
@@ -423,15 +386,11 @@ function ShopItemEditor({
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">
-							Type d&apos;article
-						</label>
+						<label className="block text-xs text-zinc-500">Type d&apos;article</label>
 						<select
 							className="input w-full"
 							value={draft.type}
-							onChange={(e) =>
-								setDraft({ ...draft, type: e.target.value as ShopItem["type"] })
-							}
+							onChange={(e) => setDraft({ ...draft, type: e.target.value as ShopItem["type"] })}
 						>
 							{Object.entries(TYPE_META).map(([t, m]) => (
 								<option key={t} value={t}>
@@ -441,9 +400,7 @@ function ShopItemEditor({
 						</select>
 					</div>
 					<div className="sm:col-span-2">
-						<label className="block text-xs text-zinc-500">
-							Nom affiché dans la boutique
-						</label>
+						<label className="block text-xs text-zinc-500">Nom affiché dans la boutique</label>
 						<input
 							className="input w-full"
 							value={draft.name}
@@ -452,16 +409,12 @@ function ShopItemEditor({
 						/>
 					</div>
 					<div className="sm:col-span-2">
-						<label className="block text-xs text-zinc-500">
-							Description (optionnelle)
-						</label>
+						<label className="block text-xs text-zinc-500">Description (optionnelle)</label>
 						<textarea
 							className="input w-full"
 							rows={2}
 							value={draft.description ?? ""}
-							onChange={(e) =>
-								setDraft({ ...draft, description: e.target.value })
-							}
+							onChange={(e) => setDraft({ ...draft, description: e.target.value })}
 						/>
 					</div>
 					<div>
@@ -471,15 +424,11 @@ function ShopItemEditor({
 							type="number"
 							min={0}
 							value={draft.price}
-							onChange={(e) =>
-								setDraft({ ...draft, price: Number(e.target.value) || 0 })
-							}
+							onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) || 0 })}
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">
-							Visibilité dans la boutique
-						</label>
+						<label className="block text-xs text-zinc-500">Visibilité dans la boutique</label>
 						<button
 							type="button"
 							className={`btn ${draft.enabled ? "btn-primary" : "btn-ghost"} w-full`}
@@ -500,9 +449,7 @@ function ShopItemEditor({
 						<div className="sm:col-span-2">
 							<label className="block text-xs text-zinc-500">
 								Rôle Discord attribué à l&apos;achat
-								<span className="ml-1 text-zinc-600">
-									— couleurs uniquement
-								</span>
+								<span className="ml-1 text-zinc-600">— couleurs uniquement</span>
 							</label>
 							<RolePicker
 								value={draft.roleId ?? ""}
@@ -513,27 +460,19 @@ function ShopItemEditor({
 					<div className="sm:col-span-2">
 						<label className="block text-xs text-zinc-500">
 							Données supplémentaires (JSON optionnel)
-							<span className="ml-1 text-zinc-600">
-								— URL d&apos;image, propriétés custom
-							</span>
+							<span className="ml-1 text-zinc-600">— URL d&apos;image, propriétés custom</span>
 						</label>
 						<textarea
 							className="input w-full font-mono text-xs"
 							rows={3}
 							value={draft.meta ?? ""}
-							onChange={(e) =>
-								setDraft({ ...draft, meta: e.target.value || null })
-							}
+							onChange={(e) => setDraft({ ...draft, meta: e.target.value || null })}
 							placeholder='{"image": "https://..."}'
 						/>
 					</div>
 				</div>
 				<div className="flex items-center gap-2 border-t border-zinc-800 pt-3">
-					<button
-						type="submit"
-						className="btn btn-primary"
-						disabled={save.isPending}
-					>
+					<button type="submit" className="btn btn-primary" disabled={save.isPending}>
 						<Save className="h-3 w-3" />
 						{save.isPending
 							? "Enregistrement…"

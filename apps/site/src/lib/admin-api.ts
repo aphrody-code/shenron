@@ -28,18 +28,14 @@ interface ApiOpts extends RequestInit {
 export class ApiError extends Error {
 	constructor(
 		public status: number,
-		message: string,
+		message: string
 	) {
 		super(message);
 		this.name = "ApiError";
 	}
 }
 
-async function requestAt<T>(
-	base: string,
-	path: string,
-	opts: ApiOpts = {},
-): Promise<T> {
+async function requestAt<T>(base: string, path: string, opts: ApiOpts = {}): Promise<T> {
 	const headers = new Headers(opts.headers);
 	let body: BodyInit | undefined = opts.body as BodyInit | undefined;
 	if (opts.json !== undefined) {
@@ -59,8 +55,7 @@ async function requestAt<T>(
 	// 204 No Content ou corps vide → renvoie null typé
 	if (res.status === 204) return null as T;
 	const ct = res.headers.get("content-type") ?? "";
-	if (!ct.includes("application/json"))
-		return (await res.text()) as unknown as T;
+	if (!ct.includes("application/json")) return (await res.text()) as unknown as T;
 	return (await res.json()) as T;
 }
 

@@ -5,27 +5,20 @@
  * -------------------------------------------------------------------------------------------------------
  */
 import {
-  DefaultDependencyRegistryEngine,
-  TsyringeDependencyRegistryEngine,
-  TypeDiDependencyRegistryEngine,
+	DefaultDependencyRegistryEngine,
+	TsyringeDependencyRegistryEngine,
+	TypeDiDependencyRegistryEngine,
 } from "./logic/impl/index.js";
 import type { IDependencyRegistryEngine } from "./logic/index.js";
 
 export * from "./logic/index.js";
 
 // util instances of built-in engines
-export const typeDiDependencyRegistryEngine =
-  TypeDiDependencyRegistryEngine.instance;
-export const tsyringeDependencyRegistryEngine =
-  TsyringeDependencyRegistryEngine.instance;
-export const defaultDependencyRegistryEngine =
-  DefaultDependencyRegistryEngine.instance;
+export const typeDiDependencyRegistryEngine = TypeDiDependencyRegistryEngine.instance;
+export const tsyringeDependencyRegistryEngine = TsyringeDependencyRegistryEngine.instance;
+export const defaultDependencyRegistryEngine = DefaultDependencyRegistryEngine.instance;
 
-export type InstanceOf<T> = T extends new (
-  ...args: unknown[]
-) => infer R
-  ? R
-  : unknown;
+export type InstanceOf<T> = T extends new (...args: unknown[]) => infer R ? R : unknown;
 
 export declare type Constructable<T> = new (...args: any[]) => T;
 
@@ -36,21 +29,20 @@ export declare type Constructable<T> = new (...args: any[]) => T;
  */
 // biome-ignore lint/complexity/noStaticOnlyClass: ignore
 export class DIService {
-  private static _engine: IDependencyRegistryEngine =
-    defaultDependencyRegistryEngine;
+	private static _engine: IDependencyRegistryEngine = defaultDependencyRegistryEngine;
 
-  static get engine(): IDependencyRegistryEngine {
-    return DIService._engine;
-  }
+	static get engine(): IDependencyRegistryEngine {
+		return DIService._engine;
+	}
 
-  static set engine(engine: IDependencyRegistryEngine) {
-    DIService._engine = engine;
-  }
+	static set engine(engine: IDependencyRegistryEngine) {
+		DIService._engine = engine;
+	}
 
-  /**
-   * @deprecated use DIService.engine instead
-   */
-  static get instance(): IDependencyRegistryEngine {
-    return DIService.engine;
-  }
+	/**
+	 * @deprecated use DIService.engine instead
+	 */
+	static get instance(): IDependencyRegistryEngine {
+		return DIService.engine;
+	}
 }

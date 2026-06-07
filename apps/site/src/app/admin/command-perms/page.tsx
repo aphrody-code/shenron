@@ -9,18 +9,15 @@ export default async function AdminCommandPermsPage() {
 	return (
 		<div className="w-full max-w-5xl mx-auto">
 			<header className="mb-6">
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					PERMISSIONS FINES
-				</h1>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">PERMISSIONS FINES</h1>
 				<p className="text-sm text-zinc-300 mb-1">
-					Règles avancées d'accès aux commandes Discord, stockées en base de
-					données. Chaque règle précise si un rôle ou un utilisateur peut
-					(ALLOW) ou ne peut pas (DENY) utiliser une commande. Plus spécifique
-					qu'une règle de groupe, elle prime sur les réglages généraux.
+					Règles avancées d'accès aux commandes Discord, stockées en base de données. Chaque règle
+					précise si un rôle ou un utilisateur peut (ALLOW) ou ne peut pas (DENY) utiliser une
+					commande. Plus spécifique qu'une règle de groupe, elle prime sur les réglages généraux.
 				</p>
 				<p className="text-xs text-dbz-blue-light uppercase tracking-widest">
-					{data.rows.length} règle{data.rows.length > 1 ? "s" : ""} · hiérarchie
-					: commande exacte &gt; groupe * &gt; joker global *
+					{data.rows.length} règle{data.rows.length > 1 ? "s" : ""} · hiérarchie : commande exacte
+					&gt; groupe * &gt; joker global *
 				</p>
 			</header>
 
@@ -30,13 +27,7 @@ export default async function AdminCommandPermsPage() {
 				<table className="w-full min-w-[700px] text-xs">
 					<thead className="bg-dbz-border/50 border-b-2 border-dbz-border">
 						<tr>
-							{[
-								"Commande",
-								"Portée",
-								"Cible (rôle / utilisateur)",
-								"Autorisation",
-								"",
-							].map((h) => (
+							{["Commande", "Portée", "Cible (rôle / utilisateur)", "Autorisation", ""].map((h) => (
 								<th
 									key={h}
 									className="p-2 text-left font-bold uppercase tracking-widest text-dbz-blue-light"
@@ -78,8 +69,8 @@ export default async function AdminCommandPermsPage() {
 						{data.rows.length === 0 && (
 							<tr>
 								<td colSpan={5} className="p-6 text-center text-white/50">
-									Aucune règle fine définie. Les protections par défaut
-									s'appliquent (gardes Admin / Modérateur / Propriétaire).
+									Aucune règle fine définie. Les protections par défaut s'appliquent (gardes Admin /
+									Modérateur / Propriétaire).
 								</td>
 							</tr>
 						)}

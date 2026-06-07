@@ -1,15 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Play,
-	Clock,
-	Save,
-	Pencil,
-	CheckCircle,
-	XCircle,
-	AlertCircle,
-} from "lucide-react";
+import { Play, Clock, Save, Pencil, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
 import { formatDuration, formatRelative } from "@/lib/admin-format";
@@ -87,31 +79,26 @@ export default function CronPage() {
 	function handleTrigger(job: CronJob) {
 		if (
 			!confirm(
-				`Déclencher la tâche « ${job.name} » maintenant ?\n\nCela l'exécute immédiatement, en dehors de son cycle normal.`,
+				`Déclencher la tâche « ${job.name} » maintenant ?\n\nCela l'exécute immédiatement, en dehors de son cycle normal.`
 			)
 		)
 			return;
 		trigger.mutate(job.name);
 	}
 
-	if (isLoading)
-		return <div className="text-zinc-500 text-sm">Chargement des tâches…</div>;
+	if (isLoading) return <div className="text-zinc-500 text-sm">Chargement des tâches…</div>;
 
 	return (
 		<div className="space-y-4">
 			<div className="dbz-panel p-4">
-				<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
-					Tâches automatiques
-				</h2>
+				<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Tâches automatiques</h2>
 				<p className="mt-2 text-sm text-zinc-300">
-					Ce sont les actions que le bot répète en boucle toutes les N
-					secondes/minutes : il s'en charge seul, sans intervention humaine.
-					Exemples : vérifier les expirations de sanctions, nettoyer les données
-					obsolètes, envoyer un tick vocal XP.
+					Ce sont les actions que le bot répète en boucle toutes les N secondes/minutes : il s'en
+					charge seul, sans intervention humaine. Exemples : vérifier les expirations de sanctions,
+					nettoyer les données obsolètes, envoyer un tick vocal XP.
 				</p>
 				<p className="mt-1 text-xs text-dbz-blue-light">
-					Rafraîchissement automatique toutes les 5 secondes ·{" "}
-					{data?.jobs.length ?? 0} tâche
+					Rafraîchissement automatique toutes les 5 secondes · {data?.jobs.length ?? 0} tâche
 					{(data?.jobs.length ?? 0) > 1 ? "s" : ""} enregistrée
 					{(data?.jobs.length ?? 0) > 1 ? "s" : ""}
 				</p>
@@ -138,14 +125,10 @@ export default function CronPage() {
 						<div className="mb-3 flex items-start justify-between gap-3">
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2 mb-1">
-									<h3 className="font-mono text-sm font-semibold text-dbz-orange">
-										{job.name}
-									</h3>
+									<h3 className="font-mono text-sm font-semibold text-dbz-orange">{job.name}</h3>
 									<JobStatus job={job} />
 								</div>
-								{job.description && (
-									<p className="text-xs text-zinc-300">{job.description}</p>
-								)}
+								{job.description && <p className="text-xs text-zinc-300">{job.description}</p>}
 								<p className="text-xs text-dbz-blue-light mt-0.5">
 									{humanInterval(job.intervalMs)}
 								</p>
@@ -168,9 +151,7 @@ export default function CronPage() {
 								<dd className="font-medium text-zinc-200">
 									<IntervalEditor
 										job={job}
-										onSave={(intervalMs) =>
-											updateInterval.mutate({ name: job.name, intervalMs })
-										}
+										onSave={(intervalMs) => updateInterval.mutate({ name: job.name, intervalMs })}
 										saving={updateInterval.isPending}
 									/>
 								</dd>
@@ -186,9 +167,7 @@ export default function CronPage() {
 								<dd className="font-medium text-zinc-200">
 									{formatRelative(job.lastRunAt)}
 									{job.lastDurationMs !== null && (
-										<span className="text-zinc-500 ml-1">
-											({formatMs(job.lastDurationMs)})
-										</span>
+										<span className="text-zinc-500 ml-1">({formatMs(job.lastDurationMs)})</span>
 									)}
 								</dd>
 							</div>
@@ -203,8 +182,7 @@ export default function CronPage() {
 
 						{job.lastError && (
 							<div className="mt-3 rounded border border-red-800 bg-red-900/20 p-2 text-xs text-red-300">
-								<span className="font-semibold">Dernière erreur :</span>{" "}
-								{job.lastError}
+								<span className="font-semibold">Dernière erreur :</span> {job.lastError}
 							</div>
 						)}
 					</div>

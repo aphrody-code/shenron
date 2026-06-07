@@ -71,7 +71,7 @@ for (const { level, xp } of LEVEL_THRESHOLDS) {
 		bannerUrl: BANNERS[level] ?? null,
 	});
 	console.log(
-		`  L${level.toString().padStart(2)} (${xp.toLocaleString("fr").padStart(11)} XP) → ${map.roleName} · ${BANNERS[level] ?? "—"}`,
+		`  L${level.toString().padStart(2)} (${xp.toLocaleString("fr").padStart(11)} XP) → ${map.roleName} · ${BANNERS[level] ?? "—"}`
 	);
 }
 

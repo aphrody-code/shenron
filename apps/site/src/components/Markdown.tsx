@@ -25,16 +25,10 @@ const components: Components = {
 		</a>
 	),
 	p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-	strong: ({ children }) => (
-		<strong className="font-bold text-white">{children}</strong>
-	),
+	strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
 	em: ({ children }) => <em className="italic text-white/90">{children}</em>,
-	ul: ({ children }) => (
-		<ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>
-	),
-	ol: ({ children }) => (
-		<ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>
-	),
+	ul: ({ children }) => <ul className="list-disc list-inside space-y-1 mb-2">{children}</ul>,
+	ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 mb-2">{children}</ol>,
 	li: ({ children }) => <li className="text-gray-400">{children}</li>,
 	blockquote: ({ children }) => (
 		<blockquote className="border-l-2 border-dbz-orange/60 pl-3 italic text-white/70">
@@ -47,24 +41,12 @@ const components: Components = {
 		</code>
 	),
 	// Titres markdown → simple emphase forte (pas de h1 géant dans une carte).
-	h1: ({ children }) => (
-		<span className="block font-bold text-white mb-1">{children}</span>
-	),
-	h2: ({ children }) => (
-		<span className="block font-bold text-white mb-1">{children}</span>
-	),
-	h3: ({ children }) => (
-		<span className="block font-bold text-white mb-1">{children}</span>
-	),
+	h1: ({ children }) => <span className="block font-bold text-white mb-1">{children}</span>,
+	h2: ({ children }) => <span className="block font-bold text-white mb-1">{children}</span>,
+	h3: ({ children }) => <span className="block font-bold text-white mb-1">{children}</span>,
 };
 
-export function Markdown({
-	children,
-	className,
-}: {
-	children: string;
-	className?: string;
-}) {
+export function Markdown({ children, className }: { children: string; className?: string }) {
 	return (
 		<div className={className}>
 			<ReactMarkdown

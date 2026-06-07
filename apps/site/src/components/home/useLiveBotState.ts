@@ -58,10 +58,7 @@ function labelForEvent(type: string, data: unknown): string {
 	}
 }
 
-export function useLiveBotState(initial: {
-	stats: BotStats;
-	personas: PersonaLive[];
-}): LiveState {
+export function useLiveBotState(initial: { stats: BotStats; personas: PersonaLive[] }): LiveState {
 	const [stats, setStats] = useState<BotStats>(initial.stats);
 	const [personas, setPersonas] = useState<PersonaLive[]>(initial.personas);
 	const [connected, setConnected] = useState(false);

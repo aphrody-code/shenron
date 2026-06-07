@@ -46,10 +46,7 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 		return characters.filter((c) => {
 			if (race && c.race !== race) return false;
 			if (!q) return true;
-			return (
-				norm(c.name).includes(q) ||
-				(c.nameJa ? c.nameJa.includes(query.trim()) : false)
-			);
+			return norm(c.name).includes(q) || (c.nameJa ? c.nameJa.includes(query.trim()) : false);
 		});
 	}, [characters, query, race]);
 
@@ -109,9 +106,7 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 							}`}
 						>
 							{r.name}{" "}
-							<span className={race === r.name ? "text-black/60" : "text-white/40"}>
-								{r.n}
-							</span>
+							<span className={race === r.name ? "text-black/60" : "text-white/40"}>{r.n}</span>
 						</button>
 					))}
 				</div>

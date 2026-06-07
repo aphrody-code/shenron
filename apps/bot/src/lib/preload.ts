@@ -19,11 +19,7 @@ import { mock } from "bun:test";
 // binaire darwin) qui ferait échouer bun:test malgré 0 fail — donc shim direct.
 let canvasNativeOk = false;
 // SHENRON_CANVAS_SHIM=1 force le shim (debug / repro CI sur machine au binding OK).
-if (
-	Bun.env.SHENRON_CANVAS_SHIM !== "1" &&
-	process.platform === "linux" &&
-	process.arch === "x64"
-) {
+if (Bun.env.SHENRON_CANVAS_SHIM !== "1" && process.platform === "linux" && process.arch === "x64") {
 	try {
 		await import("@aphrody/canvas");
 		canvasNativeOk = true;
@@ -41,11 +37,10 @@ if (!canvasNativeOk) {
 				if (prop === "measureText") return () => ({ width: 0 });
 				if (prop === "createLinearGradient" || prop === "createRadialGradient")
 					return () => ({ addColorStop() {} });
-				if (prop === "getImageData")
-					return () => ({ data: new Uint8ClampedArray(4) });
+				if (prop === "getImageData") return () => ({ data: new Uint8ClampedArray(4) });
 				return () => undefined;
 			},
-		},
+		}
 	);
 	class FakeImage {
 		width = 0;

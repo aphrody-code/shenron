@@ -22,8 +22,7 @@ import { Database } from "bun:sqlite";
 import postgres from "postgres";
 import { WIKI_EDITORIAL } from "./_wiki-editorial";
 
-const SQLITE_PATH =
-	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
+const SQLITE_PATH = process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
 const NEON_URL = process.env.DATABASE_URL;
 if (!NEON_URL) {
 	console.error("✗ DATABASE_URL (Neon) requis dans l'environnement.");
@@ -57,9 +56,7 @@ function encodeValue(table: string, col: string, v: unknown): string | number | 
 	// convertir ; bool éventuels → 0/1.
 	if (typeof v === "boolean") return v ? 1 : 0;
 	if (v instanceof Date) {
-		return SECONDS_TS_COLS.has(`${table}.${col}`)
-			? Math.floor(v.getTime() / 1000)
-			: v.getTime();
+		return SECONDS_TS_COLS.has(`${table}.${col}`) ? Math.floor(v.getTime() / 1000) : v.getTime();
 	}
 	return v as string | number;
 }
@@ -85,31 +82,28 @@ async function main() {
 	for (const t of WIKI_EDITORIAL) {
 		// Colonnes réellement présentes dans le SQLite local (tolère le drift :
 		// on n'insère que des colonnes que la table SQLite connaît).
-		const sqliteCols = (
-			sqlite.query(`PRAGMA table_info("${t}")`).all() as { name: string }[]
-		).map((c) => c.name);
+		const sqliteCols = (sqlite.query(`PRAGMA table_info("${t}")`).all() as { name: string }[]).map(
+			(c) => c.name
+		);
 		if (sqliteCols.length === 0) {
 			console.warn(`! ${t} absente du SQLite local — skip`);
 			continue;
 		}
 
 		// Données source depuis Neon (whitelist hardcodée → identifiant sûr).
-		const rows = (await sql.unsafe(
-			`SELECT * FROM bot."${t}"`,
-		)) as unknown as Record<string, unknown>[];
+		const rows = (await sql.unsafe(`SELECT * FROM bot."${t}"`)) as unknown as Record<
+			string,
+			unknown
+		>[];
 
-		const existing = (
-			sqlite.query(`SELECT count(*) AS n FROM "${t}"`).get() as { n: number }
-		).n;
+		const existing = (sqlite.query(`SELECT count(*) AS n FROM "${t}"`).get() as { n: number }).n;
 
 		// Garde anti-truncate : Neon momentanément vide (migration/reset/échec de
 		// seed) alors que le replica a des données → NE PAS vider le SQLite.
 		// On skip la table (pas de DELETE) et on marque la run en échec (exit≠0)
 		// pour que le timer systemd logue l'anomalie.
 		if (rows.length === 0 && existing > 0) {
-			console.error(
-				`✗ ${t.padEnd(26)} Neon=0 mais SQLite=${existing} → SKIP (anti-truncate)`,
-			);
+			console.error(`✗ ${t.padEnd(26)} Neon=0 mais SQLite=${existing} → SKIP (anti-truncate)`);
 			report.push({ table: t, neon: 0, sqlite: existing, ok: false });
 			continue;
 		}
@@ -154,15 +148,11 @@ async function main() {
 		).n;
 		const ok = cnt === p.rows.length;
 		report.push({ table: p.table, neon: p.rows.length, sqlite: cnt, ok });
-		console.log(
-			`${ok ? "✓" : "✗"} ${p.table.padEnd(26)} neon=${p.rows.length} sqlite=${cnt}`,
-		);
+		console.log(`${ok ? "✓" : "✗"} ${p.table.padEnd(26)} neon=${p.rows.length} sqlite=${cnt}`);
 	}
 
 	const bad = report.filter((r) => !r.ok);
-	console.log(
-		`\n${report.length} tables wiki traitées · ${bad.length} anomalie(s)`,
-	);
+	console.log(`\n${report.length} tables wiki traitées · ${bad.length} anomalie(s)`);
 
 	await sql.end();
 	sqlite.close();

@@ -19,35 +19,31 @@ export default function LicencePage() {
 					Licence & usage
 				</h1>
 				<p className="text-[17px] leading-relaxed text-white/70">
-					DBFR (« le site ») est un site de fans communautaire à but non
-					lucratif, dédié à la promotion francophone de l'œuvre Dragon Ball
-					d'Akira Toriyama.
+					DBFR (« le site ») est un site de fans communautaire à but non lucratif, dédié à la
+					promotion francophone de l'œuvre Dragon Ball d'Akira Toriyama.
 				</p>
 			</header>
 
 			<div className="prose prose-invert prose-headings:font-display prose-headings:font-bold prose-headings:text-white prose-h2:text-[24px] prose-h2:mt-12 prose-h2:mb-4 prose-h2:border-b prose-h2:border-white/10 prose-h2:pb-2 prose-h3:text-[18px] prose-h3:mt-8 prose-p:text-white/75 prose-p:leading-relaxed prose-p:text-[15px] prose-a:text-dbz-orange prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-li:text-white/75 prose-li:text-[15px] max-w-none">
 				<h2>1. Statut du site</h2>
 				<p>
-					DBFR est un projet associatif, édité bénévolement par des fans
-					francophones de Dragon Ball. <strong>Aucun revenu commercial</strong>{" "}
-					n'est généré (pas de publicité, pas de vente de produits dérivés, pas
-					d'abonnement). Les éventuels liens vers des boutiques officielles
-					(Bandai Namco, dbz-store, Toei Shop) ne sont pas affiliés.
+					DBFR est un projet associatif, édité bénévolement par des fans francophones de Dragon
+					Ball. <strong>Aucun revenu commercial</strong> n'est généré (pas de publicité, pas de
+					vente de produits dérivés, pas d'abonnement). Les éventuels liens vers des boutiques
+					officielles (Bandai Namco, dbz-store, Toei Shop) ne sont pas affiliés.
 				</p>
 				<p>
-					Le site n'est{" "}
-					<strong>en aucune façon affilié, sponsorisé, ou approuvé</strong> par
-					Bird Studio, Shueisha, Toei Animation, Bandai Namco Entertainment ou
-					tout autre ayant droit de la franchise Dragon Ball.
+					Le site n'est <strong>en aucune façon affilié, sponsorisé, ou approuvé</strong> par Bird
+					Studio, Shueisha, Toei Animation, Bandai Namco Entertainment ou tout autre ayant droit de
+					la franchise Dragon Ball.
 				</p>
 
 				<h2>2. Propriété intellectuelle des œuvres</h2>
 				<p>
-					Dragon Ball, Dragon Ball Z, Dragon Ball Super, Dragon Ball GT, Dragon
-					Ball Daima, Dragon Ball Heroes, ainsi que l'ensemble des personnages,
-					lieux, attaques, transformations et éléments graphiques associés sont
-					la <strong>propriété exclusive</strong> de leurs ayants droit
-					respectifs :
+					Dragon Ball, Dragon Ball Z, Dragon Ball Super, Dragon Ball GT, Dragon Ball Daima, Dragon
+					Ball Heroes, ainsi que l'ensemble des personnages, lieux, attaques, transformations et
+					éléments graphiques associés sont la <strong>propriété exclusive</strong> de leurs ayants
+					droit respectifs :
 				</p>
 				<ul>
 					<li>© Bird Studio / Akira Toriyama — œuvre originale (1984)</li>
@@ -56,17 +52,17 @@ export default function LicencePage() {
 					<li>© Bandai Namco Entertainment — jeux vidéo officiels</li>
 				</ul>
 				<p>
-					Les images, scans, stills, artworks officiels et noms de marque
-					apparaissant sur ce site sont utilisés à des fins
-					<strong> strictement informatives et éditoriales</strong>,
-					encyclopédiques et non commerciales, dans un cadre comparable aux
-					sites de fans encyclopédiques (Fandom, ja.wikipedia, etc.).
+					Les images, scans, stills, artworks officiels et noms de marque apparaissant sur ce site
+					sont utilisés à des fins
+					<strong> strictement informatives et éditoriales</strong>, encyclopédiques et non
+					commerciales, dans un cadre comparable aux sites de fans encyclopédiques (Fandom,
+					ja.wikipedia, etc.).
 				</p>
 
 				<h2>3. Contenu produit par DBFR</h2>
 				<p>
-					Le contenu rédactionnel original (articles de news, résumés de sagas,
-					classements, code applicatif) est publié par défaut sous licence{" "}
+					Le contenu rédactionnel original (articles de news, résumés de sagas, classements, code
+					applicatif) est publié par défaut sous licence{" "}
 					<a
 						href="https://creativecommons.org/licenses/by-sa/4.0/deed.fr"
 						target="_blank"
@@ -74,9 +70,8 @@ export default function LicencePage() {
 					>
 						Creative Commons BY-SA 4.0
 					</a>{" "}
-					(attribution + partage à l'identique). Tu peux reprendre, citer et
-					modifier ce contenu en créditant DBFR et en redistribuant sous la même
-					licence.
+					(attribution + partage à l'identique). Tu peux reprendre, citer et modifier ce contenu en
+					créditant DBFR et en redistribuant sous la même licence.
 				</p>
 
 				<h2>4. Contenu repris de sources tierces</h2>
@@ -103,45 +98,35 @@ export default function LicencePage() {
 				<h3>Données issues d'APIs publiques</h3>
 				<p>
 					Les fiches personnages et planètes proviennent de l'API open-source{" "}
-					<a
-						href="https://dragonball-api.com/"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
+					<a href="https://dragonball-api.com/" target="_blank" rel="noopener noreferrer">
 						dragonball-api.com
 					</a>
-					. Les métadonnées anime/manga proviennent de Jikan, Kitsu et AniList
-					(APIs publiques).
+					. Les métadonnées anime/manga proviennent de Jikan, Kitsu et AniList (APIs publiques).
 				</p>
 
 				<h2>5. Hébergement &amp; données utilisateurs</h2>
 				<p>
-					Site hébergé par <a href="https://vercel.com/">Vercel Inc.</a>{" "}
-					(États-Unis et France). Authentification via Discord OAuth (
-					<a href="https://discord.com/developers/docs">Discord Inc.</a>).
-					Aucune donnée personnelle n'est revendue. Tu peux demander suppression
-					de ton compte à tout moment via le serveur Discord.
+					Site hébergé par <a href="https://vercel.com/">Vercel Inc.</a> (États-Unis et France).
+					Authentification via Discord OAuth (
+					<a href="https://discord.com/developers/docs">Discord Inc.</a>). Aucune donnée personnelle
+					n'est revendue. Tu peux demander suppression de ton compte à tout moment via le serveur
+					Discord.
 				</p>
 
 				<h2 id="takedown">6. Demande de retrait (DMCA / droit voisin)</h2>
 				<p>
-					Si vous êtes ayant droit et estimez qu'un contenu publié sur DBFR
-					porte atteinte à vos droits, nous procédons au retrait{" "}
-					<strong>sous 48 heures</strong> sur simple demande motivée. Aucun
-					recours juridique préalable n'est nécessaire.
+					Si vous êtes ayant droit et estimez qu'un contenu publié sur DBFR porte atteinte à vos
+					droits, nous procédons au retrait <strong>sous 48 heures</strong> sur simple demande
+					motivée. Aucun recours juridique préalable n'est nécessaire.
 				</p>
 				<p>
-					Indiquez : l'URL du contenu litigieux, votre qualité (ayant droit /
-					mandataire), et la nature de l'atteinte. Contact :
+					Indiquez : l'URL du contenu litigieux, votre qualité (ayant droit / mandataire), et la
+					nature de l'atteinte. Contact :
 				</p>
 				<ul>
 					<li>
 						Serveur Discord :{" "}
-						<a
-							href={DISCORD_INVITE}
-							target="_blank"
-							rel="noopener noreferrer"
-						>
+						<a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">
 							discord.gg/dbfr
 						</a>{" "}
 						(canal #admin)
@@ -151,8 +136,8 @@ export default function LicencePage() {
 
 				<h2>7. Modifications</h2>
 				<p>
-					Cette licence peut être amendée à tout moment. La version en vigueur
-					est celle publiée sur cette page. Dernière révision :{" "}
+					Cette licence peut être amendée à tout moment. La version en vigueur est celle publiée sur
+					cette page. Dernière révision :{" "}
 					{new Date().toLocaleDateString("fr-FR", {
 						day: "numeric",
 						month: "long",
@@ -165,8 +150,7 @@ export default function LicencePage() {
 			<div className="mt-16 p-8 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex flex-wrap items-center justify-between gap-4">
 				<p className="text-[14px] text-white/70 max-w-md">
 					Une question sur l'usage d'un contenu ? Notre canal{" "}
-					<code className="text-dbz-orange">#admin</code> sur Discord répond
-					sous 24h.
+					<code className="text-dbz-orange">#admin</code> sur Discord répond sous 24h.
 				</p>
 				<Link
 					href="/credits"

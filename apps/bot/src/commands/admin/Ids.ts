@@ -34,7 +34,7 @@ export class IdsCommand {
 			required: false,
 		})
 		what: "roles" | "channels" | "all" | undefined,
-		interaction: CommandInteraction,
+		interaction: CommandInteraction
 	) {
 		if (!interaction.inCachedGuild()) return;
 		const scope = what ?? "all";
@@ -59,19 +59,27 @@ export class IdsCommand {
 					(a, b) =>
 						a.type - b.type ||
 						((a as { position: number }).position ?? 0) -
-							((b as { position: number }).position ?? 0),
+							((b as { position: number }).position ?? 0)
 				);
 			const groups = new Map<string, string[]>();
 			const typeLabel = (t: ChannelType): string => {
 				switch (t) {
-					case ChannelType.GuildText: return "Textuels";
-					case ChannelType.GuildVoice: return "Vocaux";
-					case ChannelType.GuildCategory: return "Catégories";
-					case ChannelType.GuildAnnouncement: return "Annonces";
-					case ChannelType.GuildStageVoice: return "Stage";
-					case ChannelType.GuildForum: return "Forums";
-					case ChannelType.GuildMedia: return "Media";
-					default: return `type-${t}`;
+					case ChannelType.GuildText:
+						return "Textuels";
+					case ChannelType.GuildVoice:
+						return "Vocaux";
+					case ChannelType.GuildCategory:
+						return "Catégories";
+					case ChannelType.GuildAnnouncement:
+						return "Annonces";
+					case ChannelType.GuildStageVoice:
+						return "Stage";
+					case ChannelType.GuildForum:
+						return "Forums";
+					case ChannelType.GuildMedia:
+						return "Media";
+					default:
+						return `type-${t}`;
 				}
 			};
 			for (const c of channels) {

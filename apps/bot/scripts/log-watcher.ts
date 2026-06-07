@@ -60,12 +60,9 @@ if (!DRY && !TOKEN) {
 // ── Extracteur de stream ────────────────────────────────────────────────
 async function* streamLines(): AsyncGenerator<string> {
 	if (opts.systemd) {
-		const proc = Bun.spawn(
-			["journalctl", "-fu", opts.systemd, "-o", "short-iso"],
-			{
-				stdout: "pipe",
-			},
-		);
+		const proc = Bun.spawn(["journalctl", "-fu", opts.systemd, "-o", "short-iso"], {
+			stdout: "pipe",
+		});
 		const reader = proc.stdout.getReader();
 		const dec = new TextDecoder();
 		let buf = "";
@@ -132,10 +129,7 @@ function detect(line: string): DetectedError | null {
 				severity,
 				message: err.message ?? j.msg ?? "(no message)",
 				type: err.type ?? err.name,
-				stackHead:
-					typeof err.stack === "string"
-						? extractStackHead(err.stack)
-						: undefined,
+				stackHead: typeof err.stack === "string" ? extractStackHead(err.stack) : undefined,
 				rawLine: trim,
 				timestamp: new Date(j.time ?? Date.now()).toISOString(),
 			};
@@ -158,11 +152,7 @@ function detect(line: string): DetectedError | null {
 	}
 
 	// Unhandled rejection / TypeError / etc. en brut
-	if (
-		/Unhandled (?:promise )?[Rr]ejection|TypeError|ReferenceError|SyntaxError/.test(
-			trim,
-		)
-	) {
+	if (/Unhandled (?:promise )?[Rr]ejection|TypeError|ReferenceError|SyntaxError/.test(trim)) {
 		return {
 			severity: "error",
 			message: trim.slice(0, 300),
@@ -210,8 +200,7 @@ async function gh<T>(path: string, init: RequestInit = {}): Promise<T> {
 			...init.headers,
 		},
 	});
-	if (!res.ok)
-		throw new Error(`GH ${path} → ${res.status}: ${await res.text()}`);
+	if (!res.ok) throw new Error(`GH ${path} → ${res.status}: ${await res.text()}`);
 	return res.json() as Promise<T>;
 }
 
@@ -265,11 +254,7 @@ ${e.rawLine.slice(0, 3500)}
 	});
 }
 
-async function commentIssue(
-	num: number,
-	e: DetectedError,
-	count: number,
-): Promise<void> {
+async function commentIssue(num: number, e: DetectedError, count: number): Promise<void> {
 	const body = `🔁 Occurrence #${count} à ${e.timestamp}\n\n\`\`\`\n${e.rawLine.slice(0, 1500)}\n\`\`\``;
 	await gh(`/repos/${REPO}/issues/${num}/comments`, {
 		method: "POST",
@@ -282,14 +267,11 @@ function truncate(s: string, n: number): string {
 }
 
 // ── Main loop ───────────────────────────────────────────────────────────
-const seen = new Map<
-	string,
-	{ issue: number; count: number; lastAt: number }
->();
+const seen = new Map<string, { issue: number; count: number; lastAt: number }>();
 const THROTTLE_MS = 60_000; // max 1 comment / minute par issue
 
 console.log(
-	`→ log-watcher actif${DRY ? " [dry-run]" : ""} · repo: ${REPO} · min-severity: ${opts["min-severity"]}`,
+	`→ log-watcher actif${DRY ? " [dry-run]" : ""} · repo: ${REPO} · min-severity: ${opts["min-severity"]}`
 );
 
 for await (const line of streamLines()) {
@@ -298,9 +280,7 @@ for await (const line of streamLines()) {
 	const fp = fingerprint(err);
 
 	if (DRY) {
-		console.log(
-			`[dry] ${err.severity} · fp=${fp} · ${truncate(err.message, 80)}`,
-		);
+		console.log(`[dry] ${err.severity} · fp=${fp} · ${truncate(err.message, 80)}`);
 		continue;
 	}
 

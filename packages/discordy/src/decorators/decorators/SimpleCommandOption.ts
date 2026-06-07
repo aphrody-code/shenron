@@ -7,10 +7,10 @@
 import { Modifier, type ParameterDecoratorEx } from "@rpbey/internal";
 
 import {
-  DSimpleCommand,
-  DSimpleCommandOption,
-  MetadataStorage,
-  type SimpleCommandOptionOptions,
+	DSimpleCommand,
+	DSimpleCommandOption,
+	MetadataStorage,
+	type SimpleCommandOptionOptions,
 } from "../../index.js";
 
 /**
@@ -24,29 +24,23 @@ import {
  * @category Decorator
  */
 export function SimpleCommandOption<T extends string>(
-  options: SimpleCommandOptionOptions<T>,
+	options: SimpleCommandOptionOptions<T>
 ): ParameterDecoratorEx {
-  return (target, key, index) => {
-    const option = DSimpleCommandOption.create(options).decorate(
-      target.constructor,
-      key,
-      target[key],
-      target.constructor,
-      index,
-    );
+	return (target, key, index) => {
+		const option = DSimpleCommandOption.create(options).decorate(
+			target.constructor,
+			key,
+			target[key],
+			target.constructor,
+			index
+		);
 
-    MetadataStorage.instance.addModifier(
-      Modifier.create<DSimpleCommand>((original) => {
-        original.options = [...original.options, option];
-      }, DSimpleCommand).decorate(
-        target.constructor,
-        key,
-        target[key],
-        target.constructor,
-        index,
-      ),
-    );
+		MetadataStorage.instance.addModifier(
+			Modifier.create<DSimpleCommand>((original) => {
+				original.options = [...original.options, option];
+			}, DSimpleCommand).decorate(target.constructor, key, target[key], target.constructor, index)
+		);
 
-    MetadataStorage.instance.addSimpleCommandOption(option);
-  };
+		MetadataStorage.instance.addSimpleCommandOption(option);
+	};
 }

@@ -35,16 +35,14 @@ const RACES = [
 		name: "Race de Freezer",
 		nameJa: "フリーザ一族",
 		homePlanetId: null,
-		description:
-			"Race froide aux multiples formes (Freezer, Cooler, Cold, Frost).",
+		description: "Race froide aux multiples formes (Freezer, Cooler, Cold, Frost).",
 	},
 	{
 		slug: "android",
 		name: "Cyborg / Androïde",
 		nameJa: "人造人間",
 		homePlanetId: null,
-		description:
-			"Êtres modifiés ou entièrement mécaniques créés par le Dr Gero.",
+		description: "Êtres modifiés ou entièrement mécaniques créés par le Dr Gero.",
 	},
 	{
 		slug: "majin",
@@ -58,16 +56,14 @@ const RACES = [
 		name: "Dieu de la Destruction",
 		nameJa: "破壊神",
 		homePlanetId: null,
-		description:
-			"12 dieux veillant à l'équilibre cosmique (Beerus, Champa, Quitela…).",
+		description: "12 dieux veillant à l'équilibre cosmique (Beerus, Champa, Quitela…).",
 	},
 	{
 		slug: "angel",
 		name: "Ange",
 		nameJa: "天使",
 		homePlanetId: null,
-		description:
-			"Serviteurs des Dieux de la Destruction (Whis, Vados, Marcarita…).",
+		description: "Serviteurs des Dieux de la Destruction (Whis, Vados, Marcarita…).",
 	},
 	{
 		slug: "kaioshin",
@@ -127,8 +123,7 @@ const SAGAS = [
 		orderIdx: 1,
 		name: "Saga de Pilaf",
 		nameJa: "ピラフ編",
-		description:
-			"Quête des Dragon Balls par Goku enfant + Bulma. Apparition Pilaf Gang.",
+		description: "Quête des Dragon Balls par Goku enfant + Bulma. Apparition Pilaf Gang.",
 	},
 	{
 		slug: "tournament-22",
@@ -184,8 +179,7 @@ const SAGAS = [
 		orderIdx: 1,
 		name: "Saga des Saiyans",
 		nameJa: "サイヤ人編",
-		description:
-			"Arrivée Raditz, Nappa, Vegeta. Mort + résurrection Goku, mort Piccolo.",
+		description: "Arrivée Raditz, Nappa, Vegeta. Mort + résurrection Goku, mort Piccolo.",
 	},
 	{
 		slug: "namek",
@@ -193,8 +187,7 @@ const SAGAS = [
 		orderIdx: 2,
 		name: "Saga Namek / Freezer",
 		nameJa: "ナメック星・フリーザ編",
-		description:
-			"Quête des Dragon Balls de Namek, combat épique contre Freezer.",
+		description: "Quête des Dragon Balls de Namek, combat épique contre Freezer.",
 	},
 	{
 		slug: "trunks",
@@ -366,8 +359,7 @@ const GAMES = [
 		platforms: "PS4,PS5,XBO,XSX,Switch,PC",
 		releaseDate: new Date("2020-01-16"),
 		developer: "CyberConnect2",
-		officialUrl:
-			"https://en.bandainamcoent.eu/dragon-ball/dragon-ball-z-kakarot",
+		officialUrl: "https://en.bandainamcoent.eu/dragon-ball/dragon-ball-z-kakarot",
 	},
 	{
 		slug: "sparking-zero",
@@ -376,8 +368,7 @@ const GAMES = [
 		platforms: "PS5,XSX,PC",
 		releaseDate: new Date("2024-10-11"),
 		developer: "Spike Chunsoft",
-		officialUrl:
-			"https://en.bandainamcoent.eu/dragon-ball/dragon-ball-sparking-zero",
+		officialUrl: "https://en.bandainamcoent.eu/dragon-ball/dragon-ball-sparking-zero",
 	},
 	{
 		slug: "xenoverse-2",
@@ -386,8 +377,7 @@ const GAMES = [
 		platforms: "PS4,XBO,Switch,PC",
 		releaseDate: new Date("2016-10-25"),
 		developer: "Dimps",
-		officialUrl:
-			"https://en.bandainamcoent.eu/dragon-ball/dragon-ball-xenoverse-2",
+		officialUrl: "https://en.bandainamcoent.eu/dragon-ball/dragon-ball-xenoverse-2",
 	},
 	{
 		slug: "fighterz",
@@ -396,8 +386,7 @@ const GAMES = [
 		platforms: "PS4,XBO,Switch,PC",
 		releaseDate: new Date("2018-01-26"),
 		developer: "Arc System Works",
-		officialUrl:
-			"https://en.bandainamcoent.eu/dragon-ball/dragon-ball-fighterz",
+		officialUrl: "https://en.bandainamcoent.eu/dragon-ball/dragon-ball-fighterz",
 	},
 	{
 		slug: "the-breakers",
@@ -406,8 +395,7 @@ const GAMES = [
 		platforms: "PS4,XBO,Switch,PC",
 		releaseDate: new Date("2022-10-14"),
 		developer: "Dimps",
-		officialUrl:
-			"https://en.bandainamcoent.eu/dragon-ball/dragon-ball-the-breakers",
+		officialUrl: "https://en.bandainamcoent.eu/dragon-ball/dragon-ball-the-breakers",
 	},
 	{
 		slug: "dokkan-battle",
@@ -455,11 +443,7 @@ const GAMES = [
 
 let r = 0;
 for (const x of RACES) {
-	const exists = await db
-		.select()
-		.from(dbRaces)
-		.where(eq(dbRaces.slug, x.slug))
-		.limit(1);
+	const exists = await db.select().from(dbRaces).where(eq(dbRaces.slug, x.slug)).limit(1);
 	if (exists.length === 0) {
 		await db.insert(dbRaces).values(x);
 		r++;
@@ -468,11 +452,7 @@ for (const x of RACES) {
 let s = 0;
 const sagaIdMap: Record<string, number> = {};
 for (const x of SAGAS) {
-	const existing = await db
-		.select()
-		.from(dbSagas)
-		.where(eq(dbSagas.slug, x.slug))
-		.limit(1);
+	const existing = await db.select().from(dbSagas).where(eq(dbSagas.slug, x.slug)).limit(1);
 	if (existing.length === 0) {
 		const inserted = await db
 			.insert(dbSagas)
@@ -486,11 +466,7 @@ for (const x of SAGAS) {
 }
 let g = 0;
 for (const x of GAMES) {
-	const exists = await db
-		.select()
-		.from(dbGames)
-		.where(eq(dbGames.slug, x.slug))
-		.limit(1);
+	const exists = await db.select().from(dbGames).where(eq(dbGames.slug, x.slug)).limit(1);
 	if (exists.length === 0) {
 		await db.insert(dbGames).values({
 			...x,
@@ -502,4 +478,3 @@ for (const x of GAMES) {
 	}
 }
 console.log(`seed-canon : +${r} races, +${s} sagas, +${g} games`);
-

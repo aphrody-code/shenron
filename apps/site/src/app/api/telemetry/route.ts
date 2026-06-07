@@ -48,11 +48,7 @@ const bodySchema = z.object({
 // déjà présents en prod) — jamais committé. Combiné à la date du jour, il rotate
 // quotidiennement le hash visiteur. Fallback dev si aucun secret n'est posé.
 function serverSecret(): string {
-	return (
-		env.SHENRON_USER_SECRET ??
-		env.BETTER_AUTH_SECRET ??
-		"dbfr-telemetry-dev-secret-change-me"
-	);
+	return env.SHENRON_USER_SECRET ?? env.BETTER_AUTH_SECRET ?? "dbfr-telemetry-dev-secret-change-me";
 }
 
 /** Hash visiteur quotidien (anti-doublon), jamais d'IP brute stockée. */
@@ -77,10 +73,7 @@ const ANON_COOKIE = "dbfr_aid";
 const ANON_MAX_AGE = 60 * 60 * 24 * 180; // 180 j
 
 function signAnon(raw: string): string {
-	const mac = createHmac("sha256", serverSecret())
-		.update(raw)
-		.digest("base64url")
-		.slice(0, 24);
+	const mac = createHmac("sha256", serverSecret()).update(raw).digest("base64url").slice(0, 24);
 	return `${raw}.${mac}`;
 }
 

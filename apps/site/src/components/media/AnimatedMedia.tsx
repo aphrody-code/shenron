@@ -34,13 +34,7 @@
  * ```
  */
 
-import {
-	type CSSProperties,
-	useCallback,
-	useEffect,
-	useRef,
-	useState,
-} from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 
 export type AnimatedMediaKind = "video" | "image";
 
@@ -124,7 +118,7 @@ export function AnimatedMedia({
 					}
 				}
 			},
-			{ rootMargin: "200px 0px", threshold: 0.01 },
+			{ rootMargin: "200px 0px", threshold: 0.01 }
 		);
 		io.observe(el);
 		return () => io.disconnect();
@@ -153,11 +147,7 @@ export function AnimatedMedia({
 	if (resolvedKind === "image") {
 		// Image animée (WebP/AVIF/GIF) — lazy natif, pas de JS de lecture.
 		return (
-			<div
-				ref={containerRef}
-				className={`relative overflow-hidden ${className}`}
-				style={style}
-			>
+			<div ref={containerRef} className={`relative overflow-hidden ${className}`} style={style}>
 				{/* Image animée (WebP/AVIF/GIF) servie directe par l'API bot — next/image
 				    superflu (images.unoptimized) ; lazy natif via loading="lazy". */}
 				<img
@@ -173,11 +163,7 @@ export function AnimatedMedia({
 	}
 
 	return (
-		<div
-			ref={containerRef}
-			className={`group relative overflow-hidden ${className}`}
-			style={style}
-		>
+		<div ref={containerRef} className={`group relative overflow-hidden ${className}`} style={style}>
 			<video
 				ref={videoRef}
 				src={armed ? src : undefined}
@@ -207,24 +193,12 @@ export function AnimatedMedia({
 						}`}
 					>
 						{playing ? (
-							<svg
-								width="22"
-								height="22"
-								viewBox="0 0 24 24"
-								fill="currentColor"
-								aria-hidden
-							>
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 								<rect x="6" y="5" width="4" height="14" rx="1" />
 								<rect x="14" y="5" width="4" height="14" rx="1" />
 							</svg>
 						) : (
-							<svg
-								width="22"
-								height="22"
-								viewBox="0 0 24 24"
-								fill="currentColor"
-								aria-hidden
-							>
+							<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 								<path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l10.79-6.86a1 1 0 0 0 0-1.68L9.54 4.3A1 1 0 0 0 8 5.14Z" />
 							</svg>
 						)}

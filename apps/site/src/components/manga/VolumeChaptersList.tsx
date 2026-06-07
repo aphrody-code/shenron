@@ -38,9 +38,10 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 	// Calculer la progression
 	const readableChapters = chapters.filter((ch) => ch.pages && ch.pages.length > 0);
 	const readReadableChapters = readableChapters.filter((ch) => readChapterIds.includes(ch.id));
-	const progressPercent = readableChapters.length > 0
-		? Math.round((readReadableChapters.length / readableChapters.length) * 100)
-		: 0;
+	const progressPercent =
+		readableChapters.length > 0
+			? Math.round((readReadableChapters.length / readableChapters.length) * 100)
+			: 0;
 
 	return (
 		<div className="space-y-6">
@@ -52,7 +53,8 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 							PROGRESSION_LECTURE //
 						</span>
 						<span className="text-white font-bold">
-							{readReadableChapters.length} / {readableChapters.length} CHAPITRES ({progressPercent}%)
+							{readReadableChapters.length} / {readableChapters.length} CHAPITRES ({progressPercent}
+							%)
 						</span>
 					</div>
 					<div className="h-2 w-full bg-zinc-950 rounded overflow-hidden border border-white/5 relative">
@@ -91,11 +93,15 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 									}
 								}}
 								className={`dbz-panel p-5 flex items-center justify-between hover:bg-white/5 transition-all group ${
-									isRead ? "border-emerald-500/20" : "hover:border-dbz-orange hover:shadow-[0_0_15px_rgba(255,178,0,0.15)]"
+									isRead
+										? "border-emerald-500/20"
+										: "hover:border-dbz-orange hover:shadow-[0_0_15px_rgba(255,178,0,0.15)]"
 								}`}
 							>
 								<div className="flex items-center gap-6">
-									<span className={`scouter-text text-xl min-w-[60px] ${isRead ? "text-emerald-400" : "text-dbz-orange"}`}>
+									<span
+										className={`scouter-text text-xl min-w-[60px] ${isRead ? "text-emerald-400" : "text-dbz-orange"}`}
+									>
 										#{ch.chapter_number}
 									</span>
 									<div className="space-y-1">

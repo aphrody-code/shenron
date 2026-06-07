@@ -21,12 +21,12 @@ Guide complet de mise en production — choix d'hébergement, flow CI/CD, secret
 
 ## Choisir sa cible de déploiement
 
-| Cible | Coût | Simplicité | Maintenance | Contrôle | Pour qui |
-|---|---|---|---|---|---|
-| **Fly.io** | ~3 $/mo | ★★★★★ | ★★★★★ | ★★★ | Démarrage rapide, zéro devops |
-| **VPS + systemd** | 3-8 €/mo | ★★★ | ★★ | ★★★★★ | Contrôle total, multi-bot sur même machine |
-| **Docker standalone** | selon host | ★★★★ | ★★★★ | ★★★★ | Homelab, k8s, infra déjà conteneurisée |
-| **Binaire compilé** | 0 € marginal | ★★ | ★★★ | ★★★★ | Embarqué, VPS minimal, pas de Docker |
+| Cible                 | Coût         | Simplicité | Maintenance | Contrôle | Pour qui                                   |
+| --------------------- | ------------ | ---------- | ----------- | -------- | ------------------------------------------ |
+| **Fly.io**            | ~3 $/mo      | ★★★★★      | ★★★★★       | ★★★      | Démarrage rapide, zéro devops              |
+| **VPS + systemd**     | 3-8 €/mo     | ★★★        | ★★          | ★★★★★    | Contrôle total, multi-bot sur même machine |
+| **Docker standalone** | selon host   | ★★★★       | ★★★★        | ★★★★     | Homelab, k8s, infra déjà conteneurisée     |
+| **Binaire compilé**   | 0 € marginal | ★★         | ★★★         | ★★★★     | Embarqué, VPS minimal, pas de Docker       |
 
 **Recommandation par profil :**
 
@@ -53,6 +53,7 @@ bash scripts/fly-init.sh
 ```
 
 Ce que fait le script :
+
 1. Crée l'app `shenron-bot` en région `cdg` (Paris) si elle n'existe pas
 2. Provisionne le volume persistant `shenron_data` (3 GB SSD, mount `/data`)
 3. Extrait chaque variable de `.env` et la pousse en secret Fly (masquée)
@@ -92,12 +93,12 @@ fly machine list --app shenron-bot      # VMs actives
 
 ### Coût
 
-| Poste | Prix (avril 2026) |
-|---|---|
-| VM `shared-cpu-1x` 1 GB | ~1,94 $/mo |
-| Volume 3 GB | ~0,45 $/mo |
+| Poste                   | Prix (avril 2026)                     |
+| ----------------------- | ------------------------------------- |
+| VM `shared-cpu-1x` 1 GB | ~1,94 $/mo                            |
+| Volume 3 GB             | ~0,45 $/mo                            |
 | Bande passante sortante | ~0,02 $/GB (généralement < 1 GB/mois) |
-| **Total estimé** | **~2,50-3 $/mo** |
+| **Total estimé**        | **~2,50-3 $/mo**                      |
 
 [Pricing Fly](https://fly.io/docs/about/pricing/).
 
@@ -163,8 +164,8 @@ journalctl -fu shenron                # logs en direct
 
 La recherche RAG hybride+rerank charge ses 2 modèles transformers.js dans un **sidecar isolé** — jamais dans le process bot (qui reste à `MemoryMax=1.5G`).
 
-| Service | Port | Mémoire | Rôle |
-|---|---|---|---|
+| Service                 | Port             | Mémoire        | Rôle                                                                                 |
+| ----------------------- | ---------------- | -------------- | ------------------------------------------------------------------------------------ |
 | `shenron-embed.service` | `127.0.0.1:5007` | `MemoryMax=3G` | Sidecar embeddings (`multilingual-e5-small` + `bge-reranker-base`), 2 modèles chauds |
 
 - **Activation** : `bash deploy/install.sh` active l'unit avec les autres (units vendorées dans `deploy/systemd/`). Au **1er boot**, le service télécharge ~410 Mo de modèles dans `apps/bot/.models` (gitignored, cache persistant).
@@ -233,7 +234,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: { name: shenron }
 spec:
-  replicas: 1                          # IMPORTANT : Discord interdit le multi-process Gateway
+  replicas: 1 # IMPORTANT : Discord interdit le multi-process Gateway
   strategy: { type: Recreate }
   selector: { matchLabels: { app: shenron } }
   template:
@@ -246,7 +247,7 @@ spec:
             - secretRef: { name: shenron-env }
           resources:
             requests: { memory: "256Mi", cpu: "100m" }
-            limits:   { memory: "1Gi",   cpu: "1" }
+            limits: { memory: "1Gi", cpu: "1" }
           volumeMounts:
             - name: data
               mountPath: /data
@@ -298,10 +299,10 @@ fly secrets import < .env       # alternative
 
 Secrets configurés sur le repo :
 
-| Secret | Usage | Comment le générer |
-|---|---|---|
+| Secret              | Usage                              | Comment le générer                     |
+| ------------------- | ---------------------------------- | -------------------------------------- |
 | `GH_PACKAGES_TOKEN` | Auth `@rpbey/*` dans les workflows | PAT classic avec scope `read:packages` |
-| `FLY_API_TOKEN` | Déploiement CI/CD | `fly auth token` |
+| `FLY_API_TOKEN`     | Déploiement CI/CD                  | `fly auth token`                       |
 
 ### systemd
 
@@ -318,13 +319,13 @@ Utilise `EnvironmentFile=` pointant sur un `.env` en `chmod 600` + `User=` non-p
 
 ### Workflows actifs
 
-| Workflow | Trigger | Fait |
-|---|---|---|
-| `ci.yml` | push/PR main | type-check, lint, test, build (matrix Ubuntu + macOS) + compile Linux x64 |
-| `release.yml` | tag `v*` | Compile 5 targets (linux-x64/arm64, darwin-x64/arm64, windows-x64), SHA256SUMS, GitHub Release |
-| `deploy-fly.yml` | push main (après CI vert) | `flyctl deploy --remote-only` |
-| `update-deps.yml` | lundi 06:00 UTC | `bun update` → PR automatique si `bun.lock` change |
-| `codeql.yml` | push/PR + mardi 07:00 UTC | Scan sécurité JS/TS |
+| Workflow          | Trigger                   | Fait                                                                                           |
+| ----------------- | ------------------------- | ---------------------------------------------------------------------------------------------- |
+| `ci.yml`          | push/PR main              | type-check, lint, test, build (matrix Ubuntu + macOS) + compile Linux x64                      |
+| `release.yml`     | tag `v*`                  | Compile 5 targets (linux-x64/arm64, darwin-x64/arm64, windows-x64), SHA256SUMS, GitHub Release |
+| `deploy-fly.yml`  | push main (après CI vert) | `flyctl deploy --remote-only`                                                                  |
+| `update-deps.yml` | lundi 06:00 UTC           | `bun update` → PR automatique si `bun.lock` change                                             |
+| `codeql.yml`      | push/PR + mardi 07:00 UTC | Scan sécurité JS/TS                                                                            |
 
 ### Flow de release
 
@@ -382,6 +383,7 @@ journalctl -fu shenron | GITHUB_TOKEN=<PAT> bun scripts/log-watcher.ts
 ```
 
 **Comportement** :
+
 - Nouvelle erreur → nouvelle issue `[auto] <message>` avec labels `bug` + `auto-detected`
 - Erreur déjà vue (fingerprint identique) dans une issue **ouverte** → commentaire (+count, timestamp)
 - Issue **fermée** avec le même fingerprint → ignoré (respect du jugement humain)
@@ -441,12 +443,12 @@ sudo systemctl start shenron     # OU fly scale count 1 --app shenron-bot
 
 ### Mise à jour
 
-| Cible | Commande |
-|---|---|
-| Fly.io (manuel) | `fly deploy` |
-| Fly.io (auto) | `git push` (CI vert → deploy auto) |
-| systemd | `git pull && bun install && bun run gen:entries && sudo systemctl restart shenron` |
-| Docker | `docker pull … && docker stop shenron && docker run …` |
+| Cible           | Commande                                                                           |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Fly.io (manuel) | `fly deploy`                                                                       |
+| Fly.io (auto)   | `git push` (CI vert → deploy auto)                                                 |
+| systemd         | `git pull && bun install && bun run gen:entries && sudo systemctl restart shenron` |
+| Docker          | `docker pull … && docker stop shenron && docker run …`                             |
 
 ### Rollback
 
@@ -490,13 +492,14 @@ Les migrations Drizzle ne sont pas réversibles par défaut. Pour revert :
 
 Discord impose **un seul process Gateway par bot** tant qu'on est < 2 500 guilds.
 
-| Nombre de guilds | Config |
-|---|---|
-| 1 - 2 500 | 1 VM, `fly scale count 1`, `replicas: 1` |
-| 2 500 - 250 000 | Sharding manuel : définir `totalShards` dans discord.js |
-| > 250 000 | Architecture multi-process, Redis pour state partagé (hors scope Shenron) |
+| Nombre de guilds | Config                                                                    |
+| ---------------- | ------------------------------------------------------------------------- |
+| 1 - 2 500        | 1 VM, `fly scale count 1`, `replicas: 1`                                  |
+| 2 500 - 250 000  | Sharding manuel : définir `totalShards` dans discord.js                   |
+| > 250 000        | Architecture multi-process, Redis pour state partagé (hors scope Shenron) |
 
 Shenron est codé single-shard. Pour sharder il faudra :
+
 1. Passer à `ShardingManager` de discord.js
 2. Extraire la DB en service partagé (Postgres ou SQLite centralisé)
 3. Coordination cache (Redis)

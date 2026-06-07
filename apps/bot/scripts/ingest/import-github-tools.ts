@@ -33,7 +33,7 @@ async function main() {
 			if (!line.startsWith("| [")) continue;
 			if (line.includes("Projet | Stars")) continue;
 
-			const parts = line.split("|").map(p => p.trim());
+			const parts = line.split("|").map((p) => p.trim());
 			if (parts.length < 5) continue;
 
 			const nameMatch = parts[1].match(/\[(.*?)\]\((.*?)\)/);
@@ -47,15 +47,19 @@ async function main() {
 
 			// Détection de la catégorie
 			let category = "utility";
-			if (description.toLowerCase().includes("modding") || description.toLowerCase().includes("tool")) category = "modding";
+			if (
+				description.toLowerCase().includes("modding") ||
+				description.toLowerCase().includes("tool")
+			)
+				category = "modding";
 			if (description.toLowerCase().includes("shader")) category = "shader";
 			if (description.toLowerCase().includes("api")) category = "api";
 			if (description.toLowerCase().includes("engine")) category = "engine";
 
 			// Filtrage : on veut les outils, pas les jeux (déjà importés ou à ignorer ici)
-			const isTool = 
-				description.toLowerCase().includes("tool") || 
-				description.toLowerCase().includes("modding") || 
+			const isTool =
+				description.toLowerCase().includes("tool") ||
+				description.toLowerCase().includes("modding") ||
 				description.toLowerCase().includes("shader") ||
 				description.toLowerCase().includes("manager") ||
 				description.toLowerCase().includes("editor") ||
@@ -68,12 +72,8 @@ async function main() {
 
 			if (isTool && stars >= 2) {
 				const slug = slugify(fullName.replace("/", "-"));
-				
-				const exists = await db
-					.select()
-					.from(dbTools)
-					.where(eq(dbTools.slug, slug))
-					.limit(1);
+
+				const exists = await db.select().from(dbTools).where(eq(dbTools.slug, slug)).limit(1);
 
 				if (exists.length === 0) {
 					// Tentative de liaison avec un jeu
@@ -90,8 +90,15 @@ async function main() {
 					];
 
 					for (const gk of gameKeywords) {
-						if (description.toLowerCase().includes(gk.kw) || fullName.toLowerCase().includes(gk.kw)) {
-							const game = await db.select().from(dbGames).where(eq(dbGames.slug, gk.slug)).limit(1);
+						if (
+							description.toLowerCase().includes(gk.kw) ||
+							fullName.toLowerCase().includes(gk.kw)
+						) {
+							const game = await db
+								.select()
+								.from(dbGames)
+								.where(eq(dbGames.slug, gk.slug))
+								.limit(1);
 							if (game.length > 0) targetGameId = game[0].id;
 							break;
 						}
@@ -119,7 +126,6 @@ async function main() {
 		console.log(`\n📊 Importation terminée !`);
 		console.log(`✨ Nouveaux outils importés : ${imported}`);
 		console.log(`⏭️ Déjà présents / ignorés : ${skipped}`);
-
 	} catch (err) {
 		console.error("❌ Erreur lors de l'importation:", err);
 		process.exit(1);

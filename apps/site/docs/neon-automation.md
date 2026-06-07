@@ -43,29 +43,29 @@ PR fermée / mergée
 
 ## Fichiers
 
-| Fichier | Rôle |
-|---|---|
-| `.github/workflows/neon-branch.yml` | Branche par PR + migrate + wire preview Vercel + schema-diff + cleanup |
-| `.github/workflows/deploy-vercel.yml` | `migrate-prod` (conditionnel) → `deploy` prod |
-| `apps/site/drizzle.config.ts` | `schema: src/db/schema.ts`, `out: src/db/migrations`, `dialect: postgresql` |
-| `apps/site/src/db/migrations/` | Migrations générées + `meta/_journal.json` (`drizzle-kit generate`) |
-| `apps/site/src/lib/db.ts` | Client Drizzle (`postgres-js`, `prepare:false` pour le pooler pgbouncer) |
+| Fichier                               | Rôle                                                                        |
+| ------------------------------------- | --------------------------------------------------------------------------- |
+| `.github/workflows/neon-branch.yml`   | Branche par PR + migrate + wire preview Vercel + schema-diff + cleanup      |
+| `.github/workflows/deploy-vercel.yml` | `migrate-prod` (conditionnel) → `deploy` prod                               |
+| `apps/site/drizzle.config.ts`         | `schema: src/db/schema.ts`, `out: src/db/migrations`, `dialect: postgresql` |
+| `apps/site/src/db/migrations/`        | Migrations générées + `meta/_journal.json` (`drizzle-kit generate`)         |
+| `apps/site/src/lib/db.ts`             | Client Drizzle (`postgres-js`, `prepare:false` pour le pooler pgbouncer)    |
 
 ## Secrets & variables GitHub (repo `aphrody-code/shenron`)
 
 Tous **déjà provisionnés** (vérifié) — aucune étape humaine restante :
 
-| Nom | Type | Valeur / source |
-|---|---|---|
-| `NEON_API_KEY` | secret | clé API Neon (Neon GitHub App). Utilisée par create/delete/schema-diff **et** par `neonctl` pour résoudre l'URL prod. |
-| `NEON_PROJECT_ID` | variable | `patient-star-28731823` (projet `shenron`, org `aphrody`) |
-| `VERCEL_TOKEN` | secret | override env preview + deploy prod |
-| `VERCEL_ORG_ID` | secret | `team_guWQJZI4ZmSLj2K3RWuU4VqM` |
-| `VERCEL_PROJECT_ID` | secret | `prj_wxLn9COQIo9HAOUVis08ppKXx7zI` (projet `dbfr`) |
+| Nom                 | Type     | Valeur / source                                                                                                       |
+| ------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `NEON_API_KEY`      | secret   | clé API Neon (Neon GitHub App). Utilisée par create/delete/schema-diff **et** par `neonctl` pour résoudre l'URL prod. |
+| `NEON_PROJECT_ID`   | variable | `patient-star-28731823` (projet `shenron`, org `aphrody`)                                                             |
+| `VERCEL_TOKEN`      | secret   | override env preview + deploy prod                                                                                    |
+| `VERCEL_ORG_ID`     | secret   | `team_guWQJZI4ZmSLj2K3RWuU4VqM`                                                                                       |
+| `VERCEL_PROJECT_ID` | secret   | `prj_wxLn9COQIo9HAOUVis08ppKXx7zI` (projet `dbfr`)                                                                    |
 
 > La connexion prod n'est **jamais** stockée en secret : `migrate-prod` la résout à
 > la volée via `neonctl connection-string --api-key $NEON_API_KEY --project-id …
-> --pooled` (branche par défaut), et la passe à `drizzle-kit` par variable
+--pooled` (branche par défaut), et la passe à `drizzle-kit` par variable
 > d'environnement — jamais loggée.
 
 ## Choix de design
@@ -99,14 +99,14 @@ runners GitHub hébergés), donc automatisés par **timers systemd** lisant
 lisent l'URL depuis l'env (zéro hardcode) et écrivent un schéma **isolé**
 (`bot.*`), jamais `public.*` du site.
 
-| Événement (script) | Cible DB | Automatisation | Cadence |
-|---|---|---|---|
-| `sync-sqlite-to-neon.ts` (runtime + `db_news` SQLite→Neon) | Neon `bot.*` | `shenron-neon-sync.timer` | 30 min |
-| `sync-neon-to-sqlite.ts` (wiki éditorial Neon→SQLite) | SQLite | `shenron-neon-pull.timer` | 15 min |
-| `resolve-streams.ts` (flux vidéo → Neon, bxc headless) | Neon `bot.*` | `shenron-stream-resolve.timer` (opt-in) | 2 h |
-| **`ingest/scrape-manga-chapters.ts`** (wiki-crawl planches manga, bxc headless) | Neon `bot.db_manga_chapters` | **`shenron-wiki-crawl.timer`** (opt-in, **ajouté**) | 1×/jour 04:30 |
-| `update-deps.yml` (bun update) | — | GitHub Actions `schedule` | lundi 06:00 UTC |
-| `codeql.yml` | — | GitHub Actions `schedule` | mardi 07:00 UTC |
+| Événement (script)                                                              | Cible DB                     | Automatisation                                      | Cadence         |
+| ------------------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------- | --------------- |
+| `sync-sqlite-to-neon.ts` (runtime + `db_news` SQLite→Neon)                      | Neon `bot.*`                 | `shenron-neon-sync.timer`                           | 30 min          |
+| `sync-neon-to-sqlite.ts` (wiki éditorial Neon→SQLite)                           | SQLite                       | `shenron-neon-pull.timer`                           | 15 min          |
+| `resolve-streams.ts` (flux vidéo → Neon, bxc headless)                          | Neon `bot.*`                 | `shenron-stream-resolve.timer` (opt-in)             | 2 h             |
+| **`ingest/scrape-manga-chapters.ts`** (wiki-crawl planches manga, bxc headless) | Neon `bot.db_manga_chapters` | **`shenron-wiki-crawl.timer`** (opt-in, **ajouté**) | 1×/jour 04:30   |
+| `update-deps.yml` (bun update)                                                  | —                            | GitHub Actions `schedule`                           | lundi 06:00 UTC |
+| `codeql.yml`                                                                    | —                            | GitHub Actions `schedule`                           | mardi 07:00 UTC |
 
 **Lacune comblée** : le wiki-crawl manga (`scrape-manga-chapters.ts`) était le
 seul événement récurrent touchant la base **sans** hook d'automatisation. Ajouté :

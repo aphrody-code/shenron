@@ -48,17 +48,7 @@ const STAR_POS: Record<number, Array<[number, number]>> = {
 	],
 };
 
-function DragonBall({
-	stars,
-	size,
-	x,
-	y,
-}: {
-	stars: number;
-	size: number;
-	x: number;
-	y: number;
-}) {
+function DragonBall({ stars, size, x, y }: { stars: number; size: number; x: number; y: number }) {
 	const r = size / 2;
 	const positions = STAR_POS[stars] ?? [];
 	return (
@@ -72,14 +62,7 @@ function DragonBall({
 				fill="white"
 				opacity="0.55"
 			/>
-			<ellipse
-				cx={r * 0.35}
-				cy={r * 0.3}
-				rx={r * 0.15}
-				ry={r * 0.08}
-				fill="white"
-				opacity="0.15"
-			/>
+			<ellipse cx={r * 0.35} cy={r * 0.3} rx={r * 0.15} ry={r * 0.08} fill="white" opacity="0.15" />
 			{positions.map(([sx, sy], i) => (
 				<polygon
 					key={`${stars}-${i}`}
@@ -88,14 +71,7 @@ function DragonBall({
 					fill="#c81b1b"
 				/>
 			))}
-			<circle
-				cx="0"
-				cy="0"
-				r={r - 0.5}
-				fill="none"
-				stroke="rgba(0,0,0,0.25)"
-				strokeWidth="1"
-			/>
+			<circle cx="0" cy="0" r={r - 0.5} fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="1" />
 		</g>
 	);
 }
@@ -113,10 +89,7 @@ export function DragonBallsOrbit({
 	const ballSize = size * 0.16;
 
 	return (
-		<div
-			className={`relative ${className}`}
-			style={{ width: size, height: size }}
-		>
+		<div className={`relative ${className}`} style={{ width: size, height: size }}>
 			<svg
 				viewBox={`0 0 ${size} ${size}`}
 				width={size}
@@ -138,12 +111,7 @@ export function DragonBallsOrbit({
 					</radialGradient>
 				</defs>
 
-				<circle
-					cx={cx}
-					cy={cy}
-					r={orbit + ballSize / 2}
-					fill="url(#dbf-aura)"
-				/>
+				<circle cx={cx} cy={cy} r={orbit + ballSize / 2} fill="url(#dbf-aura)" />
 				<circle
 					cx={cx}
 					cy={cy}

@@ -41,11 +41,7 @@ const CHANNEL_KEYS: { key: string; label: string; virtual?: boolean }[] = [
 	{ key: "channel.ticket", label: "Salon du ticket", virtual: true },
 ];
 
-const VIRTUAL_CHANNEL_KEYS = new Set([
-	"channel.dm",
-	"channel.invocation",
-	"channel.ticket",
-]);
+const VIRTUAL_CHANNEL_KEYS = new Set(["channel.dm", "channel.invocation", "channel.ticket"]);
 
 export default function MessagesPage() {
 	const { data, isLoading, isError } = useQuery({
@@ -62,9 +58,7 @@ export default function MessagesPage() {
 		return (
 			<div className="dbz-panel p-8 text-center">
 				<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
-				<p className="text-sm text-white/40">
-					Récupération des messages automatiques.
-				</p>
+				<p className="text-sm text-white/40">Récupération des messages automatiques.</p>
 			</div>
 		);
 
@@ -73,8 +67,7 @@ export default function MessagesPage() {
 			<div className="dbz-panel p-6 text-center border-l-4 border-red-500">
 				<p className="font-saiyan text-red-400 mb-2">Erreur de chargement</p>
 				<p className="text-sm text-white/40">
-					Impossible de récupérer les messages. Vérifiez que le bot est en
-					ligne.
+					Impossible de récupérer les messages. Vérifiez que le bot est en ligne.
 				</p>
 			</div>
 		);
@@ -85,16 +78,14 @@ export default function MessagesPage() {
 	return (
 		<div className="space-y-6">
 			<header>
-				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">
-					MESSAGES AUTOMATIQUES
-				</h1>
+				<h1 className="text-4xl font-saiyan text-dbz-orange mb-2">MESSAGES AUTOMATIQUES</h1>
 				<p className="text-sm text-white/60 mb-1">
-					Configurez les messages envoyés automatiquement par le bot lors
-					d&apos;événements sur le serveur.
+					Configurez les messages envoyés automatiquement par le bot lors d&apos;événements sur le
+					serveur.
 				</p>
 				<p className="text-xs text-white/30 uppercase tracking-widest">
-					{events.length} événement{events.length !== 1 ? "s" : ""} · rechargé
-					côté bot sous 30 secondes
+					{events.length} événement{events.length !== 1 ? "s" : ""} · rechargé côté bot sous 30
+					secondes
 				</p>
 			</header>
 
@@ -105,8 +96,7 @@ export default function MessagesPage() {
 						Événements ({events.length})
 					</h3>
 					<p className="text-xs text-white/30 mb-3">
-						Cliquez sur un événement pour modifier son message et son salon de
-						destination.
+						Cliquez sur un événement pour modifier son message et son salon de destination.
 					</p>
 					<div className="space-y-1">
 						{events.map((e) => (
@@ -124,9 +114,7 @@ export default function MessagesPage() {
 									<p className="font-medium text-white text-xs truncate">
 										{e.description || e.event}
 									</p>
-									<code className="font-mono text-[10px] text-white/30">
-										{e.event}
-									</code>
+									<code className="font-mono text-[10px] text-white/30">{e.event}</code>
 								</div>
 								<div className="flex flex-col items-end gap-0.5 shrink-0">
 									{e.isCustom && (
@@ -166,9 +154,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 	const [channelKey, setChannelKey] = useState(entry.channelKey);
 	const [enabled, setEnabled] = useState(entry.enabled);
 	const [previewVars, setPreviewVars] = useState<Record<string, string>>(() =>
-		Object.fromEntries(
-			entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]),
-		),
+		Object.fromEntries(entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]))
 	);
 	const [previewResult, setPreviewResult] = useState<string | null>(null);
 
@@ -177,9 +163,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 		setChannelKey(entry.channelKey);
 		setEnabled(entry.enabled);
 		setPreviewVars(
-			Object.fromEntries(
-				entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]),
-			),
+			Object.fromEntries(entry.variables.map((v) => [v.name, defaultPreviewValue(v.name)]))
 		);
 		setPreviewResult(null);
 	}, [entry]);
@@ -201,15 +185,10 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 
 	const preview = useMutation({
 		mutationFn: () =>
-			api.post<{ rendered: string }>(
-				`/messages/${entry.event}/preview`,
-				previewVars,
-			),
+			api.post<{ rendered: string }>(`/messages/${entry.event}/preview`, previewVars),
 		onSuccess: (data) => setPreviewResult(data.rendered),
 		onError: (err) =>
-			setPreviewResult(
-				`Erreur : ${err instanceof Error ? err.message : String(err)}`,
-			),
+			setPreviewResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
 	});
 
 	return (
@@ -221,13 +200,10 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">
 							{entry.description || entry.event}
 						</h3>
-						<code className="text-xs font-mono text-white/30">
-							{entry.event}
-						</code>
+						<code className="text-xs font-mono text-white/30">{entry.event}</code>
 						{entry.embed && (
 							<p className="text-xs text-dbz-blue-light mt-1">
-								Ce message est envoyé sous forme d&apos;encart enrichi (embed
-								Discord).
+								Ce message est envoyé sous forme d&apos;encart enrichi (embed Discord).
 							</p>
 						)}
 					</div>
@@ -270,8 +246,8 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						Contenu du message
 					</label>
 					<p className="text-xs text-white/30 mb-2">
-						Utilisez <code className="text-dbz-yellow">{"{nom}"}</code> pour
-						insérer des valeurs dynamiques (voir la liste ci-dessous).
+						Utilisez <code className="text-dbz-yellow">{"{nom}"}</code> pour insérer des valeurs
+						dynamiques (voir la liste ci-dessous).
 					</p>
 					<textarea
 						className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-3 font-mono text-sm text-white"
@@ -298,7 +274,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							onClick={() => {
 								if (
 									confirm(
-										`Remettre le message de "${entry.description || entry.event}" à sa valeur par défaut ?`,
+										`Remettre le message de "${entry.description || entry.event}" à sa valeur par défaut ?`
 									)
 								)
 									reset.mutate();
@@ -311,16 +287,11 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						</button>
 					)}
 					{save.isSuccess && (
-						<span className="text-xs text-green-400 self-center">
-							Message enregistré.
-						</span>
+						<span className="text-xs text-green-400 self-center">Message enregistré.</span>
 					)}
 					{save.isError && (
 						<span className="text-xs text-red-400 self-center">
-							Erreur :{" "}
-							{save.error instanceof Error
-								? save.error.message
-								: "erreur inconnue"}
+							Erreur : {save.error instanceof Error ? save.error.message : "erreur inconnue"}
 						</span>
 					)}
 				</div>
@@ -336,8 +307,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						</h3>
 					</div>
 					<p className="text-xs text-white/30">
-						Renseignez des exemples pour chaque variable et générez un aperçu du
-						message final.
+						Renseignez des exemples pour chaque variable et générez un aperçu du message final.
 					</p>
 					<div className="grid gap-3 sm:grid-cols-2">
 						{entry.variables.map((v) => (
@@ -345,16 +315,12 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 								<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 									<code className="text-dbz-yellow normal-case font-mono">{`{${v.name}}`}</code>
 									{" — "}
-									<span className="text-white/30 normal-case font-normal">
-										{v.description}
-									</span>
+									<span className="text-white/30 normal-case font-normal">{v.description}</span>
 								</label>
 								<input
 									className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
 									value={previewVars[v.name] ?? ""}
-									onChange={(e) =>
-										setPreviewVars({ ...previewVars, [v.name]: e.target.value })
-									}
+									onChange={(e) => setPreviewVars({ ...previewVars, [v.name]: e.target.value })}
 								/>
 							</div>
 						))}
@@ -373,9 +339,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							<p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">
 								Rendu final
 							</p>
-							<p className="whitespace-pre-wrap text-sm text-white">
-								{previewResult}
-							</p>
+							<p className="whitespace-pre-wrap text-sm text-white">{previewResult}</p>
 						</div>
 					)}
 				</div>
@@ -398,22 +362,17 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 	const settings = useQuery({
 		queryKey: ["settings", "all"],
 		queryFn: () =>
-			api.get<{ rows: { key: string; value: string }[] }>(
-				"/database/guild_settings?limit=200",
-			),
+			api.get<{ rows: { key: string; value: string }[] }>("/database/guild_settings?limit=200"),
 		staleTime: 30_000,
 	});
 	const channels = useQuery({
 		queryKey: ["discord", "channels"],
 		queryFn: () =>
-			api.get<{ channels: { id: string; name: string; type: number }[] }>(
-				"/discord/channels",
-			),
+			api.get<{ channels: { id: string; name: string; type: number }[] }>("/discord/channels"),
 		staleTime: 30_000,
 	});
 	if (VIRTUAL_CHANNEL_KEYS.has(channelKey)) {
-		const label =
-			CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
+		const label = CHANNEL_KEYS.find((k) => k.key === channelKey)?.label ?? channelKey;
 		return (
 			<p className="mt-1 text-xs text-dbz-blue-light">
 				Cible contextuelle : <strong>{label}</strong>{" "}
@@ -423,14 +382,13 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 			</p>
 		);
 	}
-	const value = (
-		settings.data as { rows?: { key: string; value: string }[] }
-	)?.rows?.find((s) => s.key === channelKey)?.value;
+	const value = (settings.data as { rows?: { key: string; value: string }[] })?.rows?.find(
+		(s) => s.key === channelKey
+	)?.value;
 	if (!value) {
 		return (
 			<p className="mt-1 text-xs text-dbz-yellow">
-				Aucun salon configuré pour cette clé — le bot utilisera la valeur par
-				défaut.
+				Aucun salon configuré pour cette clé — le bot utilisera la valeur par défaut.
 			</p>
 		);
 	}

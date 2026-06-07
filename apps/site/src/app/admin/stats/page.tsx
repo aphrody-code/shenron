@@ -50,15 +50,11 @@ export default function StatsPage() {
 			</div>
 
 			<div className="card">
-				<h2 className="mb-4 text-lg font-semibold">
-					Classement — top 20 par XP
-				</h2>
+				<h2 className="mb-4 text-lg font-semibold">Classement — top 20 par XP</h2>
 				<div className="space-y-2">
 					{top.data?.users.map((u, i) => (
 						<div key={u.id} className="flex items-center gap-3">
-							<span className="w-8 text-right font-mono text-xs text-zinc-500">
-								#{i + 1}
-							</span>
+							<span className="w-8 text-right font-mono text-xs text-zinc-500">#{i + 1}</span>
 							<code className="w-32 truncate text-xs">{u.id}</code>
 							<div className="relative flex-1">
 								<div className="h-6 rounded bg-zinc-800">
@@ -85,15 +81,7 @@ export default function StatsPage() {
 	);
 }
 
-function MiniStat({
-	icon,
-	title,
-	value,
-}: {
-	icon: React.ReactNode;
-	title: string;
-	value: string;
-}) {
+function MiniStat({ icon, title, value }: { icon: React.ReactNode; title: string; value: string }) {
 	return (
 		<div className="card">
 			<div className="mb-2 flex items-center gap-2 text-zinc-400">

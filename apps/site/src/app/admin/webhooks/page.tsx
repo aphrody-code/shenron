@@ -1,14 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	Plus,
-	Send,
-	Trash2,
-	Webhook as WebhookIcon,
-	Copy,
-	Check,
-} from "lucide-react";
+import { Plus, Send, Trash2, Webhook as WebhookIcon, Copy, Check } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "@/lib/admin-api";
 
@@ -42,7 +35,7 @@ export default function WebhooksPage() {
 		queryKey: ["webhooks", filterChannel],
 		queryFn: () =>
 			api.get<{ webhooks: Webhook[] }>(
-				filterChannel ? `/webhooks?channel_id=${filterChannel}` : "/webhooks",
+				filterChannel ? `/webhooks?channel_id=${filterChannel}` : "/webhooks"
 			),
 	});
 
@@ -58,11 +51,8 @@ export default function WebhooksPage() {
 	});
 
 	const textChannels = useMemo(
-		() =>
-			(channels.data?.channels ?? []).filter(
-				(c) => c.type === 0 || c.type === 5,
-			),
-		[channels.data],
+		() => (channels.data?.channels ?? []).filter((c) => c.type === 0 || c.type === 5),
+		[channels.data]
 	);
 
 	const [createForm, setCreateForm] = useState({ channel_id: "", name: "" });
@@ -71,7 +61,7 @@ export default function WebhooksPage() {
 	function handleDelete(w: Webhook) {
 		if (
 			!confirm(
-				`Supprimer le webhook « ${w.name ?? "(sans nom)"} » ?\n\nLes intégrations qui utilisent ce webhook ne fonctionneront plus.`,
+				`Supprimer le webhook « ${w.name ?? "(sans nom)"} » ?\n\nLes intégrations qui utilisent ce webhook ne fonctionneront plus.`
 			)
 		)
 			return;
@@ -83,27 +73,21 @@ export default function WebhooksPage() {
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 mb-2">
 					<WebhookIcon className="h-5 w-5 text-dbz-orange" />
-					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
-						Webhooks Discord
-					</h2>
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Webhooks Discord</h2>
 				</div>
 				<p className="text-sm text-zinc-300">
-					Un webhook est une adresse URL secrète qui permet d'envoyer des
-					messages dans un salon Discord sans avoir besoin que le bot soit
-					connecté. Utile pour des notifications externes, des alertes ou des
-					intégrations avec d'autres outils.
+					Un webhook est une adresse URL secrète qui permet d'envoyer des messages dans un salon
+					Discord sans avoir besoin que le bot soit connecté. Utile pour des notifications externes,
+					des alertes ou des intégrations avec d'autres outils.
 				</p>
 				<p className="mt-1 text-xs text-dbz-blue-light">
-					Gestion via l'API Discord directement · lecture, création, suppression
-					et envoi de message
+					Gestion via l'API Discord directement · lecture, création, suppression et envoi de message
 				</p>
 			</div>
 
 			<div className="dbz-panel p-3 flex flex-wrap items-end gap-3">
 				<div className="min-w-[200px] flex-1">
-					<label className="mb-1 block text-xs text-zinc-400">
-						Filtrer par salon
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Filtrer par salon</label>
 					<select
 						className="w-full bg-dbz-bg border border-dbz-border rounded px-2 py-1.5 text-sm text-zinc-200 focus:border-dbz-orange outline-none"
 						value={filterChannel}
@@ -129,15 +113,11 @@ export default function WebhooksPage() {
 				className="dbz-panel p-4 grid gap-3 sm:grid-cols-3"
 			>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						Salon cible
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Salon cible</label>
 					<select
 						className="w-full bg-dbz-bg border border-dbz-border rounded px-2 py-1.5 text-sm text-zinc-200 focus:border-dbz-orange outline-none"
 						value={createForm.channel_id}
-						onChange={(e) =>
-							setCreateForm({ ...createForm, channel_id: e.target.value })
-						}
+						onChange={(e) => setCreateForm({ ...createForm, channel_id: e.target.value })}
 						required
 					>
 						<option value="">— Choisir un salon —</option>
@@ -149,15 +129,11 @@ export default function WebhooksPage() {
 					</select>
 				</div>
 				<div>
-					<label className="mb-1 block text-xs text-zinc-400">
-						Nom du webhook
-					</label>
+					<label className="mb-1 block text-xs text-zinc-400">Nom du webhook</label>
 					<input
 						className="w-full bg-dbz-bg border border-dbz-border rounded px-2 py-1.5 text-sm text-zinc-200 focus:border-dbz-orange outline-none"
 						value={createForm.name}
-						onChange={(e) =>
-							setCreateForm({ ...createForm, name: e.target.value })
-						}
+						onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
 						placeholder="Mon webhook"
 						maxLength={80}
 						required
@@ -165,9 +141,7 @@ export default function WebhooksPage() {
 				</div>
 				<button
 					type="submit"
-					disabled={
-						create.isPending || !createForm.channel_id || !createForm.name
-					}
+					disabled={create.isPending || !createForm.channel_id || !createForm.name}
 					className="dbz-button self-end disabled:opacity-40"
 				>
 					<Plus className="h-3 w-3 inline-block mr-1" />
@@ -189,10 +163,7 @@ export default function WebhooksPage() {
 					<tbody className="divide-y divide-dbz-border">
 						{webhooks.isLoading && (
 							<tr>
-								<td
-									colSpan={5}
-									className="p-6 text-center text-zinc-500 text-sm"
-								>
+								<td colSpan={5} className="p-6 text-center text-zinc-500 text-sm">
 									Chargement…
 								</td>
 							</tr>
@@ -201,15 +172,11 @@ export default function WebhooksPage() {
 							const chan = textChannels.find((c) => c.id === w.channel_id);
 							return (
 								<tr key={w.id} className="hover:bg-dbz-blue-light/5">
-									<td className="px-3 py-2 text-zinc-100">
-										{w.name ?? "(sans nom)"}
-									</td>
+									<td className="px-3 py-2 text-zinc-100">{w.name ?? "(sans nom)"}</td>
 									<td className="px-3 py-2 text-zinc-400">
 										{chan ? `#${chan.name}` : w.channel_id}
 									</td>
-									<td className="px-3 py-2 font-mono text-xs text-zinc-500">
-										{w.id}
-									</td>
+									<td className="px-3 py-2 font-mono text-xs text-zinc-500">{w.id}</td>
 									<td className="px-3 py-2">
 										<CopyUrl url={w.url ?? ""} />
 									</td>
@@ -240,10 +207,7 @@ export default function WebhooksPage() {
 						})}
 						{webhooks.data?.webhooks.length === 0 && (
 							<tr>
-								<td
-									colSpan={5}
-									className="p-6 text-center text-sm text-zinc-500"
-								>
+								<td colSpan={5} className="p-6 text-center text-sm text-zinc-500">
 									Aucun webhook trouvé pour ce filtre.
 								</td>
 							</tr>
@@ -273,25 +237,13 @@ function CopyUrl({ url }: { url: string }) {
 			className="flex items-center gap-1 text-xs text-zinc-400 hover:text-dbz-orange transition-colors"
 			title="Copier l'URL du webhook"
 		>
-			{copied ? (
-				<Check className="h-3 w-3 text-green-400" />
-			) : (
-				<Copy className="h-3 w-3" />
-			)}
-			<span className="font-mono">
-				{copied ? "Copié !" : `${url.slice(0, 40)}…`}
-			</span>
+			{copied ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+			<span className="font-mono">{copied ? "Copié !" : `${url.slice(0, 40)}…`}</span>
 		</button>
 	);
 }
 
-function ExecuteModal({
-	webhook,
-	onClose,
-}: {
-	webhook: Webhook;
-	onClose: () => void;
-}) {
+function ExecuteModal({ webhook, onClose }: { webhook: Webhook; onClose: () => void }) {
 	const [content, setContent] = useState("");
 	const [username, setUsername] = useState(webhook.name ?? "");
 	const [avatarUrl, setAvatarUrl] = useState("");
@@ -322,8 +274,7 @@ function ExecuteModal({
 			return api.post("/webhooks/execute", payload);
 		},
 		onSuccess: () => setResult("Message envoyé avec succès"),
-		onError: (err) =>
-			setResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
+		onError: (err) => setResult(`Erreur : ${err instanceof Error ? err.message : String(err)}`),
 	});
 
 	return (
@@ -344,8 +295,8 @@ function ExecuteModal({
 				</div>
 
 				<p className="text-xs text-zinc-400 mb-4">
-					Ce message sera posté dans le salon Discord associé au webhook, comme
-					s'il venait d'un bot externe.
+					Ce message sera posté dans le salon Discord associé au webhook, comme s'il venait d'un bot
+					externe.
 				</p>
 
 				<div className="space-y-3">
@@ -409,18 +360,14 @@ function ExecuteModal({
 							maxLength={4096}
 						/>
 						<div className="flex items-center gap-2">
-							<label className="text-xs text-zinc-400">
-								Couleur de la barre
-							</label>
+							<label className="text-xs text-zinc-400">Couleur de la barre</label>
 							<input
 								type="color"
 								value={embedColor}
 								onChange={(e) => setEmbedColor(e.target.value)}
 								className="h-8 w-16 rounded border border-dbz-border bg-dbz-bg cursor-pointer"
 							/>
-							<span className="font-mono text-xs text-zinc-500">
-								{embedColor}
-							</span>
+							<span className="font-mono text-xs text-zinc-500">{embedColor}</span>
 						</div>
 					</fieldset>
 
@@ -447,9 +394,7 @@ function ExecuteModal({
 						<button
 							type="button"
 							onClick={() => send.mutate()}
-							disabled={
-								send.isPending || (!content && !embedTitle && !embedDesc)
-							}
+							disabled={send.isPending || (!content && !embedTitle && !embedDesc)}
 							className="dbz-button !text-xs disabled:opacity-40"
 						>
 							<Send className="h-3 w-3 inline-block mr-1" />

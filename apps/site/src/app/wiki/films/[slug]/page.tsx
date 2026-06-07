@@ -46,20 +46,14 @@ export async function generateMetadata({
 	};
 }
 
-export default async function FilmPage({
-	params,
-}: {
-	params: Promise<{ slug: string }>;
-}) {
+export default async function FilmPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
 	if (!m) notFound();
 
 	const getYoutubeId = (url: string | null) => {
 		if (!url) return null;
-		const match = url.match(
-			/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11})/,
-		);
+		const match = url.match(/(?:youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]{11})/);
 		return match ? match[1] : null;
 	};
 	const youtubeId = getYoutubeId(m.trailer_url);
@@ -86,11 +80,13 @@ export default async function FilmPage({
 	const jsonLdData: WithContext<MovieSchema> = {
 		"@context": "https://schema.org",
 		"@type": "Movie",
-		"name": m.title,
-		"image": m.poster ? assetUrl(m.poster) : undefined,
-		"description": m.synopsis ?? undefined,
-		"dateCreated": m.release_date ? new Date(m.release_date * 1000).toISOString().split("T")[0] : undefined,
-		"duration": m.duration_min ? `PT${m.duration_min}M` : undefined,
+		name: m.title,
+		image: m.poster ? assetUrl(m.poster) : undefined,
+		description: m.synopsis ?? undefined,
+		dateCreated: m.release_date
+			? new Date(m.release_date * 1000).toISOString().split("T")[0]
+			: undefined,
+		duration: m.duration_min ? `PT${m.duration_min}M` : undefined,
 	};
 
 	return (
@@ -171,9 +167,7 @@ export default async function FilmPage({
 									<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1">
 										Durée
 									</dt>
-									<dd className="font-display text-white">
-										{m.duration_min} min
-									</dd>
+									<dd className="font-display text-white">{m.duration_min} min</dd>
 								</div>
 							)}
 						</dl>

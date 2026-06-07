@@ -34,17 +34,15 @@ export function Cron() {
 		onSuccess: () => qc.invalidateQueries({ queryKey: ["cron"] }),
 	});
 
-	if (isLoading)
-		return <div className="text-zinc-500">Chargement en cours…</div>;
+	if (isLoading) return <div className="text-zinc-500">Chargement en cours…</div>;
 
 	return (
 		<div className="space-y-4">
 			<div className="card">
 				<h2 className="text-lg font-semibold">Tâches planifiées</h2>
 				<p className="mt-1 text-sm text-zinc-400">
-					Tâches périodiques enregistrées dans <code>CronRegistry</code>.
-					Actualisation automatique toutes les 5 secondes. La cadence
-					(intervalle) est éditable inline et persistée dans{" "}
+					Tâches périodiques enregistrées dans <code>CronRegistry</code>. Actualisation automatique
+					toutes les 5 secondes. La cadence (intervalle) est éditable inline et persistée dans{" "}
 					<code>cron.&lt;name&gt;.interval_ms</code>.
 				</p>
 			</div>
@@ -54,14 +52,8 @@ export function Cron() {
 					<div key={job.name} className="card">
 						<div className="mb-3 flex items-start justify-between gap-3">
 							<div>
-								<h3 className="font-mono text-sm font-semibold text-brand-400">
-									{job.name}
-								</h3>
-								{job.description && (
-									<p className="mt-1 text-xs text-zinc-400">
-										{job.description}
-									</p>
-								)}
+								<h3 className="font-mono text-sm font-semibold text-brand-400">{job.name}</h3>
+								{job.description && <p className="mt-1 text-xs text-zinc-400">{job.description}</p>}
 							</div>
 							<button
 								type="button"
@@ -80,9 +72,7 @@ export function Cron() {
 								<dd className="font-medium">
 									<IntervalEditor
 										job={job}
-										onSave={(intervalMs) =>
-											updateInterval.mutate({ name: job.name, intervalMs })
-										}
+										onSave={(intervalMs) => updateInterval.mutate({ name: job.name, intervalMs })}
 										saving={updateInterval.isPending}
 									/>
 								</dd>
@@ -96,10 +86,7 @@ export function Cron() {
 								<dd className="font-medium">
 									{formatRelative(job.lastRunAt)}
 									{job.lastDurationMs != null && (
-										<span className="text-zinc-500">
-											{" "}
-											({job.lastDurationMs} ms)
-										</span>
+										<span className="text-zinc-500"> ({job.lastDurationMs} ms)</span>
 									)}
 								</dd>
 							</div>

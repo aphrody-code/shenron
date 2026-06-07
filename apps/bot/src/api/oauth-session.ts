@@ -33,9 +33,7 @@ export interface UsableSession {
 	refreshedCookie?: string;
 }
 
-export async function getDiscordSession(
-	req: Request,
-): Promise<UsableSession | null> {
+export async function getDiscordSession(req: Request): Promise<UsableSession | null> {
 	// Source 1 : cookie HMAC legacy
 	const cookie = readCookie(req, "shenron_session");
 	const payload = await verifySession(cookie);
@@ -84,12 +82,7 @@ export async function getDiscordSession(
 	const accounts = await dbs.db
 		.select()
 		.from(baAccount)
-		.where(
-			and(
-				eq(baAccount.userId, baSession.user.id),
-				eq(baAccount.providerId, "discord"),
-			),
-		)
+		.where(and(eq(baAccount.userId, baSession.user.id), eq(baAccount.providerId, "discord")))
 		.limit(1);
 	const acc = accounts[0];
 	if (!acc?.accessToken) return null;

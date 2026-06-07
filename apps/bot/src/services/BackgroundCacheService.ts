@@ -25,8 +25,7 @@ export class BackgroundCacheService {
 
 	async get(relativePath: string): Promise<Image | null> {
 		// Cache hit (même null négatif pour éviter de re-tenter)
-		if (this.cache.has(relativePath))
-			return this.cache.get(relativePath) ?? null;
+		if (this.cache.has(relativePath)) return this.cache.get(relativePath) ?? null;
 
 		// Évite la double-charge si plusieurs services demandent en parallèle
 		const pending = this.inflight.get(relativePath);
@@ -50,10 +49,7 @@ export class BackgroundCacheService {
 			}
 			const buf = Buffer.from(await file.arrayBuffer());
 			const img = await loadImage(buf);
-			logger.debug(
-				{ path: relativePath, w: img.width, h: img.height },
-				"background loaded",
-			);
+			logger.debug({ path: relativePath, w: img.width, h: img.height }, "background loaded");
 			return img;
 		} catch (err) {
 			logger.warn({ err, path: relativePath }, "background load failed");

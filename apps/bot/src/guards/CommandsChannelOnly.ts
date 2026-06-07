@@ -1,9 +1,5 @@
 import type { GuardFunction } from "@rpbey/discordy";
-import type {
-	CommandInteraction,
-	ButtonInteraction,
-	ModalSubmitInteraction,
-} from "discord.js";
+import type { CommandInteraction, ButtonInteraction, ModalSubmitInteraction } from "discord.js";
 import { MessageFlags, PermissionFlagsBits } from "discord.js";
 import { container } from "tsyringe";
 import { env } from "~/lib/env";

@@ -7,10 +7,10 @@
 import { Modifier, type ParameterDecoratorEx } from "@rpbey/internal";
 
 import {
-  DApplicationCommandOption,
-  DApplicationCommandOptionChoice,
-  MetadataStorage,
-  type SlashChoiceType,
+	DApplicationCommandOption,
+	DApplicationCommandOptionChoice,
+	MetadataStorage,
+	type SlashChoiceType,
 } from "../../index.js";
 import type { NotEmpty } from "../../types/index.js";
 
@@ -24,9 +24,7 @@ import type { NotEmpty } from "../../types/index.js";
  *
  * @category Decorator
  */
-export function SlashChoice<T extends string>(
-  ...choices: NotEmpty<T>[]
-): ParameterDecoratorEx;
+export function SlashChoice<T extends string>(...choices: NotEmpty<T>[]): ParameterDecoratorEx;
 
 /**
  * The slash command option can implement autocompletion for string and number types
@@ -51,7 +49,7 @@ export function SlashChoice(...choices: number[]): ParameterDecoratorEx;
  * @category Decorator
  */
 export function SlashChoice<T extends string, X = string | number>(
-  ...choices: SlashChoiceType<T, X>[]
+	...choices: SlashChoiceType<T, X>[]
 ): ParameterDecoratorEx;
 
 /**
@@ -65,30 +63,30 @@ export function SlashChoice<T extends string, X = string | number>(
  * @category Decorator
  */
 export function SlashChoice(
-  ...choices: (number | string | SlashChoiceType)[]
+	...choices: (number | string | SlashChoiceType)[]
 ): ParameterDecoratorEx {
-  return (target, key, index) => {
-    MetadataStorage.instance.addModifier(
-      Modifier.create<DApplicationCommandOption>((original) => {
-        const allChoices = choices.map((choice) => {
-          const resolveChoice =
-            typeof choice === "number"
-              ? { name: choice.toString(), value: choice }
-              : typeof choice === "string"
-                ? { name: choice, value: choice }
-                : choice;
+	return (target, key, index) => {
+		MetadataStorage.instance.addModifier(
+			Modifier.create<DApplicationCommandOption>((original) => {
+				const allChoices = choices.map((choice) => {
+					const resolveChoice =
+						typeof choice === "number"
+							? { name: choice.toString(), value: choice }
+							: typeof choice === "string"
+								? { name: choice, value: choice }
+								: choice;
 
-          return DApplicationCommandOptionChoice.create(resolveChoice);
-        });
+					return DApplicationCommandOptionChoice.create(resolveChoice);
+				});
 
-        original.choices = [...allChoices, ...original.choices];
-      }, DApplicationCommandOption).decorate(
-        target.constructor,
-        key,
-        target[key],
-        target.constructor,
-        index,
-      ),
-    );
-  };
+				original.choices = [...allChoices, ...original.choices];
+			}, DApplicationCommandOption).decorate(
+				target.constructor,
+				key,
+				target[key],
+				target.constructor,
+				index
+			)
+		);
+	};
 }

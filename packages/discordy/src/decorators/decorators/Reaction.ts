@@ -29,9 +29,7 @@ export function Reaction(): MethodDecoratorEx;
  *
  * @category Decorator
  */
-export function Reaction<T extends string>(
-  options: ReactionOptions<T>,
-): MethodDecoratorEx;
+export function Reaction<T extends string>(options: ReactionOptions<T>): MethodDecoratorEx;
 
 /**
  * Handle a reaction with a specified emoji (a Unicode string, custom name, or Snowflake)
@@ -44,18 +42,18 @@ export function Reaction<T extends string>(
  * @category Decorator
  */
 export function Reaction(options?: ReactionOptions): MethodDecoratorEx {
-  return (target, key) => {
-    const react = DReaction.create({
-      aliases: options?.aliases,
-      botIds: options?.botIds,
-      description: options?.description,
-      directMessage: options?.directMessage,
-      emoji: options?.emoji ?? key,
-      guilds: options?.guilds,
-      partial: options?.partial,
-      remove: options?.remove,
-    }).decorate(target.constructor, key, target[key]);
+	return (target, key) => {
+		const react = DReaction.create({
+			aliases: options?.aliases,
+			botIds: options?.botIds,
+			description: options?.description,
+			directMessage: options?.directMessage,
+			emoji: options?.emoji ?? key,
+			guilds: options?.guilds,
+			partial: options?.partial,
+			remove: options?.remove,
+		}).decorate(target.constructor, key, target[key]);
 
-    MetadataStorage.instance.addReaction(react);
-  };
+		MetadataStorage.instance.addReaction(react);
+	};
 }

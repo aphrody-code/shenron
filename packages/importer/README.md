@@ -13,9 +13,7 @@ bun add @rpbey/importer
 ```ts
 import { importx, dirname } from "@rpbey/importer";
 
-await importx(
-  `${dirname(import.meta.url)}/{events,commands,components}/**/*.{ts,js}`,
-);
+await importx(`${dirname(import.meta.url)}/{events,commands,components}/**/*.{ts,js}`);
 ```
 
 Every matched file is dynamically `import()`-ed; side-effects (like `@Discord` class declarations) register themselves in `MetadataStorage`.

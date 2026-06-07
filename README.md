@@ -1,7 +1,6 @@
-
 > ⚠️ **INFRASTRUCTURE GÉRÉE PAR ANTIGRAVITY (GOD MODE)**
 > Ce projet opère sous la **Directive Omega**. L'architecture, les dépendances, et le code sont gérés et refactorisés de manière 100% autonome. Aucune sécurité conservative n'est appliquée. La performance brute est l'unique métrique.
-\n# Shenron
+> \n# Shenron
 
 Bot Discord thémé Dragon Ball pour un serveur communautaire — modération avancée, système de niveaux en "unités" de ki, économie en zéni, jeux, tickets, vocaux temporaires, cartes de profil rendues en canvas, et wiki des personnages.
 
@@ -50,14 +49,14 @@ Le bot tourne exclusivement sur **[Bun](https://bun.com)** — pas de Node requi
 
 Depuis 2026-05-01, **Shenron orchestre 6 personas Discord dans 1 process Bun** — chaque persona = 1 application Discord distincte avec son propre token, son set de slash commands, et ses events :
 
-| Persona | Rôle | Commandes |
-|---|---|---|
-| **Shenron** | Admin · héberge l'API REST (5006) + dashboard | `/admin /config /ids /niveau /succes` |
-| **Beerus** | Modération | `/warn /mute /ban /kick /clear /purge /role /lock /slowmode /nick /note /stats /sstats` |
-| **Whis** | Utility | `/help /scan /ticket /wiki /races /planete /ask` |
-| **Grand Prêtre** | Logs | (events only — `MessageLog`, `JoinLeave`, `BioRole`, `AuditLog`, `InteractionLog`) |
-| **Enma** | Détention | `/jail /unjail` |
-| **Kaïo** | Jeux + économie | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
+| Persona          | Rôle                                          | Commandes                                                                                                                    |
+| ---------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Shenron**      | Admin · héberge l'API REST (5006) + dashboard | `/admin /config /ids /niveau /succes`                                                                                        |
+| **Beerus**       | Modération                                    | `/warn /mute /ban /kick /clear /purge /role /lock /slowmode /nick /note /stats /sstats`                                      |
+| **Whis**         | Utility                                       | `/help /scan /ticket /wiki /races /planete /ask`                                                                             |
+| **Grand Prêtre** | Logs                                          | (events only — `MessageLog`, `JoinLeave`, `BioRole`, `AuditLog`, `InteractionLog`)                                           |
+| **Enma**         | Détention                                     | `/jail /unjail`                                                                                                              |
+| **Kaïo**         | Jeux + économie                               | `/shop /buy /eprofil /fusion /defusion /solde /gay /raciste /custom /bingo /morpion /pendu /pfc /giveaway /profil /top /voc` |
 
 Toutes les personas partagent la même DB SQLite + les mêmes singletons tsyringe (cohérence transactionnelle). Le routage par persona se fait via `@Discord()` + `@Bot("<id>")` du fork [`@rpbey/discordy`](https://github.com/rpbey/discordx). Le mapping vit dans [`src/lib/personas.ts`](src/lib/personas.ts).
 
@@ -122,14 +121,14 @@ Un site Next.js public accompagne le bot, accessible uniquement via l'URL unique
 
 Le bot expose une API REST `Bun.serve` interne (`127.0.0.1:5006` par défaut) **tscord-compatible** — surface alignée sur les controllers de [`@rpbey/tscord`](../../packages/tscord/), donc un fork de [`barthofu/tscord-dashboard`](https://github.com/barthofu/tscord-dashboard) peut consommer cette API directement.
 
-| Catégorie | Routes | Auth |
-|---|---|---|
-| **Public** | `/health/check` `/health/latency` `/openapi` `/` | aucune |
-| **Health admin** | `/health/usage` `/health/host` `/health/monitoring` | Bearer |
-| **Stats** | `/stats/totals` `/stats/interaction/last` `/stats/guilds/last` | Bearer |
-| **Bot** | `/bot/guilds` `/bot/commands` `/bot/commands/:name` | Bearer |
-| **Cron** | `GET /cron` · `POST /cron/:name/trigger` | Bearer |
-| **Services** | `GET /services` · `POST /services/:service/:action` | Bearer |
+| Catégorie         | Routes                                                                                                            | Auth   |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- | ------ |
+| **Public**        | `/health/check` `/health/latency` `/openapi` `/`                                                                  | aucune |
+| **Health admin**  | `/health/usage` `/health/host` `/health/monitoring`                                                               | Bearer |
+| **Stats**         | `/stats/totals` `/stats/interaction/last` `/stats/guilds/last`                                                    | Bearer |
+| **Bot**           | `/bot/guilds` `/bot/commands` `/bot/commands/:name`                                                               | Bearer |
+| **Cron**          | `GET /cron` · `POST /cron/:name/trigger`                                                                          | Bearer |
+| **Services**      | `GET /services` · `POST /services/:service/:action`                                                               | Bearer |
 | **Database CRUD** | `GET /database/tables` · `GET /database/:table` · `GET/PUT/DELETE /database/:table/:id` · `POST /database/:table` | Bearer |
 
 **Cron jobs registrés** (auto via `CronRegistry`) : `voice-xp-tick`, `jail-expiry`, `bio-role-scan`. Trigger manuel via dashboard.
@@ -144,12 +143,12 @@ Auth via `API_ADMIN_TOKEN` env (Bearer). Spec OpenAPI 3.0.1 sur `/openapi`. Pour
 
 Au-delà du dashboard admin, le même `Bun.serve` expose une **surface publique** (CORS ouvert, sans Bearer) consommée par le site, l'app et la commande `/ask` :
 
-| Surface | Endpoint | Détail |
-|---|---|---|
-| **REST** | `/api/public/rag/search` + wiki / insights / médias | endpoints publics du wiki et de la recherche |
-| **GraphQL** | `/graphql` | read-only, code-first **Pothos** + **graphql-yoga**, GraphiQL activé, garde-fou profondeur max 10. Expose le wiki (`characters`, `planets`, `sagas`, `episodes`, `techniques`, `transformations`, `movies`, `games`, `races`) + relations + `ragSearch` + `counts` |
-| **OpenAPI 3.1** | `/api/openapi.json` | spec statique (CORS public, cache 1 h) couvrant la surface REST publique (RAG / Wiki / Insights / Médias) |
-| **Docs** | `/api/docs` | UI interactive **Scalar** (CDN, zéro dépendance) |
+| Surface         | Endpoint                                            | Détail                                                                                                                                                                                                                                                             |
+| --------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **REST**        | `/api/public/rag/search` + wiki / insights / médias | endpoints publics du wiki et de la recherche                                                                                                                                                                                                                       |
+| **GraphQL**     | `/graphql`                                          | read-only, code-first **Pothos** + **graphql-yoga**, GraphiQL activé, garde-fou profondeur max 10. Expose le wiki (`characters`, `planets`, `sagas`, `episodes`, `techniques`, `transformations`, `movies`, `games`, `races`) + relations + `ragSearch` + `counts` |
+| **OpenAPI 3.1** | `/api/openapi.json`                                 | spec statique (CORS public, cache 1 h) couvrant la surface REST publique (RAG / Wiki / Insights / Médias)                                                                                                                                                          |
+| **Docs**        | `/api/docs`                                         | UI interactive **Scalar** (CDN, zéro dépendance)                                                                                                                                                                                                                   |
 
 ### Recherche RAG (hybride + rerank)
 
@@ -164,18 +163,18 @@ Consommateurs : `/api/public/rag/search` (REST), `ragSearch` (GraphQL), commande
 
 ## Stack technique
 
-| Couche | Outil |
-|---|---|
-| Runtime | **Bun 1.3+** (aucune dépendance Node) |
-| Langage | TypeScript 5.9 |
-| Framework | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
-| DI | `tsyringe` + `reflect-metadata` |
-| Database | `bun:sqlite` + `drizzle-orm` 0.44 |
-| Validation | `zod` 4 |
-| Logging | `pino` + `pino-pretty` |
-| Canvas | `@aphrody/canvas` (profil, scan, top podium, fusion, gauges) |
-| Lint | `oxlint` (Rust, 135 règles actives) |
-| Tests | `bun:test` — 42 smoke tests, 1 par slash command |
+| Couche     | Outil                                                                                                 |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| Runtime    | **Bun 1.3+** (aucune dépendance Node)                                                                 |
+| Langage    | TypeScript 5.9                                                                                        |
+| Framework  | [`@rpbey/discordy`](https://www.npmjs.com/package/@rpbey/discordy) (décorateurs sur `discord.js` v14) |
+| DI         | `tsyringe` + `reflect-metadata`                                                                       |
+| Database   | `bun:sqlite` + `drizzle-orm` 0.44                                                                     |
+| Validation | `zod` 4                                                                                               |
+| Logging    | `pino` + `pino-pretty`                                                                                |
+| Canvas     | `@aphrody/canvas` (profil, scan, top podium, fusion, gauges)                                          |
+| Lint       | `oxlint` (Rust, 135 règles actives)                                                                   |
+| Tests      | `bun:test` — 42 smoke tests, 1 par slash command                                                      |
 
 ## Démarrage rapide (2 minutes)
 
@@ -263,19 +262,20 @@ https://discord.com/oauth2/authorize?client_id=CLIENT_ID&scope=bot+applications.
 
 Sur `https://discord.com/developers/applications/<APP_ID>/information` (onglet **General Information**), tu peux remplir :
 
-| Champ | Valeur recommandée |
-|---|---|
-| **Name** | `Shenron` |
-| **Description** (≤ 400) | `Bot Discord thématique Dragon Ball — modération, niveaux (unités de ki), économie en zéni, tickets, vocaux tempo, cartes canvas, wiki DBZ. Bun-only.` |
-| **Tags** (5 max) | `Moderation` · `Levels` · `Economy` · `Games` · `Utility` |
-| **App Icon** | Upload depuis `assets/logo.webp` |
-| **Cover Image** | Upload depuis `assets/backgrounds/galaxy/spiral-galaxy-m83.webp` (optionnel, régénère via `bun run bg:fetch` si gitignoré) |
-| **Privacy Policy URL** | `https://github.com/aphrody-code/shenron/blob/main/PRIVACY.md` |
-| **Terms of Service URL** | `https://github.com/aphrody-code/shenron/blob/main/TERMS.md` |
-| **Interactions Endpoint URL** | **Laisser vide** — Shenron passe par la Gateway WebSocket, pas les webhooks HTTP |
-| **Install Link** | `Discord Provided Link` (utilise celui du header ci-dessus) |
+| Champ                         | Valeur recommandée                                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Name**                      | `Shenron`                                                                                                                                              |
+| **Description** (≤ 400)       | `Bot Discord thématique Dragon Ball — modération, niveaux (unités de ki), économie en zéni, tickets, vocaux tempo, cartes canvas, wiki DBZ. Bun-only.` |
+| **Tags** (5 max)              | `Moderation` · `Levels` · `Economy` · `Games` · `Utility`                                                                                              |
+| **App Icon**                  | Upload depuis `assets/logo.webp`                                                                                                                       |
+| **Cover Image**               | Upload depuis `assets/backgrounds/galaxy/spiral-galaxy-m83.webp` (optionnel, régénère via `bun run bg:fetch` si gitignoré)                             |
+| **Privacy Policy URL**        | `https://github.com/aphrody-code/shenron/blob/main/PRIVACY.md`                                                                                         |
+| **Terms of Service URL**      | `https://github.com/aphrody-code/shenron/blob/main/TERMS.md`                                                                                           |
+| **Interactions Endpoint URL** | **Laisser vide** — Shenron passe par la Gateway WebSocket, pas les webhooks HTTP                                                                       |
+| **Install Link**              | `Discord Provided Link` (utilise celui du header ci-dessus)                                                                                            |
 
 Onglets connexes :
+
 - **Bot** → activer `Presence Intent`, `Server Members Intent`, `Message Content Intent`
 - **OAuth2** → URL Generator pour régénérer le lien d'invitation si tu changes de permissions
 - **Installation** → `User Install` désactivé (Shenron est guild-install uniquement)
@@ -291,6 +291,7 @@ Onglets connexes :
 - [Rate Limits](https://discord.com/developers/docs/topics/rate-limits) — éviter les 429
 
 Libs utilisées par Shenron :
+
 - [discord.js v14 guide](https://discordjs.guide/) · [API docs](https://discord.js.org/docs/packages/discord.js/main)
 - [`@rpbey/discordy`](https://github.com/rpbey/discordx) — décorateurs (fork de discordx)
 - [`@rpbey/pagination`](https://github.com/rpbey/pagination) — pagination bouton/select
@@ -319,6 +320,7 @@ bun run ids -- --json        # sortie brute JSON (pipe, automation)
 ```
 
 L'heuristique reconnaît des noms courants (insensible à la casse/accents) :
+
 - Rôles : `jail`, `prison`, `mute` → `JAIL_ROLE_ID` · `bio`, `url`, `vip`, `pub` → `URL_IN_BIO_ROLE_ID`
 - Salons : `log-messages`, `log-sanctions`, `log-eco`, `log-join-leave`, `log-level`, `log-tickets`, `mod-notif`, `ticket` (catégorie), `hub`/`tempo` (vocal)
 
@@ -334,12 +336,12 @@ Les IDs non reconnus par l'heuristique s'affichent quand même, il suffit de cop
 
 ### Scripts bash disponibles
 
-| Script | Usage | Fait quoi |
-|---|---|---|
-| `bash scripts/setup.sh` | One-shot setup | Vérifie Bun, installe les deps, copie `.env.example` → `.env`, applique les migrations, seed les triggers, (optionnel) seed du wiki |
-| `bash scripts/doctor.sh` | Health check | Vérifie Bun, `node_modules`, `.env` (3 champs requis, valeurs masquées), DB + migrations, **valide le token** via REST Discord, détecte process en cours |
-| `bash scripts/start.sh` | Launcher | `--prod` (pas de watch) / `--compiled` (binaire `dist/shenron`) / `--bg` (détaché + logs datés dans `logs/`) |
-| `bun scripts/deploy.ts --help` | Pipeline de déploiement | Build + type-check + lint + migrations + restart systemd avec options granulaires |
+| Script                         | Usage                   | Fait quoi                                                                                                                                                |
+| ------------------------------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bash scripts/setup.sh`        | One-shot setup          | Vérifie Bun, installe les deps, copie `.env.example` → `.env`, applique les migrations, seed les triggers, (optionnel) seed du wiki                      |
+| `bash scripts/doctor.sh`       | Health check            | Vérifie Bun, `node_modules`, `.env` (3 champs requis, valeurs masquées), DB + migrations, **valide le token** via REST Discord, détecte process en cours |
+| `bash scripts/start.sh`        | Launcher                | `--prod` (pas de watch) / `--compiled` (binaire `dist/shenron`) / `--bg` (détaché + logs datés dans `logs/`)                                             |
+| `bun scripts/deploy.ts --help` | Pipeline de déploiement | Build + type-check + lint + migrations + restart systemd avec options granulaires                                                                        |
 
 ### Installation manuelle
 
@@ -373,16 +375,16 @@ Toutes les variables sont validées via `zod` dans `src/lib/env.ts`. Les IDs Dis
 
 ### Variables requises
 
-| Variable | Type | Description |
-|---|---|---|
-| `DISCORD_TOKEN_SHENRON` (alias `DISCORD_TOKEN`) | string | Token du bot Shenron (admin + API REST) |
-| `DISCORD_TOKEN_BEERUS` | string | Token du bot Beerus (modération) |
-| `DISCORD_TOKEN_WHIS` | string | Token du bot Whis (utility) |
-| `DISCORD_TOKEN_GRAND_PRETRE` | string | Token du bot Grand Prêtre (logs — **privileged intents requis**) |
-| `DISCORD_TOKEN_ENMA` | string | Token du bot Enma (jail/unjail) |
-| `DISCORD_TOKEN_KAIO` | string | Token du bot Kaïo (jeux + éco — **MESSAGE CONTENT INTENT requis**) |
-| `GUILD_ID` | snowflake | ID du serveur — les 6 bots sont mono-guild forcé sur cette guild |
-| `OWNER_ID` | snowflake | ID du propriétaire (garde `OwnerOnly`, overrides statiques dans certaines commandes) |
+| Variable                                        | Type      | Description                                                                          |
+| ----------------------------------------------- | --------- | ------------------------------------------------------------------------------------ |
+| `DISCORD_TOKEN_SHENRON` (alias `DISCORD_TOKEN`) | string    | Token du bot Shenron (admin + API REST)                                              |
+| `DISCORD_TOKEN_BEERUS`                          | string    | Token du bot Beerus (modération)                                                     |
+| `DISCORD_TOKEN_WHIS`                            | string    | Token du bot Whis (utility)                                                          |
+| `DISCORD_TOKEN_GRAND_PRETRE`                    | string    | Token du bot Grand Prêtre (logs — **privileged intents requis**)                     |
+| `DISCORD_TOKEN_ENMA`                            | string    | Token du bot Enma (jail/unjail)                                                      |
+| `DISCORD_TOKEN_KAIO`                            | string    | Token du bot Kaïo (jeux + éco — **MESSAGE CONTENT INTENT requis**)                   |
+| `GUILD_ID`                                      | snowflake | ID du serveur — les 6 bots sont mono-guild forcé sur cette guild                     |
+| `OWNER_ID`                                      | snowflake | ID du propriétaire (garde `OwnerOnly`, overrides statiques dans certaines commandes) |
 
 > **Privileged intents** : Grand Prêtre nécessite `SERVER MEMBERS INTENT` + `PRESENCE INTENT` + `MESSAGE CONTENT INTENT` activés sur son app du dev portal Discord. Kaïo nécessite `MESSAGE CONTENT INTENT`. Sans ça, ces bots refusent le login (`Used disallowed intents`) — le service continue à tourner sans eux (login non-bloquant), Shenron seul est obligatoire.
 
@@ -390,34 +392,35 @@ Toutes les variables sont validées via `zod` dans `src/lib/env.ts`. Les IDs Dis
 
 ### Variables optionnelles
 
-| Variable | Description |
-|---|---|
-| `DATABASE_PATH` | Chemin vers le fichier SQLite (défaut : `./data/bot.db`) |
-| `LOG_MESSAGE_CHANNEL_ID` | Salon où envoyer les logs de messages supprimés/édités |
-| `LOG_SANCTION_CHANNEL_ID` | Salon logs sanctions (jail, mute, ban, warn, kick) |
-| `LOG_ECONOMY_CHANNEL_ID` | Salon logs économiques |
-| `LOG_JOIN_LEAVE_CHANNEL_ID` | Salon logs arrivées/départs (avec tracking de l'invitant) |
-| `LOG_LEVEL_ROLE_CHANNEL_ID` | Salon logs progression de niveau et attribution de rôles |
-| `LOG_TICKET_CHANNEL_ID` | Salon logs ouverture/fermeture de tickets |
-| `MOD_NOTIFY_CHANNEL_ID` | Salon où sont notifiés les mods à l'ouverture d'un ticket |
-| `JAIL_ROLE_ID` | Rôle appliqué par `/jail` (doit restreindre tous les salons sauf ticket) |
-| `URL_IN_BIO_ROLE_ID` | Rôle auto-attribué si l'invite est détectée dans le statut |
-| `TICKET_CATEGORY_ID` | Catégorie sous laquelle les tickets sont créés |
-| `VOCAL_TEMPO_HUB_ID` | Salon vocal hub — le rejoindre crée un vocal perso |
-| `ANNOUNCE_CHANNEL_ID` | Salon des annonces générales (quête quotidienne, level-up) |
-| `ACHIEVEMENT_CHANNEL_ID` | Salon dédié aux **🏆 accomplissements**. Si absent, retombe sur `ANNOUNCE_CHANNEL_ID`. Permet d'isoler les notifs de succès dans un canal cosmétique |
-| `COMMANDS_CHANNEL_ID` | Salon où les slash commands user (jeux, fun, profil) sont autorisées (les autres salons → message d'erreur) |
-| `LIBRETRANSLATE_URL` | Endpoint LibreTranslate (défaut : `http://127.0.0.1:5000` — assume self-host Docker, voir [setup-translate.sh](#scripts)) |
-| `LIBRETRANSLATE_API_KEY` | Clé optionnelle pour endpoint public `https://libretranslate.com` |
-| `API_ENABLED` | Démarrer ou pas l'API REST `Bun.serve` (défaut : `true`) |
-| `API_PORT` | Port d'écoute (défaut : `5006`) |
-| `API_HOST` | Bind address (défaut : `127.0.0.1` — exposer hors VPS via nginx vhost dédié) |
-| `API_ADMIN_TOKEN` | Bearer token pour routes admin. Si vide, routes admin → 503. Génère via `head -c 32 /dev/urandom \| base64` |
-| `SERVER_INVITE_URL` | URL d'invite du serveur (défaut : `discord.gg/`) — whitelist anti-lien + détection bio |
-| `LOG_LEVEL` | Niveau pino : `trace`, `debug`, `info`, `warn`, `error`, `fatal` (défaut : `info`) |
-| `NODE_ENV` | `development`, `production`, `test` (défaut : `development`) |
+| Variable                    | Description                                                                                                                                          |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_PATH`             | Chemin vers le fichier SQLite (défaut : `./data/bot.db`)                                                                                             |
+| `LOG_MESSAGE_CHANNEL_ID`    | Salon où envoyer les logs de messages supprimés/édités                                                                                               |
+| `LOG_SANCTION_CHANNEL_ID`   | Salon logs sanctions (jail, mute, ban, warn, kick)                                                                                                   |
+| `LOG_ECONOMY_CHANNEL_ID`    | Salon logs économiques                                                                                                                               |
+| `LOG_JOIN_LEAVE_CHANNEL_ID` | Salon logs arrivées/départs (avec tracking de l'invitant)                                                                                            |
+| `LOG_LEVEL_ROLE_CHANNEL_ID` | Salon logs progression de niveau et attribution de rôles                                                                                             |
+| `LOG_TICKET_CHANNEL_ID`     | Salon logs ouverture/fermeture de tickets                                                                                                            |
+| `MOD_NOTIFY_CHANNEL_ID`     | Salon où sont notifiés les mods à l'ouverture d'un ticket                                                                                            |
+| `JAIL_ROLE_ID`              | Rôle appliqué par `/jail` (doit restreindre tous les salons sauf ticket)                                                                             |
+| `URL_IN_BIO_ROLE_ID`        | Rôle auto-attribué si l'invite est détectée dans le statut                                                                                           |
+| `TICKET_CATEGORY_ID`        | Catégorie sous laquelle les tickets sont créés                                                                                                       |
+| `VOCAL_TEMPO_HUB_ID`        | Salon vocal hub — le rejoindre crée un vocal perso                                                                                                   |
+| `ANNOUNCE_CHANNEL_ID`       | Salon des annonces générales (quête quotidienne, level-up)                                                                                           |
+| `ACHIEVEMENT_CHANNEL_ID`    | Salon dédié aux **🏆 accomplissements**. Si absent, retombe sur `ANNOUNCE_CHANNEL_ID`. Permet d'isoler les notifs de succès dans un canal cosmétique |
+| `COMMANDS_CHANNEL_ID`       | Salon où les slash commands user (jeux, fun, profil) sont autorisées (les autres salons → message d'erreur)                                          |
+| `LIBRETRANSLATE_URL`        | Endpoint LibreTranslate (défaut : `http://127.0.0.1:5000` — assume self-host Docker, voir [setup-translate.sh](#scripts))                            |
+| `LIBRETRANSLATE_API_KEY`    | Clé optionnelle pour endpoint public `https://libretranslate.com`                                                                                    |
+| `API_ENABLED`               | Démarrer ou pas l'API REST `Bun.serve` (défaut : `true`)                                                                                             |
+| `API_PORT`                  | Port d'écoute (défaut : `5006`)                                                                                                                      |
+| `API_HOST`                  | Bind address (défaut : `127.0.0.1` — exposer hors VPS via nginx vhost dédié)                                                                         |
+| `API_ADMIN_TOKEN`           | Bearer token pour routes admin. Si vide, routes admin → 503. Génère via `head -c 32 /dev/urandom \| base64`                                          |
+| `SERVER_INVITE_URL`         | URL d'invite du serveur (défaut : `discord.gg/`) — whitelist anti-lien + détection bio                                                               |
+| `LOG_LEVEL`                 | Niveau pino : `trace`, `debug`, `info`, `warn`, `error`, `fatal` (défaut : `info`)                                                                   |
+| `NODE_ENV`                  | `development`, `production`, `test` (défaut : `development`)                                                                                         |
 
 > **Stack `/translate` (FOSS)** — pas de clé requise. Installer via `sudo bash scripts/setup-translate.sh` :
+>
 > - **Tesseract OCR** (Apache 2.0) installé en `apt` avec packs langue `fra/eng/jpn/spa/deu/ita`
 > - **LibreTranslate** (AGPL-3.0) lancé en Docker container (port 5000 bind 127.0.0.1, modèles `en,fr,ja,es,de,it`)
 >
@@ -448,37 +451,37 @@ Puis crée quelques entrées de shop en base (voir [Shop](#shop--customisation))
 <details>
 <summary><strong>Niveaux & profil</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/profil [membre]` | Carte de profil (canvas 1000×360, 8 thèmes avec backgrounds NASA) |
-| `/top` | Classement : **canvas podium 1-2-3** + liste 4-10, boutons Précédent/Suivant FR |
-| `/solde [membre]` | Voir le solde de zéni |
-| `/scan [membre]` | Scouter mini-card (canvas 500×200 avec scanlines et font DBS Scouter) |
+| Commande           | Description                                                                     |
+| ------------------ | ------------------------------------------------------------------------------- |
+| `/profil [membre]` | Carte de profil (canvas 1000×360, 8 thèmes avec backgrounds NASA)               |
+| `/top`             | Classement : **canvas podium 1-2-3** + liste 4-10, boutons Précédent/Suivant FR |
+| `/solde [membre]`  | Voir le solde de zéni                                                           |
+| `/scan [membre]`   | Scouter mini-card (canvas 500×200 avec scanlines et font DBS Scouter)           |
 
 </details>
 
 <details>
 <summary><strong>Économie</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/shop` | Shop paginé (cartes, badges, couleurs, titres) |
-| `/buy <clé>` | Acheter un objet |
-| `/eprofil` | Éditer le profil (modal : carte / badge / couleur / titre) |
+| Commande           | Description                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `/shop`            | Shop paginé (cartes, badges, couleurs, titres)                                              |
+| `/buy <clé>`       | Acheter un objet                                                                            |
+| `/eprofil`         | Éditer le profil (modal : carte / badge / couleur / titre)                                  |
 | `/fusion <membre>` | **Canvas dual-portrait** (propose → success après accept) — bonus +10 % XP et zéni partagés |
-| `/defusion` | Rompre la fusion |
+| `/defusion`        | Rompre la fusion                                                                            |
 
 </details>
 
 <details>
 <summary><strong>Jeux</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/pfc <bot\|joueur> [adversaire]` | Pierre-Feuille-Ciseaux |
+| Commande                              | Description                                                                              |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `/pfc <bot\|joueur> [adversaire]`     | Pierre-Feuille-Ciseaux                                                                   |
 | `/morpion <bot\|joueur> [adversaire]` | Morpion (IA défensive : gagner > bloquer > centre > coin, ligne gagnante surlignée vert) |
-| `/bingo <bot\|joueur> [adversaire]` | Devine le nombre (1–100) |
-| `/pendu <bot\|joueur> [adversaire]` | Pendu avec mots DBZ — embed avec nb lettres, lettres trouvées/ratées, ASCII art |
+| `/bingo <bot\|joueur> [adversaire]`   | Devine le nombre (1–100)                                                                 |
+| `/pendu <bot\|joueur> [adversaire]`   | Pendu avec mots DBZ — embed avec nb lettres, lettres trouvées/ratées, ASCII art          |
 
 Gains : **+100 zéni** au gagnant · **-50 zéni** au perdant (mode joueur).
 
@@ -489,22 +492,22 @@ Gains : **+100 zéni** au gagnant · **-50 zéni** au perdant (mode joueur).
 <details>
 <summary><strong>Tickets</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/ticket-panel` | (admin) publie le panel à 4 boutons |
+| Commande                                  | Description                                   |
+| ----------------------------------------- | --------------------------------------------- |
+| `/ticket-panel`                           | (admin) publie le panel à 4 boutons           |
 | `/ticket add\|remove <utilisateur\|rôle>` | Ajouter / retirer quelqu'un du ticket courant |
-| `/close` | Fermer le ticket courant |
+| `/close`                                  | Fermer le ticket courant                      |
 
 </details>
 
 <details>
 <summary><strong>Vocaux temporaires</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/voc kick <membre>` | Expulser un membre du vocal |
-| `/voc ban <membre>` | Bannir un membre du vocal |
-| `/voc unban <membre>` | Débannir |
+| Commande              | Description                 |
+| --------------------- | --------------------------- |
+| `/voc kick <membre>`  | Expulser un membre du vocal |
+| `/voc ban <membre>`   | Bannir un membre du vocal   |
+| `/voc unban <membre>` | Débannir                    |
 
 Le vocal est automatiquement créé en rejoignant le hub configuré, et supprimé 60 secondes après le départ du dernier membre.
 
@@ -513,64 +516,64 @@ Le vocal est automatiquement créé en rejoignant le hub configuré, et supprim�
 <details>
 <summary><strong>Fun</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/gay <membre>` | **Canvas scouter gauge** — % déterministe par jour (override : `0` si cible = `OWNER_ID`) |
-| `/raciste <membre>` | **Canvas scouter gauge** rouge — override : `101` (overflow) si cible = `OWNER_ID` |
-| `/translate [image] [url] [langue]` | **OCR Tesseract + LibreTranslate** — 100 % FOSS, langues : FR/EN/ES/DE/IT/JA. Cap image 10 MiB, timeout tesseract 30 s, timeout LibreTranslate 8 s, garde SSRF (refuse IPs privées et `file://`) |
-| **menu contextuel "Traduire en VF"** | Clic droit sur un message → Apps → traduit la 1re image attachée |
+| Commande                             | Description                                                                                                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/gay <membre>`                      | **Canvas scouter gauge** — % déterministe par jour (override : `0` si cible = `OWNER_ID`)                                                                                                        |
+| `/raciste <membre>`                  | **Canvas scouter gauge** rouge — override : `101` (overflow) si cible = `OWNER_ID`                                                                                                               |
+| `/translate [image] [url] [langue]`  | **OCR Tesseract + LibreTranslate** — 100 % FOSS, langues : FR/EN/ES/DE/IT/JA. Cap image 10 MiB, timeout tesseract 30 s, timeout LibreTranslate 8 s, garde SSRF (refuse IPs privées et `file://`) |
+| **menu contextuel "Traduire en VF"** | Clic droit sur un message → Apps → traduit la 1re image attachée                                                                                                                                 |
 
 </details>
 
 <details>
 <summary><strong>Wiki Dragon Ball</strong></summary>
 
-| Commande | Description |
-|---|---|
-| `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos) |
-| `/races <race>` | Personnages par race (Saiyan, Namekian, Android…) |
-| `/planete <planète>` | Fiche planète |
-| `/ask <question>` | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
+| Commande             | Description                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos)                                                      |
+| `/races <race>`      | Personnages par race (Saiyan, Namekian, Android…)                                                                  |
+| `/planete <planète>` | Fiche planète                                                                                                      |
+| `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
 
 </details>
 
 ### Modération
 
-| Commande | Perm requise | Description |
-|---|---|---|
-| `/warn <membre> [raison]` | Moderate Members | Avertissement (persisté) |
-| `/unwarn <membre>` | Moderate Members | Retire le dernier warn actif |
-| `/mute <membre> <durée> [raison]` | Moderate Members | Timeout natif Discord (format `10m`, `1h`, `1d`) |
-| `/unmute <membre>` | Moderate Members | Retire le timeout |
-| `/jail <membre> [durée] [raison]` | Moderate Members | Isole dans le jail (rôles sauvegardés pour restauration) |
-| `/unjail <membre>` | Moderate Members | Libère et restaure les rôles |
-| `/ban <membre> [raison]` | Ban Members | Ban définitif |
-| `/unban <userid> [raison]` | Ban Members | Unban par ID |
-| `/kick <membre> [raison]` | Kick Members | Expulsion |
-| `/clear <nombre> [membre]` | Manage Messages | Purge jusqu'à 100 messages, filtre optionnel par auteur |
-| `/stats [membre]` | — | Stats de modération d'un membre |
-| `/sstats` | Administrator | Stats du serveur |
-| `/role give\|remove <rôle> [membre]` | Manage Roles | Attribution de rôle (si membre vide : action globale, réservée admin) |
+| Commande                             | Perm requise     | Description                                                           |
+| ------------------------------------ | ---------------- | --------------------------------------------------------------------- |
+| `/warn <membre> [raison]`            | Moderate Members | Avertissement (persisté)                                              |
+| `/unwarn <membre>`                   | Moderate Members | Retire le dernier warn actif                                          |
+| `/mute <membre> <durée> [raison]`    | Moderate Members | Timeout natif Discord (format `10m`, `1h`, `1d`)                      |
+| `/unmute <membre>`                   | Moderate Members | Retire le timeout                                                     |
+| `/jail <membre> [durée] [raison]`    | Moderate Members | Isole dans le jail (rôles sauvegardés pour restauration)              |
+| `/unjail <membre>`                   | Moderate Members | Libère et restaure les rôles                                          |
+| `/ban <membre> [raison]`             | Ban Members      | Ban définitif                                                         |
+| `/unban <userid> [raison]`           | Ban Members      | Unban par ID                                                          |
+| `/kick <membre> [raison]`            | Kick Members     | Expulsion                                                             |
+| `/clear <nombre> [membre]`           | Manage Messages  | Purge jusqu'à 100 messages, filtre optionnel par auteur               |
+| `/stats [membre]`                    | —                | Stats de modération d'un membre                                       |
+| `/sstats`                            | Administrator    | Stats du serveur                                                      |
+| `/role give\|remove <rôle> [membre]` | Manage Roles     | Attribution de rôle (si membre vide : action globale, réservée admin) |
 
 ### Administration
 
-| Commande | Description |
-|---|---|
-| `/niveau give\|remove niveau\|exp <montant> [membre\|rôle\|all]` | Modifier XP ou niveau |
-| `/zeni give\|remove <montant> [membre\|rôle\|all]` | Modifier le solde |
-| `/custom give\|remove <card\|badge\|color\|title\|succes> <clé> [membre\|rôle\|all]` | Donner / retirer un objet custom ou un succès |
-| `/giveaway <titre> <récompense> <gagnants> <durée> [salon] [description]` | Créer un giveaway |
-| `/succes set <code> <pattern> [description] [flags]` | Créer/éditer un trigger de succès |
-| `/succes list` | Lister les triggers |
-| `/succes remove <code>` | Supprimer un trigger |
-| `/ids [quoi: roles\|salons\|tout]` | Liste les IDs rôles/salons de la guild (ephemeral, pratique pour remplir `.env`) |
-| `/config list` | Liste les overrides runtime (XP rates, cooldowns, salons) avec leur valeur effective vs défaut |
-| `/config set <key> <value>` | Définit une surcharge runtime (clés : `xp.message.{min,max,cooldown_ms}`, `xp.voice.per_minute`, `zeni.daily_quest`) |
-| `/config unset <key>` | Supprime une surcharge (revient au défaut hardcodé) |
-| `/config channel <type> <salon>` | Raccourci pour redéfinir un salon (annonces, accomplissements, commandes) sans toucher au `.env` |
-| `/config level-reward-set <level> <role> [xp-threshold] [zeni-bonus]` | Configure un palier niveau → rôle. **Vérifie la hiérarchie de rôles** : refuse si le rôle est au-dessus de celui du bot (sinon attribution silencieusement cassée au level-up) |
-| `/config level-reward-remove <level>` | Supprime un palier |
-| `/config level-rewards` | Liste les paliers configurés |
+| Commande                                                                             | Description                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/niveau give\|remove niveau\|exp <montant> [membre\|rôle\|all]`                     | Modifier XP ou niveau                                                                                                                                                          |
+| `/zeni give\|remove <montant> [membre\|rôle\|all]`                                   | Modifier le solde                                                                                                                                                              |
+| `/custom give\|remove <card\|badge\|color\|title\|succes> <clé> [membre\|rôle\|all]` | Donner / retirer un objet custom ou un succès                                                                                                                                  |
+| `/giveaway <titre> <récompense> <gagnants> <durée> [salon] [description]`            | Créer un giveaway                                                                                                                                                              |
+| `/succes set <code> <pattern> [description] [flags]`                                 | Créer/éditer un trigger de succès                                                                                                                                              |
+| `/succes list`                                                                       | Lister les triggers                                                                                                                                                            |
+| `/succes remove <code>`                                                              | Supprimer un trigger                                                                                                                                                           |
+| `/ids [quoi: roles\|salons\|tout]`                                                   | Liste les IDs rôles/salons de la guild (ephemeral, pratique pour remplir `.env`)                                                                                               |
+| `/config list`                                                                       | Liste les overrides runtime (XP rates, cooldowns, salons) avec leur valeur effective vs défaut                                                                                 |
+| `/config set <key> <value>`                                                          | Définit une surcharge runtime (clés : `xp.message.{min,max,cooldown_ms}`, `xp.voice.per_minute`, `zeni.daily_quest`)                                                           |
+| `/config unset <key>`                                                                | Supprime une surcharge (revient au défaut hardcodé)                                                                                                                            |
+| `/config channel <type> <salon>`                                                     | Raccourci pour redéfinir un salon (annonces, accomplissements, commandes) sans toucher au `.env`                                                                               |
+| `/config level-reward-set <level> <role> [xp-threshold] [zeni-bonus]`                | Configure un palier niveau → rôle. **Vérifie la hiérarchie de rôles** : refuse si le rôle est au-dessus de celui du bot (sinon attribution silencieusement cassée au level-up) |
+| `/config level-reward-remove <level>`                                                | Supprime un palier                                                                                                                                                             |
+| `/config level-rewards`                                                              | Liste les paliers configurés                                                                                                                                                   |
 
 ## Système XP & Zéni
 
@@ -578,18 +581,18 @@ Le XP est exposé aux users comme **"unités"** de ki. Les niveaux (1 à 10) ne 
 
 ### Paliers
 
-| Niveau | Unités | Flavor |
-|---:|---:|---|
-| 1 | 1 000 | Premier souffle (dépasse un humain normal) |
-| 2 | 5 000 | Niveau Krilin |
-| 3 | 10 000 | Saga Saiyan (tient tête à Nappa) |
-| 4 | 25 000 | Saga Namek (affronte les soldats de Freezer) |
-| 5 | 50 000 | Saga Cyborgs (Dr. Gero t'a à l'œil) |
-| 6 | 100 000 | Super Saiyan débloqué |
-| 7 | 250 000 | Super Saiyan 2 |
-| 8 | 500 000 | Super Saiyan 3 |
-| 9 | 1 000 000 | Super Saiyan Blue |
-| 10 | 9 000 000 | IT'S OVER 9 MILLION — Ultra Instinct |
+| Niveau |    Unités | Flavor                                       |
+| -----: | --------: | -------------------------------------------- |
+|      1 |     1 000 | Premier souffle (dépasse un humain normal)   |
+|      2 |     5 000 | Niveau Krilin                                |
+|      3 |    10 000 | Saga Saiyan (tient tête à Nappa)             |
+|      4 |    25 000 | Saga Namek (affronte les soldats de Freezer) |
+|      5 |    50 000 | Saga Cyborgs (Dr. Gero t'a à l'œil)          |
+|      6 |   100 000 | Super Saiyan débloqué                        |
+|      7 |   250 000 | Super Saiyan 2                               |
+|      8 |   500 000 | Super Saiyan 3                               |
+|      9 | 1 000 000 | Super Saiyan Blue                            |
+|     10 | 9 000 000 | IT'S OVER 9 MILLION — Ultra Instinct         |
 
 Chaque passage de palier déclenche un message DBZ-flavored, un bonus de **1 000 zéni**, et l'attribution du rôle configuré dans la table `level_rewards` (si présent).
 
@@ -735,36 +738,36 @@ L'ordre de bootstrap dans `src/index.ts` est critique :
 
 ### Bash (wrappers one-shot)
 
-| Script | Usage | Notes |
-|---|---|---|
-| `curl -fsSL .../install.sh \| bash` | Installer one-liner | Clone le repo + lance setup + doctor. Variables : `SHENRON_DIR`, `SHENRON_BRANCH`. |
-| `bash scripts/setup.sh` | Setup de A à Z | Installe Bun si absent, `bun install`, `.env` depuis l'exemple, migrations, seeds. Idempotent. |
-| `bash scripts/doctor.sh` | Health check | Vérifie Bun, deps, `.env`, DB, **ping le token via REST Discord**, détecte instances en cours. Code retour non-zéro si problème. |
-| `bash scripts/start.sh` | Launcher | Flags : `--prod` (pas de watch), `--compiled` (binaire `dist/shenron`), `--bg` (détaché, logs dans `logs/`) |
+| Script                                 | Usage                   | Notes                                                                                                                                                            |
+| -------------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `curl -fsSL .../install.sh \| bash`    | Installer one-liner     | Clone le repo + lance setup + doctor. Variables : `SHENRON_DIR`, `SHENRON_BRANCH`.                                                                               |
+| `bash scripts/setup.sh`                | Setup de A à Z          | Installe Bun si absent, `bun install`, `.env` depuis l'exemple, migrations, seeds. Idempotent.                                                                   |
+| `bash scripts/doctor.sh`               | Health check            | Vérifie Bun, deps, `.env`, DB, **ping le token via REST Discord**, détecte instances en cours. Code retour non-zéro si problème.                                 |
+| `bash scripts/start.sh`                | Launcher                | Flags : `--prod` (pas de watch), `--compiled` (binaire `dist/shenron`), `--bg` (détaché, logs dans `logs/`)                                                      |
 | `sudo bash scripts/setup-translate.sh` | Stack `/translate` FOSS | Installe `tesseract-ocr` + packs langue (apt) + lance LibreTranslate en Docker (`127.0.0.1:5000`, modèles `en,fr,ja,es,de,it`). Idempotent. **Requiert Docker.** |
 
 ### Bun (tâches granulaires)
 
-| Script | Usage |
-|---|---|
-| `bun run dev` | Mode watch (hot reload) |
-| `bun run start` | Démarrage prod |
-| `bun run deploy -- --help` | Pipeline de déploiement composable (build, type-check, lint, migrate, seed, restart systemd) |
-| `bun run test` | Smoke tests — un test par slash command, DB isolée |
-| `bun run lint` / `lint:fix` | oxlint |
-| `bun run type-check` | `tsc --noEmit` |
-| `bun run build` | Bundle → `dist/index.js` |
-| `bun run compile` | Binaire standalone → `dist/shenron` |
-| `bun run gen:entries` | Régénère `src/_entries.ts` (à lancer après ajout de commande/event) |
-| `bun run db:migrate` | Applique les migrations SQL |
-| `bun run db:generate` | Génère une migration depuis `schema.ts` |
-| `bun run db:push` | Sync direct du schema sans migration (dev only) |
-| `bun run db:studio` | UI Drizzle |
-| `bun run db:seed-wiki` | Peuple le wiki depuis dragonball-api.com (~60 s) |
-| `bun run db:seed-triggers` | Seed les 15 triggers de succès (offline, instantané) |
-| `bun run db:seed-all` | Les deux |
-| `bun run ids` / `ids -- --patch` | Liste les IDs rôles+salons de la guild (REST), patch `.env` par heuristique nom |
-| `bun run bg:fetch` / `bg:optimize` / `bg:all` | Télécharge + compresse les 19 backgrounds NASA (1.7 MB WebP) |
+| Script                                        | Usage                                                                                        |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `bun run dev`                                 | Mode watch (hot reload)                                                                      |
+| `bun run start`                               | Démarrage prod                                                                               |
+| `bun run deploy -- --help`                    | Pipeline de déploiement composable (build, type-check, lint, migrate, seed, restart systemd) |
+| `bun run test`                                | Smoke tests — un test par slash command, DB isolée                                           |
+| `bun run lint` / `lint:fix`                   | oxlint                                                                                       |
+| `bun run type-check`                          | `tsc --noEmit`                                                                               |
+| `bun run build`                               | Bundle → `dist/index.js`                                                                     |
+| `bun run compile`                             | Binaire standalone → `dist/shenron`                                                          |
+| `bun run gen:entries`                         | Régénère `src/_entries.ts` (à lancer après ajout de commande/event)                          |
+| `bun run db:migrate`                          | Applique les migrations SQL                                                                  |
+| `bun run db:generate`                         | Génère une migration depuis `schema.ts`                                                      |
+| `bun run db:push`                             | Sync direct du schema sans migration (dev only)                                              |
+| `bun run db:studio`                           | UI Drizzle                                                                                   |
+| `bun run db:seed-wiki`                        | Peuple le wiki depuis dragonball-api.com (~60 s)                                             |
+| `bun run db:seed-triggers`                    | Seed les 15 triggers de succès (offline, instantané)                                         |
+| `bun run db:seed-all`                         | Les deux                                                                                     |
+| `bun run ids` / `ids -- --patch`              | Liste les IDs rôles+salons de la guild (REST), patch `.env` par heuristique nom              |
+| `bun run bg:fetch` / `bg:optimize` / `bg:all` | Télécharge + compresse les 19 backgrounds NASA (1.7 MB WebP)                                 |
 
 ## Déploiement
 
@@ -777,6 +780,7 @@ bash scripts/reactivate.sh
 ```
 
 Ce script effectue les actions suivantes :
+
 1. Nettoie les dossiers `node_modules` et les caches de build.
 2. Installe proprement toutes les dépendances via `bun install`.
 3. Applique les migrations de base de données SQLite.
@@ -788,7 +792,6 @@ Ce script effectue les actions suivantes :
 9. Effectue un healthcheck sur le port d'API locale (5006).
 
 ### Binaire standalone
-
 
 ```bash
 bun run compile           # produit dist/shenron (inclut tout, pas de node_modules requis)

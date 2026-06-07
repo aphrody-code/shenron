@@ -408,7 +408,7 @@ function fuzzyWhere(term: string, cols: PgColumn[]) {
 		...cols.flatMap((c) => [
 			ilike(c, pat),
 			sql`similarity(unaccent(lower(${c})), unaccent(lower(${term}))) > ${FUZZY_THRESHOLD}`,
-		]),
+		])
 	);
 }
 
@@ -417,10 +417,8 @@ function fuzzyWhere(term: string, cols: PgColumn[]) {
 function fuzzyOrder(term: string, cols: PgColumn[]) {
 	const primary = cols[0];
 	const sim = sql`greatest(${sql.join(
-		cols.map(
-			(c) => sql`similarity(unaccent(lower(${c})), unaccent(lower(${term})))`,
-		),
-		sql`, `,
+		cols.map((c) => sql`similarity(unaccent(lower(${c})), unaccent(lower(${term})))`),
+		sql`, `
 	)})`;
 	return [
 		sql`(lower(${primary}) = lower(${term})) desc`,
@@ -454,32 +452,22 @@ export const dbUniverse = {
 				tools: botTools,
 			} satisfies Record<string, PgTable>;
 			const entries = await Promise.all(
-				(Object.entries(tables) as [keyof typeof tables, PgTable][]).map(
-					async ([key, table]) => {
-						const [{ n }] = await db
-							.select({ n: sql<number>`count(*)::int` })
-							.from(table);
-						return [key, Number(n ?? 0)] as const;
-					},
-				),
+				(Object.entries(tables) as [keyof typeof tables, PgTable][]).map(async ([key, table]) => {
+					const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(table);
+					return [key, Number(n ?? 0)] as const;
+				})
 			);
 			return Object.fromEntries(entries) as Record<keyof typeof tables, number>;
 		}),
 
 	sagas: () =>
 		safe(async () => ({
-			sagas: (
-				await db.select().from(botSagas).orderBy(asc(botSagas.orderIdx))
-			).map(toSaga),
+			sagas: (await db.select().from(botSagas).orderBy(asc(botSagas.orderIdx))).map(toSaga),
 		})),
 
 	saga: (slug: string) =>
 		safe(async () => {
-			const [s] = await db
-				.select()
-				.from(botSagas)
-				.where(eq(botSagas.slug, slug))
-				.limit(1);
+			const [s] = await db.select().from(botSagas).where(eq(botSagas.slug, slug)).limit(1);
 			if (!s) return null;
 			const arcs = (
 				await db
@@ -493,11 +481,7 @@ export const dbUniverse = {
 
 	arc: (slug: string) =>
 		safe(async () => {
-			const [a] = await db
-				.select()
-				.from(botArcs)
-				.where(eq(botArcs.slug, slug))
-				.limit(1);
+			const [a] = await db.select().from(botArcs).where(eq(botArcs.slug, slug)).limit(1);
 			if (!a) return null;
 			const episodes = (
 				await db
@@ -511,11 +495,7 @@ export const dbUniverse = {
 
 	episode: (id: number) =>
 		safe(async () => {
-			const [e] = await db
-				.select()
-				.from(botEpisodes)
-				.where(eq(botEpisodes.id, id))
-				.limit(1);
+			const [e] = await db.select().from(botEpisodes).where(eq(botEpisodes.id, id)).limit(1);
 			return e ? toEpisode(e) : null;
 		}),
 
@@ -571,23 +551,13 @@ export const dbUniverse = {
 			const [prev] = await db
 				.select(lite)
 				.from(botEpisodes)
-				.where(
-					and(
-						eq(botEpisodes.series, series),
-						lt(botEpisodes.numberInSeries, number),
-					),
-				)
+				.where(and(eq(botEpisodes.series, series), lt(botEpisodes.numberInSeries, number)))
 				.orderBy(desc(botEpisodes.numberInSeries))
 				.limit(1);
 			const [next] = await db
 				.select(lite)
 				.from(botEpisodes)
-				.where(
-					and(
-						eq(botEpisodes.series, series),
-						gt(botEpisodes.numberInSeries, number),
-					),
-				)
+				.where(and(eq(botEpisodes.series, series), gt(botEpisodes.numberInSeries, number)))
 				.orderBy(asc(botEpisodes.numberInSeries))
 				.limit(1);
 			// Fenêtre de 12 épisodes voisins (centrée approximativement) pour le strip.
@@ -598,13 +568,11 @@ export const dbUniverse = {
 					and(
 						eq(botEpisodes.series, series),
 						gt(botEpisodes.numberInSeries, number - 7),
-						lt(botEpisodes.numberInSeries, number + 7),
-					),
+						lt(botEpisodes.numberInSeries, number + 7)
+					)
 				)
 				.orderBy(asc(botEpisodes.numberInSeries));
-			const lift = (
-				e: typeof prev | undefined,
-			): EpisodeNavItem | null =>
+			const lift = (e: typeof prev | undefined): EpisodeNavItem | null =>
 				e
 					? {
 							id: e.id,
@@ -630,11 +598,7 @@ export const dbUniverse = {
 			const [m] = await db
 				.select()
 				.from(botMovies)
-				.where(
-					/^\d+$/.test(slug)
-						? eq(botMovies.id, Number(slug))
-						: eq(botMovies.slug, slug),
-				)
+				.where(/^\d+$/.test(slug) ? eq(botMovies.id, Number(slug)) : eq(botMovies.slug, slug))
 				.limit(1);
 			return m ? toMovie(m) : null;
 		}),
@@ -646,28 +610,18 @@ export const dbUniverse = {
 
 	game: (slug: string) =>
 		safe(async () => {
-			const [g] = await db
-				.select()
-				.from(botGames)
-				.where(eq(botGames.slug, slug))
-				.limit(1);
+			const [g] = await db.select().from(botGames).where(eq(botGames.slug, slug)).limit(1);
 			return g ? toGame(g) : null;
 		}),
 
 	tools: () =>
 		safe(async () => ({
-			tools: (
-				await db.select().from(botTools).orderBy(desc(botTools.stars))
-			).map(toTool),
+			tools: (await db.select().from(botTools).orderBy(desc(botTools.stars))).map(toTool),
 		})),
 
 	tool: (slug: string) =>
 		safe(async () => {
-			const [t] = await db
-				.select()
-				.from(botTools)
-				.where(eq(botTools.slug, slug))
-				.limit(1);
+			const [t] = await db.select().from(botTools).where(eq(botTools.slug, slug)).limit(1);
 			return t ? toTool(t) : null;
 		}),
 
@@ -678,19 +632,13 @@ export const dbUniverse = {
 
 	race: (slug: string) =>
 		safe(async () => {
-			const [r] = await db
-				.select()
-				.from(botRaces)
-				.where(eq(botRaces.slug, slug))
-				.limit(1);
+			const [r] = await db.select().from(botRaces).where(eq(botRaces.slug, slug)).limit(1);
 			return r ? toRace(r) : null;
 		}),
 
 	transformations: () =>
 		safe(async () => ({
-			transformations: (await db.select().from(botTransformations)).map(
-				toTransformation,
-			),
+			transformations: (await db.select().from(botTransformations)).map(toTransformation),
 		})),
 
 	mangaVolumes: (series = "DB") =>
@@ -731,16 +679,10 @@ export const dbUniverse = {
 					.from(botMangaChapters)
 					.where(
 						series
-							? and(
-									eq(botMangaChapters.series, series),
-									isNotNull(botMangaChapters.pages),
-								)
-							: isNotNull(botMangaChapters.pages),
+							? and(eq(botMangaChapters.series, series), isNotNull(botMangaChapters.pages))
+							: isNotNull(botMangaChapters.pages)
 					)
-					.orderBy(
-						asc(botMangaChapters.series),
-						asc(botMangaChapters.chapterNumber),
-					)
+					.orderBy(asc(botMangaChapters.series), asc(botMangaChapters.chapterNumber))
 			).map(toMangaChapter),
 		})),
 
@@ -760,8 +702,8 @@ export const dbUniverse = {
 					and(
 						eq(botMangaChapters.series, c.series),
 						isNotNull(botMangaChapters.pages),
-						lt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0),
-					),
+						lt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0)
+					)
 				)
 				.orderBy(desc(botMangaChapters.chapterNumber))
 				.limit(1);
@@ -772,8 +714,8 @@ export const dbUniverse = {
 					and(
 						eq(botMangaChapters.series, c.series),
 						isNotNull(botMangaChapters.pages),
-						gt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0),
-					),
+						gt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0)
+					)
 				)
 				.orderBy(asc(botMangaChapters.chapterNumber))
 				.limit(1);
@@ -789,13 +731,9 @@ export const dbUniverse = {
 
 	news: (limit = 10) =>
 		safe(async () => ({
-			news: (
-				await db
-					.select()
-					.from(botNews)
-					.orderBy(desc(botNews.publishedAt))
-					.limit(limit)
-			).map(toNews),
+			news: (await db.select().from(botNews).orderBy(desc(botNews.publishedAt)).limit(limit)).map(
+				toNews
+			),
 		})),
 
 	search: (q: string) =>
@@ -813,27 +751,14 @@ export const dbUniverse = {
 					techniques: [],
 				};
 			}
-			const charCols = [
-				botCharacters.name,
-				botCharacters.nameJa,
-				botCharacters.nameRomaji,
-			];
+			const charCols = [botCharacters.name, botCharacters.nameJa, botCharacters.nameRomaji];
 			const planetCols = [botPlanets.name, botPlanets.nameJa];
 			const sagaCols = [botSagas.name, botSagas.nameJa];
 			const movieCols = [botMovies.title, botMovies.titleJa];
 			const gameCols = [botGames.title, botGames.titleJa];
-			const episodeCols = [
-				botEpisodes.title,
-				botEpisodes.titleJa,
-				botEpisodes.titleRomaji,
-			];
-			const techniqueCols = [
-				botTechniques.name,
-				botTechniques.nameJa,
-				botTechniques.nameRomaji,
-			];
-			const [characters, planets, sagas, movies, games, episodes, techniques] =
-				await Promise.all([
+			const episodeCols = [botEpisodes.title, botEpisodes.titleJa, botEpisodes.titleRomaji];
+			const techniqueCols = [botTechniques.name, botTechniques.nameJa, botTechniques.nameRomaji];
+			const [characters, planets, sagas, movies, games, episodes, techniques] = await Promise.all([
 				db
 					.select({
 						id: botCharacters.id,
@@ -933,16 +858,17 @@ export const dbUniverse = {
 			};
 		}),
 
-	rag: async (q: string, limit = 8, options?: { lang?: string; entity?: string; sourceId?: string }) => {
+	rag: async (
+		q: string,
+		limit = 8,
+		options?: { lang?: string; entity?: string; sourceId?: string }
+	) => {
 		try {
 			let url = `${apiBase()}/api/public/rag/search?q=${encodeURIComponent(q)}&limit=${limit}`;
 			if (options?.lang) url += `&lang=${encodeURIComponent(options.lang)}`;
 			if (options?.entity) url += `&entity=${encodeURIComponent(options.entity)}`;
 			if (options?.sourceId) url += `&sourceId=${encodeURIComponent(options.sourceId)}`;
-			const r = await fetch(
-				url,
-				{ next: { revalidate: 300 } },
-			);
+			const r = await fetch(url, { next: { revalidate: 300 } });
 			if (!r.ok) return null;
 			return (await r.json()) as {
 				q: string;

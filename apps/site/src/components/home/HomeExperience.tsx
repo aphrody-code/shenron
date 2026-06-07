@@ -11,11 +11,7 @@ import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import { HERO_SCENES, SECTION_SCENE } from "@/lib/home-scenes";
 import { SceneBackdrop } from "./SceneBackdrop";
-import {
-	useLiveBotState,
-	type BotStats,
-	type PersonaLive,
-} from "./useLiveBotState";
+import { useLiveBotState, type BotStats, type PersonaLive } from "./useLiveBotState";
 import { DISCORD_INVITE } from "@/lib/config";
 
 export interface WikiCounts {
@@ -53,10 +49,7 @@ export interface SagaTeaser {
 
 const DISCORD_URL = DISCORD_INVITE;
 
-const GUARDIAN_ROLES: Record<
-	string,
-	{ role: string; line: string; kanji: string }
-> = {
+const GUARDIAN_ROLES: Record<string, { role: string; line: string; kanji: string }> = {
 	shenron: { role: "Administration · API", line: "Exauce les vœux", kanji: "神龍" },
 	beerus: { role: "Modération", line: "La destruction veille", kanji: "破壊神" },
 	whis: { role: "Utilitaires · Codex", line: "L'ange qui guide", kanji: "天使" },
@@ -74,10 +67,25 @@ function guardianMeta(name: string) {
 }
 
 const PLAY_CARDS = [
-	{ href: "/jeux", title: "Mini-jeux", desc: "2048, Pierre-Feuille-Ciseaux, Morpion, Pendu, Bingo", kanji: "遊" },
+	{
+		href: "/jeux",
+		title: "Mini-jeux",
+		desc: "2048, Pierre-Feuille-Ciseaux, Morpion, Pendu, Bingo",
+		kanji: "遊",
+	},
 	{ href: "/shop", title: "Boutique zéni", desc: "Rôles, bannières, cartes, fusions", kanji: "商" },
-	{ href: "/leaderboard", title: "Classement", desc: "Les guerriers les plus puissants", kanji: "番付" },
-	{ href: "/profil", title: "Ta carte de combat", desc: "Niveau, XP, succès, inventaire", kanji: "戦士" },
+	{
+		href: "/leaderboard",
+		title: "Classement",
+		desc: "Les guerriers les plus puissants",
+		kanji: "番付",
+	},
+	{
+		href: "/profil",
+		title: "Ta carte de combat",
+		desc: "Niveau, XP, succès, inventaire",
+		kanji: "戦士",
+	},
 ];
 
 function formatBig(n: number): string {
@@ -151,7 +159,7 @@ export function HomeExperience({
 				...(hasNews ? [{ id: "news", label: "Actualités", kanji: "報" }] : []),
 				{ id: "summon", label: "Invoquer", kanji: "願" },
 			] as const,
-		[hasNews],
+		[hasNews]
 	);
 
 	const refs = useRef<(HTMLElement | null)[]>([]);
@@ -160,9 +168,7 @@ export function HomeExperience({
 	const reduceRef = useRef(false);
 
 	useEffect(() => {
-		reduceRef.current = window.matchMedia(
-			"(prefers-reduced-motion: reduce)",
-		).matches;
+		reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		document.documentElement.dataset.home = "1";
 		return () => {
 			delete document.documentElement.dataset.home;
@@ -184,7 +190,7 @@ export function HomeExperience({
 				lockRef.current = false;
 			}, 650);
 		},
-		[sections.length],
+		[sections.length]
 	);
 
 	// Suivi du panneau actif (scroll libre, ancrage, etc.)
@@ -198,7 +204,7 @@ export function HomeExperience({
 					}
 				}
 			},
-			{ threshold: [0.55, 0.75] },
+			{ threshold: [0.55, 0.75] }
 		);
 		for (const el of refs.current) if (el) obs.observe(el);
 		return () => obs.disconnect();
@@ -280,17 +286,14 @@ export function HomeExperience({
 	const [heroIdx, setHeroIdx] = useState(0);
 	useEffect(() => {
 		if (active !== 0 || reduceRef.current) return;
-		const id = setInterval(
-			() => setHeroIdx((i) => (i + 1) % HERO_SCENES.length),
-			6200,
-		);
+		const id = setInterval(() => setHeroIdx((i) => (i + 1) % HERO_SCENES.length), 6200);
 		return () => clearInterval(id);
 	}, [active]);
 
 	const activeScene =
 		active === 0
 			? HERO_SCENES[heroIdx]
-			: SECTION_SCENE[sections[active]?.id ?? "summon"] ?? HERO_SCENES[0];
+			: (SECTION_SCENE[sections[active]?.id ?? "summon"] ?? HERO_SCENES[0]);
 
 	const setRef = (i: number) => (el: HTMLElement | null) => {
 		refs.current[i] = el;
@@ -298,10 +301,7 @@ export function HomeExperience({
 	const idx = (id: string) => sections.findIndex((s) => s.id === id);
 
 	return (
-		<div
-			className="home-deck"
-			style={{ ["--accent" as string]: activeScene?.accent }}
-		>
+		<div className="home-deck" style={{ ["--accent" as string]: activeScene?.accent }}>
 			{/* Navigation latérale — points HUD scouter */}
 			<nav className="home-dots" aria-label="Sections de la page">
 				{sections.map((s, i) => (
@@ -321,20 +321,13 @@ export function HomeExperience({
 
 			{/* Compteur de panneaux */}
 			<div className="home-counter" aria-hidden>
-				<span className="home-counter__cur">
-					{String(active + 1).padStart(2, "0")}
-				</span>
+				<span className="home-counter__cur">{String(active + 1).padStart(2, "0")}</span>
 				<span className="home-counter__sep">/</span>
 				<span>{String(sections.length).padStart(2, "0")}</span>
 			</div>
 
 			{/* ── 1. HÉRO ─────────────────────────────────────────────────────── */}
-			<section
-				ref={setRef(0)}
-				id="hero"
-				className="home-section home-hero"
-				aria-label="Accueil"
-			>
+			<section ref={setRef(0)} id="hero" className="home-section home-hero" aria-label="Accueil">
 				<div className="absolute inset-0">
 					{HERO_SCENES.map((sc, i) => (
 						<SceneBackdrop
@@ -350,9 +343,7 @@ export function HomeExperience({
 					<p className="home-kicker">
 						<span className="home-kicker__jp">ドラゴンボール</span>
 						<span className="home-kicker__live">
-							<span
-								className={`home-live-dot ${live.onlineCount > 0 ? "is-on" : ""}`}
-							/>
+							<span className={`home-live-dot ${live.onlineCount > 0 ? "is-on" : ""}`} />
 							{live.onlineCount}/6 gardiens en ligne
 						</span>
 					</p>
@@ -361,9 +352,8 @@ export function HomeExperience({
 						<em>France</em>
 					</h1>
 					<p className="home-lede">
-						Un voyage à travers tout l'univers Dragon Ball : personnages,
-						planètes, sagas, films et manga — en français, sourcé canon. Et
-						six gardiens qui veillent sur la communauté.
+						Un voyage à travers tout l'univers Dragon Ball : personnages, planètes, sagas, films et
+						manga — en français, sourcé canon. Et six gardiens qui veillent sur la communauté.
 					</p>
 					<div className="home-cta-row">
 						<Link href="/wiki" className="home-cta home-cta--primary">
@@ -411,12 +401,8 @@ export function HomeExperience({
 					</div>
 				</div>
 				<div className="home-hero__caption" aria-hidden>
-					<span className="home-hero__caption-kicker">
-						{activeScene?.kicker}
-					</span>
-					<span className="home-hero__caption-title">
-						{activeScene?.title}
-					</span>
+					<span className="home-hero__caption-kicker">{activeScene?.kicker}</span>
+					<span className="home-hero__caption-title">{activeScene?.title}</span>
 				</div>
 				<button
 					type="button"
@@ -440,13 +426,10 @@ export function HomeExperience({
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
 						<span className="home-eyebrow">01 — Le voyage</span>
-						<h2 className="home-title">
-							Voyage à travers l'univers
-						</h2>
+						<h2 className="home-title">Voyage à travers l'univers</h2>
 						<p className="home-sub">
-							Personnages, planètes, sagas, épisodes, films et chapitres —
-							chaque recoin de la saga, vérifié et en lien avec les ayants
-							droit. Choisis ta destination.
+							Personnages, planètes, sagas, épisodes, films et chapitres — chaque recoin de la saga,
+							vérifié et en lien avec les ayants droit. Choisis ta destination.
 						</p>
 					</header>
 					<div className="home-grid-stats">
@@ -473,108 +456,100 @@ export function HomeExperience({
 			</section>
 
 			{/* ── 3. LES GARDIENS (6 personas, statut live) ────────────────────── */}
-				{/* PERSONNAGES EMBLÉMATIQUES (univers) */}
-				<section
-					ref={setRef(idx("personnages"))}
-					id="personnages"
-					className="home-section"
-					aria-label="Personnages"
-				>
-					<SceneBackdrop
-						scene={SECTION_SCENE.personnages}
-						active={active === idx("personnages")}
-					/>
-					<div className="home-panel">
-						<header className="home-panel__head reveal-up">
-							<span className="home-eyebrow">02 — Les héros</span>
-							<h2 className="home-title">Les personnages de légende</h2>
-							<p className="home-sub">
-								Saiyans, dieux, démons et terriens — explore les figures qui ont
-								façonné Dragon Ball, fiche par fiche.
-							</p>
-						</header>
-						<div className="grid grid-cols-3 gap-3 reveal-up sm:grid-cols-4 lg:grid-cols-6">
-							{characters.map((c) => (
-								<Link
-									key={c.id}
-									href={`/wiki/dragon-ball/character/${c.id}`}
-									className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
-								>
-									{c.image && (
-										<img
-											src={assetUrl(c.image)}
-											alt={c.name}
-											loading="lazy"
-											className="absolute inset-0 h-full w-full object-cover object-top opacity-85 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-										/>
-									)}
-									<span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-2.5 pb-2.5 pt-10">
-										<span className="block text-[13px] font-bold leading-tight text-white">
-											{c.name}
-										</span>
-										{c.race && (
-											<span className="mt-0.5 block text-[9px] uppercase tracking-[0.14em] text-white/55">
-												{c.race}
-											</span>
-										)}
+			{/* PERSONNAGES EMBLÉMATIQUES (univers) */}
+			<section
+				ref={setRef(idx("personnages"))}
+				id="personnages"
+				className="home-section"
+				aria-label="Personnages"
+			>
+				<SceneBackdrop scene={SECTION_SCENE.personnages} active={active === idx("personnages")} />
+				<div className="home-panel">
+					<header className="home-panel__head reveal-up">
+						<span className="home-eyebrow">02 — Les héros</span>
+						<h2 className="home-title">Les personnages de légende</h2>
+						<p className="home-sub">
+							Saiyans, dieux, démons et terriens — explore les figures qui ont façonné Dragon Ball,
+							fiche par fiche.
+						</p>
+					</header>
+					<div className="grid grid-cols-3 gap-3 reveal-up sm:grid-cols-4 lg:grid-cols-6">
+						{characters.map((c) => (
+							<Link
+								key={c.id}
+								href={`/wiki/dragon-ball/character/${c.id}`}
+								className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
+							>
+								{c.image && (
+									<img
+										src={assetUrl(c.image)}
+										alt={c.name}
+										loading="lazy"
+										className="absolute inset-0 h-full w-full object-cover object-top opacity-85 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+									/>
+								)}
+								<span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-2.5 pb-2.5 pt-10">
+									<span className="block text-[13px] font-bold leading-tight text-white">
+										{c.name}
 									</span>
-								</Link>
-							))}
-						</div>
-						<Link href="/wiki/personnages" className="home-cta home-cta--ghost">
-							Tous les personnages
-						</Link>
+									{c.race && (
+										<span className="mt-0.5 block text-[9px] uppercase tracking-[0.14em] text-white/55">
+											{c.race}
+										</span>
+									)}
+								</span>
+							</Link>
+						))}
 					</div>
-				</section>
+					<Link href="/wiki/personnages" className="home-cta home-cta--ghost">
+						Tous les personnages
+					</Link>
+				</div>
+			</section>
 
-				{/* LES SAGAS — le voyage chronologique (univers) */}
-				<section
-					ref={setRef(idx("sagas"))}
-					id="sagas"
-					className="home-section"
-					aria-label="Les sagas"
-				>
-					<SceneBackdrop
-						scene={SECTION_SCENE.sagas}
-						active={active === idx("sagas")}
-					/>
-					<div className="home-panel">
-						<header className="home-panel__head reveal-up">
-							<span className="home-eyebrow">03 — La chronologie</span>
-							<h2 className="home-title">Le voyage à travers les sagas</h2>
-							<p className="home-sub">
-								Des origines à la divinité — suis la saga complète : Dragon Ball,
-								Z, Super et GT, arc après arc.
-							</p>
-						</header>
-						<div className="grid gap-4 reveal-up sm:grid-cols-2 lg:grid-cols-4">
-							{sagas.map((s) => (
-								<Link
-									key={s.id}
-									href="/wiki/sagas"
-									className="group flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/30 p-4 transition-colors hover:border-[var(--accent)]"
-								>
-									{s.series && (
-										<span className="text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
-											{s.series}
-										</span>
-									)}
-									<span className="text-[15px] font-bold leading-tight text-white">
-										{s.name}
+			{/* LES SAGAS — le voyage chronologique (univers) */}
+			<section
+				ref={setRef(idx("sagas"))}
+				id="sagas"
+				className="home-section"
+				aria-label="Les sagas"
+			>
+				<SceneBackdrop scene={SECTION_SCENE.sagas} active={active === idx("sagas")} />
+				<div className="home-panel">
+					<header className="home-panel__head reveal-up">
+						<span className="home-eyebrow">03 — La chronologie</span>
+						<h2 className="home-title">Le voyage à travers les sagas</h2>
+						<p className="home-sub">
+							Des origines à la divinité — suis la saga complète : Dragon Ball, Z, Super et GT, arc
+							après arc.
+						</p>
+					</header>
+					<div className="grid gap-4 reveal-up sm:grid-cols-2 lg:grid-cols-4">
+						{sagas.map((s) => (
+							<Link
+								key={s.id}
+								href="/wiki/sagas"
+								className="group flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/30 p-4 transition-colors hover:border-[var(--accent)]"
+							>
+								{s.series && (
+									<span className="text-[10px] uppercase tracking-[0.16em] text-[var(--accent)]">
+										{s.series}
 									</span>
-									{s.description && (
-										<span className="line-clamp-3 text-[12px] leading-snug text-white/55">
-											{s.description}
-										</span>
-									)}
-								</Link>
-							))}
-						</div>
-						<Link href="/wiki/sagas" className="home-cta home-cta--ghost">
-							Toutes les sagas
-						</Link>
+								)}
+								<span className="text-[15px] font-bold leading-tight text-white">{s.name}</span>
+								{s.description && (
+									<span className="line-clamp-3 text-[12px] leading-snug text-white/55">
+										{s.description}
+									</span>
+								)}
+							</Link>
+						))}
 					</div>
-				</section>
+					<Link href="/wiki/sagas" className="home-cta home-cta--ghost">
+						Toutes les sagas
+					</Link>
+				</div>
+			</section>
 
 			<section
 				ref={setRef(idx("guardians"))}
@@ -588,8 +563,7 @@ export function HomeExperience({
 						<span className="home-eyebrow">02 — Le bot</span>
 						<h2 className="home-title">Six gardiens, un seul process</h2>
 						<p className="home-sub">
-							Six personas Discord, six personnalités, une seule machine —
-							{" "}
+							Six personas Discord, six personnalités, une seule machine —{" "}
 							<strong>{live.onlineCount}/6 en ligne</strong> à cet instant.
 						</p>
 					</header>
@@ -677,20 +651,15 @@ export function HomeExperience({
 			</section>
 
 			{/* ── 5. LE TERRAIN (jeux / shop / classement) ─────────────────────── */}
-			<section
-				ref={setRef(idx("play"))}
-				id="play"
-				className="home-section"
-				aria-label="Le terrain"
-			>
+			<section ref={setRef(idx("play"))} id="play" className="home-section" aria-label="Le terrain">
 				<SceneBackdrop scene={SECTION_SCENE.play} active={active === idx("play")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
 						<span className="home-eyebrow">04 — Le terrain</span>
 						<h2 className="home-title">Combats, économie, fusions</h2>
 						<p className="home-sub">
-							Le bot transforme le serveur en terrain de jeu : gagne de l'XP,
-							dépense tes zénis, grimpe au classement.
+							Le bot transforme le serveur en terrain de jeu : gagne de l'XP, dépense tes zénis,
+							grimpe au classement.
 						</p>
 					</header>
 					<div className="home-cards">
@@ -726,11 +695,7 @@ export function HomeExperience({
 						</header>
 						<div className="home-news">
 							{posts.slice(0, 3).map((p) => (
-								<Link
-									key={p.id}
-									href={`/post/${p.slug}`}
-									className="home-news__item reveal-up"
-								>
+								<Link key={p.id} href={`/post/${p.slug}`} className="home-news__item reveal-up">
 									{p.cover && (
 										<span className="home-news__cover">
 											<Image
@@ -743,9 +708,7 @@ export function HomeExperience({
 										</span>
 									)}
 									<span className="home-news__title">{p.title}</span>
-									{p.excerpt && (
-										<span className="home-news__excerpt">{p.excerpt}</span>
-									)}
+									{p.excerpt && <span className="home-news__excerpt">{p.excerpt}</span>}
 								</Link>
 							))}
 						</div>
@@ -763,7 +726,11 @@ export function HomeExperience({
 				className="home-section home-summon"
 				aria-label="Invoquer"
 			>
-				<SceneBackdrop scene={SECTION_SCENE.summon} active={active === sections.length - 1} priority={false} />
+				<SceneBackdrop
+					scene={SECTION_SCENE.summon}
+					active={active === sections.length - 1}
+					priority={false}
+				/>
 				<div className="home-summon__content reveal-up">
 					<span className="home-summon__kanji" aria-hidden>
 						神龍
@@ -774,9 +741,8 @@ export function HomeExperience({
 						Fais ton vœu.
 					</h2>
 					<p className="home-sub">
-						Rejoins {formatBig(live.stats.users)} guerriers sur le serveur
-						Discord, ou poursuis ton voyage dans l'univers Dragon Ball le plus
-						complet en français.
+						Rejoins {formatBig(live.stats.users)} guerriers sur le serveur Discord, ou poursuis ton
+						voyage dans l'univers Dragon Ball le plus complet en français.
 					</p>
 					<div className="home-cta-row">
 						<a

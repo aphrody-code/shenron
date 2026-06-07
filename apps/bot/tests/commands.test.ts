@@ -7,12 +7,7 @@
 import "./setup"; // doit être en premier
 import { beforeAll, describe, expect, test } from "bun:test";
 import { container } from "tsyringe";
-import {
-	makeInteraction,
-	makeUser,
-	assertResponded,
-	type MockInteraction,
-} from "./_mock";
+import { makeInteraction, makeUser, assertResponded, type MockInteraction } from "./_mock";
 
 // Imports lazy pour laisser setup.ts configurer env avant DI
 const { EconomyCommands } = await import("~/commands/economy/Economy");
@@ -56,9 +51,7 @@ function richUser(overrides: Partial<ReturnType<typeof makeUser>> = {}) {
 	};
 }
 
-function interaction(
-	overrides: Partial<MockInteraction> = {},
-): MockInteraction {
+function interaction(overrides: Partial<MockInteraction> = {}): MockInteraction {
 	const base = makeInteraction({
 		guild: richGuild(),
 		user: {
@@ -125,7 +118,7 @@ describe("LevelCommands", () => {
 			richUser() as never,
 			undefined,
 			undefined,
-			int as never,
+			int as never
 		);
 		assertResponded(int);
 	});
@@ -174,14 +167,7 @@ describe("EconomyCommands", () => {
 
 	test("/zeni admin give", async () => {
 		const int = interaction();
-		await cmd.zeniAdmin(
-			"give",
-			500,
-			richUser() as never,
-			undefined,
-			undefined,
-			int as never,
-		);
+		await cmd.zeniAdmin("give", 500, richUser() as never, undefined, undefined, int as never);
 		assertResponded(int);
 	});
 
@@ -194,7 +180,7 @@ describe("EconomyCommands", () => {
 			richUser() as never,
 			undefined,
 			undefined,
-			int as never,
+			int as never
 		);
 		assertResponded(int);
 	});
@@ -203,8 +189,7 @@ describe("EconomyCommands", () => {
 // ─── ModerationCommands ───────────────────────────────────────────────────
 describe("ModerationCommands", () => {
 	const cmd = container.resolve(ModerationCommands);
-	const target = () =>
-		({ ...richUser("99999999999999999"), send: async () => ({}) }) as never;
+	const target = () => ({ ...richUser("99999999999999999"), send: async () => ({}) }) as never;
 
 	test("/warn", async () => {
 		const int = interaction();
@@ -451,7 +436,7 @@ describe("GiveawayCommands", () => {
 				"description du giveaway",
 				"Titre du giveaway",
 				int.channel as never,
-				int as never,
+				int as never
 			);
 		} catch {}
 		expect(int.calls.length >= 0).toBe(true);

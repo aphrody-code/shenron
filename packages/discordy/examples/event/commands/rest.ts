@@ -8,8 +8,8 @@ import { Discord, On, type RestArgsOf } from "@rpbey/discordy";
 
 @Discord()
 export class Example {
-  @On.rest()
-  rateLimited([data]: RestArgsOf<"rateLimited">): void {
-    console.log(data.limit);
-  }
+	@On.rest()
+	rateLimited([data]: RestArgsOf<"rateLimited">): void {
+		console.log(data.limit);
+	}
 }

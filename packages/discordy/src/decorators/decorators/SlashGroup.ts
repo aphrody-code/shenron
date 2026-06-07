@@ -4,22 +4,18 @@
  * Licensed under the Apache License. See License.txt in the project root for license information.
  * -------------------------------------------------------------------------------------------------------
  */
-import {
-  type ClassDecoratorEx,
-  type ClassMethodDecorator,
-  Modifier,
-} from "@rpbey/internal";
+import { type ClassDecoratorEx, type ClassMethodDecorator, Modifier } from "@rpbey/internal";
 
 import {
-  DApplicationCommand,
-  DApplicationCommandGroup,
-  type DApplicationCommandOption,
-  DDiscord,
-  MetadataStorage,
-  type NotEmpty,
-  type SlashGroupOptions,
-  SlashNameValidator,
-  type VerifyName,
+	DApplicationCommand,
+	DApplicationCommandGroup,
+	type DApplicationCommandOption,
+	DDiscord,
+	MetadataStorage,
+	type NotEmpty,
+	type SlashGroupOptions,
+	SlashNameValidator,
+	type VerifyName,
 } from "../../index.js";
 
 /**
@@ -34,9 +30,7 @@ import {
  *
  * @category Decorator
  */
-export function SlashGroup<T extends string>(
-  name: VerifyName<T>,
-): ClassMethodDecorator;
+export function SlashGroup<T extends string>(name: VerifyName<T>): ClassMethodDecorator;
 
 /**
  * Assign a group to a method or class
@@ -52,8 +46,8 @@ export function SlashGroup<T extends string>(
  * @category Decorator
  */
 export function SlashGroup<TName extends string, TRoot extends string>(
-  name: VerifyName<TName>,
-  root: VerifyName<TRoot>,
+	name: VerifyName<TName>,
+	root: VerifyName<TRoot>
 ): ClassMethodDecorator;
 
 /**
@@ -68,12 +62,8 @@ export function SlashGroup<TName extends string, TRoot extends string>(
  *
  * @category Decorator
  */
-export function SlashGroup<
-  T extends string,
-  TD extends string,
-  TR extends string,
->(
-  options: SlashGroupOptions<VerifyName<T>, NotEmpty<TD>, VerifyName<TR>>,
+export function SlashGroup<T extends string, TD extends string, TR extends string>(
+	options: SlashGroupOptions<VerifyName<T>, NotEmpty<TD>, VerifyName<TR>>
 ): ClassDecoratorEx;
 
 /**
@@ -89,68 +79,62 @@ export function SlashGroup<
  *
  * @category Decorator
  */
-export function SlashGroup<
-  T extends string,
-  TD extends string,
-  TR extends string,
->(
-  options:
-    | string
-    | SlashGroupOptions<VerifyName<T>, NotEmpty<TD>, VerifyName<TR>>,
-  root?: VerifyName<TR>,
+export function SlashGroup<T extends string, TD extends string, TR extends string>(
+	options: string | SlashGroupOptions<VerifyName<T>, NotEmpty<TD>, VerifyName<TR>>,
+	root?: VerifyName<TR>
 ): ClassMethodDecorator {
-  return (target, key, descriptor?: PropertyDescriptor) => {
-    if (typeof options === "string") {
-      // If @SlashGroup decorate a method edit the method and add it to subgroup
-      MetadataStorage.instance.addModifier(
-        Modifier.create<DApplicationCommand | DDiscord>(
-          (original) => {
-            if (original instanceof DDiscord) {
-              [...original.applicationCommands].forEach((obj) => {
-                obj.group = root ?? options;
-                obj.subgroup = root ? options : undefined;
-              });
-            } else {
-              original.group = root ?? options;
-              original.subgroup = root ? options : undefined;
-            }
-          },
-          DApplicationCommand,
-          DDiscord,
-        ).attachToTarget(target, key, descriptor),
-      );
-    } else {
-      SlashNameValidator(options.name);
+	return (target, key, descriptor?: PropertyDescriptor) => {
+		if (typeof options === "string") {
+			// If @SlashGroup decorate a method edit the method and add it to subgroup
+			MetadataStorage.instance.addModifier(
+				Modifier.create<DApplicationCommand | DDiscord>(
+					(original) => {
+						if (original instanceof DDiscord) {
+							[...original.applicationCommands].forEach((obj) => {
+								obj.group = root ?? options;
+								obj.subgroup = root ? options : undefined;
+							});
+						} else {
+							original.group = root ?? options;
+							original.subgroup = root ? options : undefined;
+						}
+					},
+					DApplicationCommand,
+					DDiscord
+				).attachToTarget(target, key, descriptor)
+			);
+		} else {
+			SlashNameValidator(options.name);
 
-      const clazz = target as unknown as new () => unknown;
-      if (options.root) {
-        MetadataStorage.instance.addApplicationCommandSlashSubGroups(
-          DApplicationCommandGroup.create<DApplicationCommandOption>({
-            name: options.name,
-            payload: {
-              description: options.description,
-              descriptionLocalizations: options.descriptionLocalizations,
-              nameLocalizations: options.nameLocalizations,
-            },
-            root: options.root,
-          }).decorate(clazz, clazz.name),
-        );
-      } else {
-        MetadataStorage.instance.addApplicationCommandSlashGroups(
-          DApplicationCommandGroup.create<DApplicationCommand>({
-            name: options.name,
-            payload: {
-              contexts: options.contexts,
-              defaultMemberPermissions: options.defaultMemberPermissions,
-              description: options.description,
-              descriptionLocalizations: options.descriptionLocalizations,
-              dmPermission: options.dmPermission,
-              integrationTypes: options.integrationTypes,
-              nameLocalizations: options.nameLocalizations,
-            },
-          }).decorate(clazz, key ?? clazz.name),
-        );
-      }
-    }
-  };
+			const clazz = target as unknown as new () => unknown;
+			if (options.root) {
+				MetadataStorage.instance.addApplicationCommandSlashSubGroups(
+					DApplicationCommandGroup.create<DApplicationCommandOption>({
+						name: options.name,
+						payload: {
+							description: options.description,
+							descriptionLocalizations: options.descriptionLocalizations,
+							nameLocalizations: options.nameLocalizations,
+						},
+						root: options.root,
+					}).decorate(clazz, clazz.name)
+				);
+			} else {
+				MetadataStorage.instance.addApplicationCommandSlashGroups(
+					DApplicationCommandGroup.create<DApplicationCommand>({
+						name: options.name,
+						payload: {
+							contexts: options.contexts,
+							defaultMemberPermissions: options.defaultMemberPermissions,
+							description: options.description,
+							descriptionLocalizations: options.descriptionLocalizations,
+							dmPermission: options.dmPermission,
+							integrationTypes: options.integrationTypes,
+							nameLocalizations: options.nameLocalizations,
+						},
+					}).decorate(clazz, key ?? clazz.name)
+				);
+			}
+		}
+	};
 }

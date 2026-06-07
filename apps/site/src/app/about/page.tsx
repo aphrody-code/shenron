@@ -22,9 +22,7 @@ export default function AboutPage() {
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-3xl">
 			<div className="prose prose-invert max-w-none">
-				<ReactMarkdown remarkPlugins={[remarkGfm]}>
-					{aboutContent}
-				</ReactMarkdown>
+				<ReactMarkdown remarkPlugins={[remarkGfm]}>{aboutContent}</ReactMarkdown>
 			</div>
 		</div>
 	);

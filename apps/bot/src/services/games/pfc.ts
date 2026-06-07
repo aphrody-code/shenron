@@ -32,8 +32,5 @@ export function resolvePfc(player: PfcChoice, opponent: PfcChoice): PfcResult {
 
 /** Vrai si `choice` est une valeur PfcChoice valide (pour les inputs API). */
 export function isPfcChoice(choice: unknown): choice is PfcChoice {
-	return (
-		typeof choice === "string" &&
-		(PFC_CHOICES as readonly string[]).includes(choice)
-	);
+	return typeof choice === "string" && (PFC_CHOICES as readonly string[]).includes(choice);
 }

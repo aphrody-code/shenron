@@ -24,9 +24,7 @@ function isDoNotTrack(): boolean {
 		msDoNotTrack?: string;
 	};
 	const dnt =
-		nav.doNotTrack ??
-		(window as unknown as { doNotTrack?: string }).doNotTrack ??
-		nav.msDoNotTrack;
+		nav.doNotTrack ?? (window as unknown as { doNotTrack?: string }).doNotTrack ?? nav.msDoNotTrack;
 	return dnt === "1" || dnt === "yes";
 }
 
@@ -64,16 +62,12 @@ export function ConsentGate() {
 					Mesure d'audience
 				</p>
 				<p className="text-xs text-white/70 leading-relaxed mb-4 font-sans">
-					On utilise une mesure d'audience anonymisée pour améliorer le wiki et
-					te proposer des recommandations pertinentes. Aucune adresse IP brute
-					n'est conservée. Tu peux refuser : l'essentiel du site fonctionne sans.
+					On utilise une mesure d'audience anonymisée pour améliorer le wiki et te proposer des
+					recommandations pertinentes. Aucune adresse IP brute n'est conservée. Tu peux refuser :
+					l'essentiel du site fonctionne sans.
 				</p>
 				<div className="flex gap-3">
-					<button
-						type="button"
-						onClick={accept}
-						className="dbz-button !py-2 !px-4 !text-xs flex-1"
-					>
+					<button type="button" onClick={accept} className="dbz-button !py-2 !px-4 !text-xs flex-1">
 						Accepter
 					</button>
 					<button

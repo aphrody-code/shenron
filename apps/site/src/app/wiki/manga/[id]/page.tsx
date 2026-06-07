@@ -7,10 +7,7 @@ import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
-function chapterTitle(chapter: {
-	chapter_number: number;
-	title: string | null;
-}): string {
+function chapterTitle(chapter: { chapter_number: number; title: string | null }): string {
 	return chapter.title
 		? `Chapitre ${chapter.chapter_number} — ${chapter.title}`
 		: `Chapitre ${chapter.chapter_number}`;
@@ -33,11 +30,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function MangaReaderPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function MangaReaderPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const chapter = await dbUniverse.mangaChapter(Number(id));
 

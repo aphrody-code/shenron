@@ -21,11 +21,11 @@ _No framework detected._
 
 ## Asset hosts (35 total)
 
-| Host | Asset count |
-|---|---|
-| `fr.dragon-ball-official.com` | 32 |
-| `www.googletagmanager.com` | 2 |
-| `cdn.cookielaw.org` | 1 |
+| Host                          | Asset count |
+| ----------------------------- | ----------- |
+| `fr.dragon-ball-official.com` | 32          |
+| `www.googletagmanager.com`    | 2           |
+| `cdn.cookielaw.org`           | 1           |
 
 ### stylesheet (3)
 
@@ -77,55 +77,105 @@ _No framework detected._
 ## CSS selectors (465 total) — sample top 50
 
 ```css
-#bg-comics {}
-#btn-random {}
-#btn-random a {}
-#btn-random.footer-btm {}
-#btn-random.move {}
-#btn-random.move a {}
-#global-nav {}
-#global-nav .keywords-text ul li {}
-#global-nav ul {}
-#global-nav ul li {}
-#global-nav:after {}
-#header {}
-#header .contents {}
-#header .contents li {}
-#header .contents li:hover a {}
-#header .contents li:hover a:after {}
-#header .contents li:hover a:before {}
-#header .contents>li {}
-#header .contents>li a:after {}
-#header .contents>li+li {}
-#header .contents>li.about {}
-#header .contents>li.about a:after {}
-#header .contents>li.about a:before {}
-#header .contents>li.features {}
-#header .contents>li.features a:after {}
-#header .contents>li.features a:before {}
-#header .contents>li.highlights {}
-#header .contents>li.highlights a:after {}
-#header .contents>li.highlights a:before {}
-#header .contents>li.home {}
-#header .contents>li.home a:before {}
-#header .contents>li.news {}
-#header .contents>li.news a:after {}
-#header .contents>li.news a:before {}
-#header .contents>li.videos {}
-#header .contents>li.videos a:after {}
-#header .contents>li.videos a:before {}
-#header .contents>li>a {}
-#header .contents>li>a:after {}
-#header .contents>li>a:before {}
-#header .global-nav-inner {}
-#header .global-nav-inner::-webkit-scrollbar {}
-#header .global-nav-inner::-webkit-scrollbar-thumb {}
-#header .global-nav-inner::-webkit-scrollbar-track {}
-#header .global-sub-nav {}
-#header .global-sub-nav ul li {}
-#header .global-sub-nav ul li a {}
-#header .header-sns {}
-#header .header-sns li {}
-#header .header-sns li a {}
+#bg-comics {
+}
+#btn-random {
+}
+#btn-random a {
+}
+#btn-random.footer-btm {
+}
+#btn-random.move {
+}
+#btn-random.move a {
+}
+#global-nav {
+}
+#global-nav .keywords-text ul li {
+}
+#global-nav ul {
+}
+#global-nav ul li {
+}
+#global-nav:after {
+}
+#header {
+}
+#header .contents {
+}
+#header .contents li {
+}
+#header .contents li:hover a {
+}
+#header .contents li:hover a:after {
+}
+#header .contents li:hover a:before {
+}
+#header .contents > li {
+}
+#header .contents > li a:after {
+}
+#header .contents > li + li {
+}
+#header .contents > li.about {
+}
+#header .contents > li.about a:after {
+}
+#header .contents > li.about a:before {
+}
+#header .contents > li.features {
+}
+#header .contents > li.features a:after {
+}
+#header .contents > li.features a:before {
+}
+#header .contents > li.highlights {
+}
+#header .contents > li.highlights a:after {
+}
+#header .contents > li.highlights a:before {
+}
+#header .contents > li.home {
+}
+#header .contents > li.home a:before {
+}
+#header .contents > li.news {
+}
+#header .contents > li.news a:after {
+}
+#header .contents > li.news a:before {
+}
+#header .contents > li.videos {
+}
+#header .contents > li.videos a:after {
+}
+#header .contents > li.videos a:before {
+}
+#header .contents > li > a {
+}
+#header .contents > li > a:after {
+}
+#header .contents > li > a:before {
+}
+#header .global-nav-inner {
+}
+#header .global-nav-inner::-webkit-scrollbar {
+}
+#header .global-nav-inner::-webkit-scrollbar-thumb {
+}
+#header .global-nav-inner::-webkit-scrollbar-track {
+}
+#header .global-sub-nav {
+}
+#header .global-sub-nav ul li {
+}
+#header .global-sub-nav ul li a {
+}
+#header .header-sns {
+}
+#header .header-sns li {
+}
+#header .header-sns li a {
+}
 /* ... 415 more (use --snapshot-dir to dump full list) */
 ```

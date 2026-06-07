@@ -11,95 +11,91 @@ export const contentType = "image/png";
  */
 export default function OpengraphImage() {
 	return new ImageResponse(
-		(
+		<div
+			style={{
+				width: "100%",
+				height: "100%",
+				display: "flex",
+				flexDirection: "column",
+				justifyContent: "center",
+				padding: "80px",
+				background:
+					"radial-gradient(circle at 75% 30%, rgba(255,178,0,0.35), transparent 55%), radial-gradient(circle at 20% 85%, rgba(217,33,33,0.22), transparent 55%), #0a0a0a",
+				color: "white",
+				fontFamily: "sans-serif",
+			}}
+		>
+			{/* Dragon Ball 4 étoiles stylisée */}
 			<div
 				style={{
-					width: "100%",
-					height: "100%",
+					position: "absolute",
+					top: 70,
+					right: 80,
+					width: 220,
+					height: 220,
+					borderRadius: "50%",
 					display: "flex",
-					flexDirection: "column",
+					alignItems: "center",
 					justifyContent: "center",
-					padding: "80px",
-					background:
-						"radial-gradient(circle at 75% 30%, rgba(255,178,0,0.35), transparent 55%), radial-gradient(circle at 20% 85%, rgba(217,33,33,0.22), transparent 55%), #0a0a0a",
-					color: "white",
-					fontFamily: "sans-serif",
+					background: "radial-gradient(circle at 38% 32%, #ffe39a, #ff8c1a 55%, #e2620a 100%)",
+					boxShadow: "0 0 80px rgba(255,150,0,0.5)",
 				}}
 			>
-				{/* Dragon Ball 4 étoiles stylisée */}
-				<div
-					style={{
-						position: "absolute",
-						top: 70,
-						right: 80,
-						width: 220,
-						height: 220,
-						borderRadius: "50%",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						background:
-							"radial-gradient(circle at 38% 32%, #ffe39a, #ff8c1a 55%, #e2620a 100%)",
-						boxShadow: "0 0 80px rgba(255,150,0,0.5)",
-					}}
-				>
-					<div style={{ display: "flex", gap: 14, fontSize: 64, color: "#c8341f" }}>
-						<span>★</span>
-						<span>★</span>
-					</div>
-				</div>
-
-				<div
-					style={{
-						display: "flex",
-						fontSize: 30,
-						letterSpacing: 8,
-						textTransform: "uppercase",
-						color: "#ffb200",
-						fontWeight: 700,
-						marginBottom: 18,
-					}}
-				>
-					Le portail francophone
-				</div>
-				<div
-					style={{
-						display: "flex",
-						flexWrap: "wrap",
-						fontSize: 104,
-						fontWeight: 800,
-						lineHeight: 1,
-						letterSpacing: -2,
-					}}
-				>
-					<span style={{ color: "white" }}>Dragon&nbsp;Ball&nbsp;</span>
-					<span style={{ color: "#ffb200" }}>France</span>
-				</div>
-				<div
-					style={{
-						display: "flex",
-						marginTop: 34,
-						fontSize: 34,
-						color: "rgba(255,255,255,0.82)",
-						maxWidth: 820,
-					}}
-				>
-					Wiki, personnages, sagas, films, épisodes VF &amp; actualités — en
-					français.
-				</div>
-				<div
-					style={{
-						display: "flex",
-						marginTop: "auto",
-						fontSize: 26,
-						color: "rgba(255,255,255,0.5)",
-						letterSpacing: 2,
-					}}
-				>
-					dragonballfr.com
+				<div style={{ display: "flex", gap: 14, fontSize: 64, color: "#c8341f" }}>
+					<span>★</span>
+					<span>★</span>
 				</div>
 			</div>
-		),
-		size,
+
+			<div
+				style={{
+					display: "flex",
+					fontSize: 30,
+					letterSpacing: 8,
+					textTransform: "uppercase",
+					color: "#ffb200",
+					fontWeight: 700,
+					marginBottom: 18,
+				}}
+			>
+				Le portail francophone
+			</div>
+			<div
+				style={{
+					display: "flex",
+					flexWrap: "wrap",
+					fontSize: 104,
+					fontWeight: 800,
+					lineHeight: 1,
+					letterSpacing: -2,
+				}}
+			>
+				<span style={{ color: "white" }}>Dragon&nbsp;Ball&nbsp;</span>
+				<span style={{ color: "#ffb200" }}>France</span>
+			</div>
+			<div
+				style={{
+					display: "flex",
+					marginTop: 34,
+					fontSize: 34,
+					color: "rgba(255,255,255,0.82)",
+					maxWidth: 820,
+				}}
+			>
+				Wiki, personnages, sagas, films, épisodes VF &amp; actualités — en français.
+			</div>
+			<div
+				style={{
+					display: "flex",
+					marginTop: "auto",
+					fontSize: 26,
+					color: "rgba(255,255,255,0.5)",
+					letterSpacing: 2,
+				}}
+			>
+				dragonballfr.com
+			</div>
+		</div>,
+		size
 	);
 }

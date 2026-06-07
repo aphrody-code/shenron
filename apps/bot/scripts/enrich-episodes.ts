@@ -13,9 +13,13 @@
  */
 import { Database } from "bun:sqlite";
 
-const DB =
-	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
-if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
+const DB = process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) {
+	console.error(
+		"Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."
+	);
+	process.exit(1);
+}
 const db = new Database(DB);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const UA =
@@ -33,15 +37,12 @@ const TMDB: Record<string, number> = {
 const STILL = "https://image.tmdb.org/t/p/w780/";
 
 async function seasonStills(tvid: number, season: number): Promise<string[]> {
-	const res = await fetch(
-		`https://www.themoviedb.org/tv/${tvid}/season/${season}`,
-		{
-			headers: {
-				"user-agent": UA,
-				"accept-language": "fr-FR,fr;q=0.9,en;q=0.8",
-			},
+	const res = await fetch(`https://www.themoviedb.org/tv/${tvid}/season/${season}`, {
+		headers: {
+			"user-agent": UA,
+			"accept-language": "fr-FR,fr;q=0.9,en;q=0.8",
 		},
-	);
+	});
 	if (!res.ok) return [];
 	const html = await res.text();
 	const re = /w227_and_h127_face\/([A-Za-z0-9_-]+\.(?:jpg|png))/g;
@@ -79,7 +80,7 @@ async function main() {
 	for (const [series, tvid] of Object.entries(TMDB)) {
 		const eps = db
 			.query(
-				`SELECT id, number_in_series FROM db_episodes WHERE series = ? AND (image IS NULL OR image = '') ORDER BY number_in_series`,
+				`SELECT id, number_in_series FROM db_episodes WHERE series = ? AND (image IS NULL OR image = '') ORDER BY number_in_series`
 			)
 			.all(series) as { id: number; number_in_series: number }[];
 		if (eps.length === 0) {
@@ -89,7 +90,7 @@ async function main() {
 		const stills = await collectStills(tvid);
 		const epsAll = db
 			.query(
-				`SELECT id, number_in_series FROM db_episodes WHERE series = ? ORDER BY number_in_series`,
+				`SELECT id, number_in_series FROM db_episodes WHERE series = ? ORDER BY number_in_series`
 			)
 			.all(series) as { id: number; number_in_series: number }[];
 		let added = 0;
@@ -99,14 +100,12 @@ async function main() {
 		}
 		grandAdded += added;
 		console.log(
-			`✓ ${series} : ${stills.length} stills TMDB → ${added}/${epsAll.length} épisodes mappés`,
+			`✓ ${series} : ${stills.length} stills TMDB → ${added}/${epsAll.length} épisodes mappés`
 		);
 	}
 
 	const cov = db
-		.query(
-			`SELECT COUNT(*) c FROM db_episodes WHERE image IS NOT NULL AND image<>''`,
-		)
+		.query(`SELECT COUNT(*) c FROM db_episodes WHERE image IS NOT NULL AND image<>''`)
 		.get() as { c: number };
 	const tot = db.query(`SELECT COUNT(*) c FROM db_episodes`).get() as {
 		c: number;

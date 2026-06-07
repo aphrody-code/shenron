@@ -12,9 +12,13 @@
  */
 import { Database } from "bun:sqlite";
 
-const DB =
-	process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
-if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) { console.error("Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."); process.exit(1); }
+const DB = process.env.BOT_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
+if (!Bun.env.ALLOW_SQLITE_WIKI_WRITE) {
+	console.error(
+		"Wiki migre sur Neon (source de verite) -- ecriture SQLite ecrasee par le reverse-sync. Edite via le site, ou ALLOW_SQLITE_WIKI_WRITE=1 pour forcer."
+	);
+	process.exit(1);
+}
 const db = new Database(DB);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -54,11 +58,9 @@ async function jikan<T>(url: string): Promise<T | null> {
 }
 
 async function findByTitle(title: string): Promise<JikanAnime | null> {
-	const q = encodeURIComponent(
-		title.replace(/^Dragon Ball[ Z]*:?\s*/i, "").trim() || title,
-	);
+	const q = encodeURIComponent(title.replace(/^Dragon Ball[ Z]*:?\s*/i, "").trim() || title);
 	const data = await jikan<{ data: JikanAnime[] }>(
-		`https://api.jikan.moe/v4/anime?q=${q}&limit=5&sfw=true`,
+		`https://api.jikan.moe/v4/anime?q=${q}&limit=5&sfw=true`
 	);
 	const list = data?.data ?? [];
 	// Préfère un résultat dont le titre contient un mot clé du film
@@ -66,16 +68,14 @@ async function findByTitle(title: string): Promise<JikanAnime | null> {
 }
 
 async function byId(malId: number): Promise<JikanAnime | null> {
-	const data = await jikan<{ data: JikanAnime }>(
-		`https://api.jikan.moe/v4/anime/${malId}`,
-	);
+	const data = await jikan<{ data: JikanAnime }>(`https://api.jikan.moe/v4/anime/${malId}`);
 	return data?.data ?? null;
 }
 
 async function main() {
 	const movies = db
 		.query(
-			`SELECT id, title, title_romaji, mal_id, poster, trailer_url, synopsis FROM db_movies ORDER BY id`,
+			`SELECT id, title, title_romaji, mal_id, poster, trailer_url, synopsis FROM db_movies ORDER BY id`
 		)
 		.all() as Movie[];
 
@@ -84,7 +84,7 @@ async function main() {
 	let synopses = 0;
 
 	const upd = db.query(
-		`UPDATE db_movies SET poster = COALESCE(?, poster), trailer_url = COALESCE(?, trailer_url), mal_id = COALESCE(?, mal_id), synopsis = COALESCE(?, synopsis) WHERE id = ?`,
+		`UPDATE db_movies SET poster = COALESCE(?, poster), trailer_url = COALESCE(?, trailer_url), mal_id = COALESCE(?, mal_id), synopsis = COALESCE(?, synopsis) WHERE id = ?`
 	);
 
 	for (const m of movies) {
@@ -109,10 +109,7 @@ async function main() {
 			continue;
 		}
 
-		const poster =
-			anime.images?.jpg?.large_image_url ??
-			anime.images?.jpg?.image_url ??
-			null;
+		const poster = anime.images?.jpg?.large_image_url ?? anime.images?.jpg?.image_url ?? null;
 		const trailer = anime.trailer?.url ?? null;
 		const synopsis = anime.synopsis?.trim() || null;
 
@@ -121,33 +118,29 @@ async function main() {
 			hasTrailer ? null : trailer,
 			m.mal_id ? null : anime.mal_id,
 			hasSynopsis ? null : synopsis,
-			m.id,
+			m.id
 		);
 		if (!hasPoster && poster) posters++;
 		if (!hasTrailer && trailer) trailers++;
 		if (!hasSynopsis && synopsis) synopses++;
 		console.log(
-			`✓ ${m.title} → mal_id=${anime.mal_id} poster=${poster ? "oui" : "non"} trailer=${trailer ? "oui" : "non"} synopsis=${synopsis ? "oui" : "non"}`,
+			`✓ ${m.title} → mal_id=${anime.mal_id} poster=${poster ? "oui" : "non"} trailer=${trailer ? "oui" : "non"} synopsis=${synopsis ? "oui" : "non"}`
 		);
 	}
 
 	const totalPoster = (
-		db
-			.query(
-				`SELECT COUNT(*) c FROM db_movies WHERE poster IS NOT NULL AND poster<>''`,
-			)
-			.get() as { c: number }
+		db.query(`SELECT COUNT(*) c FROM db_movies WHERE poster IS NOT NULL AND poster<>''`).get() as {
+			c: number;
+		}
 	).c;
 	const totalTrailer = (
 		db
-			.query(
-				`SELECT COUNT(*) c FROM db_movies WHERE trailer_url IS NOT NULL AND trailer_url<>''`,
-			)
+			.query(`SELECT COUNT(*) c FROM db_movies WHERE trailer_url IS NOT NULL AND trailer_url<>''`)
 			.get() as { c: number }
 	).c;
 	const total = movies.length;
 	console.log(
-		`\n+${posters} posters, +${trailers} trailers, +${synopses} synopsis. Couverture : poster ${totalPoster}/${total}, trailer ${totalTrailer}/${total}.`,
+		`\n+${posters} posters, +${trailers} trailers, +${synopses} synopsis. Couverture : poster ${totalPoster}/${total}, trailer ${totalTrailer}/${total}.`
 	);
 	db.close();
 }

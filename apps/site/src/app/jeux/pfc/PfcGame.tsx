@@ -65,10 +65,7 @@ export function PfcGame() {
 
 	function play(choice: Choice) {
 		const parsedStake = stake ? Number(stake) : undefined;
-		if (
-			parsedStake !== undefined &&
-			(!Number.isFinite(parsedStake) || parsedStake < 1)
-		) {
+		if (parsedStake !== undefined && (!Number.isFinite(parsedStake) || parsedStake < 1)) {
 			setHistory((h) => [{ ok: false, error: "Mise invalide" }, ...h]);
 			return;
 		}
@@ -138,9 +135,7 @@ export function PfcGame() {
 							>
 								<span className="text-3xl">{c.emoji}</span>
 								<span>{c.label}</span>
-								<span className="font-scouter text-[9px] tracking-[0.2em] opacity-80">
-									{c.ki}
-								</span>
+								<span className="font-scouter text-[9px] tracking-[0.2em] opacity-80">{c.ki}</span>
 							</button>
 						</KiAura>
 					))}
@@ -166,9 +161,7 @@ export function PfcGame() {
 						flash={lastSuccess.result === "win"}
 					/>
 					<div className="flex items-baseline justify-between mb-3 relative z-10">
-						<span
-							className={`font-saiyan text-3xl ${RESULT_TEXT[lastSuccess.result].color}`}
-						>
+						<span className={`font-saiyan text-3xl ${RESULT_TEXT[lastSuccess.result].color}`}>
 							{RESULT_TEXT[lastSuccess.result].label}
 						</span>
 						<span className="font-scouter text-xs tracking-widest text-dbz-blue-light">
@@ -179,15 +172,9 @@ export function PfcGame() {
 						className={`flex items-center justify-center gap-6 text-5xl py-4 relative z-10 ${fx.impactIn}`}
 						key={clash}
 					>
-						<span>
-							{CHOICES.find((c) => c.value === lastSuccess.player)?.emoji}
-						</span>
-						<span className="font-saiyan text-dbz-orange text-2xl ki-pulse">
-							VS
-						</span>
-						<span>
-							{CHOICES.find((c) => c.value === lastSuccess.bot)?.emoji}
-						</span>
+						<span>{CHOICES.find((c) => c.value === lastSuccess.player)?.emoji}</span>
+						<span className="font-saiyan text-dbz-orange text-2xl ki-pulse">VS</span>
+						<span>{CHOICES.find((c) => c.value === lastSuccess.bot)?.emoji}</span>
 					</div>
 					{lastSuccess.delta !== 0 && (
 						<p
@@ -202,9 +189,7 @@ export function PfcGame() {
 
 			{last && !last.ok && (
 				<div className="dbz-panel p-4 border-l-8 border-red-400">
-					<span className="font-scouter text-xs tracking-widest text-red-400">
-						✗ {last.error}
-					</span>
+					<span className="font-scouter text-xs tracking-widest text-red-400">✗ {last.error}</span>
 				</div>
 			)}
 
@@ -217,19 +202,13 @@ export function PfcGame() {
 						{history.slice(1).map((h, i) =>
 							h.ok ? (
 								<li key={i} className="flex gap-3">
-									<span className={RESULT_TEXT[h.result].color}>
-										{RESULT_TEXT[h.result].label}
-									</span>
+									<span className={RESULT_TEXT[h.result].color}>{RESULT_TEXT[h.result].label}</span>
 									<span>
 										{CHOICES.find((c) => c.value === h.player)?.emoji} vs{" "}
 										{CHOICES.find((c) => c.value === h.bot)?.emoji}
 									</span>
 									{h.delta !== 0 && (
-										<span
-											className={
-												h.delta > 0 ? "text-green-400" : "text-red-400"
-											}
-										>
+										<span className={h.delta > 0 ? "text-green-400" : "text-red-400"}>
 											{h.delta > 0 ? "+" : ""}
 											{h.delta} z
 										</span>
@@ -239,7 +218,7 @@ export function PfcGame() {
 								<li key={i} className="text-red-400">
 									✗ {h.error}
 								</li>
-							),
+							)
 						)}
 					</ul>
 				</div>

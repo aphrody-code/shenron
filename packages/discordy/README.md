@@ -22,15 +22,15 @@ import type { CommandInteraction } from "discord.js";
 
 @Discord()
 class Ping {
-  @Slash({ name: "ping", description: "Ping" })
-  async run(i: CommandInteraction) {
-    await i.reply({ content: "🏓", flags: MessageFlags.Ephemeral });
-  }
+	@Slash({ name: "ping", description: "Ping" })
+	async run(i: CommandInteraction) {
+		await i.reply({ content: "🏓", flags: MessageFlags.Ephemeral });
+	}
 }
 
 const client = new Client({
-  intents: [IntentsBitField.Flags.Guilds],
-  silent: false,
+	intents: [IntentsBitField.Flags.Guilds],
+	silent: false,
 });
 
 client.once("ready", () => client.initApplicationCommands());

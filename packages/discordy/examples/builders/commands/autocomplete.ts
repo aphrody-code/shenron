@@ -5,37 +5,35 @@
  * -------------------------------------------------------------------------------------------------------
  */
 import {
-  SlashCommandBuilder,
-  SlashCommandStringOption,
-  type AutocompleteInteraction,
-  type CommandInteraction,
+	SlashCommandBuilder,
+	SlashCommandStringOption,
+	type AutocompleteInteraction,
+	type CommandInteraction,
 } from "discord.js";
 import { Discord, Slash, SlashOption } from "@rpbey/discordy";
 
-const cmd = new SlashCommandBuilder()
-  .setName("planet-auto")
-  .setDescription("Select a planet");
+const cmd = new SlashCommandBuilder().setName("planet-auto").setDescription("Select a planet");
 
 const planet_option = new SlashCommandStringOption()
-  .setName("planet")
-  .setDescription("Choose a planet")
-  .setRequired(true)
-  .setAutocomplete(true);
+	.setName("planet")
+	.setDescription("Choose a planet")
+	.setRequired(true)
+	.setAutocomplete(true);
 
 @Discord()
 export class Example {
-  @Slash(cmd)
-  async hello(
-    @SlashOption(planet_option) planet: string,
-    interaction: CommandInteraction | AutocompleteInteraction,
-  ): Promise<void> {
-    if (interaction.isAutocomplete()) {
-      await interaction.respond([
-        { name: "Earth", value: "Earth" },
-        { name: "Mars", value: "Mars" },
-      ]);
-    } else {
-      await interaction.reply(`:rocket: going to ${planet}`);
-    }
-  }
+	@Slash(cmd)
+	async hello(
+		@SlashOption(planet_option) planet: string,
+		interaction: CommandInteraction | AutocompleteInteraction
+	): Promise<void> {
+		if (interaction.isAutocomplete()) {
+			await interaction.respond([
+				{ name: "Earth", value: "Earth" },
+				{ name: "Mars", value: "Mars" },
+			]);
+		} else {
+			await interaction.reply(`:rocket: going to ${planet}`);
+		}
+	}
 }

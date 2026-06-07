@@ -6,23 +6,23 @@ de vérité des units systemd, des vhosts nginx et des scripts d'ops.
 
 ## Contenu
 
-| Chemin | Rôle |
-|---|---|
-| `deploy/systemd/shenron.service` | Bot prod (`bun src/index.ts`, hardening, MemoryMax 1.5G). |
-| `deploy/systemd/shenron-backup.{service,timer}` | Backup SQLite `VACUUM INTO` quotidien 03:00 UTC (rétention 14j). |
-| `deploy/systemd/shenron-guild-sync.{service,timer}` | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut). |
-| `deploy/systemd/shenron-neon-sync.{service,timer}` | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min. |
-| `deploy/systemd/shenron-neon-pull.{service,timer}` | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
-| `deploy/nginx/bot.dragonballfr.com.conf` | Vhost API publique du bot (proxy `:5006`), domaine unique prod. |
-| `deploy/nginx/bot.rpbey.fr.conf` | Vhost API publique du bot (proxy `:5006`), alias historique (redirigé). |
-| `deploy/nginx/shenron.conf` | Vhost dashboard SPA + upstream `shenron_api` (redirigé). |
-| `deploy/install.sh` | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`). |
-| `scripts/backup-shenron-sqlite.sh` | Script du backup (appelé par le timer). |
-| `scripts/shenron-guild-sync.sh` | Script de la réconciliation. |
-| `scripts/deploy-shenron.sh` | Pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto. |
-| `apps/bot/scripts/sync-sqlite-to-neon.ts` | Forward mirror runtime+news (timer neon-sync). |
-| `apps/bot/scripts/sync-neon-to-sqlite.ts` | Reverse mirror wiki Neon→SQLite (timer neon-pull). |
-| `Dockerfile`, `fly.toml`, `.dockerignore` (**racine**) | Cible conteneur / Fly.io monorepo-aware (alternative sans VPS). |
+| Chemin                                                 | Rôle                                                                               |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `deploy/systemd/shenron.service`                       | Bot prod (`bun src/index.ts`, hardening, MemoryMax 1.5G).                          |
+| `deploy/systemd/shenron-backup.{service,timer}`        | Backup SQLite `VACUUM INTO` quotidien 03:00 UTC (rétention 14j).                   |
+| `deploy/systemd/shenron-guild-sync.{service,timer}`    | Réconciliation DB↔Discord 04:00 UTC (**opt-in**, désactivé par défaut).            |
+| `deploy/systemd/shenron-neon-sync.{service,timer}`     | Forward SQLite→Neon (runtime + `db_news`, wiki exclu) toutes les 30 min.           |
+| `deploy/systemd/shenron-neon-pull.{service,timer}`     | Reverse Neon→SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min. |
+| `deploy/nginx/bot.dragonballfr.com.conf`               | Vhost API publique du bot (proxy `:5006`), domaine unique prod.                    |
+| `deploy/nginx/bot.rpbey.fr.conf`                       | Vhost API publique du bot (proxy `:5006`), alias historique (redirigé).            |
+| `deploy/nginx/shenron.conf`                            | Vhost dashboard SPA + upstream `shenron_api` (redirigé).                           |
+| `deploy/install.sh`                                    | Installeur idempotent (copie units + reload + enable, `--nginx`, `--start`).       |
+| `scripts/backup-shenron-sqlite.sh`                     | Script du backup (appelé par le timer).                                            |
+| `scripts/shenron-guild-sync.sh`                        | Script de la réconciliation.                                                       |
+| `scripts/deploy-shenron.sh`                            | Pull + lint/tsc + dashboard:css + restart + smoke `/auth/me` + rollback auto.      |
+| `apps/bot/scripts/sync-sqlite-to-neon.ts`              | Forward mirror runtime+news (timer neon-sync).                                     |
+| `apps/bot/scripts/sync-neon-to-sqlite.ts`              | Reverse mirror wiki Neon→SQLite (timer neon-pull).                                 |
+| `Dockerfile`, `fly.toml`, `.dockerignore` (**racine**) | Cible conteneur / Fly.io monorepo-aware (alternative sans VPS).                    |
 
 ## Déploiement bare-metal (VPS systemd)
 

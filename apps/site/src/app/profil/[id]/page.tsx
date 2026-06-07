@@ -8,11 +8,7 @@ export const dynamic = "force-dynamic";
 const fmt = (n: number | null | undefined) =>
 	typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("fr-FR") : "0";
 
-export default async function ProfilePage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const user = await getShenronUser(id);
 
@@ -29,11 +25,7 @@ export default async function ProfilePage({
 	const progressPct = user.xpProgress
 		? Math.min(
 				100,
-				Math.max(
-					0,
-					(user.xpProgress.current / Math.max(1, user.xpProgress.nextLevelXp)) *
-						100,
-				),
+				Math.max(0, (user.xpProgress.current / Math.max(1, user.xpProgress.nextLevelXp)) * 100)
 			)
 		: 0;
 
@@ -54,7 +46,7 @@ export default async function ProfilePage({
 						TÉLÉCHARGER PNG →
 					</a>
 				</div>
-				{ }
+				{}
 				<img
 					src={cardUrl}
 					alt={`Carte de ${username}`}
@@ -62,8 +54,7 @@ export default async function ProfilePage({
 					loading="lazy"
 				/>
 				<p className="text-center text-[10px] uppercase tracking-widest text-white/40 mt-3">
-					Rendue en direct par le bot · identique à <code>/profil</code> sur
-					Discord
+					Rendue en direct par le bot · identique à <code>/profil</code> sur Discord
 				</p>
 			</section>
 
@@ -71,12 +62,7 @@ export default async function ProfilePage({
 				{/* Banner */}
 				<div className="h-48 md:h-64 w-full relative border-b-4 border-dbz-blue-light">
 					{user.banner ? (
-						 
-						<img
-							src={user.banner}
-							alt="Banner"
-							className="w-full h-full object-cover"
-						/>
+						<img src={user.banner} alt="Banner" className="w-full h-full object-cover" />
 					) : (
 						<div className="w-full h-full bg-dbz-bg flex items-center justify-center">
 							<span className="font-saiyan text-6xl text-dbz-border opacity-50 uppercase tracking-widest">
@@ -92,7 +78,7 @@ export default async function ProfilePage({
 					<div className="relative -mt-20 md:-mt-24 mb-10 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
 						<div className="relative">
 							<div className="w-32 h-32 md:w-44 md:h-44 border-4 md:border-8 border-dbz-blue-light bg-dbz-bg relative z-10 p-1">
-								{ }
+								{}
 								<img
 									src={avatar}
 									alt={username}
@@ -100,9 +86,7 @@ export default async function ProfilePage({
 								/>
 							</div>
 							<div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-dbz-orange text-white px-4 py-1 border-2 border-dbz-orange-dark z-20 shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">
-								<span className="font-saiyan text-2xl uppercase">
-									LVL {user.level ?? 0}
-								</span>
+								<span className="font-saiyan text-2xl uppercase">LVL {user.level ?? 0}</span>
 							</div>
 						</div>
 
@@ -129,8 +113,7 @@ export default async function ProfilePage({
 											Progression Niveau {user.xpProgress.nextLevel}
 										</span>
 										<span className="text-[10px] font-bold text-gray-400">
-											{fmt(user.xpProgress.current)} /{" "}
-											{fmt(user.xpProgress.nextLevelXp)} XP
+											{fmt(user.xpProgress.current)} / {fmt(user.xpProgress.nextLevelXp)} XP
 										</span>
 									</div>
 									<div className="h-4 bg-dbz-bg border-2 border-dbz-border p-0.5 relative overflow-hidden">
@@ -138,8 +121,7 @@ export default async function ProfilePage({
 											className="h-full shadow-[0_0_12px_rgba(255,107,26,0.6)]"
 											style={{
 												width: `${progressPct}%`,
-												background:
-													"linear-gradient(90deg,#6366f1,#a855f7,#38bdf8)",
+												background: "linear-gradient(90deg,#6366f1,#a855f7,#38bdf8)",
 											}}
 										/>
 									</div>
@@ -163,26 +145,10 @@ export default async function ProfilePage({
 
 					{/* Stats Scouter style */}
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
-						<StatBox
-							label="XP Total"
-							value={fmt(user.xp)}
-							tint="text-dbz-orange"
-						/>
-						<StatBox
-							label="Zénis"
-							value={fmt(user.zeni)}
-							tint="text-dbz-yellow"
-						/>
-						<StatBox
-							label="Succès"
-							value={fmt(user.achievements?.length)}
-							tint="text-white"
-						/>
-						<StatBox
-							label="Objets"
-							value={fmt(user.inventory?.length)}
-							tint="text-white"
-						/>
+						<StatBox label="XP Total" value={fmt(user.xp)} tint="text-dbz-orange" />
+						<StatBox label="Zénis" value={fmt(user.zeni)} tint="text-dbz-yellow" />
+						<StatBox label="Succès" value={fmt(user.achievements?.length)} tint="text-white" />
+						<StatBox label="Objets" value={fmt(user.inventory?.length)} tint="text-white" />
 					</div>
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
@@ -219,9 +185,7 @@ export default async function ProfilePage({
 											</div>
 										))
 									) : (
-										<p className="text-sm text-gray-500 font-bold uppercase">
-											Inventaire vide.
-										</p>
+										<p className="text-sm text-gray-500 font-bold uppercase">Inventaire vide.</p>
 									)}
 								</div>
 							</section>
@@ -258,15 +222,7 @@ export default async function ProfilePage({
 	);
 }
 
-function StatBox({
-	label,
-	value,
-	tint,
-}: {
-	label: string;
-	value: string;
-	tint: string;
-}) {
+function StatBox({ label, value, tint }: { label: string; value: string; tint: string }) {
 	return (
 		<div className="bg-dbz-bg border-2 border-dbz-border p-4 text-center">
 			<p className="text-[10px] md:text-xs font-bold text-dbz-blue-light uppercase tracking-widest mb-1">
@@ -277,13 +233,7 @@ function StatBox({
 	);
 }
 
-function EquippedItem({
-	label,
-	value,
-}: {
-	label: string;
-	value: string | null | undefined;
-}) {
+function EquippedItem({ label, value }: { label: string; value: string | null | undefined }) {
 	return (
 		<div className="flex items-center justify-between p-3 bg-dbz-bg border-2 border-dbz-border hover:border-dbz-blue-light transition-colors">
 			<span className="text-xs font-bold text-dbz-blue-light uppercase tracking-widest">

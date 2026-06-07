@@ -1,8 +1,8 @@
 {
-  "name": "typedi-example",
-  "private": true,
-  "dependencies": {
-    "@rpbey/discordy": "workspace:^",
-    "typedi": "^0.10.0"
-  }
+	"name": "typedi-example",
+	"private": true,
+	"dependencies": {
+		"@rpbey/discordy": "workspace:^",
+		"typedi": "^0.10.0"
+	}
 }

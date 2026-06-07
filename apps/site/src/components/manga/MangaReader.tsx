@@ -15,15 +15,7 @@
  */
 
 import Link from "next/link";
-import {
-	type ReactElement,
-	useCallback,
-	useEffect,
-	useId,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { type ReactElement, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -208,8 +200,7 @@ export function MangaReader({
 		count: total,
 		getScrollElement: () => scrollParentRef.current,
 		// Estimation ~ hauteur viewport ; remplacée par la mesure réelle.
-		estimateSize: () =>
-			typeof window === "undefined" ? 900 : window.innerHeight,
+		estimateSize: () => (typeof window === "undefined" ? 900 : window.innerHeight),
 		overscan: 3,
 	});
 
@@ -220,9 +211,7 @@ export function MangaReader({
 		if (!el) return;
 		const onScroll = () => {
 			const mid = el.scrollTop + el.clientHeight / 2;
-			const item = virtualizer
-				.getVirtualItems()
-				.find((vi) => vi.start <= mid && vi.end >= mid);
+			const item = virtualizer.getVirtualItems().find((vi) => vi.start <= mid && vi.end >= mid);
 			if (item) setCurrent(item.index);
 		};
 		el.addEventListener("scroll", onScroll, { passive: true });
@@ -238,8 +227,7 @@ export function MangaReader({
 	}, [mode, current, virtualizer]);
 
 	const goNextPage = useCallback(() => {
-		if (mode === "paged")
-			swiperRef.current?.slideNext();
+		if (mode === "paged") swiperRef.current?.slideNext();
 		else
 			virtualizer.scrollToIndex(Math.min(total - 1, current + 1), {
 				align: "start",
@@ -261,9 +249,7 @@ export function MangaReader({
 		>
 			{/* Barre de contrôles */}
 			<div className="dbz-panel z-10 flex flex-wrap items-center gap-2 border-b border-dbz-border px-3 py-2">
-				<span className="mr-1 max-w-[40ch] truncate text-sm font-bold text-white">
-					{title}
-				</span>
+				<span className="mr-1 max-w-[40ch] truncate text-sm font-bold text-white">{title}</span>
 
 				<span className="ml-auto rounded bg-dbz-bg px-2 py-1 text-xs font-bold tabular-nums text-dbz-orange">
 					{counter}
@@ -320,11 +306,7 @@ export function MangaReader({
 					onClick={toggleFullscreen}
 					title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
 				>
-					{isFullscreen ? (
-						<Minimize2 size={14} aria-hidden />
-					) : (
-						<Maximize2 size={14} aria-hidden />
-					)}
+					{isFullscreen ? <Minimize2 size={14} aria-hidden /> : <Maximize2 size={14} aria-hidden />}
 				</button>
 
 				{/* Navigation chapitres */}
@@ -471,7 +453,9 @@ export function MangaReader({
 									swiperRef.current?.slideTo(idx);
 								}}
 								className={`relative flex-shrink-0 w-12 h-16 rounded overflow-hidden border-2 transition-all ${
-									current === idx ? "border-dbz-orange scale-105 shadow-[0_0_10px_rgba(255,178,0,0.4)]" : "border-white/10 hover:border-white/30"
+									current === idx
+										? "border-dbz-orange scale-105 shadow-[0_0_10px_rgba(255,178,0,0.4)]"
+										: "border-white/10 hover:border-white/30"
 								}`}
 							>
 								<img

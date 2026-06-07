@@ -49,10 +49,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function jikanSynopsis(animeId: number, ep: number): Promise<string | null> {
 	for (let attempt = 0; attempt < 4; attempt++) {
 		try {
-			const res = await fetch(
-				`https://api.jikan.moe/v4/anime/${animeId}/episodes/${ep}`,
-				{ headers: { accept: "application/json" } },
-			);
+			const res = await fetch(`https://api.jikan.moe/v4/anime/${animeId}/episodes/${ep}`, {
+				headers: { accept: "application/json" },
+			});
 			if (res.status === 429) {
 				await sleep(2500); // rate-limit → backoff
 				continue;
@@ -88,7 +87,7 @@ const rows = ONLY
 
 console.log(
 	`→ ${rows.length} épisode(s) sans synopsis${ONLY ? ` (série ${ONLY})` : ""}` +
-		(LIMIT !== Number.POSITIVE_INFINITY ? `, limité à ${LIMIT}` : ""),
+		(LIMIT !== Number.POSITIVE_INFINITY ? `, limité à ${LIMIT}` : "")
 );
 
 let updated = 0;
@@ -112,12 +111,14 @@ for (const row of rows) {
 		missing++;
 	}
 	if (processed % 25 === 0) {
-		console.log(`  … ${processed}/${Math.min(rows.length, LIMIT)} (maj ${updated}, vide ${missing})`);
+		console.log(
+			`  … ${processed}/${Math.min(rows.length, LIMIT)} (maj ${updated}, vide ${missing})`
+		);
 	}
 	await sleep(1100); // ~54 req/min < 60/min Jikan
 }
 
 console.log(
-	`✓ Terminé : ${updated} synopsis écrits, ${missing} sans donnée Jikan, ${skipped} séries non mappées.`,
+	`✓ Terminé : ${updated} synopsis écrits, ${missing} sans donnée Jikan, ${skipped} séries non mappées.`
 );
 await sql.end();

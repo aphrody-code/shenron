@@ -82,11 +82,7 @@ export function GifEncoderDemo() {
 						height={160}
 						className="rounded-lg border border-white/10"
 					/>
-					<a
-						href={url}
-						download="dbfr-ki.gif"
-						className="text-sm text-dbz-orange underline"
-					>
+					<a href={url} download="dbfr-ki.gif" className="text-sm text-dbz-orange underline">
 						Télécharger
 					</a>
 				</figure>

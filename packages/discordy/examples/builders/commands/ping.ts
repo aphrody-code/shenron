@@ -7,14 +7,12 @@
 import { SlashCommandBuilder, type CommandInteraction } from "discord.js";
 import { Discord, Slash } from "@rpbey/discordy";
 
-const cmd = new SlashCommandBuilder()
-  .setName("ping")
-  .setDescription("Reply with pong!");
+const cmd = new SlashCommandBuilder().setName("ping").setDescription("Reply with pong!");
 
 @Discord()
 export class Example {
-  @Slash(cmd)
-  async ping(interaction: CommandInteraction): Promise<void> {
-    await interaction.reply("Pong");
-  }
+	@Slash(cmd)
+	async ping(interaction: CommandInteraction): Promise<void> {
+		await interaction.reply("Pong");
+	}
 }

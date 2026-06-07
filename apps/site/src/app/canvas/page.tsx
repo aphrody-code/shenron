@@ -29,10 +29,7 @@ export default function CanvasShowcase() {
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 				{SAMPLES.map((s) => (
-					<article
-						key={s.path}
-						className="dbz-panel overflow-hidden flex flex-col"
-					>
+					<article key={s.path} className="dbz-panel overflow-hidden flex flex-col">
 						<div className="aspect-[16/6] bg-dbz-bg overflow-hidden border-b-4 border-dbz-border">
 							<img
 								src={s.example}
@@ -56,9 +53,7 @@ export default function CanvasShowcase() {
 								<div className="text-[10px] uppercase text-dbz-blue-light tracking-widest mb-1">
 									Commande Discord
 								</div>
-								<code className="text-xs font-mono text-dbz-yellow">
-									{s.discord}
-								</code>
+								<code className="text-xs font-mono text-dbz-yellow">{s.discord}</code>
 							</div>
 						</div>
 					</article>
@@ -66,13 +61,10 @@ export default function CanvasShowcase() {
 			</div>
 
 			<section className="mt-12 dbz-panel p-6">
-				<h2 className="text-2xl font-saiyan text-dbz-orange uppercase mb-3">
-					Backgrounds NASA
-				</h2>
+				<h2 className="text-2xl font-saiyan text-dbz-orange uppercase mb-3">Backgrounds NASA</h2>
 				<p className="text-sm text-gray-300 mb-2">
-					Tous les fonds de profile cards proviennent de NASA Images API
-					(domaine public, zéro API à clé). Cache LRU 32 entries + dédoublonnage
-					buffer.
+					Tous les fonds de profile cards proviennent de NASA Images API (domaine public, zéro API à
+					clé). Cache LRU 32 entries + dédoublonnage buffer.
 				</p>
 				<div className="text-xs text-dbz-blue-light font-mono uppercase tracking-widest">
 					assets/backgrounds/{"{theme}"}/{"{slug}"}.jpg

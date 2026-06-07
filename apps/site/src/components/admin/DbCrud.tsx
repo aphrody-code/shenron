@@ -31,8 +31,7 @@ function useCrud(table: string) {
 	const wiki = isWikiTable(table);
 	const client = wiki ? apiAt(crudBase(table)) : api;
 	const collection = wiki ? `/${table}` : `/database/${table}`;
-	const row = (id: string | number) =>
-		`${collection}/${encodeURIComponent(String(id))}`;
+	const row = (id: string | number) => `${collection}/${encodeURIComponent(String(id))}`;
 	return { client, collection, row };
 }
 
@@ -80,13 +79,7 @@ function fireToast(type: "success" | "error", msg: string) {
 }
 
 // ── Bouton "Ajouter une entrée" (création) ────────────────────────────────
-export function DbAddButton({
-	table,
-	label = "Ajouter",
-}: {
-	table: string;
-	label?: string;
-}) {
+export function DbAddButton({ table, label = "Ajouter" }: { table: string; label?: string }) {
 	const spec = useTableSpec(table);
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
@@ -94,8 +87,7 @@ export function DbAddButton({
 	const crud = useCrud(table);
 
 	const create = useMutation({
-		mutationFn: (body: Record<string, unknown>) =>
-			crud.client.post(crud.collection, body),
+		mutationFn: (body: Record<string, unknown>) => crud.client.post(crud.collection, body),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setOpen(false);
@@ -133,13 +125,7 @@ export function DbAddButton({
 }
 
 // ── Actions par ligne (éditer / supprimer) ────────────────────────────────
-export function DbRowActions({
-	table,
-	id,
-}: {
-	table: string;
-	id: string | number;
-}) {
+export function DbRowActions({ table, id }: { table: string; id: string | number }) {
 	const spec = useTableSpec(table);
 	const [editing, setEditing] = useState(false);
 	const [confirming, setConfirming] = useState(false);
@@ -155,8 +141,7 @@ export function DbRowActions({
 	});
 
 	const update = useMutation({
-		mutationFn: (body: Record<string, unknown>) =>
-			crud.client.put(crud.row(id), body),
+		mutationFn: (body: Record<string, unknown>) => crud.client.put(crud.row(id), body),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
 			setEditing(false);
@@ -224,8 +209,7 @@ export function DbRowActions({
 							</h3>
 						</div>
 						<p className="mb-1 text-sm text-white/70">
-							Entrée{" "}
-							<code className="font-mono text-xs text-dbz-orange">{id}</code> de{" "}
+							Entrée <code className="font-mono text-xs text-dbz-orange">{id}</code> de{" "}
 							<strong className="text-white">{spec.name}</strong>.
 						</p>
 						<p className="mb-6 text-sm font-semibold text-red-400/80">
@@ -282,9 +266,7 @@ function FieldModal({
 	// Réhydrate quand la ligne canonique arrive (édition).
 	useEffect(() => {
 		setDraft(
-			Object.fromEntries(
-				columns.map((c) => [c, initial[c] != null ? String(initial[c]) : ""]),
-			),
+			Object.fromEntries(columns.map((c) => [c, initial[c] != null ? String(initial[c]) : ""]))
 		);
 	}, [columns, initial]);
 
@@ -294,12 +276,9 @@ function FieldModal({
 			if (v === "") continue;
 			const original = initial[k];
 			if (typeof original === "number") body[k] = Number(v);
-			else if (typeof original === "boolean")
-				body[k] = v === "true" || v === "1";
-			else if (original == null && /^-?\d+(\.\d+)?$/.test(v))
-				body[k] = Number(v);
-			else if (original == null && (v === "true" || v === "false"))
-				body[k] = v === "true";
+			else if (typeof original === "boolean") body[k] = v === "true" || v === "1";
+			else if (original == null && /^-?\d+(\.\d+)?$/.test(v)) body[k] = Number(v);
+			else if (original == null && (v === "true" || v === "false")) body[k] = v === "true";
 			else body[k] = v;
 		}
 		onSave(body);
@@ -310,33 +289,23 @@ function FieldModal({
 			<div className="dbz-panel max-h-[85vh] w-full max-w-2xl overflow-y-auto p-6">
 				<div className="mb-5 flex items-center justify-between">
 					<div>
-						<h3 className="font-saiyan text-lg uppercase text-dbz-orange">
-							{title}
-						</h3>
+						<h3 className="font-saiyan text-lg uppercase text-dbz-orange">{title}</h3>
 						<p className="mt-0.5 font-mono text-xs text-white/40">{subtitle}</p>
 					</div>
-					<button
-						type="button"
-						onClick={onClose}
-						className="btn btn-ghost px-2"
-					>
+					<button type="button" onClick={onClose} className="btn btn-ghost px-2">
 						<X className="h-4 w-4" />
 					</button>
 				</div>
 
 				{loading ? (
-					<div className="py-12 text-center text-sm text-white/50">
-						Chargement…
-					</div>
+					<div className="py-12 text-center text-sm text-white/50">Chargement…</div>
 				) : (
 					<div className="space-y-3">
 						{columns.map((c) => (
 							<div key={c}>
 								<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-dbz-blue-light">
 									{colLabel(c)}
-									<span className="ml-2 font-mono text-white/25 normal-case font-normal">
-										{c}
-									</span>
+									<span className="ml-2 font-mono text-white/25 normal-case font-normal">{c}</span>
 								</label>
 								<input
 									className="input font-mono text-sm"

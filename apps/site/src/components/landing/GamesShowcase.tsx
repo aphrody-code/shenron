@@ -56,18 +56,15 @@ export function GamesShowcase() {
 			<div className="absolute inset-0 hud-grid opacity-10 pointer-events-none" />
 			<div className="container mx-auto px-4 relative">
 				<div className="text-center mb-14">
-					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">
-						ARÈNE
-					</p>
+					<p className="font-scouter text-xs tracking-[0.5em] text-dbz-yellow mb-3">ARÈNE</p>
 					<h2 className="font-display font-bold text-4xl md:text-6xl leading-tight text-white">
 						Mini-jeux jouables, zénis à la clé.
 					</h2>
 					<p className="text-white/55 mt-5 max-w-2xl mx-auto text-[15px]">
 						Joue directement ici ou sur Discord. Victoire{" "}
-						<span className="text-green-400 font-semibold">+100&nbsp;¥</span> ·
-						défaite{" "}
-						<span className="text-red-400 font-semibold">−50&nbsp;¥</span> ·
-						chaque partie compte pour ton classement.
+						<span className="text-green-400 font-semibold">+100&nbsp;¥</span> · défaite{" "}
+						<span className="text-red-400 font-semibold">−50&nbsp;¥</span> · chaque partie compte
+						pour ton classement.
 					</p>
 				</div>
 
@@ -86,8 +83,7 @@ export function GamesShowcase() {
 							</Link>
 						</div>
 						<p className="text-xs text-white/55 mb-4">
-							Fusionne Saibaiman → Whis. Jouable tout de suite, aucune connexion
-							requise.
+							Fusionne Saibaiman → Whis. Jouable tout de suite, aucune connexion requise.
 						</p>
 						<DragonBall2048 />
 					</div>
@@ -108,9 +104,7 @@ export function GamesShowcase() {
 									<div className="text-[10px] uppercase tracking-widest text-dbz-blue-light mb-2">
 										{g.mode}
 									</div>
-									<p className="text-sm text-white/60 leading-relaxed flex-1">
-										{g.desc}
-									</p>
+									<p className="text-sm text-white/60 leading-relaxed flex-1">{g.desc}</p>
 									<span
 										className={`mt-4 inline-flex items-center gap-1 text-xs font-semibold ${g.href ? "text-dbz-orange" : "text-dbz-blue-light/70"}`}
 									>
@@ -127,10 +121,7 @@ export function GamesShowcase() {
 									{inner}
 								</Link>
 							) : (
-								<div
-									key={g.name}
-									className={`dbz-panel p-5 flex flex-col border-l-4 ${g.accent}`}
-								>
+								<div key={g.name} className={`dbz-panel p-5 flex flex-col border-l-4 ${g.accent}`}>
 									{inner}
 								</div>
 							);

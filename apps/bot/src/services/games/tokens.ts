@@ -30,7 +30,7 @@ export function signMorpion(
 	board: MorpionCell[],
 	userId: string,
 	stake: number,
-	ts: number,
+	ts: number
 ): string {
 	return hmacHex(secret, `morpion:${userId}:${stake}:${ts}:${board.join("")}`);
 }
@@ -57,7 +57,7 @@ export function packBingoToken(
 	target: number,
 	stake: number,
 	attempts: number,
-	ts: number,
+	ts: number
 ): string {
 	const payload = JSON.stringify({
 		u: userId,
@@ -81,7 +81,7 @@ export type BingoTokenPayload = {
 export function unpackBingoToken(
 	secret: string,
 	token: string,
-	expectedUserId: string,
+	expectedUserId: string
 ): BingoTokenPayload | null {
 	const [b64, sig] = token.split(".");
 	if (!b64 || !sig) return null;

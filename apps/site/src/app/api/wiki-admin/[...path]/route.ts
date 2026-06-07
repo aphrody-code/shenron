@@ -31,12 +31,9 @@ export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
-const forbidden = () =>
-	NextResponse.json({ error: "Forbidden" }, { status: 403 });
-const notFound = (msg = "Table inconnue") =>
-	NextResponse.json({ error: msg }, { status: 404 });
-const badRequest = (msg: string) =>
-	NextResponse.json({ error: msg }, { status: 400 });
+const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 });
+const notFound = (msg = "Table inconnue") => NextResponse.json({ error: msg }, { status: 404 });
+const badRequest = (msg: string) => NextResponse.json({ error: msg }, { status: 400 });
 
 async function readJson(req: NextRequest): Promise<Record<string, unknown> | null> {
 	try {

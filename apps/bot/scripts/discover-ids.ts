@@ -57,8 +57,7 @@ async function api<T>(path: string): Promise<T> {
 	const res = await fetch(`${API}${path}`, {
 		headers: { Authorization: `Bot ${TOKEN}` },
 	});
-	if (!res.ok)
-		throw new Error(`${path} → HTTP ${res.status}: ${await res.text()}`);
+	if (!res.ok) throw new Error(`${path} → HTTP ${res.status}: ${await res.text()}`);
 	return res.json() as Promise<T>;
 }
 
@@ -138,8 +137,7 @@ const HEURISTICS: Heuristic[] = [
 	{
 		scope: "channel",
 		key: "LOG_SANCTION_CHANNEL_ID",
-		match: (n, t) =>
-			t === 0 && /log.*(sanction|mod|warn|ban|jail)/.test(norm(n)),
+		match: (n, t) => t === 0 && /log.*(sanction|mod|warn|ban|jail)/.test(norm(n)),
 	},
 	{
 		scope: "channel",
@@ -164,9 +162,7 @@ const HEURISTICS: Heuristic[] = [
 	{
 		scope: "channel",
 		key: "MOD_NOTIFY_CHANNEL_ID",
-		match: (n, t) =>
-			t === 0 &&
-			/(notif|alert).*(mod|staff)|mod.*(notif|alert|staff)/.test(norm(n)),
+		match: (n, t) => t === 0 && /(notif|alert).*(mod|staff)|mod.*(notif|alert|staff)/.test(norm(n)),
 	},
 	{
 		scope: "channel",
@@ -182,9 +178,7 @@ const HEURISTICS: Heuristic[] = [
 
 function matchEntity(h: Heuristic): Role | Channel | undefined {
 	if (h.scope === "role")
-		return roles.find(
-			(r) => !r.managed && r.name !== "@everyone" && h.match(r.name),
-		);
+		return roles.find((r) => !r.managed && r.name !== "@everyone" && h.match(r.name));
 	return channels.find((c) => h.match(c.name, c.type));
 }
 
@@ -223,26 +217,18 @@ for (const h of HEURISTICS) {
 	const found = matchEntity(h);
 	const current = envMap.get(h.key) ?? "";
 	if (found) {
-		const marker =
-			current && current === found.id
-				? `${green}=${reset}`
-				: `${yellow}→${reset}`;
+		const marker = current && current === found.id ? `${green}=${reset}` : `${yellow}→${reset}`;
 		console.log(`  ${h.key}=${found.id}   ${marker} ${found.name}`);
-		if (!current)
-			patches.push({ key: h.key, value: found.id, name: found.name });
+		if (!current) patches.push({ key: h.key, value: found.id, name: found.name });
 	} else {
-		console.log(
-			`  ${dim}${h.key}=   (pas de match auto — renseigne à la main)${reset}`,
-		);
+		console.log(`  ${dim}${h.key}=   (pas de match auto — renseigne à la main)${reset}`);
 	}
 }
 
 // ── Patch .env ──────────────────────────────────────────────────────────────
 if (opts.patch) {
 	if (patches.length === 0) {
-		console.log(
-			`\n${green}✓${reset} .env déjà complet pour les clés auto-détectables.`,
-		);
+		console.log(`\n${green}✓${reset} .env déjà complet pour les clés auto-détectables.`);
 		process.exit(0);
 	}
 	let out = envText;
@@ -256,15 +242,13 @@ if (opts.patch) {
 		}
 	}
 	await Bun.write(envPath, out);
-	console.log(
-		`\n${green}✓${reset} .env patché — ${patches.length} clé(s) ajoutée(s) :`,
-	);
+	console.log(`\n${green}✓${reset} .env patché — ${patches.length} clé(s) ajoutée(s) :`);
 	for (const p of patches) console.log(`  ${p.key}=${p.value}   (${p.name})`);
 } else {
 	const toPatch = patches.length;
 	if (toPatch > 0) {
 		console.log(
-			`\n${yellow}!${reset} ${toPatch} clé(s) pourrai(en)t être auto-patchée(s). Lance avec --patch pour l'écrire dans .env.`,
+			`\n${yellow}!${reset} ${toPatch} clé(s) pourrai(en)t être auto-patchée(s). Lance avec --patch pour l'écrire dans .env.`
 		);
 	}
 }

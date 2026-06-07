@@ -22,10 +22,7 @@ export default async function PersonnagesPage({
 	const sp = await searchParams;
 	const initialTab = sp.tab || "personnages";
 
-	const [characters, planets] = await Promise.all([
-		getShenronCharacters(),
-		getShenronPlanets(),
-	]);
+	const [characters, planets] = await Promise.all([getShenronCharacters(), getShenronPlanets()]);
 
 	return (
 		<>

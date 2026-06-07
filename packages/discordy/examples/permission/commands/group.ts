@@ -9,20 +9,20 @@ import { Discord, Slash, SlashGroup } from "@rpbey/discordy";
 
 @Discord()
 @SlashGroup({
-  defaultMemberPermissions: 0n,
-  description: "vital",
-  dmPermission: false,
-  name: "vital",
+	defaultMemberPermissions: 0n,
+	description: "vital",
+	dmPermission: false,
+	name: "vital",
 })
 @SlashGroup("vital")
 export class Example {
-  @Slash({ description: "perm1" })
-  async perm1(interaction: ChatInputCommandInteraction): Promise<void> {
-    await interaction.reply(":wave:");
-  }
+	@Slash({ description: "perm1" })
+	async perm1(interaction: ChatInputCommandInteraction): Promise<void> {
+		await interaction.reply(":wave:");
+	}
 
-  @Slash({ description: "perm2" })
-  async perm2(interaction: ChatInputCommandInteraction): Promise<void> {
-    await interaction.reply(":wave:");
-  }
+	@Slash({ description: "perm2" })
+	async perm2(interaction: ChatInputCommandInteraction): Promise<void> {
+		await interaction.reply(":wave:");
+	}
 }

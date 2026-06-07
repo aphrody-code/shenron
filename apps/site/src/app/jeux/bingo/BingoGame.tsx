@@ -51,11 +51,7 @@ export function BingoGame() {
 	const [scanPulse, setScanPulse] = useState(0);
 	const [pending, startTransition] = useTransition();
 
-	async function call(payload: {
-		token?: string;
-		guess?: number;
-		stake?: number;
-	}): Promise<Reply> {
+	async function call(payload: { token?: string; guess?: number; stake?: number }): Promise<Reply> {
 		const res = await fetch("/api/bot-user/games/bingo/play", {
 			method: "POST",
 			headers: { "content-type": "application/json" },
@@ -74,10 +70,7 @@ export function BingoGame() {
 
 	function startNew() {
 		const parsedStake = stake ? Number(stake) : undefined;
-		if (
-			parsedStake !== undefined &&
-			(!Number.isFinite(parsedStake) || parsedStake < 1)
-		) {
+		if (parsedStake !== undefined && (!Number.isFinite(parsedStake) || parsedStake < 1)) {
 			setError("Mise invalide");
 			return;
 		}
@@ -128,8 +121,7 @@ export function BingoGame() {
 
 	// Dernier signal capté → couleur du réacteur de Ki.
 	const lastHint = attempts[attempts.length - 1]?.hint;
-	const reactorColor =
-		lastHint === "higher" ? "blue" : lastHint === "lower" ? "purple" : "orange";
+	const reactorColor = lastHint === "higher" ? "blue" : lastHint === "lower" ? "purple" : "orange";
 
 	return (
 		<div className="space-y-6">
@@ -171,24 +163,16 @@ export function BingoGame() {
 					{/* Onde de scan à chaque mesure de Ki */}
 					<KiShock trigger={scanPulse || null} color={reactorColor} />
 					<div className="flex items-center justify-center gap-4">
-						<KiReactor
-							color={reactorColor}
-							active={pending}
-							className="w-12 h-12"
-						/>
+						<KiReactor color={reactorColor} active={pending} className="w-12 h-12" />
 						<div className="text-center">
 							<div className="font-scouter text-xs tracking-widest text-dbz-blue-light/70 mb-0.5">
 								SCANS // {attempts.length} / 10
 							</div>
 							<div className="font-scouter text-[10px] tracking-widest uppercase">
 								{lastHint ? (
-									<span className={HINT_LABEL[lastHint].color}>
-										{HINT_LABEL[lastHint].txt}
-									</span>
+									<span className={HINT_LABEL[lastHint].color}>{HINT_LABEL[lastHint].txt}</span>
 								) : (
-									<span className="text-dbz-orange/70">
-										Aucun signal · lance un scan
-									</span>
+									<span className="text-dbz-orange/70">Aucun signal · lance un scan</span>
 								)}
 							</div>
 						</div>
@@ -256,10 +240,8 @@ export function BingoGame() {
 					</div>
 					<p className="font-mono text-sm text-dbz-blue-light relative z-10">
 						Puissance cible :{" "}
-						<span className="text-dbz-yellow font-bold text-lg">
-							{ended.target}
-						</span>{" "}
-						· localisée en {ended.attempts} scan
+						<span className="text-dbz-yellow font-bold text-lg">{ended.target}</span> · localisée en{" "}
+						{ended.attempts} scan
 						{ended.attempts > 1 ? "s" : ""}
 					</p>
 					{ended.delta !== 0 && (
@@ -270,11 +252,7 @@ export function BingoGame() {
 							{ended.delta} z
 						</p>
 					)}
-					<button
-						type="button"
-						onClick={reset}
-						className="dbz-button mt-4 !text-sm relative z-10"
-					>
+					<button type="button" onClick={reset} className="dbz-button mt-4 !text-sm relative z-10">
 						REJOUER
 					</button>
 				</div>
@@ -289,12 +267,8 @@ export function BingoGame() {
 						{attempts.map((a, i) => (
 							<li key={i} className="flex gap-3 items-center">
 								<span className="text-dbz-blue-light/70 w-6">#{i + 1}</span>
-								<span className="text-dbz-yellow font-bold w-10 text-right">
-									{a.guess}
-								</span>
-								<span className={HINT_LABEL[a.hint].color}>
-									{HINT_LABEL[a.hint].txt}
-								</span>
+								<span className="text-dbz-yellow font-bold w-10 text-right">{a.guess}</span>
+								<span className={HINT_LABEL[a.hint].color}>{HINT_LABEL[a.hint].txt}</span>
 							</li>
 						))}
 					</ul>
@@ -303,9 +277,7 @@ export function BingoGame() {
 
 			{error && (
 				<div className="dbz-panel p-4 border-l-8 border-red-400">
-					<span className="font-scouter text-xs tracking-widest text-red-400">
-						✗ {error}
-					</span>
+					<span className="font-scouter text-xs tracking-widest text-red-400">✗ {error}</span>
 				</div>
 			)}
 		</div>

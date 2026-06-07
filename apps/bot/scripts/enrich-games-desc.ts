@@ -85,7 +85,7 @@ type Summary = { type?: string; title?: string; extract?: string };
 async function wikiSummary(
 	lang: string,
 	title: string,
-	requireDbMention: boolean,
+	requireDbMention: boolean
 ): Promise<string | null> {
 	const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
 	try {

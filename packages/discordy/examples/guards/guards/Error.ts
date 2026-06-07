@@ -8,17 +8,17 @@ import type { CommandInteraction } from "discord.js";
 import type { GuardFunction } from "@rpbey/discordy";
 
 export const ErrorHandler: GuardFunction<CommandInteraction> = async (
-  interaction,
-  _client,
-  next,
+	interaction,
+	_client,
+	next
 ) => {
-  try {
-    await next();
-  } catch (err) {
-    if (err instanceof Error) {
-      await interaction.reply(err.message);
-    } else {
-      await interaction.reply("unknown error");
-    }
-  }
+	try {
+		await next();
+	} catch (err) {
+		if (err instanceof Error) {
+			await interaction.reply(err.message);
+		} else {
+			await interaction.reply("unknown error");
+		}
+	}
 };

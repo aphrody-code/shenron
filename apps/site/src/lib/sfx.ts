@@ -16,8 +16,7 @@ function audio(): AudioContext | null {
 	if (!ctx) {
 		const Ctor =
 			window.AudioContext ??
-			(window as { webkitAudioContext?: typeof AudioContext })
-				.webkitAudioContext;
+			(window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 		if (!Ctor) return null;
 		ctx = new Ctor();
 	}

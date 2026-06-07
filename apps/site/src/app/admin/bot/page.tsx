@@ -72,10 +72,7 @@ export default function BotPage() {
 	});
 	const cmds = useQuery({
 		queryKey: ["bot", botId, "commands"],
-		queryFn: () =>
-			api.get<{ commands: Command[]; count: number }>(
-				`/bots/${botId}/commands`,
-			),
+		queryFn: () => api.get<{ commands: Command[]; count: number }>(`/bots/${botId}/commands`),
 		staleTime: 30_000,
 	});
 
@@ -84,15 +81,12 @@ export default function BotPage() {
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 mb-2">
 					<BotIcon className="h-5 w-5 text-dbz-orange" />
-					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">
-						Personas Discord
-					</h2>
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Personas Discord</h2>
 				</div>
 				<p className="text-sm text-zinc-300">
-					Le bot fonctionne avec 6 personnages Discord distincts (Shenron,
-					Beerus, Whis…). Chacun a son propre jeton de connexion, ses commandes
-					et ses guildes. Sélectionnez un persona pour voir son état, son nombre
-					de commandes et les serveurs qu'il surveille.
+					Le bot fonctionne avec 6 personnages Discord distincts (Shenron, Beerus, Whis…). Chacun a
+					son propre jeton de connexion, ses commandes et ses guildes. Sélectionnez un persona pour
+					voir son état, son nombre de commandes et les serveurs qu'il surveille.
 				</p>
 			</div>
 			<BotSelector value={botId} onChange={setBotId} />
@@ -115,14 +109,10 @@ export default function BotPage() {
 					)}
 				</KPI>
 				<KPI title="Commandes" icon={<BotIcon className="h-4 w-4" />}>
-					<p className="text-3xl font-bold text-brand-400">
-						{cmds.data?.count ?? "—"}
-					</p>
+					<p className="text-3xl font-bold text-brand-400">{cmds.data?.count ?? "—"}</p>
 				</KPI>
 				<KPI title="Serveurs" icon={<Globe className="h-4 w-4" />}>
-					<p className="text-3xl font-bold text-brand-400">
-						{info.data?.guilds.length ?? "—"}
-					</p>
+					<p className="text-3xl font-bold text-brand-400">{info.data?.guilds.length ?? "—"}</p>
 				</KPI>
 				<KPI title="Total membres" icon={<Hash className="h-4 w-4" />}>
 					<p className="text-3xl font-bold text-brand-400">
@@ -141,19 +131,14 @@ export default function BotPage() {
 								className="flex items-center gap-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
 							>
 								{g.iconUrl ? (
-									<img
-										src={g.iconUrl}
-										alt=""
-										className="h-10 w-10 rounded-full"
-									/>
+									<img src={g.iconUrl} alt="" className="h-10 w-10 rounded-full" />
 								) : (
 									<div className="h-10 w-10 rounded-full bg-zinc-800" />
 								)}
 								<div className="flex-1">
 									<p className="font-medium">{g.name}</p>
 									<p className="text-xs text-zinc-500">
-										{g.memberCount} membres · rejoint le{" "}
-										{g.joinedAt?.slice(0, 10) ?? "—"}
+										{g.memberCount} membres · rejoint le {g.joinedAt?.slice(0, 10) ?? "—"}
 									</p>
 								</div>
 								<code className="text-xs text-zinc-500">{g.id}</code>
@@ -168,9 +153,7 @@ export default function BotPage() {
 			</div>
 
 			<div className="card">
-				<h2 className="mb-3 text-lg font-semibold">
-					Commandes slash ({cmds.data?.count ?? "—"})
-				</h2>
+				<h2 className="mb-3 text-lg font-semibold">Commandes slash ({cmds.data?.count ?? "—"})</h2>
 				{cmds.data?.commands.length ? (
 					<div className="space-y-2">
 						{cmds.data.commands.map((c) => (
@@ -179,9 +162,7 @@ export default function BotPage() {
 					</div>
 				) : (
 					<p className="text-sm text-zinc-500">
-						{cmds.isLoading
-							? "Chargement…"
-							: "Aucune commande slash registrée pour ce bot."}
+						{cmds.isLoading ? "Chargement…" : "Aucune commande slash registrée pour ce bot."}
 					</p>
 				)}
 			</div>
@@ -223,12 +204,8 @@ function CommandRow({ cmd }: { cmd: Command }) {
 				/>
 				<div className="flex-1">
 					<div className="flex items-center gap-2">
-						<code className="font-mono text-sm font-semibold text-brand-400">
-							/{cmd.name}
-						</code>
-						<span className="badge">
-							{TYPE_LABELS[cmd.type] ?? `type:${cmd.type}`}
-						</span>
+						<code className="font-mono text-sm font-semibold text-brand-400">/{cmd.name}</code>
+						<span className="badge">{TYPE_LABELS[cmd.type] ?? `type:${cmd.type}`}</span>
 						{cmd.nsfw && <span className="badge badge-warning">NSFW</span>}
 						{cmd.options.length > 0 && (
 							<span className="badge">
@@ -256,9 +233,7 @@ function CommandRow({ cmd }: { cmd: Command }) {
 							{cmd.options.map((o) => (
 								<tr key={o.name} className="border-t border-zinc-900">
 									<td className="px-2 py-1 font-mono">{o.name}</td>
-									<td className="px-2 py-1 text-zinc-400">
-										{OPTION_TYPES[o.type] ?? o.type}
-									</td>
+									<td className="px-2 py-1 text-zinc-400">{OPTION_TYPES[o.type] ?? o.type}</td>
 									<td className="px-2 py-1">{o.required ? "Oui" : "—"}</td>
 									<td className="px-2 py-1 text-zinc-400">{o.description}</td>
 									<td className="px-2 py-1 text-zinc-400">

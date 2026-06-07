@@ -24,169 +24,190 @@ const INDEXER_PERSONA = "grandpretre";
 const PROACTIVE_PERSONAS = new Set(["grandpretre"]);
 
 const LORE_KEYWORDS = [
-  "goku", "vegeta", "freezer", "cell", "buu", "gohan", "trunks", "piccolo", "whis", "beerus",
-  "bulma", "krillin", "broly", "bardock", "kamehameha", "fusion", "daima", "saiyan", "namek",
+	"goku",
+	"vegeta",
+	"freezer",
+	"cell",
+	"buu",
+	"gohan",
+	"trunks",
+	"piccolo",
+	"whis",
+	"beerus",
+	"bulma",
+	"krillin",
+	"broly",
+	"bardock",
+	"kamehameha",
+	"fusion",
+	"daima",
+	"saiyan",
+	"namek",
 ];
 
 const ASK_MORE: Record<string, string> = {
-  whis: "Oh oh, posez une question plus précise sur nos archives, je vous prie.",
-  beerus: "Parle plus clairement, ou je détruis ta planète !",
-  shenron: "Exprime ton souhait plus clairement, mortel.",
-  grandpretre: "Formulez votre requête avec plus de précision, créature.",
-  kaio: "Hé hé, sois plus précis, jeune combattant !",
-  enma: "Précise ta demande. Suivant !",
+	whis: "Oh oh, posez une question plus précise sur nos archives, je vous prie.",
+	beerus: "Parle plus clairement, ou je détruis ta planète !",
+	shenron: "Exprime ton souhait plus clairement, mortel.",
+	grandpretre: "Formulez votre requête avec plus de précision, créature.",
+	kaio: "Hé hé, sois plus précis, jeune combattant !",
+	enma: "Précise ta demande. Suivant !",
 };
 const NO_RESULT: Record<string, string> = {
-  whis: "Oh oh, mes archives de l'Univers 7 restent bien silencieuses à ce sujet.",
-  beerus: "Cette question est insignifiante. Même mes archives n'en parlent pas.",
-  shenron: "Je ne peux accomplir ce souhait, cette information m'est inconnue.",
-  grandpretre: "Même l'omniscience ne trouve rien à ce sujet dans nos archives.",
-  kaio: "Ah ! Là tu me poses une colle, mes notes sont muettes là-dessus.",
-  enma: "Dossier introuvable. Au suivant !",
+	whis: "Oh oh, mes archives de l'Univers 7 restent bien silencieuses à ce sujet.",
+	beerus: "Cette question est insignifiante. Même mes archives n'en parlent pas.",
+	shenron: "Je ne peux accomplir ce souhait, cette information m'est inconnue.",
+	grandpretre: "Même l'omniscience ne trouve rien à ce sujet dans nos archives.",
+	kaio: "Ah ! Là tu me poses une colle, mes notes sont muettes là-dessus.",
+	enma: "Dossier introuvable. Au suivant !",
 };
 
 class BaseAutonomousChat {
-  constructor(
-    protected dbs: DatabaseService,
-    protected redisIndexer: RedisIndexerService,
-    protected personaId: "whis" | "beerus" | "shenron" | "grandpretre" | "kaio",
-  ) {}
+	constructor(
+		protected dbs: DatabaseService,
+		protected redisIndexer: RedisIndexerService,
+		protected personaId: "whis" | "beerus" | "shenron" | "grandpretre" | "kaio"
+	) {}
 
-  async handleMessage(message: ArgsOf<"messageCreate">[0]) {
-    if (!message.inGuild() || message.author.bot) return;
+	async handleMessage(message: ArgsOf<"messageCreate">[0]) {
+		if (!message.inGuild() || message.author.bot) return;
 
-    // 1. Indexation temps réel — un seul persona (celui qui a MessageContent) pour éviter les doublons.
-    if (this.personaId === INDEXER_PERSONA) {
-      try {
-        this.redisIndexer.indexSingleMessage(
-          message.id,
-          message.content || "",
-          message.author.id,
-          message.channelId,
-          message.createdAt,
-          {
-            id: message.author.id,
-            username: message.author.username,
-            displayName: message.member?.displayName ?? message.author.globalName ?? message.author.username,
-            bot: message.author.bot,
-          },
-        );
-      } catch (e) {
-        logger.error(e as Error, "[REDIS INDEX] Échec indexation temps réel");
-      }
-    }
+		// 1. Indexation temps réel — un seul persona (celui qui a MessageContent) pour éviter les doublons.
+		if (this.personaId === INDEXER_PERSONA) {
+			try {
+				this.redisIndexer.indexSingleMessage(
+					message.id,
+					message.content || "",
+					message.author.id,
+					message.channelId,
+					message.createdAt,
+					{
+						id: message.author.id,
+						username: message.author.username,
+						displayName:
+							message.member?.displayName ?? message.author.globalName ?? message.author.username,
+						bot: message.author.bot,
+					}
+				);
+			} catch (e) {
+				logger.error(e as Error, "[REDIS INDEX] Échec indexation temps réel");
+			}
+		}
 
-    // 2. Décider d'une réponse autonome.
-    const botUser = message.client.user;
-    if (!botUser) return;
+		// 2. Décider d'une réponse autonome.
+		const botUser = message.client.user;
+		if (!botUser) return;
 
-    const content = (message.content || "").toLowerCase();
-    const isMentioned = message.mentions.has(botUser.id);
-    const isNameCalled = content.length > 0 && content.includes(this.personaId);
-    let shouldRespond = isMentioned || isNameCalled;
+		const content = (message.content || "").toLowerCase();
+		const isMentioned = message.mentions.has(botUser.id);
+		const isNameCalled = content.length > 0 && content.includes(this.personaId);
+		let shouldRespond = isMentioned || isNameCalled;
 
-    if (!shouldRespond && PROACTIVE_PERSONAS.has(this.personaId)) {
-      const isQuestion =
-        content.includes("?") || /^(comment|pourquoi|qui|quel|quelle|où|est-ce|combien)/i.test(content);
-      const containsDbzTerms = LORE_KEYWORDS.some((k) => content.includes(k));
-      if (isQuestion && containsDbzTerms && Math.random() < 0.03) {
-        shouldRespond = true;
-        logger.info(`[PROACTIVE CHAT] ${this.personaId} s'active : "${message.content?.slice(0, 80)}"`);
-      }
-    }
+		if (!shouldRespond && PROACTIVE_PERSONAS.has(this.personaId)) {
+			const isQuestion =
+				content.includes("?") ||
+				/^(comment|pourquoi|qui|quel|quelle|où|est-ce|combien)/i.test(content);
+			const containsDbzTerms = LORE_KEYWORDS.some((k) => content.includes(k));
+			if (isQuestion && containsDbzTerms && Math.random() < 0.03) {
+				shouldRespond = true;
+				logger.info(
+					`[PROACTIVE CHAT] ${this.personaId} s'active : "${message.content?.slice(0, 80)}"`
+				);
+			}
+		}
 
-    if (!shouldRespond) return;
+		if (!shouldRespond) return;
 
-    logger.info(`[AUTONOMOUS CHAT] ${this.personaId} s'active dans ${message.channelId}`);
-    const query = (message.content || "")
-      .replace(new RegExp(`<@!?${botUser.id}>`, "g"), "")
-      .replace(new RegExp(this.personaId, "gi"), "")
-      .trim();
+		logger.info(`[AUTONOMOUS CHAT] ${this.personaId} s'active dans ${message.channelId}`);
+		const query = (message.content || "")
+			.replace(new RegExp(`<@!?${botUser.id}>`, "g"), "")
+			.replace(new RegExp(this.personaId, "gi"), "")
+			.trim();
 
-    if (query.length < 3) {
-      await message.reply(ASK_MORE[this.personaId] ?? ASK_MORE.whis).catch(() => {});
-      return;
-    }
+		if (query.length < 3) {
+			await message.reply(ASK_MORE[this.personaId] ?? ASK_MORE.whis).catch(() => {});
+			return;
+		}
 
-    try {
-      await message.channel.sendTyping().catch(() => {});
-      // On récupère des faits RAG (peuvent être vides : le modèle gère le bavardage tout seul).
-      const { results } = await hybridSearch(this.dbs.sqlite, query, 5);
-      // Mémoire par salon -> vraie conversation avec contexte.
-      const answer = await generateLlmAnswer(this.dbs.sqlite, query, results, this.personaId, {
-        sessionId: `discord:${message.channelId}`,
-      });
-      await message.reply(answer).catch(() => {});
-    } catch (err) {
-      logger.error(err as Error, `[AUTONOMOUS CHAT] Échec génération pour ${this.personaId}`);
-    }
-  }
+		try {
+			await message.channel.sendTyping().catch(() => {});
+			// On récupère des faits RAG (peuvent être vides : le modèle gère le bavardage tout seul).
+			const { results } = await hybridSearch(this.dbs.sqlite, query, 5);
+			// Mémoire par salon -> vraie conversation avec contexte.
+			const answer = await generateLlmAnswer(this.dbs.sqlite, query, results, this.personaId, {
+				sessionId: `discord:${message.channelId}`,
+			});
+			await message.reply(answer).catch(() => {});
+		} catch (err) {
+			logger.error(err as Error, `[AUTONOMOUS CHAT] Échec génération pour ${this.personaId}`);
+		}
+	}
 }
 
 @Discord()
 @Bot("grandPretre")
 @injectable()
 export class GrandPretreAutonomousChat extends BaseAutonomousChat {
-  constructor(
-    @inject(DatabaseService) dbs: DatabaseService,
-    @inject(RedisIndexerService) redisIndexer: RedisIndexerService,
-  ) {
-    super(dbs, redisIndexer, "grandpretre");
-  }
+	constructor(
+		@inject(DatabaseService) dbs: DatabaseService,
+		@inject(RedisIndexerService) redisIndexer: RedisIndexerService
+	) {
+		super(dbs, redisIndexer, "grandpretre");
+	}
 
-  @On({ event: "messageCreate" })
-  async onMessage([message]: ArgsOf<"messageCreate">) {
-    await this.handleMessage(message);
-  }
+	@On({ event: "messageCreate" })
+	async onMessage([message]: ArgsOf<"messageCreate">) {
+		await this.handleMessage(message);
+	}
 }
 
 @Discord()
 @Bot("whis")
 @injectable()
 export class WhisAutonomousChat extends BaseAutonomousChat {
-  constructor(
-    @inject(DatabaseService) dbs: DatabaseService,
-    @inject(RedisIndexerService) redisIndexer: RedisIndexerService,
-  ) {
-    super(dbs, redisIndexer, "whis");
-  }
+	constructor(
+		@inject(DatabaseService) dbs: DatabaseService,
+		@inject(RedisIndexerService) redisIndexer: RedisIndexerService
+	) {
+		super(dbs, redisIndexer, "whis");
+	}
 
-  @On({ event: "messageCreate" })
-  async onMessage([message]: ArgsOf<"messageCreate">) {
-    await this.handleMessage(message);
-  }
+	@On({ event: "messageCreate" })
+	async onMessage([message]: ArgsOf<"messageCreate">) {
+		await this.handleMessage(message);
+	}
 }
 
 @Discord()
 @Bot("beerus")
 @injectable()
 export class BeerusAutonomousChat extends BaseAutonomousChat {
-  constructor(
-    @inject(DatabaseService) dbs: DatabaseService,
-    @inject(RedisIndexerService) redisIndexer: RedisIndexerService,
-  ) {
-    super(dbs, redisIndexer, "beerus");
-  }
+	constructor(
+		@inject(DatabaseService) dbs: DatabaseService,
+		@inject(RedisIndexerService) redisIndexer: RedisIndexerService
+	) {
+		super(dbs, redisIndexer, "beerus");
+	}
 
-  @On({ event: "messageCreate" })
-  async onMessage([message]: ArgsOf<"messageCreate">) {
-    await this.handleMessage(message);
-  }
+	@On({ event: "messageCreate" })
+	async onMessage([message]: ArgsOf<"messageCreate">) {
+		await this.handleMessage(message);
+	}
 }
 
 @Discord()
 @Bot("shenron")
 @injectable()
 export class ShenronAutonomousChat extends BaseAutonomousChat {
-  constructor(
-    @inject(DatabaseService) dbs: DatabaseService,
-    @inject(RedisIndexerService) redisIndexer: RedisIndexerService,
-  ) {
-    super(dbs, redisIndexer, "shenron");
-  }
+	constructor(
+		@inject(DatabaseService) dbs: DatabaseService,
+		@inject(RedisIndexerService) redisIndexer: RedisIndexerService
+	) {
+		super(dbs, redisIndexer, "shenron");
+	}
 
-  @On({ event: "messageCreate" })
-  async onMessage([message]: ArgsOf<"messageCreate">) {
-    await this.handleMessage(message);
-  }
+	@On({ event: "messageCreate" })
+	async onMessage([message]: ArgsOf<"messageCreate">) {
+		await this.handleMessage(message);
+	}
 }

@@ -6,11 +6,7 @@
  */
 import type { MethodDecoratorEx } from "@rpbey/internal";
 
-import {
-  DSimpleCommand,
-  MetadataStorage,
-  type SimpleCommandOptions,
-} from "../../index.js";
+import { DSimpleCommand, MetadataStorage, type SimpleCommandOptions } from "../../index.js";
 
 /**
  * Handle a simple command with a defined name
@@ -37,7 +33,7 @@ export function SimpleCommand(): MethodDecoratorEx;
  * @category Decorator
  */
 export function SimpleCommand<T extends string>(
-  options: SimpleCommandOptions<T>,
+	options: SimpleCommandOptions<T>
 ): MethodDecoratorEx;
 
 /**
@@ -52,21 +48,19 @@ export function SimpleCommand<T extends string>(
  *
  * @category Decorator
  */
-export function SimpleCommand(
-  options?: SimpleCommandOptions,
-): MethodDecoratorEx {
-  return (target, key) => {
-    const cmd = DSimpleCommand.create({
-      aliases: options?.aliases,
-      argSplitter: options?.argSplitter,
-      botIds: options?.botIds,
-      description: options?.description,
-      directMessage: options?.directMessage,
-      guilds: options?.guilds,
-      name: options?.name ?? key,
-      prefix: options?.prefix,
-    }).decorate(target.constructor, key, target[key]);
+export function SimpleCommand(options?: SimpleCommandOptions): MethodDecoratorEx {
+	return (target, key) => {
+		const cmd = DSimpleCommand.create({
+			aliases: options?.aliases,
+			argSplitter: options?.argSplitter,
+			botIds: options?.botIds,
+			description: options?.description,
+			directMessage: options?.directMessage,
+			guilds: options?.guilds,
+			name: options?.name ?? key,
+			prefix: options?.prefix,
+		}).decorate(target.constructor, key, target[key]);
 
-    MetadataStorage.instance.addSimpleCommand(cmd);
-  };
+		MetadataStorage.instance.addSimpleCommand(cmd);
+	};
 }

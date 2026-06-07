@@ -1,14 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	AlertCircle,
-	Check,
-	Plus,
-	Save,
-	Sparkles,
-	TestTube,
-	Trash2,
-	X,
-} from "lucide-react";
+import { AlertCircle, Check, Plus, Save, Sparkles, TestTube, Trash2, X } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "../lib/api";
 
@@ -36,7 +27,7 @@ export function Triggers() {
 		queryKey: ["triggers", "list"],
 		queryFn: () =>
 			api.get<{ rows: AchievementTrigger[]; total: number }>(
-				"/database/achievement_triggers?limit=200",
+				"/database/achievement_triggers?limit=200"
 			),
 	});
 
@@ -56,9 +47,7 @@ export function Triggers() {
 				<div className="flex items-center gap-2">
 					<Sparkles className="h-5 w-5 text-brand-400" />
 					<h2 className="text-lg font-semibold">Triggers de succès</h2>
-					<span className="ml-2 text-xs text-zinc-500">
-						{triggers.data?.total ?? 0} pattern(s)
-					</span>
+					<span className="ml-2 text-xs text-zinc-500">{triggers.data?.total ?? 0} pattern(s)</span>
 					<button
 						type="button"
 						className="ml-auto btn btn-ghost"
@@ -68,18 +57,13 @@ export function Triggers() {
 					>
 						♻︎ Refresh cache
 					</button>
-					<button
-						type="button"
-						className="btn btn-primary"
-						onClick={() => setCreating(true)}
-					>
+					<button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
 						<Plus className="h-3 w-3" /> Créer
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
-					Quand un message d'un joueur matche un de ces patterns, le succès{" "}
-					<code>code</code> est attribué (idempotent). Recharge le cache après
-					modification.
+					Quand un message d'un joueur matche un de ces patterns, le succès <code>code</code> est
+					attribué (idempotent). Recharge le cache après modification.
 				</p>
 			</div>
 
@@ -97,9 +81,7 @@ export function Triggers() {
 					/>
 				))}
 				{triggers.data?.rows.length === 0 && (
-					<div className="card text-center text-zinc-500">
-						Aucun trigger. Crée le premier !
-					</div>
+					<div className="card text-center text-zinc-500">Aucun trigger. Crée le premier !</div>
 				)}
 			</div>
 
@@ -143,13 +125,9 @@ function TriggerCard({
 			<div className="flex items-start gap-3">
 				<div className="flex-1 min-w-0">
 					<div className="flex items-center gap-2">
-						<code className="text-sm font-semibold text-brand-300">
-							{trigger.code}
-						</code>
+						<code className="text-sm font-semibold text-brand-300">{trigger.code}</code>
 						{!trigger.enabled && <span className="badge badge-error">OFF</span>}
-						{!valid && (
-							<span className="badge badge-error">REGEX INVALIDE</span>
-						)}
+						{!valid && <span className="badge badge-error">REGEX INVALIDE</span>}
 					</div>
 					{trigger.description && (
 						<p className="mt-1 text-xs text-zinc-400">{trigger.description}</p>
@@ -164,11 +142,7 @@ function TriggerCard({
 					<button type="button" className="btn btn-ghost" onClick={onEdit}>
 						Modifier
 					</button>
-					<button
-						type="button"
-						className="btn btn-ghost px-2 text-red-400"
-						onClick={onDelete}
-					>
+					<button type="button" className="btn btn-ghost px-2 text-red-400" onClick={onDelete}>
 						<Trash2 className="h-3 w-3" />
 					</button>
 				</div>
@@ -194,7 +168,7 @@ function TriggerEditor({
 			pattern: "",
 			flags: "i",
 			enabled: true,
-		},
+		}
 	);
 	const [error, setError] = useState<string | null>(null);
 
@@ -212,10 +186,7 @@ function TriggerEditor({
 			if (isCreate) {
 				return api.post("/database/achievement_triggers", payload);
 			}
-			return api.put(
-				`/database/achievement_triggers/${encodeURIComponent(payload.code)}`,
-				payload,
-			);
+			return api.put(`/database/achievement_triggers/${encodeURIComponent(payload.code)}`, payload);
 		},
 		onSuccess: () => {
 			onSaved();
@@ -248,11 +219,7 @@ function TriggerEditor({
 					<h3 className="text-lg font-semibold">
 						{isCreate ? "Créer un trigger" : `Modifier ${draft.code}`}
 					</h3>
-					<button
-						type="button"
-						onClick={onClose}
-						className="ml-auto btn btn-ghost px-2"
-					>
+					<button type="button" onClick={onClose} className="ml-auto btn btn-ghost px-2">
 						<X className="h-3 w-3" />
 					</button>
 				</div>
@@ -287,15 +254,11 @@ function TriggerEditor({
 						<input
 							className="input w-full"
 							value={draft.description ?? ""}
-							onChange={(e) =>
-								setDraft({ ...draft, description: e.target.value })
-							}
+							onChange={(e) => setDraft({ ...draft, description: e.target.value })}
 						/>
 					</div>
 					<div>
-						<label className="block text-xs text-zinc-500">
-							Pattern (regex)
-						</label>
+						<label className="block text-xs text-zinc-500">Pattern (regex)</label>
 						<input
 							className="input w-full font-mono text-xs"
 							value={draft.pattern}
@@ -372,8 +335,8 @@ function RegexTester() {
 				<h3 className="font-semibold">Regex tester</h3>
 			</div>
 			<p className="mt-1 text-xs text-zinc-500">
-				Évalué côté navigateur (<code>new RegExp</code>) — JS et le moteur du
-				bot partagent la même syntaxe.
+				Évalué côté navigateur (<code>new RegExp</code>) — JS et le moteur du bot partagent la même
+				syntaxe.
 			</p>
 			<div className="mt-3 grid gap-2 sm:grid-cols-[1fr_120px]">
 				<input
@@ -404,8 +367,8 @@ function RegexTester() {
 				) : result.matched ? (
 					<div className="space-y-1 text-emerald-400">
 						<div>
-							<Check className="inline h-3 w-3" /> Match :{" "}
-							<code>{result.match}</code> à l'index <code>{result.index}</code>
+							<Check className="inline h-3 w-3" /> Match : <code>{result.match}</code> à l'index{" "}
+							<code>{result.index}</code>
 						</div>
 						{result.groups && result.groups.length > 0 && (
 							<div className="text-zinc-300">

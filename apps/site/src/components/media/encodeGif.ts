@@ -65,9 +65,7 @@ export interface EncodeGifOptions {
  * Encode une séquence de frames en GIF animé et renvoie un `Blob` (image/gif).
  * Lève si appelé hors navigateur ou sans frame.
  */
-export async function encodeFramesToGif(
-	options: EncodeGifOptions,
-): Promise<Blob> {
+export async function encodeFramesToGif(options: EncodeGifOptions): Promise<Blob> {
 	if (typeof window === "undefined") {
 		throw new Error("encodeFramesToGif() est browser-only (worker + canvas).");
 	}
@@ -96,7 +94,7 @@ export async function encodeFramesToGif(
  */
 export async function encodeCanvasesToGif(
 	canvases: HTMLCanvasElement[],
-	opts?: { delay?: number; maxColors?: number; dither?: EncodeGifOptions["dither"] },
+	opts?: { delay?: number; maxColors?: number; dither?: EncodeGifOptions["dither"] }
 ): Promise<Blob> {
 	const first = canvases[0];
 	if (!first) {
