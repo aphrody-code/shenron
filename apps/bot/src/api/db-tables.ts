@@ -61,14 +61,7 @@ export const TABLES: TableSpec[] = [
 		name: "shop_items",
 		table: schema.shopItems,
 		pk: "key",
-		mutableColumns: [
-			"name",
-			"description",
-			"price",
-			"roleId",
-			"meta",
-			"enabled",
-		],
+		mutableColumns: ["name", "description", "price", "roleId", "meta", "enabled"],
 		description: "Items du shop",
 	},
 	{
@@ -114,6 +107,13 @@ export const TABLES: TableSpec[] = [
 		description: "Joueurs en jail",
 	},
 	{
+		name: "bans",
+		table: schema.bans,
+		pk: "id",
+		mutableColumns: ["active"],
+		description: "Bannissements persistants",
+	},
+	{
 		name: "tickets",
 		table: schema.tickets,
 		pk: "id",
@@ -138,14 +138,7 @@ export const TABLES: TableSpec[] = [
 		name: "db_planets",
 		table: schema.dbPlanets,
 		pk: "id",
-		mutableColumns: [
-			"name",
-			"nameJa",
-			"nameRomaji",
-			"image",
-			"isDestroyed",
-			"description",
-		],
+		mutableColumns: ["name", "nameJa", "nameRomaji", "image", "isDestroyed", "description"],
 		description: "Wiki planètes",
 	},
 	{
@@ -178,29 +171,14 @@ export const TABLES: TableSpec[] = [
 		name: "db_sagas",
 		table: schema.dbSagas,
 		pk: "id",
-		mutableColumns: [
-			"slug",
-			"name",
-			"nameJa",
-			"series",
-			"orderIdx",
-			"description",
-			"image",
-		],
+		mutableColumns: ["slug", "name", "nameJa", "series", "orderIdx", "description", "image"],
 		description: "Wiki sagas",
 	},
 	{
 		name: "db_arcs",
 		table: schema.dbArcs,
 		pk: "id",
-		mutableColumns: [
-			"sagaId",
-			"slug",
-			"name",
-			"nameJa",
-			"orderIdx",
-			"description",
-		],
+		mutableColumns: ["sagaId", "slug", "name", "nameJa", "orderIdx", "description"],
 		description: "Wiki arcs narratifs",
 	},
 	{
@@ -264,29 +242,14 @@ export const TABLES: TableSpec[] = [
 		name: "db_manga_volumes",
 		table: schema.dbMangaVolumes,
 		pk: "id",
-		mutableColumns: [
-			"series",
-			"volumeNumber",
-			"title",
-			"titleJa",
-			"publishedAt",
-			"cover",
-			"isbn",
-		],
+		mutableColumns: ["series", "volumeNumber", "title", "titleJa", "publishedAt", "cover", "isbn"],
 		description: "Wiki tomes manga",
 	},
 	{
 		name: "db_manga_chapters",
 		table: schema.dbMangaChapters,
 		pk: "id",
-		mutableColumns: [
-			"series",
-			"chapterNumber",
-			"title",
-			"titleJa",
-			"volumeId",
-			"publishedAt",
-		],
+		mutableColumns: ["series", "chapterNumber", "title", "titleJa", "volumeId", "publishedAt"],
 		description: "Wiki chapitres manga",
 	},
 	{
@@ -398,8 +361,7 @@ export const TABLES: TableSpec[] = [
 		table: schema.giveawayEntries,
 		pk: "id",
 		readonly: true,
-		description:
-			"Participations aux giveaways (géré par le système de giveaway)",
+		description: "Participations aux giveaways (géré par le système de giveaway)",
 	},
 	{
 		name: "vocal_tempo",
@@ -437,11 +399,7 @@ export function getTableSpec(name: string): TableSpec | undefined {
 
 export async function listRows(spec: TableSpec, limit: number, offset: number) {
 	const dbs = container.resolve(DatabaseService);
-	const rows = await dbs.db
-		.select()
-		.from(spec.table)
-		.limit(limit)
-		.offset(offset);
+	const rows = await dbs.db.select().from(spec.table).limit(limit).offset(offset);
 	const [{ count = 0 } = { count: 0 }] = await dbs.db
 		.select({ count: sql<number>`COUNT(*)` })
 		.from(spec.table);
@@ -461,10 +419,7 @@ export async function getRow(spec: TableSpec, id: string | number) {
  * Drizzle appelle `value.getTime()` à l'écriture → il faut un objet Date, pas
  * une string/number issue du formulaire dashboard.
  */
-function coerceForColumns(
-	spec: TableSpec,
-	body: Record<string, unknown>,
-): Record<string, unknown> {
+function coerceForColumns(spec: TableSpec, body: Record<string, unknown>): Record<string, unknown> {
 	const out: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(body)) {
 		const col = spec.table[key];
@@ -473,10 +428,7 @@ function coerceForColumns(
 				out[key] = null;
 				continue;
 			}
-			const d =
-				typeof value === "number"
-					? new Date(value)
-					: new Date(String(value));
+			const d = typeof value === "number" ? new Date(value) : new Date(String(value));
 			out[key] = Number.isNaN(d.getTime()) ? value : d;
 			continue;
 		}
@@ -485,10 +437,7 @@ function coerceForColumns(
 	return out;
 }
 
-export async function insertRow(
-	spec: TableSpec,
-	body: Record<string, unknown>,
-) {
+export async function insertRow(spec: TableSpec, body: Record<string, unknown>) {
 	if (spec.readonly) throw new Error(`Table ${spec.name} en read-only.`);
 	const dbs = container.resolve(DatabaseService);
 	await dbs.db.insert(spec.table).values(coerceForColumns(spec, body) as any);
@@ -497,11 +446,10 @@ export async function insertRow(
 export async function updateRow(
 	spec: TableSpec,
 	id: string | number,
-	body: Record<string, unknown>,
+	body: Record<string, unknown>
 ) {
 	if (spec.readonly) throw new Error(`Table ${spec.name} en read-only.`);
-	if (!spec.mutableColumns?.length)
-		throw new Error(`Table ${spec.name} : aucune colonne mutable.`);
+	if (!spec.mutableColumns?.length) throw new Error(`Table ${spec.name} : aucune colonne mutable.`);
 	const dbs = container.resolve(DatabaseService);
 	const filtered: Record<string, unknown> = {};
 	for (const col of spec.mutableColumns) {
@@ -512,10 +460,7 @@ export async function updateRow(
 	}
 	const cond = pkCond(spec, id);
 	await dbs.db.update(spec.table).set(coerceForColumns(spec, filtered)).where(cond);
-	logger.info(
-		{ table: spec.name, id, cols: Object.keys(filtered) },
-		"row updated via API",
-	);
+	logger.info({ table: spec.name, id, cols: Object.keys(filtered) }, "row updated via API");
 }
 
 export async function deleteRow(spec: TableSpec, id: string | number) {
@@ -528,7 +473,6 @@ export async function deleteRow(spec: TableSpec, id: string | number) {
 function pkCond(spec: TableSpec, id: string | number): SQL {
 	const col = spec.table[spec.pk];
 	if (!col) throw new Error(`PK ${spec.pk} introuvable sur ${spec.name}`);
-	const coerced =
-		typeof spec.table[spec.pk]?.dataType === "number" ? Number(id) : String(id);
+	const coerced = typeof spec.table[spec.pk]?.dataType === "number" ? Number(id) : String(id);
 	return eq(col, coerced as any);
 }
