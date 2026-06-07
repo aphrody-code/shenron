@@ -33,7 +33,7 @@ const DISCORD_DEFAULT = "https://discord.gg/dbfr";
  * Sans slash final.
  */
 export const API_URL = trimSlash(
-	process.env.NEXT_PUBLIC_SHENRON_API_URL ?? process.env.SHENRON_API_URL ?? BOT_HOST
+	(process.env.NEXT_PUBLIC_SHENRON_API_URL ?? process.env.SHENRON_API_URL ?? BOT_HOST).trim()
 );
 
 /**
@@ -41,11 +41,13 @@ export const API_URL = trimSlash(
  * Même hôte que l'API par défaut ; un CDN dédié peut être posé via
  * `NEXT_PUBLIC_SHENRON_ASSETS_URL`.
  */
-export const ASSET_BASE = trimSlash(process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ?? API_URL);
+export const ASSET_BASE = trimSlash(
+	(process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ?? API_URL).trim()
+);
 
 /** URL publique du site (OG, liens absolus, metadataBase). Sans slash final. */
 export const SITE_URL = trimSlash(
-	process.env.NEXT_PUBLIC_SITE_URL ?? process.env.BETTER_AUTH_URL ?? SITE_HOST
+	(process.env.NEXT_PUBLIC_SITE_URL ?? process.env.BETTER_AUTH_URL ?? SITE_HOST).trim()
 );
 
 /** Invitation Discord du serveur DBFR. */

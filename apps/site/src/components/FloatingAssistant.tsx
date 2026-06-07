@@ -8,12 +8,6 @@ interface Message {
 	content: string;
 }
 
-interface RagHit {
-	kind: string;
-	title: string;
-	url: string;
-}
-
 const PERSONA_THEMES = {
 	whis: {
 		name: "Whis",
@@ -70,6 +64,7 @@ export function FloatingAssistant() {
 	// Détecter les changements de page pour mettre à jour le contexte
 	useEffect(() => {
 		if (typeof window !== "undefined") {
+			const path = pathname || "";
 			const title = document.title || "Wiki Dragon Ball";
 			setPageTitle(title);
 
@@ -99,10 +94,10 @@ export function FloatingAssistant() {
 			let entity = metadataEl?.getAttribute("data-entity") || "";
 			if (!entity) {
 				if (
-					pathname.includes("/character/") ||
-					pathname.includes("/planet/") ||
-					pathname.includes("/techniques/") ||
-					pathname.includes("/games/")
+					path.includes("/character/") ||
+					path.includes("/planet/") ||
+					path.includes("/techniques/") ||
+					path.includes("/games/")
 				) {
 					entity = title
 						.replace(/\s*—\s*DBFR.*/i, "")
@@ -114,13 +109,13 @@ export function FloatingAssistant() {
 
 			const sourceId =
 				metadataEl?.getAttribute("data-source-id") ||
-				(pathname.includes("/character/")
+				(path.includes("/character/")
 					? "db_characters"
-					: pathname.includes("/planet/")
+					: path.includes("/planet/")
 						? "db_planets"
-						: pathname.includes("/techniques/")
+						: path.includes("/techniques/")
 							? "db_techniques"
-							: pathname.includes("/games/")
+							: path.includes("/games/")
 								? "db_games"
 								: "");
 
@@ -130,7 +125,7 @@ export function FloatingAssistant() {
 			setPageSourceId(sourceId);
 			setPageLang(lang);
 
-			const contextString = `L'utilisateur consulte actuellement la page ${pathname} ("${title}"). Voici le contenu textuel de cette page pour vous guider :\n${text}`;
+			const contextString = `L'utilisateur consulte actuellement la page ${path} ("${title}"). Voici le contenu textuel de cette page pour vous guider :\n${text}`;
 			setPageContext(contextString);
 		}
 	}, [pathname]);
