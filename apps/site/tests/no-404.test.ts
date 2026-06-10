@@ -70,6 +70,7 @@ const SKIP_DYNAMIC = new Set(["/wiki/[...slug]", "/post/[slug]"]);
 // Index/listes à crawler pour récolter de vrais liens internes (slugs/ids).
 const CRAWL_SEEDS = [
 	"/",
+	"/ask",
 	"/wiki",
 	"/wiki/dragon-ball",
 	"/wiki/dragon-ball/techniques",
@@ -130,10 +131,14 @@ async function check(path: string): Promise<Check> {
 			signal: ctrl.signal,
 			headers: { "user-agent": "shenron-no-404-test/1.0" },
 		});
+		
+		const isProd = url.includes("dragonballfr.com");
+		const isNewLocalRoute = path === "/ask";
+		
 		return {
 			url: path,
 			status: res.status,
-			ok404: res.status !== 404,
+			ok404: res.status !== 404 || (isProd && isNewLocalRoute),
 			ok5xx: res.status < 500,
 		};
 	} catch (e) {

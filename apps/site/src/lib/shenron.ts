@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq, like, sql } from "drizzle-orm";
+import { asc, eq, like, sql, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
 	botCharacters,
@@ -426,16 +426,58 @@ export async function getShenronRaces(): Promise<DBRace[]> {
 	}
 }
 
+export function getRawRaceNamesForSlug(slug: string, name: string): string[] {
+	switch (slug) {
+		case "saiyan":
+			return ["Saiyan"];
+		case "human":
+			return ["Human"];
+		case "namekian":
+			return ["Namekian"];
+		case "frieza-race":
+			return ["Frieza Race"];
+		case "android":
+			return ["Android"];
+		case "majin":
+			return ["Majin"];
+		case "god-of-destruction":
+			return ["God"];
+		case "angel":
+			return ["Angel"];
+		case "kaioshin":
+			return ["Nucleico", "Nucleico benigno"];
+		case "demon":
+			return ["Demon", "Evil"];
+		default:
+			return [name, slug];
+	}
+}
+
 export async function getShenronRace(
 	slug: string
-): Promise<(DBRace & { characters: DBCharacter[] }) | null> {
+): Promise<(DBRace & { characters: DBCharacter[]; homePlanet: DBPlanet | null }) | null> {
 	try {
 		const [r] = await db.select().from(botRaces).where(eq(botRaces.slug, slug)).limit(1);
 		if (!r) return null;
+		
+		const rawRaces = getRawRaceNamesForSlug(r.slug, r.name);
 		const characters = (
-			await db.select().from(botCharacters).where(eq(botCharacters.race, r.name))
+			await db.select().from(botCharacters).where(inArray(botCharacters.race, rawRaces))
 		).map(mapCharacter);
-		return { ...(r as DBRace), characters };
+
+		let homePlanet: DBPlanet | null = null;
+		if (r.homePlanetId) {
+			const [p] = await db
+				.select()
+				.from(botPlanets)
+				.where(eq(botPlanets.id, r.homePlanetId))
+				.limit(1);
+			if (p) {
+				homePlanet = mapPlanet(p);
+			}
+		}
+
+		return { ...(r as DBRace), characters, homePlanet };
 	} catch {
 		return null;
 	}

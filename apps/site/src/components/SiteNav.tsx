@@ -11,6 +11,7 @@ import { MobileNav } from "@/components/MobileNav";
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
 	{ href: "/wiki/personnages", label: "Univers" },
+	{ href: "/ask", label: "Oracle AI" },
 	{ href: "/wiki/sagas", label: "Sagas" },
 	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
 	{ href: "/wiki/films", label: "Films" },

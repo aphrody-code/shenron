@@ -207,8 +207,8 @@ class DragonBallLLM(nn.Module):
 # ----------------------------------------------------------------------------
 def build_prompt(context: str, persona: str, question: str) -> str:
     ctx = (context or "").strip()
-    if len(ctx) > 1400:
-        ctx = ctx[:1400]
+    if len(ctx) > 800:
+        ctx = ctx[:800]
     if not ctx:
         ctx = "Aucun contexte disponible."
     return f"<|ctx|> {ctx} <|persona|> {persona} <|user|> {question} <|bot|>"
@@ -489,6 +489,8 @@ def run_serve(port=5009, host="127.0.0.1"):
                 answer = generate_text(model, tok, cfg, context, persona, query,
                                        max_new_tokens=mnt, temperature=temp)
             except Exception as e:
+                import traceback
+                traceback.print_exc()
                 self._send(500, {"error": str(e)})
                 return
             self._send(200, {

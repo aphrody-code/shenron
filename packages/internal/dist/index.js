@@ -154,10 +154,7 @@ var Modifier = class _Modifier extends Decorator {
    * @returns A new modifier instance.
    */
   static create(modificationFunction, ...applicableDecoratorTypes) {
-    return new _Modifier(
-      modificationFunction,
-      applicableDecoratorTypes
-    );
+    return new _Modifier(modificationFunction, applicableDecoratorTypes);
   }
   /**
    * Applies a collection of modifiers to a collection of decorators.
@@ -179,9 +176,7 @@ var Modifier = class _Modifier extends Decorator {
           )
         );
         await Promise.all(
-          linkedDecorators.map(
-            (linkedDecorator) => modifier.apply(linkedDecorator)
-          )
+          linkedDecorators.map((linkedDecorator) => modifier.apply(linkedDecorator))
         );
       })
     );

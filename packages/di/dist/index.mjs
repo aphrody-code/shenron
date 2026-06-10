@@ -85,9 +85,7 @@ var TsyringeDependencyRegistryEngine = class _TsyringeDependencyRegistryEngine e
       throw new Error("Please set the container!");
     }
     if (this.useToken) {
-      return new Set(
-        this.injector.resolveAll(_TsyringeDependencyRegistryEngine.token)
-      );
+      return new Set(this.injector.resolveAll(_TsyringeDependencyRegistryEngine.token));
     }
     const retSet = /* @__PURE__ */ new Set();
     for (const classRef of this._serviceSet) {
@@ -159,9 +157,7 @@ var TypeDiDependencyRegistryEngine = class _TypeDiDependencyRegistryEngine exten
       throw new Error("Please set the Service!");
     }
     if (this.useToken) {
-      return new Set(
-        this.injector.getMany(_TypeDiDependencyRegistryEngine.token)
-      );
+      return new Set(this.injector.getMany(_TypeDiDependencyRegistryEngine.token));
     }
     const retSet = /* @__PURE__ */ new Set();
     for (const classRef of this._serviceSet) {

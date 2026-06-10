@@ -108,11 +108,12 @@ export default async function WikiIndex() {
 
 	return (
 		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up space-y-24">
-			<header className="mb-4">
+			<header className="mb-4 relative">
+				<div className="absolute inset-0 bg-radial-gradient from-dbz-orange/5 via-transparent to-transparent -z-10 blur-xl h-64 w-64 -top-20 -left-20 pointer-events-none" />
 				<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
 					Base de données DBFR
 				</p>
-				<h1 className="text-5xl md:text-7xl font-saiyan text-white mb-6 tracking-widest leading-none">
+				<h1 className="text-5xl md:text-7xl font-saiyan bg-gradient-to-r from-dbz-orange via-yellow-400 to-dbz-red bg-clip-text text-transparent mb-6 tracking-widest leading-none drop-shadow-[0_0_30px_rgba(255,178,0,0.15)]">
 					ARCHIVES SHENRON
 				</h1>
 				<p className="text-lg text-gray-400 max-w-3xl leading-relaxed font-sans">
@@ -133,7 +134,7 @@ export default async function WikiIndex() {
 						<Link
 							key={s.title}
 							href={s.href}
-							className={`dbz-panel p-6 border-l-4 ${s.color} hover:bg-white/5 transition-all group reveal-up`}
+							className={`dbz-panel p-6 border-l-4 ${s.color} hover:bg-white/5 transition-all group reveal-up hover:shadow-[0_0_20px_rgba(255,178,0,0.05)]`}
 							style={{ animationDelay: `${0.05 + idx * 0.04}s` }}
 						>
 							<h2 className="text-xl font-saiyan uppercase tracking-widest mb-2 group-hover:translate-x-1 transition-transform">

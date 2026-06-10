@@ -88,7 +88,7 @@ function addSft(context: string, instruction: string, fact: string, persona?: Pe
   if (isSpanish(fact)) return; // ne pas entraîner sur des réponses espagnoles
   const out = style(p, fact);
   // Contexte court (<=300c) -> le petit modèle trouve plus facilement le fait à recopier.
-  sftRows.push({ context: trimNice(context.replace(/\s+/g, " ").trim(), 300), persona: p, instruction: instruction.trim(), output: out });
+  sftRows.push({ context: trimNice(context.replace(/\s+/g, " ").trim(), 800), persona: p, instruction: instruction.trim(), output: out });
 }
 
 const clean = (s: unknown): string =>

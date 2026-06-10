@@ -18,7 +18,7 @@ const PERSONA_THEMES = {
 		inputFocus: "focus:border-cyan-500/50 focus:ring-cyan-500/20",
 		placeholder: "Demande conseil à l'ange Whis...",
 		welcome:
-			"Oh oh ! Bonjour jeune disciple. Comment puis-je guider vos pas dans l'Univers 7 aujourd'hui ?",
+			"Oh oh ! Bonjour, jeune disciple. J'ai réuni les archives de l'Univers 7 pour guider votre entraînement. Quelle curiosité s'empare de vous aujourd'hui ?",
 	},
 	beerus: {
 		name: "Beerus",
@@ -28,7 +28,7 @@ const PERSONA_THEMES = {
 		bubbleBg: "bg-purple-500/10 border-purple-500/20 text-purple-200",
 		inputFocus: "focus:border-purple-500/50 focus:ring-purple-500/20",
 		placeholder: "Parle à Beerus le Destructeur...",
-		welcome: "Mmmh ? Encore un mortel insignifiant. Sois bref ou je détruis ta planète entière !",
+		welcome: "Mmmh ? Encore un mortel insignifiant qui vient troubler ma sieste. Sois bref ou je pulvérise ton quadrant ! Et si tu as du pudding, c'est le moment.",
 	},
 	shenron: {
 		name: "Shenron",
@@ -39,7 +39,40 @@ const PERSONA_THEMES = {
 		inputFocus: "focus:border-emerald-500/50 focus:ring-emerald-500/20",
 		placeholder: "Exprime ton souhait au Dragon Sacré...",
 		welcome:
-			"Je suis Shenron. Je t'écoute. Exprime ton souhait et je l'exaucerai dans la limite de mes pouvoirs.",
+			"Je suis Shenron. Tu as rassemblé les sept Dragon Balls. Formule ta question, mortel. Hâte-toi, ma puissance a des limites et mon temps est compté !",
+	},
+	grandpretre: {
+		name: "Grand Prêtre",
+		icon: "😇",
+		accent: "from-sky-300 to-blue-600",
+		bgGlow: "rgba(125, 211, 252, 0.15)",
+		bubbleBg: "bg-sky-500/10 border-sky-500/20 text-sky-200",
+		inputFocus: "focus:border-sky-500/50 focus:ring-sky-500/20",
+		placeholder: "Adressez-vous au Grand Prêtre...",
+		welcome:
+			"Salutations. Sa Majesté le Roi de Tout m'a chargé d'observer les connaissances de cette dimension. Parlez de vos quêtes de vérité sans crainte.",
+	},
+	kaio: {
+		name: "Maître Kaïo",
+		icon: "🐒",
+		accent: "from-emerald-400 to-sky-400",
+		bgGlow: "rgba(52, 211, 153, 0.15)",
+		bubbleBg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-200",
+		inputFocus: "focus:border-emerald-500/50 focus:ring-emerald-500/20",
+		placeholder: "Raconte une blague à Maître Kaïo...",
+		welcome:
+			"Ohoho ! Salut mon grand ! Tu as réussi à traverser le chemin du serpent pour venir me voir ? Raconte-moi une bonne blague, ou demande-moi tout sur les techniques secrètes !",
+	},
+	enma: {
+		name: "Enma Daïō",
+		icon: "👹",
+		accent: "from-red-500 to-amber-600",
+		bgGlow: "rgba(239, 68, 68, 0.15)",
+		bubbleBg: "bg-red-500/10 border-red-500/20 text-red-200",
+		inputFocus: "focus:border-red-500/50 focus:ring-red-500/20",
+		placeholder: "Quel dossier voulez-vous consulter ?",
+		welcome:
+			"Silence ! J'ai une montagne de dossiers d'âmes à tamponner aujourd'hui et Freezer recommence à s'agiter en enfer ! Soyez bref, je n'ai pas de temps à perdre.",
 	},
 };
 

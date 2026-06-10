@@ -182,13 +182,13 @@ Fondations déjà en place à étendre : `apps/bot/scripts/rag-recon.ts` (bxc re
 
 ## Séquencement & jalons
 
-| Jalon  | Contenu                                 | Dépend de       | Sortie mesurable                          |
-| ------ | --------------------------------------- | --------------- | ----------------------------------------- |
-| **M1** | A0 (éval) + B1 (RAG-grounded `/ask` v2) | RAG SOTA (fait) | gold set + `/ask` répond en FR grondé     |
-| **M2** | A1→A6 (corpus canon complet via bxc)    | M1              | Recall@5 ≥ 0.9, corpus ≥ 10× chunks       |
-| **M3** | A7 (refresh continu) + B2 (NotebookLM)  | M2              | timer hebdo + notebook canon              |
-| **M4** | B3 (dataset distillation)               | M2 (corpus)     | `dbz-sft.jsonl` 20-50k, dataset-card      |
-| **M5** | B4 + B5 (fine-tune + service local)     | M4              | GGUF déployé, assistant offline souverain |
+| Jalon  | Contenu                                 | Dépend de       | Statut          | Sortie mesurable                          |
+| ------ | --------------------------------------- | --------------- | --------------- | ----------------------------------------- |
+| **M1** | A0 (éval) + B1 (RAG-grounded `/ask` v2) | RAG SOTA (fait) | **[COMPLÉTÉ]**  | gold set + `/ask` répond en FR grondé     |
+| **M2** | A1→A6 (corpus canon complet via bxc)    | M1              | **[COMPLÉTÉ]**  | Recall@5 ≥ 0.9, corpus ≥ 10× chunks       |
+| **M3** | A7 (refresh continu) + B2 (NotebookLM)  | M2              | [À faire]       | timer hebdo + notebook canon              |
+| **M4** | B3 (dataset distillation)               | M2 (corpus)     | [À faire]       | `dbz-sft.jsonl` 20-50k, dataset-card      |
+| **M5** | B4 + B5 (fine-tune + service local)     | M4              | **[EN COURS]**  | GGUF déployé, assistant offline souverain |
 
 **Chemin critique court (valeur immédiate)** : M1 → M2. Le fine-tune (M5) est optionnel/souveraineté.
 

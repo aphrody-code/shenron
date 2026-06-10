@@ -3,6 +3,14 @@
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
 
+## [Unreleased] — 2026-06-10
+
+### Added
+
+- **Entraînement SFT local approfondi (8 époques)** : Résolution du data shift où le modèle local de 29M d'attention s'effondrait et renvoyait du vide face aux contextes longs de production. Harmonisation globale de la taille de contexte à **800 caractères** (générateur SFT `corpus_export.ts`, formateur de prompt `dbz_llm.py` et fusion RAG `llm.ts`).
+- **Inférence Parallèle des Embeddings & RAM Systemd** : Parallélisation de l'inférence CPU via un pool de 6 promesses concurrentes et traitement par lots (batch size 64) sur les 27 653 chunks du corpus (réduction de 3h à 40min). Redimensionnement de `shenron-embed.service` (`MemoryHigh=5G`, `MemoryMax=6G`) pour éviter les blocages de RAM et I/O wait.
+- **Résolution des verrous SQLite & Timeouts bxc** : Élimination des erreurs `SQLITE_BUSY` lors de la reconstruction de l'index RAG en remplaçant la copie directe par un `VACUUM INTO` à chaud. Sécurisation du crawl massif avec un timeout robuste de 30 secondes pour tuer les processus `bxc scrape` suspendus.
+
 ## [Unreleased] — 2026-06-02
 
 ### Added

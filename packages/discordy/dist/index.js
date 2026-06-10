@@ -1362,10 +1362,8 @@ var Client = class _Client extends import_discord.Client {
   async login(token) {
     await this.build();
     if (!this.silent) {
-      this.logger.log(
-        `${this.user?.username ?? this.botId} >> connecting discord...
-`
-      );
+      this.logger.log(`${this.user?.username ?? this.botId} >> connecting discord...
+`);
     }
     return super.login(token);
   }
@@ -1383,9 +1381,7 @@ var Client = class _Client extends import_discord.Client {
   }
   // === Application Command Management ===
   async initApplicationCommands(retainDeleted = false) {
-    return this.applicationCommandManager.initApplicationCommands(
-      retainDeleted
-    );
+    return this.applicationCommandManager.initApplicationCommands(retainDeleted);
   }
   async clearApplicationCommands(...guilds) {
     return this.applicationCommandManager.clearApplicationCommands(...guilds);
@@ -1494,9 +1490,7 @@ var SimpleCommandMessage = class {
    * @returns
    */
   sendUsageSyntax() {
-    const maxLength = !this.info.options.length ? 0 : this.info.options.reduce(
-      (a, b) => a.name.length > b.name.length ? a : b
-    ).name.length;
+    const maxLength = !this.info.options.length ? 0 : this.info.options.reduce((a, b) => a.name.length > b.name.length ? a : b).name.length;
     const embed = new import_discord2.EmbedBuilder();
     embed.setColor(import_node_crypto.default.randomInt(654321));
     embed.setTitle("Command Info");
@@ -1550,9 +1544,7 @@ var Method = class extends import_internal.Decorator {
    */
   get execute() {
     return (guards, ...params) => {
-      const globalGuards = guards.map(
-        (guard) => DGuard.create(guard.bind(void 0))
-      );
+      const globalGuards = guards.map((guard) => DGuard.create(guard.bind(void 0)));
       return this.createGuardChain(globalGuards)(...params);
     };
   }
@@ -1728,9 +1720,7 @@ var DApplicationCommand = class _DApplicationCommand extends Method {
     this._descriptionLocalizations = data.descriptionLocalizations ?? null;
     this._dmPermission = data.dmPermission ?? true;
     this._guilds = data.guilds ?? [];
-    this._integrationTypes = data.integrationTypes ?? [
-      import_discord3.ApplicationIntegrationType.GuildInstall
-    ];
+    this._integrationTypes = data.integrationTypes ?? [import_discord3.ApplicationIntegrationType.GuildInstall];
     this._name = data.name;
     this._nameLocalizations = data.nameLocalizations ?? null;
     this._nsfw = data.nsfw ?? false;
@@ -1746,10 +1736,7 @@ var DApplicationCommand = class _DApplicationCommand extends Method {
     return this.botIds.includes(botId);
   }
   async getGuilds(client) {
-    const guilds = await resolveIGuilds(client, this, [
-      ...client.botGuilds,
-      ...this.guilds
-    ]);
+    const guilds = await resolveIGuilds(client, this, [...client.botGuilds, ...this.guilds]);
     return guilds;
   }
   async isGuildAllowed(client, guildId) {
@@ -1796,9 +1783,7 @@ var DApplicationCommand = class _DApplicationCommand extends Method {
     return data;
   }
   parseParams(interaction) {
-    return Promise.all(
-      [...this.options].reverse().map((op) => op.parse(interaction))
-    );
+    return Promise.all([...this.options].reverse().map((op) => op.parse(interaction)));
   }
 };
 
@@ -2084,10 +2069,7 @@ var DComponent = class _DComponent extends Method {
     return this.botIds.includes(botId);
   }
   async getGuilds(client) {
-    const guilds = await resolveIGuilds(client, this, [
-      ...client.botGuilds,
-      ...this.guilds
-    ]);
+    const guilds = await resolveIGuilds(client, this, [...client.botGuilds, ...this.guilds]);
     return guilds;
   }
   async isGuildAllowed(client, guildId) {
@@ -2363,10 +2345,7 @@ var DReaction = class _DReaction extends Method {
     return this.botIds.includes(botId);
   }
   async getGuilds(client) {
-    const guilds = await resolveIGuilds(client, this, [
-      ...client.botGuilds,
-      ...this.guilds
-    ]);
+    const guilds = await resolveIGuilds(client, this, [...client.botGuilds, ...this.guilds]);
     return guilds;
   }
   async isGuildAllowed(client, guildId) {
@@ -2472,10 +2451,7 @@ var DSimpleCommand = class _DSimpleCommand extends Method {
     return this.botIds.includes(botId);
   }
   async getGuilds(client, command) {
-    const guilds = await resolveIGuilds(client, command, [
-      ...client.botGuilds,
-      ...this.guilds
-    ]);
+    const guilds = await resolveIGuilds(client, command, [...client.botGuilds, ...this.guilds]);
     return guilds;
   }
   async isGuildAllowed(client, command, guildId) {
@@ -2627,10 +2603,7 @@ function Bot(...botIds) {
               ...original.selectMenus,
               ...original.events
             ].forEach((ob) => {
-              ob.botIds = [
-                ...ob.botIds,
-                ...botIds.filter((botId) => !ob.botIds.includes(botId))
-              ];
+              ob.botIds = [...ob.botIds, ...botIds.filter((botId) => !ob.botIds.includes(botId))];
             });
           }
         },
@@ -2696,11 +2669,7 @@ var import_internal9 = require("@rpbey/internal");
 function Guard(...fns) {
   return (target, key, descriptor) => {
     const guards = fns.map((fn) => {
-      return DGuard.create(fn).attachToTarget(
-        target,
-        key,
-        descriptor
-      );
+      return DGuard.create(fn).attachToTarget(target, key, descriptor);
     });
     MetadataStorage.instance.addModifier(
       import_internal9.Modifier.create(
@@ -2873,13 +2842,7 @@ function SimpleCommandOption(options) {
     MetadataStorage.instance.addModifier(
       import_internal11.Modifier.create((original) => {
         original.options = [...original.options, option];
-      }, DSimpleCommand).decorate(
-        target.constructor,
-        key,
-        target[key],
-        target.constructor,
-        index
-      )
+      }, DSimpleCommand).decorate(target.constructor, key, target[key], target.constructor, index)
     );
     MetadataStorage.instance.addSimpleCommandOption(option);
   };
@@ -2894,9 +2857,7 @@ function Slash(options) {
     let applicationCommand;
     if (options instanceof import_discord7.SlashCommandBuilder) {
       if (options.options.length > 0) {
-        throw Error(
-          "The builder options feature is not supported in discordx."
-        );
+        throw Error("The builder options feature is not supported in discordx.");
       }
       applicationCommand = DApplicationCommand.create({
         defaultMemberPermissions: options.default_member_permissions,
@@ -3094,13 +3055,7 @@ function SlashOption(options, transformer) {
         type: options.type
       });
     }
-    option.decorate(
-      target.constructor,
-      key,
-      target[key],
-      target.constructor,
-      index
-    );
+    option.decorate(target.constructor, key, target[key], target.constructor, index);
     MetadataStorage.instance.addModifier(
       import_internal14.Modifier.create((original) => {
         original.options = [...original.options, option];
@@ -3124,12 +3079,10 @@ var ApplicationCommandManager = class {
   }
   async initApplicationCommands(retainDeleted = false) {
     const guildCommandStore = await this.getCommandsByGuild();
-    const guildPromises = Array.from(guildCommandStore.entries()).map(
-      ([guildId, commands]) => {
-        const guild = this.client.guilds.cache.get(guildId);
-        return guild ? this.initGuildApplicationCommands(guildId, commands, retainDeleted) : Promise.resolve();
-      }
-    );
+    const guildPromises = Array.from(guildCommandStore.entries()).map(([guildId, commands]) => {
+      const guild = this.client.guilds.cache.get(guildId);
+      return guild ? this.initGuildApplicationCommands(guildId, commands, retainDeleted) : Promise.resolve();
+    });
     await Promise.all([
       Promise.all(guildPromises),
       this.initGlobalApplicationCommands(retainDeleted)
@@ -3138,9 +3091,7 @@ var ApplicationCommandManager = class {
   async clearApplicationCommands(...guilds) {
     if (guilds.length) {
       await Promise.all(
-        guilds.map(
-          async (guildId) => this.client.guilds.cache.get(guildId)?.commands.set([])
-        )
+        guilds.map(async (guildId) => this.client.guilds.cache.get(guildId)?.commands.set([]))
       );
     } else {
       await this.client.application?.commands.set([]);
@@ -3149,12 +3100,10 @@ var ApplicationCommandManager = class {
   async getCommandsByGuild() {
     const botResolvedGuilds = await this.client.botResolvedGuilds;
     const guildCommandStore = /* @__PURE__ */ new Map();
-    const allGuildCommands = this.client.applicationCommands.filter(
-      (command) => {
-        const guilds = [...botResolvedGuilds, ...command.guilds];
-        return command.isBotAllowed(this.client.botId) && guilds.length;
-      }
-    );
+    const allGuildCommands = this.client.applicationCommands.filter((command) => {
+      const guilds = [...botResolvedGuilds, ...command.guilds];
+      return command.isBotAllowed(this.client.botId) && guilds.length;
+    });
     await Promise.all(
       allGuildCommands.map(async (command) => {
         const guilds = await resolveIGuilds(this.client, command, [
@@ -3181,16 +3130,7 @@ var ApplicationCommandManager = class {
       withLocalizations: true
     });
     const botResolvedGuilds = await this.client.botResolvedGuilds;
-    const {
-      commandsToAdd,
-      commandsToUpdate,
-      commandsToSkip,
-      commandsToDelete
-    } = await this.categorizeGuildCommands(
-      commands,
-      discordCommands,
-      botResolvedGuilds
-    );
+    const { commandsToAdd, commandsToUpdate, commandsToSkip, commandsToDelete } = await this.categorizeGuildCommands(commands, discordCommands, botResolvedGuilds);
     this.logCommandChanges(guild.toString(), {
       commandsToAdd,
       commandsToUpdate,
@@ -3211,9 +3151,7 @@ var ApplicationCommandManager = class {
   }
   async initGlobalApplicationCommands(retainDeleted) {
     if (!this.client.application) {
-      throw new Error(
-        "Client not ready, connect to Discord before fetching commands"
-      );
+      throw new Error("Client not ready, connect to Discord before fetching commands");
     }
     const botResolvedGuilds = await this.client.botResolvedGuilds;
     const allDiscordCommands = await this.client.application.commands.fetch();
@@ -3222,16 +3160,10 @@ var ApplicationCommandManager = class {
     );
     const globalCommands = this.client.applicationCommands.filter((command) => {
       if (botResolvedGuilds.length || command.guilds.length) return false;
-      if (command.botIds.length && !command.botIds.includes(this.client.botId))
-        return false;
+      if (command.botIds.length && !command.botIds.includes(this.client.botId)) return false;
       return true;
     });
-    const {
-      commandsToAdd,
-      commandsToUpdate,
-      commandsToSkip,
-      commandsToDelete
-    } = this.categorizeGlobalCommands(globalCommands, discordCommands);
+    const { commandsToAdd, commandsToUpdate, commandsToSkip, commandsToDelete } = this.categorizeGlobalCommands(globalCommands, discordCommands);
     this.logCommandChanges("global", {
       commandsToAdd,
       commandsToUpdate,
@@ -3247,9 +3179,7 @@ var ApplicationCommandManager = class {
       retainDeleted
     });
     if (bulkUpdate.length > 0) {
-      await this.client.application.commands.set(
-        bulkUpdate
-      );
+      await this.client.application.commands.set(bulkUpdate);
     }
   }
   async categorizeGuildCommands(commands, discordCommands, botResolvedGuilds) {
@@ -3326,13 +3256,7 @@ var ApplicationCommandManager = class {
   }
   logCommandChanges(target, changes) {
     if (this.client.silent) return;
-    const {
-      commandsToAdd,
-      commandsToUpdate,
-      commandsToSkip,
-      commandsToDelete,
-      retainDeleted
-    } = changes;
+    const { commandsToAdd, commandsToUpdate, commandsToSkip, commandsToDelete, retainDeleted } = changes;
     let str = `${this.client.user?.username ?? this.client.botId} >> commands >> ${target}`;
     const addNames = commandsToAdd.map((cmd) => cmd.name).join(", ");
     const deleteNames = commandsToDelete.map((cmd) => cmd.name).join(", ");
@@ -3351,21 +3275,11 @@ var ApplicationCommandManager = class {
     this.client.logger.log(str);
   }
   prepareBulkUpdate(data) {
-    const {
-      commandsToAdd,
-      commandsToUpdate,
-      commandsToSkip,
-      commandsToDelete,
-      retainDeleted
-    } = data;
+    const { commandsToAdd, commandsToUpdate, commandsToSkip, commandsToDelete, retainDeleted } = data;
     const bulkUpdate = [];
-    commandsToSkip.forEach(
-      (cmd) => void bulkUpdate.push(cmd.instance.toJSON())
-    );
+    commandsToSkip.forEach((cmd) => void bulkUpdate.push(cmd.instance.toJSON()));
     commandsToAdd.forEach((cmd) => void bulkUpdate.push(cmd.toJSON()));
-    commandsToUpdate.forEach(
-      (cmd) => void bulkUpdate.push(cmd.instance.toJSON())
-    );
+    commandsToUpdate.forEach((cmd) => void bulkUpdate.push(cmd.instance.toJSON()));
     if (retainDeleted) {
       commandsToDelete.forEach((cmd) => {
         bulkUpdate.push(cmd.toJSON());
@@ -3383,9 +3297,7 @@ var DebugManager = class {
   }
   printDebug() {
     if (!this.client.instance.isBuilt) {
-      this.client.logger.error(
-        "Build the app before running this method with client.build()"
-      );
+      this.client.logger.error("Build the app before running this method with client.build()");
       return;
     }
     this.printEvents();
@@ -3421,9 +3333,7 @@ var DebugManager = class {
       components.forEach((component) => {
         const className = component.classRef.name;
         const key = component.key;
-        this.client.logger.log(
-          `>> ${component.id.toString()} (${className}.${key})`
-        );
+        this.client.logger.log(`>> ${component.id.toString()} (${className}.${key})`);
       });
     } else {
       this.client.logger.log(`	No ${name.slice(0, -1)} detected`);
@@ -3454,9 +3364,7 @@ var DebugManager = class {
         const type = menu.type.toString();
         const className = menu.classRef.name;
         const key = menu.key;
-        this.client.logger.log(
-          `>> ${menu.name} (${type}) (${className}.${key})`
-        );
+        this.client.logger.log(`>> ${menu.name} (${type}) (${className}.${key})`);
       });
     } else {
       this.client.logger.log("	No context menu detected");
@@ -3473,9 +3381,7 @@ var DebugManager = class {
         const line = index !== 0 ? "\n" : "";
         const className = command.classRef.name;
         const key = command.key;
-        this.client.logger.log(
-          `${line}	>> ${command.name} (${className}.${key})`
-        );
+        this.client.logger.log(`${line}	>> ${command.name} (${className}.${key})`);
         this.printOptions(command.options, 2);
       });
     } else {
@@ -3517,9 +3423,7 @@ var DebugManager = class {
       const type = SimpleCommandOptionType[option.type];
       const className = option.classRef.name;
       const key = option.key;
-      this.client.logger.log(
-        `${tab}${option.name}: ${type} (${className}.${key})`
-      );
+      this.client.logger.log(`${tab}${option.name}: ${type} (${className}.${key})`);
     });
   }
 };
@@ -3546,9 +3450,7 @@ var EventManager = class {
    * Execute handlers for a specific event group
    */
   async executeHandlers(group, client, params) {
-    const allowedHandlers = group.handlers.filter(
-      (handler) => handler.isBotAllowed(client.botId)
-    );
+    const allowedHandlers = group.handlers.filter((handler) => handler.isBotAllowed(client.botId));
     const results = [];
     await allowedHandlers.reduce(
       (previousPromise, handler) => previousPromise.then(async () => {
@@ -3626,10 +3528,7 @@ var InteractionHandler = class {
       return this.executeComponent(this.client.modalComponents, interaction);
     }
     if (interaction.isAnySelectMenu()) {
-      return this.executeComponent(
-        this.client.selectMenuComponents,
-        interaction
-      );
+      return this.executeComponent(this.client.selectMenuComponents, interaction);
     }
     if (interaction.isContextMenuCommand()) {
       return this.executeContextMenu(interaction);
@@ -3649,9 +3548,7 @@ var InteractionHandler = class {
     }
     if (interaction.type === import_discord11.InteractionType.ApplicationCommandAutocomplete) {
       const focusOption = interaction.options.getFocused(true);
-      const option = applicationCommand.options.find(
-        (op) => op.name === focusOption.name
-      );
+      const option = applicationCommand.options.find((op) => op.name === focusOption.name);
       if (option && typeof option.autocomplete === "function") {
         await option.autocomplete.call(
           import_di2.DIService.engine.getService(option.from),
@@ -3661,11 +3558,7 @@ var InteractionHandler = class {
         return null;
       }
     }
-    return applicationCommand.execute(
-      this.client.guards,
-      interaction,
-      this.client
-    );
+    return applicationCommand.execute(this.client.guards, interaction, this.client);
   }
   async executeComponent(components, interaction) {
     const executes = components.filter((component) => {
@@ -3690,11 +3583,7 @@ var InteractionHandler = class {
     return results;
   }
   executeContextMenu(interaction) {
-    const applicationCommand = interaction.isUserContextMenuCommand() ? this.client.applicationCommandUsers.find(
-      (cmd) => cmd.name === interaction.commandName
-    ) : this.client.applicationCommandMessages.find(
-      (cmd) => cmd.name === interaction.commandName
-    );
+    const applicationCommand = interaction.isUserContextMenuCommand() ? this.client.applicationCommandUsers.find((cmd) => cmd.name === interaction.commandName) : this.client.applicationCommandMessages.find((cmd) => cmd.name === interaction.commandName);
     if (!applicationCommand?.isBotAllowed(this.client.botId)) {
       if (!this.client.silent) {
         this.client.logger.warn(
@@ -3703,11 +3592,7 @@ var InteractionHandler = class {
       }
       return null;
     }
-    return applicationCommand.execute(
-      this.client.guards,
-      interaction,
-      this.client
-    );
+    return applicationCommand.execute(this.client.guards, interaction, this.client);
   }
   getApplicationCommandGroupTree(interaction) {
     const tree = [];
@@ -3848,11 +3733,7 @@ var SimpleCommandManager = class {
     if (!command.info.isBotAllowed(this.client.botId)) {
       return null;
     }
-    if (!await command.info.isGuildAllowed(
-      this.client,
-      command,
-      message.guildId
-    )) {
+    if (!await command.info.isGuildAllowed(this.client, command, message.guildId)) {
       return null;
     }
     if (!command.info.directMessage && !message.guild) {
@@ -3863,10 +3744,7 @@ var SimpleCommandManager = class {
   async parseCommand(message, caseSensitive = false) {
     const prefix = await this.getMessagePrefix(message);
     const prefixRegex = RegExp(
-      `^(${toStringArray(
-        prefix,
-        Array.from(this.client.simpleCommandMappedPrefix)
-      ).map((pfx) => escapeRegExp(pfx)).join("|")})`
+      `^(${toStringArray(prefix, Array.from(this.client.simpleCommandMappedPrefix)).map((pfx) => escapeRegExp(pfx)).join("|")})`
     );
     const isCommand = prefixRegex.test(message.content);
     if (!isCommand) {
@@ -4132,10 +4010,7 @@ read more at https://discordx.js.org/docs/discordx/decorators/general/discord
     await import_internal15.Modifier.modify(this._modifiers, this._discords);
     await import_internal15.Modifier.modify(this._modifiers, this._events);
     await import_internal15.Modifier.modify(this._modifiers, this._applicationCommandSlashes);
-    await import_internal15.Modifier.modify(
-      this._modifiers,
-      this._applicationCommandSlashOptions
-    );
+    await import_internal15.Modifier.modify(this._modifiers, this._applicationCommandSlashOptions);
     await import_internal15.Modifier.modify(this._modifiers, this._applicationCommandMessages);
     await import_internal15.Modifier.modify(this._modifiers, this._applicationCommandUsers);
     await import_internal15.Modifier.modify(this._modifiers, this._simpleCommands);
@@ -4151,9 +4026,7 @@ read more at https://discordx.js.org/docs/discordx/decorators/general/discord
   buildSimpleCommands() {
     this._simpleCommands.forEach((cmd) => {
       if (cmd.prefix) {
-        toStringArray(cmd.prefix).forEach(
-          (pfx) => void this._simpleCommandMappedPrefix.add(pfx)
-        );
+        toStringArray(cmd.prefix).forEach((pfx) => void this._simpleCommandMappedPrefix.add(pfx));
       }
       if (this._simpleCommandsByName.some((c) => c.name === cmd.name)) {
         throw Error(`Duplicate simple command name: ${cmd.name}`);
@@ -4375,9 +4248,7 @@ function isApplicationCommandEqual(findCommand, DCommand, isGuild) {
 // src/util/resolve-guilds.ts
 var resolveIGuilds = async (client, command, guilds) => {
   const guildX = await Promise.all(
-    guilds.map(
-      async (guild) => typeof guild === "function" ? guild(client, command) : guild
-    )
+    guilds.map(async (guild) => typeof guild === "function" ? guild(client, command) : guild)
   );
   return [...new Set(guildX.flat(1))];
 };

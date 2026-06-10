@@ -113,6 +113,7 @@ type Row = Record<string, unknown>;
 const q = (sql: string) => db.query(sql).all() as Row[];
 const s = (v: unknown) => (v == null ? "" : String(v));
 
+db.run("BEGIN");
 console.log("-> Insertion de la donnée structurée de la base…");
 
 for (const c of q(`SELECT id,name,name_ja,name_romaji,race,ki,description FROM db_characters`)) {
@@ -466,6 +467,7 @@ if (existsSync(CORPUS)) {
 	console.warn("⚠ corpus.json introuvable. Skip de la section corpus scrapé.");
 }
 
+db.run("COMMIT");
 const total = (db.query(`SELECT COUNT(*) c FROM rag_chunks`).get() as { c: number }).c;
 console.log(`✓ rag_chunks construit : ${n} chunks insérés (${total} total).`);
 
@@ -495,46 +497,70 @@ console.log(`→ embeddings via sidecar (http://127.0.0.1:5007) sur ${chunks.len
 const embT0 = Date.now();
 const texts = chunks.map((c) => `${c.title}. ${c.content}`.slice(0, 1200));
 
-const vectors: Float32Array[] = [];
+const vectors: Float32Array[] = new Array(texts.length);
 const BATCH_SIZE = 64;
+const concurrency = 6;
 
+const queue: { index: number; batchTexts: string[] }[] = [];
 for (let i = 0; i < texts.length; i += BATCH_SIZE) {
-	const batchTexts = texts.slice(i, i + BATCH_SIZE);
+	queue.push({
+		index: i,
+		batchTexts: texts.slice(i, i + BATCH_SIZE)
+	});
+}
 
-	let success = false;
-	let retries = 15;
-	while (!success && retries > 0) {
-		try {
-			const res = await fetch("http://127.0.0.1:5007/embed", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ texts: batchTexts, kind: "passage" }),
-			});
-			if (!res.ok) {
-				throw new Error(`HTTP ${res.status}`);
+const totalBatches = queue.length;
+let completedBatches = 0;
+
+async function worker() {
+	while (queue.length > 0) {
+		const item = queue.shift();
+		if (!item) continue;
+		const { index, batchTexts } = item;
+
+		let success = false;
+		let retries = 15;
+		let batchVectors: Float32Array[] = [];
+		while (!success && retries > 0) {
+			try {
+				const res = await fetch("http://127.0.0.1:5007/embed", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ texts: batchTexts, kind: "passage" }),
+				});
+				if (!res.ok) {
+					throw new Error(`HTTP ${res.status}`);
+				}
+				const data = (await res.json()) as { vectors: number[][] };
+				batchVectors = data.vectors.map(v => new Float32Array(v));
+				success = true;
+			} catch (err) {
+				retries--;
+				if (retries === 0) {
+					console.error(`\n✗ Échec d'embedding pour le lot ${index} - ${index + batchTexts.length}:`, err);
+					process.exit(1);
+				}
+				await new Promise((resolve) => setTimeout(resolve, 1000));
 			}
-			const data = (await res.json()) as { vectors: number[][] };
-			for (const v of data.vectors) {
-				vectors.push(new Float32Array(v));
-			}
-			success = true;
-		} catch (err) {
-			retries--;
-			if (retries === 0) {
-				console.error(`\n✗ Échec d'embedding pour le lot ${i} - ${i + batchTexts.length}:`, err);
-				process.exit(1);
-			}
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
+
+		for (let j = 0; j < batchVectors.length; j++) {
+			vectors[index + j] = batchVectors[j];
+		}
+
+		completedBatches++;
+		// Mettre à jour la progression de façon thread-safe
+		if (completedBatches % 5 === 0 || completedBatches === totalBatches) {
+			const pct = ((completedBatches / totalBatches) * 100).toFixed(1);
+			process.stdout.write(
+				`\r  [RAG BUILD] Embedding progress: ${pct}% (${completedBatches * BATCH_SIZE}/${texts.length})`
+			);
 		}
 	}
-
-	if (i % 1024 === 0 || i + BATCH_SIZE >= texts.length) {
-		const pct = ((vectors.length / texts.length) * 100).toFixed(1);
-		process.stdout.write(
-			`\r  [RAG BUILD] Embedding progress: ${pct}% (${vectors.length}/${texts.length})`
-		);
-	}
 }
+
+const workers = Array.from({ length: concurrency }, () => worker());
+await Promise.all(workers);
 console.log("\n✓ Étape d'embedding terminée.");
 
 const insVec = db.query(`INSERT INTO vec_chunks (rowid, embedding) VALUES (?, ?)`);

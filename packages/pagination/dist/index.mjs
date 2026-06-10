@@ -1,10 +1,5 @@
 // src/pagination/builder.ts
-import {
-  ButtonBuilder,
-  ButtonStyle,
-  ComponentType,
-  StringSelectMenuBuilder
-} from "discord.js";
+import { ButtonBuilder, ButtonStyle, ComponentType, StringSelectMenuBuilder } from "discord.js";
 
 // src/utils/paginate.ts
 var DEFAULT_CURRENT_PAGE = 0;
@@ -26,14 +21,10 @@ function validatePaginationInputs(totalItems, currentPage, pageSize, maxPages) {
     );
   }
   if (!Number.isInteger(pageSize) || pageSize < MIN_PAGE_SIZE) {
-    throw new Error(
-      `Page size must be a positive integer, received: ${pageSize.toString()}`
-    );
+    throw new Error(`Page size must be a positive integer, received: ${pageSize.toString()}`);
   }
   if (!Number.isInteger(maxPages) || maxPages < MIN_MAX_PAGES) {
-    throw new Error(
-      `Max pages must be a positive integer, received: ${maxPages.toString()}`
-    );
+    throw new Error(`Max pages must be a positive integer, received: ${maxPages.toString()}`);
   }
 }
 function calculateTotalPages(totalItems, pageSize) {
@@ -83,11 +74,7 @@ function createPagination(config) {
     validatePaginationInputs(totalItems, currentPage, pageSize, maxPages);
     const totalPages = calculateTotalPages(totalItems, pageSize);
     const normalizedCurrentPage = normalizeCurrentPage(currentPage, totalPages);
-    const { startPage, endPage } = calculatePageRange(
-      normalizedCurrentPage,
-      totalPages,
-      maxPages
-    );
+    const { startPage, endPage } = calculatePageRange(normalizedCurrentPage, totalPages, maxPages);
     const { startIndex, endIndex } = calculateItemIndexes(
       normalizedCurrentPage,
       pageSize,
@@ -169,10 +156,7 @@ var PaginationBuilder = class {
     const options = paginator.pages.map((pageNumber) => {
       const pageText = this.getPageText(pageNumber);
       return {
-        label: pageText.replace(
-          "{page}",
-          (pageNumber + 1).toString().padStart(2, "0")
-        ),
+        label: pageText.replace("{page}", (pageNumber + 1).toString().padStart(2, "0")),
         value: pageNumber.toString()
       };
     });
@@ -345,9 +329,7 @@ var Pagination = class {
   _isFollowUp = false;
   get message() {
     if (!this._message) {
-      throw new Error(
-        "Pagination has not sent yet. Please send pagination to retrieve message"
-      );
+      throw new Error("Pagination has not sent yet. Please send pagination to retrieve message");
     }
     return this._message;
   }
@@ -470,20 +452,13 @@ var Pagination = class {
    */
   getPage = async (page) => {
     if (page < 0 || page >= this.maxLength) {
-      throw new Error(
-        `Page ${String(page)} is out of bounds (0-${String(this.maxLength - 1)})`
-      );
+      throw new Error(`Page ${String(page)} is out of bounds (0-${String(this.maxLength - 1)})`);
     }
     const item = Array.isArray(this.pages) ? structuredClone(this.pages[page]) : await this.pages.resolver(page, this);
     if (!item) {
       throw new Error(`No content found for page ${page.toString()}`);
     }
-    const pagination = new PaginationBuilder(
-      item,
-      page,
-      this.maxLength,
-      this.config
-    );
+    const pagination = new PaginationBuilder(item, page, this.maxLength, this.config);
     return pagination;
   };
   /**
@@ -492,9 +467,7 @@ var Pagination = class {
    */
   async send() {
     if (this._isSent) {
-      throw new Error(
-        "Pagination has already been sent. Create a new instance to send again."
-      );
+      throw new Error("Pagination has already been sent. Create a new instance to send again.");
     }
     try {
       const page = await this.getPage(this.currentPage);
@@ -503,9 +476,7 @@ var Pagination = class {
       this._collectors = collectors;
       this._message = message;
       this._isSent = true;
-      this.debug(
-        `Pagination sent successfully with ${this.maxLength.toString()} pages`
-      );
+      this.debug(`Pagination sent successfully with ${this.maxLength.toString()} pages`);
       return { collectors, message };
     } catch (error) {
       this.debug(`Failed to send pagination: ${String(error)}`);
@@ -720,10 +691,7 @@ var Pagination = class {
   /**
    * Setup collector event handlers
    */
-  setupCollectorEvents({
-    buttonCollector,
-    menuCollector
-  }) {
+  setupCollectorEvents({ buttonCollector, menuCollector }) {
     const resetCollectorTimers = () => {
       const timerOptions = {
         idle: this.config?.idle,
@@ -768,9 +736,7 @@ var Pagination = class {
     } else if (customId === defaultIds.buttons.next) {
       return this.navigateNext();
     } else if (customId === defaultIds.buttons.backward) {
-      return this.navigateToPage(
-        Math.max(0, this.currentPage - this.getSkipAmount())
-      );
+      return this.navigateToPage(Math.max(0, this.currentPage - this.getSkipAmount()));
     } else if (customId === defaultIds.buttons.forward) {
       return this.navigateToPage(
         Math.min(this.maxLength - 1, this.currentPage + this.getSkipAmount())

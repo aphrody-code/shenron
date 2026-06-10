@@ -22,6 +22,9 @@ const IGNORE_PATTERNS = [
 	"build",
 	"venv",
 	".bun-cache",
+	"apps/bot/data/rag",
+	"docs/archive",
+	"apps/bot/data/llm",
 ];
 
 async function main() {
