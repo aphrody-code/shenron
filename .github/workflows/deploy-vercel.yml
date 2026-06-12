@@ -12,17 +12,14 @@ name: Deploy site to Vercel (production)
 # la connexion prod est résolue à la volée via neonctl + NEON_API_KEY (jamais
 # loggée). Cf. docs/neon-automation.md.
 
+# DÉSACTIVÉ depuis la migration Vercel -> VPS (2026-06-12). Le site est désormais
+# servi par le VPS : nginx (deploy/nginx/dragonballfr.com.conf) -> next start sous
+# Bun (unit shenron-site.service) sur 127.0.0.1:3000. Le projet Vercel `dbfr` est
+# conservé en standby (repli possible en repointant l'A record apex sur Vercel) ;
+# ce workflow n'auto-déploie plus sur push (sinon double-deploy + cache obsolète),
+# il reste déclenchable à la main si besoin du repli. Déploiement site = VPS :
+# scripts/deploy-site.sh (build + restart shenron-site + smoke + rollback).
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/site/**"
-      - "packages/**"
-      - "package.json"
-      - "bun.lock"
-      - "turbo.json"
-      - "vercel.json"
-      - ".github/workflows/deploy-vercel.yml"
   workflow_dispatch: {}
 
 concurrency:

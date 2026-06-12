@@ -1,0 +1,68 @@
+[Unit]
+Description=shenron-site — site Next.js 16 (dragonballfr.com) servi par next start sous Bun
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitBurst=20
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron/apps/site
+
+EnvironmentFile=/home/ubuntu/shenron/apps/site/.env
+Environment=NODE_ENV=production
+Environment=HOME=/home/ubuntu
+Environment=PORT=3000
+Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/site/.bun-cache
+Environment=UV_THREADPOOL_SIZE=8
+
+# next start sous Bun, binaire next résolu en absolu (hoisté à la racine du
+# workspace) — pas de couche bunx (évite tout cache réseau/écriture hors sandbox).
+ExecStart=/home/ubuntu/.bun/bin/bun --bun /home/ubuntu/shenron/node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5
+
+MemoryMax=1G
+MemoryHigh=768M
+MemoryLow=128M
+TasksMax=256
+LimitNOFILE=131072
+OOMScoreAdjust=-300
+CPUWeight=150
+IOWeight=150
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=false
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+# .next : cache incrémental ISR + fetch-cache écrits au runtime. .bun-cache :
+# cache transpiler Bun. node_modules : lecture seule (résolution next/deps).
+ReadWritePaths=/home/ubuntu/shenron/apps/site/.next /home/ubuntu/shenron/apps/site/.bun-cache
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-site
+
+[Install]
+WantedBy=multi-user.target

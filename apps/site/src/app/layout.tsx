@@ -3,8 +3,6 @@ import localFont from "next/font/local";
 import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import dynamic from "next/dynamic";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
@@ -173,8 +171,6 @@ export default function RootLayout({
 						},
 					}}
 				/>
-				<Analytics />
-				<SpeedInsights />
 			</body>
 		</html>
 	);

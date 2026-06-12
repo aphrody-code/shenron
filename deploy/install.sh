@@ -53,10 +53,14 @@ rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
 echo "▶ activation service + timers (backup 03:00, neon-sync /30min, neon-pull /15min, drive-sync daily)"
-sudo systemctl enable shenron.service shenron-embed.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
+sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
 sudo systemctl enable --now shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer >/dev/null 2>&1 || true
 # Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
 sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
+# Site Next.js (dragonballfr.com) — next start sous Bun sur 127.0.0.1:3000,
+# fronté par nginx (deploy/nginx/dragonballfr.com.conf). Nécessite un build
+# préalable : bun --filter @shenron/site build (cf. scripts/deploy-site.sh).
+sudo systemctl enable --now shenron-site.service >/dev/null 2>&1 || true
 # guild-sync : réconciliation lourde (scan Discord + reparse 24h). Disponible
 # mais laissée désactivée par défaut. Pour l'activer :
 #   sudo systemctl enable --now shenron-guild-sync.timer
@@ -71,7 +75,7 @@ if [[ $DO_NGINX -eq 1 ]]; then
   echo "▶ vhosts nginx ($NGINX_SRC → /etc/nginx/conf.d/)"
   echo "  prérequis : zone 'limit_req zone=rpb_api …' dans nginx.conf (http{}),"
   echo "  et certs letsencrypt pour bot.dragonballfr.com / dragonballfr.com"
-  echo "  (+ legacy bot.rpbey.fr / shenron.rpbey.fr conservés)."
+  echo "  (apex+www, ex. certbot --dns-ovh ; + legacy bot.rpbey.fr / shenron.rpbey.fr)."
   # Le glob *.conf inclut bot.dragonballfr.com.conf (nouveau vhost API bot) en
   # plus de bot.rpbey.fr.conf / shenron.conf.
   sudo cp "$NGINX_SRC"/*.conf /etc/nginx/conf.d/
@@ -91,6 +95,12 @@ if [[ $DO_START -eq 1 ]]; then
   sudo systemctl is-active --quiet shenron.service \
     && echo "  ✓ shenron actif" \
     || { echo "  ✗ shenron inactif — logs :" >&2; sudo journalctl -u shenron -n 30 --no-pager >&2; exit 1; }
+  echo "▶ (re)démarrage du site"
+  sudo systemctl restart shenron-site.service
+  sleep 4
+  sudo systemctl is-active --quiet shenron-site.service \
+    && echo "  ✓ shenron-site actif" \
+    || { echo "  ✗ shenron-site inactif — logs :" >&2; sudo journalctl -u shenron-site -n 30 --no-pager >&2; exit 1; }
 fi
 
 echo "✓ install terminé"

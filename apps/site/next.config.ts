@@ -108,12 +108,20 @@ const nextConfig: NextConfig = {
 
 	async rewrites() {
 		const botHost = process.env.NEXT_PUBLIC_SHENRON_API_URL || "https://bot.dragonballfr.com";
-		return [
-			{
-				source: "/wiki/:path*",
-				destination: `${botHost}/assets/wiki/:path*`,
-			},
-		];
+		// `fallback` (et NON un tableau = `afterFiles`) : ce rewrite ne sert que les
+		// MÉDIAS wiki (`/wiki/<asset>.mp4|webp…`) proxifiés vers le bot. En
+		// `afterFiles`, il préemptait les routes dynamiques (`/wiki/films/[slug]`,
+		// `/wiki/sagas/[slug]`…) sous `next start` → fiches 403 (le bot renvoyait
+		// « Extension non autorisée »). En `fallback`, il ne se déclenche que si
+		// AUCUNE page (statique ou dynamique) ne matche → les fiches restent à Next.
+		return {
+			fallback: [
+				{
+					source: "/wiki/:path*",
+					destination: `${botHost}/assets/wiki/:path*`,
+				},
+			],
+		};
 	},
 
 	async headers() {

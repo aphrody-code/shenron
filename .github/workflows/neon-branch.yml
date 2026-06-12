@@ -22,9 +22,10 @@ name: Neon · PR database branch
 #   secrets.VERCEL_TOKEN      — token Vercel (env preview override)
 #   secrets.VERCEL_ORG_ID / secrets.VERCEL_PROJECT_ID — projet dbfr
 
+# DÉSACTIVÉ depuis la migration Vercel -> VPS (2026-06-12) : plus de déploiement
+# preview Vercel à câbler par PR. Conservé en standby (déclenchement manuel).
 on:
-  pull_request:
-    types: [opened, reopened, synchronize, closed]
+  workflow_dispatch: {}
 
 concurrency:
   # Sérialise par PR : pas de course create/delete sur la même branche Neon.

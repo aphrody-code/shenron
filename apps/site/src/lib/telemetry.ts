@@ -1,8 +1,7 @@
 /**
  * Télémétrie web unifiée du SITE — un seul `track()` qui fan-out vers :
- *   1. Vercel Web Analytics (custom events `track()` de `@vercel/analytics`),
- *   2. Google Tag Manager (`window.dataLayer.push`),
- *   3. l'ingest first-party `/api/telemetry` (Postgres → reco / perso).
+ *   1. Google Tag Manager (`window.dataLayer.push`),
+ *   2. l'ingest first-party `/api/telemetry` (Postgres → reco / perso).
  *
  * Distincte du gameplay du bot (XP/messages, SQLite côté bot) : ceci mesure la
  * NAVIGATION WEB pour nourrir recommandations + personnalisation.
@@ -10,17 +9,16 @@
  * Privacy-first / RGPD (cible France/UE) :
  *   - SSR-safe : tout est no-op hors navigateur (les imports server ne plantent
  *     pas) ; aucune dépendance `postgres`/`drizzle` → jamais dans un bundle… mais
- *     ce module EST client (`track` de @vercel/analytics est browser-side).
+ *     ce module EST client (lecture de `window`/`navigator`, browser-side).
  *   - Respecte le Do-Not-Track navigateur (`navigator.doNotTrack`).
  *   - Respecte le consentement local (cf. `consent.ts`) : sans consentement, on
- *     n'envoie RIEN aux destinations non-essentielles (Vercel/GTM/first-party).
+ *     n'envoie RIEN aux destinations non-essentielles (GTM/first-party).
  *   - Le first-party endpoint anonymise côté serveur (hash IP+UA salé, jamais
  *     d'IP brute ; cf. `/api/telemetry`).
  *
  * Ce module est volontairement SANS dépendance React → utilisable depuis
  * n'importe quel Client Component ou handler d'event.
  */
-import { track as vercelTrack } from "@vercel/analytics";
 import { type ConsentState, getConsent, onConsentChange } from "@/lib/consent";
 
 // --- Union typée des events du site -----------------------------------------
@@ -141,19 +139,6 @@ function pushDataLayer(name: AnyEventName, props: Record<string, unknown>): void
 	w.dataLayer.push({ event: name, ...props });
 }
 
-/** Vercel Analytics : ne garde que les props scalaires (contrainte API). */
-function toScalarProps(
-	props: Record<string, unknown>
-): Record<string, string | number | boolean | null> {
-	const out: Record<string, string | number | boolean | null> = {};
-	for (const [k, v] of Object.entries(props)) {
-		if (v == null) out[k] = null;
-		else if (typeof v === "string" || typeof v === "number" || typeof v === "boolean") out[k] = v;
-		else out[k] = String(v);
-	}
-	return out;
-}
-
 // File d'attente first-party + flush groupé (debounce léger pour limiter les POST).
 type QueuedEvent = {
 	type: string;
@@ -238,17 +223,10 @@ export function track<N extends AnyEventName>(name: N, props?: Record<string, un
 	const entityType = typeof p.entityType === "string" ? p.entityType : null;
 	const entityId = p.entityId != null ? String(p.entityId) : null;
 
-	// 1) Vercel Web Analytics (custom event).
-	try {
-		vercelTrack(name, toScalarProps(p));
-	} catch {
-		/* ignore */
-	}
-
-	// 2) Google Tag Manager dataLayer.
+	// 1) Google Tag Manager dataLayer.
 	pushDataLayer(name, p);
 
-	// 3) First-party (queue + flush groupé).
+	// 2) First-party (queue + flush groupé).
 	queue.push({
 		type: name,
 		props: p,
