@@ -327,6 +327,13 @@ export const openapiSpec = {
 				responses: { "200": { description: "OK" } },
 			},
 		},
+		"/api/public/presence": {
+			get: {
+				tags: ["Insights"],
+				summary: "Présence live du serveur (total membres, en ligne, échantillon)",
+				responses: { "200": { description: "OK" } },
+			},
+		},
 		"/api/public/personas": {
 			get: {
 				tags: ["Insights"],
