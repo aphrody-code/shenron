@@ -39,6 +39,32 @@ export const posts = pgTable("Post", {
 		.default(sql`CURRENT_TIMESTAMP`),
 });
 
+// --- Tierlists communautaires ---
+// Un item = une carte (personnage/technique/… du wiki) figée dans la tierlist.
+// Une tier = une ligne (S/A/B/C/D…) + sa couleur + ses items ordonnés.
+export type TierlistItem = { id: string; label: string; image: string | null };
+export type TierlistTier = { id: string; label: string; color: string; items: TierlistItem[] };
+
+export const tierlists = pgTable("Tierlist", {
+	id: cuid(),
+	slug: text("slug").notNull().unique(),
+	title: text("title").notNull(),
+	description: text("description"),
+	// Clé du template d'origine (pool d'images), ex: "personnages". Null = libre.
+	templateKey: text("templateKey"),
+	tiers: jsonb("tiers").$type<TierlistTier[]>().notNull(),
+	published: boolean("published").notNull().default(true),
+	authorId: text("authorId")
+		.notNull()
+		.references(() => users.id),
+	createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const comments = pgTable("Comment", {
 	id: cuid(),
 	postId: text("postId")
@@ -209,11 +235,16 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export const usersRelations = relations(users, ({ many }) => ({
 	posts: many(posts),
 	comments: many(comments),
+	tierlists: many(tierlists),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
 	author: one(users, { fields: [posts.authorId], references: [users.id] }),
 	comments: many(comments),
+}));
+
+export const tierlistsRelations = relations(tierlists, ({ one }) => ({
+	author: one(users, { fields: [tierlists.authorId], references: [users.id] }),
 }));
 
 export const commentsRelations = relations(comments, ({ one }) => ({

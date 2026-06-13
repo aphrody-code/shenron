@@ -17,6 +17,7 @@ const PUBLIC_LINKS = [
 	{ href: "/wiki/films", label: "Films" },
 	{ href: "/wiki/manga", label: "Manga" },
 	{ href: "/wiki/jeux", label: "Jeux" },
+	{ href: "/tierlists", label: "Tierlists" },
 	{ href: "/actualites", label: "News" },
 ];
 

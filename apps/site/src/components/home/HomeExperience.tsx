@@ -87,6 +87,12 @@ const PLAY_CARDS = [
 		kanji: "番付",
 	},
 	{
+		href: "/tierlists",
+		title: "Tierlists",
+		desc: "Classe l'univers, partage ta tierlist",
+		kanji: "段",
+	},
+	{
 		href: "/profil",
 		title: "Ta carte de combat",
 		desc: "Niveau, XP, succès, inventaire",
