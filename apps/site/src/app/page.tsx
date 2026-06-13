@@ -1,5 +1,10 @@
 import { db } from "@/lib/db";
-import { getShenronPersonas, getShenronStats } from "@/lib/shenron";
+import {
+	getShenronPersonas,
+	getShenronStats,
+	getShenronLeaderboard,
+	getShenronPresence,
+} from "@/lib/shenron";
 import { HomeExperience } from "@/components/home/HomeExperience";
 import {
 	botSagas,
@@ -91,14 +96,17 @@ async function getSagas() {
 }
 
 export default async function Home() {
-	const [posts, personas, stats, wikiCounts, characters, sagas] = await Promise.all([
-		getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
-		getShenronPersonas().catch(() => []),
-		getShenronStats(),
-		getWikiCounts(),
-		getFeaturedCharacters(),
-		getSagas(),
-	]);
+	const [posts, personas, stats, wikiCounts, characters, sagas, topMembers, presence] =
+		await Promise.all([
+			getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
+			getShenronPersonas().catch(() => []),
+			getShenronStats(),
+			getWikiCounts(),
+			getFeaturedCharacters(),
+			getSagas(),
+			getShenronLeaderboard(12, true).catch(() => []),
+			getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
+		]);
 
 	return (
 		<HomeExperience
@@ -140,6 +148,15 @@ export default async function Home() {
 					avatar: p.author.avatar,
 				},
 			}))}
+			topMembers={topMembers.map((m) => ({
+				rank: m.rank,
+				discordId: m.discordId,
+				username: m.username,
+				avatarUrl: m.avatarUrl,
+				xp: m.xp,
+				level: m.level,
+			}))}
+			presence={presence}
 		/>
 	);
 }

@@ -68,6 +68,18 @@ export interface LeaderboardEntry {
 	level: number;
 }
 
+export interface PresenceMember {
+	id: string;
+	username: string;
+	avatarUrl: string;
+	status: string;
+}
+export interface ShenronPresence {
+	total: number;
+	online: number;
+	members: PresenceMember[];
+}
+
 export interface DBCharacter {
 	id: number;
 	name: string;
@@ -258,6 +270,27 @@ export async function getShenronLeaderboard(
 		return data.leaderboard || [];
 	} catch {
 		return [];
+	}
+}
+
+/**
+ * Présence live du serveur (compteur en ligne + échantillon de membres) pour le
+ * widget « connectés » de la home. Dégradation gracieuse en `{0,0,[]}`.
+ */
+export async function getShenronPresence(): Promise<ShenronPresence> {
+	try {
+		const res = await fetch(`${SHENRON_API_URL}/api/public/presence`, {
+			next: { revalidate: 30 },
+		});
+		if (!res.ok) return { total: 0, online: 0, members: [] };
+		const d = await res.json();
+		return {
+			total: Number(d.total ?? 0),
+			online: Number(d.online ?? 0),
+			members: Array.isArray(d.members) ? d.members : [],
+		};
+	} catch {
+		return { total: 0, online: 0, members: [] };
 	}
 }
 

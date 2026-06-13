@@ -11,7 +11,13 @@ import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import { HERO_SCENES, SECTION_SCENE } from "@/lib/home-scenes";
 import { SceneBackdrop } from "./SceneBackdrop";
-import { useLiveBotState, type BotStats, type PersonaLive } from "./useLiveBotState";
+import {
+	useLiveBotState,
+	type BotStats,
+	type PersonaLive,
+	type TopMember,
+	type PresenceState,
+} from "./useLiveBotState";
 import { DISCORD_INVITE } from "@/lib/config";
 
 export interface WikiCounts {
@@ -92,6 +98,14 @@ function formatBig(n: number): string {
 	return n.toLocaleString("fr-FR");
 }
 
+// Panthéon : pastille de statut Discord + couleur du rang (podium).
+const STATUS_DOT: Record<string, string> = {
+	online: "bg-emerald-400",
+	idle: "bg-amber-400",
+	dnd: "bg-rose-500",
+};
+const RANK_COLOR = ["text-amber-300", "text-slate-200", "text-orange-400"];
+
 // ── Compteur "power level" qui s'anime quand son panneau devient actif ────────
 function PowerValue({ value, active }: { value: number; active: boolean }) {
 	const [shown, setShown] = useState(value);
@@ -135,6 +149,8 @@ export function HomeExperience({
 	characters,
 	sagas,
 	posts,
+	topMembers = [],
+	presence = { total: 0, online: 0, members: [] },
 }: {
 	stats: BotStats;
 	personas: PersonaLive[];
@@ -142,8 +158,10 @@ export function HomeExperience({
 	characters: FeaturedCharacter[];
 	sagas: SagaTeaser[];
 	posts: HomePost[];
+	topMembers?: TopMember[];
+	presence?: PresenceState;
 }) {
-	const live = useLiveBotState({ stats, personas });
+	const live = useLiveBotState({ stats, personas, topMembers, presence });
 	const hasNews = posts.length > 0;
 
 	const sections = useMemo(
@@ -155,6 +173,7 @@ export function HomeExperience({
 				{ id: "sagas", label: "Les sagas", kanji: "物語" },
 				{ id: "guardians", label: "Les gardiens", kanji: "神" },
 				{ id: "community", label: "Communauté", kanji: "仲間" },
+				{ id: "pantheon", label: "Le panthéon", kanji: "番付" },
 				{ id: "play", label: "Le terrain", kanji: "遊" },
 				...(hasNews ? [{ id: "news", label: "Actualités", kanji: "報" }] : []),
 				{ id: "summon", label: "Invoquer", kanji: "願" },
@@ -647,6 +666,143 @@ export function HomeExperience({
 							))}
 						</ul>
 					)}
+				</div>
+			</section>
+
+			{/* ── PANTHÉON (top membres live + membres connectés) ──────────────── */}
+			<section
+				ref={setRef(idx("pantheon"))}
+				id="pantheon"
+				className="home-section"
+				aria-label="Le panthéon"
+			>
+				<SceneBackdrop scene={SECTION_SCENE.pantheon} active={active === idx("pantheon")} />
+				<div className="home-panel">
+					<header className="home-panel__head reveal-up">
+						<span className="home-eyebrow">04 — Le panthéon</span>
+						<h2 className="home-title">Les guerriers les plus puissants</h2>
+						<p className="home-sub">
+							Le classement live du serveur, et qui combat en ce moment même.
+							<span className={`home-live-pill ${live.presence.online > 0 ? "is-on" : ""}`}>
+								<span className="home-live-dot is-on" />
+								{live.presence.online} en ligne
+							</span>
+						</p>
+					</header>
+					<div className="grid gap-5 reveal-up lg:grid-cols-5">
+						{/* Top membres (classement live) */}
+						<div className="lg:col-span-3">
+							<ol className="flex flex-col gap-1.5">
+								{live.topMembers.slice(0, 10).map((m) => (
+									<li key={m.discordId}>
+										<div
+											className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors ${
+												m.rank <= 3
+													? "border-[var(--accent)]/40 bg-[var(--accent)]/10"
+													: "border-white/10 bg-black/30"
+											}`}
+										>
+											<span
+												className={`w-6 shrink-0 text-center text-sm font-black ${
+													m.rank <= 3 ? RANK_COLOR[m.rank - 1] : "text-white/40"
+												}`}
+											>
+												{m.rank}
+											</span>
+											{m.avatarUrl ? (
+												<img
+													src={m.avatarUrl}
+													alt=""
+													width={36}
+													height={36}
+													loading="lazy"
+													className="h-9 w-9 shrink-0 rounded-full border border-white/15 object-cover"
+												/>
+											) : (
+												<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-bold text-white/60">
+													{(m.username ?? "?").charAt(0).toUpperCase()}
+												</span>
+											)}
+											<span className="min-w-0 flex-1">
+												<span className="block truncate text-[13px] font-bold leading-tight text-white">
+													{m.username ?? "Guerrier anonyme"}
+												</span>
+												<span className="block text-[10px] uppercase tracking-[0.12em] text-white/45">
+													Niveau {m.level}
+												</span>
+											</span>
+											<span className="shrink-0 text-right text-[12px] font-semibold text-[var(--accent)]">
+												{formatBig(m.xp)} XP
+											</span>
+										</div>
+									</li>
+								))}
+								{live.topMembers.length === 0 && (
+									<li className="text-[13px] text-white/40">Classement momentanément indisponible.</li>
+								)}
+							</ol>
+							<Link href="/leaderboard" className="home-cta home-cta--ghost mt-3">
+								Tout le classement
+							</Link>
+						</div>
+
+						{/* Membres connectés maintenant */}
+						<aside className="lg:col-span-2">
+							<div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+								<div className="flex items-baseline justify-between">
+									<span className="text-[13px] font-bold text-white">Connectés maintenant</span>
+									<span className="text-[12px] tabular-nums text-white/50">
+										{live.presence.online}
+										{live.presence.total > 0 ? ` / ${formatBig(live.presence.total)}` : ""}
+									</span>
+								</div>
+								{live.presence.members.length > 0 ? (
+									<ul className="mt-3 grid grid-cols-5 gap-2.5 sm:grid-cols-6 lg:grid-cols-5">
+										{live.presence.members.slice(0, 20).map((u) => (
+											<li
+												key={u.id}
+												className="flex flex-col items-center gap-1"
+												title={`${u.username} · ${u.status}`}
+											>
+												<span className="relative">
+													<img
+														src={u.avatarUrl}
+														alt=""
+														width={40}
+														height={40}
+														loading="lazy"
+														className="h-10 w-10 rounded-full border border-white/15 object-cover"
+													/>
+													<span
+														className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-black ${
+															STATUS_DOT[u.status] ?? "bg-white/40"
+														}`}
+													/>
+												</span>
+												<span className="w-full truncate text-center text-[9px] leading-tight text-white/55">
+													{u.username}
+												</span>
+											</li>
+										))}
+									</ul>
+								) : (
+									<p className="mt-3 text-[12px] text-white/45">
+										{live.presence.online > 0
+											? `${live.presence.online} guerrier(s) en ligne sur le serveur.`
+											: "Aucun guerrier en ligne pour l'instant."}
+									</p>
+								)}
+								<a
+									href={DISCORD_URL}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="home-cta home-cta--ghost mt-4"
+								>
+									Rejoindre le serveur
+								</a>
+							</div>
+						</aside>
+					</div>
 				</div>
 			</section>
 

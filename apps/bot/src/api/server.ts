@@ -1662,6 +1662,70 @@ export class ApiServer {
 						};
 					}),
 
+				// Présence live des membres du serveur (compteur en ligne +
+				// échantillon) pour le widget « connectés » de la home. Lecture via le
+				// client grandPretre (seul persona avec l'intent GuildPresences). Le
+				// COMPTE est toujours public ; l'échantillon nominatif (avatars +
+				// pseudos) est gardé par le réglage `presence.public` (défaut on).
+				"/api/public/presence": (req) =>
+					publicCachedJson(req, 15_000, async () => {
+						const map = container.resolve<Map<string, Client>>("ClientMap");
+						const client = map.get("grandPretre");
+						const guild = client?.guilds.cache.get(env.GUILD_ID);
+						if (!guild) {
+							return {
+								total: 0,
+								online: 0,
+								members: [] as Array<{
+									id: string;
+									username: string;
+									avatarUrl: string;
+									status: string;
+								}>,
+							};
+						}
+
+						// `presences.cache` = présences reçues via l'intent GuildPresences.
+						// On ne garde que les humains non hors-ligne, dédupliqués.
+						const seen = new Set<string>();
+						const online: Array<{
+							id: string;
+							username: string;
+							avatarUrl: string;
+							status: string;
+						}> = [];
+						for (const presence of guild.presences.cache.values()) {
+							const status = presence.status;
+							if (status === "offline" || status === "invisible") continue;
+							const member = presence.member ?? guild.members.cache.get(presence.userId);
+							const user = member?.user;
+							if (!user || user.bot || seen.has(user.id)) continue;
+							seen.add(user.id);
+							online.push({
+								id: user.id,
+								username: member?.displayName ?? user.username,
+								avatarUrl: user.displayAvatarURL({ size: 64, extension: "webp" }),
+								status,
+							});
+						}
+
+						const rank: Record<string, number> = { online: 0, idle: 1, dnd: 2 };
+						const sorted = online.toSorted(
+							(a, b) =>
+								(rank[a.status] ?? 9) - (rank[b.status] ?? 9) ||
+								a.username.localeCompare(b.username)
+						);
+
+						const settings = container.resolve(SettingsService);
+						const showNames = await settings.getBool("presence.public", true);
+
+						return {
+							total: guild.memberCount,
+							online: online.length,
+							members: showNames ? sorted.slice(0, 30) : [],
+						};
+					}),
+
 				// ── Personas + Commands publics (mirroring site) ────────────
 				"/api/public/personas": (req) =>
 					publicCachedJson(req, 5 * 60_000, async () => {

@@ -706,6 +706,16 @@ export const SETTINGS_KEYS: SettingDef[] = [
 		max: 5,
 	},
 
+	// ── Présence publique (widget "connectés" de la home du site) ──
+	{
+		key: "presence.public",
+		type: "bool",
+		category: "features",
+		description:
+			"Exposer publiquement l'échantillon nominatif des membres en ligne (avatars + pseudos) via /api/public/presence. Le compteur reste public même si off.",
+		default: true,
+	},
+
 	// ── Notifications TikTok (live + nouvelles vidéos) ──────────────
 	{
 		key: "tiktok.enabled",

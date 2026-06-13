@@ -243,6 +243,15 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 		era: "saiyan",
 		accent: ERA_ACCENT.saiyan,
 	},
+	pantheon: {
+		id: "pantheon-section",
+		image: "./assets/dbz/characters/gohan.webp",
+		video: "/wiki/cellgoku.mp4",
+		title: "Le panthéon",
+		kicker: "Les guerriers du serveur",
+		era: "saiyan",
+		accent: ERA_ACCENT.saiyan,
+	},
 	play: {
 		id: "goku-play",
 		image: "./assets/dbz/characters/goku_normal.webp",

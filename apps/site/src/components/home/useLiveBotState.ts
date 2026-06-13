@@ -24,6 +24,27 @@ export interface PersonaLive {
 	online: boolean;
 }
 
+export interface TopMember {
+	rank: number;
+	discordId: string;
+	username: string | null;
+	avatarUrl: string | null;
+	xp: number;
+	level: number;
+}
+
+export interface PresenceMember {
+	id: string;
+	username: string;
+	avatarUrl: string;
+	status: string;
+}
+export interface PresenceState {
+	total: number;
+	online: number;
+	members: PresenceMember[];
+}
+
 export interface LiveEvent {
 	key: number;
 	type: string;
@@ -33,6 +54,8 @@ export interface LiveEvent {
 export interface LiveState {
 	stats: BotStats;
 	personas: PersonaLive[];
+	topMembers: TopMember[];
+	presence: PresenceState;
 	onlineCount: number;
 	connected: boolean;
 	events: LiveEvent[];
@@ -58,9 +81,18 @@ function labelForEvent(type: string, data: unknown): string {
 	}
 }
 
-export function useLiveBotState(initial: { stats: BotStats; personas: PersonaLive[] }): LiveState {
+export function useLiveBotState(initial: {
+	stats: BotStats;
+	personas: PersonaLive[];
+	topMembers?: TopMember[];
+	presence?: PresenceState;
+}): LiveState {
 	const [stats, setStats] = useState<BotStats>(initial.stats);
 	const [personas, setPersonas] = useState<PersonaLive[]>(initial.personas);
+	const [topMembers, setTopMembers] = useState<TopMember[]>(initial.topMembers ?? []);
+	const [presence, setPresence] = useState<PresenceState>(
+		initial.presence ?? { total: 0, online: 0, members: [] }
+	);
 	const [connected, setConnected] = useState(false);
 	const [events, setEvents] = useState<LiveEvent[]>([]);
 	const [refreshedAt, setRefreshedAt] = useState(0);
@@ -74,7 +106,7 @@ export function useLiveBotState(initial: { stats: BotStats; personas: PersonaLiv
 		async function pull() {
 			if (typeof document !== "undefined" && document.hidden) return;
 			try {
-				const [s, p] = await Promise.all([
+				const [s, p, lb, pr] = await Promise.all([
 					fetch(`${API_BASE}/api/public/stats`, {
 						signal: ac.signal,
 						cache: "no-store",
@@ -83,11 +115,21 @@ export function useLiveBotState(initial: { stats: BotStats; personas: PersonaLiv
 						signal: ac.signal,
 						cache: "no-store",
 					}).then((r) => (r.ok ? r.json() : null)),
+					fetch(`${API_BASE}/api/public/leaderboard?enrich=1&limit=12`, {
+						signal: ac.signal,
+						cache: "no-store",
+					}).then((r) => (r.ok ? r.json() : null)),
+					fetch(`${API_BASE}/api/public/presence`, {
+						signal: ac.signal,
+						cache: "no-store",
+					}).then((r) => (r.ok ? r.json() : null)),
 				]);
 				if (!alive) return;
 				if (s && typeof s.users === "number") setStats((prev) => ({ ...prev, ...s }));
 				const list = p?.personas;
 				if (Array.isArray(list) && list.length) setPersonas(list);
+				if (Array.isArray(lb?.leaderboard)) setTopMembers(lb.leaderboard);
+				if (pr && typeof pr.online === "number") setPresence(pr);
 				setRefreshedAt(performance.now());
 			} catch {
 				/* réseau capricieux → on garde l'état précédent */
@@ -154,5 +196,5 @@ export function useLiveBotState(initial: { stats: BotStats; personas: PersonaLiv
 	}, []);
 
 	const onlineCount = personas.reduce((n, p) => n + (p.online ? 1 : 0), 0);
-	return { stats, personas, onlineCount, connected, events, refreshedAt };
+	return { stats, personas, topMembers, presence, onlineCount, connected, events, refreshedAt };
 }
