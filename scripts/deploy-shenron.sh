@@ -77,6 +77,15 @@ if [[ $BUILD -eq 1 ]]; then
 fi
 
 if [[ $RESTART -eq 1 ]]; then
+  # Garde : les dirs listés dans ReadWritePaths de l'unit DOIVENT exister, sinon
+  # systemd échoue le mount namespace AVANT ExecStart → crash-loop silencieux
+  # (`Failed to set up mount namespacing: .../.bun-cache`). Plusieurs sont
+  # gitignored (cache transpiler, dist) → un git clean/checkout les supprime.
+  # On les recrée idempotemment avant tout restart (incident vécu 2026-06-13).
+  mkdir -p "$PROJECT_ROOT/apps/bot/.bun-cache" "$PROJECT_ROOT/apps/bot/dist" \
+    "$PROJECT_ROOT/apps/bot/.models" "$PROJECT_ROOT/apps/bot/assets/subtitles" \
+    "$PROJECT_ROOT/apps/site/public/wiki"
+
   echo "▶ sudo systemctl restart $SERVICE"
   sudo systemctl restart "$SERVICE"
 
