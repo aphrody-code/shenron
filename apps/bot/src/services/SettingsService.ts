@@ -705,6 +705,73 @@ export const SETTINGS_KEYS: SettingDef[] = [
 		min: 1,
 		max: 5,
 	},
+
+	// ── Notifications TikTok (live + nouvelles vidéos) ──────────────
+	{
+		key: "tiktok.enabled",
+		type: "bool",
+		category: "features",
+		description: "Active la surveillance TikTok (notif live + vidéos). Off par défaut.",
+		default: false,
+	},
+	{
+		key: "tiktok.username",
+		type: "string",
+		category: "features",
+		description: "Pseudo TikTok à surveiller (sans @). Ex: goku_dbfr.",
+		default: "goku_dbfr",
+	},
+	{
+		key: "tiktok.channel",
+		type: "snowflake",
+		category: "channels",
+		channelType: "text",
+		description: "Salon où poster les notifications TikTok (live + vidéos).",
+	},
+	{
+		key: "tiktok.role",
+		type: "snowflake",
+		category: "roles",
+		description: "Rôle opt-in mentionné lors d'une notif TikTok (ex: 'notif tiktok').",
+	},
+	{
+		key: "tiktok.videos",
+		type: "bool",
+		category: "features",
+		description:
+			"Notifier aussi les nouvelles vidéos (best-effort : dépend du SSR TikTok, sinon proxy requis). Le live reste toujours détecté.",
+		default: true,
+	},
+	{
+		key: "tiktok.proxy",
+		type: "string",
+		category: "advanced",
+		description:
+			"Proxy HTTP(S) optionnel pour les requêtes TikTok (utile si l'IP du VPS est filtrée). Vide = direct.",
+		default: "",
+	},
+	// État interne de dédup (écrit par TikTokService, pas un réglage à éditer).
+	{
+		key: "tiktok.live_active",
+		type: "bool",
+		category: "advanced",
+		description: "État interne : le créateur était-il en live au dernier tick.",
+		default: false,
+	},
+	{
+		key: "tiktok.last_video_id",
+		type: "string",
+		category: "advanced",
+		description: "État interne : id de la dernière vidéo TikTok annoncée.",
+		default: "",
+	},
+	{
+		key: "tiktok.last_video_time",
+		type: "int",
+		category: "advanced",
+		description: "État interne : createTime (epoch s) de la dernière vidéo TikTok annoncée.",
+		default: 0,
+	},
 ];
 
 @singleton()
