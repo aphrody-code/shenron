@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { TierlistView } from "@/components/tierlist/TierlistView";
+import { TierlistLike } from "@/components/tierlist/TierlistLike";
 import { getTierlistBySlug, listTierlists } from "@/lib/tierlists";
 import { ogMeta } from "@/lib/og";
 
@@ -59,6 +60,10 @@ export default async function TierlistPage({ params }: { params: Promise<{ slug:
 
 			<div className="dbz-panel p-4">
 				<TierlistView tiers={tl.tiers} />
+			</div>
+
+			<div className="mt-6 flex justify-center">
+				<TierlistLike tierlistId={tl.id} />
 			</div>
 
 			<div className="mt-8 flex justify-center gap-4">

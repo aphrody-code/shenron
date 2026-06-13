@@ -15,6 +15,13 @@
       "when": 1781315954039,
       "tag": "0001_natural_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781317952994,
+      "tag": "0002_complete_callisto",
+      "breakpoints": true
     }
   ]
 }

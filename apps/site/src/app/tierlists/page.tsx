@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
 import { TierlistView } from "@/components/tierlist/TierlistView";
-import { listTierlists } from "@/lib/tierlists";
+import { getLikeCountsFor, listTierlists } from "@/lib/tierlists";
 import { ogMeta } from "@/lib/og";
 
 export const revalidate = 30;
@@ -19,6 +19,9 @@ export const metadata: Metadata = {
 
 export default async function TierlistsPage() {
 	const lists = await listTierlists(60).catch(() => []);
+	const likeCounts = await getLikeCountsFor(lists.map((l) => l.id)).catch(
+		() => ({}) as Record<string, number>
+	);
 
 	return (
 		<div className="container mx-auto max-w-5xl px-4 py-12">
@@ -57,10 +60,17 @@ export default async function TierlistsPage() {
 							href={`/tierlists/${tl.slug}`}
 							className="dbz-panel block p-4 transition-colors hover:border-dbz-orange/60"
 						>
-							<h2 className="text-lg font-bold text-white">{tl.title}</h2>
-							<p className="mb-3 text-[12px] text-white/45">
-								par {tl.author?.username ?? "un Saiyan"}
-							</p>
+							<div className="mb-3 flex items-start justify-between gap-2">
+								<div className="min-w-0">
+									<h2 className="truncate text-lg font-bold text-white">{tl.title}</h2>
+									<p className="text-[12px] text-white/45">par {tl.author?.username ?? "un Saiyan"}</p>
+								</div>
+								{(likeCounts[tl.id] ?? 0) > 0 && (
+									<span className="shrink-0 rounded-full bg-rose-500/15 px-2 py-0.5 text-[12px] font-bold text-rose-300">
+										♥ {likeCounts[tl.id]}
+									</span>
+								)}
+							</div>
 							<TierlistView tiers={tl.tiers} compact />
 						</Link>
 					))}

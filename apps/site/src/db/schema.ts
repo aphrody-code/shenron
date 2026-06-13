@@ -1,6 +1,15 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+	boolean,
+	index,
+	integer,
+	jsonb,
+	pgTable,
+	text,
+	timestamp,
+	unique,
+} from "drizzle-orm/pg-core";
 
 const cuid = () =>
 	text("id")
@@ -64,6 +73,24 @@ export const tierlists = pgTable("Tierlist", {
 		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`),
 });
+
+// Un « like » par membre et par tierlist (toggle). Unicité (tierlist, user).
+export const tierlistVotes = pgTable(
+	"TierlistVote",
+	{
+		id: cuid(),
+		tierlistId: text("tierlistId")
+			.notNull()
+			.references(() => tierlists.id, { onDelete: "cascade" }),
+		userId: text("userId")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	},
+	(t) => [unique("TierlistVote_tierlist_user_unique").on(t.tierlistId, t.userId)]
+);
 
 export const comments = pgTable("Comment", {
 	id: cuid(),

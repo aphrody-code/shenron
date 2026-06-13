@@ -1,8 +1,8 @@
 import "server-only";
 import { createId } from "@paralleldrive/cuid2";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { tierlists, type TierlistItem, type TierlistTier } from "@/db/schema";
+import { tierlists, tierlistVotes, type TierlistItem, type TierlistTier } from "@/db/schema";
 import { botCharacters } from "@/db/bot-schema";
 
 export type { TierlistItem, TierlistTier };
@@ -156,6 +156,62 @@ export async function listTierlistsByAuthor(authorId: string, limit = 30) {
 		with: { author: true },
 		limit,
 	});
+}
+
+// ── Likes ───────────────────────────────────────────────────────────────────
+
+async function countTierlistLikes(tierlistId: string): Promise<number> {
+	const [r] = await db
+		.select({ c: sql<number>`count(*)::int` })
+		.from(tierlistVotes)
+		.where(eq(tierlistVotes.tierlistId, tierlistId));
+	return Number(r?.c ?? 0);
+}
+
+/** Toggle le like d'un user sur une tierlist. Throw si la tierlist n'existe pas (FK). */
+export async function toggleTierlistLike(
+	tierlistId: string,
+	userId: string
+): Promise<{ liked: boolean; count: number }> {
+	const del = await db
+		.delete(tierlistVotes)
+		.where(and(eq(tierlistVotes.tierlistId, tierlistId), eq(tierlistVotes.userId, userId)))
+		.returning({ id: tierlistVotes.id });
+	let liked: boolean;
+	if (del.length > 0) {
+		liked = false;
+	} else {
+		await db.insert(tierlistVotes).values({ tierlistId, userId }).onConflictDoNothing();
+		liked = true;
+	}
+	return { liked, count: await countTierlistLikes(tierlistId) };
+}
+
+export async function getTierlistLikeState(
+	tierlistId: string,
+	userId: string | null
+): Promise<{ liked: boolean; count: number }> {
+	const count = await countTierlistLikes(tierlistId);
+	if (!userId) return { liked: false, count };
+	const [r] = await db
+		.select({ id: tierlistVotes.id })
+		.from(tierlistVotes)
+		.where(and(eq(tierlistVotes.tierlistId, tierlistId), eq(tierlistVotes.userId, userId)))
+		.limit(1);
+	return { liked: !!r, count };
+}
+
+/** Compte de likes pour un lot d'ids (index). */
+export async function getLikeCountsFor(ids: string[]): Promise<Record<string, number>> {
+	if (ids.length === 0) return {};
+	const rows = await db
+		.select({ id: tierlistVotes.tierlistId, c: sql<number>`count(*)::int` })
+		.from(tierlistVotes)
+		.where(inArray(tierlistVotes.tierlistId, ids))
+		.groupBy(tierlistVotes.tierlistId);
+	const map: Record<string, number> = {};
+	for (const r of rows) map[r.id] = Number(r.c);
+	return map;
 }
 
 /**

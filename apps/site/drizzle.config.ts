@@ -12,6 +12,7 @@ export default defineConfig({
 		"User",
 		"Comment",
 		"Tierlist",
+		"TierlistVote",
 		"WikiCategory",
 		"WikiPage",
 		"ba_user",
