@@ -157,3 +157,19 @@ export async function listTierlistsByAuthor(authorId: string, limit = 30) {
 		limit,
 	});
 }
+
+/**
+ * Supprime une tierlist. Autorisé seulement à son auteur (ou à un admin).
+ * Retourne `true` si une ligne a été supprimée.
+ */
+export async function deleteTierlistOwned(
+	id: string,
+	authorId: string,
+	isAdmin: boolean
+): Promise<boolean> {
+	const where = isAdmin
+		? eq(tierlists.id, id)
+		: and(eq(tierlists.id, id), eq(tierlists.authorId, authorId));
+	const res = await db.delete(tierlists).where(where).returning({ id: tierlists.id });
+	return res.length > 0;
+}

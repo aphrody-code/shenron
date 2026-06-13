@@ -27,12 +27,18 @@ export default async function TierlistsPage() {
 				subtitle="Classe l'univers Dragon Ball — créées et partagées par la communauté"
 			/>
 
-			<div className="mb-10 flex justify-center">
+			<div className="mb-10 flex flex-wrap justify-center gap-4">
 				<Link
 					href="/tierlists/creer"
 					className="rounded-lg bg-dbz-orange px-6 py-3 text-sm font-bold uppercase tracking-wide text-black transition-opacity hover:opacity-90"
 				>
 					Créer ma tierlist
+				</Link>
+				<Link
+					href="/tierlists/mes"
+					className="rounded-lg border border-white/15 px-6 py-3 text-sm font-bold uppercase tracking-wide text-white/80 transition-colors hover:border-white/40"
+				>
+					Mes tierlists
 				</Link>
 			</div>
 
