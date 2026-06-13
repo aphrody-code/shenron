@@ -497,7 +497,7 @@ console.log(`→ embeddings via sidecar (http://127.0.0.1:5007) sur ${chunks.len
 const embT0 = Date.now();
 const texts = chunks.map((c) => `${c.title}. ${c.content}`.slice(0, 1200));
 
-const vectors: Float32Array[] = new Array(texts.length);
+const vectors: Float32Array[] = Array.from({ length: texts.length });
 const BATCH_SIZE = 64;
 const concurrency = 6;
 

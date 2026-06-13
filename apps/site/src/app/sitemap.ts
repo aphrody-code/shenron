@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/config";
 import { db } from "@/lib/db";
-import { posts, wikiPages } from "@/db/schema";
+import { posts } from "@/db/schema";
 import {
 	botCharacters,
 	botPlanets,
