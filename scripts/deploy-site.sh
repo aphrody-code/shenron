@@ -34,7 +34,7 @@ PREV_HEAD="$(git rev-parse HEAD)"
 rollback() {
   echo "✗ échec déploiement site — rollback vers $PREV_HEAD" >&2
   git reset --hard "$PREV_HEAD" >/dev/null 2>&1 || true
-  bun --filter @shenron/site build >/dev/null 2>&1 || true
+  NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" bun --filter @shenron/site build >/dev/null 2>&1 || true
   sudo systemctl restart shenron-site.service || true
   exit 1
 }
@@ -44,7 +44,12 @@ if [[ $DO_PULL -eq 1 ]]; then
   git pull --ff-only || { echo "✗ git pull a échoué" >&2; exit 1; }
 fi
 
-echo "▶ build (@shenron/site)"
+# deploymentId = SHA court du commit déployé (version skew protection, cf.
+# next.config.ts). La clé NEXT_SERVER_ACTIONS_ENCRYPTION_KEY (stable, dans
+# apps/site/.env, chargée par Next au build) doit être présente DÈS le build :
+# elle est embarquée dans l'output et réutilisée au runtime.
+export NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)"
+echo "▶ build (@shenron/site) · deploymentId=$NEXT_DEPLOYMENT_ID"
 bun --filter @shenron/site build || rollback
 
 if [[ $DO_MIGRATE -eq 1 ]]; then

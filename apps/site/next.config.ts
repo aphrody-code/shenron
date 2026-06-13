@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	// Protection contre le version skew (self-hosting `next start` solo, sans le
+	// skew-protection Vercel). SHA court injecté par scripts/deploy-site.sh au
+	// build (`NEXT_DEPLOYMENT_ID`). Les assets portent `?dpl=<id>` et les
+	// navigations un header `x-deployment-id` ; sur mismatch, Next force un reload
+	// dur au lieu de throw `Failed to find Server Action` côté client périmé.
+	// Undefined en dev local → ignoré. Cf. node_modules/next/dist/docs/.../self-hosting.md.
+	deploymentId: process.env.NEXT_DEPLOYMENT_ID,
+
 	// View Transitions API (React `<ViewTransition>`) — morph d'élément partagé
 	// grille→fiche, slides directionnels. Sans support navigateur, navigation
 	// normale sans animation (progressive enhancement). Cf. components/ViewTransition.tsx.

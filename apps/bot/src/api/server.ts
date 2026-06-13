@@ -1137,6 +1137,13 @@ export class ApiServer {
 				"/health/latency": (req) =>
 					publicCachedJson(req, 5_000, async () => this.stats.getLatency()),
 
+				// Liveness nu pour monitoring externe / uptime-checks (`GET /health`,
+				// `GET /api/health`). Pas de résolution du Client Discord : répond 200
+				// tant que le process HTTP écoute. Les détails (online/uptime/version)
+				// restent sur `/health/check`.
+				"/health": (req) => publicCachedJson(req, 5_000, async () => ({ status: "ok" })),
+				"/api/health": () => Response.json({ status: "ok" }),
+
 				// ── Health admin ──────────────────────────────────────────────
 				"/api/health/usage": admin(async () => Response.json(await this.stats.getPidUsage())),
 				"/api/health/host": admin(async () => Response.json(await this.stats.getHostUsage())),
