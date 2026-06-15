@@ -81,7 +81,7 @@ import { WikiService } from "~/services/WikiService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
 import { LevelService } from "~/services/LevelService";
 import { levelForXP, nextThresholdFrom } from "~/lib/xp";
-import { hybridSearch } from "~/lib/rag";
+import { hybridSearch, logRagHealth } from "~/lib/rag";
 import { generateLlmAnswer } from "~/lib/llm";
 import { graphqlHandler } from "~/api/graphql";
 import { openapiSpec, scalarHtml } from "~/api/openapi";
@@ -4630,6 +4630,10 @@ export class ApiServer {
 			},
 			`✓ API REST démarrée sur http://${env.API_HOST}:${env.API_PORT}`
 		);
+
+		// Diagnostic RAG (best-effort) : alerte explicite si l'index vectoriel est
+		// vide (retrieval dégradé en BM25 seul), sinon c'était silencieux.
+		logRagHealth(container.resolve(DatabaseService).sqlite);
 	}
 
 	async stop(): Promise<void> {

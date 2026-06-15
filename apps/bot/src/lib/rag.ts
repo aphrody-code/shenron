@@ -273,3 +273,36 @@ export async function hybridSearch(
 export async function generateAnswer(db: Database, query: string, hits: RagHit[]): Promise<string> {
 	return generateLlmAnswer(db, query, hits, "whis");
 }
+
+/**
+ * Vérifie l'état de l'index RAG au démarrage et loggue un diagnostic explicite.
+ * Sans ce log, une dégradation en BM25 seul (vec_chunks vide → `mode:"lexical"`)
+ * était silencieuse en prod : le retrieval sémantique + reranking restait inactif
+ * sans aucune alerte. Best-effort — ne jette jamais, n'impacte pas le boot.
+ */
+export function logRagHealth(db: Database): void {
+	try {
+		const chunks = (db.query("SELECT count(*) AS c FROM rag_chunks").get() as { c: number }).c;
+		let vec = -1;
+		try {
+			sqliteVec.load(db);
+			vec = (db.query("SELECT count(*) AS c FROM vec_chunks").get() as { c: number }).c;
+		} catch {
+			// extension/table absente — reste en lexical
+		}
+		if (chunks === 0) {
+			console.warn(
+				"[RAG] rag_chunks vide → recherche indisponible. Lancer `bun --filter @shenron/bot run rag:build`."
+			);
+		} else if (vec <= 0) {
+			console.warn(
+				`[RAG] Index vectoriel vide (vec_chunks=${vec}, rag_chunks=${chunks}) → mode LEXICAL seul. ` +
+					"Volet sémantique + reranking INACTIF. Lancer un build complet (sans --no-vectors)."
+			);
+		} else {
+			console.log(`[RAG] OK — ${chunks} chunks, ${vec} vecteurs (retrieval hybride disponible).`);
+		}
+	} catch (err) {
+		console.warn("[RAG] Diagnostic au démarrage impossible:", err);
+	}
+}
