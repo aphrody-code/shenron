@@ -174,15 +174,14 @@ export function HomeExperience({
 		() =>
 			[
 				{ id: "hero", label: "Accueil", kanji: "序" },
+				{ id: "pantheon", label: "Le panthéon", kanji: "番付" },
 				{ id: "universe", label: "L'univers", kanji: "宇宙" },
 				{ id: "personnages", label: "Personnages", kanji: "戦士" },
 				{ id: "sagas", label: "Les sagas", kanji: "物語" },
 				{ id: "guardians", label: "Les gardiens", kanji: "神" },
 				{ id: "community", label: "Communauté", kanji: "仲間" },
-				{ id: "pantheon", label: "Le panthéon", kanji: "番付" },
 				{ id: "play", label: "Le terrain", kanji: "遊" },
 				...(hasNews ? [{ id: "news", label: "Actualités", kanji: "報" }] : []),
-				{ id: "summon", label: "Invoquer", kanji: "願" },
 			] as const,
 		[hasNews]
 	);
@@ -440,6 +439,143 @@ export function HomeExperience({
 				</button>
 			</section>
 
+			{/* ── PANTHÉON (top membres live + membres connectés) ──────────────── */}
+			<section
+				ref={setRef(idx("pantheon"))}
+				id="pantheon"
+				className="home-section"
+				aria-label="Le panthéon"
+			>
+				<SceneBackdrop scene={SECTION_SCENE.pantheon} active={active === idx("pantheon")} />
+				<div className="home-panel">
+					<header className="home-panel__head reveal-up">
+						<span className="home-eyebrow">04 — Le panthéon</span>
+						<h2 className="home-title">Les guerriers les plus puissants</h2>
+						<p className="home-sub">
+							Le classement live du serveur, et qui combat en ce moment même.
+							<span className={`home-live-pill ${live.presence.online > 0 ? "is-on" : ""}`}>
+								<span className="home-live-dot is-on" />
+								{live.presence.online} en ligne
+							</span>
+						</p>
+					</header>
+					<div className="grid gap-5 reveal-up lg:grid-cols-5">
+						{/* Top membres (classement live) */}
+						<div className="lg:col-span-3">
+							<ol className="flex flex-col gap-1.5">
+								{live.topMembers.slice(0, 10).map((m) => (
+									<li key={m.discordId}>
+										<div
+											className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors ${
+												m.rank <= 3
+													? "border-[var(--accent)]/40 bg-[var(--accent)]/10"
+													: "border-white/10 bg-black/30"
+											}`}
+										>
+											<span
+												className={`w-6 shrink-0 text-center text-sm font-black ${
+													m.rank <= 3 ? RANK_COLOR[m.rank - 1] : "text-white/40"
+												}`}
+											>
+												{m.rank}
+											</span>
+											{m.avatarUrl ? (
+												<img
+													src={m.avatarUrl}
+													alt=""
+													width={36}
+													height={36}
+													loading="lazy"
+													className="h-9 w-9 shrink-0 rounded-full border border-white/15 object-cover"
+												/>
+											) : (
+												<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-bold text-white/60">
+													{(m.username ?? "?").charAt(0).toUpperCase()}
+												</span>
+											)}
+											<span className="min-w-0 flex-1">
+												<span className="block truncate text-[13px] font-bold leading-tight text-white">
+													{m.username ?? "Guerrier anonyme"}
+												</span>
+												<span className="block text-[10px] uppercase tracking-[0.12em] text-white/45">
+													Niveau {m.level}
+												</span>
+											</span>
+											<span className="shrink-0 text-right text-[12px] font-semibold text-[var(--accent)]">
+												{formatBig(m.xp)} XP
+											</span>
+										</div>
+									</li>
+								))}
+								{live.topMembers.length === 0 && (
+									<li className="text-[13px] text-white/40">Classement momentanément indisponible.</li>
+								)}
+							</ol>
+							<Link href="/leaderboard" className="home-cta home-cta--ghost mt-3">
+								Tout le classement
+							</Link>
+						</div>
+
+						{/* Membres connectés maintenant */}
+						<aside className="lg:col-span-2">
+							<div className="rounded-2xl border border-white/10 bg-black/40 p-4">
+								<div className="flex items-baseline justify-between">
+									<span className="text-[13px] font-bold text-white">Connectés maintenant</span>
+									<span className="text-[12px] tabular-nums text-white/50">
+										{live.presence.online}
+										{live.presence.total > 0 ? ` / ${formatBig(live.presence.total)}` : ""}
+									</span>
+								</div>
+								{live.presence.members.length > 0 ? (
+									<ul className="mt-3 grid grid-cols-5 gap-2.5 sm:grid-cols-6 lg:grid-cols-5">
+										{live.presence.members.slice(0, 20).map((u) => (
+											<li
+												key={u.id}
+												className="flex flex-col items-center gap-1"
+												title={`${u.username} · ${u.status}`}
+											>
+												<span className="relative">
+													<img
+														src={u.avatarUrl}
+														alt=""
+														width={40}
+														height={40}
+														loading="lazy"
+														className="h-10 w-10 rounded-full border border-white/15 object-cover"
+													/>
+													<span
+														className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-black ${
+															STATUS_DOT[u.status] ?? "bg-white/40"
+														}`}
+													/>
+												</span>
+												<span className="w-full truncate text-center text-[9px] leading-tight text-white/55">
+													{u.username}
+												</span>
+											</li>
+										))}
+									</ul>
+								) : (
+									<p className="mt-3 text-[12px] text-white/45">
+										{live.presence.online > 0
+											? `${live.presence.online} guerrier(s) en ligne sur le serveur.`
+											: "Aucun guerrier en ligne pour l'instant."}
+									</p>
+								)}
+								<a
+									href={DISCORD_URL}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="home-cta home-cta--ghost mt-4"
+								>
+									Rejoindre le serveur
+								</a>
+							</div>
+						</aside>
+					</div>
+				</div>
+			</section>
+
 			{/* ── 2. L'UNIVERS (wiki, chiffres réels) ──────────────────────────── */}
 			<section
 				ref={setRef(idx("universe"))}
@@ -675,143 +811,6 @@ export function HomeExperience({
 				</div>
 			</section>
 
-			{/* ── PANTHÉON (top membres live + membres connectés) ──────────────── */}
-			<section
-				ref={setRef(idx("pantheon"))}
-				id="pantheon"
-				className="home-section"
-				aria-label="Le panthéon"
-			>
-				<SceneBackdrop scene={SECTION_SCENE.pantheon} active={active === idx("pantheon")} />
-				<div className="home-panel">
-					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">04 — Le panthéon</span>
-						<h2 className="home-title">Les guerriers les plus puissants</h2>
-						<p className="home-sub">
-							Le classement live du serveur, et qui combat en ce moment même.
-							<span className={`home-live-pill ${live.presence.online > 0 ? "is-on" : ""}`}>
-								<span className="home-live-dot is-on" />
-								{live.presence.online} en ligne
-							</span>
-						</p>
-					</header>
-					<div className="grid gap-5 reveal-up lg:grid-cols-5">
-						{/* Top membres (classement live) */}
-						<div className="lg:col-span-3">
-							<ol className="flex flex-col gap-1.5">
-								{live.topMembers.slice(0, 10).map((m) => (
-									<li key={m.discordId}>
-										<div
-											className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors ${
-												m.rank <= 3
-													? "border-[var(--accent)]/40 bg-[var(--accent)]/10"
-													: "border-white/10 bg-black/30"
-											}`}
-										>
-											<span
-												className={`w-6 shrink-0 text-center text-sm font-black ${
-													m.rank <= 3 ? RANK_COLOR[m.rank - 1] : "text-white/40"
-												}`}
-											>
-												{m.rank}
-											</span>
-											{m.avatarUrl ? (
-												<img
-													src={m.avatarUrl}
-													alt=""
-													width={36}
-													height={36}
-													loading="lazy"
-													className="h-9 w-9 shrink-0 rounded-full border border-white/15 object-cover"
-												/>
-											) : (
-												<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-bold text-white/60">
-													{(m.username ?? "?").charAt(0).toUpperCase()}
-												</span>
-											)}
-											<span className="min-w-0 flex-1">
-												<span className="block truncate text-[13px] font-bold leading-tight text-white">
-													{m.username ?? "Guerrier anonyme"}
-												</span>
-												<span className="block text-[10px] uppercase tracking-[0.12em] text-white/45">
-													Niveau {m.level}
-												</span>
-											</span>
-											<span className="shrink-0 text-right text-[12px] font-semibold text-[var(--accent)]">
-												{formatBig(m.xp)} XP
-											</span>
-										</div>
-									</li>
-								))}
-								{live.topMembers.length === 0 && (
-									<li className="text-[13px] text-white/40">Classement momentanément indisponible.</li>
-								)}
-							</ol>
-							<Link href="/leaderboard" className="home-cta home-cta--ghost mt-3">
-								Tout le classement
-							</Link>
-						</div>
-
-						{/* Membres connectés maintenant */}
-						<aside className="lg:col-span-2">
-							<div className="rounded-2xl border border-white/10 bg-black/40 p-4">
-								<div className="flex items-baseline justify-between">
-									<span className="text-[13px] font-bold text-white">Connectés maintenant</span>
-									<span className="text-[12px] tabular-nums text-white/50">
-										{live.presence.online}
-										{live.presence.total > 0 ? ` / ${formatBig(live.presence.total)}` : ""}
-									</span>
-								</div>
-								{live.presence.members.length > 0 ? (
-									<ul className="mt-3 grid grid-cols-5 gap-2.5 sm:grid-cols-6 lg:grid-cols-5">
-										{live.presence.members.slice(0, 20).map((u) => (
-											<li
-												key={u.id}
-												className="flex flex-col items-center gap-1"
-												title={`${u.username} · ${u.status}`}
-											>
-												<span className="relative">
-													<img
-														src={u.avatarUrl}
-														alt=""
-														width={40}
-														height={40}
-														loading="lazy"
-														className="h-10 w-10 rounded-full border border-white/15 object-cover"
-													/>
-													<span
-														className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-black ${
-															STATUS_DOT[u.status] ?? "bg-white/40"
-														}`}
-													/>
-												</span>
-												<span className="w-full truncate text-center text-[9px] leading-tight text-white/55">
-													{u.username}
-												</span>
-											</li>
-										))}
-									</ul>
-								) : (
-									<p className="mt-3 text-[12px] text-white/45">
-										{live.presence.online > 0
-											? `${live.presence.online} guerrier(s) en ligne sur le serveur.`
-											: "Aucun guerrier en ligne pour l'instant."}
-									</p>
-								)}
-								<a
-									href={DISCORD_URL}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="home-cta home-cta--ghost mt-4"
-								>
-									Rejoindre le serveur
-								</a>
-							</div>
-						</aside>
-					</div>
-				</div>
-			</section>
-
 			{/* ── 5. LE TERRAIN (jeux / shop / classement) ─────────────────────── */}
 			<section ref={setRef(idx("play"))} id="play" className="home-section" aria-label="Le terrain">
 				<SceneBackdrop scene={SECTION_SCENE.play} active={active === idx("play")} />
@@ -880,47 +879,6 @@ export function HomeExperience({
 					</div>
 				</section>
 			)}
-
-			{/* ── 7. INVOCATION (CTA final) ────────────────────────────────────── */}
-			<section
-				ref={setRef(sections.length - 1)}
-				id="summon"
-				className="home-section home-summon"
-				aria-label="Invoquer"
-			>
-				<SceneBackdrop
-					scene={SECTION_SCENE.summon}
-					active={active === sections.length - 1}
-					priority={false}
-				/>
-				<div className="home-summon__content reveal-up">
-					<span className="home-summon__kanji" aria-hidden>
-						神龍
-					</span>
-					<h2 className="home-summon__title">
-						Invoque Shenron.
-						<br />
-						Fais ton vœu.
-					</h2>
-					<p className="home-sub">
-						Rejoins {formatBig(live.stats.users)} guerriers sur le serveur Discord, ou poursuis ton
-						voyage dans l'univers Dragon Ball le plus complet en français.
-					</p>
-					<div className="home-cta-row">
-						<a
-							href={DISCORD_URL}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="home-cta home-cta--primary"
-						>
-							Rejoindre le Discord
-						</a>
-						<Link href="/wiki" className="home-cta home-cta--ghost">
-							Explorer l'univers
-						</Link>
-					</div>
-				</div>
-			</section>
 		</div>
 	);
 }

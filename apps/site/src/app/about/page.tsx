@@ -55,7 +55,7 @@ export default function AboutPage() {
 							Six gardiens virtuels (Beerus, Whis, Shenron, etc.) animés par une IA de pointe et connectés en temps réel pour animer et protéger la communauté.
 						</p>
 					</div>
-					<Link href="/ask" className="text-xs font-bold text-purple-400 uppercase tracking-wider mt-6 inline-flex items-center gap-1">
+					<Link href="/personas" className="text-xs font-bold text-purple-400 uppercase tracking-wider mt-6 inline-flex items-center gap-1">
 						Consulter les Dieux →
 					</Link>
 				</div>
