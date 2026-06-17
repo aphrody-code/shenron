@@ -9,6 +9,7 @@ import { XP_PER_VOICE_TICK, XP_VOICE_TICK_MS, VOCAL_TEMPO_EMPTY_DELAY_MS } from 
 import { env } from "~/lib/env";
 import { resolveLevelChannel } from "~/lib/announce";
 import { boosterXpMultiplier } from "~/lib/booster";
+import { voiceXpMultiplier } from "~/lib/races";
 import { logger } from "~/lib/logger";
 import { ChannelType } from "discord.js";
 import { CronRegistry } from "~/api/cron-registry";
@@ -81,6 +82,10 @@ export class VoiceXPEvent {
 					if (maxMult > 1) gain = Math.floor(gain * maxMult);
 				}
 			}
+
+			// Multiplicateur de RACE vocal (Race de Freezer ×1.4 / Saiyen ×1.25 / Zenkai…).
+			const u = await this.levels.getUser(userId);
+			gain = Math.floor(gain * voiceXpMultiplier(u?.race, u?.raceBoostUntil?.getTime() ?? 0, now));
 
 			const res = await this.levels.addXP(userId, gain);
 			if (res.levelUp) {

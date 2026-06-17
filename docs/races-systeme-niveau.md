@@ -171,22 +171,29 @@ Les valeurs de stats par niveau/race vivent dans des binaires `system/*` propri�
 
 ---
 
-## 7. Transposition Shenron (application)
+## 7. Transposition Shenron — ✅ IMPLÉMENTÉE (Phase 1)
 
-On **transpose les traits réels XV2 sur les leviers du bot** (XP, cooldowns, zéni, vocal,
-jeux) — pas un moteur de combat. Race = rôle Discord exclusif + colonne `users.race`.
+On **transpose les traits réels XV2 sur les leviers du bot** (XP, vocal, zéni, jeux) — pas
+un moteur de combat. Le membre choisit sa race via **`/race`** ; elle est stockée dans
+`users.race` et module sa progression.
 
-| Race XV2 | Trait factuel | Levier Shenron proposé |
-|----------|---------------|------------------------|
-| **Terrien** | Équilibré, objets +efficaces, récup Ki auto | **+25 % zéni** (drops + daily), XP standard |
-| **Saiyen** | Fort à basse santé, **Zenkai après réanimation** | ×1.25 XP ; **boost temporaire après un palier** (« Zenkai ») |
-| **Race de Freezer** | Vitesse, récup endurance en attaquant | Récompense la **présence vocale** (cooldown vocal ↓) |
-| **Namek** | Santé élevée, régén, attaque faible | **Régén passive** : petit gain XP/zéni même inactif (1×/j) |
-| **Majin** | Défensif, **stats variables selon sexe** | **+50 % gains aux jeux** (pfc/morpion/bingo), aléa ±10 % |
+| Race XV2 | Trait factuel (jeu) | Effet implémenté |
+|----------|---------------------|------------------|
+| **Terrien** | Équilibré, objets +efficaces, récup Ki auto | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers) |
+| **Saiyen** | Fort à basse santé, **Zenkai après réanimation** | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
+| **Race de Freezer** | Vitesse, récup endurance en attaquant | **×1,4 XP en vocal** (récompense la présence vocale) |
+| **Namek** | Santé élevée, régén, attaque faible | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour |
+| **Majin** | Défensif, **stats variables selon sexe** | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo) |
 
-Détails d'implémentation (commande `/race`, migration `users.race`, clés `SETTINGS_KEYS`,
-réutilisation de `xp.boost.role.*` et `level_rewards`) : cf. la version plan archivée et
-`apps/bot/src/services/LevelService.ts` / `CardService.ts`.
+### Implémentation (fichiers)
+- **Catalogue + logique pure** (testée) : `apps/bot/src/lib/races.ts` (`tests/races.test.ts`).
+- **Commande** : `apps/bot/src/commands/race/Race.ts` (`/race` — embed + boutons, persona `kaio`).
+- **Schéma** : `users.race` / `race_chosen_at` / `race_boost_until` (Zenkai) / `last_race_regen_at`
+  (migration `0013`).
+- **Application des perks** : XP → `events/MessageXP.ts` + `events/VoiceXP.ts` ; zéni paliers +
+  Zenkai → `services/LevelService.ts` ; zéni général/jeux → `services/EconomyService.ts`
+  (`addZeni(..., { kind: "game" })`).
 
 > Source de vérité runtime = `apps/bot/data/bot.db` (SQLite, forward-sync Neon). Ne **pas**
-> écrire la progression dans le wiki éditorial (`wiki-write-guard`).
+> écrire la progression dans le wiki éditorial (`wiki-write-guard`). Les valeurs sont des
+> points de départ équilibrables (cf. `lib/races.ts`).

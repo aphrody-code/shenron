@@ -279,7 +279,7 @@ export class PenduCommand {
 				if (guess === word) {
 					for (const c of word) guessed.add(c);
 					await m.react("🏆").catch(() => {});
-					await this.eco.addZeni(interaction.user.id, winReward);
+					await this.eco.addZeni(interaction.user.id, winReward, { kind: "game" });
 					await this.msg.publish(
 						"zeni_game_win",
 						{ user: `<@${interaction.user.id}>`, zeni: winReward, game: "pendu" },
@@ -311,7 +311,7 @@ export class PenduCommand {
 			if (word.includes(letter)) {
 				await m.react("✅").catch(() => {});
 				if (word.split("").every((c) => guessed.has(c))) {
-					await this.eco.addZeni(interaction.user.id, winReward);
+					await this.eco.addZeni(interaction.user.id, winReward, { kind: "game" });
 					await this.msg.publish(
 						"zeni_game_win",
 						{ user: `<@${interaction.user.id}>`, zeni: winReward, game: "pendu" },
@@ -385,7 +385,7 @@ export class PenduCommand {
 
 		const finishWin = async (winnerId: string) => {
 			const loserId = winnerId === challengerId ? opponentId : challengerId;
-			await this.eco.addZeni(winnerId, winReward);
+			await this.eco.addZeni(winnerId, winReward, { kind: "game" });
 			if (lossPenalty > 0) await this.eco.removeZeni(loserId, lossPenalty);
 			await this.msg.publish(
 				"zeni_game_win",

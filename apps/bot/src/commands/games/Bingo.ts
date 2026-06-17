@@ -103,7 +103,7 @@ export class BingoCommand {
 			collector.on("collect", async (m) => {
 				const guess = parseInt(m.content, 10);
 				if (guess === target) {
-					await this.eco.addZeni(interaction.user.id, winReward);
+					await this.eco.addZeni(interaction.user.id, winReward, { kind: "game" });
 					await m.reply(`🎉 Bingo ! C'était ${target}. +${winReward} z`);
 					await this.msg.publish(
 						"zeni_game_win",
@@ -260,7 +260,7 @@ export class BingoCommand {
 				}
 				const winBonus2 = await this.settings.getInt("zeni.game.win", ZENI_GAME_WIN);
 				const reward = winBonus2 + challenge.stake;
-				await this.eco.addZeni(winnerId, reward);
+				await this.eco.addZeni(winnerId, reward, { kind: "game" });
 				await m.reply(
 					`🎉 Bingo ! C'était **${challenge.target}**. <@${winnerId}> gagne **+${reward} z** · <@${loserId}> perd **-${challenge.stake} z**.`
 				);

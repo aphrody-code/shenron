@@ -213,7 +213,7 @@ export class PfcCommand {
 		const winReward = stake ?? defaultWin;
 		const lossPenalty = stake ?? defaultLoss;
 		if (result === "win") {
-			await this.eco.addZeni(userId, winReward);
+			await this.eco.addZeni(userId, winReward, { kind: "game" });
 			text += `🎉 **Victoire** +${winReward} z`;
 			await this.msg.publish(
 				"zeni_game_win",
@@ -275,7 +275,7 @@ export class PfcCommand {
 				);
 				const winReward = game.stake ?? defaultWin;
 				const lossPenalty = game.stake ?? defaultLoss;
-				await this.eco.addZeni(winner, winReward);
+				await this.eco.addZeni(winner, winReward, { kind: "game" });
 				if (lossPenalty > 0) await this.eco.removeZeni(loser, lossPenalty);
 				text += `🎉 <@${winner}> gagne +${winReward} z · <@${loser}> perd -${lossPenalty} z`;
 				await this.msg.publish(

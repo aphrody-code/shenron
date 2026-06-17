@@ -3,6 +3,7 @@ import { and, eq, sql, desc, or } from "drizzle-orm";
 import { DatabaseService } from "~/db/index";
 import { users, inventory, shopItems, fusions, achievements, actionLogs } from "~/db/schema";
 import { FUSION_ZENI_BONUS_RATIO } from "~/lib/constants";
+import { applyZeniRace } from "~/lib/races";
 import { SettingsService } from "~/services/SettingsService";
 
 @singleton()
@@ -29,9 +30,14 @@ export class EconomyService {
 	async addZeni(
 		userId: string,
 		amount: number,
-		options: { propagateFusion?: boolean } = { propagateFusion: true }
+		options: { propagateFusion?: boolean; kind?: "game" | "other" } = { propagateFusion: true }
 	): Promise<number | undefined> {
 		await this.ensureUser(userId);
+		// Multiplicateur de RACE : Terrien +25 % (général), Majin +50 % sur les jeux.
+		if (amount > 0) {
+			const u = await this.db.query.users.findFirst({ where: eq(users.id, userId) });
+			amount = applyZeniRace(u?.race, amount, options.kind === "game");
+		}
 		await this.db
 			.update(users)
 			.set({ zeni: sql`${users.zeni} + ${amount}`, updatedAt: new Date() })

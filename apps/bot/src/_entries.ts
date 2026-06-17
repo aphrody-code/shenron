@@ -20,6 +20,7 @@ import "./commands/giveaway/Giveaway";
 import "./commands/level/Level";
 import "./commands/moderation/Jail";
 import "./commands/moderation/Moderation";
+import "./commands/race/Race";
 import "./commands/ticket/Ticket";
 import "./commands/utility/Invitations";
 import "./commands/utility/TikTok";

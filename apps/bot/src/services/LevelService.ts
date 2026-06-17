@@ -6,6 +6,7 @@ import { users, levelRewards, actionLogs, fusions } from "~/db/schema";
 import { or } from "drizzle-orm";
 import { LEVEL_THRESHOLDS, ZENI_PER_LEVEL, FUSION_XP_BONUS_RATIO } from "~/lib/constants";
 import { levelForXP, formatXP } from "~/lib/xp";
+import { applyZeniRace, hasZenkai, ZENKAI_MS } from "~/lib/races";
 import { levelUpMessage } from "~/lib/dbz-flavor";
 import { levelUpEmbed } from "~/lib/embeds";
 import { logger } from "~/lib/logger";
@@ -62,10 +63,16 @@ export class LevelService {
 			.where(eq(users.id, userId));
 
 		if (levelUp) {
-			const zeniBonus = await this.settings.getInt("zeni.per_level", ZENI_PER_LEVEL);
+			const zeniBonus = applyZeniRace(
+				current?.race,
+				await this.settings.getInt("zeni.per_level", ZENI_PER_LEVEL)
+			);
+			// Zenkai (Saiyen) : ouvre une fenêtre de boost d'XP après le palier.
+			const boost: Partial<typeof users.$inferInsert> = {};
+			if (hasZenkai(current?.race)) boost.raceBoostUntil = new Date(Date.now() + ZENKAI_MS);
 			await this.db
 				.update(users)
-				.set({ zeni: sql`${users.zeni} + ${zeniBonus}` })
+				.set({ zeni: sql`${users.zeni} + ${zeniBonus}`, ...boost })
 				.where(eq(users.id, userId));
 		}
 

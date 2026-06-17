@@ -12,7 +12,9 @@ const files: string[] = [];
 for (const pattern of patterns) {
 	const glob = new Glob(pattern);
 	for await (const file of glob.scan(".")) {
-		if (!excludes.has(file)) files.push(file);
+		// Normalise les séparateurs Windows (\) en POSIX (/) pour des imports valides.
+		const norm = file.replace(/\\/g, "/");
+		if (!excludes.has(norm)) files.push(norm);
 	}
 }
 files.sort();

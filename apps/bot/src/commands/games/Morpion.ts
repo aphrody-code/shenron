@@ -357,7 +357,7 @@ export class MorpionCommand {
 				);
 				const winReward = g.stake ?? defaultWin;
 				const lossPenalty = g.stake ?? defaultLoss;
-				if (winnerId !== "BOT") await this.eco.addZeni(winnerId, winReward);
+				if (winnerId !== "BOT") await this.eco.addZeni(winnerId, winReward, { kind: "game" });
 				if (loserId !== "BOT" && lossPenalty > 0) await this.eco.removeZeni(loserId, lossPenalty);
 				if (winnerId !== "BOT") {
 					await this.msg.publish(

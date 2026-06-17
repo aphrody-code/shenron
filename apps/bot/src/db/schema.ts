@@ -13,6 +13,12 @@ export const users = sqliteTable(
 		currentLevelRoleId: text("current_level_role_id"),
 		lastLevelReached: integer("last_level_reached").notNull().default(0),
 
+		// Race (système inspiré Xenoverse 2 — module la progression)
+		race: text("race"), // "terrien" | "saiyen" | "freezer" | "namek" | "majin" | null
+		raceChosenAt: integer("race_chosen_at", { mode: "timestamp_ms" }),
+		raceBoostUntil: integer("race_boost_until", { mode: "timestamp_ms" }), // fenêtre Zenkai (Saiyen)
+		lastRaceRegenAt: integer("last_race_regen_at", { mode: "timestamp_ms" }), // régén passive (Namek)
+
 		// Activite
 		lastMessageAt: integer("last_message_at", { mode: "timestamp_ms" }),
 		lastVoiceJoinAt: integer("last_voice_join_at", { mode: "timestamp_ms" }),

@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";
 import { AchievementService } from "~/services/AchievementService";
@@ -15,6 +15,7 @@ import {
 } from "~/lib/constants";
 import { env } from "~/lib/env";
 import { randomInt } from "~/lib/xp";
+import { messageXpMultiplier, applyZeniRace, hasRegen, REGEN_MS, REGEN_XP, REGEN_ZENI } from "~/lib/races";
 import { resolveLevelChannel } from "~/lib/announce";
 import { boosterXpMultiplier } from "~/lib/booster";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
@@ -108,7 +109,10 @@ export class MessageXPEvent {
 		if (isNewDay) {
 			const yesterdayDelta = today - dayjs(now).subtract(1, "day").startOf("day").valueOf();
 			const streak = lastQuest >= today - yesterdayDelta ? user.dailyStreak + 1 : 1;
-			const dailyZeni = await this.settings.getInt("zeni.daily_quest", ZENI_DAILY_QUEST);
+			const dailyZeni = applyZeniRace(
+				user.race,
+				await this.settings.getInt("zeni.daily_quest", ZENI_DAILY_QUEST)
+			);
 			await this.dbs.db
 				.update(users)
 				.set({ lastDailyQuestAt: new Date(now), dailyStreak: streak, zeni: user.zeni + dailyZeni })
@@ -153,12 +157,24 @@ export class MessageXPEvent {
 		const xpMax = await this.settings.getInt("xp.message.max", XP_PER_MESSAGE_MAX);
 		let gain = randomInt(xpMin, xpMax);
 
+		// Multiplicateur de RACE (Saiyen ×1.25 / Namek ×1.1 / Zenkai actif…).
+		gain = Math.floor(gain * messageXpMultiplier(user.race, user.raceBoostUntil?.getTime() ?? 0, now));
+
+		// Régén passive Namek : 1×/24 h, à la 1re activité du jour (+XP & +zéni).
+		if (hasRegen(user.race) && now - (user.lastRaceRegenAt?.getTime() ?? 0) >= REGEN_MS) {
+			await this.dbs.db
+				.update(users)
+				.set({ zeni: sql`${users.zeni} + ${REGEN_ZENI}`, lastRaceRegenAt: new Date(now) })
+				.where(eq(users.id, userId));
+			gain += REGEN_XP;
+		}
+
 		// Drop zeni aléatoire (zeni.message_chance probabilité) + notif templatable
 		const dropChance = await this.settings.getFloat("zeni.message_chance", 0);
 		if (dropChance > 0 && Math.random() < dropChance) {
 			const dropMin = await this.settings.getInt("zeni.message_drop_min", 5);
 			const dropMax = await this.settings.getInt("zeni.message_drop_max", 25);
-			const drop = randomInt(dropMin, dropMax);
+			const drop = applyZeniRace(user.race, randomInt(dropMin, dropMax));
 			if (drop > 0) {
 				await this.dbs.db
 					.update(users)
