@@ -41,7 +41,8 @@
 		"rag:eval": "bun scripts/rag-eval.ts",
 		"embed": "bun embed-server.ts",
 		"db:studio": "bunx drizzle-kit studio",
-		"db:push": "bunx drizzle-kit push"
+		"db:push": "bunx drizzle-kit push",
+		"db:seed-xv2-char-meta": "bun src/db/seed-xv2-char-meta.ts"
 	},
 	"dependencies": {
 		"@aphrody/canvas": "^0.1.99",
