@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { readFileSync } from "node:fs";
-import { inArray } from "drizzle-orm";
+import { isNull, notInArray } from "drizzle-orm";
 import { container } from "tsyringe";
 import { DatabaseService } from "~/db/index";
 import { dbCharacterTechniques, dbCharacters, dbTechniques } from "~/db/schema";
@@ -67,15 +67,15 @@ const charByCanon = new Map(chars.map((c) => [canon(c.name), c.id]));
 const techs = await db.select({ id: dbTechniques.id, name: dbTechniques.name }).from(dbTechniques);
 const techByName = new Map(techs.map((t) => [normT(t.name), t.id]));
 
-// purge des liens XV2 précédents (vers techniques typées XV2)
-const xv2TechIds = (
-	await db
-		.select({ id: dbTechniques.id })
-		.from(dbTechniques)
-		.where(inArray(dbTechniques.type, ["super", "ultimate", "awoken", "evasive"]))
+// purge robuste : on retire TOUT lien dont la technique n'est PAS curée
+// (type NULL). Couvre les liens XV2 ET les liens orphelins (le seed techniques
+// supprime/réinsère les techniques XV2 -> leurs ids changent à chaque run).
+const curatedTechIds = (
+	await db.select({ id: dbTechniques.id }).from(dbTechniques).where(isNull(dbTechniques.type))
 ).map((t) => t.id);
-if (xv2TechIds.length)
-	await db.delete(dbCharacterTechniques).where(inArray(dbCharacterTechniques.techniqueId, xv2TechIds));
+await db
+	.delete(dbCharacterTechniques)
+	.where(notInArray(dbCharacterTechniques.techniqueId, curatedTechIds));
 
 // liens existants (pour ne pas dupliquer)
 const existingPairs = new Set(
