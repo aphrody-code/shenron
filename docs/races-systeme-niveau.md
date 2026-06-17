@@ -197,3 +197,10 @@ un moteur de combat. Le membre choisit sa race via **`/race`** ; elle est stock�
 > Source de vérité runtime = `apps/bot/data/bot.db` (SQLite, forward-sync Neon). Ne **pas**
 > écrire la progression dans le wiki éditorial (`wiki-write-guard`). Les valeurs sont des
 > points de départ équilibrables (cf. `lib/races.ts`).
+
+### Phases suivantes (roadmap)
+- **Phase 2 — identité de race** : pistes de rôles de palier par race (Saiyen → « Super
+  Saiyan », Namek → « Namek Ultime »…), cooldown/coût de changement de race, intégration
+  carte de profil (`CardService`).
+- **Phase 3 — stats & combat** (optionnel) : vraies stats HP/Ki à la XV2 si un mode combat
+  est introduit.

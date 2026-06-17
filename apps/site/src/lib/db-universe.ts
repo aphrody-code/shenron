@@ -537,6 +537,21 @@ export const dbUniverse = {
 		}),
 
 	/**
+	 * Séries d'épisodes RÉELLEMENT présentes (avec compte), pour ne proposer
+	 * que des onglets accessibles (sinon une série à 0 épisode → 404).
+	 */
+	episodeSeries: () =>
+		safe(async () => {
+			const rows = await db
+				.select({ series: botEpisodes.series, n: sql<number>`count(*)::int` })
+				.from(botEpisodes)
+				.groupBy(botEpisodes.series);
+			return rows
+				.map((r) => ({ series: r.series, count: Number(r.n) }))
+				.filter((r) => r.count > 0);
+		}),
+
+	/**
 	 * Épisode précédent / suivant + un échantillon d'épisodes voisins de la même
 	 * série, pour la navigation cinématique de la page épisode.
 	 */

@@ -179,9 +179,8 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							{(m.video_url || m.stream_url) && (
 								<div className="absolute top-3 right-3 z-20">
 									<EpisodeDownload
-										episodeId={`movie-${m.id}`}
-										videoUrl={m.video_url}
-										streamUrl={m.stream_url}
+										href={`/api/movies/${m.id}/download`}
+										signinCallback={`/wiki/films/${m.slug}`}
 										title={m.title}
 									/>
 								</div>
