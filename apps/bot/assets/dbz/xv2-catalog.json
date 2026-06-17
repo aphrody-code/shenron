@@ -1,0 +1,3812 @@
+{
+ "source": "DBXV2 v1.25.02 (data1/msg, FR)",
+ "characters": {
+  "GOK": "Son Goku",
+  "GK4": "Son Goku (Super Saiyen 4)",
+  "GOD": "Son Goku (Super Saiyen divin)",
+  "GKG": "Son Goku (GT)",
+  "GGK": "Son Goku (Super Saiyen Blue)",
+  "BDK": "Bardock",
+  "GTG": "Son Goten",
+  "GHP": "Son Gohan (4 ans)",
+  "GHS": "Son Gohan (petit)",
+  "GHM": "Son Gohan (ado)",
+  "GHL": "Son Gohan",
+  "GHF": "Son Gohan (du futur)",
+  "VDL": "Videl",
+  "MST": "Son Gohan & Videl",
+  "PIC": "Piccolo",
+  "KLL": "Krilin",
+  "YMC": "Yamcha",
+  "TSH": "Tenshinhan",
+  "RAD": "Raditz",
+  "SBM": "Kaiwareman",
+  "NAP": "Nappa",
+  "OSN": "Nappa gorille géant",
+  "VGT": "Vegeta",
+  "VG4": "Vegeta (Super Saiyen 4)",
+  "GVG": "Vegeta (Super Saiyen Blue)",
+  "GRD": "Guldo",
+  "BAT": "Burter",
+  "RCM": "Recoome",
+  "JES": "Jeice",
+  "GNY": "Ginyu",
+  "FRG": "Ginyu",
+  "FRZ": "Freezer (1re forme)",
+  "FR4": "Freezer (Forme finale)",
+  "FR5": "Freezer (Puissance max)",
+  "TRX": "Trunks",
+  "TRS": "Trunks (petit)",
+  "G16": "C-16",
+  "G17": "C-17",
+  "S17": "Super C-17",
+  "G18": "C-18",
+  "CL1": "Cell (1re forme)",
+  "CL3": "Cell (parfait)",
+  "CL4": "Cell (Puissance maximale)",
+  "CLJ": "Cell Junior",
+  "BUL": "Buu",
+  "BUM": "Super Buu",
+  "BUS": "Buu enfant",
+  "BUZ": "Buu (petit)",
+  "GTX": "Gotenks",
+  "VTO": "Vegeto",
+  "BRL": "Broly",
+  "BLS": "Beerus, dieu de la destruction",
+  "PAN": "Pan",
+  "GIL": "Gill",
+  "OSV": "Vegeta gorille géant",
+  "OSB": "Bardock gorille géant",
+  "OBB": "Baby gorille géant",
+  "SD3": "Eis Shenron",
+  "SD4": "Suu Shenron",
+  "SD1": "Li Shenron",
+  "GGT": "Gogeta (Super Saiyen 4)",
+  "STN": "M. Satan",
+  "STD": "M. Satan",
+  "DMG": "Dieu démon Demigra",
+  "DM2": "Dieu démon Demigra (Final)",
+  "SIN": "Shenron",
+  "TOK": "Kaïo Shin du temps",
+  "TKT": "Tokitoki",
+  "APL": "Nabana",
+  "RSB": "Raspberry",
+  "MIR": "Mira",
+  "MRN": "Mira (Forme finale)",
+  "TOW": "Towa",
+  "WIS": "Whis",
+  "JCO": "Jaco",
+  "GFR": "Golden Freezer",
+  "COL": "Metal Cooler",
+  "CO2": "Cooler (Forme finale)",
+  "TLS": "Thalès",
+  "JNB": "Janemba",
+  "JNG": "Janemba",
+  "GG1": "Gogeta (Super Saiyen)",
+  "SLG": "Slugh",
+  "ZBN": "Zarbon",
+  "DDR": "Doria",
+  "NIL": "Nail",
+  "HIT": "Hit",
+  "ROK": "Vieux Kaïo Shin",
+  "DND": "Dende",
+  "TG1": "Doyen",
+  "TG2": "Bulma",
+  "TG3": "Son Goku Black",
+  "TG4": "Trunks du Futur",
+  "TG5": "Frost",
+  "SCR": "Cabba",
+  "BLM": "Hit (Éveillé)",
+  "GKB": "Vados",
+  "TRF": "Champa, dieu de la destruction",
+  "FRS": "Zamasu",
+  "CAB": "Son Goku Black (SS Rosé)",
+  "HIK": "Bojack",
+  "VDS": "Zamasu fusionné",
+  "CMP": "Zamasu fusionné (corrompu)",
+  "ZMS": "Vegeto (Super Saiyen Blue)",
+  "GBR": "Buu (Son Gohan absorbé)",
+  "BJK": "Dabra",
+  "ZMG": "Variante Dabra",
+  "ZMD": "Tapion",
+  "VTB": "C-13",
+  "BUU": "Fu",
+  "DBR": "C-17 (DB Super)",
+  "TPO": "Son Goku (MMI)",
+  "G13": "Bulma",
+  "FUU": "Kefla (Super Saiyen)",
+  "R17": "Super Baby 2",
+  "JRN": "Gogeta (Super Saiyen Blue)",
+  "GKS": "Broly (P. max Super Saiyen)",
+  "BLF": "Ribrianne",
+  "KFL": "Vegeta (SSB Évolué)",
+  "SB2": "Vegeta (Super Saiyen divin)",
+  "TM0": "Majuub",
+  "TM1": "C-21",
+  "NI0": "Kaïo Shin du temps",
+  "NI1": "Paikuhan",
+  "NI2": "Toppo (dieu de la destruction)",
+  "TE0": "Jiren (puissance max)",
+  "TE1": "Gogeta (DB Super)",
+  "EL0": "Caulifla (Super Saiyen 2)",
+  "TWP": "Kale (Super Saiyen 2)",
+  "TWT": "Cell (2e forme)",
+  "THJ": "Oolon",
+  "THG": "???",
+  "THC": "Son Goku (Ultra Instinct - Signe)",
+  "THK": "Dyspo",
+  "CL2": "Vegeta (GT)",
+  "URN": "Gamma 1",
+  "FOK": "Son Gohan (DBS Super Hero)",
+  "FOD": "Son Gohan (Beast)",
+  "FOV": "Piccolo (potentiel libéré)",
+  "FIO": "Piccolo Orange",
+  "FIT": "Cell Max",
+  "FIG": "C-18 (DB Super)",
+  "SIG": "Videl (DB Super)",
+  "SIP": "Cell Max",
+  "SIO": "Broly (Retenu)",
+  "SIM": "Vegeta (Super Saiyen divin)",
+  "SVE": "Son Goku Black (SS Rosé)",
+  "SVV": "Broly (Retenu)",
+  "SIH": "Trunks (du futur)",
+  "EIB": "Zamasu",
+  "EIG": "Zamasu (Son Goku)",
+  "EIR": "Ginyu",
+  "EIM": "Vermoud, dieu de la destruction",
+  "NTV": "Broly (DB Super)",
+  "NTJ": "Golden Freezer",
+  "NTG": "Broly (DB Super)",
+  "XXG": "Cheelai",
+  "XXV": "Broly (DB Super)",
+  "XAB": "Shenron",
+  "XAF": "Robot de la réception",
+  "XAM": "Iratta",
+  "XAC": "Wasshima",
+  "XAN": "Monhone",
+  "XAS": "Robot éclairé",
+  "HST": "Boutique de vêtements",
+  "FOF": "Tous",
+  "GAK": "Son Goten/Trunks",
+  "CGK": "Recoome Burter Guldo",
+  "ALV": "Burter Guldo"
+ },
+ "skills": {
+  "super": {
+   "spe_skill_0000": {
+    "name": "Kamehameha",
+    "desc": ""
+   },
+   "spe_skill_0002": {
+    "name": "Super poing de dieu",
+    "desc": ""
+   },
+   "spe_skill_0003": {
+    "name": "Super poing du dragon",
+    "desc": ""
+   },
+   "spe_skill_0004": {
+    "name": "Genkidama",
+    "desc": ""
+   },
+   "spe_skill_0005": {
+    "name": "Téléportation",
+    "desc": ""
+   },
+   "spe_skill_0006": {
+    "name": "Tour Genkidama (police temps)",
+    "desc": ""
+   },
+   "spe_skill_0010": {
+    "name": "Javelot de la colère",
+    "desc": ""
+   },
+   "spe_skill_0011": {
+    "name": "Lance de la rébellion",
+    "desc": ""
+   },
+   "spe_skill_0012": {
+    "name": "Lancier tyrannique",
+    "desc": ""
+   },
+   "spe_skill_0014": {
+    "name": "Super garde",
+    "desc": ""
+   },
+   "spe_skill_0020": {
+    "name": "Frappe rémanente",
+    "desc": ""
+   },
+   "spe_skill_0021": {
+    "name": "Kamehameha x10",
+    "desc": ""
+   },
+   "spe_skill_0040": {
+    "name": "Kamehameha surpuissant",
+    "desc": ""
+   },
+   "spe_skill_0041": {
+    "name": "Chifumi",
+    "desc": ""
+   },
+   "spe_skill_0042": {
+    "name": "Bâton magique",
+    "desc": ""
+   },
+   "spe_skill_0043": {
+    "name": "Combo bâton magique",
+    "desc": ""
+   },
+   "spe_skill_0050": {
+    "name": "Charge",
+    "desc": ""
+   },
+   "spe_skill_0051": {
+    "name": "Balle de pierre",
+    "desc": ""
+   },
+   "spe_skill_0052": {
+    "name": "Décharge d'énergie consécutive",
+    "desc": ""
+   },
+   "spe_skill_0053": {
+    "name": "Kamekameha",
+    "desc": ""
+   },
+   "spe_skill_0060": {
+    "name": "Frappe du rayon maléfique",
+    "desc": ""
+   },
+   "spe_skill_0061": {
+    "name": "Frappe de l'ascension maléfique",
+    "desc": ""
+   },
+   "spe_skill_0062": {
+    "name": "Masenko",
+    "desc": ""
+   },
+   "spe_skill_0070": {
+    "name": "Super vol du dragon",
+    "desc": ""
+   },
+   "spe_skill_0071": {
+    "name": "Tourbillon maléfique",
+    "desc": ""
+   },
+   "spe_skill_0080": {
+    "name": "Enchaînement explosif",
+    "desc": ""
+   },
+   "spe_skill_0081": {
+    "name": "Canon kikoho",
+    "desc": ""
+   },
+   "spe_skill_0082": {
+    "name": "Pose du justicier",
+    "desc": ""
+   },
+   "spe_skill_0090": {
+    "name": "Explosion maléfique",
+    "desc": ""
+   },
+   "spe_skill_0091": {
+    "name": "Mur de défense",
+    "desc": ""
+   },
+   "spe_skill_0092": {
+    "name": "Frappe de l'envol maléfique",
+    "desc": ""
+   },
+   "spe_skill_0093": {
+    "name": "Grenade lumière",
+    "desc": ""
+   },
+   "spe_skill_0094": {
+    "name": "Yeux maléfiques",
+    "desc": ""
+   },
+   "spe_skill_0100": {
+    "name": "Combo d'Orin",
+    "desc": ""
+   },
+   "spe_skill_0101": {
+    "name": "Kienzan",
+    "desc": ""
+   },
+   "spe_skill_0102": {
+    "name": "Kaioken",
+    "desc": ""
+   },
+   "spe_skill_0103": {
+    "name": "Kaioken x3",
+    "desc": ""
+   },
+   "spe_skill_0104": {
+    "name": "Kaioken x20",
+    "desc": ""
+   },
+   "spe_skill_0105": {
+    "name": "Dernier recours des tortues",
+    "desc": ""
+   },
+   "spe_skill_0106": {
+    "name": "Poing berceur",
+    "desc": ""
+   },
+   "spe_skill_0107": {
+    "name": "Sol vs. Plafond",
+    "desc": ""
+   },
+   "spe_skill_0110": {
+    "name": "Technique du loup",
+    "desc": ""
+   },
+   "spe_skill_0111": {
+    "name": "Estoc de Kikoha",
+    "desc": ""
+   },
+   "spe_skill_0112": {
+    "name": "Percée d'énergie",
+    "desc": ""
+   },
+   "spe_skill_0113": {
+    "name": "Super percée",
+    "desc": ""
+   },
+   "spe_skill_0114": {
+    "name": "Ultra percée",
+    "desc": ""
+   },
+   "spe_skill_0115": {
+    "name": "Image rémanente",
+    "desc": ""
+   },
+   "spe_skill_0116": {
+    "name": "Mort simulée",
+    "desc": ""
+   },
+   "spe_skill_0120": {
+    "name": "Dodompa",
+    "desc": ""
+   },
+   "spe_skill_0121": {
+    "name": "Kikoho",
+    "desc": ""
+   },
+   "spe_skill_0122": {
+    "name": "Attaque volley-ball",
+    "desc": ""
+   },
+   "spe_skill_0123": {
+    "name": "Morsure du soleil",
+    "desc": ""
+   },
+   "spe_skill_0124": {
+    "name": "Prêt à l'action",
+    "desc": ""
+   },
+   "spe_skill_0125": {
+    "name": "Accélération spirituelle",
+    "desc": ""
+   },
+   "spe_skill_0130": {
+    "name": "Double dimanche",
+    "desc": ""
+   },
+   "spe_skill_0131": {
+    "name": "Écrasement saturnien",
+    "desc": ""
+   },
+   "spe_skill_0132": {
+    "name": "Vendredi étincelant",
+    "desc": ""
+   },
+   "spe_skill_0140": {
+    "name": "Acide",
+    "desc": ""
+   },
+   "spe_skill_0141": {
+    "name": "Poison",
+    "desc": ""
+   },
+   "spe_skill_0142": {
+    "name": "Rayon Saibaiman",
+    "desc": ""
+   },
+   "spe_skill_0150": {
+    "name": "Bomber DX",
+    "desc": ""
+   },
+   "spe_skill_0151": {
+    "name": "Obus génocidaire",
+    "desc": ""
+   },
+   "spe_skill_0152": {
+    "name": "Manchot",
+    "desc": ""
+   },
+   "spe_skill_0160": {
+    "name": "Canon Garric",
+    "desc": ""
+   },
+   "spe_skill_0161": {
+    "name": "Frappe flash",
+    "desc": ""
+   },
+   "spe_skill_0162": {
+    "name": "Destruction finale",
+    "desc": ""
+   },
+   "spe_skill_0163": {
+    "name": "Tir brillant",
+    "desc": ""
+   },
+   "spe_skill_0164": {
+    "name": "Masse",
+    "desc": ""
+   },
+   "spe_skill_0180": {
+    "name": "Contrôle du temps",
+    "desc": ""
+   },
+   "spe_skill_0182": {
+    "name": "Pose de combat Guldo",
+    "desc": ""
+   },
+   "spe_skill_0183": {
+    "name": "Pose de combat C",
+    "desc": ""
+   },
+   "spe_skill_0184": {
+    "name": "Pose de combat H",
+    "desc": ""
+   },
+   "spe_skill_0190": {
+    "name": "Pose de combat D",
+    "desc": ""
+   },
+   "spe_skill_0191": {
+    "name": "Pose de combat I",
+    "desc": ""
+   },
+   "spe_skill_0192": {
+    "name": "Coup de poing sonique",
+    "desc": ""
+   },
+   "spe_skill_0193": {
+    "name": "Coup de pied sonique",
+    "desc": ""
+   },
+   "spe_skill_0200": {
+    "name": "Recoom Eraser Gun",
+    "desc": ""
+   },
+   "spe_skill_0201": {
+    "name": "Recoom Kick",
+    "desc": ""
+   },
+   "spe_skill_0202": {
+    "name": "Pose de combat E",
+    "desc": ""
+   },
+   "spe_skill_0203": {
+    "name": "Pose de combat J",
+    "desc": ""
+   },
+   "spe_skill_0204": {
+    "name": "Pose de combat K",
+    "desc": ""
+   },
+   "spe_skill_0210": {
+    "name": "Boule broyeuse",
+    "desc": ""
+   },
+   "spe_skill_0211": {
+    "name": "Lame de Sauzer",
+    "desc": ""
+   },
+   "spe_skill_0212": {
+    "name": "Pose de combat B",
+    "desc": ""
+   },
+   "spe_skill_0213": {
+    "name": "Pose de combat G",
+    "desc": ""
+   },
+   "spe_skill_0220": {
+    "name": "Pose de combat A",
+    "desc": ""
+   },
+   "spe_skill_0221": {
+    "name": "Choc Holstein",
+    "desc": ""
+   },
+   "spe_skill_0222": {
+    "name": "Attaque laiteuse",
+    "desc": ""
+   },
+   "spe_skill_0223": {
+    "name": "Pose de combat F",
+    "desc": ""
+   },
+   "spe_skill_0230": {
+    "name": "Signe de l'empereur",
+    "desc": ""
+   },
+   "spe_skill_0240": {
+    "name": "Rayon mortel",
+    "desc": ""
+   },
+   "spe_skill_0241": {
+    "name": "Bombe psychologique mortelle",
+    "desc": ""
+   },
+   "spe_skill_0242": {
+    "name": "Taillade de la Mort",
+    "desc": ""
+   },
+   "spe_skill_0243": {
+    "name": "Écrasement de la Mort",
+    "desc": ""
+   },
+   "spe_skill_0244": {
+    "name": "Entaille de la Mort",
+    "desc": ""
+   },
+   "spe_skill_0260": {
+    "name": "Attaque brûlante",
+    "desc": ""
+   },
+   "spe_skill_0261": {
+    "name": "Brise-dieu",
+    "desc": ""
+   },
+   "spe_skill_0262": {
+    "name": "Changer l'avenir",
+    "desc": ""
+   },
+   "spe_skill_0264": {
+    "name": "Lumière tranchante",
+    "desc": ""
+   },
+   "spe_skill_0265": {
+    "name": "Coup brûlant",
+    "desc": ""
+   },
+   "spe_skill_0270": {
+    "name": "Coup de grâce",
+    "desc": ""
+   },
+   "spe_skill_0271": {
+    "name": "Double uppercut",
+    "desc": ""
+   },
+   "spe_skill_0272": {
+    "name": "Canon final",
+    "desc": ""
+   },
+   "spe_skill_0280": {
+    "name": "Pont latéral",
+    "desc": ""
+   },
+   "spe_skill_0281": {
+    "name": "Coup de la liberté",
+    "desc": ""
+   },
+   "spe_skill_0282": {
+    "name": "Charge souriante",
+    "desc": ""
+   },
+   "spe_skill_0290": {
+    "name": "Bomber Flash",
+    "desc": ""
+   },
+   "spe_skill_0291": {
+    "name": "Champ d'absorption",
+    "desc": ""
+   },
+   "spe_skill_0292": {
+    "name": "Thunder Eraser",
+    "desc": ""
+   },
+   "spe_skill_0293": {
+    "name": "Charge absorbante",
+    "desc": ""
+   },
+   "spe_skill_0294": {
+    "name": "Super absorption",
+    "desc": ""
+   },
+   "spe_skill_0295": {
+    "name": "Hyper absorption",
+    "desc": ""
+   },
+   "spe_skill_0300": {
+    "name": "Attaque éclair",
+    "desc": ""
+   },
+   "spe_skill_0301": {
+    "name": "Tir infini",
+    "desc": ""
+   },
+   "spe_skill_0302": {
+    "name": "Danse mortelle",
+    "desc": ""
+   },
+   "spe_skill_0310": {
+    "name": "Triomphe",
+    "desc": ""
+   },
+   "spe_skill_0311": {
+    "name": "Impact gravitationnel",
+    "desc": ""
+   },
+   "spe_skill_0312": {
+    "name": "Tir parfait",
+    "desc": ""
+   },
+   "spe_skill_0330": {
+    "name": "Raillerie",
+    "desc": ""
+   },
+   "spe_skill_0340": {
+    "name": "Enchaînement justice",
+    "desc": ""
+   },
+   "spe_skill_0341": {
+    "name": "Kick de l'aigle",
+    "desc": ""
+   },
+   "spe_skill_0342": {
+    "name": "Charge du faucon",
+    "desc": ""
+   },
+   "spe_skill_0350": {
+    "name": "Balle d'innocence",
+    "desc": ""
+   },
+   "spe_skill_0351": {
+    "name": "Canon d'innocence",
+    "desc": ""
+   },
+   "spe_skill_0352": {
+    "name": "Frappe de colère",
+    "desc": ""
+   },
+   "spe_skill_0353": {
+    "name": "Zigzag Express",
+    "desc": ""
+   },
+   "spe_skill_0354": {
+    "name": "Poing explosif de Buu",
+    "desc": ""
+   },
+   "spe_skill_0360": {
+    "name": "Flash de maladies",
+    "desc": ""
+   },
+   "spe_skill_0361": {
+    "name": "Bombe de maladies",
+    "desc": ""
+   },
+   "spe_skill_0362": {
+    "name": "Pluie de maladies",
+    "desc": ""
+   },
+   "spe_skill_0370": {
+    "name": "Kamehameha de Majin",
+    "desc": ""
+   },
+   "spe_skill_0371": {
+    "name": "Boule éclipsante",
+    "desc": ""
+   },
+   "spe_skill_0372": {
+    "name": "Petit somme",
+    "desc": ""
+   },
+   "spe_skill_0373": {
+    "name": "Éclair perlé",
+    "desc": ""
+   },
+   "spe_skill_0380": {
+    "name": "Barrage DIE DIE",
+    "desc": ""
+   },
+   "spe_skill_0381": {
+    "name": "Beignets galactiques",
+    "desc": ""
+   },
+   "spe_skill_0382": {
+    "name": "Super fantôme kamikaze",
+    "desc": ""
+   },
+   "spe_skill_0390": {
+    "name": "Big bang",
+    "desc": ""
+   },
+   "spe_skill_0391": {
+    "name": "Signe de pression",
+    "desc": ""
+   },
+   "spe_skill_0392": {
+    "name": "Tir du doigt coupé",
+    "desc": ""
+   },
+   "spe_skill_0400": {
+    "name": "Obus explosif",
+    "desc": ""
+   },
+   "spe_skill_0401": {
+    "name": "Oméga géant",
+    "desc": ""
+   },
+   "spe_skill_0402": {
+    "name": "Collision extrême",
+    "desc": ""
+   },
+   "spe_skill_0410": {
+    "name": "Colère du dieu de la destruction",
+    "desc": ""
+   },
+   "spe_skill_0411": {
+    "name": "Carnage du dieu de la destruction",
+    "desc": ""
+   },
+   "spe_skill_0412": {
+    "name": "Courroux du dieu de la destruction",
+    "desc": ""
+   },
+   "spe_skill_0420": {
+    "name": "Feinte de tir",
+    "desc": ""
+   },
+   "spe_skill_0421": {
+    "name": "Prépare-toi pour la punition",
+    "desc": ""
+   },
+   "spe_skill_0422": {
+    "name": "Parapara dansant",
+    "desc": ""
+   },
+   "spe_skill_0440": {
+    "name": "Rayon du grand singe",
+    "desc": ""
+   },
+   "spe_skill_0441": {
+    "name": "Jet de rocher",
+    "desc": ""
+   },
+   "spe_skill_0442": {
+    "name": "Brise-rocher",
+    "desc": ""
+   },
+   "spe_skill_0480": {
+    "name": "Rayon congelant",
+    "desc": ""
+   },
+   "spe_skill_0481": {
+    "name": "Rayon congelant",
+    "desc": ""
+   },
+   "spe_skill_0482": {
+    "name": "Griffe de glace",
+    "desc": ""
+   },
+   "spe_skill_0483": {
+    "name": "Griffe de glace",
+    "desc": ""
+   },
+   "spe_skill_0484": {
+    "name": "Champ de glace",
+    "desc": ""
+   },
+   "spe_skill_0485": {
+    "name": "Champ de glace",
+    "desc": ""
+   },
+   "spe_skill_0490": {
+    "name": "Rafale d'attaques",
+    "desc": ""
+   },
+   "spe_skill_0491": {
+    "name": "Rafale d'attaques",
+    "desc": ""
+   },
+   "spe_skill_0492": {
+    "name": "Rayon d'attaques",
+    "desc": ""
+   },
+   "spe_skill_0493": {
+    "name": "Rayon d'attaques",
+    "desc": ""
+   },
+   "spe_skill_0494": {
+    "name": "Soleil guerrier",
+    "desc": ""
+   },
+   "spe_skill_0495": {
+    "name": "Soleil guerrier",
+    "desc": ""
+   },
+   "spe_skill_0500": {
+    "name": "Balle éclair du dragon",
+    "desc": ""
+   },
+   "spe_skill_0501": {
+    "name": "Lame tourbillonnante",
+    "desc": ""
+   },
+   "spe_skill_0502": {
+    "name": "Tonnerre du dragon",
+    "desc": ""
+   },
+   "spe_skill_0510": {
+    "name": "Big Bang Kamehameha",
+    "desc": ""
+   },
+   "spe_skill_0511": {
+    "name": "Kamehameha feinté",
+    "desc": ""
+   },
+   "spe_skill_0520": {
+    "name": "Dynamite Kick",
+    "desc": ""
+   },
+   "spe_skill_0521": {
+    "name": "Punch vrillé Satan",
+    "desc": ""
+   },
+   "spe_skill_0522": {
+    "name": "Un cadeau pour toi",
+    "desc": ""
+   },
+   "spe_skill_0530": {
+    "name": "Chaînes du temps",
+    "desc": ""
+   },
+   "spe_skill_0531": {
+    "name": "Flèche assaisonnée",
+    "desc": ""
+   },
+   "spe_skill_0532": {
+    "name": "Mixeur obscur",
+    "desc": ""
+   },
+   "spe_skill_0533": {
+    "name": "Sauce sanglante",
+    "desc": ""
+   },
+   "spe_skill_0534": {
+    "name": "Soucoupe rageuse",
+    "desc": ""
+   },
+   "spe_skill_0540": {
+    "name": "Canon d'énergie",
+    "desc": ""
+   },
+   "spe_skill_0541": {
+    "name": "Boule bouillante",
+    "desc": ""
+   },
+   "spe_skill_0542": {
+    "name": "Frappe rusée",
+    "desc": ""
+   },
+   "spe_skill_0590": {
+    "name": "Tir d'énergie",
+    "desc": ""
+   },
+   "spe_skill_0591": {
+    "name": "Charge d'énergie",
+    "desc": ""
+   },
+   "spe_skill_0592": {
+    "name": "Charge à puissance max",
+    "desc": ""
+   },
+   "spe_skill_0593": {
+    "name": "Charge maximum",
+    "desc": ""
+   },
+   "spe_skill_0594": {
+    "name": "Coup du météore",
+    "desc": ""
+   },
+   "spe_skill_0595": {
+    "name": "Frappe du météore",
+    "desc": ""
+   },
+   "spe_skill_0596": {
+    "name": "Crash du météore",
+    "desc": ""
+   },
+   "spe_skill_0600": {
+    "name": "Fusil à rayons",
+    "desc": ""
+   },
+   "spe_skill_0620": {
+    "name": "Makankosappo Garric",
+    "desc": ""
+   },
+   "spe_skill_0621": {
+    "name": "Explosion infinie",
+    "desc": ""
+   },
+   "spe_skill_0622": {
+    "name": "Coup de pied cyborg",
+    "desc": ""
+   },
+   "spe_skill_0623": {
+    "name": "Poing du fantôme",
+    "desc": ""
+   },
+   "spe_skill_0650": {
+    "name": "Prélude à la destruction",
+    "desc": ""
+   },
+   "spe_skill_0651": {
+    "name": "Frappe révélatrice",
+    "desc": ""
+   },
+   "spe_skill_0652": {
+    "name": "Kaïo Kaïo",
+    "desc": ""
+   },
+   "spe_skill_0670": {
+    "name": "Rayon d'élite",
+    "desc": ""
+   },
+   "spe_skill_0671": {
+    "name": "Tir d'élite",
+    "desc": ""
+   },
+   "spe_skill_0672": {
+    "name": "Pose de héros",
+    "desc": ""
+   },
+   "spe_skill_0630": {
+    "name": "Inversion de position",
+    "desc": ""
+   },
+   "spe_skill_0631": {
+    "name": "Balle temporelle",
+    "desc": ""
+   },
+   "spe_skill_0632": {
+    "name": "Libération d'énergie",
+    "desc": ""
+   },
+   "spe_skill_0633": {
+    "name": "Inversion de position",
+    "desc": ""
+   },
+   "spe_skill_0673": {
+    "name": "Rayon d'élite",
+    "desc": ""
+   },
+   "spe_skill_0674": {
+    "name": "Tir d'élite",
+    "desc": ""
+   },
+   "spe_skill_0675": {
+    "name": "Pose de héros",
+    "desc": ""
+   },
+   "spe_skill_0676": {
+    "name": "Bâton magique",
+    "desc": ""
+   },
+   "spe_skill_0677": {
+    "name": "Super flash choc de dieu",
+    "desc": ""
+   },
+   "spe_skill_0678": {
+    "name": "Kamehameha explosif",
+    "desc": ""
+   },
+   "spe_skill_0679": {
+    "name": "Coup final",
+    "desc": ""
+   },
+   "spe_skill_0680": {
+    "name": "Riposte explosive",
+    "desc": ""
+   },
+   "spe_skill_0044": {
+    "name": "Lame de l'empereur",
+    "desc": ""
+   },
+   "spe_skill_0800": {
+    "name": "Kikoha de l'empereur",
+    "desc": ""
+   },
+   "spe_skill_0801": {
+    "name": "Kamehameha distordu",
+    "desc": ""
+   },
+   "spe_skill_0810": {
+    "name": "Attaque Kaioken",
+    "desc": ""
+   },
+   "spe_skill_0811": {
+    "name": "Kaioken Kamehameha",
+    "desc": ""
+   },
+   "spe_skill_0820": {
+    "name": "Explosion de ki",
+    "desc": ""
+   },
+   "spe_skill_0821": {
+    "name": "Vague de Ki chargée",
+    "desc": ""
+   },
+   "spe_skill_0001": {
+    "name": "Super image rémanente",
+    "desc": ""
+   },
+   "spe_skill_0007": {
+    "name": "Super poing de dieu",
+    "desc": ""
+   },
+   "spe_skill_0008": {
+    "name": "Onde de choc",
+    "desc": ""
+   },
+   "spe_skill_0015": {
+    "name": "Saut en arrière",
+    "desc": ""
+   },
+   "spe_skill_0016": {
+    "name": "Attaque poussiéreuse",
+    "desc": ""
+   },
+   "spe_skill_0022": {
+    "name": "Kaikosen",
+    "desc": ""
+   },
+   "spe_skill_0030": {
+    "name": "Coup de pied sonique",
+    "desc": ""
+   },
+   "spe_skill_0031": {
+    "name": "Super Kienzan",
+    "desc": ""
+   },
+   "spe_skill_0032": {
+    "name": "Néo-technique du loup",
+    "desc": ""
+   },
+   "spe_skill_0095": {
+    "name": "Grenade meurtrière",
+    "desc": ""
+   },
+   "spe_skill_0096": {
+    "name": "Explosion atomique",
+    "desc": ""
+   },
+   "spe_skill_0097": {
+    "name": "Puissante vague explosive",
+    "desc": ""
+   },
+   "spe_skill_0108": {
+    "name": "Canon Garric pourfendeur",
+    "desc": ""
+   },
+   "spe_skill_0117": {
+    "name": "Combo spécial Commando Ginyu",
+    "desc": ""
+   },
+   "spe_skill_0153": {
+    "name": "Bombe psychologique mortelle",
+    "desc": ""
+   },
+   "spe_skill_0165": {
+    "name": "Vague de la Mort",
+    "desc": ""
+   },
+   "spe_skill_0166": {
+    "name": "Tir du doigt fou",
+    "desc": ""
+   },
+   "spe_skill_0167": {
+    "name": "Chewing-gum",
+    "desc": ""
+   },
+   "spe_skill_0224": {
+    "name": "Super beignets galactiques",
+    "desc": ""
+   },
+   "spe_skill_0245": {
+    "name": "Contrôle mental",
+    "desc": ""
+   },
+   "spe_skill_0246": {
+    "name": "Tempête écorcheuse",
+    "desc": ""
+   },
+   "spe_skill_0247": {
+    "name": "Combo vague déferlante",
+    "desc": ""
+   },
+   "spe_skill_0355": {
+    "name": "Attaque finale",
+    "desc": ""
+   },
+   "spe_skill_0383": {
+    "name": "Absorption vitale",
+    "desc": ""
+   },
+   "spe_skill_0443": {
+    "name": "Kamehameha",
+    "desc": ""
+   },
+   "spe_skill_0444": {
+    "name": "Rocket punch",
+    "desc": ""
+   },
+   "spe_skill_0597": {
+    "name": "Plaquage explosif",
+    "desc": ""
+   },
+   "spe_skill_0653": {
+    "name": "Rayon oculaire",
+    "desc": ""
+   },
+   "spe_skill_0750": {
+    "name": "Enchaînement cyborg",
+    "desc": ""
+   },
+   "spe_skill_0751": {
+    "name": "Écrasement feinté",
+    "desc": ""
+   },
+   "spe_skill_0830": {
+    "name": "Rayon destructeur",
+    "desc": ""
+   },
+   "spe_skill_0831": {
+    "name": "Broyeur maléfique",
+    "desc": ""
+   },
+   "spe_skill_0832": {
+    "name": "Enchaînement sonique",
+    "desc": ""
+   },
+   "spe_skill_0833": {
+    "name": "Super onde explosive",
+    "desc": ""
+   },
+   "spe_skill_0840": {
+    "name": "Kikoha Senko",
+    "desc": ""
+   },
+   "spe_skill_0841": {
+    "name": "Marteau-pilon mortel",
+    "desc": ""
+   },
+   "spe_skill_0850": {
+    "name": "Fruit de l'Arbre sacré",
+    "desc": ""
+   },
+   "spe_skill_0860": {
+    "name": "Tempête éclair",
+    "desc": ""
+   },
+   "spe_skill_0861": {
+    "name": "Griffe de Rakshasa",
+    "desc": ""
+   },
+   "spe_skill_0862": {
+    "name": "Trou dimensionnel",
+    "desc": ""
+   },
+   "spe_skill_0870": {
+    "name": "Marteau du châtiment",
+    "desc": ""
+   },
+   "spe_skill_0871": {
+    "name": "Danse super folle",
+    "desc": ""
+   },
+   "spe_skill_0872": {
+    "name": "Étoile double maléfique",
+    "desc": ""
+   },
+   "spe_skill_0880": {
+    "name": "Rayon oculaire maléfique",
+    "desc": ""
+   },
+   "spe_skill_0881": {
+    "name": "Doigt de Namek",
+    "desc": ""
+   },
+   "spe_skill_1200": {
+    "name": "Bouche de canon : courte",
+    "desc": ""
+   },
+   "spe_skill_1201": {
+    "name": "Bouche de canon : moyenne",
+    "desc": ""
+   },
+   "spe_skill_1210": {
+    "name": "Bouche de canon : longue",
+    "desc": ""
+   },
+   "spe_skill_1211": {
+    "name": "Grondement maléfique",
+    "desc": ""
+   },
+   "spe_skill_1212": {
+    "name": "Tir splendide",
+    "desc": ""
+   },
+   "spe_skill_1213": {
+    "name": "Rire terrifiant",
+    "desc": ""
+   },
+   "spe_skill_1214": {
+    "name": "Coup de tête de Doria",
+    "desc": ""
+   },
+   "spe_skill_1215": {
+    "name": "Rayon Doria",
+    "desc": ""
+   },
+   "spe_skill_1216": {
+    "name": "Uppercut puissant",
+    "desc": ""
+   },
+   "spe_skill_1220": {
+    "name": "Giga-amélioration",
+    "desc": ""
+   },
+   "spe_skill_1221": {
+    "name": "Marche ou crève",
+    "desc": ""
+   },
+   "spe_skill_1230": {
+    "name": "Tempête écorcheuse",
+    "desc": ""
+   },
+   "spe_skill_1231": {
+    "name": "Goutte marbrée",
+    "desc": ""
+   },
+   "spe_skill_1232": {
+    "name": "Charge instantanée",
+    "desc": ""
+   },
+   "spe_skill_1233": {
+    "name": "Contrôle mental",
+    "desc": ""
+   },
+   "spe_skill_1240": {
+    "name": "Contrôle mental",
+    "desc": ""
+   },
+   "spe_skill_1250": {
+    "name": "Contrôle mental",
+    "desc": ""
+   },
+   "spe_skill_1251": {
+    "name": "Contrôle mental",
+    "desc": ""
+   },
+   "spe_skill_1252": {
+    "name": "Goutte marbrée",
+    "desc": ""
+   },
+   "spe_skill_1253": {
+    "name": "Goutte marbrée",
+    "desc": ""
+   },
+   "spe_skill_1254": {
+    "name": "Goutte marbrée",
+    "desc": ""
+   },
+   "spe_skill_1255": {
+    "name": "Écrasement éclair aux poings",
+    "desc": ""
+   },
+   "spe_skill_1256": {
+    "name": "Aura tranchante",
+    "desc": ""
+   },
+   "spe_skill_1257": {
+    "name": "Double Masenko",
+    "desc": ""
+   },
+   "spe_skill_1258": {
+    "name": "Tir chaotique",
+    "desc": ""
+   },
+   "spe_skill_1259": {
+    "name": "Attaque Garric",
+    "desc": ""
+   },
+   "spe_skill_1260": {
+    "name": "Éclipse temporelle/Empalement",
+    "desc": ""
+   },
+   "spe_skill_1310": {
+    "name": "Éclipse temporelle/Brise-dos",
+    "desc": ""
+   },
+   "spe_skill_1320": {
+    "name": "Éclipse temporelle/Smash",
+    "desc": ""
+   },
+   "spe_skill_1330": {
+    "name": "Concert de la dest. : Comète",
+    "desc": ""
+   },
+   "spe_skill_1340": {
+    "name": "Conc. de la dest. : Étoile filante",
+    "desc": ""
+   },
+   "spe_skill_1350": {
+    "name": "Concert de la dest. : Météore",
+    "desc": ""
+   },
+   "spe_skill_1351": {
+    "name": "Chef d'orchestre de la dest.",
+    "desc": ""
+   },
+   "spe_skill_1352": {
+    "name": "Rugissement dieu de la dest.",
+    "desc": ""
+   },
+   "spe_skill_1360": {
+    "name": "Vague déferlante bondissante",
+    "desc": ""
+   },
+   "spe_skill_1361": {
+    "name": "Morsure menaçante",
+    "desc": ""
+   },
+   "spe_skill_1362": {
+    "name": "Flash concentré",
+    "desc": ""
+   },
+   "spe_skill_1363": {
+    "name": "Frappe sauvage",
+    "desc": ""
+   },
+   "spe_skill_1370": {
+    "name": "Entaille de la queue",
+    "desc": ""
+   },
+   "spe_skill_0109": {
+    "name": "Bombe sonique",
+    "desc": ""
+   },
+   "spe_skill_0063": {
+    "name": "Briseur divin",
+    "desc": ""
+   },
+   "spe_skill_0812": {
+    "name": "Flèche bénie",
+    "desc": ""
+   },
+   "spe_skill_0813": {
+    "name": "Colère divine",
+    "desc": ""
+   },
+   "spe_skill_0814": {
+    "name": "Rayon mortel téléporté",
+    "desc": ""
+   },
+   "spe_skill_0231": {
+    "name": "Aller-retour",
+    "desc": ""
+   },
+   "spe_skill_1380": {
+    "name": "Ball-trap",
+    "desc": ""
+   },
+   "spe_skill_1381": {
+    "name": "Barrière psychique",
+    "desc": ""
+   },
+   "spe_skill_1391": {
+    "name": "Coup de poignard spirituel",
+    "desc": ""
+   },
+   "spe_skill_1392": {
+    "name": "Frappe sauvage",
+    "desc": ""
+   },
+   "spe_skill_1400": {
+    "name": "Lames du jugement",
+    "desc": ""
+   },
+   "spe_skill_1401": {
+    "name": "Fureur divine",
+    "desc": ""
+   },
+   "spe_skill_1402": {
+    "name": "Foudre Absolue",
+    "desc": ""
+   },
+   "spe_skill_1410": {
+    "name": "Divinité déchaînée",
+    "desc": ""
+   },
+   "spe_skill_1411": {
+    "name": "Marteau céleste",
+    "desc": ""
+   },
+   "spe_skill_1420": {
+    "name": "Lumière de la justice",
+    "desc": ""
+   },
+   "spe_skill_1421": {
+    "name": "Flammes de châtiment",
+    "desc": ""
+   },
+   "spe_skill_1422": {
+    "name": "Spirale de la condamnation",
+    "desc": ""
+   },
+   "spe_skill_1423": {
+    "name": "Super fantôme Buu",
+    "desc": ""
+   },
+   "spe_skill_1430": {
+    "name": "Rayon bonbon",
+    "desc": ""
+   },
+   "spe_skill_1431": {
+    "name": "Crachat pétrifiant",
+    "desc": ""
+   },
+   "spe_skill_1432": {
+    "name": "Flamme maléfique",
+    "desc": ""
+   },
+   "spe_skill_1433": {
+    "name": "Saisie de données",
+    "desc": ""
+   },
+   "spe_skill_1440": {
+    "name": "Canon rapide",
+    "desc": ""
+   },
+   "spe_skill_1441": {
+    "name": "Flûte du héros",
+    "desc": ""
+   },
+   "spe_skill_1450": {
+    "name": "Tranchant hardi",
+    "desc": ""
+   },
+   "spe_skill_1451": {
+    "name": "Lance de la rébellion",
+    "desc": ""
+   },
+   "spe_skill_1460": {
+    "name": "Ranger tenace",
+    "desc": ""
+   },
+   "spe_skill_1461": {
+    "name": "Ki percutant",
+    "desc": ""
+   },
+   "spe_skill_1470": {
+    "name": "Méditation",
+    "desc": ""
+   },
+   "spe_skill_1471": {
+    "name": "Lame perturbatrice",
+    "desc": ""
+   },
+   "spe_skill_0013": {
+    "name": "Frappe sournoise",
+    "desc": ""
+   },
+   "spe_skill_1480": {
+    "name": "Piège d'énergie",
+    "desc": ""
+   },
+   "spe_skill_1490": {
+    "name": "Poing jaillissant",
+    "desc": ""
+   },
+   "spe_skill_1491": {
+    "name": "Esprit déferlant",
+    "desc": ""
+   },
+   "spe_skill_1500": {
+    "name": "Kamehameha",
+    "desc": ""
+   },
+   "spe_skill_1501": {
+    "name": "Crash du météore",
+    "desc": ""
+   },
+   "spe_skill_1502": {
+    "name": "Choc Holstein",
+    "desc": ""
+   },
+   "spe_skill_1510": {
+    "name": "Boule blaster",
+    "desc": ""
+   },
+   "spe_skill_1511": {
+    "name": "Concasseur gigantesque",
+    "desc": ""
+   },
+   "spe_skill_1512": {
+    "name": "Volée de rayons",
+    "desc": ""
+   },
+   "spe_skill_1513": {
+    "name": "Tir inversé",
+    "desc": ""
+   },
+   "spe_skill_0225": {
+    "name": "Marteau chargé",
+    "desc": ""
+   },
+   "spe_skill_1520": {
+    "name": "Final flash vengeur",
+    "desc": ""
+   },
+   "spe_skill_1521": {
+    "name": "Inversion de position",
+    "desc": ""
+   },
+   "spe_skill_1522": {
+    "name": "Balle temporelle",
+    "desc": ""
+   },
+   "spe_skill_1530": {
+    "name": "Libération d'énergie",
+    "desc": ""
+   },
+   "spe_skill_1531": {
+    "name": "Rafale spirituelle",
+    "desc": ""
+   },
+   "spe_skill_1532": {
+    "name": "Bouclier du châtiment",
+    "desc": ""
+   },
+   "spe_skill_0635": {
+    "name": "Téléportation agressive",
+    "desc": ""
+   },
+   "spe_skill_0636": {
+    "name": "Danse super folle",
+    "desc": ""
+   },
+   "spe_skill_0637": {
+    "name": "Big Bang Kamehameha",
+    "desc": ""
+   },
+   "spe_skill_1540": {
+    "name": "Obus puissant",
+    "desc": ""
+   },
+   "spe_skill_1541": {
+    "name": "Charge gigantesque",
+    "desc": ""
+   },
+   "spe_skill_1542": {
+    "name": "Colère gigantesque",
+    "desc": ""
+   },
+   "spe_skill_1543": {
+    "name": "Colère gigantesque",
+    "desc": ""
+   },
+   "spe_skill_1544": {
+    "name": "Balle temporelle",
+    "desc": ""
+   },
+   "spe_skill_1550": {
+    "name": "Frappe sournoise",
+    "desc": ""
+   },
+   "spe_skill_1551": {
+    "name": "Chaînes du temps",
+    "desc": ""
+   },
+   "spe_skill_1552": {
+    "name": "Flèche assaisonnée",
+    "desc": ""
+   },
+   "spe_skill_1553": {
+    "name": "Soucoupe rageuse",
+    "desc": ""
+   },
+   "spe_skill_0634": {
+    "name": "Mixeur obscur",
+    "desc": ""
+   },
+   "spe_skill_1503": {
+    "name": "Sauce sanglante",
+    "desc": ""
+   },
+   "spe_skill_0535": {
+    "name": "Goutte marbrée",
+    "desc": ""
+   },
+   "spe_skill_0536": {
+    "name": "Tempête écorcheuse",
+    "desc": ""
+   },
+   "spe_skill_0537": {
+    "name": "Contrôle mental",
+    "desc": ""
+   },
+   "spe_skill_0538": {
+    "name": "Charge ultime",
+    "desc": ""
+   },
+   "spe_skill_0539": {
+    "name": "Charge explosive",
+    "desc": ""
+   },
+   "spe_skill_0543": {
+    "name": "Joli canon",
+    "desc": ""
+   },
+   "spe_skill_0544": {
+    "name": "Formation !",
+    "desc": ""
+   },
+   "spe_skill_0545": {
+    "name": "Cyclone charmant",
+    "desc": ""
+   },
+   "spe_skill_0598": {
+    "name": "Jolie charge",
+    "desc": ""
+   },
+   "spe_skill_0599": {
+    "name": "Final flash",
+    "desc": ""
+   },
+   "spe_skill_1560": {
+    "name": "Coup final",
+    "desc": ""
+   },
+   "spe_skill_1562": {
+    "name": "Explosion atomique",
+    "desc": ""
+   },
+   "spe_skill_1563": {
+    "name": "Charge finale",
+    "desc": ""
+   },
+   "spe_skill_1564": {
+    "name": "Attaque incendiaire",
+    "desc": ""
+   },
+   "spe_skill_1570": {
+    "name": "Pique explosive",
+    "desc": ""
+   },
+   "spe_skill_1571": {
+    "name": "Rafale de raid",
+    "desc": ""
+   },
+   "spe_skill_1572": {
+    "name": "Attaque incendiaire",
+    "desc": ""
+   },
+   "spe_skill_1573": {
+    "name": "Pique explosive",
+    "desc": ""
+   },
+   "spe_skill_1580": {
+    "name": "Rafale de raid",
+    "desc": ""
+   },
+   "spe_skill_1581": {
+    "name": "Dynamite Kick",
+    "desc": ""
+   },
+   "spe_skill_1582": {
+    "name": "Punch vrillé Satan",
+    "desc": ""
+   },
+   "spe_skill_1583": {
+    "name": "Rayon Saibaiman",
+    "desc": ""
+   },
+   "spe_skill_1584": {
+    "name": "Acide",
+    "desc": ""
+   },
+   "spe_skill_1585": {
+    "name": "Chasseur flash",
+    "desc": ""
+   },
+   "spe_skill_0730": {
+    "name": "Déferlante dragon",
+    "desc": ""
+   },
+   "spe_skill_0731": {
+    "name": "Super poing du dragon",
+    "desc": ""
+   },
+   "spe_skill_0144": {
+    "name": "Super poing de dieu",
+    "desc": ""
+   },
+   "spe_skill_0143": {
+    "name": "Frappe de colère",
+    "desc": ""
+   },
+   "spe_skill_1100": {
+    "name": "Charge d'énergie",
+    "desc": ""
+   },
+   "spe_skill_1101": {
+    "name": "Boule de détonation totale",
+    "desc": ""
+   },
+   "spe_skill_1102": {
+    "name": "Entaille savoureuse",
+    "desc": ""
+   },
+   "spe_skill_1103": {
+    "name": "Frappe photon",
+    "desc": ""
+   },
+   "spe_skill_1104": {
+    "name": "Kamehameha de Majin",
+    "desc": ""
+   },
+   "spe_skill_1105": {
+    "name": "Canon Kairos",
+    "desc": ""
+   },
+   "spe_skill_1110": {
+    "name": "Rayon sacré temporel",
+    "desc": ""
+   },
+   "spe_skill_1111": {
+    "name": "Sainte inscription",
+    "desc": ""
+   },
+   "spe_skill_1112": {
+    "name": "Charge maximum",
+    "desc": ""
+   },
+   "spe_skill_1113": {
+    "name": "Kamehameha divin",
+    "desc": ""
+   },
+   "spe_skill_1120": {
+    "name": "Ki percutant",
+    "desc": ""
+   },
+   "spe_skill_1121": {
+    "name": "Charge souriante",
+    "desc": ""
+   },
+   "spe_skill_1122": {
+    "name": "Collision extrême",
+    "desc": ""
+   },
+   "spe_skill_1123": {
+    "name": "Javelot de la colère",
+    "desc": ""
+   },
+   "spe_skill_1514": {
+    "name": "Lumière tranchante",
+    "desc": ""
+   },
+   "spe_skill_1492": {
+    "name": "Coup brûlant",
+    "desc": ""
+   },
+   "spe_skill_0283": {
+    "name": "Tir brûlant",
+    "desc": ""
+   },
+   "spe_skill_0403": {
+    "name": "Hyper tornade",
+    "desc": ""
+   },
+   "spe_skill_0017": {
+    "name": "Explosion destructrice",
+    "desc": ""
+   },
+   "spe_skill_0266": {
+    "name": "Rupture destructrice",
+    "desc": ""
+   },
+   "spe_skill_0267": {
+    "name": "Rupture destructrice",
+    "desc": ""
+   },
+   "spe_skill_1130": {
+    "name": "Manchot",
+    "desc": ""
+   },
+   "spe_skill_1131": {
+    "name": "Morsure d'impact",
+    "desc": ""
+   },
+   "spe_skill_1140": {
+    "name": "Frappe comète",
+    "desc": ""
+   },
+   "spe_skill_1141": {
+    "name": "Crush Canon",
+    "desc": ""
+   },
+   "spe_skill_1142": {
+    "name": "Double crush",
+    "desc": ""
+   },
+   "spe_skill_0154": {
+    "name": "Blaster Canon",
+    "desc": ""
+   },
+   "spe_skill_1151": {
+    "name": "Bombe blaster",
+    "desc": ""
+   },
+   "spe_skill_1160": {
+    "name": "Marteau du châtiment",
+    "desc": ""
+   },
+   "spe_skill_1170": {
+    "name": "Colère gigantesque",
+    "desc": ""
+   },
+   "spe_skill_1171": {
+    "name": "Griffe de Rakshasa",
+    "desc": ""
+   },
+   "spe_skill_1180": {
+    "name": "Super vague déferlante",
+    "desc": ""
+   },
+   "spe_skill_1181": {
+    "name": "Déferlante ultrasonique",
+    "desc": ""
+   },
+   "spe_skill_1202": {
+    "name": "Pulsation spirituelle",
+    "desc": ""
+   },
+   "spe_skill_1554": {
+    "name": "Justice Kick",
+    "desc": ""
+   },
+   "spe_skill_0882": {
+    "name": "Lame de justice",
+    "desc": ""
+   },
+   "spe_skill_1152": {
+    "name": "Destructeur sauvage",
+    "desc": ""
+   },
+   "spe_skill_2010": {
+    "name": "Contre-impact",
+    "desc": ""
+   },
+   "spe_skill_2011": {
+    "name": "Barrière bouclier",
+    "desc": ""
+   },
+   "spe_skill_2020": {
+    "name": "Assaut héroïque",
+    "desc": ""
+   },
+   "spe_skill_2021": {
+    "name": "Tir filant",
+    "desc": ""
+   },
+   "spe_skill_2030": {
+    "name": "Contre héroïque",
+    "desc": ""
+   },
+   "spe_skill_2031": {
+    "name": "Explosion gamma",
+    "desc": ""
+   },
+   "spe_skill_2032": {
+    "name": "Impact gamma",
+    "desc": ""
+   },
+   "spe_skill_2060": {
+    "name": "Masenko",
+    "desc": ""
+   },
+   "spe_skill_2061": {
+    "name": "Charge du faucon",
+    "desc": ""
+   },
+   "spe_skill_2070": {
+    "name": "Enchaînement explosif",
+    "desc": ""
+   },
+   "spe_skill_2071": {
+    "name": "Enchaînement cyborg",
+    "desc": ""
+   },
+   "spe_skill_2072": {
+    "name": "Charge du faucon",
+    "desc": ""
+   },
+   "spe_skill_2080": {
+    "name": "Rayon du démon",
+    "desc": ""
+   },
+   "spe_skill_2081": {
+    "name": "Frappe éclair du démon",
+    "desc": ""
+   },
+   "spe_skill_2082": {
+    "name": "Rafale du démon",
+    "desc": ""
+   },
+   "spe_skill_0834": {
+    "name": "Makankosappo",
+    "desc": ""
+   },
+   "spe_skill_2073": {
+    "name": "Yeux maléfiques",
+    "desc": ""
+   },
+   "spe_skill_2083": {
+    "name": "Poing féroce",
+    "desc": ""
+   },
+   "spe_skill_2090": {
+    "name": "Destruction démoniaque",
+    "desc": ""
+   },
+   "spe_skill_2091": {
+    "name": "Rayon du carnage",
+    "desc": ""
+   },
+   "spe_skill_2092": {
+    "name": "Canon de purge",
+    "desc": ""
+   },
+   "spe_skill_2100": {
+    "name": "Charge ultime",
+    "desc": ""
+   },
+   "spe_skill_2101": {
+    "name": "Double dimanche (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2110": {
+    "name": "Manchot (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2111": {
+    "name": "Danse laiteuse (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2120": {
+    "name": "Pont latéral (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2121": {
+    "name": "Danse mortelle (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2093": {
+    "name": "Attaque parfaite (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0133": {
+    "name": "Balle d'innocence (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0155": {
+    "name": "Oméga géant (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0226": {
+    "name": "Feinte de tir (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0284": {
+    "name": "Ruée infinie (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0303": {
+    "name": "Écr. éclair aux poings (Fes.)",
+    "desc": ""
+   },
+   "spe_skill_0313": {
+    "name": "Colère divine (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0356": {
+    "name": "Ruée lames d'enfer (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0404": {
+    "name": "Boule blaster (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0423": {
+    "name": "Justice Crush (Festival)",
+    "desc": ""
+   },
+   "spe_skill_1153": {
+    "name": "Tir de sniper variable",
+    "desc": ""
+   },
+   "spe_skill_1261": {
+    "name": "Mirage d'acier",
+    "desc": ""
+   },
+   "spe_skill_1393": {
+    "name": "Combinaison de la mouette",
+    "desc": ""
+   },
+   "spe_skill_1452": {
+    "name": "Cygne brûlant",
+    "desc": ""
+   },
+   "spe_skill_1523": {
+    "name": "Tir d'avalement",
+    "desc": ""
+   },
+   "spe_skill_2022": {
+    "name": "Amas gigantesque",
+    "desc": ""
+   },
+   "spe_skill_2130": {
+    "name": "Bombe d'effacement",
+    "desc": ""
+   },
+   "spe_skill_2131": {
+    "name": "Rage ascendante",
+    "desc": ""
+   },
+   "spe_skill_2140": {
+    "name": "Poing Big Bang",
+    "desc": ""
+   },
+   "spe_skill_2141": {
+    "name": "Dard sauvage",
+    "desc": ""
+   },
+   "spe_skill_2142": {
+    "name": "Faux écarlate",
+    "desc": ""
+   },
+   "spe_skill_2160": {
+    "name": "Lance divine",
+    "desc": ""
+   },
+   "spe_skill_2161": {
+    "name": "Charge gigantesque",
+    "desc": ""
+   },
+   "spe_skill_2162": {
+    "name": "Charge (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2170": {
+    "name": "Grenade infernale (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2171": {
+    "name": "Galaxy Breaker (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2180": {
+    "name": "Bombe sonique (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2181": {
+    "name": "Canon de la victoire (Festival)",
+    "desc": ""
+   },
+   "spe_skill_1555": {
+    "name": "Un cadeau pour toi (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0054": {
+    "name": "Plaquage explosif (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0098": {
+    "name": "Blitz aveuglant (Festival)",
+    "desc": ""
+   },
+   "spe_skill_0168": {
+    "name": "Poing Big Bang",
+    "desc": ""
+   },
+   "spe_skill_0232": {
+    "name": "Dard sauvage",
+    "desc": ""
+   },
+   "spe_skill_0384": {
+    "name": "Arête écarlate",
+    "desc": ""
+   },
+   "spe_skill_0523": {
+    "name": "Lance divine",
+    "desc": ""
+   },
+   "spe_skill_0835": {
+    "name": "Amas gigantesque",
+    "desc": ""
+   },
+   "spe_skill_2012": {
+    "name": "Bombe d'effacement",
+    "desc": ""
+   },
+   "spe_skill_2172": {
+    "name": "Jouet du dieu de la destruction",
+    "desc": ""
+   },
+   "spe_skill_2173": {
+    "name": "Maintien du dieu de la destruction",
+    "desc": ""
+   },
+   "spe_skill_2182": {
+    "name": "Étincelle Dragon",
+    "desc": ""
+   },
+   "spe_skill_2183": {
+    "name": "Envolée jaillissante",
+    "desc": ""
+   },
+   "spe_skill_2163": {
+    "name": "Enchaînement Garric (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2164": {
+    "name": "Saut en arrière",
+    "desc": ""
+   },
+   "spe_skill_2210": {
+    "name": "Amas gigantesque",
+    "desc": ""
+   },
+   "spe_skill_2211": {
+    "name": "Bombe d'effacement",
+    "desc": ""
+   },
+   "spe_skill_2230": {
+    "name": "Rage ascendante",
+    "desc": ""
+   },
+   "spe_skill_2231": {
+    "name": "Vagues de chaleur",
+    "desc": ""
+   },
+   "spe_skill_1341": {
+    "name": "Fureur suprême",
+    "desc": ""
+   },
+   "spe_skill_0033": {
+    "name": "Force tranchante",
+    "desc": ""
+   },
+   "spe_skill_2165": {
+    "name": "Souffle brûlant",
+    "desc": ""
+   },
+   "spe_skill_2166": {
+    "name": "Lien divin (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2167": {
+    "name": "Force Gamma : Code-R (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2240": {
+    "name": "Force Gamma : Code-B (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2241": {
+    "name": "Valse de l'aigrette (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2250": {
+    "name": "Croix gigantesque",
+    "desc": ""
+   },
+   "spe_skill_2251": {
+    "name": "Inscription sombre",
+    "desc": ""
+   },
+   "spe_skill_0034": {
+    "name": "Canon de l'empereur",
+    "desc": ""
+   },
+   "spe_skill_2062": {
+    "name": "Comète tournoyante (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2074": {
+    "name": "Votre attention, s'il vous plaît ! (Festival)",
+    "desc": ""
+   },
+   "spe_skill_2143": {
+    "name": "Forage rapide (Festival)",
+    "desc": ""
+   }
+  },
+  "ultimate": {
+   "ult_0000": {
+    "name": "Super Kamehameha",
+    "desc": ""
+   },
+   "ult_0001": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "ult_0002": {
+    "name": "Super Saiyen 2",
+    "desc": ""
+   },
+   "ult_0003": {
+    "name": "Super Saiyen 3",
+    "desc": ""
+   },
+   "ult_0010": {
+    "name": "Esprit saiyen",
+    "desc": ""
+   },
+   "ult_0040": {
+    "name": "Super Genkidama",
+    "desc": ""
+   },
+   "ult_0050": {
+    "name": "Déch. d'énergie consécutive max",
+    "desc": ""
+   },
+   "ult_0060": {
+    "name": "Attaque explosive",
+    "desc": ""
+   },
+   "ult_0061": {
+    "name": "Barrage implacable",
+    "desc": ""
+   },
+   "ult_0070": {
+    "name": "Kamehameha père-fils",
+    "desc": ""
+   },
+   "ult_0080": {
+    "name": "Potentiel éveillé",
+    "desc": ""
+   },
+   "ult_0090": {
+    "name": "Makankosappo",
+    "desc": ""
+   },
+   "ult_0091": {
+    "name": "Grenade infernale",
+    "desc": ""
+   },
+   "ult_0100": {
+    "name": "Barrage de Kienzan enchaîné",
+    "desc": ""
+   },
+   "ult_0101": {
+    "name": "Kamehameha ondulant",
+    "desc": ""
+   },
+   "ult_0110": {
+    "name": "Sokidan",
+    "desc": ""
+   },
+   "ult_0120": {
+    "name": "Shin kikoho",
+    "desc": ""
+   },
+   "ult_0130": {
+    "name": "Week-end",
+    "desc": ""
+   },
+   "ult_0131": {
+    "name": "Fin des vacances",
+    "desc": ""
+   },
+   "ult_0140": {
+    "name": "Autodestruction",
+    "desc": ""
+   },
+   "ult_0150": {
+    "name": "Canon destructeur",
+    "desc": ""
+   },
+   "ult_0151": {
+    "name": "Tempête géante",
+    "desc": ""
+   },
+   "ult_0160": {
+    "name": "Super Vegeta",
+    "desc": ""
+   },
+   "ult_0161": {
+    "name": "Final flash",
+    "desc": ""
+   },
+   "ult_0162": {
+    "name": "Super Vegeta 2",
+    "desc": ""
+   },
+   "ult_0170": {
+    "name": "Radiation ultime",
+    "desc": ""
+   },
+   "ult_0180": {
+    "name": "Immobilisation",
+    "desc": ""
+   },
+   "ult_0190": {
+    "name": "Ouragan bleu",
+    "desc": ""
+   },
+   "ult_0191": {
+    "name": "Ouragan bleu",
+    "desc": ""
+   },
+   "ult_0200": {
+    "name": "Nec plus ultra combat",
+    "desc": ""
+   },
+   "ult_0210": {
+    "name": "Choc volcanique",
+    "desc": ""
+   },
+   "ult_0220": {
+    "name": "Échange des corps",
+    "desc": ""
+   },
+   "ult_0230": {
+    "name": "Supernova",
+    "desc": ""
+   },
+   "ult_0240": {
+    "name": "Boule de la Mort",
+    "desc": ""
+   },
+   "ult_0241": {
+    "name": "Météore de la Mort",
+    "desc": ""
+   },
+   "ult_0260": {
+    "name": "Dôme de chaleur",
+    "desc": ""
+   },
+   "ult_0270": {
+    "name": "Enchaînement de victoires",
+    "desc": ""
+   },
+   "ult_0280": {
+    "name": "Super frappe électrique",
+    "desc": ""
+   },
+   "ult_0290": {
+    "name": "Boule foudroyante",
+    "desc": ""
+   },
+   "ult_0301": {
+    "name": "Double Kienzan",
+    "desc": ""
+   },
+   "ult_0310": {
+    "name": "Kamehameha parfait",
+    "desc": ""
+   },
+   "ult_0340": {
+    "name": "Combo de la justice",
+    "desc": ""
+   },
+   "ult_0350": {
+    "name": "Souffle de l'innocence",
+    "desc": ""
+   },
+   "ult_0351": {
+    "name": "Rayon pâtissier",
+    "desc": ""
+   },
+   "ult_0360": {
+    "name": "Pluie de coups",
+    "desc": ""
+   },
+   "ult_0370": {
+    "name": "Super boule éclipsante",
+    "desc": ""
+   },
+   "ult_0371": {
+    "name": "Boule de téléportation",
+    "desc": ""
+   },
+   "ult_0380": {
+    "name": "Super fantômes kamikazes",
+    "desc": ""
+   },
+   "ult_0390": {
+    "name": "Épée spirituelle",
+    "desc": ""
+   },
+   "ult_0400": {
+    "name": "Météore géant",
+    "desc": ""
+   },
+   "ult_0410": {
+    "name": "Sphère destructrice",
+    "desc": ""
+   },
+   "ult_0420": {
+    "name": "Explosion virginale",
+    "desc": ""
+   },
+   "ult_0440": {
+    "name": "Super rayon du grand singe",
+    "desc": ""
+   },
+   "ult_0480": {
+    "name": "Canon de glace",
+    "desc": ""
+   },
+   "ult_0481": {
+    "name": "Canon de glace",
+    "desc": ""
+   },
+   "ult_0490": {
+    "name": "Toupie brûlante",
+    "desc": ""
+   },
+   "ult_0491": {
+    "name": "Toupie brûlante",
+    "desc": ""
+   },
+   "ult_0500": {
+    "name": "Boule d'énergie négative",
+    "desc": ""
+   },
+   "ult_0510": {
+    "name": "Big bang Kamehameha x100",
+    "desc": ""
+   },
+   "ult_0520": {
+    "name": "Le sauveur est arrivé",
+    "desc": ""
+   },
+   "ult_0530": {
+    "name": "Mode berserker",
+    "desc": ""
+   },
+   "ult_0531": {
+    "name": "Sphère cuite",
+    "desc": ""
+   },
+   "ult_0532": {
+    "name": "Jet d'énergie",
+    "desc": ""
+   },
+   "ult_0533": {
+    "name": "Mode berserker (Super Saiyen)",
+    "desc": ""
+   },
+   "ult_0534": {
+    "name": "Mode berserker (Super Saiyen 2)",
+    "desc": ""
+   },
+   "ult_0540": {
+    "name": "Bourg bouillant",
+    "desc": ""
+   },
+   "ult_0620": {
+    "name": "Bombe lourde",
+    "desc": ""
+   },
+   "ult_0630": {
+    "name": "Champ d'énergie",
+    "desc": ""
+   },
+   "ult_0631": {
+    "name": "Champ d'énergie",
+    "desc": ""
+   },
+   "ult_0650": {
+    "name": "Destruction symphonique",
+    "desc": ""
+   },
+   "ult_0670": {
+    "name": "Combo super élite",
+    "desc": ""
+   },
+   "ult_0671": {
+    "name": "Combo super élite",
+    "desc": ""
+   },
+   "ult_0673": {
+    "name": "Kamehameha téléporté",
+    "desc": ""
+   },
+   "ult_0674": {
+    "name": "Super canon Garric",
+    "desc": ""
+   },
+   "ult_0675": {
+    "name": "Super canon Garric",
+    "desc": ""
+   },
+   "ult_0800": {
+    "name": "Rayon mortel de l'empereur",
+    "desc": ""
+   },
+   "ult_0810": {
+    "name": "Rayon mortel de l'empereur",
+    "desc": ""
+   },
+   "ult_0811": {
+    "name": "Potentiel éveillé",
+    "desc": ""
+   },
+   "ult_0820": {
+    "name": "Poing du dragon",
+    "desc": ""
+   },
+   "ult_0821": {
+    "name": "Kaioken Kamehameha x4",
+    "desc": ""
+   },
+   "ult_0081": {
+    "name": "Kaioken Kamehameha x20",
+    "desc": ""
+   },
+   "ult_0004": {
+    "name": "Super explosion de ki",
+    "desc": ""
+   },
+   "ult_0005": {
+    "name": "Courage bouillonnant",
+    "desc": ""
+   },
+   "ult_0006": {
+    "name": "Super vague déferlante",
+    "desc": ""
+   },
+   "ult_0011": {
+    "name": "Mabakusenko inversé",
+    "desc": ""
+   },
+   "ult_0012": {
+    "name": "Explosion finale",
+    "desc": ""
+   },
+   "ult_0013": {
+    "name": "Double entaille de la Mort",
+    "desc": ""
+   },
+   "ult_0092": {
+    "name": "Dernier empereur",
+    "desc": ""
+   },
+   "ult_0163": {
+    "name": "Balle sans issue",
+    "desc": ""
+   },
+   "ult_0242": {
+    "name": "Pluie sans issue",
+    "desc": ""
+   },
+   "ult_0243": {
+    "name": "Explosion de colère",
+    "desc": ""
+   },
+   "ult_0281": {
+    "name": "Kamehameha final",
+    "desc": ""
+   },
+   "ult_0302": {
+    "name": "Gigantesque Kikoha",
+    "desc": ""
+   },
+   "ult_0352": {
+    "name": "Balle Zetsumei",
+    "desc": ""
+   },
+   "ult_0391": {
+    "name": "Flammes de l'enfer",
+    "desc": ""
+   },
+   "ult_0441": {
+    "name": "Supernova de Cooler",
+    "desc": ""
+   },
+   "ult_0750": {
+    "name": "Kamehameha à une main v2",
+    "desc": ""
+   },
+   "ult_0830": {
+    "name": "Futur Super Saiyen",
+    "desc": ""
+   },
+   "ult_0850": {
+    "name": "Kamehameha à une main",
+    "desc": ""
+   },
+   "ult_0860": {
+    "name": "Coups météores",
+    "desc": ""
+   },
+   "ult_0861": {
+    "name": "Rayon dimensionnel",
+    "desc": ""
+   },
+   "ult_0862": {
+    "name": "Châtiment spirituel",
+    "desc": ""
+   },
+   "ult_0870": {
+    "name": "Enchaînement ténébreux (Distance)",
+    "desc": ""
+   },
+   "ult_0880": {
+    "name": "Enchaînement ténébreux (corps à corps)",
+    "desc": ""
+   },
+   "ult_1200": {
+    "name": "Blaster stylé",
+    "desc": ""
+   },
+   "ult_1210": {
+    "name": "Propulsion de Doria",
+    "desc": ""
+   },
+   "ult_1211": {
+    "name": "Flash mystique",
+    "desc": ""
+   },
+   "ult_1220": {
+    "name": "Gigantesque Kikoha",
+    "desc": ""
+   },
+   "ult_1230": {
+    "name": "Éclipse temporelle/Molotov",
+    "desc": ""
+   },
+   "ult_1240": {
+    "name": "Super Kamehameha Black",
+    "desc": ""
+   },
+   "ult_1250": {
+    "name": "Frappe brûlante",
+    "desc": ""
+   },
+   "ult_1251": {
+    "name": "Vague déferlante destructrice",
+    "desc": ""
+   },
+   "ult_1260": {
+    "name": "Poison secret",
+    "desc": ""
+   },
+   "ult_1310": {
+    "name": "Vague tranchante",
+    "desc": ""
+   },
+   "ult_1320": {
+    "name": "Requiem de la destruction",
+    "desc": ""
+   },
+   "ult_0007": {
+    "name": "La menace du dieu de la dest.",
+    "desc": ""
+   },
+   "ult_1330": {
+    "name": "Découpe instantanée",
+    "desc": ""
+   },
+   "ult_1340": {
+    "name": "Lasso divin",
+    "desc": ""
+   },
+   "ult_1360": {
+    "name": "Super Kamehameha Black Rosé",
+    "desc": ""
+   },
+   "ult_1370": {
+    "name": "Météore",
+    "desc": ""
+   },
+   "ult_1380": {
+    "name": "Épée de l'espoir",
+    "desc": ""
+   },
+   "ult_1390": {
+    "name": "Colère divine : Purification",
+    "desc": ""
+   },
+   "ult_1391": {
+    "name": "Flammes de châtiment",
+    "desc": ""
+   },
+   "ult_1400": {
+    "name": "Rafale démoniaque",
+    "desc": ""
+   },
+   "ult_1321": {
+    "name": "S.S. Deadly Bomber",
+    "desc": ""
+   },
+   "ult_1421": {
+    "name": "Épée du héros",
+    "desc": ""
+   },
+   "ult_1430": {
+    "name": "Super fantômes kamikazes",
+    "desc": ""
+   },
+   "ult_1450": {
+    "name": "Poison secret",
+    "desc": ""
+   },
+   "ult_1460": {
+    "name": "Super Kamehameha",
+    "desc": ""
+   },
+   "ult_1470": {
+    "name": "Enchaînement furieux",
+    "desc": ""
+   },
+   "ult_0382": {
+    "name": "Bombe lourde à distance",
+    "desc": ""
+   },
+   "ult_1331": {
+    "name": "Bombe lourde à distance",
+    "desc": ""
+   },
+   "ult_1440": {
+    "name": "Manifestation divine",
+    "desc": ""
+   },
+   "ult_1490": {
+    "name": "Explosion gigantesque",
+    "desc": ""
+   },
+   "ult_1500": {
+    "name": "Boule de la mort vengeresse",
+    "desc": ""
+   },
+   "ult_1502": {
+    "name": "Super Kamehameha",
+    "desc": ""
+   },
+   "ult_1510": {
+    "name": "Châtiment divin",
+    "desc": ""
+   },
+   "ult_1520": {
+    "name": "Rugissement gigantesque",
+    "desc": ""
+   },
+   "ult_1530": {
+    "name": "DOUBLE Super Kamehameha",
+    "desc": ""
+   },
+   "ult_1540": {
+    "name": "DOUBLE Courage bouillonnant",
+    "desc": ""
+   },
+   "ult_1541": {
+    "name": "DOUBLE Attaque explosive",
+    "desc": ""
+   },
+   "ult_1550": {
+    "name": "DOUBLE Makankosappo",
+    "desc": ""
+   },
+   "ult_0008": {
+    "name": "DOUBLE Barrage Kienzan ench.",
+    "desc": ""
+   },
+   "ult_0014": {
+    "name": "DOUBLE Sokidan",
+    "desc": ""
+   },
+   "ult_0062": {
+    "name": "DOUBLE Shin kikoho",
+    "desc": ""
+   },
+   "ult_0093": {
+    "name": "DOUBLE Week-end",
+    "desc": ""
+   },
+   "ult_0102": {
+    "name": "DOUBLE Tempête géante",
+    "desc": ""
+   },
+   "ult_0112": {
+    "name": "DOUBLE Final flash",
+    "desc": ""
+   },
+   "ult_0121": {
+    "name": "DOUBLE Attaque laiteuse",
+    "desc": ""
+   },
+   "ult_0132": {
+    "name": "DOUBLE Supernova",
+    "desc": ""
+   },
+   "ult_0152": {
+    "name": "DOUBLE Pluie sans issue",
+    "desc": ""
+   },
+   "ult_0164": {
+    "name": "DOUBLE Kamehameha parfait",
+    "desc": ""
+   },
+   "ult_0221": {
+    "name": "DOUBLE Combo de la justice",
+    "desc": ""
+   },
+   "ult_0231": {
+    "name": "DOUBLE Explosion de colère",
+    "desc": ""
+   },
+   "ult_0303": {
+    "name": "DOUBLE Super fantômes kamik.",
+    "desc": ""
+   },
+   "ult_0311": {
+    "name": "DOUBLE Météore géant",
+    "desc": ""
+   },
+   "ult_0341": {
+    "name": "DOUBLE Sphère destructrice",
+    "desc": ""
+   },
+   "ult_0353": {
+    "name": "DOUBLE Explosion virginale",
+    "desc": ""
+   },
+   "ult_0381": {
+    "name": "DOUBLE Le sauveur est arrivé",
+    "desc": ""
+   },
+   "ult_0401": {
+    "name": "DOUBLE Destruct. symphonique",
+    "desc": ""
+   },
+   "ult_0411": {
+    "name": "DOUBLE Combo super élite",
+    "desc": ""
+   },
+   "ult_0421": {
+    "name": "DOUBLES Flammes de l'enfer",
+    "desc": ""
+   },
+   "ult_0522": {
+    "name": "DOUBLE Supernova (Cooler)",
+    "desc": ""
+   },
+   "ult_0651": {
+    "name": "DOUBLE Kamehameha à une main",
+    "desc": ""
+   },
+   "ult_0672": {
+    "name": "DOUBLES Coups météores",
+    "desc": ""
+   },
+   "ult_0831": {
+    "name": "DOUBLE Enchaînem. ténébreux",
+    "desc": ""
+   },
+   "ult_0851": {
+    "name": "DOUBLE Blaster stylé",
+    "desc": ""
+   },
+   "ult_0864": {
+    "name": "DOUBLE Propulsion de Doria",
+    "desc": ""
+   },
+   "ult_0871": {
+    "name": "DOUBLE Éclipse temp./Molotov",
+    "desc": ""
+   },
+   "ult_1212": {
+    "name": "DOUBLE Découpe instantanée",
+    "desc": ""
+   },
+   "ult_1221": {
+    "name": "DOUBLE Météore",
+    "desc": ""
+   },
+   "ult_1231": {
+    "name": "DOUBLE Bombe lourde à dist.",
+    "desc": ""
+   },
+   "ult_1261": {
+    "name": "DOUBLE Super Kamehameha : Son Gohan (adulte)",
+    "desc": ""
+   },
+   "ult_1381": {
+    "name": "Kamehameha père-fils",
+    "desc": ""
+   },
+   "ult_1401": {
+    "name": "Super Kamehameha",
+    "desc": ""
+   },
+   "ult_1501": {
+    "name": "Champ d'énergie",
+    "desc": ""
+   },
+   "ult_0082": {
+    "name": "Gigantesque Kikoha",
+    "desc": ""
+   },
+   "ult_0863": {
+    "name": "Jet d'énergie",
+    "desc": ""
+   },
+   "ult_1511": {
+    "name": "Champ d'énergie",
+    "desc": ""
+   },
+   "ult_0635": {
+    "name": "Amour éternel",
+    "desc": ""
+   },
+   "ult_1252": {
+    "name": "Affrontation charmante",
+    "desc": ""
+   },
+   "ult_0535": {
+    "name": "Explosion finale",
+    "desc": ""
+   },
+   "ult_0632": {
+    "name": "Ruée Garric Finale",
+    "desc": ""
+   },
+   "ult_1560": {
+    "name": "Flash dominant",
+    "desc": ""
+   },
+   "ult_1561": {
+    "name": "Flash dominant",
+    "desc": ""
+   },
+   "ult_1570": {
+    "name": "Le sauveur est arrivé",
+    "desc": ""
+   },
+   "ult_1572": {
+    "name": "Autodestruction",
+    "desc": ""
+   },
+   "ult_1580": {
+    "name": "Impact foudroyant",
+    "desc": ""
+   },
+   "ult_1581": {
+    "name": "Repas excellent",
+    "desc": ""
+   },
+   "ult_0730": {
+    "name": "Ruée appétissante",
+    "desc": ""
+   },
+   "ult_0142": {
+    "name": "Souffle de l'innocence",
+    "desc": ""
+   },
+   "ult_1100": {
+    "name": "Souffle de l'innocence",
+    "desc": ""
+   },
+   "ult_1110": {
+    "name": "DOUBLE Le sauveur est arrivé",
+    "desc": ""
+   },
+   "ult_1111": {
+    "name": "Super Genkidama",
+    "desc": ""
+   },
+   "ult_1101": {
+    "name": "Impact dans l'espace-temps",
+    "desc": ""
+   },
+   "ult_1102": {
+    "name": "Chrono-canon divin",
+    "desc": ""
+   },
+   "ult_0523": {
+    "name": "Enchaînement furieux",
+    "desc": ""
+   },
+   "ult_0041": {
+    "name": "Kaioken Kamehameha x4",
+    "desc": ""
+   },
+   "ult_1120": {
+    "name": "Kaioken Kamehameha x20",
+    "desc": ""
+   },
+   "ult_1121": {
+    "name": "Vague déferlante destructrice",
+    "desc": ""
+   },
+   "ult_1491": {
+    "name": "Flammes de l'enfer",
+    "desc": ""
+   },
+   "ult_0020": {
+    "name": "Coups météores",
+    "desc": ""
+   },
+   "ult_0021": {
+    "name": "Châtiment spirituel",
+    "desc": ""
+   },
+   "ult_0022": {
+    "name": "Super Kamehameha Black",
+    "desc": ""
+   },
+   "ult_0832": {
+    "name": "Frappe brûlante",
+    "desc": ""
+   },
+   "ult_0872": {
+    "name": "Enchaînement furieux",
+    "desc": ""
+   },
+   "ult_1201": {
+    "name": "Découpe instantanée",
+    "desc": ""
+   },
+   "ult_1311": {
+    "name": "Lasso divin",
+    "desc": ""
+   },
+   "ult_1322": {
+    "name": "Coups météores",
+    "desc": ""
+   },
+   "ult_1323": {
+    "name": "Super Genkidama",
+    "desc": ""
+   },
+   "ult_1382": {
+    "name": "Flash tonnerre",
+    "desc": ""
+   },
+   "ult_1392": {
+    "name": "Fission destructrice",
+    "desc": ""
+   },
+   "ult_0042": {
+    "name": "Super vague déferlante",
+    "desc": ""
+   },
+   "ult_1130": {
+    "name": "Flash tonnerre",
+    "desc": ""
+   },
+   "ult_1140": {
+    "name": "Fission destructrice",
+    "desc": ""
+   },
+   "ult_1492": {
+    "name": "Mur de puissance",
+    "desc": ""
+   },
+   "ult_0015": {
+    "name": "Explosion du météore",
+    "desc": ""
+   },
+   "ult_1131": {
+    "name": "Flux écraseur",
+    "desc": ""
+   },
+   "ult_1141": {
+    "name": "Flux explosif",
+    "desc": ""
+   },
+   "ult_1150": {
+    "name": "Vague tranchante",
+    "desc": ""
+   },
+   "ult_1160": {
+    "name": "Enchaînement furieux",
+    "desc": ""
+   },
+   "ult_1170": {
+    "name": "Sokidan",
+    "desc": ""
+   },
+   "ult_1180": {
+    "name": "DOUBLE Super Genkidama",
+    "desc": ""
+   },
+   "ult_1341": {
+    "name": "DOUBLE Radiation ultime",
+    "desc": ""
+   },
+   "ult_1493": {
+    "name": "DOUBLE Super frappe élect.",
+    "desc": ""
+   },
+   "ult_0113": {
+    "name": "DOUBLE Kamehameha final",
+    "desc": ""
+   },
+   "ult_0043": {
+    "name": "DOUBLE Rayon dimensionnel",
+    "desc": ""
+   },
+   "ult_0171": {
+    "name": "DOUBLE Frappe brûlante",
+    "desc": ""
+   },
+   "ult_0282": {
+    "name": "DOUBLE Lasso divin",
+    "desc": ""
+   },
+   "ult_0392": {
+    "name": "DOUBLE Brave att. armée",
+    "desc": ""
+   },
+   "ult_0881": {
+    "name": "DOUBLE Rugissement gigant.",
+    "desc": ""
+   },
+   "ult_1324": {
+    "name": "DOUBLE Explosion du météore",
+    "desc": ""
+   },
+   "ult_1393": {
+    "name": "Météore géant",
+    "desc": ""
+   },
+   "ult_1471": {
+    "name": "Explosion du météore",
+    "desc": ""
+   },
+   "ult_1551": {
+    "name": "Flux écraseur",
+    "desc": ""
+   },
+   "ult_1161": {
+    "name": "Flux explosif",
+    "desc": ""
+   },
+   "ult_0402": {
+    "name": "Mur de puissance",
+    "desc": ""
+   },
+   "ult_1162": {
+    "name": "DOUBLE Poing du dragon",
+    "desc": ""
+   },
+   "ult_1171": {
+    "name": "Tempête géante",
+    "desc": ""
+   },
+   "ult_1181": {
+    "name": "Impact foudroyant",
+    "desc": ""
+   },
+   "ult_1151": {
+    "name": "Signe d'éveil",
+    "desc": ""
+   },
+   "ult_0023": {
+    "name": "Circle Flash",
+    "desc": ""
+   },
+   "ult_0153": {
+    "name": "DOUBLE Boule énergie négative",
+    "desc": ""
+   },
+   "ult_1103": {
+    "name": "DOUBLE Pluie de coups",
+    "desc": ""
+   },
+   "ult_2010": {
+    "name": "DOUBLE Enchaînement furieux",
+    "desc": ""
+   },
+   "ult_2020": {
+    "name": "DOUBLE Explosion gigantesque",
+    "desc": ""
+   },
+   "ult_0501": {
+    "name": "Rafale démoniaque",
+    "desc": ""
+   },
+   "ult_0361": {
+    "name": "S.S. Deadly Bomber",
+    "desc": ""
+   },
+   "ult_1494": {
+    "name": "Super canon Garric",
+    "desc": ""
+   },
+   "ult_1521": {
+    "name": "Frappe brûlante",
+    "desc": ""
+   },
+   "ult_1451": {
+    "name": "Super explosion gamma",
+    "desc": ""
+   },
+   "ult_1461": {
+    "name": "Brise cœur",
+    "desc": ""
+   },
+   "ult_0812": {
+    "name": "Super Kamehameha",
+    "desc": ""
+   },
+   "ult_1325": {
+    "name": "Super vol du dragon",
+    "desc": ""
+   },
+   "ult_2060": {
+    "name": "DOUBLE Big Bang Kamehameha x100",
+    "desc": ""
+   },
+   "ult_2070": {
+    "name": "DOUBLE Kamehameha téléporté",
+    "desc": ""
+   },
+   "ult_2080": {
+    "name": "DOUBLE Super Kamehameha Black",
+    "desc": ""
+   },
+   "ult_2081": {
+    "name": "DOUBLE Boule de la mort vengeresse",
+    "desc": ""
+   },
+   "ult_0511": {
+    "name": "DOUBLE Flash dominant",
+    "desc": ""
+   },
+   "ult_0801": {
+    "name": "Enchaînement de victoires",
+    "desc": ""
+   },
+   "ult_1312": {
+    "name": "Super explosion gamma",
+    "desc": ""
+   },
+   "ult_1531": {
+    "name": "Makankosappo (Beast)",
+    "desc": ""
+   },
+   "ult_1582": {
+    "name": "Explosion maléfique",
+    "desc": ""
+   },
+   "ult_0271": {
+    "name": "Grenade lumière",
+    "desc": ""
+   },
+   "ult_2061": {
+    "name": "Explosion apocalyptique",
+    "desc": ""
+   },
+   "ult_2090": {
+    "name": "Cri explosif",
+    "desc": ""
+   },
+   "ult_2100": {
+    "name": "Brise cœur",
+    "desc": ""
+   },
+   "ult_2101": {
+    "name": "Super Genkidama (Festival)",
+    "desc": ""
+   },
+   "ult_2110": {
+    "name": "Découpe instantanée (Fest.)",
+    "desc": ""
+   },
+   "ult_2120": {
+    "name": "Châtiment divin (Festival)",
+    "desc": ""
+   },
+   "ult_2071": {
+    "name": "Balle du pendule",
+    "desc": ""
+   },
+   "ult_0009": {
+    "name": "Volonté de justice",
+    "desc": ""
+   },
+   "ult_1383": {
+    "name": "Explosion colossale",
+    "desc": ""
+   },
+   "ult_1542": {
+    "name": "Saccage final",
+    "desc": ""
+   },
+   "ult_2130": {
+    "name": "Bombe rayon divin",
+    "desc": ""
+   },
+   "ult_2140": {
+    "name": "Flash Violet (Festival)",
+    "desc": ""
+   },
+   "ult_2160": {
+    "name": "Saccage final",
+    "desc": ""
+   },
+   "ult_2170": {
+    "name": "Bombe rayon divin",
+    "desc": ""
+   },
+   "ult_2180": {
+    "name": "Explosion colossale",
+    "desc": ""
+   },
+   "ult_0071": {
+    "name": "Puissance du dieu de la destruction",
+    "desc": ""
+   },
+   "ult_2171": {
+    "name": "Destruction pleine puissance",
+    "desc": ""
+   },
+   "ult_2181": {
+    "name": "Destruction pleine puissance",
+    "desc": ""
+   },
+   "ult_2161": {
+    "name": "Blitz explosif",
+    "desc": ""
+   },
+   "ult_2210": {
+    "name": "Explosion colossale",
+    "desc": ""
+   },
+   "ult_2220": {
+    "name": "Super Kamehameha (SS4 DAIMA)",
+    "desc": ""
+   },
+   "ult_2221": {
+    "name": "Final flash (SS3 DAIMA)",
+    "desc": ""
+   },
+   "ult_2230": {
+    "name": "Super vague déferlante",
+    "desc": ""
+   },
+   "ult_2162": {
+    "name": "Nova gigantesque",
+    "desc": ""
+   },
+   "ult_2240": {
+    "name": "Impact temporel chaotique",
+    "desc": ""
+   },
+   "ult_2250": {
+    "name": "Dernier empereur",
+    "desc": ""
+   }
+  },
+  "awoken": {
+   "met_skill_0000": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0001": {
+    "name": "Pro du bâton magique",
+    "desc": ""
+   },
+   "met_skill_0002": {
+    "name": "Géant",
+    "desc": ""
+   },
+   "met_skill_0003": {
+    "name": "Devenir doré",
+    "desc": ""
+   },
+   "met_skill_0004": {
+    "name": "Purification",
+    "desc": ""
+   },
+   "met_skill_0005": {
+    "name": "Kaioken",
+    "desc": ""
+   },
+   "met_skill_0006": {
+    "name": "Potentiel éveillé",
+    "desc": ""
+   },
+   "met_skill_0080": {
+    "name": "Potentiel libéré",
+    "desc": ""
+   },
+   "met_skill_0160": {
+    "name": "Super Vegeta",
+    "desc": ""
+   },
+   "met_skill_0161": {
+    "name": "Super Vegeta",
+    "desc": ""
+   },
+   "met_skill_0162": {
+    "name": "Super Vegeta",
+    "desc": ""
+   },
+   "met_skill_0320": {
+    "name": "Super méchant : Géant",
+    "desc": ""
+   },
+   "met_skill_0321": {
+    "name": "Super méchant : Géant",
+    "desc": ""
+   },
+   "met_skill_0322": {
+    "name": "Super méchant : Géant",
+    "desc": ""
+   },
+   "met_skill_0860": {
+    "name": "Futur Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0861": {
+    "name": "Futur Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0007": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0008": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0009": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0040": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0070": {
+    "name": "Super Saiyen 2",
+    "desc": ""
+   },
+   "met_skill_0800": {
+    "name": "Super Saiyen Blue Kaioken",
+    "desc": ""
+   },
+   "met_skill_0800_1": {
+    "name": "Kaioken x10 Super Saiyen Blue",
+    "desc": ""
+   },
+   "met_skill_1350": {
+    "name": "Pur progrès",
+    "desc": ""
+   },
+   "met_skill_0801": {
+    "name": "Super Saiyen Blue",
+    "desc": ""
+   },
+   "met_skill_1570": {
+    "name": "Super Saiyen Blue (Évolué)",
+    "desc": ""
+   },
+   "met_skill_1160": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_0030": {
+    "name": "Super Saiyen divin (homme)",
+    "desc": ""
+   },
+   "met_skill_0031": {
+    "name": "Super Saiyen divin (femme)",
+    "desc": ""
+   },
+   "met_skill_2020": {
+    "name": "Mode supersonique",
+    "desc": ""
+   },
+   "met_skill_2080": {
+    "name": "Potentiel éveillé",
+    "desc": ""
+   },
+   "met_skill_2081": {
+    "name": "Beast",
+    "desc": ""
+   },
+   "met_skill_1510": {
+    "name": "Ultra Instinct",
+    "desc": ""
+   },
+   "met_skill_2160": {
+    "name": "Super Saiyen",
+    "desc": ""
+   },
+   "met_skill_2260": {
+    "name": "Super Saiyen",
+    "desc": ""
+   }
+  },
+  "evasive": {
+   "avoid_skill_0000": {
+    "name": "Explosion spirituelle",
+    "desc": ""
+   },
+   "avoid_skill_0001": {
+    "name": "Retraite renversée",
+    "desc": ""
+   },
+   "avoid_skill_0050": {
+    "name": "Haute tension retournée",
+    "desc": ""
+   },
+   "avoid_skill_0060": {
+    "name": "Entaille spirituelle",
+    "desc": ""
+   },
+   "avoid_skill_0090": {
+    "name": "Super vague explosive",
+    "desc": ""
+   },
+   "avoid_skill_0100": {
+    "name": "Retraite de tir étendu",
+    "desc": ""
+   },
+   "avoid_skill_0101": {
+    "name": "Frappe destructrice",
+    "desc": ""
+   },
+   "avoid_skill_0130": {
+    "name": "Vague explosive",
+    "desc": ""
+   },
+   "avoid_skill_0160": {
+    "name": "Échappée psychique",
+    "desc": ""
+   },
+   "avoid_skill_0180": {
+    "name": "Genoux miraculeux",
+    "desc": ""
+   },
+   "avoid_skill_0181": {
+    "name": "Sprint sonique",
+    "desc": ""
+   },
+   "avoid_skill_0190": {
+    "name": "Pose finale",
+    "desc": ""
+   },
+   "avoid_skill_0200": {
+    "name": "Lame tournoyante",
+    "desc": ""
+   },
+   "avoid_skill_0210": {
+    "name": "Attaque psychique",
+    "desc": ""
+   },
+   "avoid_skill_0240": {
+    "name": "Accélération armée",
+    "desc": ""
+   },
+   "avoid_skill_0260": {
+    "name": "Champ d'énergie",
+    "desc": ""
+   },
+   "avoid_skill_0280": {
+    "name": "Balle roulante",
+    "desc": ""
+   },
+   "avoid_skill_0300": {
+    "name": "Barrière d'énergie",
+    "desc": ""
+   },
+   "avoid_skill_0310": {
+    "name": "Ascension immédiate",
+    "desc": ""
+   },
+   "avoid_skill_0330": {
+    "name": "Super saut arrière",
+    "desc": ""
+   },
+   "avoid_skill_0331": {
+    "name": "Super saut avant",
+    "desc": ""
+   },
+   "avoid_skill_0340": {
+    "name": "Rayon bonbon",
+    "desc": ""
+   },
+   "avoid_skill_0341": {
+    "name": "Boule de Buu",
+    "desc": ""
+   },
+   "avoid_skill_0350": {
+    "name": "Canon à dimension",
+    "desc": ""
+   },
+   "avoid_skill_0351": {
+    "name": "Cri de colère",
+    "desc": ""
+   },
+   "avoid_skill_0360": {
+    "name": "Canon de la victoire",
+    "desc": ""
+   },
+   "avoid_skill_0370": {
+    "name": "Champ de force",
+    "desc": ""
+   },
+   "avoid_skill_0380": {
+    "name": "Météore explosif",
+    "desc": ""
+   },
+   "avoid_skill_0390": {
+    "name": "Gros plan",
+    "desc": ""
+   },
+   "avoid_skill_0400": {
+    "name": "Explosion féminine",
+    "desc": ""
+   },
+   "avoid_skill_0410": {
+    "name": "Hurlement",
+    "desc": ""
+   },
+   "avoid_skill_0420": {
+    "name": "Zéro absolu",
+    "desc": ""
+   },
+   "avoid_skill_0440": {
+    "name": "Brûlure du dragon",
+    "desc": ""
+   },
+   "avoid_skill_0480": {
+    "name": "Garde punitive",
+    "desc": ""
+   },
+   "avoid_skill_0490": {
+    "name": "Énergie bouillante",
+    "desc": ""
+   },
+   "avoid_skill_0510": {
+    "name": "Zone de ténèbres",
+    "desc": ""
+   },
+   "avoid_skill_0530": {
+    "name": "Téléportation scientifique",
+    "desc": ""
+   },
+   "avoid_skill_0540": {
+    "name": "Rupture",
+    "desc": ""
+   },
+   "avoid_skill_0620": {
+    "name": "Barrage d'élite",
+    "desc": ""
+   },
+   "avoid_skill_0630": {
+    "name": "Makankosappo",
+    "desc": ""
+   },
+   "avoid_skill_0650": {
+    "name": "Hyper déplacement",
+    "desc": ""
+   },
+   "avoid_skill_0670": {
+    "name": "Kikoha simulé",
+    "desc": ""
+   },
+   "avoid_skill_0671": {
+    "name": "Dôme d'énergie",
+    "desc": ""
+   },
+   "avoid_skill_0672": {
+    "name": "Contre sanglant",
+    "desc": ""
+   },
+   "avoid_skill_0673": {
+    "name": "Éclipse temporelle/Séisme",
+    "desc": ""
+   },
+   "avoid_skill_0674": {
+    "name": "Flammes de châtiment",
+    "desc": ""
+   },
+   "avoid_skill_0675": {
+    "name": "Ascension immédiate",
+    "desc": ""
+   },
+   "avoid_skill_0676": {
+    "name": "Météore explosif",
+    "desc": ""
+   },
+   "avoid_skill_0677": {
+    "name": "Téléportation scientifique",
+    "desc": ""
+   },
+   "avoid_skill_0678": {
+    "name": "Ascension immédiate",
+    "desc": ""
+   },
+   "avoid_skill_0679": {
+    "name": "Tempête écorcheuse",
+    "desc": ""
+   },
+   "avoid_skill_0680": {
+    "name": "Frappe flash",
+    "desc": ""
+   },
+   "avoid_skill_0681": {
+    "name": "Explosion féminine",
+    "desc": ""
+   },
+   "avoid_skill_0682": {
+    "name": "Destructeur brutal",
+    "desc": ""
+   },
+   "avoid_skill_0683": {
+    "name": "Esquive totale",
+    "desc": ""
+   },
+   "avoid_skill_0684": {
+    "name": "Mur chaotique",
+    "desc": ""
+   },
+   "avoid_skill_0685": {
+    "name": "Super saut arrière",
+    "desc": ""
+   },
+   "avoid_skill_0686": {
+    "name": "Puissante vague explosive",
+    "desc": ""
+   },
+   "avoid_skill_0687": {
+    "name": "Vague céleste",
+    "desc": ""
+   },
+   "avoid_skill_0091": {
+    "name": "Entaille spirituelle",
+    "desc": ""
+   },
+   "avoid_skill_0840": {
+    "name": "Frappe de l'envol maléfique",
+    "desc": ""
+   },
+   "avoid_skill_0850": {
+    "name": "Tourbillon maléfique",
+    "desc": ""
+   },
+   "avoid_skill_0860": {
+    "name": "Barrière maximum",
+    "desc": ""
+   },
+   "avoid_skill_1220": {
+    "name": "Morsure du soleil (Festival)",
+    "desc": ""
+   },
+   "avoid_skill_1350": {
+    "name": "Kick de l'aigle (Festival)",
+    "desc": ""
+   },
+   "avoid_skill_1430": {
+    "name": "Explosion Saiyen",
+    "desc": ""
+   }
+  }
+ }
+}

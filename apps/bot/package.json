@@ -31,6 +31,8 @@
 		"db:seed-games": "bun src/db/seed-games.ts",
 		"db:seed-manga": "bun src/db/seed-manga.ts",
 		"db:seed-xv2-portraits": "bun src/db/seed-xv2-portraits.ts",
+		"db:seed-xv2-techniques": "bun src/db/seed-xv2-techniques.ts",
+		"db:seed-xv2-characters": "bun src/db/seed-xv2-characters.ts",
 		"db:seed-all": "bun src/db/seed-triggers.ts && bun src/db/seed-level-rewards.ts && bun src/db/seed-shop-banners.ts",
 		"db:sync-news": "bun scripts/sync-news.ts",
 		"rag:build": "bun scripts/rag-build.ts",
