@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { readFileSync } from "node:fs";
+import { inArray } from "drizzle-orm";
 import { container } from "tsyringe";
 import { DatabaseService } from "~/db/index";
 import { dbTechniques } from "~/db/schema";
@@ -43,6 +44,11 @@ const slugify = (s: string) =>
 
 const dbs = container.resolve(DatabaseService);
 const db = dbs.db;
+
+// Idempotence : on purge nos imports XV2 précédents (typés) pour rafraîchir
+// noms/descriptions, sans toucher aux techniques curées (type NULL).
+const CAT_VALUES = ["super", "ultimate", "awoken", "evasive"];
+await db.delete(dbTechniques).where(inArray(dbTechniques.type, CAT_VALUES));
 
 // Index des techniques déjà présentes (normalisé) + slugs pris.
 const existing = await db.select({ name: dbTechniques.name, slug: dbTechniques.slug }).from(dbTechniques);

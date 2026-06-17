@@ -15,21 +15,25 @@ toolkit `dbxv2`, pour enrichir le wiki/économie de Shenron.
 ## Seeds (catalogue-driven)
 
 Tout est piloté par `xv2-catalog.json` (noms factuels du jeu = vérité), **pas** par un
-mapping en dur (qui s'était révélé erroné : `G13`="Bulma" et non Android 13, `BUU`="Fu"
-et non Majin Buu). L'appariement se fait par **nom normalisé + synonymes**.
+mapping en dur. Le catalogue est produit par un **parser `.msg` robuste** (lecture des
+valeurs par position via la table d'entrées — un parser naïf désaligne les noms, ex.
+`G13` confondu avec "Bulma" alors que c'est "C-13"). L'appariement se fait par **nom
+normalisé + synonymes**.
 
 | Script | Effet |
 |--------|-------|
-| `bun db:seed-xv2-portraits` | Pose `db_characters.portrait_xv2` sur les persos existants appariés par nom (32/58). |
+| `bun db:seed-xv2-portraits` | Pose `db_characters.portrait_xv2` sur les persos existants appariés par nom. |
 | `bun db:seed-xv2-characters` | Ajoute les persos XV2 absents qui ont un portrait (forme de base, hors transfos/NPC/grands singes). |
-| `bun db:seed-xv2-techniques` | Importe les compétences XV2 absentes dans `db_techniques` (type = catégorie XV2). |
+| `bun db:seed-xv2-transformations` | Lie les formes (« X (Super Saiyen…) ») au perso de base dans `db_transformations`. |
+| `bun db:seed-xv2-techniques` | Importe les compétences XV2 dans `db_techniques` (type + description d'effet). |
 
-Tous additifs/idempotents (dédup par nom canonique, `onConflictDoNothing`).
+Tous additifs/idempotents (dédup par nom canonique ; purge des lignes XV2 avant ré-insert).
 
 ## Couverture obtenue
 
-- **db_characters : 58 → 103** persos (77 avec portrait XV2).
-- **db_techniques : 120 → 825** (super 428, ultime 211, esquive 50, awoken 16 ajoutées).
+- **db_characters : 58 → 108** persos (81 avec portrait XV2).
+- **db_techniques : 120 → 825** (705 ajoutées : super 428, ultime 211, esquive 50, awoken 16 ; **747 avec description d'effet**).
+- **db_transformations : 43 → 81** (formes de puissance liées aux persos).
 
 `/wiki` (`Wiki.ts`) affiche `portrait_xv2` en priorité, fallback `image`.
 
