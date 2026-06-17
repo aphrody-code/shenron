@@ -10,7 +10,7 @@ import { apiUrl } from "@/lib/config";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	if (!/^\d+$/.test(id)) {
 		return new Response("Film introuvable.", { status: 404 });
@@ -23,8 +23,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
 	const me = await getCurrentUser();
 	if (!me?.user) {
+		// Location relatif (résolu contre l'URL publique côté navigateur).
 		const back = encodeURIComponent(`/wiki/films/${m.slug}`);
-		return Response.redirect(new URL(`/signin?callbackURL=${back}`, req.url).toString(), 302);
+		return new Response(null, { status: 302, headers: { Location: `/signin?callbackURL=${back}` } });
 	}
 
 	if (!m.video_url && !m.stream_url) {
