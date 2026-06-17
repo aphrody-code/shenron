@@ -263,16 +263,15 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 				{player && (
 					<div className="reveal-up mb-12 shadow-2xl shadow-black/50 rounded-lg relative group/player">
 						{player}
-						{(ep.video_url || ep.stream_url) && (
-							<div className="absolute top-3 right-3 z-20">
-								<EpisodeDownload
-									episodeId={ep.id}
-									videoUrl={ep.video_url}
-									streamUrl={ep.stream_url}
-									title={ep.title}
-								/>
-							</div>
-						)}
+						{/* Téléchargement dispo sur TOUS les épisodes (résolution HLS
+						    on-demand côté bot), réservé aux membres connectés Discord. */}
+						<div className="absolute top-3 right-3 z-20">
+							<EpisodeDownload
+								href={`/api/episodes/${ep.id}/download`}
+								signinCallback={`/wiki/episodes/${ep.id}`}
+								title={ep.title}
+							/>
+						</div>
 					</div>
 				)}
 

@@ -45,10 +45,25 @@ export default async function EpisodesIndex({
 	const limit = view === "grid" ? 48 : 100;
 	const offset = (page - 1) * limit;
 
-	const data = await dbUniverse.episodes(series, limit, offset);
+	const [data, seriesRows] = await Promise.all([
+		dbUniverse.episodes(series, limit, offset),
+		dbUniverse.episodeSeries(),
+	]);
 	if (!data || data.episodes.length === 0) notFound();
 	const { episodes, total } = data;
 	const pages = Math.ceil(total / limit);
+
+	// Onglets : uniquement les séries qui ONT des épisodes (sinon clic → 404).
+	// Ordre éditorial stable ; on retombe sur la série courante si la requête échoue.
+	const SERIES_ORDER = ["DB", "DBZ", "DBZ_KAI", "DBZ_KAI_FINAL", "DBGT", "DBS", "DB_DAIMA"];
+	const availableSeries = (seriesRows ?? [])
+		.map((r) => r.series)
+		.sort((a, b) => {
+			const ia = SERIES_ORDER.indexOf(a);
+			const ib = SERIES_ORDER.indexOf(b);
+			return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+		});
+	const navSeries = availableSeries.length > 0 ? availableSeries : [series];
 
 	return (
 		<>
@@ -62,7 +77,7 @@ export default async function EpisodesIndex({
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				<div className="mb-10 flex flex-wrap items-center justify-between gap-4">
 					<nav className="flex flex-wrap gap-2">
-						{Object.entries(SERIES_LABELS).map(([key, label]) => (
+						{navSeries.map((key) => (
 							<Link
 								key={key}
 								href={`/wiki/episodes?series=${key}&view=${view}`}
@@ -72,7 +87,7 @@ export default async function EpisodesIndex({
 										: "bg-white/[0.06] text-white/72 hover:bg-white/[0.12]"
 								}`}
 							>
-								{label.split(" (")[0]}
+								{(SERIES_LABELS[key] ?? key).split(" (")[0]}
 							</Link>
 						))}
 					</nav>
