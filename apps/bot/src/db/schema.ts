@@ -283,6 +283,7 @@ export const dbCharacters = sqliteTable(
 		nameJa: text("name_ja"), // 孫悟空, ベジータ — natif AniList
 		nameRomaji: text("name_romaji"), // "Son Gokuu", "Vegeta" — canon JP romanisé
 		image: text("image").notNull(), // path local dans assets/dbz/characters/
+		portraitXv2: text("portrait_xv2"), // portrait HQ extrait de Xenoverse 2 (assets/dbz/xv2-portraits/<CODE>.png), prioritaire sur image
 		ki: text("ki"),
 		maxKi: text("max_ki"),
 		race: text("race"),

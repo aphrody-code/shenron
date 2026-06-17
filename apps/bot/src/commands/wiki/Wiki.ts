@@ -61,7 +61,7 @@ export class WikiCommands {
 		attachment: AttachmentBuilder | null;
 	} {
 		const color = RACE_COLORS[c.race ?? ""] ?? 0xfbbf24;
-		const img = asEmbedImage(c.image);
+		const img = asEmbedImage(c.portraitXv2 ?? c.image);
 		const embed = new EmbedBuilder()
 			.setTitle(c.name)
 			.setColor(color)
@@ -94,7 +94,7 @@ export class WikiCommands {
 		idx: number
 	): { embed: EmbedBuilder; attachment: AttachmentBuilder | null } {
 		const color = RACE_COLORS[c.race ?? ""] ?? 0xfbbf24;
-		const charImg = asEmbedImage(c.image);
+		const charImg = asEmbedImage(c.portraitXv2 ?? c.image);
 		const transfoImg = asEmbedImage(t.image);
 		const embed = new EmbedBuilder()
 			.setAuthor({ name: c.name, iconURL: charImg.url })

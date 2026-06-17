@@ -1,5 +1,7 @@
 node_modules/
 .env
+.shenron-neon.env
+*.neon.env
 *.log
 
 # Build artifacts (dist exclu sauf packages vendorés ci-dessous)
