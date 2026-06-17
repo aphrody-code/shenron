@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { baAccount, users } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { env } from "@/lib/env";
+import { ADMIN_COOKIE, adminTokenEnabled, verifyAdminCookie } from "@/lib/admin-token";
 
 export type SiteUser = typeof users.$inferSelect;
 
@@ -37,7 +38,78 @@ function resolveRoleAdmin(discordId: string): boolean {
 const userResolveCache = new Map<string, { at: number; value: CurrentUser }>();
 const USER_RESOLVE_TTL = 60_000;
 
+// Cache de la résolution token-admin (la valeur ne change jamais) → évite un
+// aller-retour Neon à chaque requête, vu que la console admin poll toutes les 5 s.
+let tokenAdminCache: { at: number; value: CurrentUser } | null = null;
+const TOKEN_ADMIN_TTL = 60_000;
+let warnedNoOwner = false;
+
+/**
+ * Résout l'admin par token (cookie signé valide). Mappe sur le user métier de
+ * l'OWNER si `OWNER_ID` est connu (lecture d'abord, écriture seulement si la
+ * ligne manque ou n'est pas encore admin) ; sinon renvoie un admin synthétique.
+ * Mémoïsé 60 s. Cf. `@/lib/admin-token`.
+ */
+async function resolveTokenAdmin(): Promise<CurrentUser> {
+	if (tokenAdminCache && Date.now() - tokenAdminCache.at < TOKEN_ADMIN_TTL) {
+		return tokenAdminCache.value;
+	}
+	const ownerId = env.OWNER_ID;
+	let value: CurrentUser;
+	if (ownerId) {
+		const [existing] = await db
+			.select()
+			.from(users)
+			.where(eq(users.discordId, ownerId))
+			.limit(1);
+		let row = existing;
+		// N'écrit QUE si nécessaire (ligne absente ou pas encore admin).
+		if (!row || !row.roleAdmin) {
+			const inserted = await db
+				.insert(users)
+				.values({
+					discordId: ownerId,
+					username: row?.username ?? "Admin (token)",
+					avatar: row?.avatar ?? null,
+					roleAdmin: true,
+				})
+				.onConflictDoUpdate({ target: users.discordId, set: { roleAdmin: true } })
+				.returning();
+			row = inserted[0] ?? row;
+		}
+		value = { sessionUserId: "token-admin", discordId: ownerId, user: row ?? null };
+	} else {
+		// Mode dégradé : sans OWNER_ID, pas de ligne `users` → les écritures
+		// user-keyed (createTierlist/posts) échoueraient en FK. On garde l'accès
+		// admin (lecture + proxy bot-admin) mais on avertit de configurer OWNER_ID.
+		if (!warnedNoOwner) {
+			console.warn("[auth] admin par token sans OWNER_ID : écritures user-keyed indisponibles.");
+			warnedNoOwner = true;
+		}
+		const synthetic: SiteUser = {
+			id: "token-admin",
+			discordId: "",
+			username: "Admin (token)",
+			avatar: null,
+			roleAdmin: true,
+			createdAt: new Date(),
+		};
+		value = { sessionUserId: "token-admin", discordId: "", user: synthetic };
+	}
+	tokenAdminCache = { at: Date.now(), value };
+	return value;
+}
+
 export async function getCurrentUser(): Promise<CurrentUser | null> {
+	// Admin par token (sans Discord) — cookie signé httpOnly. Prioritaire et
+	// no-op si la fonctionnalité est désactivée (SHENRON_ADMIN_TOKEN absent).
+	if (adminTokenEnabled()) {
+		const jar = await cookies();
+		if (verifyAdminCookie(jar.get(ADMIN_COOKIE)?.value)) {
+			return resolveTokenAdmin();
+		}
+	}
+
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user) return null;
 

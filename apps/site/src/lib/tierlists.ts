@@ -18,8 +18,8 @@ export interface TierlistTemplate {
 	key: string;
 	title: string;
 	description: string;
-	/** Source du pool d'images. Pour l'instant : personnages du wiki. */
-	source: "characters";
+	/** Source du pool d'images : personnages du wiki, ou `none` (page blanche). */
+	source: "characters" | "none";
 	/** Filtre optionnel sur la race (ex: Saiyans). */
 	race?: RegExp;
 	/** Nombre max d'items dans le pool (les plus canoniques d'abord). */
@@ -49,6 +49,12 @@ export const TIERLIST_TEMPLATES: TierlistTemplate[] = [
 		source: "characters",
 		limit: 150,
 	},
+	{
+		key: "libre",
+		title: "Tierlist libre",
+		description: "Pars d'une page blanche et ajoute tes propres images (upload ou URL).",
+		source: "none",
+	},
 ];
 
 /** Tiers par défaut d'une nouvelle tierlist (vides). */
@@ -62,6 +68,30 @@ export const DEFAULT_TIERS: Array<{ label: string; color: string }> = [
 
 export function getTierlistTemplate(key: string): TierlistTemplate | undefined {
 	return TIERLIST_TEMPLATES.find((t) => t.key === key);
+}
+
+/** Libellé de la catégorie « ajouts perso » (images uploadées / URL / texte). */
+export const CUSTOM_CATEGORY = "Mes ajouts";
+
+/**
+ * Range un personnage du wiki dans une catégorie française lisible à partir de
+ * sa `race` (champ DB souvent en anglais/espagnol). Sert à regrouper le pool de
+ * l'éditeur pour retrouver une carte rapidement (onglets de filtre).
+ */
+export function categoryOf(race: string | null | undefined): string {
+	const r = (race ?? "").toLowerCase();
+	if (!r) return "Autres";
+	if (r.includes("saiyan") || r.includes("saïen") || r.includes("saiyen")) return "Saiyans";
+	if (r.includes("android") || r.includes("androïde") || r.includes("cyborg")) return "Androïdes";
+	if (r.includes("namek")) return "Nameks";
+	if (r.includes("frieza") || r.includes("freezer") || r.includes("freeza")) return "Race de Freezer";
+	if (r.includes("majin")) return "Majins";
+	if (r.includes("angel") || r.includes("ange")) return "Anges";
+	if (r.includes("nucleico") || r.includes("kaio") || r.includes("kaïo")) return "Kaïos & divinités";
+	if (r.includes("god") || r.includes("dieu") || r.includes("divin")) return "Dieux";
+	if (r.includes("human") || r.includes("terrien") || r.includes("humain")) return "Humains";
+	if (r.includes("jiren")) return "Univers 11";
+	return "Autres";
 }
 
 export function emptyTiers(): TierlistTier[] {
@@ -91,7 +121,12 @@ export async function getTierlistPool(templateKey: string): Promise<TierlistItem
 			.filter((c) => !!c.image)
 			.filter((c) => (tpl.race ? !!c.race && tpl.race.test(c.race) : true))
 			.slice(0, tpl.limit ?? 80)
-			.map((c) => ({ id: `char:${c.id}`, label: c.name, image: c.image }));
+			.map((c) => ({
+				id: `char:${c.id}`,
+				label: c.name,
+				image: c.image,
+				category: categoryOf(c.race),
+			}));
 	} catch (e) {
 		console.error("getTierlistPool failed:", e);
 		return [];

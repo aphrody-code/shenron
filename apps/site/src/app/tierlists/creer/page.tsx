@@ -52,11 +52,13 @@ export default async function CreerTierlistPage({
 
 	// Étape 2 — éditeur sur le pool du template.
 	const pool = await getTierlistPool(tpl.key);
+	// Le template « libre » part d'une page blanche : on autorise un pool vide.
+	const allowEmpty = tpl.source === "none";
 
 	return (
 		<div className="container mx-auto max-w-4xl px-4 py-12">
 			<PageHeader title="TON CLASSEMENT" subtitle={tpl.title} size="md" />
-			{pool.length === 0 ? (
+			{pool.length === 0 && !allowEmpty ? (
 				<div className="dbz-panel p-8 text-center text-white/60">
 					Pool d'images indisponible pour ce thème. Réessaie plus tard.
 				</div>

@@ -7,12 +7,31 @@ export const dynamic = "force-dynamic";
 const MAX_ITEMS = 400;
 const MAX_TIERS = 12;
 
+/**
+ * Valide l'image d'une carte : URL http(s) OU chemin d'asset self-hosté
+ * relatif (`./assets/dbz/…` du pool wiki, `assets/wiki/…` des uploads, `db/…`).
+ * Rejette les `data:`/`javascript:`/`blob:` (sinon on stockerait des Mo de
+ * base64 en jsonb, ou un vecteur XSS) et la traversée de chemin ; cappe la
+ * longueur. NB : les images du pool wiki sont `./assets/dbz/…` → doivent passer.
+ */
+function asImage(v: unknown): string | null {
+	if (typeof v !== "string") return null;
+	const s = v.trim();
+	if (!s || s.length > 512 || s.includes("..")) return null;
+	// URL externe : `https` uniquement (pas de `http` → évite le mixed-content
+	// bloqué par le navigateur). NB : une URL externe reste fournie par l'auteur
+	// et est rendue en <img src> ; l'upload (rehébergé localement) est la voie
+	// recommandée pour une image perso.
+	if (/^https:\/\//i.test(s)) return s;
+	if (/^\.?\/?(assets\/|wiki\/|db\/)/i.test(s)) return s;
+	return null;
+}
+
 function asItem(v: unknown): TierlistItem | null {
 	if (!v || typeof v !== "object") return null;
 	const o = v as Record<string, unknown>;
 	if (typeof o.id !== "string" || typeof o.label !== "string") return null;
-	const image = typeof o.image === "string" ? o.image : null;
-	return { id: o.id.slice(0, 80), label: o.label.slice(0, 80), image };
+	return { id: o.id.slice(0, 80), label: o.label.slice(0, 80), image: asImage(o.image) };
 }
 
 function asTier(v: unknown): TierlistTier | null {

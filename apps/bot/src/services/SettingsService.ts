@@ -181,6 +181,14 @@ export const SETTINGS_KEYS: SettingDef[] = [
 		description: "Salon des annonces",
 	},
 	{
+		key: "chat.blacklist_channels",
+		type: "string",
+		category: "features",
+		default: "",
+		description:
+			"Salons où les personas ne répondent JAMAIS (chat autonome désactivé). IDs séparés par des virgules. Les salons de type Annonces sont déjà exclus automatiquement.",
+	},
+	{
 		key: "channel.achievement",
 		type: "snowflake",
 		category: "channels",

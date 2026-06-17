@@ -51,7 +51,14 @@ export const posts = pgTable("Post", {
 // --- Tierlists communautaires ---
 // Un item = une carte (personnage/technique/… du wiki) figée dans la tierlist.
 // Une tier = une ligne (S/A/B/C/D…) + sa couleur + ses items ordonnés.
-export type TierlistItem = { id: string; label: string; image: string | null };
+export type TierlistItem = {
+	id: string;
+	label: string;
+	image: string | null;
+	// Catégorie d'origine du pool (Saiyans, Androïdes, Mes ajouts…) — sert au
+	// filtre/recherche de l'éditeur. Non persisté dans le snapshot sauvegardé.
+	category?: string | null;
+};
 export type TierlistTier = { id: string; label: string; color: string; items: TierlistItem[] };
 
 export const tierlists = pgTable("Tierlist", {

@@ -3025,6 +3025,57 @@ export class ApiServer {
 					}),
 				},
 
+				// ── Discord : lecture des messages récents d'un salon ──────────
+				// GET /api/discord/messages?channelId=&limit= (défaut 30, max 100).
+				// Utilise Grand Prêtre (intent MessageContent) pour voir le contenu ;
+				// fallback sur le 1er persona dispo si offline (contenu possiblement vide).
+				"/api/discord/messages": admin(async (req) => {
+					const url = new URL(req.url);
+					const channelId = url.searchParams.get("channelId");
+					if (!channelId || !/^\d{17,20}$/.test(channelId)) {
+						return Response.json({ error: "channelId invalide" }, { status: 400 });
+					}
+					const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 30));
+					const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
+					const client =
+						clientMap.get("grandPretre") ??
+						[...clientMap.values()].find((c) => c.isReady());
+					if (!client) {
+						return Response.json({ error: "aucun persona en ligne" }, { status: 503 });
+					}
+					try {
+						const channel = await client.channels.fetch(channelId);
+						if (!channel || !channel.isTextBased() || !("messages" in channel)) {
+							return Response.json({ error: "salon textuel introuvable" }, { status: 404 });
+						}
+						const fetched = await (channel as TextChannel).messages.fetch({ limit });
+						const messages = [...fetched.values()]
+							.toSorted((a, b) => a.createdTimestamp - b.createdTimestamp)
+							.map((m) => ({
+								id: m.id,
+								authorId: m.author.id,
+								authorName: m.member?.displayName ?? m.author.globalName ?? m.author.username,
+								authorAvatar: m.author.displayAvatarURL({ size: 64 }),
+								authorBot: m.author.bot,
+								content: m.content,
+								createdAt: new Date(m.createdTimestamp).toISOString(),
+								attachments: [...m.attachments.values()].map((a) => ({
+									url: a.url,
+									name: a.name,
+									contentType: a.contentType,
+								})),
+								embedCount: m.embeds.length,
+							}));
+						const channelName = "name" in channel ? (channel.name ?? null) : null;
+						return Response.json({ channelId, channelName, messages, count: messages.length });
+					} catch (err) {
+						return Response.json(
+							{ error: err instanceof Error ? err.message : "lecture échouée" },
+							{ status: 500 }
+						);
+					}
+				}),
+
 				// ── Settings schema (catalogue SETTINGS_KEYS + valeur courante) ──
 				"/api/settings/schema": admin(async () => {
 					const { SETTINGS_KEYS } = await import("~/services/SettingsService");
@@ -4296,12 +4347,20 @@ export class ApiServer {
 								{ status: 415 }
 							);
 						}
+						// Sous-dossier optionnel (slug strict) → namespace distinct des
+						// assets wiki curés (ex. `tierlists` pour les uploads membres).
+						const subdirRaw = String(form.get("subdir") ?? "")
+							.trim()
+							.toLowerCase();
+						const subdir = /^[a-z0-9-]{1,32}$/.test(subdirRaw) ? subdirRaw : "";
+						const relDir = subdir ? `assets/wiki/${subdir}` : "assets/wiki";
+						const writeDir = subdir ? `../site/public/wiki/${subdir}` : "../site/public/wiki";
 						const name = `${crypto.randomUUID()}${ext}`;
-						const rel = `assets/wiki/${name}`;
-						const writePath = `../site/public/wiki/${name}`;
+						const rel = `${relDir}/${name}`;
+						const writePath = `${writeDir}/${name}`;
 						try {
 							const { mkdir } = await import("node:fs/promises");
-							await mkdir("../site/public/wiki", { recursive: true });
+							await mkdir(writeDir, { recursive: true });
 							await Bun.write(writePath, file);
 						} catch (err) {
 							return Response.json(

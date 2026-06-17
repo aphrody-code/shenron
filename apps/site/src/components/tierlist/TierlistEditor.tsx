@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { assetUrl } from "@/lib/assets";
 import type { TierlistItem, TierlistTier } from "@/db/schema";
@@ -10,12 +10,16 @@ interface Board {
 	pool: TierlistItem[];
 }
 
+// Client-safe (lib/tierlists est `server-only`) : on recopie juste le libellé.
+const CUSTOM_CATEGORY = "Mes ajouts";
+const ALL = "__all__";
+
 /**
- * Éditeur de tierlist. Deux interactions complémentaires :
- *  - tap-pour-placer (universel, mobile + desktop) : on sélectionne une carte
- *    puis on tape un tier (ou la réserve) pour l'y déposer ;
- *  - glisser-déposer HTML5 (bonus desktop) : on tire une carte vers un tier.
- * À la publication, POST /api/tierlists → redirection vers la tierlist créée.
+ * Éditeur de tierlist. Trois apports pour l'usage réel :
+ *  - tap-pour-placer (mobile + desktop) + glisser-déposer HTML5 (desktop) ;
+ *  - **catégories + recherche** dans la réserve pour retrouver une carte vite ;
+ *  - **ajout de ses propres cartes** : upload d'image, image par URL, ou carte
+ *    texte. À la publication, POST /api/tierlists → redirection.
  */
 export function TierlistEditor({
 	templateKey,
@@ -38,6 +42,18 @@ export function TierlistEditor({
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const dragId = useRef<string | null>(null);
+
+	// Filtres de la réserve.
+	const [search, setSearch] = useState("");
+	const [activeCat, setActiveCat] = useState<string>(ALL);
+
+	// Panneau d'ajout de carte custom.
+	const [addOpen, setAddOpen] = useState(false);
+	const [addLabel, setAddLabel] = useState("");
+	const [addUrl, setAddUrl] = useState("");
+	const [uploading, setUploading] = useState(false);
+	const [addError, setAddError] = useState<string | null>(null);
+	const fileRef = useRef<HTMLInputElement | null>(null);
 
 	function place(itemId: string, targetId: string) {
 		setBoard((prev) => {
@@ -74,6 +90,62 @@ export function TierlistEditor({
 		dragId.current = null;
 	}
 
+	function addCard(image: string | null) {
+		const label = addLabel.trim() || (image ? "Carte" : "");
+		if (!label) {
+			setAddError("Donne un nom à ta carte (ou ajoute une image).");
+			return;
+		}
+		const item: TierlistItem = {
+			id: `custom:${crypto.randomUUID().slice(0, 12)}`,
+			label: label.slice(0, 60),
+			image,
+			category: CUSTOM_CATEGORY,
+		};
+		setBoard((prev) => ({ ...prev, pool: [item, ...prev.pool] }));
+		setAddLabel("");
+		setAddUrl("");
+		setAddError(null);
+		setActiveCat(CUSTOM_CATEGORY);
+		if (fileRef.current) fileRef.current.value = "";
+	}
+
+	async function onPickFile(file: File) {
+		setAddError(null);
+		if (file.size > 4 * 1024 * 1024) {
+			setAddError("Image trop lourde (max 4 Mo).");
+			return;
+		}
+		setUploading(true);
+		try {
+			const fd = new FormData();
+			fd.append("file", file);
+			const res = await fetch("/api/tierlists/upload", { method: "POST", body: fd });
+			const data = await res.json().catch(() => ({}));
+			if (!res.ok || !data.path) {
+				setAddError(data?.error ?? "Échec de l'upload.");
+				return;
+			}
+			if (!addLabel.trim()) {
+				setAddLabel(file.name.replace(/\.[a-z0-9]+$/i, "").slice(0, 60));
+			}
+			addCard(data.path as string);
+		} catch {
+			setAddError("Réseau indisponible pour l'upload.");
+		} finally {
+			setUploading(false);
+		}
+	}
+
+	function addByUrl() {
+		const u = addUrl.trim();
+		if (!/^https:\/\//i.test(u)) {
+			setAddError("Colle une URL d'image en https.");
+			return;
+		}
+		addCard(u);
+	}
+
 	async function save() {
 		setError(null);
 		if (title.trim().length < 2) {
@@ -108,6 +180,32 @@ export function TierlistEditor({
 			setSaving(false);
 		}
 	}
+
+	// Catégories présentes dans la réserve (pour les onglets de filtre).
+	const categories = useMemo(() => {
+		const set = new Set<string>();
+		for (const it of board.pool) set.add(it.category || "Autres");
+		return [...set].sort((a, b) =>
+			a === CUSTOM_CATEGORY ? -1 : b === CUSTOM_CATEGORY ? 1 : a.localeCompare(b)
+		);
+	}, [board.pool]);
+
+	// Si la catégorie active disparaît (toutes ses cartes placées dans des tiers),
+	// on revient sur « Tous » pour ne pas bloquer la réserve sur un filtre vide.
+	useEffect(() => {
+		if (activeCat !== ALL && !categories.includes(activeCat)) setActiveCat(ALL);
+	}, [categories, activeCat]);
+
+	const visiblePool = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		return board.pool.filter((it) => {
+			if (activeCat !== ALL && (it.category || "Autres") !== activeCat) return false;
+			if (q && !it.label.toLowerCase().includes(q)) return false;
+			return true;
+		});
+	}, [board.pool, search, activeCat]);
+
+	const placedCount = board.tiers.reduce((n, t) => n + t.items.length, 0);
 
 	const renderCard = (it: TierlistItem) => (
 		<button
@@ -189,7 +287,7 @@ export function TierlistEditor({
 				))}
 			</div>
 
-			{/* Réserve (cartes non classées) */}
+			{/* Réserve (cartes non classées) + filtres + ajout */}
 			<div
 				onClick={() => onTapZone("pool")}
 				onDragOver={(e) => e.preventDefault()}
@@ -198,16 +296,133 @@ export function TierlistEditor({
 					selected ? "cursor-pointer border-[#ffd54f]/40" : "border-white/10"
 				}`}
 			>
-				<div className="mb-2 flex items-center justify-between">
+				<div className="mb-2 flex flex-wrap items-center justify-between gap-2">
 					<span className="text-[12px] font-bold uppercase tracking-[0.14em] text-white/55">
-						Réserve · {board.pool.length}
+						Réserve · {visiblePool.length}
+						{visiblePool.length !== board.pool.length ? ` / ${board.pool.length}` : ""}
 					</span>
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							setAddOpen((v) => !v);
+						}}
+						className="rounded-md border border-[#ffd54f]/40 px-2.5 py-1 text-[12px] font-bold text-[#ffd54f] hover:bg-[#ffd54f]/10"
+					>
+						{addOpen ? "Fermer" : "+ Ajouter une image"}
+					</button>
 				</div>
+
+				{/* Panneau d'ajout de carte custom */}
+				{addOpen && (
+					<div
+						onClick={(e) => e.stopPropagation()}
+						className="mb-3 grid gap-2 rounded-lg border border-white/10 bg-black/40 p-3 sm:grid-cols-[1fr_auto]"
+					>
+						<input
+							value={addLabel}
+							onChange={(e) => setAddLabel(e.target.value)}
+							maxLength={60}
+							placeholder="Nom de la carte (ex. Gogeta Blue)"
+							className="rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#ffd54f] sm:col-span-2"
+						/>
+						<div className="flex flex-wrap items-center gap-2">
+							<input
+								ref={fileRef}
+								type="file"
+								accept="image/png,image/jpeg,image/webp,image/gif"
+								onChange={(e) => {
+									const f = e.target.files?.[0];
+									if (f) void onPickFile(f);
+								}}
+								className="max-w-[12rem] text-[12px] text-white/70 file:mr-2 file:rounded file:border-0 file:bg-[#ffd54f] file:px-2 file:py-1 file:text-[12px] file:font-bold file:text-black"
+							/>
+							{uploading && <span className="text-[12px] text-white/50">Upload…</span>}
+						</div>
+						<div className="flex items-center gap-2">
+							<input
+								value={addUrl}
+								onChange={(e) => setAddUrl(e.target.value)}
+								placeholder="…ou colle une URL d'image"
+								className="min-w-0 flex-1 rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#ffd54f]"
+							/>
+							<button
+								type="button"
+								onClick={addByUrl}
+								className="shrink-0 rounded-md border border-white/20 px-2.5 py-1.5 text-[12px] font-bold text-white/80 hover:border-white/50"
+							>
+								URL
+							</button>
+						</div>
+						<button
+							type="button"
+							onClick={() => addCard(null)}
+							className="justify-self-start text-[12px] text-white/50 hover:text-white/80 sm:col-span-2"
+						>
+							+ Ajouter une carte texte (sans image)
+						</button>
+						{addError && (
+							<p className="text-[12px] font-semibold text-rose-400 sm:col-span-2">{addError}</p>
+						)}
+					</div>
+				)}
+
+				{/* Recherche + onglets catégories */}
+				{board.pool.length > 0 && (
+					<div className="mb-2 flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+						<input
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							placeholder="Rechercher une carte…"
+							className="w-full rounded-md border border-white/12 bg-black/50 px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#ffd54f] sm:max-w-xs"
+						/>
+						{categories.length > 1 && (
+							<div className="flex flex-wrap gap-1.5">
+								<button
+									type="button"
+									onClick={() => setActiveCat(ALL)}
+									className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+										activeCat === ALL
+											? "border-[#ffd54f] bg-[#ffd54f]/15 text-[#ffd54f]"
+											: "border-white/12 text-white/55 hover:border-white/35"
+									}`}
+								>
+									Tous
+								</button>
+								{categories.map((c) => (
+									<button
+										key={c}
+										type="button"
+										onClick={() => setActiveCat(c)}
+										className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+											activeCat === c
+												? "border-[#ffd54f] bg-[#ffd54f]/15 text-[#ffd54f]"
+												: "border-white/12 text-white/55 hover:border-white/35"
+										}`}
+									>
+										{c}
+									</button>
+								))}
+							</div>
+						)}
+					</div>
+				)}
+
 				<div className="flex max-h-72 flex-wrap content-start gap-1 overflow-y-auto">
-					{board.pool.map(renderCard)}
-					{board.pool.length === 0 && (
+					{visiblePool.map(renderCard)}
+					{board.pool.length === 0 &&
+						(placedCount > 0 ? (
+							<span className="text-[12px] italic text-white/35">
+								Toutes les cartes sont classées.
+							</span>
+						) : (
+							<span className="text-[12px] italic text-white/35">
+								Ajoute tes propres cartes avec le bouton « + Ajouter une image ».
+							</span>
+						))}
+					{board.pool.length > 0 && visiblePool.length === 0 && (
 						<span className="text-[12px] italic text-white/35">
-							Toutes les cartes sont classées.
+							Aucune carte ne correspond à ce filtre.
 						</span>
 					)}
 				</div>

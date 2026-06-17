@@ -10,13 +10,15 @@
  *   - beerus/shenron n'ont pas GuildMessages -> leur handler reste inerte tant que l'intent n'est
  *     pas ajouté (changement sûr et non privilégié, à activer plus tard si besoin).
  */
-import { inject, injectable } from "tsyringe";
+import { container, inject, injectable } from "tsyringe";
+import { ChannelType } from "discord.js";
 import { Bot, Discord, On, type ArgsOf } from "@rpbey/discordy";
 import { DatabaseService } from "~/db/index";
 import { RedisIndexerService } from "~/lib/redis-indexer";
 import { hybridSearch } from "~/lib/rag";
 import { generateLlmAnswer } from "~/lib/llm";
 import { logger } from "~/lib/logger";
+import { SettingsService } from "~/services/SettingsService";
 
 /** Persona qui assure l'indexation temps réel (a MessageContent -> voit le contenu). */
 const INDEXER_PERSONA = "grandpretre";
@@ -69,6 +71,25 @@ class BaseAutonomousChat {
 		protected personaId: "whis" | "beerus" | "shenron" | "grandpretre" | "kaio"
 	) {}
 
+	/**
+	 * Vrai si le salon interdit le chat autonome :
+	 *   - salon Discord de type Annonces (ou thread d'annonce) ;
+	 *   - salon configuré comme `channel.announce` ;
+	 *   - salon listé dans `chat.blacklist_channels` (settings, cache mémoire).
+	 */
+	private async isNoChatChannel(message: ArgsOf<"messageCreate">[0]): Promise<boolean> {
+		const type = message.channel.type;
+		if (type === ChannelType.GuildAnnouncement || type === ChannelType.AnnouncementThread) {
+			return true;
+		}
+		const settings = container.resolve(SettingsService);
+		const announceId = await settings.getSnowflake("channel.announce");
+		if (announceId && message.channelId === announceId) return true;
+		const raw = await settings.getString("chat.blacklist_channels", "");
+		if (raw && raw.split(/[\s,]+/).filter(Boolean).includes(message.channelId)) return true;
+		return false;
+	}
+
 	async handleMessage(message: ArgsOf<"messageCreate">[0]) {
 		if (!message.inGuild() || message.author.bot) return;
 
@@ -97,6 +118,11 @@ class BaseAutonomousChat {
 		// 2. Décider d'une réponse autonome.
 		const botUser = message.client.user;
 		if (!botUser) return;
+
+		// JAMAIS de réponse autonome dans un salon d'annonces (bug : Whis & Grand
+		// Prêtre répondaient aux annonces) ni dans un salon blacklisté. L'indexation
+		// ci-dessus reste active (analytics), seule la réponse est supprimée.
+		if (await this.isNoChatChannel(message)) return;
 
 		const content = (message.content || "").toLowerCase();
 		const isMentioned = message.mentions.has(botUser.id);

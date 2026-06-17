@@ -104,6 +104,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		icon: <Bot className="h-4 w-4" />,
 		section: "accueil",
 	},
+	{
+		href: "/admin/console",
+		label: "Console bots",
+		description: "Voir les messages d'un salon et faire parler une persona",
+		icon: <Send className="h-4 w-4" />,
+		section: "accueil",
+	},
 
 	// SYSTÈME & TECHNIQUE
 	{
