@@ -64,6 +64,7 @@ export const botCharacters = bot.table("db_characters", {
 	id: int("id").primaryKey(),
 	name: text("name").notNull(),
 	image: text("image"),
+	portraitXv2: text("portrait_xv2"), // portrait HQ extrait de Xenoverse 2
 	ki: text("ki"),
 	maxKi: text("max_ki"),
 	race: text("race"),
