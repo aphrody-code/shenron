@@ -62,6 +62,18 @@ export default async function TierlistsPage() {
 						>
 							<div className="mb-3 flex items-start justify-between gap-2">
 								<div className="min-w-0">
+									<div className="mb-1 flex flex-wrap items-center gap-1.5">
+										{tl.official && (
+											<span className="rounded bg-dbz-yellow/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-dbz-yellow border border-dbz-yellow/40">
+												Officiel
+											</span>
+										)}
+										{tl.featured && (
+											<span className="rounded bg-dbz-orange/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-dbz-orange border border-dbz-orange/40">
+												★ En avant
+											</span>
+										)}
+									</div>
 									<h2 className="truncate text-lg font-bold text-white">{tl.title}</h2>
 									<p className="text-[12px] text-white/45">par {tl.author?.username ?? "un Saiyan"}</p>
 								</div>

@@ -54,6 +54,21 @@ export default async function TierlistPage({ params }: { params: Promise<{ slug:
 				}
 			/>
 
+			{(tl.official || tl.featured) && (
+				<div className="mb-4 flex flex-wrap justify-center gap-2">
+					{tl.official && (
+						<span className="rounded-full bg-dbz-yellow/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-dbz-yellow border border-dbz-yellow/40">
+							Tier list officielle
+						</span>
+					)}
+					{tl.featured && (
+						<span className="rounded-full bg-dbz-orange/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-dbz-orange border border-dbz-orange/40">
+							★ Mise en avant
+						</span>
+					)}
+				</div>
+			)}
+
 			{tl.description && (
 				<p className="mb-6 text-center text-white/65">{tl.description}</p>
 			)}

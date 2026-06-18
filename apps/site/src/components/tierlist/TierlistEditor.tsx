@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { assetUrl } from "@/lib/assets";
 import type { TierlistItem, TierlistTier } from "@/db/schema";
+import type { OfficialTierlistPayload, SaveTierlistResult } from "@/lib/tierlist-input";
 
 interface Board {
 	tiers: TierlistTier[];
@@ -27,12 +28,27 @@ export function TierlistEditor({
 	defaultDescription,
 	pool,
 	initialTiers,
+	admin = false,
+	tierlistId = null,
+	initialOfficial = true,
+	initialFeatured = false,
+	initialPublished = true,
+	onSave,
 }: {
 	templateKey: string | null;
 	defaultTitle: string;
 	defaultDescription: string;
 	pool: TierlistItem[];
 	initialTiers: TierlistTier[];
+	/** Active le mode admin : drapeaux de curation + sauvegarde via `onSave`. */
+	admin?: boolean;
+	/** Id de la tier list à mettre à jour (édition). `null` = création. */
+	tierlistId?: string | null;
+	initialOfficial?: boolean;
+	initialFeatured?: boolean;
+	initialPublished?: boolean;
+	/** Server Action de sauvegarde (mode admin). Si absent → flux public `/api/tierlists`. */
+	onSave?: (input: OfficialTierlistPayload) => Promise<SaveTierlistResult>;
 }) {
 	const router = useRouter();
 	const [title, setTitle] = useState(defaultTitle);
@@ -42,6 +58,12 @@ export function TierlistEditor({
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const dragId = useRef<string | null>(null);
+
+	// Drapeaux de curation (mode admin uniquement).
+	const [official, setOfficial] = useState(initialOfficial);
+	const [featured, setFeatured] = useState(initialFeatured);
+	const [published, setPublished] = useState(initialPublished);
+	const isAdmin = admin && typeof onSave === "function";
 
 	// Filtres de la réserve.
 	const [search, setSearch] = useState("");
@@ -157,6 +179,35 @@ export function TierlistEditor({
 			return;
 		}
 		setSaving(true);
+
+		// Mode admin : sauvegarde via la Server Action (création ou édition).
+		if (isAdmin && onSave) {
+			try {
+				const res = await onSave({
+					id: tierlistId,
+					title: title.trim(),
+					description: description.trim() || null,
+					templateKey,
+					tiers: board.tiers,
+					official,
+					featured,
+					published,
+				});
+				if (!res.ok) {
+					setError(res.error);
+					setSaving(false);
+					return;
+				}
+				router.push("/admin/tierlists");
+				router.refresh();
+			} catch {
+				setError("Échec de l'enregistrement. Réessaie.");
+				setSaving(false);
+			}
+			return;
+		}
+
+		// Flux public : POST /api/tierlists → page de la tierlist.
 		try {
 			const res = await fetch("/api/tierlists", {
 				method: "POST",
@@ -428,6 +479,42 @@ export function TierlistEditor({
 				</div>
 			</div>
 
+			{/* Drapeaux de curation — admin uniquement. */}
+			{isAdmin && (
+				<div className="flex flex-wrap items-center gap-4 rounded-lg border border-[#ffd54f]/25 bg-black/30 p-3">
+					<span className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#ffd54f]/80">
+						Curation
+					</span>
+					<label className="flex cursor-pointer items-center gap-2 text-[13px] text-white/85">
+						<input
+							type="checkbox"
+							checked={official}
+							onChange={(e) => setOfficial(e.target.checked)}
+							className="h-4 w-4 accent-[#ffd54f]"
+						/>
+						Officielle
+					</label>
+					<label className="flex cursor-pointer items-center gap-2 text-[13px] text-white/85">
+						<input
+							type="checkbox"
+							checked={featured}
+							onChange={(e) => setFeatured(e.target.checked)}
+							className="h-4 w-4 accent-[#ffd54f]"
+						/>
+						Mise en avant
+					</label>
+					<label className="flex cursor-pointer items-center gap-2 text-[13px] text-white/85">
+						<input
+							type="checkbox"
+							checked={published}
+							onChange={(e) => setPublished(e.target.checked)}
+							className="h-4 w-4 accent-[#ffd54f]"
+						/>
+						Publiée
+					</label>
+				</div>
+			)}
+
 			{error && <p className="text-[13px] font-semibold text-rose-400">{error}</p>}
 
 			<div className="flex items-center gap-3">
@@ -437,7 +524,13 @@ export function TierlistEditor({
 					disabled={saving}
 					className="rounded-lg bg-[#ffd54f] px-5 py-2.5 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
 				>
-					{saving ? "Publication…" : "Publier ma tierlist"}
+					{saving
+						? "Enregistrement…"
+						: isAdmin
+							? tierlistId
+								? "Mettre à jour la tier list"
+								: "Créer la tier list"
+							: "Publier ma tierlist"}
 				</button>
 				<button
 					type="button"

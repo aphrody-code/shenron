@@ -44,6 +44,7 @@ import {
 	Key,
 	FileText,
 	BookText,
+	ListOrdered,
 	PanelLeftClose,
 	PanelLeftOpen,
 } from "lucide-react";
@@ -290,6 +291,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Tickets de support",
 		description: "Demandes d'aide des membres",
 		icon: <Ticket className="h-4 w-4" />,
+		section: "communaute",
+	},
+	{
+		href: "/admin/tierlists",
+		label: "Tier lists",
+		description: "Modérer, mettre en avant et créer des tier lists officielles",
+		icon: <ListOrdered className="h-4 w-4" />,
 		section: "communaute",
 	},
 	{

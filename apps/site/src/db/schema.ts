@@ -70,6 +70,11 @@ export const tierlists = pgTable("Tierlist", {
 	templateKey: text("templateKey"),
 	tiers: jsonb("tiers").$type<TierlistTier[]>().notNull(),
 	published: boolean("published").notNull().default(true),
+	// Tier list « officielle » créée par l'équipe (badge éditorial + curation).
+	official: boolean("official").notNull().default(false),
+	// Épinglée / mise en avant (remontée en tête de galerie & accueil). Indépendant
+	// d'`official` : une tierlist communautaire remarquable peut être featured.
+	featured: boolean("featured").notNull().default(false),
 	authorId: text("authorId")
 		.notNull()
 		.references(() => users.id),
