@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/session";
 import { listAllTierlistsAdmin, type TierlistAdminFilter } from "@/lib/tierlists";
 import { toggleTierlistFlag, removeTierlist } from "./_actions";
 
@@ -60,6 +61,9 @@ export default async function AdminTierlistsPage({
 }: {
 	searchParams: Promise<{ q?: string; filter?: string }>;
 }) {
+	// Gating au niveau page (défense en profondeur) : la requête de modération ne
+	// part pas pour un non-admin, même si le layout redirige en parallèle.
+	await requireAdmin();
 	const sp = await searchParams;
 	const filter: TierlistAdminFilter = isFilter(sp.filter) ? sp.filter : "all";
 	const q = (sp.q ?? "").trim();
