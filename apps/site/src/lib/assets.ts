@@ -17,9 +17,12 @@ export function assetUrl(path: string | null | undefined): string {
 	if (!path) return "";
 	if (path.startsWith("http")) return path;
 	const clean = path.replace(/^\.?\/*/, "");
-	if (clean.startsWith("assets/wiki/")) {
-		return `/wiki/${clean.substring("assets/wiki/".length)}`;
-	}
+	// Tous les assets — y compris `assets/wiki/*` uploadés à l'admin — sont servis
+	// par le bot. NE PAS réécrire `assets/wiki/` → `/wiki/` (même origine) : le
+	// dossier `public/` de Next est indexé au build, donc une image uploadée au
+	// runtime y est masquée par la route catch-all `/wiki/[...slug]` (→ HTML, d'où
+	// la vignette cassée). Le bot sert le même fichier (`../site/public/wiki/...`)
+	// via `/assets/wiki/...` sans collision de route.
 	return `${ASSET_BASE}/${clean}`;
 }
 
