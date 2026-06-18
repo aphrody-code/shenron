@@ -4,10 +4,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Edit, X, AlertTriangle, CheckCircle, Plus } from "lucide-react";
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { ImageField } from "@/components/admin/ImageField";
 import { api, apiAt } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
 import { TABLE_LABELS, colLabel } from "@/lib/db-labels";
 import { WIKI_TABLE_SPECS, crudBase, isWikiTable } from "@/lib/wiki-tables";
+
+/** Colonnes dont la valeur est une image (rendu vignette + champ d'upload). */
+const IMAGE_COL_RE = /image|cover|poster|photo|avatar|icon|banner|thumb|sprite|portrait|logo|artwork/i;
+function isImageColumn(table: string, col: string): boolean {
+	if (table === "db_assets" && col === "path") return true;
+	return IMAGE_COL_RE.test(col);
+}
+/** Sous-dossier wiki d'upload déduit de la table (`db_characters` → `characters`). */
+function uploadSubdir(table: string): string {
+	const base = table.replace(/^db_/, "").replace(/_/g, "-");
+	return /^[a-z0-9-]{1,32}$/.test(base) ? base : "uploads";
+}
 
 interface TableSpec {
 	name: string;
@@ -199,7 +212,7 @@ export default function TablePage() {
 								<tr key={i} className="hover:bg-dbz-orange/5 transition-colors">
 									{cols.map((c) => (
 										<td key={c} className="max-w-[200px] truncate px-3 py-2 text-xs">
-											{renderCell(row[c], c)}
+											{renderCell(row[c], c, table)}
 										</td>
 									))}
 									<td className="px-3 py-2 text-right">
@@ -295,7 +308,7 @@ export default function TablePage() {
 	);
 }
 
-function renderCell(v: unknown, col?: string): ReactNode {
+function renderCell(v: unknown, col?: string, table?: string): ReactNode {
 	if (v === null || v === undefined) return <span className="text-white/25">—</span>;
 	if (typeof v === "boolean") return v ? "Oui" : "Non";
 	if (typeof v === "object")
@@ -304,11 +317,12 @@ function renderCell(v: unknown, col?: string): ReactNode {
 		);
 	const s = String(v);
 
-	// Détection image : chemin DB relatif type "./assets/dbz/characters/goku.webp"
-	// → résolu vers le host du bot (bot.dragonballfr.com) via assetUrl (strip "./", pas de /db/).
-	const isImageCol = col && /image|cover|poster|photo|avatar/i.test(col);
-	const isImagePath = /\.(png|jpe?g|webp|gif|avif)$/i.test(s);
-	if (isImageCol && isImagePath && s.length < 200) {
+	// Détection image : chemin DB relatif ("./assets/dbz/characters/goku.webp")
+	// → résolu vers le host du bot via assetUrl ; ou URL http(s) pointant une image.
+	const isImageCol = !!col && (table ? isImageColumn(table, col) : IMAGE_COL_RE.test(col));
+	const isImagePath = /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(s);
+	const isHttpImage = /^https?:\/\/.+\.(png|jpe?g|webp|gif|avif|svg)(\?.*)?$/i.test(s);
+	if (isImageCol && (isImagePath || isHttpImage) && s.length < 300) {
 		const src = assetUrl(s);
 		return (
 			<a href={src} target="_blank" rel="noreferrer" className="inline-block">
@@ -362,7 +376,14 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 	const submit = () => {
 		const body: Record<string, unknown> = {};
 		for (const [k, v] of Object.entries(draft)) {
-			if (v === "") continue;
+			if (v === "") {
+				// Champ vidé : par défaut on l'omet (= inchangé). Exception : effacer
+				// explicitement une **image** en édition → on envoie "" pour la retirer
+				// (wiki-admin coerce "" → NULL ; sinon on garderait l'ancien chemin).
+				if (mode === "edit" && isImageColumn(spec.name, k) && row[k] != null && String(row[k]) !== "")
+					body[k] = "";
+				continue;
+			}
 			const original = row[k];
 			if (typeof original === "number") body[k] = Number(v);
 			else if (typeof original === "boolean") body[k] = v === "true" || v === "1";
@@ -400,12 +421,21 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 								{colLabel(c)}
 								<span className="ml-2 text-white/25 font-mono normal-case font-normal">{c}</span>
 							</label>
-							<input
-								className="input font-mono text-sm"
-								value={draft[c] ?? ""}
-								onChange={(e) => setDraft({ ...draft, [c]: e.target.value })}
-								placeholder={String(row[c] ?? "")}
-							/>
+							{isImageColumn(spec.name, c) ? (
+								<ImageField
+									value={draft[c] ?? ""}
+									onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
+									subdir={uploadSubdir(spec.name)}
+									column={c}
+								/>
+							) : (
+								<input
+									className="input font-mono text-sm"
+									value={draft[c] ?? ""}
+									onChange={(e) => setDraft({ ...draft, [c]: e.target.value })}
+									placeholder={String(row[c] ?? "")}
+								/>
+							)}
 						</div>
 					))}
 				</div>
