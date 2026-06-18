@@ -15,7 +15,8 @@ import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { DatabaseService } from "~/db/index";
 import { users } from "~/db/schema";
 import { LevelService } from "~/services/LevelService";
-import { RACES, RACE_IDS, getRace, type RaceId } from "~/lib/races";
+import { RACES, RACE_IDS, RACE_ROLE_IDS, getRace, type RaceId } from "~/lib/races";
+import { logger } from "~/lib/logger";
 
 /**
  * /race — choisir/consulter sa race (système inspiré Xenoverse 2).
@@ -77,7 +78,7 @@ export class RaceCommands {
 		});
 	}
 
-	@ButtonComponent({ id: /^race:set:(terrien|saiyen|freezer|namek|majin)$/ })
+	@ButtonComponent({ id: /^race:set:(humain|mutant|namek|cyborg|majin)$/ })
 	async setRace(interaction: ButtonInteraction) {
 		const id = interaction.customId.split(":")[2] as RaceId;
 		const def = RACES[id];
@@ -86,6 +87,20 @@ export class RaceCommands {
 			.update(users)
 			.set({ race: id, raceChosenAt: new Date() })
 			.where(eq(users.id, interaction.user.id));
+
+		// Rôle Discord exclusif : pose celui de la race choisie, retire les autres.
+		try {
+			const member = await interaction.guild?.members.fetch(interaction.user.id);
+			if (member) {
+				const toRemove = RACE_ROLE_IDS.filter((r) => r !== def.roleId && member.roles.cache.has(r));
+				if (toRemove.length) await member.roles.remove(toRemove, "Changement de race");
+				if (!member.roles.cache.has(def.roleId))
+					await member.roles.add(def.roleId, `Race : ${def.name}`);
+			}
+		} catch (err) {
+			logger.warn({ err, race: id }, "race role assignment failed");
+		}
+
 		await interaction.update({
 			embeds: [
 				this.overview(id).setTitle(`${def.emoji} Tu es désormais ${def.name} !`).setColor(def.color),

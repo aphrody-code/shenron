@@ -177,13 +177,18 @@ On **transpose les traits réels XV2 sur les leviers du bot** (XP, vocal, zéni,
 un moteur de combat. Le membre choisit sa race via **`/race`** ; elle est stockée dans
 `users.race` et module sa progression.
 
-| Race XV2 | Trait factuel (jeu) | Effet implémenté |
-|----------|---------------------|------------------|
-| **Terrien** | Équilibré, objets +efficaces, récup Ki auto | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers) |
-| **Saiyen** | Fort à basse santé, **Zenkai après réanimation** | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
-| **Race de Freezer** | Vitesse, récup endurance en attaquant | **×1,4 XP en vocal** (récompense la présence vocale) |
-| **Namek** | Santé élevée, régén, attaque faible | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour |
-| **Majin** | Défensif, **stats variables selon sexe** | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo) |
+Les 5 races correspondent aux **rôles Discord** du serveur (exclusifs, posés par `/race`) :
+
+| Race (rôle serveur) | Inspiration XV2 | Effet implémenté |
+|---------------------|------------------|------------------|
+| **Humain** | Terrien : équilibré, objets +efficaces | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers) |
+| **Mutant** | Saiyan (mutants capables de SSJ) : monte vite, Zenkai | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
+| **Cyborg** | Machine infatigable/efficace | **×1,4 XP en vocal** (récompense la présence vocale) |
+| **Namek** | Santé élevée, régén, patience | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour |
+| **Majin** | Défensif, joueur imprévisible | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo) |
+
+Choisir une race **pose le rôle Discord exclusif** correspondant (et retire les autres). Les
+IDs de rôles sont dans `RACES[].roleId` (`lib/races.ts`).
 
 ### Implémentation (fichiers)
 - **Catalogue + logique pure** (testée) : `apps/bot/src/lib/races.ts` (`tests/races.test.ts`).
