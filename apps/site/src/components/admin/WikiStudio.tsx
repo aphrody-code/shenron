@@ -10,18 +10,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, CheckCircle, ExternalLink, Eye, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ImageField } from "@/components/admin/ImageField";
+import { SmartField } from "@/components/admin/SmartField";
 import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
-import {
-	isBoolColumn,
-	isImageColumn,
-	isLongTextColumn,
-	isStudioTable,
-	publicEntityUrl,
-	uploadSubdir,
-} from "@/lib/wiki-fields";
+import { buildSubmitBody, isStudioTable, publicEntityUrl } from "@/lib/wiki-fields";
 import { crudBase, WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
 interface Props {
@@ -33,33 +26,6 @@ type Row = Record<string, unknown>;
 
 function toDraft(cols: string[], row: Row | null): Record<string, string> {
 	return Object.fromEntries(cols.map((c) => [c, row?.[c] != null ? String(row[c]) : ""]));
-}
-
-/** Construit le body à envoyer (coercition de types + clear explicite des images). */
-function buildBody(
-	draft: Record<string, string>,
-	row: Row | null,
-	cols: string[],
-	mode: "create" | "edit",
-	table: string
-): Row {
-	const body: Row = {};
-	for (const c of cols) {
-		const v = draft[c] ?? "";
-		if (v === "") {
-			// Effacer explicitement une image en édition → "" (Neon coerce → NULL).
-			if (mode === "edit" && isImageColumn(table, c) && row?.[c] != null && String(row[c]) !== "")
-				body[c] = "";
-			continue;
-		}
-		// Les booléens sont coercés ici (le toggle produit "true"/"false"). Le reste
-		// part en string : le serveur wiki-admin (`coerceValue`) est schema-aware
-		// (colonnes number → Number, sinon string) → pas de coercition numérique
-		// côté client qui corromprait un texte tout-chiffres (ex. ISBN "0306406152").
-		if (isBoolColumn(c) || typeof row?.[c] === "boolean") body[c] = v === "true" || v === "1";
-		else body[c] = v;
-	}
-	return body;
 }
 
 export function WikiStudio({ table, id }: Props) {
@@ -105,7 +71,7 @@ export function WikiStudio({ table, id }: Props) {
 
 	const save = useMutation({
 		mutationFn: async () => {
-			const body = buildBody(draft, row, cols, mode, table);
+			const body = buildSubmitBody(draft, row, cols, { mode });
 			if (mode === "create") return client.post<{ ok: boolean; row?: Row }>(`/${table}`, body);
 			return client.put<{ ok: boolean; row?: Row }>(
 				`/${table}/${encodeURIComponent(id)}`,
@@ -175,7 +141,11 @@ export function WikiStudio({ table, id }: Props) {
 			<div className="flex flex-wrap items-center gap-3">
 				<button
 					type="button"
-					onClick={() => router.push(`/admin/database/${table}`)}
+					onClick={() =>
+						typeof window !== "undefined" && window.history.length > 1
+							? router.back()
+							: router.push(`/admin/database/${table}`)
+					}
 					className="btn btn-ghost"
 				>
 					<ArrowLeft className="h-4 w-4" />
@@ -230,6 +200,7 @@ export function WikiStudio({ table, id }: Props) {
 								table={table}
 								col={c}
 								value={draft[c] ?? ""}
+								original={row?.[c]}
 								onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
 							/>
 						))}
@@ -254,70 +225,27 @@ export function WikiStudio({ table, id }: Props) {
 	);
 }
 
-/** Un champ du formulaire, typé d'après le nom de colonne. */
+/** Un champ du formulaire (label + contrôle human-first via SmartField). */
 function Field({
 	table,
 	col,
 	value,
+	original,
 	onChange,
 }: {
 	table: string;
 	col: string;
 	value: string;
+	original?: unknown;
 	onChange: (v: string) => void;
 }) {
-	const label = (
-		<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-dbz-blue-light">
-			{colLabel(col)}
-			<span className="ml-2 font-mono font-normal normal-case text-white/25">{col}</span>
-		</label>
-	);
-
-	if (isImageColumn(table, col)) {
-		return (
-			<div>
-				{label}
-				<ImageField value={value} onChange={onChange} subdir={uploadSubdir(table)} column={col} />
-			</div>
-		);
-	}
-	if (isBoolColumn(col)) {
-		const on = value === "true" || value === "1";
-		return (
-			<div>
-				{label}
-				<button
-					type="button"
-					onClick={() => onChange(on ? "false" : "true")}
-					className={`btn w-full ${on ? "btn-primary" : "btn-ghost"}`}
-				>
-					{on ? "Oui / Activé" : "Non / Désactivé"}
-				</button>
-			</div>
-		);
-	}
-	if (isLongTextColumn(col)) {
-		return (
-			<div>
-				{label}
-				<textarea
-					className="input min-h-32 font-mono text-sm"
-					rows={6}
-					value={value}
-					onChange={(e) => onChange(e.target.value)}
-					placeholder="Markdown supporté…"
-				/>
-			</div>
-		);
-	}
 	return (
 		<div>
-			{label}
-			<input
-				className="input font-mono text-sm"
-				value={value}
-				onChange={(e) => onChange(e.target.value)}
-			/>
+			<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-dbz-blue-light">
+				{colLabel(col)}
+				<span className="ml-2 font-mono font-normal normal-case text-white/25">{col}</span>
+			</label>
+			<SmartField table={table} col={col} value={value} original={original} onChange={onChange} />
 		</div>
 	);
 }

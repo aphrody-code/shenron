@@ -4,12 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Save, Trash2, Edit, X, AlertTriangle, CheckCircle, Plus } from "lucide-react";
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ImageField } from "@/components/admin/ImageField";
+import { SmartField } from "@/components/admin/SmartField";
 import { api, apiAt } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
 import { TABLE_LABELS, colLabel } from "@/lib/db-labels";
 import { WIKI_TABLE_SPECS, crudBase, isWikiTable } from "@/lib/wiki-tables";
-import { IMAGE_COL_RE, isImageColumn, isStudioTable, uploadSubdir } from "@/lib/wiki-fields";
+import { buildSubmitBody, IMAGE_COL_RE, isImageColumn, isStudioTable } from "@/lib/wiki-fields";
 
 interface TableSpec {
 	name: string;
@@ -374,25 +374,7 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 	);
 
 	const submit = () => {
-		const body: Record<string, unknown> = {};
-		for (const [k, v] of Object.entries(draft)) {
-			if (v === "") {
-				// Champ vidé : par défaut on l'omet (= inchangé). Exception : effacer
-				// explicitement une **image** en édition → on envoie "" pour la retirer
-				// (wiki-admin coerce "" → NULL ; sinon on garderait l'ancien chemin).
-				if (mode === "edit" && isImageColumn(spec.name, k) && row[k] != null && String(row[k]) !== "")
-					body[k] = "";
-				continue;
-			}
-			const original = row[k];
-			if (typeof original === "number") body[k] = Number(v);
-			else if (typeof original === "boolean") body[k] = v === "true" || v === "1";
-			// Création (pas de valeur d'origine) : on déduit le type depuis le texte
-			else if (original == null && /^-?\d+(\.\d+)?$/.test(v)) body[k] = Number(v);
-			else if (original == null && (v === "true" || v === "false")) body[k] = v === "true";
-			else body[k] = v;
-		}
-		onSave(body);
+		onSave(buildSubmitBody(draft, row, spec.mutableColumns, { mode }));
 	};
 
 	return (
@@ -421,21 +403,13 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 								{colLabel(c)}
 								<span className="ml-2 text-white/25 font-mono normal-case font-normal">{c}</span>
 							</label>
-							{isImageColumn(spec.name, c) ? (
-								<ImageField
-									value={draft[c] ?? ""}
-									onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
-									subdir={uploadSubdir(spec.name)}
-									column={c}
-								/>
-							) : (
-								<input
-									className="input font-mono text-sm"
-									value={draft[c] ?? ""}
-									onChange={(e) => setDraft({ ...draft, [c]: e.target.value })}
-									placeholder={String(row[c] ?? "")}
-								/>
-							)}
+							<SmartField
+								table={spec.name}
+								col={c}
+								value={draft[c] ?? ""}
+								original={row[c]}
+								onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
+							/>
 						</div>
 					))}
 				</div>

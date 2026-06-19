@@ -41,6 +41,101 @@ export function isBoolColumn(col: string): boolean {
 	return BOOL_COLS.has(col);
 }
 
+/** Colonnes date stockées en epoch (sec ou ms) → rendu en sélecteur de date. */
+const DATE_COLS = new Set(["airDate", "releaseDate", "publishedAt"]);
+export function isDateColumn(col: string): boolean {
+	return DATE_COLS.has(col);
+}
+
+/**
+ * Colonnes clé étrangère → table cible (pour un picker « choisir par nom »
+ * plutôt que taper l'id brut). Mappé par nom de colonne (stable cross-table).
+ */
+const FK_TARGET: Record<string, { table: string; pk: string }> = {
+	originPlanetId: { table: "db_planets", pk: "id" },
+	homePlanetId: { table: "db_planets", pk: "id" },
+	characterId: { table: "db_characters", pk: "id" },
+	creatorId: { table: "db_characters", pk: "id" },
+	sagaId: { table: "db_sagas", pk: "id" },
+	arcId: { table: "db_arcs", pk: "id" },
+	raceId: { table: "db_races", pk: "id" },
+	volumeId: { table: "db_manga_volumes", pk: "id" },
+	debutEpisodeId: { table: "db_episodes", pk: "id" },
+	debutChapterId: { table: "db_manga_chapters", pk: "id" },
+	targetGameId: { table: "db_games", pk: "id" },
+	techniqueId: { table: "db_techniques", pk: "id" },
+	gameId: { table: "db_games", pk: "id" },
+	sourceId: { table: "db_sources", pk: "id" },
+	licenseKey: { table: "db_licenses", pk: "key" },
+};
+export function fkTarget(col: string): { table: string; pk: string } | null {
+	return FK_TARGET[col] ?? null;
+}
+
+/**
+ * Valeurs possibles d'une colonne « enum » (text en base). `strict` → `<select>`
+ * fermé ; sinon `<input list>` (suggestions + saisie libre, car de nouvelles
+ * valeurs peuvent apparaître). Valeurs réelles relevées dans Neon.
+ */
+export const ENUM_OPTIONS: Record<string, { options: string[]; strict?: boolean }> = {
+	"db_characters.gender": { options: ["Male", "Female"], strict: true },
+	"db_techniques.type": { options: ["super", "ultimate", "evasive", "awoken"], strict: true },
+	"shop_items.type": { options: ["card", "badge", "color", "title", "banner"], strict: true },
+	"db_tools.category": { options: ["api", "modding", "shader", "utility"] },
+	"db_episodes.series": { options: ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"] },
+	"db_arcs.series": { options: ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"] },
+	"db_sagas.series": {
+		options: ["DB", "DBZ", "DBGT", "DBS", "DBS_MANGA", "DBS_MOVIE", "DB_DAIMA"],
+	},
+	"db_movies.series": {
+		options: ["DB_MOVIE", "DBZ_MOVIE", "DBS_MOVIE", "DBZ_OVA", "DBZ_SPECIAL"],
+	},
+	"db_manga_volumes.series": { options: ["DB", "DBS"] },
+	"db_manga_chapters.series": { options: ["DB", "DBS"] },
+};
+export function enumOptionsFor(table: string, col: string): { options: string[]; strict?: boolean } | null {
+	return ENUM_OPTIONS[`${table}.${col}`] ?? null;
+}
+
+/**
+ * Construit le body d'écriture (coercition de types unifiée pour TOUS les
+ * éditeurs : studio, éditeur générique, db-universe). Règles :
+ *   - jsonb (valeur d'origine objet) → JAMAIS réécrit (l'édition jsonb structurée
+ *     n'est pas supportée ici → on évite de corrompre la colonne) ;
+ *   - vide en édition d'un champ qui avait une valeur → "" (effacement explicite ;
+ *     le serveur coerce "" → NULL). Vide ailleurs → omis (inchangé) ;
+ *   - booléens → coercés ("true"/"1") ;
+ *   - colonnes numériques connues (édition) → Number (NaN → omis, pas d'écrasement) ;
+ *   - sinon → string : le serveur wiki (`coerceValue`) est schema-aware et SQLite
+ *     applique l'affinité de type → pas de cast client qui corromprait un texte
+ *     tout-chiffres (ISBN, snowflake Discord 18-19 chiffres > 2^53, etc.).
+ */
+export function buildSubmitBody(
+	draft: Record<string, string>,
+	original: Record<string, unknown> | null,
+	cols: string[],
+	opts: { mode: "create" | "edit" }
+): Record<string, unknown> {
+	const body: Record<string, unknown> = {};
+	for (const c of cols) {
+		const o = original?.[c];
+		// jsonb : non éditable ici → ne jamais écrire (sinon corruption en string scalaire).
+		if (o !== null && typeof o === "object") continue;
+		const v = draft[c] ?? "";
+		if (v === "") {
+			// Effacement explicite : le champ avait une valeur, vidé en édition → NULL.
+			if (opts.mode === "edit" && o != null && String(o) !== "") body[c] = "";
+			continue;
+		}
+		if (isBoolColumn(c) || typeof o === "boolean") body[c] = v === "true" || v === "1";
+		else if (typeof o === "number") {
+			const n = Number(v);
+			if (!Number.isNaN(n)) body[c] = n;
+		} else body[c] = v;
+	}
+	return body;
+}
+
 /**
  * Tables wiki « contenu » éligibles au studio d'édition visuelle (pk simple,
  * page publique). Exclut les tables utilitaires (sources/licences/assets) et les

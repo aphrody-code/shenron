@@ -22,6 +22,7 @@ import {
 	insertWiki,
 	isWikiTable,
 	listWiki,
+	listWikiOptions,
 	updateWiki,
 } from "@/lib/wiki-admin";
 import { NextRequest, NextResponse } from "next/server";
@@ -56,6 +57,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			return NextResponse.json(row);
 		}
 		const sp = req.nextUrl.searchParams;
+		// Picker FK : pk + libellé seulement (léger, trié, non tronqué à 500).
+		if (sp.get("as") === "options") {
+			return NextResponse.json({ options: await listWikiOptions(table) });
+		}
 		const limit = Number(sp.get("limit")) || 50;
 		const offset = Number(sp.get("offset")) || 0;
 		return NextResponse.json(await listWiki(table, { limit, offset }));

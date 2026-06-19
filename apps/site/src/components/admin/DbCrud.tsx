@@ -7,11 +7,14 @@
  * `router.refresh()` pour recharger la vue server. Les pages restent des RSC.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Edit, Trash2, Plus, X, Save, AlertTriangle } from "lucide-react";
+import { Edit, Trash2, Plus, X, Save, AlertTriangle, Pencil } from "lucide-react";
+import { SmartField } from "@/components/admin/SmartField";
 import { api, apiAt } from "@/lib/admin-api";
 import { colLabel } from "@/lib/db-labels";
+import { buildSubmitBody, isStudioTable } from "@/lib/wiki-fields";
 import { WIKI_TABLE_SPECS, crudBase, isWikiTable } from "@/lib/wiki-tables";
 
 interface TableSpec {
@@ -99,6 +102,16 @@ export function DbAddButton({ table, label = "Ajouter" }: { table: string; label
 
 	if (!spec || spec.readonly) return null;
 
+	// Entités « contenu » → studio visuel (form + aperçu live + upload images).
+	if (isStudioTable(table)) {
+		return (
+			<Link href={`/admin/wiki/studio/${table}/new`} className="dbz-button inline-flex items-center gap-2">
+				<Plus className="h-4 w-4" />
+				{label}
+			</Link>
+		);
+	}
+
 	return (
 		<>
 			<button
@@ -111,6 +124,8 @@ export function DbAddButton({ table, label = "Ajouter" }: { table: string; label
 			</button>
 			{open && (
 				<FieldModal
+					table={table}
+					mode="create"
 					title="Nouvelle entrée"
 					subtitle={spec.name}
 					columns={spec.mutableColumns}
@@ -167,16 +182,28 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 
 	if (!spec || spec.readonly) return null;
 
+	const studio = isStudioTable(table);
+
 	return (
 		<div className="flex justify-end gap-1">
-			<button
-				type="button"
-				onClick={() => setEditing(true)}
-				title="Modifier"
-				className="inline-flex items-center justify-center w-7 h-7 rounded border border-dbz-border text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-orange transition-colors"
-			>
-				<Edit className="h-3.5 w-3.5" />
-			</button>
+			{studio ? (
+				<Link
+					href={`/admin/wiki/studio/${table}/${encodeURIComponent(String(id))}`}
+					title="Modifier (studio visuel)"
+					className="inline-flex items-center justify-center w-7 h-7 rounded border border-dbz-border text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-orange transition-colors"
+				>
+					<Pencil className="h-3.5 w-3.5" />
+				</Link>
+			) : (
+				<button
+					type="button"
+					onClick={() => setEditing(true)}
+					title="Modifier"
+					className="inline-flex items-center justify-center w-7 h-7 rounded border border-dbz-border text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-orange transition-colors"
+				>
+					<Edit className="h-3.5 w-3.5" />
+				</button>
+			)}
 			<button
 				type="button"
 				onClick={() => setConfirming(true)}
@@ -186,8 +213,10 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 				<Trash2 className="h-3.5 w-3.5" />
 			</button>
 
-			{editing && (
+			{editing && !studio && (
 				<FieldModal
+					table={table}
+					mode="edit"
 					title="Modifier l'entrée"
 					subtitle={`${spec.name} · ${spec.pk} = ${id}`}
 					columns={spec.mutableColumns}
@@ -243,6 +272,8 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 
 // ── Modale de formulaire (création + édition) ─────────────────────────────
 function FieldModal({
+	table,
+	mode,
 	title,
 	subtitle,
 	columns,
@@ -252,6 +283,8 @@ function FieldModal({
 	saving,
 	loading,
 }: {
+	table: string;
+	mode: "create" | "edit";
 	title: string;
 	subtitle: string;
 	columns: string[];
@@ -271,17 +304,7 @@ function FieldModal({
 	}, [columns, initial]);
 
 	const submit = () => {
-		const body: Record<string, unknown> = {};
-		for (const [k, v] of Object.entries(draft)) {
-			if (v === "") continue;
-			const original = initial[k];
-			if (typeof original === "number") body[k] = Number(v);
-			else if (typeof original === "boolean") body[k] = v === "true" || v === "1";
-			else if (original == null && /^-?\d+(\.\d+)?$/.test(v)) body[k] = Number(v);
-			else if (original == null && (v === "true" || v === "false")) body[k] = v === "true";
-			else body[k] = v;
-		}
-		onSave(body);
+		onSave(buildSubmitBody(draft, initial, columns, { mode }));
 	};
 
 	return (
@@ -307,10 +330,12 @@ function FieldModal({
 									{colLabel(c)}
 									<span className="ml-2 font-mono text-white/25 normal-case font-normal">{c}</span>
 								</label>
-								<input
-									className="input font-mono text-sm"
+								<SmartField
+									table={table}
+									col={c}
 									value={draft[c] ?? ""}
-									onChange={(e) => setDraft({ ...draft, [c]: e.target.value })}
+									original={initial[c]}
+									onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
 								/>
 							</div>
 						))}

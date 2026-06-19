@@ -173,6 +173,26 @@ export async function listWiki(
 	return { rows, total: Number(total), limit: lim, offset: off };
 }
 
+/**
+ * Options légères pour un picker de clé étrangère : seulement pk + libellé
+ * (name/title/slug), triées, plafond élevé. Évite de rapatrier des lignes
+ * complètes (jsonb compris) et la troncature à 500 de `listWiki`.
+ */
+export async function listWikiOptions(
+	table: string
+): Promise<{ value: string; label: string }[]> {
+	const spec = getSpec(table);
+	if (!spec) throw new Error(`Table inconnue: ${table}`);
+	const pkKey = pkCamelKeys(spec)[0];
+	const labelKey = ["name", "title", "slug"].find((k) => spec.columns.includes(k)) ?? pkKey;
+	const rows = (await db
+		.select({ value: spec.table[pkKey], label: spec.table[labelKey] })
+		.from(spec.table)
+		.orderBy(spec.table[labelKey])
+		.limit(5000)) as { value: unknown; label: unknown }[];
+	return rows.map((r) => ({ value: String(r.value), label: String(r.label ?? r.value) }));
+}
+
 export async function getWikiRow(table: string, id: string): Promise<Row | null> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
