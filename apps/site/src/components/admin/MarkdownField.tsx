@@ -58,9 +58,11 @@ function kiSnippet(ctx: string, val: string): string {
 }
 
 /**
- * Section repliable « par arc » (sous-catégorie). Bloc `<details>` natif → la
- * page publique le replie par défaut (page compacte, triée par arc). Les lignes
- * vides autour du contenu permettent d'y écrire du markdown (images, badges Ki…).
+ * Catégorie/section repliable au nom LIBRE (sous-catégorie). Bloc `<details>`
+ * natif → la page publique le replie par défaut (page compacte). Le nom est
+ * totalement libre (arc, « Histoire », « Pouvoirs », « Relations »…) : aucune
+ * liste figée. Les lignes vides autour du contenu permettent d'y écrire du
+ * markdown (images, badges Ki…). On peut en empiler autant qu'on veut.
  */
 function sectionSnippet(name: string): string {
 	return `\n<details class="wiki-section">\n<summary>${escapeBadge(
@@ -290,7 +292,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				<button
 					type="button"
 					onClick={() => setSecOpen((o) => !o)}
-					title="Insérer une section repliable (par arc) pour trier le contenu"
+					title="Insérer une catégorie repliable (nom libre) pour trier le contenu"
 					className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
 						secOpen ? "bg-dbz-orange/20 text-dbz-orange" : "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
 					}`}
@@ -348,11 +350,11 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				<div className="flex flex-wrap items-end gap-2 rounded border border-dbz-orange/30 bg-dbz-orange/5 p-2">
 					<div>
 						<label className="mb-0.5 block text-[10px] uppercase tracking-wider text-white/50">
-							Nom de la section / arc
+							Nom de la catégorie (libre)
 						</label>
 						<input
 							className="input h-8 text-sm"
-							placeholder="Saga des Saiyans"
+							placeholder="Ex. Histoire, Pouvoirs, Saga des Saiyans…"
 							value={secName}
 							onChange={(e) => setSecName(e.target.value)}
 						/>
@@ -370,7 +372,8 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 						Insérer
 					</button>
 					<span className="text-[10px] text-white/40">
-						Crée un bloc repliable — écris dedans (images, badges Ki…). Un par arc.
+						Catégorie au nom de ton choix — écris dedans (images, badges Ki…). Empiles-en autant
+						que tu veux.
 					</span>
 				</div>
 			)}

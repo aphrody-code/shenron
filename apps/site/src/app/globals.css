@@ -73,7 +73,7 @@ html {
 	/* Gradients réutilisables */
 	--gradient-galactic: linear-gradient(135deg, #ff6b1a 0%, #ffd23f 50%, #ff3e00 100%);
 	--gradient-nebula:
-		radial-gradient(ellipse at top, rgba(255, 107, 26, 0.18), transparent 60%),
+		radial-gradient(ellipse 130% 70% at 50% 0%, rgba(255, 107, 26, 0.22), transparent 62%),
 		radial-gradient(ellipse at bottom right, rgba(75, 168, 255, 0.14), transparent 55%),
 		radial-gradient(ellipse at bottom left, rgba(255, 210, 63, 0.1), transparent 50%);
 
@@ -120,8 +120,14 @@ html {
 	}
 	body {
 		@apply bg-dbz-bg text-foreground;
+		/* La nébuleuse est rendue dans une couche `position: fixed` (.nebula-bg,
+		   cf. app/layout.tsx) et NON via `background-attachment: fixed` : ce dernier
+		   est ignoré sur mobile (fallback `scroll`), ce qui étirait le dégradé sur
+		   toute la hauteur du document → le haut des pages longues devenait trop
+		   sombre. La couche fixe reste calée sur le viewport partout. */
+	}
+	.nebula-bg {
 		background-image: var(--gradient-nebula);
-		background-attachment: fixed;
 	}
 	html {
 		@apply font-sans;

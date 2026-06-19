@@ -149,6 +149,11 @@ export default function RootLayout({
 				</noscript>
 				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
 				<div className="scroll-progress" aria-hidden />
+				{/* Nébuleuse de fond — couche FIXE (viewport) plutôt que
+				    `background-attachment: fixed` sur <body>, ignoré sur mobile
+				    (sinon le dégradé s'étire sur tout le document → haut des pages
+				    longues trop sombre). Rendue avant le starfield (passe dessous). */}
+				<div className="fixed inset-0 z-[-1] pointer-events-none nebula-bg" aria-hidden />
 				{/* Starfield drift cosmique — fixe en arrière-plan, pure CSS */}
 				<div
 					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-50"
