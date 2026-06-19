@@ -1,7 +1,17 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save, Trash2, Edit, X, AlertTriangle, CheckCircle, Plus } from "lucide-react";
+import {
+	ArrowLeft,
+	Save,
+	Trash2,
+	Edit,
+	X,
+	AlertTriangle,
+	CheckCircle,
+	Plus,
+	Search,
+} from "lucide-react";
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { SmartField } from "@/components/admin/SmartField";
@@ -28,6 +38,8 @@ export default function TablePage() {
 	const collection = wiki ? `/${table}` : `/database/${table}`;
 	const rowPath = (id: unknown) => `${collection}/${encodeURIComponent(String(id))}`;
 	const [page, setPage] = useState(0);
+	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [creating, setCreating] = useState(false);
 	const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
 	const [deleteTarget, setDeleteTarget] = useState<Record<string, unknown> | null>(null);
@@ -72,11 +84,19 @@ export default function TablePage() {
 		else setEditing(row);
 	};
 
+	// Débounce de la recherche → une requête par terme stabilisé (pas par frappe).
+	useEffect(() => {
+		const t = setTimeout(() => setDebouncedSearch(search.trim()), 250);
+		return () => clearTimeout(t);
+	}, [search]);
+
 	const rows = useQuery({
-		queryKey: ["db", table, page],
+		queryKey: ["db", table, page, debouncedSearch],
 		queryFn: () =>
 			client.get<{ rows: Record<string, unknown>[]; total: number }>(
-				`${collection}?limit=${limit}&offset=${offset}`
+				`${collection}?limit=${limit}&offset=${offset}${
+					debouncedSearch ? `&q=${encodeURIComponent(debouncedSearch)}` : ""
+				}`
 			),
 		enabled: !!table,
 	});
@@ -170,6 +190,25 @@ export default function TablePage() {
 					</button>
 				)}
 			</div>
+
+			{/* Recherche (tables wiki disposant d'une colonne libellé) */}
+			{wiki &&
+				spec?.mutableColumns.some((c) =>
+					["name", "title", "slug", "nameJa", "titleJa"].includes(c)
+				) && (
+					<div className="relative max-w-sm">
+						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+						<input
+							className="input pl-9"
+							placeholder={`Rechercher dans ${humanLabel.toLowerCase()}…`}
+							value={search}
+							onChange={(e) => {
+								setSearch(e.target.value);
+								setPage(0);
+							}}
+						/>
+					</div>
+				)}
 
 			{/* Tableau */}
 			{rows.isLoading ? (

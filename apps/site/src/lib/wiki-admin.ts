@@ -18,7 +18,7 @@
  * auto (id) n'est jamais écrite à l'insert si absente du body.
  */
 import "server-only";
-import { and, asc, count, desc, eq, like, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, like, or, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as botSchema from "@/db/bot-schema";
 import { WIKI_TABLE_SPECS, type WikiTableSpec } from "@/lib/wiki-tables";
@@ -160,16 +160,38 @@ function toSnakeRow(row: Row): Row {
 
 export async function listWiki(
 	table: string,
-	{ limit = 50, offset = 0 }: { limit?: number; offset?: number } = {}
+	{ limit = 50, offset = 0, q }: { limit?: number; offset?: number; q?: string } = {}
 ): Promise<{ rows: Row[]; total: number; limit: number; offset: number }> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
 	const lim = Math.min(500, Math.max(1, limit));
 	const off = Math.max(0, offset);
-	const rows = (await db.select().from(spec.table).limit(lim).offset(off)) as Row[];
+	// Recherche sur les colonnes « libellé » présentes (nom FR/JP, titre, slug).
+	const labelCols = ["name", "title", "slug", "nameJa", "titleJa"].filter((k) =>
+		spec.columns.includes(k)
+	);
+	const term = (q ?? "").trim();
+	// Échappe les métacaractères LIKE (% _ \) → "100%" cherche bien le littéral.
+	const safe = term.replace(/[\\%_]/g, (c) => `\\${c}`);
+	const where =
+		term && labelCols.length
+			? or(...labelCols.map((k) => ilike(spec.table[k], `%${safe}%`)))
+			: undefined;
+	// Ordre déterministe : libellé PUIS pk (tie-break) → pagination stable même
+	// quand plusieurs lignes partagent le même libellé.
+	const pkCol = spec.table[pkCamelKeys(spec)[0]];
+	const orderCol = labelCols[0] ? spec.table[labelCols[0]] : pkCol;
+	const rows = (await db
+		.select()
+		.from(spec.table)
+		.where(where)
+		.orderBy(asc(orderCol), asc(pkCol))
+		.limit(lim)
+		.offset(off)) as Row[];
 	const [{ value: total = 0 } = { value: 0 }] = await db
 		.select({ value: count() })
-		.from(spec.table);
+		.from(spec.table)
+		.where(where);
 	return { rows, total: Number(total), limit: lim, offset: off };
 }
 

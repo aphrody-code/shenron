@@ -15,6 +15,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { ImageField } from "@/components/admin/ImageField";
+import { MarkdownField } from "@/components/admin/MarkdownField";
 import { apiAt } from "@/lib/admin-api";
 import { crudBase } from "@/lib/wiki-tables";
 import {
@@ -24,6 +25,7 @@ import {
 	isDateColumn,
 	isImageColumn,
 	isLongTextColumn,
+	isRichTextColumn,
 	uploadSubdir,
 } from "@/lib/wiki-fields";
 
@@ -136,6 +138,10 @@ export function SmartField({ table, col, value, onChange, original }: Props) {
 				</p>
 			</div>
 		);
+	}
+
+	if (isRichTextColumn(table, col)) {
+		return <MarkdownField value={value} onChange={onChange} subdir={uploadSubdir(table)} />;
 	}
 
 	if (isLongTextColumn(col)) {

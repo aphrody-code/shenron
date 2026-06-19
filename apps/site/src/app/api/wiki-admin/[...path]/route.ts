@@ -26,12 +26,50 @@ import {
 	listWikiRelations,
 	updateWiki,
 } from "@/lib/wiki-admin";
+import { publicEntityUrl } from "@/lib/wiki-fields";
+import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ path: string[] }> };
+
+/** Pages liste publiques par table (revalidées à chaque écriture). */
+const WIKI_LIST_PATHS: Record<string, string[]> = {
+	db_characters: ["/wiki/personnages"],
+	db_planets: ["/wiki/planetes"],
+	db_sagas: ["/wiki/sagas"],
+	db_arcs: ["/wiki/sagas"],
+	db_movies: ["/wiki/films"],
+	db_games: ["/wiki/jeux"],
+	db_manga_volumes: ["/wiki/manga"],
+	db_manga_chapters: ["/wiki/manga"],
+	db_episodes: ["/wiki/episodes"],
+	db_techniques: ["/wiki/dragon-ball/techniques"],
+	db_races: ["/wiki/races"],
+	db_tools: ["/wiki/tools"],
+};
+
+/**
+ * Purge le cache ISR des pages publiques impactées par une écriture wiki, pour
+ * que l'édition apparaisse tout de suite (au lieu d'attendre la revalidation).
+ */
+function revalidateWiki(table: string, row?: Record<string, unknown>): void {
+	try {
+		for (const p of WIKI_LIST_PATHS[table] ?? []) revalidatePath(p);
+		revalidatePath("/wiki");
+		const detail = row ? publicEntityUrl(table, row) : null;
+		if (detail) revalidatePath(detail);
+		// Les transformations n'ont pas de page propre → elles s'affichent sur la
+		// fiche du personnage.
+		if (table === "db_transformations" && row?.characterId != null) {
+			revalidatePath(`/wiki/dragon-ball/character/${row.characterId}`);
+		}
+	} catch {
+		/* best-effort : ne jamais faire échouer l'écriture pour une revalidation */
+	}
+}
 
 const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 });
 const notFound = (msg = "Table inconnue") => NextResponse.json({ error: msg }, { status: 404 });
@@ -72,7 +110,8 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 		}
 		const limit = Number(sp.get("limit")) || 50;
 		const offset = Number(sp.get("offset")) || 0;
-		return NextResponse.json(await listWiki(table, { limit, offset }));
+		const q = sp.get("q") ?? undefined;
+		return NextResponse.json(await listWiki(table, { limit, offset, q }));
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
 	}
@@ -87,6 +126,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 	if (!body) return badRequest("JSON body requis");
 	try {
 		const row = await insertWiki(table, body);
+		revalidateWiki(table, row);
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
@@ -103,6 +143,7 @@ async function mutate(req: NextRequest, ctx: Ctx) {
 	if (!body) return badRequest("JSON body requis");
 	try {
 		const row = await updateWiki(table, decodeURIComponent(id), body);
+		revalidateWiki(table, row);
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
@@ -119,7 +160,12 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 	if (!table || !isWikiTable(table)) return notFound();
 	if (id == null) return badRequest("id requis");
 	try {
-		await deleteWiki(table, decodeURIComponent(id));
+		const decoded = decodeURIComponent(id);
+		// On lit la ligne AVANT suppression pour pouvoir purger la page détail
+		// (slug/id) qui n'existe plus après coup.
+		const before = await getWikiRow(table, decoded).catch(() => null);
+		await deleteWiki(table, decoded);
+		revalidateWiki(table, before ?? { id: decoded });
 		return NextResponse.json({ ok: true });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");

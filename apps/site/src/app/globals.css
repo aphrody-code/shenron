@@ -732,6 +732,61 @@ html {
 .wiki-content img {
 	border-radius: 0.5rem;
 	border: 1px solid var(--color-dbz-border, #2a3a5a);
+	max-width: 100%;
+	height: auto;
+}
+/* Figure dimensionnable (placement = wiki-img/float-*, taille = wiki-size-*). */
+.wiki-content .wiki-img {
+	margin: 0 auto 1rem;
+}
+.wiki-content .wiki-img img {
+	width: 100%;
+}
+/* Tailles d'image réglées à l'admin. Qualifiées par `figure.` → spécificité
+   (élément+classe) SUPÉRIEURE aux classes de placement float (`.wiki-float-*`),
+   donc la taille gagne quel que soit l'ordre source, même sur une image flottée. */
+.wiki-content figure.wiki-size-sm {
+	max-width: 220px;
+}
+.wiki-content figure.wiki-size-md {
+	max-width: 380px;
+}
+.wiki-content figure.wiki-size-lg {
+	max-width: 560px;
+}
+.wiki-content figure.wiki-size-full {
+	max-width: 100%;
+}
+.wiki-content figure[class*="wiki-size-"] img {
+	width: 100%;
+	height: auto;
+}
+/* Badge « niveau de puissance » (Ki) embarquable n'importe où dans la description :
+   un contexte (saga/moment) + une valeur. Inline, style scouter. */
+.wiki-content .ki-power,
+.ki-power {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.4rem;
+	padding: 0.1rem 0.5rem;
+	margin: 0 0.12rem;
+	border: 1px solid rgba(255, 178, 0, 0.4);
+	border-radius: 0.35rem;
+	background: rgba(255, 178, 0, 0.08);
+	vertical-align: baseline;
+	line-height: 1.3;
+	white-space: nowrap;
+}
+.ki-power-ctx {
+	font-size: 0.7rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: rgba(255, 255, 255, 0.6);
+}
+.ki-power-val {
+	font-family: var(--font-scouter, inherit);
+	font-weight: 700;
+	color: var(--color-dbz-orange, #ffb200);
 }
 .wiki-content figcaption {
 	font-size: 0.75rem;
