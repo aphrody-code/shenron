@@ -78,7 +78,7 @@ export class RaceCommands {
 		});
 	}
 
-	@ButtonComponent({ id: /^race:set:(humain|mutant|namek|cyborg|majin)$/ })
+	@ButtonComponent({ id: /^race:set:(saiyan|humain|namek|mutant|cyborg|majin)$/ })
 	async setRace(interaction: ButtonInteraction) {
 		const id = interaction.customId.split(":")[2] as RaceId;
 		const def = RACES[id];
@@ -96,6 +96,9 @@ export class RaceCommands {
 				if (toRemove.length) await member.roles.remove(toRemove, "Changement de race");
 				if (!member.roles.cache.has(def.roleId))
 					await member.roles.add(def.roleId, `Race : ${def.name}`);
+				// Réaligne les rôles de palier sur la nouvelle race (retire ceux des
+				// autres races, pose ceux de la race choisie jusqu'au niveau atteint).
+				await this.levels.syncRaceLevelRoles(member);
 			}
 		} catch (err) {
 			logger.warn({ err, race: id }, "race role assignment failed");

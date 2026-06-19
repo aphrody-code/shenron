@@ -4361,8 +4361,12 @@ export class ApiServer {
 						try {
 							const { mkdir } = await import("node:fs/promises");
 							await mkdir(writeDir, { recursive: true });
-							await Bun.write(writePath, file);
+							await Bun.write(writePath, await file.arrayBuffer());
 						} catch (err) {
+							logger.error(
+								{ err, writeDir, writePath, subdir, size: file.size, type: file.type },
+								"wiki image upload write failed"
+							);
 							return Response.json(
 								{ error: err instanceof Error ? err.message : "écriture échouée" },
 								{ status: 500 }

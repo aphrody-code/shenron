@@ -16,17 +16,19 @@ import {
 } from "~/lib/races";
 
 describe("races — catalogue", () => {
-	test("5 races définies et cohérentes", () => {
-		expect(RACE_IDS.length).toBe(5);
+	test("6 races définies et cohérentes", () => {
+		expect(RACE_IDS.length).toBe(6);
 		for (const id of RACE_IDS) {
 			expect(RACES[id].id).toBe(id);
 			expect(RACES[id].name.length).toBeGreaterThan(0);
 		}
 	});
 	test("isRaceId / getRace", () => {
+		expect(isRaceId("saiyan")).toBe(true);
 		expect(isRaceId("mutant")).toBe(true);
 		expect(isRaceId("kaioshin")).toBe(false);
 		expect(isRaceId(null)).toBe(false);
+		expect(getRace("saiyan")?.name).toBe("Saiyan");
 		expect(getRace("majin")?.name).toBe("Majin");
 		expect(getRace(null)).toBeNull();
 	});
@@ -43,19 +45,25 @@ describe("races — multiplicateurs XP", () => {
 		expect(messageXpMultiplier(null, 0, now)).toBe(1);
 		expect(voiceXpMultiplier(null, 0, now)).toBe(1);
 	});
-	test("Mutant ×1.25 chat + vocal", () => {
-		expect(messageXpMultiplier("mutant", 0, now)).toBeCloseTo(1.25);
-		expect(voiceXpMultiplier("mutant", 0, now)).toBeCloseTo(1.25);
+	test("Saiyan ×1.25 chat + vocal", () => {
+		expect(messageXpMultiplier("saiyan", 0, now)).toBeCloseTo(1.25);
+		expect(voiceXpMultiplier("saiyan", 0, now)).toBeCloseTo(1.25);
+	});
+	test("Mutant ×1.4 chat uniquement (puissance brute)", () => {
+		expect(messageXpMultiplier("mutant", 0, now)).toBeCloseTo(1.4);
+		expect(voiceXpMultiplier("mutant", 0, now)).toBe(1);
 	});
 	test("Cyborg boost vocal uniquement", () => {
 		expect(messageXpMultiplier("cyborg", 0, now)).toBe(1);
 		expect(voiceXpMultiplier("cyborg", 0, now)).toBeCloseTo(1.4);
 	});
-	test("Zenkai (Mutant) actif applique ×ZENKAI_MULT", () => {
+	test("Zenkai (Saiyan) actif applique ×ZENKAI_MULT", () => {
 		const boostUntil = now + 1000;
-		expect(messageXpMultiplier("mutant", boostUntil, now)).toBeCloseTo(1.25 * ZENKAI_MULT);
+		expect(messageXpMultiplier("saiyan", boostUntil, now)).toBeCloseTo(1.25 * ZENKAI_MULT);
 		// fenêtre expirée → pas de bonus
-		expect(messageXpMultiplier("mutant", now - 1, now)).toBeCloseTo(1.25);
+		expect(messageXpMultiplier("saiyan", now - 1, now)).toBeCloseTo(1.25);
+		// Mutant n'a pas Zenkai
+		expect(messageXpMultiplier("mutant", boostUntil, now)).toBeCloseTo(1.4);
 		// Namek n'a pas Zenkai
 		expect(messageXpMultiplier("namek", boostUntil, now)).toBeCloseTo(1.1);
 	});
@@ -78,7 +86,8 @@ describe("races — zéni", () => {
 
 describe("races — flags", () => {
 	test("hasZenkai / hasRegen", () => {
-		expect(hasZenkai("mutant")).toBe(true);
+		expect(hasZenkai("saiyan")).toBe(true);
+		expect(hasZenkai("mutant")).toBe(false);
 		expect(hasZenkai("humain")).toBe(false);
 		expect(hasRegen("namek")).toBe(true);
 		expect(hasRegen("majin")).toBe(false);

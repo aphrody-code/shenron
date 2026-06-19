@@ -10,6 +10,9 @@ import { users, invitesLog, jails } from "~/db/schema";
 import { eq } from "drizzle-orm";
 import { AUTO_ROLE_ID } from "~/lib/constants";
 import { ModerationService } from "~/services/ModerationService";
+import { LevelService } from "~/services/LevelService";
+import { RACE_ROLE_IDS } from "~/lib/races";
+import { levelOfRoleId, memberRaceId } from "~/lib/race-levels";
 import { env } from "~/lib/env";
 
 @Discord()
@@ -22,7 +25,8 @@ export class JoinLeaveEvent {
 		@inject(DatabaseService) private dbs: DatabaseService,
 		@inject(MessageTemplateService) private msg: MessageTemplateService,
 		@inject(SettingsService) private settings: SettingsService,
-		@inject(ModerationService) private mod: ModerationService
+		@inject(ModerationService) private mod: ModerationService,
+		@inject(LevelService) private levels: LevelService
 	) {}
 
 	@Once({ event: "clientReady" })
@@ -143,6 +147,9 @@ export class JoinLeaveEvent {
 		// est aussi un placeholder valide que l'admin peut remplacer).
 		const roleId = (await this.settings.getSnowflake("role.auto_join")) ?? AUTO_ROLE_ID;
 		if (!roleId) return false;
+		// Sécurité : un rôle de RACE ne doit JAMAIS être attribué automatiquement
+		// (la race est un choix via /race) — empêche le re-bug « Saiyan auto à tous ».
+		if (RACE_ROLE_IDS.includes(roleId)) return false;
 		if (member.roles.cache.has(roleId)) return false;
 		const role =
 			member.guild.roles.cache.get(roleId) ??
@@ -212,40 +219,35 @@ export class JoinLeaveEvent {
 		if (oldM.partial) return;
 		const oldRoles = new Set(oldM.roles.cache.keys());
 		const newRoles = new Set(newM.roles.cache.keys());
-		// Diff
 		const added = [...newRoles].filter((r) => !oldRoles.has(r));
 		const removed = [...oldRoles].filter((r) => !newRoles.has(r));
 		if (added.length === 0 && removed.length === 0) return;
 
-		const rewards = await this.dbs.db.query.levelRewards.findMany();
-		const rewardByRole = new Map(rewards.map((r) => [r.roleId, r]));
-		const touched = [...added, ...removed].some((r) => rewardByRole.has(r));
-		if (!touched) return; // aucun changement sur les rôles level
-
-		// Recalcule le plus haut palier détenu
-		let best: { level: number; roleId: string; xpThreshold: number } | null = null;
-		for (const rid of newRoles) {
-			const lr = rewardByRole.get(rid);
-			if (lr && (!best || lr.level > best.level)) {
-				best = { level: lr.level, roleId: lr.roleId, xpThreshold: lr.xpThreshold };
-			}
+		// Changement d'un rôle de RACE (via /race OU le menu de rôles Discord) → on
+		// persiste la race en base et on réaligne les rôles de palier : retire ceux
+		// des AUTRES races, pose ceux de la nouvelle race jusqu'au niveau atteint.
+		if ([...added, ...removed].some((r) => RACE_ROLE_IDS.includes(r))) {
+			const race = memberRaceId(newM);
+			await this.dbs.db
+				.insert(users)
+				.values({ id: newM.id, race })
+				.onConflictDoUpdate({ target: users.id, set: { race, updatedAt: new Date() } });
+			await this.levels.syncRaceLevelRoles(newM);
+			return;
 		}
 
+		// Sinon : un rôle de palier a changé (action admin) → re-dérive UNIQUEMENT le
+		// rôle de palier courant affiché. Le NIVEAU suit l'XP et n'est jamais re-dérivé
+		// des rôles (une race sans paliers ne doit pas faire retomber le niveau à 0).
+		if (![...added, ...removed].some((r) => levelOfRoleId(r) !== null)) return;
+		let best: { level: number; roleId: string } | null = null;
+		for (const rid of newRoles) {
+			const lvl = levelOfRoleId(rid);
+			if (lvl !== null && (!best || lvl > best.level)) best = { level: lvl, roleId: rid };
+		}
 		await this.dbs.db
-			.insert(users)
-			.values({
-				id: newM.id,
-				lastLevelReached: best?.level ?? 0,
-				currentLevelRoleId: best?.roleId ?? null,
-				...(best ? { xp: best.xpThreshold } : {}),
-			})
-			.onConflictDoUpdate({
-				target: users.id,
-				set: {
-					lastLevelReached: best?.level ?? 0,
-					currentLevelRoleId: best?.roleId ?? null,
-					updatedAt: new Date(),
-				},
-			});
+			.update(users)
+			.set({ currentLevelRoleId: best?.roleId ?? null, updatedAt: new Date() })
+			.where(eq(users.id, newM.id));
 	}
 }

@@ -3,25 +3,15 @@ import { container } from "tsyringe";
 import { DatabaseService } from "~/db/index";
 import { levelRewards } from "~/db/schema";
 import { LEVEL_THRESHOLDS, ZENI_PER_LEVEL } from "~/lib/constants";
+import { RACE_LEVEL_ROLES } from "~/lib/race-levels";
 
 /**
- * Mapping palier XP → rôle DBZ existant sur Dragon Ball FR.
- * Les IDs proviennent de data/guild-scan.json (scan du 2026-04-24).
- * Chaque palier LEVEL_THRESHOLDS (1..10) est attaché à un rôle distinct
- * en suivant la progression canonique Saiyan (Kaioken → UI Parfait).
+ * Mapping palier XP → rôle de transformation DBZ existant sur Dragon Ball FR.
+ * Source de vérité unique : l'échelle SAIYAN de `lib/race-levels.ts` (Kaioken →
+ * UI Parfait). `level_rewards` reste la table race-agnostique des paliers (zéni,
+ * seuil XP, bannière) ; les rôles par AUTRE race vivent dans `race-levels.ts`.
  */
-const LEVEL_ROLE_MAP: Record<number, { roleId: string; roleName: string }> = {
-	1: { roleId: "1058910891124457482", roleName: "Kaioken" },
-	2: { roleId: "1058910426164908075", roleName: "Super Saiyan" },
-	3: { roleId: "1058910477847109743", roleName: "Super Saiyan 2" },
-	4: { roleId: "1058910518720593920", roleName: "Super Saiyan 3" },
-	5: { roleId: "1058910672068563024", roleName: "Super Saiyan 4" },
-	6: { roleId: "1058910743736614962", roleName: "Super Saiyan God" },
-	7: { roleId: "1058910776687087637", roleName: "Super Saiyan Blue" },
-	8: { roleId: "1074616048487247902", roleName: "Super Saiyan Blue Évolution" },
-	9: { roleId: "1074616052350193674", roleName: "Ultra Instinct" },
-	10: { roleId: "1074619485450932304", roleName: "Perfect Ultra Instinct" },
-};
+const LEVEL_ROLE_MAP = RACE_LEVEL_ROLES.saiyan;
 
 const dbs = container.resolve(DatabaseService);
 const db = dbs.db;
@@ -61,17 +51,17 @@ const BANNERS: Record<number, string> = {
 };
 
 for (const { level, xp } of LEVEL_THRESHOLDS) {
-	const map = LEVEL_ROLE_MAP[level];
-	if (!map) continue;
+	const roleId = LEVEL_ROLE_MAP[level];
+	if (!roleId) continue;
 	await db.insert(levelRewards).values({
 		level,
-		roleId: map.roleId,
+		roleId,
 		xpThreshold: xp,
 		zeniBonus: ZENI_PER_LEVEL * level,
 		bannerUrl: BANNERS[level] ?? null,
 	});
 	console.log(
-		`  L${level.toString().padStart(2)} (${xp.toLocaleString("fr").padStart(11)} XP) → ${map.roleName} · ${BANNERS[level] ?? "—"}`
+		`  L${level.toString().padStart(2)} (${xp.toLocaleString("fr").padStart(11)} XP) → ${roleId} · ${BANNERS[level] ?? "—"}`
 	);
 }
 

@@ -5,10 +5,10 @@
  * Les traits transposent les traits FACTUELS des races CaC de Xenoverse 2
  * (cf. docs/races-systeme-niveau.md) sur les leviers du bot (XP, vocal, zéni, jeux).
  *
- * Les 5 races correspondent aux rôles du serveur : Humain, Mutant, Namek, Cyborg,
- * Majin. Module PUR (aucune dépendance DB/Discord) → testable.
+ * Les 6 races correspondent aux rôles du serveur : Saiyan, Humain, Namek, Mutant,
+ * Cyborg, Majin. Module PUR (aucune dépendance DB/Discord) → testable.
  */
-export const RACE_IDS = ["humain", "mutant", "namek", "cyborg", "majin"] as const;
+export const RACE_IDS = ["saiyan", "humain", "namek", "mutant", "cyborg", "majin"] as const;
 export type RaceId = (typeof RACE_IDS)[number];
 
 export interface RaceDef {
@@ -27,7 +27,7 @@ export interface RaceDef {
 	regen: boolean; // régén passive quotidienne (XP + zéni)
 }
 
-// Zenkai (Mutant/Saiyan) : boost d'XP après une montée de niveau.
+// Zenkai (Saiyan) : boost d'XP après une montée de niveau.
 export const ZENKAI_MULT = 1.5;
 export const ZENKAI_MS = 60 * 60_000; // 1 h
 
@@ -37,6 +37,21 @@ export const REGEN_XP = 200;
 export const REGEN_ZENI = 200;
 
 export const RACES: Record<RaceId, RaceDef> = {
+	saiyan: {
+		id: "saiyan",
+		name: "Saiyan",
+		emoji: "⚡",
+		color: 0xf5c518,
+		roleId: "935209502104510564",
+		trait: "Guerrier né : monte vite et se surpasse après chaque combat (Zenkai).",
+		perk: "×1,25 XP (chat + vocal) + « Zenkai » : +50 % XP pendant 1 h après chaque palier.",
+		xpMessage: 1.25,
+		xpVoice: 1.25,
+		zeni: 1,
+		gameZeni: 1,
+		zenkai: true,
+		regen: false,
+	},
 	humain: {
 		id: "humain",
 		name: "Humain",
@@ -55,16 +70,16 @@ export const RACES: Record<RaceId, RaceDef> = {
 	mutant: {
 		id: "mutant",
 		name: "Mutant",
-		emoji: "⚡",
-		color: 0xf5c518,
+		emoji: "🧬",
+		color: 0x9b1c8f,
 		roleId: "1516949507265400932",
-		trait: "Guerrier né (mutants capables de Super Saiyan) : monte vite, surpassement.",
-		perk: "×1,25 XP (chat + vocal) + « Zenkai » : +50 % XP pendant 1 h après chaque palier.",
-		xpMessage: 1.25,
-		xpVoice: 1.25,
+		trait: "Puissance brute et instable : frappe fort en continu, sans répit.",
+		perk: "×1,4 XP en chat (puissance brute, montée régulière à l'écrit).",
+		xpMessage: 1.4,
+		xpVoice: 1,
 		zeni: 1,
 		gameZeni: 1,
-		zenkai: true,
+		zenkai: false,
 		regen: false,
 	},
 	namek: {

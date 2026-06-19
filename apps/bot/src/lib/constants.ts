@@ -35,5 +35,11 @@ export const FUSION_ZENI_BONUS_RATIO = 0.1;
 
 export const DISCORD_INVITE_REGEX = /discord(?:app)?\.(?:gg|com\/invite)\/[A-Za-z0-9-]+/i;
 
-/** Rôle distribué automatiquement à tout membre (à l'arrivée + backfill au boot). */
-export const AUTO_ROLE_ID = "935209502104510564";
+/**
+ * Rôle distribué automatiquement à tout membre (à l'arrivée + backfill au boot).
+ * DÉSACTIVÉ : valait le rôle « Saiyan » (935209502104510564), donné à tout le monde
+ * — or Saiyan est désormais une RACE choisie (cf. lib/races.ts). Vide = pas d'auto-rôle
+ * (le setting `role.auto_join` peut toujours en configurer un, mais assignAutoRole
+ * refuse tout rôle de race par sécurité). Voir aussi events/JoinLeave.ts.
+ */
+export const AUTO_ROLE_ID = "";

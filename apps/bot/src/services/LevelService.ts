@@ -7,6 +7,13 @@ import { or } from "drizzle-orm";
 import { LEVEL_THRESHOLDS, ZENI_PER_LEVEL, FUSION_XP_BONUS_RATIO } from "~/lib/constants";
 import { levelForXP, formatXP } from "~/lib/xp";
 import { applyZeniRace, hasZenkai, ZENKAI_MS } from "~/lib/races";
+import {
+	ALL_RACE_LEVEL_ROLE_IDS,
+	DEFAULT_LEVEL_RACE,
+	memberRaceId,
+	RACE_LEVEL_ROLES,
+	raceLevelRoleIds,
+} from "~/lib/race-levels";
 import { levelUpMessage } from "~/lib/dbz-flavor";
 import { levelUpEmbed } from "~/lib/embeds";
 import { logger } from "~/lib/logger";
@@ -154,45 +161,37 @@ export class LevelService {
 	}
 
 	async handleLevelUp(member: GuildMember, newLevel: number, fallbackChannel?: TextBasedChannel) {
-		// Récupère toutes les récompenses jusqu'au nouveau niveau (évite de sauter des paliers)
+		// Le zéni de palier est RACE-AGNOSTIQUE (tout le monde le touche) ; les RÔLES
+		// de palier dépendent de la RACE du membre (échelle dédiée, cf. race-levels.ts).
 		const allRewards = await this.db
 			.select()
 			.from(levelRewards)
 			.where(lte(levelRewards.level, newLevel))
 			.orderBy(levelRewards.level);
+		// On ne crédite le zeni bonus que pour le niveau actuel (les niveaux passés
+		// sont supposés avoir été déjà crédités, ou on ne veut pas flood).
+		const bonusZeni = allRewards
+			.filter((r) => r.level === newLevel)
+			.reduce((s, r) => s + r.zeniBonus, 0);
 
-		// On ne traite que les récompenses du niveau actuel pour le zeni bonus,
-		// mais on s'assure que TOUS les rôles des niveaux précédents sont acquis.
-		const currentLevelRewards = allRewards.filter((r) => r.level === newLevel);
-		let bonusZeni = 0;
-
-		for (const reward of allRewards) {
+		// Rôles de transformation selon la race : on (re)pose ceux de la race du membre
+		// jusqu'au niveau atteint (catch-up des paliers précédents inclus).
+		const race = memberRaceId(member) ?? DEFAULT_LEVEL_RACE;
+		const me = member.guild.members.me;
+		for (const roleId of raceLevelRoleIds(race, newLevel)) {
+			if (member.roles.cache.has(roleId)) continue;
 			const role =
-				member.guild.roles.cache.get(reward.roleId) ??
-				(await member.guild.roles.fetch(reward.roleId).catch(() => null));
-			const me = member.guild.members.me;
-
-			if (role && me && role.position >= me.roles.highest.position) {
-				logger.warn(
-					{ roleId: reward.roleId, level: reward.level },
-					"level reward role above bot — skipped"
-				);
+				member.guild.roles.cache.get(roleId) ??
+				(await member.guild.roles.fetch(roleId).catch(() => null));
+			if (!role) continue;
+			if (me && role.position >= me.roles.highest.position) {
+				logger.warn({ roleId, race }, "level reward role above bot — skipped");
 				continue;
 			}
-
-			if (role && !member.roles.cache.has(reward.roleId)) {
-				try {
-					await member.roles.add(reward.roleId, `Récompense niveau ${reward.level}`);
-				} catch (err) {
-					logger.warn({ err, roleId: reward.roleId }, "Failed to add level role");
-					continue;
-				}
-			}
-
-			// On n'ajoute le zeni bonus que pour le niveau actuel (les niveaux passés
-			// sont supposés avoir été déjà crédités, ou on ne veut pas flood).
-			if (reward.level === newLevel) {
-				bonusZeni += reward.zeniBonus;
+			try {
+				await member.roles.add(roleId, `Palier niveau ${newLevel} (${race})`);
+			} catch (err) {
+				logger.warn({ err, roleId }, "Failed to add level role");
 			}
 		}
 
@@ -209,7 +208,8 @@ export class LevelService {
 			meta: JSON.stringify({
 				level: newLevel,
 				bonusZeni,
-				rewards: currentLevelRewards.map((r) => r.roleId),
+				race,
+				rewards: [RACE_LEVEL_ROLES[race][newLevel]].filter(Boolean),
 			}),
 		});
 
@@ -230,5 +230,48 @@ export class LevelService {
 			message: levelUpMessage(member.id, newLevel),
 		});
 		await channel.send({ content: `<@${member.id}>`, embeds: [embed] }).catch(() => {});
+	}
+
+	/**
+	 * Réaligne les rôles de palier d'un membre sur sa RACE actuelle (dérivée de son
+	 * rôle de race Discord) : retire les transformations des AUTRES races et (re)pose
+	 * celles de sa race jusqu'à son niveau. Appelé au changement de race (commande
+	 * `/race` ou rôle de race posé/retiré à la main — cf. events/JoinLeave.ts).
+	 */
+	async syncRaceLevelRoles(member: GuildMember): Promise<void> {
+		const u = await this.getUser(member.id);
+		const level = u?.lastLevelReached ?? levelForXP(u?.xp ?? 0);
+		const race = memberRaceId(member) ?? DEFAULT_LEVEL_RACE;
+		const keep = new Set(raceLevelRoleIds(race, level));
+
+		// Retire les paliers qui n'appartiennent pas à la race courante (autres races).
+		const toRemove = ALL_RACE_LEVEL_ROLE_IDS.filter(
+			(rid) => !keep.has(rid) && member.roles.cache.has(rid)
+		);
+		if (toRemove.length) {
+			await member.roles
+				.remove(toRemove, "Changement de race — retrait des paliers d'une autre race")
+				.catch((err) => logger.warn({ err, race }, "race level role removal failed"));
+		}
+
+		// (Re)pose les paliers de la race courante jusqu'au niveau atteint.
+		const me = member.guild.members.me;
+		for (const roleId of keep) {
+			if (member.roles.cache.has(roleId)) continue;
+			const role =
+				member.guild.roles.cache.get(roleId) ??
+				(await member.guild.roles.fetch(roleId).catch(() => null));
+			if (!role) continue;
+			if (me && role.position >= me.roles.highest.position) continue;
+			await member.roles
+				.add(roleId, `Paliers ${race}`)
+				.catch((err) => logger.warn({ err, roleId }, "race level role add failed"));
+		}
+
+		const current = raceLevelRoleIds(race, level).at(-1) ?? null;
+		await this.db
+			.update(users)
+			.set({ currentLevelRoleId: current, updatedAt: new Date() })
+			.where(eq(users.id, member.id));
 	}
 }
