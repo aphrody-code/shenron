@@ -193,6 +193,29 @@ export async function listWikiOptions(
 	return rows.map((r) => ({ value: String(r.value), label: String(r.label ?? r.value) }));
 }
 
+/**
+ * Relations N-N : ids liés dans une table de jointure. Ex. techniques d'un
+ * personnage → `listWikiRelations("db_character_techniques", "characterId", "5",
+ * "techniqueId")`. Colonnes validées contre le schéma (anti-injection).
+ */
+export async function listWikiRelations(
+	table: string,
+	col: string,
+	id: string,
+	target: string
+): Promise<string[]> {
+	const spec = getSpec(table);
+	if (!spec) throw new Error(`Table inconnue: ${table}`);
+	if (!spec.columns.includes(col) || !spec.columns.includes(target)) {
+		throw new Error(`Colonne inconnue sur ${table}`);
+	}
+	const rows = (await db
+		.select({ v: spec.table[target] })
+		.from(spec.table)
+		.where(eq(spec.table[col], coerceValue(spec, col, id) as never))) as { v: unknown }[];
+	return rows.map((r) => String(r.v));
+}
+
 export async function getWikiRow(table: string, id: string): Promise<Row | null> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
@@ -207,10 +230,11 @@ export async function insertWiki(table: string, data: Row): Promise<Row> {
 	if (Object.keys(values).length === 0) {
 		throw new Error("Aucune colonne fournie.");
 	}
-	const inserted = (await db
-		.insert(spec.table)
-		.values(values as never)
-		.returning()) as Row[];
+	// Tables de jointure (pk composite) : lier est idempotent → un re-lien d'une
+	// paire existante est un no-op au lieu d'une erreur unique_violation brute.
+	const isJoin = Array.isArray(spec.pk);
+	const q = db.insert(spec.table).values(values as never);
+	const inserted = (await (isJoin ? q.onConflictDoNothing() : q).returning()) as Row[];
 	return inserted[0] ?? values;
 }
 

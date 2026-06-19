@@ -160,6 +160,63 @@ export function isStudioTable(table: string): boolean {
 	return STUDIO_TABLES.has(table);
 }
 
+/**
+ * Relations N-N éditables depuis le studio d'une entité (gérées via une table de
+ * jointure). `selfCol`/`targetCol` = clés camelCase dans la jointure ; `pkOrder` =
+ * colonnes pk de la jointure DANS L'ORDRE (pour construire l'id composite DELETE).
+ */
+export interface RelationSpec {
+	label: string;
+	joinTable: string;
+	selfCol: string;
+	targetCol: string;
+	targetTable: string;
+	pkOrder: [string, string];
+}
+export const ENTITY_RELATIONS: Record<string, RelationSpec[]> = {
+	db_characters: [
+		{
+			label: "Techniques",
+			joinTable: "db_character_techniques",
+			selfCol: "characterId",
+			targetCol: "techniqueId",
+			targetTable: "db_techniques",
+			pkOrder: ["characterId", "techniqueId"],
+		},
+		{
+			label: "Jeux",
+			joinTable: "db_game_characters",
+			selfCol: "characterId",
+			targetCol: "gameId",
+			targetTable: "db_games",
+			pkOrder: ["gameId", "characterId"],
+		},
+	],
+	db_techniques: [
+		{
+			label: "Personnages",
+			joinTable: "db_character_techniques",
+			selfCol: "techniqueId",
+			targetCol: "characterId",
+			targetTable: "db_characters",
+			pkOrder: ["characterId", "techniqueId"],
+		},
+	],
+	db_games: [
+		{
+			label: "Personnages",
+			joinTable: "db_game_characters",
+			selfCol: "gameId",
+			targetCol: "characterId",
+			targetTable: "db_characters",
+			pkOrder: ["gameId", "characterId"],
+		},
+	],
+};
+export function entityRelations(table: string): RelationSpec[] {
+	return ENTITY_RELATIONS[table] ?? [];
+}
+
 /** Première colonne présente parmi `cands` (ordre = priorité). */
 function pick(cols: string[], cands: string[]): string | undefined {
 	return cands.find((c) => cols.includes(c));

@@ -23,6 +23,7 @@ import {
 	isWikiTable,
 	listWiki,
 	listWikiOptions,
+	listWikiRelations,
 	updateWiki,
 } from "@/lib/wiki-admin";
 import { NextRequest, NextResponse } from "next/server";
@@ -60,6 +61,14 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 		// Picker FK : pk + libellé seulement (léger, trié, non tronqué à 500).
 		if (sp.get("as") === "options") {
 			return NextResponse.json({ options: await listWikiOptions(table) });
+		}
+		// Relations N-N : ids liés dans une table de jointure.
+		if (sp.get("as") === "relations") {
+			const col = sp.get("col") ?? "";
+			const relId = sp.get("id") ?? "";
+			const target = sp.get("target") ?? "";
+			if (!col || !relId || !target) return badRequest("col, id, target requis");
+			return NextResponse.json({ ids: await listWikiRelations(table, col, relId, target) });
 		}
 		const limit = Number(sp.get("limit")) || 50;
 		const offset = Number(sp.get("offset")) || 0;

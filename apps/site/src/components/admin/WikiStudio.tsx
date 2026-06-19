@@ -10,11 +10,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, CheckCircle, ExternalLink, Eye, Save } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { RelationsPanel } from "@/components/admin/RelationsPanel";
 import { SmartField } from "@/components/admin/SmartField";
 import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
-import { buildSubmitBody, isStudioTable, publicEntityUrl } from "@/lib/wiki-fields";
+import {
+	buildSubmitBody,
+	entityRelations,
+	isStudioTable,
+	publicEntityUrl,
+} from "@/lib/wiki-fields";
 import { crudBase, WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
 interface Props {
@@ -117,6 +123,7 @@ export function WikiStudio({ table, id }: Props) {
 	// En édition, on ne peut enregistrer qu'une fois la ligne chargée (sinon le
 	// body serait vide → écrasement potentiel par valeurs vides).
 	const notReady = mode === "edit" && !rowQuery.data;
+	const hasRelations = entityRelations(table).length > 0;
 
 	return (
 		<div className="space-y-4">
@@ -210,14 +217,23 @@ export function WikiStudio({ table, id }: Props) {
 						</button>
 					</form>
 
-					{/* Aperçu live (sticky sur grand écran) */}
-					<div className="lg:sticky lg:top-4 lg:self-start">
+					{/* Aperçu live + relations (sticky sur grand écran) */}
+					<div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
 						<div className="dbz-panel p-6">
 							<div className="mb-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 								<Eye className="h-3.5 w-3.5" /> Aperçu live
 							</div>
 							<WikiEntityPreview table={table} draft={draft} />
 						</div>
+						{hasRelations &&
+							(mode === "edit" ? (
+								<RelationsPanel table={table} entityId={id} />
+							) : (
+								<div className="dbz-panel p-5 text-xs text-white/40">
+									Enregistre d&apos;abord cette entrée pour gérer ses relations (techniques,
+									personnages…).
+								</div>
+							))}
 					</div>
 				</div>
 			)}
