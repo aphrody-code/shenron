@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 17/06/2026
+# 📚 Base de Connaissance Unifiée — 19/06/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -25,6 +25,7 @@
 - [PROMPT.md — Sprint DBFR (Shenron bot + site public)](#prompt-md)
 - [1. Bun ≥ 1.3](#readme-md)
 - [Politique de sécurité](#security-md)
+- [Données Dragon Ball Xenoverse 2](#apps-bot-assets-dbz-xv2-portraits-readme-md)
 - [This is NOT the Next.js you know](#apps-site-agents-md)
 - [CLAUDE.md](#apps-site-claude-md)
 - [or](#apps-site-readme-md)
@@ -35,7 +36,7 @@
 - [Dragon Ball Lore Reference — Kanzentai Web Archive Curation](#docs-kanzentai-crawled-summary-md)
 - [LLM Dragon Ball — assistant conversationnel local](#docs-llm-maison-md)
 - [Neoseeker Dragon Ball Translation Threads Summary](#docs-neoseeker-crawled-summary-md)
-- [Plan — Système de races & niveaux (inspiré Xenoverse 2)](#docs-races-systeme-niveau-md)
+- [Races & système de niveau — référence factuelle Xenoverse 2](#docs-races-systeme-niveau-md)
 - [Rapport d'Entraînement SFT & Optimisations RAG](#docs-sft-training-report-md)
 - [Dragon Ball Lore — Akira Toriyama Databook Revelations (SEG)](#docs-toriyama-databook-seg-md)
 - [Lore de Dragon Ball — Citations & Philosophie d'Akira Toriyama (Daizenshuu)](#docs-toriyama-interviews-md)
@@ -2893,6 +2894,66 @@ Ce dépôt contient un bot Discord (`apps/bot`) et un site compagnon
 
 ---
 
+<a name="apps-bot-assets-dbz-xv2-portraits-readme-md"></a>
+## 📄 Fichier : `apps/bot/assets/dbz/xv2-portraits/README.md`
+
+**Titre original :** Données Dragon Ball Xenoverse 2
+
+### Données Dragon Ball Xenoverse 2
+
+Assets et données extraits du jeu **Dragon Ball Xenoverse 2** (v1.25.02, FR) via le
+toolkit `dbxv2`, pour enrichir le wiki/économie de Shenron.
+
+## Contenu
+
+- `<CODE>.png` — 145 portraits de visages (atlas UI `CHARA01.emb`), 1 par code perso XV2 3 lettres.
+- `xv2-portraits.json` — manifest brut des portraits (code → costume de base).
+- `../xv2-catalog.json` — **source de vérité** : noms FR exacts du jeu (`.msg`) :
+  - `characters` : 164 codes → noms (Son Goku, Krilin, Bulma…).
+  - `skills` : 4 catégories — `super`, `ultimate`, `awoken`, `evasive` (~730 noms uniques) + descriptions.
+- `../xv2-skillsets.json` — loadout par perso (code → super/ultimate/evasive/awoken),
+  décodé de `custom_skill.cus` + `char_model_spec.cms` (chaîne CMS→CUS→.msg validée :
+  Goku ressort avec Kamehameha/Genkidama, Vegeta avec Big Bang/Final Flash…).
+- `_QA.png` — planche-contact des portraits posés (vérification visuelle).
+
+## Seeds (catalogue-driven)
+
+Tout est piloté par `xv2-catalog.json` (noms factuels du jeu = vérité), **pas** par un
+mapping en dur. Le catalogue est produit par un **parser `.msg` robuste** (lecture des
+valeurs par position via la table d'entrées — un parser naïf désaligne les noms, ex.
+`G13` confondu avec "Bulma" alors que c'est "C-13"). L'appariement se fait par **nom
+normalisé + synonymes**.
+
+| Script | Effet |
+|--------|-------|
+| `bun db:seed-xv2-portraits` | Pose `db_characters.portrait_xv2` sur les persos existants appariés par nom. |
+| `bun db:seed-xv2-characters` | Ajoute les persos XV2 absents qui ont un portrait (forme de base, hors transfos/NPC/grands singes). |
+| `bun db:seed-xv2-transformations` | Lie les formes (« X (Super Saiyen…) ») au perso de base dans `db_transformations`. |
+| `bun db:seed-xv2-techniques` | Importe les compétences XV2 dans `db_techniques` (type + description d'effet). |
+| `bun db:seed-xv2-char-techniques` | Lie chaque perso à son loadout XV2 dans `db_character_techniques`. |
+
+Tous additifs/idempotents (dédup par nom canonique ; purge des lignes XV2 avant ré-insert).
+
+## Couverture obtenue
+
+- **db_characters : 58 → 108** persos (81 avec portrait XV2).
+- **db_techniques : 120 → 825** (705 ajoutées : super 428, ultime 211, esquive 50, awoken 16 ; **747 avec description d'effet**).
+- **db_transformations : 43 → 81** (formes de puissance liées aux persos).
+- **db_character_techniques : +1206 liens** (130 persos liés à leur moveset XV2 réel).
+
+`/wiki` (`Wiki.ts`) affiche `portrait_xv2` en priorité, fallback `image`.
+
+## Régénérer depuis le jeu
+
+Côté toolkit `dbxv2` (jeu possédé légalement) :
+- `_bridge_portraits.py` → ré-extrait les portraits + manifest depuis `CHARA01.emb.unpacked`.
+- `_xv2_catalog.py` → ré-extrait `xv2-catalog.json` (parser `.msg` maison : clés + valeurs FR).
+
+**Ne pas redistribuer les assets du jeu hors de ce dépôt privé.**
+
+
+---
+
 <a name="apps-site-agents-md"></a>
 ## 📄 Fichier : `apps/site/AGENTS.md`
 
@@ -3761,320 +3822,235 @@ This document consolidates and summarizes translations from 14 prominent *Dragon
 <a name="docs-races-systeme-niveau-md"></a>
 ## 📄 Fichier : `docs/races-systeme-niveau.md`
 
-**Titre original :** Plan — Système de races & niveaux (inspiré Xenoverse 2)
+**Titre original :** Races & système de niveau — référence factuelle Xenoverse 2
 
-### Plan — Système de races & niveaux (inspiré Xenoverse 2)
+### Races & système de niveau — référence factuelle Xenoverse 2
 
-> Statut : **proposition / design**. Objet : permettre à un membre de choisir une
-> **race** (Saiyan, Terrien, Namek, Majin, Race de Freezer, Android) qui modifie
-> son **système de progression** (XP, perks, paliers, économie), façon Xenoverse 2.
-> Découpé en 3 phases livrables indépendamment. Ancré dans le code existant.
-
----
-
-## 1. Objectif
-
-- Donner une **identité de jeu** à chaque membre via une race choisie une fois.
-- Faire **varier la progression par race** (vitesse d'XP, bonus passifs, paliers,
-  zeni) pour récompenser des styles de présence différents (chat, vocal, jeux…).
-- Rester **réversible et additif** : aucune régression sur le leveling actuel des
-  membres sans race (race = couche au-dessus).
-
-Non-objectif (Phase 1) : un vrai moteur RPG (stats HP/Ki/combat). Voir Phase 3.
+> **Source** : données extraites du jeu **Dragon Ball Xenoverse 2** (Steam 454650,
+> v1.25.02.0) via le toolkit `dbxv2`. Tous les chiffres et libellés ci-dessous sont
+> tirés des fichiers du jeu (cités en §6), pas d'estimations. Les descriptions de races
+> sont le **verbatim français** de l'écran de création de personnage
+> (`data1/data/msg/tribeselect_text_fr.msg`).
+>
+> Objet : servir de **base factuelle** au système de races/niveaux de Shenron
+> (transposition en §7). Le membre choisit une race qui module sa progression, façon XV2.
 
 ---
 
-## 2. Référence Xenoverse 2 (résumé des partis pris)
+## 1. Les 5 races jouables (CaC)
 
-Dans Xenoverse 2, chaque race a des forces/faiblesses sur des **stats** (Santé, Ki,
-Stamina, Attaque de base/Frappe, Ki Blast, Charge) et des **traits** :
+À la création, le joueur (un « Patrouilleur du temps ») choisit **une race** parmi 5,
+avec un **sexe** (Masculin/Féminin) sauf Namek et Race de Freezer (masculin uniquement
+dans le jeu). Libellés exacts (`tribeselect_text_fr`, idx 141-145) :
 
-| Race | Traits marquants Xenoverse |
-|---|---|
-| Saiyan | Monte vite, **boost quand HP bas** (zenkai), accès Super Saiyan, polyvalent |
-| Terrien (Humain) | Équilibré, **meilleure récup Ki/Stamina**, fort aux objets |
-| Namek | **Régénération de santé** passive, grosse défense, attaque faible |
-| Majin | Grosse **Santé/Stamina**, mâles tanks / femelles agiles, imprévisible |
-| Race de Freezer | **Récup Ki rapide**, fort en mêlée, faible santé |
-| (Bio-)Android | Pas de régénération de stamina « naturelle », tient dans la durée |
+| # | Race (FR) | Sexes | Description courte (verbatim jeu) |
+|--:|-----------|-------|-----------------------------------|
+| 1 | **Terrien** | M / F | « Stats équilibrées en attaque et en défense. » |
+| 2 | **Saiyen** | M / F | « Tribu de guerriers : santé faible mais attaques puissantes. » |
+| 3 | **Race de Freezer** | M | « Vitesse élevée, mais santé faible. » |
+| 4 | **Namek** | M | « Attaque faible mais santé élevée et récupération rapide de l'endurance. » |
+| 5 | **Majin** | M / F | « Défense augmentée si endurance max. Stats variables selon sexe. » |
 
-On **transpose ces traits** sur nos leviers réels (XP, cooldowns, zeni, vocal,
-jeux), pas sur un combat. Cf. table §3.
+### Traits innés par race (verbatim de l'écran de sélection)
 
----
+- **Terrien** — *« Stats équilibrées en attaque et en défense. »* +
+  *« Ki automatiquement récupéré et attaques plus puissantes si au niv. max. »* +
+  *« Objets plus efficaces que les autres races et santé restaurée. »*
+  → polyvalent ; **récup de Ki automatique**, bonus au **Ki max**, et **objets de soin plus efficaces**.
 
-## 3. Les races DBFR + table de design (Phase 1)
+- **Saiyen** — *« Une tribu de guerriers qui possède une très grande force, mais peu de santé. »* +
+  *« Attaques plus puissantes si santé faible. Stats augmentées après réanimation. »*
+  → glass cannon ; **Zenkai** : dégâts ↑ à basse santé et **boost de stats après une réanimation**.
 
-6 races, **rôles Discord mutuellement exclusifs**. Chaque race mappe les traits
-Xenoverse sur les leviers existants du bot.
+- **Race de Freezer** — *« Une race fragile qui domine ses ennemis grâce à sa grande vitesse. »* +
+  *« Récupération de l'endurance pendant l'attaque. Vitesse augmentée si santé faible. »*
+  → rapide et fragile ; **endurance qui remonte en attaquant**, **vitesse ↑ à basse santé**.
 
-| Race | Multiplicateur XP | Perk passif principal | Faiblesse / contrepartie | Saveur |
-|---|---|---|---|---|
-| **Saiyan** | ×1.25 (chat+vocal) | « Zenkai » : +50 % XP pendant 1 h après un palier | Coût zeni des paliers ↑ | Monte vite, combattant né |
-| **Terrien** | ×1.0 | **+25 % zeni** (drops + daily) | Pas de boost XP | Polyvalent, économe |
-| **Namek** | ×1.0 | **Régén quotidienne** : +X XP/zeni passifs même inactif (1×/j) | XP de message légèrement ↓ | Patient, régénérant |
-| **Majin** | ×1.1 | **+50 % gains aux jeux** (pfc/morpion/bingo) | Aléa : ±10 % sur les drops | Imprévisible, joueur |
-| **Race de Freezer** | ×1.2 **vocal** / ×1.0 chat | Récompense **présence vocale** (cooldown vocal ↓) | XP chat normal | Efficace, vif |
-| **Android** | ×1.05 | **Pas de cooldown XP** (gain régulier, anti-spam léger maintenu) | Pas de daily quest bonus | Constant, infatigable |
+- **Namek** — *« Attaque faible mais santé élevée et récupération rapide de l'endurance. »*
+  → tank régénérant ; grosse santé, **endurance qui revient vite**, attaque faible.
 
-> Les valeurs sont des **points de départ à équilibrer** (toutes pilotables en
-> settings, cf. §5). Règle clé : un membre ne doit jamais se sentir « puni »
-> d'avoir choisi une race — chaque race est forte sur **un** axe.
+- **Majin** — *« Défense élevée mais récupération lente de l'endurance. »* +
+  *« Défense augmentée si endurance max. Stats variables selon sexe. »*
+  → défensif, **stats fortement dépendantes du sexe** (voir §2).
 
-**Paliers par race** : chaque race a sa **piste de rôles de palier** (ex. Saiyan
-niv. 50 → « Super Saiyan », Namek niv. 50 → « Namek Ultime »…), en plus des
-paliers communs. Réutilise `level_rewards` (cf. §5).
+> Note jeu : en **version Lite**, *Saiyen (H/F)* et *Race de Freezer* sont indisponibles
+> (`tribeselect_text_fr` idx 189-193).
 
 ---
 
-## 4. Ce qui existe déjà (réutilisé — gros gain de temps)
+## 2. Modificateurs de sexe (Masculin / Féminin)
 
-Le bot a quasiment toute la plomberie. Fichiers concernés :
+Règle générale (verbatim, `tribeselect_text_fr` idx 232-239) :
 
-- **XP & niveau** : `apps/bot/src/events/MessageXP.ts`, `events/VoiceXP.ts`,
-  `services/LevelService.ts` (`addXP()`, `handleLevelUp()`), courbe
-  `lib/xp.ts` (`levelForXP`) + table `LEVEL_THRESHOLDS` (`lib/constants.ts`).
-- **Multiplicateur d'XP par rôle** : `xp.boost.role.<roleId>` (préfixe settings,
-  `SettingsService.getXpBoostRoles()`). MessageXP/VoiceXP appliquent **le plus
-  grand** multiplicateur parmi les rôles du membre (ne stacke pas). → **Le
-  multiplicateur de race Phase 1 = juste poser un `xp.boost.role.<raceRoleId>`.**
-- **Récompenses de palier** : table `level_rewards` (`level` PK, `role_id`,
-  `zeni_bonus`, `xp_threshold`, `banner_url`) + `handleLevelUp` qui pose les rôles.
-- **Économie** : `EconomyService` (zeni), settings `zeni.*` (daily quest, drops,
-  gains de jeux).
-- **Jeux** : `services/games/*` (pfc, morpion, bingo) — pour le perk Majin.
-- **Réglages runtime** : `SettingsService` + `SETTINGS_KEYS` (modifiables depuis le
-  dashboard, sans redeploy).
-- **Données races** : `bot.db_races` (Saiyan, Humain, Namek…) déjà dans le wiki +
-  pages site `/wiki/races` → réutilisables pour la page « choisis ta race ».
-- **Multi-persona** : `lib/personas.ts` — la commande `/race` sera portée par un
-  persona qui a déjà les intents membres (kaïo : `GuildMembers`).
+> « Les personnages **masculins** disposent d'attaques normales plus puissantes et de
+> buffs qui durent plus longtemps. Leurs techniques spéciales sont légèrement plus
+> faibles. Les personnages **féminins** ont une jauge de Ki et une jauge d'endurance qui
+> se remplit plus rapidement, mais une santé moins importante. »
 
-⚠️ Avant tout edit de `personas.ts` ou ajout d'event : lancer le subagent
-`intent-auditor` (cf. CLAUDE.md, piège « intent ↔ event mismatch »).
+Variantes spécifiques **Majin** (idx 176-177) :
+- **Majin Masculin** : *« santé élevée et peu de dégâts subis tant que l'endurance est élevée. »*
+- **Majin Féminin** : *« santé plus faible, mais temps de récupération plus élevé permettant d'éviter les attaques critiques. »*
 
 ---
 
-## 5. Architecture & modèle de données
+## 3. Les 6 statistiques
 
-### 5.1 Source de vérité : SQLite bot (runtime)
+Libellés exacts (`data1/data/msg/customize_status_text_fr.msg`, idx 129-133 + ki) :
 
-La progression/économie est **runtime** → vit dans `apps/bot/data/bot.db`
-(SQLite, Drizzle) et remonte vers Neon par le **forward-sync** (runtime inclus,
-wiki exclu). **Ne PAS** écrire ça dans le wiki éditorial (garde
-`wiki-write-guard`). Cf. CLAUDE.md.
+| Code radar | Stat (FR) | Effet (verbatim) |
+|-----------|-----------|------------------|
+| HEA | **Santé** | « Augmenter la santé maximum. » |
+| KI | **Ki** | « Augmenter le ki maximum. » |
+| STM | **Endurance** | « Augmenter l'endurance maximum. » |
+| ATK | **Attaques de base** | « Augmenter la puissance des attaques normales et des Kikohas. » |
+| STR | **Super frappes** | « Augmenter la puissance des attaques spéciales, ultimes et compétences d'évolution. » |
+| BLA | **Super Kikohas** | « Augmenter la puissance des super attaques de Ki. » |
 
-### 5.2 Nouvelle colonne `users.race`
+> Le diagramme radar du menu d'état affiche ces 6 axes (cf. `DESIGN.md` du toolkit dbxv2).
+> 49 descriptions de **tendances de stats** (QQ Bang / équipement) existent dans le même
+> fichier (idx 211-259) — ex. *« Endurance élevée. Privilégie la puissance des attaques
+> normales, réduit les autres capacités. »*
 
-Migration Drizzle (`apps/bot/drizzle/`) :
-
-```ts
-// apps/bot/src/db/schema.ts — table users
-race: text("race"),              // "saiyan" | "terrien" | "namek" | "majin" | "freezer" | "android" | null
-raceChosenAt: integer("race_chosen_at"), // epoch ms — pour cooldown de changement
-```
-
-Pas de nouvelle table nécessaire en Phase 1 (1 race par user). Si on veut un
-historique de changements → table `race_changes` (Phase 2, optionnel).
-
-### 5.3 Catalogue de races (code, pas DB)
-
-`apps/bot/src/lib/races.ts` (nouveau) — **source de vérité du design**, typé :
-
-```ts
-export interface RaceDef {
-  id: RaceId;                 // "saiyan" | ...
-  name: string;               // "Saiyan"
-  roleIdSetting: string;      // clé settings du rôle Discord exclusif
-  xpMultiplier: number;       // appliqué via xp.boost.role.<roleId> (config)
-  perks: RacePerk[];          // effets passifs (voir §6.3)
-  color: string; emoji: string;
-}
-export const RACES: Record<RaceId, RaceDef> = { /* … */ };
-```
-
-Les **rôles Discord** et **multiplicateurs** restent pilotables en settings
-(`race.role.<id>`, `xp.boost.role.<roleId>`) pour équilibrer sans redeploy.
-
-### 5.4 Nouvelles clés `SETTINGS_KEYS`
-
-```
-race.enabled                 (bool)   — feature flag global
-race.change.cost_zeni        (int)    — coût d'un changement de race (0 = gratuit)
-race.change.cooldown_days    (int)    — délai entre 2 changements
-race.role.saiyan|terrien|... (snowflake) — rôle Discord par race
-race.<id>.xp_mult            (float)  — multiplicateur (ou via xp.boost.role)
-race.<id>.zeni_mult          (float)  — multiplicateur de zeni
-race.namek.daily_regen_xp    (int)    — perk Namek
-race.majin.game_bonus_ratio  (float)  — perk Majin
-```
+### Style de combat de départ (`tribeselect_text_fr` idx 182-184)
+À la création, choix d'un préréglage de stats initiales :
+- **Équilibré** — « bon équilibre entre Kikohas et techniques de frappe »
+- **Frappe** — « penchant pour les frappes »
+- **Kikoha** — « penchant pour les Kikohas »
 
 ---
 
-## 6. Phase 1 — Races + progression (le sweet spot)
+## 4. Système de niveau & expérience
 
-**But** : choix de race + effets sur XP/zeni/paliers. **Réutilise l'existant ;
-surtout de la config + une commande + un peu de glue.** Faible risque.
+### 4.1 Niveau maximum
+**Niveau max = 180.** Preuve factuelle dans la table d'EXP
+(`system/avatar_growth_data.agd`) : l'EXP requise pour le niveau suivant
+(`exp_to_next`) reste **non nulle jusqu'au niveau 180**, puis **tombe à 0 à partir du
+niveau 181** ; l'EXP cumulée se fige alors à **481 199 100** (le total est atteint, plus
+aucune progression possible). La table de coûts `CharacterLevelupPriceList.clv` contient
+d'ailleurs exactement **180 entrées** (niveaux 1→180).
 
-### 6.1 Choix de race
-- Commande **`/race choisir`** (ou menu de rôles avec boutons) portée par **kaïo**
-  (intents membres OK). Affiche les 6 races (embed + boutons), applique le rôle
-  exclusif (retire les autres rôles de race), écrit `users.race` + `raceChosenAt`.
-- **`/race info`** : fiche de ma race (perks, multiplicateurs, paliers à venir).
-- **`/race changer`** : gated par `race.change.cost_zeni` + `race.change.cooldown_days`.
-- Garde-fou : un seul rôle de race à la fois (réconciliation au choix + au
-  `guild-sync` quotidien).
+La courbe a **deux ruptures de pente** internes (pas des caps) : un pic vers le niveau 98
+(43,75 M pour un seul niveau) suivi d'une réinitialisation à 500 k au niveau 99, puis une
+remontée jusqu'au cap. C'est cette rupture qui pouvait faire croire à tort à un cap à 99.
 
-### 6.2 Effet XP (zéro changement de courbe)
-- On garde la **courbe unique** (`LEVEL_THRESHOLDS`). La race agit comme
-  **multiplicateur d'XP** → pose `xp.boost.role.<raceRoleId> = race.<id>.xp_mult`.
-  MessageXP/VoiceXP l'appliquent déjà (max des rôles). **Zéro code XP à toucher.**
-- Variante vocal-only (Freezer) : si on veut un multiplicateur différent
-  chat vs vocal, ajouter un petit hook dans `VoiceXP` lisant `race.<id>.voice_mult`
-  (≈10 lignes).
+### 4.2 Courbe d'EXP (`avatar_growth_data.agd`, verbatim)
 
-### 6.3 Perks passifs (glue légère)
-- **Zenkai (Saiyan)** : dans `LevelService.handleLevelUp`, si race=saiyan, poser un
-  boost temporaire 1 h (clé Redis `race:zenkai:<userId>` lue par MessageXP, ou un
-  champ `users.boost_until`). MessageXP applique +50 % si actif.
-- **+zeni (Terrien)** : dans `EconomyService` (drops + daily), multiplier par
-  `race.terrien.zeni_mult` si race=terrien.
-- **Régén Namek** : timer quotidien (réutiliser un timer existant type
-  `shenron-guild-sync` ou un cron in-process) → +X XP/zeni aux Nameks inactifs.
-- **Bonus jeux (Majin)** : dans `services/games/*` résolveurs de gains, ×
-  `race.majin.game_bonus_ratio` si race=majin.
-- **No-cooldown (Android)** : MessageXP lit la race ; si android, ignore le
-  cooldown `xp.message.cooldown_ms` (anti-spam minimal conservé).
+| Niveau | EXP → niveau suivant | EXP cumulée pour l'atteindre |
+|------:|----------------------:|------------------------------:|
+| 1 | 100 | 0 |
+| 10 | 1 450 | 6 300 |
+| 50 | 22 450 | 398 800 |
+| 80 | 53 950 | 1 499 050 |
+| 90 | 5 503 950 | 17 788 550 |
+| 98 | 43 753 950 | 127 570 150 |
+| 99 | 500 000 | 171 324 100 |
+| 150 | 4 250 000 | 328 149 100 |
+| 179 | 8 150 000 | 471 049 100 |
+| **180** | 2 000 000 | **479 199 100** |
+| 181+ | 0 (cap atteint) | 481 199 100 |
 
-> Tous les perks sont **gated par `race.enabled`** et lisent des settings → on peut
-> désactiver/équilibrer à chaud.
+→ atteindre le **niveau 180 demande ≈ 479,2 millions d'EXP cumulés** ; le total absolu de
+la table se fige à **481 199 100**. Le gros du grind est sur les tranches 90-98 puis
+150-180.
 
-### 6.4 Paliers par race
-- Étendre `level_rewards` avec une colonne optionnelle `race` (null = palier
-  commun ; sinon réservé à cette race). `handleLevelUp` ne pose un reward de race
-  que si `member.race === reward.race`. Migration + petite condition.
+### 4.3 Coûts de niveau (`system/CharacterLevelupPriceList.clv`)
+Table de **180 entrées** (= le niveau max). Les coûts en jeu sont définis **jusqu'au
+niveau 80** (héritage du cap d'origine), puis la valeur passe à la sentinelle
+`0xFFFFFFFF` (−1) du niveau 81 au niveau 180. Ex. : niv 50 → 12 500, niv 80 → 250 000.
 
-### 6.5 Site (léger)
-- Page **`/race`** (ou section profil) : présentation des 6 races (depuis
-  `db_races` + `lib/races`), CTA « choisis sur Discord ». Lecture seule, cacheable.
-- Carte de profil / `/profil/me` : afficher la race (badge).
-
-### Fichiers Phase 1 (récap)
-```
-NEW  apps/bot/src/lib/races.ts                 (catalogue + types)
-NEW  apps/bot/src/commands/.../Race.ts          (/race choisir|info|changer)  → gen:entries
-EDIT apps/bot/src/db/schema.ts                  (users.race, raceChosenAt ; level_rewards.race)
-NEW  apps/bot/drizzle/XXXX_race.sql             (migration)
-EDIT apps/bot/src/services/SettingsService.ts   (SETTINGS_KEYS race.*)
-EDIT apps/bot/src/services/LevelService.ts      (zenkai + reward de race)
-EDIT apps/bot/src/events/MessageXP.ts           (zenkai + no-cooldown android)
-EDIT apps/bot/src/services/EconomyService.ts    (zeni race mult)
-EDIT apps/bot/src/services/games/*              (bonus Majin)
-NEW  apps/site/src/app/race/page.tsx            (présentation races)
-```
+### 4.4 Monnaie de déblocage : médailles PT / SPT
+La création/personnalisation consomme des **médailles PT** (et **SPT**) pour débloquer
+options et apparences (`tribeselect_text_fr` idx 240-242, 256-262) — ex. changer
+tête/cheveux = **10 médailles PT**.
 
 ---
 
-## 7. Phase 2 — Identité de race (moyen)
+## 5. Tables de paramètres avatar (croissance par niveau)
 
-- **Transformations par race** branchées sur les fusions / l'économie (ex.
-  débloquer « Super Saiyan » à un palier → boost cosmétique + rôle).
-- **Courbes d'XP par race** (vrai différenciateur) : `levelForXP(xp, race)` +
-  tables de seuils par race dans `lib/constants.ts`. Plus impactant que le simple
-  multiplicateur, mais demande de re-tester rank/leaderboard.
-- **Carte profil canvas** : visuel par race (couleur/aura).
-- **Page site enrichie** : « choisis ta race » avec stats comparatives, lien wiki.
-- **Historique** : table `race_changes` si on veut tracer/limiter.
+Les valeurs de stats par niveau/race vivent dans des binaires `system/*` propriétaires
+(format `#XXX` + marqueur `FE FF` + count) **non gérés par pyxenoverse** :
 
----
+| Fichier | Contenu |
+|---------|---------|
+| `system/level_character_parameter.lcp` | 199 entrées × 34 champs — paramètres de perso par niveau |
+| `system/parameter_spec_avater.psa` | 200 entrées × 8 floats — spec de croissance de l'avatar (CaC) |
+| `system/parameter_spec_char.psc` | spec des personnages du roster (184 Ko) |
+| `system/powerup_parameter.pup` | 72 entrées — paramètres d'investissement de stats |
+| `system/avatar_growth_data.agd` | table d'EXP (§4.2) |
 
-## 8. Phase 3 — Stats & combat (gros, optionnel)
-
-Vrai layer RPG : stats Santé/Ki/Stamina par race, forces/faiblesses, et un
-**mini-combat** (PvE boss hebდo / PvP duel) qui consomme/َrécompense l'XP & zeni.
-C'est un **projet à part entière** (semaines) avec game design dédié :
-- À quoi servent les stats ? (combat, events, classement de puissance)
-- Où se joue le combat ? (commande Discord, mini-jeu site canvas/Pixi)
-- Équilibrage + anti-abus.
-Recommandation : ne lancer la Phase 3 que si la Phase 1/2 a de l'adoption.
+> Le détail numérique exact des multiplicateurs par race n'a pas été décodé champ-par-champ
+> (format binaire non documenté) ; les **traits qualitatifs** du §1 proviennent du texte
+> in-game, qui fait foi côté joueur.
 
 ---
 
-## 9. Commandes & UX
+## 6. Provenance des données (fichiers du jeu)
 
-| Surface | Élément |
-|---|---|
-| Discord | `/race choisir` (boutons), `/race info`, `/race changer` |
-| Discord | Embed de level-up mentionnant la race + perk déclenché |
-| Site | `/race` (présentation), badge race sur `/profil/me` + carte canvas |
-| Admin | Dashboard : éditer `race.*` settings, voir répartition des races (stats) |
-
----
-
-## 10. Migrations & seeds
-
-- Migration Drizzle SQLite : `users.race`, `users.race_chosen_at`,
-  `level_rewards.race`. Générer via `bun --filter @shenron/bot run db:migrate`
-  (cf. CLAUDE.md ; **ne pas** lancer drizzle-kit pendant que le bot tourne →
-  risque de lock SQLite, redémarrer après).
-- Pas de seed wiki (les races existent déjà dans `db_races`). Le **catalogue de
-  design** (`lib/races.ts`) est du code, pas un seed.
-- Refléter les colonnes côté site (`apps/site/src/db/bot-schema.ts`) si on lit la
-  race depuis le site (Neon).
+| Donnée | Fichier extrait (`output/cpk/...`) |
+|--------|-------------------------------------|
+| Noms & traits des races, sexes, style de combat, médailles PT | `data1/data/msg/tribeselect_text_fr.msg(.json)` |
+| Noms des 6 stats + tendances QQ Bang | `data1/data/msg/customize_status_text_fr.msg(.json)` |
+| Table d'EXP, niveau max | `data/data/system/avatar_growth_data.agd` |
+| Coûts de niveau | `data/data/system/CharacterLevelupPriceList.clv` |
+| Croissance des paramètres avatar | `data/data/system/{level_character_parameter.lcp, parameter_spec_avater.psa, powerup_parameter.pup}` |
+| Tutoriels / aide | `data1/data/msg/{tutorial_text_fr, lobby_tutorial_text_fr}.msg(.json)` |
 
 ---
 
-## 11. Pièges & contraintes (CLAUDE.md)
+## 7. Transposition Shenron — ✅ IMPLÉMENTÉE (Phase 1)
 
-- **Intents** : porter `/race` sur **kaïo** (a `GuildMembers`). Lancer
-  `intent-auditor` avant edit de `personas.ts`.
-- **`_entries.ts`** : `bun run gen:entries` après ajout de la commande (hook
-  PostToolUse le fait sur edit dans `commands/`).
-- **Wiki-write-guard** : la race est du **runtime** (SQLite users) → autorisé.
-  Ne JAMAIS l'écrire dans les tables wiki éditoriales.
-- **Sync** : `users.race` remonte vers Neon via le forward-sync runtime (déjà
-  inclus). Le site lit la race depuis Neon (eu-central-1 — cf. mémoire
-  `neon-prod-db-eu-central`, **pas** le MCP patient-star).
-- **DI tsyringe** : `import { Class }` sans `type` pour les services injectés.
-- **SQLite lock** : redémarrer `shenron` après migration.
-- **Bun-only**, catalog de versions, commits FR 1-ligne sans Co-Authored-By.
+On **transpose les traits réels XV2 sur les leviers du bot** (XP, vocal, zéni, jeux) — pas
+un moteur de combat. Le membre choisit sa race via **`/race`** (ou le menu de rôles
+Discord) ; elle est posée comme rôle de race exclusif et module sa progression.
 
----
+Les **6 races** correspondent aux **rôles Discord** du serveur (exclusifs) :
 
-## 12. Tests & rollout
+| Race (rôle serveur) | Inspiration XV2 | Effet implémenté |
+|---------------------|------------------|------------------|
+| **Saiyan** | Saiyen : guerrier né, Zenkai | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
+| **Humain** | Terrien : équilibré, objets +efficaces | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers) |
+| **Namek** | Santé élevée, régén, patience | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour |
+| **Mutant** | Puissance brute et instable | **×1,4 XP en chat** (montée régulière à l'écrit) |
+| **Cyborg** | Machine infatigable/efficace | **×1,4 XP en vocal** (récompense la présence vocale) |
+| **Majin** | Défensif, joueur imprévisible | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo) |
 
-1. `bun run lint` + `bun run type-check` + `bun --filter @shenron/bot test`.
-2. Tester `/race` sur un serveur de staging (ou rôle test) : choix, exclusivité,
-   multiplicateur effectif (envoyer des messages, vérifier l'XP gagné), level-up
-   reward de race, perks (zenkai/zeni/jeux).
-3. Déploiement progressif : `race.enabled=false` au déploiement, activer ensuite
-   via le dashboard une fois les rôles Discord créés et câblés dans `race.role.*`.
-4. Annonce communautaire + `/race` épinglé.
+Choisir une race **pose le rôle Discord exclusif** correspondant (et retire les autres). Les
+IDs de rôles sont dans `RACES[].roleId` (`lib/races.ts`). Le rôle **Saiyan** n'est **plus**
+distribué automatiquement (c'était un auto-rôle posé à tout le monde) — c'est désormais un
+choix de race.
 
----
+### Implémentation (fichiers)
+- **Catalogue + logique pure** (testée) : `apps/bot/src/lib/races.ts` (`tests/races.test.ts`).
+- **Commande** : `apps/bot/src/commands/race/Race.ts` (`/race` — embed + boutons, persona `kaio`).
+- **Schéma** : `users.race` / `race_chosen_at` / `race_boost_until` (Zenkai) / `last_race_regen_at`
+  (migration `0013`).
+- **Application des perks** : XP → `events/MessageXP.ts` + `events/VoiceXP.ts` ; zéni paliers +
+  Zenkai → `services/LevelService.ts` ; zéni général/jeux → `services/EconomyService.ts`
+  (`addZeni(..., { kind: "game" })`).
 
-## 13. Décisions à trancher (avant Phase 1)
+> Source de vérité runtime = `apps/bot/data/bot.db` (SQLite, forward-sync Neon). Ne **pas**
+> écrire la progression dans le wiki éditorial (`wiki-write-guard`). Les valeurs sont des
+> points de départ équilibrables (cf. `lib/races.ts`).
 
-1. **Changement de race** : définitif, ou changeable ? Si changeable : gratuit ou
-   coût zeni + cooldown ? (défaut proposé : changeable, coût zeni + 7 j de cooldown)
-2. **6 races** ci-dessus OK, ou en ajouter (Bio-Android distinct, Ange/Dieu) ?
-3. **Multiplicateurs de départ** (table §3) à valider/équilibrer.
-4. **Rétroactif** : les membres existants gardent leur niveau ; race = neutre tant
-   que non choisie. OK ?
-5. **Paliers par race** dès la Phase 1, ou paliers communs d'abord ?
+### Phase 2 — rôles de palier PAR RACE — ✅ infra en place
+- **Échelles de transformations par race** : `apps/bot/src/lib/race-levels.ts`
+  (`RACE_LEVEL_ROLES`, module pur testé `tests/race-levels.test.ts`). Chaque race a sa
+  propre suite de rôles de palier (niveaux 1..10). **Saiyan** est peuplée (Kaioken → UI
+  Parfait, source unique réutilisée par `seed-level-rewards.ts`) ; les **autres races
+  sont vides** → à compléter avec les rôles Discord créés côté serveur.
+- **Nettoyage au changement de race** : `LevelService.syncRaceLevelRoles(member)` retire
+  les paliers des autres races et (re)pose ceux de la race courante jusqu'au niveau. Appelé
+  par `/race` (kaio) **et** par `guildMemberUpdate` (grandPretre) quand un rôle de race est
+  posé/retiré à la main. Le niveau suit l'XP (jamais re-dérivé des rôles).
+- `level_rewards` reste la table **race-agnostique** des paliers (zéni, seuil XP, bannière) ;
+  seuls les **rôles** de transformation sont par race.
 
----
-
-## 14. Estimation d'effort
-
-| Phase | Effort | Risque |
-|---|---|---|
-| **Phase 1** (races + XP/perks/paliers + page site) | ~1–2 j | Faible (réutilise tout) |
-| **Phase 2** (transfos, courbes par race, canvas, historique) | ~3–5 j | Moyen |
-| **Phase 3** (stats + combat RPG) | semaines | Élevé (game design) |
-
-**Recommandation** : livrer la **Phase 1** d'abord (80 % du ressenti Xenoverse pour
-20 % de l'effort, réversible via `race.enabled`), mesurer l'adoption, puis Phase 2.
+### Phases suivantes (roadmap)
+- **Peupler les échelles non-Saiyan** dans `RACE_LEVEL_ROLES` (Namek, Mutant, Cyborg,
+  Majin, Humain) une fois les rôles Discord créés. Cooldown/coût de changement de race,
+  intégration carte de profil (`CardService`).
+- **Phase 3 — stats & combat** (optionnel) : vraies stats HP/Ki à la XV2 si un mode combat
+  est introduit.
 
 
 ---

@@ -174,21 +174,24 @@ Les valeurs de stats par niveau/race vivent dans des binaires `system/*` propri�
 ## 7. Transposition Shenron — ✅ IMPLÉMENTÉE (Phase 1)
 
 On **transpose les traits réels XV2 sur les leviers du bot** (XP, vocal, zéni, jeux) — pas
-un moteur de combat. Le membre choisit sa race via **`/race`** ; elle est stockée dans
-`users.race` et module sa progression.
+un moteur de combat. Le membre choisit sa race via **`/race`** (ou le menu de rôles
+Discord) ; elle est posée comme rôle de race exclusif et module sa progression.
 
-Les 5 races correspondent aux **rôles Discord** du serveur (exclusifs, posés par `/race`) :
+Les **6 races** correspondent aux **rôles Discord** du serveur (exclusifs) :
 
 | Race (rôle serveur) | Inspiration XV2 | Effet implémenté |
 |---------------------|------------------|------------------|
+| **Saiyan** | Saiyen : guerrier né, Zenkai | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
 | **Humain** | Terrien : équilibré, objets +efficaces | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers) |
-| **Mutant** | Saiyan (mutants capables de SSJ) : monte vite, Zenkai | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
-| **Cyborg** | Machine infatigable/efficace | **×1,4 XP en vocal** (récompense la présence vocale) |
 | **Namek** | Santé élevée, régén, patience | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour |
+| **Mutant** | Puissance brute et instable | **×1,4 XP en chat** (montée régulière à l'écrit) |
+| **Cyborg** | Machine infatigable/efficace | **×1,4 XP en vocal** (récompense la présence vocale) |
 | **Majin** | Défensif, joueur imprévisible | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo) |
 
 Choisir une race **pose le rôle Discord exclusif** correspondant (et retire les autres). Les
-IDs de rôles sont dans `RACES[].roleId` (`lib/races.ts`).
+IDs de rôles sont dans `RACES[].roleId` (`lib/races.ts`). Le rôle **Saiyan** n'est **plus**
+distribué automatiquement (c'était un auto-rôle posé à tout le monde) — c'est désormais un
+choix de race.
 
 ### Implémentation (fichiers)
 - **Catalogue + logique pure** (testée) : `apps/bot/src/lib/races.ts` (`tests/races.test.ts`).
@@ -203,9 +206,22 @@ IDs de rôles sont dans `RACES[].roleId` (`lib/races.ts`).
 > écrire la progression dans le wiki éditorial (`wiki-write-guard`). Les valeurs sont des
 > points de départ équilibrables (cf. `lib/races.ts`).
 
+### Phase 2 — rôles de palier PAR RACE — ✅ infra en place
+- **Échelles de transformations par race** : `apps/bot/src/lib/race-levels.ts`
+  (`RACE_LEVEL_ROLES`, module pur testé `tests/race-levels.test.ts`). Chaque race a sa
+  propre suite de rôles de palier (niveaux 1..10). **Saiyan** est peuplée (Kaioken → UI
+  Parfait, source unique réutilisée par `seed-level-rewards.ts`) ; les **autres races
+  sont vides** → à compléter avec les rôles Discord créés côté serveur.
+- **Nettoyage au changement de race** : `LevelService.syncRaceLevelRoles(member)` retire
+  les paliers des autres races et (re)pose ceux de la race courante jusqu'au niveau. Appelé
+  par `/race` (kaio) **et** par `guildMemberUpdate` (grandPretre) quand un rôle de race est
+  posé/retiré à la main. Le niveau suit l'XP (jamais re-dérivé des rôles).
+- `level_rewards` reste la table **race-agnostique** des paliers (zéni, seuil XP, bannière) ;
+  seuls les **rôles** de transformation sont par race.
+
 ### Phases suivantes (roadmap)
-- **Phase 2 — identité de race** : pistes de rôles de palier par race (Saiyen → « Super
-  Saiyan », Namek → « Namek Ultime »…), cooldown/coût de changement de race, intégration
-  carte de profil (`CardService`).
+- **Peupler les échelles non-Saiyan** dans `RACE_LEVEL_ROLES` (Namek, Mutant, Cyborg,
+  Majin, Humain) une fois les rôles Discord créés. Cooldown/coût de changement de race,
+  intégration carte de profil (`CardService`).
 - **Phase 3 — stats & combat** (optionnel) : vraies stats HP/Ki à la XV2 si un mode combat
   est introduit.
