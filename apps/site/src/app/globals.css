@@ -788,6 +788,50 @@ html {
 	font-weight: 700;
 	color: var(--color-dbz-orange, #ffb200);
 }
+/* Section repliable « par arc » (sous-catégorie) : panneau natif <details>, replié
+   par défaut → page de personnage compacte et triée par arc. */
+.wiki-content .wiki-section {
+	clear: both;
+	margin: 0 0 1rem;
+	border: 1px solid var(--color-dbz-border, #2a3a5a);
+	border-radius: 0.5rem;
+	background: rgba(15, 23, 42, 0.4);
+	overflow: hidden;
+}
+.wiki-content .wiki-section > summary {
+	cursor: pointer;
+	list-style: none;
+	padding: 0.6rem 0.9rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--color-dbz-orange, #ffb200);
+	user-select: none;
+}
+.wiki-content .wiki-section > summary::-webkit-details-marker {
+	display: none;
+}
+.wiki-content .wiki-section > summary::before {
+	content: "▸ ";
+	opacity: 0.7;
+}
+.wiki-content .wiki-section[open] > summary {
+	border-bottom: 1px solid var(--color-dbz-border, #2a3a5a);
+}
+.wiki-content .wiki-section[open] > summary::before {
+	content: "▾ ";
+}
+.wiki-content .wiki-section > :not(summary) {
+	padding-left: 0.9rem;
+	padding-right: 0.9rem;
+}
+.wiki-content .wiki-section > :not(summary):first-of-type {
+	padding-top: 0.6rem;
+}
+.wiki-content .wiki-section > :last-child {
+	padding-bottom: 0.6rem;
+	margin-bottom: 0;
+}
 .wiki-content figcaption {
 	font-size: 0.75rem;
 	text-align: center;

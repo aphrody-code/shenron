@@ -11,7 +11,7 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { EditorView } from "@codemirror/view";
 import CodeMirror, { oneDark } from "@uiw/react-codemirror";
-import { Gauge, ImagePlus, Loader2 } from "lucide-react";
+import { Gauge, ImagePlus, ListTree, Loader2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 
@@ -57,6 +57,17 @@ function kiSnippet(ctx: string, val: string): string {
 	)}</span><span class="ki-power-val">${escapeBadge(val.trim())}</span></span> `;
 }
 
+/**
+ * Section repliable « par arc » (sous-catégorie). Bloc `<details>` natif → la
+ * page publique le replie par défaut (page compacte, triée par arc). Les lignes
+ * vides autour du contenu permettent d'y écrire du markdown (images, badges Ki…).
+ */
+function sectionSnippet(name: string): string {
+	return `\n<details class="wiki-section">\n<summary>${escapeBadge(
+		name.trim() || "Section"
+	)}</summary>\n\nÉcris le contenu de cette section ici…\n\n</details>\n\n`;
+}
+
 interface Props {
 	value: string;
 	onChange: (v: string) => void;
@@ -76,6 +87,8 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 	const [kiOpen, setKiOpen] = useState(false);
 	const [kiCtx, setKiCtx] = useState("");
 	const [kiVal, setKiVal] = useState("");
+	const [secOpen, setSecOpen] = useState(false);
+	const [secName, setSecName] = useState("");
 
 	function insertAtCursor(text: string) {
 		const view = viewRef.current;
@@ -274,6 +287,16 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				>
 					<Gauge className="h-3 w-3" /> Ki
 				</button>
+				<button
+					type="button"
+					onClick={() => setSecOpen((o) => !o)}
+					title="Insérer une section repliable (par arc) pour trier le contenu"
+					className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
+						secOpen ? "bg-dbz-orange/20 text-dbz-orange" : "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
+					}`}
+				>
+					<ListTree className="h-3 w-3" /> Section
+				</button>
 			</div>
 
 			{/* Mini-formulaire d'insertion de Ki */}
@@ -316,6 +339,38 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					</button>
 					<span className="text-[10px] text-white/40">
 						S&apos;insère au curseur — répète-le pour chaque palier de puissance.
+					</span>
+				</div>
+			)}
+
+			{/* Mini-formulaire d'insertion de section repliable (par arc) */}
+			{secOpen && (
+				<div className="flex flex-wrap items-end gap-2 rounded border border-dbz-orange/30 bg-dbz-orange/5 p-2">
+					<div>
+						<label className="mb-0.5 block text-[10px] uppercase tracking-wider text-white/50">
+							Nom de la section / arc
+						</label>
+						<input
+							className="input h-8 text-sm"
+							placeholder="Saga des Saiyans"
+							value={secName}
+							onChange={(e) => setSecName(e.target.value)}
+						/>
+					</div>
+					<button
+						type="button"
+						disabled={!secName.trim()}
+						onClick={() => {
+							insertAtCursor(sectionSnippet(secName));
+							setSecName("");
+							setSecOpen(false);
+						}}
+						className="btn btn-primary h-8"
+					>
+						Insérer
+					</button>
+					<span className="text-[10px] text-white/40">
+						Crée un bloc repliable — écris dedans (images, badges Ki…). Un par arc.
 					</span>
 				</div>
 			)}
