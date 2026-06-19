@@ -57,6 +57,7 @@ export function WikiEditor({
 	const [body, setBody] = useState(initial?.body ?? "");
 	const [placement, setPlacement] = useState<Placement>("wiki-float-right");
 	const [uploadErr, setUploadErr] = useState<string | null>(null);
+	const [dragging, setDragging] = useState(false);
 	const [uploading, startUpload] = useTransition();
 	const viewRef = useRef<EditorView | null>(null);
 
@@ -125,10 +126,13 @@ export function WikiEditor({
 		{ label: "</>", title: "Code", run: () => wrapSelection("`", "`", "code") },
 	];
 
-	function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
-		e.target.value = "";
-		if (!file) return;
+	// Upload une image (picker / drag-drop / coller) puis insère le snippet au
+	// curseur selon le placement choisi.
+	function uploadAndInsert(file: File) {
+		if (!file.type.startsWith("image/")) {
+			setUploadErr("Le fichier déposé n'est pas une image.");
+			return;
+		}
 		setUploadErr(null);
 		const fd = new FormData();
 		fd.append("file", file);
@@ -140,10 +144,16 @@ export function WikiEditor({
 			}
 			const snippet =
 				placement === "inline"
-					? `\n\n![](${res.url})\n\n`
-					: `\n<figure class="${placement}">\n  <img src="${res.url}" alt="" />\n  <figcaption>Légende</figcaption>\n</figure>\n\n`;
+					? `\n\n![](${res.path})\n\n`
+					: `\n<figure class="${placement}">\n  <img src="${res.path}" alt="" />\n  <figcaption>Légende</figcaption>\n</figure>\n\n`;
 			insertAtCursor(snippet);
 		});
+	}
+
+	function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+		const file = e.target.files?.[0];
+		e.target.value = "";
+		if (file) uploadAndInsert(file);
 	}
 
 	return (
@@ -247,7 +257,42 @@ export function WikiEditor({
 
 			{/* Éditeur + preview côte à côte */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-				<div className="dbz-panel p-4">
+				{/* Glisser-déposer / coller une image directement dans l'éditeur → upload
+				    + insertion au curseur (en plus du bouton « + IMAGE »). */}
+				<div
+					className="dbz-panel p-4 relative"
+					onDragOver={(e) => {
+						if (Array.from(e.dataTransfer.types).includes("Files")) {
+							e.preventDefault();
+							if (!dragging) setDragging(true);
+						}
+					}}
+					onDragLeave={(e) => {
+						if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+					}}
+					onDrop={(e) => {
+						// onDragOver preventDefault déjà → on DOIT preventDefault le drop aussi,
+						// sinon un fichier non-image ferait naviguer le navigateur (= perte de
+						// l'article non sauvegardé). On annule toujours puis on filtre.
+						e.preventDefault();
+						setDragging(false);
+						const file = Array.from(e.dataTransfer.files).find((f) =>
+							f.type.startsWith("image/")
+						);
+						if (file) uploadAndInsert(file);
+						else if (e.dataTransfer.files.length)
+							setUploadErr("Le fichier déposé n'est pas une image.");
+					}}
+					onPaste={(e) => {
+						const file = Array.from(e.clipboardData.files).find((f) =>
+							f.type.startsWith("image/")
+						);
+						if (file) {
+							e.preventDefault();
+							uploadAndInsert(file);
+						}
+					}}
+				>
 					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
 						Contenu (markdown + HTML)
 					</label>
@@ -266,9 +311,17 @@ export function WikiEditor({
 						className="border-2 border-dbz-border focus-within:border-dbz-orange text-sm overflow-hidden"
 					/>
 					<p className="text-xs text-gray-500 mt-2">
-						Classes dispo : <code>wiki-float-right</code>, <code>wiki-float-left</code>,{" "}
-						<code>wiki-infobox</code>, <code>wiki-grid</code>, <code>wiki-clear</code>.
+						Glisse une image ici ou colle-la · Classes : <code>wiki-float-right</code>,{" "}
+						<code>wiki-float-left</code>, <code>wiki-infobox</code>, <code>wiki-grid</code>,{" "}
+						<code>wiki-clear</code>.
 					</p>
+					{dragging && (
+						<div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-dbz-orange bg-dbz-orange/10 backdrop-blur-sm">
+							<span className="font-saiyan text-xl uppercase tracking-widest text-dbz-orange">
+								Déposez l&apos;image
+							</span>
+						</div>
+					)}
 				</div>
 				<div className="dbz-panel p-4 overflow-auto">
 					<span className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">

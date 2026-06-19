@@ -17,7 +17,9 @@ import { isCurrentUserAdmin } from "@/lib/session";
  * `uploadWikiImage` dans `admin/wiki/_actions.ts`).
  *
  * Le bot renvoie un chemin DB `./assets/wiki/<subdir>/<uuid>.<ext>` que
- * `assetUrl()` résout côté front en `/wiki/<subdir>/<uuid>.<ext>`.
+ * `assetUrl()` résout en URL absolue sur l'hôte du bot
+ * (`${ASSET_BASE}/assets/wiki/...`) — servi sans collision avec la route Next
+ * catch-all `/wiki/[...slug]` (cf. lib/assets.ts).
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

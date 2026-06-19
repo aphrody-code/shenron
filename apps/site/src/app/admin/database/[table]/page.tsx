@@ -9,18 +9,7 @@ import { api, apiAt } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
 import { TABLE_LABELS, colLabel } from "@/lib/db-labels";
 import { WIKI_TABLE_SPECS, crudBase, isWikiTable } from "@/lib/wiki-tables";
-
-/** Colonnes dont la valeur est une image (rendu vignette + champ d'upload). */
-const IMAGE_COL_RE = /image|cover|poster|photo|avatar|icon|banner|thumb|sprite|portrait|logo|artwork/i;
-function isImageColumn(table: string, col: string): boolean {
-	if (table === "db_assets" && col === "path") return true;
-	return IMAGE_COL_RE.test(col);
-}
-/** Sous-dossier wiki d'upload déduit de la table (`db_characters` → `characters`). */
-function uploadSubdir(table: string): string {
-	const base = table.replace(/^db_/, "").replace(/_/g, "-");
-	return /^[a-z0-9-]{1,32}$/.test(base) ? base : "uploads";
-}
+import { IMAGE_COL_RE, isImageColumn, isStudioTable, uploadSubdir } from "@/lib/wiki-fields";
 
 interface TableSpec {
 	name: string;
@@ -34,6 +23,7 @@ export default function TablePage() {
 	const { table } = useParams<{ table: string }>();
 	const router = useRouter();
 	const wiki = isWikiTable(table);
+	const studio = isStudioTable(table);
 	const client = wiki ? apiAt(crudBase(table)) : api;
 	const collection = wiki ? `/${table}` : `/database/${table}`;
 	const rowPath = (id: unknown) => `${collection}/${encodeURIComponent(String(id))}`;
@@ -71,6 +61,16 @@ export default function TablePage() {
 				description: null,
 			}
 		: tableSpec.data?.tables.find((t) => t.name === table);
+
+	// Entités wiki « contenu » → studio d'édition visuelle (form + aperçu live) ;
+	// les autres tables gardent la modale générique.
+	const openCreate = () =>
+		studio ? router.push(`/admin/wiki/studio/${table}/new`) : setCreating(true);
+	const openEdit = (row: Record<string, unknown>) => {
+		if (studio && spec)
+			router.push(`/admin/wiki/studio/${table}/${encodeURIComponent(String(row[spec.pk]))}`);
+		else setEditing(row);
+	};
 
 	const rows = useQuery({
 		queryKey: ["db", table, page],
@@ -164,7 +164,7 @@ export default function TablePage() {
 					{Math.max(1, totalPages)}
 				</div>
 				{spec && !spec.readonly && (
-					<button type="button" onClick={() => setCreating(true)} className="btn btn-primary">
+					<button type="button" onClick={openCreate} className="btn btn-primary">
 						<Plus className="h-4 w-4" />
 						Nouvelle entrée
 					</button>
@@ -184,7 +184,7 @@ export default function TablePage() {
 					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">Aucune entrée</p>
 					<p className="text-white/40 text-sm mb-4">Cette section est vide pour l&apos;instant.</p>
 					{spec && !spec.readonly && (
-						<button type="button" onClick={() => setCreating(true)} className="btn btn-primary">
+						<button type="button" onClick={openCreate} className="btn btn-primary">
 							<Plus className="h-4 w-4" />
 							Créer la première entrée
 						</button>
@@ -220,7 +220,7 @@ export default function TablePage() {
 											<div className="flex justify-end gap-1">
 												<button
 													type="button"
-													onClick={() => setEditing(row)}
+													onClick={() => openEdit(row)}
 													className="btn btn-ghost px-2 h-7 text-xs"
 													title="Modifier"
 												>

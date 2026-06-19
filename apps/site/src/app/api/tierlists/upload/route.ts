@@ -13,7 +13,8 @@ import { API_URL } from "@/lib/config";
  *     server-only (jamais exposé au navigateur), dans un **namespace dédié**
  *     `tierlists/` pour ne pas polluer les assets wiki curés.
  * Le bot renvoie un chemin `./assets/wiki/tierlists/<uuid>.<ext>` que
- * `assetUrl()` résout en `/wiki/tierlists/<uuid>.<ext>`.
+ * `assetUrl()` résout en URL absolue sur l'hôte du bot
+ * (`${ASSET_BASE}/assets/wiki/tierlists/...`).
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,0 +1,323 @@
+"use client";
+
+/**
+ * Studio d'édition visuelle d'une entité wiki (`db_*`) : formulaire à gauche
+ * (champs typés + upload d'images drag-and-drop), aperçu live de la page publique
+ * à droite. Charge la ligne via `/api/wiki-admin/:table/:id`, enregistre via le
+ * même CRUD (Neon). `id === "new"` → création.
+ */
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertTriangle, ArrowLeft, CheckCircle, ExternalLink, Eye, Save } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ImageField } from "@/components/admin/ImageField";
+import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
+import { apiAt } from "@/lib/admin-api";
+import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
+import {
+	isBoolColumn,
+	isImageColumn,
+	isLongTextColumn,
+	isStudioTable,
+	publicEntityUrl,
+	uploadSubdir,
+} from "@/lib/wiki-fields";
+import { crudBase, WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
+
+interface Props {
+	table: string;
+	id: string;
+}
+
+type Row = Record<string, unknown>;
+
+function toDraft(cols: string[], row: Row | null): Record<string, string> {
+	return Object.fromEntries(cols.map((c) => [c, row?.[c] != null ? String(row[c]) : ""]));
+}
+
+/** Construit le body à envoyer (coercition de types + clear explicite des images). */
+function buildBody(
+	draft: Record<string, string>,
+	row: Row | null,
+	cols: string[],
+	mode: "create" | "edit",
+	table: string
+): Row {
+	const body: Row = {};
+	for (const c of cols) {
+		const v = draft[c] ?? "";
+		if (v === "") {
+			// Effacer explicitement une image en édition → "" (Neon coerce → NULL).
+			if (mode === "edit" && isImageColumn(table, c) && row?.[c] != null && String(row[c]) !== "")
+				body[c] = "";
+			continue;
+		}
+		// Les booléens sont coercés ici (le toggle produit "true"/"false"). Le reste
+		// part en string : le serveur wiki-admin (`coerceValue`) est schema-aware
+		// (colonnes number → Number, sinon string) → pas de coercition numérique
+		// côté client qui corromprait un texte tout-chiffres (ex. ISBN "0306406152").
+		if (isBoolColumn(c) || typeof row?.[c] === "boolean") body[c] = v === "true" || v === "1";
+		else body[c] = v;
+	}
+	return body;
+}
+
+export function WikiStudio({ table, id }: Props) {
+	const router = useRouter();
+	const qc = useQueryClient();
+	const spec = WIKI_TABLE_SPECS[table];
+	const client = useMemo(() => apiAt(crudBase(table)), [table]);
+	const mode: "create" | "edit" = id === "new" ? "create" : "edit";
+	// `spec` est une constante de module → `mutableColumns` a une identité stable.
+	const cols = useMemo(() => spec?.mutableColumns ?? [], [spec]);
+
+	const [draft, setDraft] = useState<Record<string, string>>(() => toDraft(cols, null));
+	const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+	useEffect(() => {
+		if (!toast) return;
+		const t = setTimeout(() => setToast(null), 3500);
+		return () => clearTimeout(t);
+	}, [toast]);
+
+	// Chargement de la ligne (édition). Pas de refetch en arrière-plan : le
+	// formulaire est l'état maître une fois hydraté (sinon un refetch focus/save
+	// écraserait les saisies en cours).
+	const rowQuery = useQuery({
+		queryKey: ["wiki-studio", table, id],
+		queryFn: () => client.get<Row>(`/${table}/${encodeURIComponent(id)}`),
+		enabled: mode === "edit" && !!spec,
+		refetchOnWindowFocus: false,
+		staleTime: Number.POSITIVE_INFINITY,
+	});
+
+	// Hydrate le brouillon UNE fois par id (au premier chargement de la ligne) :
+	// ne ré-écrase jamais les saisies en cours sur un nouveau référent de données.
+	const hydratedId = useRef<string | null>(null);
+	useEffect(() => {
+		if (mode === "edit" && rowQuery.data && hydratedId.current !== id) {
+			setDraft(toDraft(cols, rowQuery.data));
+			hydratedId.current = id;
+		}
+	}, [rowQuery.data, cols, mode, id]);
+
+	const row = mode === "edit" ? (rowQuery.data ?? null) : null;
+
+	const save = useMutation({
+		mutationFn: async () => {
+			const body = buildBody(draft, row, cols, mode, table);
+			if (mode === "create") return client.post<{ ok: boolean; row?: Row }>(`/${table}`, body);
+			return client.put<{ ok: boolean; row?: Row }>(
+				`/${table}/${encodeURIComponent(id)}`,
+				body
+			);
+		},
+		onSuccess: (res) => {
+			qc.invalidateQueries({ queryKey: ["db", table] });
+			setToast({ type: "success", msg: "Enregistré." });
+			const savedRow = res?.row;
+			const newId = savedRow?.[spec?.pk as string];
+			// Met le cache à jour SANS refetch (qui écraserait le brouillon).
+			if (savedRow != null && newId != null)
+				qc.setQueryData(["wiki-studio", table, String(newId)], savedRow);
+			// Création → bascule sur l'URL d'édition de la nouvelle entrée.
+			if (mode === "create" && newId != null)
+				router.replace(`/admin/wiki/studio/${table}/${encodeURIComponent(String(newId))}`);
+		},
+		onError: (err: Error) => setToast({ type: "error", msg: `Erreur : ${err.message}` }),
+	});
+
+	// Le studio ne pilote que les entités « contenu » à pk simple (cf. STUDIO_TABLES) ;
+	// les tables utilitaires / à pk composite restent sur l'éditeur générique.
+	if (!spec || !isStudioTable(table)) {
+		return (
+			<div className="card py-12 text-center">
+				<p className="mb-1 font-saiyan uppercase text-dbz-orange">Table non éditable ici</p>
+				<p className="text-sm text-white/50">
+					<code className="font-mono">{table}</code> n&apos;est pas une entité wiki gérée par le
+					studio.{" "}
+					<a href={`/admin/database/${table}`} className="text-dbz-orange hover:underline">
+						Ouvrir l&apos;éditeur classique
+					</a>
+					.
+				</p>
+			</div>
+		);
+	}
+
+	const humanTable = TABLE_LABELS[table] ?? table;
+	const title = (draft.name ?? draft.title ?? "").trim();
+	const publicUrl = mode === "edit" ? publicEntityUrl(table, { id, slug: draft.slug }) : null;
+	// En édition, on ne peut enregistrer qu'une fois la ligne chargée (sinon le
+	// body serait vide → écrasement potentiel par valeurs vides).
+	const notReady = mode === "edit" && !rowQuery.data;
+
+	return (
+		<div className="space-y-4">
+			{toast && (
+				<div
+					className={`fixed right-4 top-4 z-50 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm shadow-xl ${
+						toast.type === "success"
+							? "border-green-500/50 bg-dbz-card text-green-300"
+							: "border-red-500/50 bg-dbz-card text-red-300"
+					}`}
+				>
+					{toast.type === "success" ? (
+						<CheckCircle className="h-4 w-4 shrink-0" />
+					) : (
+						<AlertTriangle className="h-4 w-4 shrink-0" />
+					)}
+					{toast.msg}
+				</div>
+			)}
+
+			{/* En-tête */}
+			<div className="flex flex-wrap items-center gap-3">
+				<button
+					type="button"
+					onClick={() => router.push(`/admin/database/${table}`)}
+					className="btn btn-ghost"
+				>
+					<ArrowLeft className="h-4 w-4" />
+					<span className="sr-only">Retour à la liste</span>
+				</button>
+				<div className="min-w-0 flex-1">
+					<h2 className="truncate font-saiyan text-xl uppercase text-dbz-orange">
+						{mode === "create" ? `Nouvelle entrée · ${humanTable}` : title || humanTable}
+					</h2>
+					<code className="font-mono text-[10px] text-white/25">
+						{table}
+						{mode === "edit" ? ` · ${spec.pk} = ${id}` : ""}
+					</code>
+				</div>
+				{publicUrl && (
+					<a href={publicUrl} target="_blank" rel="noreferrer" className="btn btn-ghost">
+						<ExternalLink className="h-3.5 w-3.5" />
+						Page publique
+					</a>
+				)}
+				<button
+					type="button"
+					onClick={() => save.mutate()}
+					disabled={save.isPending || notReady}
+					className="btn btn-primary"
+				>
+					<Save className="h-4 w-4" />
+					{save.isPending ? "Enregistrement…" : "Enregistrer"}
+				</button>
+			</div>
+
+			{mode === "edit" && rowQuery.isLoading ? (
+				<div className="card h-96 animate-pulse" />
+			) : mode === "edit" && rowQuery.isError ? (
+				<div className="card py-12 text-center">
+					<p className="mb-1 font-saiyan uppercase text-dbz-orange">Entrée introuvable</p>
+					<p className="text-sm text-white/50">Impossible de charger cette ligne.</p>
+				</div>
+			) : (
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+					{/* Formulaire */}
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							save.mutate();
+						}}
+						className="dbz-panel space-y-4 p-5"
+					>
+						{cols.map((c) => (
+							<Field
+								key={c}
+								table={table}
+								col={c}
+								value={draft[c] ?? ""}
+								onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
+							/>
+						))}
+						<button type="submit" disabled={save.isPending || notReady} className="btn btn-primary w-full">
+							<Save className="h-4 w-4" />
+							{save.isPending ? "Enregistrement…" : "Enregistrer"}
+						</button>
+					</form>
+
+					{/* Aperçu live (sticky sur grand écran) */}
+					<div className="lg:sticky lg:top-4 lg:self-start">
+						<div className="dbz-panel p-6">
+							<div className="mb-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+								<Eye className="h-3.5 w-3.5" /> Aperçu live
+							</div>
+							<WikiEntityPreview table={table} draft={draft} />
+						</div>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+/** Un champ du formulaire, typé d'après le nom de colonne. */
+function Field({
+	table,
+	col,
+	value,
+	onChange,
+}: {
+	table: string;
+	col: string;
+	value: string;
+	onChange: (v: string) => void;
+}) {
+	const label = (
+		<label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-dbz-blue-light">
+			{colLabel(col)}
+			<span className="ml-2 font-mono font-normal normal-case text-white/25">{col}</span>
+		</label>
+	);
+
+	if (isImageColumn(table, col)) {
+		return (
+			<div>
+				{label}
+				<ImageField value={value} onChange={onChange} subdir={uploadSubdir(table)} column={col} />
+			</div>
+		);
+	}
+	if (isBoolColumn(col)) {
+		const on = value === "true" || value === "1";
+		return (
+			<div>
+				{label}
+				<button
+					type="button"
+					onClick={() => onChange(on ? "false" : "true")}
+					className={`btn w-full ${on ? "btn-primary" : "btn-ghost"}`}
+				>
+					{on ? "Oui / Activé" : "Non / Désactivé"}
+				</button>
+			</div>
+		);
+	}
+	if (isLongTextColumn(col)) {
+		return (
+			<div>
+				{label}
+				<textarea
+					className="input min-h-32 font-mono text-sm"
+					rows={6}
+					value={value}
+					onChange={(e) => onChange(e.target.value)}
+					placeholder="Markdown supporté…"
+				/>
+			</div>
+		);
+	}
+	return (
+		<div>
+			{label}
+			<input
+				className="input font-mono text-sm"
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+			/>
+		</div>
+	);
+}
