@@ -51,8 +51,8 @@ export function HomeClipField({
 				top: 2 + Math.random() * 80, // 2–82 %
 				dur,
 				delay: -Math.random() * dur, // démarre à un point aléatoire du trajet
-				scale: 0.68 + Math.random() * 0.72, // 0.68–1.4
-				opacity: 0.16 + Math.random() * 0.2, // 0.16–0.36
+				scale: 0.72 + Math.random() * 0.7, // 0.72–1.42
+				opacity: 0.32 + Math.random() * 0.26, // 0.32–0.58
 				blur: Math.random() < 0.5 ? Math.random() * 1.6 : 0,
 				dir: Math.random() < 0.5 ? "ltr" : "rtl",
 			};
