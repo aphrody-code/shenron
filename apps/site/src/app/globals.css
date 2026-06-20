@@ -998,6 +998,134 @@ html {
 .wiki-content .wiki-clear {
 	clear: both;
 }
+
+/* ── Blocs « Design » (contrôle total admin) ────────────────────────────────── */
+/* Colonnes */
+.wiki-content .wiki-cols {
+	display: grid;
+	gap: 1.25rem;
+	margin: 1.25rem 0;
+	clear: both;
+}
+.wiki-content .wiki-cols-2 {
+	grid-template-columns: repeat(2, 1fr);
+}
+.wiki-content .wiki-cols-3 {
+	grid-template-columns: repeat(3, 1fr);
+}
+.wiki-content .wiki-cols > * > :first-child {
+	margin-top: 0;
+}
+.wiki-content .wiki-cols > * > :last-child {
+	margin-bottom: 0;
+}
+/* Encadré / callout (couleur pilotée par --cl) */
+.wiki-content .wiki-callout {
+	margin: 1.25rem 0;
+	padding: 0.9rem 1.1rem;
+	border-left: 4px solid var(--cl, #38bdf8);
+	border-radius: 0.5rem;
+	background: color-mix(in oklab, var(--cl, #38bdf8) 12%, transparent);
+	clear: both;
+}
+.wiki-content .wiki-callout > :first-child {
+	margin-top: 0;
+}
+.wiki-content .wiki-callout > :last-child {
+	margin-bottom: 0;
+}
+.wiki-content .wiki-callout--info {
+	--cl: #38bdf8;
+}
+.wiki-content .wiki-callout--success {
+	--cl: #34d399;
+}
+.wiki-content .wiki-callout--warn {
+	--cl: #ffb200;
+}
+.wiki-content .wiki-callout--danger {
+	--cl: #f87171;
+}
+.wiki-content .wiki-callout--neutral {
+	--cl: #94a3b8;
+}
+/* Bouton-lien */
+.wiki-content a.wiki-btn {
+	display: inline-block;
+	margin: 0.25rem 0.35rem 0.25rem 0;
+	padding: 0.55rem 1.2rem;
+	border-radius: 0.4rem;
+	background: var(--color-dbz-orange, #ffb200);
+	color: #1a1206;
+	font-weight: 700;
+	text-decoration: none;
+	transition:
+		transform 0.2s ease,
+		box-shadow 0.2s ease;
+}
+.wiki-content a.wiki-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 8px 24px rgba(255, 178, 0, 0.3);
+	text-decoration: none;
+}
+/* Embed responsive (YouTube, etc.) */
+.wiki-content .wiki-embed {
+	position: relative;
+	width: 100%;
+	aspect-ratio: 16 / 9;
+	margin: 1.25rem 0;
+	border-radius: 0.6rem;
+	overflow: hidden;
+	border: 1px solid var(--color-dbz-border, #2a3a5a);
+	clear: both;
+}
+.wiki-content .wiki-embed iframe {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+/* Bannière : image de fond + titre superposé */
+.wiki-content .wiki-banner {
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	min-height: clamp(160px, 28vw, 300px);
+	margin: 1.25rem 0;
+	padding: 1.25rem;
+	border-radius: 0.6rem;
+	overflow: hidden;
+	background-size: cover;
+	background-position: center;
+	clear: both;
+}
+.wiki-content .wiki-banner::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(0deg, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0.05));
+}
+.wiki-content .wiki-banner > figcaption {
+	position: relative;
+	margin: 0;
+	font-family: var(--font-display, inherit);
+	font-weight: 800;
+	font-size: clamp(1.4rem, 3vw, 2.4rem);
+	color: #fff;
+	text-align: left;
+	text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.wiki-content .wiki-spacer {
+	width: 100%;
+}
+@media (max-width: 768px) {
+	.wiki-content .wiki-cols-2,
+	.wiki-content .wiki-cols-3 {
+		grid-template-columns: 1fr;
+	}
+}
+
 @media (max-width: 640px) {
 	.wiki-content .wiki-float-right,
 	.wiki-content .wiki-float-left,

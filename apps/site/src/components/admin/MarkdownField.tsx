@@ -11,7 +11,7 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { EditorView } from "@codemirror/view";
 import CodeMirror, { oneDark } from "@uiw/react-codemirror";
-import { Gauge, ImagePlus, ListTree, Loader2 } from "lucide-react";
+import { Film, Gauge, ImagePlus, LayoutTemplate, ListTree, Loader2, Palette } from "lucide-react";
 import { useRef, useState } from "react";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 
@@ -70,6 +70,64 @@ function sectionSnippet(name: string): string {
 	)}</summary>\n\nÉcris le contenu de cette section ici…\n\n</details>\n\n`;
 }
 
+// ── Blocs « Design » : du HTML que le sanitizer ouvert rend tel quel. Les
+// lignes vides autour du contenu permettent d'écrire du markdown DEDANS (même
+// astuce que <details>). ────────────────────────────────────────────────────
+function escapeAttr(s: string): string {
+	return escapeHtml(s.trim());
+}
+
+/** Disposition en N colonnes (markdown autorisé dans chaque colonne). */
+function colsSnippet(n: number): string {
+	const cols = Array.from({ length: n }, (_, i) => `<div>\n\nColonne ${i + 1}\n\n</div>`).join("\n");
+	return `\n<div class="wiki-cols wiki-cols-${n}">\n${cols}\n</div>\n\n`;
+}
+
+const CALLOUTS = [
+	{ key: "info", label: "Info (bleu)" },
+	{ key: "success", label: "Succès (vert)" },
+	{ key: "warn", label: "Attention (or)" },
+	{ key: "danger", label: "Danger (rouge)" },
+	{ key: "neutral", label: "Neutre" },
+];
+function calloutSnippet(kind: string): string {
+	return `\n<div class="wiki-callout wiki-callout--${kind}">\n\nÉcris ton encadré ici…\n\n</div>\n\n`;
+}
+
+function buttonSnippet(label: string, href: string): string {
+	return ` <a class="wiki-btn" href="${escapeAttr(href) || "#"}">${escapeHtml(
+		label.trim() || "Bouton"
+	)}</a> `;
+}
+
+/** Normalise une URL YouTube (watch/short/youtu.be) vers l'URL d'embed. */
+function toEmbedUrl(url: string): string {
+	const m = url
+		.trim()
+		.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+	if (m) return `https://www.youtube-nocookie.com/embed/${m[1]}`;
+	return url.trim();
+}
+function embedSnippet(url: string): string {
+	return `\n<div class="wiki-embed">\n<iframe src="${escapeAttr(
+		toEmbedUrl(url)
+	)}" title="Vidéo" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>\n</div>\n\n`;
+}
+
+function bannerSnippet(path: string): string {
+	return `\n<figure class="wiki-banner" style="background-image:url('${escapeAttr(
+		path
+	)}')">\n<figcaption>Titre de la bannière</figcaption>\n</figure>\n\n`;
+}
+
+function gallerySnippet(): string {
+	return `\n<div class="wiki-grid">\n<img src="" alt="" />\n<img src="" alt="" />\n<img src="" alt="" />\n</div>\n\n`;
+}
+
+function spacerSnippet(): string {
+	return `\n<div class="wiki-spacer" style="height:48px"></div>\n\n`;
+}
+
 interface Props {
 	value: string;
 	onChange: (v: string) => void;
@@ -81,6 +139,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 	const viewRef = useRef<EditorView | null>(null);
 	const fileRef = useRef<HTMLInputElement | null>(null);
 	const busyRef = useRef(false);
+	const uploadModeRef = useRef<"image" | "banner">("image");
 	const [size, setSize] = useState("md");
 	const [placement, setPlacement] = useState("center");
 	const [uploading, setUploading] = useState(false);
@@ -91,6 +150,12 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 	const [kiVal, setKiVal] = useState("");
 	const [secOpen, setSecOpen] = useState(false);
 	const [secName, setSecName] = useState("");
+	const [designOpen, setDesignOpen] = useState(false);
+	const [calloutKind, setCalloutKind] = useState("info");
+	const [btnLabel, setBtnLabel] = useState("");
+	const [btnHref, setBtnHref] = useState("");
+	const [embedUrl, setEmbedUrl] = useState("");
+	const [textColor, setTextColor] = useState("#ffb200");
 
 	function insertAtCursor(text: string) {
 		const view = viewRef.current;
@@ -149,7 +214,11 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 			});
 			const data = (await res.json().catch(() => ({}))) as { path?: string; error?: string };
 			if (!res.ok || !data.path) throw new Error(data.error ?? `Upload échoué (${res.status}).`);
-			insertAtCursor(imageSnippet(data.path, size, placement));
+			insertAtCursor(
+					uploadModeRef.current === "banner"
+						? bannerSnippet(data.path)
+						: imageSnippet(data.path, size, placement)
+				);
 		} catch (e) {
 			setErr(e instanceof Error ? e.message : "Upload échoué.");
 		} finally {
@@ -168,6 +237,10 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 		{ label: "🔗", title: "Lien", run: () => wrap("[", "](https://)", "texte du lien") },
 	];
 
+	const designBtn =
+		"rounded border border-dbz-border/60 bg-dbz-bg px-2 py-1 font-semibold text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-yellow";
+	const designLabel = "w-16 shrink-0 text-[10px] uppercase tracking-wider text-white/50";
+
 	const editor = (
 		<div
 			className="relative"
@@ -184,13 +257,17 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				e.preventDefault();
 				setDragging(false);
 				const f = Array.from(e.dataTransfer.files).find((x) => x.type.startsWith("image/"));
-				if (f) void upload(f);
-				else if (e.dataTransfer.files.length) setErr("Le fichier déposé n'est pas une image.");
+				if (f) {
+					uploadModeRef.current = "image";
+					void upload(f);
+				} else if (e.dataTransfer.files.length)
+					setErr("Le fichier déposé n'est pas une image.");
 			}}
 			onPaste={(e) => {
 				const f = Array.from(e.clipboardData.files).find((x) => x.type.startsWith("image/"));
 				if (f) {
 					e.preventDefault();
+					uploadModeRef.current = "image";
 					void upload(f);
 				}
 			}}
@@ -260,7 +337,10 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				</select>
 				<button
 					type="button"
-					onClick={() => fileRef.current?.click()}
+					onClick={() => {
+						uploadModeRef.current = "image";
+						fileRef.current?.click();
+					}}
 					disabled={uploading}
 					className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow disabled:opacity-50"
 				>
@@ -298,6 +378,18 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					}`}
 				>
 					<ListTree className="h-3 w-3" /> Section
+				</button>
+				<button
+					type="button"
+					onClick={() => setDesignOpen((o) => !o)}
+					title="Blocs de mise en page : colonnes, encadrés, bouton, bannière, vidéo, couleurs…"
+					className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
+						designOpen
+							? "bg-dbz-orange/20 text-dbz-orange"
+							: "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
+					}`}
+				>
+					<LayoutTemplate className="h-3 w-3" /> Design
 				</button>
 			</div>
 
@@ -375,6 +467,177 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 						Catégorie au nom de ton choix — écris dedans (images, badges Ki…). Empiles-en autant
 						que tu veux.
 					</span>
+				</div>
+			)}
+
+			{/* Panneau Design — blocs de mise en page (HTML rendu tel quel par le wiki) */}
+			{designOpen && (
+				<div className="space-y-2 rounded border border-dbz-orange/30 bg-dbz-orange/5 p-2.5 text-xs">
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className={designLabel}>Colonnes</span>
+						<button type="button" className={designBtn} onClick={() => insertAtCursor(colsSnippet(2))}>
+							2 colonnes
+						</button>
+						<button type="button" className={designBtn} onClick={() => insertAtCursor(colsSnippet(3))}>
+							3 colonnes
+						</button>
+						<button type="button" className={designBtn} onClick={() => insertAtCursor(gallerySnippet())}>
+							Galerie d'images
+						</button>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className={designLabel}>Encadré</span>
+						<select
+							value={calloutKind}
+							onChange={(e) => setCalloutKind(e.target.value)}
+							className="input h-7 w-auto px-1 py-0 text-xs"
+						>
+							{CALLOUTS.map((c) => (
+								<option key={c.key} value={c.key}>
+									{c.label}
+								</option>
+							))}
+						</select>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => insertAtCursor(calloutSnippet(calloutKind))}
+						>
+							Insérer l'encadré
+						</button>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className={designLabel}>Bouton</span>
+						<input
+							className="input h-7 w-28 text-xs"
+							placeholder="Libellé"
+							value={btnLabel}
+							onChange={(e) => setBtnLabel(e.target.value)}
+						/>
+						<input
+							className="input h-7 w-44 text-xs"
+							placeholder="https://…"
+							value={btnHref}
+							onChange={(e) => setBtnHref(e.target.value)}
+						/>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => {
+								insertAtCursor(buttonSnippet(btnLabel, btnHref));
+								setBtnLabel("");
+								setBtnHref("");
+							}}
+						>
+							Insérer
+						</button>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className={designLabel}>Vidéo</span>
+						<input
+							className="input h-7 w-56 text-xs"
+							placeholder="URL YouTube (watch / short / youtu.be)…"
+							value={embedUrl}
+							onChange={(e) => setEmbedUrl(e.target.value)}
+						/>
+						<button
+							type="button"
+							disabled={!embedUrl.trim()}
+							className={`${designBtn} inline-flex items-center gap-1 disabled:opacity-40`}
+							onClick={() => {
+								insertAtCursor(embedSnippet(embedUrl));
+								setEmbedUrl("");
+							}}
+						>
+							<Film className="h-3 w-3" /> Insérer
+						</button>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className={designLabel}>Bannière</span>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => {
+								uploadModeRef.current = "banner";
+								fileRef.current?.click();
+							}}
+						>
+							Choisir une image…
+						</button>
+						<span className="text-[10px] text-white/40">Image de fond + titre superposé.</span>
+					</div>
+
+					<div className="flex flex-wrap items-center gap-1.5">
+						<span className={designLabel}>Texte</span>
+						<Palette className="h-3.5 w-3.5 text-white/50" />
+						<input
+							type="color"
+							value={textColor}
+							onChange={(e) => setTextColor(e.target.value)}
+							className="h-7 w-9 cursor-pointer rounded border border-dbz-border/60 bg-transparent p-0.5"
+							title="Couleur du texte"
+						/>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => wrap(`<span style="color:${textColor}">`, "</span>")}
+						>
+							Colorer la sélection
+						</button>
+						<span className="mx-1 text-dbz-border">|</span>
+						<button
+							type="button"
+							className={designBtn}
+							title="Aligner à gauche"
+							onClick={() => wrap('\n<div style="text-align:left">\n\n', "\n\n</div>\n\n")}
+						>
+							⟸
+						</button>
+						<button
+							type="button"
+							className={designBtn}
+							title="Centrer"
+							onClick={() => wrap('\n<div style="text-align:center">\n\n', "\n\n</div>\n\n")}
+						>
+							≡
+						</button>
+						<button
+							type="button"
+							className={designBtn}
+							title="Aligner à droite"
+							onClick={() => wrap('\n<div style="text-align:right">\n\n', "\n\n</div>\n\n")}
+						>
+							⟹
+						</button>
+						<button
+							type="button"
+							className={designBtn}
+							title="Justifier"
+							onClick={() => wrap('\n<div style="text-align:justify">\n\n', "\n\n</div>\n\n")}
+						>
+							☰
+						</button>
+						<span className="mx-1 text-dbz-border">|</span>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => insertAtCursor("\n\n---\n\n")}
+						>
+							Séparateur
+						</button>
+						<button type="button" className={designBtn} onClick={() => insertAtCursor(spacerSnippet())}>
+							Espace
+						</button>
+					</div>
+
+					<p className="text-[10px] leading-snug text-white/40">
+						Tu peux aussi écrire du HTML/CSS libre directement (mise en page, couleurs, polices…).
+						Seul le JavaScript est bloqué pour la sécurité du site.
+					</p>
 				</div>
 			)}
 

@@ -25,7 +25,20 @@ import rehypeSlug from "rehype-slug";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
-const schema = {
+/**
+ * Schéma de sanitisation « contrôle total du design » (rédacteur = owner de
+ * confiance). On autorise toute la surface *mise en page + média + embed* :
+ * conteneurs (`section`/`article`/`div`/colonnes), `style`/`class`/couleurs
+ * inline, images/`video`/`audio`/`iframe` (embeds), tableaux, etc.
+ *
+ * Ce qui reste INTERDIT (et le restera) — ce n'est pas du design, c'est de
+ * l'exécutable, donc un vecteur XSS sur un site public : `<script>`, les
+ * gestionnaires `on*` (non whitelistés → strippés), `<style>` global (pourrait
+ * casser tout le chrome du site) et les protocoles dangereux (`javascript:`,
+ * filtrés par rehype-sanitize via `protocols`). Le CSS inline (`style`) n'est
+ * PAS exécutable (les navigateurs bloquent `javascript:`/`expression()` en CSS).
+ */
+export const wikiSanitizeSchema = {
 	...defaultSchema,
 	// rehype-sanitize préfixe les `id` en `user-content-` par défaut (anti DOM
 	// clobbering). Or les ancres de titres (rehype-autolink-headings) pointent sur
@@ -34,17 +47,52 @@ const schema = {
 	clobberPrefix: "",
 	tagNames: [
 		...(defaultSchema.tagNames ?? []),
+		// mise en page / sémantique
 		"figure",
 		"figcaption",
-		"mark",
+		"picture",
+		"source",
+		"section",
+		"article",
+		"aside",
+		"header",
+		"footer",
+		"nav",
 		"details",
 		"summary",
+		// inline / typo
+		"mark",
 		"abbr",
 		"u",
+		"small",
+		"sub",
+		"sup",
+		"time",
+		"wbr",
+		"bdi",
+		"bdo",
+		// média / embed
+		"video",
+		"audio",
+		"track",
+		"iframe",
+		// tableaux
+		"col",
+		"colgroup",
+		"caption",
 	],
 	attributes: {
 		...defaultSchema.attributes,
-		"*": [...(defaultSchema.attributes?.["*"] ?? []), "className", "style", "id"],
+		"*": [
+			...(defaultSchema.attributes?.["*"] ?? []),
+			"className",
+			"style",
+			"id",
+			"title",
+			"role",
+			"lang",
+			"dir",
+		],
 		img: [
 			...(defaultSchema.attributes?.img ?? []),
 			"src",
@@ -53,10 +101,56 @@ const schema = {
 			"width",
 			"height",
 			"loading",
+			"decoding",
+			"srcSet",
+			"sizes",
 		],
-		a: [...(defaultSchema.attributes?.a ?? []), "target", "rel"],
+		source: ["src", "srcSet", "type", "media", "sizes", "width", "height"],
+		video: [
+			"src",
+			"poster",
+			"width",
+			"height",
+			"controls",
+			"autoPlay",
+			"loop",
+			"muted",
+			"playsInline",
+			"preload",
+		],
+		audio: ["src", "controls", "loop", "muted", "preload"],
+		track: ["src", "kind", "srcLang", "label", "default"],
+		iframe: [
+			"src",
+			"width",
+			"height",
+			"title",
+			"loading",
+			"allow",
+			"allowFullScreen",
+			"frameBorder",
+			"referrerPolicy",
+			"sandbox",
+		],
+		// Le schéma GitHub restreint `className` de <a> à la seule valeur footnote
+		// (`['className','data-footnote-backref']`), ce qui écrase la règle globale
+		// `*` et viderait nos classes (ex. `wiki-btn`). On retire cette restriction
+		// → `className` libre via `*`, tout en gardant href/id/aria par défaut.
+		a: [
+			...(defaultSchema.attributes?.a ?? []).filter(
+				(x) => !(Array.isArray(x) && x[0] === "className")
+			),
+			"target",
+			"rel",
+			"download",
+		],
+		td: [...(defaultSchema.attributes?.td ?? []), "colSpan", "rowSpan"],
+		th: [...(defaultSchema.attributes?.th ?? []), "colSpan", "rowSpan", "scope"],
+		col: ["span", "width"],
+		colgroup: ["span"],
 	},
 };
+const schema = wikiSanitizeSchema;
 
 export function WikiMarkdown({ body }: { body: string }) {
 	return (
