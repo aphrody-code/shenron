@@ -16,6 +16,7 @@
  * de l'éditeur). Ne pas ajouter "use client" ici.
  */
 import { assetUrl } from "@/lib/assets";
+import { ZoomableImage } from "./ZoomableImage";
 import ReactMarkdown from "react-markdown";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeRaw from "rehype-raw";
@@ -73,13 +74,22 @@ export function WikiMarkdown({ body }: { body: string }) {
 			]}
 			components={{
 				img: ({ src, alt, node: _node, ...props }) => (
-					// biome-ignore lint/a11y/useAltText: alt forwardé depuis le markdown
-					<img
+					<ZoomableImage
 						{...(props as React.ImgHTMLAttributes<HTMLImageElement>)}
 						src={assetUrl(typeof src === "string" ? src : "")}
 						alt={alt ?? ""}
-						loading="lazy"
 					/>
+				),
+				// Sous-catégories repliables : ouvertes par défaut (sinon la page paraît
+				// vide derrière des sections fermées). L'utilisateur peut toujours les
+				// replier — `open` reste un état natif <details>.
+				details: ({ node: _node, open, children, ...props }) => (
+					<details
+						{...(props as React.DetailsHTMLAttributes<HTMLDetailsElement>)}
+						open={(open as boolean | undefined) ?? true}
+					>
+						{children}
+					</details>
 				),
 			}}
 		>

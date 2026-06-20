@@ -11,6 +11,7 @@ import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import { HERO_SCENES, SECTION_SCENE } from "@/lib/home-scenes";
 import { SceneBackdrop } from "./SceneBackdrop";
+import { HomeClipField } from "./HomeClipField";
 import {
 	useLiveBotState,
 	type BotStats,
@@ -363,6 +364,8 @@ export function HomeExperience({
 						/>
 					))}
 				</div>
+				{/* Clips qui dérivent à travers le héro (remplace le sélecteur de fond) */}
+				<HomeClipField scenes={HERO_SCENES} active={active === 0} />
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">
 						<span className="home-kicker__jp">ドラゴンボール</span>
@@ -391,37 +394,6 @@ export function HomeExperience({
 						>
 							Rejoindre le serveur
 						</a>
-					</div>
-					{/* Sélecteur de scènes cinématiques interactif */}
-					<div className="mt-8 reveal-up max-w-full">
-						<span className="block text-[10px] uppercase tracking-[0.2em] text-white/40 mb-2 font-semibold">
-							Fond d'écran interactif
-						</span>
-						<div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20">
-							{HERO_SCENES.map((sc, i) => (
-								<button
-									key={sc.id}
-									type="button"
-									onClick={() => setHeroIdx(i)}
-									className={`group relative shrink-0 w-20 aspect-video rounded-lg overflow-hidden border transition-all duration-300 ${
-										heroIdx === i
-											? "border-[var(--accent)] ring-1 ring-[var(--accent)] scale-[1.03]"
-											: "border-white/10 opacity-50 hover:opacity-100 hover:border-white/30"
-									}`}
-								>
-									<img
-										src={assetUrl(sc.poster || sc.image)}
-										alt={sc.title}
-										className="w-full h-full object-cover"
-										loading="lazy"
-									/>
-									<div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-									<span className="absolute bottom-1 left-1.5 right-1.5 text-[8px] font-bold text-left truncate text-white leading-none">
-										{sc.title}
-									</span>
-								</button>
-							))}
-						</div>
 					</div>
 				</div>
 				<div className="home-hero__caption" aria-hidden>

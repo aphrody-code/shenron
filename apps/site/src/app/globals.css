@@ -731,6 +731,114 @@ html {
    Classes utilitaires utilisables dans le markdown/HTML des pages wiki pour
    placer des images à côté du texte, des galeries, des infobox. Le rédacteur
    (admin) écrit p.ex. <figure class="wiki-float-right">…</figure>. */
+
+/* Typographie de base du contenu wiki. Le plugin @tailwindcss/typography n'est
+   PAS installé → les classes `prose`/`prose-*` sont inertes. On style donc le
+   corps de texte ici (titres, listes, liens, tableaux…) pour que les fiches ne
+   paraissent pas « vides » et que le texte respire. */
+.wiki-content {
+	color: rgba(255, 255, 255, 0.86);
+	font-size: 1.02rem;
+	line-height: 1.75;
+}
+.wiki-content > :first-child {
+	margin-top: 0;
+}
+.wiki-content p {
+	margin: 0 0 1.1em;
+}
+.wiki-content :is(h1, h2, h3, h4) {
+	font-family: var(--font-display, inherit);
+	font-weight: 800;
+	color: #fff;
+	line-height: 1.2;
+	margin: 1.7em 0 0.6em;
+}
+.wiki-content h1 {
+	font-size: 1.9rem;
+}
+.wiki-content h2 {
+	font-size: 1.55rem;
+}
+.wiki-content h3 {
+	font-size: 1.28rem;
+	color: var(--color-dbz-orange, #ffb200);
+}
+.wiki-content h4 {
+	font-size: 1.1rem;
+	color: var(--color-dbz-orange, #ffb200);
+}
+/* Les titres sont emballés dans une ancre (#slug) par rehype-autolink → elle
+   doit hériter de la couleur du titre, pas de la couleur de lien. */
+.wiki-content :is(h1, h2, h3, h4) a {
+	color: inherit;
+	text-decoration: none;
+}
+.wiki-content a {
+	color: var(--color-dbz-orange, #ffb200);
+	text-decoration: none;
+}
+.wiki-content a:hover {
+	text-decoration: underline;
+}
+.wiki-content strong {
+	color: #fff;
+	font-weight: 700;
+}
+.wiki-content ul,
+.wiki-content ol {
+	margin: 0 0 1.1em;
+	padding-left: 1.5em;
+}
+.wiki-content ul {
+	list-style: disc;
+}
+.wiki-content ol {
+	list-style: decimal;
+}
+.wiki-content li {
+	margin: 0.3em 0;
+}
+.wiki-content blockquote {
+	margin: 1.2em 0;
+	padding: 0.4em 0 0.4em 1em;
+	border-left: 3px solid var(--color-dbz-orange, #ffb200);
+	color: rgba(255, 255, 255, 0.72);
+	font-style: italic;
+}
+.wiki-content hr {
+	border: 0;
+	border-top: 1px solid var(--color-dbz-border, #2a3a5a);
+	margin: 1.7em 0;
+}
+.wiki-content code {
+	background: rgba(255, 255, 255, 0.06);
+	color: var(--color-dbz-orange, #ffb200);
+	padding: 0.1em 0.4em;
+	border-radius: 4px;
+	font-size: 0.9em;
+}
+.wiki-content table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1.3em 0;
+	font-size: 0.95em;
+}
+.wiki-content :is(th, td) {
+	border: 1px solid var(--color-dbz-border, #2a3a5a);
+	padding: 0.5em 0.7em;
+	text-align: left;
+}
+.wiki-content th {
+	background: rgba(255, 178, 0, 0.08);
+	color: var(--color-dbz-orange, #ffb200);
+}
+/* Variante « lore » pleine largeur (fiche perso) : un cran plus grand. */
+.wiki-lore {
+	font-size: 1.08rem;
+	line-height: 1.85;
+}
+
 .wiki-content figure {
 	margin: 0 0 1rem;
 }
@@ -898,6 +1006,96 @@ html {
 		max-width: 100%;
 		width: 100%;
 		margin: 1rem 0;
+	}
+}
+/* Sous-catégorie imbriquée (un <details class="wiki-section"> dans un autre) :
+   décrochée visuellement, accent plus discret. */
+.wiki-content .wiki-section .wiki-section {
+	margin: 0.75rem 0 0.5rem;
+	background: rgba(15, 23, 42, 0.55);
+	border-color: rgba(255, 178, 0, 0.18);
+}
+.wiki-content .wiki-section .wiki-section > summary {
+	font-size: 0.92em;
+	color: rgba(255, 255, 255, 0.85);
+}
+
+/* Image de contenu agrandissable (clic → lightbox plein écran). */
+.wiki-content img.wiki-zoomable {
+	cursor: zoom-in;
+	transition:
+		filter 0.2s ease,
+		transform 0.2s ease;
+}
+.wiki-content img.wiki-zoomable:hover {
+	filter: brightness(1.07);
+}
+.wiki-lightbox {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.85rem;
+	padding: clamp(1rem, 4vw, 3rem);
+	background: rgba(3, 6, 14, 0.92);
+	backdrop-filter: blur(6px);
+	cursor: zoom-out;
+	animation: lightbox-in 0.18s ease;
+}
+.wiki-lightbox__img {
+	max-width: min(96vw, 1400px);
+	max-height: 86vh;
+	width: auto;
+	height: auto;
+	object-fit: contain;
+	border-radius: 0.5rem;
+	border: 1px solid color-mix(in oklab, var(--color-dbz-orange, #ffb200) 45%, transparent);
+	box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7);
+}
+.wiki-lightbox__close {
+	position: absolute;
+	top: clamp(0.75rem, 3vw, 1.5rem);
+	right: clamp(0.75rem, 3vw, 1.5rem);
+	width: 2.75rem;
+	height: 2.75rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 9999px;
+	font-size: 1.7rem;
+	line-height: 1;
+	color: #fff;
+	background: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	cursor: pointer;
+	transition:
+		background 0.2s ease,
+		border-color 0.2s ease;
+}
+.wiki-lightbox__close:hover {
+	background: rgba(255, 255, 255, 0.16);
+	border-color: var(--color-dbz-orange, #ffb200);
+}
+.wiki-lightbox__cap {
+	max-width: 60ch;
+	text-align: center;
+	font-size: 0.85rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+@keyframes lightbox-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.wiki-lightbox {
+		animation: none;
 	}
 }
 
@@ -1183,6 +1381,85 @@ html[data-home] {
 .home-live-dot.is-on {
 	background: #3fd07a;
 	animation: led-pulse 1.8s ease-in-out infinite;
+}
+
+/* ── Clips flottants du héro (dérive aléatoire, purement décoratif) ─────────── */
+.home-clip-field {
+	position: absolute;
+	inset: 0;
+	z-index: 0; /* au-dessus du fond (z -1), sous le contenu du héro */
+	overflow: hidden;
+	pointer-events: none;
+}
+.home-clip {
+	position: absolute;
+	left: 0;
+	width: clamp(7rem, 12vw, 12rem);
+	aspect-ratio: 16 / 9;
+	border-radius: 0.6rem;
+	overflow: hidden;
+	opacity: 0;
+	transform: translateX(-25vw) scale(var(--s, 1));
+	border: 1px solid color-mix(in oklab, var(--accent) 35%, rgba(255, 255, 255, 0.15));
+	box-shadow:
+		0 12px 40px rgba(0, 0, 0, 0.5),
+		0 0 24px color-mix(in oklab, var(--accent) 22%, transparent);
+	will-change: transform, opacity;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-play-state: paused;
+}
+.home-clip-field.is-live .home-clip {
+	animation-play-state: running;
+}
+.home-clip img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+.home-clip--ltr {
+	animation-name: clip-drift-ltr;
+}
+.home-clip--rtl {
+	animation-name: clip-drift-rtl;
+}
+@keyframes clip-drift-ltr {
+	0% {
+		transform: translateX(-25vw) scale(var(--s, 1));
+		opacity: 0;
+	}
+	10% {
+		opacity: var(--o, 0.28);
+	}
+	90% {
+		opacity: var(--o, 0.28);
+	}
+	100% {
+		transform: translateX(115vw) scale(var(--s, 1));
+		opacity: 0;
+	}
+}
+@keyframes clip-drift-rtl {
+	0% {
+		transform: translateX(115vw) scale(var(--s, 1));
+		opacity: 0;
+	}
+	10% {
+		opacity: var(--o, 0.28);
+	}
+	90% {
+		opacity: var(--o, 0.28);
+	}
+	100% {
+		transform: translateX(-25vw) scale(var(--s, 1));
+		opacity: 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.home-clip-field {
+		display: none;
+	}
 }
 
 .home-hero__content {

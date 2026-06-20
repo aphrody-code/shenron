@@ -174,18 +174,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 						</div>
 					</div>
 
-					{character.description && (
-						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
-							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-							<h3 className="text-dbz-orange font-saiyan text-3xl mb-4 uppercase tracking-widest">
-								Archives / Lore
-							</h3>
-							<div className="prose prose-invert max-w-none wiki-content text-justify">
-								<WikiMarkdown body={character.description} />
-							</div>
-						</div>
-					)}
-
 					{(character.ki || character.maxKi) && (
 						<div
 							className="grid grid-cols-1 sm:grid-cols-2 gap-6 reveal-up"
@@ -238,6 +226,23 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 					)}
 				</div>
 			</div>
+
+			{character.description && (
+				<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
+					<div className="dbz-panel p-6 sm:p-8 lg:p-10 overflow-hidden">
+						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
+						<div className="flex items-center gap-6 mb-6">
+							<h2 className="text-dbz-orange font-saiyan text-2xl sm:text-3xl md:text-4xl uppercase tracking-widest">
+								Archives / Lore
+							</h2>
+							<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+						</div>
+						<div className="prose prose-invert max-w-none wiki-content wiki-lore text-justify">
+							<WikiMarkdown body={character.description} />
+						</div>
+					</div>
+				</section>
+			)}
 
 			{character.transformations && character.transformations.length > 0 && (
 				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.5s" }}>
