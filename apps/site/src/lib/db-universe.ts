@@ -66,7 +66,7 @@ export type Episode = {
 	video_url: string | null;
 	mal_id: number | null;
 	subtitles: { lang: string; label: string; src: string }[] | null;
-	players: { name: string; provider: string; embedUrl: string }[] | null;
+	players: { name: string; provider: string; embedUrl: string; lang?: "vf" | "vostfr" }[] | null;
 	stream_url: string | null;
 	// Scènes d'épisode : frames extraites + montage MP4 preview animé.
 	frames: EpisodeFrame[] | null;
@@ -96,7 +96,7 @@ export type Movie = {
 	anilist_id: number | null;
 	video_url: string | null;
 	subtitles: { lang: string; label: string; src: string }[] | null;
-	players: { name: string; provider: string; embedUrl: string }[] | null;
+	players: { name: string; provider: string; embedUrl: string; lang?: "vf" | "vostfr" }[] | null;
 	stream_url: string | null;
 };
 
