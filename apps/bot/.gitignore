@@ -6,3 +6,6 @@ data/rag/
 data/streams.json
 assets/ext/
 assets/wiki/
+# Scans manga téléchargés (couleur Full Color + N&B self-hostés) — VPS only,
+# régénérés par scripts/ingest-fullcolor-manga.ts & scripts/selfhost-manga-pages.ts
+assets/manga/

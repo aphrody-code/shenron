@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, Library, Layers, Search, Award, Lock, Trophy } from "lucide-react";
+import { BookOpen, Library, Layers, Search, Award, Lock, Trophy, Palette } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+
+/** Un chapitre est « couleur » (édition Full Color) si son titre le signale. */
+const isColorChapter = (title?: string | null) => /full\s*color|couleur/i.test(title ?? "");
 
 export interface Volume {
 	id: number;
@@ -82,6 +85,62 @@ const ACHIEVEMENTS: Achievement[] = [
 	},
 ];
 
+/** Carte d'un chapitre lisible (onglet Scans). Met en avant les éditions couleur. */
+function MangaChapterCard({ chapter, idx }: { chapter: Chapter; idx: number }) {
+	const color = isColorChapter(chapter.title);
+	const prefetch = () => {
+		chapter.pages?.slice(0, 3).forEach((page) => {
+			const img = new window.Image();
+			img.src = assetUrl(page);
+		});
+	};
+	return (
+		<Link
+			href={`/wiki/manga/${chapter.id}`}
+			onMouseEnter={prefetch}
+			onTouchStart={prefetch}
+			className={`group dbz-panel overflow-hidden transition-all duration-300 hover:scale-105 ${
+				color ? "border-fuchsia-500/30 hover:border-fuchsia-400" : "hover:border-dbz-orange"
+			}`}
+			style={{ animationDelay: `${idx * 0.03}s` }}
+		>
+			<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
+				<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
+				{chapter.cover ? (
+					<Image
+						src={assetUrl(chapter.cover)}
+						alt={chapter.title ?? `Chapitre ${chapter.chapter_number}`}
+						fill
+						sizes="(max-width: 768px) 50vw, 16vw"
+						className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+						priority={idx < 6}
+					/>
+				) : (
+					<div className="grid h-full w-full place-items-center">
+						<BookOpen className="w-10 h-10 text-dbz-orange/20" aria-hidden="true" />
+					</div>
+				)}
+				{color && (
+					<span className="absolute top-2 right-2 z-30 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-amber-400 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-black shadow-[0_0_10px_rgba(217,70,239,0.5)]">
+						<Palette className="w-2.5 h-2.5" /> Couleur
+					</span>
+				)}
+				<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
+				<div className="absolute inset-x-0 bottom-0 p-4 z-30">
+					<span
+						className={`scouter-text text-xs block mb-1 font-mono ${color ? "text-fuchsia-300" : "text-dbz-orange"}`}
+					>
+						{color ? "Dragon Ball · Couleur" : `${chapter.series} #${chapter.chapter_number}`}
+					</span>
+					<p className="font-display font-bold text-sm text-white group-hover:text-dbz-orange transition-colors line-clamp-2">
+						{chapter.title ?? `Chapitre ${chapter.chapter_number}`}
+					</p>
+				</div>
+			</div>
+		</Link>
+	);
+}
+
 export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: MangaVolumeGridProps) {
 	const [tab, setTab] = useState<"dbs" | "db" | "scans" | "achievements">("dbs");
 	const [lastRead, setLastRead] = useState<LastReadChapter | null>(null);
@@ -126,6 +185,9 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 		if (!q) return true;
 		return ch.title?.toLowerCase().includes(q) || ch.chapter_number.toString().includes(q);
 	});
+
+	const colorChapters = filteredChapters.filter((ch) => isColorChapter(ch.title));
+	const bwChapters = filteredChapters.filter((ch) => !isColorChapter(ch.title));
 
 	// Métriques de succès
 	const totalReadChapters = readChapterIds.length;
@@ -324,60 +386,41 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 			)}
 
 			{tab === "scans" && (
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 reveal-up">
-					{filteredChapters.map((chapter, idx) => (
-						<Link
-							key={chapter.id}
-							href={`/wiki/manga/${chapter.id}`}
-							onMouseEnter={() => {
-								if (chapter.pages) {
-									chapter.pages.slice(0, 3).forEach((page) => {
-										const img = new window.Image();
-										img.src = assetUrl(page);
-									});
-								}
-							}}
-							onTouchStart={() => {
-								if (chapter.pages) {
-									chapter.pages.slice(0, 3).forEach((page) => {
-										const img = new window.Image();
-										img.src = assetUrl(page);
-									});
-								}
-							}}
-							className="group dbz-panel overflow-hidden hover:scale-105 hover:border-dbz-orange transition-all duration-300"
-							style={{ animationDelay: `${idx * 0.03}s` }}
-						>
-							<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
-								<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-								{chapter.cover ? (
-									<Image
-										src={assetUrl(chapter.cover)}
-										alt={chapter.title ?? `Chapitre ${chapter.chapter_number}`}
-										fill
-										sizes="(max-width: 768px) 50vw, 16vw"
-										className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
-										priority={idx < 6}
-									/>
-								) : (
-									<div className="grid h-full w-full place-items-center">
-										<BookOpen className="w-10 h-10 text-dbz-orange/20" aria-hidden="true" />
-									</div>
-								)}
-								<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
-								<div className="absolute inset-x-0 bottom-0 p-4 z-30">
-									<span className="scouter-text text-xs text-dbz-orange block mb-1 font-mono">
-										{chapter.series} #{chapter.chapter_number}
-									</span>
-									<p className="font-display font-bold text-sm text-white group-hover:text-dbz-orange transition-colors line-clamp-2">
-										{chapter.title ?? `Chapitre ${chapter.chapter_number}`}
-									</p>
-								</div>
+				<div className="space-y-12 reveal-up">
+					{/* Édition couleur (Full Color) mise en avant. */}
+					{colorChapters.length > 0 && (
+						<div className="space-y-5">
+							<div className="flex items-center gap-3">
+								<Palette className="w-5 h-5 text-fuchsia-400" aria-hidden="true" />
+								<h3 className="font-saiyan text-2xl text-white tracking-widest">Édition Couleur</h3>
+								<span className="text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
+									Full Color
+								</span>
+								<div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/40 to-transparent" />
 							</div>
-						</Link>
-					))}
+							<p className="text-xs text-white/50 max-w-2xl font-display">
+								Dragon Ball en couleur, téléchargé et lu directement sur DBFR — aucune redirection vers
+								un site externe.
+							</p>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+								{colorChapters.map((chapter, idx) => (
+									<MangaChapterCard key={chapter.id} chapter={chapter} idx={idx} />
+								))}
+							</div>
+						</div>
+					)}
+
+					{/* Scans N&B. */}
+					{bwChapters.length > 0 && (
+						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+							{bwChapters.map((chapter, idx) => (
+								<MangaChapterCard key={chapter.id} chapter={chapter} idx={idx} />
+							))}
+						</div>
+					)}
+
 					{filteredChapters.length === 0 && (
-						<div className="col-span-full py-16 text-center text-white/30 italic">
+						<div className="py-16 text-center text-white/30 italic">
 							Aucun chapitre ne correspond à votre recherche.
 						</div>
 					)}
