@@ -52,8 +52,8 @@ const DEFAULT_CATS: Record<string, string[]> = {
 		"Volumes",
 	],
 };
-const CATS = (arg("cats") ?? DEFAULT_CATS[LANG] ?? DEFAULT_CATS.fr)
-	.split(",")
+const CATS_ARG = arg("cats");
+const CATS = (CATS_ARG ? CATS_ARG.split(",") : (DEFAULT_CATS[LANG] ?? DEFAULT_CATS.fr))
 	.map((c) => c.trim())
 	.filter(Boolean);
 
