@@ -711,6 +711,31 @@ export const dbMangaChapters = sqliteTable(
 	]
 );
 
+// Transcription OCR des planches manga (PaddleOCR FR+JP → assets/manga/transcripts/*.md,
+// ingéré par scripts/ingest-manga-db.ts). Une ligne = une planche, bulles en ordre de
+// lecture (`lines` json) + texte joint (`text`) pour recherche/affichage. Bilingue.
+export const dbMangaPages = sqliteTable(
+	"db_manga_pages",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		series: text("series").notNull(), // "DB", "DBS"
+		tome: text("tome").notNull(), // "vol1", "ch1321", "t901"
+		planche: integer("planche").notNull(), // numéro de planche dans le tome
+		lines: text("lines", { mode: "json" }).$type<string[]>().notNull(), // bulles OCR, ordre de lecture
+		text: text("text").notNull(), // lignes jointes (affichage + recherche)
+		lang: text("lang").notNull().default("fr"), // "fr" | "ja"
+		hasJa: integer("has_ja", { mode: "boolean" }).notNull().default(false),
+		lineCount: integer("line_count").notNull().default(0),
+		charCount: integer("char_count").notNull().default(0),
+	},
+	(t) => [
+		uniqueIndex("uq_db_manga_pages").on(t.series, t.tome, t.planche),
+		index("idx_db_manga_pages_series").on(t.series),
+	]
+);
+export type DbMangaPage = typeof dbMangaPages.$inferSelect;
+export type NewDbMangaPage = typeof dbMangaPages.$inferInsert;
+
 // --- Médias dérivés ---
 export const dbMovies = sqliteTable("db_movies", {
 	id: integer("id").primaryKey({ autoIncrement: true }),

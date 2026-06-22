@@ -153,6 +153,34 @@ const schemas = {
 			online: { type: "boolean" },
 		},
 	},
+	MangaPage: {
+		type: "object",
+		properties: {
+			series: { type: "string", description: "DB | DBS" },
+			tome: { type: "string", description: "vol1 | ch1321 | t901" },
+			planche: { type: "integer" },
+			lang: { type: "string", enum: ["fr", "ja"] },
+			hasJa: { type: "boolean" },
+			lineCount: { type: "integer" },
+			lines: {
+				type: "array",
+				items: { type: "string" },
+				description: "Bulles OCR en ordre de lecture (FR+JP).",
+			},
+			text: { type: "string" },
+		},
+	},
+	MangaTome: {
+		type: "object",
+		properties: {
+			series: { type: "string" },
+			tome: { type: "string" },
+			planches: { type: "integer" },
+			lines: { type: "integer" },
+			planchesWithJa: { type: "integer" },
+			plancheRange: { type: "array", items: { type: "integer" }, minItems: 2, maxItems: 2 },
+		},
+	},
 } as const;
 
 const limitParam = (def: number, max: number) => ({
@@ -210,8 +238,131 @@ export const openapiSpec = {
 		{ name: "Wiki", description: "Entités encyclopédiques Dragon Ball." },
 		{ name: "Insights", description: "Statistiques bot, personas, commandes." },
 		{ name: "Médias", description: "Images générées (cartes de profil)." },
+		{ name: "Manga", description: "Transcriptions OCR des planches manga (bilingue FR+JP)." },
 	],
 	paths: {
+		"/api/public/manga/tomes": {
+			get: {
+				tags: ["Manga"],
+				summary: "Liste des tomes manga transcrits",
+				parameters: [
+					{
+						name: "series",
+						in: "query",
+						required: false,
+						schema: { type: "string", enum: ["DB", "DBS"] },
+					},
+				],
+				responses: {
+					"200": {
+						description: "OK",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										count: { type: "integer" },
+										tomes: { type: "array", items: { $ref: "#/components/schemas/MangaTome" } },
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"/api/public/manga/tomes/{series}/{tome}": {
+			get: {
+				tags: ["Manga"],
+				summary: "Planches d'un tome (ordre de lecture)",
+				parameters: [
+					{ name: "series", in: "path", required: true, schema: { type: "string" } },
+					{ name: "tome", in: "path", required: true, schema: { type: "string" } },
+				],
+				responses: {
+					"200": {
+						description: "OK",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										series: { type: "string" },
+										tome: { type: "string" },
+										planches: { type: "integer" },
+										pages: { type: "array", items: { $ref: "#/components/schemas/MangaPage" } },
+									},
+								},
+							},
+						},
+					},
+					"404": { description: "Introuvable" },
+				},
+			},
+		},
+		"/api/public/manga/page/{series}/{tome}/{planche}": {
+			get: {
+				tags: ["Manga"],
+				summary: "Une planche précise",
+				parameters: [
+					{ name: "series", in: "path", required: true, schema: { type: "string" } },
+					{ name: "tome", in: "path", required: true, schema: { type: "string" } },
+					{ name: "planche", in: "path", required: true, schema: { type: "integer" } },
+				],
+				responses: itemResp("MangaPage"),
+			},
+		},
+		"/api/public/manga/search": {
+			get: {
+				tags: ["Manga"],
+				summary: "Recherche plein-texte FTS5 (bilingue FR+JP)",
+				parameters: [
+					{
+						name: "q",
+						in: "query",
+						required: true,
+						schema: { type: "string", minLength: 2 },
+						example: "kamehameha",
+					},
+					{
+						name: "series",
+						in: "query",
+						required: false,
+						schema: { type: "string", enum: ["DB", "DBS"] },
+					},
+					limitParam(20, 100),
+				],
+				responses: {
+					"200": {
+						description: "OK",
+						content: {
+							"application/json": {
+								schema: {
+									type: "object",
+									properties: {
+										q: { type: "string" },
+										count: { type: "integer" },
+										results: {
+											type: "array",
+											items: {
+												type: "object",
+												properties: {
+													series: { type: "string" },
+													tome: { type: "string" },
+													planche: { type: "integer" },
+													lang: { type: "string" },
+													snippet: { type: "string" },
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"/api/public/rag/search": {
 			get: {
 				tags: ["RAG"],

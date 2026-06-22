@@ -2043,6 +2043,128 @@ export class ApiServer {
 						}
 					}),
 
+				// --- Manga : transcriptions OCR des planches (durable, bilingue FR+JP) ---
+				// Liste des tomes transcrits + compteurs. ?series=DB|DBS pour filtrer.
+				"/api/public/manga/tomes": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const url = new URL(req.url);
+						const series = url.searchParams.get("series") || undefined;
+						const dbs = container.resolve(DatabaseService);
+						const sql =
+							`SELECT series, tome, COUNT(*) AS planches, SUM(line_count) AS lines, ` +
+							`SUM(has_ja) AS planches_ja, MIN(planche) AS first, MAX(planche) AS last ` +
+							`FROM db_manga_pages ${series ? "WHERE series = ?" : ""} ` +
+							`GROUP BY series, tome ORDER BY series, tome`;
+						const rows = dbs.sqlite.query(sql).all(...(series ? [series] : [])) as {
+							series: string;
+							tome: string;
+							planches: number;
+							lines: number;
+							planches_ja: number;
+							first: number;
+							last: number;
+						}[];
+						return {
+							count: rows.length,
+							tomes: rows.map((r) => ({
+								series: r.series,
+								tome: r.tome,
+								planches: r.planches,
+								lines: r.lines,
+								planchesWithJa: r.planches_ja,
+								plancheRange: [r.first, r.last],
+							})),
+						};
+					}),
+
+				// Toutes les planches d'un tome (bulles `lines` en ordre de lecture + texte).
+				"/api/public/manga/tomes/:series/:tome": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const series = String(req.params.series).toUpperCase();
+						const tome = String(req.params.tome);
+						if (!/^[A-Z]{1,6}$/.test(series)) throw new HttpError(400, "series invalide");
+						if (!/^[\w-]{1,32}$/.test(tome)) throw new HttpError(400, "tome invalide");
+						const dbs = container.resolve(DatabaseService);
+						const pages = await dbs.db.query.dbMangaPages.findMany({
+							where: (p, { eq, and }) => and(eq(p.series, series), eq(p.tome, tome)),
+							orderBy: (p, { asc }) => asc(p.planche),
+						});
+						if (!pages.length) throw new HttpError(404, "Tome introuvable");
+						return {
+							series,
+							tome,
+							planches: pages.length,
+							pages: pages.map((p) => ({
+								planche: p.planche,
+								lang: p.lang,
+								hasJa: p.hasJa,
+								lineCount: p.lineCount,
+								lines: p.lines,
+								text: p.text,
+							})),
+						};
+					}),
+
+				// Une planche précise.
+				"/api/public/manga/page/:series/:tome/:planche": (req) =>
+					publicCachedJson(req, 60 * 60_000, async () => {
+						const series = String(req.params.series).toUpperCase();
+						const tome = String(req.params.tome);
+						const planche = Number(req.params.planche);
+						if (!Number.isInteger(planche) || planche < 0)
+							throw new HttpError(400, "planche invalide");
+						const dbs = container.resolve(DatabaseService);
+						const page = await dbs.db.query.dbMangaPages.findFirst({
+							where: (p, { eq, and }) =>
+								and(eq(p.series, series), eq(p.tome, tome), eq(p.planche, planche)),
+						});
+						if (!page) throw new HttpError(404, "Planche introuvable");
+						return {
+							series: page.series,
+							tome: page.tome,
+							planche: page.planche,
+							lang: page.lang,
+							hasJa: page.hasJa,
+							lineCount: page.lineCount,
+							lines: page.lines,
+							text: page.text,
+						};
+					}),
+
+				// Recherche plein-texte (FTS5 bilingue FR+JP) sur les transcriptions.
+				"/api/public/manga/search": (req) =>
+					publicCachedJson(req, 5 * 60_000, async () => {
+						const url = new URL(req.url);
+						const q = (url.searchParams.get("q") ?? "").trim();
+						const series = url.searchParams.get("series") || undefined;
+						const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 20), 1), 100);
+						const tokens = q
+							.split(/\s+/)
+							.filter((t) => t.length > 1)
+							.map((t) => `"${t.replace(/"/g, "")}"`);
+						if (tokens.length === 0) return { q, count: 0, results: [] };
+						const dbs = container.resolve(DatabaseService);
+						const params: (string | number)[] = [tokens.join(" OR ")];
+						let sql =
+							`SELECT series, tome, planche, lang, ` +
+							`snippet(manga_pages_fts, 0, '[', ']', '…', 12) AS snippet ` +
+							`FROM manga_pages_fts WHERE manga_pages_fts MATCH ?`;
+						if (series) {
+							sql += " AND series = ?";
+							params.push(series);
+						}
+						sql += " ORDER BY rank LIMIT ?";
+						params.push(limit);
+						const rows = dbs.sqlite.query(sql).all(...params) as {
+							series: string;
+							tome: string;
+							planche: number;
+							lang: string;
+							snippet: string;
+						}[];
+						return { q, count: rows.length, results: rows };
+					}),
+
 				// Endpoint de chat génératif RAG-grounded avec injection de contexte page-level
 				"/api/public/rag/chat": async (req) => {
 					const url = new URL(req.url);

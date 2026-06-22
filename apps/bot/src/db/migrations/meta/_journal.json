@@ -99,6 +99,13 @@
       "when": 1781740086376,
       "tag": "0013_aromatic_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1782147876327,
+      "tag": "0014_amazing_scarlet_spider",
+      "breakpoints": true
     }
   ]
 }

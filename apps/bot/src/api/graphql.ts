@@ -373,6 +373,59 @@ const Counts = builder.objectRef<Record<string, number>>("Counts").implement({
 	}),
 });
 
+// ── Manga (transcriptions OCR des planches, bilingue FR+JP) ──────────────────
+interface MangaPageRow {
+	id: number;
+	series: string;
+	tome: string;
+	planche: number;
+	lines: string; // JSON sérialisé en SQLite
+	text: string;
+	lang: string;
+	has_ja: number;
+	line_count: number;
+	char_count: number;
+}
+
+const MangaPage = builder.objectRef<MangaPageRow>("MangaPage").implement({
+	description: "Planche de manga transcrite (OCR PaddleOCR, bilingue FR+JP).",
+	fields: (t) => ({
+		id: t.exposeInt("id"),
+		series: t.exposeString("series"),
+		tome: t.exposeString("tome"),
+		planche: t.exposeInt("planche"),
+		lang: t.exposeString("lang"),
+		hasJa: t.boolean({ resolve: (p) => !!p.has_ja }),
+		lineCount: t.exposeInt("line_count"),
+		text: t.exposeString("text"),
+		lines: t.stringList({
+			description: "Bulles OCR en ordre de lecture.",
+			resolve: (p) => {
+				try {
+					return JSON.parse(p.lines) as string[];
+				} catch {
+					return [];
+				}
+			},
+		}),
+	}),
+});
+
+const MangaTome = builder
+	.objectRef<{ series: string; tome: string; planches: number; lines: number; planches_ja: number }>(
+		"MangaTome"
+	)
+	.implement({
+		description: "Tome/chapitre manga transcrit + compteurs.",
+		fields: (t) => ({
+			series: t.exposeString("series"),
+			tome: t.exposeString("tome"),
+			planches: t.int({ resolve: (r) => r.planches }),
+			lines: t.int({ resolve: (r) => r.lines }),
+			planchesWithJa: t.int({ resolve: (r) => r.planches_ja }),
+		}),
+	});
+
 // ── Query root ──────────────────────────────────────────────────────────────
 builder.queryType({
 	fields: (t) => ({
@@ -574,6 +627,75 @@ builder.queryType({
 				const limit = clampLimit(a.limit, 8, 25);
 				const { results, mode } = await hybridSearch(ctx.sqlite, a.q, limit);
 				return { mode, results: results as unknown as RagHitRow[] };
+			},
+		}),
+		mangaTomes: t.field({
+			type: [MangaTome],
+			description: "Tomes/chapitres manga transcrits + compteurs.",
+			args: { series: t.arg.string() },
+			resolve: (_r, a, ctx) =>
+				all<{ series: string; tome: string; planches: number; lines: number; planches_ja: number }>(
+					ctx,
+					`SELECT series, tome, COUNT(*) AS planches, SUM(line_count) AS lines, SUM(has_ja) AS planches_ja FROM db_manga_pages ${a.series ? "WHERE series=?" : ""} GROUP BY series, tome ORDER BY series, tome`,
+					...(a.series ? [a.series] : [])
+				),
+		}),
+		mangaPages: t.field({
+			type: [MangaPage],
+			description: "Planches d'un tome (ordre de lecture).",
+			args: {
+				series: t.arg.string({ required: true }),
+				tome: t.arg.string({ required: true }),
+				limit: t.arg.int(),
+				offset: t.arg.int(),
+			},
+			resolve: (_r, a, ctx) =>
+				all<MangaPageRow>(
+					ctx,
+					"SELECT * FROM db_manga_pages WHERE series=? AND tome=? ORDER BY planche LIMIT ? OFFSET ?",
+					a.series,
+					a.tome,
+					clampLimit(a.limit, 60, 400),
+					Math.max(a.offset ?? 0, 0)
+				),
+		}),
+		mangaPage: t.field({
+			type: MangaPage,
+			nullable: true,
+			args: {
+				series: t.arg.string({ required: true }),
+				tome: t.arg.string({ required: true }),
+				planche: t.arg.int({ required: true }),
+			},
+			resolve: (_r, a, ctx) =>
+				one<MangaPageRow>(
+					ctx,
+					"SELECT * FROM db_manga_pages WHERE series=? AND tome=? AND planche=?",
+					a.series,
+					a.tome,
+					a.planche
+				),
+		}),
+		mangaSearch: t.field({
+			type: [MangaPage],
+			description: "Recherche plein-texte FTS5 (bilingue FR+JP) sur les planches.",
+			args: { q: t.arg.string({ required: true }), series: t.arg.string(), limit: t.arg.int() },
+			resolve: (_r, a, ctx) => {
+				const tokens = a.q
+					.split(/\s+/)
+					.filter((x) => x.length > 1)
+					.map((x) => `"${x.replace(/"/g, "")}"`);
+				if (!tokens.length) return [];
+				const params: (string | number)[] = [tokens.join(" OR ")];
+				let sql =
+					"SELECT p.* FROM db_manga_pages p JOIN manga_pages_fts ON manga_pages_fts.rowid = p.id WHERE manga_pages_fts MATCH ?";
+				if (a.series) {
+					sql += " AND p.series=?";
+					params.push(a.series);
+				}
+				sql += " ORDER BY rank LIMIT ?";
+				params.push(clampLimit(a.limit, 20, 100));
+				return all<MangaPageRow>(ctx, sql, ...params);
 			},
 		}),
 		counts: t.field({
