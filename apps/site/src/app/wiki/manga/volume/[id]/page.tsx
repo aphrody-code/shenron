@@ -8,6 +8,15 @@ import { VolumeChaptersList } from "@/components/manga/VolumeChaptersList";
 
 export const revalidate = 3600;
 
+// Pré-rend les tomes DB + DBS au build → cache CDN (cf. piège generateStaticParams).
+export async function generateStaticParams() {
+	const [db, dbs] = await Promise.all([
+		dbUniverse.mangaVolumes("DB"),
+		dbUniverse.mangaVolumes("DBS"),
+	]);
+	return [...(db?.volumes ?? []), ...(dbs?.volumes ?? [])].map((v) => ({ id: String(v.id) }));
+}
+
 export async function generateMetadata({
 	params,
 }: {

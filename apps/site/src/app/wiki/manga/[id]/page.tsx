@@ -7,6 +7,13 @@ import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
+// Pré-rend les chapitres lisibles au build → cache CDN (sans ça, Next 16 rend la
+// route dynamiquement, no-store). dynamicParams=true : nouveaux chapitres on-demand.
+export async function generateStaticParams() {
+	const data = await dbUniverse.readableMangaChapters();
+	return (data?.chapters ?? []).map((c) => ({ id: String(c.id) }));
+}
+
 function chapterTitle(chapter: { chapter_number: number; title: string | null }): string {
 	return chapter.title
 		? `Chapitre ${chapter.chapter_number} — ${chapter.title}`

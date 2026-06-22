@@ -40,9 +40,10 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 	const [lang, setLang] = useState<string>(() => langs[0] ?? "");
 	const [active, setActive] = useState(0);
 
-	// Lecteurs filtrés sur la langue choisie (ou tous, si aucun tag de langue).
+	// Lecteurs de la langue choisie. Les lecteurs SANS tag de langue restent
+	// toujours visibles (sinon, en cas de data mixte, ils disparaîtraient).
 	const list = useMemo(
-		() => (hasLangs && lang ? players.filter((p) => p.lang === lang) : players),
+		() => (hasLangs && lang ? players.filter((p) => !p.lang || p.lang === lang) : players),
 		[players, hasLangs, lang]
 	);
 
@@ -58,7 +59,11 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 		<div className="space-y-3">
 			{/* Sélecteur de langue (VF / VOSTFR) — visible seulement si les deux existent. */}
 			{langs.length > 1 && (
-				<div className="inline-flex items-center gap-1 rounded-full bg-white/[0.06] p-1">
+				<div
+					role="group"
+					aria-label="Langue audio (VF / VOSTFR)"
+					className="inline-flex items-center gap-1 rounded-full bg-white/[0.06] p-1"
+				>
 					{langs.map((l) => (
 						<button
 							key={l}

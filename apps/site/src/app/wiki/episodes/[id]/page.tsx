@@ -10,8 +10,7 @@ import type { Metadata } from "next";
 // autorisé via next/dynamic dans un Server Component (Next 16) → le no-SSR
 // (hls.js touche `window`) est géré à l'intérieur du composant lui-même.
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
-import { isCurrentUserAdmin } from "@/lib/session";
-import { EpisodeMediaEditor } from "./EpisodeMediaEditor";
+import { EpisodeAdminEditor } from "./EpisodeAdminEditor";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 import { KenBurns } from "@/components/KenBurns";
@@ -22,7 +21,14 @@ import { JsonLd } from "@/components/JsonLd";
 import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+// Pré-rend tous les épisodes au build → cache CDN (sinon Next 16 rend la route
+// dynamiquement). L'éditeur admin est un îlot client (useMe) → aucune session SSR.
+export async function generateStaticParams() {
+	const data = await dbUniverse.episodes(undefined, 100000, 0);
+	return (data?.episodes ?? []).map((e) => ({ id: String(e.id) }));
+}
 
 const SERIES_LABELS: Record<string, string> = {
 	DB: "Dragon Ball",
@@ -103,10 +109,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 	const ep = await dbUniverse.episode(parseInt(id));
 	if (!ep) notFound();
 
-	const [isAdmin, nav] = await Promise.all([
-		isCurrentUserAdmin(),
-		dbUniverse.episodeNav(ep.series, ep.number_in_series),
-	]);
+	const nav = await dbUniverse.episodeNav(ep.series, ep.number_in_series);
 
 	const youtubeId = getYoutubeId(ep.video_url);
 	const seriesLabel = SERIES_LABELS[ep.series] ?? ep.series;
@@ -285,15 +288,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 					</div>
 				)}
 
-				{isAdmin && (
-					<div className="mb-12">
-						<EpisodeMediaEditor
-							episodeId={ep.id}
-							videoUrl={ep.video_url}
-							subtitles={ep.subtitles}
-						/>
-					</div>
-				)}
+				<EpisodeAdminEditor episodeId={ep.id} videoUrl={ep.video_url} subtitles={ep.subtitles} />
 
 				{/* === Corps : synopsis + nav === */}
 				<div className="space-y-12">
