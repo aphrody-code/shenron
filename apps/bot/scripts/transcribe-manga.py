@@ -11,7 +11,9 @@ Usage : .ocr311/bin/python scripts/transcribe-manga.py <glob_dossiers_tomes> [--
 import os, sys, glob, time, re
 from multiprocessing import Pool
 
-ROOT = "/home/ubuntu/shenron/apps/bot"
+# Racine apps/bot résolue dynamiquement (le script vit dans apps/bot/scripts/) →
+# fonctionne sur le VPS comme en local sans chemin codé en dur.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTDIR = os.path.join(ROOT, "assets/manga/transcripts")
 os.environ["FLAGS_use_mkldnn"] = "0"
 
@@ -22,13 +24,25 @@ def init_worker():
     # workers se sur-souscrivent (aucun gain). Doit être posé AVANT l'import paddle.
     from paddleocr import PaddleOCR
     ct = int(os.environ.get("OCR_CPU_THREADS", "2"))
-    # cpu_threads cappe les threads paddle PAR worker → N_workers × cpu_threads = cœurs,
-    # vraie parallélisation sans sur-souscription (OMP/set_num_threads inopérants ici).
-    OCR = PaddleOCR(enable_mkldnn=False, cpu_threads=ct,
-                    text_detection_model_name="PP-OCRv5_mobile_det",
-                    text_recognition_model_name="PP-OCRv5_mobile_rec",
-                    use_doc_orientation_classify=False, use_doc_unwarping=False,
-                    use_textline_orientation=False)
+    # Device piloté par env : "gpu" → CUDA (PaddleOCR 3.x/PaddleX), "cpu" par défaut.
+    # Fallback CPU strictement identique à l'ancien comportement (mkldnn off + cpu_threads).
+    dev = os.environ.get("OCR_DEVICE", "cpu")
+    # Recognizer : lang="fr" charge le modèle LATIN (accents é/è/ê/û + apostrophes).
+    # AVANT, text_recognition_model_name="PP-OCRv5_mobile_rec" forçait le rec CN/EN sur du
+    # français → il massacrait les diacritiques (SÛR→SUR, MÊME→MEME, N'OSERIEZ→NOSERIEZ,
+    # QU'EST-CE→QUEST-CE). A/B validé sur planche réelle. lang="fr" est le vrai gain de qualité.
+    lang = os.environ.get("OCR_LANG", "fr")
+    # Détecteur : server_det resserre mieux les bulles. Auto sur GPU (assez rapide), mobile_det
+    # par défaut sur CPU pour ne pas alourdir le batch throttlé du VPS. Surchargeable via OCR_DET.
+    det = os.environ.get("OCR_DET") or ("PP-OCRv5_server_det" if dev == "gpu" else "PP-OCRv5_mobile_det")
+    kw = dict(lang=lang, text_detection_model_name=det,
+              use_doc_orientation_classify=False, use_doc_unwarping=False,
+              use_textline_orientation=False, device=dev)
+    if dev == "cpu":
+        # cpu_threads cappe les threads paddle PAR worker → N_workers × cpu_threads = cœurs,
+        # vraie parallélisation sans sur-souscription (OMP/set_num_threads inopérants ici).
+        kw.update(enable_mkldnn=False, cpu_threads=ct)
+    OCR = PaddleOCR(**kw)
 
 def _poly_xy(p):
     xs = [pt[0] for pt in p]; ys = [pt[1] for pt in p]
