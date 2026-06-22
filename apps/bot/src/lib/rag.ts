@@ -29,6 +29,14 @@ const RERANK_ENABLED = process.env.RAG_RERANK !== "0";
 const RERANK_POOL = 15; // nombre de candidats RRF envoyés au cross-encoder
 const RRF_K = 60;
 
+// Préférence de SOURCE : focaliser les réponses sur le MANGA plutôt que le Fandom.
+// Boost multiplicatif (scale-invariant : marche sur le score RRF ET le score rerank)
+// appliqué aux chunks source_id="manga", + quota garanti dans le top final. Le manga
+// pertinent remonte au-dessus du Fandom ; le bruit OCR (score bas) reste en bas.
+const MANGA_SOURCE = process.env.RAG_MANGA_SOURCE ?? "manga";
+const MANGA_WEIGHT = Number(process.env.RAG_MANGA_WEIGHT ?? 2.2);
+const MANGA_QUOTA = Number(process.env.RAG_MANGA_QUOTA ?? 2);
+
 export interface RagHit {
 	rowid: number;
 	kind: string;
@@ -212,9 +220,23 @@ export async function hybridSearch(
 	bm.forEach((h, r) => fused.set(h.rowid, (fused.get(h.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
 	dense.forEach((d, r) => fused.set(d.rowid, (fused.get(d.rowid) ?? 0) + 1 / (RRF_K + r + 1)));
 
-	// On garde un pool large pour le reranking (pas seulement `limit`).
+	// source_id de tous les candidats fusionnés → préférence manga (cf. constantes).
+	const fusedIds = [...fused.keys()];
+	const srcById = new Map<number, string>();
+	if (fusedIds.length) {
+		const srcPh = fusedIds.map(() => "?").join(",");
+		const srcRows = db
+			.query(`SELECT rowid, source_id FROM rag_chunks WHERE rowid IN (${srcPh})`)
+			.all(...fusedIds) as { rowid: number; source_id: string }[];
+		for (const r of srcRows) srcById.set(r.rowid, r.source_id);
+	}
+	const isManga = (rowid: number) => srcById.get(rowid) === MANGA_SOURCE;
+	const boost = (rowid: number, s: number) => (isManga(rowid) ? s * MANGA_WEIGHT : s);
+
+	// Pool de rerank trié par score RRF BOOSTÉ → garantit que le manga pertinent
+	// entre dans le pool (sinon le Fandom propre l'évince avant même le rerank).
 	const ordered = [...fused.entries()]
-		.toSorted((a, b) => b[1] - a[1])
+		.toSorted((a, b) => boost(b[0], b[1]) - boost(a[0], a[1]))
 		.slice(0, RERANK_POOL)
 		.map(([rowid]) => rowid);
 
@@ -227,7 +249,7 @@ export async function hybridSearch(
 	for (const r of rows) rowById.set(r.rowid, r);
 
 	// Candidats dans l'ordre RRF ; snippet d'affichage = surlignage BM25 si dispo,
-	// sinon préfixe du contenu.
+	// sinon préfixe du contenu. `score` = base RRF (remplacé par le rerank ci-dessous).
 	let candidates = ordered
 		.map((id) => {
 			const r = rowById.get(id);
@@ -240,6 +262,7 @@ export async function hybridSearch(
 				url: r.url,
 				snippet,
 				content: r.content,
+				score: fused.get(r.rowid) ?? 0,
 			};
 		})
 		.filter((x): x is NonNullable<typeof x> => x !== null);
@@ -252,17 +275,44 @@ export async function hybridSearch(
 		const passages = candidates.map((c2) => `${c2.title}. ${c2.content}`.slice(0, 400));
 		const scores = await rerankRemote(query, passages);
 		if (scores && scores.length === candidates.length) {
-			candidates = candidates
-				.map((cand, i) => ({ cand, score: scores[i] }))
-				.toSorted((a, b) => b.score - a.score)
-				.map((x) => x.cand);
+			candidates = candidates.map((cand, i) => ({ ...cand, score: scores[i] }));
 			mode = "hybrid+rerank";
 		}
 	}
 
-	const results: RagHit[] = candidates
-		.slice(0, limit)
-		.map(({ rowid, kind, title, url, snippet }) => ({ rowid, kind, title, url, snippet }));
+	// Tri final par score BOOSTÉ manga (×MANGA_WEIGHT), puis QUOTA garanti :
+	// ≥ MANGA_QUOTA chunks manga dans le top `limit` si disponibles → les réponses
+	// se focalisent sur le manga, le Fandom reste en complément.
+	const top = candidates
+		.toSorted((a, b) => boost(b.rowid, b.score) - boost(a.rowid, a.score))
+		.slice(0, limit);
+	if (MANGA_QUOTA > 0 && candidates.length > limit) {
+		const rest = candidates
+			.filter((c) => isManga(c.rowid) && !top.includes(c))
+			.toSorted((a, b) => boost(b.rowid, b.score) - boost(a.rowid, a.score));
+		let mangaCount = top.filter((c) => isManga(c.rowid)).length;
+		for (const m of rest) {
+			if (mangaCount >= MANGA_QUOTA) break;
+			let worst = -1;
+			for (let i = top.length - 1; i >= 0; i--)
+				if (!isManga(top[i].rowid)) {
+					worst = i;
+					break;
+				}
+			if (worst === -1) break;
+			top[worst] = m;
+			mangaCount++;
+		}
+		top.sort((a, b) => boost(b.rowid, b.score) - boost(a.rowid, a.score));
+	}
+
+	const results: RagHit[] = top.map(({ rowid, kind, title, url, snippet }) => ({
+		rowid,
+		kind,
+		title,
+		url,
+		snippet,
+	}));
 	return { results, mode };
 }
 

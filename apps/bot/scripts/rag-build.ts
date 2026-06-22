@@ -27,6 +27,8 @@ import { EMBED_DIM, EMBED_MODEL, embedTexts, vecToBlob } from "../src/lib/embedd
 
 const DBP = process.env.RAG_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
 const CORPUS = new URL("../data/rag/corpus.json", import.meta.url).pathname;
+// Corpus optionnel : transcriptions OCR des planches manga (cf. ingest-manga-rag.ts).
+const MANGA_CORPUS = new URL("../data/rag/corpus-manga.json", import.meta.url).pathname;
 const ALIAS_MAP_PATH = new URL("../data/rag/alias-map.json", import.meta.url).pathname;
 
 if (!existsSync(DBP)) {
@@ -409,6 +411,12 @@ function detectLang(docId: string, docName: string, docUrl: string, content: str
 		return "en";
 	}
 
+	// RAG bilingue JP+FR : contenu massivement japonais (kana/kanji) → "ja".
+	const cjkCount = (content.match(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/gu) || [])
+		.length;
+	const latinCount = (content.match(/[A-Za-zÀ-ÿ]/g) || []).length;
+	if (cjkCount > 8 && cjkCount >= latinCount) return "ja";
+
 	const frWords = /\b(le|la|les|de|des|et|en|un|une|est|dans|pour|qui|que)\b/i;
 	const enWords = /\b(the|of|and|in|a|an|is|to|for|who|that|with|on|at)\b/i;
 
@@ -441,6 +449,14 @@ if (existsSync(CORPUS)) {
 		const corpus = JSON.parse(readFileSync(CORPUS, "utf-8")) as {
 			docs: { id: string; name: string; url: string; markdown: string }[];
 		};
+
+		// Enrichissement : fusion des transcriptions OCR des planches manga
+		// (ids "manga-…" → source_id="manga" via resolveSourceId).
+		if (existsSync(MANGA_CORPUS)) {
+			const manga = JSON.parse(readFileSync(MANGA_CORPUS, "utf-8")) as { docs: typeof corpus.docs };
+			corpus.docs.push(...manga.docs);
+			console.log(`  + ${manga.docs.length} tomes manga (transcriptions OCR) fusionnés au corpus.`);
+		}
 
 		let docCount = 0;
 		for (const d of corpus.docs) {
