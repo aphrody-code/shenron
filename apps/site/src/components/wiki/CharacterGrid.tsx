@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { assetUrl } from "@/lib/assets";
 import { ViewTransition } from "@/components/ViewTransition";
 
@@ -49,6 +49,15 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 			return norm(c.name).includes(q) || (c.nameJa ? c.nameJa.includes(query.trim()) : false);
 		});
 	}, [characters, query, race]);
+
+	// Rendu progressif : on n'affiche pas 1000+ cartes d'un coup. « Voir plus »
+	// par paliers (le filtre/la recherche réinitialisent la pagination).
+	const PAGE = 120;
+	const [limit, setLimit] = useState(PAGE);
+	useEffect(() => {
+		setLimit(PAGE);
+	}, [query, race]);
+	const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
 
 	return (
 		<div className="space-y-8">
@@ -119,7 +128,7 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 				</p>
 			) : (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 reveal-grid">
-					{filtered.map((c) => (
+					{visible.map((c) => (
 						<Link
 							key={c.id}
 							href={`/wiki/dragon-ball/character/${c.id}`}
@@ -163,6 +172,18 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 							</div>
 						</Link>
 					))}
+				</div>
+			)}
+
+			{filtered.length > limit && (
+				<div className="flex justify-center pt-2">
+					<button
+						type="button"
+						onClick={() => setLimit((l) => l + PAGE)}
+						className="px-6 h-11 rounded-full bg-white/[0.06] border border-white/[0.12] text-sm font-display font-semibold text-white/80 hover:text-white hover:border-dbz-orange/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange transition-colors"
+					>
+						Voir plus ({filtered.length - limit} guerriers restants)
+					</button>
 				</div>
 			)}
 		</div>
