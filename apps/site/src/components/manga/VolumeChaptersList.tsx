@@ -67,81 +67,47 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 			)}
 
 			<div className="grid gap-3">
-				{chapters.map((ch) => {
-					const hasPages = ch.pages && ch.pages.length > 0;
+				{readableChapters.map((ch) => {
 					const isRead = readChapterIds.includes(ch.id);
-
-					if (hasPages) {
-						return (
-							<Link
-								key={ch.id}
-								href={`/wiki/manga/${ch.id}`}
-								onMouseEnter={() => {
-									if (ch.pages) {
-										ch.pages.slice(0, 3).forEach((page) => {
-											const img = new Image();
-											img.src = assetUrl(page);
-										});
-									}
-								}}
-								onTouchStart={() => {
-									if (ch.pages) {
-										ch.pages.slice(0, 3).forEach((page) => {
-											const img = new Image();
-											img.src = assetUrl(page);
-										});
-									}
-								}}
-								className={`dbz-panel p-5 flex items-center justify-between hover:bg-white/5 transition-all group ${
-									isRead
-										? "border-emerald-500/20"
-										: "hover:border-dbz-orange hover:shadow-[0_0_15px_rgba(255,178,0,0.15)]"
-								}`}
-							>
-								<div className="flex items-center gap-6">
-									<span
-										className={`scouter-text text-xl min-w-[60px] ${isRead ? "text-emerald-400" : "text-dbz-orange"}`}
-									>
-										#{ch.chapter_number}
-									</span>
-									<div className="space-y-1">
-										<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors flex items-center gap-2">
-											{ch.title || `Chapitre ${ch.chapter_number}`}
-											{isRead && (
-												<span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-													<Check className="w-2.5 h-2.5" /> Lu
-												</span>
-											)}
-										</p>
-									</div>
-								</div>
-								<span className="px-3 py-1 bg-dbz-orange/10 border border-dbz-orange text-dbz-orange rounded text-[10px] uppercase font-bold tracking-widest font-mono shadow-[0_0_10px_rgba(255,178,0,0.2)]">
-									LIRE
-								</span>
-							</Link>
-						);
-					}
 					return (
-						<div
+						<Link
 							key={ch.id}
-							className="dbz-panel p-5 flex items-center justify-between opacity-50 cursor-not-allowed select-none bg-zinc-950/20 border-white/5"
+							href={`/wiki/manga/${ch.id}`}
+							onMouseEnter={() => {
+								ch.pages?.slice(0, 3).forEach((page) => {
+									const img = new Image();
+									img.src = assetUrl(page);
+								});
+							}}
+							className={`dbz-panel p-5 flex items-center justify-between hover:bg-white/5 transition-all group ${
+								isRead
+									? "border-emerald-500/20"
+									: "hover:border-dbz-orange hover:shadow-[0_0_15px_rgba(255,178,0,0.15)]"
+							}`}
 						>
 							<div className="flex items-center gap-6">
-								<span className="scouter-text text-xl text-zinc-500 min-w-[60px]">
+								<span
+									className={`scouter-text text-xl min-w-[60px] ${isRead ? "text-emerald-400" : "text-dbz-orange"}`}
+								>
 									#{ch.chapter_number}
 								</span>
-								<p className="font-display font-bold text-zinc-400">
+								<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors flex items-center gap-2">
 									{ch.title || `Chapitre ${ch.chapter_number}`}
+									{isRead && (
+										<span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+											<Check className="w-2.5 h-2.5" /> Lu
+										</span>
+									)}
 								</p>
 							</div>
-							<span className="px-3 py-1 bg-zinc-800/30 border border-zinc-700 text-zinc-500 rounded text-[10px] uppercase font-bold tracking-widest font-mono">
-								Bientôt disponible
+							<span className="px-3 py-1 bg-dbz-orange/10 border border-dbz-orange text-dbz-orange rounded text-[10px] uppercase font-bold tracking-widest font-mono shadow-[0_0_10px_rgba(255,178,0,0.2)]">
+								LIRE
 							</span>
-						</div>
+						</Link>
 					);
 				})}
-				{chapters.length === 0 && (
-					<p className="text-white/40 italic">Aucun chapitre répertorié pour ce volume.</p>
+				{readableChapters.length === 0 && (
+					<p className="text-white/40 italic">Chapitres de ce tome en cours d&apos;ajout.</p>
 				)}
 			</div>
 		</div>

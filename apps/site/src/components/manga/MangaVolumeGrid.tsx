@@ -24,6 +24,7 @@ export interface Chapter {
 	series: string;
 	cover: string | null;
 	pages?: string[] | null;
+	volume_id?: number | null;
 }
 
 interface LastReadChapter {
@@ -169,17 +170,18 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 		}
 	}, []);
 
-	// Filtrage par barre de recherche
-	const q = searchQuery.toLowerCase().trim();
-	const filteredDbs = dbsVolumes.filter((vol) => {
-		if (!q) return true;
-		return vol.title?.toLowerCase().includes(q) || vol.volumeNumber.toString().includes(q);
-	});
+	// Seuls les tomes ayant au moins un chapitre lisible sont affichés : pas de
+	// volume « mort » menant à une page de placeholders « Bientôt disponible ».
+	const scanVolumeIds = new Set(
+		readableChapters.map((c) => c.volume_id).filter((v): v is number => v != null)
+	);
 
-	const filteredDb = dbVolumes.filter((vol) => {
-		if (!q) return true;
-		return vol.title?.toLowerCase().includes(q) || vol.volumeNumber.toString().includes(q);
-	});
+	// Filtrage par barre de recherche (+ tomes disponibles uniquement)
+	const q = searchQuery.toLowerCase().trim();
+	const matchesQuery = (vol: Volume) =>
+		!q || vol.title?.toLowerCase().includes(q) || vol.volumeNumber.toString().includes(q);
+	const filteredDbs = dbsVolumes.filter((vol) => scanVolumeIds.has(vol.id) && matchesQuery(vol));
+	const filteredDb = dbVolumes.filter((vol) => scanVolumeIds.has(vol.id) && matchesQuery(vol));
 
 	const filteredChapters = readableChapters.filter((ch) => {
 		if (!q) return true;

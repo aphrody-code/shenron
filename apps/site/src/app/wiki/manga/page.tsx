@@ -47,6 +47,7 @@ export default async function MangaIndexPage() {
 		series: ch.series,
 		cover: ch.cover,
 		pages: ch.pages,
+		volume_id: ch.volume_id,
 	}));
 
 	return (
