@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 19/06/2026
+# 📚 Base de Connaissance Unifiée — 22/06/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -35,11 +35,15 @@
 - [Système de Synchronisation Google Drive (Wiki Assets)](#docs-drive-md)
 - [Dragon Ball Lore Reference — Kanzentai Web Archive Curation](#docs-kanzentai-crawled-summary-md)
 - [LLM Dragon Ball — assistant conversationnel local](#docs-llm-maison-md)
+- [Scans manga — self-hosting & ingestion](#docs-manga-scans-md)
 - [Neoseeker Dragon Ball Translation Threads Summary](#docs-neoseeker-crawled-summary-md)
+- [OCR des planches → markdown](#docs-ocr-manga-md)
 - [Races & système de niveau — référence factuelle Xenoverse 2](#docs-races-systeme-niveau-md)
+- [RAG — enrichissement du corpus & reconstruction sans coupure](#docs-rag-enrichment-md)
 - [Rapport d'Entraînement SFT & Optimisations RAG](#docs-sft-training-report-md)
 - [Dragon Ball Lore — Akira Toriyama Databook Revelations (SEG)](#docs-toriyama-databook-seg-md)
 - [Lore de Dragon Ball — Citations & Philosophie d'Akira Toriyama (Daizenshuu)](#docs-toriyama-interviews-md)
+- [Données wiki — ingestion Fandom → Neon](#docs-wiki-data-ingestion-md)
 - [@discordx/di](#packages-di-changelog-md)
 - [@rpbey/di](#packages-di-readme-md)
 - [Security Policy](#packages-di-security-md)
@@ -87,6 +91,33 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
+
+## [Unreleased] — 2026-06-22
+
+### Added
+
+- **Scans manga 100 % self-hostés (fin du « renvoi sur un autre site »)** : les planches ne sont plus hotlinkées depuis scan-vf.net — elles sont téléchargées sur le VPS (`apps/bot/assets/manga/`, gitignored), converties en WebP, servies depuis `bot.dragonballfr.com`. **12 716 planches** au total. Doc : [`docs/manga-scans.md`](docs/manga-scans.md).
+  - **Dragon Ball original VF complet** : 42 tomes (Sushi Scan → CDN anime-sama), N&B redimensionné/compressé WebP, rattachés aux tomes existants (`ingest-dragonball-volumes.ts`).
+  - **Édition couleur** « Full Color – L'enfance de Goku » (2 tomes) avec section/badge « Couleur » dans le lecteur (`ingest-fullcolor-manga.ts`).
+  - **Dragon Ball Super N&B complet** self-hosté (`selfhost-manga-pages.ts`).
+  - **Nettoyage OCR des pages promo** : pubs « SUSHISCAN.FR » et pages de crédits retirées par OCR (`clean-fullcolor-promos.ts`).
+- **Lecteur épisodes/films : sélecteur de langue VF / VOSTFR** (`VideoLecteurs.tsx`) — la donnée `players.lang` existait, l'UI manquait.
+- **Encyclopédie massivement étendue depuis Fandom (vraies données, zéro placeholder)** : personnages **108 → 1323** (904 descriptions, images self-hostées), planètes **20 → 62**, arcs **0 → 23**. `ingest-fandom-full.ts` + `enrich-fandom-descriptions.ts` écrivent dans **Neon** (source de vérité), images réelles via l'API MediaWiki. Doc : [`docs/wiki-data-ingestion.md`](docs/wiki-data-ingestion.md).
+- **RAG fortement enrichi** : corpus **7093 → 8521 docs / 36 228 chunks** — crawl Fandom FR+EN profond (`crawl-fandom-rag.ts`) + databooks officiels Kanzenshuu (`crawl-kanzenshuu-rag.ts`) + databooks traduits (Kanzentai via Wayback, Neoseeker via Wayback, Toei, fredcrash — `crawl-databooks-rag.ts`). Fusion `merge-corpus.ts`. **Reconstruction sur copie + swap sans coupure de recherche** (`swap-rag-tables.ts`). Doc : [`docs/rag-enrichment.md`](docs/rag-enrichment.md).
+- **Grid personnages en rendu progressif** (« Voir plus », PAGE 120) pour rester fluide à 1300+ entrées.
+
+### Changed
+
+- **Zéro placeholder** : suppression des « Bientôt disponible » (tomes/chapitres non dispo), masquage des tomes/volumes sans scan, nullification des races « Inconnue ». Les champs absents sont masqués (jamais « Inconnu »).
+- **Onglet « Dragon Ball »** du lecteur manga : présente désormais l'édition couleur + les tomes disponibles (plus de page de placeholders).
+- **bxc reconstruit** (`~/bxc`, rust-bridge + standalone) ; le binaire `--compile` ayant un bug d'embed CDP (`awaitPromise is not defined`), le `bxc` global route vers la source qui fonctionne à 100 %.
+
+### Fixed
+
+- **Reverse-sync Neon→SQLite réparée** : elle était cassée par des NULL dans des colonnes NOT NULL côté SQLite (`db_planets.is_destroyed`, `db_assets.source_id/license_key/created_at`). Valeurs par défaut posées en Neon ; `ingest-fandom-full.ts` pose `is_destroyed=0`.
+- **Cache CDN** : `force-dynamic` → ISR (`/wiki/episodes`, `/actualites`, `/stats`, `/commands`) ; `generateStaticParams` ajouté (`/wiki/episodes/[id]`, `/wiki/manga/[id]`, `/wiki/manga/volume/[id]`, `/wiki/arcs/[slug]`, `/post/[slug]`) ; éditeur média épisode passé en îlot client (`useMe`) pour rendre la page cacheable.
+- **A11y** : ARIA d'onglets (UniverseTabs, MangaVolumeGrid), états `focus-visible` (CharacterGrid, cartes sagas/épisodes, lecteurs), `aria-label` du lecteur manga.
+- **SEO** : `generateMetadata` accueil + `/shop`, OG images absolues sur `/post/[slug]`.
 
 ## [Unreleased] — 2026-06-10
 
@@ -3653,6 +3684,89 @@ sudo systemctl restart shenron-llm shenron
 
 ---
 
+<a name="docs-manga-scans-md"></a>
+## 📄 Fichier : `docs/manga-scans.md`
+
+**Titre original :** Scans manga — self-hosting & ingestion
+
+### Scans manga — self-hosting & ingestion
+
+Architecture et outils des scans manga de DBFR. **Objectif : zéro hotlink** — toutes
+les planches sont téléchargées sur le VPS et servies depuis `bot.dragonballfr.com`
+(plus de « renvoi sur un autre site »).
+
+## Hébergement & service
+
+- **Sur disque** : `apps/bot/assets/manga/<SÉRIE>/...` (gitignored — VPS-only,
+  régénérable par les scripts). Converti en **WebP**.
+- **Servi** par le bot : route `/assets/*` (`apps/bot/src/api/server.ts` →
+  `serveAsset`) → `bot.dragonballfr.com/assets/manga/...`.
+- **En base (Neon)** : `bot.db_manga_chapters.pages` (jsonb, **Neon-only**) stocke
+  des chemins relatifs `./assets/manga/...`. Le site lit Neon en direct et résout
+  via `assetUrl()` (`apps/site/src/lib/assets.ts`). Le lecteur =
+  `apps/site/src/components/manga/MangaReader.tsx`.
+- Schéma de chemin : `assets/manga/<SÉRIE>/<sous-dossier>/<NNN>.webp`. Ex. :
+  - DBS N&B : `assets/manga/DBS/ch<id>/NNN.webp`
+  - DB original VF : `assets/manga/DB/regular/vol<N>/NNN.webp`
+  - Couleur : `assets/manga/DB/fullcolor/enfance-goku/t<chapter_number>/NNN.webp`
+
+## Contenu disponible
+
+| Série | État | Source |
+|---|---|---|
+| **Dragon Ball Super** (N&B) | complet (23 tomes / 103 chapitres) | scan-vf.net → self-host |
+| **Dragon Ball original VF** (N&B) | **complet — 42 tomes** | Sushi Scan → CDN anime-sama |
+| **Dragon Ball Full Color** | « L'enfance de Goku » — 2 tomes | Sushi Scan → CDN anime-sama |
+
+Total : **~12 700 planches self-hostées**. Le manga JP (VO) n'est pas disponible
+proprement depuis le VPS (MangaDex n'héberge pas le raw JP de DB ; les agrégateurs
+de raws JP sont des SPA JS). Sources JP candidates notées : `comic.dragonballcn.com`
+(kanzenban), `jmanga.nyc`.
+
+## Scripts d'ingestion (`apps/bot/scripts/`)
+
+Tous prennent `DATABASE_URL` (Neon) et ont un **garde-fou disque** (stop sous un
+seuil de Go libres) + conversion WebP (`sharp`).
+
+- **`ingest-dragonball-volumes.ts`** — Dragon Ball original VF (42 tomes) depuis
+  Sushi Scan (`sushiscan.fr/dragon-ball-volume-N-vf/` → parse `ts_reader.run({…})`
+  → CDN `s22.anime-sama.me/.../Dragon Ball/N/...`). Niveau de gris + resize 1280 +
+  WebP q55 (manga N&B compresse bien). 1 chapitre lisible par tome, rattaché au
+  volume existant `Dragon Ball Vol. N`. `--from --to --force --dry-run`.
+- **`ingest-fullcolor-manga.ts`** — édition couleur (parse `ts_reader`, images déjà
+  WebP, pas de reconversion). Crée des chapitres `chapter_number` 90x.
+- **`selfhost-manga-pages.ts`** — rapatrie les planches N&B externes (scan-vf,
+  lelscanfr) déjà référencées : download + WebP + réécrit `pages` en chemins locaux.
+  **Referer par hôte** (anti-hotlink). ⚠️ **Ne PAS envoyer de Referer `mangadex.org`**
+  (mangadex renvoie du HTML/bloque) ; mangadex marche sans Referer mais bloque le
+  VPS de façon intermittente → ses chapitres ont été retirés.
+- **`clean-fullcolor-promos.ts`** — retire par **OCR** (tesseract fra+eng) les
+  planches non-contenu : pubs « SUSHISCAN.FR » (texte « lisez … chapitres »), pages
+  de crédits staff, pages blanches. Garde-fou : abort si > 18 % d'un tome retiré.
+
+## UI (`apps/site/src/components/manga/`)
+
+- `MangaVolumeGrid.tsx` — onglets DBS / **Dragon Ball (édition couleur)** / Scans /
+  Succès. **Zéro placeholder** : seuls les tomes/chapitres ayant des scans sont
+  affichés ; badge « Couleur » (`isColorChapter`).
+- `VolumeChaptersList.tsx` — n'affiche que les chapitres disponibles (le « Bientôt
+  disponible » a été supprimé).
+- Routes : `/wiki/manga` (index ISR), `/wiki/manga/[id]` (lecteur, `generateStaticParams`),
+  `/wiki/manga/volume/[id]`.
+
+## Pièges
+
+- **Disque** : le VPS est tendu — convertir en WebP, honorer le garde-fou.
+- **`db_manga_chapters` est wiki-éditorial** (reverse-syncé Neon→SQLite) mais la
+  colonne `pages` est Neon-only (exclue par intersection de colonnes).
+- **Pubs scanlation** : Sushi Scan/anime-sama insèrent des pages pub/crédits → passer
+  `clean-fullcolor-promos.ts` après toute ingestion couleur. Le DB régulier (Sushi
+  Scan) n'a pas de pub aux bords.
+- À venir : **OCR des planches → markdown** (cf. [`docs/ocr-manga.md`](ocr-manga.md)).
+
+
+---
+
 <a name="docs-neoseeker-crawled-summary-md"></a>
 ## 📄 Fichier : `docs/neoseeker-crawled-summary.md`
 
@@ -3815,6 +3929,61 @@ This document consolidates and summarizes translations from 14 prominent *Dragon
     *   Technical explanations of the Golden Great Ape and Super Saiyan 4 forms.
     *   A chronological timeline mapping GT's place in the universe's history.
 *   **Lore Points:** Defines Super Saiyan 4 as a distinct form utilizing the primal power of the Great Ape under conscious control. Provides deep lore on the Tuffle race, the creation of Baby, and the negative energy accumulation that birthed the Shadow Dragons.
+
+
+---
+
+<a name="docs-ocr-manga-md"></a>
+## 📄 Fichier : `docs/ocr-manga.md`
+
+**Titre original :** OCR des planches → markdown
+
+### OCR des planches → markdown
+
+Objectif : transcrire le texte des planches manga (bulles + cartouches) en
+**markdown** par tome — pour la lecture texte, l'accessibilité et l'indexation RAG.
+Le manga self-hosté est majoritairement **français** (VF) ; cf.
+[`docs/manga-scans.md`](manga-scans.md).
+
+## Pourquoi pas Tesseract seul
+
+Tesseract `fra` sur une planche extrait des fragments de bulles mais avec du **bruit
+issu des dessins** et **sans ordre de lecture des cases** → markdown inutilisable tel
+quel. Il faut une étape de **détection des bulles + ordre de lecture** en amont.
+
+## Options évaluées (FR, CPU, à l'échelle)
+
+| Approche | Layout / ordre | Langue | CPU | Note |
+|---|---|---|---|---|
+| **comic-text-detector** → crop → **PaddleOCR/Tesseract `fra`** | oui (détecteur) | FR ✅ | oui | Pipeline 2 étages, agnostique de la langue pour la détection. **Meilleur compromis local.** |
+| **VLM vision** (dots.ocr OSS ; ou modèle vision cloud) | oui (1 passe) | multilingue ✅ | lent sur CPU | Meilleure qualité « layout+texte+markdown » en un coup. dots.ocr = OSS le plus proche. |
+| manga-ocr (kha-white) | bulles | **JP only ❌** | oui | Inadapté au VF. |
+| PaddleOCR seul / docTR | partiel | FR ✅ | oui | Recognition correcte, layout faible. |
+
+## Recommandation
+
+- **Qualité maximale** : un **VLM vision** lit la page holistiquement (ordre des cases,
+  ignore les dessins, sort du markdown propre). Coûteux/lent à 12 700 planches.
+- **Meilleur local gratuit** : pipeline **comic-text-detector** (boîtes bulles +
+  ordre) → **PaddleOCR `fr`** (reconnaissance FR). Tourne sur le VPS CPU (lent mais
+  faisable par lots).
+
+Démarrer par la **VF Dragon Ball original (42 tomes)** ; un tome = un fichier
+markdown `# Tome N` avec un bloc par case/bulle dans l'ordre de lecture.
+
+## Pipeline cible
+
+1. Pour chaque planche WebP : détection des zones de texte (comic-text-detector) →
+   tri en ordre de lecture (haut→bas, droite→gauche par défaut manga, à confirmer
+   sur la VF qui est souvent re-paginée gauche→droite).
+2. Crop de chaque zone → reconnaissance FR (PaddleOCR `fr` / Tesseract `fra`).
+3. Assemblage markdown par tome (`assets/manga/.../transcripts/tome-N.md`),
+   réinjectable dans le corpus RAG (`docs[].markdown`).
+
+## Statut
+
+Plan validé, options recherchées. Implémentation à faire (script
+`apps/bot/scripts/transcribe-manga.ts`) après installation du détecteur + PaddleOCR.
 
 
 ---
@@ -4055,6 +4224,93 @@ choix de race.
 
 ---
 
+<a name="docs-rag-enrichment-md"></a>
+## 📄 Fichier : `docs/rag-enrichment.md`
+
+**Titre original :** RAG — enrichissement du corpus & reconstruction sans coupure
+
+### RAG — enrichissement du corpus & reconstruction sans coupure
+
+Le RAG hybride (BM25 `rag_chunks` FTS5 + embeddings denses `vec_chunks` vec0, fusion
+RRF + rerank) sert la recherche du site, `/ask`, le Discord `/ask` et l'assistant.
+Pipeline runtime : `apps/bot/src/lib/rag.ts`. Build : `apps/bot/scripts/rag-build.ts`.
+
+## Tables (dans `apps/bot/data/bot.db`)
+
+- `rag_chunks` — FTS5 (`kind, title, url, content, lang, source_id, entity`).
+- `vec_chunks` — vec0 (`embedding float[384]`), aligné par **rowid** sur `rag_chunks`.
+- `rag_meta` — (`model, dim, count, built_at`).
+
+`rag-build.ts` lit la base (`RAG_DB` env, défaut `bot.db`) pour les entités
+structurées **+** `data/rag/corpus.json` (full-text scrapé), chunke (sémantique,
+~1400 chars, overlap 15 %), et **embed via le sidecar `:5007`** (`shenron-embed`,
+`sqliteVec.load(db)`).
+
+## Corpus (`apps/bot/data/rag/corpus.json`)
+
+Format `{generatedAt, count, docs:[{id, name, url, markdown}]}`. État après
+enrichissement 2026-06-22 : **8521 docs → 36 228 chunks** (vs 7093 / 27 653).
+
+### Sources de full-text & crawlers
+
+- **Fandom FR + EN** (`crawl-fandom-rag.ts --lang fr|en --cats "A,B,…" --out shard.json`)
+  — `categorymembers` + récursion 1 niveau de sous-catégories, `action=parse` →
+  wikitext nettoyé. FR ~2189 docs, EN ~5760 docs. ⚠️ passer `--cats` explicitement.
+- **Kanzenshuu** (`crawl-kanzenshuu-rag.ts`) — databooks officiels (Daizenshuu,
+  Chōzenshū…). BFS scopé `/databook/…`, extraction `<main id="content">`. ~342 docs.
+- **Databooks traduits** (`crawl-databooks-rag.ts`) — Kanzentai (archives **Wayback**),
+  forums Neoseeker (**via Wayback** car blocage direct 403), Toei officiel, fredcrash.
+  ~28 docs.
+
+### Fusion
+
+`merge-corpus.ts shard-fr.json shard-en.json …` — dédupe par `id` (le markdown le plus
+long gagne), garde les docs non-Fandom, **backup `corpus.json.bak`**.
+
+## Reconstruction SANS coupure de recherche
+
+> **Ne JAMAIS rebuild sur la base live** : `rag-build` `DROP TABLE rag_chunks` puis
+> embed (~1 h) → la recherche casse pendant le build et risque de figer l'API du bot.
+
+Procédure copy-swap :
+
+```bash
+### 1. Reverse-sync d'abord (la copie doit avoir la data structurée à jour)
+sudo systemctl start shenron-neon-pull.service
+
+### 2. Build sur une COPIE (le bot continue de servir l'ancien index)
+sqlite3 apps/bot/data/bot.db ".backup /tmp/ragbuild.db"
+RAG_DB=/tmp/ragbuild.db bun apps/bot/scripts/rag-build.ts   # ~45-90 min
+
+### 3. Swap atomique (bot arrêté ~1-2 min) — préserve les rowid
+sudo systemctl stop shenron
+bun apps/bot/scripts/swap-rag-tables.ts        # ATTACH copie → remplace rag_chunks/vec_chunks/rag_meta
+sudo systemctl start shenron
+```
+
+`swap-rag-tables.ts` charge sqlite-vec, recrée les tables FTS5/vec0 et copie les
+lignes en préservant le **rowid** (alignement chunk↔vecteur). Source = `$RAG_COPY`
+(défaut `/tmp/ragbuild.db`).
+
+## Vérification
+
+```bash
+curl -s "https://bot.dragonballfr.com/api/public/rag/search?q=daizenshuu&limit=3"  # mode hybrid+rerank
+sqlite3 apps/bot/data/bot.db "SELECT count(*) FROM rag_chunks"                       # = 36228
+```
+
+## Pièges
+
+- **`/home/ubuntu/.gemini` manquant casse le boot du bot** (`226/NAMESPACE`) — l'unit
+  `shenron.service` le référence dans `ReadWritePaths` ; s'il a été supprimé (nettoyage
+  disque), `mkdir -p /home/ubuntu/.gemini` avant restart.
+- **bxc** : le binaire compilé plante sur les commandes navigateur (`awaitPromise`) ;
+  le `bxc` global route vers la source. Cf. [`docs/bxc.md`](#) / mémoire.
+- `crawl-fandom-rag.ts` : le chemin par défaut sans `--cats` est buggé (array.split).
+
+
+---
+
 <a name="docs-sft-training-report-md"></a>
 ## 📄 Fichier : `docs/sft-training-report.md`
 
@@ -4253,6 +4509,87 @@ Toriyama a souvent expliqué qu'il n'avait pas de plan à long terme lorsqu'il �
 
 - **Création improvisée :** Il aimait se surprendre lui-même et surprendre ses éditeurs (notamment Kazuhiko Torishima) en écrivant les chapitres au fur et à mesure sans savoir comment le combat allait se terminer.
 - **Simplification visuelle :** Beaucoup de choix de design célèbres (comme la transformation en Super Saiyan aux cheveux blonds/blancs) ont été décidés pour des raisons purement pratiques : les cheveux blonds permettaient à son assistant de gagner du temps en n'ayant pas à colorier les cheveux en noir à l'encre de Chine !
+
+
+---
+
+<a name="docs-wiki-data-ingestion-md"></a>
+## 📄 Fichier : `docs/wiki-data-ingestion.md`
+
+**Titre original :** Données wiki — ingestion Fandom → Neon
+
+### Données wiki — ingestion Fandom → Neon
+
+Comment grossir les données de l'encyclopédie (personnages, planètes, arcs…) avec
+des **vraies données** (images self-hostées, infobox, descriptions) et **zéro
+placeholder**.
+
+## Architecture (rappel)
+
+Les tables wiki-éditoriales (`db_characters`, `db_planets`, `db_arcs`, `db_sagas`,
+`db_techniques`, `db_transformations`, …) vivent dans **Neon** (source de vérité),
+reverse-syncées Neon→SQLite toutes les 15 min (`shenron-neon-pull`, liste dans
+`apps/bot/scripts/_wiki-editorial.ts`). Le **site lit Neon en direct** ; le **bot
+Discord + le RAG lisent le réplica SQLite**.
+
+> ⚠️ Les anciens `ingest-fandom-*.ts` (dans `scripts/ingest/`) écrivent en **SQLite
+> (gardé par `wiki-write-guard`)** ET insèrent des **placeholders** (image = logo,
+> race = « Inconnue »). **Ne pas les utiliser.** Pour grossir, écrire dans **Neon**.
+
+## Outils (`apps/bot/scripts/ingest/`)
+
+- **`ingest-fandom-full.ts`** — ingestion riche depuis `dragonball.fandom.com/fr`
+  via l'**API MediaWiki** (officielle, paginée). `--cat characters|planets|locations
+  [--limit N] [--dry-run]`.
+  - `categorymembers` → liste des pages d'une catégorie (FR « Personnages » = 1271
+    pages).
+  - `prop=pageimages|extracts|revisions` (batch 25) → image originale + wikitext.
+  - Parse l'**infobox FR** (`Race`, `Nom Original`=ja, `Statut`, `Origine`…).
+  - **Télécharge + self-host l'image réelle** en WebP → `assets/wiki/<cat>/<slug>.webp`
+    (gitignored). Upsert Neon.
+  - **Zéro placeholder** : une ligne sans image réelle est **sautée** ; un champ absent
+    reste **NULL** (jamais « Inconnu »). Pose `is_destroyed=0` pour les planètes (cf.
+    piège reverse-sync).
+- **`enrich-fandom-descriptions.ts`** — `--table db_characters|db_planets`. L'API
+  `prop=extracts` est **cassée sur ce wiki** → on parse l'intro HTML de la section 0
+  (`action=parse&prop=text&section=0`), strip infobox/refs/balises, 1er vrai
+  paragraphe → `description`. Idempotent (ne touche que les NULL).
+- **Arcs** : portés de la liste `seed-arcs.ts` vers Neon (map `sagaSlug` →
+  `db_sagas.id`).
+
+## Croissance obtenue (2026-06-22)
+
+| Table | Avant | Après |
+|---|---|---|
+| `db_characters` | 108 | **1323** (904 descriptions) |
+| `db_planets` | 20 | **62** |
+| `db_arcs` | 0 | **23** |
+
+Toutes les images wiki sont **self-hostées** (0 hotlink `http%`).
+
+## Zéro placeholder (mandat)
+
+- Pas de « Bientôt disponible » / « Inconnu » / image-logo.
+- Champs absents → NULL → masqués gracieusement par les pages détail (qui testent
+  `field && …`).
+- `CharacterGrid` rend en **progressif** (« Voir plus ») pour encaisser 1300+ entrées.
+
+## Piège critique — reverse-sync & NULL NOT-NULL
+
+Le SQLite du bot a des colonnes **NOT NULL** que Neon autorise NULL. Un NULL en Neon
+casse la reverse-sync (`SQLITE_CONSTRAINT_NOTNULL`, qui rollback toute la transaction
+et fige la data du bot). Colonnes vues : `db_planets.is_destroyed` (bigint 0/1),
+`db_assets.source_id|license_key|created_at`. **Toujours poser une valeur par défaut
+en Neon** (jamais NULL) pour ces colonnes. Vérif après ingestion :
+`systemctl start shenron-neon-pull.service` puis `systemctl is-active` (≠ failed).
+
+## Flux complet
+
+1. `env DATABASE_URL=… bun scripts/ingest/ingest-fandom-full.ts --cat characters`
+2. `… enrich-fandom-descriptions.ts --table db_characters`
+3. `systemctl start shenron-neon-pull.service` (→ bot SQLite à jour)
+4. Le site montre la data (lecture Neon directe) ; redeploy pour figer l'ISR.
+5. RAG : cf. [`docs/rag-enrichment.md`](rag-enrichment.md).
 
 
 ---

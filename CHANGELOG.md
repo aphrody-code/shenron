@@ -3,6 +3,33 @@
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
 
+## [Unreleased] — 2026-06-22
+
+### Added
+
+- **Scans manga 100 % self-hostés (fin du « renvoi sur un autre site »)** : les planches ne sont plus hotlinkées depuis scan-vf.net — elles sont téléchargées sur le VPS (`apps/bot/assets/manga/`, gitignored), converties en WebP, servies depuis `bot.dragonballfr.com`. **12 716 planches** au total. Doc : [`docs/manga-scans.md`](docs/manga-scans.md).
+  - **Dragon Ball original VF complet** : 42 tomes (Sushi Scan → CDN anime-sama), N&B redimensionné/compressé WebP, rattachés aux tomes existants (`ingest-dragonball-volumes.ts`).
+  - **Édition couleur** « Full Color – L'enfance de Goku » (2 tomes) avec section/badge « Couleur » dans le lecteur (`ingest-fullcolor-manga.ts`).
+  - **Dragon Ball Super N&B complet** self-hosté (`selfhost-manga-pages.ts`).
+  - **Nettoyage OCR des pages promo** : pubs « SUSHISCAN.FR » et pages de crédits retirées par OCR (`clean-fullcolor-promos.ts`).
+- **Lecteur épisodes/films : sélecteur de langue VF / VOSTFR** (`VideoLecteurs.tsx`) — la donnée `players.lang` existait, l'UI manquait.
+- **Encyclopédie massivement étendue depuis Fandom (vraies données, zéro placeholder)** : personnages **108 → 1323** (904 descriptions, images self-hostées), planètes **20 → 62**, arcs **0 → 23**. `ingest-fandom-full.ts` + `enrich-fandom-descriptions.ts` écrivent dans **Neon** (source de vérité), images réelles via l'API MediaWiki. Doc : [`docs/wiki-data-ingestion.md`](docs/wiki-data-ingestion.md).
+- **RAG fortement enrichi** : corpus **7093 → 8521 docs / 36 228 chunks** — crawl Fandom FR+EN profond (`crawl-fandom-rag.ts`) + databooks officiels Kanzenshuu (`crawl-kanzenshuu-rag.ts`) + databooks traduits (Kanzentai via Wayback, Neoseeker via Wayback, Toei, fredcrash — `crawl-databooks-rag.ts`). Fusion `merge-corpus.ts`. **Reconstruction sur copie + swap sans coupure de recherche** (`swap-rag-tables.ts`). Doc : [`docs/rag-enrichment.md`](docs/rag-enrichment.md).
+- **Grid personnages en rendu progressif** (« Voir plus », PAGE 120) pour rester fluide à 1300+ entrées.
+
+### Changed
+
+- **Zéro placeholder** : suppression des « Bientôt disponible » (tomes/chapitres non dispo), masquage des tomes/volumes sans scan, nullification des races « Inconnue ». Les champs absents sont masqués (jamais « Inconnu »).
+- **Onglet « Dragon Ball »** du lecteur manga : présente désormais l'édition couleur + les tomes disponibles (plus de page de placeholders).
+- **bxc reconstruit** (`~/bxc`, rust-bridge + standalone) ; le binaire `--compile` ayant un bug d'embed CDP (`awaitPromise is not defined`), le `bxc` global route vers la source qui fonctionne à 100 %.
+
+### Fixed
+
+- **Reverse-sync Neon→SQLite réparée** : elle était cassée par des NULL dans des colonnes NOT NULL côté SQLite (`db_planets.is_destroyed`, `db_assets.source_id/license_key/created_at`). Valeurs par défaut posées en Neon ; `ingest-fandom-full.ts` pose `is_destroyed=0`.
+- **Cache CDN** : `force-dynamic` → ISR (`/wiki/episodes`, `/actualites`, `/stats`, `/commands`) ; `generateStaticParams` ajouté (`/wiki/episodes/[id]`, `/wiki/manga/[id]`, `/wiki/manga/volume/[id]`, `/wiki/arcs/[slug]`, `/post/[slug]`) ; éditeur média épisode passé en îlot client (`useMe`) pour rendre la page cacheable.
+- **A11y** : ARIA d'onglets (UniverseTabs, MangaVolumeGrid), états `focus-visible` (CharacterGrid, cartes sagas/épisodes, lecteurs), `aria-label` du lecteur manga.
+- **SEO** : `generateMetadata` accueil + `/shop`, OG images absolues sur `/post/[slug]`.
+
 ## [Unreleased] — 2026-06-10
 
 ### Added
