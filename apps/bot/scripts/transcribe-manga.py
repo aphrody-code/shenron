@@ -20,10 +20,11 @@ def init_worker():
     global OCR
     # 1 thread/worker : sinon paddle prend tous les cœurs par inférence et les
     # workers se sur-souscrivent (aucun gain). Doit être posé AVANT l'import paddle.
-    for v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "CPU_NUM"):
-        os.environ[v] = "1"
     from paddleocr import PaddleOCR
-    OCR = PaddleOCR(lang="fr", enable_mkldnn=False, ocr_version="PP-OCRv5",
+    ct = int(os.environ.get("OCR_CPU_THREADS", "2"))
+    # cpu_threads cappe les threads paddle PAR worker → N_workers × cpu_threads = cœurs,
+    # vraie parallélisation sans sur-souscription (OMP/set_num_threads inopérants ici).
+    OCR = PaddleOCR(enable_mkldnn=False, cpu_threads=ct,
                     text_detection_model_name="PP-OCRv5_mobile_det",
                     text_recognition_model_name="PP-OCRv5_mobile_rec",
                     use_doc_orientation_classify=False, use_doc_unwarping=False,
@@ -94,35 +95,32 @@ def main():
     tomes = [t for t in tomes if not os.path.exists(_md_path(t))]
     print(f"[OCR] {len(tomes)} tomes à faire, {workers} workers", flush=True)
 
-    # toutes les pages de tous les tomes → 1 pool global (max throughput)
-    jobs = []
-    for tdir in tomes:
-        for pg in sorted(glob.glob(os.path.join(tdir, "*.webp")), key=page_num):
-            jobs.append((tdir, pg))
-    print(f"[OCR] {len(jobs)} planches au total", flush=True)
+    total = sum(len(glob.glob(os.path.join(t, "*.webp"))) for t in tomes)
+    print(f"[OCR] {total} planches au total", flush=True)
 
-    t0 = time.time(); results = {}
+    # Pool persistant ; traitement TOME PAR TOME → écriture incrémentale (robuste
+    # aux interruptions sur un job long) + idempotent (un tome écrit n'est pas refait).
+    t0 = time.time(); done = 0
     with Pool(workers, initializer=init_worker) as pool:
-        for i, (path, lines) in enumerate(pool.imap_unordered(ocr_page, [j[1] for j in jobs], chunksize=4)):
-            results[path] = lines
-            if (i+1) % 50 == 0:
-                el = time.time()-t0
-                print(f"[OCR] {i+1}/{len(jobs)} ({el:.0f}s, {(i+1)/el:.1f} p/s)", flush=True)
-
-    # écrit 1 markdown par tome
-    for tdir in tomes:
-        name = os.path.basename(tdir.rstrip("/"))
-        series = tdir.split("/assets/manga/")[1].split("/")[0]
-        pages = sorted(glob.glob(os.path.join(tdir, "*.webp")), key=page_num)
-        md = [f"# {series} — {name}\n"]
-        for pg in pages:
-            lines = results.get(pg, [])
-            if not lines: continue
-            md.append(f"\n## Planche {page_num(pg):03d}\n")
-            md.append("\n".join(f"- {l}" for l in lines if l.strip()))
-        out = os.path.join(OUTDIR, f"{series}-{name}.md")
-        with open(out, "w") as f: f.write("\n".join(md))
-        print(f"[OCR] écrit {out} ({sum(len(results.get(p,[])) for p in pages)} lignes)", flush=True)
+        for tdir in tomes:
+            name = os.path.basename(tdir.rstrip("/"))
+            series = tdir.split("/assets/manga/")[1].split("/")[0]
+            pages = sorted(glob.glob(os.path.join(tdir, "*.webp")), key=page_num)
+            res = {}
+            for path, lines in pool.imap_unordered(ocr_page, pages, chunksize=2):
+                res[path] = lines; done += 1
+                if done % 50 == 0:
+                    el = time.time() - t0
+                    print(f"[OCR] {done}/{total} ({el:.0f}s, {done/el:.2f} p/s, ~{(total-done)*el/done/3600:.1f}h restant)", flush=True)
+            md = [f"# {series} — {name}\n"]
+            for pg in pages:
+                ls = res.get(pg, [])
+                if not ls: continue
+                md.append(f"\n## Planche {page_num(pg):03d}\n")
+                md.append("\n".join(f"- {l}" for l in ls if l.strip()))
+            out = os.path.join(OUTDIR, f"{series}-{name}.md")
+            with open(out, "w") as f: f.write("\n".join(md))
+            print(f"[OCR] ✓ {series}-{name} ({sum(len(res.get(p,[])) for p in pages)} lignes)", flush=True)
 
     print(f"[OCR] TERMINÉ en {time.time()-t0:.0f}s", flush=True)
 
