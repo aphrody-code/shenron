@@ -2155,13 +2155,19 @@ export class ApiServer {
 						}
 						sql += " ORDER BY rank LIMIT ?";
 						params.push(limit);
-						const rows = dbs.sqlite.query(sql).all(...params) as {
+						let rows: {
 							series: string;
 							tome: string;
 							planche: number;
 							lang: string;
 							snippet: string;
-						}[];
+						}[] = [];
+						try {
+							rows = dbs.sqlite.query(sql).all(...params) as typeof rows;
+						} catch {
+							// Index FTS manga absent (transcriptions pas encore ingérées) → vide.
+							return { q, count: 0, results: [] };
+						}
 						return { q, count: rows.length, results: rows };
 					}),
 

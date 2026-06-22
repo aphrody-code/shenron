@@ -695,7 +695,11 @@ builder.queryType({
 				}
 				sql += " ORDER BY rank LIMIT ?";
 				params.push(clampLimit(a.limit, 20, 100));
-				return all<MangaPageRow>(ctx, sql, ...params);
+				try {
+					return all<MangaPageRow>(ctx, sql, ...params);
+				} catch {
+					return []; // index FTS manga absent → vide
+				}
 			},
 		}),
 		counts: t.field({
