@@ -100,6 +100,9 @@ const CATS: Record<string, Cat> = {
 				image: d.image,
 				description: nn(d.description),
 				name_ja: nn(f(d.ib, "Nom Original", "Nom Japonais")),
+				// is_destroyed NOT NULL côté SQLite (replica bot) → 0 par défaut
+				// (sinon la reverse-sync Neon→SQLite casse). Cf. mémoire.
+				is_destroyed: 0,
 			};
 		},
 	},
