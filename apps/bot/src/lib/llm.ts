@@ -25,6 +25,19 @@ const LLM_TIMEOUT_MS = Number(process.env.LLM_TIMEOUT_MS ?? 90_000);
 const MAX_CONCURRENCY = Number(process.env.LLM_MAX_CONCURRENCY ?? 3);
 const HISTORY_TURNS = Number(process.env.LLM_HISTORY_TURNS ?? 6); // messages gardés (3 échanges)
 const LLM_BACKEND = process.env.LLM_BACKEND ?? "local";
+// Nom du modèle servi (OpenAI: ignoré par llama.cpp ; Ollama: nom réel, ex. "gemma4:12b").
+const LLM_MODEL = process.env.LLM_MODEL ?? "local";
+// Endpoint natif Ollama (backend "ollama") — permet de passer `think:false` aux modèles
+// à raisonnement (sinon le champ `reasoning` mange le budget tokens et `content` reste vide).
+const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://127.0.0.1:11434/api/chat";
+// Best-practices Ollama (cf. docs /api/chat + options Modelfile) :
+// - num_ctx : fenêtre de contexte. 8192 pour encaisser système + faits RAG + historique
+//   sans tronquer (le défaut modèle 4096 coupe l'injection RAG).
+// - keep_alive : résidence VRAM. "30m" = aligné au serveur (laisse la VRAM aux sidecars
+//   GPU embeddings/OCR plutôt que de pinner le LLM à vie avec -1).
+const LLM_NUM_CTX = Number(process.env.LLM_NUM_CTX ?? 8192);
+const LLM_NUM_PREDICT = Number(process.env.LLM_NUM_PREDICT ?? 320);
+const LLM_KEEP_ALIVE = process.env.LLM_KEEP_ALIVE ?? "30m";
 
 const PERSONA_SYSTEM: Record<string, string> = {
 	whis: `Tu es Whis, l'ange-guide de Beerus de l'Univers 7. Tu parles d'un ton extrêmement courtois, enjoué, calme, précieux et un brin taquin.
@@ -150,13 +163,51 @@ function buildContext(db: Database, hits: RagHit[]): string {
 	return ctx.trim();
 }
 
+/** Backend Ollama natif (`/api/chat`) : `think:false` pour les modèles à raisonnement. */
+async function callOllama(messages: Array<{ role: string; content: string }>): Promise<string> {
+	try {
+		const res = await fetch(OLLAMA_URL, {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({
+				model: LLM_MODEL,
+				messages,
+				think: false, // ignoré par les modèles non-reasoning, désactive le CoT sinon
+				stream: false,
+				keep_alive: LLM_KEEP_ALIVE,
+				options: {
+					temperature: 0.6,
+					top_p: 0.9,
+					num_ctx: LLM_NUM_CTX,
+					num_predict: LLM_NUM_PREDICT,
+				},
+			}),
+			signal: AbortSignal.timeout(LLM_TIMEOUT_MS),
+		});
+		if (!res.ok) {
+			console.error("[LLM] callOllama HTTP error status:", res.status, await res.text());
+			return "";
+		}
+		const j = (await res.json()) as { message?: { content?: string } };
+		const content = (j.message?.content ?? "").trim();
+		if (!content) {
+			console.warn("[LLM] callOllama returned empty content. Response JSON:", JSON.stringify(j));
+		}
+		return content;
+	} catch (err) {
+		console.error("[LLM] callOllama fetch exception:", err);
+		return "";
+	}
+}
+
 async function callModel(messages: Array<{ role: string; content: string }>): Promise<string> {
+	if (LLM_BACKEND === "ollama") return callOllama(messages);
 	try {
 		const res = await fetch(LLM_URL, {
 			method: "POST",
 			headers: { "content-type": "application/json" },
 			body: JSON.stringify({
-				model: "local",
+				model: LLM_MODEL,
 				messages,
 				temperature: 0.6,
 				top_p: 0.9,
