@@ -378,7 +378,7 @@ export function MangaReader({
 							type="button"
 							aria-label="Page précédente"
 							onClick={goPrevPage}
-							className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full border border-dbz-border bg-black/60 p-2 text-white transition-colors hover:border-dbz-orange hover:text-dbz-orange"
+							className="absolute top-1/2 left-2 z-10 -translate-y-1/2 rounded-full border border-dbz-border bg-black/60 p-3 text-white transition-colors hover:border-dbz-orange hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange"
 						>
 							{dir === "rtl" ? (
 								<ChevronRight size={20} aria-hidden />
@@ -390,7 +390,7 @@ export function MangaReader({
 							type="button"
 							aria-label="Page suivante"
 							onClick={goNextPage}
-							className="absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full border border-dbz-border bg-black/60 p-2 text-white transition-colors hover:border-dbz-orange hover:text-dbz-orange"
+							className="absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded-full border border-dbz-border bg-black/60 p-3 text-white transition-colors hover:border-dbz-orange hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange"
 						>
 							{dir === "rtl" ? (
 								<ChevronLeft size={20} aria-hidden />

@@ -1,7 +1,6 @@
 import { PageHeader } from "@/components/PageHeader";
 import { getShenronStats } from "@/lib/shenron";
 
-export const dynamic = "force-dynamic";
 export const revalidate = 30;
 
 function StatCard({

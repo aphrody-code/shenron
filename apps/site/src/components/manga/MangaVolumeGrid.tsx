@@ -206,7 +206,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 	else if (totalReadChapters >= 1) currentRank = "Disciple de Tortue Géniale";
 
 	const tabBtn =
-		"flex items-center gap-2 px-5 py-3 border-b-2 border-transparent text-sm font-display font-semibold tracking-wider text-white/50 hover:text-white transition-all duration-300 whitespace-nowrap";
+		"flex items-center gap-2 px-5 py-3 border-b-2 border-transparent text-sm font-display font-semibold tracking-wider text-white/70 hover:text-white focus-visible:outline-none focus-visible:text-dbz-orange transition-all duration-300 whitespace-nowrap";
 	const tabBtnActive =
 		"flex items-center gap-2 px-5 py-3 border-b-2 border-dbz-orange text-sm font-display font-semibold tracking-wider text-dbz-orange transition-all duration-300 whitespace-nowrap";
 
