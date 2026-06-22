@@ -73,13 +73,14 @@ function NavCard({ ep, dir }: { ep: EpisodeNavItem; dir: "prev" | "next" }) {
 	return (
 		<Link
 			href={`/wiki/episodes/${ep.id}`}
-			className={`group flex items-center gap-4 dbz-panel p-3 flex-1 ${dir === "next" ? "flex-row-reverse text-right" : ""}`}
+			className={`group flex items-center gap-4 dbz-panel p-3 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${dir === "next" ? "flex-row-reverse text-right" : ""}`}
 		>
 			<div className="relative w-28 aspect-video shrink-0 overflow-hidden rounded-md bg-dbz-bg">
 				{ep.image ? (
 					<img
 						src={assetUrl(ep.image)}
 						alt=""
+						aria-hidden
 						className="h-full w-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
 						loading="lazy"
 					/>
@@ -352,13 +353,14 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 										<Link
 											key={e.id}
 											href={`/wiki/episodes/${e.id}`}
-											className={`group relative w-40 shrink-0 dbz-panel overflow-hidden ${active ? "ring-2 ring-dbz-orange" : ""}`}
+											className={`group relative w-40 shrink-0 dbz-panel overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${active ? "ring-2 ring-dbz-orange" : ""}`}
 										>
 											<div className="relative aspect-video bg-dbz-bg overflow-hidden">
 												{e.image ? (
 													<img
 														src={assetUrl(e.image)}
 														alt=""
+														aria-hidden
 														className="h-full w-full object-cover opacity-75 group-hover:opacity-100 transition-opacity"
 														loading="lazy"
 													/>

@@ -56,7 +56,7 @@ export default async function SagasPage() {
 								<li key={s.id}>
 									<Link
 										href={`/wiki/sagas/${s.slug}`}
-										className="group block rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 hover:bg-white/[0.07] transition-colors h-full overflow-hidden"
+										className="group block rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 hover:bg-white/[0.07] transition-colors h-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black"
 									>
 										{s.image ? (
 											<>
@@ -89,7 +89,7 @@ export default async function SagasPage() {
 												)}
 											</>
 										) : (
-											<div className="p-5">
+											<div className="p-4">
 												<p className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-dbz-orange mb-2">
 													Saga {s.order_idx}
 												</p>

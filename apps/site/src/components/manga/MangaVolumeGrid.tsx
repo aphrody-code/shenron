@@ -243,9 +243,11 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 
 			{/* Sélecteur d'onglets (style Scouter) et recherche */}
 			<div className="flex flex-col lg:flex-row border-b border-white/10 gap-4 pb-px justify-between items-start lg:items-center">
-				<div className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-none">
+				<div role="tablist" className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-none">
 					<button
 						type="button"
+						role="tab"
+						aria-selected={tab === "dbs"}
 						onClick={() => setTab("dbs")}
 						className={tab === "dbs" ? tabBtnActive : tabBtn}
 					>
@@ -254,6 +256,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					</button>
 					<button
 						type="button"
+						role="tab"
+						aria-selected={tab === "db"}
 						onClick={() => setTab("db")}
 						className={tab === "db" ? tabBtnActive : tabBtn}
 					>
@@ -262,6 +266,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					</button>
 					<button
 						type="button"
+						role="tab"
+						aria-selected={tab === "scans"}
 						onClick={() => setTab("scans")}
 						className={tab === "scans" ? tabBtnActive : tabBtn}
 					>
@@ -270,6 +276,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					</button>
 					<button
 						type="button"
+						role="tab"
+						aria-selected={tab === "achievements"}
 						onClick={() => setTab("achievements")}
 						className={tab === "achievements" ? tabBtnActive : tabBtn}
 					>

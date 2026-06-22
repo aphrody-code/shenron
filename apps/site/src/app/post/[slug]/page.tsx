@@ -13,7 +13,15 @@ import { JsonLd } from "@/components/JsonLd";
 import type { BlogPosting, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+	const published = await db.query.posts.findMany({
+		where: (p, { eq }) => eq(p.published, true),
+		columns: { slug: true },
+	});
+	return published.map((p) => ({ slug: p.slug }));
+}
 
 export async function generateMetadata({
 	params,
@@ -25,6 +33,10 @@ export async function generateMetadata({
 		where: (p, { eq }) => eq(p.slug, slug),
 	});
 	if (!post) return { title: "Article — DBFR" };
+	const coverUrl =
+		post.cover && !post.cover.startsWith("http")
+			? new URL(post.cover, SITE).toString()
+			: post.cover;
 	return {
 		title: `${post.title} — DBFR`,
 		description:
@@ -33,7 +45,7 @@ export async function generateMetadata({
 		openGraph: {
 			title: post.title,
 			description: post.excerpt ?? undefined,
-			images: post.cover ? [{ url: post.cover }] : undefined,
+			images: coverUrl ? [{ url: coverUrl }] : undefined,
 			type: "article",
 			publishedTime: post.createdAt.toISOString(),
 		},
@@ -41,7 +53,7 @@ export async function generateMetadata({
 			card: post.cover ? "summary_large_image" : "summary",
 			title: post.title,
 			description: post.excerpt ?? undefined,
-			images: post.cover ? [post.cover] : undefined,
+			images: coverUrl ? [coverUrl] : undefined,
 		},
 	};
 }

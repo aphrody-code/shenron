@@ -1,7 +1,20 @@
+import type { Metadata } from "next";
 import { getShenronShop, type ShenronShopItem } from "@/lib/shenron";
 import { PageHeader } from "@/components/PageHeader";
+import { ogMeta } from "@/lib/og";
 
 export const revalidate = 60;
+
+export const metadata: Metadata = {
+	title: "Boutique",
+	description:
+		"Cosmétiques exclusifs Shenron : cartes de profil, badges, couleurs, titres et bannières à débloquer avec tes Zénis sur le Discord DBFR.",
+	...ogMeta({
+		title: "Boutique Shenron",
+		description:
+			"Cartes de profil, badges, couleurs, titres et bannières exclusifs à acheter avec tes Zénis sur Discord.",
+	}),
+};
 
 const TYPE_LABELS: Record<string, string> = {
 	card: "CARTE",

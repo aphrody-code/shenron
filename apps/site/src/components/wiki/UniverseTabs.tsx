@@ -28,11 +28,15 @@ export function UniverseTabs({ characters, planets, initialTab = "personnages" }
 	return (
 		<div className="space-y-8">
 			{/* Tab Switcher */}
-			<div className="flex border-b border-white/[0.08]">
+			<div role="tablist" className="flex border-b border-white/[0.08]">
 				<button
 					type="button"
+					role="tab"
+					id="universe-tab-personnages"
+					aria-selected={activeTab === "personnages"}
+					aria-controls="universe-panel-personnages"
 					onClick={() => setActiveTab("personnages")}
-					className={`px-6 py-3 font-display font-semibold text-sm transition-colors relative ${
+					className={`px-6 py-3 font-display font-semibold text-sm transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 						activeTab === "personnages" ? "text-dbz-orange" : "text-white/60 hover:text-white"
 					}`}
 				>
@@ -43,8 +47,12 @@ export function UniverseTabs({ characters, planets, initialTab = "personnages" }
 				</button>
 				<button
 					type="button"
+					role="tab"
+					id="universe-tab-planetes"
+					aria-selected={activeTab === "planetes"}
+					aria-controls="universe-panel-planetes"
 					onClick={() => setActiveTab("planetes")}
-					className={`px-6 py-3 font-display font-semibold text-sm transition-colors relative ${
+					className={`px-6 py-3 font-display font-semibold text-sm transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 						activeTab === "planetes" ? "text-dbz-orange" : "text-white/60 hover:text-white"
 					}`}
 				>
@@ -57,9 +65,16 @@ export function UniverseTabs({ characters, planets, initialTab = "personnages" }
 
 			{/* Tab Content */}
 			{activeTab === "personnages" ? (
-				<CharacterGrid characters={characters} />
+				<div role="tabpanel" id="universe-panel-personnages" aria-labelledby="universe-tab-personnages">
+					<CharacterGrid characters={characters} />
+				</div>
 			) : (
-				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 reveal-grid">
+				<div
+					role="tabpanel"
+					id="universe-panel-planetes"
+					aria-labelledby="universe-tab-planetes"
+					className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 reveal-grid"
+				>
 					{planets.map((p) => (
 						<Link
 							key={p.id}

@@ -86,7 +86,7 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 					<button
 						type="button"
 						onClick={() => setRace(null)}
-						className={`px-3.5 h-8 rounded-full text-[12px] font-display font-semibold tracking-wide transition-colors border ${
+						className={`px-3.5 h-8 rounded-full text-[12px] font-display font-semibold tracking-wide transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 							race === null
 								? "bg-dbz-orange text-black border-dbz-orange"
 								: "bg-white/[0.04] text-white/70 border-white/[0.1] hover:text-white hover:border-white/30"
@@ -99,7 +99,7 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 							key={r.name}
 							type="button"
 							onClick={() => setRace(race === r.name ? null : r.name)}
-							className={`px-3.5 h-8 rounded-full text-[12px] font-display font-semibold tracking-wide transition-colors border ${
+							className={`px-3.5 h-8 rounded-full text-[12px] font-display font-semibold tracking-wide transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 								race === r.name
 									? "bg-dbz-orange text-black border-dbz-orange"
 									: "bg-white/[0.04] text-white/70 border-white/[0.1] hover:text-white hover:border-white/30"

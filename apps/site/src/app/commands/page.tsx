@@ -1,7 +1,7 @@
 import { getShenronCommands, getShenronPersonas } from "@/lib/shenron";
 import { PageHeader } from "@/components/PageHeader";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 const PERSONA_LABELS: Record<string, string> = {
 	shenron: "Shenron",

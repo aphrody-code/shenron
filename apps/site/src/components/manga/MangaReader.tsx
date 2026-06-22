@@ -235,9 +235,9 @@ export function MangaReader({
 	}, [mode, current, total, virtualizer]);
 
 	const btn =
-		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-border bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange disabled:cursor-not-allowed disabled:opacity-40";
+		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-border bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-40";
 	const btnActive =
-		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-orange bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-orange transition-colors";
+		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-orange bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-orange transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black";
 
 	const counter = total ? `${Math.min(current + 1, total)} / ${total}` : "0 / 0";
 
@@ -249,7 +249,7 @@ export function MangaReader({
 		>
 			{/* Barre de contrôles */}
 			<div className="dbz-panel z-10 flex flex-wrap items-center gap-2 border-b border-dbz-border px-3 py-2">
-				<span className="mr-1 max-w-[40ch] truncate text-sm font-bold text-white">{title}</span>
+				<span className="mr-1 min-w-0 max-w-[40ch] truncate text-sm font-bold text-white">{title}</span>
 
 				<span className="ml-auto rounded bg-dbz-bg px-2 py-1 text-xs font-bold tabular-nums text-dbz-orange">
 					{counter}
@@ -261,6 +261,7 @@ export function MangaReader({
 					className={mode === "paged" ? btnActive : btn}
 					onClick={() => setMode("paged")}
 					aria-pressed={mode === "paged"}
+					aria-label="Mode de lecture paginé"
 					title="Mode paginé"
 				>
 					<BookOpen size={14} aria-hidden /> Paginé
@@ -270,6 +271,7 @@ export function MangaReader({
 					className={mode === "vertical" ? btnActive : btn}
 					onClick={() => setMode("vertical")}
 					aria-pressed={mode === "vertical"}
+					aria-label="Mode de lecture vertical (webtoon)"
 					title="Mode vertical (webtoon)"
 				>
 					<ScrollText size={14} aria-hidden /> Vertical
@@ -280,6 +282,11 @@ export function MangaReader({
 					type="button"
 					className={btn}
 					onClick={() => setDir((d) => (d === "rtl" ? "ltr" : "rtl"))}
+					aria-label={
+						dir === "rtl"
+							? "Sens de lecture manga (droite vers gauche)"
+							: "Sens de lecture BD (gauche vers droite)"
+					}
 					title={dir === "rtl" ? "Sens manga (droite→gauche)" : "Sens BD (gauche→droite)"}
 				>
 					<MoveHorizontal size={14} aria-hidden />
@@ -293,6 +300,7 @@ export function MangaReader({
 					onClick={() => setSpread((s) => !s)}
 					disabled={mode !== "paged" || !isLarge}
 					aria-pressed={useSpread}
+					aria-label="Affichage double-page (grand écran)"
 					title="Double-page (grand écran)"
 				>
 					{useSpread ? <Columns2 size={14} aria-hidden /> : <Square size={14} aria-hidden />}
@@ -304,6 +312,7 @@ export function MangaReader({
 					type="button"
 					className={btn}
 					onClick={toggleFullscreen}
+					aria-label={isFullscreen ? "Quitter le plein écran" : "Activer le plein écran"}
 					title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
 				>
 					{isFullscreen ? <Minimize2 size={14} aria-hidden /> : <Maximize2 size={14} aria-hidden />}
@@ -311,7 +320,7 @@ export function MangaReader({
 
 				{/* Navigation chapitres */}
 				{prevHref ? (
-					<Link href={prevHref} className={btn} title="Chapitre précédent">
+					<Link href={prevHref} className={btn} aria-label="Chapitre précédent" title="Chapitre précédent">
 						<ChevronLeft size={14} aria-hidden /> Préc.
 					</Link>
 				) : (
@@ -320,7 +329,7 @@ export function MangaReader({
 					</span>
 				)}
 				{nextHref ? (
-					<Link href={nextHref} className={btn} title="Chapitre suivant">
+					<Link href={nextHref} className={btn} aria-label="Chapitre suivant" title="Chapitre suivant">
 						Suiv. <ChevronRight size={14} aria-hidden />
 					</Link>
 				) : (

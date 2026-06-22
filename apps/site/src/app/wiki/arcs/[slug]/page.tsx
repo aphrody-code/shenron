@@ -6,6 +6,13 @@ import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+	const data = await dbUniverse.sagas();
+	const sagas = data?.sagas ?? [];
+	const sagaDetails = await Promise.all(sagas.map((s) => dbUniverse.saga(s.slug)));
+	return sagaDetails.flatMap((s) => s?.arcs ?? []).map((arc) => ({ slug: arc.slug }));
+}
+
 export async function generateMetadata({
 	params,
 }: {
