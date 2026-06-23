@@ -241,6 +241,26 @@ Adaptation du LLM au **style manga DBZ** via QLoRA continued-pretrain sur les tr
   prod, garder la base `gemma4:12b` pour les faits (via le RAG focus manga). Ne PAS activer `gemma4-manga`
   par défaut tant que le bruit n'est pas maîtrisé. `data/llm/test_lora.py` pour juger une itération.
 
+### Branche encyclopédique `gemma4-db-full` (faits) — bilan : ne pas câbler
+
+Variante du même pipeline visant les **faits** (pas le style) : continued-pretrain QLoRA de
+`unsloth/gemma-4-12b-it` sur `data/llm/db_full_pretrain.jsonl` (~50 Mo = dump complet de la connaissance
+DB : Fandom + databooks + entités), `r=16`, `max_seq=768`, 1 epoch, LR 5e-5. `data/llm/finalize-v3.sh`
+automatise LoRA → adapter GGUF → `ollama create gemma4-db-full` → test connaissances.
+
+- **Résilience (obligatoire pour les runs longs)** : `data/llm/train-supervised.sh` relance
+  `finetune_manga.py` après crash et **reprend au dernier checkpoint** (`save_strategy="steps"`,
+  `save_steps=500`, `resume_from_checkpoint`). Un run lancé sans cette version **ne checkpointe pas →
+  crash = perte totale** (piège vécu : 15,5 h sans filet). Run de référence : 1 epoch ≈ **5861 steps,
+  18 h 38** sur la 4070 (rythme 6–30 s/it, se dégrade en fin de dataset sur les séquences longues).
+- **Résultat (éval 2026-06-24)** : le fine-tune **DÉGRADE la factualité**. Éval comparée, 6 questions FR :
+  `gemma4-db-full` ≈ **2/6 (33 %)** vs base `gemma4:12b` ≈ **4,5/6 (75 %)** — hallucinations en hausse
+  (« Tsururin » à l'ép. 1, « Super Saiyan Rage » contre Jiren, mauvaise dernière saga de Super) et
+  réponses plus verbeuses. Un continued-pretrain sur dump brut apprend le **style/bruit**, pas les **faits**.
+- **Conclusion** : **NE PAS activer `gemma4-db-full` en prod** ; garder la base + RAG (les faits passent
+  par le RAG). Pour un vrai modèle « faits », viser un **instruction-tune sur paires Q&A propres**
+  (générées depuis le wiki + RAG), pas un continued-pretrain.
+
 ---
 
 ## Récap des changements de code
