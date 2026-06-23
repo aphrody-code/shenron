@@ -2177,8 +2177,8 @@ export class ApiServer {
 								.replace(/\b(?:SCANTRAD|BLEACH-?MX|VOIRANIME|MANGA-?SCAN|LELSCAN|JATSCAN)\S*/gi, " ")
 								.replace(/\s{2,}/g, " ")
 								.trim();
-						const results = rows.map((r) => ({ ...r, snippet: cleanSnip(r.snippet) }));
-						return { q, count: results.length, results };
+						for (const r of rows) r.snippet = cleanSnip(r.snippet);
+						return { q, count: rows.length, results: rows };
 					}),
 
 				// Endpoint de chat génératif RAG-grounded avec injection de contexte page-level
