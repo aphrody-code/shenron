@@ -21,7 +21,7 @@ from datasets import load_dataset
 from trl import SFTConfig, SFTTrainer
 
 HERE = Path(__file__).resolve().parent
-DATA = HERE / "manga_pretrain.jsonl"
+DATA = Path(os.environ.get("DATASET", str(HERE / "manga_pretrain.jsonl")))
 OUTDIR = Path(os.environ.get("OUTDIR", HERE / "gemma4-manga"))
 
 MODEL = os.environ.get("MODEL", "unsloth/gemma-4-12b-it")
@@ -37,6 +37,7 @@ model, tokenizer = FastModel.from_pretrained(
     max_seq_length=MAX_SEQ,
     load_in_4bit=True,          # QLoRA : indispensable pour tenir sur 12 Go
     full_finetuning=False,
+    device_map={"": 0},         # force tout sur GPU 0 (évite un device_map offloadé → "invalid device ordinal")
 )
 
 model = FastModel.get_peft_model(
@@ -45,8 +46,8 @@ model = FastModel.get_peft_model(
     finetune_language_layers=True,
     finetune_attention_modules=True,
     finetune_mlp_modules=True,
-    r=8,
-    lora_alpha=16,
+    r=int(os.environ.get("RANK", "8")),
+    lora_alpha=int(os.environ.get("RANK", "8")) * 2,
     lora_dropout=0,
     bias="none",
     use_gradient_checkpointing="unsloth",  # clé pour la VRAM
