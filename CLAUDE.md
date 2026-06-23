@@ -6,7 +6,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 - Bot prod : service systemd `shenron.service` sur le VPS (`WorkingDirectory=/home/ubuntu/shenron/apps/bot`).
 - Site prod : **VPS** depuis le 2026-06-12 (migré de Vercel). `next start` sous Bun (unit systemd `shenron-site.service`, `WorkingDirectory=apps/site`, `127.0.0.1:3000`) fronté par nginx (`deploy/nginx/dragonballfr.com.conf`, TLS certbot `--dns-ovh`). **Domaine de prod unique : `https://dragonballfr.com`** (`www` → 301 apex au niveau nginx). Le projet **Vercel `dbfr`** (`prj_wxLn9COQIo9HAOUVis08ppKXx7zI`) est conservé en **standby** (repli : repointer l'A record apex `dragonballfr.com` sur Vercel `76.76.21.21` — DNS OVH, creds `~/.config/ovh/dbfr.conf`). L'API bot est servie côté VPS sur `bot.dragonballfr.com` (ex- `bot.rpbey.fr` / `shenron.rpbey.fr` legacy).
 - DB bot : SQLite local `apps/bot/data/bot.db` (snapshot quotidien via timer VPS).
-- DB site : **Postgres distinct** (Neon ou autre, via `DATABASE_URL`) — ce n'est PAS la même DB que le bot.
+- DB site : **PostgreSQL local sur le VPS** depuis le **2026-06-23** (migré de Neon suite à un dépassement de quota de transfert qui avait mis le site DOWN). Base `shenron_site` sur `127.0.0.1:5432` (rôle `shenron`, schémas `public` + `bot`), service `postgresql.service` (PG 18). `DATABASE_URL` = URL locale dans `apps/site/.env` ET `~/.shenron-neon.env`. C'est un Postgres **distinct** de la DB bot (SQLite). **Neon décommissionné** (gardé en repli froid : ancienne `DATABASE_URL` Neon en commentaire dans les deux `.env` ; rebascule possible quand le quota se réinitialise). Backup quotidien `pg_dump` via `shenron-pg-backup.timer` (03:30 UTC).
 
 ## Lecture obligatoire
 
@@ -99,12 +99,12 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 ## DB & migrations
 
 - **Bot** : `bun:sqlite` via Drizzle. Migrations dans `apps/bot/drizzle/`. Fichier prod : `apps/bot/data/bot.db`.
-- **Site** : Postgres (Neon) via Drizzle. Migrations générées dans `apps/site/src/db/migrations/`. URL via `DATABASE_URL`.
-- **Automatisation Neon ↔ GitHub ↔ Vercel** : branche Neon par PR + migrations Drizzle + env preview Vercel câblée + migrate prod au deploy + cleanup à la fermeture. Workflows `.github/workflows/neon-branch.yml` & `deploy-vercel.yml` (job `migrate-prod` gaté). Doc complète : **[`apps/site/docs/neon-automation.md`](apps/site/docs/neon-automation.md)**. Secrets/vars repo déjà provisionnés (`NEON_API_KEY`, `NEON_PROJECT_ID=patient-star-28731823`, `VERCEL_*`) — zéro étape humaine. Wiki-crawl manga récurrent → timer `shenron-wiki-crawl` (opt-in).
+- **Site** : **PostgreSQL local VPS** (`shenron_site`, schémas `public` + `bot`) via Drizzle/postgres-js, depuis la migration Neon → PG local du **2026-06-23**. Migrations `public` générées dans `apps/site/src/db/migrations/`. Le schéma `public` complet a été matérialisé via `drizzle-kit push` (les 9 tables de base — `User`/`Post`/`Comment`/`Wiki*`/`ba_*` — n'ont **pas** de SQL de migration, créées historiquement par `push` ; `drizzle-kit migrate` seul est insuffisant). Le schéma `bot` est créé via `apps/site/drizzle.config.bot.ts` (`drizzle-kit generate` → DDL, schemaFilter `["bot"]`) puis seedé depuis le SQLite par `apps/bot/scripts/seed-pg-from-sqlite.ts` (intersection de colonnes ; colonnes Neon-only re-dérivées : `players` via `import-voiranime-players*.ts`, `pages` via `reconstruct-manga-pages-from-disk.ts`). **Piège** : `drizzle-kit migrate` plante silencieusement (exit 1) sous Bun → utiliser `push` (`migrate` non utilisé par `deploy-site.sh` sans `--migrate`). URL via `DATABASE_URL`.
+- **Automatisation Neon ↔ GitHub ↔ Vercel (LEGACY, suspendue)** : workflows `.github/workflows/{neon-branch,deploy-vercel}.yml` en `workflow_dispatch` only. La branche Neon par PR n'a plus d'objet depuis la migration PG local. `NEON_PROJECT_ID=patient-star-28731823` (us-east-1) était le projet MCP **stale** ; la vraie prod Neon était `ep-purple-silence` (eu-central-1), aujourd'hui décommissionnée. Doc historique : `apps/site/docs/neon-automation.md`. Wiki-crawl manga récurrent → timer `shenron-wiki-crawl` (opt-in).
 - Schéma partagé conceptuellement mais **physiquement séparé** (provider différent). Préfixe `ba_` pour better-auth tables (`ba_user`, `ba_session`, `ba_account`, `ba_verification`).
-- **Source de vérité du wiki = Neon `bot.*`** (depuis `a572e3f`). Sync **bidirectionnelle** par rôle de table (liste `apps/bot/scripts/_wiki-editorial.ts`) :
-  - **Forward `sync-sqlite-to-neon.ts`** (timer `shenron-neon-sync.timer`, 30 min) : runtime (users/économie/…) **+ `db_news`** SQLite→Neon. **Exclut le wiki éditorial.**
-  - **Reverse `sync-neon-to-sqlite.ts`** (timer `shenron-neon-pull.timer`, 15 min) : wiki éditorial Neon→SQLite (DELETE+INSERT par table, FK off, WAL-safe) → le SQLite du bot est un **replica de lecture** (commandes Discord `/wiki` + build RAG restent locaux, rapides, indépendants de Neon).
+- **Source de vérité du wiki = `bot.*` du Postgres du site** (depuis `a572e3f`; **= PG local VPS depuis le 2026-06-23**, ex-Neon). Les scripts gardent leur nom historique (`*-neon-*`) mais pointent désormais le **PG local** via la `DATABASE_URL` de `~/.shenron-neon.env`. Sync **bidirectionnelle** par rôle de table (liste `apps/bot/scripts/_wiki-editorial.ts`) :
+  - **Forward `sync-sqlite-to-neon.ts`** (timer `shenron-neon-sync.timer`, 30 min) : runtime (users/économie/…) **+ `db_news`** SQLite→PG. **Exclut le wiki éditorial.**
+  - **Reverse `sync-neon-to-sqlite.ts`** (timer `shenron-neon-pull.timer`, 15 min) : wiki éditorial PG→SQLite (DELETE+INSERT par table, FK off, WAL-safe) → le SQLite du bot est un **replica de lecture** (commandes Discord `/wiki` + build RAG restent locaux, rapides, indépendants du PG). **Anti-truncate** : si la source est vide alors que le replica a des données, la table est skippée (ne vide jamais le SQLite, qui est la source de re-seed du PG).
 
 ### RAG hybride (depuis `100a8a3`)
 
@@ -118,7 +118,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 
 - **GraphQL** read-only du wiki sur `/graphql` (Pothos code-first + graphql-yoga, monté sur le `Bun.serve` du bot, GraphiQL activé, CORS public, garde-fou profondeur max 10). `apps/bot/src/api/graphql.ts`. Entités + relations + `ragSearch` + `counts`.
 - **OpenAPI 3.1** de l'API REST publique sur `/api/openapi.json`, UI **Scalar** sur `/api/docs` (CDN, zéro dep). `apps/bot/src/api/openapi.ts` (spec statique, à tenir à jour avec les routes).
-  - Connexion Neon dans `/home/ubuntu/.shenron-neon.env` (600, hors repo, format systemd — non sourçable en shell). Projet Neon = `shenron-axum` (`patient-star-28731823`, us-east-1). PK wiki en `IDENTITY` (inserts site).
+  - Connexion DB dans `/home/ubuntu/.shenron-neon.env` (600, hors repo, format systemd — non sourçable en shell). **Depuis le 2026-06-23 = URL du PostgreSQL local** (`postgresql://shenron:…@127.0.0.1:5432/shenron_site`), pas Neon (ancienne URL Neon en commentaire pour repli). PK wiki en `IDENTITY` (inserts site).
 - **Le site possède le wiki en read+write, 100 % Next.js, zéro API bot** (depuis `a572e3f`) :
   - **Lecture** : `apps/site/src/db/bot-schema.ts` (`pgSchema("bot")`) via Drizzle. Public → `shenron.ts`/`db-universe.ts` (server-only) ; admin db-universe → `wiki-admin.ts` (server-only).
   - **Écriture** : route handler `apps/site/src/app/api/wiki-admin/[...path]` (gaté `isCurrentUserAdmin`) → `wiki-admin.ts` → Drizzle Neon. L'éditeur générique + `DbCrud` routent les tables wiki vers `/api/wiki-admin` (`wiki-tables.ts` client-safe : `isWikiTable`/`crudBase`) ; les tables **non-wiki** + `db_news` restent sur le proxy `/api/bot-admin`.
@@ -129,19 +129,22 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 
 | Service | Port | Vhost | Stack |
 |---|---|---|---|
-| shenron-site | 3000 (loopback) | dragonballfr.com (ex-Vercel, migré 2026-06-12) | Next.js 16 en `next start` sous Bun, fronté nginx `dragonballfr.com.conf`. Vercel `dbfr` gardé en standby |
+| shenron-site | 3000 (loopback) | dragonballfr.com (ex-Vercel, migré 2026-06-12) | Next.js 16 en `next start` sous Bun, fronté nginx `dragonballfr.com.conf`. DB = **PostgreSQL local** (depuis 2026-06-23). Vercel `dbfr` gardé en standby |
+| postgresql | 5432 (loopback) | — | **PostgreSQL 18** local (base `shenron_site`, schémas `public` + `bot`) — DB du site depuis la migration Neon → PG local du 2026-06-23. Backup `shenron-pg-backup.timer` |
 | shenron | 5006 | bot.dragonballfr.com (ex- bot.rpbey.fr) | Bun + discordx + drizzle + bun:sqlite + canvas. Sert aussi **GraphQL** `/graphql` (Pothos+yoga, GraphiQL) et **OpenAPI** `/api/openapi.json` + UI Scalar `/api/docs` |
 | shenron-embed | 5007 (loopback) | — | Sidecar embeddings RAG (multilingual-e5-small, transformers.js). Modèle chaud, isolé du bot. Cf. RAG hybride |
 | shenron-llm | 5008 (loopback) | — | **Serveur LLM conversationnel local** (llama.cpp, Qwen2.5-3B-Instruct GGUF, CPU). Sert `generateLlmAnswer` (chat bot + site) : conversation + raisonnement + mémoire Redis, faits via RAG. Aucune API externe. Cf. [`docs/llm-maison.md`](docs/llm-maison.md) |
-| shenron-backup.timer | — | — | `VACUUM INTO` quotidien 03:00 UTC → `apps/bot/backups/` |
+| shenron-backup.timer | — | — | `VACUUM INTO` SQLite bot quotidien 03:00 UTC → `data/backups/shenron-sqlite/` |
+| shenron-pg-backup.timer | — | — | `pg_dump shenron_site` (gzip, retention 14j) quotidien 03:30 UTC → `data/backups/shenron-pg/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
-| shenron-neon-sync.timer | — | — | Forward SQLite → Neon (runtime + `db_news`, wiki exclu) toutes les 30 min |
-| shenron-neon-pull.timer | — | — | Reverse Neon → SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min |
+| shenron-neon-sync.timer | — | — | Forward SQLite → **PG local** (runtime + `db_news`, wiki exclu) toutes les 30 min |
+| shenron-neon-pull.timer | — | — | Reverse **PG local** → SQLite (wiki éditorial, replica de lecture du bot) toutes les 15 min |
 
 **Vendorées dans le repo (source de vérité, plus `~/vps/`)** : units `deploy/systemd/shenron*.{service,timer}`, vhosts `deploy/nginx/{bot.rpbey.fr,shenron}.conf`, installeur idempotent `deploy/install.sh`. Scripts d'ops `scripts/{backup-shenron-sqlite,shenron-guild-sync,deploy-shenron}.sh`. Provisioning d'un hôte nu : `bash deploy/install.sh --nginx --start` (cf. `deploy/README.md`).
 
 ## Pièges critiques
 
+- **DB site = PostgreSQL local VPS (depuis 2026-06-23), plus Neon** : base `shenron_site` sur `127.0.0.1:5432`, schémas `public` (site/auth/télémétrie) + `bot` (wiki). Driver inchangé (`postgres-js`). Runbook complet : [`docs/migration-postgres-local.md`](docs/migration-postgres-local.md). Pièges spécifiques : (1) `drizzle-kit migrate` **plante silencieusement (exit 1) sous Bun** → `push` fonctionne ; le schéma `public` complet vient de `push` (les 9 tables de base n'ont pas de SQL de migration). (2) Les colonnes **Neon-only** (`db_episodes/db_movies.players`, `db_manga_chapters.pages`, `frames`, `stream_*`, `subtitles`) sont **jsonb absentes du SQLite** → le seed les laisse NULL, re-dérivées par `import-voiranime-players*.ts` (dataset bxc) et `reconstruct-manga-pages-from-disk.ts` (relit `assets/manga/<série>/ch<id>/*.webp`). (3) **`public.*` perdu** (sessions/posts/tierlists/télémétrie) car Neon était inaccessible au moment de la migration (quota) → repartis à neuf ; backfill possible quand le quota Neon se réinitialise (ancienne URL Neon en commentaire dans les 2 `.env`). (4) **Ordre de réactivation des syncs** : couper `shenron-neon-{sync,pull}.timer` AVANT de toucher la DB (le reverse-sync DELETE+INSERT pourrait vider le SQLite — source de re-seed) ; ne les ré-enable qu'après seed PG complet.
 - **DI tsyringe + `import type`** : casse `Reflect.metadata("design:paramtypes")`. Toujours `import { Class }` (sans `type`) pour les classes injectées.
 - **Bun parse `$VAR` dans `.env`** : substitue les vars shell. Escape avec `\$` (les quotes simples ne protègent PAS).
 - **Multi-process Better Auth (bot ≠ site)** : changer le schéma `ba_*` côté site n'affecte pas le bot et inversement. Toujours migrer les deux si on touche les tables auth communes.

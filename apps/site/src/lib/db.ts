@@ -9,12 +9,14 @@ const globalForDb = globalThis as unknown as {
 const client =
 	globalForDb.pgClient ??
 	postgres(process.env.DATABASE_URL!, {
-		// Neon est derrière un pooler pgbouncer (transaction mode) qui ne supporte
-		// pas les prepared statements → impératif sinon erreurs intermittentes.
-		prepare: false,
-		// Serverless / Fluid Compute : peu de connexions par instance, recyclage rapide.
-		max: 1,
-		idle_timeout: 20,
+		// PostgreSQL local du VPS (migration Neon → PG local, 2026-06-23) : plus de
+		// pooler pgbouncer → prepared statements activés (perf) et pool plus large
+		// pour le rendu SSG parallèle (`next build` interroge la base massivement).
+		// Repli Neon : repasser prepare:false / max:1 (le pgbouncer transaction-mode
+		// ne supporte pas les prepared statements).
+		prepare: true,
+		max: 10,
+		idle_timeout: 60,
 		connect_timeout: 10,
 	});
 

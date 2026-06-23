@@ -52,9 +52,9 @@ sudo cp "$TEMP_DIR"/*.service "$TEMP_DIR"/*.timer /etc/systemd/system/
 rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
-echo "▶ activation service + timers (backup 03:00, neon-sync /30min, neon-pull /15min, drive-sync daily)"
-sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
-sudo systemctl enable --now shenron-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer >/dev/null 2>&1 || true
+echo "▶ activation service + timers (sqlite-backup 03:00, pg-backup 03:30, neon-sync /30min, neon-pull /15min, drive-sync daily)"
+sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
+sudo systemctl enable --now shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer >/dev/null 2>&1 || true
 # Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
 sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # Site Next.js (dragonballfr.com) — next start sous Bun sur 127.0.0.1:3000,

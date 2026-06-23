@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily PostgreSQL site backup 03:30 UTC (shenron_site)
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
