@@ -16,6 +16,7 @@ import { appendFileSync, existsSync, writeFileSync } from "node:fs";
 const HERE = new URL(".", import.meta.url).pathname; // data/llm/
 const DBP = process.env.DATABASE_PATH ?? `${HERE}../bot.db`;
 const MANGA = `${HERE}manga_pretrain.jsonl`;
+const XV2 = `${HERE}xv2_pretrain.jsonl`;
 const OUT = `${HERE}db_full_pretrain.jsonl`;
 
 const db = new Database(DBP, { readonly: true });
@@ -47,6 +48,16 @@ if (existsSync(MANGA)) {
 	}
 }
 
+// Xenoverse 2 (persos / movesets / skills / dialogues mentors / histoire — FR+JP).
+let xv2 = 0;
+if (existsSync(XV2)) {
+	for (const line of require("node:fs").readFileSync(XV2, "utf-8").split("\n")) {
+		if (!line.trim()) continue;
+		appendFileSync(OUT, `${line}\n`);
+		xv2++;
+	}
+}
+
 // News Dragon Ball (db_news — absent de rag_chunks).
 let news = 0;
 for (const r of db
@@ -66,7 +77,7 @@ const topSrc = Object.entries(bySource)
 	.map(([s, c]) => `${s}:${c}`)
 	.join(" ");
 console.log(
-	`✓ db_full_pretrain.jsonl : ${encyclo + manga + news} exemples (encyclopédie ${encyclo} + manga ${manga} + news ${news})`
+	`✓ db_full_pretrain.jsonl : ${encyclo + manga + news + xv2} exemples (encyclopédie ${encyclo} + manga ${manga} + news ${news} + xv2 ${xv2})`
 );
 console.log(`  top sources: ${topSrc}`);
 db.close();

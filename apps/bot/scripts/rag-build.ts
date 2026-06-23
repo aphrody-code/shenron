@@ -29,6 +29,7 @@ const DBP = process.env.RAG_DB ?? new URL("../data/bot.db", import.meta.url).pat
 const CORPUS = new URL("../data/rag/corpus.json", import.meta.url).pathname;
 // Corpus optionnel : transcriptions OCR des planches manga (cf. ingest-manga-rag.ts).
 const MANGA_CORPUS = new URL("../data/rag/corpus-manga.json", import.meta.url).pathname;
+const XV2_CORPUS = new URL("../data/rag/corpus-xv2.json", import.meta.url).pathname;
 const ALIAS_MAP_PATH = new URL("../data/rag/alias-map.json", import.meta.url).pathname;
 
 if (!existsSync(DBP)) {
@@ -456,6 +457,14 @@ if (existsSync(CORPUS)) {
 			const manga = JSON.parse(readFileSync(MANGA_CORPUS, "utf-8")) as { docs: typeof corpus.docs };
 			corpus.docs.push(...manga.docs);
 			console.log(`  + ${manga.docs.length} tomes manga (transcriptions OCR) fusionnés au corpus.`);
+		}
+
+		// Connaissance Dragon Ball Xenoverse 2 (persos/movesets/skills/mentors/histoire,
+		// ids "xv2-…" → source_id="xv2").
+		if (existsSync(XV2_CORPUS)) {
+			const xv2 = JSON.parse(readFileSync(XV2_CORPUS, "utf-8")) as { docs: typeof corpus.docs };
+			corpus.docs.push(...xv2.docs);
+			console.log(`  + ${xv2.docs.length} docs Xenoverse 2 (persos/skills/mentors/histoire) fusionnés au corpus.`);
 		}
 
 		let docCount = 0;
