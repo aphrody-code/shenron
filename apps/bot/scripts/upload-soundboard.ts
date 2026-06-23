@@ -15,28 +15,30 @@ if (!TOKEN || !GUILD) {
 }
 
 const SOUNDS = [
-	{ name: "Kamehameha", file: "kamehameha.ogg", emoji: "💥" },
-	{ name: "Beerus", file: "beerus.ogg", emoji: "😼" },
-	{ name: "Whis", file: "whis.ogg", emoji: "🌀" },
-	{ name: "Shenron", file: "shenron.ogg", emoji: "🐉" },
+	{ name: "Goku", file: "kamehameha.mp3", emoji: "💥" },
+	{ name: "Beerus", file: "beerus.mp3", emoji: "😼" },
+	{ name: "Whis", file: "whis.mp3", emoji: "🌀" },
+	{ name: "Shenron", file: "shenron.mp3", emoji: "🐉" },
 ];
 
 const API = "https://discord.com/api/v10";
 const headers = { Authorization: `Bot ${TOKEN}`, "content-type": "application/json" };
 const HERE = new URL("..", import.meta.url).pathname; // apps/bot/
 
-// Sons déjà présents (idempotence)
+// Sons existants (name → sound_id) — on REMPLACE (l'opus-in-ogg n'était pas lu par Discord).
 const existing = await fetch(`${API}/guilds/${GUILD}/soundboard-sounds`, { headers })
 	.then((r) => (r.ok ? r.json() : { items: [] }))
-	.then((d: { items?: { name: string }[] }) => new Set((d.items ?? []).map((s) => s.name)))
-	.catch(() => new Set<string>());
+	.then(
+		(d: { items?: { name: string; sound_id: string }[] }) =>
+			new Map((d.items ?? []).map((s) => [s.name, s.sound_id] as const))
+	)
+	.catch(() => new Map<string, string>());
 
 let ok = 0;
 for (const s of SOUNDS) {
-	if (existing.has(s.name)) {
-		console.log(`= ${s.name} déjà dans le soundboard`);
-		ok++;
-		continue;
+	const oldId = existing.get(s.name);
+	if (oldId) {
+		await fetch(`${API}/guilds/${GUILD}/soundboard-sounds/${oldId}`, { method: "DELETE", headers });
 	}
 	const buf = await Bun.file(`${HERE}assets/audio/${s.file}`).arrayBuffer();
 	const res = await fetch(`${API}/guilds/${GUILD}/soundboard-sounds`, {
@@ -44,13 +46,13 @@ for (const s of SOUNDS) {
 		headers,
 		body: JSON.stringify({
 			name: s.name,
-			sound: `data:audio/ogg;base64,${Buffer.from(buf).toString("base64")}`,
+			sound: `data:audio/mpeg;base64,${Buffer.from(buf).toString("base64")}`,
 			volume: 1,
 			emoji_name: s.emoji,
 		}),
 	});
 	if (res.ok) {
-		console.log(`✓ ${s.name} ajouté au soundboard`);
+		console.log(`✓ ${s.name} ${oldId ? "remplacé" : "ajouté"} (mp3)`);
 		ok++;
 	} else {
 		const body = await res.text();
