@@ -113,3 +113,4 @@ apps/bot/data/llm/.dm-stream-state.json
 apps/bot/unsloth_compiled_cache/
 apps/bot/data/llm/unsloth_compiled_cache/
 apps/bot/data/manga-visual-map.json
+apps/bot/data/dbz-videos/
