@@ -36,6 +36,67 @@ const sql = postgres(PG_URL, { max: 2, prepare: false, onnotice: () => {} });
 
 const isImg = (f: string) => /\.(webp|jpe?g|png)$/i.test(f);
 
+/**
+ * Reconstruit les pages du **Dragon Ball original** (42 tomes N&B). Modèle :
+ * `assets/manga/DB/regular/vol<N>/NNN.webp` = un dossier par tome, et UN chapitre
+ * lisible « Tome N » (rattaché au volume `Dragon Ball Vol. N`) porte toutes ses
+ * pages (cf. `ingest-dragonball-volumes.ts`). Le seed a recréé les lignes chapitre
+ * « Tome N » mais `pages` (Neon-only) est NULL → la grille `/wiki/manga` masque
+ * les tomes (elle n'affiche que les volumes ayant ≥1 chapitre lisible). On relit
+ * le disque pour réécrire `pages` (+ `cover` si absente). Insère le chapitre s'il
+ * manque (défensif). Retourne le nombre de tomes réécrits.
+ */
+async function reconstructDbRegularVolumes(): Promise<number> {
+	const regularRoot = join(MANGA_ROOT, "DB", "regular");
+	let volDirs: string[] = [];
+	try {
+		volDirs = (await readdir(regularRoot, { withFileTypes: true }))
+			.filter((d) => d.isDirectory() && /^vol\d+$/.test(d.name))
+			.map((d) => d.name);
+	} catch {
+		return 0; // pas de dossier regular → rien à faire
+	}
+
+	// volume_number → id des 42 tomes canoniques « Dragon Ball Vol. N ».
+	const vols = await sql<{ id: number | string; volume_number: number | string }[]>`
+		SELECT id, volume_number FROM bot.db_manga_volumes WHERE title LIKE 'Dragon Ball Vol. %'`;
+	const volIdByNum = new Map(vols.map((v) => [Number(v.volume_number), Number(v.id)]));
+
+	let written = 0;
+	for (const dir of volDirs.toSorted((a, b) => Number(a.slice(3)) - Number(b.slice(3)))) {
+		const n = Number(dir.slice(3));
+		const volId = volIdByNum.get(n);
+		if (!volId) {
+			console.warn(`! regular/vol${n} sur disque mais pas de « Dragon Ball Vol. ${n} » en base — skip`);
+			continue;
+		}
+		const files = (await readdir(join(regularRoot, dir)))
+			.filter(isImg)
+			.toSorted((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+		if (files.length === 0) continue;
+		const pages = files.map((f) => `./assets/manga/DB/regular/${dir}/${f}`);
+
+		if (!DRY) {
+			// UPDATE du chapitre « Tome N » existant ; sinon INSERT (modèle ingest).
+			const upd = await sql`
+				UPDATE bot.db_manga_chapters
+				SET pages = ${sql.json(pages)}, cover = COALESCE(cover, ${pages[0]})
+				WHERE series = 'DB' AND volume_id = ${volId} AND title = ${`Tome ${n}`}`;
+			if (upd.count === 0) {
+				await sql`
+					INSERT INTO bot.db_manga_chapters (series, chapter_number, title, cover, pages, volume_id)
+					VALUES ('DB', ${n}, ${`Tome ${n}`}, ${pages[0]}, ${sql.json(pages)}, ${volId})`;
+			}
+		}
+		written++;
+		if (written <= 3 || written % 10 === 0) {
+			console.log(`${DRY ? "·" : "✓"} Tome ${n} (vol_id ${volId}) → ${pages.length} pages`);
+		}
+	}
+	console.log(`${written} tomes DB (regular/vol) réécrits`);
+	return written;
+}
+
 async function main() {
 	// Chapitres connus en base (id → series) pour ne réécrire que les ids valides.
 	// NB: postgres-js rend les colonnes bigint en STRING → coercer en Number pour
@@ -92,9 +153,13 @@ async function main() {
 		}
 	}
 
+	// Pass 2 — Dragon Ball original (42 tomes, modèle un-chapitre-par-volume).
+	const tomes = await reconstructDbRegularVolumes();
+
 	const [{ withpages }] = await sql`
 		SELECT count(*)::int AS withpages FROM bot.db_manga_chapters
 		WHERE pages IS NOT NULL AND jsonb_array_length(pages) > 0`;
+	void tomes;
 
 	console.log(
 		`\n${written} chapitres réécrits · ${totalPages} pages · ${skippedUnknown} dossiers inconnus`
