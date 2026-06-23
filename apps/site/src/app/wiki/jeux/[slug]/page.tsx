@@ -155,6 +155,38 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 				</section>
 			)}
 
+			{g.characters && g.characters.length > 0 && (
+				<section className="mb-12">
+					<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-2 mb-4">
+						Personnages jouables ({g.characters.length})
+					</h2>
+					<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+						{g.characters.map((c) => (
+							<Link
+								key={c.id}
+								href={`/wiki/dragon-ball/character/${c.id}`}
+								className="group flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-white/[0.04]"
+							>
+								<div className="relative aspect-square w-full overflow-hidden rounded-lg border border-white/10 bg-black">
+									{c.image && (
+										<Image
+											src={assetUrl(c.image)}
+											alt={c.name}
+											fill
+											sizes="120px"
+											className="object-cover transition-transform group-hover:scale-105"
+										/>
+									)}
+								</div>
+								<span className="text-center text-[12px] leading-tight text-white/80 group-hover:text-dbz-orange">
+									{c.name}
+								</span>
+							</Link>
+						))}
+					</div>
+				</section>
+			)}
+
 			{g.official_url && (
 				<a
 					href={g.official_url}

@@ -27,6 +27,7 @@ import {
 	botRaces,
 	botSagas,
 	botCharacters,
+	botGameCharacters,
 	botTechniques,
 	botTools,
 	botTransformations,
@@ -112,6 +113,7 @@ export type Game = {
 	description: string | null;
 	cover: string | null;
 	official_url: string | null;
+	characters?: Array<{ id: number; name: string; name_ja: string | null; image: string | null }>;
 };
 
 export type Race = {
@@ -626,7 +628,19 @@ export const dbUniverse = {
 	game: (slug: string) =>
 		safe(async () => {
 			const [g] = await db.select().from(botGames).where(eq(botGames.slug, slug)).limit(1);
-			return g ? toGame(g) : null;
+			if (!g) return null;
+			const characters = await db
+				.select({
+					id: botCharacters.id,
+					name: botCharacters.name,
+					name_ja: botCharacters.nameJa,
+					image: botCharacters.image,
+				})
+				.from(botGameCharacters)
+				.innerJoin(botCharacters, eq(botCharacters.id, botGameCharacters.characterId))
+				.where(eq(botGameCharacters.gameId, g.id))
+				.orderBy(asc(botCharacters.name));
+			return { ...toGame(g), characters };
 		}),
 
 	tools: () =>
