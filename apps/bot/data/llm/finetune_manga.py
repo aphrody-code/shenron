@@ -76,11 +76,18 @@ trainer = SFTTrainer(
         seed=3407,
         report_to="none",
         output_dir=str(OUTDIR / "checkpoints"),
-        save_strategy="no",
+        save_strategy="steps",  # checkpoints réguliers → reprise après crash
+        save_steps=int(os.environ.get("SAVE_STEPS", "500")),
+        save_total_limit=2,
     ),
 )
 
-stats = trainer.train()
+# Reprise depuis le dernier checkpoint s'il existe (résilience / auto-restart).
+_ckpt = OUTDIR / "checkpoints"
+_resume = _ckpt.is_dir() and any(_ckpt.glob("checkpoint-*"))
+if _resume:
+    print(f"[ft] reprise depuis le dernier checkpoint de {_ckpt}", flush=True)
+stats = trainer.train(resume_from_checkpoint=_resume or None)
 print(f"[ft] terminé : {stats.metrics}", flush=True)
 
 # LoRA + (optionnel) merge + GGUF pour Ollama
