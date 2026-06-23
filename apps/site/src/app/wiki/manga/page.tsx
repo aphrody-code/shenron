@@ -3,6 +3,7 @@ import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
 import { MangaVolumeGrid } from "@/components/manga/MangaVolumeGrid";
 import { MangaInfoSection } from "@/components/manga/MangaInfoSection";
+import { MangaDialogueSearch } from "@/components/manga/MangaDialogueSearch";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -61,6 +62,8 @@ export default async function MangaIndexPage() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<MangaDialogueSearch />
+
 				<MangaVolumeGrid
 					dbVolumes={dbVolumes}
 					dbsVolumes={dbsVolumes}

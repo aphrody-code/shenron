@@ -2168,7 +2168,17 @@ export class ApiServer {
 							// Index FTS manga absent (transcriptions pas encore ingérées) → vide.
 							return { q, count: 0, results: [] };
 						}
-						return { q, count: rows.length, results: rows };
+						// Nettoie le bruit OCR des snippets (watermarks scantrad/domaines) pour
+						// un affichage public propre, en gardant le match entre crochets.
+						const cleanSnip = (s: string) =>
+							s
+								.replace(/\b(?:WWW\.|HTTPS?:\/\/)\S+/gi, " ")
+								.replace(/\b[A-Z0-9][A-Z0-9-]*\.(?:NET|FR|COM|ORG|MX|TO|IO|CC|ME)\b/gi, " ")
+								.replace(/\b(?:SCANTRAD|BLEACH-?MX|VOIRANIME|MANGA-?SCAN|LELSCAN|JATSCAN)\S*/gi, " ")
+								.replace(/\s{2,}/g, " ")
+								.trim();
+						const results = rows.map((r) => ({ ...r, snippet: cleanSnip(r.snippet) }));
+						return { q, count: results.length, results };
 					}),
 
 				// Endpoint de chat génératif RAG-grounded avec injection de contexte page-level
