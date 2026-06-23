@@ -46,7 +46,9 @@ for q in \
   "Quelle est la dernière saga de Dragon Ball Super ?"; do
   echo "──────────────────────────────────────────"
   echo "Q: $q"
-  ollama run "$MODEL" "$q" 2>/dev/null | head -8
+  # `|| true` : sous `set -euo pipefail`, `ollama run | head` renvoie rc=141 (SIGPIPE,
+  # head ferme le tube) → faux échec du finalize alors que GGUF+create ont réussi.
+  ollama run "$MODEL" "$q" 2>/dev/null | head -8 || true
 done
 echo "──────────────────────────────────────────"
 echo "[finalize] OK — modèle Ollama: $MODEL"
