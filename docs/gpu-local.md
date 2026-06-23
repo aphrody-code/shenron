@@ -217,6 +217,32 @@ Pour basculer Shenron dessus : `LLM_BACKEND=local` (défaut) + `LOCAL_LLM_URL` s
 
 ---
 
+## 5. Fine-tune Gemma 4 12B sur le manga (QLoRA, Unsloth)
+
+Adaptation du LLM au **style manga DBZ** via QLoRA continued-pretrain sur les transcriptions OCR.
+
+- **Stack** : `uv pip install unsloth --torch-backend=auto` (Unsloth 2026.6.8 + bitsandbytes CUDA 13 +
+  **transformers ≥ 5.12** — requis pour l'archi `gemma4_unified`, sinon `KeyError`). Modèle base
+  fine-tunable : `unsloth/gemma-4-12b-it` (safetensors BF16, gated:False).
+- **Contrainte RAM (piège vécu)** : le 12B est **un seul safetensors de 23,9 Go** → `mmap` échoue
+  (`Cannot allocate memory`) sous 15 Go de RAM. Fix : WSL `.wslconfig` → `memory=24GB swap=16GB` +
+  `sysctl vm.overcommit_memory=1` (non persistant, à re-poser après reboot). VRAM training ≈ 9,8 Go
+  (4-bit + LoRA + activations), tient sur la 4070.
+- **Données** : `data/llm/prepare_manga_data.py` produit `manga_pretrain.jsonl` depuis les transcripts
+  bruts avec un **nettoyage TRAINING agressif** (drop watermarks scanlation `SCANTRAD.NET`/`BLEACH-MX`,
+  timestamps, dates, n° de page, crédits, garbage OCR). **Critique** : sans ce filtre, le modèle apprend
+  à cracher les watermarks (overfit constaté sur v1). Limite résiduelle : l'OCR en ordre de lecture
+  entrelace les bulles → prose un peu brouillée (plafond de qualité du continued-pretrain sur cette donnée).
+- **Training** : `data/llm/finetune_manga.py` (`FastModel`, `load_in_4bit=True`, r=8, `max_seq=512`,
+  1 epoch, LR 1e-4, gradient-checkpointing Unsloth). ~2 h sur la 4070.
+- **Servir sans merger les 23,9 Go** : `convert_lora_to_gguf.py` (llama.cpp, supporte gemma4) → adapter
+  GGUF 131 Mo → Modelfile `FROM gemma4:12b` + `ADAPTER` → `ollama create gemma4-manga`.
+- **Honnêteté** : le fine-tune apporte la **voix/style** manga mais aussi du **bruit factuel** (OCR). En
+  prod, garder la base `gemma4:12b` pour les faits (via le RAG focus manga). Ne PAS activer `gemma4-manga`
+  par défaut tant que le bruit n'est pas maîtrisé. `data/llm/test_lora.py` pour juger une itération.
+
+---
+
 ## Récap des changements de code
 
 - `src/lib/llm.ts` — backend **`ollama`** (`callOllama`, API native `/api/chat`, `think:false`), options
