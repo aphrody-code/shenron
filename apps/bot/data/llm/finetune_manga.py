@@ -63,8 +63,9 @@ trainer = SFTTrainer(
     train_dataset=dataset,
     args=SFTConfig(
         dataset_text_field="text",       # continued-pretrain sur texte brut
-        per_device_train_batch_size=1,
-        gradient_accumulation_steps=8,   # batch effectif 8
+        packing=os.environ.get("PACKING") == "1",  # NB: ignoré par Unsloth pour gemma4 (modèle à processor/multimodal) ; utile pour les modèles texte-only
+        per_device_train_batch_size=int(os.environ.get("BATCH", "1")),
+        gradient_accumulation_steps=int(os.environ.get("ACCUM", "8")),
         warmup_steps=10,
         num_train_epochs=EPOCHS,
         learning_rate=LR,
