@@ -1,162 +1,115 @@
 /**
- * download-voiranime-mp4.ts — CLI Bun : télécharge des épisodes/films Dragon Ball en
- * MP4 depuis VoirAnime via bxc (`voiranime resolve` embed → lien streaming) + ffmpeg
- * (HLS/m3u8 ou mp4 → mp4). But : NOURRIR Gemma en vidéos pour le test multimodal
- * (scripts/test-gemma-multimodal.ts --video <mp4>).
+ * download-voiranime-mp4.ts — CLI Bun : télécharge des épisodes Dragon Ball en MP4
+ * depuis VoirAnime, pour NOURRIR Gemma (test multimodal vidéo).
  *
- * Pipeline : dataset/​info VoirAnime → episode.players[].embedUrl → `bxc voiranime
- * resolve <embed>` → URL stream → ffmpeg → data/dbz-videos/<SÉRIE>-<NNN>-<lang>.mp4.
- * Multi-provider : essaie les hôtes dans l'ordre de fiabilité, tombe sur le suivant si KO.
+ * Délègue la résolution au MÊME script que le bot prod (`/api/hls/:id/download` →
+ * resolveStreamOnDemand → ~/bxc/scripts/resolve-episode.ts), qui scrape les lecteurs
+ * FRAIS via VoiranimeScraper et teste chaque provider jusqu'à un flux hls/mp4 valide.
+ * Sortie résolveur : { type:"hls"|"mp4", url, headers:{Referer}, provider }.
+ * Puis ffmpeg (HLS/m3u8 → mp4, headers Referer injectés).
  *
  * Usage : bun apps/bot/scripts/download-voiranime-mp4.ts <SÉRIE> <ep|début-fin> [opts]
- *   SÉRIE : DB | DBZ | DBS | DBGT | DB_DAIMA
- *   --lang vf|vostfr   (défaut vostfr)
- *   --provider <nom>   force un hôte (vidmoly|filemoon|streamsb|dood…)
- *   --profile <p>      bxc : static|fast|http|stealth|max (défaut stealth)
- *   --duration <sec>   tronque le téléchargement (ex. 120 pour un clip de test)
- *   --out <dir>        défaut apps/bot/data/dbz-videos
- *   --timeout <sec>    timeout par resolve (défaut 120)
- * Env : VOIRANIME_JSON (dataset), BXC_BIN (défaut "bxc")
+ *   SÉRIE : DB | DBZ | DBGT | DBS | DB_DAIMA   (VOSTFR — comme le résolveur prod)
+ *   --duration <sec>  tronque (ex. 90 pour un clip de test rapide)
+ *   --out <dir>       défaut apps/bot/data/dbz-videos
+ *   --limit <N>       max d'épisodes
+ * Env : BXC_DIR (défaut ~/bxc)
  */
-import { $ } from "bun";
 import { existsSync, mkdirSync } from "node:fs";
 import os from "node:os";
 
 const ROOT = new URL("..", import.meta.url).pathname; // apps/bot/
-const BXC = process.env.BXC_BIN ?? "bxc";
-
-const SERIES_SLUG: Record<string, { vostfr: string; vf?: string }> = {
-	DB: { vostfr: "dragon-ball", vf: "dragon-ball-vf" },
-	DBZ: { vostfr: "dragon-ball-z", vf: "dragon-ball-z-vf" },
-	DBGT: { vostfr: "dragon-ball-gt", vf: "dragon-ball-gt-vf" },
-	DBS: { vostfr: "dragon-ball-super", vf: "dragon-ball-super-vf" },
-	DB_DAIMA: { vostfr: "dragon-ball-daima" },
-};
-const PROVIDER_PREF = ["vidmoly", "filemoon", "streamsb", "streamwish", "dood", "mytv"];
+const BXC_DIR = process.env.BXC_DIR ?? `${os.homedir()}/bxc`;
+const SERIES = new Set(["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"]);
 
 const argv = process.argv.slice(2);
-const opt = (name: string, def = "") => {
-	const i = argv.indexOf(`--${name}`);
-	return i >= 0 ? (argv[i + 1] ?? def) : def;
+const opt = (n: string, d = "") => {
+	const i = argv.indexOf(`--${n}`);
+	return i >= 0 ? (argv[i + 1] ?? d) : d;
 };
-const positional = argv.filter((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
-const series = (positional[0] ?? "").toUpperCase();
-const epArg = positional[1] ?? "";
-if (!SERIES_SLUG[series] || !epArg) {
-	console.error("Usage: bun scripts/download-voiranime-mp4.ts <DB|DBZ|DBS|DBGT|DB_DAIMA> <ep|a-b> [--lang vf|vostfr] [--provider x] [--duration sec]");
+const pos = argv.filter((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWith("--"));
+const series = (pos[0] ?? "").toUpperCase();
+const epArg = pos[1] ?? "";
+if (!SERIES.has(series) || !epArg) {
+	console.error("Usage: bun scripts/download-voiranime-mp4.ts <DB|DBZ|DBGT|DBS|DB_DAIMA> <ep|a-b> [--duration sec] [--out dir] [--limit N]");
 	process.exit(1);
 }
-
-const lang = (opt("lang", "vostfr") === "vf" ? "vf" : "vostfr") as "vf" | "vostfr";
-const slug = lang === "vf" ? SERIES_SLUG[series].vf : SERIES_SLUG[series].vostfr;
-if (!slug) {
-	console.error(`✗ ${series} n'a pas de version ${lang}`);
-	process.exit(1);
-}
-const profile = opt("profile", "stealth");
 const duration = Number(opt("duration", "0"));
-const resolveTimeout = Number(opt("timeout", "120"));
-const forceProvider = opt("provider");
+const limit = Number(opt("limit", "0"));
 const OUT = opt("out") || `${ROOT}data/dbz-videos`;
 mkdirSync(OUT, { recursive: true });
-const DATASET = process.env.VOIRANIME_JSON ?? `${os.homedir()}/bxc/data/voiranime/dragon-ball-full.json`;
 
-interface Player { name?: string; provider?: string; embedUrl: string }
-interface VEpisode { number: number | null; label?: string; players?: Player[] }
+const [from, to] = epArg.includes("-") ? epArg.split("-").map(Number) : [Number(epArg), Number(epArg)];
+let numbers: number[] = [];
+for (let n = from; n <= to; n++) numbers.push(n);
+if (limit > 0) numbers = numbers.slice(0, limit);
 
-/** Récupère les épisodes : dataset local sinon `bxc voiranime info`. */
-async function getEpisodes(): Promise<VEpisode[]> {
-	if (existsSync(DATASET)) {
-		const d = JSON.parse(await Bun.file(DATASET).text()) as { series: { slug: string; episodes: VEpisode[] }[] };
-		const s = d.series?.find((x) => x.slug === slug);
-		if (s?.episodes?.length) return s.episodes;
-	}
-	console.log(`→ dataset absent/incomplet, fallback bxc voiranime info ${slug}`);
-	const out = await $`${BXC} voiranime info ${slug} --profile ${profile}`.text();
-	const j = JSON.parse(out) as { episodes?: VEpisode[] };
-	return j.episodes ?? [];
+interface Resolved {
+	type?: "hls" | "mp4";
+	url?: string;
+	headers?: Record<string, string>;
+	provider?: string;
+	error?: string;
 }
 
-/** Extrait l'URL de stream de la sortie de `bxc voiranime resolve` (JSON ou texte brut). */
-function parseStream(out: string): string | null {
+/** Résout un épisode → flux, via le script bxc prouvé (même que le bot). */
+async function resolve(n: number): Promise<Resolved> {
+	const proc = Bun.spawn([process.execPath, "scripts/resolve-episode.ts", series, String(n)], {
+		cwd: BXC_DIR,
+		stdout: "pipe",
+		stderr: "ignore",
+	});
+	const out = await new Response(proc.stdout).text();
+	await proc.exited;
+	const line = out.trim().split("\n").filter(Boolean).pop() ?? "{}";
 	try {
-		const j = JSON.parse(out) as Record<string, unknown>;
-		for (const k of ["url", "stream", "streamUrl", "m3u8", "file", "link", "source", "direct"]) {
-			if (typeof j[k] === "string" && /^https?:\/\//.test(j[k] as string)) return j[k] as string;
-		}
-	} catch {}
-	const m = out.match(/https?:\/\/\S+\.(?:m3u8|mp4)\b[^\s"']*/i);
-	return m ? m[0] : null;
+		return JSON.parse(line) as Resolved;
+	} catch {
+		return { error: "parse" };
+	}
 }
 
-const [from, to] = epArg.includes("-")
-	? epArg.split("-").map((n) => Number(n))
-	: [Number(epArg), Number(epArg)];
-
-const episodes = (await getEpisodes()).filter((e) => e.number != null && e.number >= from && e.number <= to);
-if (!episodes.length) {
-	console.error(`✗ aucun épisode ${from}-${to} pour ${slug}`);
-	process.exit(1);
-}
-console.log(`▶ ${series} ${lang} : ${episodes.length} épisode(s) à télécharger → ${OUT}`);
-
+console.log(`▶ ${series} : ${numbers.length} épisode(s) → ${OUT}${duration > 0 ? ` (clips ${duration}s)` : ""}`);
 let ok = 0;
-for (const ep of episodes) {
-	const out = `${OUT}/${series}-${String(ep.number).padStart(3, "0")}-${lang}.mp4`;
+for (const n of numbers) {
+	const out = `${OUT}/${series}-${String(n).padStart(3, "0")}.mp4`;
 	if (existsSync(out)) {
-		console.log(`= ep ${ep.number} déjà là, skip`);
+		console.log(`= ep ${n} déjà là, skip`);
 		ok++;
 		continue;
 	}
-	const players = (ep.players ?? []).filter((p) =>
-		forceProvider ? (p.provider ?? p.name ?? "").toLowerCase().includes(forceProvider) : true
-	);
-	// trie par préférence d'hôte
-	players.sort((a, b) => {
-		const r = (p: Player) => {
-			const i = PROVIDER_PREF.findIndex((x) => (p.provider ?? p.name ?? "").toLowerCase().includes(x));
-			return i < 0 ? 99 : i;
-		};
-		return r(a) - r(b);
-	});
-
-	let done = false;
-	for (const p of players) {
-		try {
-			const res =
-				await $`timeout ${resolveTimeout} ${BXC} voiranime resolve ${p.embedUrl} --profile ${profile}`.text();
-			const stream = parseStream(res);
-			if (!stream) {
-				console.log(`  · ep ${ep.number} ${p.provider ?? p.name}: pas de stream`);
-				continue;
-			}
-			const ff = [
-				"-y",
-				"-headers",
-				`Referer: ${new URL(p.embedUrl).origin}/\r\nUser-Agent: Mozilla/5.0`,
-				"-i",
-				stream,
-				...(duration > 0 ? ["-t", String(duration)] : []),
-				"-c",
-				"copy",
-				"-bsf:a",
-				"aac_adtstoasc",
-				out,
-			];
-			const r = await $`ffmpeg ${ff}`.quiet().nothrow();
-			if (r.exitCode !== 0 || !existsSync(out)) {
-				console.log(`  · ep ${ep.number} ${p.provider ?? p.name}: ffmpeg KO (exit ${r.exitCode})`);
-				continue;
-			}
-			const sizeMb = Math.round((await Bun.file(out).size) / 1024 / 1024);
-			console.log(`✓ ep ${ep.number} via ${p.provider ?? p.name} → ${out} (${sizeMb} Mo)`);
-			ok++;
-			done = true;
-			break;
-		} catch (e) {
-			console.log(`  · ep ${ep.number} ${p.provider ?? p.name}: ${(e as Error).message?.slice(0, 80)}`);
-		}
+	process.stdout.write(`· ep ${n} : résolution… `);
+	const r = await resolve(n);
+	if (!r.url || !(r.type === "hls" || r.type === "mp4")) {
+		console.log(`✗ ${r.error ?? "pas de flux"}`);
+		continue;
 	}
-	if (!done) console.error(`✗ ep ${ep.number}: tous les hôtes ont échoué`);
+	console.log(`flux ${r.type} via ${r.provider}, download…`);
+	const referer = r.headers?.Referer ?? r.headers?.referer ?? "";
+	const args = [
+		"-y",
+		"-loglevel",
+		"error",
+		...(referer ? ["-headers", `Referer: ${referer}\r\nUser-Agent: Mozilla/5.0`] : []),
+		"-i",
+		r.url,
+		...(duration > 0 ? ["-t", String(duration)] : []),
+		"-c",
+		"copy",
+		"-bsf:a",
+		"aac_adtstoasc",
+		out,
+	];
+	const ff = Bun.spawn(["ffmpeg", ...args], { stdout: "ignore", stderr: "pipe" });
+	await ff.exited;
+	if (ff.exitCode !== 0 || !existsSync(out)) {
+		console.log(`  ✗ ep ${n} ffmpeg KO : ${(await new Response(ff.stderr).text()).slice(-160)}`);
+		continue;
+	}
+	const mb = Math.round(Bun.file(out).size / 1024 / 1024);
+	console.log(`  ✓ ep ${n} → ${out} (${mb} Mo)`);
+	ok++;
 }
-console.log(`\n${ok}/${episodes.length} épisode(s) téléchargé(s). Tester : bun scripts/test-gemma-multimodal.ts --manga 0 --video "${OUT}/${series}-001-${lang}.mp4"`);
+console.log(
+	`\n${ok}/${numbers.length} téléchargé(s). Tester Gemma : bun scripts/test-gemma-multimodal.ts --manga 0 --video "${OUT}/${series}-${String(from).padStart(3, "0")}.mp4"`
+);
