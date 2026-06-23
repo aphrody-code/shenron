@@ -29,7 +29,7 @@ const STATE = new URL("../data/llm/.dm-stream-state.json", import.meta.url).path
 const api = (path: string, init?: RequestInit) =>
 	fetch(`https://discord.com/api/v10${path}`, {
 		...init,
-		headers: { Authorization: `Bot ${TOKEN}`, ...(init?.headers ?? {}) },
+		headers: { Authorization: `Bot ${TOKEN}`, ...init?.headers },
 	});
 
 const me = (await (await api("/users/@me")).json()) as { id: string; username: string };
@@ -68,7 +68,7 @@ async function poll(): Promise<void> {
 		try {
 			const r = await api(`/channels/${ch}/messages?limit=50${after ? `&after=${after}` : ""}`);
 			if (!r.ok) continue;
-			const msgs = ((await r.json()) as DiscordMsg[]).reverse(); // chronologique
+			const msgs = ((await r.json()) as DiscordMsg[]).toReversed(); // chronologique
 			for (const m of msgs) {
 				state[ch] = m.id;
 				if (!after) continue; // 1er passage : ligne de base seulement
