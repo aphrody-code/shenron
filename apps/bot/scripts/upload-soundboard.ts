@@ -15,10 +15,10 @@ if (!TOKEN || !GUILD) {
 }
 
 const SOUNDS = [
-	{ name: "Goku", file: "kamehameha.mp3", emoji: "💥" },
-	{ name: "Beerus", file: "beerus.mp3", emoji: "😼" },
-	{ name: "Whis", file: "whis.mp3", emoji: "🌀" },
-	{ name: "Shenron", file: "shenron.mp3", emoji: "🐉" },
+	{ name: "Goku", file: "kamehameha.ogg", emoji: "💥" },
+	{ name: "Beerus", file: "beerus.ogg", emoji: "😼" },
+	{ name: "Whis", file: "whis.ogg", emoji: "🌀" },
+	{ name: "Shenron", file: "shenron.ogg", emoji: "🐉" },
 ];
 
 const API = "https://discord.com/api/v10";
@@ -46,7 +46,7 @@ for (const s of SOUNDS) {
 		headers,
 		body: JSON.stringify({
 			name: s.name,
-			sound: `data:audio/mpeg;base64,${Buffer.from(buf).toString("base64")}`,
+			sound: `data:audio/ogg;base64,${Buffer.from(buf).toString("base64")}`,
 			volume: 1,
 			emoji_name: s.emoji,
 		}),
