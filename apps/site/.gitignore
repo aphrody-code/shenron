@@ -42,3 +42,6 @@ next-env.d.ts
 
 /src/generated/prisma
 /public/wiki/
+
+# DDL généré par drizzle.config.bot.ts (schéma bot.*) — régénérable, non versionné
+/drizzle-bot/

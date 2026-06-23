@@ -30,11 +30,42 @@ for a in "$@"; do
 done
 
 PREV_HEAD="$(git rev-parse HEAD)"
+SITE_NEXT="$REPO/apps/site/.next"
+SITE_NEXT_PREV="$REPO/apps/site/.next.prev"
+
+# Sauvegarde le build courant AVANT un nouveau build. C'est la garde qui manquait
+# lors de l'outage Neon 2026-06-23 : un build raté détruisait le .next sans filet,
+# et le rebuild de rollback (toujours contre la même DB morte) échouait aussi →
+# site mort. Un build valide a un BUILD_ID ; sinon le .next est cassé/incomplet
+# → on le jette pour repartir propre.
+snapshot_next() {
+  if [[ -f "$SITE_NEXT/BUILD_ID" ]]; then
+    rm -rf "$SITE_NEXT_PREV"
+    mv "$SITE_NEXT" "$SITE_NEXT_PREV"
+  elif [[ -d "$SITE_NEXT" ]]; then
+    rm -rf "$SITE_NEXT"
+  fi
+}
+
+# Restaure le dernier build valide (après git reset, donc cohérent avec le code).
+restore_next() {
+  if [[ -f "$SITE_NEXT_PREV/BUILD_ID" ]]; then
+    rm -rf "$SITE_NEXT"
+    mv "$SITE_NEXT_PREV" "$SITE_NEXT"
+    return 0
+  fi
+  return 1
+}
 
 rollback() {
   echo "✗ échec déploiement site — rollback vers $PREV_HEAD" >&2
   git reset --hard "$PREV_HEAD" >/dev/null 2>&1 || true
-  NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" bun --filter @shenron/site build >/dev/null 2>&1 || true
+  if restore_next; then
+    echo "  ↩ build précédent restauré depuis .next.prev (pas de rebuild)"
+  else
+    echo "  ⚠ aucun build précédent valide — rebuild depuis $PREV_HEAD" >&2
+    NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" bun --filter @shenron/site build >/dev/null 2>&1 || true
+  fi
   sudo systemctl restart shenron-site.service || true
   exit 1
 }
@@ -50,6 +81,7 @@ fi
 # elle est embarquée dans l'output et réutilisée au runtime.
 export NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)"
 echo "▶ build (@shenron/site) · deploymentId=$NEXT_DEPLOYMENT_ID"
+snapshot_next
 bun --filter @shenron/site build || rollback
 
 if [[ $DO_MIGRATE -eq 1 ]]; then
@@ -69,4 +101,5 @@ for path in / /wiki/sagas /api/me; do
   [[ "$code" == 2* || "$code" == 3* ]] || rollback
 done
 
+rm -rf "$SITE_NEXT_PREV"
 echo "✓ site déployé · journalctl -u shenron-site -f"
