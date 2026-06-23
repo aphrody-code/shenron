@@ -20,6 +20,11 @@ import torch
 from datasets import load_dataset
 from trl import SFTConfig, SFTTrainer
 
+# Optimisations Ada (gratuites) : TF32 pour les matmuls fp32 + cudnn autotune.
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+torch.backends.cudnn.benchmark = True
+
 HERE = Path(__file__).resolve().parent
 DATA = Path(os.environ.get("DATASET", str(HERE / "manga_pretrain.jsonl")))
 OUTDIR = Path(os.environ.get("OUTDIR", HERE / "gemma4-manga"))
@@ -66,6 +71,9 @@ trainer = SFTTrainer(
         packing=os.environ.get("PACKING") == "1",  # NB: ignoré par Unsloth pour gemma4 (modèle à processor/multimodal) ; utile pour les modèles texte-only
         per_device_train_batch_size=int(os.environ.get("BATCH", "1")),
         gradient_accumulation_steps=int(os.environ.get("ACCUM", "8")),
+        dataloader_num_workers=int(os.environ.get("WORKERS", "4")),  # prefetch parallèle → GPU moins affamé
+        dataloader_pin_memory=True,
+        group_by_length=True,  # batchs de longueur similaire → moins de padding gaspillé
         warmup_steps=10,
         num_train_epochs=EPOCHS,
         learning_rate=LR,
