@@ -18,6 +18,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { API_BASE } from "./api.ts";
+import { registerSkill, SKILL_RESOURCE_COUNT } from "./skill.ts";
 import { registerAllTools } from "./tools.ts";
 
 const PORT = Number(process.env.MCP_PORT ?? 5010);
@@ -55,6 +56,8 @@ function buildServer(): McpServer {
 		}
 	);
 	registerAllTools(server);
+	// Publie aussi la skill Dragon Ball (prompt `dragon_ball` + resources docs).
+	registerSkill(server);
 	return server;
 }
 
@@ -120,6 +123,8 @@ function landingPage(): Response {
 <p class="muted">Transport : MCP Streamable HTTP, sans état, auth <code>none</code>. Sonde : <a href="/health">/health</a>.</p>
 <h2>Outils (${TOOL_NAMES.length})</h2>
 <p>${TOOL_NAMES.map((t) => `<span class="tag">${t}</span>`).join("")}</p>
+<h2>Skill Dragon Ball</h2>
+<p>En plus des outils, ce serveur publie la <strong>skill Dragon Ball</strong> : un <strong>prompt</strong> <code>dragon_ball</code> (guide d'exploration) et <strong>${SKILL_RESOURCE_COUNT} resources</strong> markdown (<code>guide</code>, <code>api</code>, <code>lore</code>, <code>mcp-graphql</code>) — listables via <code>prompts/list</code> et <code>resources/list</code>.</p>
 <h2>Connexion</h2>
 <p><strong>Claude</strong> (web / desktop) : Réglages → Connecteurs → Ajouter un connecteur personnalisé → URL <code>${PUBLIC_URL}/mcp</code>, authentification « Aucune ».</p>
 <p><strong>Claude Code</strong> : <code>claude mcp add --transport http shenron ${PUBLIC_URL}/mcp</code></p>
@@ -161,7 +166,15 @@ const server = Bun.serve({
 			} catch {
 				upstream = "unreachable";
 			}
-			return json({ status: "ok", server: SERVER_NAME, version: VERSION, tools: TOOL_NAMES.length, upstream });
+			return json({
+				status: "ok",
+				server: SERVER_NAME,
+				version: VERSION,
+				tools: TOOL_NAMES.length,
+				prompts: 1,
+				resources: SKILL_RESOURCE_COUNT,
+				upstream,
+			});
 		}
 
 		if (url.pathname === "/" || url.pathname === "/index.html") return landingPage();
