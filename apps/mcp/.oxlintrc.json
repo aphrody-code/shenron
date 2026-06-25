@@ -1,0 +1,34 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+	"categories": {
+		"correctness": "error",
+		"perf": "warn",
+		"suspicious": "warn"
+	},
+	"env": {
+		"builtin": true,
+		"es2024": true
+	},
+	"globals": {
+		"Bun": "readonly"
+	},
+	"ignorePatterns": ["dist/**", "node_modules/**"],
+	"rules": {
+		"no-unused-vars": [
+			"error",
+			{
+				"argsIgnorePattern": "^_",
+				"varsIgnorePattern": "^_",
+				"caughtErrorsIgnorePattern": "^_"
+			}
+		],
+		"no-empty": ["error", { "allowEmptyCatch": true }],
+		"no-console": "off",
+		"no-await-in-loop": "off",
+		"typescript/no-explicit-any": "off",
+		"unicorn/no-null": "off",
+		"unicorn/filename-case": "off",
+		"unicorn/prefer-top-level-await": "off"
+	}
+}

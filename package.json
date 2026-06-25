@@ -34,7 +34,8 @@
 			"@types/react-dom": "19.2.3",
 			"eslint": "^9.39.4",
 			"tsup": "^8.3.6",
-			"sqlite-vec": "^0.1.1"
+			"sqlite-vec": "^0.1.1",
+			"@modelcontextprotocol/sdk": "^1.29.0"
 		}
 	},
 	"type": "module",
@@ -47,6 +48,8 @@
 		"site:dev": "bun --filter @shenron/site dev",
 		"site:build": "bun --filter @shenron/site build",
 		"site:start": "bun --filter @shenron/site start",
+		"mcp:dev": "bun --filter @shenron/mcp dev",
+		"mcp:start": "bun --filter @shenron/mcp start",
 		"lint": "turbo run lint",
 		"lint:fix": "turbo run lint:fix",
 		"build": "turbo run build",

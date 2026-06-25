@@ -1,0 +1,27 @@
+{
+	"name": "@shenron/mcp",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"description": "Serveur MCP public (Streamable HTTP, read-only) exposant le RAG et l'API publique Dragon Ball de dragonballfr.com",
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"start": "bun src/index.ts",
+		"type-check": "bunx tsc --noEmit",
+		"lint": "oxlint",
+		"lint:fix": "oxlint --fix"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/bun": "catalog:",
+		"@types/node": "catalog:",
+		"oxlint": "catalog:",
+		"typescript": "catalog:"
+	},
+	"engines": {
+		"bun": ">=1.3.0"
+	}
+}

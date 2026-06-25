@@ -1,0 +1,66 @@
+[Unit]
+Description=shenron-mcp — serveur MCP public (RAG + API publique Dragon Ball) sur :5010
+After=network.target network-online.target shenron.service
+Wants=network-online.target
+StartLimitBurst=15
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron/apps/mcp
+
+Environment=NODE_ENV=production
+Environment=MCP_PORT=5010
+Environment=MCP_HOST=127.0.0.1
+Environment=MCP_PUBLIC_URL=https://mcp.dragonballfr.com
+# Proxy lecture seule vers l'API publique du bot (loopback).
+Environment=SHENRON_API_URL=http://127.0.0.1:5006
+Environment=SHENRON_SITE_URL=https://dragonballfr.com
+Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/mcp/.bun-cache
+
+ExecStart=/home/ubuntu/.bun/bin/bun src/index.ts
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=15
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5
+
+# Proxy léger (pas de modèle, pas de canvas) : 512 Mo largement suffisants.
+MemoryMax=512M
+MemoryHigh=384M
+TasksMax=128
+LimitNOFILE=65536
+OOMScoreAdjust=-100
+CPUWeight=100
+IOWeight=100
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+ReadWritePaths=/home/ubuntu/shenron/apps/mcp/.bun-cache
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-mcp
+
+[Install]
+WantedBy=multi-user.target

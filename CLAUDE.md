@@ -57,6 +57,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 apps/
   bot/    → @shenron/bot  — Bun + discordx + drizzle + bun:sqlite + canvas (6 personas en 1 process) + dashboard admin React SPA (src/dashboard/, TanStack Router + Query)
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel) ; Pixi.js (@pixi/react, ex. KiCanvas) pour le rendu canvas, shadcn (components/ui) pour l'UI. Pas d'API métier propre : les route handlers proxifient l'API REST du bot (cf. piège proxy plus bas)
+  mcp/    → @shenron/mcp  — Serveur MCP public (Bun.serve + @modelcontextprotocol/sdk, Streamable HTTP stateless, lecture seule). 14 outils proxifiant le RAG + l'API publique du bot. Servi sur `mcp.dragonballfr.com` (service `shenron-mcp`). Aucune DB/secret propre
 packages/
   di/          → @rpbey/di — wrapper tsyringe
   discordy/    → @rpbey/discordy — wrapper fork discordx (multi-client injection)
@@ -134,6 +135,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 | shenron | 5006 | bot.dragonballfr.com (ex- bot.rpbey.fr) | Bun + discordx + drizzle + bun:sqlite + canvas. Sert aussi **GraphQL** `/graphql` (Pothos+yoga, GraphiQL) et **OpenAPI** `/api/openapi.json` + UI Scalar `/api/docs` |
 | shenron-embed | 5007 (loopback) | — | Sidecar embeddings RAG (multilingual-e5-small, transformers.js). Modèle chaud, isolé du bot. Cf. RAG hybride |
 | shenron-llm | 5008 (loopback) | — | **Serveur LLM conversationnel local** (llama.cpp, Qwen2.5-3B-Instruct GGUF, CPU). Sert `generateLlmAnswer` (chat bot + site) : conversation + raisonnement + mémoire Redis, faits via RAG. Aucune API externe. Cf. [`docs/llm-maison.md`](docs/llm-maison.md) |
+| shenron-mcp | 5010 (loopback) | mcp.dragonballfr.com | **Serveur MCP public** (`apps/mcp`, `@shenron/mcp`) : Bun.serve + `@modelcontextprotocol/sdk` (transport **Streamable HTTP** Bun-natif `WebStandardStreamableHTTPServerTransport`, **stateless**, **lecture seule**, **auth `none`**). 14 outils qui **proxifient** l'API publique du bot (`127.0.0.1:5006/api/public/*`) + le RAG — aucun accès DB/secret. Endpoint `POST /mcp`, sonde `/health`, doc `/`. CORS `*` géré par l'app (nginx ne pose PAS de CORS). Compatible Claude web/desktop, Grok, Gemini, Ollama (bridge) |
 | shenron-backup.timer | — | — | `VACUUM INTO` SQLite bot quotidien 03:00 UTC → `data/backups/shenron-sqlite/` |
 | shenron-pg-backup.timer | — | — | `pg_dump shenron_site` (gzip, retention 14j) quotidien 03:30 UTC → `data/backups/shenron-pg/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |

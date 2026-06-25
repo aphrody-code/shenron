@@ -1,4 +1,4 @@
-# 📚 Base de Connaissance Unifiée — 23/06/2026
+# 📚 Base de Connaissance Unifiée — 25/06/2026
 
 > Ce fichier regroupe toute la documentation du projet pour faciliter le contexte et l'analyse.
 
@@ -173,6 +173,7 @@
 - [DBS — ch1415](#apps-bot-assets-manga-transcripts-dbs-ch1415-md)
 - [DBS — ch1416](#apps-bot-assets-manga-transcripts-dbs-ch1416-md)
 - [DBS — ch1417](#apps-bot-assets-manga-transcripts-dbs-ch1417-md)
+- [@shenron/mcp — Serveur MCP public Dragon Ball](#apps-mcp-readme-md)
 - [This is NOT the Next.js you know](#apps-site-agents-md)
 - [CLAUDE.md](#apps-site-claude-md)
 - [or](#apps-site-readme-md)
@@ -482,6 +483,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 apps/
   bot/    → @shenron/bot  — Bun + discordx + drizzle + bun:sqlite + canvas (6 personas en 1 process) + dashboard admin React SPA (src/dashboard/, TanStack Router + Query)
   site/   → @shenron/site — Next.js 16 + Tailwind v4 + Drizzle + Postgres (Vercel) ; Pixi.js (@pixi/react, ex. KiCanvas) pour le rendu canvas, shadcn (components/ui) pour l'UI. Pas d'API métier propre : les route handlers proxifient l'API REST du bot (cf. piège proxy plus bas)
+  mcp/    → @shenron/mcp  — Serveur MCP public (Bun.serve + @modelcontextprotocol/sdk, Streamable HTTP stateless, lecture seule). 14 outils proxifiant le RAG + l'API publique du bot. Servi sur `mcp.dragonballfr.com` (service `shenron-mcp`). Aucune DB/secret propre
 packages/
   di/          → @rpbey/di — wrapper tsyringe
   discordy/    → @rpbey/discordy — wrapper fork discordx (multi-client injection)
@@ -559,6 +561,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 | shenron | 5006 | bot.dragonballfr.com (ex- bot.rpbey.fr) | Bun + discordx + drizzle + bun:sqlite + canvas. Sert aussi **GraphQL** `/graphql` (Pothos+yoga, GraphiQL) et **OpenAPI** `/api/openapi.json` + UI Scalar `/api/docs` |
 | shenron-embed | 5007 (loopback) | — | Sidecar embeddings RAG (multilingual-e5-small, transformers.js). Modèle chaud, isolé du bot. Cf. RAG hybride |
 | shenron-llm | 5008 (loopback) | — | **Serveur LLM conversationnel local** (llama.cpp, Qwen2.5-3B-Instruct GGUF, CPU). Sert `generateLlmAnswer` (chat bot + site) : conversation + raisonnement + mémoire Redis, faits via RAG. Aucune API externe. Cf. [`docs/llm-maison.md`](docs/llm-maison.md) |
+| shenron-mcp | 5010 (loopback) | mcp.dragonballfr.com | **Serveur MCP public** (`apps/mcp`, `@shenron/mcp`) : Bun.serve + `@modelcontextprotocol/sdk` (transport **Streamable HTTP** Bun-natif `WebStandardStreamableHTTPServerTransport`, **stateless**, **lecture seule**, **auth `none`**). 14 outils qui **proxifient** l'API publique du bot (`127.0.0.1:5006/api/public/*`) + le RAG — aucun accès DB/secret. Endpoint `POST /mcp`, sonde `/health`, doc `/`. CORS `*` géré par l'app (nginx ne pose PAS de CORS). Compatible Claude web/desktop, Grok, Gemini, Ollama (bridge) |
 | shenron-backup.timer | — | — | `VACUUM INTO` SQLite bot quotidien 03:00 UTC → `data/backups/shenron-sqlite/` |
 | shenron-pg-backup.timer | — | — | `pg_dump shenron_site` (gzip, retention 14j) quotidien 03:30 UTC → `data/backups/shenron-pg/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
@@ -358084,6 +358087,81 @@ Côté toolkit `dbxv2` (jeu possédé légalement) :
 - TOLITE LA RÉDACTION DE V JUMP EST PROFONDÉMENT
 - JE VOLUDRAIS VOUS EXPRIMER MA GRATITUDE POUR VOS
 - GRANDES RÉALISATIONS ET PRIER POUR QUE VOTRE ÂME
+
+---
+
+<a name="apps-mcp-readme-md"></a>
+## 📄 Fichier : `apps/mcp/README.md`
+
+**Titre original :** @shenron/mcp — Serveur MCP public Dragon Ball
+
+### @shenron/mcp — Serveur MCP public Dragon Ball
+
+Serveur **MCP** (Model Context Protocol) **public, sans authentification, en lecture seule**
+qui expose le **RAG** et l'**API publique** Dragon Ball de [dragonballfr.com](https://dragonballfr.com)
+en tant qu'outils, pour tout client compatible MCP.
+
+- **Endpoint** : `https://mcp.dragonballfr.com/mcp` (transport **Streamable HTTP**, sans état)
+- **Sonde** : `https://mcp.dragonballfr.com/health`
+- **Doc** : `https://mcp.dragonballfr.com/`
+
+## Architecture
+
+```
+client MCP  ──HTTP──▶  mcp.dragonballfr.com  (nginx, TLS)
+                              │
+                              ▼
+                       shenron-mcp  (Bun.serve :5010)
+                              │  proxy lecture seule
+                              ▼
+                       bot :5006/api/public/*  +  RAG hybride
+```
+
+Le serveur **ne touche jamais la base** : chaque outil proxifie l'API REST déjà publique
+servie par le bot (`bot.dragonballfr.com/api/public/*`). Aucun secret, aucune écriture.
+
+Stack : `Bun.serve` + `@modelcontextprotocol/sdk` (`WebStandardStreamableHTTPServerTransport`,
+natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requête** (`sessionIdGenerator: undefined`).
+
+## Outils (14, tous `readOnlyHint`)
+
+| Outil | Rôle |
+|---|---|
+| `rag_search` | Recherche hybride (BM25 + dense + rerank) → passages sourcés |
+| `rag_ask` | Réponse rédigée (RAG génératif, persona Whis) + sources |
+| `sources` | Sources/corpus indexés par le RAG |
+| `wiki_search` | Recherche plein-texte du wiki |
+| `wiki_list` | Liste paginée d'entités (`characters`, `planets`, `races`, `techniques`, `transformations`, `sagas`, `episodes`, `movies`, `games`) |
+| `wiki_get` | Détail d'une entité par id/slug |
+| `manga_search` / `manga_tomes` / `manga_page` | Manga (recherche OCR, tomes, planches) |
+| `bot_stats` / `bot_personas` / `bot_leaderboard` / `bot_commands` | Bot Discord (stats, 6 personas, classement, commandes) |
+| `news` | Actualités Dragon Ball |
+
+## Connexion
+
+- **Claude (web / desktop)** : Réglages → Connecteurs → *Ajouter un connecteur personnalisé* →
+  URL `https://mcp.dragonballfr.com/mcp`, authentification **Aucune**.
+- **Claude Code** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
+- **Gemini / Grok / autres** : ajouter un serveur MCP distant **Streamable HTTP** → `https://mcp.dragonballfr.com/mcp` (sans en-tête d'auth).
+- **Ollama** (via bridge MCP type `mcphost` / Open WebUI) : déclarer un serveur HTTP `https://mcp.dragonballfr.com/mcp`.
+
+## Développement
+
+```bash
+bun mcp:dev     # watch sur :5010 (SHENRON_API_URL=http://127.0.0.1:5006 par défaut)
+bun mcp:start   # run
+bun --filter @shenron/mcp type-check
+bun --filter @shenron/mcp lint
+```
+
+Variables : `MCP_PORT` (5010), `MCP_HOST` (127.0.0.1), `MCP_PUBLIC_URL`,
+`SHENRON_API_URL` (API bot proxifiée), `SHENRON_SITE_URL` (absolutisation des URLs `/wiki/...`).
+
+## Déploiement (VPS)
+
+Service systemd `shenron-mcp` + vhost `deploy/nginx/mcp.dragonballfr.com.conf`, propagés par
+`bash deploy/install.sh --nginx`. TLS via `certbot --dns-ovh -d mcp.dragonballfr.com`.
+
 
 ---
 
