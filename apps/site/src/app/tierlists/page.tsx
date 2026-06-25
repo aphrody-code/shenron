@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 	...ogMeta({
 		title: "Tierlists Dragon Ball",
 		description: "Classe les personnages de Dragon Ball. Tierlists créées par la communauté.",
+		canonical: "/tierlists",
 	}),
 };
 

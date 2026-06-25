@@ -31,7 +31,7 @@ export async function generateMetadata({
 	return {
 		title: tl.title,
 		description: desc,
-		...ogMeta({ title: tl.title, description: desc }),
+		...ogMeta({ title: tl.title, description: desc, canonical: `/tierlists/${slug}` }),
 	};
 }
 

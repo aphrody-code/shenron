@@ -33,6 +33,7 @@ export async function generateMetadata({
 			title: `${volume.series} — Volume ${volume.volume_number}`,
 			description,
 			image: volume.cover ? assetUrl(volume.cover) : undefined,
+			canonical: `/wiki/manga/volume/${id}`,
 		}),
 	};
 }

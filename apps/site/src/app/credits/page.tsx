@@ -6,6 +6,7 @@ export const metadata: Metadata = {
 	title: "Crédits & sources — DBFR",
 	description:
 		"Crédits, attributions et sources des contenus utilisés sur DBFR. Marque Dragon Ball © Bird Studio / Shueisha / Toei Animation.",
+	alternates: { canonical: "/credits" },
 };
 
 const RIGHTS_HOLDERS = [

@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 	title: "Encyclopédie Dragon Ball — DBFR",
 	description:
 		"Tous les personnages canon et les planètes de l'univers Dragon Ball. Fiches descriptives, ki, noms japonais, statuts et caractéristiques.",
+	alternates: { canonical: "/wiki/personnages" },
 };
 
 export default async function PersonnagesPage({

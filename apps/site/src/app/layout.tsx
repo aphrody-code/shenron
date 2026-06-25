@@ -10,6 +10,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { ConsentGate } from "@/components/ConsentGate";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { FirebaseInitializer } from "@/components/FirebaseInitializer";
+import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { SITE_URL } from "@/lib/config";
 import { env } from "@/lib/env";
 import Script from "next/script";
@@ -147,6 +148,9 @@ export default function RootLayout({
 						title="Google Tag Manager"
 					/>
 				</noscript>
+				{/* Données structurées site (Organization + WebSite/SearchAction) —
+				    rendues sur toutes les pages, inertes, sans cookie/header. */}
+				<SiteJsonLd />
 				{/* Progress bar scroll natif (animation-timeline: scroll(root)) */}
 				<div className="scroll-progress" aria-hidden />
 				{/* Nébuleuse de fond — couche FIXE (viewport) plutôt que

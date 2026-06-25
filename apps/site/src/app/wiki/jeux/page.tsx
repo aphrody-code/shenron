@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 	title: "Jeux vidéo Dragon Ball — DBFR",
 	description:
 		"Catalogue des jeux vidéo officiels Dragon Ball : Kakarot, Sparking ZERO, Xenoverse, FighterZ, Dokkan Battle, Legends et plus.",
+	alternates: { canonical: "/wiki/jeux" },
 };
 
 function excerpt(text: string | null | undefined, max = 180): string {

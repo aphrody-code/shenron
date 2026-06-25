@@ -29,6 +29,7 @@ export async function generateMetadata({
 			title: `${game.title} — DBFR`,
 			description,
 			image: game.cover ? assetUrl(game.cover) : undefined,
+			canonical: `/wiki/dragon-ball/games/${slug}`,
 		}),
 	};
 }

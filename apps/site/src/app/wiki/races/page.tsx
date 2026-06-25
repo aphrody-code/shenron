@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 	title: "Races Dragon Ball — DBFR",
 	description:
 		"Les races de l'univers Dragon Ball : Saiyans, Nameks, Humains, Cyborgs, Démons du Froid et bien plus.",
+	alternates: { canonical: "/wiki/races" },
 };
 
 const defaultTheme = {

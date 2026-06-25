@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 	title: "Techniques Dragon Ball — DBFR",
 	description:
 		"Catalogue des techniques et capacités de l'univers Dragon Ball : Kamehameha, Genkidama, Final Flash et plus.",
+	alternates: { canonical: "/wiki/dragon-ball/techniques" },
 };
 
 export default async function TechniquesPage() {

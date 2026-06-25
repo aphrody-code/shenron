@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 		description:
 			"Explore l'univers Dragon Ball en français : personnages, sagas, planètes, films, jeux et actualités.",
 		type: "website",
+		canonical: "/",
 	}),
 };
 

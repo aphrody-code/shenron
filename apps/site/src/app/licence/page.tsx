@@ -6,6 +6,7 @@ export const metadata: Metadata = {
 	title: "Licence & usage — DBFR",
 	description:
 		"Politique d'usage des contenus DBFR, mentions fair-use, attribution Fandom CC-BY-SA, contact pour demande de retrait.",
+	alternates: { canonical: "/licence" },
 };
 
 export default function LicencePage() {

@@ -34,6 +34,7 @@ export async function generateMetadata({
 			description,
 			image: planet.image ? assetUrl(planet.image) : undefined,
 			type: "website",
+			canonical: `/wiki/dragon-ball/planet/${id}`,
 		}),
 	};
 }

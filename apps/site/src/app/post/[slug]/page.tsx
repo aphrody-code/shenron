@@ -42,9 +42,11 @@ export async function generateMetadata({
 		description:
 			post.excerpt ??
 			`Article publié sur DBFR le ${format(post.createdAt, "d MMMM yyyy", { locale: fr })}.`,
+		alternates: { canonical: `/post/${slug}` },
 		openGraph: {
 			title: post.title,
 			description: post.excerpt ?? undefined,
+			url: `/post/${slug}`,
 			images: coverUrl ? [{ url: coverUrl }] : undefined,
 			type: "article",
 			publishedTime: post.createdAt.toISOString(),

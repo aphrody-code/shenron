@@ -24,6 +24,7 @@ export async function generateMetadata({
 	return {
 		title: `${data.arc.name} — Arc Dragon Ball | DBFR`,
 		description: data.arc.description ?? `Détails de l'arc ${data.arc.name}.`,
+		alternates: { canonical: `/wiki/arcs/${slug}` },
 	};
 }
 

@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 		title: "Boutique Shenron",
 		description:
 			"Cartes de profil, badges, couleurs, titres et bannières exclusifs à acheter avec tes Zénis sur Discord.",
+		canonical: "/shop",
 	}),
 };
 

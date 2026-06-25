@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 	title: "Sagas Dragon Ball — DBFR",
 	description:
 		"Toutes les sagas Dragon Ball, Dragon Ball Z, Dragon Ball Super, DBGT, DB Daima — résumées en français.",
+	alternates: { canonical: "/wiki/sagas" },
 };
 
 const SERIES_LABELS: Record<string, string> = {

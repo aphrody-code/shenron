@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 	title: "Épisodes anime Dragon Ball — DBFR",
 	description:
 		"Tous les épisodes Dragon Ball / DBZ / DBZ Kai / GT / DB Super / Daima — index complet avec vignettes, titres FR/JP, date de diffusion et synopsis.",
+	alternates: { canonical: "/wiki/episodes" },
 };
 
 const SERIES_LABELS: Record<string, string> = {

@@ -14,18 +14,27 @@ export function ogMeta({
 	description,
 	image,
 	type = "article",
+	canonical,
 }: {
 	title: string;
 	description?: string;
 	image?: string | null;
 	type?: "article" | "website" | "video.episode" | "video.movie";
-}): Pick<Metadata, "openGraph" | "twitter"> {
+	/**
+	 * URL canonique auto-référente de la page (chemin relatif, ex. `/wiki/sagas`,
+	 * résolu contre `metadataBase` du layout). À renseigner page par page :
+	 * une canonical globale pointerait à tort toutes les pages vers la home.
+	 */
+	canonical?: string;
+}): Pick<Metadata, "openGraph" | "twitter" | "alternates"> {
 	const images = image ? [{ url: image, alt: title }] : undefined;
 	return {
+		...(canonical ? { alternates: { canonical } } : {}),
 		openGraph: {
 			title,
 			description,
 			type: type === "video.episode" || type === "video.movie" ? "video.other" : type,
+			...(canonical ? { url: canonical } : {}),
 			images,
 		},
 		twitter: {

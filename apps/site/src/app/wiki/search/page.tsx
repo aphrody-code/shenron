@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 	title: "Recherche Dragon Ball — DBFR",
 	description:
 		"Recherche cross-entity dans tout l'univers Dragon Ball : personnages, planètes, sagas, films, jeux.",
+	// Page de résultats paramétrée (?q=) : on ne veut pas indexer la combinatoire
+	// d'URLs (contenu mince/dupliqué) mais on laisse suivre les liens sortants.
+	robots: { index: false, follow: true },
+	alternates: { canonical: "/wiki/search" },
 };
 
 async function WhisScouterPanel({ query }: { query: string }) {

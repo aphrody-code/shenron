@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 	title: "Actualités Dragon Ball — DBFR",
 	description:
 		"Dernières news, annonces officielles et rumeurs sur l'univers Dragon Ball (Daima, Sparking ZERO, Manga).",
+	alternates: { canonical: "/wiki/news" },
 };
 
 export default async function NewsPage({

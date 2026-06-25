@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 	title: "Manga Dragon Ball — DBFR",
 	description:
 		"Découvre les tomes de Dragon Ball et Dragon Ball Super, et lis les chapitres planche par planche dans le lecteur de scan DBFR.",
+	alternates: { canonical: "/wiki/manga" },
 };
 
 export default async function MangaIndexPage() {

@@ -6,6 +6,7 @@ import { DISCORD_INVITE } from "@/lib/config";
 export const metadata = {
 	title: "À propos — DBFR",
 	description: "Découvrez DBFR, le hub communautaire français dédié à l'univers de Dragon Ball. Wiki, bot interactif et communauté active.",
+	alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

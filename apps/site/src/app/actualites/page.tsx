@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 	title: "Actualités Dragon Ball — DBFR",
 	description:
 		"Toutes les actualités Dragon Ball : sorties anime, manga, films, événements communauté française. Mis à jour régulièrement.",
+	alternates: { canonical: "/actualites" },
 };
 
 export default async function ActualitesPage({

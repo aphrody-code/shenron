@@ -58,6 +58,7 @@ export async function generateMetadata({
 			description,
 			image: ep.image ? assetUrl(ep.image) : undefined,
 			type: "video.episode",
+			canonical: `/wiki/episodes/${id}`,
 		}),
 	};
 }

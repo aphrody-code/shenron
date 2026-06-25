@@ -39,6 +39,7 @@ export async function generateMetadata({
 			title: `${data.name} — DBFR`,
 			description,
 			image: data.image ? assetUrl(data.image) : undefined,
+			canonical: `/wiki/sagas/${slug}`,
 		}),
 	};
 }

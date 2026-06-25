@@ -34,6 +34,7 @@ export async function generateMetadata({
 	return {
 		title: `${label} — Manga Dragon Ball | DBFR`,
 		description: `Lis le chapitre ${chapter.chapter_number} du manga Dragon Ball planche par planche.`,
+		alternates: { canonical: `/wiki/manga/${id}` },
 	};
 }
 

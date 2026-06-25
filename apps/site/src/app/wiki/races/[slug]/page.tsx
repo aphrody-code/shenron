@@ -23,6 +23,7 @@ export async function generateMetadata({
 	return {
 		title: `${race.name} — Race Dragon Ball | DBFR`,
 		description: race.description ?? `Détails de la race ${race.name}.`,
+		alternates: { canonical: `/wiki/races/${slug}` },
 	};
 }
 

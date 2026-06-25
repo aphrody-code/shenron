@@ -33,6 +33,7 @@ export async function generateMetadata({
 			title: `${tech.name} — DBFR`,
 			description,
 			image: tech.creatorImage ? assetUrl(tech.creatorImage) : undefined,
+			canonical: `/wiki/dragon-ball/techniques/${slug}`,
 		}),
 	};
 }

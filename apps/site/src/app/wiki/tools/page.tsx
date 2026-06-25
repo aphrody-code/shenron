@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 	title: "Outils & Modding Dragon Ball — DBFR",
 	description:
 		"Outils communautaires Dragon Ball : modding, shaders, API publiques et utilitaires de recherche.",
+	alternates: { canonical: "/wiki/tools" },
 };
 
 export default async function ToolsPage() {

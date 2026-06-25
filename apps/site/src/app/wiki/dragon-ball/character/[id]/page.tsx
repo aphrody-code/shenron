@@ -48,10 +48,12 @@ export async function generateMetadata({
 	return {
 		title: c.nameJa ? `${c.name} (${c.nameJa})` : c.name,
 		description,
+		alternates: { canonical: `/wiki/dragon-ball/character/${id}` },
 		openGraph: {
 			title: `${c.name} — DBFR`,
 			description,
 			type: "article",
+			url: `/wiki/dragon-ball/character/${id}`,
 			images: img ? [{ url: img, alt: c.name }] : undefined,
 		},
 		twitter: {

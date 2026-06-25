@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 	title: "Films Dragon Ball — DBFR",
 	description:
 		"Tous les films Dragon Ball, Dragon Ball Z, Dragon Ball Super et Daima — fiches complètes avec date de sortie, durée, synopsis.",
+	alternates: { canonical: "/wiki/films" },
 };
 
 const SERIES_ORDER = ["DB_MOVIE", "DBZ_MOVIE", "DBS_MOVIE", "DB_DAIMA_MOVIE"];

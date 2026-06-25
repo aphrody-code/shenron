@@ -31,6 +31,7 @@ export async function generateMetadata({
 			title: `${g.title} — DBFR`,
 			description,
 			image: g.cover ? assetUrl(g.cover) : undefined,
+			canonical: `/wiki/jeux/${slug}`,
 		}),
 	};
 }

@@ -42,6 +42,7 @@ export async function generateMetadata({
 			description,
 			image: m.poster ? assetUrl(m.poster) : undefined,
 			type: "video.movie",
+			canonical: `/wiki/films/${slug}`,
 		}),
 	};
 }
