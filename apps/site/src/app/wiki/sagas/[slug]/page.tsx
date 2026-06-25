@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import WikiRagArchives from "@/components/wiki/WikiRagArchives";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
@@ -146,6 +148,12 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 					</Link>
 				</div>
 			</section>
+
+			{/* Passages liés du RAG (sourcés). Îlot Suspense : la requête RAG stream
+			    indépendamment et ne bloque jamais le rendu de la saga. */}
+			<Suspense fallback={null}>
+				<WikiRagArchives query={saga.name} limit={4} />
+			</Suspense>
 		</div>
 	);
 }
