@@ -1,0 +1,24 @@
+{
+  "name": "shenron",
+  "description": "Plugins Dragon Ball de dragonballfr.com (bot Shenron) : skill de connaissance sourcée + serveur MCP public RAG/API en lecture seule.",
+  "owner": {
+    "name": "Yohan Pierre",
+    "email": "contact@aphrody-code.dev"
+  },
+  "plugins": [
+    {
+      "name": "dragon-ball",
+      "source": "./plugins/dragon-ball",
+      "displayName": "Dragon Ball — dragonballfr.com",
+      "description": "Skill Dragon Ball (RAG hybride, wiki structuré, manga, lore, helper terminal) + serveur MCP public lecture seule (14 outils). Sourcé, francophone, sans authentification.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Yohan Pierre"
+      },
+      "homepage": "https://dragonballfr.com",
+      "repository": "https://github.com/aphrody-code/shenron",
+      "license": "Apache-2.0",
+      "keywords": ["dragon-ball", "dbz", "rag", "wiki", "manga", "mcp"]
+    }
+  ]
+}
