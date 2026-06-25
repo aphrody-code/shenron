@@ -2184,13 +2184,30 @@ export class ApiServer {
 				// Endpoint de chat génératif RAG-grounded avec injection de contexte page-level
 				"/api/public/rag/chat": async (req) => {
 					const url = new URL(req.url);
-					const q = (url.searchParams.get("q") ?? "").trim();
-					const persona = (url.searchParams.get("persona") ?? "whis").toLowerCase();
-					const pageContext = (url.searchParams.get("context") ?? "").trim();
-					const session = (url.searchParams.get("session") ?? "").trim();
-					const lang = url.searchParams.get("lang") || undefined;
-					const entity = url.searchParams.get("entity") || undefined;
-					const sourceId = url.searchParams.get("sourceId") || undefined;
+					// Les paramètres peuvent venir de la query-string OU du corps JSON
+					// (POST {q}). Les clients MCP/agents postent un body : on lit les deux,
+					// query-string prioritaire pour rester rétro-compatible.
+					let body: Record<string, unknown> = {};
+					if (req.method === "POST") {
+						try {
+							body = (await req.json()) as Record<string, unknown>;
+						} catch {
+							body = {};
+						}
+					}
+					const pick = (k: string): string | null => {
+						const v = url.searchParams.get(k);
+						if (v != null && v !== "") return v;
+						const b = body[k];
+						return typeof b === "string" && b !== "" ? b : null;
+					};
+					const q = (pick("q") ?? "").trim();
+					const persona = (pick("persona") ?? "whis").toLowerCase();
+					const pageContext = (pick("context") ?? "").trim();
+					const session = (pick("session") ?? "").trim();
+					const lang = pick("lang") || undefined;
+					const entity = pick("entity") || undefined;
+					const sourceId = pick("sourceId") || undefined;
 
 					if (q.length < 2) {
 						return Response.json({

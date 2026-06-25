@@ -118,7 +118,10 @@ export function registerAllTools(server: McpServer): void {
 		},
 		async ({ question }) => {
 			try {
-				return jsonResult(await apiPost("/api/public/rag/chat", { q: question }, 90_000));
+				// q passé EN query-string ET dans le body : l'endpoint rag/chat lit
+				// la query-string ; le body est envoyé en complément (rétro/anté-compat).
+				const path = `/api/public/rag/chat?q=${encodeURIComponent(question)}`;
+				return jsonResult(await apiPost(path, { q: question }, 90_000));
 			} catch (err) {
 				return errorResult(err);
 			}
