@@ -229,6 +229,11 @@ describe("RAG Déduplication & diversification", () => {
 		insVector.run(12, vec(0.8));
 		insChunk.run(13, "source", "DB Tome 1 p6", "/wiki/manga", "Goku Kamehameha planche 6.", "fr", "manga", "Goku");
 		insVector.run(13, vec(0.78));
+		// Deux chunks Fandom au TITRE identique mais URL VIDE → repli titre → fusion.
+		insChunk.run(14, "source", "Genkidama", "", "Genkidama de Goku, Kamehameha cousin.", "fr", "fandom-fr", "Goku");
+		insVector.run(14, vec(0.7));
+		insChunk.run(15, "source", "Genkidama", "", "Genkidama Goku encore Kamehameha.", "fr", "fandom-fr", "Goku");
+		insVector.run(15, vec(0.69));
 
 		global.fetch = async (url, options) => {
 			const u = url.toString();
@@ -268,5 +273,11 @@ describe("RAG Déduplication & diversification", () => {
 		const mangaRowids = results.filter((r) => r.url === "/wiki/manga").map((r) => r.rowid);
 		expect(new Set(mangaRowids).size).toBe(mangaRowids.length); // pas de doublon rowid
 		expect(mangaRowids.length).toBeGreaterThanOrEqual(2); // les 2 planches survivent
+	});
+
+	it("fusionne les chunks au titre identique mais URL vide (repli titre)", async () => {
+		const { results } = await hybridSearch(dbs.sqlite, "Genkidama Goku Kamehameha", 10);
+		const genki = results.filter((r) => r.title === "Genkidama");
+		expect(genki.length).toBe(1);
 	});
 });

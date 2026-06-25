@@ -199,6 +199,20 @@ function centeredSnippet(content: string, tokens: string[], width = 220): string
  *  - sinon (RRF/lexical) : min-max relatif, planché à 0.4 pour ne pas afficher
  *    « 0 % pertinent » sur le dernier hit d'une réponse par ailleurs pertinente.
  */
+/**
+ * Clé de déduplication d'un hit : URL canonique si présente, sinon TITRE foldé,
+ * sinon rowid. Le repli par titre est crucial : les chunks Fandom `kind=source`
+ * ont souvent une `url` vide → sans lui, « Kamehameha — compétence » remontait 3×.
+ */
+function dedupKey(url: string, title: string, rowid: number): string {
+	const u = (url || "").split("?")[0].toLowerCase();
+	if (u) return `u:${u}`;
+	const t = fold(title || "")
+		.replace(/\s+/g, " ")
+		.trim();
+	return t ? `t:${t}` : `r:${rowid}`;
+}
+
 function normalizeScores<T extends { score: number }>(arr: T[], mode: RagMode): T[] {
 	if (mode === "hybrid+rerank") {
 		return arr.map((c) => ({ ...c, score: round3(1 / (1 + Math.exp(-c.score))) }));
@@ -296,7 +310,7 @@ export async function hybridSearch(
 		const out: RagHit[] = [];
 		for (let i = 0; i < bm.length && out.length < limit; i++) {
 			const h = bm[i]!;
-			const key = (h.url || "").split("?")[0].toLowerCase() || `r:${h.rowid}`;
+			const key = dedupKey(h.url, h.title, h.rowid);
 			if (seen.has(key)) continue;
 			seen.add(key);
 			out.push({ ...h, score: bm.length - i });
@@ -375,11 +389,11 @@ export async function hybridSearch(
 	// le meilleur score par clé. Le MANGA est dédupliqué par rowid (chaque planche
 	// est un passage distinct partageant l'URL générique /wiki/manga) → préserve le
 	// quota manga ≥ MANGA_QUOTA appliqué juste après.
-	const dedupKey = (c: { rowid: number; url: string }) =>
-		isManga(c.rowid) ? `m:${c.rowid}` : (c.url || "").split("?")[0].toLowerCase() || `r:${c.rowid}`;
+	const keyOf = (c: { rowid: number; url: string; title: string }) =>
+		isManga(c.rowid) ? `m:${c.rowid}` : dedupKey(c.url, c.title, c.rowid);
 	const bestByKey = new Map<string, (typeof candidates)[number]>();
 	for (const c of candidates) {
-		const k = dedupKey(c);
+		const k = keyOf(c);
 		const prev = bestByKey.get(k);
 		if (!prev || c.score > prev.score) bestByKey.set(k, c);
 	}
