@@ -251,6 +251,24 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
 
+## [Unreleased] — 2026-06-25
+
+### Added
+
+- **SEO — données structurées + canonicals** (`apps/site`) : composant **server** `apps/site/src/components/SiteJsonLd.tsx` monté dans le layout — JSON-LD `Organization` + `WebSite` avec `SearchAction` (sitelinks search box → `/wiki/search?q={search_term_string}`), inerte (sans cookie/header → cache CDN préservé). `ogMeta` (`lib/og.ts`) étendu d'un param `canonical` → `alternates.canonical` + `og:url` ; canonicals **auto-référentes** câblées sur ~30 pages (home + index + détails + page perso inline) — pas de canonical globale (pointerait toutes les pages vers la home). Invariants cache préservés (`public` + `x-nextjs-cache` HIT vérifiés).
+- **RAG — exploitation des résultats** (`apps/bot/src/lib/rag.ts`) : `RagHit` expose désormais un **`score` ∈ [0,1]** (hybrid+rerank = sigmoïde du logit cross-encoder ; sinon RRF/lexical = min-max planché à 0.4 ; comparable **uniquement** au sein d'une même réponse et d'un même `mode`). **Déduplication/diversification** du top-N par URL canonique puis repli sur **titre foldé** (les chunks Fandom `kind=source` ont souvent une URL vide) ; le **manga est exempté** (clé par rowid → préserve le quota manga ≥ 2). **Filtrage stopwords FR/EN** + fold d'accents dans `ftsMatch` (index FTS5 en `remove_diacritics 2` → fold sûr ; garde-fou : ne filtre que si > 3 tokens et qu'il reste ≥ 2 tokens). Snippet de repli **centré sur le 1er terme** de requête. Propagé : REST `/api/public/rag/search` remonte `score` ; `/api/public/rag/chat` reçoit **CORS + rate-limit** (il était brut, sans wrapper) ; GraphQL `RagHit` expose `rowid` + `score` ; MCP `rag_search` gagne les filtres `lang`/`entity`/`sourceId` + `score` documenté (`rag_ask` clarifié : rédacteur LLM OFF → se fier aux `hits` sourcés) ; Discord `/ask` : **citations numérotées `[n]`** + icône de mode + % de pertinence ; site : puces de pertinence + **`WikiRagArchives`** (« passages liés » sourcés, `<Link>` internes + badge de pertinence) monté sur la page saga (îlot Suspense → revalidate de cette route 3600 → 300 s). Vérifié en prod : « Kamehameha » passe de 3/10 à 9/9 titres distincts. Tests : `apps/bot/tests/rag-filter.test.ts` (+5 invariants).
+- **Plugin Claude Code `dragon-ball`** (`plugins/dragon-ball/`) : manifeste `.claude-plugin/plugin.json` + skill auto-découverte `skills/dragon-ball/` (SKILL.md + `references/` + `scripts/db.sh`) + serveur MCP distant déclaré inline (`mcpServers.dragonball` → `streamable-http` `https://mcp.dragonballfr.com/mcp`). **Marketplace `shenron`** à la racine (`.claude-plugin/marketplace.json`, source `./plugins/dragon-ball`). Install : `/plugin marketplace add aphrody-code/shenron` puis `/plugin install dragon-ball@shenron`. Validé via `claude plugin validate` (skill découverte, MCP connecté, outils OK). Caveat : héberger le plugin dans ce monorepo ⇒ `/plugin marketplace add` clone **tout** le dépôt (lourd) — extraction possible dans un dépôt dédié pour des installs légères.
+- **`apps/bot/scripts/rag-embed-vectors.ts`** : (re)calcule **uniquement** `vec_chunks` depuis un `rag_chunks` déjà bon, **sans downtime** (aucun verrou d'écriture pendant l'embedding — que des appels HTTP au sidecar — insertion finale atomique ⇒ bascule nette lexical → hybride). À utiliser après un `fix-*` data ou un `rag:build` interrompu.
+
+### Changed
+
+- **`robots.ts`** : `/_next/` débloqué (ne plus interdire les ressources de rendu) ; `/wiki/search` passée en `robots: noindex, follow` (évite l'indexation de la combinatoire `?q=`).
+- **Corpus RAG ~40 874 chunks** (et non ~1041) : le manga OCR (147 tomes) et 2058 docs Xenoverse 2 ont été fusionnés au corpus ⇒ la phase d'embedding de `rag:build` dure **~15 min**. **Piège** : ne JAMAIS lancer `rag:build` au premier plan, ni en arrêtant le bot (downtime), ni en live (DDL `DROP` qui gèle les handlers) — préférer `rag-embed-vectors.ts` quand seul `vec_chunks` doit être recalculé.
+
+### Fixed
+
+- **Fuite d'infobox Fandom dans `bot.db_characters`** : l'ingest faisait fuiter des paramètres d'infobox dans `name_ja`/`name_romaji`/`race`/`affiliation` (ex. `name_ja = "|Décès = An 737"`, `race = "Giras|Concepteur=Akira Toriyama}}"`). **306 cellules nettoyées** via `apps/bot/scripts/fix-infobox-leak.ts` (idempotent ; corrige le Postgres `bot.*` source de vérité → propagé au SQLite par le reverse-sync `shenron-neon-pull.service`). Root cause corrigée dans `apps/bot/scripts/ingest/ingest-fandom-full.ts` (`clean()` coupe la valeur au 1er `}}` ou `|` de tête, wikilinks/templates résolus avant pour ne pas casser leurs séparateurs internes).
+
 ## [Unreleased] — 2026-06-22
 
 ### Added
@@ -531,6 +549,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 - **Home (`/`)** = expérience full-page « Codex Shenron » (`apps/site/src/components/home/*`). Deck **client** (`HomeExperience`, `"use client"`) en **scroll-snap document** (`html[data-home]` posé/retiré au mount) ; navigation molette/clavier/tactile → `scrollIntoView`. Données **SSR** (`page.tsx`) + **live** côté client (`useLiveBotState` : poll `bot.dragonballfr.com/api/public/{stats,personas}` + SSE `/api/a2a/events`, CORS OK). Fonds = scènes curées (`lib/home-scenes.ts`, client-safe) en ken-burns + grade d'ère (CSS dans `globals.css`). **Aucune session/cookies** → cache CDN préservé. **Cadrage éditorial** : « Voyage à travers l'univers Dragon Ball » — le mot « wiki » est banni de la vitrine (héro/summon/404, description SEO), on parle d'exploration de l'univers.
 - **Wiki — IA & comptes** : index canoniques `/wiki/personnages` (grille filtrable `CharacterGrid`) + `/wiki/planetes` ; les **routes détail** restent sous `/wiki/dragon-ball/{character,planet,techniques}/…`. `/wiki/dragon-ball` (ancien fourre-tout) = **308 via `next.config` `redirects()`** → `/wiki/personnages` (jamais un `redirect()` en composant : dégrade en 200 + `<meta refresh>` à cause du streaming du layout `/wiki`). Tous les comptes affichés viennent de `dbUniverse.counts()` (Neon réel) — **zéro nombre codé en dur** (ils se désynchronisent dès que la DB grossit).
 - **Télémétrie first-party** (`lib/telemetry.ts`) : `track(event, props)` typé → fan-out **Vercel Analytics + GTM dataLayer + `POST /api/telemetry`** (ingest Postgres `site_events`/`user_preferences`, anonymisation hash salé + `anonId` httpOnly). **Opt-in strict** + **Google Consent Mode v2** (`lib/consent.ts`, `ConsentGate`). Reco/perso server-only `lib/recommendations.ts`. GTM = `GTM-KLSS5787` via `@next/third-parties/google` (`layout.tsx`).
+- **SEO (depuis `f6d7792`)** : composant **server** `components/SiteJsonLd.tsx` rendu dans le layout → JSON-LD `Organization` + `WebSite` avec `SearchAction` (sitelinks search box → `/wiki/search?q={search_term_string}`). **Inerte, sans cookie/header → cache CDN préservé.** `ogMeta` (`lib/og.ts`) prend un param `canonical` → `alternates.canonical` + `og:url` ; canonicals **auto-référentes** câblées sur ~30 pages (home + index + détails + page perso inline). **Pas de canonical globale** (pointerait toutes les pages vers la home). `robots.ts` : `/_next/` débloqué (ressources de rendu) ; `/wiki/search` en `noindex, follow` (évite l'indexation de la combinatoire `?q=`).
 
 ## DB & migrations
 
@@ -544,9 +563,10 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 
 ### RAG hybride (depuis `100a8a3`)
 
-- `/api/public/rag/search` + GraphQL `ragSearch` + Discord `/ask` + recherche du site (`dbUniverse.rag`) = **pipeline RAG SOTA** : étage 1 récupération **hybride** (BM25 `rag_chunks` FTS5 + embeddings denses `rag_vectors` cosinus exact brute-force, fusion **RRF**) → étage 2 **reranking cross-encoder** du top-15. Cf. `apps/bot/src/lib/rag.ts` (runtime léger, zéro modèle dans le bot). `mode` ∈ `hybrid+rerank | hybrid | lexical`.
+- `/api/public/rag/search` + GraphQL `ragSearch` + Discord `/ask` + recherche du site (`dbUniverse.rag`) = **pipeline RAG SOTA** : étage 1 récupération **hybride** (BM25 `rag_chunks` FTS5 + embeddings denses `vec_chunks` cosinus exact brute-force, fusion **RRF**) → étage 2 **reranking cross-encoder** du top-15. Cf. `apps/bot/src/lib/rag.ts` (runtime léger, zéro modèle dans le bot). `mode` ∈ `hybrid+rerank | hybrid | lexical`.
+- **Exploitation (depuis `4a0afd3`)** : `RagHit` expose un `score` ∈ [0,1] (hybrid+rerank = sigmoïde du logit cross-encoder ; sinon RRF/lexical = min-max planché à 0.4). **Comparable uniquement au sein d'une même réponse et d'un même `mode`** (pas un seuil absolu). **Déduplication/diversification** du top-N par URL canonique puis repli sur TITRE foldé (les chunks Fandom `kind=source` ont souvent une url vide) ; le **manga est exempté** (clé par rowid → préserve le quota manga ≥2). **Stopwords FR/EN** filtrés + fold d'accents dans `ftsMatch` (FTS5 en `remove_diacritics 2` → fold sûr ; garde-fou : on ne filtre que si >3 tokens et qu'il reste ≥2 tokens). Snippet de repli centré sur le 1er terme de requête. Propagé partout : API `rag/search` remonte `score` ; `rag/chat` a reçu CORS + rate-limit ; GraphQL `RagHit` expose `rowid` + `score` ; MCP `rag_search` gagne les filtres `lang`/`entity`/`sourceId` + `score` ; Discord `/ask` = citations numérotées `[n]` + icône de mode + % de pertinence ; site = puces de pertinence + `WikiRagArchives` (« passages liés » sourcés, `<Link>` internes, monté en îlot Suspense sur la page saga ⇒ revalidate de cette route 3600→300s).
 - **Modèles** : embeddings `Xenova/multilingual-e5-small` (384d, FR+JP) + reranker `Xenova/bge-reranker-base` (cross-encoder multilingue). Servis par le **sidecar `shenron-embed.service`** (port 5007, modèles chauds, `MemoryMax=3G`, RSS ~1.6G) — le bot (1.5G) ne charge JAMAIS de modèle. Cache `apps/bot/.models` (gitignored). `apps/bot/src/lib/embeddings.ts` = heavy, importé seulement par le sidecar + `scripts/rag-build.ts`. Rerank cappé à 400 chars/passage (le cross-encoder tronque à 512 tokens ; 1.4s vs 4.8s), timeout 6s (`RAG_RERANK=0` pour désactiver).
-- **Build** : `bun --filter @shenron/bot run rag:build` (embed offline in-process, ~85s/1041 chunks ; `RAG_DB=/path` pour tester sur copie). Après build sur prod → `systemctl restart shenron`.
+- **Build** : `bun --filter @shenron/bot run rag:build` (embed offline in-process ; corpus ~**40 874 chunks** — wiki + manga OCR 147 tomes + 2058 docs Xenoverse 2 — ⇒ phase d'embedding ~**15 min** ; `RAG_DB=/path` pour tester sur copie). Après build sur prod → `systemctl restart shenron`. **Ne JAMAIS lancer `rag:build` au premier plan, en arrêtant le bot, ni en live** (le DDL `DROP` gèle les handlers) → cf. piège dédié + `scripts/rag-embed-vectors.ts` (re-embed `vec_chunks` sans downtime).
 - **Dégradation gracieuse** : sidecar down/timeout → `mode:lexical` (BM25 seul), jamais de crash. Réponse inclut `mode: "hybrid"|"lexical"`.
 - **Piège** : `Bun.serve` (listen) meurt en exit 144 dans le sandbox du Bash tool — tester la logique RAG sans serveur ; le sidecar tourne en prod via systemd.
 
@@ -570,7 +590,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 | shenron | 5006 | bot.dragonballfr.com (ex- bot.rpbey.fr) | Bun + discordx + drizzle + bun:sqlite + canvas. Sert aussi **GraphQL** `/graphql` (Pothos+yoga, GraphiQL) et **OpenAPI** `/api/openapi.json` + UI Scalar `/api/docs` |
 | shenron-embed | 5007 (loopback) | — | Sidecar embeddings RAG (multilingual-e5-small, transformers.js). Modèle chaud, isolé du bot. Cf. RAG hybride |
 | shenron-llm | 5008 (loopback) | — | **Serveur LLM conversationnel local** (llama.cpp, Qwen2.5-3B-Instruct GGUF, CPU). Sert `generateLlmAnswer` (chat bot + site) : conversation + raisonnement + mémoire Redis, faits via RAG. Aucune API externe. Cf. [`docs/llm-maison.md`](docs/llm-maison.md) |
-| shenron-mcp | 5010 (loopback) | mcp.dragonballfr.com | **Serveur MCP public** (`apps/mcp`, `@shenron/mcp`) : Bun.serve + `@modelcontextprotocol/sdk` (transport **Streamable HTTP** Bun-natif `WebStandardStreamableHTTPServerTransport`, **stateless**, **lecture seule**, **auth `none`**). 14 outils qui **proxifient** l'API publique du bot (`127.0.0.1:5006/api/public/*`) + le RAG — aucun accès DB/secret. Endpoint `POST /mcp`, sonde `/health`, doc `/`. CORS `*` géré par l'app (nginx ne pose PAS de CORS). Compatible Claude web/desktop, Grok, Gemini, Ollama (bridge) |
+| shenron-mcp | 5010 (loopback) | mcp.dragonballfr.com | **Serveur MCP public** (`apps/mcp`, `@shenron/mcp`) : Bun.serve + `@modelcontextprotocol/sdk` (transport **Streamable HTTP** Bun-natif `WebStandardStreamableHTTPServerTransport`, **stateless**, **lecture seule**, **auth `none`**). 14 outils qui **proxifient** l'API publique du bot (`127.0.0.1:5006/api/public/*`) + le RAG — aucun accès DB/secret. Endpoint `POST /mcp`, sonde `/health`, doc `/`. CORS `*` géré par l'app (nginx ne pose PAS de CORS). Compatible Claude web/desktop, Grok, Gemini, Ollama (bridge). Distribué aussi en **plugin Claude Code** `dragon-ball` (cf. § Agents & skills) qui déclare ce serveur MCP distant inline |
 | shenron-backup.timer | — | — | `VACUUM INTO` SQLite bot quotidien 03:00 UTC → `data/backups/shenron-sqlite/` |
 | shenron-pg-backup.timer | — | — | `pg_dump shenron_site` (gzip, retention 14j) quotidien 03:30 UTC → `data/backups/shenron-pg/` |
 | shenron-guild-sync.timer | — | — | Script réconciliation DB↔Discord quotidien 04:00 UTC |
@@ -608,6 +628,8 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 - **`EpisodeFrame` = type riche** : source de vérité `apps/bot/src/db/episode-frames.ts` (`imagePath`/`isNotable`/`characterNames`/`caption`/`tags`/`timecodeSec`/`sortOrder`…), écrit en jsonb sur `bot.db_episodes.frames`. Le site **duplique** ce type (pas d'import cross-app) dans `src/db/bot-schema.ts` — garder les deux alignés (`imagePath` PAS `path` ; `isNotable` PAS `notable`).
 - **Télémétrie : tables avant deploy** : `site_events`/`user_preferences` doivent exister sur le Postgres du site AVANT de pousser le code d'ingest (sinon `POST /api/telemetry` insert → erreur). Appliquée à la main : `vercel env pull apps/site/.env.local --environment=production` → exécuter le `.sql` via postgres-js → supprimer le `.env.local` (secrets).
 - **bxc (crawl)** = toolchain externe `/home/ubuntu/bxc` (`BXC_DIR`), invoquée en sous-process. v0.5.4 : `bxc scrape` sort du **JSON**, profils `static|fast|http|stealth|max` (`ghost` supprimé). `dragonball.news`/`bandai` fragiles depuis le VPS (cert expiré + IP datacenter filtrée) → proxy résidentiel pour un ingest fiable.
+- **`rag:build` = ~15 min, JAMAIS en foreground / JAMAIS en stoppant le bot** : corpus ~40 874 chunks ⇒ la phase d'embedding dure ~15 min, et le build émet un DDL `DROP`/recreate qui **gèle les handlers HTTP** s'il tourne en live → downtime. Pour un re-embed après un `fix-*` data ou un build interrompu, utiliser `scripts/rag-embed-vectors.ts` : il recalcule **uniquement** `vec_chunks` depuis un `rag_chunks` déjà bon, **sans verrou d'écriture** (l'embedding n'est que des appels HTTP au sidecar) et avec **insertion finale atomique** (bascule nette lexical→hybride). `rag:build` complet = en tâche de fond, hors heures de pointe, puis `systemctl restart shenron`.
+- **Fuite d'infobox Fandom (corrigé `78b2472`)** : l'ingest Fandom faisait fuiter des paramètres d'infobox dans des champs de `bot.db_characters` (`name_ja`/`name_romaji`/`race`/`affiliation` — ex. `name_ja = "|Décès = An 737"`, `race = "Giras|Concepteur=…}}"`). 306 cellules nettoyées via `scripts/fix-infobox-leak.ts` (idempotent ; corrige le **PG `bot.*` source de vérité** → propagé au SQLite par le reverse-sync `shenron-neon-pull`). Root cause fixée dans `scripts/ingest/ingest-fandom-full.ts` : `clean()` coupe la valeur au 1er `}}` / `|` de tête (wikilinks/templates résolus **avant** pour ne pas casser leurs séparateurs internes).
 
 ## Backups & recovery
 
@@ -658,6 +680,11 @@ bun --filter @shenron/bot run db:migrate   # drizzle migrations
 bun --filter @shenron/bot run db:seed-all  # seed RUNTIME only (triggers + level-rewards + shop-banners) ; wiki éditorial = Neon (reverse-sync), plus seedé en SQLite
 bun --filter @shenron/bot run dashboard:css # recompile le CSS Tailwind du dashboard admin (requis avant build)
 
+### RAG / data wiki (jamais en foreground ni en stoppant le bot — cf. pièges)
+bun --filter @shenron/bot run rag:build              # rebuild complet rag_chunks + vec_chunks (~15 min, ~40 874 chunks)
+bun apps/bot/scripts/rag-embed-vectors.ts            # re-embed UNIQUEMENT vec_chunks (sidecar HTTP, sans downtime, insertion atomique)
+bun apps/bot/scripts/fix-infobox-leak.ts             # purge idempotente des fuites d'infobox Fandom dans bot.db_characters (PG source de vérité)
+
 ### Scènes d'épisode (frames → preview.mp4 → wiki) — déposer les masters dans apps/bot/data/dbz-sources/<série>/<num>.mkv
 bun apps/bot/scripts/build-episode-scenes.ts --series DBZ --ep 1 --max 24   # extraction ffmpeg + preview + dataset (--dry-run pour tester)
 bun apps/bot/scripts/scrape-dbz-fandom-frames.ts --series DBZ --from 1 --to 10 [--download]  # alt. sans vidéo (screencaps fandom)
@@ -688,6 +715,11 @@ Skills globales utiles (`~/.claude/skills/`) :
 - `persona-{shenron,beerus,whis,grandpretre,enma,kaio}` — fiche identité+code+API+commandes par persona.
 - `bot-smoke-test` — 10 checks prod (6 personas online, API publique, site Vercel, DB, timers, logs).
 - `deploy-shenron-prod` — orchestre push+vercel+systemctl dans le bon ordre depuis root (user-only).
+
+Plugin Claude Code `dragon-ball` (`plugins/dragon-ball/`, depuis `644ccc3`) :
+- Manifeste `.claude-plugin/plugin.json` + skill auto-découverte `skills/dragon-ball/` (SKILL.md + `references/` + `scripts/db.sh`) + serveur MCP distant déclaré **inline** (`mcpServers.dragonball = { "type": "streamable-http", "url": "https://mcp.dragonballfr.com/mcp" }`).
+- **Marketplace `shenron`** à la racine (`.claude-plugin/marketplace.json`, source `./plugins/dragon-ball`). Install : `/plugin marketplace add aphrody-code/shenron` puis `/plugin install dragon-ball@shenron`. Validé via `claude plugin validate`.
+- **Caveat** : héberger le plugin dans ce monorepo ⇒ `/plugin marketplace add` clone TOUT le dépôt (lourd) ; extraction dans un dépôt dédié possible pour des installs légères.
 
 Hooks actifs (`.claude/settings.json`) :
 - PostToolUse Edit/Write sur `apps/bot/src/{commands,events,guards}/` → auto `bun run gen:entries`.
@@ -875,7 +907,8 @@ La recherche RAG hybride+rerank charge ses 2 modèles transformers.js dans un **
 | `shenron-embed.service` | `127.0.0.1:5007` | `MemoryMax=3G` | Sidecar embeddings (`multilingual-e5-small` + `bge-reranker-base`), 2 modèles chauds |
 
 - **Activation** : `bash deploy/install.sh` active l'unit avec les autres (units vendorées dans `deploy/systemd/`). Au **1er boot**, le service télécharge ~410 Mo de modèles dans `apps/bot/.models` (gitignored, cache persistant).
-- **Rebuild du corpus RAG** : après tout changement du wiki, `bun --filter @shenron/bot run rag:build` (embed in-process, offline) puis `sudo systemctl restart shenron`.
+- **Re-embedder les vecteurs (sans downtime, cas courant)** : après un `fix-*` data ou un `rag:build` interrompu, `bun apps/bot/scripts/rag-embed-vectors.ts` (re)calcule **uniquement** `vec_chunks` depuis un `rag_chunks` déjà correct. Aucun verrou d'écriture pendant l'embedding (uniquement des appels HTTP au sidecar) ; insertion finale atomique → bascule nette `lexical → hybride`. Le bot reste en ligne — pas de `restart` requis.
+- **Rebuild complet du corpus** : `bun --filter @shenron/bot run rag:build` (embed in-process, offline) — à réserver aux changements de `rag_chunks` lui-même (ré-ingest wiki/manga/docs). Le corpus fait désormais **~40 874 chunks** (manga OCR 147 tomes + 2058 docs Xenoverse 2 fusionnés au wiki, plus seulement ~1041) → la phase d'embedding dure **~15 min**. **PIÈGE** : ne JAMAIS lancer `rag:build` au premier plan, ni en arrêtant le bot (downtime), ni pendant que le bot tourne en prod (son `DROP` de DDL gèle les handlers `Bun.serve`). Le tester sur une copie (`RAG_DB=/path`), et préférer `rag-embed-vectors.ts` dès que `rag_chunks` est déjà bon.
 
 ### Version compilée (binaire standalone)
 
@@ -2221,7 +2254,7 @@ Un site Next.js public accompagne le bot, accessible uniquement via l'URL unique
 - `/wiki <personnage>` — fiche complète avec transformations (autocomplete)
 - `/races <race>` — liste des personnages par race
 - `/planete <planète>` — fiche planète
-- `/ask <question>` — question en langage naturel FR → **recherche RAG hybride+rerank** sur le wiki → réponse sourcée (résultats classés, snippets, liens vers le site) + bouton « Ouvrir le meilleur résultat ». Persona Whis
+- `/ask <question>` — question en langage naturel FR → **recherche RAG hybride+rerank** sur le wiki → réponse sourcée (résultats classés avec **% de pertinence**, **citations numérotées [n]**, snippets, liens vers le site) + bouton « Ouvrir le meilleur résultat ». Persona Whis
 - Données seedées depuis [dragonball-api.com](https://dragonball-api.com) avec images locales
 
 ### Outils
@@ -2271,7 +2304,20 @@ La recherche sémantique du wiki est un pipeline **2 étages, 100 % local** (FR 
 
 Les modèles tournent dans un **sidecar dédié** (`shenron-embed.service`, port 5007, `MemoryMax=3G`) — le process bot (1.5G) ne charge jamais de modèle : `src/lib/embeddings.ts` (heavy) n'est importé que par le sidecar, `src/lib/rag.ts` (runtime léger) fetch HTTP le sidecar. **Dégradation gracieuse** sur 3 niveaux (`hybrid+rerank → hybrid → lexical`).
 
-Consommateurs : `/api/public/rag/search` (REST), `ragSearch` (GraphQL), commande Discord `/ask`, recherche du site. Build offline du corpus : `bun --filter @shenron/bot run rag:build` (voir [DEPLOY.md](DEPLOY.md#sidecar-embeddings-rag-shenron-embedservice)).
+**Exploitation des résultats** : chaque passage expose un `score` ∈ [0,1] (sigmoïde du logit cross-encoder en `hybrid+rerank`, sinon RRF/lexical min-max planché à 0.4 — comparable seulement au sein d'une même réponse et d'un même `mode`). Le top-N est dédupliqué/diversifié par URL canonique puis par titre foldé (le manga est exempté pour préserver son quota), et la requête FTS filtre les stopwords FR/EN + fold les accents. Corpus indexé : ~40 874 chunks (wiki + manga OCR + Xenoverse 2).
+
+Consommateurs : `/api/public/rag/search` (REST, `score` exposé), `ragSearch` (GraphQL, `rowid` + `score`), commande Discord `/ask` (citations numérotées + % de pertinence), recherche du site, **serveur MCP public** (`rag_search` avec filtres `lang` / `entity` / `sourceId`). Build offline du corpus : `bun --filter @shenron/bot run rag:build` (voir [DEPLOY.md](DEPLOY.md#sidecar-embeddings-rag-shenron-embedservice)).
+
+### Serveur MCP + plugin Claude Code
+
+Un **serveur MCP public** (`apps/mcp`, servi sur **`mcp.dragonballfr.com`**, transport Streamable HTTP stateless, lecture seule, sans secret) expose **14 outils** qui proxifient le RAG + l'API publique du bot — `rag_search` / `rag_ask`, `wiki_*`, `manga_*`, news, stats temps réel. Compatible Claude (web / desktop), Grok, Gemini, Ollama (bridge).
+
+Pour **Claude Code**, un plugin `dragon-ball` (skill auto-découverte + ce serveur MCP distant déclaré inline) est publié via le marketplace `shenron` du dépôt :
+
+```bash
+/plugin marketplace add aphrody-code/shenron
+/plugin install dragon-ball@shenron
+```
 
 ## Stack technique
 
@@ -2645,7 +2691,7 @@ Le vocal est automatiquement créé en rejoignant le hub configuré, et supprim�
 | `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos)                                                      |
 | `/races <race>`      | Personnages par race (Saiyan, Namekian, Android…)                                                                  |
 | `/planete <planète>` | Fiche planète                                                                                                      |
-| `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
+| `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée (citations [n] + % de pertinence) + bouton « Ouvrir le meilleur résultat » |
 
 </details>
 
@@ -358136,8 +358182,8 @@ natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requêt
 
 | Outil | Rôle |
 |---|---|
-| `rag_search` | Recherche hybride (BM25 + dense + rerank) → passages sourcés |
-| `rag_ask` | Réponse rédigée (RAG génératif, persona Whis) + sources |
+| `rag_search` | Recherche hybride (BM25 + dense + rerank) → passages sourcés **dédupliqués**, avec `score` ∈ [0,1] (comparable au sein d'une même réponse) ; filtres optionnels `lang` / `entity` / `sourceId` |
+| `rag_ask` | Renvoie surtout des `hits` sourcés (le rédacteur LLM est **OFF**) → s'appuyer sur les passages pour citer |
 | `sources` | Sources/corpus indexés par le RAG |
 | `wiki_search` | Recherche plein-texte du wiki |
 | `wiki_list` | Liste paginée d'entités (`characters`, `planets`, `races`, `techniques`, `transformations`, `sagas`, `episodes`, `movies`, `games`) |
@@ -358148,9 +358194,14 @@ natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requêt
 
 ## Connexion
 
+- **Plugin Claude Code (recommandé)** : `/plugin marketplace add aphrody-code/shenron` puis
+  `/plugin install dragon-ball@shenron`. Le plugin `dragon-ball` (`plugins/dragon-ball/`) embarque la
+  skill auto-découverte + ce serveur MCP distant déclaré inline (`mcpServers.dragonball`, transport
+  `streamable-http` → `https://mcp.dragonballfr.com/mcp`) — aucune config manuelle.
+  NB : la marketplace vit dans ce monorepo (`.claude-plugin/marketplace.json`) ⇒ l'`add` clone tout le dépôt.
 - **Claude (web / desktop)** : Réglages → Connecteurs → *Ajouter un connecteur personnalisé* →
   URL `https://mcp.dragonballfr.com/mcp`, authentification **Aucune**.
-- **Claude Code** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
+- **Claude Code (sans plugin)** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
 - **Gemini / Grok / autres** : ajouter un serveur MCP distant **Streamable HTTP** → `https://mcp.dragonballfr.com/mcp` (sans en-tête d'auth).
 - **Ollama** (via bridge MCP type `mcphost` / Open WebUI) : déclarer un serveur HTTP `https://mcp.dragonballfr.com/mcp`.
 
@@ -360303,7 +360354,29 @@ choix de race.
 
 Le RAG hybride (BM25 `rag_chunks` FTS5 + embeddings denses `vec_chunks` vec0, fusion
 RRF + rerank) sert la recherche du site, `/ask`, le Discord `/ask` et l'assistant.
-Pipeline runtime : `apps/bot/src/lib/rag.ts`. Build : `apps/bot/scripts/rag-build.ts`.
+Pipeline runtime : `apps/bot/src/lib/rag.ts` (cf. **Exploitation** ci-dessous pour le
+scoring/dédup/filtrage). Build : `apps/bot/scripts/rag-build.ts`.
+
+## Exploitation (runtime — `apps/bot/src/lib/rag.ts`)
+
+- **Score normalisé** : chaque `RagHit` porte un `score` ∈ [0,1]. En `hybrid+rerank` =
+  sigmoïde du logit du cross-encoder ; en `hybrid`/`lexical` = min-max planché à 0.4.
+  Le score est **sémantique par mode** et **comparable uniquement au sein d'une même
+  réponse et d'un même `mode`** — pas de seuil absolu cross-requêtes.
+- **Déduplication / diversification** du top-N par **URL canonique**, puis repli sur le
+  **titre foldé** (les chunks Fandom `kind=source` ont souvent une `url` vide). Le
+  **manga est exempté** (clé par rowid) pour préserver le quota manga ≥2.
+- **Stopwords + fold d'accents** : `ftsMatch` retire les stopwords FR/EN et fold les
+  accents avant la requête FTS5 (l'index est `remove_diacritics 2` → fold sûr).
+  Garde-fou : on ne filtre que si la requête fait >3 tokens **et** qu'il en reste ≥2.
+- **Snippet de repli centré** sur le 1er terme de la requête.
+- Propagation : `/api/public/rag/search` remonte `score` ; `/api/public/rag/chat` a reçu
+  CORS + rate-limit ; GraphQL `RagHit` expose `rowid` + `score` ; MCP `rag_search` gagne
+  les filtres `lang`/`entity`/`sourceId` + `score` (et `rag_ask` se fie aux `hits`
+  sourcés, le rédacteur LLM étant OFF) ; Discord `/ask` affiche citations `[n]` + mode +
+  % de pertinence ; site = puces de pertinence + îlot `WikiRagArchives` sur la page saga.
+- Tests : `apps/bot/tests/rag-filter.test.ts` (score ∈ [0,1], dédup URL, dédup
+  titre-vide, manga non-fusionné, tolérance stopwords).
 
 ## Tables (dans `apps/bot/data/bot.db`)
 
@@ -360319,7 +360392,9 @@ structurées **+** `data/rag/corpus.json` (full-text scrapé), chunke (sémantiq
 ## Corpus (`apps/bot/data/rag/corpus.json`)
 
 Format `{generatedAt, count, docs:[{id, name, url, markdown}]}`. État après
-enrichissement 2026-06-22 : **8521 docs → 36 228 chunks** (vs 7093 / 27 653).
+enrichissement 2026-06-22 : **8521 docs → 36 228 chunks** (vs 7093 / 27 653). Depuis,
+fusion du **manga OCR (147 tomes)** + **2058 docs Xenoverse 2** au corpus → **~40 874
+chunks** (la phase d'embedding de `rag:build` dure désormais ~15 min).
 
 ### Sources de full-text & crawlers
 
@@ -360340,7 +360415,10 @@ long gagne), garde les docs non-Fandom, **backup `corpus.json.bak`**.
 ## Reconstruction SANS coupure de recherche
 
 > **Ne JAMAIS rebuild sur la base live** : `rag-build` `DROP TABLE rag_chunks` puis
-> embed (~1 h) → la recherche casse pendant le build et risque de figer l'API du bot.
+> embed (~15 min) → la recherche casse pendant le build, et le DDL `DROP` gèle les
+> handlers `Bun.serve`. Ne jamais le lancer au premier plan, ni en arrêtant le bot
+> (downtime), ni en live. Si seuls les vecteurs sont à recalculer, préférer
+> `rag-embed-vectors.ts` (ci-dessous), sans downtime.
 
 Procédure copy-swap :
 
@@ -360362,11 +360440,19 @@ sudo systemctl start shenron
 lignes en préservant le **rowid** (alignement chunk↔vecteur). Source = `$RAG_COPY`
 (défaut `/tmp/ragbuild.db`).
 
+### Rebuild des vecteurs seuls (sans downtime)
+
+`apps/bot/scripts/rag-embed-vectors.ts` (re)calcule **uniquement `vec_chunks`** depuis un
+`rag_chunks` déjà bon, **sans arrêter le bot** : l'embedding ne fait que des appels HTTP
+au sidecar (aucun verrou d'écriture), et l'insertion finale est **atomique** ⇒ bascule
+nette `lexical`→`hybride`. À utiliser après un correctif data (`fix-*`) ou un `rag:build`
+interrompu, plutôt que le copy-swap complet.
+
 ## Vérification
 
 ```bash
 curl -s "https://bot.dragonballfr.com/api/public/rag/search?q=daizenshuu&limit=3"  # mode hybrid+rerank
-sqlite3 apps/bot/data/bot.db "SELECT count(*) FROM rag_chunks"                       # = 36228
+sqlite3 apps/bot/data/bot.db "SELECT count(*) FROM rag_chunks"                       # ≈ 40874
 ```
 
 ## Pièges
@@ -360377,6 +360463,14 @@ sqlite3 apps/bot/data/bot.db "SELECT count(*) FROM rag_chunks"                  
 - **bxc** : le binaire compilé plante sur les commandes navigateur (`awaitPromise`) ;
   le `bxc` global route vers la source. Cf. [`docs/bxc.md`](#) / mémoire.
 - `crawl-fandom-rag.ts` : le chemin par défaut sans `--cats` est buggé (array.split).
+- **Fuite d'infobox Fandom** : l'ingest pouvait faire fuiter des paramètres d'infobox
+  dans des champs de `bot.db_characters` (`name_ja`, `name_romaji`, `race`,
+  `affiliation`, ex. `race = "Giras|Concepteur=…}}"`) — donc dans le corpus structuré
+  lu par `rag-build`. Root cause corrigée dans `scripts/ingest/ingest-fandom-full.ts`
+  (`clean()` coupe au 1er `}}` / `|` de tête) ; data déjà polluée nettoyée par
+  `scripts/fix-infobox-leak.ts` (idempotent, 306 cellules, sur le Postgres `bot.*`
+  source de vérité → propagé au SQLite par le reverse-sync). Re-propager au RAG via
+  `rag-embed-vectors.ts` (ou un rebuild si le texte des chunks a changé).
 
 
 ---

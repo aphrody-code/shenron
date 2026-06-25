@@ -30,8 +30,8 @@ natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requêt
 
 | Outil | Rôle |
 |---|---|
-| `rag_search` | Recherche hybride (BM25 + dense + rerank) → passages sourcés |
-| `rag_ask` | Réponse rédigée (RAG génératif, persona Whis) + sources |
+| `rag_search` | Recherche hybride (BM25 + dense + rerank) → passages sourcés **dédupliqués**, avec `score` ∈ [0,1] (comparable au sein d'une même réponse) ; filtres optionnels `lang` / `entity` / `sourceId` |
+| `rag_ask` | Renvoie surtout des `hits` sourcés (le rédacteur LLM est **OFF**) → s'appuyer sur les passages pour citer |
 | `sources` | Sources/corpus indexés par le RAG |
 | `wiki_search` | Recherche plein-texte du wiki |
 | `wiki_list` | Liste paginée d'entités (`characters`, `planets`, `races`, `techniques`, `transformations`, `sagas`, `episodes`, `movies`, `games`) |
@@ -42,9 +42,14 @@ natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requêt
 
 ## Connexion
 
+- **Plugin Claude Code (recommandé)** : `/plugin marketplace add aphrody-code/shenron` puis
+  `/plugin install dragon-ball@shenron`. Le plugin `dragon-ball` (`plugins/dragon-ball/`) embarque la
+  skill auto-découverte + ce serveur MCP distant déclaré inline (`mcpServers.dragonball`, transport
+  `streamable-http` → `https://mcp.dragonballfr.com/mcp`) — aucune config manuelle.
+  NB : la marketplace vit dans ce monorepo (`.claude-plugin/marketplace.json`) ⇒ l'`add` clone tout le dépôt.
 - **Claude (web / desktop)** : Réglages → Connecteurs → *Ajouter un connecteur personnalisé* →
   URL `https://mcp.dragonballfr.com/mcp`, authentification **Aucune**.
-- **Claude Code** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
+- **Claude Code (sans plugin)** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
 - **Gemini / Grok / autres** : ajouter un serveur MCP distant **Streamable HTTP** → `https://mcp.dragonballfr.com/mcp` (sans en-tête d'auth).
 - **Ollama** (via bridge MCP type `mcphost` / Open WebUI) : déclarer un serveur HTTP `https://mcp.dragonballfr.com/mcp`.
 

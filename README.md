@@ -109,7 +109,7 @@ Un site Next.js public accompagne le bot, accessible uniquement via l'URL unique
 - `/wiki <personnage>` — fiche complète avec transformations (autocomplete)
 - `/races <race>` — liste des personnages par race
 - `/planete <planète>` — fiche planète
-- `/ask <question>` — question en langage naturel FR → **recherche RAG hybride+rerank** sur le wiki → réponse sourcée (résultats classés, snippets, liens vers le site) + bouton « Ouvrir le meilleur résultat ». Persona Whis
+- `/ask <question>` — question en langage naturel FR → **recherche RAG hybride+rerank** sur le wiki → réponse sourcée (résultats classés avec **% de pertinence**, **citations numérotées [n]**, snippets, liens vers le site) + bouton « Ouvrir le meilleur résultat ». Persona Whis
 - Données seedées depuis [dragonball-api.com](https://dragonball-api.com) avec images locales
 
 ### Outils
@@ -159,7 +159,20 @@ La recherche sémantique du wiki est un pipeline **2 étages, 100 % local** (FR 
 
 Les modèles tournent dans un **sidecar dédié** (`shenron-embed.service`, port 5007, `MemoryMax=3G`) — le process bot (1.5G) ne charge jamais de modèle : `src/lib/embeddings.ts` (heavy) n'est importé que par le sidecar, `src/lib/rag.ts` (runtime léger) fetch HTTP le sidecar. **Dégradation gracieuse** sur 3 niveaux (`hybrid+rerank → hybrid → lexical`).
 
-Consommateurs : `/api/public/rag/search` (REST), `ragSearch` (GraphQL), commande Discord `/ask`, recherche du site. Build offline du corpus : `bun --filter @shenron/bot run rag:build` (voir [DEPLOY.md](DEPLOY.md#sidecar-embeddings-rag-shenron-embedservice)).
+**Exploitation des résultats** : chaque passage expose un `score` ∈ [0,1] (sigmoïde du logit cross-encoder en `hybrid+rerank`, sinon RRF/lexical min-max planché à 0.4 — comparable seulement au sein d'une même réponse et d'un même `mode`). Le top-N est dédupliqué/diversifié par URL canonique puis par titre foldé (le manga est exempté pour préserver son quota), et la requête FTS filtre les stopwords FR/EN + fold les accents. Corpus indexé : ~40 874 chunks (wiki + manga OCR + Xenoverse 2).
+
+Consommateurs : `/api/public/rag/search` (REST, `score` exposé), `ragSearch` (GraphQL, `rowid` + `score`), commande Discord `/ask` (citations numérotées + % de pertinence), recherche du site, **serveur MCP public** (`rag_search` avec filtres `lang` / `entity` / `sourceId`). Build offline du corpus : `bun --filter @shenron/bot run rag:build` (voir [DEPLOY.md](DEPLOY.md#sidecar-embeddings-rag-shenron-embedservice)).
+
+### Serveur MCP + plugin Claude Code
+
+Un **serveur MCP public** (`apps/mcp`, servi sur **`mcp.dragonballfr.com`**, transport Streamable HTTP stateless, lecture seule, sans secret) expose **14 outils** qui proxifient le RAG + l'API publique du bot — `rag_search` / `rag_ask`, `wiki_*`, `manga_*`, news, stats temps réel. Compatible Claude (web / desktop), Grok, Gemini, Ollama (bridge).
+
+Pour **Claude Code**, un plugin `dragon-ball` (skill auto-découverte + ce serveur MCP distant déclaré inline) est publié via le marketplace `shenron` du dépôt :
+
+```bash
+/plugin marketplace add aphrody-code/shenron
+/plugin install dragon-ball@shenron
+```
 
 ## Stack technique
 
@@ -533,7 +546,7 @@ Le vocal est automatiquement créé en rejoignant le hub configuré, et supprim�
 | `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos)                                                      |
 | `/races <race>`      | Personnages par race (Saiyan, Namekian, Android…)                                                                  |
 | `/planete <planète>` | Fiche planète                                                                                                      |
-| `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée + bouton « Ouvrir le meilleur résultat » |
+| `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée (citations [n] + % de pertinence) + bouton « Ouvrir le meilleur résultat » |
 
 </details>
 

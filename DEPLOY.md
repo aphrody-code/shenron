@@ -169,7 +169,8 @@ La recherche RAG hybride+rerank charge ses 2 modèles transformers.js dans un **
 | `shenron-embed.service` | `127.0.0.1:5007` | `MemoryMax=3G` | Sidecar embeddings (`multilingual-e5-small` + `bge-reranker-base`), 2 modèles chauds |
 
 - **Activation** : `bash deploy/install.sh` active l'unit avec les autres (units vendorées dans `deploy/systemd/`). Au **1er boot**, le service télécharge ~410 Mo de modèles dans `apps/bot/.models` (gitignored, cache persistant).
-- **Rebuild du corpus RAG** : après tout changement du wiki, `bun --filter @shenron/bot run rag:build` (embed in-process, offline) puis `sudo systemctl restart shenron`.
+- **Re-embedder les vecteurs (sans downtime, cas courant)** : après un `fix-*` data ou un `rag:build` interrompu, `bun apps/bot/scripts/rag-embed-vectors.ts` (re)calcule **uniquement** `vec_chunks` depuis un `rag_chunks` déjà correct. Aucun verrou d'écriture pendant l'embedding (uniquement des appels HTTP au sidecar) ; insertion finale atomique → bascule nette `lexical → hybride`. Le bot reste en ligne — pas de `restart` requis.
+- **Rebuild complet du corpus** : `bun --filter @shenron/bot run rag:build` (embed in-process, offline) — à réserver aux changements de `rag_chunks` lui-même (ré-ingest wiki/manga/docs). Le corpus fait désormais **~40 874 chunks** (manga OCR 147 tomes + 2058 docs Xenoverse 2 fusionnés au wiki, plus seulement ~1041) → la phase d'embedding dure **~15 min**. **PIÈGE** : ne JAMAIS lancer `rag:build` au premier plan, ni en arrêtant le bot (downtime), ni pendant que le bot tourne en prod (son `DROP` de DDL gèle les handlers `Bun.serve`). Le tester sur une copie (`RAG_DB=/path`), et préférer `rag-embed-vectors.ts` dès que `rag_chunks` est déjà bon.
 
 ### Version compilée (binaire standalone)
 

@@ -3,6 +3,24 @@
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
 
+## [Unreleased] — 2026-06-25
+
+### Added
+
+- **SEO — données structurées + canonicals** (`apps/site`) : composant **server** `apps/site/src/components/SiteJsonLd.tsx` monté dans le layout — JSON-LD `Organization` + `WebSite` avec `SearchAction` (sitelinks search box → `/wiki/search?q={search_term_string}`), inerte (sans cookie/header → cache CDN préservé). `ogMeta` (`lib/og.ts`) étendu d'un param `canonical` → `alternates.canonical` + `og:url` ; canonicals **auto-référentes** câblées sur ~30 pages (home + index + détails + page perso inline) — pas de canonical globale (pointerait toutes les pages vers la home). Invariants cache préservés (`public` + `x-nextjs-cache` HIT vérifiés).
+- **RAG — exploitation des résultats** (`apps/bot/src/lib/rag.ts`) : `RagHit` expose désormais un **`score` ∈ [0,1]** (hybrid+rerank = sigmoïde du logit cross-encoder ; sinon RRF/lexical = min-max planché à 0.4 ; comparable **uniquement** au sein d'une même réponse et d'un même `mode`). **Déduplication/diversification** du top-N par URL canonique puis repli sur **titre foldé** (les chunks Fandom `kind=source` ont souvent une URL vide) ; le **manga est exempté** (clé par rowid → préserve le quota manga ≥ 2). **Filtrage stopwords FR/EN** + fold d'accents dans `ftsMatch` (index FTS5 en `remove_diacritics 2` → fold sûr ; garde-fou : ne filtre que si > 3 tokens et qu'il reste ≥ 2 tokens). Snippet de repli **centré sur le 1er terme** de requête. Propagé : REST `/api/public/rag/search` remonte `score` ; `/api/public/rag/chat` reçoit **CORS + rate-limit** (il était brut, sans wrapper) ; GraphQL `RagHit` expose `rowid` + `score` ; MCP `rag_search` gagne les filtres `lang`/`entity`/`sourceId` + `score` documenté (`rag_ask` clarifié : rédacteur LLM OFF → se fier aux `hits` sourcés) ; Discord `/ask` : **citations numérotées `[n]`** + icône de mode + % de pertinence ; site : puces de pertinence + **`WikiRagArchives`** (« passages liés » sourcés, `<Link>` internes + badge de pertinence) monté sur la page saga (îlot Suspense → revalidate de cette route 3600 → 300 s). Vérifié en prod : « Kamehameha » passe de 3/10 à 9/9 titres distincts. Tests : `apps/bot/tests/rag-filter.test.ts` (+5 invariants).
+- **Plugin Claude Code `dragon-ball`** (`plugins/dragon-ball/`) : manifeste `.claude-plugin/plugin.json` + skill auto-découverte `skills/dragon-ball/` (SKILL.md + `references/` + `scripts/db.sh`) + serveur MCP distant déclaré inline (`mcpServers.dragonball` → `streamable-http` `https://mcp.dragonballfr.com/mcp`). **Marketplace `shenron`** à la racine (`.claude-plugin/marketplace.json`, source `./plugins/dragon-ball`). Install : `/plugin marketplace add aphrody-code/shenron` puis `/plugin install dragon-ball@shenron`. Validé via `claude plugin validate` (skill découverte, MCP connecté, outils OK). Caveat : héberger le plugin dans ce monorepo ⇒ `/plugin marketplace add` clone **tout** le dépôt (lourd) — extraction possible dans un dépôt dédié pour des installs légères.
+- **`apps/bot/scripts/rag-embed-vectors.ts`** : (re)calcule **uniquement** `vec_chunks` depuis un `rag_chunks` déjà bon, **sans downtime** (aucun verrou d'écriture pendant l'embedding — que des appels HTTP au sidecar — insertion finale atomique ⇒ bascule nette lexical → hybride). À utiliser après un `fix-*` data ou un `rag:build` interrompu.
+
+### Changed
+
+- **`robots.ts`** : `/_next/` débloqué (ne plus interdire les ressources de rendu) ; `/wiki/search` passée en `robots: noindex, follow` (évite l'indexation de la combinatoire `?q=`).
+- **Corpus RAG ~40 874 chunks** (et non ~1041) : le manga OCR (147 tomes) et 2058 docs Xenoverse 2 ont été fusionnés au corpus ⇒ la phase d'embedding de `rag:build` dure **~15 min**. **Piège** : ne JAMAIS lancer `rag:build` au premier plan, ni en arrêtant le bot (downtime), ni en live (DDL `DROP` qui gèle les handlers) — préférer `rag-embed-vectors.ts` quand seul `vec_chunks` doit être recalculé.
+
+### Fixed
+
+- **Fuite d'infobox Fandom dans `bot.db_characters`** : l'ingest faisait fuiter des paramètres d'infobox dans `name_ja`/`name_romaji`/`race`/`affiliation` (ex. `name_ja = "|Décès = An 737"`, `race = "Giras|Concepteur=Akira Toriyama}}"`). **306 cellules nettoyées** via `apps/bot/scripts/fix-infobox-leak.ts` (idempotent ; corrige le Postgres `bot.*` source de vérité → propagé au SQLite par le reverse-sync `shenron-neon-pull.service`). Root cause corrigée dans `apps/bot/scripts/ingest/ingest-fandom-full.ts` (`clean()` coupe la valeur au 1er `}}` ou `|` de tête, wikilinks/templates résolus avant pour ne pas casser leurs séparateurs internes).
+
 ## [Unreleased] — 2026-06-22
 
 ### Added
