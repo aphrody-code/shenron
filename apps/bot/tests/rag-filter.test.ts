@@ -182,4 +182,91 @@ describe("RAG Metadata Filtering", () => {
 		expect(titles).not.toContain("Goku (EN)");
 		expect(titles).not.toContain("Vegeta");
 	});
+
+	it("devrait exposer un score normalisé ∈ [0,1] sur chaque hit", async () => {
+		const { results } = await hybridSearch(dbs.sqlite, "Goku Saiyan", 10);
+		expect(results.length).toBeGreaterThan(0);
+		for (const r of results) {
+			expect(typeof r.score).toBe("number");
+			expect(r.score).toBeGreaterThanOrEqual(0);
+			expect(r.score).toBeLessThanOrEqual(1);
+		}
+	});
+
+	it("devrait tolérer une requête saturée de stopwords FR", async () => {
+		// « comment / est / un » sont des stopwords → la requête ne doit pas se vider
+		// et doit toujours ramener Goku (garde-fou ≥2 tokens de contenu).
+		const { results } = await hybridSearch(dbs.sqlite, "comment Goku est un Saiyan", 10);
+		expect(results.map((r) => r.title)).toContain("Goku");
+	});
+});
+
+describe("RAG Déduplication & diversification", () => {
+	let dbs: DatabaseService;
+	const originalFetch = global.fetch;
+
+	beforeAll(() => {
+		dbs = container.resolve(DatabaseService);
+		sqliteVec.load(dbs.sqlite);
+		dbs.sqlite.run("DROP TABLE IF EXISTS rag_chunks");
+		dbs.sqlite.run("DROP TABLE IF EXISTS vec_chunks");
+		dbs.sqlite.run(
+			`CREATE VIRTUAL TABLE rag_chunks USING fts5(kind, title, url, content, lang, source_id, entity, tokenize='unicode61 remove_diacritics 2')`
+		);
+		dbs.sqlite.run(`CREATE VIRTUAL TABLE vec_chunks USING vec0(embedding float[384])`);
+		const insChunk = dbs.sqlite.query(
+			"INSERT INTO rag_chunks (rowid, kind, title, url, content, lang, source_id, entity) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+		);
+		const insVector = dbs.sqlite.query("INSERT INTO vec_chunks (rowid, embedding) VALUES (?, ?)");
+		const vec = (v: number) => new Float32Array(384).fill(v);
+		// Deux chunks DISTINCTS partageant la MÊME url Fandom → doivent fusionner en 1.
+		insChunk.run(10, "technique", "Kamehameha", "/wiki/kamehameha", "Le Kamehameha de Goku.", "fr", "fandom-fr", "Goku");
+		insVector.run(10, vec(0.9));
+		insChunk.run(11, "technique", "Kamehameha (variante)", "/wiki/kamehameha", "Kamehameha encore Goku.", "fr", "fandom-fr", "Goku");
+		insVector.run(11, vec(0.85));
+		// Deux planches manga distinctes partageant l'url générique → NE doivent PAS fusionner.
+		insChunk.run(12, "source", "DB Tome 1 p5", "/wiki/manga", "Goku lance un Kamehameha planche 5.", "fr", "manga", "Goku");
+		insVector.run(12, vec(0.8));
+		insChunk.run(13, "source", "DB Tome 1 p6", "/wiki/manga", "Goku Kamehameha planche 6.", "fr", "manga", "Goku");
+		insVector.run(13, vec(0.78));
+
+		global.fetch = async (url, options) => {
+			const u = url.toString();
+			if (u.includes("/embed"))
+				return new Response(JSON.stringify({ vectors: [Array(384).fill(0.1)] }), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				});
+			if (u.includes("/rerank")) {
+				let n = 1;
+				try {
+					const b = JSON.parse((options?.body as string) ?? "{}");
+					if (Array.isArray(b.passages)) n = b.passages.length;
+				} catch {}
+				// Scores décroissants distincts → ordre stable + dedup garde le max.
+				return new Response(JSON.stringify({ scores: Array.from({ length: n }, (_, i) => 1 - i * 0.05) }), {
+					status: 200,
+					headers: { "content-type": "application/json" },
+				});
+			}
+			return originalFetch(url, options);
+		};
+	});
+
+	afterAll(() => {
+		global.fetch = originalFetch;
+	});
+
+	it("fusionne les chunks Fandom partageant la même URL (1 seule occurrence)", async () => {
+		const { results } = await hybridSearch(dbs.sqlite, "Kamehameha Goku", 10);
+		const kameh = results.filter((r) => r.url === "/wiki/kamehameha");
+		expect(kameh.length).toBe(1);
+	});
+
+	it("ne fusionne PAS les planches manga distinctes (préserve le quota manga)", async () => {
+		const { results } = await hybridSearch(dbs.sqlite, "Kamehameha Goku", 10);
+		const mangaRowids = results.filter((r) => r.url === "/wiki/manga").map((r) => r.rowid);
+		expect(new Set(mangaRowids).size).toBe(mangaRowids.length); // pas de doublon rowid
+		expect(mangaRowids.length).toBeGreaterThanOrEqual(2); // les 2 planches survivent
+	});
 });

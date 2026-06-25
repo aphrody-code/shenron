@@ -43,6 +43,13 @@ export interface RagHit {
 	title: string;
 	url: string;
 	snippet: string;
+	/**
+	 * Pertinence normalisée dans [0,1]. Comparable UNIQUEMENT au sein d'une même
+	 * réponse ET d'un même `mode` : en `hybrid+rerank` c'est la sigmoïde du logit
+	 * cross-encoder (≈ calibrée) ; en `hybrid`/`lexical` c'est un rang relatif
+	 * (min-max). Ne JAMAIS comparer un score entre deux réponses/modes.
+	 */
+	score: number;
 }
 
 /** Effectue une recherche vectorielle native k-NN via l'extension sqlite-vec. */
@@ -129,14 +136,81 @@ export interface SearchOptions {
 	sourceId?: string;
 }
 
-/** Tokenise une requête naturelle en clause FTS5 OR (recall large). */
+// Mots vides FR (+ quelques EN fréquents) : retirés de la clause OR FTS5 pour
+// réduire le bruit lexical des questions naturelles (« comment Goku devient… »).
+// L'index utilise `remove_diacritics 2` → on fold les accents AUSSI dans la
+// requête, ce qui (a) rend ce set sans-accent exhaustif (« où » → « ou »), et
+// (b) garantit la cohérence requête/index.
+const FR_STOPWORDS = new Set([
+	"le","la","les","un","une","des","de","du","au","aux","et","ou","a","en","dans","sur","sous","par","pour","avec",
+	"que","qui","quoi","dont","comment","pourquoi","quand","combien","quel","quelle","quels","quelles","ce","cet","cette","ces",
+	"est","sont","etre","ete","ont","son","sa","ses","leur","leurs","mon","ma","mes","ton","ta","tes","notre","votre",
+	"il","elle","ils","elles","on","se","ne","pas","plus","moins","mais","donc","car","ni","or","si","comme","tout","tous","toute","toutes",
+	"the","is","are","was","what","who","how","of","in","to","and","or","a","an",
+]);
+
+/** Fold accents (NFD) + minuscule — aligné sur le tokenizer FTS5 `remove_diacritics 2`. */
+function fold(s: string): string {
+	return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/** Tokenise une requête naturelle en clause FTS5 OR (recall large, sans stopwords). */
 function ftsMatch(raw: string): string | null {
-	const tokens = raw
+	const tokens = fold(raw)
 		.replace(/["*()]/g, " ")
 		.split(/\s+/)
 		.filter((t) => t.length > 1);
 	if (tokens.length === 0) return null;
-	return tokens.map((t) => `"${t}"`).join(" OR ");
+	// Garde-fou : on ne filtre que les requêtes assez longues, et seulement si le
+	// filtrage laisse ≥2 tokens de contenu — jamais de OR vide (« qui est X »).
+	let kept = tokens;
+	if (tokens.length > 3) {
+		const filtered = tokens.filter((t) => !FR_STOPWORDS.has(t));
+		if (filtered.length >= 2) kept = filtered;
+	}
+	return kept.map((t) => `"${t}"`).join(" OR ");
+}
+
+const round3 = (n: number) => Math.round(n * 1000) / 1000;
+
+/**
+ * Snippet de repli centré sur le 1er token de requête présent dans le contenu
+ * (fenêtre de `width` chars), au lieu d'un simple préfixe — donne un extrait qui
+ * contient effectivement le terme cherché. Utilisé quand le highlight BM25 manque.
+ */
+function centeredSnippet(content: string, tokens: string[], width = 220): string {
+	const text = content.replace(/\s+/g, " ").trim();
+	if (text.length <= width) return text;
+	const lc = fold(text);
+	let pos = -1;
+	for (const t of tokens) {
+		const i = lc.indexOf(t);
+		if (i !== -1 && (pos === -1 || i < pos)) pos = i;
+	}
+	if (pos === -1) return `${text.slice(0, width).trimEnd()}…`;
+	const start = Math.max(0, pos - Math.floor(width / 4));
+	const end = Math.min(text.length, start + width);
+	return `${start > 0 ? "…" : ""}${text.slice(start, end).trim()}${end < text.length ? "…" : ""}`;
+}
+
+/**
+ * Normalise les scores bruts d'un set RÉSULTAT vers [0,1] selon le mode :
+ *  - `hybrid+rerank` : sigmoïde du logit cross-encoder (≈ calibrée, absolue).
+ *  - sinon (RRF/lexical) : min-max relatif, planché à 0.4 pour ne pas afficher
+ *    « 0 % pertinent » sur le dernier hit d'une réponse par ailleurs pertinente.
+ */
+function normalizeScores<T extends { score: number }>(arr: T[], mode: RagMode): T[] {
+	if (mode === "hybrid+rerank") {
+		return arr.map((c) => ({ ...c, score: round3(1 / (1 + Math.exp(-c.score))) }));
+	}
+	const vals = arr.map((c) => c.score);
+	const min = Math.min(...vals);
+	const max = Math.max(...vals);
+	const span = max - min;
+	return arr.map((c) => ({
+		...c,
+		score: round3(span > 0 ? 0.4 + (0.6 * (c.score - min)) / span : 1),
+	}));
 }
 
 export type RagMode = "hybrid+rerank" | "hybrid" | "lexical";
@@ -156,6 +230,10 @@ export async function hybridSearch(
 	const query = raw.trim();
 	const match = ftsMatch(query);
 	if (!match) return { results: [], mode: "lexical" };
+	// Tokens (foldés) pour centrer le snippet de repli sur un terme cherché.
+	const snipTokens = fold(query)
+		.split(/\s+/)
+		.filter((t) => t.length > 2);
 
 	// Récupération des rowids autorisés si des filtres sont présents
 	let allowedRowids: Set<number> | null = null;
@@ -202,9 +280,9 @@ export async function hybridSearch(
 	bmSql += " ORDER BY rank LIMIT ?";
 	bmParams.push(POOL);
 
-	const bm = db.query(bmSql).all(...bmParams) as RagHit[];
+	const bm = db.query(bmSql).all(...bmParams) as Omit<RagHit, "score">[];
 
-	const bmById = new Map<number, RagHit>();
+	const bmById = new Map<number, Omit<RagHit, "score">>();
 	for (const h of bm) bmById.set(h.rowid, h);
 
 	// Étage 1 — signal sémantique (best-effort).
@@ -212,7 +290,18 @@ export async function hybridSearch(
 	const dense = qv ? nativeVectorSearch(db, qv, POOL, allowedRowids) : [];
 
 	if (dense.length === 0) {
-		return { results: bm.slice(0, limit), mode: "lexical" };
+		// Repli lexical (sidecar/vecteurs absents) : on déduplique par URL et on
+		// attribue un score de rang BM25 — la réponse expose toujours un `score`.
+		const seen = new Set<string>();
+		const out: RagHit[] = [];
+		for (let i = 0; i < bm.length && out.length < limit; i++) {
+			const h = bm[i]!;
+			const key = (h.url || "").split("?")[0].toLowerCase() || `r:${h.rowid}`;
+			if (seen.has(key)) continue;
+			seen.add(key);
+			out.push({ ...h, score: bm.length - i });
+		}
+		return { results: normalizeScores(out, "lexical"), mode: "lexical" };
 	}
 
 	// Fusion RRF des deux classements.
@@ -242,19 +331,20 @@ export async function hybridSearch(
 
 	// Hydrate kind/title/url + contenu (pour le rerank) de tous les candidats.
 	const ph = ordered.map(() => "?").join(",");
+	type ContentRow = Omit<RagHit, "score"> & { content: string };
 	const rows = db
 		.query(`SELECT rowid, kind, title, url, content FROM rag_chunks WHERE rowid IN (${ph})`)
-		.all(...ordered) as (RagHit & { content: string })[];
-	const rowById = new Map<number, RagHit & { content: string }>();
+		.all(...ordered) as ContentRow[];
+	const rowById = new Map<number, ContentRow>();
 	for (const r of rows) rowById.set(r.rowid, r);
 
 	// Candidats dans l'ordre RRF ; snippet d'affichage = surlignage BM25 si dispo,
-	// sinon préfixe du contenu. `score` = base RRF (remplacé par le rerank ci-dessous).
+	// sinon fenêtre centrée sur la requête. `score` = base RRF (remplacé par le rerank ci-dessous).
 	let candidates = ordered
 		.map((id) => {
 			const r = rowById.get(id);
 			if (!r) return null;
-			const snippet = bmById.get(id)?.snippet ?? r.content.slice(0, 160);
+			const snippet = bmById.get(id)?.snippet ?? centeredSnippet(r.content, snipTokens);
 			return {
 				rowid: r.rowid,
 				kind: r.kind,
@@ -279,6 +369,21 @@ export async function hybridSearch(
 			mode = "hybrid+rerank";
 		}
 	}
+
+	// Déduplication / diversification : un même article (URL) ne doit pas occuper
+	// plusieurs slots du top-N. « Kamehameha » renvoyait 3× la MÊME fiche. On garde
+	// le meilleur score par clé. Le MANGA est dédupliqué par rowid (chaque planche
+	// est un passage distinct partageant l'URL générique /wiki/manga) → préserve le
+	// quota manga ≥ MANGA_QUOTA appliqué juste après.
+	const dedupKey = (c: { rowid: number; url: string }) =>
+		isManga(c.rowid) ? `m:${c.rowid}` : (c.url || "").split("?")[0].toLowerCase() || `r:${c.rowid}`;
+	const bestByKey = new Map<string, (typeof candidates)[number]>();
+	for (const c of candidates) {
+		const k = dedupKey(c);
+		const prev = bestByKey.get(k);
+		if (!prev || c.score > prev.score) bestByKey.set(k, c);
+	}
+	candidates = [...bestByKey.values()];
 
 	// Tri final par score BOOSTÉ manga (×MANGA_WEIGHT), puis QUOTA garanti :
 	// ≥ MANGA_QUOTA chunks manga dans le top `limit` si disponibles → les réponses
@@ -306,13 +411,9 @@ export async function hybridSearch(
 		top.sort((a, b) => boost(b.rowid, b.score) - boost(a.rowid, a.score));
 	}
 
-	const results: RagHit[] = top.map(({ rowid, kind, title, url, snippet }) => ({
-		rowid,
-		kind,
-		title,
-		url,
-		snippet,
-	}));
+	const results: RagHit[] = normalizeScores(top, mode).map(
+		({ rowid, kind, title, url, snippet, score }) => ({ rowid, kind, title, url, snippet, score })
+	);
 	return { results, mode };
 }
 

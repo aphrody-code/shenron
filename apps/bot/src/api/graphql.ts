@@ -129,6 +129,7 @@ interface RagHitRow {
 	title: string;
 	url: string;
 	snippet: string;
+	score: number;
 }
 
 interface GqlContext {
@@ -345,10 +346,17 @@ Race.implement({
 RagHit.implement({
 	description: "Résultat de recherche RAG hybride.",
 	fields: (t) => ({
+		rowid: t.exposeInt("rowid", {
+			description: "rowid du chunk RAG (déréférençable, ex. character(id: rowid)).",
+		}),
 		kind: t.exposeString("kind"),
 		title: t.exposeString("title"),
 		url: t.exposeString("url"),
 		snippet: t.exposeString("snippet"),
+		score: t.exposeFloat("score", {
+			description:
+				"Pertinence normalisée [0,1], comparable uniquement au sein de cette réponse et du même mode.",
+		}),
 	}),
 });
 

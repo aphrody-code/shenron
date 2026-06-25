@@ -154,6 +154,11 @@ export default async function SearchPage({
 									<span className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors truncate">
 										{r.title}
 									</span>
+									{typeof r.score === "number" && (
+										<span className="ml-auto shrink-0 font-scouter text-[9px] tracking-[0.15em] text-emerald-400/70">
+											{Math.round(r.score * 100)}%
+										</span>
+									)}
 								</div>
 								{r.snippet && (
 									<p className="text-xs text-white/55 leading-relaxed line-clamp-2">{r.snippet}</p>

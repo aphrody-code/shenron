@@ -124,20 +124,23 @@ export class AskCommands {
 		}
 
 		// Réponse 100 % retrieval (RAG / tools) : on présente directement les
-		// passages les plus pertinents des archives, SANS génération LLM.
+		// passages les plus pertinents des archives, SANS génération LLM. Citations
+		// numérotées [n] reliant chaque extrait à la source listée plus bas.
 		const top = results[0]!;
 		const previews = results
 			.slice(0, 3)
-			.map((r) => {
+			.map((r, i) => {
 				const meta = KIND_META[r.kind] ?? { icon: "•", label: r.kind };
 				const snip = (r.snippet ?? "").replace(/\s+/g, " ").trim().slice(0, 280);
-				return `**${meta.icon} [${r.title}](${siteUrl(r.url)})**\n> ${snip || "_(voir la source)_"}`;
+				const pct = Math.round((r.score ?? 0) * 100);
+				return `**[${i + 1}] ${meta.icon} [${r.title}](${siteUrl(r.url)})** · ${pct}%\n> ${snip || "_(voir la source)_"}`;
 			})
 			.join("\n\n");
 
+		const modeIcon = mode.startsWith("hybrid") ? "🔄" : "📋";
 		const embed = new EmbedBuilder()
 			.setColor(0x38bdf8)
-			.setAuthor({ name: "Whis · Archives de l'Univers 7" })
+			.setAuthor({ name: `Whis ${modeIcon} · Archives de l'Univers 7` })
 			.setTitle(`❓ ${q.slice(0, 240)}`)
 			.setDescription(
 				`Voici les passages les plus pertinents de nos archives sur ta question :\n\n${previews}`.slice(
@@ -146,11 +149,11 @@ export class AskCommands {
 				)
 			);
 
-		// Ajout des sources consultées
+		// Ajout des sources consultées (mêmes numéros que les extraits ci-dessus)
 		const sourcesText = results
-			.map((r) => {
+			.map((r, i) => {
 				const meta = KIND_META[r.kind] ?? { icon: "•", label: r.kind };
-				return `${meta.icon} [${r.title}](${siteUrl(r.url)})`;
+				return `[${i + 1}] ${meta.icon} [${r.title}](${siteUrl(r.url)})`;
 			})
 			.join("  ·  ");
 

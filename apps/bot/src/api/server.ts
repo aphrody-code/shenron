@@ -2183,6 +2183,19 @@ export class ApiServer {
 
 				// Endpoint de chat génératif RAG-grounded avec injection de contexte page-level
 				"/api/public/rag/chat": async (req) => {
+					// CORS + rate-limit (parité avec /rag/search). PAS de cache mémoire :
+					// la réponse n'est pas idempotente (contexte page + session). Accepte
+					// GET et POST (les clients MCP/agents postent un body JSON).
+					const chatCors = publicCorsHeaders(req);
+					if (req.method === "OPTIONS")
+						return new Response(null, { status: 204, headers: chatCors });
+					if (req.method !== "GET" && req.method !== "POST")
+						return new Response("Method Not Allowed", { status: 405, headers: chatCors });
+					if (!publicRateLimit(clientIp(req)))
+						return Response.json(
+							{ error: "Rate limit (60/min)" },
+							{ status: 429, headers: { ...chatCors, "Retry-After": "60" } }
+						);
 					const url = new URL(req.url);
 					// Les paramètres peuvent venir de la query-string OU du corps JSON
 					// (POST {q}). Les clients MCP/agents postent un body : on lit les deux,
@@ -2210,11 +2223,14 @@ export class ApiServer {
 					const sourceId = pick("sourceId") || undefined;
 
 					if (q.length < 2) {
-						return Response.json({
-							answer: "Posez une question un peu plus précise, jeune guerrier.",
-							hits: [],
-							mode: "lexical",
-						});
+						return Response.json(
+							{
+								answer: "Posez une question un peu plus précise, jeune guerrier.",
+								hits: [],
+								mode: "lexical",
+							},
+							{ headers: chatCors }
+						);
 					}
 
 					const dbs = container.resolve(DatabaseService);
@@ -2234,6 +2250,7 @@ export class ApiServer {
 								title: "Page consultée actuellement",
 								url: "",
 								snippet: pageContext,
+								score: 1,
 							});
 						}
 
@@ -2244,10 +2261,13 @@ export class ApiServer {
 							persona,
 							session ? { sessionId: `site:${session}` } : {}
 						);
-						return Response.json({ answer, hits: results, mode });
+						return Response.json({ answer, hits: results, mode }, { headers: chatCors });
 					} catch (err) {
 						console.error("Erreur API rag/chat:", err);
-						return Response.json({ error: "generation_failed" }, { status: 500 });
+						return Response.json(
+							{ error: "generation_failed" },
+							{ status: 500, headers: chatCors }
+						);
 					}
 				},
 

@@ -83,7 +83,7 @@ export function registerAllTools(server: McpServer): void {
 		{
 			title: "Recherche RAG Dragon Ball",
 			description:
-				"Recherche hybride (BM25 lexical + embeddings sémantiques, fusion RRF, reranking) dans la base de connaissances Dragon Ball de dragonballfr.com (manga, Fandom, databooks). Renvoie des passages sourcés (kind, title, url, snippet) classés par pertinence, plus le mode de récupération effectif. Idéal pour les questions factuelles en langage naturel (FR/EN/JP). API : bot.dragonballfr.com/api/public/rag/search.",
+				"Recherche hybride (BM25 lexical + embeddings sémantiques, fusion RRF, reranking) dans la base de connaissances Dragon Ball de dragonballfr.com (manga, Fandom, databooks). Renvoie des passages sourcés (rowid, kind, title, url, snippet, score) classés par pertinence, plus le `mode` effectif (hybrid+rerank | hybrid | lexical). `score` ∈ [0,1] est comparable UNIQUEMENT entre hits d'une même réponse. Les passages sont dédupliqués par source (pas de doublon d'URL). Idéal pour les questions factuelles en langage naturel (FR/EN/JP) — lis 3 à 5 passages et cite leurs `url`. Filtres optionnels : `lang`, `entity`, `sourceId`. API : bot.dragonballfr.com/api/public/rag/search.",
 			inputSchema: {
 				query: z.string().min(2).describe("Question ou mots-clés en langage naturel"),
 				limit: z
@@ -93,12 +93,26 @@ export function registerAllTools(server: McpServer): void {
 					.max(25)
 					.optional()
 					.describe("Nombre de passages à renvoyer (défaut 8, max 25)"),
+				lang: z
+					.string()
+					.optional()
+					.describe("Filtrer par langue des documents (ex. 'fr', 'en')"),
+				entity: z
+					.string()
+					.optional()
+					.describe("Filtrer par entité/personnage indexé (ex. 'Son Goku', 'Vegeta')"),
+				sourceId: z
+					.string()
+					.optional()
+					.describe("Filtrer par source/corpus (ex. 'manga', 'fandom-fr', 'db_characters')"),
 			},
 			annotations: { title: "Recherche RAG Dragon Ball", ...READ_ANNOTATIONS },
 		},
-		async ({ query, limit }) => {
+		async ({ query, limit, lang, entity, sourceId }) => {
 			try {
-				return jsonResult(await apiGet("/api/public/rag/search", { q: query, limit }));
+				return jsonResult(
+					await apiGet("/api/public/rag/search", { q: query, limit, lang, entity, sourceId })
+				);
 			} catch (err) {
 				return errorResult(err);
 			}
@@ -108,9 +122,9 @@ export function registerAllTools(server: McpServer): void {
 	server.registerTool(
 		"rag_ask",
 		{
-			title: "Réponse rédigée (RAG génératif)",
+			title: "Question RAG + passages sourcés (hits)",
 			description:
-				"Pose une question en langage naturel et renvoie une réponse rédigée par l'assistant Dragon Ball (persona Whis), ancrée dans les passages récupérés par le RAG, accompagnée des sources (hits) et du mode. Plus lente que rag_search (génération de texte). API : bot.dragonballfr.com/api/public/rag/chat.",
+				"Pose une question en langage naturel sur Dragon Ball et renvoie les passages les plus pertinents (`hits`, dédupliqués + scorés) plus le `mode`, accompagnés d'une prose `answer`. IMPORTANT : le rédacteur LLM est actuellement hors-ligne — `answer` est un message de repli, FIE-TOI aux `hits` sourcés (chacun a une `url` à citer), pas à la prose. Pour une simple recherche, préfère rag_search (plus rapide). API : bot.dragonballfr.com/api/public/rag/chat.",
 			inputSchema: {
 				question: z.string().min(2).describe("La question à poser, en langage naturel"),
 			},

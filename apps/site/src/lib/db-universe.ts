@@ -901,11 +901,14 @@ export const dbUniverse = {
 			if (!r.ok) return null;
 			return (await r.json()) as {
 				q: string;
+				mode?: string;
 				results: {
+					rowid?: number;
 					kind: string;
 					title: string;
 					url: string;
 					snippet: string;
+					score?: number;
 				}[];
 			};
 		} catch {
@@ -921,10 +924,12 @@ export const dbUniverse = {
 			return (await r.json()) as {
 				answer: string;
 				hits: {
+					rowid?: number;
 					kind: string;
 					title: string;
 					url: string;
 					snippet: string;
+					score?: number;
 				}[];
 				mode: string;
 			};
