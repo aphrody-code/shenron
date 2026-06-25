@@ -51,15 +51,25 @@ type ParsedPage = {
 
 /** Nettoie la valeur wikitext d'un champ infobox. */
 function clean(v: string): string {
-	return v
-		.replace(/<br\s*\/?>?/gi, ", ")
-		.replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, "$1")
-		.replace(/\{\{[^}]*\}\}/g, "")
-		.replace(/<[^>]*>?/g, "")
-		.replace(/'''?/g, "")
-		.replace(/\s+/g, " ")
-		.replace(/^[\s,;]+|[\s,;]+$/g, "")
-		.trim();
+	return (
+		v
+			.replace(/<br\s*\/?>?/gi, ", ")
+			// Wikilinks et templates résolus AVANT la coupe : leurs `|`/`}}` internes
+			// ne doivent pas être pris pour des séparateurs de champ.
+			.replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, "$1")
+			.replace(/\{\{[^{}]*\}\}/g, "")
+			// parseInfobox capture la valeur jusqu'au `\n` (`[^\n]*`) : quand le
+			// wikitext met plusieurs champs sur une ligne, la valeur déborde sur les
+			// params suivants (`|Param=…`) ET la fermeture d'infobox (`}}…corps`). La
+			// vraie valeur s'arrête au 1er `}}` ou `|` de tête. Sans ça : fuites type
+			// `"Terrien|Poids = 33kg|…}}Chaozu (餃子)…"` (cf. fix-infobox-leak.ts).
+			.split(/\}\}|\|/)[0]
+			.replace(/<[^>]*>?/g, "")
+			.replace(/'''?/g, "")
+			.replace(/\s+/g, " ")
+			.replace(/^[\s,;]+|[\s,;]+$/g, "")
+			.trim()
+	);
 }
 const f = (ib: Record<string, string>, ...keys: string[]) => {
 	for (const k of keys) {
