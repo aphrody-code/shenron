@@ -12,7 +12,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
 import { FeatureEnabled } from "~/guards/FeatureEnabled";
 import { DatabaseService } from "~/db/index";
-import { hybridSearch, generateAnswer, type SearchOptions } from "~/lib/rag";
+import { hybridSearch, type SearchOptions } from "~/lib/rag";
 
 const SITE = "https://dragonballfr.com";
 
@@ -123,22 +123,27 @@ export class AskCommands {
 			return;
 		}
 
-		// RAG LLM Génératif : Whis rédige une réponse personnalisée basée sur le contexte
-		let answer = "";
-		try {
-			answer = await generateAnswer(this.dbs.sqlite, q, results);
-		} catch (err) {
-			console.error("Génération de réponse LLM échouée:", err);
-		}
-
+		// Réponse 100 % retrieval (RAG / tools) : on présente directement les
+		// passages les plus pertinents des archives, SANS génération LLM.
 		const top = results[0]!;
+		const previews = results
+			.slice(0, 3)
+			.map((r) => {
+				const meta = KIND_META[r.kind] ?? { icon: "•", label: r.kind };
+				const snip = (r.snippet ?? "").replace(/\s+/g, " ").trim().slice(0, 280);
+				return `**${meta.icon} [${r.title}](${siteUrl(r.url)})**\n> ${snip || "_(voir la source)_"}`;
+			})
+			.join("\n\n");
+
 		const embed = new EmbedBuilder()
 			.setColor(0x38bdf8)
-			.setAuthor({ name: "Whis · Guide de l'Univers 7" })
+			.setAuthor({ name: "Whis · Archives de l'Univers 7" })
 			.setTitle(`❓ ${q.slice(0, 240)}`)
 			.setDescription(
-				answer ||
-					"Je n'ai pas trouvé de réponse claire dans nos archives, jeune guerrier. Cependant, voici les documents pertinents :"
+				`Voici les passages les plus pertinents de nos archives sur ta question :\n\n${previews}`.slice(
+					0,
+					4096
+				)
 			);
 
 		// Ajout des sources consultées
@@ -163,8 +168,8 @@ export class AskCommands {
 		embed.setFooter({
 			text:
 				(mode.startsWith("hybrid")
-					? `RAG LLM · Recherche hybride + rerank · ${results.length} sources`
-					: `RAG LLM · Recherche lexicale · ${results.length} sources`) + filterText,
+					? `RAG · Recherche hybride + rerank · ${results.length} sources`
+					: `RAG · Recherche lexicale · ${results.length} sources`) + filterText,
 		});
 
 		const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
