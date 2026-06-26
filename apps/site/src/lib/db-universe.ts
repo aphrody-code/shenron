@@ -32,11 +32,14 @@ import {
 	botTools,
 	botTransformations,
 } from "@/db/bot-schema";
-import type { EpisodeFrame } from "@/db/bot-schema";
+import type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
 
 // Re-export pour back-compat des pages serveur qui importaient assetUrl ici.
 export { assetUrl } from "@/lib/assets";
-export type { EpisodeFrame } from "@/db/bot-schema";
+export type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
+
+/** Champs article long-format (Fandom-like) — contrat snake_case du site. */
+type WithArticle = { article: string | null; article_sources: WikiSource[] | null };
 
 // API REST du bot — uniquement pour le RAG (index FTS5 `rag_chunks`, NON
 // miroité dans Neon). Base résolue par `@/lib/config` (source unique des URL).
@@ -44,7 +47,7 @@ function apiBase(): string {
 	return API_URL;
 }
 
-export type Saga = {
+export type Saga = WithArticle & {
 	id: number;
 	slug: string;
 	name: string;
@@ -116,7 +119,7 @@ export type Game = {
 	characters?: Array<{ id: number; name: string; name_ja: string | null; image: string | null }>;
 };
 
-export type Race = {
+export type Race = WithArticle & {
 	id: number;
 	slug: string;
 	name: string;
@@ -208,7 +211,7 @@ export type SearchResults = {
 	}>;
 };
 
-export type Arc = {
+export type Arc = WithArticle & {
 	id: number;
 	saga_id: number;
 	slug: string;
@@ -243,6 +246,8 @@ function toSaga(r: typeof botSagas.$inferSelect): Saga {
 		order_idx: r.orderIdx ?? 0,
 		description: r.description,
 		image: r.image,
+		article: r.article ?? null,
+		article_sources: r.articleSources ?? null,
 	};
 }
 
@@ -255,6 +260,8 @@ function toArc(r: typeof botArcs.$inferSelect): Arc {
 		name_ja: r.nameJa,
 		order_idx: r.orderIdx ?? 0,
 		description: r.description,
+		article: r.article ?? null,
+		article_sources: r.articleSources ?? null,
 	};
 }
 
@@ -323,6 +330,8 @@ function toRace(r: typeof botRaces.$inferSelect): Race {
 		name: r.name,
 		name_ja: r.nameJa,
 		description: r.description,
+		article: r.article ?? null,
+		article_sources: r.articleSources ?? null,
 	};
 }
 

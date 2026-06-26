@@ -1,4 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { getShenronTechnique, getShenronTechniques } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -116,16 +117,25 @@ export default async function TechniqueDetailPage({
 					</div>
 				</header>
 
-				{tech.description && (
-					<section className="dbz-panel p-8 relative overflow-hidden">
-						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
-						<h2 className="font-saiyan text-2xl text-dbz-blue-light mb-4 uppercase tracking-widest">
-							Description & Effets
-						</h2>
-						<div className="prose prose-invert max-w-none wiki-content">
-							<WikiMarkdown body={tech.description} />
-						</div>
-					</section>
+				{tech.article ? (
+					<WikiArticle
+						article={tech.article}
+						sources={tech.articleSources}
+						heading="Article"
+						accent="blue"
+					/>
+				) : (
+					tech.description && (
+						<section className="dbz-panel p-8 relative overflow-hidden">
+							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
+							<h2 className="font-saiyan text-2xl text-dbz-blue-light mb-4 uppercase tracking-widest">
+								Description & Effets
+							</h2>
+							<div className="prose prose-invert max-w-none wiki-content">
+								<WikiMarkdown body={tech.description} />
+							</div>
+						</section>
+					)
 				)}
 			</div>
 		</article>

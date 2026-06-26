@@ -1,4 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -145,15 +146,23 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 					)}
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-						{/* Main Description */}
+						{/* Main Description / Article */}
 						<div className="lg:col-span-2 space-y-8">
-							{race.description && (
-								<div className={`dbz-panel p-10 relative overflow-hidden ${theme.border} ${theme.glow}`}>
-									<div className={`absolute top-0 left-0 w-1.5 h-full ${theme.text.replace("text-", "bg-")}`} />
-									<div className="prose prose-invert max-w-none wiki-content">
-										<WikiMarkdown body={race.description} />
+							{race.article ? (
+								<WikiArticle
+									article={race.article}
+									sources={race.articleSources}
+									heading="Article"
+								/>
+							) : (
+								race.description && (
+									<div className={`dbz-panel p-10 relative overflow-hidden ${theme.border} ${theme.glow}`}>
+										<div className={`absolute top-0 left-0 w-1.5 h-full ${theme.text.replace("text-", "bg-")}`} />
+										<div className="prose prose-invert max-w-none wiki-content">
+											<WikiMarkdown body={race.description} />
+										</div>
 									</div>
-								</div>
+								)
 							)}
 						</div>
 

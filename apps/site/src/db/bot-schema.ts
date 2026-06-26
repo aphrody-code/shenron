@@ -60,6 +60,21 @@ export type EpisodeFrame = {
 /** bigint Neon → number JS (les ID wiki sont petits, < 2^53). */
 const int = (name: string) => bigint(name, { mode: "number" });
 
+/**
+ * Source citée dans un article wiki long-format (champ `article_sources`).
+ * Alimenté par `apps/bot/scripts/wiki-articles.ts` (grounding RAG). Colonnes
+ * PG-only : le reverse-sync Neon→SQLite les ignore (intersection de colonnes),
+ * comme `players`/`frames`/`pages`. Seul le lecteur du site les lit.
+ */
+export type WikiSource = { n: number; label: string; url: string; kind: string };
+
+/** Trois colonnes communes aux tables éditoriales recevant un article Fandom. */
+const articleCols = {
+	article: text("article"),
+	articleSources: jsonb("article_sources").$type<WikiSource[]>(),
+	articleUpdatedAt: bigint("article_updated_at", { mode: "number" }),
+};
+
 export const botCharacters = bot.table("db_characters", {
 	id: int("id").primaryKey(),
 	name: text("name").notNull(),
@@ -74,6 +89,7 @@ export const botCharacters = bot.table("db_characters", {
 	originPlanetId: int("origin_planet_id"),
 	nameJa: text("name_ja"),
 	nameRomaji: text("name_romaji"),
+	...articleCols,
 });
 
 export const botPlanets = bot.table("db_planets", {
@@ -84,6 +100,7 @@ export const botPlanets = bot.table("db_planets", {
 	description: text("description"),
 	nameJa: text("name_ja"),
 	nameRomaji: text("name_romaji"),
+	...articleCols,
 });
 
 export const botTransformations = bot.table("db_transformations", {
@@ -92,6 +109,7 @@ export const botTransformations = bot.table("db_transformations", {
 	image: text("image"),
 	ki: text("ki"),
 	characterId: int("character_id"),
+	...articleCols,
 });
 
 export const botRaces = bot.table("db_races", {
@@ -101,6 +119,7 @@ export const botRaces = bot.table("db_races", {
 	nameJa: text("name_ja"),
 	homePlanetId: int("home_planet_id"),
 	description: text("description"),
+	...articleCols,
 });
 
 export const botTechniques = bot.table("db_techniques", {
@@ -114,6 +133,7 @@ export const botTechniques = bot.table("db_techniques", {
 	description: text("description"),
 	debutEpisodeId: int("debut_episode_id"),
 	debutChapterId: int("debut_chapter_id"),
+	...articleCols,
 });
 
 export const botCharacterTechniques = bot.table("db_character_techniques", {
@@ -130,6 +150,7 @@ export const botSagas = bot.table("db_sagas", {
 	orderIdx: int("order_idx"),
 	description: text("description"),
 	image: text("image"),
+	...articleCols,
 });
 
 export const botArcs = bot.table("db_arcs", {
@@ -140,6 +161,7 @@ export const botArcs = bot.table("db_arcs", {
 	nameJa: text("name_ja"),
 	orderIdx: int("order_idx"),
 	description: text("description"),
+	...articleCols,
 });
 
 export const botEpisodes = bot.table("db_episodes", {

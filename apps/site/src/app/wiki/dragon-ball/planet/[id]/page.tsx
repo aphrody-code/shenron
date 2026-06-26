@@ -1,4 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { ViewTransition } from "@/components/ViewTransition";
 import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
@@ -124,16 +125,25 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 						</div>
 					</div>
 
-					{planet.description && (
-						<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
-							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
-							<h3 className="text-dbz-blue-light font-saiyan text-3xl mb-4 uppercase tracking-widest">
-								Archives / Lore
-							</h3>
-							<div className="prose prose-invert max-w-none wiki-content text-justify">
-								<WikiMarkdown body={planet.description} />
+					{planet.article ? (
+						<WikiArticle
+							article={planet.article}
+							sources={planet.articleSources}
+							heading="Article"
+							accent="blue"
+						/>
+					) : (
+						planet.description && (
+							<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
+								<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
+								<h3 className="text-dbz-blue-light font-saiyan text-3xl mb-4 uppercase tracking-widest">
+									Archives / Lore
+								</h3>
+								<div className="prose prose-invert max-w-none wiki-content text-justify">
+									<WikiMarkdown body={planet.description} />
+								</div>
 							</div>
-						</div>
+						)
 					)}
 				</div>
 			</div>

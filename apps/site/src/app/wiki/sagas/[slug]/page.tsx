@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiArticle } from "@/components/wiki/WikiArticle";
 import WikiRagArchives from "@/components/wiki/WikiRagArchives";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
@@ -99,6 +100,12 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 					</div>
 				)}
 			</header>
+
+			{saga.article && (
+				<div className="mb-20">
+					<WikiArticle article={saga.article} sources={saga.article_sources} heading="Article" />
+				</div>
+			)}
 
 			{arcs.length > 0 && (
 				<section className="mb-20">

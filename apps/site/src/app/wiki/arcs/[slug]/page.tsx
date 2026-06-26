@@ -1,4 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -66,6 +67,12 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 					</div>
 				)}
 			</header>
+
+			{arc.article && (
+				<div className="mb-20">
+					<WikiArticle article={arc.article} sources={arc.article_sources} heading="Article" />
+				</div>
+			)}
 
 			{episodes.length > 0 && (
 				<section className="mb-20">

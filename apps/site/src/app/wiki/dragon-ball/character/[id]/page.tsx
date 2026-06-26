@@ -2,6 +2,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { TrackView } from "@/components/TrackView";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
@@ -229,21 +230,31 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 				</div>
 			</div>
 
-			{character.description && (
-				<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
-					<div className="dbz-panel p-6 sm:p-8 lg:p-10 overflow-hidden">
-						<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-						<div className="flex items-center gap-6 mb-6">
-							<h2 className="text-dbz-orange font-saiyan text-2xl sm:text-3xl md:text-4xl uppercase tracking-widest">
-								Archives / Lore
-							</h2>
-							<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+			{/* Article long-format (Fandom-like) sourcé s'il existe ; sinon repli sur la
+			    description courte en « Archives / Lore ». */}
+			{character.article ? (
+				<WikiArticle
+					article={character.article}
+					sources={character.articleSources}
+					heading="Biographie"
+				/>
+			) : (
+				character.description && (
+					<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
+						<div className="dbz-panel p-6 sm:p-8 lg:p-10 overflow-hidden">
+							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="text-dbz-orange font-saiyan text-2xl sm:text-3xl md:text-4xl uppercase tracking-widest">
+									Archives / Lore
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+							</div>
+							<div className="prose prose-invert max-w-none wiki-content wiki-lore text-justify">
+								<WikiMarkdown body={character.description} />
+							</div>
 						</div>
-						<div className="prose prose-invert max-w-none wiki-content wiki-lore text-justify">
-							<WikiMarkdown body={character.description} />
-						</div>
-					</div>
-				</section>
+					</section>
+				)
 			)}
 
 			{character.transformations && character.transformations.length > 0 && (

@@ -11,7 +11,18 @@ import {
 	botRaces,
 	botTechniques,
 	botTransformations,
+	type WikiSource,
 } from "@/db/bot-schema";
+
+export type { WikiSource };
+
+/** Champs article communs (long-format Fandom + citations). */
+export interface WithArticle {
+	/** Corps markdown long-format (Fandom-like), ou null si pas encore rédigé. */
+	article: string | null;
+	/** Sources citées dans l'article (`[{ n, label, url, kind }]`). */
+	articleSources: WikiSource[] | null;
+}
 
 // Base de l'API bot résolue par `@/lib/config` (source unique des URL). PAS
 // dragonballfr.com (le site lui-même) → sinon les appels runtime boucleraient.
@@ -80,7 +91,7 @@ export interface ShenronPresence {
 	members: PresenceMember[];
 }
 
-export interface DBCharacter {
+export interface DBCharacter extends WithArticle {
 	id: number;
 	name: string;
 	/** Nom japonais natif (孫悟空, ベジータ) — enrichi via AniList */
@@ -97,7 +108,7 @@ export interface DBCharacter {
 	originPlanetId: number | null;
 }
 
-export interface DBPlanet {
+export interface DBPlanet extends WithArticle {
 	id: number;
 	name: string;
 	nameJa: string | null;
@@ -130,7 +141,7 @@ export interface DBTransformation {
 	characterId: number;
 }
 
-export interface DBTechnique {
+export interface DBTechnique extends WithArticle {
 	id: number;
 	slug: string;
 	name: string;
@@ -163,7 +174,7 @@ export interface DBMangaVolume {
 	cover: string | null;
 }
 
-export interface DBRace {
+export interface DBRace extends WithArticle {
 	id: number;
 	slug: string;
 	name: string;
@@ -203,6 +214,8 @@ function mapCharacter(r: CharacterRow): DBCharacter {
 		affiliation: r.affiliation,
 		description: r.description,
 		originPlanetId: r.originPlanetId,
+		article: r.article ?? null,
+		articleSources: r.articleSources ?? null,
 	};
 }
 
@@ -215,6 +228,8 @@ function mapPlanet(r: PlanetRow): DBPlanet {
 		image: r.image ?? "",
 		isDestroyed: !!r.isDestroyed,
 		description: r.description,
+		article: r.article ?? null,
+		articleSources: r.articleSources ?? null,
 	};
 }
 
@@ -361,6 +376,8 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 				creatorId: r.t.creatorId,
 				creatorName: null,
 				creatorImage: null,
+				article: r.t.article ?? null,
+				articleSources: r.t.articleSources ?? null,
 			} satisfies DBTechnique,
 		}));
 
@@ -385,6 +402,8 @@ export async function getShenronTechniques(): Promise<DBTechnique[]> {
 			creatorId: r.t.creatorId,
 			creatorName: r.name ?? null,
 			creatorImage: r.image ?? null,
+			article: r.t.article ?? null,
+			articleSources: r.t.articleSources ?? null,
 		}));
 	} catch {
 		return [];
@@ -409,6 +428,8 @@ export async function getShenronTechnique(slug: string): Promise<DBTechnique | n
 			creatorId: r.t.creatorId,
 			creatorName: r.name ?? null,
 			creatorImage: r.image ?? null,
+			article: r.t.article ?? null,
+			articleSources: r.t.articleSources ?? null,
 		};
 	} catch {
 		return null;
