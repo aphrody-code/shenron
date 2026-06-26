@@ -177,7 +177,7 @@ function ftsSearch(db: Database, match: string, limit: number, frOnly: boolean):
 async function cmdContext(typeName: string, idArg: string) {
 	const T = pickType(typeName);
 	const id = Number(idArg);
-	const pg = postgres(DATABASE_URL!, { max: 2, prepare: false });
+	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
 	const cols = [T.nameCol, "description", ...T.extra].map((c) => `"${c}"`).join(", ");
 	const rows = (await pg.unsafe(
 		`SELECT ${cols} FROM bot."${T.table}" WHERE id = ${id} LIMIT 1`
@@ -263,7 +263,7 @@ async function cmdContext(typeName: string, idArg: string) {
 // ── Commande: list ──────────────────────────────────────────────────────────
 async function cmdList(typeName: string, args: Args) {
 	const T = pickType(typeName);
-	const pg = postgres(DATABASE_URL!, { max: 2, prepare: false });
+	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
 	const conds: string[] = [];
 	if (args.flags.has("missing")) conds.push("(article IS NULL OR length(article) = 0)");
 	if (args.flags.has("has-desc")) conds.push("length(coalesce(description,'')) > 0");
@@ -310,7 +310,7 @@ async function cmdWrite(typeName: string, idArg: string, args: Args) {
 			process.exit(1);
 		}
 	}
-	const pg = postgres(DATABASE_URL!, { max: 2, prepare: false });
+	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
 	// jsonb : `pg.json(value)` impératif — `JSON.stringify(...)::jsonb` produirait un
 	// SCALAIRE string, pas un array exploitable (pitfall CLAUDE.md `db_episodes.players`).
 	// `pg(T.table)` quote l'identifiant de table (schéma `bot` littéral, lowercase).
@@ -331,7 +331,7 @@ async function cmdWrite(typeName: string, idArg: string, args: Args) {
 
 // ── Commande: migrate ───────────────────────────────────────────────────────
 async function cmdMigrate() {
-	const pg = postgres(DATABASE_URL!, { max: 2, prepare: false });
+	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
 	for (const T of Object.values(TYPES)) {
 		await pg.unsafe(`ALTER TABLE bot."${T.table}" ADD COLUMN IF NOT EXISTS article text`);
 		await pg.unsafe(`ALTER TABLE bot."${T.table}" ADD COLUMN IF NOT EXISTS article_sources jsonb`);
@@ -343,7 +343,7 @@ async function cmdMigrate() {
 
 // ── Commande: stats ─────────────────────────────────────────────────────────
 async function cmdStats() {
-	const pg = postgres(DATABASE_URL!, { max: 2, prepare: false });
+	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
 	console.log("type            total  article  %      avg_len");
 	for (const [name, T] of Object.entries(TYPES)) {
 		const r = (await pg.unsafe(

@@ -4,14 +4,19 @@ export const meta = {
 	phases: [{ title: 'Articles' }],
 }
 
-// args = { type: "characters"|"planets"|..., ids: number[] }
+// args = { type, ids } pour un seul type, OU { jobs: [{type, ids}, ...] } pour
+// enchaîner plusieurs types dans UN run sériel (évite de stacker des workflows
+// concurrents → rate-limit). `conc` borne la concurrence (défaut 6).
 // Robustesse : selon le harness, `args` peut arriver en objet OU en string JSON.
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = {} } }
-const TYPE = (A && A.type) || 'characters'
-const IDS = (A && Array.isArray(A.ids)) ? A.ids : []
-log(`Type=${TYPE} · ${IDS.length} entités à traiter.`)
-if (!IDS.length) { log('Aucun id fourni (args.ids) — rien à faire.'); return [] }
+const JOBS = (A && Array.isArray(A.jobs))
+	? A.jobs.filter((j) => j && j.type && Array.isArray(j.ids) && j.ids.length)
+	: ((A && A.type && Array.isArray(A.ids)) ? [{ type: A.type, ids: A.ids }] : [])
+const CONC = (A && Number(A.conc)) || 6
+const totalAll = JOBS.reduce((n, j) => n + j.ids.length, 0)
+log(`${JOBS.length} job(s) · ${totalAll} entités · concurrence ${CONC}`)
+if (!totalAll) { log('Aucun id fourni — rien à faire.'); return [] }
 
 // Préfixe bash : charge DATABASE_URL (PG du site) depuis le fichier systemd-format.
 const ENV = `export DATABASE_URL="$(grep -h '^DATABASE_URL=' ~/.shenron-neon.env | tail -1 | cut -d= -f2- | tr -d '\\"')"`
@@ -108,18 +113,33 @@ const STATUS = {
 	},
 }
 
+// Concurrence BORNÉE par batches séquentiels (défaut 6) : éviter de saturer la
+// concurrence de l'API (pipeline auto-16 + workflows concurrents → rate-limit).
+// « Aucune limite de temps » → on privilégie la fiabilité à la vitesse.
 phase('Articles')
-const results = await pipeline(
-	IDS,
-	(id) => agent(composePrompt(TYPE, id), {
-		agentType: 'general-purpose',
-		label: `${TYPE}:${id}`,
-		phase: 'Articles',
-		schema: STATUS,
-	}),
-)
-
-const ok = results.filter((r) => r && r.ok)
-const failed = results.filter((r) => !r || !r.ok)
-log(`Terminé : ${ok.length}/${IDS.length} articles écrits · ${failed.length} échec(s).`)
-return { type: TYPE, total: IDS.length, ok: ok.length, failed: failed.length, results }
+const summary = []
+let grandOk = 0
+for (const job of JOBS) {
+	const TYPE = job.type
+	const IDS = job.ids
+	let jobOk = 0
+	for (let i = 0; i < IDS.length; i += CONC) {
+		const chunk = IDS.slice(i, i + CONC)
+		const r = await parallel(
+			chunk.map((id) => () => agent(composePrompt(TYPE, id), {
+				agentType: 'general-purpose',
+				label: `${TYPE}:${id}`,
+				phase: 'Articles',
+				schema: STATUS,
+			})),
+		)
+		jobOk += r.filter((x) => x && x.ok).length
+		const done = Math.min(i + CONC, IDS.length)
+		log(`[${TYPE}] ${done}/${IDS.length} traités · ${jobOk} OK cumulés`)
+	}
+	grandOk += jobOk
+	summary.push({ type: TYPE, total: IDS.length, ok: jobOk, failed: IDS.length - jobOk })
+	log(`[${TYPE}] terminé : ${jobOk}/${IDS.length} OK`)
+}
+log(`GLOBAL : ${grandOk}/${totalAll} articles écrits.`)
+return { totalAll, ok: grandOk, jobs: summary }
