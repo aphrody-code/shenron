@@ -99,6 +99,8 @@ export interface DBCharacter extends WithArticle {
 	/** Translittération canon (Son Gokuu, Kuririn) — enrichi via AniList */
 	nameRomaji: string | null;
 	image: string;
+	/** Portrait HQ Xenoverse 2 (fallback d'image quand `image` est cassée/404). */
+	portraitXv2: string | null;
 	ki: string | null;
 	maxKi: string | null;
 	race: string | null;
@@ -207,6 +209,7 @@ function mapCharacter(r: CharacterRow): DBCharacter {
 		nameJa: r.nameJa,
 		nameRomaji: r.nameRomaji,
 		image: r.image ?? "",
+		portraitXv2: r.portraitXv2 ?? null,
 		ki: r.ki,
 		maxKi: r.maxKi,
 		race: r.race,

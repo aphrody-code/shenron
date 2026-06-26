@@ -3,6 +3,7 @@ import { TrackView } from "@/components/TrackView";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiImg } from "@/components/wiki/WikiImg";
 import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
@@ -126,12 +127,16 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 					<div className="dbz-panel p-6 border-2 border-dbz-orange/30 bg-dbz-card relative overflow-hidden group">
 						<div className="absolute inset-0 halftone opacity-20 group-hover:opacity-30 transition-opacity" />
 						{/* Cible du morph partagé : même `name` que le thumbnail de la grille
-						    → l'image se déplie en continuité depuis la tuile cliquée. */}
+						    → l'image se déplie en continuité depuis la tuile cliquée.
+						    WikiImg : repli sur le portrait XV2 puis placeholder si l'image 404. */}
 						<ViewTransition name={`character-img-${character.id}`} share="morph">
-							<img
-								src={assetUrl(character.image)}
+							<WikiImg
+								src={character.image}
+								fallback={character.portraitXv2}
 								alt={character.name}
+								loading="eager"
 								className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,178,0,0.3)] group-hover:scale-105 transition-transform duration-700"
+								placeholderClassName="relative z-10 w-full aspect-[3/4] flex items-center justify-center bg-dbz-card overflow-hidden rounded"
 							/>
 						</ViewTransition>
 						<div className="absolute inset-0 bg-gradient-to-t from-dbz-orange/10 to-transparent" />

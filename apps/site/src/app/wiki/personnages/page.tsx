@@ -43,6 +43,7 @@ export default async function PersonnagesPage({
 						race: c.race,
 						ki: c.ki,
 						image: c.image,
+						portraitXv2: c.portraitXv2,
 					}))}
 					planets={planets.map((p) => ({
 						id: p.id,

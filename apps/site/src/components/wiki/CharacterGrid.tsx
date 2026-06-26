@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { assetUrl } from "@/lib/assets";
 import { ViewTransition } from "@/components/ViewTransition";
+import { WikiImg } from "@/components/wiki/WikiImg";
 
 // Grille personnages filtrable (client). Importe `@/lib/assets` (client-safe),
 // JAMAIS db-universe/shenron (server-only → `postgres` fuiterait dans le bundle).
@@ -14,6 +14,8 @@ export type GridCharacter = {
 	race: string | null;
 	ki: string | null;
 	image: string | null;
+	/** Portrait XV2 — repli d'image quand `image` 404 (cf. WikiImg). */
+	portraitXv2?: string | null;
 };
 
 // Normalise pour comparer sans accents/casse (recherche tolérante).
@@ -139,23 +141,18 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 						>
 							<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
 								<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-								{c.image ? (
-									// Morph d'élément partagé : ce thumbnail et l'image héro de la
-									// fiche partagent `character-img-${id}` → la grille « se déplie »
-									// en grande image au clic (et inversement au retour).
-									<ViewTransition name={`character-img-${c.id}`} share="morph">
-										<img
-											src={assetUrl(c.image)}
-											alt={c.name}
-											loading="lazy"
-											className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
-										/>
-									</ViewTransition>
-								) : (
-									<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-										<span className="text-zinc-700 font-saiyan text-xl">?</span>
-									</div>
-								)}
+								{/* Morph d'élément partagé : ce thumbnail et l'image héro de la
+								    fiche partagent `character-img-${id}` → la grille « se déplie »
+								    en grande image au clic. WikiImg gère le repli (portrait XV2)
+								    puis un placeholder stylé si l'image 404 (pas de vignette cassée). */}
+								<ViewTransition name={`character-img-${c.id}`} share="morph">
+									<WikiImg
+										src={c.image}
+										fallback={c.portraitXv2}
+										alt={c.name}
+										className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+									/>
+								</ViewTransition>
 								<div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent z-20" />
 								{/* Liseré ki au survol (conic sweep piloté par @property) */}
 								<span aria-hidden className="ki-card__glow" />
