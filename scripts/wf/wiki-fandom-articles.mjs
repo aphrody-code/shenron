@@ -72,12 +72,13 @@ function composePrompt(type, id) {
 cd /home/ubuntu/shenron && ${ENV}
 bun apps/bot/scripts/wiki-articles.ts context ${type} ${id}
 \`\`\`
-La sortie contient : FAITS STRUCTURÉS (notre base), DESCRIPTION ACTUELLE (contexte, NE PAS recopier), REPÈRES CHAPITRES MANGA (titres propres, citables tels quels), PLANCHES MANGA [n] (OCR de vraies planches déjà dé-bruité — les bulles peuvent être désordonnées : reconstitue le sens), et la ligne SOURCES_JSON. **Ces passages sont l'UNIQUE source autorisée avec les faits structurés.**
+La sortie contient : FAITS STRUCTURÉS (notre base), DESCRIPTION ACTUELLE (contexte, NE PAS recopier), éventuellement un **ARTICLE EXISTANT (BASE DE TRAVAIL)**, REPÈRES CHAPITRES MANGA (titres propres, citables tels quels), PLANCHES MANGA [n] (OCR de vraies planches déjà dé-bruité — les bulles peuvent être désordonnées : reconstitue le sens), et la ligne SOURCES_JSON. **Ces passages sont l'UNIQUE source autorisée avec les faits structurés.**
 
-ÉTAPE 2 — Rédige un VRAI article encyclopédique en **français**, en **markdown** :
+ÉTAPE 2 — Rédige/MIGRE un VRAI article encyclopédique en **français**, en **markdown** :
 ${GUIDE[type] || GUIDE.characters}
 
 RÈGLES STRICTES :
+- **SI un ARTICLE EXISTANT est fourni → tu le MIGRES, tu ne repars PAS de zéro** : garde sa structure, sa prose de qualité et toutes les ENTITÉS qu'il cite (autres personnages/lieux/sagas = liens & sujets à creuser), mais RÉ-ANCRE chaque fait notable sur les PLANCHES MANGA / REPÈRES CHAPITRES, remplace les renvois Fandom par des citations manga, et APPROFONDIS avec ce que les planches révèlent. Le résultat doit être ≥ aussi riche que l'existant, mais 100 % sourcé manga. Sinon (pas d'existant), rédige de zéro depuis le grounding.
 - **SOURCE = MANGA UNIQUEMENT.** Appuie-toi sur les PLANCHES MANGA [n], les REPÈRES CHAPITRES et les FAITS STRUCTURÉS. Tu peux compléter avec le canon manga LARGEMENT et indiscutablement établi (ex. ordre des sagas), mais chaque fait notable (événement, combat, transformation, mort, résurrection) doit pouvoir s'ancrer sur une planche/chapitre cité.
 - **FANDOM INTERDIT.** Ne cite JAMAIS Fandom, wikia, ni aucune URL externe. Aucune source ne doit pointer ailleurs que le manga (tome/chapitre). Si une info ne vient ni des planches ni du canon manga incontestable, OMETS-LA plutôt que de l'inventer.
 - N'invente AUCUN chiffre (niveau de ki, date précise, taille) qui ne figure pas explicitement dans le grounding.

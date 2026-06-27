@@ -251,7 +251,7 @@ async function cmdContext(typeName: string, idArg: string) {
 	const T = pickType(typeName);
 	const id = Number(idArg);
 	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
-	const cols = [T.nameCol, "description", ...T.extra].map((c) => `"${c}"`).join(", ");
+	const cols = [T.nameCol, "description", "article", ...T.extra].map((c) => `"${c}"`).join(", ");
 	const rows = (await pg.unsafe(
 		`SELECT ${cols} FROM bot."${T.table}" WHERE id = ${id} LIMIT 1`
 	)) as unknown as Record<string, unknown>[];
@@ -263,6 +263,7 @@ async function cmdContext(typeName: string, idArg: string) {
 	const row = rows[0];
 	const name = String(row[T.nameCol] ?? "");
 	const desc = String(row.description ?? "");
+	const existing = String(row.article ?? "");
 
 	const db = new Database(BOT_DB, { readonly: true });
 	const namePhrase = phrase(name);
@@ -328,6 +329,15 @@ async function cmdContext(typeName: string, idArg: string) {
 		`ENTITÉ (${typeName} #${id}): ${name}`,
 		extraFacts ? `FAITS STRUCTURÉS (notre base): ${extraFacts}` : "",
 		desc ? `DESCRIPTION ACTUELLE (seed, NE PAS citer): ${desc}` : "",
+		"",
+		existing
+			? `ARTICLE EXISTANT (BASE DE TRAVAIL — à MIGRER, pas à jeter) :\n` +
+				`Cet article est déjà rédigé mais ses citations pointent FANDOM/jeux (INTERDIT). ` +
+				`Conserve sa STRUCTURE, sa PROSE de qualité et les ENTITÉS qu'il mentionne (= liens internes & sujets à creuser), ` +
+				`mais RÉ-ANCRE chaque fait notable sur les PLANCHES MANGA et REPÈRES CHAPITRES ci-dessous : remplace les renvois [n] Fandom par des citations manga, ` +
+				`APPROFONDIS les passages que le manga éclaire, et SUPPRIME tout fait qui n'est ni dans le manga ni dans les faits structurés. ` +
+				`Le résultat doit être au moins aussi riche que l'existant, mais 100 % sourcé manga.\n--- DÉBUT ARTICLE EXISTANT ---\n${existing}\n--- FIN ARTICLE EXISTANT ---`
+			: "",
 		"",
 		chapters.length
 			? `REPÈRES CHAPITRES MANGA (titres propres, citables tels quels) :\n` +
