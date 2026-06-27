@@ -1,6 +1,6 @@
 export const meta = {
 	name: 'wiki-fandom-articles',
-	description: 'Génère des articles wiki Fandom FR sourcés (RAG) et les écrit en PG bot.*',
+	description: 'Génère des articles wiki FR ancrés MANGA (planches OCR + chapitres) et les écrit en PG bot.*',
 	phases: [{ title: 'Articles' }],
 }
 
@@ -65,31 +65,31 @@ const GUIDE = {
 }
 
 function composePrompt(type, id) {
-	return `Tu es encyclopédiste pour **dragonballfr.com**, un wiki Dragon Ball factuel façon Fandom, CENTRÉ sur les sources du manga et le canon. Tu rédiges l'ARTICLE long-format de l'entité ${type} #${id}.
+	return `Tu es encyclopédiste pour **dragonballfr.com**, un wiki Dragon Ball RIGOUREUSEMENT ANCRÉ DANS LE MANGA d'Akira Toriyama (et les databooks officiels). Tu rédiges l'ARTICLE long-format de l'entité ${type} #${id}.
 
-ÉTAPE 1 — Récupère le grounding (passages sourcés + faits structurés) :
+ÉTAPE 1 — Récupère le grounding manga (chapitres + planches OCR nettoyées + faits structurés) :
 \`\`\`
 cd /home/ubuntu/shenron && ${ENV}
 bun apps/bot/scripts/wiki-articles.ts context ${type} ${id}
 \`\`\`
-Lis attentivement la sortie : FAITS STRUCTURÉS, DESCRIPTION ACTUELLE, PASSAGES SOURCÉS [n], et la ligne SOURCES_JSON.
-(Optionnel : tu peux compléter avec l'outil MCP dragon-ball \`rag_search\` si un point reste flou, mais NE TE BASE QUE sur des informations vérifiables.)
+La sortie contient : FAITS STRUCTURÉS (notre base), DESCRIPTION ACTUELLE (contexte, NE PAS recopier), REPÈRES CHAPITRES MANGA (titres propres, citables tels quels), PLANCHES MANGA [n] (OCR de vraies planches déjà dé-bruité — les bulles peuvent être désordonnées : reconstitue le sens), et la ligne SOURCES_JSON. **Ces passages sont l'UNIQUE source autorisée avec les faits structurés.**
 
 ÉTAPE 2 — Rédige un VRAI article encyclopédique en **français**, en **markdown** :
 ${GUIDE[type] || GUIDE.characters}
 
 RÈGLES STRICTES :
-- FACTUEL avant tout. N'invente RIEN : utilise uniquement les PASSAGES SOURCÉS + FAITS STRUCTURÉS + canon Dragon Ball largement établi. En cas de doute sur un chiffre (niveau de ki, date), n'affirme pas — reste prudent ou omets.
-- Ton encyclopédique mais VIVANT, comme un bon article Fandom. Pas de méta-commentaire, pas de « selon les sources ».
+- **SOURCE = MANGA UNIQUEMENT.** Appuie-toi sur les PLANCHES MANGA [n], les REPÈRES CHAPITRES et les FAITS STRUCTURÉS. Tu peux compléter avec le canon manga LARGEMENT et indiscutablement établi (ex. ordre des sagas), mais chaque fait notable (événement, combat, transformation, mort, résurrection) doit pouvoir s'ancrer sur une planche/chapitre cité.
+- **FANDOM INTERDIT.** Ne cite JAMAIS Fandom, wikia, ni aucune URL externe. Aucune source ne doit pointer ailleurs que le manga (tome/chapitre). Si une info ne vient ni des planches ni du canon manga incontestable, OMETS-LA plutôt que de l'inventer.
+- N'invente AUCUN chiffre (niveau de ki, date précise, taille) qui ne figure pas explicitement dans le grounding.
+- Ton encyclopédique mais VIVANT. Pas de méta-commentaire (« selon l'OCR », « d'après les planches »), pas de « selon les sources ».
 - NE commence PAS par un titre \`#\` (le nom est déjà affiché en H1 par la page). Commence par le paragraphe d'intro en gras.
 - Utilise \`##\` / \`###\` pour les sections, des listes \`-\` quand c'est pertinent. Markdown propre.
-- Place des appels de citation \`[n]\` (correspondant aux passages) là où tu t'appuies sur une source précise (faits non triviaux, dates, événements).
-- Longueur cible : 2500 à 7000 caractères selon le matériel disponible (un personnage majeur = riche ; une entité mineure = plus court mais complet).
-- Privilégie le canon manga ; signale les différences notables manga/anime/films/jeux quand elles sont sourcées.
+- Place des appels de citation \`[n]\` renvoyant aux PLANCHES MANGA là où tu t'appuies sur un événement précis. Référence les chapitres en clair (« …(Manga, Tome X / Chapitre NN) [n] »).
+- Longueur cible : 2500 à 7000 caractères selon le matériel disponible (entité majeure = riche ; mineure = plus courte mais complète).
 
 ÉTAPE 3 — Écris les fichiers puis persiste en base :
 1. Écris l'article markdown dans \`/tmp/wiki-art-${type}-${id}.md\`.
-2. Écris les sources citées dans \`/tmp/wiki-art-${type}-${id}.sources.json\` : un tableau JSON \`[{"n":1,"label":"...","url":"...","kind":"..."}]\` — REPRENDS les entrées de SOURCES_JSON correspondant aux [n] que tu as RÉELLEMENT cités (garde la même numérotation n).
+2. Écris les sources citées dans \`/tmp/wiki-art-${type}-${id}.sources.json\` : un tableau JSON \`[{"n":1,"label":"Manga, Tome X / Chapitre NN","url":"/wiki/manga","kind":"manga"}]\` — REPRENDS les entrées de SOURCES_JSON correspondant aux [n] que tu as RÉELLEMENT cités (garde la même numérotation n). Toutes les sources doivent être \`"kind":"manga"\` avec une \`url\` interne (/wiki/manga) — AUCUNE URL Fandom/externe.
 3. Persiste :
 \`\`\`
 cd /home/ubuntu/shenron && ${ENV}

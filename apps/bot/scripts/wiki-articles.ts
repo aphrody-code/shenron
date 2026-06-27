@@ -176,9 +176,8 @@ function ftsSearch(db: Database, match: string, limit: number, frOnly: boolean):
 
 /**
  * Recherche FTS5 restreinte au corpus MANGA (`source_id='manga'`) — la
- * transcription OCR des planches (2412 chunks). Source PRIMAIRE : on garantit
- * un quota de passages manga dans le grounding (le BM25 brut favorise sinon la
- * prose Fandom propre face à l'OCR bruité). Cf. boost/quota manga de rag.ts.
+ * transcription OCR des planches (2412 chunks). SOURCE UNIQUE du grounding
+ * (le Fandom est banni : on veut un wiki ancré manga). Cf. boost/quota rag.ts.
  */
 function ftsManga(db: Database, match: string, limit: number): Hit[] {
 	const sql = `SELECT rowid, kind, title, url, content, lang, source_id
@@ -189,6 +188,62 @@ function ftsManga(db: Database, match: string, limit: number): Hit[] {
 	} catch {
 		return [];
 	}
+}
+
+// Bruit OCR récurrent à purger des planches (watermarks scanteam, marques).
+const MANGA_NOISE =
+	/scantrad\.?net|krash|edizioni|star\s*co[mh]ics|fullcolor|\bdrag\b|\bcohics\b|©|scan[-\s]?vf/gi;
+// SFX / onomatopées (bulles de son) : suites de capitales avec voyelle redoublée
+// ou consonnes répétées, mono-syllabes bruitées. Heuristique volontairement large.
+const SFX =
+	/\b(?:[BCDFGHJKLMNPQRSTVWXZ]*(?:A{2,}|E{2,}|O{2,}|U{2,}|I{2,})[BCDFGHJKLMNPQRSTVWXZ]*|[BCDFGHJKLMNPQRSTVWXZ]{2,}|H[AEU]+|GW[A]+SH|TH[OM]+|RM+BL|BAO+M|BOBO[MN]+|DOM|THM|SHH+|GYA+H|WAA+H|VLATOH|TAC|TAP|TOC|BRR|HII+|KII+H|GNN|UUH|HEHE|HMM|BLA)\b/g;
+
+/** Nettoie une planche OCR : purge watermarks/SFX/bruit, garde le dialogue FR. */
+function cleanManga(text: string): string {
+	return (
+		text
+			.replace(MANGA_NOISE, " ")
+			// retire les runs de caractères japonais résiduels (SFX/onomatopées JP)
+			.replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]+/gu, " ")
+			.replace(SFX, " ")
+			// tokens poubelle : isolés non alphabétiques, runs de symboles, nombres seuls de page
+			.replace(/\b[A-Z]?\d{1,4}\b/g, " ")
+			.replace(/[^\p{L}\p{N}\s'’!?.,:;«»()-]/gu, " ")
+			// lettres isolées (bruit) MAIS on préserve les élisions FR (C', L', J', qu'…)
+			.replace(/(?<![\p{L}'’])\p{L}(?![\p{L}'’])/gu, " ")
+			.replace(/\s+([.,!?;:])/g, "$1")
+			.replace(/\s{2,}/g, " ")
+			.replace(/([!?.])\1{2,}/g, "$1$1")
+			.trim()
+	);
+}
+
+/**
+ * Coupe un titre de chapitre OCR à son 1er fragment PROPRE :
+ * stoppe au 1er mot tout-en-capitales (≥2, bruit OCR / teaser collé : « DRAON RAY »,
+ * « CESTUN INCONNU », « ILEST VAINQUEUR ») ou run CJK déjà retiré.
+ */
+function cleanTitle(raw: string): string {
+	const s = raw.replace(/[　-鿿＀-￯]/g, " ").replace(MANGA_NOISE, " ");
+	const out: string[] = [];
+	for (const w of s.split(/\s+/)) {
+		const letters = w.replace(/[^A-Za-zÀ-ÿ]/g, "");
+		if (letters.length >= 2 && letters === letters.toUpperCase()) break; // run OCR / SFX
+		if (w) out.push(w);
+	}
+	return out.join(" ").replace(/\s{2,}/g, " ").trim();
+}
+
+/** Extrait les titres de chapitres PROPRES d'un texte de planche (repères sûrs). */
+function chapterTitles(text: string): string[] {
+	const out: string[] = [];
+	const re = /Chapitre\s*(\d{1,3})\s*:\s*([A-Za-zÀ-ÿ][^!?.\n]{2,60})/g;
+	let m: RegExpExecArray | null;
+	while ((m = re.exec(text))) {
+		const title = cleanTitle(m[2]);
+		if (title.length > 3) out.push(`Chapitre ${m[1]} : ${title}`);
+	}
+	return out;
 }
 
 // ── Commande: context ───────────────────────────────────────────────────────
@@ -229,50 +284,38 @@ async function cmdContext(typeName: string, idArg: string) {
 	};
 
 	if (namePhrase) {
-		// 0) MANGA EN PREMIER — source primaire, quota garanti (≥ ce qui existe,
-		//    jusqu'à 6). Le grounding doit VOIR le manga pour pouvoir le citer.
-		addHits(ftsManga(db, namePhrase, 8), 5);
+		// MANGA UNIQUEMENT — source de vérité. Le Fandom est BANNI du grounding :
+		// on veut un wiki ancré sur les planches, pas une reformulation de Fandom.
+		addHits(ftsManga(db, namePhrase, 16), 14);
 		for (const f of T.facets) {
 			const g = orGroup(f);
-			if (g) addHits(ftsManga(db, `${namePhrase} AND ${g}`, 3), 1);
+			if (g) addHits(ftsManga(db, `${namePhrase} AND ${g}`, 4), 3);
 		}
-		// 1) Le nom seul, FR (Fandom — complément).
-		addHits(ftsSearch(db, namePhrase, 8, true), 5);
-		// 2) Nom + facettes, FR.
-		for (const f of T.facets) {
-			const g = orGroup(f);
-			if (g) addHits(ftsSearch(db, `${namePhrase} AND ${g}`, 4, true), 2);
-		}
-		// 3) Repli toutes langues si trop peu.
-		if (order.length < 8) addHits(ftsSearch(db, namePhrase, 8, false), 6);
 	}
 	db.close();
 
-	// Manga d'abord dans l'ordre de présentation (passages prioritaires).
-	order.sort((a, b) => {
-		const am = seen.get(a)!.source_id === "manga" ? 0 : 1;
-		const bm = seen.get(b)!.source_id === "manga" ? 0 : 1;
-		return am - bm;
-	});
 	const passages = order.map((rid) => seen.get(rid)!).slice(0, 16);
-	// Cap de taille total (~11k c) en tronquant chaque passage.
-	const PER = 1000;
+	const PER = 900;
 	const sources: { n: number; label: string; url: string; kind: string }[] = [];
 	const blocks: string[] = [];
-	let mangaCount = 0;
+	const chaptersSet = new Set<string>();
 	passages.forEach((h, i) => {
 		const n = i + 1;
-		const isManga = h.source_id === "manga";
-		if (isManga) mangaCount++;
-		const body = (h.content ?? "").replace(/\s+/g, " ").trim().slice(0, PER);
-		const rawLabel = (h.title ?? "").trim() || `${h.kind} #${h.rowid}`;
-		// MANGA = source primaire : label « Manga … (planche) », kind=manga, url reader.
-		const label = isManga ? `Manga ${rawLabel}` : rawLabel;
-		const kind = isManga ? "manga" : h.kind ?? "";
-		const url = isManga ? "/wiki/manga" : h.url ?? "";
-		sources.push({ n, label, url, kind });
-		const tag = isManga ? "MANGA·OCR" : `${h.kind}${h.lang ? "·" + h.lang : ""}`;
-		blocks.push(`[${n}] (${tag}) ${label}\n${body}`);
+		// Repères de chapitres (titres PROPRES) extraits de la planche.
+		for (const c of chapterTitles(h.content ?? "")) chaptersSet.add(c);
+		// Nettoyage agressif de l'OCR pour ne donner à l'agent que du dialogue lisible.
+		const body = cleanManga(h.content ?? "").slice(0, PER);
+		const rawLabel = (h.title ?? "").trim() || `planche #${h.rowid}`;
+		const label = `Manga ${rawLabel}`;
+		sources.push({ n, label, url: "/wiki/manga", kind: "manga" });
+		blocks.push(`[${n}] (MANGA ${rawLabel})\n${body}`);
+	});
+	const mangaCount = passages.length;
+	// Repères de chapitres triés (numériquement) — squelette propre et citable.
+	const chapters = [...chaptersSet].toSorted((a, b) => {
+		const na = Number(a.match(/\d+/)?.[0] ?? 0);
+		const nb = Number(b.match(/\d+/)?.[0] ?? 0);
+		return na - nb;
 	});
 
 	const extraFacts = T.extra
@@ -283,14 +326,19 @@ async function cmdContext(typeName: string, idArg: string) {
 	// Sortie texte que l'agent rédacteur consomme.
 	const out = [
 		`ENTITÉ (${typeName} #${id}): ${name}`,
-		extraFacts ? `FAITS STRUCTURÉS: ${extraFacts}` : "",
-		desc ? `DESCRIPTION ACTUELLE: ${desc}` : "",
+		extraFacts ? `FAITS STRUCTURÉS (notre base): ${extraFacts}` : "",
+		desc ? `DESCRIPTION ACTUELLE (seed, NE PAS citer): ${desc}` : "",
 		"",
-		passages.length
-			? `PASSAGES SOURCÉS (${passages.length} dont ${mangaCount} MANGA) — cite-les en [n], n'invente rien hors de ces passages + faits structurés.\n` +
-				`PRIORITÉ MANGA : les passages « MANGA·OCR » sont la SOURCE PRIMAIRE (transcription des planches). Quand un fait y est confirmé, ANCRE-le sur le manga et cite la planche [n] (ex. « …(Manga Dragon Ball — t901) »). ` +
-				`Ce texte manga est de l'OCR BRUT et bruité (bulles dans le désordre, watermarks, SFX) : NE le recopie JAMAIS verbatim — sers-t'en pour confirmer qu'un événement/perso/technique APPARAÎT dans le manga et à quel tome, le Fandom servant de complément rédactionnel.`
-			: "AUCUN PASSAGE RAG TROUVÉ — rédige à partir des seuls faits structurés + description, prudemment.",
+		chapters.length
+			? `REPÈRES CHAPITRES MANGA (titres propres, citables tels quels) :\n` +
+				chapters.map((c) => `  • ${c}`).join("\n")
+			: "",
+		"",
+		mangaCount
+			? `PLANCHES MANGA (${mangaCount}) — SOURCE UNIQUE autorisée avec les FAITS STRUCTURÉS. ` +
+				`Le Fandom est INTERDIT : ne cite JAMAIS Fandom ni aucune URL externe, n'invente rien hors de ces planches + faits structurés.\n` +
+				`Ces extraits sont de l'OCR de planches (bulles parfois désordonnées) DÉJÀ nettoyé : sers-t'en pour établir CE QUI SE PASSE dans le manga et À QUEL chapitre/tome, puis rédige une prose propre de ta plume. ANCRE chaque fait en citant la planche/chapitre [n] (ex. « …(Manga, ${name === "" ? "Tome X" : "Tome X / Chapitre NN"}) [n] »). N'invente pas de niveaux de ki.`
+			: `AUCUNE PLANCHE MANGA trouvée pour cette entité → elle n'apparaît pas (ou très peu) dans le manga. Rédige un article COURT et factuel à partir des seuls FAITS STRUCTURÉS, en le signalant (« n'apparaît pas dans le manga original »). NE cite PAS Fandom.`,
 		"",
 		...blocks,
 		"",
