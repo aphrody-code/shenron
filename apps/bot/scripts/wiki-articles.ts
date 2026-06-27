@@ -159,12 +159,30 @@ interface Hit {
 	url: string;
 	content: string;
 	lang: string;
+	source_id: string;
 }
 
 /** Recherche FTS5 read-only, FR d'abord, repli toutes langues. */
 function ftsSearch(db: Database, match: string, limit: number, frOnly: boolean): Hit[] {
-	const sql = `SELECT rowid, kind, title, url, content, lang
+	const sql = `SELECT rowid, kind, title, url, content, lang, source_id
 		FROM rag_chunks WHERE rag_chunks MATCH ?${frOnly ? " AND lang = 'fr'" : ""}
+		ORDER BY rank LIMIT ?`;
+	try {
+		return db.query(sql).all(match, limit) as unknown as Hit[];
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Recherche FTS5 restreinte au corpus MANGA (`source_id='manga'`) — la
+ * transcription OCR des planches (2412 chunks). Source PRIMAIRE : on garantit
+ * un quota de passages manga dans le grounding (le BM25 brut favorise sinon la
+ * prose Fandom propre face à l'OCR bruité). Cf. boost/quota manga de rag.ts.
+ */
+function ftsManga(db: Database, match: string, limit: number): Hit[] {
+	const sql = `SELECT rowid, kind, title, url, content, lang, source_id
+		FROM rag_chunks WHERE rag_chunks MATCH ? AND source_id = 'manga'
 		ORDER BY rank LIMIT ?`;
 	try {
 		return db.query(sql).all(match, limit) as unknown as Hit[];
@@ -211,29 +229,50 @@ async function cmdContext(typeName: string, idArg: string) {
 	};
 
 	if (namePhrase) {
-		// 1) Le nom seul, FR d'abord (les pages dédiées remontent en tête).
-		addHits(ftsSearch(db, namePhrase, 8, true), 6);
+		// 0) MANGA EN PREMIER — source primaire, quota garanti (≥ ce qui existe,
+		//    jusqu'à 6). Le grounding doit VOIR le manga pour pouvoir le citer.
+		addHits(ftsManga(db, namePhrase, 8), 5);
+		for (const f of T.facets) {
+			const g = orGroup(f);
+			if (g) addHits(ftsManga(db, `${namePhrase} AND ${g}`, 3), 1);
+		}
+		// 1) Le nom seul, FR (Fandom — complément).
+		addHits(ftsSearch(db, namePhrase, 8, true), 5);
 		// 2) Nom + facettes, FR.
 		for (const f of T.facets) {
 			const g = orGroup(f);
 			if (g) addHits(ftsSearch(db, `${namePhrase} AND ${g}`, 4, true), 2);
 		}
-		// 3) Repli toutes langues si trop peu de FR.
-		if (order.length < 6) addHits(ftsSearch(db, namePhrase, 8, false), 6);
+		// 3) Repli toutes langues si trop peu.
+		if (order.length < 8) addHits(ftsSearch(db, namePhrase, 8, false), 6);
 	}
 	db.close();
 
-	const passages = order.map((rid) => seen.get(rid)!).slice(0, 14);
+	// Manga d'abord dans l'ordre de présentation (passages prioritaires).
+	order.sort((a, b) => {
+		const am = seen.get(a)!.source_id === "manga" ? 0 : 1;
+		const bm = seen.get(b)!.source_id === "manga" ? 0 : 1;
+		return am - bm;
+	});
+	const passages = order.map((rid) => seen.get(rid)!).slice(0, 16);
 	// Cap de taille total (~11k c) en tronquant chaque passage.
 	const PER = 1000;
 	const sources: { n: number; label: string; url: string; kind: string }[] = [];
 	const blocks: string[] = [];
+	let mangaCount = 0;
 	passages.forEach((h, i) => {
 		const n = i + 1;
+		const isManga = h.source_id === "manga";
+		if (isManga) mangaCount++;
 		const body = (h.content ?? "").replace(/\s+/g, " ").trim().slice(0, PER);
-		const label = (h.title ?? "").trim() || `${h.kind} #${h.rowid}`;
-		sources.push({ n, label, url: h.url ?? "", kind: h.kind ?? "" });
-		blocks.push(`[${n}] (${h.kind}${h.lang ? "·" + h.lang : ""}) ${label}\n${body}`);
+		const rawLabel = (h.title ?? "").trim() || `${h.kind} #${h.rowid}`;
+		// MANGA = source primaire : label « Manga … (planche) », kind=manga, url reader.
+		const label = isManga ? `Manga ${rawLabel}` : rawLabel;
+		const kind = isManga ? "manga" : h.kind ?? "";
+		const url = isManga ? "/wiki/manga" : h.url ?? "";
+		sources.push({ n, label, url, kind });
+		const tag = isManga ? "MANGA·OCR" : `${h.kind}${h.lang ? "·" + h.lang : ""}`;
+		blocks.push(`[${n}] (${tag}) ${label}\n${body}`);
 	});
 
 	const extraFacts = T.extra
@@ -248,7 +287,9 @@ async function cmdContext(typeName: string, idArg: string) {
 		desc ? `DESCRIPTION ACTUELLE: ${desc}` : "",
 		"",
 		passages.length
-			? `PASSAGES SOURCÉS (${passages.length}) — cite-les en [n], n'invente rien hors de ces passages + faits structurés :`
+			? `PASSAGES SOURCÉS (${passages.length} dont ${mangaCount} MANGA) — cite-les en [n], n'invente rien hors de ces passages + faits structurés.\n` +
+				`PRIORITÉ MANGA : les passages « MANGA·OCR » sont la SOURCE PRIMAIRE (transcription des planches). Quand un fait y est confirmé, ANCRE-le sur le manga et cite la planche [n] (ex. « …(Manga Dragon Ball — t901) »). ` +
+				`Ce texte manga est de l'OCR BRUT et bruité (bulles dans le désordre, watermarks, SFX) : NE le recopie JAMAIS verbatim — sers-t'en pour confirmer qu'un événement/perso/technique APPARAÎT dans le manga et à quel tome, le Fandom servant de complément rédactionnel.`
 			: "AUCUN PASSAGE RAG TROUVÉ — rédige à partir des seuls faits structurés + description, prudemment.",
 		"",
 		...blocks,
