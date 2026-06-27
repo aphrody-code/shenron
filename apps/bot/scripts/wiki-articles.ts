@@ -366,6 +366,10 @@ async function cmdList(typeName: string, args: Args) {
 	const conds: string[] = [];
 	if (args.flags.has("missing")) conds.push("(article IS NULL OR length(article) = 0)");
 	if (args.flags.has("has-article")) conds.push("(article IS NOT NULL AND length(article) > 0)");
+	// Régénération idempotente : articles encore sourcés Fandom/jeux (≠ manga pur).
+	// Un article migré (sources manga) sort automatiquement de ce filtre → relance reprenable.
+	if (args.flags.has("fandom-sources"))
+		conds.push("(article IS NOT NULL AND length(article) > 0 AND article_sources::text ~* '(fandom|wikia|xenoverse)')");
 	if (args.flags.has("has-desc")) conds.push("length(coalesce(description,'')) > 0");
 	if (args.opts.ids) {
 		const ids = args.opts.ids.split(",").map((x) => Number(x.trim())).filter((n) => !isNaN(n));
