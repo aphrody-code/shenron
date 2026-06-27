@@ -18,7 +18,7 @@
  * Sous-commandes :
  *   migrate                              → DDL idempotent (ADD COLUMN IF NOT EXISTS)
  *   list <type> [--missing] [--limit N]  → entités à remplir (JSON)
- *        [--ids 1,2] [--names "a,b"] [--has-desc] [--with-relations]
+ *        [--has-article] (régénération)   [--ids 1,2] [--names "a,b"] [--has-desc]
  *   context <type> <id>                  → bundle de grounding RAG (texte sourcé)
  *   write <type> <id> --article-file F --sources-file F   → UPDATE PG
  *   stats                                → couverture article par table
@@ -355,6 +355,7 @@ async function cmdList(typeName: string, args: Args) {
 	const pg = postgres(DATABASE_URL!, { max: 1, prepare: false });
 	const conds: string[] = [];
 	if (args.flags.has("missing")) conds.push("(article IS NULL OR length(article) = 0)");
+	if (args.flags.has("has-article")) conds.push("(article IS NOT NULL AND length(article) > 0)");
 	if (args.flags.has("has-desc")) conds.push("length(coalesce(description,'')) > 0");
 	if (args.opts.ids) {
 		const ids = args.opts.ids.split(",").map((x) => Number(x.trim())).filter((n) => !isNaN(n));
