@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
 	title: "Recherche Dragon Ball — DBFR",
 	description:
-		"Recherche cross-entity dans tout l'univers Dragon Ball : personnages, planètes, sagas, films, jeux.",
+		"Recherche dans tout l'univers Dragon Ball : personnages, planètes, races, transformations, techniques, sagas, arcs, films, épisodes, jeux, tomes et chapitres du manga.",
 	// Page de résultats paramétrée (?q=) : on ne veut pas indexer la combinatoire
 	// d'URLs (contenu mince/dupliqué) mais on laisse suivre les liens sortants.
 	robots: { index: false, follow: true },
@@ -78,6 +78,27 @@ export default async function SearchPage({
 	const q = (sp.q ?? "").trim();
 	const [results, rag] =
 		q.length >= 2 ? await Promise.all([dbUniverse.search(q), dbUniverse.rag(q, 8)]) : [null, null];
+
+	// Récap par catégorie (chips de saut + total) — n'affiche que les non vides.
+	const summary: Array<[id: string, label: string, n: number]> = results
+		? (
+				[
+					["characters", "Personnages", results.characters.length],
+					["planets", "Planètes", results.planets.length],
+					["sagas", "Sagas", results.sagas.length],
+					["arcs", "Arcs", results.arcs.length],
+					["movies", "Films", results.movies.length],
+					["episodes", "Épisodes", results.episodes.length],
+					["tomes", "Tomes", results.mangaVolumes.length],
+					["chapitres", "Chapitres", results.mangaChapters.length],
+					["games", "Jeux", results.games.length],
+					["techniques", "Techniques", results.techniques.length],
+					["races", "Races", results.races.length],
+					["transformations", "Transformations", results.transformations.length],
+				] as Array<[string, string, number]>
+			).filter(([, , n]) => n > 0)
+		: [];
+	const totalResults = summary.reduce((acc, [, , n]) => acc + n, 0);
 
 	return (
 		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
@@ -171,8 +192,26 @@ export default async function SearchPage({
 
 			{results && (
 				<div className="space-y-20">
+					{totalResults > 0 && (
+						<div className="flex flex-wrap items-center gap-2 -mt-8">
+							<span className="inline-flex items-center h-8 px-3.5 rounded-full bg-dbz-orange/15 text-dbz-orange border border-dbz-orange/40 text-[12px] font-display font-bold tracking-wide">
+								{totalResults} résultat{totalResults > 1 ? "s" : ""}
+							</span>
+							{summary.map(([id, label, n]) => (
+								<a
+									key={id}
+									href={`#${id}`}
+									className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-dbz-orange/40 text-[12px] font-display font-semibold tracking-wide transition-colors"
+								>
+									{label}
+									<span className="text-white/35 tabular-nums">{n}</span>
+								</a>
+							))}
+						</div>
+					)}
+
 					{results.characters.length > 0 && (
-						<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
+						<section id="characters" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.1s" }}>
 							<div className="flex items-center gap-6 mb-8">
 								<h2 className="font-saiyan text-3xl text-dbz-orange uppercase tracking-widest">
 									Guerriers Détectés ({results.characters.length})
@@ -217,7 +256,7 @@ export default async function SearchPage({
 					)}
 
 					{results.planets.length > 0 && (
-						<section className="reveal-up" style={{ animationDelay: "0.2s" }}>
+						<section id="planets" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.2s" }}>
 							<div className="flex items-center gap-6 mb-8">
 								<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest">
 									Localisations ({results.planets.length})
@@ -265,7 +304,7 @@ export default async function SearchPage({
 
 					<div className="grid md:grid-cols-2 gap-12">
 						{results.sagas.length > 0 && (
-							<section className="reveal-up" style={{ animationDelay: "0.3s" }}>
+							<section id="sagas" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.3s" }}>
 								<div className="flex items-center gap-6 mb-6">
 									<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 										Chronologie
@@ -299,7 +338,7 @@ export default async function SearchPage({
 						)}
 
 						{results.movies.length > 0 && (
-							<section className="reveal-up" style={{ animationDelay: "0.4s" }}>
+							<section id="movies" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.4s" }}>
 								<div className="flex items-center gap-6 mb-6">
 									<h2 className="font-saiyan text-2xl text-dbz-red uppercase tracking-widest">
 										Archives Cinéma
@@ -334,7 +373,7 @@ export default async function SearchPage({
 					</div>
 
 					{results.games.length > 0 && (
-						<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
+						<section id="games" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.45s" }}>
 							<div className="flex items-center gap-6 mb-6">
 								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest">
 									Jeux ({results.games.length})
@@ -361,7 +400,7 @@ export default async function SearchPage({
 					)}
 
 					{results.episodes.length > 0 && (
-						<section className="reveal-up" style={{ animationDelay: "0.5s" }}>
+						<section id="episodes" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.5s" }}>
 							<div className="flex items-center gap-6 mb-6">
 								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest">
 									Épisodes ({results.episodes.length})
@@ -402,7 +441,7 @@ export default async function SearchPage({
 					)}
 
 					{results.techniques.length > 0 && (
-						<section className="reveal-up" style={{ animationDelay: "0.55s" }}>
+						<section id="techniques" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.55s" }}>
 							<div className="flex items-center gap-6 mb-6">
 								<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 									Techniques ({results.techniques.length})
@@ -430,13 +469,175 @@ export default async function SearchPage({
 						</section>
 					)}
 
-					{results.characters.length === 0 &&
-						results.planets.length === 0 &&
-						results.sagas.length === 0 &&
-						results.movies.length === 0 &&
-						results.games.length === 0 &&
-						results.episodes.length === 0 &&
-						results.techniques.length === 0 && (
+					{results.races.length > 0 && (
+						<section id="races" className="reveal-up scroll-mt-24">
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-purple-400 uppercase tracking-widest">
+									Races ({results.races.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-purple-400/40 to-transparent" />
+							</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+								{results.races.map((r) => (
+									<Link
+										key={r.id}
+										href={`/wiki/races/${r.slug}`}
+										className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+									>
+										<p className="font-display font-bold text-white group-hover:text-purple-400 transition-colors">
+											{r.name}
+										</p>
+										{r.name_ja && (
+											<p className="font-jp text-[10px] text-white/40 mt-1">{r.name_ja}</p>
+										)}
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{results.transformations.length > 0 && (
+						<section id="transformations" className="reveal-up scroll-mt-24">
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
+									Transformations ({results.transformations.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/40 to-transparent" />
+							</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+								{results.transformations.map((t) => (
+									<Link
+										key={t.id}
+										href={`/wiki/dragon-ball/character/${t.character_id}`}
+										className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
+									>
+										<div className="relative aspect-[4/3] bg-dbz-bg overflow-hidden">
+											{t.image ? (
+												<img
+													src={assetUrl(t.image)}
+													alt={t.name}
+													loading="lazy"
+													className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+												/>
+											) : (
+												<div className="flex h-full w-full items-center justify-center">
+													<span className="text-dbz-orange/20 font-saiyan text-2xl">⚡</span>
+												</div>
+											)}
+											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+											<div className="absolute inset-x-0 bottom-0 p-3">
+												<p className="font-display font-bold text-xs text-white group-hover:text-dbz-orange transition-colors line-clamp-2">
+													{t.name}
+												</p>
+											</div>
+										</div>
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{results.arcs.length > 0 && (
+						<section id="arcs" className="reveal-up scroll-mt-24">
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase tracking-widest">
+									Arcs ({results.arcs.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-dbz-yellow/40 to-transparent" />
+							</div>
+							<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+								{results.arcs.map((a) => (
+									<Link
+										key={a.id}
+										href={`/wiki/arcs/${a.slug}`}
+										className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+									>
+										<p className="font-display font-bold text-white group-hover:text-dbz-yellow transition-colors">
+											{a.name}
+										</p>
+										{a.name_ja && (
+											<p className="font-jp text-[10px] text-white/40 mt-1">{a.name_ja}</p>
+										)}
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{results.mangaVolumes.length > 0 && (
+						<section id="tomes" className="reveal-up scroll-mt-24">
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-white uppercase tracking-widest">
+									Tomes ({results.mangaVolumes.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
+							</div>
+							<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
+								{results.mangaVolumes.map((v) => (
+									<Link
+										key={v.id}
+										href={`/wiki/manga/volume/${v.id}`}
+										className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
+									>
+										<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
+											{v.cover ? (
+												<img
+													src={assetUrl(v.cover)}
+													alt={v.title ?? `Tome ${v.volume_number}`}
+													loading="lazy"
+													className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+												/>
+											) : (
+												<div className="flex h-full w-full items-center justify-center bg-zinc-900">
+													<span className="text-zinc-700 font-saiyan text-xl">T{v.volume_number}</span>
+												</div>
+											)}
+											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+											<div className="absolute inset-x-0 bottom-0 p-2">
+												<p className="scouter-text text-[9px] text-dbz-orange">
+													{v.series} · T{v.volume_number}
+												</p>
+												{v.title && (
+													<p className="font-display font-bold text-[10px] text-white leading-tight line-clamp-2">
+														{v.title}
+													</p>
+												)}
+											</div>
+										</div>
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{results.mangaChapters.length > 0 && (
+						<section id="chapitres" className="reveal-up scroll-mt-24">
+							<div className="flex items-center gap-6 mb-6">
+								<h2 className="font-saiyan text-2xl text-white uppercase tracking-widest">
+									Chapitres ({results.mangaChapters.length})
+								</h2>
+								<div className="h-px flex-1 bg-gradient-to-r from-white/30 to-transparent" />
+							</div>
+							<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+								{results.mangaChapters.map((c) => (
+									<Link
+										key={c.id}
+										href={`/wiki/manga/${c.id}`}
+										className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
+									>
+										<p className="scouter-text text-[10px] text-dbz-orange mb-1">
+											{c.series} · Ch. {c.chapter_number}
+										</p>
+										<p className="font-display font-bold text-white group-hover:text-dbz-blue-light transition-colors line-clamp-2">
+											{c.title ?? `Chapitre ${c.chapter_number}`}
+										</p>
+									</Link>
+								))}
+							</div>
+						</section>
+					)}
+
+					{totalResults === 0 && (
 							<div className="dbz-panel p-10 max-w-3xl border-l-4 border-l-dbz-red reveal-up">
 								<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
 									AUCUNE ÉNERGIE DÉTECTÉE

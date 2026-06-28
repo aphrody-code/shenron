@@ -23,6 +23,11 @@ const empty = (q: string): SearchResults => ({
 	games: [],
 	episodes: [],
 	techniques: [],
+	races: [],
+	transformations: [],
+	arcs: [],
+	mangaVolumes: [],
+	mangaChapters: [],
 });
 
 export async function GET(req: NextRequest) {

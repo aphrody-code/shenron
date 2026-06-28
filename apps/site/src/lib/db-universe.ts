@@ -209,6 +209,38 @@ export type SearchResults = {
 		name_ja: string | null;
 		type: string | null;
 	}>;
+	races: Array<{
+		id: number;
+		slug: string;
+		name: string;
+		name_ja: string | null;
+	}>;
+	transformations: Array<{
+		id: number;
+		name: string;
+		image: string | null;
+		character_id: number;
+	}>;
+	arcs: Array<{
+		id: number;
+		slug: string;
+		name: string;
+		name_ja: string | null;
+		saga_slug: string | null;
+	}>;
+	mangaVolumes: Array<{
+		id: number;
+		series: string;
+		volume_number: number | null;
+		title: string | null;
+		cover: string | null;
+	}>;
+	mangaChapters: Array<{
+		id: number;
+		series: string;
+		chapter_number: number | null;
+		title: string | null;
+	}>;
 };
 
 export type Arc = WithArticle & {
@@ -810,6 +842,11 @@ export const dbUniverse = {
 					games: [],
 					episodes: [],
 					techniques: [],
+					races: [],
+					transformations: [],
+					arcs: [],
+					mangaVolumes: [],
+					mangaChapters: [],
 				};
 			}
 			const charCols = [botCharacters.name, botCharacters.nameJa, botCharacters.nameRomaji];
@@ -819,7 +856,35 @@ export const dbUniverse = {
 			const gameCols = [botGames.title, botGames.titleJa];
 			const episodeCols = [botEpisodes.title, botEpisodes.titleJa, botEpisodes.titleRomaji];
 			const techniqueCols = [botTechniques.name, botTechniques.nameJa, botTechniques.nameRomaji];
-			const [characters, planets, sagas, movies, games, episodes, techniques] = await Promise.all([
+			const raceCols = [botRaces.name, botRaces.nameJa];
+			const arcCols = [botArcs.name, botArcs.nameJa];
+			const transfoCols = [botTransformations.name];
+			const volCols = [botMangaVolumes.title, botMangaVolumes.titleJa];
+			const chapCols = [botMangaChapters.title, botMangaChapters.titleJa];
+			// Manga : un terme purement numérique matche aussi le n° de tome/chapitre.
+			const num = /^\d{1,4}$/.test(term) ? Number(term) : null;
+			const volWhere =
+				num != null
+					? or(fuzzyWhere(term, volCols), eq(botMangaVolumes.volumeNumber, num))
+					: fuzzyWhere(term, volCols);
+			const chapWhere =
+				num != null
+					? or(fuzzyWhere(term, chapCols), eq(botMangaChapters.chapterNumber, num))
+					: fuzzyWhere(term, chapCols);
+			const [
+				characters,
+				planets,
+				sagas,
+				movies,
+				games,
+				episodes,
+				techniques,
+				races,
+				transformations,
+				arcs,
+				mangaVolumes,
+				mangaChapters,
+			] = await Promise.all([
 				db
 					.select({
 						id: botCharacters.id,
@@ -902,7 +967,83 @@ export const dbUniverse = {
 					.where(fuzzyWhere(term, techniqueCols))
 					.orderBy(...fuzzyOrder(term, techniqueCols))
 					.limit(10),
+				db
+					.select({
+						id: botRaces.id,
+						slug: botRaces.slug,
+						name: botRaces.name,
+						name_ja: botRaces.nameJa,
+					})
+					.from(botRaces)
+					.where(fuzzyWhere(term, raceCols))
+					.orderBy(...fuzzyOrder(term, raceCols))
+					.limit(8),
+				db
+					.select({
+						id: botTransformations.id,
+						name: botTransformations.name,
+						image: botTransformations.image,
+						character_id: botTransformations.characterId,
+					})
+					.from(botTransformations)
+					.where(fuzzyWhere(term, transfoCols))
+					.orderBy(...fuzzyOrder(term, transfoCols))
+					.limit(24),
+				db
+					.select({
+						id: botArcs.id,
+						slug: botArcs.slug,
+						name: botArcs.name,
+						name_ja: botArcs.nameJa,
+						saga_slug: botSagas.slug,
+					})
+					.from(botArcs)
+					.leftJoin(botSagas, eq(botArcs.sagaId, botSagas.id))
+					.where(fuzzyWhere(term, arcCols))
+					.orderBy(...fuzzyOrder(term, arcCols))
+					.limit(10),
+				db
+					.select({
+						id: botMangaVolumes.id,
+						series: botMangaVolumes.series,
+						volume_number: botMangaVolumes.volumeNumber,
+						title: botMangaVolumes.title,
+						cover: botMangaVolumes.cover,
+					})
+					.from(botMangaVolumes)
+					.where(volWhere)
+					.orderBy(...fuzzyOrder(term, volCols), asc(botMangaVolumes.volumeNumber))
+					.limit(10),
+				db
+					.select({
+						id: botMangaChapters.id,
+						series: botMangaChapters.series,
+						chapter_number: botMangaChapters.chapterNumber,
+						title: botMangaChapters.title,
+					})
+					.from(botMangaChapters)
+					.where(chapWhere)
+					.orderBy(...fuzzyOrder(term, chapCols), asc(botMangaChapters.chapterNumber))
+					.limit(12),
 			]);
+			// Dédup des transformations par nom (Super Saiyan partagé par N persos) et
+			// exclusion de celles sans personnage rattaché (lien impossible).
+			const transfoSeen = new Set<string>();
+			const transfoDedup = transformations
+				.filter(
+					(t): t is { id: number; name: string; image: string | null; character_id: number } => {
+						if (t.character_id == null) return false;
+						const k = t.name
+							.normalize("NFD")
+							.replace(/[̀-ͯ]/g, "")
+							.toLowerCase()
+							.trim();
+						if (transfoSeen.has(k)) return false;
+						transfoSeen.add(k);
+						return true;
+					}
+				)
+				.slice(0, 8);
 			return {
 				q: term,
 				characters,
@@ -916,6 +1057,11 @@ export const dbUniverse = {
 					number_in_series: e.number_in_series ?? 0,
 				})),
 				techniques,
+				races,
+				transformations: transfoDedup,
+				arcs,
+				mangaVolumes,
+				mangaChapters,
 			};
 		}),
 

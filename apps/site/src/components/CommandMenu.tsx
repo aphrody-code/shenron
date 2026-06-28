@@ -69,6 +69,22 @@ type SearchResults = {
 		name_ja: string | null;
 		type: string | null;
 	}>;
+	races: Array<{ id: number; slug: string; name: string; name_ja: string | null }>;
+	transformations: Array<{ id: number; name: string; image: string | null; character_id: number }>;
+	arcs: Array<{ id: number; slug: string; name: string; name_ja: string | null; saga_slug: string | null }>;
+	mangaVolumes: Array<{
+		id: number;
+		series: string;
+		volume_number: number | null;
+		title: string | null;
+		cover: string | null;
+	}>;
+	mangaChapters: Array<{
+		id: number;
+		series: string;
+		chapter_number: number | null;
+		title: string | null;
+	}>;
 };
 
 const EMPTY: SearchResults = {
@@ -80,6 +96,11 @@ const EMPTY: SearchResults = {
 	games: [],
 	episodes: [],
 	techniques: [],
+	races: [],
+	transformations: [],
+	arcs: [],
+	mangaVolumes: [],
+	mangaChapters: [],
 };
 
 function count(r: SearchResults): number {
@@ -90,7 +111,12 @@ function count(r: SearchResults): number {
 		r.movies.length +
 		r.games.length +
 		r.episodes.length +
-		r.techniques.length
+		r.techniques.length +
+		r.races.length +
+		r.transformations.length +
+		r.arcs.length +
+		r.mangaVolumes.length +
+		r.mangaChapters.length
 	);
 }
 
@@ -357,6 +383,89 @@ export function CommandMenu() {
 						</Command.Group>
 					)}
 
+					{results.races.length > 0 && (
+						<Command.Group heading="Races">
+							{results.races.map((r) => (
+								<Item
+									key={`race-${r.id}`}
+									value={`race-${r.id}-${r.name}`}
+									onSelect={() => go(`/wiki/races/${r.slug}`)}
+									title={r.name}
+									subtitle={r.name_ja ?? undefined}
+									kind="Race"
+									accent="purple"
+								/>
+							))}
+						</Command.Group>
+					)}
+
+					{results.transformations.length > 0 && (
+						<Command.Group heading="Transformations">
+							{results.transformations.map((t) => (
+								<Item
+									key={`transfo-${t.id}`}
+									value={`transfo-${t.id}-${t.name}`}
+									onSelect={() => go(`/wiki/dragon-ball/character/${t.character_id}`)}
+									image={t.image}
+									title={t.name}
+									kind="Transfo"
+									accent="orange"
+								/>
+							))}
+						</Command.Group>
+					)}
+
+					{results.arcs.length > 0 && (
+						<Command.Group heading="Arcs">
+							{results.arcs.map((a) => (
+								<Item
+									key={`arc-${a.id}`}
+									value={`arc-${a.id}-${a.name}`}
+									onSelect={() => go(`/wiki/arcs/${a.slug}`)}
+									title={a.name}
+									subtitle={a.name_ja ?? undefined}
+									kind="Arc"
+									accent="red"
+								/>
+							))}
+						</Command.Group>
+					)}
+
+					{results.mangaVolumes.length > 0 && (
+						<Command.Group heading="Tomes (manga)">
+							{results.mangaVolumes.map((v) => (
+								<Item
+									key={`vol-${v.id}`}
+									value={`vol-${v.id}-${v.title ?? v.volume_number}`}
+									onSelect={() => go(`/wiki/manga/volume/${v.id}`)}
+									image={v.cover}
+									title={v.title ? `Tome ${v.volume_number} — ${v.title}` : `Tome ${v.volume_number}`}
+									subtitle={v.series}
+									kind="Tome"
+									accent="blue"
+								/>
+							))}
+						</Command.Group>
+					)}
+
+					{results.mangaChapters.length > 0 && (
+						<Command.Group heading="Chapitres (manga)">
+							{results.mangaChapters.map((c) => (
+								<Item
+									key={`chap-${c.id}`}
+									value={`chap-${c.id}-${c.title ?? c.chapter_number}`}
+									onSelect={() => go(`/wiki/manga/${c.id}`)}
+									title={
+										c.title ? `Chapitre ${c.chapter_number} — ${c.title}` : `Chapitre ${c.chapter_number}`
+									}
+									subtitle={c.series}
+									kind="Chapitre"
+									accent="blue"
+								/>
+							))}
+						</Command.Group>
+					)}
+
 					{total > 0 && (
 						<Command.Item
 							value="__all-results"
@@ -376,6 +485,7 @@ const ACCENT = {
 	orange: "group-data-[selected=true]:text-dbz-orange",
 	blue: "group-data-[selected=true]:text-dbz-blue-light",
 	red: "group-data-[selected=true]:text-dbz-red",
+	purple: "group-data-[selected=true]:text-purple-400",
 } as const;
 
 function Item({
