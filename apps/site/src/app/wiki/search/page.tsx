@@ -106,7 +106,7 @@ export default async function SearchPage({
 				<p className="font-display font-semibold text-[12px] tracking-[0.2em] uppercase text-dbz-orange mb-4">
 					Système de Détection
 				</p>
-				<h1 className="font-saiyan text-5xl md:text-7xl text-white mb-10 tracking-widest">
+				<h1 className="font-saiyan text-5xl md:text-7xl title-gold mb-10 tracking-widest uppercase">
 					EXPLORER L'UNIVERS
 				</h1>
 

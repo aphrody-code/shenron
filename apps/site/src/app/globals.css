@@ -264,6 +264,48 @@ html {
 		color: transparent;
 	}
 
+	/* === Titre de marque : dégradé or signature + lisibilité sur image ===
+	   Traitement unique des grands titres de hero (PageHero, recherche, hub)
+	   pour une typographie cohérente partout — fini les titres tantôt gris
+	   plat, tantôt dorés. */
+	.title-gold {
+		background: var(--gradient-galactic);
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		filter: drop-shadow(0 2px 20px rgba(0, 0, 0, 0.55));
+	}
+
+	/* === Carte de catégorie (hub wiki) : lift + glow doré au survol === */
+	.cat-card {
+		@apply relative overflow-hidden rounded-xl border bg-dbz-card/40 backdrop-blur-sm;
+		border-color: var(--color-dbz-border);
+		transition:
+			transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+			border-color 0.3s,
+			box-shadow 0.3s;
+	}
+	.cat-card:hover {
+		transform: translateY(-4px);
+		border-color: rgba(255, 178, 0, 0.5);
+		box-shadow:
+			0 16px 44px rgba(255, 178, 0, 0.12),
+			inset 0 1px 0 rgba(255, 255, 255, 0.05);
+	}
+	/* Kanji filigrane en fond de carte */
+	.cat-card__kanji {
+		@apply pointer-events-none absolute select-none font-bold leading-none;
+		right: -0.15em;
+		bottom: -0.25em;
+		font-size: 7rem;
+		color: rgba(255, 255, 255, 0.03);
+		transition: color 0.3s;
+	}
+	.cat-card:hover .cat-card__kanji {
+		color: rgba(255, 178, 0, 0.07);
+	}
+
 	/* === HUD admin (re-théé violet) === */
 	.hud-scanlines {
 		background-image: repeating-linear-gradient(
@@ -351,6 +393,12 @@ html {
 	.halftone-orange {
 		background-image: radial-gradient(rgba(75, 168, 255, 0.25) 1px, transparent 1.6px);
 		background-size: 5px 5px;
+	}
+	/* Screentone neutre (trame benday de gris) — ombrage façon planche manga
+	   Toriyama, plus discret que `.halftone` (teinté orange). */
+	.screentone {
+		background-image: radial-gradient(rgba(255, 255, 255, 0.05) 0.9px, transparent 1.1px);
+		background-size: 3px 3px;
 	}
 	.speed-lines {
 		background: repeating-conic-gradient(

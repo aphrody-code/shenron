@@ -84,6 +84,22 @@ function buildSections(c: Record<string, number>) {
 	];
 }
 
+// Kanji filigrane + couleur de barre d'encre par catégorie (clés littérales →
+// classes Tailwind présentes dans le source, donc bien générées par le JIT).
+const CARD_FX: Record<string, { kanji: string; bar: string }> = {
+	Personnages: { kanji: "戦士", bar: "bg-dbz-orange" },
+	Planètes: { kanji: "惑星", bar: "bg-dbz-blue-light" },
+	Sagas: { kanji: "物語", bar: "bg-dbz-red" },
+	Films: { kanji: "映画", bar: "bg-dbz-yellow" },
+	Épisodes: { kanji: "話", bar: "bg-dbz-blue-light" },
+	Manga: { kanji: "漫画", bar: "bg-white" },
+	"Jeux Vidéo": { kanji: "遊戯", bar: "bg-green-400" },
+	Races: { kanji: "種族", bar: "bg-purple-400" },
+	Transformations: { kanji: "変身", bar: "bg-dbz-orange" },
+	Techniques: { kanji: "技", bar: "bg-dbz-red" },
+	Arcs: { kanji: "編", bar: "bg-dbz-yellow" },
+};
+
 export default async function WikiIndex() {
 	const [characters, movies, planets, races, techniques, episodesData, counts] = await Promise.all([
 		getShenronCharacters(),
@@ -142,19 +158,45 @@ export default async function WikiIndex() {
 					<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-					{SECTIONS.map((s, idx) => (
-						<Link
-							key={s.title}
-							href={s.href}
-							className={`dbz-panel p-6 border-l-4 ${s.color} hover:bg-white/5 transition-all group reveal-up hover:shadow-[0_0_20px_rgba(255,178,0,0.05)]`}
-							style={{ animationDelay: `${0.05 + idx * 0.04}s` }}
-						>
-							<h2 className="text-xl font-saiyan uppercase tracking-widest mb-2 group-hover:translate-x-1 transition-transform">
-								{s.title}
-							</h2>
-							<p className="text-gray-400 text-xs font-sans leading-relaxed">{s.desc}</p>
-						</Link>
-					))}
+					{SECTIONS.map((s, idx) => {
+						const fx = CARD_FX[s.title] ?? { kanji: "", bar: "bg-dbz-orange" };
+						const textColor =
+							s.color.split(" ").find((c) => c.startsWith("text-")) ?? "text-dbz-orange";
+						return (
+							<Link
+								key={s.title}
+								href={s.href}
+								className="cat-card group p-6 reveal-up"
+								style={{ animationDelay: `${0.05 + idx * 0.04}s` }}
+							>
+								{/* Barre d'encre accent (gouttière de case) */}
+								<span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${fx.bar}`} />
+								{/* Trame screentone façon planche */}
+								<span aria-hidden className="absolute inset-0 screentone opacity-50 pointer-events-none" />
+								{/* Kanji filigrane */}
+								{fx.kanji && (
+									<span aria-hidden className="cat-card__kanji font-jp">
+										{fx.kanji}
+									</span>
+								)}
+								<div className="relative z-10">
+									<div className="flex items-center justify-between gap-2">
+										<h2
+											className={`text-xl font-saiyan uppercase tracking-widest ${textColor} group-hover:translate-x-1 transition-transform`}
+										>
+											{s.title}
+										</h2>
+										<span
+											className={`${textColor} text-lg opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all`}
+										>
+											→
+										</span>
+									</div>
+									<p className="text-gray-400 text-xs font-sans leading-relaxed mt-2">{s.desc}</p>
+								</div>
+							</Link>
+						);
+					})}
 				</div>
 			</section>
 

@@ -47,6 +47,8 @@ export function PageHero({
 			/>
 			{/* Trame demi-teinte façon planche manga */}
 			<div className="absolute inset-0 halftone opacity-[0.07] mix-blend-overlay pointer-events-none" />
+			{/* Lignes de vitesse — focus action façon planche Toriyama */}
+			<div aria-hidden className="absolute inset-0 speed-lines opacity-[0.05] pointer-events-none" />
 
 			<div className="relative h-full mx-auto max-w-[1280px] px-6 lg:px-10 flex items-end pb-14">
 				<div className="flex-1 max-w-2xl reveal-up">
@@ -54,7 +56,7 @@ export function PageHero({
 						<span aria-hidden className="w-7 h-px bg-dbz-orange/70" />
 						{eyebrow}
 					</p>
-					<h1 className="font-display font-bold text-[42px] md:text-[60px] leading-[1.02] tracking-[-0.015em] text-white mb-4 drop-shadow-[0_2px_24px_rgba(0,0,0,0.6)]">
+					<h1 className="font-saiyan font-bold uppercase text-[40px] md:text-[58px] leading-[1.02] tracking-[0.01em] title-gold mb-4">
 						{title}
 					</h1>
 					{lead && <p className="text-[17px] leading-relaxed text-white/85 max-w-xl">{lead}</p>}
