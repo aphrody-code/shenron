@@ -64,10 +64,22 @@ function buildSections(c: Record<string, number>) {
 			color: "border-purple-400 text-purple-400",
 		},
 		{
+			title: "Transformations",
+			desc: `${c.transformations} transformations — Super Saiyan, formes divines, Ultra Instinct.`,
+			href: "/wiki/transformations",
+			color: "border-dbz-orange text-dbz-orange",
+		},
+		{
 			title: "Techniques",
 			desc: `${c.techniques} techniques et capacités spéciales.`,
 			href: "/wiki/dragon-ball/techniques",
 			color: "border-dbz-red text-dbz-red",
+		},
+		{
+			title: "Arcs",
+			desc: `${c.arcs} arcs narratifs regroupés par saga.`,
+			href: "/wiki/arcs",
+			color: "border-dbz-yellow text-dbz-yellow",
 		},
 	];
 }

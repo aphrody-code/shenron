@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
+import { FilterDropdown } from "@/components/wiki/FilterDropdown";
 
 // Grille personnages filtrable (client). Importe `@/lib/assets` (client-safe),
 // JAMAIS db-universe/shenron (server-only → `postgres` fuiterait dans le bundle).
@@ -29,10 +30,11 @@ function norm(s: string): string {
 
 export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 	const [query, setQuery] = useState("");
-	const [race, setRace] = useState<string | null>(null);
+	const [races, setRaces] = useState<string[]>([]);
 
-	// Facettes races (avec compte), triées par fréquence puis alpha.
-	const races = useMemo(() => {
+	// Facettes races (avec compte), triées par fréquence puis alpha → options du
+	// filtre déroulant.
+	const raceOptions = useMemo(() => {
 		const counts = new Map<string, number>();
 		for (const c of characters) {
 			if (!c.race) continue;
@@ -40,17 +42,18 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 		}
 		return [...counts.entries()]
 			.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-			.map(([name, n]) => ({ name, n }));
+			.map(([value, count]) => ({ value, label: value, count }));
 	}, [characters]);
 
 	const filtered = useMemo(() => {
 		const q = norm(query);
+		const raceSet = races.length ? new Set(races) : null;
 		return characters.filter((c) => {
-			if (race && c.race !== race) return false;
+			if (raceSet && (!c.race || !raceSet.has(c.race))) return false;
 			if (!q) return true;
 			return norm(c.name).includes(q) || (c.nameJa ? c.nameJa.includes(query.trim()) : false);
 		});
-	}, [characters, query, race]);
+	}, [characters, query, races]);
 
 	// Rendu progressif : on n'affiche pas 1000+ cartes d'un coup. « Voir plus »
 	// par paliers (le filtre/la recherche réinitialisent la pagination).
@@ -58,13 +61,15 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 	const [limit, setLimit] = useState(PAGE);
 	useEffect(() => {
 		setLimit(PAGE);
-	}, [query, race]);
+	}, [query, races]);
 	const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
 
 	return (
 		<div className="space-y-8">
-			{/* Barre de contrôle : recherche + compteur live */}
-			<div className="flex flex-col sm:flex-row sm:items-center gap-4">
+			{/* Toolbar compacte : recherche + filtre déroulant + compteur live.
+			    Le filtre Race est un champ unique qui se déroule en cases à cocher
+			    (multi-sélection) — plus de rangée de chips qui débordait l'écran. */}
+			<div className="flex flex-col sm:flex-row sm:items-center gap-3">
 				<div className="relative flex-1 max-w-md">
 					<svg
 						className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"
@@ -86,47 +91,24 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 						className="w-full h-11 pl-11 pr-4 rounded-full bg-white/[0.05] border border-white/[0.1] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-dbz-orange/60 focus:bg-white/[0.07] transition-colors"
 					/>
 				</div>
-				<p className="scouter-text text-[11px] text-dbz-orange whitespace-nowrap">
+				{raceOptions.length > 0 && (
+					<FilterDropdown
+						label="Race"
+						options={raceOptions}
+						selected={races}
+						onChange={setRaces}
+						searchable={raceOptions.length > 10}
+					/>
+				)}
+				<p className="scouter-text text-[11px] text-dbz-orange whitespace-nowrap sm:ml-auto">
 					{filtered.length} / {characters.length} guerriers
 				</p>
 			</div>
 
-			{/* Facettes races */}
-			{races.length > 0 && (
-				<div className="flex flex-wrap gap-2">
-					<button
-						type="button"
-						onClick={() => setRace(null)}
-						className={`px-3.5 h-8 rounded-full text-[12px] font-display font-semibold tracking-wide transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-							race === null
-								? "bg-dbz-orange text-black border-dbz-orange"
-								: "bg-white/[0.04] text-white/70 border-white/[0.1] hover:text-white hover:border-white/30"
-						}`}
-					>
-						Toutes
-					</button>
-					{races.map((r) => (
-						<button
-							key={r.name}
-							type="button"
-							onClick={() => setRace(race === r.name ? null : r.name)}
-							className={`px-3.5 h-8 rounded-full text-[12px] font-display font-semibold tracking-wide transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-								race === r.name
-									? "bg-dbz-orange text-black border-dbz-orange"
-									: "bg-white/[0.04] text-white/70 border-white/[0.1] hover:text-white hover:border-white/30"
-							}`}
-						>
-							{r.name}{" "}
-							<span className={race === r.name ? "text-black/60" : "text-white/40"}>{r.n}</span>
-						</button>
-					))}
-				</div>
-			)}
-
 			{/* Grille */}
 			{filtered.length === 0 ? (
 				<p className="py-20 text-center text-white/50 font-sans">
-					Aucun guerrier ne correspond à « {query} ».
+					Aucun guerrier ne correspond {query ? `à « ${query} »` : "à ces filtres"}.
 				</p>
 			) : (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 reveal-grid">

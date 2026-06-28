@@ -2,9 +2,10 @@
 
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CharacterGrid, GridCharacter } from "./CharacterGrid";
+import { FilterDropdown } from "./FilterDropdown";
 import { ViewTransition } from "@/components/ViewTransition";
 import { assetUrl } from "@/lib/assets";
 
@@ -24,6 +25,21 @@ type Props = {
 
 export function UniverseTabs({ characters, planets, initialTab = "personnages" }: Props) {
 	const [activeTab, setActiveTab] = useState<string>(initialTab);
+	const [planetStatus, setPlanetStatus] = useState<string[]>([]);
+
+	const filteredPlanets = useMemo(() => {
+		if (!planetStatus.length) return planets;
+		const set = new Set(planetStatus);
+		return planets.filter((p) => set.has(p.isDestroyed ? "destroyed" : "alive"));
+	}, [planets, planetStatus]);
+
+	const planetStatusOptions = useMemo(() => {
+		const destroyed = planets.filter((p) => p.isDestroyed).length;
+		return [
+			{ value: "alive", label: "Existantes", count: planets.length - destroyed },
+			{ value: "destroyed", label: "Détruites", count: destroyed },
+		];
+	}, [planets]);
 
 	return (
 		<div className="space-y-8">
@@ -73,9 +89,21 @@ export function UniverseTabs({ characters, planets, initialTab = "personnages" }
 					role="tabpanel"
 					id="universe-panel-planetes"
 					aria-labelledby="universe-tab-planetes"
-					className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 reveal-grid"
+					className="space-y-8"
 				>
-					{planets.map((p) => (
+					<div className="flex items-center gap-3">
+						<FilterDropdown
+							label="Statut"
+							options={planetStatusOptions}
+							selected={planetStatus}
+							onChange={setPlanetStatus}
+						/>
+						<p className="scouter-text text-[11px] text-dbz-blue-light whitespace-nowrap sm:ml-auto">
+							{filteredPlanets.length} / {planets.length} mondes
+						</p>
+					</div>
+					<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 reveal-grid">
+						{filteredPlanets.map((p) => (
 						<Link
 							key={p.id}
 							href={`/wiki/dragon-ball/planet/${p.id}`}
@@ -118,6 +146,7 @@ export function UniverseTabs({ characters, planets, initialTab = "personnages" }
 							</div>
 						</Link>
 					))}
+					</div>
 				</div>
 			)}
 		</div>

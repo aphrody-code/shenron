@@ -476,6 +476,29 @@ export const dbUniverse = {
 			sagas: (await db.select().from(botSagas).orderBy(asc(botSagas.orderIdx))).map(toSaga),
 		})),
 
+	/** Tous les arcs (toutes sagas) + nom/slug de leur saga, pour l'index /wiki/arcs. */
+	arcs: () =>
+		safe(async () => {
+			const rows = await db
+				.select({
+					arc: botArcs,
+					sagaName: botSagas.name,
+					sagaSlug: botSagas.slug,
+					sagaSeries: botSagas.series,
+				})
+				.from(botArcs)
+				.leftJoin(botSagas, eq(botArcs.sagaId, botSagas.id))
+				.orderBy(asc(botSagas.orderIdx), asc(botArcs.orderIdx));
+			return {
+				arcs: rows.map((r) => ({
+					...toArc(r.arc),
+					saga_name: r.sagaName,
+					saga_slug: r.sagaSlug,
+					saga_series: r.sagaSeries,
+				})),
+			};
+		}),
+
 	saga: (slug: string) =>
 		safe(async () => {
 			const [s] = await db.select().from(botSagas).where(eq(botSagas.slug, slug)).limit(1);
