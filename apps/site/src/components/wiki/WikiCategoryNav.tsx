@@ -3,53 +3,34 @@
 import "server-only";
 import Link from "next/link";
 import { dbUniverse } from "@/lib/db-universe";
+import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
 
 /**
- * Barre de navigation « Univers » : tisse TOUTES les catégories d'entités du
- * wiki (personnages, planètes, races, transformations, techniques, sagas, arcs,
- * films, épisodes, manga, jeux) en une rangée scrollable. Compteurs dérivés des
- * comptes RÉELS de la DB (jamais codés en dur). Server component, sans
- * cookie/header → cache CDN/ISR préservé.
+ * Nav des sous-entités encyclopédiques du wiki (Personnages, Planètes, Races,
+ * Transformations, Techniques, Arcs) — **uniquement celles absentes de la
+ * navbar principale** (SiteNav porte déjà Sagas/Films/Épisodes/Manga/Jeux) pour
+ * ne JAMAIS doubler la sidebar. Compteurs réels (jamais codés en dur). Server
+ * component, sans cookie/header → cache CDN/ISR préservé.
  */
-const CATEGORIES = [
-	{ key: "personnages", label: "Personnages", href: "/wiki/personnages", countKey: "characters" },
-	{ key: "planetes", label: "Planètes", href: "/wiki/planetes", countKey: "planets" },
-	{ key: "races", label: "Races", href: "/wiki/races", countKey: "races" },
-	{
-		key: "transformations",
-		label: "Transformations",
-		href: "/wiki/transformations",
-		countKey: "transformations",
-	},
-	{
-		key: "techniques",
-		label: "Techniques",
-		href: "/wiki/dragon-ball/techniques",
-		countKey: "techniques",
-	},
-	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", countKey: "sagas" },
-	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", countKey: "arcs" },
-	{ key: "films", label: "Films", href: "/wiki/films", countKey: "movies" },
-	{ key: "episodes", label: "Épisodes", href: "/wiki/episodes", countKey: "episodes" },
-	{ key: "manga", label: "Manga", href: "/wiki/manga", countKey: "mangaVolumes" },
-	{ key: "jeux", label: "Jeux", href: "/wiki/jeux", countKey: "games" },
-] as const;
-
 export async function WikiCategoryNav({
 	active,
+	omit = [],
 	className = "",
 }: {
 	active?: string;
+	/** Clés à ne pas afficher (ex. perso/planetes quand ce sont déjà des onglets). */
+	omit?: string[];
 	className?: string;
 }) {
 	const counts = (await dbUniverse.counts()) ?? {};
+	const cats = ENCYCLOPEDIA_CATEGORIES.filter((c) => !omit.includes(c.key));
 
 	return (
 		<nav
-			aria-label="Catégories de l'univers"
+			aria-label="Catégories de l'encyclopédie"
 			className={`flex gap-2 overflow-x-auto pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 lg:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}
 		>
-			{CATEGORIES.map((c) => {
+			{cats.map((c) => {
 				const n = (counts as Record<string, number>)[c.countKey];
 				const isActive = active === c.key;
 				return (

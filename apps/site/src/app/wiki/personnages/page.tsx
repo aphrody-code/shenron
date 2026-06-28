@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { getShenronCharacters, getShenronPlanets } from "@/lib/shenron";
+import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { UniverseTabs } from "@/components/wiki/UniverseTabs";
-import { WikiCategoryNav } from "@/components/wiki/WikiCategoryNav";
 import { CHARACTERS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
@@ -24,7 +24,11 @@ export default async function PersonnagesPage({
 	const sp = await searchParams;
 	const initialTab = sp.tab || "personnages";
 
-	const [characters, planets] = await Promise.all([getShenronCharacters(), getShenronPlanets()]);
+	const [characters, planets, counts] = await Promise.all([
+		getShenronCharacters(),
+		getShenronPlanets(),
+		dbUniverse.counts(),
+	]);
 
 	return (
 		<>
@@ -36,10 +40,6 @@ export default async function PersonnagesPage({
 				imageAlt="Univers Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-16 reveal-up">
-				<WikiCategoryNav
-					active={initialTab === "planetes" ? "planetes" : "personnages"}
-					className="mb-10"
-				/>
 				<UniverseTabs
 					characters={characters.map((c) => ({
 						id: c.id,
@@ -58,6 +58,7 @@ export default async function PersonnagesPage({
 						image: p.image,
 					}))}
 					initialTab={initialTab}
+					counts={counts ?? {}}
 				/>
 			</div>
 		</>

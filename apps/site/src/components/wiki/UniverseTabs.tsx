@@ -8,6 +8,15 @@ import { CharacterGrid, GridCharacter } from "./CharacterGrid";
 import { FilterDropdown } from "./FilterDropdown";
 import { ViewTransition } from "@/components/ViewTransition";
 import { assetUrl } from "@/lib/assets";
+import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
+
+// Autres entrées encyclopédiques (hors onglets Perso/Planètes) exposées DANS la
+// même barre — Races, Transformations, Techniques, Arcs. On n'y met jamais les
+// catégories "media" (Sagas/Films/Épisodes/Manga/Jeux) déjà dans la navbar
+// (anti-doublon), ni Perso/Planètes (ce sont les onglets juste à côté).
+const OTHER_CATS = ENCYCLOPEDIA_CATEGORIES.filter(
+	(c) => c.key !== "personnages" && c.key !== "planetes"
+);
 
 export type GridPlanet = {
 	id: number;
@@ -21,9 +30,15 @@ type Props = {
 	characters: GridCharacter[];
 	planets: GridPlanet[];
 	initialTab?: string;
+	counts?: Record<string, number>;
 };
 
-export function UniverseTabs({ characters, planets, initialTab = "personnages" }: Props) {
+export function UniverseTabs({
+	characters,
+	planets,
+	initialTab = "personnages",
+	counts = {},
+}: Props) {
 	const [activeTab, setActiveTab] = useState<string>(initialTab);
 	const [planetStatus, setPlanetStatus] = useState<string[]>([]);
 
@@ -43,40 +58,64 @@ export function UniverseTabs({ characters, planets, initialTab = "personnages" }
 
 	return (
 		<div className="space-y-8">
-			{/* Tab Switcher */}
-			<div role="tablist" className="flex border-b border-white/[0.08]">
-				<button
-					type="button"
-					role="tab"
-					id="universe-tab-personnages"
-					aria-selected={activeTab === "personnages"}
-					aria-controls="universe-panel-personnages"
-					onClick={() => setActiveTab("personnages")}
-					className={`px-6 py-3 font-display font-semibold text-sm transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-						activeTab === "personnages" ? "text-dbz-orange" : "text-white/60 hover:text-white"
-					}`}
-				>
-					Personnages ({characters.length})
-					{activeTab === "personnages" && (
-						<span className="absolute bottom-0 inset-x-0 h-[2px] bg-dbz-orange" />
-					)}
-				</button>
-				<button
-					type="button"
-					role="tab"
-					id="universe-tab-planetes"
-					aria-selected={activeTab === "planetes"}
-					aria-controls="universe-panel-planetes"
-					onClick={() => setActiveTab("planetes")}
-					className={`px-6 py-3 font-display font-semibold text-sm transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-						activeTab === "planetes" ? "text-dbz-orange" : "text-white/60 hover:text-white"
-					}`}
-				>
-					Planètes ({planets.length})
-					{activeTab === "planetes" && (
-						<span className="absolute bottom-0 inset-x-0 h-[2px] bg-dbz-orange" />
-					)}
-				</button>
+			{/* Barre unique : onglets Personnages/Planètes (vue inline) + liens vers
+			    les autres entrées encyclopédiques (Races, Transformations, Techniques,
+			    Arcs). Aucune catégorie de la navbar ici → pas de doublon avec la nav. */}
+			<div className="flex items-center overflow-x-auto border-b border-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+				<div role="tablist" className="flex shrink-0">
+					<button
+						type="button"
+						role="tab"
+						id="universe-tab-personnages"
+						aria-selected={activeTab === "personnages"}
+						aria-controls="universe-panel-personnages"
+						onClick={() => setActiveTab("personnages")}
+						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+							activeTab === "personnages" ? "text-dbz-orange" : "text-white/60 hover:text-white"
+						}`}
+					>
+						Personnages ({characters.length})
+						{activeTab === "personnages" && (
+							<span className="absolute bottom-0 inset-x-0 h-[2px] bg-dbz-orange" />
+						)}
+					</button>
+					<button
+						type="button"
+						role="tab"
+						id="universe-tab-planetes"
+						aria-selected={activeTab === "planetes"}
+						aria-controls="universe-panel-planetes"
+						onClick={() => setActiveTab("planetes")}
+						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+							activeTab === "planetes" ? "text-dbz-orange" : "text-white/60 hover:text-white"
+						}`}
+					>
+						Planètes ({planets.length})
+						{activeTab === "planetes" && (
+							<span className="absolute bottom-0 inset-x-0 h-[2px] bg-dbz-orange" />
+						)}
+					</button>
+				</div>
+
+				<span className="mx-2 h-5 w-px shrink-0 bg-white/10" aria-hidden />
+
+				<div className="flex shrink-0 items-center">
+					{OTHER_CATS.map((c) => {
+						const n = counts[c.countKey];
+						return (
+							<Link
+								key={c.key}
+								href={c.href}
+								className="px-4 py-3 font-display font-semibold text-sm text-white/55 hover:text-white whitespace-nowrap transition-colors"
+							>
+								{c.label}
+								{typeof n === "number" && n > 0 && (
+									<span className="ml-1 text-[11px] text-white/35 tabular-nums">{n}</span>
+								)}
+							</Link>
+						);
+					})}
+				</div>
 			</div>
 
 			{/* Tab Content */}
