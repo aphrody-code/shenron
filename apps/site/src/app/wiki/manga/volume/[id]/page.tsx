@@ -24,11 +24,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { id } = await params;
 	const volume = await dbUniverse.mangaVolume(parseInt(id));
-	if (!volume) return { title: "Volume Manga — DBFR" };
+	if (!volume) return { title: "Volume Manga" };
 	const description = volume.title ?? `Volume ${volume.volume_number} du manga ${volume.series}.`;
+	// Tome sans aucun chapitre lisible = contenu mince (« en cours d'ajout ») :
+	// on le dé-indexe (mais reste crawlable) pour ne pas polluer l'index Google.
+	const hasReadable = (volume.chapters ?? []).some(
+		(c) => Array.isArray(c.pages) && c.pages.length > 0
+	);
 	return {
-		title: `${volume.series} Volume ${volume.volume_number} — Manga Dragon Ball | DBFR`,
+		title: `${volume.series} Volume ${volume.volume_number} — Manga Dragon Ball`,
 		description,
+		...(hasReadable ? {} : { robots: { index: false, follow: true } }),
 		...ogMeta({
 			title: `${volume.series} — Volume ${volume.volume_number}`,
 			description,

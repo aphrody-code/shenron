@@ -6,8 +6,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Link from "next/link";
 import Image from "next/image";
-import { getCurrentUser } from "@/lib/session";
-import { CommentForm } from "./CommentForm";
+import { CommentGate } from "./CommentGate";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
 import type { BlogPosting, BreadcrumbList, WithContext } from "schema-dts";
@@ -30,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const post = await db.query.posts.findFirst({
-		where: (p, { eq }) => eq(p.slug, slug),
+		where: (p, { eq, and }) => and(eq(p.slug, slug), eq(p.published, true)),
 	});
 	if (!post) return { title: "Article — DBFR" };
 	const coverUrl =
@@ -68,7 +67,7 @@ function readingTime(body: string): number {
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const post = await db.query.posts.findFirst({
-		where: (p, { eq }) => eq(p.slug, slug),
+		where: (p, { eq, and }) => and(eq(p.slug, slug), eq(p.published, true)),
 		with: {
 			author: true,
 			comments: {
@@ -80,7 +79,6 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
 	if (!post) notFound();
 
-	const me = await getCurrentUser();
 	const minutes = readingTime(post.body);
 
 	const relatedPosts = await db.query.posts.findMany({
@@ -239,21 +237,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 						</div>
 					)}
 
-					{me ? (
-						<CommentForm slug={slug} />
-					) : (
-						<div className="p-6 rounded-xl bg-dbz-orange/10 border border-dbz-orange/30 flex flex-wrap items-center justify-between gap-4">
-							<p className="text-[15px] text-white/85">
-								Connecte-toi avec Discord pour commenter cet article.
-							</p>
-							<Link
-								href={`/signin?callbackURL=/post/${slug}`}
-								className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase transition-colors whitespace-nowrap"
-							>
-								Connexion
-							</Link>
-						</div>
-					)}
+					<CommentGate slug={slug} />
 				</section>
 			</article>
 

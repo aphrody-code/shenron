@@ -21,6 +21,16 @@ export function MobileNav({ links }: Props) {
 		};
 	}, [open]);
 
+	// Fermeture au clavier (Échap) quand le menu plein écran est ouvert.
+	useEffect(() => {
+		if (!open) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setOpen(false);
+		};
+		document.addEventListener("keydown", onKey);
+		return () => document.removeEventListener("keydown", onKey);
+	}, [open]);
+
 	return (
 		<div className="lg:hidden ml-auto">
 			<button
@@ -45,7 +55,12 @@ export function MobileNav({ links }: Props) {
 			</button>
 
 			{open && (
-				<div className="fixed inset-0 top-16 z-40 bg-[rgba(10,10,10,0.97)] backdrop-blur-xl flex flex-col">
+				<div
+					role="dialog"
+					aria-modal="true"
+					aria-label="Menu de navigation"
+					className="fixed inset-0 top-16 z-40 bg-[rgba(10,10,10,0.97)] backdrop-blur-xl flex flex-col"
+				>
 					<nav className="flex flex-col px-6 py-10 gap-2">
 						{links.map((l) => (
 							<Link

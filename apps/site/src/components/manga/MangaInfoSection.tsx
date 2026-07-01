@@ -177,13 +177,13 @@ export function MangaInfoSection() {
 								<Globe className="w-6 h-6" />
 							</div>
 							<h3 className="font-display font-extrabold text-lg text-white uppercase tracking-wider">
-								Sites & Scans Communautaires
+								Projets Communautaires
 							</h3>
 						</div>
 
 						<p className="text-xs text-white/40 leading-relaxed font-display">
-							Les plateformes et projets communautaires pour la lecture de scan-trads et de
-							fan-mangas d&apos;exception.
+							Les projets communautaires et fan-mangas d&apos;exception, portés par leurs propres
+							auteurs et diffusés avec leur accord.
 						</p>
 
 						<div className="space-y-4 pt-2">
@@ -210,40 +210,6 @@ export function MangaInfoSection() {
 								>
 									Lire DBM <ExternalLink className="w-3 h-3" />
 								</a>
-							</div>
-
-							{/* Scans-FR (Sources alternatives) */}
-							<div className="border border-white/5 bg-black/30 p-4 rounded-lg space-y-2 group/item hover:border-white/10 transition-colors">
-								<div className="flex items-center justify-between">
-									<h4 className="font-display font-bold text-sm text-white group-hover/item:text-dbz-orange transition-colors">
-										Scan-VF & Lelscanfr
-									</h4>
-									<span className="text-[9px] px-2 py-0.5 bg-white/10 text-white/80 border border-white/20 rounded font-mono font-bold uppercase tracking-wider">
-										Scan-Trad
-									</span>
-								</div>
-								<p className="text-xs text-white/60 font-display leading-relaxed">
-									Sites communautaires hébergeant les versions scan-traduites en français par des
-									équipes de fans dévoués pour tous les volumes de Dragon Ball et Dragon Ball Super.
-								</p>
-								<div className="flex gap-4 pt-1">
-									<a
-										href="https://www.scan-vf.net"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-1.5 text-[10px] text-dbz-orange hover:text-white transition-colors font-mono font-bold uppercase tracking-wider"
-									>
-										Scan-VF <ExternalLink className="w-3 h-3" />
-									</a>
-									<a
-										href="https://lelscanfr.com"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-1.5 text-[10px] text-dbz-orange hover:text-white transition-colors font-mono font-bold uppercase tracking-wider"
-									>
-										Lelscan <ExternalLink className="w-3 h-3" />
-									</a>
-								</div>
 							</div>
 						</div>
 					</div>

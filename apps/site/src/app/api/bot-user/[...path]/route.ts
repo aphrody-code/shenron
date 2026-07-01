@@ -41,6 +41,12 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
 	}
 
 	const { path } = await ctx.params;
+	// Durcissement défense-en-profondeur : refuse toute traversée de chemin
+	// (`..`, `.`, séparateurs) qui sortirait du préfixe `/api/` de l'hôte bot.
+	// Ce proxy est authentifié (HMAC) → on évite tout confused-deputy.
+	if (path.some((s) => s === ".." || s === "." || s.includes("/") || s.includes("\\"))) {
+		return NextResponse.json({ error: "invalid path" }, { status: 400 });
+	}
 	const url = `${API}/api/${path.join("/")}${req.nextUrl.search}`;
 	const body =
 		req.method === "GET" || req.method === "HEAD"

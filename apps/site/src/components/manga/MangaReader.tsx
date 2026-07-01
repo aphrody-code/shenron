@@ -56,6 +56,11 @@ type ViewMode = "paged" | "vertical";
 
 const LG_BREAKPOINT = 1024; // Tailwind `lg`
 
+// Au-delà de ce nombre de planches, la bande de vignettes (1 nœud DOM par planche,
+// jusqu'à ~282 sur un tome complet) devient trop lourde : on bascule sur un contrôle
+// compact « Aller à la planche ». Les chapitres courts gardent la bande de miniatures.
+const SHOW_STRIP_MAX = 40;
+
 /** Détecte le passage sous/au-delà du breakpoint `lg` pour la double-page. */
 function useIsLargeScreen(): boolean {
 	const [isLarge, setIsLarge] = useState(false);
@@ -186,12 +191,6 @@ export function MangaReader({
 	const handleSlideChange = useCallback((sw: SwiperClass) => {
 		setCurrent(sw.realIndex ?? sw.activeIndex ?? 0);
 	}, []);
-
-	// Swiper ne réagit pas seul au changement de `dir`/`spread` : on force
-	// une mise à jour de l'instance quand ces options changent.
-	useEffect(() => {
-		swiperRef.current?.update();
-	}, [useSpread]);
 
 	/* ------------------------------ Vertical ------------------------------ */
 
@@ -349,6 +348,9 @@ export function MangaReader({
 					<>
 						<Swiper
 							key={`${dir}-${useSpread ? "spread" : "single"}`}
+							// Le `key` force un remount à chaque changement de sens/double-page :
+							// on repart de la planche courante plutôt que de la page 1.
+							initialSlide={current}
 							dir={dir}
 							modules={[Keyboard, Zoom, Virtual, Mousewheel]}
 							className="h-full w-full"
@@ -411,7 +413,10 @@ export function MangaReader({
 				) : (
 					<div
 						ref={scrollParentRef}
-						className="h-full w-full overflow-y-auto overflow-x-hidden"
+						// `tabIndex` requis pour rendre le conteneur défilable au clavier
+						// (flèches/PgUp/PgDn) — sinon la lecture verticale est inatteignable.
+						tabIndex={0}
+						className="h-full w-full overflow-y-auto overflow-x-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dbz-orange"
 						aria-label={`${title} — lecture verticale`}
 					>
 						<div
@@ -449,8 +454,8 @@ export function MangaReader({
 				)}
 			</div>
 
-			{/* Thumbnail strip / Page navigation at the bottom */}
-			{mode === "paged" && total > 0 && (
+			{/* Bande de vignettes (chapitres courts uniquement — cf. SHOW_STRIP_MAX). */}
+			{mode === "paged" && total > 0 && total <= SHOW_STRIP_MAX && (
 				<div className="z-10 bg-black/90 border-t border-dbz-border px-4 py-3 flex items-center gap-4 overflow-x-auto scrollbar-thin">
 					<div className="flex gap-2 mx-auto">
 						{urls.map((url, idx) => (
@@ -480,6 +485,47 @@ export function MangaReader({
 						))}
 					</div>
 				</div>
+			)}
+
+			{/* Tomes longs : la bande de vignettes serait trop lourde (jusqu'à ~282 nœuds)
+			    → saut direct à une planche par saisie du numéro. */}
+			{mode === "paged" && total > SHOW_STRIP_MAX && (
+				<form
+					className="z-10 flex items-center justify-center gap-3 border-t border-dbz-border bg-black/90 px-4 py-3"
+					onSubmit={(e) => {
+						e.preventDefault();
+						const field = e.currentTarget.elements.namedItem("goto") as HTMLInputElement | null;
+						const val = Number(field?.value);
+						if (!Number.isFinite(val)) return;
+						const i = Math.min(Math.max(val - 1, 0), total - 1);
+						setCurrent(i);
+						swiperRef.current?.slideTo(i);
+					}}
+				>
+					<label
+						htmlFor={`${baseId}-goto`}
+						className="text-xs font-bold uppercase tracking-wider text-dbz-blue-light"
+					>
+						Aller à la planche
+					</label>
+					<input
+						id={`${baseId}-goto`}
+						name="goto"
+						type="number"
+						min={1}
+						max={total}
+						key={current}
+						defaultValue={current + 1}
+						className="w-20 rounded-md border border-dbz-border bg-dbz-bg px-2 py-1 text-center text-sm font-bold tabular-nums text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange"
+					/>
+					<span className="text-xs font-bold tabular-nums text-dbz-blue-light">/ {total}</span>
+					<button
+						type="submit"
+						className="rounded-md border border-dbz-border bg-dbz-bg px-3 py-1 text-xs font-bold text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+					>
+						OK
+					</button>
+				</form>
 			)}
 		</div>
 	);

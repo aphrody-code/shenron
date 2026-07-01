@@ -253,8 +253,9 @@ export async function getShenronUser(discordId: string): Promise<ShenronUser | n
 		});
 		if (!res.ok) return null;
 		return res.json();
-	} catch {
+	} catch (e) {
 		// Bot injoignable → null (la page appelante fait notFound), pas une 500.
+		console.error("[shenron] getShenronUser a échoué:", e);
 		return null;
 	}
 }
@@ -286,7 +287,8 @@ export async function getShenronLeaderboard(
 		if (!res.ok) return [];
 		const data = await res.json();
 		return data.leaderboard || [];
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronLeaderboard a échoué:", e);
 		return [];
 	}
 }
@@ -323,7 +325,8 @@ export async function getShenronCharacters(query?: string): Promise<DBCharacter[
 					.limit(25)
 			: await db.select().from(botCharacters);
 		return rows.map(mapCharacter);
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronCharacters a échoué:", e);
 		return [];
 	}
 }
@@ -331,7 +334,8 @@ export async function getShenronCharacters(query?: string): Promise<DBCharacter[
 export async function getShenronMovies(): Promise<DBMovie[]> {
 	try {
 		return (await db.select().from(botMovies)) as DBMovie[];
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronMovies a échoué:", e);
 		return [];
 	}
 }
@@ -340,7 +344,8 @@ export async function getShenronMovie(id: number): Promise<DBMovie | null> {
 	try {
 		const [m] = await db.select().from(botMovies).where(eq(botMovies.id, id)).limit(1);
 		return (m as DBMovie) ?? null;
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronMovie a échoué:", e);
 		return null;
 	}
 }
@@ -385,7 +390,8 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 		}));
 
 		return { ...mapCharacter(c), transformations, originPlanet, techniques };
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronCharacter a échoué:", e);
 		return null;
 	}
 }
@@ -408,7 +414,8 @@ export async function getShenronTechniques(): Promise<DBTechnique[]> {
 			article: r.t.article ?? null,
 			articleSources: r.t.articleSources ?? null,
 		}));
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronTechniques a échoué:", e);
 		return [];
 	}
 }
@@ -434,7 +441,8 @@ export async function getShenronTechnique(slug: string): Promise<DBTechnique | n
 			article: r.t.article ?? null,
 			articleSources: r.t.articleSources ?? null,
 		};
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronTechnique a échoué:", e);
 		return null;
 	}
 }
@@ -442,7 +450,8 @@ export async function getShenronTechnique(slug: string): Promise<DBTechnique | n
 export async function getShenronGames(): Promise<DBGame[]> {
 	try {
 		return (await db.select().from(botGames)) as DBGame[];
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronGames a échoué:", e);
 		return [];
 	}
 }
@@ -451,7 +460,8 @@ export async function getShenronGame(slug: string): Promise<DBGame | null> {
 	try {
 		const [g] = await db.select().from(botGames).where(eq(botGames.slug, slug)).limit(1);
 		return (g as DBGame) ?? null;
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronGame a échoué:", e);
 		return null;
 	}
 }
@@ -470,7 +480,8 @@ export async function getShenronManga(): Promise<DBMangaVolume[]> {
 			title: r.title,
 			cover: r.cover,
 		}));
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronManga a échoué:", e);
 		return [];
 	}
 }
@@ -478,7 +489,8 @@ export async function getShenronManga(): Promise<DBMangaVolume[]> {
 export async function getShenronRaces(): Promise<DBRace[]> {
 	try {
 		return (await db.select().from(botRaces)) as DBRace[];
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronRaces a échoué:", e);
 		return [];
 	}
 }
@@ -535,7 +547,8 @@ export async function getShenronRace(
 		}
 
 		return { ...(r as DBRace), characters, homePlanet };
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronRace a échoué:", e);
 		return null;
 	}
 }
@@ -543,7 +556,8 @@ export async function getShenronRace(
 export async function getShenronPlanets(): Promise<DBPlanet[]> {
 	try {
 		return (await db.select().from(botPlanets)).map(mapPlanet);
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronPlanets a échoué:", e);
 		return [];
 	}
 }
@@ -558,7 +572,8 @@ export async function getShenronPlanet(
 			await db.select().from(botCharacters).where(eq(botCharacters.originPlanetId, id))
 		).map(mapCharacter);
 		return { ...mapPlanet(p), characters };
-	} catch {
+	} catch (e) {
+		console.error("[shenron] getShenronPlanet a échoué:", e);
 		return null;
 	}
 }

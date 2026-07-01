@@ -81,12 +81,13 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 			)}
 
 			{/* Sélecteur de lecteur dans la langue active. */}
-			<div className="flex flex-wrap items-center gap-2">
+			<div role="group" aria-label="Choix du lecteur" className="flex flex-wrap items-center gap-2">
 				{list.map((p, i) => (
 					<button
 						key={`${p.provider}-${i}`}
 						type="button"
 						onClick={() => setActive(i)}
+						aria-pressed={i === active}
 						className={`rounded-full px-3.5 py-1.5 text-[12px] font-display font-semibold tracking-wide transition-colors ${
 							i === active
 								? "bg-dbz-orange text-black"
@@ -100,11 +101,16 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 			</div>
 
 			<div className="dbz-panel overflow-hidden rounded-lg border border-dbz-border bg-black p-0">
+				{/* sandbox : autorise le player tiers (scripts + accès à SA propre
+				    origine, requis pour les tokens de flux) mais bloque popups et
+				    navigation du top-window → coupe popunders et hijack de l'onglet
+				    dragonballfr.com. NE PAS ajouter allow-popups / allow-top-navigation. */}
 				<iframe
 					key={current.embedUrl}
 					src={current.embedUrl}
 					title={`Lecteur ${active + 1} — ${cleanName(current.name)}`}
 					className="aspect-video w-full rounded-lg bg-black"
+					sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
 					allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
 					allowFullScreen
 					referrerPolicy="origin"

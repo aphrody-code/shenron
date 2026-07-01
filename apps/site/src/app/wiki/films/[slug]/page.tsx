@@ -23,7 +23,22 @@ const SERIES_LABELS: Record<string, string> = {
 	DBZ_MOVIE: "Film Dragon Ball Z",
 	DBS_MOVIE: "Film Dragon Ball Super",
 	DB_DAIMA_MOVIE: "Film Daima",
+	DBZ_OVA: "OVA Dragon Ball Z",
+	DBZ_SPECIAL: "Téléfilm Dragon Ball Z",
 };
+
+// Retire les mentions de source du dataset (« (Source : ANN) », « [Écrit par
+// MAL Rewrite] »…) en fin de synopsis. Boucle pour les balises empilées.
+function stripSourceTags(s: string | null): string | null {
+	if (!s) return s;
+	let out = s;
+	let prev: string;
+	do {
+		prev = out;
+		out = out.replace(/\s*[([]\s*(?:source|écrit par)[^)\]]*[)\]]\s*$/i, "");
+	} while (out !== prev);
+	return out.trimEnd();
+}
 
 export async function generateMetadata({
 	params,
@@ -33,7 +48,7 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
 	if (!m) return { title: "Film — DBFR" };
-	const description = m.synopsis ?? `${SERIES_LABELS[m.series] ?? "Film"}.`;
+	const description = stripSourceTags(m.synopsis) ?? `${SERIES_LABELS[m.series] ?? "Film"}.`;
 	return {
 		title: `${m.title} — Film | DBFR`,
 		description,
@@ -51,6 +66,9 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
 	if (!m) notFound();
+
+	// Synopsis nettoyé des balises de source du dataset (cf. stripSourceTags).
+	const synopsis = stripSourceTags(m.synopsis);
 
 	const getYoutubeId = (url: string | null) => {
 		if (!url) return null;
@@ -83,8 +101,12 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 		"@type": "Movie",
 		name: m.title,
 		image: m.poster ? assetUrl(m.poster) : undefined,
-		description: m.synopsis ?? undefined,
+		description: synopsis ?? undefined,
 		dateCreated: m.release_date
+			? new Date(m.release_date * 1000).toISOString().split("T")[0]
+			: undefined,
+		// `datePublished` = propriété schema.org correcte pour une date de sortie.
+		datePublished: m.release_date
 			? new Date(m.release_date * 1000).toISOString().split("T")[0]
 			: undefined,
 		duration: m.duration_min ? `PT${m.duration_min}M` : undefined,
@@ -125,7 +147,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 				<div className="space-y-8">
 					<header>
 						<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
-							{SERIES_LABELS[m.series] ?? m.series}
+							{SERIES_LABELS[m.series] ?? m.series.replace(/_/g, " ")}
 						</p>
 						<h1 className="font-saiyan text-5xl lg:text-7xl text-white mb-4 tracking-widest leading-tight">
 							{m.title}
@@ -189,14 +211,14 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 						</div>
 					)}
 
-					{m.synopsis && (
+					{synopsis && (
 						<section className="dbz-panel p-8 relative overflow-hidden">
 							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
 							<h2 className="font-saiyan text-2xl text-dbz-orange mb-4 uppercase tracking-widest">
 								Synopsis
 							</h2>
 							<div className="prose prose-invert max-w-none wiki-content">
-								<WikiMarkdown body={m.synopsis} />
+								<WikiMarkdown body={synopsis} />
 							</div>
 						</section>
 					)}

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_URL } from "@/lib/config";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 /**
  * API Route Next.js proxying requests to the bot's grounded RAG chat endpoint.
  */
@@ -17,6 +20,10 @@ export async function GET(req: NextRequest) {
 	if (!q) {
 		return NextResponse.json({ error: "Missing query parameter 'q'" }, { status: 400 });
 	}
+	// Borne la longueur de `q` : évite une requête RAG/LLM amont démesurée.
+	if (q.length > 600) {
+		return NextResponse.json({ error: "query too long" }, { status: 400 });
+	}
 
 	try {
 		let botUrl =
@@ -30,6 +37,9 @@ export async function GET(req: NextRequest) {
 			method: "GET",
 			// Caching disabled for real-time conversation queries
 			cache: "no-store",
+			// Propage l'annulation client + borne l'amont RAG/LLM (potentiellement
+			// lent/indisponible) à 30 s pour ne pas laisser de requête Next pendante.
+			signal: AbortSignal.any([req.signal, AbortSignal.timeout(30_000)]),
 		});
 
 		if (!res.ok) {
@@ -39,6 +49,10 @@ export async function GET(req: NextRequest) {
 		const data = await res.json();
 		return NextResponse.json(data);
 	} catch (err) {
+		// Timeout amont (AbortSignal.timeout) ou annulation client → 504.
+		if (err instanceof DOMException && (err.name === "TimeoutError" || err.name === "AbortError")) {
+			return NextResponse.json({ error: "Upstream timeout" }, { status: 504 });
+		}
 		console.error("[NEXT CHAT PROXY] Failed to fetch bot RAG chat API:", err);
 		return NextResponse.json({ error: "Internal server error" }, { status: 500 });
 	}

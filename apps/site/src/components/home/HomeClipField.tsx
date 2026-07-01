@@ -23,8 +23,8 @@ interface Drift {
 }
 
 // Paramètres déterministes basés sur l'index — même résultat SSR/CSR, pas de shuffle.
-function buildDrifts(scenes: readonly HomeScene[]): Drift[] {
-	const count = Math.min(9, scenes.length);
+function buildDrifts(scenes: readonly HomeScene[], max: number): Drift[] {
+	const count = Math.min(max, scenes.length);
 	return scenes.slice(0, count).map((sc, i) => {
 		const dur = 28 + ((i * 7) % 22); // 28–50 s
 		return {
@@ -44,20 +44,24 @@ function buildDrifts(scenes: readonly HomeScene[]): Drift[] {
 
 // Composant isolé par clip — chaque vidéo a son propre ref pour play/pause.
 // Séparé pour que useEffect ne dépende que des props de CE clip, pas du tableau.
-function ClipVideo({ drift, active }: { drift: Drift; active: boolean }) {
+function ClipVideo({ drift, active, index }: { drift: Drift; active: boolean; index: number }) {
 	const ref = useRef<HTMLVideoElement>(null);
 
 	// Joue/met en pause selon le panneau actif — évite que les vidéos continuent
-	// de décoder hors-champ et freeze quand elles reprennent.
+	// de décoder hors-champ et freeze quand elles reprennent. Démarrages échelonnés
+	// (index * 250 ms) pour ne pas réclamer tous les décodeurs matériels d'un coup.
 	useEffect(() => {
 		const v = ref.current;
 		if (!v) return;
-		if (active) {
-			v.play().catch(() => {});
-		} else {
+		if (!active) {
 			v.pause();
+			return;
 		}
-	}, [active]);
+		const t = setTimeout(() => {
+			v.play().catch(() => {});
+		}, index * 250);
+		return () => clearTimeout(t);
+	}, [active, index]);
 
 	if (!drift.src) return null;
 
@@ -100,15 +104,21 @@ export function HomeClipField({
 		const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
 		if (reduce || conn?.saveData) return;
-		setDrifts(buildDrifts(scenes));
+		// Borne la charge de décodage selon la largeur : desktop léger (4 clips),
+		// tablette réduite (2), téléphone aucun (le SceneBackdrop plein écran suffit).
+		const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
+		const isPhone = window.matchMedia("(max-width: 640px)").matches;
+		const max = isDesktop ? 4 : isPhone ? 0 : 2;
+		if (max === 0) return;
+		setDrifts(buildDrifts(scenes, max));
 	}, [scenes]);
 
 	if (drifts.length === 0) return null;
 
 	return (
 		<div className={`home-clip-field${active ? " is-live" : ""}`} aria-hidden>
-			{drifts.map((d) => (
-				<ClipVideo key={d.key} drift={d} active={active} />
+			{drifts.map((d, i) => (
+				<ClipVideo key={d.key} drift={d} index={i} active={active} />
 			))}
 		</div>
 	);

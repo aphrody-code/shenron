@@ -82,12 +82,14 @@ export const metadata: Metadata = {
 	twitter: {
 		card: "summary_large_image",
 	},
-	verification: {
-		google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "google-site-verification-token",
-	},
-	other: {
-		"google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-XXXXXXXXXX",
-	},
+	// Uniquement si la vraie valeur est posée en env — pas de placeholder factice
+	// dans le <head> (bruit Search Console / meta AdSense inerte sinon).
+	verification: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+		? { google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+		: undefined,
+	other: env.NEXT_PUBLIC_ADSENSE_CLIENT
+		? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT }
+		: undefined,
 };
 
 export const viewport = {
@@ -101,7 +103,6 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	const gtmId = env.NEXT_PUBLIC_GTM_ID || "GTM-KLSS5787";
-	const gaId = env.NEXT_PUBLIC_GA_ID || "G-XXXXXXXXXX";
 
 	return (
 		<html lang="fr" className="dark">
@@ -124,8 +125,9 @@ export default function RootLayout({
 			</head>
 			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties */}
 			<GoogleTagManager gtmId={gtmId} />
-			{/* Google Analytics GA4 — injecté de manière optimisée via le composant officiel */}
-			<GoogleAnalytics gaId={gaId} />
+			{/* Google Analytics GA4 — seulement si une vraie property est posée en env
+			    (sinon GA4 est déjà géré par le conteneur GTM ci-dessus). */}
+			{env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={env.NEXT_PUBLIC_GA_ID} />}
 			{/* Google AdSense Script */}
 			{env.NEXT_PUBLIC_ADSENSE_CLIENT && (
 				<Script

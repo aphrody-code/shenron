@@ -77,7 +77,8 @@ function labelForEvent(type: string, data: unknown): string {
 		case "fusion":
 			return `Fusion accomplie`;
 		default:
-			return type.replace(/[-_]/g, " ");
+			// Type non mappé du bus a2a → libellé FR neutre (jamais le type brut).
+			return "Activité sur le serveur";
 	}
 }
 

@@ -20,6 +20,7 @@ import { EpisodeScenes } from "./EpisodeScenes";
 import { JsonLd } from "@/components/JsonLd";
 import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
+import { excerpt } from "../_text";
 
 export const revalidate = 3600;
 
@@ -48,8 +49,10 @@ export async function generateMetadata({
 	const { id } = await params;
 	const ep = await dbUniverse.episode(parseInt(id));
 	if (!ep) return { title: "Épisode Dragon Ball — DBFR" };
+	// Synopsis nettoyé (Markdown retiré) et tronqué ~160 car. pour meta/og :
+	// certains synopsis contiennent du Markdown (*_#>) qui fuiterait sinon brut.
 	const description =
-		ep.synopsis ?? `Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`;
+		excerpt(ep.synopsis) || `Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`;
 	return {
 		title: `Épisode ${ep.number_in_series} : ${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series} | DBFR`,
 		description,
@@ -182,7 +185,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 		"@type": "TVEpisode",
 		episodeNumber: String(ep.number_in_series),
 		name: ep.title,
-		description: ep.synopsis ?? undefined,
+		description: excerpt(ep.synopsis) || undefined,
 		image: ep.image ? assetUrl(ep.image) : undefined,
 		partOfSeries: {
 			"@type": "TVSeries",
@@ -239,9 +242,6 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 						<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-white/60">
 							{seriesLabel}
 						</p>
-						<span className="px-2.5 py-0.5 rounded-full bg-dbz-orange/15 border border-dbz-orange/40 text-dbz-orange text-[10px] font-bold uppercase tracking-widest">
-							Canon
-						</span>
 					</div>
 
 					<h1 className="font-display font-bold text-4xl lg:text-6xl text-white leading-[1.02] tracking-tight mb-4 max-w-3xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.65)]">

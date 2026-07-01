@@ -19,6 +19,11 @@ async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }
 		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 	}
 	const { path } = await ctx.params;
+	// Durcissement défense-en-profondeur : refuse toute traversée de chemin
+	// (`..`, `.`, séparateurs) qui sortirait du préfixe `/api/` de l'hôte bot.
+	if (path.some((s) => s === ".." || s === "." || s.includes("/") || s.includes("\\"))) {
+		return NextResponse.json({ error: "invalid path" }, { status: 400 });
+	}
 	const url = `${API}/api/${path.join("/")}${req.nextUrl.search}`;
 	const body =
 		req.method === "GET" || req.method === "HEAD"

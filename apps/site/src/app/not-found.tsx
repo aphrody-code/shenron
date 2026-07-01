@@ -16,8 +16,8 @@ export default function NotFound() {
 						<Link href="/" className="dbz-button !text-xs">
 							Retour à la base
 						</Link>
-						<Link href="/wiki" className="dbz-button-ghost !text-xs">
-							Explorer l'univers
+						<Link href="/wiki/manga" className="dbz-button-ghost !text-xs">
+							Lire le manga
 						</Link>
 					</div>
 				</div>

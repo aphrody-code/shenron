@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+import { posts as postsTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { DISCORD_INVITE } from "@/lib/config";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,7 +30,7 @@ export default async function ActualitesPage({
 	const page = Math.max(1, parseInt(sp.page ?? "1", 10));
 	const offset = (page - 1) * POSTS_PER_PAGE;
 
-	const [posts, total] = await Promise.all([
+	const [posts, totalCount] = await Promise.all([
 		db.query.posts.findMany({
 			where: (p, { eq }) => eq(p.published, true),
 			orderBy: (p, { desc }) => desc(p.createdAt),
@@ -36,13 +38,10 @@ export default async function ActualitesPage({
 			offset,
 			with: { author: true },
 		}),
-		db.query.posts.findMany({
-			where: (p, { eq }) => eq(p.published, true),
-			columns: { id: true },
-		}),
+		// COUNT SQL plutôt que rapatrier tous les ids publiés juste pour `.length`.
+		db.$count(postsTable, eq(postsTable.published, true)),
 	]);
 
-	const totalCount = total.length;
 	const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
 
 	return (
@@ -61,15 +60,15 @@ export default async function ActualitesPage({
 							Le journal démarre bientôt
 						</h2>
 						<p className="text-[15px] text-white/65 leading-relaxed mb-5">
-							Pendant que nous préparons les premiers articles, explore le wiki et la communauté
-							Discord pour suivre l'actualité Dragon Ball.
+							Pendant que nous préparons les premiers articles, explore le manga, les épisodes et
+							les films, ou rejoins la communauté Discord pour suivre l'actualité Dragon Ball.
 						</p>
 						<div className="flex flex-wrap gap-3">
 							<Link
-								href="/wiki"
+								href="/wiki/manga"
 								className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase transition-colors"
 							>
-								Explorer le wiki
+								Lire le manga
 							</Link>
 							<a
 								href={DISCORD_INVITE}

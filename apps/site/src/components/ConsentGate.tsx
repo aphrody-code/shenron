@@ -55,7 +55,7 @@ export function ConsentGate() {
 			role="dialog"
 			aria-label="Préférences de confidentialité"
 			aria-live="polite"
-			className="fixed bottom-4 right-4 left-4 md:left-auto md:right-6 md:bottom-6 z-[60] max-w-md mx-auto md:mx-0 reveal-up"
+			className="fixed bottom-24 right-4 left-4 md:left-auto md:right-6 md:bottom-24 z-[60] max-w-md mx-auto md:mx-0 reveal-up"
 		>
 			<div className="dbz-panel p-5 border-2 border-dbz-orange/40 bg-dbz-card/95 backdrop-blur-sm shadow-2xl">
 				<p className="text-sm font-bold text-white uppercase tracking-widest mb-2 font-display">

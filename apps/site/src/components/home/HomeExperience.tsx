@@ -56,6 +56,13 @@ export interface SagaTeaser {
 
 const DISCORD_URL = DISCORD_INVITE;
 
+// Lancement bêta : le wiki n'est ouvert que sur Épisodes / Films / Manga
+// (cf. src/middleware.ts). On masque les panneaux Personnages et Sagas — leurs
+// routes /wiki/personnages et /wiki/sagas sont encore fermées et feraient boucler
+// la home vers l'accueil via le middleware. Repasser à false rouvre les deux
+// panneaux (et leurs liens) une fois les routes réouvertes côté middleware.
+const BETA_WIKI_LOCKED = true;
+
 const GUARDIAN_ROLES: Record<string, { role: string; line: string; kanji: string }> = {
 	shenron: { role: "Administration · API", line: "Exauce les vœux", kanji: "神龍" },
 	beerus: { role: "Modération", line: "La destruction veille", kanji: "破壊神" },
@@ -86,12 +93,6 @@ const PLAY_CARDS = [
 		title: "Classement",
 		desc: "Les guerriers les plus puissants",
 		kanji: "番付",
-	},
-	{
-		href: "/tierlists",
-		title: "Tierlists",
-		desc: "Classe l'univers, partage ta tierlist",
-		kanji: "段",
 	},
 	{
 		href: "/profil",
@@ -177,8 +178,13 @@ export function HomeExperience({
 				{ id: "hero", label: "Accueil", kanji: "序" },
 				{ id: "pantheon", label: "Le panthéon", kanji: "番付" },
 				{ id: "universe", label: "L'univers", kanji: "宇宙" },
-				{ id: "personnages", label: "Personnages", kanji: "戦士" },
-				{ id: "sagas", label: "Les sagas", kanji: "物語" },
+				// Personnages & Sagas masqués en bêta (routes /wiki fermées, cf. BETA_WIKI_LOCKED).
+				...(BETA_WIKI_LOCKED
+					? []
+					: [
+							{ id: "personnages", label: "Personnages", kanji: "戦士" },
+							{ id: "sagas", label: "Les sagas", kanji: "物語" },
+						]),
 				{ id: "guardians", label: "Les gardiens", kanji: "神" },
 				{ id: "community", label: "Communauté", kanji: "仲間" },
 				{ id: "play", label: "Le terrain", kanji: "遊" },
@@ -189,6 +195,9 @@ export function HomeExperience({
 
 	const refs = useRef<(HTMLElement | null)[]>([]);
 	const [active, setActive] = useState(0);
+	// Mobile (≤640px) : plafonne le contenu du Panthéon pour tenir dans 100svh (le
+	// deck hijacke le scroll → le bas d'un panneau trop haut serait inatteignable).
+	const [compact, setCompact] = useState(false);
 	const lockRef = useRef(false);
 	const reduceRef = useRef(false);
 
@@ -198,6 +207,15 @@ export function HomeExperience({
 		return () => {
 			delete document.documentElement.dataset.home;
 		};
+	}, []);
+
+	// Suit la largeur (≤640px) pour réduire le contenu du Panthéon sur mobile.
+	useEffect(() => {
+		const mq = window.matchMedia("(max-width: 640px)");
+		const apply = () => setCompact(mq.matches);
+		apply();
+		mq.addEventListener("change", apply);
+		return () => mq.removeEventListener("change", apply);
 	}, []);
 
 	const goTo = useCallback(
@@ -354,15 +372,24 @@ export function HomeExperience({
 			{/* ── 1. HÉRO ─────────────────────────────────────────────────────── */}
 			<section ref={setRef(0)} id="hero" className="home-section home-hero" aria-label="Accueil">
 				<div className="absolute inset-0">
-					{HERO_SCENES.map((sc, i) => (
-						<SceneBackdrop
-							key={sc.id}
-							scene={sc}
-							active={active === 0 && i === heroIdx}
-							visible={i === heroIdx}
-							priority={i === 0}
-						/>
-					))}
+					{HERO_SCENES.map((sc, i) => {
+						// Fenêtrage : ne monter que la scène active et ses voisines ±1 (le
+						// crossfade n'a besoin que de la précédente et de la suivante). Passe de
+						// 18 fonds plein écran empilés à 3 → LCP, DOM et bande passante allégés.
+						const len = HERO_SCENES.length;
+						const near =
+							i === heroIdx || i === (heroIdx + 1) % len || i === (heroIdx - 1 + len) % len;
+						if (!near) return null;
+						return (
+							<SceneBackdrop
+								key={sc.id}
+								scene={sc}
+								active={active === 0 && i === heroIdx}
+								visible={i === heroIdx}
+								priority={i === 0}
+							/>
+						);
+					})}
 				</div>
 				{/* Clips qui dérivent à travers le héro (remplace le sélecteur de fond) */}
 				<HomeClipField scenes={HERO_SCENES} active={active === 0} />
@@ -383,7 +410,7 @@ export function HomeExperience({
 						manga — en français, sourcé canon. Et six gardiens qui veillent sur la communauté.
 					</p>
 					<div className="home-cta-row">
-						<Link href="/wiki" className="home-cta home-cta--primary">
+						<Link href="/wiki/episodes" className="home-cta home-cta--primary">
 							Commencer le voyage
 						</Link>
 						<a
@@ -421,7 +448,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.pantheon} active={active === idx("pantheon")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">04 — Le panthéon</span>
+						<span className="home-eyebrow">{String(idx("pantheon")).padStart(2, "0")} — Le panthéon</span>
 						<h2 className="home-title">Les guerriers les plus puissants</h2>
 						<p className="home-sub">
 							Le classement live du serveur, et qui combat en ce moment même.
@@ -435,7 +462,7 @@ export function HomeExperience({
 						{/* Top membres (classement live) */}
 						<div className="lg:col-span-3">
 							<ol className="flex flex-col gap-1.5">
-								{live.topMembers.slice(0, 10).map((m) => (
+								{live.topMembers.slice(0, compact ? 6 : 10).map((m) => (
 									<li key={m.discordId}>
 										<div
 											className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors ${
@@ -500,7 +527,7 @@ export function HomeExperience({
 								</div>
 								{live.presence.members.length > 0 ? (
 									<ul className="mt-3 grid grid-cols-5 gap-2.5 sm:grid-cols-6 lg:grid-cols-5">
-										{live.presence.members.slice(0, 20).map((u) => (
+										{live.presence.members.slice(0, compact ? 10 : 20).map((u) => (
 											<li
 												key={u.id}
 												className="flex flex-col items-center gap-1"
@@ -558,7 +585,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.universe} active={active === idx("universe")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">01 — Le voyage</span>
+						<span className="home-eyebrow">{String(idx("universe")).padStart(2, "0")} — Le voyage</span>
 						<h2 className="home-title">Voyage à travers l'univers</h2>
 						<p className="home-sub">
 							Personnages, planètes, sagas, épisodes, films et chapitres — chaque recoin de la saga,
@@ -567,29 +594,43 @@ export function HomeExperience({
 					</header>
 					<div className="home-grid-stats">
 						{[
-							{ k: "characters", label: "Personnages", href: "/wiki/personnages?tab=personnages" },
-							{ k: "planets", label: "Planètes", href: "/wiki/personnages?tab=planetes" },
-							{ k: "sagas", label: "Sagas", href: "/wiki/sagas" },
+							// href null → tuile non cliquable en bêta (route /wiki fermée) ; le compteur reste.
+							{ k: "characters", label: "Personnages", href: null },
+							{ k: "planets", label: "Planètes", href: null },
+							{ k: "sagas", label: "Sagas", href: null },
 							{ k: "episodes", label: "Épisodes", href: "/wiki/episodes" },
 							{ k: "movies", label: "Films", href: "/wiki/films" },
 							{ k: "chapters", label: "Chapitres", href: "/wiki/manga" },
-						].map((t) => (
-							<Link key={t.k} href={t.href} className="home-stat-tile reveal-up">
-								<span className="home-stat-tile__num">
-									<PowerValue
-										value={wikiCounts[t.k as keyof WikiCounts] ?? 0}
-										active={active === idx("universe")}
-									/>
-								</span>
-								<span className="home-stat-tile__label">{t.label}</span>
-							</Link>
-						))}
+						].map((t) => {
+							const inner = (
+								<>
+									<span className="home-stat-tile__num">
+										<PowerValue
+											value={wikiCounts[t.k as keyof WikiCounts] ?? 0}
+											active={active === idx("universe")}
+										/>
+									</span>
+									<span className="home-stat-tile__label">{t.label}</span>
+								</>
+							);
+							// Routes ouvertes → lien ; routes fermées en bêta (href null) → tuile inerte.
+							return t.href ? (
+								<Link key={t.k} href={t.href} className="home-stat-tile reveal-up">
+									{inner}
+								</Link>
+							) : (
+								<div key={t.k} className="home-stat-tile home-stat-tile--static reveal-up">
+									{inner}
+								</div>
+							);
+						})}
 					</div>
 				</div>
 			</section>
 
 			{/* ── 3. LES GARDIENS (6 personas, statut live) ────────────────────── */}
-			{/* PERSONNAGES EMBLÉMATIQUES (univers) */}
+			{/* PERSONNAGES EMBLÉMATIQUES (univers) — masqué en bêta (route /wiki/personnages fermée) */}
+			{idx("personnages") >= 0 && (
 			<section
 				ref={setRef(idx("personnages"))}
 				id="personnages"
@@ -599,7 +640,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.personnages} active={active === idx("personnages")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">02 — Les héros</span>
+						<span className="home-eyebrow">{String(idx("personnages")).padStart(2, "0")} — Les héros</span>
 						<h2 className="home-title">Les personnages de légende</h2>
 						<p className="home-sub">
 							Saiyans, dieux, démons et terriens — explore les figures qui ont façonné Dragon Ball,
@@ -639,8 +680,10 @@ export function HomeExperience({
 					</Link>
 				</div>
 			</section>
+			)}
 
-			{/* LES SAGAS — le voyage chronologique (univers) */}
+			{/* LES SAGAS — le voyage chronologique (univers) — masqué en bêta (route /wiki/sagas fermée) */}
+			{idx("sagas") >= 0 && (
 			<section
 				ref={setRef(idx("sagas"))}
 				id="sagas"
@@ -650,7 +693,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.sagas} active={active === idx("sagas")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">03 — La chronologie</span>
+						<span className="home-eyebrow">{String(idx("sagas")).padStart(2, "0")} — La chronologie</span>
 						<h2 className="home-title">Le voyage à travers les sagas</h2>
 						<p className="home-sub">
 							Des origines à la divinité — suis la saga complète : Dragon Ball, Z, Super et GT, arc
@@ -683,6 +726,7 @@ export function HomeExperience({
 					</Link>
 				</div>
 			</section>
+			)}
 
 			<section
 				ref={setRef(idx("guardians"))}
@@ -693,7 +737,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.guardians} active={active === idx("guardians")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">02 — Le bot</span>
+						<span className="home-eyebrow">{String(idx("guardians")).padStart(2, "0")} — Le bot</span>
 						<h2 className="home-title">Six gardiens, un seul process</h2>
 						<p className="home-sub">
 							Six personas Discord, six personnalités, une seule machine —{" "}
@@ -744,7 +788,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.community} active={active === idx("community")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">03 — La communauté</span>
+						<span className="home-eyebrow">{String(idx("community")).padStart(2, "0")} — La communauté</span>
 						<h2 className="home-title">Des milliers de guerriers</h2>
 						<p className="home-sub">
 							Chiffres réels, mis à jour en direct depuis le bot.
@@ -788,7 +832,7 @@ export function HomeExperience({
 				<SceneBackdrop scene={SECTION_SCENE.play} active={active === idx("play")} />
 				<div className="home-panel">
 					<header className="home-panel__head reveal-up">
-						<span className="home-eyebrow">04 — Le terrain</span>
+						<span className="home-eyebrow">{String(idx("play")).padStart(2, "0")} — Le terrain</span>
 						<h2 className="home-title">Combats, économie, fusions</h2>
 						<p className="home-sub">
 							Le bot transforme le serveur en terrain de jeu : gagne de l'XP, dépense tes zénis,
@@ -823,7 +867,7 @@ export function HomeExperience({
 					<SceneBackdrop scene={SECTION_SCENE.news} active={active === idx("news")} />
 					<div className="home-panel">
 						<header className="home-panel__head reveal-up">
-							<span className="home-eyebrow">05 — Actualités</span>
+							<span className="home-eyebrow">{String(idx("news")).padStart(2, "0")} — Actualités</span>
 							<h2 className="home-title">Les dernières nouvelles</h2>
 						</header>
 						<div className="home-news">

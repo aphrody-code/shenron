@@ -21,9 +21,14 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { siteEvents, type SiteEventInsert } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
+import { SITE_URL } from "@/lib/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// Hôte canonique du site (sans `www.`), dérivé de la config centralisée, pour
+// distinguer un référent interne d'un référent externe dans `cleanReferrer`.
+const CANONICAL_HOST = new URL(SITE_URL).host.replace(/^www\./, "");
 
 // --- Validation --------------------------------------------------------------
 
@@ -34,7 +39,13 @@ const eventSchema = z.object({
 	sessionId: z.string().min(1).max(64),
 	entityType: z.string().max(64).nullish(),
 	entityId: z.string().max(128).nullish(),
-	props: z.record(z.string(), z.unknown()).optional(),
+	// Borne le volume de `props` : jusqu'à 20 events/POST × jsonb non borné →
+	// amplification de stockage (nginx client_max_body_size = 25m). Rejette si la
+	// sérialisation dépasse ~2 Ko.
+	props: z
+		.record(z.string(), z.unknown())
+		.refine((p) => JSON.stringify(p).length <= 2000, { message: "props too large" })
+		.optional(),
 	ts: z.number().optional(),
 });
 
@@ -60,11 +71,22 @@ function dailyVisitorHash(ip: string, ua: string): string {
 		.slice(0, 32);
 }
 
-/** Première IP de `x-forwarded-for` (Vercel), sinon "unknown". */
+/**
+ * IP client. `x-real-ip` (posé par nginx au $remote_addr, IP socket réelle non
+ * usurpable) est prioritaire. On NE fait PAS confiance au 1er hop de
+ * `x-forwarded-for` (contrôlé par le client → rate-limit / anti-doublon
+ * contournables) ; en dernier recours seulement, on lit le DERNIER hop de XFF.
+ * Sinon "unknown". Miroir de `ipOf()` dans `api/admin-access/route.ts`.
+ */
 function clientIp(req: NextRequest): string {
+	const realIp = req.headers.get("x-real-ip")?.trim();
+	if (realIp) return realIp;
 	const xff = req.headers.get("x-forwarded-for");
-	if (xff) return xff.split(",")[0]!.trim();
-	return req.headers.get("x-real-ip")?.trim() || "unknown";
+	if (xff) {
+		const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
+		if (parts.length) return parts[parts.length - 1]!;
+	}
+	return "unknown";
 }
 
 // --- Cookie anonId signé (HMAC) ---------------------------------------------
@@ -161,14 +183,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
 	// Normalise le path (retire query string + fragment → pas de PII).
 	const cleanPath = (p: string): string => p.split("?")[0]!.split("#")[0]!;
-	// Référent : host seul pour l'externe (pas de chemin tiers complet).
+	// Référent : chemin seul si interne (host canonique ou son variant `www.`),
+	// sinon host seul pour l'externe (pas de chemin tiers complet).
 	const cleanReferrer = (r: string | null | undefined): string | null => {
 		if (!r) return null;
 		try {
 			const u = new URL(r);
-			return u.host === "dragonballfr.com" || u.host.endsWith(".vercel.app")
-				? cleanPath(u.pathname)
-				: u.host;
+			const host = u.host.replace(/^www\./, "");
+			return host === CANONICAL_HOST ? cleanPath(u.pathname) : u.host;
 		} catch {
 			return null;
 		}

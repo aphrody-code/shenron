@@ -31,7 +31,9 @@ const empty = (q: string): SearchResults => ({
 });
 
 export async function GET(req: NextRequest) {
-	const q = (req.nextUrl.searchParams.get("q") ?? "").trim();
+	// Cap la longueur de `q` : une requête très longue multiplie inutilement le
+	// coût pg_trgm (ILIKE + similarité trigramme) ; ~100 chars couvrent tout.
+	const q = (req.nextUrl.searchParams.get("q") ?? "").trim().slice(0, 100);
 	if (q.length < 2) return NextResponse.json(empty(q));
 	const results = (await dbUniverse.search(q)) ?? empty(q);
 	return NextResponse.json(results, {

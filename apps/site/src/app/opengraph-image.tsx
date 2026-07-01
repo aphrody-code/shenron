@@ -82,7 +82,7 @@ export default function OpengraphImage() {
 					maxWidth: 820,
 				}}
 			>
-				Wiki, personnages, sagas, films, épisodes VF &amp; actualités — en français.
+				Épisodes, films, manga &amp; actualités — l&apos;univers Dragon Ball en français.
 			</div>
 			<div
 				style={{

@@ -5,8 +5,8 @@ const COLUMNS = [
 	{
 		title: "Explorer",
 		links: [
-			{ href: "/wiki/personnages", label: "Wiki personnages" },
-			{ href: "/wiki", label: "Planètes & sagas" },
+			{ href: "/wiki/manga", label: "Manga" },
+			{ href: "/wiki/films", label: "Films" },
 			{ href: "/actualites", label: "Actualités" },
 			{ href: "/leaderboard", label: "Classement" },
 		],
@@ -44,8 +44,8 @@ export function SiteFooter() {
 						</span>
 					</Link>
 					<p className="text-[14px] text-white/60 leading-relaxed max-w-sm">
-						Le plus grand serveur Dragon Ball francophone — wiki, actualités, personnages,
-						communauté Discord active. Site fan, non affilié aux ayants droit.
+						Le plus grand serveur Dragon Ball francophone — épisodes, films, manga, actualités
+						et une communauté Discord active. Site fan, non affilié aux ayants droit.
 					</p>
 				</div>
 

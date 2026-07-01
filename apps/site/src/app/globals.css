@@ -632,6 +632,12 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
+	/* Neutralise le smooth-scroll global (l.40) pour les utilisateurs
+	 * motion-sensibles sur TOUTES les pages (ancres, retour haut). Les resets
+	 * home-scoped plus bas ne couvrent que html[data-home]. */
+	html {
+		scroll-behavior: auto;
+	}
 	.ken-burns,
 	.ken-burns-slow,
 	.ken-burns-rev,
@@ -1588,7 +1594,7 @@ html[data-home] {
 .home-clip-field.is-live .home-clip {
 	animation-play-state: running;
 }
-.home-clip img {
+.home-clip :is(img, video) {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
@@ -1774,6 +1780,17 @@ html[data-home] {
 	animation: drift-float 2s ease-in-out infinite;
 }
 
+/* Mobile : les décorations d'angle du héro (caption bas-droite, compteur
+   bas-gauche — toutes deux aria-hidden) chevauchent les FAB fixes (Assistant
+   bas-droite, Discord bas-gauche). On les masque sous 640px : purement
+   décoratives, l'info reste ailleurs (points de nav + panneaux). */
+@media (max-width: 640px) {
+	.home-hero__caption,
+	.home-counter {
+		display: none;
+	}
+}
+
 /* ── Panneaux contenu ────────────────────────────────────────────────────── */
 .home-panel {
 	position: relative;
@@ -1854,6 +1871,17 @@ html[data-home] {
 }
 .home-stat-tile:hover::after {
 	transform: scaleX(1);
+}
+/* Tuiles inertes (catégories fermées en bêta) : neutralise l'affordance de lien
+   — pas de curseur pointer, pas d'assombrissement ni de barre d'accent au hover. */
+.home-stat-tile--static {
+	cursor: default;
+}
+.home-stat-tile--static:hover {
+	background: rgba(10, 10, 10, 0.55);
+}
+.home-stat-tile--static:hover::after {
+	transform: scaleX(0);
 }
 .home-stat-tile__num {
 	font-family: var(--font-display);

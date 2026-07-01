@@ -14,6 +14,9 @@ export const metadata: Metadata = {
 	description:
 		"Dernières news, annonces officielles et rumeurs sur l'univers Dragon Ball (Daima, Sparking ZERO, Manga).",
 	alternates: { canonical: "/wiki/news" },
+	// Page legacy qui double le titre/canonical de /actualites et reste bloquée en
+	// bêta (middleware) → noindex pour éviter le doublon SEO. Le vrai journal = /actualites.
+	robots: { index: false, follow: true },
 };
 
 export default async function NewsPage({

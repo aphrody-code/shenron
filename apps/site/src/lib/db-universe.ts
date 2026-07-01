@@ -305,7 +305,8 @@ function toEpisode(r: typeof botEpisodes.$inferSelect): Episode {
 		title: r.title ?? "",
 		title_ja: r.titleJa,
 		air_date: r.airDate,
-		synopsis: r.synopsis,
+		// FR-first : synopsis traduit (translate-synopsis-fr.ts), repli sur l'original.
+		synopsis: r.synopsisFr ?? r.synopsis,
 		image: r.image,
 		video_url: r.videoUrl,
 		mal_id: r.malId,
@@ -327,7 +328,8 @@ function toMovie(r: typeof botMovies.$inferSelect): Movie {
 		series: r.series ?? "",
 		release_date: r.releaseDate,
 		duration_min: r.durationMin,
-		synopsis: r.synopsis,
+		// FR-first : synopsis traduit (translate-synopsis-fr.ts), repli sur l'original.
+		synopsis: r.synopsisFr ?? r.synopsis,
 		poster: r.poster,
 		trailer_url: r.trailerUrl,
 		mal_id: r.malId,
@@ -433,7 +435,12 @@ function toTool(r: typeof botTools.$inferSelect): Tool {
 async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
 	try {
 		return await fn();
-	} catch {
+	} catch (e) {
+		// Dégradation gracieuse (null) MAIS observable : sans ce log, une dérive de
+		// schéma (colonne PG absente), un timeout de pool ou une panne PG seraient
+		// invisibles dans journalctl. L'erreur postgres-js nomme la table/colonne
+		// fautive → diagnostic direct. Volume borné (la plupart des rendus sont ISR).
+		console.error("[db-universe] requête wiki échouée:", e);
 		return null;
 	}
 }

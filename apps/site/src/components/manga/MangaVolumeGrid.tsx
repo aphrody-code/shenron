@@ -247,6 +247,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					<button
 						type="button"
 						role="tab"
+						id="manga-tab-dbs"
+						aria-controls="manga-panel-dbs"
 						aria-selected={tab === "dbs"}
 						onClick={() => setTab("dbs")}
 						className={tab === "dbs" ? tabBtnActive : tabBtn}
@@ -257,6 +259,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					<button
 						type="button"
 						role="tab"
+						id="manga-tab-db"
+						aria-controls="manga-panel-db"
 						aria-selected={tab === "db"}
 						onClick={() => setTab("db")}
 						className={tab === "db" ? tabBtnActive : tabBtn}
@@ -267,6 +271,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					<button
 						type="button"
 						role="tab"
+						id="manga-tab-scans"
+						aria-controls="manga-panel-scans"
 						aria-selected={tab === "scans"}
 						onClick={() => setTab("scans")}
 						className={tab === "scans" ? tabBtnActive : tabBtn}
@@ -277,6 +283,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					<button
 						type="button"
 						role="tab"
+						id="manga-tab-achievements"
+						aria-controls="manga-panel-achievements"
 						aria-selected={tab === "achievements"}
 						onClick={() => setTab("achievements")}
 						className={tab === "achievements" ? tabBtnActive : tabBtn}
@@ -304,7 +312,12 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 
 			{/* Grilles de contenu */}
 			{tab === "dbs" && (
-				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 reveal-up">
+				<div
+					role="tabpanel"
+					id="manga-panel-dbs"
+					aria-labelledby="manga-tab-dbs"
+					className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 reveal-up"
+				>
 					{filteredDbs.map((vol, idx) => (
 						<Link
 							key={vol.id}
@@ -351,7 +364,12 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 			)}
 
 			{tab === "db" && (
-				<div className="space-y-12 reveal-up">
+				<div
+					role="tabpanel"
+					id="manga-panel-db"
+					aria-labelledby="manga-tab-db"
+					className="space-y-12 reveal-up"
+				>
 					{/* Dragon Ball original — édition couleur (contenu propre, self-hosté). */}
 					{dbColorChapters.length > 0 && (
 						<div className="space-y-5">
@@ -426,7 +444,12 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 			)}
 
 			{tab === "scans" && (
-				<div className="space-y-12 reveal-up">
+				<div
+					role="tabpanel"
+					id="manga-panel-scans"
+					aria-labelledby="manga-tab-scans"
+					className="space-y-12 reveal-up"
+				>
 					{/* Édition couleur (Full Color) mise en avant. */}
 					{colorChapters.length > 0 && (
 						<div className="space-y-5">
@@ -469,7 +492,12 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 
 			{/* Onglet Succès & Gamification */}
 			{tab === "achievements" && (
-				<div className="reveal-up space-y-8">
+				<div
+					role="tabpanel"
+					id="manga-panel-achievements"
+					aria-labelledby="manga-tab-achievements"
+					className="reveal-up space-y-8"
+				>
 					<div className="dbz-panel p-6 bg-black/40 border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-6">
 						<div className="space-y-1">
 							<span className="scouter-text text-xs text-dbz-orange block tracking-wider font-mono">

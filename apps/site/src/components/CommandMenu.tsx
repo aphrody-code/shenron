@@ -161,7 +161,21 @@ export function CommandMenu() {
 					signal: ctrl.signal,
 				});
 				if (!res.ok) throw new Error(String(res.status));
-				setResults((await res.json()) as SearchResults);
+				const raw = (await res.json()) as SearchResults;
+				// Bêta partielle : seules les fiches Films, Épisodes et Manga (tomes +
+				// chapitres) ont une page publique. Les autres catégories (personnages,
+				// lieux, sagas, jeux, techniques, races, transformations, arcs) ciblent
+				// des routes /wiki/* bloquées par le middleware → on ne les propose pas
+				// pour ne pas renvoyer l'utilisateur vers l'accueil. Réouverture post-bêta
+				// = retirer ce filtre (le rendu de chaque groupe est déjà en place).
+				setResults({
+					...EMPTY,
+					q: raw.q,
+					movies: raw.movies,
+					episodes: raw.episodes,
+					mangaVolumes: raw.mangaVolumes,
+					mangaChapters: raw.mangaChapters,
+				});
 			} catch (e) {
 				if ((e as Error).name !== "AbortError") setResults(EMPTY);
 			} finally {
@@ -191,7 +205,7 @@ export function CommandMenu() {
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				aria-label="Rechercher dans le wiki (Ctrl+K)"
+				aria-label="Rechercher dans l'univers Dragon Ball (Ctrl+K)"
 				className="group inline-flex items-center gap-2.5 h-9 pl-3 pr-2.5 rounded-full bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-dbz-orange/40 text-white/55 hover:text-white/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 			>
 				<svg
@@ -244,7 +258,7 @@ export function CommandMenu() {
 					<Command.Input
 						value={query}
 						onValueChange={setQuery}
-						placeholder="Goku, Namek, Tournoi du Pouvoir…"
+						placeholder="Un épisode, un film, un tome…"
 						className="h-14 w-full bg-transparent text-white placeholder:text-white/30 font-display text-base outline-none"
 					/>
 					{loading && (
@@ -466,15 +480,8 @@ export function CommandMenu() {
 						</Command.Group>
 					)}
 
-					{total > 0 && (
-						<Command.Item
-							value="__all-results"
-							onSelect={() => go(`/wiki/search?q=${encodeURIComponent(term)}`)}
-							className="mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-lg px-3 py-2.5 font-display text-[13px] text-dbz-orange/80 data-[selected=true]:bg-dbz-orange/15 data-[selected=true]:text-dbz-orange"
-						>
-							Voir tous les résultats pour «&nbsp;{term}&nbsp;» →
-						</Command.Item>
-					)}
+					{/* « Voir tous les résultats » retiré en bêta : /wiki/search est bloqué
+					    par le middleware (aucune page de recherche agrégée publique). */}
 				</Command.List>
 			</Command.Dialog>
 		</>

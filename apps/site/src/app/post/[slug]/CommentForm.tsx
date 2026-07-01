@@ -28,15 +28,22 @@ export function CommentForm({ slug }: { slug: string }) {
 				maxLength={2000}
 				rows={4}
 				placeholder="Ton commentaire…"
-				className="w-full bg-dbz-bg/60 border border-dbz-border focus:border-fuchsia-400 outline-none rounded-lg p-4 text-white placeholder:text-white/30 transition-colors resize-y"
+				aria-label="Votre commentaire"
+				className="w-full bg-dbz-bg/60 border border-dbz-border focus:border-dbz-orange outline-none rounded-lg p-4 text-white placeholder:text-white/30 transition-colors resize-y"
 				disabled={pending}
 			/>
 			<div className="flex items-center justify-between gap-3">
-				{error ? (
-					<span className="text-xs text-fuchsia-300">✗ {error}</span>
-				) : (
-					<span className="text-xs text-white/40">Markdown basique supporté</span>
-				)}
+				<div aria-live="polite">
+					{error ? (
+						<span role="alert" className="text-xs text-red-400">
+							<span aria-hidden="true">✗</span> {error}
+						</span>
+					) : (
+						<span className="text-xs text-white/40">
+							Texte simple — sauts de ligne conservés
+						</span>
+					)}
+				</div>
 				<button
 					type="submit"
 					disabled={pending}

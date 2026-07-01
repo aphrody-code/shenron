@@ -4,15 +4,10 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { bannerForSeries } from "@/lib/db-banners";
+import { excerpt } from "./_text";
+import { unstable_cache } from "next/cache";
 
 export const revalidate = 3600;
-
-export const metadata: Metadata = {
-	title: "Épisodes anime Dragon Ball — DBFR",
-	description:
-		"Tous les épisodes Dragon Ball / DBZ / DBZ Kai / GT / DB Super / Daima — index complet avec vignettes, titres FR/JP, date de diffusion et synopsis.",
-	alternates: { canonical: "/wiki/episodes" },
-};
 
 const SERIES_LABELS: Record<string, string> = {
 	DB: "Dragon Ball (1986-1989)",
@@ -24,15 +19,53 @@ const SERIES_LABELS: Record<string, string> = {
 	DB_DAIMA: "Dragon Ball Daima (2024-2025)",
 };
 
-function excerpt(text: string | null, max = 160): string {
-	if (!text) return "";
-	const clean = text
-		.replace(/_?\(Sources?\s*:[^)]*\)_?/gi, "")
-		.replace(/[*_#>`]/g, "")
-		.replace(/\s+/g, " ")
-		.trim();
-	return clean.length > max ? `${clean.slice(0, max).trimEnd()}…` : clean;
+// Métadonnées par série : le <title> s'aligne sur le H1 (PageHero) et la
+// canonical pointe sur la série courante (?series=…) pour que chaque série
+// reste indexable distinctement — plutôt qu'une canonical unique /wiki/episodes
+// qui collapserait GT/DBS/… et les pages ≥2 en doublons. Lit SERIES_LABELS
+// (aucune requête DB) → n'ajoute pas de charge Postgres ; la page lit déjà
+// searchParams, donc pas de dynamisme supplémentaire.
+export async function generateMetadata({
+	searchParams,
+}: {
+	searchParams: Promise<{ series?: string; page?: string; view?: string }>;
+}): Promise<Metadata> {
+	const sp = await searchParams;
+	const series = sp.series ?? "DBZ";
+	const label = SERIES_LABELS[series] ?? series;
+	return {
+		title: `${label} — Épisodes | DBFR`,
+		description:
+			"Tous les épisodes Dragon Ball / DBZ / DBZ Kai / GT / DB Super / Daima — index complet avec vignettes, titres FR/JP, date de diffusion et synopsis.",
+		alternates: { canonical: `/wiki/episodes?series=${series}` },
+	};
 }
+
+// Mémoïsation des lectures Postgres : la page reste rendue dynamiquement (elle
+// lit searchParams), mais les deux requêtes DB sont servies depuis le data cache
+// Next (revalidées 1 h), comme les pages Films/Manga → la charge Postgres est
+// découplée du volume de requêtes. On throw sur résultat vide pour NE PAS
+// mémoïser un échec transitoire (un hoquet PG figerait sinon un 404 pendant 1 h
+// sur la section phare) ; le .catch au point d'appel restaure le null d'origine.
+const getEpisodesCached = unstable_cache(
+	async (series: string, limit: number, offset: number) => {
+		const data = await dbUniverse.episodes(series, limit, offset);
+		if (!data) throw new Error("episodes:empty");
+		return data;
+	},
+	["episodes"],
+	{ revalidate: 3600 }
+);
+
+const getEpisodeSeriesCached = unstable_cache(
+	async () => {
+		const rows = await dbUniverse.episodeSeries();
+		if (!rows) throw new Error("episode-series:empty");
+		return rows;
+	},
+	["episode-series"],
+	{ revalidate: 3600 }
+);
 
 export default async function EpisodesIndex({
 	searchParams,
@@ -41,14 +74,17 @@ export default async function EpisodesIndex({
 }) {
 	const sp = await searchParams;
 	const series = sp.series ?? "DBZ";
-	const page = Math.max(1, parseInt(sp.page ?? "1", 10));
+	// Parsing défensif : ?page=abc → NaN. On retombe sur la page 1 au lieu de
+	// propager un offset NaN → erreur Postgres → 404 dur (crawlers/URL cassées).
+	const parsedPage = Number.parseInt(sp.page ?? "1", 10);
+	const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 	const view = sp.view ?? "grid";
 	const limit = view === "grid" ? 48 : 100;
 	const offset = (page - 1) * limit;
 
 	const [data, seriesRows] = await Promise.all([
-		dbUniverse.episodes(series, limit, offset),
-		dbUniverse.episodeSeries(),
+		getEpisodesCached(series, limit, offset).catch(() => null),
+		getEpisodeSeriesCached().catch(() => null),
 	]);
 	if (!data || data.episodes.length === 0) notFound();
 	const { episodes, total } = data;

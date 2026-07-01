@@ -9,7 +9,7 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Manga Dragon Ball — DBFR",
+	title: "Manga Dragon Ball",
 	description:
 		"Découvre les tomes de Dragon Ball et Dragon Ball Super, et lis les chapitres planche par planche dans le lecteur de scan DBFR.",
 	alternates: { canonical: "/wiki/manga" },

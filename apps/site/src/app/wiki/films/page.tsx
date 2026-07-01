@@ -11,7 +11,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
 	title: "Films Dragon Ball — DBFR",
 	description:
-		"Tous les films Dragon Ball, Dragon Ball Z, Dragon Ball Super et Daima — fiches complètes avec date de sortie, durée, synopsis.",
+		"Tous les films Dragon Ball, Dragon Ball Z et Dragon Ball Super — fiches complètes avec date de sortie, durée, synopsis.",
 	alternates: { canonical: "/wiki/films" },
 };
 
@@ -21,27 +21,54 @@ const SERIES_LABELS: Record<string, string> = {
 	DBZ_MOVIE: "Films Dragon Ball Z",
 	DBS_MOVIE: "Films Dragon Ball Super",
 	DB_DAIMA_MOVIE: "Films Daima",
+	DBZ_OVA: "OVA Dragon Ball Z",
+	DBZ_SPECIAL: "Téléfilms Dragon Ball Z",
 };
+
+// Retire les mentions de source du dataset (« (Source : ANN) », « [Écrit par
+// MAL Rewrite] »…) en fin de synopsis. Boucle pour les balises empilées.
+function stripSourceTags(s: string | null): string | null {
+	if (!s) return s;
+	let out = s;
+	let prev: string;
+	do {
+		prev = out;
+		out = out.replace(/\s*[([]\s*(?:source|écrit par)[^)\]]*[)\]]\s*$/i, "");
+	} while (out !== prev);
+	return out.trimEnd();
+}
 
 export default async function FilmsPage() {
 	const data = await dbUniverse.movies();
 	if (!data || data.movies.length === 0) notFound();
 	const movies = data.movies;
 
-	const groups = SERIES_ORDER.map((s) => ({
-		key: s,
-		label: SERIES_LABELS[s] ?? s,
-		movies: movies
-			.filter((m) => m.series === s)
-			.sort((a, b) => (a.release_date ?? 0) - (b.release_date ?? 0)),
-	})).filter((g) => g.movies.length > 0);
+	// Ordonne d'abord les séries connues (SERIES_ORDER), puis ajoute toute série
+	// présente en base mais non listée (ex. DBZ_OVA, DBZ_SPECIAL) — sinon leurs
+	// films seraient orphelins (rendus nulle part) et le compteur du hero faux.
+	const presentSeries = [...new Set(movies.map((m) => m.series))];
+	const orderedSeries = [
+		...SERIES_ORDER.filter((s) => presentSeries.includes(s)),
+		...presentSeries.filter((s) => !SERIES_ORDER.includes(s)).sort(),
+	];
+	const groups = orderedSeries
+		.map((s) => ({
+			key: s,
+			label: SERIES_LABELS[s] ?? s.replace(/_/g, " "),
+			movies: movies
+				.filter((m) => m.series === s)
+				.sort((a, b) => (a.release_date ?? 0) - (b.release_date ?? 0))
+				// Nettoie les balises de source du dataset avant affichage des cartes.
+				.map((m) => ({ ...m, synopsis: stripSourceTags(m.synopsis) })),
+		}))
+		.filter((g) => g.movies.length > 0);
 
 	return (
 		<>
 			<PageHero
 				eyebrow="Cinéma"
 				title="Films Dragon Ball"
-				lead={`${movies.length} long-métrages catalogués — des classiques DBZ aux succès récents Super Hero et Daima.`}
+				lead={`${movies.length} long-métrages catalogués — des classiques DBZ aux succès récents comme Super Hero.`}
 				image={FILMS_HERO}
 				imageAlt="Bannière films Dragon Ball"
 			/>
@@ -62,7 +89,7 @@ export default async function FilmsPage() {
 										<div className="relative aspect-[2/3] bg-black">
 											<Image
 												src={assetUrl(m.poster)}
-												alt={m.title}
+												alt=""
 												fill
 												sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
 												className="object-cover"

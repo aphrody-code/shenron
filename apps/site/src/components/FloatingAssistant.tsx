@@ -250,6 +250,7 @@ export function FloatingAssistant() {
 								{(Object.keys(PERSONA_THEMES) as PersonaId[]).map((p) => (
 									<button
 										key={p}
+										type="button"
 										onClick={() => setPersona(p)}
 										className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
 											persona === p
@@ -328,7 +329,9 @@ export function FloatingAssistant() {
 
 			{/* Floating Action Button (FAB) */}
 			<button
+				type="button"
 				onClick={() => setIsOpen(!isOpen)}
+				aria-label={isOpen ? "Fermer l'assistant" : "Ouvrir l'assistant Dragon Ball"}
 				className={`relative flex items-center justify-center w-14 h-14 rounded-full bg-zinc-900 border border-white/10 text-white shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group`}
 			>
 				{/* Anneau lumineux en dégradé */}
