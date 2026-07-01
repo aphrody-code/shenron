@@ -24,10 +24,11 @@ export default async function PersonnagesPage({
 	const sp = await searchParams;
 	const initialTab = sp.tab || "personnages";
 
-	const [characters, planets, counts] = await Promise.all([
+	const [characters, planets, counts, facets] = await Promise.all([
 		getShenronCharacters(),
 		getShenronPlanets(),
 		dbUniverse.counts(),
+		dbUniverse.characterFacets(),
 	]);
 
 	return (
@@ -59,6 +60,7 @@ export default async function PersonnagesPage({
 					}))}
 					initialTab={initialTab}
 					counts={counts ?? {}}
+					facets={facets ?? undefined}
 				/>
 			</div>
 		</>

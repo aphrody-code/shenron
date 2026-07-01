@@ -28,6 +28,8 @@ import {
 	botSagas,
 	botCharacters,
 	botGameCharacters,
+	botCharacterTechniques,
+	botCharacterArcs,
 	botTechniques,
 	botTools,
 	botTransformations,
@@ -535,6 +537,66 @@ export const dbUniverse = {
 					saga_slug: r.sagaSlug,
 					saga_series: r.sagaSeries,
 				})),
+			};
+		}),
+
+	/**
+	 * Facettes de filtrage des personnages (page /wiki/personnages) : options
+	 * Techniques (uniquement celles liées à ≥1 perso → jamais d'option morte) et
+	 * Arcs (tous, comptés), + les mappings perso→techniques / perso→arcs (sparse,
+	 * seulement les persos ayant des liens) consommés côté client pour un filtrage
+	 * cumulatif instantané. Race n'est pas ici : c'est une colonne du perso, déjà
+	 * facettée dans la grille. Dégrade en `null` si la DB est indisponible.
+	 */
+	characterFacets: () =>
+		safe(async () => {
+			const cnt = sql<number>`count(*)::int`;
+			const [techRows, arcRows, ctRows, caRows] = await Promise.all([
+				db
+					.select({ id: botTechniques.id, name: botTechniques.name, count: cnt })
+					.from(botTechniques)
+					.innerJoin(botCharacterTechniques, eq(botCharacterTechniques.techniqueId, botTechniques.id))
+					.groupBy(botTechniques.id, botTechniques.name)
+					.orderBy(desc(cnt), asc(botTechniques.name)),
+				db
+					.select({ id: botArcs.id, name: botArcs.name, count: cnt })
+					.from(botArcs)
+					.leftJoin(botCharacterArcs, eq(botCharacterArcs.arcId, botArcs.id))
+					.groupBy(botArcs.id, botArcs.name, botArcs.orderIdx)
+					.orderBy(asc(botArcs.orderIdx)),
+				db
+					.select({
+						characterId: botCharacterTechniques.characterId,
+						techniqueId: botCharacterTechniques.techniqueId,
+					})
+					.from(botCharacterTechniques),
+				db
+					.select({ characterId: botCharacterArcs.characterId, arcId: botCharacterArcs.arcId })
+					.from(botCharacterArcs),
+			]);
+
+			const group = <T>(rows: T[], self: (r: T) => number, val: (r: T) => number) => {
+				const m: Record<string, string[]> = {};
+				for (const r of rows) {
+					const k = String(self(r));
+					(m[k] ??= []).push(String(val(r)));
+				}
+				return m;
+			};
+
+			return {
+				techniqueOptions: techRows.map((t) => ({
+					value: String(t.id),
+					label: t.name,
+					count: Number(t.count),
+				})),
+				arcOptions: arcRows.map((a) => ({
+					value: String(a.id),
+					label: a.name,
+					count: Number(a.count),
+				})),
+				charTechniques: group(ctRows, (r) => r.characterId, (r) => r.techniqueId),
+				charArcs: group(caRows, (r) => r.characterId, (r) => r.arcId),
 			};
 		}),
 

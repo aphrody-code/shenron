@@ -75,6 +75,11 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 		pk: ["character_id", "technique_id"],
 		mutableColumns: ["characterId", "techniqueId"],
 	},
+	db_character_arcs: {
+		name: "db_character_arcs",
+		pk: ["character_id", "arc_id"],
+		mutableColumns: ["characterId", "arcId", "note", "appearanceImage"],
+	},
 	db_sagas: {
 		name: "db_sagas",
 		pk: "id",

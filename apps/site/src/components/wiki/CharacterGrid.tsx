@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
-import { FilterDropdown } from "@/components/wiki/FilterDropdown";
+import { CharacterFilterModal, type FacetOption } from "@/components/wiki/CharacterFilterModal";
 
 // Grille personnages filtrable (client). Importe `@/lib/assets` (client-safe),
 // JAMAIS db-universe/shenron (server-only → `postgres` fuiterait dans le bundle).
@@ -19,6 +20,19 @@ export type GridCharacter = {
 	portraitXv2?: string | null;
 };
 
+/**
+ * Facettes de filtrage servies par `dbUniverse.characterFacets()` (server) :
+ * options Techniques/Arcs + mappings perso→techniques/arcs (sparse) pour le
+ * filtrage cumulatif client. Optionnel : la grille dégrade en filtre Race seul
+ * si la DB n'a pas répondu.
+ */
+export type CharacterFacets = {
+	techniqueOptions: FacetOption[];
+	arcOptions: FacetOption[];
+	charTechniques: Record<string, string[]>;
+	charArcs: Record<string, string[]>;
+};
+
 // Normalise pour comparer sans accents/casse (recherche tolérante).
 function norm(s: string): string {
 	return s
@@ -28,12 +42,26 @@ function norm(s: string): string {
 		.trim();
 }
 
-export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
+export function CharacterGrid({
+	characters,
+	facets,
+}: {
+	characters: GridCharacter[];
+	facets?: CharacterFacets;
+}) {
 	const [query, setQuery] = useState("");
 	const [races, setRaces] = useState<string[]>([]);
+	const [techniques, setTechniques] = useState<string[]>([]);
+	const [arcs, setArcs] = useState<string[]>([]);
+	const [modalOpen, setModalOpen] = useState(false);
+
+	const techniqueOptions = facets?.techniqueOptions ?? [];
+	const arcOptions = facets?.arcOptions ?? [];
+	const charTechniques = facets?.charTechniques ?? {};
+	const charArcs = facets?.charArcs ?? {};
 
 	// Facettes races (avec compte), triées par fréquence puis alpha → options du
-	// filtre déroulant.
+	// filtre. Reste dérivé des personnages (colonne `race`, pas de la jointure).
 	const raceOptions = useMemo(() => {
 		const counts = new Map<string, number>();
 		for (const c of characters) {
@@ -45,15 +73,27 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 			.map(([value, count]) => ({ value, label: value, count }));
 	}, [characters]);
 
+	// Filtrage CUMULATIF : ET entre catégories (race ET technique ET arc ET
+	// recherche), OU à l'intérieur d'une catégorie.
 	const filtered = useMemo(() => {
 		const q = norm(query);
 		const raceSet = races.length ? new Set(races) : null;
+		const techSet = techniques.length ? new Set(techniques) : null;
+		const arcSet = arcs.length ? new Set(arcs) : null;
 		return characters.filter((c) => {
 			if (raceSet && (!c.race || !raceSet.has(c.race))) return false;
+			if (techSet) {
+				const ct = charTechniques[String(c.id)];
+				if (!ct || !ct.some((t) => techSet.has(t))) return false;
+			}
+			if (arcSet) {
+				const ca = charArcs[String(c.id)];
+				if (!ca || !ca.some((a) => arcSet.has(a))) return false;
+			}
 			if (!q) return true;
 			return norm(c.name).includes(q) || (c.nameJa ? c.nameJa.includes(query.trim()) : false);
 		});
-	}, [characters, query, races]);
+	}, [characters, query, races, techniques, arcs, charTechniques, charArcs]);
 
 	// Rendu progressif : on n'affiche pas 1000+ cartes d'un coup. « Voir plus »
 	// par paliers (le filtre/la recherche réinitialisent la pagination).
@@ -61,14 +101,20 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 	const [limit, setLimit] = useState(PAGE);
 	useEffect(() => {
 		setLimit(PAGE);
-	}, [query, races]);
+	}, [query, races, techniques, arcs]);
 	const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+
+	const activeCount = races.length + techniques.length + arcs.length;
+	const resetFilters = () => {
+		setRaces([]);
+		setTechniques([]);
+		setArcs([]);
+	};
 
 	return (
 		<div className="space-y-8">
-			{/* Toolbar compacte : recherche + filtre déroulant + compteur live.
-			    Le filtre Race est un champ unique qui se déroule en cases à cocher
-			    (multi-sélection) — plus de rangée de chips qui débordait l'écran. */}
+			{/* Toolbar : recherche + bouton « Filtrer » (ouvre la modale Race /
+			    Techniques / Arcs, cumulatif) + compteur live. */}
 			<div className="flex flex-col sm:flex-row sm:items-center gap-3">
 				<div className="relative flex-1 max-w-md">
 					<svg
@@ -91,14 +137,32 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 						className="w-full h-11 pl-11 pr-4 rounded-full bg-white/[0.05] border border-white/[0.1] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-dbz-orange/60 focus:bg-white/[0.07] transition-colors"
 					/>
 				</div>
-				{raceOptions.length > 0 && (
-					<FilterDropdown
-						label="Race"
-						options={raceOptions}
-						selected={races}
-						onChange={setRaces}
-						searchable={raceOptions.length > 10}
-					/>
+				<button
+					type="button"
+					onClick={() => setModalOpen(true)}
+					aria-haspopup="dialog"
+					className={`inline-flex h-11 items-center gap-2 rounded-full border px-4 text-sm font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange ${
+						activeCount > 0
+							? "border-dbz-orange/60 bg-dbz-orange/10 text-dbz-orange"
+							: "border-white/[0.12] bg-white/[0.05] text-white/80 hover:border-dbz-orange/60 hover:text-white"
+					}`}
+				>
+					<SlidersHorizontal className="h-4 w-4" />
+					Filtrer
+					{activeCount > 0 && (
+						<span className="grid h-5 min-w-5 place-items-center rounded-full bg-dbz-orange px-1.5 text-[11px] font-bold text-black">
+							{activeCount}
+						</span>
+					)}
+				</button>
+				{activeCount > 0 && (
+					<button
+						type="button"
+						onClick={resetFilters}
+						className="text-[11px] font-bold uppercase tracking-wider text-white/45 hover:text-dbz-orange transition-colors"
+					>
+						Réinitialiser
+					</button>
 				)}
 				<p className="scouter-text text-[11px] text-dbz-orange whitespace-nowrap sm:ml-auto">
 					{filtered.length} / {characters.length} guerriers
@@ -165,6 +229,23 @@ export function CharacterGrid({ characters }: { characters: GridCharacter[] }) {
 					</button>
 				</div>
 			)}
+
+			<CharacterFilterModal
+				open={modalOpen}
+				onClose={() => setModalOpen(false)}
+				raceOptions={raceOptions}
+				techniqueOptions={techniqueOptions}
+				arcOptions={arcOptions}
+				races={races}
+				techniques={techniques}
+				arcs={arcs}
+				onRaces={setRaces}
+				onTechniques={setTechniques}
+				onArcs={setArcs}
+				onReset={resetFilters}
+				resultCount={filtered.length}
+				totalCount={characters.length}
+			/>
 		</div>
 	);
 }

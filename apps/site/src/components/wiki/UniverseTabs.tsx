@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CharacterGrid, GridCharacter } from "./CharacterGrid";
+import { CharacterGrid, type GridCharacter, type CharacterFacets } from "./CharacterGrid";
 import { FilterDropdown } from "./FilterDropdown";
 import { ViewTransition } from "@/components/ViewTransition";
 import { assetUrl } from "@/lib/assets";
@@ -31,6 +31,7 @@ type Props = {
 	planets: GridPlanet[];
 	initialTab?: string;
 	counts?: Record<string, number>;
+	facets?: CharacterFacets;
 };
 
 export function UniverseTabs({
@@ -38,6 +39,7 @@ export function UniverseTabs({
 	planets,
 	initialTab = "personnages",
 	counts = {},
+	facets,
 }: Props) {
 	const [activeTab, setActiveTab] = useState<string>(initialTab);
 	const [planetStatus, setPlanetStatus] = useState<string[]>([]);
@@ -121,7 +123,7 @@ export function UniverseTabs({
 			{/* Tab Content */}
 			{activeTab === "personnages" ? (
 				<div role="tabpanel" id="universe-panel-personnages" aria-labelledby="universe-tab-personnages">
-					<CharacterGrid characters={characters} />
+					<CharacterGrid characters={characters} facets={facets} />
 				</div>
 			) : (
 				<div

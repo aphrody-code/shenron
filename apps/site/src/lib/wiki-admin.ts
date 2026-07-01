@@ -46,6 +46,7 @@ const TABLE_OBJECTS: Record<string, AnyTable> = {
 	db_races: botSchema.botRaces,
 	db_techniques: botSchema.botTechniques,
 	db_character_techniques: botSchema.botCharacterTechniques,
+	db_character_arcs: botSchema.botCharacterArcs,
 	db_sagas: botSchema.botSagas,
 	db_arcs: botSchema.botArcs,
 	db_episodes: botSchema.botEpisodes,

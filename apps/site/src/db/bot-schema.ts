@@ -164,6 +164,18 @@ export const botArcs = bot.table("db_arcs", {
 	...articleCols,
 });
 
+// Jonction N-N personnage ↔ arc (« ce perso apparaît/est pertinent dans cet
+// arc »). Colonnes contextuelles optionnelles : `note` (ex. état/rôle du perso
+// dans l'arc) et `appearanceImage` (apparence spécifique à l'arc). PK composite
+// (character_id, arc_id) posée côté PG. Sert au filtrage /wiki/personnages et à
+// l'assignation admin (RelationsPanel, via db_character_arcs).
+export const botCharacterArcs = bot.table("db_character_arcs", {
+	characterId: int("character_id").notNull(),
+	arcId: int("arc_id").notNull(),
+	note: text("note"),
+	appearanceImage: text("appearance_image"),
+});
+
 export const botEpisodes = bot.table("db_episodes", {
 	id: int("id").primaryKey(),
 	series: text("series").notNull(),

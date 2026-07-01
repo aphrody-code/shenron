@@ -195,12 +195,30 @@ export const ENTITY_RELATIONS: Record<string, RelationSpec[]> = {
 			pkOrder: ["characterId", "techniqueId"],
 		},
 		{
+			label: "Arcs",
+			joinTable: "db_character_arcs",
+			selfCol: "characterId",
+			targetCol: "arcId",
+			targetTable: "db_arcs",
+			pkOrder: ["characterId", "arcId"],
+		},
+		{
 			label: "Jeux",
 			joinTable: "db_game_characters",
 			selfCol: "characterId",
 			targetCol: "gameId",
 			targetTable: "db_games",
 			pkOrder: ["gameId", "characterId"],
+		},
+	],
+	db_arcs: [
+		{
+			label: "Personnages",
+			joinTable: "db_character_arcs",
+			selfCol: "arcId",
+			targetCol: "characterId",
+			targetTable: "db_characters",
+			pkOrder: ["characterId", "arcId"],
 		},
 	],
 	db_techniques: [
