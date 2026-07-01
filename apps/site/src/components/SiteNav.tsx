@@ -8,15 +8,13 @@ import { MobileNav } from "@/components/MobileNav";
 // seraient jamais mises en cache CDN/ISR. L'état d'auth (avatar, admin, sign-in)
 // est hydraté côté client via `/api/me` (cf. NavAuth / MobileNav + useMe).
 
+// Bêta partielle : seules les sections Épisodes, Films et Manga sont ouvertes.
+// Wiki (personnages/sagas/arcs…) et Tierlists seront réactivés après le lancement.
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
-	{ href: "/wiki/personnages", label: "Univers" },
-	{ href: "/wiki/sagas", label: "Sagas" },
 	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
 	{ href: "/wiki/films", label: "Films" },
 	{ href: "/wiki/manga", label: "Manga" },
-	{ href: "/wiki/jeux", label: "Jeux" },
-	{ href: "/tierlists", label: "Tierlists" },
 	{ href: "/actualites", label: "News" },
 ];
 

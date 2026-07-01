@@ -175,6 +175,8 @@ export const botEpisodes = bot.table("db_episodes", {
 	airDate: int("air_date"),
 	durationSec: int("duration_sec"),
 	synopsis: text("synopsis"),
+	// Traduction FR générée (script translate-synopsis-fr.ts). Null = pas encore traduit.
+	synopsisFr: text("synopsis_fr"),
 	image: text("image"),
 	malId: int("mal_id"),
 	videoUrl: text("video_url"),
@@ -212,6 +214,8 @@ export const botMovies = bot.table("db_movies", {
 	releaseDate: int("release_date"),
 	durationMin: int("duration_min"),
 	synopsis: text("synopsis"),
+	// Traduction FR générée (script translate-synopsis-fr.ts). Null = pas encore traduit.
+	synopsisFr: text("synopsis_fr"),
 	poster: text("poster"),
 	malId: int("mal_id"),
 	anilistId: int("anilist_id"),
