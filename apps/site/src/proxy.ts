@@ -7,7 +7,13 @@ import type { NextRequest } from "next/server";
 // avec exception admin/owner. Cf. https://nextjs.org/docs/messages/middleware-to-proxy
 
 /** Sections /wiki ouvertes au public en bêta (vérifié par préfixe de pathname). */
-const WIKI_OPEN = ["/wiki/episodes", "/wiki/films", "/wiki/manga"] as const;
+const WIKI_OPEN = [
+	"/wiki/episodes",
+	"/wiki/films",
+	"/wiki/manga",
+	// Chronologie universelle : ne liste que des épisodes + films (déjà publics).
+	"/wiki/chronologie",
+] as const;
 
 /** Une route /wiki publique bêta ? (sinon réservée admin/owner) */
 function isPublicWiki(pathname: string): boolean {
