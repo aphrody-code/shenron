@@ -9,21 +9,58 @@ import remarkGfm from "remark-gfm";
  * donc tout HTML brut présent dans le texte est échappé (pas d'exécution → pas
  * de XSS). `remark-gfm` ajoute strikethrough / autolinks / tables.
  *
+ * Protocoles de lien : on revalide explicitement chaque `href` via une allowlist
+ * (`safeHref`) — même logique que le transform d'URL par défaut de react-markdown
+ * (et que `WikiMarkdown`), en défense en profondeur : un lien `javascript:` /
+ * `data:` / `vbscript:` (injectable par un admin dans une section custom) est
+ * neutralisé (rendu en texte) au lieu d'aboutir à un href exécutable au clic.
+ *
  * Les images inline sont retirées (`disallowedElements`) car les URLs de pièces
  * jointes Discord expirent ; l'image de couverture est gérée séparément.
  * Les titres markdown (#) sont rabaissés visuellement pour tenir dans une carte.
  */
+
+// Protocoles autorisés dans les liens (identiques à l'allowlist par défaut de
+// react-markdown). Tout le reste (javascript:, data:, vbscript:…) est rejeté.
+const SAFE_PROTOCOL = /^(https?|ircs?|mailto|xmpp)$/i;
+
+/** Retourne l'href s'il est sûr (relatif, ancre ou protocole whitelisté), sinon `undefined`. */
+function safeHref(href: unknown): string | undefined {
+	if (typeof href !== "string") return undefined;
+	const value = href.trim();
+	const colon = value.indexOf(":");
+	if (colon === -1) return value; // relatif (pas de protocole)
+	const slash = value.indexOf("/");
+	const question = value.indexOf("?");
+	const hash = value.indexOf("#");
+	// Un `:` situé après un `/`, `?` ou `#` n'est pas un protocole (ex. `/a?x=b:c`).
+	if (
+		(slash !== -1 && colon > slash) ||
+		(question !== -1 && colon > question) ||
+		(hash !== -1 && colon > hash) ||
+		SAFE_PROTOCOL.test(value.slice(0, colon))
+	) {
+		return value;
+	}
+	return undefined;
+}
+
 const components: Components = {
-	a: ({ href, children }) => (
-		<a
-			href={href}
-			target="_blank"
-			rel="noopener noreferrer"
-			className="text-dbz-orange hover:text-white underline underline-offset-2 transition-colors"
-		>
-			{children}
-		</a>
-	),
+	a: ({ href, children }) => {
+		const safe = safeHref(href);
+		// href hostile → on retombe sur le texte brut (pas de lien cliquable).
+		if (!safe) return <>{children}</>;
+		return (
+			<a
+				href={safe}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="text-dbz-orange hover:text-white underline underline-offset-2 transition-colors"
+			>
+				{children}
+			</a>
+		);
+	},
 	p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
 	strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
 	em: ({ children }) => <em className="italic text-white/90">{children}</em>,

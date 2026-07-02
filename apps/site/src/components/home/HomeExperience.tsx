@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
+import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { DEFAULT_PLAY_CARDS, type HomeConfig, type HomeSectionConfig } from "@/lib/home-scenes";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { HomeClipField } from "./HomeClipField";
@@ -81,6 +82,15 @@ function guardianMeta(name: string) {
 
 function formatBig(n: number): string {
 	return n.toLocaleString("fr-FR");
+}
+
+// Replis a11y : jamais de libellé de nav ni de titre de section vide (surtout pour
+// les sections personnalisées dont les champs sont saisis à la main).
+function sectionLabel(s: HomeSectionConfig): string {
+	return s.navLabel.trim() || s.title.trim() || "Section";
+}
+function sectionTitle(s: HomeSectionConfig): string {
+	return s.title.trim() || s.navLabel.trim() || "Section";
 }
 
 const pad = (n: number): string => String(n).padStart(2, "0");
@@ -161,10 +171,18 @@ export function HomeExperience({
 	);
 
 	// Table des panneaux (héro + sections de contenu) pour la nav / le suivi.
+	// Repli non vide sur les libellés : une section personnalisée dont le titre ou
+	// le libellé n'a pas été rempli ne doit jamais produire un point de nav sans
+	// aria-label ni un <h2> vide (a11y). L'éditeur bloque déjà l'enregistrement de
+	// ces champs vides ; ceci couvre les données pré-existantes / écritures directes.
 	const sections = useMemo(
 		() => [
 			{ id: "hero", label: "Accueil", kanji: "序" },
-			...contentSections.map((s) => ({ id: s.id, label: s.navLabel, kanji: s.kanji })),
+			...contentSections.map((s) => ({
+				id: s.id,
+				label: sectionLabel(s),
+				kanji: s.kanji.trim() || "◆",
+			})),
 		],
 		[contentSections]
 	);
@@ -329,6 +347,20 @@ export function HomeExperience({
 
 	// Contenu propre à chaque section (rendu sous l'en-tête générique).
 	const renderBody = (cfg: HomeSectionConfig) => {
+		// Section personnalisée : corps riche rendu comme le wiki via WikiMarkdown
+		// (sanitizer « contrôle total du design » — média/embeds/HTML/CSS inline
+		// autorisés, seul le JS est bloqué ; rédacteur = admin de confiance). L'en-tête
+		// (eyebrow/titre/sous-titre) est rendu par la coque générique ; un corps vide
+		// affiche donc juste l'en-tête (pas de panneau cassé, pas de crash).
+		if (cfg.isCustom) {
+			const body = cfg.body?.trim();
+			if (!body) return null;
+			return (
+				<div className="reveal-up home-custom-body mx-auto max-w-2xl text-left leading-relaxed text-white/80">
+					<WikiMarkdown body={body} />
+				</div>
+			);
+		}
 		switch (cfg.id) {
 			case "pantheon":
 				return (
@@ -802,7 +834,7 @@ export function HomeExperience({
 						ref={setRef(navIdx)}
 						id={cfg.id}
 						className="home-section"
-						aria-label={cfg.navLabel}
+						aria-label={sectionLabel(cfg)}
 					>
 						<SceneBackdrop scene={cfg.scene} active={active === navIdx} />
 						<div className="home-panel">
@@ -810,7 +842,7 @@ export function HomeExperience({
 								<span className="home-eyebrow">
 									{pad(navIdx)} — {cfg.eyebrow}
 								</span>
-								<h2 className="home-title">{cfg.title}</h2>
+								<h2 className="home-title">{sectionTitle(cfg)}</h2>
 								{(subtitle || extra) && (
 									<p className="home-sub">
 										{subtitle}

@@ -28,6 +28,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import { MarkdownField } from "@/components/admin/MarkdownField";
 import {
 	DEFAULT_HOME_CONFIG,
 	DEFAULT_PLAY_CARDS,
@@ -268,6 +269,7 @@ function SectionCard({
 	clips,
 	onChange,
 	onMove,
+	onDelete,
 }: {
 	section: HomeSectionConfig;
 	index: number;
@@ -275,9 +277,11 @@ function SectionCard({
 	clips: HomeClip[];
 	onChange: (patch: Partial<HomeSectionConfig>) => void;
 	onMove: (dir: -1 | 1) => void;
+	onDelete?: () => void;
 }) {
 	const [open, setOpen] = useState(false);
-	const gated = section.id === "personnages" || section.id === "sagas";
+	const isCustom = section.isCustom === true;
+	const gated = !isCustom && (section.id === "personnages" || section.id === "sagas");
 	return (
 		<div className={`card p-0 ${section.enabled ? "" : "opacity-60"}`}>
 			<div className="flex items-center gap-2 p-3">
@@ -319,6 +323,16 @@ function SectionCard({
 				>
 					{section.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
 				</button>
+				{isCustom && (
+					<button
+						type="button"
+						onClick={() => onDelete?.()}
+						className="btn btn-ghost px-2 text-red-400"
+						title="Supprimer cette section"
+					>
+						<Trash2 className="h-4 w-4" />
+					</button>
+				)}
 				<button type="button" onClick={() => setOpen((v) => !v)} className="btn btn-ghost px-2">
 					<ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
 				</button>
@@ -328,9 +342,11 @@ function SectionCard({
 				<div className="space-y-3 border-t border-zinc-800 p-4">
 					<div className="grid gap-3 sm:grid-cols-2">
 						<label className="text-xs text-zinc-400">
-							Libellé de navigation
+							Libellé de navigation{isCustom && <span className="ml-0.5 text-red-400">*</span>}
 							<input
-								className="input mt-1"
+								className={`input mt-1 ${
+									isCustom && !section.navLabel.trim() ? "border-red-500/60" : ""
+								}`}
 								value={section.navLabel}
 								onChange={(e) => onChange({ navLabel: e.target.value })}
 							/>
@@ -352,9 +368,11 @@ function SectionCard({
 							/>
 						</label>
 						<label className="text-xs text-zinc-400">
-							Titre
+							Titre{isCustom && <span className="ml-0.5 text-red-400">*</span>}
 							<input
-								className="input mt-1"
+								className={`input mt-1 ${
+									isCustom && !section.title.trim() ? "border-red-500/60" : ""
+								}`}
 								value={section.title}
 								onChange={(e) => onChange({ title: e.target.value })}
 							/>
@@ -369,6 +387,19 @@ function SectionCard({
 							onChange={(e) => onChange({ subtitle: e.target.value })}
 						/>
 					</label>
+					{isCustom && (
+						<div className="block text-xs text-zinc-400">
+							Contenu (éditeur riche — mise en forme, images/gifs, embeds, aperçu live ; même
+							moteur que le wiki)
+							<div className="mt-1">
+								<MarkdownField
+									value={section.body ?? ""}
+									onChange={(v) => onChange({ body: v })}
+									preview
+								/>
+							</div>
+						</div>
+					)}
 					<div>
 						<span className="text-xs text-zinc-400">Clip de fond</span>
 						<SceneBackground
@@ -431,6 +462,56 @@ export default function HomeEditor() {
 	const moveSection = (i: number, dir: -1 | 1) =>
 		setConfig((c) => (c ? { ...c, sections: move(c.sections, i, dir) } : c));
 
+	const deleteSection = (i: number) =>
+		setConfig((c) => (c ? { ...c, sections: c.sections.filter((_, j) => j !== i) } : c));
+
+	// Enregistrement gardé : une section personnalisée doit avoir un titre ET un
+	// libellé de navigation non vides (sinon la home publique affiche un <h2> vide
+	// et un point de nav sans libellé → mauvais a11y). Les sections built-in ont
+	// toujours des libellés par défaut, donc seules les custom sont vérifiées.
+	const handleSave = () => {
+		if (!config) return;
+		const invalid = config.sections.find(
+			(s) => s.isCustom && (!s.title.trim() || !s.navLabel.trim())
+		);
+		if (invalid) {
+			const name = invalid.navLabel.trim() || invalid.title.trim() || invalid.id;
+			setToast({
+				type: "error",
+				msg: `Section personnalisée « ${name} » : le titre et le libellé de navigation sont obligatoires.`,
+			});
+			return;
+		}
+		save.mutate();
+	};
+
+	const addSection = () =>
+		setConfig((c) => {
+			if (!c) return c;
+			// Préfixe `custom-` OBLIGATOIRE (garantit qu'il ne collisionne jamais avec
+			// un id built-in) + suffixe aléatoire (anti-collision même-ms).
+			const id = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+			const scene = structuredClone(DEFAULT_HOME_CONFIG.sections[0].scene);
+			return {
+				...c,
+				sections: [
+					...c.sections,
+					{
+						id,
+						isCustom: true,
+						enabled: true,
+						navLabel: "Nouvelle section",
+						kanji: "◆",
+						eyebrow: "Section",
+						title: "Nouvelle section",
+						subtitle: "",
+						body: "",
+						scene,
+					},
+				],
+			};
+		});
+
 	const heroScenes = config.hero.scenes;
 
 	return (
@@ -478,7 +559,7 @@ export default function HomeEditor() {
 				</button>
 				<button
 					type="button"
-					onClick={() => save.mutate()}
+					onClick={handleSave}
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>
@@ -659,7 +740,12 @@ export default function HomeEditor() {
 
 			{/* ── Sections ── */}
 			<div className="space-y-2">
-				<h3 className="font-semibold text-dbz-yellow">Sections (ordre du scroll)</h3>
+				<div className="flex items-center justify-between">
+					<h3 className="font-semibold text-dbz-yellow">Sections (ordre du scroll)</h3>
+					<button type="button" onClick={addSection} className="btn btn-ghost px-2 py-1 text-xs">
+						<Plus className="mr-1 h-3 w-3" /> Ajouter une section
+					</button>
+				</div>
 				{config.sections.map((s, i) => (
 					<SectionCard
 						key={s.id}
@@ -669,6 +755,7 @@ export default function HomeEditor() {
 						clips={clips}
 						onChange={(patch) => patchSection(i, patch)}
 						onMove={(dir) => moveSection(i, dir)}
+						onDelete={() => deleteSection(i)}
 					/>
 				))}
 			</div>
@@ -676,7 +763,7 @@ export default function HomeEditor() {
 			<div className="flex justify-end">
 				<button
 					type="button"
-					onClick={() => save.mutate()}
+					onClick={handleSave}
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>

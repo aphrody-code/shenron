@@ -459,7 +459,8 @@ export const DEFAULT_PLAY_CARDS: readonly PlayCard[] = [
 ];
 
 export interface HomeSectionConfig {
-	id: HomeSectionId;
+	/** Built-in = HomeSectionId ; custom = id préfixé `custom-` (réservé). */
+	id: HomeSectionId | string;
 	enabled: boolean;
 	navLabel: string;
 	kanji: string;
@@ -469,6 +470,10 @@ export interface HomeSectionConfig {
 	scene: HomeScene;
 	/** Cartes d'action — utilisé uniquement par la section `play`. */
 	cards?: PlayCard[];
+	/** Corps markdown — sections personnalisées uniquement (rendu XSS-safe). */
+	body?: string;
+	/** true = section personnalisée (ajoutée en admin) ; absent/false = built-in. */
+	isCustom?: boolean;
 }
 
 export interface HomeConfig {
@@ -548,8 +553,21 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
 	})),
 };
 
+/**
+ * Copie défensive d'une section : clone la scène et les cartes pour ne JAMAIS
+ * partager de référence avec `DEFAULT_HOME_CONFIG`. Sans ce clone, la boucle de
+ * complétion de `resolveHomeConfig` pousserait les objets par défaut tels quels
+ * dans la config retournée → une mutation aval (`config.sections[i].enabled = …`)
+ * corromprait `DEFAULT_HOME_CONFIG` pour tous les appels suivants.
+ */
+const cloneSection = (s: HomeSectionConfig): HomeSectionConfig => ({
+	...s,
+	scene: cloneScene(s.scene),
+	...(s.cards ? { cards: s.cards.map((c) => ({ ...c })) } : {}),
+});
+
 const defaultSection = (id: HomeSectionId): HomeSectionConfig =>
-	DEFAULT_HOME_CONFIG.sections.find((s) => s.id === id)!;
+	cloneSection(DEFAULT_HOME_CONFIG.sections.find((s) => s.id === id)!);
 
 /**
  * Fusionne un patch partiel (JSON stocké en DB) au-dessus des défauts. Défensif :
@@ -566,7 +584,9 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 	const scenes =
 		rawScenes && rawScenes.length > 0
 			? rawScenes.map((s, i) => sanitizeScene(s, HERO_SCENES[i % HERO_SCENES.length]))
-			: DEFAULT_HOME_CONFIG.hero.scenes;
+			: // Clone : ne jamais partager les objets scène de DEFAULT_HOME_CONFIG (une
+				// mutation aval les corromprait pour tous les appels suivants).
+				DEFAULT_HOME_CONFIG.hero.scenes.map(cloneScene);
 
 	const hero: HomeConfig["hero"] = {
 		scenes,
@@ -582,28 +602,49 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 		tablet: clampInt(clipsPatch.tablet, 0, CLIP_MAX.tablet, DEFAULT_HOME_CONFIG.clips.tablet),
 	};
 
-	// ── Sections (ordre du patch, puis complétion) ──
+	// ── Sections (ordre du patch, puis complétion des built-in absentes) ──
 	const rawSections = Array.isArray(p.sections) ? p.sections : [];
-	const seen = new Set<HomeSectionId>();
+	const seen = new Set<string>();
 	const sections: HomeSectionConfig[] = [];
 	for (const raw of rawSections) {
 		const so = (raw ?? {}) as Record<string, unknown>;
-		const id = so.id as HomeSectionId;
-		if (!SECTION_META[id] || seen.has(id)) continue;
+		const id = so.id;
+		// Accepte tout id string non vide, dédupe. Ne PAS filtrer sur SECTION_META
+		// (sinon les sections custom seraient jetées ici ET à l'écriture).
+		if (typeof id !== "string" || !id || seen.has(id)) continue;
 		seen.add(id);
-		const dflt = defaultSection(id);
-		sections.push({
-			id,
-			enabled: typeof so.enabled === "boolean" ? so.enabled : dflt.enabled,
-			navLabel: str(so.navLabel, dflt.navLabel),
-			kanji: str(so.kanji, dflt.kanji),
-			eyebrow: str(so.eyebrow, dflt.eyebrow),
-			title: str(so.title, dflt.title),
-			subtitle: str(so.subtitle, dflt.subtitle),
-			scene: sanitizeScene(so.scene, dflt.scene),
-		});
+
+		// Built-in ⟺ présent dans l'ordre canonique. Tout autre id (préfixe
+		// `custom-`) = section personnalisée à corps de texte libre.
+		if ((SECTION_ORDER as readonly string[]).includes(id)) {
+			const dflt = defaultSection(id as HomeSectionId);
+			sections.push({
+				id,
+				enabled: typeof so.enabled === "boolean" ? so.enabled : dflt.enabled,
+				navLabel: str(so.navLabel, dflt.navLabel),
+				kanji: str(so.kanji, dflt.kanji),
+				eyebrow: str(so.eyebrow, dflt.eyebrow),
+				title: str(so.title, dflt.title),
+				subtitle: str(so.subtitle, dflt.subtitle),
+				scene: sanitizeScene(so.scene, dflt.scene),
+			});
+		} else {
+			// Section personnalisée : mêmes champs éditables + corps markdown borné.
+			sections.push({
+				id,
+				isCustom: true,
+				enabled: typeof so.enabled === "boolean" ? so.enabled : true,
+				navLabel: str(so.navLabel, "Section"),
+				kanji: str(so.kanji, "◆"),
+				eyebrow: str(so.eyebrow, "Section"),
+				title: str(so.title, ""),
+				subtitle: str(so.subtitle, ""),
+				body: str(so.body, "").slice(0, 8000),
+				scene: sanitizeScene(so.scene, DEFAULT_HOME_CONFIG.sections[0].scene),
+			});
+		}
 	}
-	// Sections connues absentes du patch → ajoutées à la fin (nouveau code, futures sections).
+	// Sections built-in absentes du patch → ajoutées à la fin (forward-compat).
 	for (const id of SECTION_ORDER) {
 		if (!seen.has(id)) sections.push(defaultSection(id));
 	}
