@@ -511,15 +511,49 @@ function hlsRewrite(text: string, baseUrl: string, id: string, referer: string):
 		.join("\n");
 }
 
+type MoviePlayer = { name?: string; provider?: string; embedUrl?: string; lang?: string };
+
+/** Extrait l'identifiant Archive.org d'une URL `embed`/`download`. `null` sinon. */
+function archiveIdentifier(embedUrl: string): string | null {
+	const m = /archive\.org\/(?:embed|download)\/([^/?#]+)/i.exec(embedUrl);
+	return m ? m[1] : null;
+}
+
 /**
- * Résout la source d'un film (id de la forme `movie-<n>`). Contrairement aux
- * épisodes, aucun résolveur bxc « à la volée » n'existe pour les films : on ne
- * peut servir qu'une source déjà stockée (`video_url` MP4 direct, ou `stream_url`
- * HLS). Ces colonnes sont Neon-only et **peuvent être absentes du replica SQLite**
- * → sélection défensive des colonnes réellement présentes. Absence de source ⇒
- * `null` (le caller renvoie un 404 propre), jamais de crash / NaN.
+ * Dérive le MP4 direct d'un item Archive.org via l'API metadata publique :
+ * `https://archive.org/metadata/<id>` → plus gros fichier `.mp4` de `files[]` →
+ * `https://archive.org/download/<id>/<name>` (identifiant et nom url-encodés).
+ * `null` si l'item n'a aucun MP4 ou en cas d'erreur réseau (dégradation propre).
  */
-function resolveMovieStream(rawId: string): HlsStream | null {
+async function resolveArchiveMp4(identifier: string): Promise<string | null> {
+	try {
+		const res = await fetch(`https://archive.org/metadata/${encodeURIComponent(identifier)}`);
+		if (!res.ok) return null;
+		const meta = (await res.json()) as { files?: { name?: string; size?: string }[] };
+		const files = (meta.files ?? []).filter((f) => /\.mp4$/i.test(f.name ?? ""));
+		if (files.length === 0) return null;
+		const largest = files.toSorted((a, b) => Number(b.size ?? 0) - Number(a.size ?? 0))[0];
+		if (!largest?.name) return null;
+		return `https://archive.org/download/${encodeURIComponent(identifier)}/${encodeURIComponent(largest.name)}`;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Résout la source **téléchargeable** d'un film (id de la forme `movie-<n>`).
+ * Contrairement aux épisodes, aucun résolveur bxc « à la volée » n'existe.
+ * Priorité : `video_url` (MP4 stocké) → `stream_url` (HLS stocké) → scan des
+ * lecteurs (`players`) pour une source réellement téléchargeable :
+ *   - un `embedUrl` déjà direct (`.mp4`/`.m3u8`) → utilisé tel quel ;
+ *   - un lecteur Archive.org (`provider:"archive"` ou `archive.org/embed|download/`)
+ *     → MP4 direct dérivé de l'API metadata.
+ * Les iframes tierces (vidmoly/voe/mailru) ne sont PAS des fichiers → ignorées.
+ * `video_url`/`stream_url`/`players` sont Neon-only et **peuvent être absents du
+ * replica SQLite** → sélection défensive des colonnes réellement présentes.
+ * Absence de source téléchargeable ⇒ `null` (le caller renvoie un 404 propre).
+ */
+async function resolveMovieStream(rawId: string): Promise<HlsStream | null> {
 	const movieId = Number(rawId);
 	if (!Number.isInteger(movieId)) {
 		console.error(`[HLS] ID de film invalide : "${rawId}".`);
@@ -532,25 +566,62 @@ function resolveMovieStream(rawId: string): HlsStream | null {
 				(c) => c.name
 			)
 		);
-		const wanted = ["video_url", "stream_url"].filter((c) => cols.has(c));
+		const wanted = ["video_url", "stream_url", "players"].filter((c) => cols.has(c));
 		if (wanted.length === 0) {
-			console.error("[HLS] db_movies ne stocke aucune source (video_url/stream_url absents).");
+			console.error(
+				"[HLS] db_movies ne stocke aucune source (video_url/stream_url/players absents)."
+			);
 			return null;
 		}
-		const row = dbs.sqlite
-			.query(`SELECT ${wanted.join(", ")} FROM db_movies WHERE id = ?`)
-			.get(movieId) as { video_url?: string | null; stream_url?: string | null } | undefined;
+		const row = dbs.sqlite.query(`SELECT ${wanted.join(", ")} FROM db_movies WHERE id = ?`).get(
+			movieId
+		) as { video_url?: string | null; stream_url?: string | null; players?: string | null } | undefined;
 		if (!row) {
 			console.error(`[HLS] Film ID ${movieId} introuvable en base SQLite.`);
 			return null;
 		}
-		const src = row.video_url || row.stream_url || null;
-		if (!src) {
-			console.error(`[HLS] Film ID ${movieId} sans source lisible (video_url/stream_url null).`);
-			return null;
+
+		// 1) MP4 direct stocké.
+		if (row.video_url) {
+			return { url: row.video_url, headers: {}, type: "mp4", at: Date.now() };
 		}
-		const type = /\.m3u8(\?|$)/i.test(src) ? "hls" : "mp4";
-		return { url: src, headers: {}, type, at: Date.now() };
+		// 2) Flux HLS stocké.
+		if (row.stream_url) {
+			const type = /\.m3u8(\?|$)/i.test(row.stream_url) ? "hls" : "mp4";
+			return { url: row.stream_url, headers: {}, type, at: Date.now() };
+		}
+		// 3) Lecteurs (`players`) téléchargeables : embed déjà direct puis Archive.org.
+		if (row.players) {
+			let players: MoviePlayer[] = [];
+			try {
+				const parsed = JSON.parse(row.players) as unknown;
+				if (Array.isArray(parsed)) players = parsed as MoviePlayer[];
+			} catch {
+				players = [];
+			}
+			for (const p of players) {
+				const embed = p?.embedUrl ?? "";
+				if (/\.(mp4|m3u8)(\?|$)/i.test(embed)) {
+					const type = /\.m3u8(\?|$)/i.test(embed) ? "hls" : "mp4";
+					return { url: embed, headers: {}, type, at: Date.now() };
+				}
+			}
+			for (const p of players) {
+				const embed = p?.embedUrl ?? "";
+				const identifier =
+					p?.provider === "archive" || /archive\.org\/(?:embed|download)\//i.test(embed)
+						? archiveIdentifier(embed)
+						: null;
+				if (identifier) {
+					const mp4 = await resolveArchiveMp4(identifier);
+					if (mp4) return { url: mp4, headers: {}, type: "mp4", at: Date.now() };
+				}
+			}
+		}
+		console.error(
+			`[HLS] Film ID ${movieId} sans source téléchargeable (players non direct / absents).`
+		);
+		return null;
 	} catch (err) {
 		console.error(`[HLS] Erreur lors de la résolution du film "${rawId}" :`, err);
 		return null;
@@ -558,9 +629,9 @@ function resolveMovieStream(rawId: string): HlsStream | null {
 }
 
 async function resolveStreamOnDemand(id: string): Promise<HlsStream | null> {
-	// Films : `movie-<n>` → table db_movies (source stockée uniquement, pas de bxc).
+	// Films : `movie-<n>` → table db_movies (source stockée/players, pas de bxc).
 	if (id.startsWith("movie-")) {
-		return resolveMovieStream(id.slice("movie-".length));
+		return await resolveMovieStream(id.slice("movie-".length));
 	}
 	try {
 		const dbs = container.resolve(DatabaseService);

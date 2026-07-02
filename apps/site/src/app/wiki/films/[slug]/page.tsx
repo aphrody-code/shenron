@@ -96,11 +96,20 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 			/>
 		) : null;
 
-	// Téléchargement réellement résoluble ? Les lecteurs iframe (`players`) sont
-	// lisibles mais PAS téléchargeables : seul un MP4 direct (`video_url`) ou un
-	// flux HLS proxifié par le bot (`stream_url` → /api/hls/movie-:id) l'est. On
-	// masque le bouton sinon → jamais de lien qui renverrait un 404.
-	const canDownload = Boolean(m.video_url) || Boolean(m.stream_url);
+	// Téléchargement réellement résoluble ? Les iframes tierces (vidmoly/voe/mailru)
+	// sont lisibles mais PAS téléchargeables. Seul un MP4/HLS direct est un fichier :
+	// `video_url`/`stream_url` stockés, un lecteur Archive.org (MP4 dérivé de l'API
+	// metadata) ou un `embedUrl` déjà direct (`.mp4`/`.m3u8`). On masque le bouton
+	// sinon → jamais de lien qui renverrait un 404.
+	const canDownload =
+		Boolean(m.video_url) ||
+		Boolean(m.stream_url) ||
+		(m.players ?? []).some(
+			(p) =>
+				p.provider === "archive" ||
+				/archive\.org\/(embed|download)\//i.test(p.embedUrl) ||
+				/\.(mp4|m3u8)(\?|$)/i.test(p.embedUrl)
+		);
 
 	const jsonLdData: WithContext<MovieSchema> = {
 		"@context": "https://schema.org",
