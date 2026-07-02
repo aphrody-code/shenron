@@ -88,13 +88,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 		return new Response(null, { status: 302, headers: { Location: `/signin?callbackURL=${back}` } });
 	}
 
-	// 1) MP4 direct stocké.
-	if (m.video_url) {
+	// 1) MP4 direct stocké. Guard `URL.canParse` : une valeur admin non-absolue
+	// ferait throw `Response.redirect` → 500 ; on retombe alors sur le résolveur bot.
+	if (m.video_url && URL.canParse(m.video_url)) {
 		return Response.redirect(m.video_url, 302);
 	}
 	// 2) Source téléchargeable dérivée des lecteurs (Archive.org MP4 / embed direct).
 	const derived = await resolveDownloadFromPlayers(m.players);
-	if (derived) {
+	if (derived && URL.canParse(derived)) {
 		return Response.redirect(derived, 302);
 	}
 	// 3) Repli : le bot résout une source stockée (stream_url HLS). 404 propre sinon.

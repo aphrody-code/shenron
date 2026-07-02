@@ -23,11 +23,11 @@ export async function getHomeConfig(): Promise<HomeConfig> {
 			.from(homeConfig)
 			.where(eq(homeConfig.id, SINGLETON_ID))
 			.limit(1);
-		if (!row) return DEFAULT_HOME_CONFIG;
+		if (!row) return structuredClone(DEFAULT_HOME_CONFIG);
 		return resolveHomeConfig(row.data);
 	} catch (e) {
 		console.error("[home-config] lecture échouée, repli sur les défauts :", e);
-		return DEFAULT_HOME_CONFIG;
+		return structuredClone(DEFAULT_HOME_CONFIG);
 	}
 }
 

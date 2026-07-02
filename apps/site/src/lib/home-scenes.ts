@@ -575,7 +575,9 @@ const defaultSection = (id: HomeSectionId): HomeSectionConfig =>
  * l'ordre du patch (ids connus), puis les sections connues absentes sont ajoutées.
  */
 export function resolveHomeConfig(patch: unknown): HomeConfig {
-	if (!patch || typeof patch !== "object") return DEFAULT_HOME_CONFIG;
+	// Clone sur le repli : ne jamais partager le singleton DEFAULT_HOME_CONFIG
+	// (un consumer qui muterait `sections[i].enabled` corromprait le défaut global).
+	if (!patch || typeof patch !== "object") return structuredClone(DEFAULT_HOME_CONFIG);
 	const p = patch as Record<string, unknown>;
 
 	// ── Héro ──
