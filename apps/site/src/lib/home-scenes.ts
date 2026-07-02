@@ -301,3 +301,312 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 		accent: ERA_ACCENT.divine,
 	},
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Configuration éditable de la home (pilotée depuis /admin/home).
+//
+// Client-safe : ces types + défauts sont consommés à la fois par l'éditeur
+// admin (Client Component) et par la page (RSC, via lib/home-config.ts qui lit
+// la DB côté serveur). La DB ne stocke qu'un patch partiel ; `resolveHomeConfig`
+// le fusionne au-dessus des défauts ci-dessous → si la table est vide/absente ou
+// le JSON invalide, la home reste STRICTEMENT identique à la version en dur.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ERAS: readonly Era[] = [
+	"origin",
+	"saiyan",
+	"namek",
+	"android",
+	"buu",
+	"divine",
+	"summon",
+];
+
+/** Sections de contenu connues (rendues par HomeExperience). Le héro (index 0) est fixe. */
+export type HomeSectionId =
+	| "pantheon"
+	| "universe"
+	| "personnages"
+	| "sagas"
+	| "guardians"
+	| "community"
+	| "play"
+	| "news";
+
+interface HomeSectionMeta {
+	navLabel: string;
+	kanji: string;
+	eyebrow: string;
+	title: string;
+	subtitle: string;
+	defaultEnabled: boolean;
+}
+
+/** Métadonnées par défaut de chaque section (libellés/textes d'origine du code). */
+export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
+	pantheon: {
+		navLabel: "Le panthéon",
+		kanji: "番付",
+		eyebrow: "Le panthéon",
+		title: "Les guerriers les plus puissants",
+		subtitle: "Le classement live du serveur, et qui combat en ce moment même.",
+		defaultEnabled: true,
+	},
+	universe: {
+		navLabel: "L'univers",
+		kanji: "宇宙",
+		eyebrow: "Le voyage",
+		title: "Voyage à travers l'univers",
+		subtitle:
+			"Personnages, planètes, sagas, épisodes, films et chapitres — chaque recoin de la saga, vérifié et en lien avec les ayants droit. Choisis ta destination.",
+		defaultEnabled: true,
+	},
+	// Masqués par défaut en bêta : les routes /wiki/personnages et /wiki/sagas sont
+	// fermées côté proxy → activer ces panneaux nécessite de rouvrir ces routes.
+	personnages: {
+		navLabel: "Personnages",
+		kanji: "戦士",
+		eyebrow: "Les héros",
+		title: "Les personnages de légende",
+		subtitle:
+			"Saiyans, dieux, démons et terriens — explore les figures qui ont façonné Dragon Ball, fiche par fiche.",
+		defaultEnabled: false,
+	},
+	sagas: {
+		navLabel: "Les sagas",
+		kanji: "物語",
+		eyebrow: "La chronologie",
+		title: "Le voyage à travers les sagas",
+		subtitle:
+			"Des origines à la divinité — suis la saga complète : Dragon Ball, Z, Super et GT, arc après arc.",
+		defaultEnabled: false,
+	},
+	guardians: {
+		navLabel: "Les gardiens",
+		kanji: "神",
+		eyebrow: "Le bot",
+		title: "Six gardiens, un seul process",
+		subtitle: "Six personas Discord, six personnalités, une seule machine",
+		defaultEnabled: true,
+	},
+	community: {
+		navLabel: "Communauté",
+		kanji: "仲間",
+		eyebrow: "La communauté",
+		title: "Des milliers de guerriers",
+		subtitle: "Chiffres réels, mis à jour en direct depuis le bot.",
+		defaultEnabled: true,
+	},
+	play: {
+		navLabel: "Le terrain",
+		kanji: "遊",
+		eyebrow: "Le terrain",
+		title: "Combats, économie, fusions",
+		subtitle:
+			"Le bot transforme le serveur en terrain de jeu : gagne de l'XP, dépense tes zénis, grimpe au classement.",
+		defaultEnabled: true,
+	},
+	news: {
+		navLabel: "Actualités",
+		kanji: "報",
+		eyebrow: "Actualités",
+		title: "Les dernières nouvelles",
+		subtitle: "",
+		defaultEnabled: true,
+	},
+};
+
+/** Ordre par défaut des sections (identique à la home actuelle une fois filtré `enabled`). */
+export const SECTION_ORDER: readonly HomeSectionId[] = [
+	"pantheon",
+	"universe",
+	"personnages",
+	"sagas",
+	"guardians",
+	"community",
+	"play",
+	"news",
+];
+
+/** Carte d'action du bloc « Le terrain » (section `play`). */
+export interface PlayCard {
+	href: string;
+	title: string;
+	desc: string;
+	kanji: string;
+}
+
+export const DEFAULT_PLAY_CARDS: readonly PlayCard[] = [
+	{
+		href: "/jeux",
+		title: "Mini-jeux",
+		desc: "2048, Pierre-Feuille-Ciseaux, Morpion, Pendu, Bingo",
+		kanji: "遊",
+	},
+	{ href: "/shop", title: "Boutique zéni", desc: "Rôles, bannières, cartes, fusions", kanji: "商" },
+	{
+		href: "/leaderboard",
+		title: "Classement",
+		desc: "Les guerriers les plus puissants",
+		kanji: "番付",
+	},
+	{
+		href: "/profil",
+		title: "Ta carte de combat",
+		desc: "Niveau, XP, succès, inventaire",
+		kanji: "戦士",
+	},
+];
+
+export interface HomeSectionConfig {
+	id: HomeSectionId;
+	enabled: boolean;
+	navLabel: string;
+	kanji: string;
+	eyebrow: string;
+	title: string;
+	subtitle: string;
+	scene: HomeScene;
+	/** Cartes d'action — utilisé uniquement par la section `play`. */
+	cards?: PlayCard[];
+}
+
+export interface HomeConfig {
+	version: 1;
+	hero: {
+		scenes: HomeScene[];
+		lede: string;
+		ctaLabel: string;
+		ctaHref: string;
+	};
+	/** Nombre de clips flottants dans le héro par largeur (téléphone = toujours 0). */
+	clips: { desktop: number; tablet: number };
+	sections: HomeSectionConfig[];
+}
+
+/** Clip vidéo disponible pour le sélecteur de fond (exposé par /api/home-config). */
+export interface HomeClip {
+	id: string;
+	/** Chemin `/wiki/<name>.mp4` (converti en `.web.mp4` au rendu). */
+	video: string;
+	/** Chemin poster `/wiki/<name>.poster.webp` si présent, sinon null. */
+	poster: string | null;
+}
+
+export const DEFAULT_HERO_LEDE =
+	"Un voyage à travers tout l'univers Dragon Ball : personnages, planètes, sagas, films et manga — en français, sourcé canon. Et six gardiens qui veillent sur la communauté.";
+
+const CLIP_MAX = { desktop: 8, tablet: 6 } as const;
+
+const clampInt = (v: unknown, min: number, max: number, dflt: number): number => {
+	const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+	if (!Number.isFinite(n)) return dflt;
+	return Math.max(min, Math.min(max, Math.round(n)));
+};
+
+const str = (v: unknown, dflt: string): string => (typeof v === "string" ? v : dflt);
+
+/** Normalise une scène venue de la DB/de l'éditeur → forme `HomeScene` sûre (accent dérivé de l'ère). */
+export function sanitizeScene(input: unknown, fallback: HomeScene): HomeScene {
+	const o = (input ?? {}) as Record<string, unknown>;
+	const era: Era = ERAS.includes(o.era as Era) ? (o.era as Era) : fallback.era;
+	const video = str(o.video, fallback.video ?? "").trim();
+	const poster = str(o.poster, fallback.poster ?? "").trim();
+	return {
+		id: str(o.id, fallback.id) || fallback.id,
+		image: str(o.image, fallback.image),
+		poster: poster || undefined,
+		video: video || undefined,
+		title: str(o.title, fallback.title),
+		kicker: str(o.kicker, fallback.kicker),
+		era,
+		accent: ERA_ACCENT[era],
+	};
+}
+
+const cloneScene = (s: HomeScene): HomeScene => sanitizeScene(s, s);
+
+/** Config par défaut = reflet exact de la home en dur (avec un poil plus de clips). */
+export const DEFAULT_HOME_CONFIG: HomeConfig = {
+	version: 1,
+	hero: {
+		scenes: HERO_SCENES.map(cloneScene),
+		lede: DEFAULT_HERO_LEDE,
+		ctaLabel: "Commencer le voyage",
+		ctaHref: "/wiki/episodes",
+	},
+	clips: { desktop: 6, tablet: 3 },
+	sections: SECTION_ORDER.map((id) => ({
+		id,
+		enabled: SECTION_META[id].defaultEnabled,
+		navLabel: SECTION_META[id].navLabel,
+		kanji: SECTION_META[id].kanji,
+		eyebrow: SECTION_META[id].eyebrow,
+		title: SECTION_META[id].title,
+		subtitle: SECTION_META[id].subtitle,
+		scene: cloneScene(SECTION_SCENE[id] ?? HERO_SCENES[0]),
+	})),
+};
+
+const defaultSection = (id: HomeSectionId): HomeSectionConfig =>
+	DEFAULT_HOME_CONFIG.sections.find((s) => s.id === id)!;
+
+/**
+ * Fusionne un patch partiel (JSON stocké en DB) au-dessus des défauts. Défensif :
+ * toute valeur manquante/invalide retombe sur le défaut. L'ordre des sections =
+ * l'ordre du patch (ids connus), puis les sections connues absentes sont ajoutées.
+ */
+export function resolveHomeConfig(patch: unknown): HomeConfig {
+	if (!patch || typeof patch !== "object") return DEFAULT_HOME_CONFIG;
+	const p = patch as Record<string, unknown>;
+
+	// ── Héro ──
+	const heroPatch = (p.hero ?? {}) as Record<string, unknown>;
+	const rawScenes = Array.isArray(heroPatch.scenes) ? heroPatch.scenes : null;
+	const scenes =
+		rawScenes && rawScenes.length > 0
+			? rawScenes.map((s, i) => sanitizeScene(s, HERO_SCENES[i % HERO_SCENES.length]))
+			: DEFAULT_HOME_CONFIG.hero.scenes;
+
+	const hero: HomeConfig["hero"] = {
+		scenes,
+		lede: str(heroPatch.lede, DEFAULT_HOME_CONFIG.hero.lede),
+		ctaLabel: str(heroPatch.ctaLabel, DEFAULT_HOME_CONFIG.hero.ctaLabel),
+		ctaHref: str(heroPatch.ctaHref, DEFAULT_HOME_CONFIG.hero.ctaHref),
+	};
+
+	// ── Clips ──
+	const clipsPatch = (p.clips ?? {}) as Record<string, unknown>;
+	const clips = {
+		desktop: clampInt(clipsPatch.desktop, 0, CLIP_MAX.desktop, DEFAULT_HOME_CONFIG.clips.desktop),
+		tablet: clampInt(clipsPatch.tablet, 0, CLIP_MAX.tablet, DEFAULT_HOME_CONFIG.clips.tablet),
+	};
+
+	// ── Sections (ordre du patch, puis complétion) ──
+	const rawSections = Array.isArray(p.sections) ? p.sections : [];
+	const seen = new Set<HomeSectionId>();
+	const sections: HomeSectionConfig[] = [];
+	for (const raw of rawSections) {
+		const so = (raw ?? {}) as Record<string, unknown>;
+		const id = so.id as HomeSectionId;
+		if (!SECTION_META[id] || seen.has(id)) continue;
+		seen.add(id);
+		const dflt = defaultSection(id);
+		sections.push({
+			id,
+			enabled: typeof so.enabled === "boolean" ? so.enabled : dflt.enabled,
+			navLabel: str(so.navLabel, dflt.navLabel),
+			kanji: str(so.kanji, dflt.kanji),
+			eyebrow: str(so.eyebrow, dflt.eyebrow),
+			title: str(so.title, dflt.title),
+			subtitle: str(so.subtitle, dflt.subtitle),
+			scene: sanitizeScene(so.scene, dflt.scene),
+		});
+	}
+	// Sections connues absentes du patch → ajoutées à la fin (nouveau code, futures sections).
+	for (const id of SECTION_ORDER) {
+		if (!seen.has(id)) sections.push(defaultSection(id));
+	}
+
+	return { version: 1, hero, clips, sections };
+}

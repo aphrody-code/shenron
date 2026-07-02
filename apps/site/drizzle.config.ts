@@ -21,6 +21,7 @@ export default defineConfig({
 		"ba_verification",
 		"site_events",
 		"user_preferences",
+		"HomeConfig",
 	],
 	verbose: true,
 	strict: true,

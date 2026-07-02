@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import {
 	LayoutDashboard,
+	Home,
 	RefreshCw,
 	Settings,
 	Bot,
@@ -82,6 +83,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Tableau de bord",
 		description: "Vue d'ensemble du bot",
 		icon: <LayoutDashboard className="h-4 w-4" />,
+		section: "accueil",
+	},
+	{
+		href: "/admin/home",
+		label: "Page d'accueil",
+		description: "Réorganiser la home : sections, clips de fond, contenu",
+		icon: <Home className="h-4 w-4" />,
 		section: "accueil",
 	},
 	{

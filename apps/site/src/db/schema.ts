@@ -269,6 +269,19 @@ export type SiteEvent = typeof siteEvents.$inferSelect;
 export type SiteEventInsert = typeof siteEvents.$inferInsert;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 
+// Configuration éditable de la home — document JSON unique (singleton `default`).
+// Édité depuis /admin/home, lu par la page `/`. Cf. lib/home-config.ts.
+export const homeConfig = pgTable("HomeConfig", {
+	id: text("id").primaryKey(),
+	data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+	updatedBy: text("updatedBy"),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type HomeConfigRow = typeof homeConfig.$inferSelect;
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({

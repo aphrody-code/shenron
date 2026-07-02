@@ -7,6 +7,7 @@ import {
 	getShenronPresence,
 } from "@/lib/shenron";
 import { HomeExperience } from "@/components/home/HomeExperience";
+import { getHomeConfig } from "@/lib/home-config";
 import {
 	botSagas,
 	botEpisodes,
@@ -113,7 +114,7 @@ async function getSagas() {
 }
 
 export default async function Home() {
-	const [posts, personas, stats, wikiCounts, characters, sagas, topMembers, presence] =
+	const [posts, personas, stats, wikiCounts, characters, sagas, topMembers, presence, config] =
 		await Promise.all([
 			getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
 			getShenronPersonas().catch(() => []),
@@ -123,10 +124,12 @@ export default async function Home() {
 			getSagas(),
 			getShenronLeaderboard(12, true).catch(() => []),
 			getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
+			getHomeConfig(),
 		]);
 
 	return (
 		<HomeExperience
+			config={config}
 			stats={stats}
 			personas={personas.map((p) => ({
 				id: p.id,

@@ -93,9 +93,15 @@ function ClipVideo({ drift, active, index }: { drift: Drift; active: boolean; in
 export function HomeClipField({
 	scenes,
 	active,
+	maxDesktop = 6,
+	maxTablet = 3,
 }: {
 	scenes: readonly HomeScene[];
 	active: boolean;
+	/** Nombre de clips flottants sur desktop (≥1024px). Configurable depuis /admin/home. */
+	maxDesktop?: number;
+	/** Nombre de clips flottants sur tablette (641–1023px). Téléphone = toujours 0. */
+	maxTablet?: number;
 }) {
 	// Côté client uniquement → aucun mismatch d'hydratation (serveur renvoie null).
 	const [drifts, setDrifts] = useState<readonly Drift[]>([]);
@@ -104,14 +110,14 @@ export function HomeClipField({
 		const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
 		if (reduce || conn?.saveData) return;
-		// Borne la charge de décodage selon la largeur : desktop léger (4 clips),
-		// tablette réduite (2), téléphone aucun (le SceneBackdrop plein écran suffit).
+		// Borne la charge de décodage selon la largeur : desktop, tablette réduite,
+		// téléphone aucun (le SceneBackdrop plein écran suffit). Compte piloté par la config.
 		const isDesktop = window.matchMedia("(min-width: 1024px)").matches;
 		const isPhone = window.matchMedia("(max-width: 640px)").matches;
-		const max = isDesktop ? 4 : isPhone ? 0 : 2;
-		if (max === 0) return;
+		const max = isDesktop ? maxDesktop : isPhone ? 0 : maxTablet;
+		if (max <= 0) return;
 		setDrifts(buildDrifts(scenes, max));
-	}, [scenes]);
+	}, [scenes, maxDesktop, maxTablet]);
 
 	if (drifts.length === 0) return null;
 
