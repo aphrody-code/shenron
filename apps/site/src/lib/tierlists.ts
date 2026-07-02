@@ -113,18 +113,21 @@ export async function getTierlistPool(templateKey: string): Promise<TierlistItem
 				id: botCharacters.id,
 				name: botCharacters.name,
 				image: botCharacters.image,
+				// Portrait HQ Xenoverse 2 (carré, cadré visage) — icône idéale de tier list ;
+				// préféré à l'artwork plein cadre quand il existe (les persos canoniques l'ont).
+				portrait: botCharacters.portraitXv2,
 				race: botCharacters.race,
 			})
 			.from(botCharacters)
 			.orderBy(botCharacters.id);
 		return rows
-			.filter((c) => !!c.image)
+			.filter((c) => !!c.portrait || !!c.image)
 			.filter((c) => (tpl.race ? !!c.race && tpl.race.test(c.race) : true))
 			.slice(0, tpl.limit ?? 80)
 			.map((c) => ({
 				id: `char:${c.id}`,
 				label: c.name,
-				image: c.image,
+				image: c.portrait || c.image,
 				category: categoryOf(c.race),
 			}));
 	} catch (e) {
@@ -185,17 +188,18 @@ export async function getAdminCharacterPool(limit = 400): Promise<TierlistItem[]
 				id: botCharacters.id,
 				name: botCharacters.name,
 				image: botCharacters.image,
+				portrait: botCharacters.portraitXv2,
 				race: botCharacters.race,
 			})
 			.from(botCharacters)
 			.orderBy(botCharacters.id);
 		return rows
-			.filter((c) => !!c.image)
+			.filter((c) => !!c.portrait || !!c.image)
 			.slice(0, limit)
 			.map((c) => ({
 				id: `char:${c.id}`,
 				label: c.name,
-				image: c.image,
+				image: c.portrait || c.image,
 				category: categoryOf(c.race),
 			}));
 	} catch (e) {
