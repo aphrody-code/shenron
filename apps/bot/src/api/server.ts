@@ -40,7 +40,7 @@ import { TicketService } from "~/services/TicketService";
 import { SettingsService } from "~/services/SettingsService";
 import { LEVEL_THRESHOLDS } from "~/lib/constants";
 import { PERSONAS, PERSONA_IDS, type PersonaId } from "~/lib/personas";
-import type { APIEmbed, TextChannel } from "discord.js";
+import type { APIEmbed, GuildMember, TextChannel } from "discord.js";
 import { verifyActingUser } from "./user-auth";
 import { decideBotChoice, isPfcChoice, resolvePfc } from "~/services/games/pfc";
 import {
@@ -4061,22 +4061,40 @@ export class ApiServer {
 					cachedJson(
 						req,
 						async () => {
-							const client = container.resolve(Client);
+							const url = new URL(req.url);
+							const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 25));
+							const search = (url.searchParams.get("search") ?? "").trim();
+
+							// Le client par défaut (Shenron, intents=[Guilds]) n'a que ~2 membres
+							// en cache → toute recherche renvoyait 0 résultat sur une guilde de
+							// 6000+ membres. Seuls Kaïo et Grand Prêtre portent l'intent privilégié
+							// GuildMembers (cf. personas.ts) → leur cache guild contient tous les
+							// membres et permet la recherche server-side. On les préfère, puis on
+							// retombe sur le client au plus gros cache de membres, enfin sur le
+							// singleton (dégradation gracieuse, jamais de 500).
+							const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
+							let membersClient: Client | undefined;
+							for (const id of ["kaio", "grandPretre"] as const) {
+								const c = clientMap.get(id);
+								if (c?.isReady() && c.guilds.cache.has(env.GUILD_ID)) {
+									membersClient = c;
+									break;
+								}
+							}
+							if (!membersClient) {
+								membersClient = [...clientMap.values()]
+									.filter((c) => c.isReady() && c.guilds.cache.has(env.GUILD_ID))
+									.sort(
+										(a, b) =>
+											(b.guilds.cache.get(env.GUILD_ID)?.members.cache.size ?? 0) -
+											(a.guilds.cache.get(env.GUILD_ID)?.members.cache.size ?? 0)
+									)[0];
+							}
+							const client = membersClient ?? container.resolve(Client);
 							const guild = client.guilds.cache.get(env.GUILD_ID);
 							if (!guild) return { members: [], count: 0, total: 0 };
-							const url = new URL(req.url);
-							const limit = Math.min(1000, Number(url.searchParams.get("limit")) || 100);
-							const search = (url.searchParams.get("search") ?? "").toLowerCase();
-							let members = [...guild.members.cache.values()];
-							if (search) {
-								members = members.filter(
-									(m) =>
-										m.user.username.toLowerCase().includes(search) ||
-										m.displayName.toLowerCase().includes(search) ||
-										m.id.includes(search)
-								);
-							}
-							const result = members.slice(0, limit).map((m) => ({
+
+							const toDto = (m: GuildMember) => ({
 								id: m.id,
 								username: m.user.username,
 								displayName: m.displayName,
@@ -4084,10 +4102,46 @@ export class ApiServer {
 								bot: m.user.bot,
 								joinedAt: m.joinedTimestamp ? new Date(m.joinedTimestamp).toISOString() : null,
 								roleIds: [...m.roles.cache.keys()],
-							}));
+							});
+
+							let members: GuildMember[] = [];
+							if (!search) {
+								// Pas de recherche : liste depuis le cache (comportement historique).
+								members = [...guild.members.cache.values()].slice(0, limit);
+							} else if (/^\d{17,20}$/.test(search)) {
+								// Snowflake : fetch REST par ID, repli cache.
+								const m =
+									(await guild.members.fetch(search).catch(() => null)) ??
+									guild.members.cache.get(search) ??
+									null;
+								members = m ? [m] : [];
+							} else {
+								// Recherche texte : recherche server-side Discord (préfixe
+								// username/nick), + repli substring sur le cache (dédupliqué par id)
+								// pour faire remonter les correspondances non-préfixe déjà en cache.
+								const fetched = await guild.members
+									.fetch({ query: search, limit })
+									.catch(() => null);
+								const byId = new Map<string, GuildMember>();
+								if (fetched) for (const m of fetched.values()) byId.set(m.id, m);
+								const low = search.toLowerCase();
+								for (const m of guild.members.cache.values()) {
+									if (byId.size >= limit) break;
+									if (byId.has(m.id)) continue;
+									if (
+										m.user.username.toLowerCase().includes(low) ||
+										m.displayName.toLowerCase().includes(low) ||
+										m.id.includes(search)
+									) {
+										byId.set(m.id, m);
+									}
+								}
+								members = [...byId.values()].slice(0, limit);
+							}
+
 							return {
-								members: result,
-								count: result.length,
+								members: members.map(toDto),
+								count: members.length,
 								total: guild.memberCount,
 							};
 						},
