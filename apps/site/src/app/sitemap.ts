@@ -27,8 +27,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		"/licence",
 		"/personas",
 		"/commands",
+		"/stats",
 		"/wiki/episodes",
 		"/wiki/films",
+		"/wiki/chronologie",
 		"/wiki/manga",
 	];
 
