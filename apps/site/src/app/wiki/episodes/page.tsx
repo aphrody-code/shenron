@@ -34,7 +34,7 @@ export async function generateMetadata({
 	const series = sp.series ?? "DBZ";
 	const label = SERIES_LABELS[series] ?? series;
 	return {
-		title: `${label} — Épisodes | DBFR`,
+		title: `${label} — Épisodes`,
 		description:
 			"Tous les épisodes Dragon Ball / DBZ / DBZ Kai / GT / DB Super / Daima — index complet avec vignettes, titres FR/JP, date de diffusion et synopsis.",
 		alternates: { canonical: `/wiki/episodes?series=${series}` },

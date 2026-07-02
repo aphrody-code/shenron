@@ -15,7 +15,7 @@ export const revalidate = 60;
 const POSTS_PER_PAGE = 12;
 
 export const metadata: Metadata = {
-	title: "Actualités Dragon Ball — DBFR",
+	title: "Actualités Dragon Ball",
 	description:
 		"Toutes les actualités Dragon Ball : sorties anime, manga, films, événements communauté française. Mis à jour régulièrement.",
 	alternates: { canonical: "/actualites" },

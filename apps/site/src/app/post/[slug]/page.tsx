@@ -31,13 +31,13 @@ export async function generateMetadata({
 	const post = await db.query.posts.findFirst({
 		where: (p, { eq, and }) => and(eq(p.slug, slug), eq(p.published, true)),
 	});
-	if (!post) return { title: "Article — DBFR" };
+	if (!post) return { title: "Article" };
 	const coverUrl =
 		post.cover && !post.cover.startsWith("http")
 			? new URL(post.cover, SITE).toString()
 			: post.cover;
 	return {
-		title: `${post.title} — DBFR`,
+		title: `${post.title}`,
 		description:
 			post.excerpt ??
 			`Article publié sur DBFR le ${format(post.createdAt, "d MMMM yyyy", { locale: fr })}.`,

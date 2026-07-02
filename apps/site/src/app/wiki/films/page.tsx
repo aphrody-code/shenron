@@ -9,7 +9,7 @@ import { FILMS_HERO } from "@/lib/db-banners";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Films Dragon Ball — DBFR",
+	title: "Films Dragon Ball",
 	description:
 		"Tous les films Dragon Ball, Dragon Ball Z et Dragon Ball Super — fiches complètes avec date de sortie, durée, synopsis.",
 	alternates: { canonical: "/wiki/films" },

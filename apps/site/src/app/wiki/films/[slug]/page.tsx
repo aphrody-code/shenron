@@ -47,10 +47,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
-	if (!m) return { title: "Film — DBFR" };
+	if (!m) return { title: "Film" };
 	const description = stripSourceTags(m.synopsis) ?? `${SERIES_LABELS[m.series] ?? "Film"}.`;
 	return {
-		title: `${m.title} — Film | DBFR`,
+		title: `${m.title} — Film`,
 		description,
 		...ogMeta({
 			title: `${m.title} — DBFR`,

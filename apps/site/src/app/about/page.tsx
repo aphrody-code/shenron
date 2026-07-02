@@ -4,7 +4,7 @@ import { Sparkles, Users, Award, Shield, MessageSquare, BookOpen } from "lucide-
 import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata = {
-	title: "À propos — DBFR",
+	title: "À propos",
 	description: "Découvrez DBFR, le hub communautaire français dédié à l'univers de Dragon Ball. Wiki, bot interactif et communauté active.",
 	alternates: { canonical: "/about" },
 };

@@ -1,4 +1,17 @@
+import type { Metadata } from "next";
 import { PageHeader } from "@/components/PageHeader";
+import { ogMeta } from "@/lib/og";
+
+export const metadata: Metadata = {
+	title: "Mini-jeux",
+	description:
+		"Les mini-jeux Dragon Ball du serveur DBFR : 2048 Ki Merge, Pierre-Feuille-Ciseaux, Morpion, Pendu, Bingo et plus.",
+	...ogMeta({
+		title: "Mini-jeux — DBFR",
+		description: "Les mini-jeux Dragon Ball du serveur Discord DBFR.",
+		canonical: "/jeux",
+	}),
+};
 
 // `glow` = rgba de l'aura de Ki au survol ; `power` = niveau de puissance
 // scouter affiché sur la carte (flavor Dragon Ball).

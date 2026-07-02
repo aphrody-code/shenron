@@ -1,5 +1,18 @@
+import type { Metadata } from "next";
 import { getShenronLeaderboard } from "@/lib/shenron";
 import { PageHeader } from "@/components/PageHeader";
+import { ogMeta } from "@/lib/og";
+
+export const metadata: Metadata = {
+	title: "Classement",
+	description:
+		"Le top 100 des guerriers du serveur Dragon Ball France, classés par XP cumulé sur Discord.",
+	...ogMeta({
+		title: "Classement — DBFR",
+		description: "Le top 100 des guerriers Dragon Ball France, classés par XP.",
+		canonical: "/leaderboard",
+	}),
+};
 
 export const revalidate = 60;
 

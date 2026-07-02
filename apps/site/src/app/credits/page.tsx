@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata: Metadata = {
-	title: "Crédits & sources — DBFR",
+	title: "Crédits & sources",
 	description:
 		"Crédits, attributions et sources des contenus utilisés sur DBFR. Marque Dragon Ball © Bird Studio / Shueisha / Toei Animation.",
 	alternates: { canonical: "/credits" },

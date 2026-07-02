@@ -48,13 +48,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { id } = await params;
 	const ep = await dbUniverse.episode(parseInt(id));
-	if (!ep) return { title: "Épisode Dragon Ball — DBFR" };
+	if (!ep) return { title: "Épisode Dragon Ball" };
 	// Synopsis nettoyé (Markdown retiré) et tronqué ~160 car. pour meta/og :
 	// certains synopsis contiennent du Markdown (*_#>) qui fuiterait sinon brut.
 	const description =
 		excerpt(ep.synopsis) || `Fiche détaillée de l'épisode ${ep.number_in_series} de ${ep.series}.`;
 	return {
-		title: `Épisode ${ep.number_in_series} : ${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series} | DBFR`,
+		title: `Épisode ${ep.number_in_series} : ${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series}`,
 		description,
 		...ogMeta({
 			title: `${ep.title} — ${SERIES_LABELS[ep.series] ?? ep.series}`,
