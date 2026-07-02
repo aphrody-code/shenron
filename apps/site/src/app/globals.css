@@ -59,16 +59,20 @@ html {
 	/* === Palette fusion design.google × Xenoverse 2 ===
         Couches éditoriales sobres (Google) + accents énergie DBZ (Bandai).
         Tokens dbz-* conservés pour rétrocompat des composants existants.    */
-	/* Calibré sur fr.dragon-ball-official.com : palette noir/jaune doré/rouge */
-	--color-dbz-bg: #0a0a0a; /* noir profond DB officiel */
-	--color-dbz-card: #141410; /* surface élevée chaude */
-	--color-dbz-border: #2a2a26; /* hairline subtil */
-	--color-dbz-orange: #ffb200; /* jaune doré signature DB officiel */
-	--color-dbz-orange-dark: #d99700; /* press state */
-	--color-dbz-blue: #1e244d; /* deep navy lisible */
-	--color-dbz-blue-light: #cdcdcd; /* gris clair DB officiel */
-	--color-dbz-yellow: #ffb200; /* alias accent doré */
-	--color-dbz-red: #ff0000; /* rouge pur DB officiel */
+	/* Calibré sur fr.dragon-ball-official.com : palette noir/jaune doré/rouge.
+	   Valeurs en `var(--dbz-*, <défaut>)` (bloc @theme inline → les utilitaires
+	   Tailwind émettent le `var()`, pas le littéral) : l'éditeur de design
+	   (/admin/design) peut donc surcharger `--dbz-*` au runtime pour reskiner tout
+	   le site. Sans thème posé, le fallback = la palette d'origine (zéro régression). */
+	--color-dbz-bg: var(--dbz-bg, #0a0a0a); /* noir profond DB officiel */
+	--color-dbz-card: var(--dbz-card, #141410); /* surface élevée chaude */
+	--color-dbz-border: var(--dbz-border, #2a2a26); /* hairline subtil */
+	--color-dbz-orange: var(--dbz-orange, #ffb200); /* jaune doré signature DB officiel */
+	--color-dbz-orange-dark: var(--dbz-orange-dark, #d99700); /* press state */
+	--color-dbz-blue: var(--dbz-blue, #1e244d); /* deep navy lisible */
+	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd); /* gris clair DB officiel */
+	--color-dbz-yellow: var(--dbz-yellow, #ffb200); /* alias accent doré */
+	--color-dbz-red: var(--dbz-red, #ff0000); /* rouge pur DB officiel */
 
 	/* Gradients réutilisables */
 	--gradient-galactic: linear-gradient(135deg, #ff6b1a 0%, #ffd23f 50%, #ff3e00 100%);
@@ -112,6 +116,20 @@ html {
 	--background: #0a0e27;
 	--foreground: #fff7e0;
 	--radius: 0.5rem;
+
+	/* Miroir des tokens de palette pour le CSS écrit à la main (var(--color-dbz-*,…)) :
+	   le bloc @theme inline ne les expose PAS sur :root, donc on les redéclare ici en
+	   pointant sur les surcharges runtime `--dbz-*` (défaut = palette d'origine). Ainsi
+	   utilitaires Tailwind ET CSS manuel réagissent tous à l'éditeur /admin/design. */
+	--color-dbz-bg: var(--dbz-bg, #0a0a0a);
+	--color-dbz-card: var(--dbz-card, #141410);
+	--color-dbz-border: var(--dbz-border, #2a2a26);
+	--color-dbz-orange: var(--dbz-orange, #ffb200);
+	--color-dbz-orange-dark: var(--dbz-orange-dark, #d99700);
+	--color-dbz-blue: var(--dbz-blue, #1e244d);
+	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd);
+	--color-dbz-yellow: var(--dbz-yellow, #ffb200);
+	--color-dbz-red: var(--dbz-red, #ff0000);
 }
 
 @layer base {

@@ -282,6 +282,19 @@ export const homeConfig = pgTable("HomeConfig", {
 
 export type HomeConfigRow = typeof homeConfig.$inferSelect;
 
+// Thème de design global — document JSON unique (singleton `default`).
+// Édité depuis /admin/design, injecté en :root par le layout. Cf. lib/site-theme.ts.
+export const siteTheme = pgTable("SiteTheme", {
+	id: text("id").primaryKey(),
+	data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+	updatedBy: text("updatedBy"),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type SiteThemeRow = typeof siteTheme.$inferSelect;
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({

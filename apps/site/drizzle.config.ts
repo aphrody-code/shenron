@@ -22,6 +22,7 @@ export default defineConfig({
 		"site_events",
 		"user_preferences",
 		"HomeConfig",
+		"SiteTheme",
 	],
 	verbose: true,
 	strict: true,

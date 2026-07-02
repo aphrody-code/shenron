@@ -13,6 +13,8 @@ import { FirebaseInitializer } from "@/components/FirebaseInitializer";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { SITE_URL } from "@/lib/config";
 import { env } from "@/lib/env";
+import { getSiteTheme } from "@/lib/theme-config";
+import { themeCssVars } from "@/lib/site-theme";
 import Script from "next/script";
 
 // FAB Discord lazy : composant client gated par localStorage, jamais critical.
@@ -97,12 +99,16 @@ export const viewport = {
 	colorScheme: "dark" as const,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
 	const gtmId = env.NEXT_PUBLIC_GTM_ID || "GTM-KLSS5787";
+	// Thème de design global (éditeur /admin/design). Sans thème posé → chaîne vide
+	// → aucune injection, la palette d'origine de globals.css s'applique. Lecture
+	// DB sans cookies/headers → cache CDN préservé sur toutes les pages.
+	const themeCss = themeCssVars(await getSiteTheme());
 
 	return (
 		<html lang="fr" className="dark">
@@ -122,6 +128,13 @@ export default function RootLayout({
 						`,
 					}}
 				/>
+				{/* Thème de design global surchargeant les tokens `--dbz-*` (voir globals.css). */}
+				{themeCss && (
+					<style
+						id="site-theme"
+						dangerouslySetInnerHTML={{ __html: `:root{${themeCss}}` }}
+					/>
+				)}
 			</head>
 			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties */}
 			<GoogleTagManager gtmId={gtmId} />

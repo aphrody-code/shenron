@@ -93,6 +93,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		section: "accueil",
 	},
 	{
+		href: "/admin/design",
+		label: "Design & thème",
+		description: "Palette et coins appliqués à tout le site",
+		icon: <Palette className="h-4 w-4" />,
+		section: "accueil",
+	},
+	{
 		href: "/admin/sync",
 		label: "Synchronisation",
 		description: "Synchroniser Discord ↔ base de données",
