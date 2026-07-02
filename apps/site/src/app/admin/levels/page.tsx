@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { UserSelect } from "@/components/admin/UserSelect";
 import {
 	Trophy,
 	TrendingUp,
@@ -944,13 +945,7 @@ function ManualActionsCard() {
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				<div className="lg:col-span-2">
 					<label className="mb-1 block text-xs text-zinc-400">Identifiant Discord du joueur</label>
-					<input
-						className="input font-mono text-xs"
-						value={userId}
-						onChange={(e) => setUserId(e.target.value)}
-						placeholder="000000000000000000"
-						required
-					/>
+					<UserSelect value={userId} onChange={setUserId} />
 				</div>
 				<div>
 					<label className="mb-1 block text-xs text-zinc-400">Ce que l&apos;on modifie</label>

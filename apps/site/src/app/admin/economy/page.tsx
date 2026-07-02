@@ -1,6 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { UserSelect } from "@/components/admin/UserSelect";
+import { RoleSelect } from "@/components/admin/RoleSelect";
 import {
 	Coins,
 	TrendingUp,
@@ -590,13 +592,7 @@ function BulkGiveForm({
 							<label className="mb-1 block text-xs text-zinc-400">
 								Identifiant Discord du membre
 							</label>
-							<input
-								type="text"
-								value={userId}
-								onChange={(e) => setUserId(e.target.value)}
-								placeholder="000000000000000000"
-								className="input w-full font-mono text-xs"
-							/>
+							<UserSelect value={userId} onChange={setUserId} />
 						</div>
 					)}
 					{mode === "role" && (
@@ -604,13 +600,7 @@ function BulkGiveForm({
 							<label className="mb-1 block text-xs text-zinc-400">
 								Identifiant Discord du rôle
 							</label>
-							<input
-								type="text"
-								value={roleId}
-								onChange={(e) => setRoleId(e.target.value)}
-								placeholder="000000000000000000"
-								className="input w-full font-mono text-xs"
-							/>
+							<RoleSelect value={roleId} onChange={setRoleId} />
 						</div>
 					)}
 					<div>
