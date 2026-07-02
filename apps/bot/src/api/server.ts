@@ -58,10 +58,11 @@ import {
 	unpackBingoToken,
 } from "~/services/games/tokens";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
-import { eq, sql, desc, asc, inArray } from "drizzle-orm";
+import { eq, and, sql, desc, asc, inArray } from "drizzle-orm";
 import {
 	users,
 	levelRewards,
+	raceLevelRoles,
 	shopItems,
 	achievements,
 	achievementTriggers,
@@ -71,6 +72,8 @@ import {
 	dbPlanets,
 } from "~/db/schema";
 import { DatabaseService } from "~/db/index";
+import { RACE_IDS, isRaceId } from "~/lib/races";
+import { reloadRaceLevelRoles } from "~/lib/race-levels";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
 import { EconomyService } from "~/services/EconomyService";
 import { CardService } from "~/services/CardService";
@@ -3558,6 +3561,81 @@ export class ApiServer {
 							level,
 							action: "delete",
 						});
+						return Response.json({ ok: true });
+					}),
+				},
+				// Rôles de palier PAR RACE (table race_level_roles, source de vérité des rôles
+				// de level-up). Distinct de /levels/rewards (zéni/seuil/bannière, race-agnostique).
+				"/api/levels/race-rewards": {
+					GET: admin(async () => {
+						const dbs = container.resolve(DatabaseService);
+						const rows = await dbs.db
+							.select()
+							.from(raceLevelRoles)
+							.orderBy(asc(raceLevelRoles.race), asc(raceLevelRoles.level));
+						return Response.json({ rewards: rows });
+					}),
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							race?: string;
+							level?: number;
+							roleId?: string;
+						} | null;
+						if (
+							!body ||
+							!isRaceId(body.race) ||
+							typeof body.level !== "number" ||
+							!Number.isInteger(body.level) ||
+							body.level < 1 ||
+							!body.roleId
+						) {
+							return Response.json(
+								{
+									error: `Body attendu : { race ∈ [${RACE_IDS.join(", ")}], level: entier ≥ 1, roleId }`,
+								},
+								{ status: 400 }
+							);
+						}
+						// Hiérarchie : refuser si rôle au-dessus du bot (sinon attribution silencieuse échoue)
+						const client = container.resolve(Client);
+						const guild = client.guilds.cache.get(env.GUILD_ID);
+						const botMember = guild?.members.me;
+						const targetRole = guild?.roles.cache.get(body.roleId);
+						if (!targetRole) {
+							return Response.json({ error: "Rôle introuvable dans la guild" }, { status: 404 });
+						}
+						if (botMember && targetRole.position >= botMember.roles.highest.position) {
+							return Response.json(
+								{
+									error: `Rôle "${targetRole.name}" au-dessus du bot — l'attribution échouera silencieusement. Replacer le rôle du bot plus haut dans la hiérarchie.`,
+								},
+								{ status: 400 }
+							);
+						}
+						const dbs = container.resolve(DatabaseService);
+						await dbs.db
+							.insert(raceLevelRoles)
+							.values({ race: body.race, level: body.level, roleId: body.roleId })
+							.onConflictDoUpdate({
+								target: [raceLevelRoles.race, raceLevelRoles.level],
+								set: { roleId: body.roleId },
+							});
+						reloadRaceLevelRoles();
+						return Response.json({ ok: true });
+					}),
+				},
+				"/api/levels/race-rewards/:race/:level": {
+					DELETE: admin(async (req) => {
+						const race = req.params.race;
+						const level = Number(req.params.level);
+						if (!isRaceId(race) || !Number.isFinite(level)) {
+							return Response.json({ error: "race ou level invalide" }, { status: 400 });
+						}
+						const dbs = container.resolve(DatabaseService);
+						await dbs.db
+							.delete(raceLevelRoles)
+							.where(and(eq(raceLevelRoles.race, race), eq(raceLevelRoles.level, level)));
+						reloadRaceLevelRoles();
 						return Response.json({ ok: true });
 					}),
 				},

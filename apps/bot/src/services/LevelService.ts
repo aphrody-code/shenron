@@ -8,10 +8,11 @@ import { LEVEL_THRESHOLDS, ZENI_PER_LEVEL, FUSION_XP_BONUS_RATIO } from "~/lib/c
 import { levelForXP, formatXP } from "~/lib/xp";
 import { applyZeniRace, hasZenkai, ZENKAI_MS } from "~/lib/races";
 import {
-	ALL_RACE_LEVEL_ROLE_IDS,
+	allRaceLevelRoleIds,
 	DEFAULT_LEVEL_RACE,
+	hasRaceLadder,
 	memberRaceId,
-	RACE_LEVEL_ROLES,
+	raceLevelRoleAt,
 	raceLevelRoleIds,
 } from "~/lib/race-levels";
 import { levelUpMessage } from "~/lib/dbz-flavor";
@@ -209,7 +210,7 @@ export class LevelService {
 				level: newLevel,
 				bonusZeni,
 				race,
-				rewards: [RACE_LEVEL_ROLES[race][newLevel]].filter(Boolean),
+				rewards: [raceLevelRoleAt(race, newLevel)].filter(Boolean),
 			}),
 		});
 
@@ -242,10 +243,17 @@ export class LevelService {
 		const u = await this.getUser(member.id);
 		const level = u?.lastLevelReached ?? levelForXP(u?.xp ?? 0);
 		const race = memberRaceId(member) ?? DEFAULT_LEVEL_RACE;
+
+		// GARDE : si la race du membre n'a AUCUNE échelle configurée (aucun palier),
+		// on NE touche à rien — surtout on ne retire pas ses rôles de palier existants
+		// (bug « removed everything » au passage à une race non configurée). L'admin
+		// doit d'abord configurer les paliers de cette race (dashboard → race-rewards).
+		if (!hasRaceLadder(race)) return;
+
 		const keep = new Set(raceLevelRoleIds(race, level));
 
 		// Retire les paliers qui n'appartiennent pas à la race courante (autres races).
-		const toRemove = ALL_RACE_LEVEL_ROLE_IDS.filter(
+		const toRemove = allRaceLevelRoleIds().filter(
 			(rid) => !keep.has(rid) && member.roles.cache.has(rid)
 		);
 		if (toRemove.length) {

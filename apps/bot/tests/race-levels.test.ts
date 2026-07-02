@@ -4,7 +4,8 @@
 import { describe, expect, test } from "bun:test";
 import type { GuildMember } from "discord.js";
 import {
-	ALL_RACE_LEVEL_ROLE_IDS,
+	allRaceLevelRoleIds,
+	hasRaceLadder,
 	RACE_LEVEL_ROLES,
 	levelOfRoleId,
 	memberRaceId,
@@ -30,8 +31,8 @@ describe("race-levels — échelle Saiyan", () => {
 		expect(levelOfRoleId("000000000000000000")).toBeNull();
 	});
 	test("toutes les transfos sont uniques (10 = Saiyan seul pour l'instant)", () => {
-		expect(ALL_RACE_LEVEL_ROLE_IDS).toHaveLength(10);
-		expect(new Set(ALL_RACE_LEVEL_ROLE_IDS).size).toBe(ALL_RACE_LEVEL_ROLE_IDS.length);
+		expect(allRaceLevelRoleIds()).toHaveLength(10);
+		expect(new Set(allRaceLevelRoleIds()).size).toBe(allRaceLevelRoleIds().length);
 	});
 });
 
@@ -39,6 +40,11 @@ describe("race-levels — races sans échelle", () => {
 	test("une race non encore peuplée n'a aucun palier", () => {
 		expect(raceLevelRoleIds("namek", 10)).toEqual([]);
 		expect(raceLevelRoleIds("mutant", 10)).toEqual([]);
+	});
+	test("hasRaceLadder — true pour Saiyan (défaut), false pour les races vides", () => {
+		expect(hasRaceLadder("saiyan")).toBe(true);
+		expect(hasRaceLadder("namek")).toBe(false);
+		expect(hasRaceLadder("mutant")).toBe(false);
 	});
 });
 

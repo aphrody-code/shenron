@@ -1,4 +1,12 @@
-import { sqliteTable, text, integer, real, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import {
+	sqliteTable,
+	text,
+	integer,
+	real,
+	index,
+	uniqueIndex,
+	primaryKey,
+} from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import type { EpisodeFrame } from "./episode-frames";
 
@@ -355,6 +363,26 @@ export const levelRewards = sqliteTable("level_rewards", {
 });
 
 /**
+ * Rôles de palier de transformation PAR RACE — échelle attribuée au fil des
+ * niveaux (1..10), éditable depuis le dashboard admin (site → /api/levels/race-rewards).
+ *
+ * SOURCE DE VÉRITÉ runtime des rôles de level-up : lue par `lib/race-levels.ts`
+ * (cache module hydraté par `loadRaceLevelRoles`). Distincte de `level_rewards`
+ * (zéni/seuil XP/bannière, race-agnostique — son `roleId` ne sert PAS au grant).
+ * Seedée au 1er boot depuis `RACE_LEVEL_ROLES` (échelle Saiyan canonique) si vide.
+ * PK composite (race, level) → un rôle unique par palier et par race.
+ */
+export const raceLevelRoles = sqliteTable(
+	"race_level_roles",
+	{
+		race: text("race").notNull(),
+		level: integer("level").notNull(),
+		roleId: text("role_id").notNull(),
+	},
+	(t) => [primaryKey({ columns: [t.race, t.level] })]
+);
+
+/**
  * Settings runtime overridables sans redeploy. Toutes les rows sont stockées en
  * key/value texte — coercion par lecture côté SettingsService.
  *
@@ -462,6 +490,8 @@ export type Ticket = typeof tickets.$inferSelect;
 export type Giveaway = typeof giveaways.$inferSelect;
 export type ActionLog = typeof actionLogs.$inferSelect;
 export type LevelReward = typeof levelRewards.$inferSelect;
+export type RaceLevelRole = typeof raceLevelRoles.$inferSelect;
+export type NewRaceLevelRole = typeof raceLevelRoles.$inferInsert;
 export type Fusion = typeof fusions.$inferSelect;
 export type AchievementTrigger = typeof achievementTriggers.$inferSelect;
 export type DBPlanet = typeof dbPlanets.$inferSelect;

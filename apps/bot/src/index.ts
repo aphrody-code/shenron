@@ -10,6 +10,7 @@ import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 import { env } from "./lib/env";
 import { logger } from "./lib/logger";
 import { DatabaseService } from "./db/index";
+import { loadRaceLevelRoles } from "./lib/race-levels";
 import { runBootAudit } from "./lib/boot-audit";
 import { ApiServer } from "./api/server";
 import { existsSync } from "node:fs";
@@ -28,6 +29,16 @@ if (existsSync("./src/db/migrations")) {
 	} catch (err) {
 		logger.warn({ err }, "DB migration step skipped (first run?)");
 	}
+}
+
+// Hydrate le cache des rôles de palier PAR RACE depuis la DB (seed depuis
+// RACE_LEVEL_ROLES si la table est vide) — APRÈS les migrations, AVANT tout
+// level-up/sync de rôles (LevelService lit ce cache de façon synchrone).
+try {
+	loadRaceLevelRoles(dbService.db);
+	logger.info("✓ race level roles loaded");
+} catch (err) {
+	logger.warn({ err }, "race level roles load skipped (first run?)");
 }
 
 // ────────────────────────────────────────────────────────

@@ -47,6 +47,25 @@ interface LevelReward {
 	zeniBonus: number;
 }
 
+interface RaceReward {
+	race: string;
+	level: number;
+	roleId: string;
+}
+
+// Races du serveur (aligné sur RACE_IDS côté bot : lib/races.ts).
+const RACE_OPTIONS: { id: string; label: string }[] = [
+	{ id: "saiyan", label: "Saiyan" },
+	{ id: "humain", label: "Humain / Terrien" },
+	{ id: "namek", label: "Namek" },
+	{ id: "mutant", label: "Mutant / Freezer" },
+	{ id: "cyborg", label: "Cyborg" },
+	{ id: "majin", label: "Majin" },
+];
+
+const raceLabel = (race: string): string =>
+	RACE_OPTIONS.find((r) => r.id === race)?.label ?? race;
+
 interface TopUser {
 	id: string;
 	xp: number;
@@ -116,6 +135,10 @@ export default function LevelsPage() {
 		queryKey: ["levels", "rewards"],
 		queryFn: () => api.get<{ rewards: LevelReward[] }>("/levels/rewards"),
 	});
+	const raceRewards = useQuery({
+		queryKey: ["levels", "race-rewards"],
+		queryFn: () => api.get<{ rewards: RaceReward[] }>("/levels/race-rewards"),
+	});
 
 	return (
 		<div className="space-y-6">
@@ -147,6 +170,10 @@ export default function LevelsPage() {
 				loading={distribution.isLoading}
 			/>
 			<RewardsCard rewards={rewards.data?.rewards ?? []} loading={rewards.isLoading} />
+			<RaceRewardsCard
+				rewards={raceRewards.data?.rewards ?? []}
+				loading={raceRewards.isLoading}
+			/>
 			<TopsCard />
 			<ManualActionsCard />
 		</div>
@@ -571,6 +598,188 @@ function RewardForm({
 				</button>
 			</div>
 		</form>
+	);
+}
+
+function RaceRewardsCard({ rewards, loading }: { rewards: RaceReward[]; loading: boolean }) {
+	const qc = useQueryClient();
+	const [race, setRace] = useState<string>(RACE_OPTIONS[0]!.id);
+	const [level, setLevel] = useState("");
+	const [roleId, setRoleId] = useState("");
+	const [confirmDelete, setConfirmDelete] = useState<RaceReward | null>(null);
+	const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+	const showSuccess = (msg: string) => {
+		setSuccessMsg(msg);
+		setTimeout(() => setSuccessMsg(null), 3000);
+	};
+
+	const upsert = useMutation({
+		mutationFn: (r: RaceReward) => api.post("/levels/race-rewards", r),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["levels", "race-rewards"] });
+			setLevel("");
+			setRoleId("");
+			showSuccess("Rôle de palier enregistré avec succès.");
+		},
+	});
+
+	const remove = useMutation({
+		mutationFn: (r: RaceReward) => api.delete(`/levels/race-rewards/${r.race}/${r.level}`),
+		onSuccess: () => {
+			qc.invalidateQueries({ queryKey: ["levels", "race-rewards"] });
+			showSuccess("Rôle de palier supprimé.");
+		},
+	});
+
+	const submit = (e: FormEvent) => {
+		e.preventDefault();
+		upsert.mutate({ race, level: Number(level), roleId });
+	};
+
+	// Regroupe par race (dans l'ordre canonique) puis trie par niveau.
+	const grouped = RACE_OPTIONS.map((opt) => ({
+		...opt,
+		rows: rewards.filter((r) => r.race === opt.id).sort((a, b) => a.level - b.level),
+	})).filter((g) => g.rows.length > 0);
+
+	return (
+		<div className="card">
+			<div className="mb-3">
+				<h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
+					Rôles de palier par race ({rewards.length})
+				</h3>
+				<p className="mt-0.5 text-xs text-zinc-500">
+					Rôle de transformation attribué à chaque montée de palier, propre à chaque race. C&apos;est
+					cette table qui pilote les rôles distribués lors des level-up (indépendante des bonus zénis
+					ci-dessus). Une race sans palier configuré ne reçoit ni ne perd aucun rôle de
+					transformation.
+				</p>
+			</div>
+
+			{successMsg && (
+				<div className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					{successMsg}
+				</div>
+			)}
+
+			{confirmDelete && (
+				<ConfirmDialog
+					title={`Supprimer le palier ${confirmDelete.level} (${raceLabel(confirmDelete.race)}) ?`}
+					message="Ce rôle ne sera plus attribué lors des prochaines montées de niveau pour cette race. Les rôles déjà attribués aux joueurs ne seront pas retirés."
+					confirmLabel="Supprimer définitivement"
+					onConfirm={() => {
+						remove.mutate(confirmDelete);
+						setConfirmDelete(null);
+					}}
+					onCancel={() => setConfirmDelete(null)}
+				/>
+			)}
+
+			<form
+				onSubmit={submit}
+				className="mb-4 space-y-3 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3"
+			>
+				<h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
+					Ajouter / modifier un palier de race
+				</h4>
+				{upsert.isError && (
+					<div className="rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-400">
+						{(upsert.error as Error).message}
+					</div>
+				)}
+				<div className="grid gap-3 sm:grid-cols-4">
+					<div>
+						<label className="mb-1 block text-xs text-zinc-400">Race</label>
+						<select className="input" value={race} onChange={(e) => setRace(e.target.value)}>
+							{RACE_OPTIONS.map((r) => (
+								<option key={r.id} value={r.id}>
+									{r.label}
+								</option>
+							))}
+						</select>
+					</div>
+					<div>
+						<label className="mb-1 block text-xs text-zinc-400">Niveau (palier)</label>
+						<input
+							className="input"
+							type="number"
+							min="1"
+							value={level}
+							onChange={(e) => setLevel(e.target.value)}
+							required
+						/>
+					</div>
+					<div className="sm:col-span-2">
+						<label className="mb-1 block text-xs text-zinc-400">Rôle Discord à attribuer</label>
+						<RolePicker value={roleId} onChange={setRoleId} />
+					</div>
+				</div>
+				<div className="flex justify-end">
+					<button
+						type="submit"
+						disabled={!level || !roleId || upsert.isPending}
+						className="btn btn-primary"
+					>
+						<Plus className="h-3 w-3" />
+						{upsert.isPending ? "Enregistrement…" : "Ajouter"}
+					</button>
+				</div>
+			</form>
+
+			{loading ? (
+				<div className="flex items-center gap-2 text-zinc-500 text-sm">
+					<Loader2 className="h-4 w-4 animate-spin" />
+					Chargement des paliers…
+				</div>
+			) : grouped.length === 0 ? (
+				<div className="rounded-lg border border-zinc-800 bg-zinc-900/20 p-4 text-center text-sm text-zinc-500">
+					Aucun rôle de palier configuré pour le moment.
+				</div>
+			) : (
+				<div className="space-y-4">
+					{grouped.map((g) => (
+						<div key={g.id}>
+							<h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-400">
+								{g.label} ({g.rows.length})
+							</h4>
+							<div className="overflow-x-auto">
+								<table className="w-full text-sm">
+									<thead className="text-xs uppercase tracking-wide text-zinc-500">
+										<tr>
+											<th className="px-3 py-2 text-left">Palier</th>
+											<th className="px-3 py-2 text-left">Rôle Discord attribué</th>
+											<th className="px-3 py-2" />
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-zinc-800">
+										{g.rows.map((r) => (
+											<tr key={`${r.race}-${r.level}`}>
+												<td className="px-3 py-2 font-bold text-brand-400">{r.level}</td>
+												<td className="px-3 py-2 text-sm">
+													<RoleBadge roleId={r.roleId} />
+												</td>
+												<td className="px-3 py-2 text-right">
+													<button
+														type="button"
+														onClick={() => setConfirmDelete(r)}
+														className="btn btn-ghost px-2 text-red-400"
+														title="Supprimer ce palier"
+													>
+														<Trash2 className="h-3 w-3" />
+													</button>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					))}
+				</div>
+			)}
+		</div>
 	);
 }
 
