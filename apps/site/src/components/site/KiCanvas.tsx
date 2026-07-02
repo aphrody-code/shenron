@@ -3,7 +3,8 @@
 import { Application, extend, useApplication, useTick } from "@pixi/react";
 import { Container, Graphics, Particle, ParticleContainer, RenderTexture } from "pixi.js";
 import { BloomFilter } from "pixi-filters";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useReducedMotion } from "motion/react";
+import { type RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import type {
 	Graphics as GraphicsT,
 	Container as ContainerT,
@@ -27,6 +28,24 @@ export function KiCanvas({
 	density = 1,
 }: KiCanvasProps) {
 	const hostRef = useRef<HTMLDivElement | null>(null);
+	const reduced = useReducedMotion();
+
+	// Accessibilité + perf : en reduced-motion on NE monte PAS le runtime Pixi
+	// (particules + sun-burst + bloom + ticker WebGPU) — un halo statique CSS suffit,
+	// zéro GPU. Même code de détection que les animations motion du site (cohérence).
+	if (reduced) {
+		return (
+			<div
+				ref={hostRef}
+				className={className}
+				aria-hidden
+				style={{
+					pointerEvents: "none",
+					background: "radial-gradient(60% 60% at 50% 45%, rgba(168,85,247,0.16), transparent 70%)",
+				}}
+			/>
+		);
+	}
 
 	return (
 		<div ref={hostRef} className={className} aria-hidden style={{ pointerEvents: "none" }}>
@@ -40,10 +59,47 @@ export function KiCanvas({
 				autoDensity
 				powerPreference="high-performance"
 			>
+				<TickerControl hostRef={hostRef} />
 				<Scene color={color} colorAccent={colorAccent} count={Math.floor(220 * density)} />
 			</Application>
 		</div>
 	);
+}
+
+/**
+ * Met en pause le ticker Pixi quand l'onglet est caché OU le canvas hors écran
+ * (perf + batterie : sur /ask le canvas ki ne doit pas décoder/rendre en continu
+ * quand on change d'onglet ou qu'il a défilé hors vue). Rendu dans <Application>
+ * pour accéder à `useApplication`.
+ */
+function TickerControl({ hostRef }: { hostRef: RefObject<HTMLDivElement | null> }) {
+	const { app } = useApplication();
+	useEffect(() => {
+		if (!app?.ticker) return;
+		let onScreen = true;
+		const sync = () => {
+			if (onScreen && !document.hidden) app.ticker.start();
+			else app.ticker.stop();
+		};
+		document.addEventListener("visibilitychange", sync);
+		let io: IntersectionObserver | null = null;
+		const el = hostRef.current;
+		if (el && typeof IntersectionObserver !== "undefined") {
+			io = new IntersectionObserver(
+				(entries) => {
+					onScreen = entries[0]?.isIntersecting ?? true;
+					sync();
+				},
+				{ threshold: 0 }
+			);
+			io.observe(el);
+		}
+		return () => {
+			document.removeEventListener("visibilitychange", sync);
+			io?.disconnect();
+		};
+	}, [app, hostRef]);
+	return null;
 }
 
 function Scene({
@@ -102,6 +158,10 @@ function BurstWithBloom({ color, colorAccent }: { color: number; colorAccent: nu
 
 	useEffect(() => {
 		if (containerRef.current) containerRef.current.filters = [bloom];
+		// Libère le filtre bloom (ressources GPU) au démontage.
+		return () => {
+			bloom.destroy();
+		};
 	}, [bloom]);
 
 	const draw = useCallback(
@@ -172,6 +232,14 @@ function KiParticles({
 	const stateRef = useRef<ParticleState[]>([]);
 
 	const texture = useMemo(() => makeCircleTexture(app), [app]);
+
+	// Détruit la RenderTexture (GPU) au démontage — évitait une fuite à chaque
+	// montage/démontage du canvas ki.
+	useEffect(() => {
+		return () => {
+			texture.destroy(true);
+		};
+	}, [texture]);
 
 	useEffect(() => {
 		const pc = pcRef.current;

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 
 const KiCanvas = dynamic(() => import("./KiCanvas").then((m) => m.KiCanvas), {
 	ssr: false,
@@ -16,6 +16,9 @@ export function DbzHero({
 	title: string;
 	subtitle?: string;
 }) {
+	// Respect de prefers-reduced-motion : `initial={false}` fait rendre motion
+	// directement à l'état final (aucune animation d'entrée).
+	const reduce = useReducedMotion();
 	return (
 		<section className="relative w-full overflow-hidden border-y-4 border-black bg-dbz-bg">
 			{/* Sunburst CSS statique fond */}
@@ -34,7 +37,7 @@ export function DbzHero({
 			<div className="relative container mx-auto px-4 py-20 md:py-32 text-center">
 				{kicker && (
 					<motion.p
-						initial={{ opacity: 0, y: -10 }}
+						initial={reduce ? false : { opacity: 0, y: -10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5 }}
 						className="font-scouter text-xs md:text-sm tracking-[0.5em] text-dbz-orange mb-4 ki-pulse"
@@ -43,7 +46,7 @@ export function DbzHero({
 					</motion.p>
 				)}
 				<motion.h1
-					initial={{ opacity: 0, scale: 0.85, rotate: -2 }}
+					initial={reduce ? false : { opacity: 0, scale: 0.85, rotate: -2 }}
 					animate={{ opacity: 1, scale: 1, rotate: -1.5 }}
 					transition={{ duration: 0.7, type: "spring", bounce: 0.35 }}
 					className="title-jagged inline-block text-5xl md:text-8xl uppercase leading-[0.95]"
@@ -52,7 +55,7 @@ export function DbzHero({
 				</motion.h1>
 				{subtitle && (
 					<motion.p
-						initial={{ opacity: 0, y: 10 }}
+						initial={reduce ? false : { opacity: 0, y: 10 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.5, delay: 0.3 }}
 						className="mt-6 font-saiyan tracking-[0.3em] text-dbz-blue-light text-sm md:text-base uppercase"
