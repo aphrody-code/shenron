@@ -128,7 +128,7 @@ export default function LicencePage() {
 					<li>
 						Serveur Discord :{" "}
 						<a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer">
-							discord.gg/dbfr
+							discord.gg/dragonballfr
 						</a>{" "}
 						(canal #admin)
 					</li>

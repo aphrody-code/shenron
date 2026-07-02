@@ -25,8 +25,12 @@ const trimSlash = (u: string): string => u.replace(/\/+$/, "");
 export const BOT_HOST = "https://bot.dragonballfr.com";
 /** Domaine canonique du site (Vercel). */
 export const SITE_HOST = "https://dragonballfr.com";
-/** Invitation Discord par défaut. */
-const DISCORD_DEFAULT = "https://discord.gg/dbfr";
+/**
+ * Invitation Discord par défaut. Vanity `dragonballfr` = serveur « Dragon Ball FR »
+ * (guild 934894610545770506). NE PAS remettre `dbfr` : ce code a été réattribué à
+ * un autre serveur (« Goldbase Collection ») → il enverrait les visiteurs ailleurs.
+ */
+const DISCORD_DEFAULT = "https://discord.gg/dragonballfr";
 
 /**
  * Base de l'API du bot Shenron (runtime, RAG, proxies admin/user, uploads).

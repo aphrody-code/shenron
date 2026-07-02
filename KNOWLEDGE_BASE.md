@@ -263,6 +263,10 @@ Versionnement : date + courte description.
 - **Plugin Claude Code `dragon-ball`** (`plugins/dragon-ball/`) : manifeste `.claude-plugin/plugin.json` + skill auto-découverte `skills/dragon-ball/` (SKILL.md + `references/` + `scripts/db.sh`) + serveur MCP distant déclaré inline (`mcpServers.dragonball` → `streamable-http` `https://mcp.dragonballfr.com/mcp`). **Marketplace `shenron`** à la racine (`.claude-plugin/marketplace.json`, source `./plugins/dragon-ball`). Install : `/plugin marketplace add aphrody-code/shenron` puis `/plugin install dragon-ball@shenron`. Validé via `claude plugin validate` (skill découverte, MCP connecté, outils OK). Caveat : héberger le plugin dans ce monorepo ⇒ `/plugin marketplace add` clone **tout** le dépôt (lourd) — extraction possible dans un dépôt dédié pour des installs légères.
 - **`apps/bot/scripts/rag-embed-vectors.ts`** : (re)calcule **uniquement** `vec_chunks` depuis un `rag_chunks` déjà bon, **sans downtime** (aucun verrou d'écriture pendant l'embedding — que des appels HTTP au sidecar — insertion finale atomique ⇒ bascule nette lexical → hybride). À utiliser après un `fix-*` data ou un `rag:build` interrompu.
 
+### Fixed
+
+- **Invite Discord du site cassée → mauvais serveur** (`apps/site`) : `DISCORD_INVITE` renvoyait `discord.gg/dbfr`, or ce code vanity a été **réattribué à un autre serveur** (« Goldbase Collection ») — les visiteurs du site (footer, about, CTAs, FAB, JSON-LD `sameAs`, licence) étaient envoyés **ailleurs**. Corrigé en `discord.gg/dragonballfr` (= guild « Dragon Ball FR » `934894610545770506`) : `NEXT_PUBLIC_DISCORD_INVITE_URL` dans `apps/site/.env` (l'override qui gagne, baké au build), `DISCORD_DEFAULT` dans `lib/config.ts`, et le littéral de `licence/page.tsx`. Le bot (`SERVER_INVITE_URL`) était déjà correct.
+
 ### Changed
 
 - **`robots.ts`** : `/_next/` débloqué (ne plus interdire les ressources de rendu) ; `/wiki/search` passée en `robots: noindex, follow` (évite l'indexation de la combinatoire `?q=`).
