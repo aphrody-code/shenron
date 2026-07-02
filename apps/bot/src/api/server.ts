@@ -508,7 +508,57 @@ function hlsRewrite(text: string, baseUrl: string, id: string, referer: string):
 		.join("\n");
 }
 
+/**
+ * Résout la source d'un film (id de la forme `movie-<n>`). Contrairement aux
+ * épisodes, aucun résolveur bxc « à la volée » n'existe pour les films : on ne
+ * peut servir qu'une source déjà stockée (`video_url` MP4 direct, ou `stream_url`
+ * HLS). Ces colonnes sont Neon-only et **peuvent être absentes du replica SQLite**
+ * → sélection défensive des colonnes réellement présentes. Absence de source ⇒
+ * `null` (le caller renvoie un 404 propre), jamais de crash / NaN.
+ */
+function resolveMovieStream(rawId: string): HlsStream | null {
+	const movieId = Number(rawId);
+	if (!Number.isInteger(movieId)) {
+		console.error(`[HLS] ID de film invalide : "${rawId}".`);
+		return null;
+	}
+	try {
+		const dbs = container.resolve(DatabaseService);
+		const cols = new Set(
+			(dbs.sqlite.query("PRAGMA table_info(db_movies)").all() as { name: string }[]).map(
+				(c) => c.name
+			)
+		);
+		const wanted = ["video_url", "stream_url"].filter((c) => cols.has(c));
+		if (wanted.length === 0) {
+			console.error("[HLS] db_movies ne stocke aucune source (video_url/stream_url absents).");
+			return null;
+		}
+		const row = dbs.sqlite
+			.query(`SELECT ${wanted.join(", ")} FROM db_movies WHERE id = ?`)
+			.get(movieId) as { video_url?: string | null; stream_url?: string | null } | undefined;
+		if (!row) {
+			console.error(`[HLS] Film ID ${movieId} introuvable en base SQLite.`);
+			return null;
+		}
+		const src = row.video_url || row.stream_url || null;
+		if (!src) {
+			console.error(`[HLS] Film ID ${movieId} sans source lisible (video_url/stream_url null).`);
+			return null;
+		}
+		const type = /\.m3u8(\?|$)/i.test(src) ? "hls" : "mp4";
+		return { url: src, headers: {}, type, at: Date.now() };
+	} catch (err) {
+		console.error(`[HLS] Erreur lors de la résolution du film "${rawId}" :`, err);
+		return null;
+	}
+}
+
 async function resolveStreamOnDemand(id: string): Promise<HlsStream | null> {
+	// Films : `movie-<n>` → table db_movies (source stockée uniquement, pas de bxc).
+	if (id.startsWith("movie-")) {
+		return resolveMovieStream(id.slice("movie-".length));
+	}
 	try {
 		const dbs = container.resolve(DatabaseService);
 		const row = dbs.sqlite
@@ -652,6 +702,8 @@ async function hlsSeg(req: Request, id: string): Promise<Response> {
 }
 
 async function hlsDownload(id: string): Promise<Response> {
+	// Nom de fichier lisible selon le type d'entité (`movie-<n>` → film).
+	const downloadName = id.startsWith("movie-") ? `film-${id.slice("movie-".length)}.mp4` : `episode-${id}.mp4`;
 	let s = (await loadStreams())[id];
 	if (!s?.url) {
 		const newS = await resolveStreamOnDemand(id);
@@ -705,7 +757,7 @@ async function hlsDownload(id: string): Promise<Response> {
 		const contentLength = up.headers.get("content-length");
 		const downloadHeaders: Record<string, string> = {
 			"Content-Type": contentType,
-			"Content-Disposition": `attachment; filename="episode-${id}.mp4"`,
+			"Content-Disposition": `attachment; filename="${downloadName}"`,
 			"Cache-Control": "no-store",
 		};
 		if (contentLength) {
@@ -789,7 +841,7 @@ async function hlsDownload(id: string): Promise<Response> {
 	return new Response(stream, {
 		headers: {
 			"Content-Type": "video/mp4",
-			"Content-Disposition": `attachment; filename="episode-${id}.mp4"`,
+			"Content-Disposition": `attachment; filename="${downloadName}"`,
 			"Cache-Control": "no-store",
 		},
 	});

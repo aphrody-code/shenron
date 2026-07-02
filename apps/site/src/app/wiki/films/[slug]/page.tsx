@@ -96,6 +96,12 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 			/>
 		) : null;
 
+	// Téléchargement réellement résoluble ? Les lecteurs iframe (`players`) sont
+	// lisibles mais PAS téléchargeables : seul un MP4 direct (`video_url`) ou un
+	// flux HLS proxifié par le bot (`stream_url` → /api/hls/movie-:id) l'est. On
+	// masque le bouton sinon → jamais de lien qui renverrait un 404.
+	const canDownload = Boolean(m.video_url) || Boolean(m.stream_url);
+
 	const jsonLdData: WithContext<MovieSchema> = {
 		"@context": "https://schema.org",
 		"@type": "Movie",
@@ -196,10 +202,10 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 						</dl>
 					</header>
 
-					{player && (
+					{player ? (
 						<div className="shadow-2xl shadow-black/50 rounded-lg overflow-hidden relative group/player">
 							{player}
-							{(m.video_url || m.stream_url) && (
+							{canDownload && (
 								<div className="absolute top-3 right-3 z-20">
 									<EpisodeDownload
 										href={`/api/movies/${m.id}/download`}
@@ -208,6 +214,18 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 									/>
 								</div>
 							)}
+						</div>
+					) : (
+						// Aucun lecteur ni source (ex. Bardock, History of Trunks…) : état
+						// vide propre plutôt qu'un embed cassé ou un bouton de téléchargement
+						// mort. Le reste de la fiche (poster, infos, synopsis) reste affiché.
+						<div className="dbz-panel aspect-video flex flex-col items-center justify-center gap-3 bg-dbz-bg/60 px-6 text-center">
+							<span className="font-saiyan text-3xl text-white/25 tracking-widest">
+								Lecteur bientôt disponible
+							</span>
+							<p className="max-w-sm text-[13px] text-white/45">
+								Aucune source de lecture n'est disponible pour ce film pour le moment.
+							</p>
 						</div>
 					)}
 
