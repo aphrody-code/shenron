@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NavigationProgress } from "@/components/NavigationProgress";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import { ConsentGate } from "@/components/ConsentGate";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { FirebaseInitializer } from "@/components/FirebaseInitializer";
@@ -180,6 +181,7 @@ export default async function RootLayout({
 					aria-hidden
 				/>
 				<NavigationProgress />
+				<PageViewTracker />
 				<SiteNav />
 				<main className="relative z-10 flex-1 w-full flex flex-col">{children}</main>
 				<SiteFooter />

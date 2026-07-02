@@ -16,6 +16,7 @@ import {
 	Radio,
 	ScrollText,
 	BarChart2,
+	Activity,
 	Terminal,
 	Zap,
 	Webhook,
@@ -169,6 +170,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Statistiques",
 		description: "Chiffres globaux d'utilisation",
 		icon: <BarChart2 className="h-4 w-4" />,
+		section: "systeme",
+	},
+	{
+		href: "/admin/activite",
+		label: "Activité du site",
+		description: "Audience web : visites, visiteurs, sources, top pages",
+		icon: <Activity className="h-4 w-4" />,
 		section: "systeme",
 	},
 	{

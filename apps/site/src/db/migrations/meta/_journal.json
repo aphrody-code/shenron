@@ -29,6 +29,13 @@
       "when": 1781753166548,
       "tag": "0003_curly_the_professor",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783018894651,
+      "tag": "0004_panoramic_vin_gonzales",
+      "breakpoints": true
     }
   ]
 }

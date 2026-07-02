@@ -35,6 +35,7 @@ import {
 	botTransformations,
 } from "@/db/bot-schema";
 import type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
+import { eraOf, type TimelineItem } from "@/lib/chronology";
 
 // Re-export pour back-compat des pages serveur qui importaient assetUrl ici.
 export { assetUrl } from "@/lib/assets";
@@ -84,6 +85,14 @@ export type EpisodeNavItem = {
 	number_in_series: number;
 	title: string;
 	image: string | null;
+};
+
+export type MovieNavItem = {
+	id: number;
+	slug: string;
+	title: string;
+	poster: string | null;
+	release_date: number | null;
 };
 
 export type Movie = {
@@ -751,6 +760,125 @@ export const dbUniverse = {
 				.where(/^\d+$/.test(slug) ? eq(botMovies.id, Number(slug)) : eq(botMovies.slug, slug))
 				.limit(1);
 			return m ? toMovie(m) : null;
+		}),
+
+	/**
+	 * Film précédent / suivant + la liste complète des films de la même série,
+	 * ordonnés par date de sortie (tie-break id) — cohérent avec l'ordre de
+	 * l'index /wiki/films. Les films n'ont PAS de numéro (contrairement aux
+	 * épisodes) → l'adjacence se fait sur `release_date` (null → fin de liste).
+	 */
+	movieNav: (series: string, id: number) =>
+		safe(async () => {
+			const rows = await db
+				.select({
+					id: botMovies.id,
+					slug: botMovies.slug,
+					title: botMovies.title,
+					poster: botMovies.poster,
+					release_date: botMovies.releaseDate,
+				})
+				.from(botMovies)
+				.where(eq(botMovies.series, series));
+			const sorted: MovieNavItem[] = rows
+				.map((r) => ({
+					id: r.id,
+					slug: r.slug ?? String(r.id),
+					title: r.title ?? "",
+					poster: r.poster,
+					release_date: r.release_date ?? null,
+				}))
+				.sort(
+					(a, b) =>
+						(a.release_date ?? Number.POSITIVE_INFINITY) -
+							(b.release_date ?? Number.POSITIVE_INFINITY) || a.id - b.id
+				);
+			const idx = sorted.findIndex((m) => m.id === id);
+			return {
+				prev: idx > 0 ? sorted[idx - 1]! : null,
+				next: idx >= 0 && idx < sorted.length - 1 ? sorted[idx + 1]! : null,
+				around: sorted,
+			};
+		}),
+
+	/**
+	 * Dataset EXHAUSTIF de la chronologie universelle : TOUS les épisodes + TOUS
+	 * les films, toutes séries confondues, normalisés sous des « ères » communes
+	 * (cf. `@/lib/chronology`). Aucun tri imposé ici (le client trie/filtre/
+	 * exporte) : on renvoie la liste brute avec la matière première (ère, date,
+	 * numéro, langues dispo). ~685 items → un seul round-trip par table.
+	 */
+	timeline: () =>
+		safe(async (): Promise<TimelineItem[]> => {
+			const [eps, movs] = await Promise.all([
+				db
+					.select({
+						id: botEpisodes.id,
+						series: botEpisodes.series,
+						number: botEpisodes.numberInSeries,
+						title: botEpisodes.title,
+						titleJa: botEpisodes.titleJa,
+						date: botEpisodes.airDate,
+						image: botEpisodes.image,
+						players: botEpisodes.players,
+					})
+					.from(botEpisodes),
+				db
+					.select({
+						id: botMovies.id,
+						slug: botMovies.slug,
+						series: botMovies.series,
+						title: botMovies.title,
+						titleJa: botMovies.titleJa,
+						date: botMovies.releaseDate,
+						poster: botMovies.poster,
+						players: botMovies.players,
+					})
+					.from(botMovies),
+			]);
+			const langs = (
+				players: { lang?: "vf" | "vostfr" }[] | null
+			): { hasVf: boolean; hasVostfr: boolean } => ({
+				hasVf: (players ?? []).some((p) => p.lang === "vf"),
+				hasVostfr: (players ?? []).some((p) => p.lang === "vostfr"),
+			});
+			const items: TimelineItem[] = [
+				...eps.map((e) => {
+					const l = langs(e.players);
+					return {
+						kind: "episode" as const,
+						id: e.id,
+						href: `/wiki/episodes/${e.id}`,
+						title: e.title ?? "",
+						titleJa: e.titleJa,
+						series: e.series,
+						era: eraOf(e.series),
+						number: e.number ?? null,
+						date: e.date ?? null,
+						image: e.image,
+						hasVf: l.hasVf,
+						hasVostfr: l.hasVostfr,
+					};
+				}),
+				...movs.map((m) => {
+					const l = langs(m.players);
+					return {
+						kind: "movie" as const,
+						id: m.id,
+						href: `/wiki/films/${m.slug ?? m.id}`,
+						title: m.title ?? "",
+						titleJa: m.titleJa,
+						series: m.series ?? "",
+						era: eraOf(m.series),
+						number: null,
+						date: m.date ?? null,
+						image: m.poster,
+						hasVf: l.hasVf,
+						hasVostfr: l.hasVostfr,
+					};
+				}),
+			];
+			return items;
 		}),
 
 	games: () =>

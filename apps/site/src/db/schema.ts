@@ -237,6 +237,13 @@ export const siteEvents = pgTable(
 		index("site_events_anon_idx").on(t.anonId),
 		index("site_events_entity_idx").on(t.entityType, t.entityId),
 		index("site_events_type_ts_idx").on(t.type, t.ts),
+		// Index analytics (dashboard « Activité du site ») : top pages (path),
+		// sources de trafic (referrer), comptage de sessions (sessionId) et séries
+		// temporelles globales tous types confondus (ts seul).
+		index("site_events_path_idx").on(t.path),
+		index("site_events_referrer_idx").on(t.referrer),
+		index("site_events_session_idx").on(t.sessionId),
+		index("site_events_ts_idx").on(t.ts),
 	]
 );
 

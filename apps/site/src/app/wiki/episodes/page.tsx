@@ -112,6 +112,29 @@ export default async function EpisodesIndex({
 				imageAlt={`Bannière ${SERIES_LABELS[series] ?? series}`}
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<Link
+					href="/wiki/chronologie"
+					className="group mb-8 flex items-center gap-4 rounded-xl border border-dbz-orange/30 bg-gradient-to-r from-dbz-orange/10 to-transparent px-5 py-4 hover:border-dbz-orange/60 transition-colors"
+				>
+					<span aria-hidden className="font-saiyan text-3xl text-dbz-orange leading-none">
+						≡
+					</span>
+					<span className="flex-1">
+						<span className="block font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
+							Chronologie universelle — épisodes + films
+						</span>
+						<span className="block text-[13px] text-white/50">
+							Toutes les séries (DB, Z, GT, Super, Daima) et tous les films sur une seule frise.
+							Filtre, trie et exporte ton propre ordre de visionnage.
+						</span>
+					</span>
+					<span
+						aria-hidden
+						className="text-dbz-orange text-lg group-hover:translate-x-1 transition-transform"
+					>
+						→
+					</span>
+				</Link>
 				<div className="mb-10 flex flex-wrap items-center justify-between gap-4">
 					<nav className="flex flex-wrap gap-2">
 						{navSeries.map((key) => (

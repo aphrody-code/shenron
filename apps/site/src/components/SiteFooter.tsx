@@ -8,8 +8,10 @@ const COLUMNS = [
 		links: [
 			{ href: "/wiki/manga", label: "Manga" },
 			{ href: "/wiki/films", label: "Films" },
+			{ href: "/wiki/chronologie", label: "Chronologie" },
 			{ href: "/actualites", label: "Actualités" },
 			{ href: "/leaderboard", label: "Classement" },
+			{ href: "/stats", label: "Statistiques" },
 		],
 	},
 	{

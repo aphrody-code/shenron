@@ -28,6 +28,10 @@ export type TelemetryPropValue = string | number | boolean | null;
 
 /** Catalogue typé des events. Ajouter ici tout nouvel event web. */
 export type TelemetryEvent =
+	// Vue de page (visite) — émis à chaque navigation par `<PageViewTracker>`.
+	// C'est la brique de base des KPIs d'audience (visites, visiteurs uniques,
+	// sessions, top pages, sources) du dashboard « Activité du site ».
+	| { name: "pageview"; props?: { title?: string } }
 	// Vue d'une fiche wiki (perso, saga, film, épisode, planète, technique…).
 	| {
 			name: "wiki_view";
@@ -238,6 +242,15 @@ export function track<N extends AnyEventName>(name: N, props?: Record<string, un
 		ts: Date.now(),
 	});
 	scheduleFlush();
+}
+
+/**
+ * Helper : émet une `pageview` (visite). Le `path`/`referrer`/`sessionId` sont
+ * capturés par `track()` depuis `window` — inutile de les passer. No-op sans
+ * consentement / sous DNT / hors navigateur.
+ */
+export function trackPageView(title?: string): void {
+	track("pageview", title ? { title } : undefined);
 }
 
 /** Helper RSC-friendly : émet une `wiki_view` typée (sucre sur `track`). */

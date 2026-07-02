@@ -73,6 +73,29 @@ export default async function FilmsPage() {
 				imageAlt="Bannière films Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<Link
+					href="/wiki/chronologie"
+					className="group mb-12 flex items-center gap-4 rounded-xl border border-dbz-orange/30 bg-gradient-to-r from-dbz-orange/10 to-transparent px-5 py-4 hover:border-dbz-orange/60 transition-colors"
+				>
+					<span aria-hidden className="font-saiyan text-3xl text-dbz-orange leading-none">
+						≡
+					</span>
+					<span className="flex-1">
+						<span className="block font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
+							Chronologie universelle — films + épisodes
+						</span>
+						<span className="block text-[13px] text-white/50">
+							Tous les films ET tous les épisodes (DB, Z, GT, Super, Daima) sur une seule frise.
+							Filtre, trie et exporte ton propre ordre de visionnage.
+						</span>
+					</span>
+					<span
+						aria-hidden
+						className="text-dbz-orange text-lg group-hover:translate-x-1 transition-transform"
+					>
+						→
+					</span>
+				</Link>
 				{groups.map((g) => (
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">

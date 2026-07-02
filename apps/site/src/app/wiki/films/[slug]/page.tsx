@@ -1,5 +1,5 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Image from "next/image";
 import Link from "next/link";
@@ -69,6 +69,9 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 
 	// Synopsis nettoyé des balises de source du dataset (cf. stripSourceTags).
 	const synopsis = stripSourceTags(m.synopsis);
+
+	// Film précédent / suivant dans la même série (ordre = date de sortie).
+	const nav = await dbUniverse.movieNav(m.series, m.id);
 
 	const getYoutubeId = (url: string | null) => {
 		if (!url) return null;
@@ -289,6 +292,70 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 					)}
 				</div>
 			</div>
+
+			{nav && (nav.prev || nav.next) && (
+				<nav
+					aria-label="Navigation entre films"
+					className="mt-16 grid gap-4 sm:grid-cols-2"
+				>
+					{nav.prev ? (
+						<MovieNavCard dir="prev" m={nav.prev} />
+					) : (
+						<span className="hidden sm:block" />
+					)}
+					{nav.next ? (
+						<MovieNavCard dir="next" m={nav.next} />
+					) : (
+						<span className="hidden sm:block" />
+					)}
+				</nav>
+			)}
+
+			<div className="mt-8 text-center">
+				<Link
+					href="/wiki/chronologie"
+					className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.08em] uppercase text-white/60 hover:text-dbz-orange transition-colors"
+				>
+					⤳ Voir la chronologie universelle (épisodes + films)
+				</Link>
+			</div>
 		</div>
+	);
+}
+
+function MovieNavCard({ dir, m }: { dir: "prev" | "next"; m: MovieNavItem }) {
+	const isPrev = dir === "prev";
+	return (
+		<Link
+			href={`/wiki/films/${m.slug}`}
+			className={`group flex items-center gap-4 dbz-panel p-4 hover:border-dbz-orange/60 transition-colors ${
+				isPrev ? "" : "sm:flex-row-reverse sm:text-right"
+			}`}
+		>
+			{m.poster ? (
+				<Image
+					src={assetUrl(m.poster)}
+					alt=""
+					width={56}
+					height={84}
+					className="w-14 h-auto rounded shrink-0 object-cover"
+				/>
+			) : (
+				<div className="w-14 h-[84px] rounded bg-zinc-800 shrink-0" />
+			)}
+			<div className="min-w-0">
+				<span className="block text-[11px] font-display font-semibold uppercase tracking-[0.14em] text-dbz-orange">
+					{isPrev ? "← Film précédent" : "Film suivant →"}
+				</span>
+				<span className="block font-display font-bold text-white truncate group-hover:text-dbz-orange transition-colors">
+					{m.title}
+				</span>
+				{m.release_date && (
+					<span className="block text-[12px] text-white/45">
+						{new Date(m.release_date * 1000).getFullYear()}
+					</span>
+				)}
+			</div>
+		</Link>
 	);
 }
