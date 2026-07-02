@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DragonBall } from "@/components/DragonBall";
 import { DISCORD_INVITE } from "@/lib/config";
 
 const COLUMNS = [
@@ -41,6 +42,14 @@ export function SiteFooter() {
 						</span>
 						<span className="font-display font-bold text-[28px] tracking-[0.06em] text-dbz-orange leading-none">
 							FR
+						</span>
+						{/* Boule décorative centrée sur le wordmark (leading-none 28px) sans
+						    grandir la flex-line → items-baseline garde le texte à sa place. */}
+						<span
+							aria-hidden
+							className="ml-2 inline-flex h-[28px] w-[20px] shrink-0 items-center justify-center self-center"
+						>
+							<DragonBall stars={4} size={20} />
 						</span>
 					</Link>
 					<p className="text-[14px] text-white/60 leading-relaxed max-w-sm">

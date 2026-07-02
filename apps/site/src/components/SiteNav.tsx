@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DragonBall } from "@/components/DragonBall";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
@@ -37,6 +38,20 @@ export function SiteNav() {
 					</span>
 					<span className="font-display font-bold text-[19px] tracking-tight text-dbz-orange leading-none transition-colors group-hover:text-white">
 						France
+					</span>
+					{/* Boule décorative : span aria-hidden → le Link garde son nom unique.
+					    Wrapper self-center clampé à la hauteur du wordmark (leading-none 19px)
+					    → la boule (22px) déborde symétriquement sans grandir la flex-line,
+					    donc items-baseline conserve la position exacte du texte (zéro shift). */}
+					<span
+						aria-hidden
+						className="ml-2 inline-flex h-[19px] w-[22px] shrink-0 items-center justify-center self-center"
+					>
+						<DragonBall
+							stars={4}
+							size={22}
+							className="drop-shadow-[0_0_6px_rgba(245,191,65,0.35)] transition-transform duration-300 group-hover:rotate-12"
+						/>
 					</span>
 				</Link>
 

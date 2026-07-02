@@ -120,25 +120,33 @@ export function DragonBall({
 	);
 }
 
-/** Loader animé : une Dragon Ball qui tourne (état de chargement). */
+/**
+ * Loader animé : une Dragon Ball qui tourne (état de chargement).
+ *
+ * Par défaut c'est une région live (`role="status"` + `aria-label`) : à réserver
+ * aux chargements autonomes (page/section). Dans un contrôle déjà nommé (bouton
+ * « Chercher », champ de recherche), passer `decorative` → le loader devient
+ * `aria-hidden` et n'usurpe plus le nom accessible du contrôle.
+ */
 export function DragonBallLoader({
 	size = 40,
 	stars = 4,
 	className = "",
+	decorative = false,
 }: {
 	size?: number;
 	stars?: DragonBallStars;
 	className?: string;
+	decorative?: boolean;
 }) {
 	return (
 		<span
 			className={`inline-block ${className}`}
 			style={{ width: size, height: size, animation: "db-spin 1.1s linear infinite" }}
-			aria-label="Chargement"
-			role="status"
+			{...(decorative ? { "aria-hidden": true } : { "aria-label": "Chargement", role: "status" })}
 		>
 			<DragonBall stars={stars} size={size} />
-			<style>{`@keyframes db-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){[role=status]{animation:none!important}}`}</style>
+			<style>{`@keyframes db-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.inline-block[style*="db-spin"]{animation:none!important}}`}</style>
 		</span>
 	);
 }

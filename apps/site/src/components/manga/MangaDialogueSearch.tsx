@@ -1,7 +1,8 @@
 "use client";
 
 import { apiUrl } from "@/lib/config";
-import { Search, Loader2 } from "lucide-react";
+import { DragonBallLoader } from "@/components/DragonBall";
+import { Search } from "lucide-react";
 import { useCallback, useId, useState } from "react";
 
 /**
@@ -114,9 +115,11 @@ export function MangaDialogueSearch() {
 				<button
 					type="submit"
 					disabled={loading || q.trim().length < 2}
+					aria-label="Chercher"
+					aria-busy={loading}
 					className="rounded-lg bg-dbz-orange px-5 py-3 text-sm font-bold uppercase tracking-widest text-black transition-opacity hover:opacity-90 disabled:opacity-40"
 				>
-					{loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Chercher"}
+					{loading ? <DragonBallLoader size={18} stars={4} decorative /> : "Chercher"}
 				</button>
 			</form>
 

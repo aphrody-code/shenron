@@ -13,6 +13,7 @@
  * au build, donc n'embarque pas postgres dans le bundle).
  */
 import { assetUrl } from "@/lib/assets";
+import { DragonBallLoader } from "@/components/DragonBall";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -262,10 +263,9 @@ export function CommandMenu() {
 						className="h-14 w-full bg-transparent text-white placeholder:text-white/30 font-display text-base outline-none"
 					/>
 					{loading && (
-						<span
-							className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-dbz-orange/30 border-t-dbz-orange"
-							aria-hidden="true"
-						/>
+						<span className="shrink-0">
+							<DragonBallLoader size={18} stars={4} decorative />
+						</span>
 					)}
 				</div>
 

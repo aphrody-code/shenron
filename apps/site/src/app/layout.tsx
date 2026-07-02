@@ -7,6 +7,7 @@ import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { NavigationProgress } from "@/components/NavigationProgress";
 import { ConsentGate } from "@/components/ConsentGate";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { FirebaseInitializer } from "@/components/FirebaseInitializer";
@@ -178,6 +179,7 @@ export default async function RootLayout({
 					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-50"
 					aria-hidden
 				/>
+				<NavigationProgress />
 				<SiteNav />
 				<main className="relative z-10 flex-1 w-full flex flex-col">{children}</main>
 				<SiteFooter />
