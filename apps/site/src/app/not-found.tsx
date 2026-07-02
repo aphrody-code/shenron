@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DragonBall } from "@/components/DragonBall";
 
 export default function NotFound() {
 	return (
@@ -11,7 +12,20 @@ export default function NotFound() {
 					</p>
 					<h1 className="title-jagged text-7xl md:text-9xl leading-none mb-6">404</h1>
 					<p className="text-white/70 mb-2">Cette page s'est perdue dans le néant cosmique.</p>
-					<p className="text-white/40 text-sm mb-8">Le scouter ne capte aucun signal de vie ici.</p>
+					<p className="text-white/40 text-sm mb-8">
+						Même les sept boules de cristal sont dispersées ici.
+					</p>
+					{/* Les 7 Dragon Balls dispersées — décor thématique (cf. components/DragonBall). */}
+					<div className="mb-9 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+						{([1, 2, 3, 4, 5, 6, 7] as const).map((s) => (
+							<DragonBall
+								key={s}
+								stars={s}
+								size={34}
+								className="drop-shadow-[0_0_10px_rgba(245,191,65,0.55)] transition-transform hover:-translate-y-1"
+							/>
+						))}
+					</div>
 					<div className="flex flex-wrap items-center justify-center gap-3">
 						<Link href="/" className="dbz-button !text-xs">
 							Retour à la base

@@ -28,6 +28,7 @@ import {
 	Trash2,
 } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import { DragonBallLoader } from "@/components/DragonBall";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import {
 	DEFAULT_HOME_CONFIG,
@@ -447,7 +448,11 @@ export default function HomeEditor() {
 	});
 
 	if (query.isLoading || !config) {
-		return <div className="text-sm text-zinc-500">Chargement de la configuration…</div>;
+		return (
+			<div className="flex items-center gap-3 text-sm text-zinc-500">
+				<DragonBallLoader size={28} /> Chargement de la configuration…
+			</div>
+		);
 	}
 	if (query.isError) {
 		return <div className="text-sm text-red-400">Erreur de chargement : {String(query.error)}</div>;

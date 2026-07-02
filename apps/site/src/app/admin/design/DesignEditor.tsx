@@ -11,6 +11,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Palette, RotateCcw, Save } from "lucide-react";
+import { DragonBallLoader } from "@/components/DragonBall";
 import {
 	DEFAULT_SITE_THEME,
 	THEME_COLORS,
@@ -99,7 +100,11 @@ export default function DesignEditor() {
 	});
 
 	if (query.isLoading || !theme) {
-		return <div className="text-sm text-zinc-500">Chargement du thème…</div>;
+		return (
+			<div className="flex items-center gap-3 text-sm text-zinc-500">
+				<DragonBallLoader size={28} /> Chargement du thème…
+			</div>
+		);
 	}
 	if (query.isError) {
 		return <div className="text-sm text-red-400">Erreur : {String(query.error)}</div>;
