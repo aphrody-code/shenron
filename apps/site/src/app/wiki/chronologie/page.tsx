@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PageHero } from "@/components/PageHero";
 import { bannerForSeries } from "@/lib/db-banners";
 import { dbUniverse } from "@/lib/db-universe";
 import { getChronologyConfig } from "@/lib/chronology-config";
 import { applyChronology } from "@/lib/chronology";
+import { Billboard } from "@/components/stream/Billboard";
 import { ChronologyTimeline } from "@/components/wiki/ChronologyTimeline";
 import { ogMeta } from "@/lib/og";
 
@@ -41,18 +41,26 @@ export default async function ChronologiePage() {
 	const episodes = items.filter((i) => i.kind === "episode").length;
 	const movies = items.filter((i) => i.kind === "movie").length;
 	const manga = items.length - episodes - movies;
-	const mangaLead = manga > 0 ? ` et ${manga} tomes du manga` : "";
 
 	return (
 		<>
-			<PageHero
+			<Billboard
+				backdrop={bannerForSeries("DBZ")}
 				eyebrow="Frise universelle"
 				title="Chronologie complète"
-				lead={`${items.length} entrées — ${episodes} épisodes, ${movies} films${mangaLead}, de Dragon Ball à Daima, réunis sur une seule frise officielle. Filtre par ère, recherche et exporte.`}
-				image={bannerForSeries("DBZ")}
-				imageAlt="Chronologie Dragon Ball"
+				meta={[
+					`${items.length} entrées`,
+					`${episodes} épisodes`,
+					`${movies} films`,
+					manga > 0 ? `${manga} tomes` : null,
+				]}
+				synopsis="Tous les épisodes, tous les films et les tomes du manga — de Dragon Ball à Daima — réunis sur une seule frise officielle. Filtre par ère, recherche et exporte."
+				primaryHref={items[0]!.href}
+				primaryLabel="Commencer la frise"
+				secondaryHref="/wiki/episodes"
+				secondaryLabel="Les épisodes"
 			/>
-			<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-12 lg:py-16">
+			<div className="mx-auto max-w-[1200px] px-6 py-12 lg:px-10 lg:py-16">
 				<ChronologyTimeline items={items} />
 			</div>
 		</>

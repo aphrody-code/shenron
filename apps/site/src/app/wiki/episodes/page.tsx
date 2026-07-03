@@ -1,52 +1,79 @@
-import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { dbUniverse } from "@/lib/db-universe";
+import { assetUrl } from "@/lib/assets";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHero } from "@/components/PageHero";
 import { bannerForSeries } from "@/lib/db-banners";
-import { excerpt } from "./_text";
+import { eraOf, ERA_ACCENT } from "@/lib/chronology";
+import { Billboard } from "@/components/stream/Billboard";
+import { StreamRow } from "@/components/stream/StreamRow";
+import { EpisodeCard } from "@/components/stream/EpisodeCard";
 import { unstable_cache } from "next/cache";
 
 export const revalidate = 3600;
 
 const SERIES_LABELS: Record<string, string> = {
-	DB: "Dragon Ball (1986-1989)",
-	DBZ: "Dragon Ball Z (1989-1996)",
-	DBZ_KAI: "Dragon Ball Z Kai (2009-2011)",
-	DBZ_KAI_FINAL: "Dragon Ball Z Kai – Final Chapters (2014-2015)",
-	DBGT: "Dragon Ball GT (1996-1997)",
-	DBS: "Dragon Ball Super (2015-2018)",
-	DB_DAIMA: "Dragon Ball Daima (2024-2025)",
+	DB: "Dragon Ball",
+	DBZ: "Dragon Ball Z",
+	DBZ_KAI: "Dragon Ball Z Kai",
+	DBZ_KAI_FINAL: "Dragon Ball Z Kai – Final Chapters",
+	DBGT: "Dragon Ball GT",
+	DBS: "Dragon Ball Super",
+	DB_DAIMA: "Dragon Ball Daima",
 };
+const SERIES_YEARS: Record<string, string> = {
+	DB: "1986-1989",
+	DBZ: "1989-1996",
+	DBZ_KAI: "2009-2011",
+	DBZ_KAI_FINAL: "2014-2015",
+	DBGT: "1996-1997",
+	DBS: "2015-2018",
+	DB_DAIMA: "2024-2025",
+};
+const SERIES_ORDER = ["DB", "DBZ", "DBZ_KAI", "DBZ_KAI_FINAL", "DBGT", "DBS", "DB_DAIMA"];
 
-// Métadonnées par série : le <title> s'aligne sur le H1 (PageHero) et la
-// canonical pointe sur la série courante (?series=…) pour que chaque série
-// reste indexable distinctement — plutôt qu'une canonical unique /wiki/episodes
-// qui collapserait GT/DBS/… et les pages ≥2 en doublons. Lit SERIES_LABELS
-// (aucune requête DB) → n'ajoute pas de charge Postgres ; la page lit déjà
-// searchParams, donc pas de dynamisme supplémentaire.
+const orderSeries = (rows: { series: string }[] | null): string[] =>
+	(rows ?? [])
+		.map((r) => r.series)
+		.sort((a, b) => {
+			const ia = SERIES_ORDER.indexOf(a);
+			const ib = SERIES_ORDER.indexOf(b);
+			return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+		});
+
+const yearOf = (sec: number | null) => (sec ? new Date(sec * 1000).getFullYear() : null);
+const hasLang = (
+	players: { lang?: "vf" | "vostfr" }[] | null,
+	lang: "vf" | "vostfr"
+): boolean => (players ?? []).some((p) => p.lang === lang);
+
 export async function generateMetadata({
 	searchParams,
 }: {
-	searchParams: Promise<{ series?: string; page?: string; view?: string }>;
+	searchParams: Promise<{ series?: string; page?: string }>;
 }): Promise<Metadata> {
 	const sp = await searchParams;
-	const series = sp.series ?? "DBZ";
+	const series = sp.series;
+	if (!series) {
+		return {
+			title: "Épisodes Dragon Ball — l'intégrale de l'anime",
+			description:
+				"Tous les épisodes Dragon Ball, DBZ, DBZ Kai, GT, Super et Daima — en VF et VOSTFR, avec vignettes, titres FR/JP et synopsis.",
+			alternates: { canonical: "/wiki/episodes" },
+		};
+	}
 	const label = SERIES_LABELS[series] ?? series;
 	return {
 		title: `${label} — Épisodes`,
 		description:
-			"Tous les épisodes Dragon Ball / DBZ / DBZ Kai / GT / DB Super / Daima — index complet avec vignettes, titres FR/JP, date de diffusion et synopsis.",
+			"Index complet des épisodes avec vignettes, titres FR/JP, date de diffusion et synopsis. Regarde en VF et VOSTFR.",
 		alternates: { canonical: `/wiki/episodes?series=${series}` },
 	};
 }
 
-// Mémoïsation des lectures Postgres : la page reste rendue dynamiquement (elle
-// lit searchParams), mais les deux requêtes DB sont servies depuis le data cache
-// Next (revalidées 1 h), comme les pages Films/Manga → la charge Postgres est
-// découplée du volume de requêtes. On throw sur résultat vide pour NE PAS
-// mémoïser un échec transitoire (un hoquet PG figerait sinon un 404 pendant 1 h
-// sur la section phare) ; le .catch au point d'appel restaure le null d'origine.
+// Mémoïsation des lectures Postgres (cf. version d'origine) : la page reste
+// dynamique (searchParams) mais les requêtes DB sont servies depuis le data cache
+// Next (revalidées 1 h). On throw sur vide pour ne pas mémoïser un échec transitoire.
 const getEpisodesCached = unstable_cache(
 	async (series: string, limit: number, offset: number) => {
 		const data = await dbUniverse.episodes(series, limit, offset);
@@ -56,7 +83,6 @@ const getEpisodesCached = unstable_cache(
 	["episodes"],
 	{ revalidate: 3600 }
 );
-
 const getEpisodeSeriesCached = unstable_cache(
 	async () => {
 		const rows = await dbUniverse.episodeSeries();
@@ -67,225 +93,170 @@ const getEpisodeSeriesCached = unstable_cache(
 	{ revalidate: 3600 }
 );
 
+const RAIL_CAP = 24;
+
 export default async function EpisodesIndex({
 	searchParams,
 }: {
 	searchParams: Promise<{ series?: string; page?: string; view?: string }>;
 }) {
 	const sp = await searchParams;
-	const series = sp.series ?? "DBZ";
-	// Parsing défensif : ?page=abc → NaN. On retombe sur la page 1 au lieu de
-	// propager un offset NaN → erreur Postgres → 404 dur (crawlers/URL cassées).
+	const seriesRows = await getEpisodeSeriesCached().catch(() => null);
+	const availableSeries = orderSeries(seriesRows);
+
+	// ── Vue LANDING (aucune série) : billboard + un rail par série ──────────────
+	if (!sp.series) {
+		if (availableSeries.length === 0) notFound();
+		const groups = await Promise.all(
+			availableSeries.map(async (series) => {
+				const data = await getEpisodesCached(series, RAIL_CAP, 0).catch(() => null);
+				return data ? { series, episodes: data.episodes, total: data.total } : null;
+			})
+		);
+		const present = groups.filter((g): g is NonNullable<typeof g> => !!g && g.episodes.length > 0);
+		if (present.length === 0) notFound();
+
+		const grandTotal = present.reduce((n, g) => n + g.total, 0);
+		// Épisode d'ouverture (bouton « Commencer ») : 1er épisode de DB, sinon 1re série.
+		const opener = (present.find((g) => g.series === "DB") ?? present[0]!).episodes[0]!;
+
+		return (
+			<>
+				<Billboard
+					backdrop={bannerForSeries("DBZ")}
+					eyebrow="Série animée"
+					title="Les épisodes Dragon Ball"
+					meta={[`${grandTotal} épisodes`, `${present.length} séries`, "VF · VOSTFR"]}
+					synopsis="De Dragon Ball à Dragon Ball Daima — l'intégrale de l'anime, épisode par épisode, en VF et VOSTFR. Choisis ta série et lance la lecture."
+					primaryHref={`/wiki/episodes/${opener.id}`}
+					primaryLabel="Commencer l'aventure"
+					secondaryHref="/wiki/chronologie"
+					secondaryLabel="Chronologie"
+				/>
+				<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+					{present.map((g) => (
+						<StreamRow
+							key={g.series}
+							title={SERIES_LABELS[g.series] ?? g.series}
+							count={g.total}
+							accent={ERA_ACCENT[eraOf(g.series)]}
+							seeAllHref={`/wiki/episodes?series=${g.series}`}
+						>
+							{g.episodes.map((ep) => (
+								<EpisodeCard
+									key={ep.id}
+									href={`/wiki/episodes/${ep.id}`}
+									number={ep.number_in_series}
+									title={ep.title}
+									titleJa={ep.title_ja}
+									image={ep.image}
+									year={yearOf(ep.air_date)}
+									hasVf={hasLang(ep.players, "vf")}
+									hasVostfr={hasLang(ep.players, "vostfr")}
+								/>
+							))}
+							{g.total > g.episodes.length && (
+								<Link
+									href={`/wiki/episodes?series=${g.series}`}
+									className="flex w-[160px] shrink-0 snap-start items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/[0.02] text-center text-[13px] font-display font-semibold text-white/60 transition-colors hover:border-dbz-orange/50 hover:text-dbz-orange"
+								>
+									+ {g.total - g.episodes.length}
+									<br />
+									Tout voir
+								</Link>
+							)}
+						</StreamRow>
+					))}
+				</div>
+			</>
+		);
+	}
+
+	// ── Vue SÉRIE (grille paginée d'épisodes) ───────────────────────────────────
+	const series = sp.series;
 	const parsedPage = Number.parseInt(sp.page ?? "1", 10);
 	const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
-	const view = sp.view ?? "grid";
-	const limit = view === "grid" ? 48 : 100;
+	const limit = 48;
 	const offset = (page - 1) * limit;
 
-	const [data, seriesRows] = await Promise.all([
-		getEpisodesCached(series, limit, offset).catch(() => null),
-		getEpisodeSeriesCached().catch(() => null),
-	]);
+	const data = await getEpisodesCached(series, limit, offset).catch(() => null);
 	if (!data || data.episodes.length === 0) notFound();
 	const { episodes, total } = data;
 	const pages = Math.ceil(total / limit);
-
-	// Onglets : uniquement les séries qui ONT des épisodes (sinon clic → 404).
-	// Ordre éditorial stable ; on retombe sur la série courante si la requête échoue.
-	const SERIES_ORDER = ["DB", "DBZ", "DBZ_KAI", "DBZ_KAI_FINAL", "DBGT", "DBS", "DB_DAIMA"];
-	const availableSeries = (seriesRows ?? [])
-		.map((r) => r.series)
-		.sort((a, b) => {
-			const ia = SERIES_ORDER.indexOf(a);
-			const ib = SERIES_ORDER.indexOf(b);
-			return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-		});
 	const navSeries = availableSeries.length > 0 ? availableSeries : [series];
+	const opener = episodes[0]!;
 
 	return (
 		<>
-			<PageHero
-				eyebrow="Anime"
+			<Billboard
+				backdrop={opener.image ? assetUrl(opener.image) : bannerForSeries(series)}
+				eyebrow={SERIES_YEARS[series] ? `Anime · ${SERIES_YEARS[series]}` : "Anime"}
 				title={SERIES_LABELS[series] ?? series}
-				lead="Index complet des épisodes — vignettes, titres japonais, dates de diffusion, synopsis."
-				image={bannerForSeries(series)}
-				imageAlt={`Bannière ${SERIES_LABELS[series] ?? series}`}
+				meta={[`${total} épisodes`, "VF · VOSTFR"]}
+				synopsis={opener.synopsis}
+				primaryHref={`/wiki/episodes/${opener.id}`}
+				primaryLabel="Reprendre la lecture"
+				secondaryHref="/wiki/chronologie"
+				secondaryLabel="Chronologie"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
-				<Link
-					href="/wiki/chronologie"
-					className="group mb-8 flex items-center gap-4 rounded-xl border border-dbz-orange/30 bg-gradient-to-r from-dbz-orange/10 to-transparent px-5 py-4 hover:border-dbz-orange/60 transition-colors"
-				>
-					<span aria-hidden className="font-saiyan text-3xl text-dbz-orange leading-none">
-						≡
-					</span>
-					<span className="flex-1">
-						<span className="block font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
-							Chronologie universelle — épisodes, films & manga
-						</span>
-						<span className="block text-[13px] text-white/50">
-							Toutes les séries (DB, Z, GT, Super, Daima), tous les films et les tomes du manga sur
-							une seule frise officielle. Filtre, recherche et exporte.
-						</span>
-					</span>
-					<span
-						aria-hidden
-						className="text-dbz-orange text-lg group-hover:translate-x-1 transition-transform"
+			<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+				{/* Onglets séries */}
+				<nav className="mb-8 flex flex-wrap gap-2">
+					<Link
+						href="/wiki/episodes"
+						className="rounded-full bg-white/[0.06] px-3 py-1.5 font-display text-[12px] font-semibold uppercase tracking-[0.08em] text-white/72 transition-colors hover:bg-white/[0.12]"
 					>
-						→
-					</span>
-				</Link>
-				<div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-					<nav className="flex flex-wrap gap-2">
-						{navSeries.map((key) => (
-							<Link
-								key={key}
-								href={`/wiki/episodes?series=${key}&view=${view}`}
-								className={`px-3 py-1.5 rounded-full font-display font-semibold text-[12px] tracking-[0.08em] uppercase transition-colors ${
-									series === key
-										? "bg-dbz-orange text-black"
-										: "bg-white/[0.06] text-white/72 hover:bg-white/[0.12]"
-								}`}
-							>
-								{(SERIES_LABELS[key] ?? key).split(" (")[0]}
-							</Link>
-						))}
-					</nav>
-					<div className="flex gap-2 shrink-0">
+						← Tout
+					</Link>
+					{navSeries.map((key) => (
 						<Link
-							href={`/wiki/episodes?series=${series}&view=grid`}
-							className={`px-3 py-1.5 rounded-lg font-display font-semibold text-[11px] uppercase tracking-wider transition-colors ${
-								view === "grid"
+							key={key}
+							href={`/wiki/episodes?series=${key}`}
+							className={`rounded-full px-3 py-1.5 font-display text-[12px] font-semibold uppercase tracking-[0.08em] transition-colors ${
+								series === key
 									? "bg-dbz-orange text-black"
-									: "bg-white/[0.06] text-white/60 hover:bg-white/[0.12]"
+									: "bg-white/[0.06] text-white/72 hover:bg-white/[0.12]"
 							}`}
 						>
-							Grille
+							{SERIES_LABELS[key] ?? key}
 						</Link>
-						<Link
-							href={`/wiki/episodes?series=${series}&view=list`}
-							className={`px-3 py-1.5 rounded-lg font-display font-semibold text-[11px] uppercase tracking-wider transition-colors ${
-								view === "list"
-									? "bg-dbz-orange text-black"
-									: "bg-white/[0.06] text-white/60 hover:bg-white/[0.12]"
-							}`}
-						>
-							Liste
-						</Link>
-					</div>
-				</div>
+					))}
+				</nav>
 
-				<h2 className="font-display font-bold text-[20px] text-white border-b border-white/10 pb-3 mb-6">
-					{SERIES_LABELS[series] ?? series}{" "}
-					<span className="text-white/40">— {total} épisodes</span>
+				<h2 className="mb-6 flex items-center gap-2.5 border-b border-white/10 pb-3 font-display text-[20px] font-bold text-white">
+					<span
+						className="h-5 w-1.5 rounded-full"
+						style={{ backgroundColor: ERA_ACCENT[eraOf(series)] }}
+					/>
+					{SERIES_LABELS[series] ?? series}
+					<span className="font-mono text-[14px] font-normal text-white/40">{total} épisodes</span>
 				</h2>
 
-				{view === "grid" ? (
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-						{episodes.map((ep, idx) => (
-							<Link
-								key={ep.id}
-								href={`/wiki/episodes/${ep.id}`}
-								className="group dbz-panel overflow-hidden hover:scale-[1.03] transition-all duration-300"
-								style={{ animationDelay: `${0.01 * (idx % 12)}s` }}
-							>
-								<div className="relative aspect-video bg-dbz-bg overflow-hidden">
-									{ep.image ? (
-										<img
-											src={assetUrl(ep.image)}
-											alt={ep.title}
-											className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
-											loading="lazy"
-										/>
-									) : (
-										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-lg">
-												{String(ep.number_in_series).padStart(3, "0")}
-											</span>
-										</div>
-									)}
-									<div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-									<div className="absolute top-1.5 left-1.5">
-										<span className="scouter-text text-[9px] text-dbz-orange bg-black/60 px-1.5 py-0.5">
-											#{String(ep.number_in_series).padStart(3, "0")}
-										</span>
-									</div>
-									<div className="absolute inset-x-0 bottom-0 p-2">
-										<p className="font-display font-bold text-[10px] text-white leading-tight group-hover:text-dbz-orange transition-colors line-clamp-2">
-											{ep.title}
-										</p>
-										{ep.title_ja && (
-											<p className="font-jp text-[9px] text-white/30 mt-0.5 truncate">
-												{ep.title_ja}
-											</p>
-										)}
-									</div>
-								</div>
-							</Link>
-						))}
-					</div>
-				) : (
-					<ol className="divide-y divide-white/[0.06]">
-						{episodes.map((ep) => (
-							<li key={ep.id}>
-								<Link
-									href={`/wiki/episodes/${ep.id}`}
-									className="grid grid-cols-[60px_auto_1fr_auto] gap-5 py-4 items-center group hover:bg-white/[0.02] px-4 -mx-4 rounded-lg transition-colors"
-								>
-									<span className="scouter-text text-lg text-dbz-orange">
-										{String(ep.number_in_series).padStart(3, "0")}
-									</span>
-									{ep.image ? (
-										<div className="w-20 aspect-video overflow-hidden rounded bg-dbz-bg shrink-0">
-											<img
-												src={assetUrl(ep.image)}
-												alt=""
-												className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity"
-												loading="lazy"
-											/>
-										</div>
-									) : (
-										<div className="w-20 aspect-video rounded bg-zinc-900 shrink-0" />
-									)}
-									<div>
-										<p className="font-display font-bold text-[15px] text-white group-hover:text-dbz-orange transition-colors leading-snug">
-											{ep.title}
-										</p>
-										{ep.title_ja && (
-											<p className="font-jp text-[12px] text-white/30 mt-1">{ep.title_ja}</p>
-										)}
-										{ep.synopsis && (
-											<p className="text-[12px] text-white/45 mt-1.5 line-clamp-2 hidden md:block">
-												{excerpt(ep.synopsis)}
-											</p>
-										)}
-									</div>
-									<div className="flex items-center gap-4">
-										<span className="text-[11px] text-white/40 whitespace-nowrap font-display tracking-widest uppercase hidden sm:block">
-											{ep.air_date
-												? new Date(ep.air_date * 1000).toLocaleDateString("fr-FR", {
-														month: "short",
-														year: "numeric",
-													})
-												: ""}
-										</span>
-										<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-xl">
-											→
-										</span>
-									</div>
-								</Link>
-							</li>
-						))}
-					</ol>
-				)}
+				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+					{episodes.map((ep) => (
+						<EpisodeCard
+							key={ep.id}
+							href={`/wiki/episodes/${ep.id}`}
+							number={ep.number_in_series}
+							title={ep.title}
+							titleJa={ep.title_ja}
+							image={ep.image}
+							synopsis={ep.synopsis}
+							year={yearOf(ep.air_date)}
+							hasVf={hasLang(ep.players, "vf")}
+							hasVostfr={hasLang(ep.players, "vostfr")}
+							width="full"
+						/>
+					))}
+				</div>
 
 				{pages > 1 && (
-					<nav className="mt-10 flex items-center justify-center gap-2 flex-wrap">
+					<nav className="mt-12 flex flex-wrap items-center justify-center gap-2">
 						{Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
 							<Link
 								key={p}
-								href={`/wiki/episodes?series=${series}&page=${p}&view=${view}`}
-								className={`min-w-[36px] h-9 px-3 rounded-md grid place-items-center font-display font-semibold text-[13px] transition-colors ${
+								href={`/wiki/episodes?series=${series}&page=${p}`}
+								className={`grid h-9 min-w-[36px] place-items-center rounded-md px-3 font-display text-[13px] font-semibold transition-colors ${
 									p === page
 										? "bg-dbz-orange text-black"
 										: "bg-white/[0.06] text-white/72 hover:bg-white/[0.12]"

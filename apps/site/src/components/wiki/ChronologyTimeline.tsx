@@ -11,7 +11,7 @@
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Film, Tv, BookOpen, Search, Copy, Check, Download } from "lucide-react";
+import { Film, Tv, BookOpen, Play, Search, Copy, Check, Download } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
 import {
 	ERA_ORDER,
@@ -353,12 +353,17 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 			{/* Marqueur type : poster (film), couverture (tome), ou pastille numéro (épisode) */}
 			{isMovie || isManga ? (
 				it.image ? (
-					<img
-						src={assetUrl(it.image)}
-						alt=""
-						loading="lazy"
-						className="h-14 w-10 shrink-0 rounded object-cover"
-					/>
+					<div className="relative h-14 w-10 shrink-0 overflow-hidden rounded">
+						<img
+							src={assetUrl(it.image)}
+							alt=""
+							loading="lazy"
+							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+						/>
+						<span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+							<Play className="h-4 w-4 fill-current text-dbz-orange" />
+						</span>
+					</div>
 				) : (
 					<span
 						className={`flex h-14 w-10 shrink-0 items-center justify-center rounded ${

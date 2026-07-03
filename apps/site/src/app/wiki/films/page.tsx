@@ -1,21 +1,23 @@
-import { dbUniverse, assetUrl } from "@/lib/db-universe";
-import Image from "next/image";
-import { notFound } from "next/navigation";
+import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHero } from "@/components/PageHero";
-import { FILMS_HERO } from "@/lib/db-banners";
+import { bannerForSeries, FILMS_HERO } from "@/lib/db-banners";
+import { eraOf, ERA_ACCENT } from "@/lib/chronology";
+import { Billboard } from "@/components/stream/Billboard";
+import { StreamRow } from "@/components/stream/StreamRow";
+import { PosterCard } from "@/components/stream/PosterCard";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
 	title: "Films Dragon Ball",
 	description:
-		"Tous les films Dragon Ball, Dragon Ball Z et Dragon Ball Super — fiches complètes avec date de sortie, durée, synopsis.",
+		"Tous les films Dragon Ball, Dragon Ball Z et Dragon Ball Super — fiches complètes avec date de sortie, durée, synopsis. Regarde en VF et VOSTFR.",
 	alternates: { canonical: "/wiki/films" },
 };
 
-const SERIES_ORDER = ["DB_MOVIE", "DBZ_MOVIE", "DBS_MOVIE", "DB_DAIMA_MOVIE"];
+const SERIES_ORDER = ["DBS_MOVIE", "DBZ_MOVIE", "DB_MOVIE", "DBZ_OVA", "DBZ_SPECIAL", "DB_DAIMA_MOVIE"];
 const SERIES_LABELS: Record<string, string> = {
 	DB_MOVIE: "Films Dragon Ball",
 	DBZ_MOVIE: "Films Dragon Ball Z",
@@ -38,14 +40,26 @@ function stripSourceTags(s: string | null): string | null {
 	return out.trimEnd();
 }
 
+const hasLang = (
+	players: { lang?: "vf" | "vostfr" }[] | null,
+	lang: "vf" | "vostfr"
+): boolean => (players ?? []).some((p) => p.lang === lang);
+
+const yearOf = (sec: number | null) => (sec ? new Date(sec * 1000).getFullYear() : null);
+
 export default async function FilmsPage() {
 	const data = await dbUniverse.movies();
 	if (!data || data.movies.length === 0) notFound();
-	const movies = data.movies;
+	const movies = data.movies.map((m) => ({ ...m, synopsis: stripSourceTags(m.synopsis) }));
 
-	// Ordonne d'abord les séries connues (SERIES_ORDER), puis ajoute toute série
-	// présente en base mais non listée (ex. DBZ_OVA, DBZ_SPECIAL) — sinon leurs
-	// films seraient orphelins (rendus nulle part) et le compteur du hero faux.
+	// Film mis en avant = le plus récent daté (effet « nouveauté » en billboard).
+	const featured =
+		[...movies]
+			.filter((m) => m.release_date != null)
+			.sort((a, b) => (b.release_date ?? 0) - (a.release_date ?? 0))[0] ?? movies[0]!;
+	const fYear = yearOf(featured.release_date);
+
+	// Ordonne les séries connues puis toute série présente non listée.
 	const presentSeries = [...new Set(movies.map((m) => m.series))];
 	const orderedSeries = [
 		...SERIES_ORDER.filter((s) => presentSeries.includes(s)),
@@ -57,92 +71,79 @@ export default async function FilmsPage() {
 			label: SERIES_LABELS[s] ?? s.replace(/_/g, " "),
 			movies: movies
 				.filter((m) => m.series === s)
-				.sort((a, b) => (a.release_date ?? 0) - (b.release_date ?? 0))
-				// Nettoie les balises de source du dataset avant affichage des cartes.
-				.map((m) => ({ ...m, synopsis: stripSourceTags(m.synopsis) })),
+				.sort((a, b) => (a.release_date ?? 0) - (b.release_date ?? 0)),
 		}))
 		.filter((g) => g.movies.length > 0);
 
 	return (
 		<>
-			<PageHero
-				eyebrow="Cinéma"
-				title="Films Dragon Ball"
-				lead={`${movies.length} long-métrages catalogués — des classiques DBZ aux succès récents comme Super Hero.`}
-				image={FILMS_HERO}
-				imageAlt="Bannière films Dragon Ball"
+			<Billboard
+				backdrop={bannerForSeries(featured.series) || FILMS_HERO}
+				poster={featured.poster}
+				eyebrow="Cinéma Dragon Ball"
+				title={featured.title}
+				titleJa={featured.title_ja}
+				meta={[
+					fYear ? String(fYear) : null,
+					featured.duration_min ? `${featured.duration_min} min` : null,
+					`${movies.length} films au catalogue`,
+				]}
+				synopsis={featured.synopsis}
+				hasVf={hasLang(featured.players, "vf")}
+				hasVostfr={hasLang(featured.players, "vostfr")}
+				primaryHref={`/wiki/films/${featured.slug}`}
+				primaryLabel="Regarder le film"
+				secondaryHref="/wiki/chronologie"
+				secondaryLabel="Chronologie"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+
+			<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+				{groups.map((g) => (
+					<StreamRow
+						key={g.key}
+						title={g.label}
+						count={g.movies.length}
+						accent={ERA_ACCENT[eraOf(g.key)]}
+					>
+						{g.movies.map((m) => (
+							<PosterCard
+								key={m.id}
+								href={`/wiki/films/${m.slug}`}
+								title={m.title}
+								titleJa={m.title_ja}
+								poster={m.poster}
+								year={yearOf(m.release_date)}
+								meta={m.duration_min ? `${m.duration_min} min` : null}
+								hasVf={hasLang(m.players, "vf")}
+								hasVostfr={hasLang(m.players, "vostfr")}
+								badge="Film"
+							/>
+						))}
+					</StreamRow>
+				))}
+
 				<Link
 					href="/wiki/chronologie"
-					className="group mb-12 flex items-center gap-4 rounded-xl border border-dbz-orange/30 bg-gradient-to-r from-dbz-orange/10 to-transparent px-5 py-4 hover:border-dbz-orange/60 transition-colors"
+					className="group mt-4 flex items-center gap-4 rounded-xl border border-dbz-orange/25 bg-gradient-to-r from-dbz-orange/[0.08] to-transparent px-5 py-4 transition-colors hover:border-dbz-orange/60"
 				>
-					<span aria-hidden className="font-saiyan text-3xl text-dbz-orange leading-none">
+					<span aria-hidden className="font-saiyan text-3xl leading-none text-dbz-orange">
 						≡
 					</span>
 					<span className="flex-1">
-						<span className="block font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
-							Chronologie universelle — films + épisodes
+						<span className="block font-display font-bold text-white transition-colors group-hover:text-dbz-orange">
+							Chronologie universelle — films, épisodes &amp; manga
 						</span>
 						<span className="block text-[13px] text-white/50">
-							Tous les films ET tous les épisodes (DB, Z, GT, Super, Daima) sur une seule frise.
-							Filtre, trie et exporte ton propre ordre de visionnage.
+							Tout Dragon Ball (DB, Z, GT, Super, Daima) sur une seule frise officielle.
 						</span>
 					</span>
 					<span
 						aria-hidden
-						className="text-dbz-orange text-lg group-hover:translate-x-1 transition-transform"
+						className="text-lg text-dbz-orange transition-transform group-hover:translate-x-1"
 					>
 						→
 					</span>
 				</Link>
-				{groups.map((g) => (
-					<section key={g.key} className="mb-16">
-						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
-							{g.label} <span className="text-white/40">— {g.movies.length}</span>
-						</h2>
-						<div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-							{g.movies.map((m) => (
-								<Link
-									key={m.id}
-									href={`/wiki/films/${m.slug}`}
-									className="bg-white/[0.04] border border-white/[0.06] rounded-xl overflow-hidden hover:border-dbz-orange/60 transition-colors flex flex-col"
-								>
-									{m.poster && (
-										<div className="relative aspect-[2/3] bg-black">
-											<Image
-												src={assetUrl(m.poster)}
-												alt=""
-												fill
-												sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-												className="object-cover"
-											/>
-										</div>
-									)}
-									<div className="p-4 flex-1 flex flex-col">
-										<h3 className="font-display font-bold text-[15px] text-white leading-tight mb-1">
-											{m.title}
-										</h3>
-										{m.title_ja && (
-											<p className="font-jp text-[11px] text-dbz-orange/80 mb-2">{m.title_ja}</p>
-										)}
-										<div className="text-[11px] font-display tracking-[0.12em] uppercase text-white/55 mb-3 flex gap-3 flex-wrap">
-											{m.release_date && (
-												<span>{new Date(m.release_date * 1000).getFullYear()}</span>
-											)}
-											{m.duration_min && <span>{m.duration_min} min</span>}
-										</div>
-										{m.synopsis && (
-											<p className="text-[12px] text-white/65 leading-relaxed line-clamp-4">
-												{m.synopsis}
-											</p>
-										)}
-									</div>
-								</Link>
-							))}
-						</div>
-					</section>
-				))}
 			</div>
 		</>
 	);
