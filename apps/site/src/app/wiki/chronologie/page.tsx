@@ -19,11 +19,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
 	title: "Chronologie universelle",
 	description:
-		"La chronologie complète de Dragon Ball : TOUS les épisodes et TOUS les films — Dragon Ball, Z, GT, Super, Daima — réunis sur une seule frise. Filtre par ère, trie par diffusion, et compose ton propre ordre de visionnage exportable.",
+		"La chronologie officielle de Dragon Ball : TOUS les épisodes et TOUS les films — Dragon Ball, Z, GT, Super, Daima — réunis sur une seule frise, dans l'ordre validé par l'équipe. Filtre par ère, recherche et exporte.",
 	...ogMeta({
 		title: "Chronologie universelle Dragon Ball — épisodes + films",
 		description:
-			"Tous les épisodes et films (DB, DBZ, GT, Super, Daima) sur une frise unique. Trie, filtre et exporte ton ordre de visionnage.",
+			"Tous les épisodes et films (DB, DBZ, GT, Super, Daima) sur une frise unique et officielle. Filtre par ère, recherche et exporte.",
 		type: "website",
 		canonical: "/wiki/chronologie",
 	}),
