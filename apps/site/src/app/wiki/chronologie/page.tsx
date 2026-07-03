@@ -19,11 +19,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
 	title: "Chronologie universelle",
 	description:
-		"La chronologie officielle de Dragon Ball : TOUS les épisodes et TOUS les films — Dragon Ball, Z, GT, Super, Daima — réunis sur une seule frise, dans l'ordre validé par l'équipe. Filtre par ère, recherche et exporte.",
+		"La chronologie officielle de Dragon Ball : TOUS les épisodes, TOUS les films et les tomes du manga — Dragon Ball, Z, GT, Super, Daima — réunis sur une seule frise, dans l'ordre validé par l'équipe. Filtre par ère, recherche et exporte.",
 	...ogMeta({
-		title: "Chronologie universelle Dragon Ball — épisodes + films",
+		title: "Chronologie universelle Dragon Ball — épisodes, films & manga",
 		description:
-			"Tous les épisodes et films (DB, DBZ, GT, Super, Daima) sur une frise unique et officielle. Filtre par ère, recherche et exporte.",
+			"Tous les épisodes, films et tomes du manga (DB, DBZ, GT, Super, Daima) sur une frise unique et officielle. Filtre par ère, recherche et exporte.",
 		type: "website",
 		canonical: "/wiki/chronologie",
 	}),
@@ -39,14 +39,16 @@ export default async function ChronologiePage() {
 	if (items.length === 0) notFound();
 
 	const episodes = items.filter((i) => i.kind === "episode").length;
-	const movies = items.length - episodes;
+	const movies = items.filter((i) => i.kind === "movie").length;
+	const manga = items.length - episodes - movies;
+	const mangaLead = manga > 0 ? ` et ${manga} tomes du manga` : "";
 
 	return (
 		<>
 			<PageHero
 				eyebrow="Frise universelle"
 				title="Chronologie complète"
-				lead={`${items.length} entrées — ${episodes} épisodes et ${movies} films, de Dragon Ball à Daima, réunis sur une seule frise officielle. Filtre par ère, recherche et exporte.`}
+				lead={`${items.length} entrées — ${episodes} épisodes, ${movies} films${mangaLead}, de Dragon Ball à Daima, réunis sur une seule frise officielle. Filtre par ère, recherche et exporte.`}
 				image={bannerForSeries("DBZ")}
 				imageAlt="Chronologie Dragon Ball"
 			/>

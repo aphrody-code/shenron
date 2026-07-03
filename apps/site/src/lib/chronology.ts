@@ -4,16 +4,17 @@
  * Aucun import server (pas de `postgres`/drizzle) : utilisable à la fois par le
  * helper server-only `dbUniverse.timeline()` (qui construit le dataset), par le
  * composant public `ChronologyTimeline` (frise FIXE) ET par l'éditeur admin
- * (`/admin/chronologie`, curation). C'est le seul point qui unifie les DEUX
- * espaces de séries disjoints (épisodes `DB/DBZ/DBGT/DBS/DB_DAIMA` vs films
- * `DB_MOVIE/DBZ_MOVIE/DBZ_OVA/DBZ_SPECIAL/DBS_MOVIE`) sous des « ères » communes.
+ * (`/admin/chronologie`, curation). C'est le seul point qui unifie les TROIS
+ * espaces de séries disjoints (épisodes `DB/DBZ/DBGT/DBS/DB_DAIMA`, films
+ * `DB_MOVIE/DBZ_MOVIE/DBZ_OVA/DBZ_SPECIAL/DBS_MOVIE`, et tomes de manga `DB/DBS`
+ * rangés dans l'ère `Manga`) sous des « ères » communes.
  *
  * La chronologie publique est **fixe** : l'ordre officiel est décidé par l'admin
  * (curation `ChronologyConfig` stockée en DB) et appliqué par `applyChronology`.
  * Sans aucune curation, l'ordre est IDENTIQUE à l'ancien tri « ère » auto.
  */
 
-export const ERA_ORDER = ["DB", "DBZ", "GT", "Super", "Daima", "Autre"] as const;
+export const ERA_ORDER = ["DB", "DBZ", "GT", "Super", "Daima", "Manga", "Autre"] as const;
 export type Era = (typeof ERA_ORDER)[number];
 
 export const ERA_LABELS: Record<Era, string> = {
@@ -22,6 +23,7 @@ export const ERA_LABELS: Record<Era, string> = {
 	GT: "Dragon Ball GT",
 	Super: "Dragon Ball Super",
 	Daima: "Dragon Ball Daima",
+	Manga: "Manga",
 	Autre: "Autres",
 };
 
@@ -32,6 +34,7 @@ export const ERA_ACCENT: Record<Era, string> = {
 	GT: "#38b000",
 	Super: "#3aa0ff",
 	Daima: "#b47cff",
+	Manga: "#ec4899",
 	Autre: "#9ca3af",
 };
 
@@ -55,23 +58,39 @@ export function eraRank(era: Era): number {
 	return i === -1 ? ERA_ORDER.length : i;
 }
 
-/** Un élément (épisode ou film) de la chronologie universelle. */
+/** Nature d'une entrée : épisode d'anime, film/OVA, ou tome de manga. */
+export type TimelineKind = "episode" | "movie" | "manga";
+
+/** Un élément (épisode, film ou tome de manga) de la chronologie universelle. */
 export type TimelineItem = {
-	kind: "episode" | "movie";
+	kind: TimelineKind;
 	id: number;
 	href: string;
 	title: string;
 	titleJa: string | null;
 	series: string;
 	era: Era;
-	/** Numéro dans la série (épisodes) ; null pour les films. */
+	/** Numéro dans la série (épisode) ou numéro de tome (manga) ; null pour les films. */
 	number: number | null;
-	/** Date de diffusion/sortie, epoch SECONDES ; null si inconnue. */
+	/** Date de diffusion/sortie, epoch SECONDES ; null si inconnue (ex. tomes manga). */
 	date: number | null;
 	image: string | null;
 	hasVf: boolean;
 	hasVostfr: boolean;
 };
+
+/** Ordre déterministe des natures pour les départages (épisode → film → tome). */
+const KIND_RANK: Record<TimelineKind, number> = { episode: 0, movie: 1, manga: 2 };
+
+/** Libellé FR d'une nature (exports). */
+const KIND_LABEL: Record<TimelineKind, string> = {
+	episode: "épisode",
+	movie: "film",
+	manga: "tome",
+};
+
+/** Pictogramme d'une nature (export markdown). */
+const KIND_EMOJI: Record<TimelineKind, string> = { episode: "📺", movie: "🎬", manga: "📖" };
 
 export type SortMode = "era" | "date" | "title";
 
@@ -82,7 +101,7 @@ export const SORT_LABELS: Record<SortMode, string> = {
 };
 
 /** Clé stable d'une entrée (identique côté public, admin et config). */
-export const timelineKey = (it: { kind: "episode" | "movie"; id: number }): string =>
+export const timelineKey = (it: { kind: TimelineKind; id: number }): string =>
 	`${it.kind}:${it.id}`;
 
 const INF = Number.POSITIVE_INFINITY;
@@ -98,19 +117,26 @@ export function compareTimeline(mode: SortMode): (a: TimelineItem, b: TimelineIt
 			if (d) return d;
 			const e = eraRank(a.era) - eraRank(b.era);
 			if (e) return e;
+			// Les entrées sans date (tomes manga) restent groupées par série puis numéro
+			// (DB 1→42 puis DBS 1→23), pas entrelacées par numéro croisé.
+			const s = a.series.localeCompare(b.series);
+			if (s) return s;
 			return (a.number ?? INF) - (b.number ?? INF) || a.id - b.id;
 		};
 	}
-	// "era" : ère éditoriale → date (les dates manquantes retombent sur le numéro)
-	// → épisode avant film → id. Interleave les films par date parmi les épisodes.
+	// "era" : ère éditoriale → date (les dates manquantes retombent sur série+numéro)
+	// → épisode avant film avant tome → id. Interleave les films par date parmi les
+	// épisodes ; garde les tomes d'une même série contigus (ils n'ont pas de date).
 	return (a, b) => {
 		const e = eraRank(a.era) - eraRank(b.era);
 		if (e) return e;
 		const d = (a.date ?? INF) - (b.date ?? INF);
 		if (d) return d;
+		const s = a.series.localeCompare(b.series);
+		if (s) return s;
 		const n = (a.number ?? INF) - (b.number ?? INF);
 		if (n) return n;
-		if (a.kind !== b.kind) return a.kind === "episode" ? -1 : 1;
+		if (a.kind !== b.kind) return KIND_RANK[a.kind] - KIND_RANK[b.kind];
 		return a.id - b.id;
 	};
 }
@@ -247,9 +273,11 @@ export function applyChronology(
 		}
 		const d = (a.date ?? INF) - (b.date ?? INF);
 		if (d) return d;
+		const s = a.series.localeCompare(b.series);
+		if (s) return s;
 		const n = (a.number ?? INF) - (b.number ?? INF);
 		if (n) return n;
-		if (a.kind !== b.kind) return a.kind === "episode" ? -1 : 1;
+		if (a.kind !== b.kind) return KIND_RANK[a.kind] - KIND_RANK[b.kind];
 		return a.id - b.id;
 	});
 
@@ -267,7 +295,7 @@ export function toJSONExport(items: TimelineItem[]): string {
 	return JSON.stringify(
 		items.map((it, i) => ({
 			ordre: i + 1,
-			type: it.kind === "episode" ? "épisode" : "film",
+			type: KIND_LABEL[it.kind],
 			ere: ERA_LABELS[it.era],
 			serie: it.series,
 			numero: it.number,
@@ -291,7 +319,7 @@ export function toCSVExport(items: TimelineItem[]): string {
 	const rows = items.map((it, i) =>
 		[
 			i + 1,
-			it.kind === "episode" ? "épisode" : "film",
+			KIND_LABEL[it.kind],
 			ERA_LABELS[it.era],
 			it.series,
 			it.number ?? "",
@@ -308,8 +336,8 @@ export function toCSVExport(items: TimelineItem[]): string {
 
 export function toMarkdownExport(items: TimelineItem[]): string {
 	const lines = items.map((it, i) => {
-		const tag = it.kind === "movie" ? "🎬" : "📺";
-		const num = it.number != null ? `#${it.number} ` : "";
+		const tag = KIND_EMOJI[it.kind];
+		const num = it.number != null ? `${it.kind === "manga" ? "Tome " : "#"}${it.number} ` : "";
 		const date = it.date ? ` (${isoDate(it.date)})` : "";
 		return `${i + 1}. ${tag} **[${ERA_LABELS[it.era]}]** ${num}${it.title}${date}`;
 	});

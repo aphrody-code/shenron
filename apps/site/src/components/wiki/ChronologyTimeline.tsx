@@ -11,7 +11,7 @@
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Film, Tv, Search, Copy, Check, Download } from "lucide-react";
+import { Film, Tv, BookOpen, Search, Copy, Check, Download } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
 import {
 	ERA_ORDER,
@@ -36,6 +36,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 	const [eras, setEras] = useState<Set<Era>>(() => new Set(ERA_ORDER));
 	const [showEpisodes, setShowEpisodes] = useState(true);
 	const [showMovies, setShowMovies] = useState(true);
+	const [showManga, setShowManga] = useState(true);
 	const [q, setQ] = useState("");
 	const [sort, setSort] = useState<SortMode>("era");
 	const [copied, setCopied] = useState(false);
@@ -53,6 +54,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 			if (!eras.has(it.era)) return false;
 			if (it.kind === "episode" && !showEpisodes) return false;
 			if (it.kind === "movie" && !showMovies) return false;
+			if (it.kind === "manga" && !showManga) return false;
 			if (needle) {
 				const hay = `${it.title} ${it.titleJa ?? ""} ${it.series}`.toLowerCase();
 				if (!hay.includes(needle)) return false;
@@ -62,10 +64,11 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 		// « era » = ordre officiel fourni (déjà résolu côté serveur) → on ne re-trie
 		// PAS. Les autres modes sont des vues alternatives calculées à la volée.
 		return sort === "era" ? list : [...list].sort(compareTimeline(sort));
-	}, [items, eras, showEpisodes, showMovies, q, sort]);
+	}, [items, eras, showEpisodes, showMovies, showManga, q, sort]);
 
 	const totalEpisodes = useMemo(() => items.filter((i) => i.kind === "episode").length, [items]);
-	const totalMovies = items.length - totalEpisodes;
+	const totalMovies = useMemo(() => items.filter((i) => i.kind === "movie").length, [items]);
+	const totalManga = items.length - totalEpisodes - totalMovies;
 
 	function toggleEra(e: Era) {
 		setEras((prev) => {
@@ -118,7 +121,10 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 			lastEra = it.era;
 			const c = filtered.filter((x) => x.era === it.era);
 			const ep = c.filter((x) => x.kind === "episode").length;
-			rows.push(<EraHeader key={`h:${it.era}`} era={it.era} episodes={ep} movies={c.length - ep} />);
+			const mv = c.filter((x) => x.kind === "movie").length;
+			rows.push(
+				<EraHeader key={`h:${it.era}`} era={it.era} episodes={ep} movies={mv} manga={c.length - ep - mv} />
+			);
 		}
 		rows.push(<Row key={timelineKey(it)} it={it} grouped={sort === "era"} />);
 	}
@@ -177,6 +183,14 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 							on={showMovies}
 							onClick={() => setShowMovies((v) => !v)}
 						/>
+						{totalManga > 0 && (
+							<TypeToggle
+								icon={<BookOpen className="h-3.5 w-3.5" />}
+								label={`Manga ${totalManga}`}
+								on={showManga}
+								onClick={() => setShowManga((v) => !v)}
+							/>
+						)}
 					</div>
 
 					<div className="relative flex-1 min-w-[180px]">
@@ -289,7 +303,22 @@ function TypeToggle({
 	);
 }
 
-function EraHeader({ era, episodes, movies }: { era: Era; episodes: number; movies: number }) {
+function EraHeader({
+	era,
+	episodes,
+	movies,
+	manga,
+}: {
+	era: Era;
+	episodes: number;
+	movies: number;
+	manga: number;
+}) {
+	// Résumé compact : n'affiche que les natures présentes dans cette ère.
+	const parts: string[] = [];
+	if (episodes) parts.push(`${episodes} ép`);
+	if (movies) parts.push(`${movies} film${movies > 1 ? "s" : ""}`);
+	if (manga) parts.push(`${manga} tome${manga > 1 ? "s" : ""}`);
 	return (
 		<div className="flex items-center gap-3 pt-6 pb-1">
 			<span className="h-4 w-1.5 rounded-full" style={{ backgroundColor: ERA_ACCENT[era] }} />
@@ -299,9 +328,7 @@ function EraHeader({ era, episodes, movies }: { era: Era; episodes: number; movi
 			>
 				{ERA_LABELS[era]}
 			</h2>
-			<span className="text-[11px] text-white/35 font-mono">
-				{episodes} ép · {movies} film{movies > 1 ? "s" : ""}
-			</span>
+			<span className="text-[11px] text-white/35 font-mono">{parts.join(" · ")}</span>
 			<span className="flex-1 h-px" style={{ backgroundColor: `${ERA_ACCENT[era]}33` }} />
 		</div>
 	);
@@ -309,6 +336,7 @@ function EraHeader({ era, episodes, movies }: { era: Era; episodes: number; movi
 
 function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 	const isMovie = it.kind === "movie";
+	const isManga = it.kind === "manga";
 	const year = yearOf(it.date);
 	const accent = ERA_ACCENT[it.era];
 	return (
@@ -316,12 +344,14 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 			className={`group flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
 				isMovie
 					? "border-dbz-orange/25 bg-dbz-orange/[0.06] hover:border-dbz-orange/50"
-					: "border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
+					: isManga
+						? "border-pink-400/25 bg-pink-500/[0.06] hover:border-pink-400/50"
+						: "border-white/[0.06] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]"
 			}`}
 			style={grouped ? { borderLeftColor: accent, borderLeftWidth: 3 } : undefined}
 		>
-			{/* Marqueur type */}
-			{isMovie ? (
+			{/* Marqueur type : poster (film), couverture (tome), ou pastille numéro (épisode) */}
+			{isMovie || isManga ? (
 				it.image ? (
 					<img
 						src={assetUrl(it.image)}
@@ -330,8 +360,12 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 						className="h-14 w-10 shrink-0 rounded object-cover"
 					/>
 				) : (
-					<span className="flex h-14 w-10 shrink-0 items-center justify-center rounded bg-dbz-orange/15 text-dbz-orange">
-						<Film className="h-4 w-4" />
+					<span
+						className={`flex h-14 w-10 shrink-0 items-center justify-center rounded ${
+							isManga ? "bg-pink-500/15 text-pink-300" : "bg-dbz-orange/15 text-dbz-orange"
+						}`}
+					>
+						{isManga ? <BookOpen className="h-4 w-4" /> : <Film className="h-4 w-4" />}
 					</span>
 				)
 			) : (
@@ -350,6 +384,11 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 					{isMovie && (
 						<span className="rounded bg-dbz-orange px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
 							Film
+						</span>
+					)}
+					{isManga && (
+						<span className="rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
+							Tome {it.number ?? "?"}
 						</span>
 					)}
 					<Link

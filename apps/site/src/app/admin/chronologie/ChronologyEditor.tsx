@@ -4,14 +4,16 @@
  * Éditeur de la chronologie universelle (/admin/chronologie).
  *
  * La frise publique `/wiki/chronologie` est FIXE : son ordre officiel est décidé
- * ici. On part du dataset brut (tous les épisodes + films) et on applique une
- * **curation** stockée en DB (`ChronologyConfig`) :
+ * ici. On part du dataset brut (tous les épisodes + films + tomes du manga) et on
+ * applique une **curation** stockée en DB (`ChronologyConfig`) :
  *   - masquer une entrée,
  *   - forcer son ère (corrige un mauvais bucket auto),
  *   - fixer sa date (comble les trous — ex. DBGT sans date de diffusion),
  *   - surcharger son titre,
  *   - ajouter une note éditoriale,
- *   - réordonner À LA MAIN au sein d'une ère (épingle l'ordre de cette ère).
+ *   - réordonner À LA MAIN par glisser-déposer (drag & drop). Glisser une entrée
+ *     DANS une autre ère la réaffecte à cette ère → on mélange librement épisodes,
+ *     films et tomes de manga (l'ordre de l'ère touchée est épinglé).
  *
  * Sans aucune curation, l'ordre reste identique au tri auto « ère ». L'écriture
  * passe par PUT /api/chronologie-config (gate admin) qui revalide la page publique.
@@ -26,6 +28,8 @@ import {
 	ExternalLink,
 	Film,
 	Tv,
+	BookOpen,
+	GripVertical,
 	RotateCcw,
 	Save,
 	Search,
@@ -91,8 +95,15 @@ export default function ChronologyEditor() {
 	const [q, setQ] = useState("");
 	const [showEpisodes, setShowEpisodes] = useState(true);
 	const [showMovies, setShowMovies] = useState(true);
+	const [showManga, setShowManga] = useState(true);
 	const [showHidden, setShowHidden] = useState(true);
 	const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+
+	// État du glisser-déposer : entrée saisie + indicateur d'insertion (avant/après
+	// une entrée, ou en tête d'une ère quand on survole son en-tête).
+	const [dragKey, setDragKey] = useState<string | null>(null);
+	const [dropHint, setDropHint] = useState<{ key: string; pos: "before" | "after" } | null>(null);
+	const [dropEraTop, setDropEraTop] = useState<Era | null>(null);
 
 	useEffect(() => {
 		if (query.data) {
@@ -138,8 +149,8 @@ export default function ChronologyEditor() {
 	}, [overrides, items.length]);
 
 	// Réordonnancement fiable uniquement quand aucun filtre ne cache d'entrées
-	// intra-ère (sinon le « monter/descendre » sauterait des voisins invisibles).
-	const reorderEnabled = !q.trim() && showEpisodes && showMovies && showHidden;
+	// (sinon un glisser-déposer sauterait des voisins invisibles).
+	const reorderEnabled = !q.trim() && showEpisodes && showMovies && showManga && showHidden;
 
 	// ── Mutations de la config ────────────────────────────────────────────────
 	const patchOverride = useCallback((key: string, patch: Partial<ChronoOverride>) => {
@@ -211,6 +222,123 @@ export default function ChronologyEditor() {
 		[resolved]
 	);
 
+	// Cœur du glisser-déposer : place `draggedKey` dans l'ère `targetEra` à la
+	// position `insertAt`. Épingle l'ordre de l'ère cible (chaque entrée reçoit son
+	// rang `sort`) ; si l'entrée change d'ère, on pose l'override d'ère (ou on le
+	// retire si on revient à l'ère auto) et on ré-épingle l'ère quittée. C'est ce
+	// qui permet de MÉLANGER librement épisodes / films / tomes de manga.
+	const applyReorder = useCallback(
+		(draggedKey: string, targetEra: Era, insertAt: number) => {
+			const dragged = resolved.find((r) => timelineKey(r) === draggedKey);
+			if (!dragged) return;
+			const sourceEra = dragged.era;
+			const targetGroup = resolved
+				.filter((r) => r.era === targetEra)
+				.map(timelineKey)
+				.filter((k) => k !== draggedKey);
+			const at = Math.max(0, Math.min(insertAt, targetGroup.length));
+			targetGroup.splice(at, 0, draggedKey);
+
+			setOverrides((prev) => {
+				const next: Overrides = { ...prev };
+				const setField = (k: string, patch: Partial<ChronoOverride>) => {
+					const cur: ChronoOverride = { ...next[k], ...patch };
+					for (const kk of Object.keys(cur) as (keyof ChronoOverride)[]) {
+						if (cur[kk] === undefined) delete cur[kk];
+					}
+					next[k] = cur;
+				};
+				// Épingle l'ère cible dans son nouvel ordre.
+				targetGroup.forEach((k, i) => setField(k, { sort: i }));
+				// Override d'ère sur l'entrée déplacée (retiré si retour à l'ère auto).
+				const rawDragged = rawByKey.get(draggedKey);
+				if (rawDragged && targetEra === rawDragged.era) {
+					if (next[draggedKey]) delete next[draggedKey].era;
+				} else {
+					setField(draggedKey, { era: targetEra });
+				}
+				// Ré-épingle l'ère quittée pour préserver son ordre visuel.
+				if (sourceEra !== targetEra) {
+					resolved
+						.filter((r) => r.era === sourceEra)
+						.map(timelineKey)
+						.filter((k) => k !== draggedKey)
+						.forEach((k, i) => setField(k, { sort: i }));
+				}
+				for (const k of Object.keys(next)) {
+					if (Object.keys(next[k]!).length === 0) delete next[k];
+				}
+				return next;
+			});
+		},
+		[resolved, rawByKey]
+	);
+
+	// ── Handlers glisser-déposer natifs (cf. TierlistEditor : zéro dépendance) ──
+	const onDragStartRow = useCallback(
+		(key: string) => (e: React.DragEvent) => {
+			if (!reorderEnabled) return;
+			e.dataTransfer.effectAllowed = "move";
+			e.dataTransfer.setData("text/plain", key);
+			setDragKey(key);
+		},
+		[reorderEnabled]
+	);
+	const onDragEnd = useCallback(() => {
+		setDragKey(null);
+		setDropHint(null);
+		setDropEraTop(null);
+	}, []);
+	const onDragOverRow = useCallback(
+		(key: string) => (e: React.DragEvent) => {
+			if (!dragKey || dragKey === key) return;
+			e.preventDefault();
+			e.dataTransfer.dropEffect = "move";
+			const r = e.currentTarget.getBoundingClientRect();
+			const pos: "before" | "after" = e.clientY - r.top < r.height / 2 ? "before" : "after";
+			setDropEraTop(null);
+			setDropHint((h) => (h && h.key === key && h.pos === pos ? h : { key, pos }));
+		},
+		[dragKey]
+	);
+	const onDropRow = useCallback(
+		(key: string, era: Era) => (e: React.DragEvent) => {
+			e.preventDefault();
+			const dropped = dragKey;
+			if (!dropped || dropped === key) return onDragEnd();
+			const group = resolved
+				.filter((r) => r.era === era)
+				.map(timelineKey)
+				.filter((k) => k !== dropped);
+			const idx = group.indexOf(key);
+			const pos = dropHint?.key === key ? dropHint.pos : "before";
+			const insertAt = idx < 0 ? group.length : pos === "after" ? idx + 1 : idx;
+			applyReorder(dropped, era, insertAt);
+			onDragEnd();
+		},
+		[dragKey, dropHint, resolved, applyReorder, onDragEnd]
+	);
+	const onDragOverEra = useCallback(
+		(era: Era) => (e: React.DragEvent) => {
+			if (!dragKey) return;
+			e.preventDefault();
+			e.dataTransfer.dropEffect = "move";
+			setDropHint(null);
+			setDropEraTop(era);
+		},
+		[dragKey]
+	);
+	const onDropEra = useCallback(
+		(era: Era) => (e: React.DragEvent) => {
+			e.preventDefault();
+			const dropped = dragKey;
+			if (!dropped) return onDragEnd();
+			applyReorder(dropped, era, 0);
+			onDragEnd();
+		},
+		[dragKey, applyReorder, onDragEnd]
+	);
+
 	const resetEntry = useCallback((key: string) => {
 		setOverrides((prev) => {
 			const next = { ...prev };
@@ -256,6 +384,7 @@ export default function ChronologyEditor() {
 	const rowVisible = (it: ResolvedTimelineItem): boolean => {
 		if (it.kind === "episode" && !showEpisodes) return false;
 		if (it.kind === "movie" && !showMovies) return false;
+		if (it.kind === "manga" && !showManga) return false;
 		if (!showHidden && isHidden(timelineKey(it))) return false;
 		if (needle) {
 			const hay = `${it.title} ${it.titleJa ?? ""} ${it.series}`.toLowerCase();
@@ -284,6 +413,9 @@ export default function ChronologyEditor() {
 						pos={eraOrder.indexOf(it.era)}
 						total={eraOrder.length}
 						onMove={(dir) => moveEra(it.era, dir)}
+						isDropTarget={reorderEnabled && dropEraTop === it.era}
+						onDragOver={reorderEnabled ? onDragOverEra(it.era) : undefined}
+						onDrop={reorderEnabled ? onDropEra(it.era) : undefined}
 					/>
 				);
 			}
@@ -300,6 +432,13 @@ export default function ChronologyEditor() {
 				expanded={expanded.has(key)}
 				posInEra={posInEra}
 				reorderEnabled={reorderEnabled}
+				dragging={dragKey === key}
+				dropBefore={dropHint?.key === key && dropHint.pos === "before"}
+				dropAfter={dropHint?.key === key && dropHint.pos === "after"}
+				onDragStart={onDragStartRow(key)}
+				onDragEnd={onDragEnd}
+				onDragOver={onDragOverRow(key)}
+				onDrop={onDropRow(key, it.era)}
 				onToggleExpand={() =>
 					setExpanded((prev) => {
 						const n = new Set(prev);
@@ -385,6 +524,12 @@ export default function ChronologyEditor() {
 						on={showMovies}
 						onClick={() => setShowMovies((v) => !v)}
 					/>
+					<FilterToggle
+						icon={<BookOpen className="h-3.5 w-3.5" />}
+						label="Manga"
+						on={showManga}
+						onClick={() => setShowManga((v) => !v)}
+					/>
 				</div>
 				<button
 					type="button"
@@ -408,11 +553,17 @@ export default function ChronologyEditor() {
 				<span className="text-xs text-zinc-500">{visibleCount} affichée(s)</span>
 			</div>
 
-			{!reorderEnabled && (
+			{reorderEnabled ? (
+				<p className="flex items-center gap-2 rounded-lg border border-dbz-blue-light/25 bg-dbz-blue-light/5 px-3 py-2 text-[12px] text-dbz-blue-light/90">
+					<GripVertical className="h-4 w-4 shrink-0" />
+					Glisse-dépose une entrée par sa poignée pour la réordonner. Dépose-la dans une AUTRE ère
+					(ou sur son en-tête) pour l'y déplacer — épisodes, films et tomes se mélangent librement.
+				</p>
+			) : (
 				<p className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[12px] text-amber-300/90">
 					<Info className="h-4 w-4 shrink-0" />
-					Le réordonnancement (monter/descendre) est désactivé tant qu'un filtre masque des entrées.
-					Réinitialise la recherche et affiche épisodes + films + masquées pour réordonner.
+					Le glisser-déposer est désactivé tant qu'un filtre masque des entrées. Réinitialise la
+					recherche et affiche épisodes + films + manga + masquées pour réordonner.
 				</p>
 			)}
 
@@ -454,20 +605,38 @@ function EraHeader({
 	pos,
 	total,
 	onMove,
+	isDropTarget,
+	onDragOver,
+	onDrop,
 }: {
 	era: Era;
 	count: number;
 	pos: number;
 	total: number;
 	onMove: (dir: -1 | 1) => void;
+	isDropTarget?: boolean;
+	onDragOver?: (e: React.DragEvent) => void;
+	onDrop?: (e: React.DragEvent) => void;
 }) {
 	return (
-		<div className="flex items-center gap-3 pt-5 pb-1">
+		<div
+			onDragOver={onDragOver}
+			onDrop={onDrop}
+			className={`flex items-center gap-3 rounded-md pt-5 pb-1 transition-colors ${
+				isDropTarget ? "bg-white/[0.04] ring-1 ring-inset" : ""
+			}`}
+			style={isDropTarget ? { boxShadow: `inset 0 -2px 0 0 ${ERA_ACCENT[era]}` } : undefined}
+		>
 			<span className="h-4 w-1.5 rounded-full" style={{ backgroundColor: ERA_ACCENT[era] }} />
 			<h3 className="font-saiyan text-xl uppercase tracking-wide" style={{ color: ERA_ACCENT[era] }}>
 				{ERA_LABELS[era]}
 			</h3>
 			<span className="text-[11px] text-zinc-500 font-mono">{count}</span>
+			{isDropTarget && (
+				<span className="text-[10px] font-semibold uppercase" style={{ color: ERA_ACCENT[era] }}>
+					↓ déposer en tête
+				</span>
+			)}
 			<span className="flex-1 h-px" style={{ backgroundColor: `${ERA_ACCENT[era]}33` }} />
 			<div className="flex items-center gap-0.5">
 				<button
@@ -501,6 +670,13 @@ function EntryRow({
 	expanded,
 	posInEra,
 	reorderEnabled,
+	dragging,
+	dropBefore,
+	dropAfter,
+	onDragStart,
+	onDragEnd,
+	onDragOver,
+	onDrop,
 	onToggleExpand,
 	onMove,
 	onToggleHide,
@@ -515,6 +691,13 @@ function EntryRow({
 	expanded: boolean;
 	posInEra: number;
 	reorderEnabled: boolean;
+	dragging: boolean;
+	dropBefore: boolean;
+	dropAfter: boolean;
+	onDragStart: (e: React.DragEvent) => void;
+	onDragEnd: () => void;
+	onDragOver: (e: React.DragEvent) => void;
+	onDrop: (e: React.DragEvent) => void;
 	onToggleExpand: () => void;
 	onMove: (dir: -1 | 1) => void;
 	onToggleHide: () => void;
@@ -523,11 +706,12 @@ function EntryRow({
 	onReset: () => void;
 }) {
 	const isMovie = it.kind === "movie";
+	const isManga = it.kind === "manga";
 	const accent = ERA_ACCENT[it.era];
 	const curated = override && Object.keys(override).length > 0;
 
 	// Brouillons locaux pour titre/note → commit onBlur (évite de recalculer l'ordre
-	// à chaque frappe sur 685 lignes).
+	// à chaque frappe sur ~750 lignes).
 	const [titleDraft, setTitleDraft] = useState(override?.title ?? "");
 	const [noteDraft, setNoteDraft] = useState(override?.note ?? "");
 	useEffect(() => setTitleDraft(override?.title ?? ""), [override?.title]);
@@ -535,61 +719,117 @@ function EntryRow({
 
 	return (
 		<div
-			className={`rounded-lg border transition-colors ${
-				hidden
-					? "border-zinc-800 bg-black/20 opacity-50"
-					: isMovie
-						? "border-dbz-orange/25 bg-dbz-orange/[0.05]"
-						: "border-zinc-800 bg-white/[0.02]"
+			onDragOver={reorderEnabled ? onDragOver : undefined}
+			onDrop={reorderEnabled ? onDrop : undefined}
+			className={`relative rounded-lg border transition-colors ${
+				dragging
+					? "opacity-40 border-dbz-orange"
+					: hidden
+						? "border-zinc-800 bg-black/20 opacity-50"
+						: isMovie
+							? "border-dbz-orange/25 bg-dbz-orange/[0.05]"
+							: isManga
+								? "border-pink-400/25 bg-pink-500/[0.05]"
+								: "border-zinc-800 bg-white/[0.02]"
 			}`}
 			style={{ borderLeftColor: accent, borderLeftWidth: 3 }}
 		>
+			{/* Indicateurs d'insertion du glisser-déposer */}
+			{dropBefore && (
+				<span
+					className="pointer-events-none absolute -top-[3px] left-0 right-0 z-10 h-[3px] rounded-full"
+					style={{ backgroundColor: accent }}
+				/>
+			)}
+			{dropAfter && (
+				<span
+					className="pointer-events-none absolute -bottom-[3px] left-0 right-0 z-10 h-[3px] rounded-full"
+					style={{ backgroundColor: accent }}
+				/>
+			)}
 			<div className="flex items-center gap-3 px-3 py-2">
-				{/* Réordonnancement */}
-				<div className="flex flex-col">
-					<button
-						type="button"
-						onClick={() => onMove(-1)}
-						disabled={!reorderEnabled || posInEra === 0}
-						className="text-zinc-500 hover:text-dbz-orange disabled:opacity-25"
-						title={reorderEnabled ? "Monter" : "Réordonnancement désactivé (filtres actifs)"}
+				{/* Poignée de glisser-déposer + réordonnancement fin */}
+				<div className="flex items-center">
+					<span
+						draggable={reorderEnabled}
+						onDragStart={onDragStart}
+						onDragEnd={onDragEnd}
+						className={`shrink-0 ${
+							reorderEnabled
+								? "cursor-grab text-zinc-600 hover:text-dbz-orange active:cursor-grabbing"
+								: "cursor-not-allowed text-zinc-800"
+						}`}
+						title={reorderEnabled ? "Glisser pour réordonner / mélanger" : "Désactivé (filtres actifs)"}
+						aria-label="Glisser pour réordonner"
 					>
-						<ChevronUp className="h-4 w-4" />
-					</button>
-					<button
-						type="button"
-						onClick={() => onMove(1)}
-						disabled={!reorderEnabled}
-						className="text-zinc-500 hover:text-dbz-orange disabled:opacity-25"
-						title={reorderEnabled ? "Descendre" : "Réordonnancement désactivé (filtres actifs)"}
-					>
-						<ChevronDown className="h-4 w-4" />
-					</button>
+						<GripVertical className="h-5 w-5" />
+					</span>
+					<div className="flex flex-col">
+						<button
+							type="button"
+							onClick={() => onMove(-1)}
+							disabled={!reorderEnabled || posInEra === 0}
+							className="text-zinc-500 hover:text-dbz-orange disabled:opacity-25"
+							title="Monter"
+						>
+							<ChevronUp className="h-4 w-4" />
+						</button>
+						<button
+							type="button"
+							onClick={() => onMove(1)}
+							disabled={!reorderEnabled}
+							className="text-zinc-500 hover:text-dbz-orange disabled:opacity-25"
+							title="Descendre"
+						>
+							<ChevronDown className="h-4 w-4" />
+						</button>
+					</div>
 				</div>
 
-				{/* Marqueur */}
-				{isMovie ? (
-					it.image ? (
-						<img
-							src={assetUrl(it.image)}
-							alt=""
-							loading="lazy"
-							className="h-11 w-8 shrink-0 rounded object-cover"
-						/>
+				{/* Marqueur : vignette d'épisode, couverture (film/tome) ou pastille numéro */}
+				<div className="flex w-16 shrink-0 items-center justify-center">
+					{isMovie || isManga ? (
+						it.image ? (
+							<img
+								src={assetUrl(it.image)}
+								alt=""
+								loading="lazy"
+								className="h-12 w-8 rounded object-cover"
+							/>
+						) : (
+							<span
+								className={`flex h-12 w-8 items-center justify-center rounded ${
+									isManga ? "bg-pink-500/15 text-pink-300" : "bg-dbz-orange/15 text-dbz-orange"
+								}`}
+							>
+								{isManga ? <BookOpen className="h-4 w-4" /> : <Film className="h-4 w-4" />}
+							</span>
+						)
+					) : it.image ? (
+						<div className="relative h-9 w-16 overflow-hidden rounded bg-black/40">
+							<img
+								src={assetUrl(it.image)}
+								alt=""
+								loading="lazy"
+								className="h-full w-full object-cover"
+							/>
+							<span
+								className="absolute left-0.5 top-0.5 rounded bg-black/75 px-1 text-[9px] font-mono font-bold"
+								style={{ color: accent }}
+							>
+								{it.number ?? "?"}
+							</span>
+						</div>
 					) : (
-						<span className="flex h-11 w-8 shrink-0 items-center justify-center rounded bg-dbz-orange/15 text-dbz-orange">
-							<Film className="h-4 w-4" />
+						<span
+							className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-mono font-bold text-black"
+							style={{ backgroundColor: accent }}
+							title={`${it.series} — épisode`}
+						>
+							{it.number ?? "?"}
 						</span>
-					)
-				) : (
-					<span
-						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[11px] font-mono font-bold text-black"
-						style={{ backgroundColor: accent }}
-						title={`${it.series} — épisode`}
-					>
-						{it.number ?? "?"}
-					</span>
-				)}
+					)}
+				</div>
 
 				{/* Titre + méta */}
 				<button type="button" onClick={onToggleExpand} className="min-w-0 flex-1 text-left">
@@ -597,6 +837,11 @@ function EntryRow({
 						{isMovie && (
 							<span className="rounded bg-dbz-orange px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
 								Film
+							</span>
+						)}
+						{isManga && (
+							<span className="rounded bg-pink-500 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black">
+								Tome {it.number ?? "?"}
 							</span>
 						)}
 						<span className="truncate font-display font-semibold text-[13px] text-white">

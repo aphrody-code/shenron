@@ -121,11 +121,11 @@ export default async function EpisodesIndex({
 					</span>
 					<span className="flex-1">
 						<span className="block font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
-							Chronologie universelle — épisodes + films
+							Chronologie universelle — épisodes, films & manga
 						</span>
 						<span className="block text-[13px] text-white/50">
-							Toutes les séries (DB, Z, GT, Super, Daima) et tous les films sur une seule frise.
-							Filtre, trie et exporte ton propre ordre de visionnage.
+							Toutes les séries (DB, Z, GT, Super, Daima), tous les films et les tomes du manga sur
+							une seule frise officielle. Filtre, recherche et exporte.
 						</span>
 					</span>
 					<span

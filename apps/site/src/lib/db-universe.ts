@@ -802,15 +802,18 @@ export const dbUniverse = {
 		}),
 
 	/**
-	 * Dataset EXHAUSTIF de la chronologie universelle : TOUS les épisodes + TOUS
-	 * les films, toutes séries confondues, normalisés sous des « ères » communes
-	 * (cf. `@/lib/chronology`). Aucun tri imposé ici (le client trie/filtre/
-	 * exporte) : on renvoie la liste brute avec la matière première (ère, date,
-	 * numéro, langues dispo). ~685 items → un seul round-trip par table.
+	 * Dataset EXHAUSTIF de la chronologie universelle : TOUS les épisodes, TOUS
+	 * les films, et les tomes canoniques du manga (DB « Dragon Ball Vol. N » + DBS
+	 * « Dragon Ball Super Vol. N »), toutes séries confondues, normalisés sous des
+	 * « ères » communes (cf. `@/lib/chronology`). Les tomes sont rangés dans l'ère
+	 * `Manga` (leur code série `DB`/`DBS` désigne aussi des épisodes → l'ère est
+	 * forcée ici, pas dérivée de `eraOf`). Aucun tri imposé (le client/l'admin
+	 * trie/filtre) : on renvoie la matière première (ère, date, numéro, langues).
+	 * ~750 items → un seul round-trip par table.
 	 */
 	timeline: () =>
 		safe(async (): Promise<TimelineItem[]> => {
-			const [eps, movs] = await Promise.all([
+			const [eps, movs, vols] = await Promise.all([
 				db
 					.select({
 						id: botEpisodes.id,
@@ -835,6 +838,32 @@ export const dbUniverse = {
 						players: botMovies.players,
 					})
 					.from(botMovies),
+				// Tomes canoniques uniquement (mêmes filtres que /wiki/manga) : on
+				// écarte les spin-offs (SD, Yamcha, Episode of Bardock…) rangés dans
+				// la même table. Ordre par numéro de tome, série DB avant DBS.
+				db
+					.select({
+						id: botMangaVolumes.id,
+						series: botMangaVolumes.series,
+						number: botMangaVolumes.volumeNumber,
+						title: botMangaVolumes.title,
+						titleJa: botMangaVolumes.titleJa,
+						date: botMangaVolumes.publishedAt,
+						cover: botMangaVolumes.cover,
+					})
+					.from(botMangaVolumes)
+					.where(
+						or(
+							and(
+								eq(botMangaVolumes.series, "DB"),
+								ilike(botMangaVolumes.title, "Dragon Ball Vol. %")
+							),
+							and(
+								eq(botMangaVolumes.series, "DBS"),
+								ilike(botMangaVolumes.title, "Dragon Ball Super Vol. %")
+							)
+						)
+					),
 			]);
 			const langs = (
 				players: { lang?: "vf" | "vostfr" }[] | null
@@ -877,6 +906,20 @@ export const dbUniverse = {
 						hasVostfr: l.hasVostfr,
 					};
 				}),
+				...vols.map((v) => ({
+					kind: "manga" as const,
+					id: v.id,
+					href: `/wiki/manga/volume/${v.id}`,
+					title: v.title ?? `Tome ${v.number ?? "?"}`,
+					titleJa: v.titleJa,
+					series: v.series,
+					era: "Manga" as const,
+					number: v.number ?? null,
+					date: v.date ?? null,
+					image: v.cover,
+					hasVf: false,
+					hasVostfr: false,
+				})),
 			];
 			return items;
 		}),
