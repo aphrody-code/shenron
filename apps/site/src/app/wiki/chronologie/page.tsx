@@ -8,7 +8,13 @@ import { applyChronology } from "@/lib/chronology";
 import { ChronologyTimeline } from "@/components/wiki/ChronologyTimeline";
 import { ogMeta } from "@/lib/og";
 
-export const revalidate = 3600;
+// Rendu dynamique (runtime) et non prérendu au build : (1) la curation admin se
+// reflète immédiatement sur le public sans attendre une revalidation ISR ; (2) on
+// évite qu'un build lancé pendant une indispo DB fige un 404 en cache ISR (le
+// prérendu SSG appelle `notFound()` si la DB ne répond pas, et ce 404 resterait
+// servi jusqu'à expiration). La page ne lit ni cookies ni session → pas d'impact
+// sur le cache des autres routes.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
 	title: "Chronologie universelle",
