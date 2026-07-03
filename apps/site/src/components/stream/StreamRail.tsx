@@ -76,7 +76,7 @@ export function StreamRail({
 				className={`absolute left-1 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition-all duration-200 hover:border-dbz-orange hover:bg-dbz-orange hover:text-black ${
 					atStart
 						? "pointer-events-none opacity-0"
-						: "opacity-0 focus:opacity-100 group-hover/rail:opacity-100"
+						: "pointer-events-none opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover/rail:pointer-events-auto group-hover/rail:opacity-100"
 				}`}
 			>
 				<ChevronLeft className="h-6 w-6" />
@@ -89,7 +89,7 @@ export function StreamRail({
 				className={`absolute right-1 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition-all duration-200 hover:border-dbz-orange hover:bg-dbz-orange hover:text-black ${
 					atEnd
 						? "pointer-events-none opacity-0"
-						: "opacity-0 focus:opacity-100 group-hover/rail:opacity-100"
+						: "pointer-events-none opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover/rail:pointer-events-auto group-hover/rail:opacity-100"
 				}`}
 			>
 				<ChevronRight className="h-6 w-6" />
