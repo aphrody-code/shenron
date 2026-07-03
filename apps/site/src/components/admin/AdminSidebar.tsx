@@ -47,6 +47,7 @@ import {
 	FileText,
 	BookText,
 	ListOrdered,
+	History,
 	PanelLeftClose,
 	PanelLeftOpen,
 } from "lucide-react";
@@ -249,6 +250,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Films",
 		description: "Films et OAV Dragon Ball",
 		icon: <Film className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
+	{
+		href: "/admin/chronologie",
+		label: "Chronologie",
+		description: "Ordre officiel de la frise universelle (épisodes + films)",
+		icon: <History className="h-4 w-4" />,
 		section: "encyclopedie",
 	},
 	{

@@ -302,6 +302,20 @@ export const siteTheme = pgTable("SiteTheme", {
 
 export type SiteThemeRow = typeof siteTheme.$inferSelect;
 
+// Curation de la chronologie universelle (/wiki/chronologie) — document JSON
+// unique (singleton `default`). Édité depuis /admin/chronologie, appliqué sur la
+// frise publique (fixe). Cf. lib/chronology-config.ts + lib/chronology.ts.
+export const chronologyConfig = pgTable("ChronologyConfig", {
+	id: text("id").primaryKey(),
+	data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+	updatedBy: text("updatedBy"),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type ChronologyConfigRow = typeof chronologyConfig.$inferSelect;
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({

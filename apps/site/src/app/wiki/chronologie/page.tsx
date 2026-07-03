@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/PageHero";
 import { bannerForSeries } from "@/lib/db-banners";
 import { dbUniverse } from "@/lib/db-universe";
-import { ChronologyExplorer } from "@/components/wiki/ChronologyExplorer";
+import { getChronologyConfig } from "@/lib/chronology-config";
+import { applyChronology } from "@/lib/chronology";
+import { ChronologyTimeline } from "@/components/wiki/ChronologyTimeline";
 import { ogMeta } from "@/lib/og";
 
 export const revalidate = 3600;
@@ -22,8 +24,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ChronologiePage() {
-	const items = await dbUniverse.timeline();
-	if (!items || items.length === 0) notFound();
+	const [raw, config] = await Promise.all([dbUniverse.timeline(), getChronologyConfig()]);
+	if (!raw || raw.length === 0) notFound();
+
+	// Frise FIXE : la curation admin (ordre, ère, date, masquage, notes) est
+	// appliquée côté serveur → le public reçoit la chronologie officielle résolue.
+	const items = applyChronology(raw, config);
+	if (items.length === 0) notFound();
 
 	const episodes = items.filter((i) => i.kind === "episode").length;
 	const movies = items.length - episodes;
@@ -33,12 +40,12 @@ export default async function ChronologiePage() {
 			<PageHero
 				eyebrow="Frise universelle"
 				title="Chronologie complète"
-				lead={`${items.length} entrées — ${episodes} épisodes et ${movies} films, de Dragon Ball à Daima, réunis sur une seule frise. Filtre, trie et exporte pour composer ton propre ordre.`}
+				lead={`${items.length} entrées — ${episodes} épisodes et ${movies} films, de Dragon Ball à Daima, réunis sur une seule frise officielle. Filtre par ère, recherche et exporte.`}
 				image={bannerForSeries("DBZ")}
 				imageAlt="Chronologie Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-12 lg:py-16">
-				<ChronologyExplorer items={items} />
+				<ChronologyTimeline items={items} />
 			</div>
 		</>
 	);

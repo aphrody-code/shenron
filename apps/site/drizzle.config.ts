@@ -23,6 +23,7 @@ export default defineConfig({
 		"user_preferences",
 		"HomeConfig",
 		"SiteTheme",
+		"ChronologyConfig",
 	],
 	verbose: true,
 	strict: true,

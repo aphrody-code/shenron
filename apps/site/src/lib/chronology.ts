@@ -2,11 +2,15 @@
  * Chronologie universelle Dragon Ball — modèle + helpers PURS et CLIENT-SAFE.
  *
  * Aucun import server (pas de `postgres`/drizzle) : utilisable à la fois par le
- * helper server-only `dbUniverse.timeline()` (qui construit le dataset) ET par le
- * composant client `ChronologyExplorer` (tri/filtre/export). C'est le seul point
- * qui unifie les DEUX espaces de séries disjoints (épisodes `DB/DBZ/DBGT/DBS/
- * DB_DAIMA` vs films `DB_MOVIE/DBZ_MOVIE/DBZ_OVA/DBZ_SPECIAL/DBS_MOVIE`) sous des
- * « ères » communes.
+ * helper server-only `dbUniverse.timeline()` (qui construit le dataset), par le
+ * composant public `ChronologyTimeline` (frise FIXE) ET par l'éditeur admin
+ * (`/admin/chronologie`, curation). C'est le seul point qui unifie les DEUX
+ * espaces de séries disjoints (épisodes `DB/DBZ/DBGT/DBS/DB_DAIMA` vs films
+ * `DB_MOVIE/DBZ_MOVIE/DBZ_OVA/DBZ_SPECIAL/DBS_MOVIE`) sous des « ères » communes.
+ *
+ * La chronologie publique est **fixe** : l'ordre officiel est décidé par l'admin
+ * (curation `ChronologyConfig` stockée en DB) et appliqué par `applyChronology`.
+ * Sans aucune curation, l'ordre est IDENTIQUE à l'ancien tri « ère » auto.
  */
 
 export const ERA_ORDER = ["DB", "DBZ", "GT", "Super", "Daima", "Autre"] as const;
@@ -72,10 +76,14 @@ export type TimelineItem = {
 export type SortMode = "era" | "date" | "title";
 
 export const SORT_LABELS: Record<SortMode, string> = {
-	era: "Par ère",
+	era: "Chronologie officielle",
 	date: "Diffusion / sortie",
 	title: "Titre (A→Z)",
 };
+
+/** Clé stable d'une entrée (identique côté public, admin et config). */
+export const timelineKey = (it: { kind: "episode" | "movie"; id: number }): string =>
+	`${it.kind}:${it.id}`;
 
 const INF = Number.POSITIVE_INFINITY;
 
@@ -107,7 +115,148 @@ export function compareTimeline(mode: SortMode): (a: TimelineItem, b: TimelineIt
 	};
 }
 
-// --- Formats d'export (l'utilisateur « organise lui-même ») -----------------
+// --- Curation admin (config éditable, appliquée côté public) -----------------
+
+/**
+ * Override éditorial d'une entrée (clé `${kind}:${id}`). Tout champ absent =
+ * comportement auto (dérivé du dataset brut). Permet à l'admin de « fixer » la
+ * chronologie sans toucher aux tables épisodes/films.
+ */
+export type ChronoOverride = {
+	/** Retirée de la frise publique. */
+	hidden?: boolean;
+	/** Ère forcée (corrige un mauvais bucket auto — ex. un film mal rangé). */
+	era?: Era;
+	/** Date de diffusion/sortie curatée (epoch SECONDES) — comble les trous (ex. DBGT). */
+	date?: number | null;
+	/** Titre d'affichage forcé (repli : titre du dataset). */
+	title?: string;
+	/** Note éditoriale affichée sous l'entrée (contexte, ordre de visionnage…). */
+	note?: string;
+	/**
+	 * Rang manuel DANS l'ère (0-based). Dès qu'une ère porte au moins un rang,
+	 * elle est ordonnée strictement par ce rang → ordre « épinglé » par l'admin.
+	 */
+	sort?: number;
+};
+
+/** Curation complète de la chronologie universelle (singleton stocké en DB). */
+export type ChronologyConfig = {
+	version: 1;
+	/** Ordre d'affichage des ères (défaut = `ERA_ORDER`). */
+	eraOrder: Era[];
+	/** Overrides par clé d'entrée (`${kind}:${id}`). */
+	overrides: Record<string, ChronoOverride>;
+};
+
+export const DEFAULT_CHRONOLOGY_CONFIG: ChronologyConfig = {
+	version: 1,
+	eraOrder: [...ERA_ORDER],
+	overrides: {},
+};
+
+const isEra = (v: unknown): v is Era => (ERA_ORDER as readonly string[]).includes(v as string);
+
+/**
+ * Fusionne défensivement un patch (JSON DB / éditeur) → `ChronologyConfig` sûr.
+ * Toute valeur invalide est ignorée ; une entrée d'override vide est éliminée
+ * (config compacte). Ne throw jamais.
+ */
+export function resolveChronologyConfig(patch: unknown): ChronologyConfig {
+	if (!patch || typeof patch !== "object") return structuredClone(DEFAULT_CHRONOLOGY_CONFIG);
+	const p = patch as Record<string, unknown>;
+
+	// eraOrder : uniquement des ères connues, sans doublon, complété par le reste.
+	const eraOrder: Era[] = [];
+	if (Array.isArray(p.eraOrder)) {
+		for (const e of p.eraOrder) if (isEra(e) && !eraOrder.includes(e)) eraOrder.push(e);
+	}
+	for (const e of ERA_ORDER) if (!eraOrder.includes(e)) eraOrder.push(e);
+
+	// overrides : normalise chaque entrée, ne garde que celles qui portent un champ.
+	const overrides: Record<string, ChronoOverride> = {};
+	const rawOv = p.overrides;
+	if (rawOv && typeof rawOv === "object") {
+		for (const [key, v] of Object.entries(rawOv as Record<string, unknown>)) {
+			if (!v || typeof v !== "object") continue;
+			const o = v as Record<string, unknown>;
+			const out: ChronoOverride = {};
+			if (o.hidden === true) out.hidden = true;
+			if (isEra(o.era)) out.era = o.era;
+			if (typeof o.date === "number" && Number.isFinite(o.date)) out.date = Math.round(o.date);
+			else if (o.date === null) out.date = null;
+			if (typeof o.title === "string" && o.title.trim()) out.title = o.title.trim().slice(0, 300);
+			if (typeof o.note === "string" && o.note.trim()) out.note = o.note.trim().slice(0, 600);
+			if (typeof o.sort === "number" && Number.isFinite(o.sort)) out.sort = Math.round(o.sort);
+			if (Object.keys(out).length > 0) overrides[key] = out;
+		}
+	}
+
+	return { version: 1, eraOrder, overrides };
+}
+
+/** Entrée résolue pour l'affichage (overrides appliqués + note éventuelle). */
+export type ResolvedTimelineItem = TimelineItem & { note: string | null };
+
+/**
+ * Applique la curation admin au dataset brut → **liste publique FIXE** :
+ * overrides (ère/date/titre/note) appliqués, entrées masquées retirées, ordre =
+ * ères (`config.eraOrder`) puis, dans chaque ère : rang manuel `sort` s'il en
+ * existe au moins un (ordre épinglé), sinon date curatée → numéro → id.
+ *
+ * Invariant : avec `DEFAULT_CHRONOLOGY_CONFIG`, l'ordre est STRICTEMENT identique
+ * à `compareTimeline("era")` sur le dataset brut (aucune régression sans curation).
+ */
+export function applyChronology(
+	items: TimelineItem[],
+	config: ChronologyConfig
+): ResolvedTimelineItem[] {
+	const eraRankOf = (era: Era): number => {
+		const i = config.eraOrder.indexOf(era);
+		return i === -1 ? config.eraOrder.length : i;
+	};
+
+	const sortOf = new Map<string, number>();
+	const resolved: ResolvedTimelineItem[] = [];
+	for (const it of items) {
+		const key = timelineKey(it);
+		const ov = config.overrides[key];
+		if (ov?.hidden) continue;
+		const era = ov?.era ?? it.era;
+		resolved.push({
+			...it,
+			era,
+			date: ov && "date" in ov ? (ov.date ?? null) : it.date,
+			title: ov?.title ?? it.title,
+			note: ov?.note ?? null,
+		});
+		if (typeof ov?.sort === "number") sortOf.set(key, ov.sort);
+	}
+
+	// Une ère est « épinglée » dès qu'une de ses entrées porte un rang manuel.
+	const pinnedEras = new Set<Era>();
+	for (const it of resolved) if (sortOf.has(timelineKey(it))) pinnedEras.add(it.era);
+
+	resolved.sort((a, b) => {
+		const e = eraRankOf(a.era) - eraRankOf(b.era);
+		if (e) return e;
+		if (pinnedEras.has(a.era)) {
+			const sa = sortOf.get(timelineKey(a)) ?? INF;
+			const sb = sortOf.get(timelineKey(b)) ?? INF;
+			if (sa !== sb) return sa - sb;
+		}
+		const d = (a.date ?? INF) - (b.date ?? INF);
+		if (d) return d;
+		const n = (a.number ?? INF) - (b.number ?? INF);
+		if (n) return n;
+		if (a.kind !== b.kind) return a.kind === "episode" ? -1 : 1;
+		return a.id - b.id;
+	});
+
+	return resolved;
+}
+
+// --- Formats d'export (chronologie officielle exportable) -------------------
 
 function isoDate(sec: number | null): string {
 	if (!sec) return "";
