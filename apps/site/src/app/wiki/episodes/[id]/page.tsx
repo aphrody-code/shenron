@@ -23,11 +23,6 @@ import { SITE_URL as SITE } from "@/lib/config";
 import { excerpt } from "../_text";
 
 export const revalidate = 3600;
-// dynamicParams=false ⇒ un id hors generateStaticParams (épisode inexistant) = vrai
-// 404 au routing, avant tout stream — fin du soft-404 200 (le loading.tsx racine
-// flushait le shell 200 avant que notFound() ne s'exécute). generateStaticParams
-// énumère TOUS les épisodes (canon figé).
-export const dynamicParams = false;
 
 // Pré-rend tous les épisodes au build → cache CDN (sinon Next 16 rend la route
 // dynamiquement). L'éditeur admin est un îlot client (useMe) → aucune session SSR.

@@ -11,9 +11,6 @@ import { JsonLd } from "@/components/JsonLd";
 import type { CreativeWork, WithContext } from "schema-dts";
 
 export const revalidate = 3600;
-// dynamicParams=false ⇒ slug inexistant = vrai 404 au routing (fin du soft-404 200).
-// generateStaticParams énumère TOUTES les sagas (canon figé).
-export const dynamicParams = false;
 
 export async function generateStaticParams() {
 	const r = await dbUniverse.sagas();
