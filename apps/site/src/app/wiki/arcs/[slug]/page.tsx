@@ -6,6 +6,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
+// dynamicParams=false ⇒ slug inexistant = vrai 404 au routing (fin du soft-404 200).
+// generateStaticParams énumère TOUS les arcs de toutes les sagas (canon figé).
+export const dynamicParams = false;
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
 	const data = await dbUniverse.sagas();

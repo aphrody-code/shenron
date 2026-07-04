@@ -7,18 +7,18 @@ import type { Metadata } from "next";
 import { VolumeChaptersList } from "@/components/manga/VolumeChaptersList";
 
 export const revalidate = 3600;
+// dynamicParams=false ⇒ un id hors generateStaticParams (tome fantôme/inexistant) =
+// vrai 404 au routing, avant tout stream — fin du soft-404 200. generateStaticParams
+// énumère TOUS les tomes réels (catalogue figé : 42 DB + 23 DBS après purge des fantômes).
+export const dynamicParams = false;
 
-// Pré-rend les tomes au build → cache CDN (cf. piège generateStaticParams).
-// On ne pré-génère QUE les tomes ayant ≥1 chapitre lisible (mêmes ids que la grille
-// via scanVolumeIds) : évite de figer en cache ISR des routes de tomes fantômes/vides.
+// Pré-rend tous les tomes réels au build → cache CDN.
 export async function generateStaticParams() {
-	const readable = await dbUniverse.readableMangaChapters();
-	const volIds = new Set(
-		(readable?.chapters ?? [])
-			.map((c) => c.volume_id)
-			.filter((v): v is number => v != null)
-	);
-	return [...volIds].map((id) => ({ id: String(id) }));
+	const [db, dbs] = await Promise.all([
+		dbUniverse.mangaVolumes("DB"),
+		dbUniverse.mangaVolumes("DBS"),
+	]);
+	return [...(db?.volumes ?? []), ...(dbs?.volumes ?? [])].map((v) => ({ id: String(v.id) }));
 }
 
 export async function generateMetadata({

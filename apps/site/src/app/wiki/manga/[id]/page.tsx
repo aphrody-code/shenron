@@ -7,6 +7,10 @@ import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
+// dynamicParams=false ⇒ id hors generateStaticParams (chapitre non lisible/inexistant)
+// = vrai 404 au routing (fin du soft-404 200). generateStaticParams = tous les
+// chapitres lisibles (les seuls affichables ; les fantômes ont été purgés).
+export const dynamicParams = false;
 
 // Pré-rend les chapitres lisibles au build → cache CDN (sans ça, Next 16 rend la
 // route dynamiquement, no-store). dynamicParams=true : nouveaux chapitres on-demand.
