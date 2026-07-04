@@ -1108,14 +1108,26 @@ export const dbUniverse = {
 			const chapCols = [botMangaChapters.title, botMangaChapters.titleJa];
 			// Manga : un terme purement numérique matche aussi le n° de tome/chapitre.
 			const num = /^\d{1,4}$/.test(term) ? Number(term) : null;
-			const volWhere =
+			// Garde-fous anti-fantômes : ne remonter dans la recherche que les tomes
+			// CANONIQUES (mêmes préfixes que timeline()/la grille — exclut spin-offs et
+			// doublons « Volume N ») et les chapitres LISIBLES (pages renseignées).
+			// Sinon /wiki/search surfaçait des entrées menant à des pages vides.
+			const canonicalVolTitle = or(
+				ilike(botMangaVolumes.title, "Dragon Ball Vol. %"),
+				ilike(botMangaVolumes.title, "Dragon Ball Super Vol. %")
+			);
+			const volWhere = and(
 				num != null
 					? or(fuzzyWhere(term, volCols), eq(botMangaVolumes.volumeNumber, num))
-					: fuzzyWhere(term, volCols);
-			const chapWhere =
+					: fuzzyWhere(term, volCols),
+				canonicalVolTitle
+			);
+			const chapWhere = and(
 				num != null
 					? or(fuzzyWhere(term, chapCols), eq(botMangaChapters.chapterNumber, num))
-					: fuzzyWhere(term, chapCols);
+					: fuzzyWhere(term, chapCols),
+				isNotNull(botMangaChapters.pages)
+			);
 			const [
 				characters,
 				planets,

@@ -8,13 +8,17 @@ import { VolumeChaptersList } from "@/components/manga/VolumeChaptersList";
 
 export const revalidate = 3600;
 
-// Pré-rend les tomes DB + DBS au build → cache CDN (cf. piège generateStaticParams).
+// Pré-rend les tomes au build → cache CDN (cf. piège generateStaticParams).
+// On ne pré-génère QUE les tomes ayant ≥1 chapitre lisible (mêmes ids que la grille
+// via scanVolumeIds) : évite de figer en cache ISR des routes de tomes fantômes/vides.
 export async function generateStaticParams() {
-	const [db, dbs] = await Promise.all([
-		dbUniverse.mangaVolumes("DB"),
-		dbUniverse.mangaVolumes("DBS"),
-	]);
-	return [...(db?.volumes ?? []), ...(dbs?.volumes ?? [])].map((v) => ({ id: String(v.id) }));
+	const readable = await dbUniverse.readableMangaChapters();
+	const volIds = new Set(
+		(readable?.chapters ?? [])
+			.map((c) => c.volume_id)
+			.filter((v): v is number => v != null)
+	);
+	return [...volIds].map((id) => ({ id: String(id) }));
 }
 
 export async function generateMetadata({

@@ -30,10 +30,18 @@ async function runMangaSeed() {
 	let volumesInserted = 0;
 
 	for (const item of items) {
+		// Classification par titre. « Super » seul est TROP LARGE : il capturait les
+		// spin-offs (Super Dragon Ball Heroes, Dragon Ball Super: Broly / Super Hero,
+		// Dragon Ball Super Divers…) et les rangeait à tort en DBS → 29 volumes +
+		// 290 chapitres fantômes (pages=NULL) polluant la série DBS (nettoyés le
+		// 2026-07-04). On teste donc les spin-offs AVANT le fallback « Super », qui
+		// ne doit capturer que la sérialisation canonique « Dragon Ball Super ».
+		const romaji: string = item.title.romaji ?? "";
 		let series = "DB";
-		if (item.title.romaji.includes("Super")) series = "DBS";
-		else if (item.title.romaji.includes("SD")) series = "DB_SD";
-		else if (item.title.romaji.includes("Heroes")) series = "DB_HEROES";
+		if (/Heroes/i.test(romaji)) series = "DB_HEROES";
+		else if (/\bSD\b|Super Deformed/i.test(romaji)) series = "DB_SD";
+		else if (/Broly|Super Hero|Divers|Gaiden|Super Dive/i.test(romaji)) series = "DB_SPINOFF";
+		else if (/Super/i.test(romaji)) series = "DBS";
 
 		const volumeCount = item.volumes || 1;
 
