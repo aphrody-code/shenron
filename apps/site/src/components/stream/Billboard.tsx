@@ -3,7 +3,6 @@ import Image from "next/image";
 import { Play, Info } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
 import { BackgroundImage } from "@/components/media/BackgroundImage";
-import { MotionReveal } from "@/components/stream/MotionReveal";
 
 /**
  * Billboard — bannière héro « à la Netflix » en tête des catalogues (films,
@@ -70,7 +69,7 @@ export function Billboard({
 
 			<div className="relative z-10 mx-auto flex h-full max-w-[1400px] items-end px-6 pb-12 lg:px-10 lg:pb-16">
 				<div className="flex w-full items-end gap-8">
-					<MotionReveal className="max-w-2xl flex-1">
+					<div className="reveal-up max-w-2xl flex-1">
 						<p className="mb-3 inline-flex items-center gap-3 font-display text-[12px] font-semibold uppercase tracking-[0.18em] text-dbz-orange">
 							<span aria-hidden className="h-px w-7 bg-dbz-orange/70" />
 							{eyebrow}
@@ -123,7 +122,7 @@ export function Billboard({
 								</Link>
 							)}
 						</div>
-					</MotionReveal>
+					</div>
 
 					{poster && (
 						<div className="hidden shrink-0 lg:block">
