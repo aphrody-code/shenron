@@ -31,8 +31,9 @@ export const SERIES_YEARS: Record<string, string> = {
 
 export const SERIES_ORDER = ["DB", "DBZ", "DBZ_KAI", "DBZ_KAI_FINAL", "DBGT", "DBS", "DB_DAIMA"];
 
-/** Cartes par rail sur la landing (au-delà → carte « Tout voir »). */
-export const RAIL_CAP = 24;
+/** Cartes par rail sur la landing (au-delà → carte « Tout voir »). Un rail n'en
+ *  montre ~5 ; 14 suffit largement en réserve de défilement sans alourdir le DOM. */
+export const RAIL_CAP = 14;
 
 export const orderSeries = (rows: { series: string }[] | null): string[] =>
 	(rows ?? [])
@@ -45,10 +46,13 @@ export const orderSeries = (rows: { series: string }[] | null): string[] =>
 
 export const yearOf = (sec: number | null) => (sec ? new Date(sec * 1000).getFullYear() : null);
 
+// Garde `Array.isArray` (piège jsonb scalaire) — cf. lib/media.
 export const hasLang = (
 	players: { lang?: "vf" | "vostfr" }[] | null,
 	lang: "vf" | "vostfr"
-): boolean => (players ?? []).some((p) => p.lang === lang);
+): boolean => (Array.isArray(players) ? players : []).some((p) => p.lang === lang);
+
+export { stripSourceTags } from "@/lib/media";
 
 // Mémoïsation des lectures Postgres : les pages sont STATIQUES (prérendu au build
 // + ISR) ; ces caches gardent la charge PG basse au (re)prérendu. On throw sur

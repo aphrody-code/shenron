@@ -7,6 +7,7 @@ import { eraOf, ERA_ACCENT } from "@/lib/chronology";
 import { Billboard } from "@/components/stream/Billboard";
 import { StreamRow } from "@/components/stream/StreamRow";
 import { PosterCard } from "@/components/stream/PosterCard";
+import { stripSourceTags, langBadges } from "@/lib/media";
 
 export const revalidate = 3600;
 
@@ -26,24 +27,6 @@ const SERIES_LABELS: Record<string, string> = {
 	DBZ_OVA: "OVA Dragon Ball Z",
 	DBZ_SPECIAL: "Téléfilms Dragon Ball Z",
 };
-
-// Retire les mentions de source du dataset (« (Source : ANN) », « [Écrit par
-// MAL Rewrite] »…) en fin de synopsis. Boucle pour les balises empilées.
-function stripSourceTags(s: string | null): string | null {
-	if (!s) return s;
-	let out = s;
-	let prev: string;
-	do {
-		prev = out;
-		out = out.replace(/\s*[([]\s*(?:source|écrit par)[^)\]]*[)\]]\s*$/i, "");
-	} while (out !== prev);
-	return out.trimEnd();
-}
-
-const hasLang = (
-	players: { lang?: "vf" | "vostfr" }[] | null,
-	lang: "vf" | "vostfr"
-): boolean => (players ?? []).some((p) => p.lang === lang);
 
 const yearOf = (sec: number | null) => (sec ? new Date(sec * 1000).getFullYear() : null);
 
@@ -89,9 +72,10 @@ export default async function FilmsPage() {
 					`${movies.length} films au catalogue`,
 				]}
 				synopsis={featured.synopsis}
-				hasVf={hasLang(featured.players, "vf")}
-				hasVostfr={hasLang(featured.players, "vostfr")}
+				hasVf={langBadges(featured.players).hasVf}
+				hasVostfr={langBadges(featured.players).hasVostfr}
 				primaryHref={`/wiki/films/${featured.slug}`}
+				primaryHardNav
 				primaryLabel="Regarder le film"
 				secondaryHref="/wiki/chronologie"
 				secondaryLabel="Chronologie"
@@ -114,8 +98,8 @@ export default async function FilmsPage() {
 								poster={m.poster}
 								year={yearOf(m.release_date)}
 								meta={m.duration_min ? `${m.duration_min} min` : null}
-								hasVf={hasLang(m.players, "vf")}
-								hasVostfr={hasLang(m.players, "vostfr")}
+								hasVf={langBadges(m.players).hasVf}
+								hasVostfr={langBadges(m.players).hasVostfr}
 								badge="Film"
 							/>
 						))}

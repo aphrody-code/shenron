@@ -15,6 +15,13 @@ export const SERIES_BANNERS: Record<string, string> = {
 	DBS_MANGA: `${API}/db/toei/124-cover-4-db-super-1024x317.jpg`,
 	DBS_MOVIE: `${API}/db/toei/124-cover-4-db-super-1024x317.jpg`,
 	DB_DAIMA: `${API}/db/toei/188-DB-DAIMA-HP-Header-1024x317.png`,
+	// Séries de films : rattachées à la bannière de leur ère (évite le fond
+	// générique identique partout sur les billboards/aperçus films).
+	DB_MOVIE: `${API}/db/toei/189-DB-DAIMA-HP-Header-1920x595.png`,
+	DBZ_MOVIE: `${API}/db/toei/124-cover-4-db-super-1024x317.jpg`,
+	DBZ_OVA: `${API}/db/toei/124-cover-4-db-super-1024x317.jpg`,
+	DBZ_SPECIAL: `${API}/db/toei/124-cover-4-db-super-1024x317.jpg`,
+	DB_DAIMA_MOVIE: `${API}/db/toei/188-DB-DAIMA-HP-Header-1024x317.png`,
 };
 
 export const SAGAS_HERO = `${API}/db/dbofficial/207-battle2026_banner.jpg`;

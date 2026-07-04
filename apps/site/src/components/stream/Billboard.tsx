@@ -25,9 +25,9 @@ export function Billboard({
 	hasVostfr,
 	primaryHref,
 	primaryLabel,
+	primaryHardNav = false,
 	secondaryHref,
 	secondaryLabel,
-	blurBackdrop = false,
 }: {
 	/** URL large déjà résolue (assetUrl(...) ou bannière). */
 	backdrop: string;
@@ -42,21 +42,17 @@ export function Billboard({
 	hasVostfr?: boolean;
 	primaryHref: string;
 	primaryLabel: string;
+	/** Navigation DURE (`<a>`) pour l'action primaire — utile quand le catalogue
+	 *  intercepte `/wiki/.../[id]` en modale mais qu'on veut aller à la fiche
+	 *  (ex. billboard films « Regarder le film » → vraie fiche, pas l'aperçu). */
+	primaryHardNav?: boolean;
 	secondaryHref?: string;
 	secondaryLabel?: string;
-	blurBackdrop?: boolean;
 }) {
 	const metaParts = (meta ?? []).filter(Boolean) as string[];
 	return (
 		<section className="relative h-[70vh] max-h-[680px] min-h-[440px] w-full overflow-hidden border-b border-white/[0.08]">
-			<BackgroundImage
-				src={backdrop}
-				alt=""
-				variant="kenburns"
-				overlay="none"
-				blur={blurBackdrop}
-				priority
-			/>
+			<BackgroundImage src={backdrop} alt="" variant="kenburns" overlay="none" priority />
 			{/* Fondus vers le fond de page pour un raccord invisible avec les rails */}
 			<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-dbz-bg via-dbz-bg/45 to-dbz-bg/10" />
 			<div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-dbz-bg/95 via-dbz-bg/40 to-transparent" />
@@ -105,13 +101,25 @@ export function Billboard({
 						)}
 
 						<div className="flex flex-wrap items-center gap-3">
-							<Link
-								href={primaryHref}
-								className="inline-flex items-center gap-2 rounded-lg bg-dbz-orange px-6 py-3 font-display text-[15px] font-bold text-black shadow-lg transition-colors hover:bg-dbz-orange-dark"
-							>
-								<Play className="h-5 w-5 fill-current" />
-								{primaryLabel}
-							</Link>
+							{primaryHardNav ? (
+								// Nav dure : contourne l'interception @modal du catalogue → fiche
+								// pleine page (lecteur) plutôt qu'un aperçu.
+								<a
+									href={primaryHref}
+									className="inline-flex items-center gap-2 rounded-lg bg-dbz-orange px-6 py-3 font-display text-[15px] font-bold text-black shadow-lg transition-colors hover:bg-dbz-orange-dark"
+								>
+									<Play className="h-5 w-5 fill-current" />
+									{primaryLabel}
+								</a>
+							) : (
+								<Link
+									href={primaryHref}
+									className="inline-flex items-center gap-2 rounded-lg bg-dbz-orange px-6 py-3 font-display text-[15px] font-bold text-black shadow-lg transition-colors hover:bg-dbz-orange-dark"
+								>
+									<Play className="h-5 w-5 fill-current" />
+									{primaryLabel}
+								</Link>
+							)}
 							{secondaryHref && secondaryLabel && (
 								<Link
 									href={secondaryHref}
@@ -132,7 +140,6 @@ export function Billboard({
 									alt=""
 									fill
 									sizes="176px"
-									priority
 									className="object-cover"
 								/>
 							</div>

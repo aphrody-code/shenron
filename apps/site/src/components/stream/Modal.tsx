@@ -51,8 +51,13 @@ export function Modal({ children }: { children: React.ReactNode }) {
 			}
 			const first = items[0]!;
 			const last = items[items.length - 1]!;
-			const active = document.activeElement;
-			if (e.shiftKey && (active === first || active === panel)) {
+			const active = document.activeElement as HTMLElement | null;
+			// Le focus s'est échappé du panneau (ex. clic sur du texte non focusable
+			// → blur vers <body>) : on le ramène dans la modale.
+			if (!active || !panel.contains(active)) {
+				e.preventDefault();
+				(e.shiftKey ? last : first).focus();
+			} else if (e.shiftKey && active === first) {
 				e.preventDefault();
 				last.focus();
 			} else if (!e.shiftKey && active === last) {
@@ -89,7 +94,7 @@ export function Modal({ children }: { children: React.ReactNode }) {
 						tabIndex={-1}
 						role="dialog"
 						aria-modal="true"
-						aria-label="Aperçu"
+						aria-labelledby="stream-modal-title"
 						className="relative my-auto w-full max-w-3xl overflow-hidden rounded-2xl border border-dbz-border bg-dbz-card shadow-2xl outline-none"
 						initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 16 }}
 						animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}

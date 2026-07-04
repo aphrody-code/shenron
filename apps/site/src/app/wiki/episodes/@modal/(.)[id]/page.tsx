@@ -8,7 +8,7 @@ import { assetUrl } from "@/lib/assets";
 import { bannerForSeries } from "@/lib/db-banners";
 import { Modal } from "@/components/stream/Modal";
 import { QuickLook } from "@/components/stream/QuickLook";
-import { SERIES_LABELS, hasLang } from "../../_shared";
+import { SERIES_LABELS, hasLang, stripSourceTags } from "../../_shared";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,9 @@ export default async function EpisodeModal({ params }: { params: Promise<{ id: s
 		return (
 			<Modal>
 				<div className="p-10 text-center">
-					<p className="font-saiyan text-2xl uppercase text-white/45">Aperçu indisponible</p>
+					<p id="stream-modal-title" className="font-saiyan text-2xl uppercase text-white/45">
+						Aperçu indisponible
+					</p>
 					<p className="mt-2 text-sm text-white/50">
 						Impossible de charger cet aperçu pour le moment. Ouvre la fiche complète ou réessaie.
 					</p>
@@ -39,7 +41,7 @@ export default async function EpisodeModal({ params }: { params: Promise<{ id: s
 				title={ep.title}
 				titleJa={ep.title_ja}
 				meta={[year ? String(year) : null]}
-				synopsis={ep.synopsis}
+				synopsis={stripSourceTags(ep.synopsis)}
 				hasVf={hasLang(ep.players, "vf")}
 				hasVostfr={hasLang(ep.players, "vostfr")}
 				watchHref={`/wiki/episodes/${ep.id}`}

@@ -6,6 +6,7 @@
  */
 import { dbUniverse } from "@/lib/db-universe";
 import { bannerForSeries } from "@/lib/db-banners";
+import { stripSourceTags, langBadges } from "@/lib/media";
 import { Modal } from "@/components/stream/Modal";
 import { QuickLook } from "@/components/stream/QuickLook";
 
@@ -21,22 +22,6 @@ const SERIES_LABELS: Record<string, string> = {
 	DBZ_SPECIAL: "Téléfilm Dragon Ball Z",
 };
 
-function stripSourceTags(s: string | null): string | null {
-	if (!s) return s;
-	let out = s;
-	let prev: string;
-	do {
-		prev = out;
-		out = out.replace(/\s*[([]\s*(?:source|écrit par)[^)\]]*[)\]]\s*$/i, "");
-	} while (out !== prev);
-	return out.trimEnd();
-}
-
-const hasLang = (
-	players: { lang?: "vf" | "vostfr" }[] | null,
-	lang: "vf" | "vostfr"
-): boolean => (players ?? []).some((p) => p.lang === lang);
-
 export default async function FilmModal({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
@@ -48,7 +33,9 @@ export default async function FilmModal({ params }: { params: Promise<{ slug: st
 		return (
 			<Modal>
 				<div className="p-10 text-center">
-					<p className="font-saiyan text-2xl uppercase text-white/45">Aperçu indisponible</p>
+					<p id="stream-modal-title" className="font-saiyan text-2xl uppercase text-white/45">
+						Aperçu indisponible
+					</p>
 					<p className="mt-2 text-sm text-white/50">
 						Impossible de charger cet aperçu pour le moment. Ouvre la fiche complète ou réessaie.
 					</p>
@@ -68,8 +55,8 @@ export default async function FilmModal({ params }: { params: Promise<{ slug: st
 				titleJa={m.title_ja}
 				meta={[year ? String(year) : null, m.duration_min ? `${m.duration_min} min` : null]}
 				synopsis={stripSourceTags(m.synopsis)}
-				hasVf={hasLang(m.players, "vf")}
-				hasVostfr={hasLang(m.players, "vostfr")}
+				hasVf={langBadges(m.players).hasVf}
+				hasVostfr={langBadges(m.players).hasVostfr}
 				watchHref={`/wiki/films/${m.slug}`}
 				watchLabel="Regarder le film"
 			/>

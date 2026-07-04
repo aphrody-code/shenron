@@ -5,10 +5,10 @@ import { assetUrl } from "@/lib/assets";
 /**
  * EpisodeCard — carte vignette 16:9 (épisodes) façon streaming.
  *
- * Composant SERVEUR (aucun JS) : survol = zoom + révélation play/synopsis, 100 %
- * CSS. `<img loading="lazy">` (comme l'index épisodes existant) → seules les
- * vignettes visibles du rail se chargent. Numéro d'épisode en pastille HUD,
- * puces VF/VOSTFR pour la disponibilité en lecture.
+ * Composant SERVEUR (aucun JS) : survol/focus = zoom + bouton play (100 % CSS).
+ * `<img loading="lazy" decoding="async">` → seules les vignettes visibles se
+ * chargent/décodent. Numéro d'épisode en pastille HUD, puces VF/VOSTFR pour la
+ * disponibilité en lecture. `synopsis` n'est rendu qu'en `width="full"` (grille).
  */
 export function EpisodeCard({
 	href,
@@ -38,16 +38,17 @@ export function EpisodeCard({
 	return (
 		<Link
 			href={href}
-			className={`group/card block ${
+			className={`group/card block rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-dbz-bg ${
 				width === "rail" ? "w-[260px] shrink-0 snap-start sm:w-[300px]" : "w-full"
 			}`}
 		>
-			<div className="relative aspect-video overflow-hidden rounded-lg bg-dbz-card shadow-lg ring-1 ring-white/[0.06] transition-all duration-300 group-hover/card:z-10 group-hover/card:ring-dbz-orange/60">
+			<div className="relative aspect-video overflow-hidden rounded-lg bg-dbz-card shadow-lg ring-1 ring-white/[0.06] transition-all duration-300 group-hover/card:z-10 group-hover/card:ring-dbz-orange/60 group-focus-visible/card:ring-dbz-orange/60">
 				{image ? (
 					<img
 						src={assetUrl(image)}
 						alt=""
 						loading="lazy"
+						decoding="async"
 						className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
 					/>
 				) : (
@@ -64,20 +65,20 @@ export function EpisodeCard({
 				{(hasVf || hasVostfr) && (
 					<div className="absolute right-2 top-2 flex gap-1">
 						{hasVf && (
-							<span className="rounded bg-namek/85 px-1 py-0.5 text-[8px] font-bold uppercase text-black">
+							<span className="rounded bg-namek/85 px-1 py-0.5 text-[10px] font-bold uppercase text-black">
 								VF
 							</span>
 						)}
 						{hasVostfr && (
-							<span className="rounded bg-dbz-blue-light/85 px-1 py-0.5 text-[8px] font-bold uppercase text-black">
+							<span className="rounded bg-dbz-blue-light/85 px-1 py-0.5 text-[10px] font-bold uppercase text-black">
 								VOSTFR
 							</span>
 						)}
 					</div>
 				)}
 
-				{/* Bouton play au survol */}
-				<div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/card:opacity-100">
+				{/* Bouton play au survol/focus */}
+				<div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 group-focus-visible/card:opacity-100">
 					<span className="grid h-12 w-12 place-items-center rounded-full bg-dbz-orange text-black shadow-lg">
 						<Play className="h-5 w-5 translate-x-[1px] fill-current" />
 					</span>
@@ -93,7 +94,7 @@ export function EpisodeCard({
 					</p>
 				</div>
 			</div>
-			{/* Synopsis révélé sous la vignette au survol (rail) / toujours (grille) */}
+			{/* Synopsis en grille (width="full") uniquement */}
 			{synopsis && width === "full" && (
 				<p className="mt-2 line-clamp-2 text-[12px] leading-relaxed text-white/50">{synopsis}</p>
 			)}

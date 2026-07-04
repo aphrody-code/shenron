@@ -49,7 +49,8 @@ export function StreamRail({
 	const scrollByPage = (dir: -1 | 1) => {
 		const el = ref.current;
 		if (!el) return;
-		el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: "smooth" });
+		const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+		el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: reduce ? "auto" : "smooth" });
 	};
 
 	return (
@@ -73,6 +74,7 @@ export function StreamRail({
 				type="button"
 				aria-label="Défiler vers la gauche"
 				onClick={() => scrollByPage(-1)}
+				disabled={atStart}
 				className={`absolute left-1 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition-all duration-200 hover:border-dbz-orange hover:bg-dbz-orange hover:text-black ${
 					atStart
 						? "pointer-events-none opacity-0"
@@ -86,6 +88,7 @@ export function StreamRail({
 				type="button"
 				aria-label="Défiler vers la droite"
 				onClick={() => scrollByPage(1)}
+				disabled={atEnd}
 				className={`absolute right-1 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition-all duration-200 hover:border-dbz-orange hover:bg-dbz-orange hover:text-black ${
 					atEnd
 						? "pointer-events-none opacity-0"
@@ -98,8 +101,9 @@ export function StreamRail({
 			<div
 				ref={ref}
 				onScroll={update}
+				role="group"
 				aria-label={ariaLabel}
-				className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 			>
 				{children}
 			</div>

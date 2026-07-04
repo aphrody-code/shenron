@@ -865,12 +865,17 @@ export const dbUniverse = {
 						)
 					),
 			]);
+			// Garde `Array.isArray` : `players` jsonb peut être un scalaire corrompu
+			// (piège documenté) → un `.some` non gardé planterait tout le dataset.
 			const langs = (
 				players: { lang?: "vf" | "vostfr" }[] | null
-			): { hasVf: boolean; hasVostfr: boolean } => ({
-				hasVf: (players ?? []).some((p) => p.lang === "vf"),
-				hasVostfr: (players ?? []).some((p) => p.lang === "vostfr"),
-			});
+			): { hasVf: boolean; hasVostfr: boolean } => {
+				const arr = Array.isArray(players) ? players : [];
+				return {
+					hasVf: arr.some((p) => p.lang === "vf"),
+					hasVostfr: arr.some((p) => p.lang === "vostfr"),
+				};
+			};
 			const items: TimelineItem[] = [
 				...eps.map((e) => {
 					const l = langs(e.players);

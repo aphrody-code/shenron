@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { stripSourceTags } from "@/lib/media";
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
@@ -27,18 +28,6 @@ const SERIES_LABELS: Record<string, string> = {
 	DBZ_SPECIAL: "Téléfilm Dragon Ball Z",
 };
 
-// Retire les mentions de source du dataset (« (Source : ANN) », « [Écrit par
-// MAL Rewrite] »…) en fin de synopsis. Boucle pour les balises empilées.
-function stripSourceTags(s: string | null): string | null {
-	if (!s) return s;
-	let out = s;
-	let prev: string;
-	do {
-		prev = out;
-		out = out.replace(/\s*[([]\s*(?:source|écrit par)[^)\]]*[)\]]\s*$/i, "");
-	} while (out !== prev);
-	return out.trimEnd();
-}
 
 export async function generateMetadata({
 	params,

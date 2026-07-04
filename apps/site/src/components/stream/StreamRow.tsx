@@ -34,13 +34,13 @@ export function StreamRow({
 					)}
 					{title}
 					{count != null && (
-						<span className="font-mono text-[13px] font-normal text-white/35">{count}</span>
+						<span className="font-mono text-[13px] font-normal text-white/55">{count}</span>
 					)}
 				</h2>
 				{seeAllHref && (
 					<Link
 						href={seeAllHref}
-						className="group/see inline-flex shrink-0 items-center gap-0.5 text-[12px] font-display font-semibold uppercase tracking-wider text-white/45 transition-colors hover:text-dbz-orange"
+						className="group/see inline-flex shrink-0 items-center gap-0.5 text-[12px] font-display font-semibold uppercase tracking-wider text-white/60 transition-colors hover:text-dbz-orange"
 					>
 						{seeAllLabel}
 						<ChevronRight className="h-4 w-4 transition-transform group-hover/see:translate-x-0.5" />

@@ -49,22 +49,3 @@ export function RailSkeleton({ variant = "poster" }: { variant?: "poster" | "epi
 	);
 }
 
-/** Page complète : billboard + N rails. `rows`/`variant` selon la section. */
-export function StreamPageSkeleton({
-	rows = 4,
-	variant = "poster",
-}: {
-	rows?: number;
-	variant?: "poster" | "episode";
-}) {
-	return (
-		<>
-			<BillboardSkeleton />
-			<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
-				{Array.from({ length: rows }).map((_, i) => (
-					<RailSkeleton key={i} variant={variant} />
-				))}
-			</div>
-		</>
-	);
-}

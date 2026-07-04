@@ -12,6 +12,7 @@ import {
 	orderSeries,
 	yearOf,
 	hasLang,
+	stripSourceTags,
 	getEpisodesCached,
 	getEpisodeSeriesCached,
 } from "../../_shared";
@@ -67,7 +68,7 @@ export default async function EpisodeSeriePage({
 				eyebrow={SERIES_YEARS[series] ? `Anime · ${SERIES_YEARS[series]}` : "Anime"}
 				title={SERIES_LABELS[series] ?? series}
 				meta={[`${total} épisodes`, "VF · VOSTFR"]}
-				synopsis={opener.synopsis}
+				synopsis={stripSourceTags(opener.synopsis)}
 				primaryHref={`/wiki/episodes/${opener.id}`}
 				primaryLabel="Commencer la série"
 				secondaryHref="/wiki/chronologie"
@@ -114,7 +115,7 @@ export default async function EpisodeSeriePage({
 							title={ep.title}
 							titleJa={ep.title_ja}
 							image={ep.image}
-							synopsis={ep.synopsis}
+							synopsis={stripSourceTags(ep.synopsis)}
 							year={yearOf(ep.air_date)}
 							hasVf={hasLang(ep.players, "vf")}
 							hasVostfr={hasLang(ep.players, "vostfr")}
