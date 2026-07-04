@@ -5,7 +5,6 @@
  * l'interception ne s'applique pas → la vraie fiche `[slug]/page.tsx` est servie.
  */
 import { dbUniverse } from "@/lib/db-universe";
-import { notFound } from "next/navigation";
 import { bannerForSeries } from "@/lib/db-banners";
 import { Modal } from "@/components/stream/Modal";
 import { QuickLook } from "@/components/stream/QuickLook";
@@ -41,7 +40,22 @@ const hasLang = (
 export default async function FilmModal({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const m = await dbUniverse.movie(slug);
-	if (!m) notFound();
+	// Dans le slot d'interception, un null vient surtout d'une erreur DB transitoire
+	// (les cartes lient des slugs réels) → aperçu « indisponible » gracieux plutôt
+	// qu'un 404 racine par-dessus le catalogue. La fiche pleine page (accès direct)
+	// garde son vrai notFound.
+	if (!m) {
+		return (
+			<Modal>
+				<div className="p-10 text-center">
+					<p className="font-saiyan text-2xl uppercase text-white/45">Aperçu indisponible</p>
+					<p className="mt-2 text-sm text-white/50">
+						Impossible de charger cet aperçu pour le moment. Ouvre la fiche complète ou réessaie.
+					</p>
+				</div>
+			</Modal>
+		);
+	}
 	const year = m.release_date ? new Date(m.release_date * 1000).getFullYear() : null;
 
 	return (
