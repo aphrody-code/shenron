@@ -54,7 +54,7 @@ export default async function EpisodesLanding() {
 				secondaryHref="/wiki/chronologie"
 				secondaryLabel="Chronologie"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
 				<Suspense
 					fallback={
 						<>

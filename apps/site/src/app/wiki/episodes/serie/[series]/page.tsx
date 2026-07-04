@@ -74,7 +74,7 @@ export default async function EpisodeSeriePage({
 				secondaryHref="/wiki/chronologie"
 				secondaryLabel="Chronologie"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
 				<nav className="mb-8 flex flex-wrap gap-2">
 					<Link
 						href="/wiki/episodes"

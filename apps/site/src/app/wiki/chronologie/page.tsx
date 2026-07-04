@@ -60,7 +60,7 @@ export default async function ChronologiePage() {
 				secondaryHref="/wiki/episodes"
 				secondaryLabel="Les épisodes"
 			/>
-			<div className="mx-auto max-w-[1200px] px-6 py-12 lg:px-10 lg:py-16">
+			<div className="w-full mx-auto max-w-[1200px] px-6 py-12 lg:px-10 lg:py-16">
 				<ChronologyTimeline items={items} />
 			</div>
 		</>
