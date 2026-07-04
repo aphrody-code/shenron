@@ -14,7 +14,12 @@ export function stripSourceTags(s: string | null | undefined): string | null {
 	let prev: string;
 	do {
 		prev = out;
-		out = out.replace(/\s*[([]\s*(?:sources?|écrit par)[^)\]]*[)\]]\s*$/i, "");
+		// Emphase markdown optionnelle autour du parenthétique : `_(Source : Kitsu.)_`,
+		// `*(…)*`, `**(…)**` ou nu `(…)`. Ancré en fin de chaîne.
+		out = out.replace(
+			/\s*[_*]{0,2}\s*[([]\s*(?:sources?|écrit par)[^)\]]*[)\]]\s*[_*]{0,2}\s*$/i,
+			""
+		);
 	} while (out !== prev);
 	return out.trimEnd();
 }
