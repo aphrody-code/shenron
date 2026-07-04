@@ -3,11 +3,13 @@ import { assetUrl } from "@/lib/assets";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { bannerForSeries } from "@/lib/db-banners";
 import { eraOf, ERA_ACCENT } from "@/lib/chronology";
 import { Billboard } from "@/components/stream/Billboard";
 import { StreamRow } from "@/components/stream/StreamRow";
 import { EpisodeCard } from "@/components/stream/EpisodeCard";
+import { RailSkeleton } from "@/components/stream/StreamSkeleton";
 import { unstable_cache } from "next/cache";
 
 export const revalidate = 3600;
@@ -104,21 +106,15 @@ export default async function EpisodesIndex({
 	const seriesRows = await getEpisodeSeriesCached().catch(() => null);
 	const availableSeries = orderSeries(seriesRows);
 
-	// ── Vue LANDING (aucune série) : billboard + un rail par série ──────────────
+	// ── Vue LANDING (aucune série) : billboard (rendu immédiat depuis les COMPTES
+	// rapides d'episodeSeries) + rails par série STREAMÉS via Suspense ───────────
 	if (!sp.series) {
 		if (availableSeries.length === 0) notFound();
-		const groups = await Promise.all(
-			availableSeries.map(async (series) => {
-				const data = await getEpisodesCached(series, RAIL_CAP, 0).catch(() => null);
-				return data ? { series, episodes: data.episodes, total: data.total } : null;
-			})
-		);
-		const present = groups.filter((g): g is NonNullable<typeof g> => !!g && g.episodes.length > 0);
-		if (present.length === 0) notFound();
-
-		const grandTotal = present.reduce((n, g) => n + g.total, 0);
-		// Épisode d'ouverture (bouton « Commencer ») : 1er épisode de DB, sinon 1re série.
-		const opener = (present.find((g) => g.series === "DB") ?? present[0]!).episodes[0]!;
+		const counts = new Map((seriesRows ?? []).map((r) => [r.series, r.count]));
+		const grandTotal = [...counts.values()].reduce((a, b) => a + b, 0);
+		const openerSeries = availableSeries.find((s) => s === "DB") ?? availableSeries[0]!;
+		// 1 requête légère (1 épisode) pour le CTA « Commencer » — hors Suspense.
+		const opener = (await getEpisodesCached(openerSeries, 1, 0).catch(() => null))?.episodes[0];
 
 		return (
 			<>
@@ -126,47 +122,25 @@ export default async function EpisodesIndex({
 					backdrop={bannerForSeries("DBZ")}
 					eyebrow="Série animée"
 					title="Les épisodes Dragon Ball"
-					meta={[`${grandTotal} épisodes`, `${present.length} séries`, "VF · VOSTFR"]}
+					meta={[`${grandTotal} épisodes`, `${availableSeries.length} séries`, "VF · VOSTFR"]}
 					synopsis="De Dragon Ball à Dragon Ball Daima — l'intégrale de l'anime, épisode par épisode, en VF et VOSTFR. Choisis ta série et lance la lecture."
-					primaryHref={`/wiki/episodes/${opener.id}`}
+					primaryHref={opener ? `/wiki/episodes/${opener.id}` : `/wiki/episodes?series=${openerSeries}`}
 					primaryLabel="Commencer l'aventure"
 					secondaryHref="/wiki/chronologie"
 					secondaryLabel="Chronologie"
 				/>
 				<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
-					{present.map((g) => (
-						<StreamRow
-							key={g.series}
-							title={SERIES_LABELS[g.series] ?? g.series}
-							count={g.total}
-							accent={ERA_ACCENT[eraOf(g.series)]}
-							seeAllHref={`/wiki/episodes?series=${g.series}`}
-						>
-							{g.episodes.map((ep) => (
-								<EpisodeCard
-									key={ep.id}
-									href={`/wiki/episodes/${ep.id}`}
-									number={ep.number_in_series}
-									title={ep.title}
-									titleJa={ep.title_ja}
-									image={ep.image}
-									year={yearOf(ep.air_date)}
-									hasVf={hasLang(ep.players, "vf")}
-									hasVostfr={hasLang(ep.players, "vostfr")}
-								/>
-							))}
-							{g.total > g.episodes.length && (
-								<Link
-									href={`/wiki/episodes?series=${g.series}`}
-									className="flex w-[160px] shrink-0 snap-start items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/[0.02] text-center text-[13px] font-display font-semibold text-white/60 transition-colors hover:border-dbz-orange/50 hover:text-dbz-orange"
-								>
-									+ {g.total - g.episodes.length}
-									<br />
-									Tout voir
-								</Link>
-							)}
-						</StreamRow>
-					))}
+					<Suspense
+						fallback={
+							<>
+								{Array.from({ length: Math.min(5, availableSeries.length) }).map((_, i) => (
+									<RailSkeleton key={i} variant="episode" />
+								))}
+							</>
+						}
+					>
+						<EpisodeRails series={availableSeries} />
+					</Suspense>
 				</div>
 			</>
 		);
@@ -268,6 +242,62 @@ export default async function EpisodesIndex({
 					</nav>
 				)}
 			</div>
+		</>
+	);
+}
+
+/**
+ * Rails par série — async server component STREAMÉ (frontière `<Suspense>` de la
+ * landing) : le billboard + le shell s'affichent immédiatement, puis les rails
+ * arrivent quand les requêtes par série résolvent. `RAIL_CAP` cartes + une carte
+ * « Tout voir » vers la vue série complète.
+ */
+async function EpisodeRails({ series }: { series: string[] }) {
+	const groups = await Promise.all(
+		series.map(async (s) => {
+			const data = await getEpisodesCached(s, RAIL_CAP, 0).catch(() => null);
+			return data ? { series: s, episodes: data.episodes, total: data.total } : null;
+		})
+	);
+	const present = groups.filter((g): g is NonNullable<typeof g> => !!g && g.episodes.length > 0);
+	if (present.length === 0) {
+		return <p className="py-12 text-center text-white/40">Aucun épisode à afficher.</p>;
+	}
+	return (
+		<>
+			{present.map((g) => (
+				<StreamRow
+					key={g.series}
+					title={SERIES_LABELS[g.series] ?? g.series}
+					count={g.total}
+					accent={ERA_ACCENT[eraOf(g.series)]}
+					seeAllHref={`/wiki/episodes?series=${g.series}`}
+				>
+					{g.episodes.map((ep) => (
+						<EpisodeCard
+							key={ep.id}
+							href={`/wiki/episodes/${ep.id}`}
+							number={ep.number_in_series}
+							title={ep.title}
+							titleJa={ep.title_ja}
+							image={ep.image}
+							year={yearOf(ep.air_date)}
+							hasVf={hasLang(ep.players, "vf")}
+							hasVostfr={hasLang(ep.players, "vostfr")}
+						/>
+					))}
+					{g.total > g.episodes.length && (
+						<Link
+							href={`/wiki/episodes?series=${g.series}`}
+							className="flex w-[160px] shrink-0 snap-start items-center justify-center rounded-lg border border-dashed border-white/15 bg-white/[0.02] text-center text-[13px] font-display font-semibold text-white/60 transition-colors hover:border-dbz-orange/50 hover:text-dbz-orange"
+						>
+							+ {g.total - g.episodes.length}
+							<br />
+							Tout voir
+						</Link>
+					)}
+				</StreamRow>
+			))}
 		</>
 	);
 }
