@@ -34,9 +34,9 @@ function buildDrifts(scenes: readonly HomeScene[], max: number): Drift[] {
 			top: 2 + ((i * 11) % 80), // 2–82 %
 			dur,
 			delay: -((i * dur) / count), // décale le départ pour remplir le champ dès le premier rendu
-			scale: 0.72 + ((i % 4) * 0.18), // 0.72–1.26
-			opacity: 0.32 + ((i % 3) * 0.09), // 0.32–0.50
-			blur: i % 3 === 0 ? 0.8 : 0,
+			scale: 0.78 + ((i % 4) * 0.18), // 0.78–1.32
+			opacity: 0.42 + ((i % 3) * 0.1), // 0.42–0.62 (plus présents, plus nets)
+			blur: 0, // plus de flou → clips nets
 			dir: i % 2 === 0 ? "ltr" : "rtl",
 		};
 	});

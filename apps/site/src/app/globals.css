@@ -1415,6 +1415,8 @@ html[data-home] {
 .scene-img {
 	transform-origin: 60% 38%;
 	will-change: transform;
+	/* Punch/netteté — compense la compression du .web.mp4 sans éclaircir la scène. */
+	filter: saturate(1.12) contrast(1.05);
 }
 .scene-img--live {
 	animation: ken-burns 26s ease-in-out infinite alternate;
@@ -1423,11 +1425,11 @@ html[data-home] {
 	background:
 		radial-gradient(
 			120% 90% at 70% 25%,
-			color-mix(in oklab, var(--accent) 28%, transparent),
-			transparent 60%
+			color-mix(in oklab, var(--accent) 24%, transparent),
+			transparent 62%
 		),
-		linear-gradient(180deg, color-mix(in oklab, var(--accent) 8%, transparent), transparent 35%),
-		color-mix(in oklab, #0a0a0a 40%, transparent);
+		linear-gradient(180deg, color-mix(in oklab, var(--accent) 7%, transparent), transparent 35%),
+		color-mix(in oklab, #0a0a0a 26%, transparent);
 	mix-blend-mode: hard-light;
 }
 .scene-aura {
@@ -1436,7 +1438,7 @@ html[data-home] {
 		color-mix(in oklab, var(--accent) 40%, transparent),
 		transparent 70%
 	);
-	opacity: 0.5;
+	opacity: 0.36;
 	filter: blur(8px);
 }
 .scene-bar {
@@ -1617,6 +1619,7 @@ html[data-home] {
 	height: 100%;
 	object-fit: cover;
 	display: block;
+	filter: saturate(1.12) contrast(1.05);
 }
 .home-clip--ltr {
 	animation-name: clip-drift-ltr;
@@ -2028,6 +2031,26 @@ html[data-home] {
 	letter-spacing: 0.16em;
 	text-transform: uppercase;
 	color: rgba(255, 255, 255, 0.6);
+}
+/* Mobile : le grand nombre (min-width auto d'un item de grille) débordait la
+   colonne 2. On passe en 1 colonne sur petit écran + police réduite + min-width:0
+   → les compteurs ne débordent plus jamais le panneau. */
+@media (max-width: 640px) {
+	.home-power {
+		min-width: 0;
+		padding-left: 0.7rem;
+	}
+	.home-power__num {
+		font-size: clamp(1.5rem, 8vw, 2.3rem);
+	}
+	.home-power__label {
+		font-size: 0.66rem;
+	}
+}
+@media (max-width: 460px) {
+	.home-power-grid {
+		grid-template-columns: 1fr;
+	}
 }
 .home-feed {
 	list-style: none;

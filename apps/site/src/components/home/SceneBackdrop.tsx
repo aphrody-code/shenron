@@ -73,7 +73,7 @@ export function SceneBackdrop({
 					playsInline
 					preload={active ? "auto" : "none"}
 					className={`scene-img object-cover object-center absolute inset-0 w-full h-full transition-all duration-1000 ${
-						active ? "scale-105 opacity-80" : "scale-100 opacity-20"
+						active ? "scale-105 opacity-95" : "scale-100 opacity-20"
 					}`}
 				/>
 			) : (
@@ -91,13 +91,14 @@ export function SceneBackdrop({
 
 			{/* Color grade d'ère — teinte l'image vers l'accent, fondu vers le noir */}
 			<div className="scene-grade absolute inset-0" />
-			{/* Lisibilité — dégradés bas + haut */}
-			<div className="absolute inset-0 bg-gradient-to-t from-dbz-bg via-dbz-bg/40 to-dbz-bg/70" />
-			<div className="absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-dbz-bg/80 to-transparent" />
+			{/* Lisibilité — dégradé bas concentré sous le contenu (laisse le clip net en
+			    haut) + voile haut léger. Allégé vs avant → clips plus nets. */}
+			<div className="absolute inset-0 bg-gradient-to-t from-dbz-bg via-dbz-bg/25 to-transparent" />
+			<div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-dbz-bg/55 to-transparent" />
 			{/* Aura d'énergie — halo radial accentué, pulse quand actif */}
 			<div className={`scene-aura absolute inset-0 ${active ? "ki-pulse" : ""}`} />
-			{/* Grain argentique + scanlines HUD discrètes */}
-			<div className="film-grain absolute inset-0 opacity-[0.18]" />
+			{/* Grain argentique discret (allégé pour ne pas ternir le clip) */}
+			<div className="film-grain absolute inset-0 opacity-[0.09]" />
 			{/* Letterbox cinéma */}
 			<div className="scene-bar scene-bar--top" />
 			<div className="scene-bar scene-bar--bottom" />

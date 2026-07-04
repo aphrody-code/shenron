@@ -65,12 +65,14 @@ export function Billboard({
 
 			<div className="relative z-10 mx-auto flex h-full max-w-[1400px] items-end px-6 pb-12 lg:px-10 lg:pb-16">
 				<div className="flex w-full items-end gap-8">
-					<div className="reveal-up max-w-2xl flex-1">
+					{/* min-w-0 : sans ça, ce flex-1 ne descend pas sous la largeur de son
+					    contenu (min-width:auto) → titre/synopsis débordent sur mobile. */}
+					<div className="reveal-up min-w-0 max-w-2xl flex-1">
 						<p className="mb-3 inline-flex items-center gap-3 font-display text-[12px] font-semibold uppercase tracking-[0.18em] text-dbz-orange">
 							<span aria-hidden className="h-px w-7 bg-dbz-orange/70" />
 							{eyebrow}
 						</p>
-						<h1 className="title-gold mb-3 font-saiyan text-[38px] font-bold uppercase leading-[1.02] tracking-[0.01em] md:text-[56px]">
+						<h1 className="title-gold mb-3 hyphens-auto break-words font-saiyan text-[27px] font-bold uppercase leading-[1.05] tracking-[0.01em] sm:text-[38px] sm:leading-[1.02] md:text-[56px]">
 							{title}
 						</h1>
 						{titleJa && <p className="mb-3 font-jp text-[15px] text-white/55">{titleJa}</p>}

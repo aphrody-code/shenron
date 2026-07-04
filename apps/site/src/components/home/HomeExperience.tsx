@@ -235,6 +235,22 @@ export function HomeExperience({
 		[sections.length]
 	);
 
+	// Clic sur le deck → panneau suivant (boucle). Rend l'expérience interactive au
+	// clic en plus de la molette/tactile. Ignore les clics sur un élément interactif
+	// (lien, bouton, champ, carte, points de nav) et une sélection de texte en cours.
+	const onDeckClick = useCallback(
+		(e: React.MouseEvent) => {
+			if (lockRef.current) return;
+			const t = e.target as HTMLElement;
+			if (t.closest("a,button,input,select,textarea,label,[role='button'],[data-no-advance]")) {
+				return;
+			}
+			if (window.getSelection()?.toString()) return;
+			goTo((active + 1) % sections.length);
+		},
+		[active, sections.length, goTo]
+	);
+
 	// Suivi du panneau actif (scroll libre, ancrage, etc.)
 	useEffect(() => {
 		const obs = new IntersectionObserver(
@@ -728,7 +744,11 @@ export function HomeExperience({
 	};
 
 	return (
-		<div className="home-deck" style={{ ["--accent" as string]: activeScene?.accent }}>
+		<div
+			className="home-deck"
+			onClick={onDeckClick}
+			style={{ ["--accent" as string]: activeScene?.accent }}
+		>
 			{/* Navigation latérale — points HUD scouter */}
 			<nav className="home-dots" aria-label="Sections de la page">
 				{sections.map((s, i) => (
