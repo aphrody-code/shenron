@@ -350,38 +350,49 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 			}`}
 			style={grouped ? { borderLeftColor: accent, borderLeftWidth: 3 } : undefined}
 		>
-			{/* Marqueur type : poster (film), couverture (tome), ou pastille numéro (épisode) */}
-			{isMovie || isManga ? (
-				it.image ? (
-					<div className="relative h-14 w-10 shrink-0 overflow-hidden rounded">
+			{/* Miniature : still 16:9 (épisode) ou couverture 2:3 (film/tome), dans un
+			    emplacement de largeur fixe → titres alignés. Pastille numéro en repli. */}
+			<div className="flex h-14 w-[104px] shrink-0 items-center overflow-hidden">
+				{it.image ? (
+					<div
+						className={`relative h-14 overflow-hidden rounded ${
+							isMovie || isManga ? "w-10" : "w-[104px]"
+						}`}
+					>
 						<img
 							src={assetUrl(it.image)}
 							alt=""
 							loading="lazy"
+							decoding="async"
 							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
 						/>
+						{!(isMovie || isManga) && it.number != null && (
+							<span className="scouter-text absolute left-1 top-1 bg-black/70 px-1 py-0.5 text-[9px] leading-none text-dbz-orange">
+								#{it.number}
+							</span>
+						)}
 						<span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
 							<Play className="h-4 w-4 fill-current text-dbz-orange" />
 						</span>
 					</div>
-				) : (
+				) : isMovie || isManga ? (
 					<span
-						className={`flex h-14 w-10 shrink-0 items-center justify-center rounded ${
+						className={`flex h-14 w-10 items-center justify-center rounded ${
 							isManga ? "bg-pink-500/15 text-pink-300" : "bg-dbz-orange/15 text-dbz-orange"
 						}`}
 					>
 						{isManga ? <BookOpen className="h-4 w-4" /> : <Film className="h-4 w-4" />}
 					</span>
-				)
-			) : (
-				<span
-					className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[12px] font-mono font-bold text-black"
-					style={{ backgroundColor: accent }}
-					title={`${it.series} — épisode`}
-				>
-					{it.number ?? "?"}
-				</span>
-			)}
+				) : (
+					<span
+						className="flex h-10 w-10 items-center justify-center rounded-full text-[12px] font-mono font-bold text-black"
+						style={{ backgroundColor: accent }}
+						title={`${it.series} — épisode`}
+					>
+						{it.number ?? "?"}
+					</span>
+				)}
+			</div>
 
 			{/* Titre + méta */}
 			<div className="min-w-0 flex-1">
