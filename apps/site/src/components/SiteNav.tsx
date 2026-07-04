@@ -13,7 +13,7 @@ import { MobileNav } from "@/components/MobileNav";
 // Wiki (personnages/sagas/arcs…) et Tierlists seront réactivés après le lancement.
 const PUBLIC_LINKS = [
 	{ href: "/", label: "Accueil" },
-	{ href: "/wiki/episodes?series=DBZ", label: "Épisodes" },
+	{ href: "/wiki/episodes", label: "Épisodes" },
 	{ href: "/wiki/films", label: "Films" },
 	{ href: "/wiki/chronologie", label: "Chronologie" },
 	{ href: "/wiki/manga", label: "Manga" },

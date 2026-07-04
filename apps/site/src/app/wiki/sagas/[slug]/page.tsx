@@ -147,7 +147,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 			<section className="dbz-panel p-10 border-t-4 border-t-dbz-orange bg-dbz-card/30">
 				<h2 className="font-saiyan text-3xl text-white mb-6 tracking-widest">EXPLORATION</h2>
 				<div className="flex flex-wrap gap-4">
-					<Link href={`/wiki/episodes?series=${saga.series}`} className="dbz-button">
+					<Link href={`/wiki/episodes/serie/${saga.series}`} className="dbz-button">
 						VOIR LES ÉPISODES
 					</Link>
 					<Link href="/wiki/personnages" className="dbz-button-ghost">

@@ -233,7 +233,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 
 			<div className="relative z-10 mx-auto max-w-[1180px] px-6 lg:px-10 pt-10 pb-20">
 				<Link
-					href={`/wiki/episodes?series=${ep.series}`}
+					href={`/wiki/episodes/serie/${ep.series}`}
 					className="inline-flex items-center gap-2 text-white/70 hover:text-dbz-orange transition-colors font-bold uppercase text-[11px] tracking-widest mb-10 link-underline"
 				>
 					<span>← {seriesLabel}</span>

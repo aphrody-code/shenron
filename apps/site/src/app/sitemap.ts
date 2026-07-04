@@ -62,6 +62,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			});
 		}
 
+		// 1b. Vues série épisodes (statiques) `/wiki/episodes/serie/<series>`.
+		const episodeSeries = await db
+			.selectDistinct({ series: botEpisodes.series })
+			.from(botEpisodes);
+		for (const s of episodeSeries) {
+			if (!s.series) continue;
+			sitemapEntries.push({
+				url: `${SITE_URL}/wiki/episodes/serie/${s.series}`,
+				lastModified: new Date(),
+				changeFrequency: "weekly",
+				priority: 0.7,
+			});
+		}
+
 		// 2. Films
 		const movies = await db
 			.select({ slug: botMovies.slug, releaseDate: botMovies.releaseDate })

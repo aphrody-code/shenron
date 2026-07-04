@@ -102,6 +102,16 @@ const nextConfig: NextConfig = {
 	// client 200 à cause du layout /wiki force-dynamic qui flush en streaming).
 	async redirects() {
 		return [
+			// Ancienne vue série épisodes par query (`?series=X`) → route dédiée
+			// STATIQUE `/wiki/episodes/serie/X` (la landing est passée statique pour
+			// débloquer l'interception @modal + le cache CDN). Capture la valeur du
+			// query dans `:series`. `page`/`view` obsolètes (grille complète).
+			{
+				source: "/wiki/episodes",
+				has: [{ type: "query", key: "series", value: "(?<series>[^&]+)" }],
+				destination: "/wiki/episodes/serie/:series",
+				permanent: true,
+			},
 			{ source: "/wiki/dragon-ball/movies", destination: "/wiki/films", permanent: true },
 			{ source: "/wiki/dragon-ball/movie/:id", destination: "/wiki/films", permanent: true },
 			// Ancien index « Encyclopédie » fourre-tout → page Personnages dédiée.
