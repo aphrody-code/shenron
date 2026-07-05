@@ -3,6 +3,7 @@ import { DragonBall } from "@/components/DragonBall";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
+import { AdminNavLinks } from "@/components/AdminNavLinks";
 
 // Nav 100 % statique : aucune lecture de session côté serveur (pas de
 // `headers()`), sinon TOUTES les pages basculeraient en rendu dynamique et ne
@@ -18,6 +19,20 @@ const PUBLIC_LINKS = [
 	{ href: "/wiki/chronologie", label: "Chronologie" },
 	{ href: "/wiki/manga", label: "Manga" },
 	{ href: "/actualites", label: "News" },
+];
+
+// Sections encore masquées au public (bêta) mais navigables par les admins :
+// exposées uniquement côté client via `AdminNavLinks`/`MobileNav` (gate useMe)
+// → la nav reste statique et cacheable pour tout le monde.
+const ADMIN_LINKS = [
+	{ href: "/wiki/personnages", label: "Personnages" },
+	{ href: "/wiki/planetes", label: "Planètes" },
+	{ href: "/wiki/sagas", label: "Sagas" },
+	{ href: "/wiki/races", label: "Races" },
+	{ href: "/wiki/dragon-ball/techniques", label: "Techniques" },
+	{ href: "/wiki/transformations", label: "Transformations" },
+	{ href: "/wiki/jeux", label: "Jeux" },
+	{ href: "/tierlists", label: "Tierlists" },
 ];
 
 export function SiteNav() {
@@ -70,6 +85,8 @@ export function SiteNav() {
 							{l.label}
 						</Link>
 					))}
+					{/* Sections masquées en bêta — visibles uniquement pour l'admin (îlot client). */}
+					<AdminNavLinks links={ADMIN_LINKS} />
 				</nav>
 
 				{/* Zone identité desktop — îlot client (auth via /api/me) */}
@@ -78,7 +95,7 @@ export function SiteNav() {
 					<NavAuth />
 				</div>
 
-				<MobileNav links={PUBLIC_LINKS} />
+				<MobileNav links={PUBLIC_LINKS} adminLinks={ADMIN_LINKS} />
 			</div>
 		</header>
 	);

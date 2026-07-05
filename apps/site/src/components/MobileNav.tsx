@@ -8,9 +8,11 @@ import { useMe } from "@/lib/use-me";
 
 type Props = {
 	links: Array<{ href: string; label: string }>;
+	/** Sections masquées au public, affichées uniquement si l'utilisateur est admin. */
+	adminLinks?: Array<{ href: string; label: string }>;
 };
 
-export function MobileNav({ links }: Props) {
+export function MobileNav({ links, adminLinks = [] }: Props) {
 	const [open, setOpen] = useState(false);
 	const me = useMe();
 
@@ -72,6 +74,23 @@ export function MobileNav({ links }: Props) {
 								{l.label}
 							</Link>
 						))}
+						{me?.isAdmin && adminLinks.length > 0 && (
+							<>
+								<p className="mt-4 mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-dbz-orange/50">
+									Admin · masquées en bêta
+								</p>
+								{adminLinks.map((l) => (
+									<Link
+										key={l.href}
+										href={l.href}
+										onClick={() => setOpen(false)}
+										className="font-display font-bold text-[26px] tracking-[0.04em] text-dbz-orange/85 py-1 hover:text-dbz-orange transition-colors"
+									>
+										{l.label}
+									</Link>
+								))}
+							</>
+						)}
 					</nav>
 
 					<div className="mt-auto p-6 border-t border-white/10 flex flex-col gap-3">
