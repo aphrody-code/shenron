@@ -1,5 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -126,6 +128,10 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 				<span>← Toutes les races</span>
 			</Link>
 
+			<div className="mb-6">
+				<WikiAdminBar table="db_races" id={race.id} indexHref="/wiki/races" label={race.name} />
+			</div>
+
 			<div className="space-y-16">
 				<header className="relative">
 					<div className="flex items-center gap-4 mb-4">
@@ -238,6 +244,8 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 						</div>
 					</section>
 				)}
+
+				<WikiEntitySections entityType="race" entityId={race.id} />
 			</div>
 		</div>
 	);

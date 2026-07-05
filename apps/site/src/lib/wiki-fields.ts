@@ -172,6 +172,55 @@ export function isStudioTable(table: string): boolean {
 }
 
 /**
+ * Table wiki → `entity_type` des sections de contenu (`bot.db_wiki_sections`).
+ * Doit rester synchronisé avec `SECTION_ENTITY_TABLE` (route `/api/wiki-admin`).
+ * null = table sans sélecteur de catégories.
+ */
+const SECTION_ENTITY_TYPE: Record<string, string> = {
+	db_characters: "character",
+	db_planets: "planet",
+	db_sagas: "saga",
+	db_arcs: "arc",
+	db_races: "race",
+	db_techniques: "technique",
+	db_games: "game",
+	db_movies: "movie",
+};
+export function sectionEntityType(table: string): string | null {
+	return SECTION_ENTITY_TYPE[table] ?? null;
+}
+
+/** Sections « suggérées » à l'ajout rapide (libellé + slug + accent). */
+export interface SectionPreset {
+	key: string;
+	label: string;
+	accent: "orange" | "blue" | "red";
+}
+export const SECTION_PRESETS: SectionPreset[] = [
+	{ key: "histoire", label: "Histoire", accent: "orange" },
+	{ key: "personnalite", label: "Personnalité", accent: "blue" },
+	{ key: "techniques", label: "Techniques", accent: "blue" },
+	{ key: "transformations", label: "Transformations", accent: "orange" },
+	{ key: "anecdotes", label: "Anecdotes", accent: "orange" },
+	{ key: "pws", label: "PWS", accent: "red" },
+	{ key: "apparence", label: "Apparence", accent: "orange" },
+	{ key: "relations", label: "Relations", accent: "blue" },
+];
+
+/** Slug de section depuis un libellé libre (accents retirés, espaces → tirets). */
+export function sectionKeyFromLabel(label: string): string {
+	return (
+		label
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, "-")
+			.replace(/^-+|-+$/g, "")
+			.slice(0, 40) || "section"
+	);
+}
+
+/**
  * Relations N-N éditables depuis le studio d'une entité (gérées via une table de
  * jointure). `selfCol`/`targetCol` = clés camelCase dans la jointure ; `pkOrder` =
  * colonnes pk de la jointure DANS L'ORDRE (pour construire l'id composite DELETE).

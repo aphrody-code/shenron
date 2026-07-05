@@ -11,6 +11,7 @@ import {
 	botRaces,
 	botTechniques,
 	botTransformations,
+	botWikiSections,
 	type WikiSource,
 } from "@/db/bot-schema";
 
@@ -188,6 +189,55 @@ export interface CharacterWithRelations extends DBCharacter {
 	transformations: DBTransformation[];
 	originPlanet: DBPlanet | null;
 	techniques: Array<{ technique: DBTechnique }>;
+}
+
+/** Section de contenu éditorial d'une entité wiki (bloc markdown nommé). */
+export interface WikiSectionData {
+	id: number;
+	key: string;
+	label: string;
+	accent: "orange" | "blue" | "red" | null;
+	body: string;
+}
+
+const SECTION_ACCENTS = new Set(["orange", "blue", "red"]);
+
+/**
+ * Sections de contenu **visibles** d'une entité (personnage, planète, saga…),
+ * triées par `sort_order`. Rendu en sélecteur de catégories sur la page détail.
+ * Vides (body blanc) ignorées. Lecture seule, tolérante (jamais throw).
+ */
+export async function getWikiSections(
+	entityType: string,
+	entityId: number
+): Promise<WikiSectionData[]> {
+	try {
+		const rows = await db
+			.select()
+			.from(botWikiSections)
+			.where(
+				and(
+					eq(botWikiSections.entityType, entityType),
+					eq(botWikiSections.entityId, entityId),
+					eq(botWikiSections.visible, true)
+				)
+			)
+			.orderBy(asc(botWikiSections.sortOrder), asc(botWikiSections.id));
+		return rows
+			.filter((r) => (r.body ?? "").trim().length > 0)
+			.map((r) => ({
+				id: r.id,
+				key: r.key,
+				label: r.label,
+				accent: (r.accent && SECTION_ACCENTS.has(r.accent)
+					? r.accent
+					: null) as WikiSectionData["accent"],
+				body: r.body ?? "",
+			}));
+	} catch (e) {
+		console.error("[shenron] getWikiSections a échoué:", e);
+		return [];
+	}
 }
 
 // ─────────────────────────────────────────────────────────────────────────

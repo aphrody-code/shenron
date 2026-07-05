@@ -1,8 +1,10 @@
 import { JsonLd } from "@/components/JsonLd";
 import { TrackView } from "@/components/TrackView";
 import { ViewTransition } from "@/components/ViewTransition";
-import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
@@ -103,6 +105,107 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			: undefined,
 	};
 
+	// ── Panneaux du sélecteur de catégories ───────────────────────────────────
+	// « Histoire » = article long-format sourcé s'il existe, sinon la description.
+	const historyNode = character.article ? (
+		<WikiArticle article={character.article} sources={character.articleSources} heading="Histoire" />
+	) : character.description ? (
+		<WikiArticle article={character.description} heading="Histoire" />
+	) : null;
+	const historyPanel: ReaderPanel | null = historyNode
+		? { key: "histoire", label: "Histoire", accent: "orange", node: historyNode }
+		: null;
+
+	// Panneaux de queue : Transformations puis Techniques (relationnels).
+	const trailingPanels: ReaderPanel[] = [];
+	if (character.transformations && character.transformations.length > 0) {
+		trailingPanels.push({
+			key: "transformations",
+			label: "Transformations",
+			accent: "orange",
+			node: (
+				<section className="space-y-8">
+					<div className="flex items-center gap-6">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
+							TRANSFORMATIONS
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+					</div>
+					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+						{character.transformations.map((transfo) => (
+							<div
+								key={transfo.id}
+								className="dbz-panel p-4 flex flex-col items-center group hover:scale-105 transition-transform duration-300"
+							>
+								<div className="aspect-square w-full bg-dbz-bg border border-dbz-border p-2 mb-4 overflow-hidden relative rounded-lg">
+									<div className="absolute inset-0 halftone opacity-10" />
+									<img
+										src={assetUrl(transfo.image)}
+										alt={transfo.name}
+										className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-700"
+									/>
+								</div>
+								<h3 className="text-xs font-bold text-white uppercase text-center group-hover:text-dbz-orange transition-colors leading-tight tracking-widest">
+									{transfo.name}
+								</h3>
+								{transfo.ki && (
+									<span className="scouter-text text-[10px] mt-2">KI: {transfo.ki}</span>
+								)}
+							</div>
+						))}
+					</div>
+				</section>
+			),
+		});
+	}
+	if (character.techniques && character.techniques.length > 0) {
+		trailingPanels.push({
+			key: "techniques",
+			label: "Techniques",
+			accent: "blue",
+			node: (
+				<section className="space-y-8">
+					<div className="flex items-center gap-6">
+						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest">
+							TECHNIQUES & CAPACITÉS
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
+					</div>
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+						{character.techniques.map(({ technique: tech }) => (
+							<div
+								key={tech.id}
+								className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group"
+							>
+								<div className="flex justify-between items-start mb-4">
+									<h3 className="text-xl font-bold text-white group-hover:text-dbz-blue-light transition-colors uppercase tracking-wider">
+										{tech.name}
+									</h3>
+									<span className="scouter-text text-[10px] text-dbz-blue-light/60">
+										TECH_ID: {tech.id}
+									</span>
+								</div>
+								{tech.description && (
+									<p className="text-sm text-gray-400 leading-relaxed line-clamp-3 font-sans">
+										{tech.description}
+									</p>
+								)}
+								<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+									<Link
+										href={`/wiki/dragon-ball/techniques/${tech.slug}`}
+										className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
+									>
+										Détails Technique →
+									</Link>
+								</div>
+							</div>
+						))}
+					</div>
+				</section>
+			),
+		});
+	}
+
 	return (
 		<article
 			data-entity={character.name}
@@ -121,6 +224,13 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			>
 				<span>← Retour aux personnages</span>
 			</Link>
+
+			<WikiAdminBar
+				table="db_characters"
+				id={character.id}
+				indexHref="/wiki/personnages"
+				label={character.name}
+			/>
 
 			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 				<div className="w-full lg:w-2/5 xl:w-1/3">
@@ -235,109 +345,15 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 				</div>
 			</div>
 
-			{/* Article long-format (Fandom-like) sourcé s'il existe ; sinon repli sur la
-			    description courte en « Archives / Lore ». */}
-			{character.article ? (
-				<WikiArticle
-					article={character.article}
-					sources={character.articleSources}
-					heading="Biographie"
-				/>
-			) : (
-				character.description && (
-					<section className="reveal-up" style={{ animationDelay: "0.45s" }}>
-						<div className="dbz-panel p-6 sm:p-8 lg:p-10 overflow-hidden">
-							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-							<div className="flex items-center gap-6 mb-6">
-								<h2 className="text-dbz-orange font-saiyan text-2xl sm:text-3xl md:text-4xl uppercase tracking-widest">
-									Archives / Lore
-								</h2>
-								<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
-							</div>
-							<div className="prose prose-invert max-w-none wiki-content wiki-lore text-justify">
-								<WikiMarkdown body={character.description} />
-							</div>
-						</div>
-					</section>
-				)
-			)}
-
-			{character.transformations && character.transformations.length > 0 && (
-				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.5s" }}>
-					<div className="flex items-center gap-6">
-						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
-							TRANSFORMATIONS
-						</h2>
-						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
-					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-						{character.transformations.map((transfo, idx) => (
-							<div
-								key={transfo.id}
-								className="dbz-panel p-4 flex flex-col items-center group hover:scale-105 transition-transform duration-300"
-								style={{ animationDelay: `${0.6 + idx * 0.05}s` }}
-							>
-								<div className="aspect-square w-full bg-dbz-bg border border-dbz-border p-2 mb-4 overflow-hidden relative rounded-lg">
-									<div className="absolute inset-0 halftone opacity-10" />
-									<img
-										src={assetUrl(transfo.image)}
-										alt={transfo.name}
-										className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-700"
-									/>
-								</div>
-								<h3 className="text-xs font-bold text-white uppercase text-center group-hover:text-dbz-orange transition-colors leading-tight tracking-widest">
-									{transfo.name}
-								</h3>
-								{transfo.ki && (
-									<span className="scouter-text text-[10px] mt-2">KI: {transfo.ki}</span>
-								)}
-							</div>
-						))}
-					</div>
-				</section>
-			)}
-
-			{character.techniques && character.techniques.length > 0 && (
-				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.7s" }}>
-					<div className="flex items-center gap-6">
-						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest">
-							TECHNIQUES & CAPACITÉS
-						</h2>
-						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
-					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-						{character.techniques.map(({ technique: tech }, idx) => (
-							<div
-								key={tech.id}
-								className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group"
-								style={{ animationDelay: `${0.8 + idx * 0.05}s` }}
-							>
-								<div className="flex justify-between items-start mb-4">
-									<h3 className="text-xl font-bold text-white group-hover:text-dbz-blue-light transition-colors uppercase tracking-wider">
-										{tech.name}
-									</h3>
-									<span className="scouter-text text-[10px] text-dbz-blue-light/60">
-										TECH_ID: {tech.id}
-									</span>
-								</div>
-								{tech.description && (
-									<p className="text-sm text-gray-400 leading-relaxed line-clamp-3 font-sans">
-										{tech.description}
-									</p>
-								)}
-								<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
-									<Link
-										href={`/wiki/dragon-ball/techniques/${tech.slug}`}
-										className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
-									>
-										Détails Technique →
-									</Link>
-								</div>
-							</div>
-						))}
-					</div>
-				</section>
-			)}
+			{/* Sélecteur de catégories : Histoire (article/description) + sections
+			    éditoriales (personnalité, anecdotes, PWS…) + Transformations + Techniques.
+			    Tout est rendu côté serveur ; le sélecteur ne fait que filtrer l'affichage. */}
+			<WikiEntitySections
+				entityType="character"
+				entityId={character.id}
+				leading={historyPanel ? [historyPanel] : []}
+				trailing={trailingPanels}
+			/>
 		</article>
 	);
 }

@@ -1,5 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -44,6 +46,10 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 				<span>← Retour aux sagas</span>
 			</Link>
 
+			<div className="mb-6">
+				<WikiAdminBar table="db_arcs" id={arc.id} indexHref="/wiki/sagas" label={arc.name} />
+			</div>
+
 			<header className="mb-16">
 				<div className="flex items-center gap-4 mb-4">
 					<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange">
@@ -73,6 +79,10 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 					<WikiArticle article={arc.article} sources={arc.article_sources} heading="Article" />
 				</div>
 			)}
+
+			<div className="mb-20">
+				<WikiEntitySections entityType="arc" entityId={arc.id} />
+			</div>
 
 			{episodes.length > 0 && (
 				<section className="mb-20">

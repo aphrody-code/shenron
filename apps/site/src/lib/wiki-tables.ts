@@ -172,6 +172,20 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"stars",
 		],
 	},
+	db_wiki_sections: {
+		name: "db_wiki_sections",
+		pk: "id",
+		mutableColumns: [
+			"entityType",
+			"entityId",
+			"key",
+			"label",
+			"accent",
+			"body",
+			"sortOrder",
+			"visible",
+		],
+	},
 	db_sources: {
 		name: "db_sources",
 		pk: "id",

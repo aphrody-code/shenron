@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import WikiRagArchives from "@/components/wiki/WikiRagArchives";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
@@ -77,6 +79,10 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 				<span>← Toutes les sagas</span>
 			</Link>
 
+			<div className="mb-6">
+				<WikiAdminBar table="db_sagas" id={saga.id} indexHref="/wiki/sagas" label={saga.name} />
+			</div>
+
 			<header className="mb-16">
 				<div className="flex items-center gap-4 mb-4">
 					<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange">
@@ -106,6 +112,10 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 					<WikiArticle article={saga.article} sources={saga.article_sources} heading="Article" />
 				</div>
 			)}
+
+			<div className="mb-20">
+				<WikiEntitySections entityType="saga" entityId={saga.id} />
+			</div>
 
 			{arcs.length > 0 && (
 				<section className="mb-20">

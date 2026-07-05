@@ -370,3 +370,28 @@ export const botAssets = bot.table("db_assets", {
 	role: text("role"),
 	createdAt: int("created_at"),
 });
+
+/**
+ * Sections de contenu éditorial par entité wiki (PG-only, `scripts/add-wiki-sections.ts`).
+ * Chaque ligne = un bloc markdown riche nommé (« Histoire », « Personnalité »,
+ * « Anecdotes », « PWS »…) attaché à une entité (`entity_type` + `entity_id`),
+ * réordonnable (`sort_order`) et masquable (`visible`). Rendu sur la page détail
+ * en sélecteur de catégories ; édité depuis le studio admin. Table PG-only : ni
+ * poussée ni écrasée par les syncs (absente de toute liste de tables).
+ */
+export const botWikiSections = bot.table("db_wiki_sections", {
+	id: int("id").primaryKey(),
+	/** Type d'entité parente ("character", "planet", "saga", "race", "technique", "arc", "game", "movie"). */
+	entityType: text("entity_type").notNull(),
+	entityId: int("entity_id").notNull(),
+	/** Slug de section ("histoire", "personnalite", "anecdotes", "pws"…) — libre. */
+	key: text("key").notNull(),
+	/** Libellé affiché (pilule + titre du bloc). */
+	label: text("label").notNull(),
+	/** Couleur d'accent du bandeau ("orange" | "blue" | "red"), défaut orange. */
+	accent: text("accent"),
+	/** Corps markdown riche (rendu via WikiMarkdown). */
+	body: text("body"),
+	sortOrder: int("sort_order").notNull().default(0),
+	visible: boolean("visible").notNull().default(true),
+});

@@ -1,4 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Image from "next/image";
@@ -129,6 +131,10 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 				← Tous les films
 			</Link>
 
+			<div className="mb-6">
+				<WikiAdminBar table="db_movies" id={m.id} indexHref="/wiki/films" label={m.title} />
+			</div>
+
 			<div className="grid md:grid-cols-[280px_1fr] gap-10">
 				<div>
 					{m.poster ? (
@@ -241,6 +247,8 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							</div>
 						</section>
 					)}
+
+					<WikiEntitySections entityType="movie" entityId={m.id} />
 
 					{youtubeId && (
 						<section className="space-y-4">

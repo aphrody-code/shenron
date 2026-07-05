@@ -55,6 +55,7 @@ const TABLE_OBJECTS: Record<string, AnyTable> = {
 	db_movies: botSchema.botMovies,
 	db_games: botSchema.botGames,
 	db_game_characters: botSchema.botGameCharacters,
+	db_wiki_sections: botSchema.botWikiSections,
 	db_tools: botSchema.botTools,
 	db_sources: botSchema.botSources,
 	db_licenses: botSchema.botLicenses,
@@ -94,6 +95,10 @@ function coerceValue(spec: ResolvedTable, key: string, value: unknown): unknown 
 	if (dt === "number") {
 		const n = typeof value === "number" ? value : Number(value);
 		return Number.isNaN(n) ? null : n;
+	}
+	// Colonnes booléennes (ex. `visible` des sections) : accepte true/"true"/1/"1".
+	if (dt === "boolean") {
+		return value === true || value === "true" || value === 1 || value === "1";
 	}
 	// text et fallback : string
 	return typeof value === "string" ? value : String(value);
@@ -394,6 +399,48 @@ export async function setAllWikiVisibility(table: string, visible: boolean): Pro
 		.set({ visible })
 		.returning({ id: spec.table[pkCamelKeys(spec)[0]] })) as Row[];
 	return updated.length;
+}
+
+// ── Sections de contenu par entité (bot.db_wiki_sections) ──────────────────
+
+export interface WikiSectionRow {
+	id: number;
+	entityType: string;
+	entityId: number;
+	key: string;
+	label: string;
+	accent: string | null;
+	body: string | null;
+	sortOrder: number;
+	visible: boolean;
+}
+
+/**
+ * Sections d'une entité pour l'ADMIN : toutes (masquées comprises), triées par
+ * `sort_order` puis `id`. La lecture publique (`getWikiSections` de shenron.ts)
+ * filtre en plus `visible = true`.
+ */
+export async function listWikiSectionsForEntity(
+	entityType: string,
+	entityId: number
+): Promise<WikiSectionRow[]> {
+	const t = botSchema.botWikiSections;
+	const rows = (await db
+		.select()
+		.from(t)
+		.where(and(eq(t.entityType, entityType), eq(t.entityId, entityId)))
+		.orderBy(asc(t.sortOrder), asc(t.id))) as WikiSectionRow[];
+	return rows.map((r) => ({
+		id: Number(r.id),
+		entityType: r.entityType,
+		entityId: Number(r.entityId),
+		key: r.key,
+		label: r.label,
+		accent: r.accent ?? null,
+		body: r.body ?? null,
+		sortOrder: Number(r.sortOrder ?? 0),
+		visible: r.visible !== false,
+	}));
 }
 
 // ── API snake_case (Server Components db-universe) ─────────────────────────

@@ -1,4 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { getShenronGame, getShenronGames } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
@@ -54,7 +56,9 @@ export default async function GameDetailPage({ params }: { params: Promise<{ slu
 				<span>← Retour à l'index</span>
 			</Link>
 
-			<div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+			<WikiAdminBar table="db_games" id={game.id} indexHref="/wiki/jeux" label={game.title} />
+
+			<div className="mt-6 flex flex-col lg:flex-row gap-12 lg:gap-20">
 				<div className="w-full lg:w-1/3 xl:w-1/4">
 					<div className="dbz-panel p-4 border-2 border-dbz-orange/30 bg-dbz-card relative overflow-hidden group">
 						<div className="absolute inset-0 halftone opacity-20" />
@@ -142,6 +146,8 @@ export default async function GameDetailPage({ params }: { params: Promise<{ slu
 							</div>
 						</section>
 					)}
+
+					<WikiEntitySections entityType="game" entityId={game.id} />
 				</div>
 			</div>
 		</article>

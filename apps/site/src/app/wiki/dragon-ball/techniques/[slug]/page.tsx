@@ -1,5 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { getShenronTechnique, getShenronTechniques } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -73,6 +75,15 @@ export default async function TechniqueDetailPage({
 				<span>← Toutes les techniques</span>
 			</Link>
 
+			<div className="mb-6">
+				<WikiAdminBar
+					table="db_techniques"
+					id={tech.id}
+					indexHref="/wiki/dragon-ball/techniques"
+					label={tech.name}
+				/>
+			</div>
+
 			<div className="space-y-12">
 				<header className="flex flex-col sm:flex-row gap-8 items-start">
 					{tech.creatorImage && (
@@ -137,6 +148,8 @@ export default async function TechniqueDetailPage({
 						</section>
 					)
 				)}
+
+				<WikiEntitySections entityType="technique" entityId={tech.id} />
 			</div>
 		</article>
 	);

@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { RelationsPanel } from "@/components/admin/RelationsPanel";
 import { SmartField } from "@/components/admin/SmartField";
 import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
+import { WikiSectionsPanel } from "@/components/admin/WikiSectionsPanel";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
 import {
@@ -20,6 +21,7 @@ import {
 	entityRelations,
 	isStudioTable,
 	publicEntityUrl,
+	sectionEntityType,
 } from "@/lib/wiki-fields";
 import { crudBase, WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
@@ -124,6 +126,7 @@ export function WikiStudio({ table, id }: Props) {
 	// body serait vide → écrasement potentiel par valeurs vides).
 	const notReady = mode === "edit" && !rowQuery.data;
 	const hasRelations = entityRelations(table).length > 0;
+	const secType = sectionEntityType(table);
 
 	return (
 		<div className="space-y-4">
@@ -232,6 +235,15 @@ export function WikiStudio({ table, id }: Props) {
 								<div className="dbz-panel p-5 text-xs text-white/40">
 									Enregistre d&apos;abord cette entrée pour gérer ses relations (techniques,
 									personnages…).
+								</div>
+							))}
+						{secType &&
+							(mode === "edit" ? (
+								<WikiSectionsPanel table={table} entityId={id} entityType={secType} />
+							) : (
+								<div className="dbz-panel p-5 text-xs text-white/40">
+									Enregistre d&apos;abord cette entrée pour ajouter ses sections de contenu
+									(histoire, personnalité, anecdotes…).
 								</div>
 							))}
 					</div>

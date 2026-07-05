@@ -25,6 +25,7 @@ import {
 	listWiki,
 	listWikiOptions,
 	listWikiRelations,
+	listWikiSectionsForEntity,
 	listWikiVisibility,
 	setAllWikiVisibility,
 	setWikiVisibility,
@@ -55,6 +56,18 @@ const WIKI_LIST_PATHS: Record<string, string[]> = {
 	db_tools: ["/wiki/tools"],
 };
 
+/** entity_type d'une section → table wiki de l'entité parente (revalidation). */
+const SECTION_ENTITY_TABLE: Record<string, string> = {
+	character: "db_characters",
+	planet: "db_planets",
+	saga: "db_sagas",
+	arc: "db_arcs",
+	race: "db_races",
+	technique: "db_techniques",
+	game: "db_games",
+	movie: "db_movies",
+};
+
 /**
  * Purge le cache ISR des pages publiques impactées par une écriture wiki, pour
  * que l'édition apparaisse tout de suite (au lieu d'attendre la revalidation).
@@ -72,6 +85,25 @@ function revalidateWiki(table: string, row?: Record<string, unknown>): void {
 		}
 	} catch {
 		/* best-effort : ne jamais faire échouer l'écriture pour une revalidation */
+	}
+}
+
+/**
+ * Purge la page détail de l'entité parente quand une de ses sections change
+ * (best-effort : résout le slug/id via la table parente puis `publicEntityUrl`).
+ */
+async function revalidateSectionParent(row: Record<string, unknown> | undefined): Promise<void> {
+	try {
+		if (!row) return;
+		const entityType = typeof row.entityType === "string" ? row.entityType : "";
+		const entityId = row.entityId;
+		const table = SECTION_ENTITY_TABLE[entityType];
+		if (!table || entityId == null) return;
+		const parent = await getWikiRow(table, String(entityId)).catch(() => null);
+		const url = parent ? publicEntityUrl(table, parent) : null;
+		if (url) revalidatePath(url);
+	} catch {
+		/* best-effort */
 	}
 }
 
@@ -118,6 +150,16 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			const q = sp.get("q") ?? undefined;
 			return NextResponse.json({ items: await listWikiVisibility(table, { q }) });
 		}
+		// Sections d'une entité (toutes, masquées comprises) pour le panneau du studio.
+		if (sp.get("as") === "sectionsFor") {
+			if (table !== "db_wiki_sections") return badRequest("Réservé à db_wiki_sections");
+			const entityType = sp.get("entityType") ?? "";
+			const entityId = Number(sp.get("entityId"));
+			if (!entityType || !Number.isFinite(entityId)) {
+				return badRequest("entityType, entityId requis");
+			}
+			return NextResponse.json({ items: await listWikiSectionsForEntity(entityType, entityId) });
+		}
 		const limit = Number(sp.get("limit")) || 50;
 		const offset = Number(sp.get("offset")) || 0;
 		const q = sp.get("q") ?? undefined;
@@ -154,6 +196,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 		}
 		const row = await insertWiki(table, body);
 		revalidateWiki(table, row);
+		if (table === "db_wiki_sections") await revalidateSectionParent(row);
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
@@ -171,6 +214,7 @@ async function mutate(req: NextRequest, ctx: Ctx) {
 	try {
 		const row = await updateWiki(table, decodeURIComponent(id), body);
 		revalidateWiki(table, row);
+		if (table === "db_wiki_sections") await revalidateSectionParent(row);
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
@@ -193,6 +237,7 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 		const before = await getWikiRow(table, decoded).catch(() => null);
 		await deleteWiki(table, decoded);
 		revalidateWiki(table, before ?? { id: decoded });
+		if (table === "db_wiki_sections") await revalidateSectionParent(before ?? undefined);
 		return NextResponse.json({ ok: true });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
