@@ -49,6 +49,7 @@ import {
 	BookText,
 	ListOrdered,
 	History,
+	Flag,
 	PanelLeftClose,
 	PanelLeftOpen,
 } from "lucide-react";
@@ -330,6 +331,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Tickets de support",
 		description: "Demandes d'aide des membres",
 		icon: <Ticket className="h-4 w-4" />,
+		section: "communaute",
+	},
+	{
+		href: "/admin/signalements",
+		label: "Signalements",
+		description: "Erreurs remontées par les membres depuis le site",
+		icon: <Flag className="h-4 w-4" />,
 		section: "communaute",
 	},
 	{

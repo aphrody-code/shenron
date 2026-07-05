@@ -316,6 +316,51 @@ export const chronologyConfig = pgTable("ChronologyConfig", {
 
 export type ChronologyConfigRow = typeof chronologyConfig.$inferSelect;
 
+// --- Signalements utilisateurs (tickets) ---
+//
+// « Signaler une erreur » : un membre connecté (compte Discord lié) nous remonte
+// un problème depuis n'importe quelle page. Chaque signalement = un ticket
+// consultable dans /admin/signalements (workflow open → in_progress → resolved
+// → closed). L'identité du rapporteur est dénormalisée (discordId/username figés)
+// pour rester lisible même si le compte évolue.
+export const siteReports = pgTable(
+	"site_reports",
+	{
+		id: cuid(),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		// Rapporteur connecté (users.id cuid) + copies figées pour l'affichage.
+		userId: text("userId"),
+		discordId: text("discordId"),
+		username: text("username"),
+		// Contexte de la page signalée.
+		path: text("path").notNull(),
+		pageTitle: text("pageTitle"),
+		// bug | contenu | lien | suggestion | autre
+		category: text("category").notNull().default("bug"),
+		message: text("message").notNull(),
+		userAgent: text("userAgent"),
+		// Workflow ticket : open | in_progress | resolved | closed
+		status: text("status").notNull().default("open"),
+		// Note interne de l'équipe (traitement).
+		adminNote: text("adminNote"),
+		resolvedBy: text("resolvedBy"),
+		resolvedAt: timestamp("resolvedAt", { precision: 3, mode: "date" }),
+	},
+	(t) => [
+		index("site_reports_status_idx").on(t.status),
+		index("site_reports_created_idx").on(t.createdAt),
+		index("site_reports_user_idx").on(t.userId),
+	]
+);
+
+export type SiteReport = typeof siteReports.$inferSelect;
+export type SiteReportInsert = typeof siteReports.$inferInsert;
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({

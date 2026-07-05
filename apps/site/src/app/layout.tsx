@@ -24,6 +24,11 @@ const DiscordInviteFAB = dynamic(() =>
 	import("@/components/DiscordInviteFAB").then((m) => m.DiscordInviteFAB)
 );
 
+// Bouton flottant « Signaler une erreur » (îlot client, jamais critical).
+const ReportButton = dynamic(() =>
+	import("@/components/ReportButton").then((m) => m.ReportButton)
+);
+
 // Google Sans Flex — police officielle Google, open-source 2025 (variable font,
 // axes opsz 6→144 + wght 1→1000). Servie en local depuis le woff2 v20 de
 // fonts.gstatic.com (next/font/google ne l'a pas encore dans son registry).
@@ -186,6 +191,7 @@ export default async function RootLayout({
 				<main className="relative z-10 flex-1 w-full flex flex-col">{children}</main>
 				<SiteFooter />
 				<DiscordInviteFAB />
+				<ReportButton />
 				<FloatingAssistant />
 				<ConsentGate />
 				<FirebaseInitializer />
