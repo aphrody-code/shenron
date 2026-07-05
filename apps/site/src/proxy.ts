@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isRequestAdmin } from "@/lib/proxy-admin";
 
 // proxy.ts = « middleware » de Next 16 (renommé middleware.ts → proxy.ts).
 // Deux rôles : (1) canonicalisation du host vers dragonballfr.com ; (2) gating
@@ -40,22 +41,17 @@ function hasAuthCookie(request: NextRequest): boolean {
 }
 
 /**
- * L'utilisateur courant est-il admin/owner ? Délègue à `/api/me` (source unique
- * de vérité : token admin OU Discord OWNER_ID/OAUTH_ALLOWED_USERS) — le proxy
- * tourne en runtime edge (pas de node:crypto ni d'accès DB direct). Le matcher
- * exclut `/api` → aucune boucle sur ce fetch. Fail-closed : toute erreur/timeout
- * → false (l'admin réessaie ; jamais d'exposition par défaut).
+ * L'utilisateur courant est-il admin/owner ? Résolu **en process** (Node.js
+ * runtime du proxy) via `isRequestAdmin` : token admin OU session Discord
+ * (OWNER_ID/OAUTH_ALLOWED_USERS/roleAdmin) — plus de `fetch("/api/me")` fragile
+ * (le self-fetch se faisait droper le Cookie au 301 http→https de nginx →
+ * l'admin était redirigé). Fast-path sans cookie d'auth = anonyme (coût zéro).
+ * Fail-closed : toute erreur → false (jamais d'exposition par défaut).
  */
 async function isAdmin(request: NextRequest): Promise<boolean> {
 	if (!hasAuthCookie(request)) return false;
 	try {
-		const res = await fetch(new URL("/api/me", request.nextUrl.origin), {
-			headers: { cookie: request.headers.get("cookie") ?? "" },
-			signal: AbortSignal.timeout(2500),
-		});
-		if (!res.ok) return false;
-		const me = (await res.json()) as { isAdmin?: boolean };
-		return me.isAdmin === true;
+		return await isRequestAdmin(request);
 	} catch {
 		return false;
 	}

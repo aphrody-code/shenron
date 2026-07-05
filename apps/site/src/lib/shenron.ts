@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq, like, sql, inArray } from "drizzle-orm";
+import { and, asc, eq, like, sql, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
 	botCharacters,
@@ -321,9 +321,14 @@ export async function getShenronCharacters(query?: string): Promise<DBCharacter[
 			? await db
 					.select()
 					.from(botCharacters)
-					.where(like(sql`lower(${botCharacters.name})`, `%${q.toLowerCase()}%`))
+					.where(
+						and(
+							like(sql`lower(${botCharacters.name})`, `%${q.toLowerCase()}%`),
+							eq(botCharacters.visible, true)
+						)
+					)
 					.limit(25)
-			: await db.select().from(botCharacters);
+			: await db.select().from(botCharacters).where(eq(botCharacters.visible, true));
 		return rows.map(mapCharacter);
 	} catch (e) {
 		console.error("[shenron] getShenronCharacters a échoué:", e);
@@ -333,7 +338,10 @@ export async function getShenronCharacters(query?: string): Promise<DBCharacter[
 
 export async function getShenronMovies(): Promise<DBMovie[]> {
 	try {
-		return (await db.select().from(botMovies)) as DBMovie[];
+		return (await db
+			.select()
+			.from(botMovies)
+			.where(eq(botMovies.visible, true))) as DBMovie[];
 	} catch (e) {
 		console.error("[shenron] getShenronMovies a échoué:", e);
 		return [];
@@ -342,7 +350,7 @@ export async function getShenronMovies(): Promise<DBMovie[]> {
 
 export async function getShenronMovie(id: number): Promise<DBMovie | null> {
 	try {
-		const [m] = await db.select().from(botMovies).where(eq(botMovies.id, id)).limit(1);
+		const [m] = await db.select().from(botMovies).where(and(eq(botMovies.id, id), eq(botMovies.visible, true))).limit(1);
 		return (m as DBMovie) ?? null;
 	} catch (e) {
 		console.error("[shenron] getShenronMovie a échoué:", e);
@@ -352,11 +360,11 @@ export async function getShenronMovie(id: number): Promise<DBMovie | null> {
 
 export async function getShenronCharacter(id: number): Promise<CharacterWithRelations | null> {
 	try {
-		const [c] = await db.select().from(botCharacters).where(eq(botCharacters.id, id)).limit(1);
+		const [c] = await db.select().from(botCharacters).where(and(eq(botCharacters.id, id), eq(botCharacters.visible, true))).limit(1);
 		if (!c) return null;
 
 		const transformations = (
-			await db.select().from(botTransformations).where(eq(botTransformations.characterId, id))
+			await db.select().from(botTransformations).where(and(eq(botTransformations.characterId, id), eq(botTransformations.visible, true)))
 		).map(mapTransfo);
 
 		let originPlanet: DBPlanet | null = null;
@@ -364,7 +372,7 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 			const [p] = await db
 				.select()
 				.from(botPlanets)
-				.where(eq(botPlanets.id, c.originPlanetId))
+				.where(and(eq(botPlanets.id, c.originPlanetId), eq(botPlanets.visible, true)))
 				.limit(1);
 			originPlanet = p ? mapPlanet(p) : null;
 		}
@@ -373,7 +381,7 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 			.select({ t: botTechniques })
 			.from(botCharacterTechniques)
 			.innerJoin(botTechniques, eq(botCharacterTechniques.techniqueId, botTechniques.id))
-			.where(eq(botCharacterTechniques.characterId, id));
+			.where(and(eq(botCharacterTechniques.characterId, id), eq(botTechniques.visible, true)));
 		const techniques = techRows.map((r) => ({
 			technique: {
 				id: r.t.id,
@@ -401,7 +409,8 @@ export async function getShenronTechniques(): Promise<DBTechnique[]> {
 		const rows = await db
 			.select({ t: botTechniques, name: botCharacters.name, image: botCharacters.image })
 			.from(botTechniques)
-			.leftJoin(botCharacters, eq(botTechniques.creatorId, botCharacters.id));
+			.leftJoin(botCharacters, eq(botTechniques.creatorId, botCharacters.id))
+			.where(eq(botTechniques.visible, true));
 		return rows.map((r) => ({
 			id: r.t.id,
 			slug: r.t.slug,
@@ -426,7 +435,7 @@ export async function getShenronTechnique(slug: string): Promise<DBTechnique | n
 			.select({ t: botTechniques, name: botCharacters.name, image: botCharacters.image })
 			.from(botTechniques)
 			.leftJoin(botCharacters, eq(botTechniques.creatorId, botCharacters.id))
-			.where(eq(botTechniques.slug, slug))
+			.where(and(eq(botTechniques.slug, slug), eq(botTechniques.visible, true)))
 			.limit(1);
 		if (!r) return null;
 		return {
@@ -449,7 +458,10 @@ export async function getShenronTechnique(slug: string): Promise<DBTechnique | n
 
 export async function getShenronGames(): Promise<DBGame[]> {
 	try {
-		return (await db.select().from(botGames)) as DBGame[];
+		return (await db
+			.select()
+			.from(botGames)
+			.where(eq(botGames.visible, true))) as DBGame[];
 	} catch (e) {
 		console.error("[shenron] getShenronGames a échoué:", e);
 		return [];
@@ -471,7 +483,7 @@ export async function getShenronManga(): Promise<DBMangaVolume[]> {
 		const rows = await db
 			.select()
 			.from(botMangaVolumes)
-			.where(eq(botMangaVolumes.series, "DB"))
+			.where(and(eq(botMangaVolumes.series, "DB"), eq(botMangaVolumes.visible, true)))
 			.orderBy(asc(botMangaVolumes.volumeNumber));
 		return rows.map((r) => ({
 			id: r.id,
@@ -488,7 +500,10 @@ export async function getShenronManga(): Promise<DBMangaVolume[]> {
 
 export async function getShenronRaces(): Promise<DBRace[]> {
 	try {
-		return (await db.select().from(botRaces)) as DBRace[];
+		return (await db
+			.select()
+			.from(botRaces)
+			.where(eq(botRaces.visible, true))) as DBRace[];
 	} catch (e) {
 		console.error("[shenron] getShenronRaces a échoué:", e);
 		return [];
@@ -526,12 +541,15 @@ export async function getShenronRace(
 	slug: string
 ): Promise<(DBRace & { characters: DBCharacter[]; homePlanet: DBPlanet | null }) | null> {
 	try {
-		const [r] = await db.select().from(botRaces).where(eq(botRaces.slug, slug)).limit(1);
+		const [r] = await db.select().from(botRaces).where(and(eq(botRaces.slug, slug), eq(botRaces.visible, true))).limit(1);
 		if (!r) return null;
 		
 		const rawRaces = getRawRaceNamesForSlug(r.slug, r.name);
 		const characters = (
-			await db.select().from(botCharacters).where(inArray(botCharacters.race, rawRaces))
+			await db
+				.select()
+				.from(botCharacters)
+				.where(and(inArray(botCharacters.race, rawRaces), eq(botCharacters.visible, true)))
 		).map(mapCharacter);
 
 		let homePlanet: DBPlanet | null = null;
@@ -539,7 +557,7 @@ export async function getShenronRace(
 			const [p] = await db
 				.select()
 				.from(botPlanets)
-				.where(eq(botPlanets.id, r.homePlanetId))
+				.where(and(eq(botPlanets.id, r.homePlanetId), eq(botPlanets.visible, true)))
 				.limit(1);
 			if (p) {
 				homePlanet = mapPlanet(p);
@@ -555,7 +573,7 @@ export async function getShenronRace(
 
 export async function getShenronPlanets(): Promise<DBPlanet[]> {
 	try {
-		return (await db.select().from(botPlanets)).map(mapPlanet);
+		return (await db.select().from(botPlanets).where(eq(botPlanets.visible, true))).map(mapPlanet);
 	} catch (e) {
 		console.error("[shenron] getShenronPlanets a échoué:", e);
 		return [];
@@ -566,10 +584,10 @@ export async function getShenronPlanet(
 	id: number
 ): Promise<(DBPlanet & { characters: DBCharacter[] }) | null> {
 	try {
-		const [p] = await db.select().from(botPlanets).where(eq(botPlanets.id, id)).limit(1);
+		const [p] = await db.select().from(botPlanets).where(and(eq(botPlanets.id, id), eq(botPlanets.visible, true))).limit(1);
 		if (!p) return null;
 		const characters = (
-			await db.select().from(botCharacters).where(eq(botCharacters.originPlanetId, id))
+			await db.select().from(botCharacters).where(and(eq(botCharacters.originPlanetId, id), eq(botCharacters.visible, true)))
 		).map(mapCharacter);
 		return { ...mapPlanet(p), characters };
 	} catch (e) {

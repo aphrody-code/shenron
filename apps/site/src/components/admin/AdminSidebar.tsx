@@ -26,6 +26,7 @@ import {
 	Film,
 	Gamepad2,
 	Tv2,
+	Eye,
 	MapPin,
 	Users,
 	UserCircle,
@@ -217,6 +218,13 @@ const ADMIN_LINKS: AdminLink[] = [
 	},
 
 	// ENCYCLOPÉDIE / WIKI DBZ
+	{
+		href: "/admin/visibilite",
+		label: "Visibilité",
+		description: "Afficher/masquer chaque entité du wiki sur le site public",
+		icon: <Eye className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
 	{
 		href: "/admin/db-universe/sources",
 		label: "Sources",

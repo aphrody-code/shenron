@@ -10,7 +10,7 @@
  * bot. Toutes les colonnes int SQLite arrivent en `bigint` Postgres, les autres
  * en `text` — on type donc à l'identique. Lecture seule : aucune écriture site.
  */
-import { bigint, jsonb, pgSchema, text } from "drizzle-orm/pg-core";
+import { bigint, boolean, jsonb, pgSchema, text } from "drizzle-orm/pg-core";
 
 export const bot = pgSchema("bot");
 
@@ -75,6 +75,17 @@ const articleCols = {
 	articleUpdatedAt: bigint("article_updated_at", { mode: "number" }),
 };
 
+/**
+ * Visibilité éditoriale (PG-only) — masque une entité du site public sans la
+ * supprimer. Défaut `true`. Comme `articleCols`, colonne posée uniquement sur
+ * Postgres (`scripts/add-wiki-visibility.ts`) : le forward-sync exclut ces tables
+ * éditoriales et le reverse-sync l'ignore (intersection de colonnes). Les lectures
+ * publiques filtrent `visible = true` ; l'admin la bascule via `/api/wiki-visibility`.
+ */
+const visibleCol = {
+	visible: boolean("visible").notNull().default(true),
+};
+
 export const botCharacters = bot.table("db_characters", {
 	id: int("id").primaryKey(),
 	name: text("name").notNull(),
@@ -90,6 +101,7 @@ export const botCharacters = bot.table("db_characters", {
 	nameJa: text("name_ja"),
 	nameRomaji: text("name_romaji"),
 	...articleCols,
+	...visibleCol,
 });
 
 export const botPlanets = bot.table("db_planets", {
@@ -101,6 +113,7 @@ export const botPlanets = bot.table("db_planets", {
 	nameJa: text("name_ja"),
 	nameRomaji: text("name_romaji"),
 	...articleCols,
+	...visibleCol,
 });
 
 export const botTransformations = bot.table("db_transformations", {
@@ -110,6 +123,7 @@ export const botTransformations = bot.table("db_transformations", {
 	ki: text("ki"),
 	characterId: int("character_id"),
 	...articleCols,
+	...visibleCol,
 });
 
 export const botRaces = bot.table("db_races", {
@@ -120,6 +134,7 @@ export const botRaces = bot.table("db_races", {
 	homePlanetId: int("home_planet_id"),
 	description: text("description"),
 	...articleCols,
+	...visibleCol,
 });
 
 export const botTechniques = bot.table("db_techniques", {
@@ -134,6 +149,7 @@ export const botTechniques = bot.table("db_techniques", {
 	debutEpisodeId: int("debut_episode_id"),
 	debutChapterId: int("debut_chapter_id"),
 	...articleCols,
+	...visibleCol,
 });
 
 export const botCharacterTechniques = bot.table("db_character_techniques", {
@@ -151,6 +167,7 @@ export const botSagas = bot.table("db_sagas", {
 	description: text("description"),
 	image: text("image"),
 	...articleCols,
+	...visibleCol,
 });
 
 export const botArcs = bot.table("db_arcs", {
@@ -162,6 +179,7 @@ export const botArcs = bot.table("db_arcs", {
 	orderIdx: int("order_idx"),
 	description: text("description"),
 	...articleCols,
+	...visibleCol,
 });
 
 // Jonction N-N personnage ↔ arc (« ce perso apparaît/est pertinent dans cet
@@ -214,6 +232,7 @@ export const botEpisodes = bot.table("db_episodes", {
 	// montage). Le reverse-sync Neon→SQLite les ignore (intersection de colonnes).
 	frames: jsonb("frames").$type<EpisodeFrame[]>(),
 	scenePreview: text("scene_preview"),
+	...visibleCol,
 });
 
 export const botMovies = bot.table("db_movies", {
@@ -241,6 +260,7 @@ export const botMovies = bot.table("db_movies", {
 	streamHeaders: jsonb("stream_headers").$type<Record<string, string>>(),
 	streamProvider: text("stream_provider"),
 	streamAt: bigint("stream_at", { mode: "number" }),
+	...visibleCol,
 });
 
 export const botGames = bot.table("db_games", {
@@ -255,6 +275,7 @@ export const botGames = bot.table("db_games", {
 	description: text("description"),
 	cover: text("cover"),
 	officialUrl: text("official_url"),
+	...visibleCol,
 });
 
 export const botGameCharacters = bot.table("db_game_characters", {
@@ -271,6 +292,7 @@ export const botMangaVolumes = bot.table("db_manga_volumes", {
 	publishedAt: int("published_at"),
 	cover: text("cover"),
 	isbn: text("isbn"),
+	...visibleCol,
 });
 
 export const botMangaChapters = bot.table("db_manga_chapters", {
@@ -286,6 +308,7 @@ export const botMangaChapters = bot.table("db_manga_chapters", {
 	// Colonne Neon-only : le reverse-sync Neon→SQLite l'ignore (intersection de
 	// colonnes), le bot n'en a pas besoin (seul le reader du site lit les pages).
 	pages: jsonb("pages").$type<string[]>(),
+	...visibleCol,
 });
 
 export const botNews = bot.table("db_news", {

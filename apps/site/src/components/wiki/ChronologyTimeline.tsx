@@ -340,7 +340,12 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 	const year = yearOf(it.date);
 	const accent = ERA_ACCENT[it.era];
 	return (
-		<div
+		// Toute la ligne est cliquable (la miniature ET le titre) : avant, seul le
+		// texte du titre était un lien → cliquer la vignette (qui affiche pourtant un
+		// overlay Play au survol) ne renvoyait nulle part. La chronologie n'est pas
+		// sous le layout /wiki/episodes|films → pas d'interception @modal, nav douce OK.
+		<Link
+			href={it.href}
 			className={`group flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${
 				isMovie
 					? "border-dbz-orange/25 bg-dbz-orange/[0.06] hover:border-dbz-orange/50"
@@ -407,12 +412,9 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 							Tome {it.number ?? "?"}
 						</span>
 					)}
-					<Link
-						href={it.href}
-						className="truncate font-display font-semibold text-[14px] text-white hover:text-dbz-orange transition-colors"
-					>
+					<span className="truncate font-display font-semibold text-[14px] text-white group-hover:text-dbz-orange transition-colors">
 						{it.title || "(sans titre)"}
-					</Link>
+					</span>
 				</div>
 				<div className="flex items-center gap-2 text-[11px] text-white/40">
 					{!grouped && (
@@ -435,6 +437,6 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 					</p>
 				)}
 			</div>
-		</div>
+		</Link>
 	);
 }

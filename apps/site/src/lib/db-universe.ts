@@ -512,9 +512,29 @@ export const dbUniverse = {
 				news: botNews,
 				tools: botTools,
 			} satisfies Record<string, PgTable>;
+			// Seules les tables « parcourables » portent la colonne `visible` : on
+			// compte alors uniquement les entités visibles (cohérent avec les index
+			// publics). `news`/`tools` n'ont pas de visibilité → compte brut.
+			const withVisibility = new Set<PgTable>([
+				botCharacters,
+				botPlanets,
+				botSagas,
+				botArcs,
+				botMovies,
+				botEpisodes,
+				botGames,
+				botRaces,
+				botTechniques,
+				botTransformations,
+				botMangaVolumes,
+				botMangaChapters,
+			]);
 			const entries = await Promise.all(
 				(Object.entries(tables) as [keyof typeof tables, PgTable][]).map(async ([key, table]) => {
-					const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(table);
+					const visCol = (table as unknown as { visible?: PgColumn }).visible;
+					const base = db.select({ n: sql<number>`count(*)::int` }).from(table);
+					const [{ n }] =
+						withVisibility.has(table) && visCol ? await base.where(eq(visCol, true)) : await base;
 					return [key, Number(n ?? 0)] as const;
 				})
 			);
@@ -523,7 +543,7 @@ export const dbUniverse = {
 
 	sagas: () =>
 		safe(async () => ({
-			sagas: (await db.select().from(botSagas).orderBy(asc(botSagas.orderIdx))).map(toSaga),
+			sagas: (await db.select().from(botSagas).where(eq(botSagas.visible, true)).orderBy(asc(botSagas.orderIdx))).map(toSaga),
 		})),
 
 	/** Tous les arcs (toutes sagas) + nom/slug de leur saga, pour l'index /wiki/arcs. */
@@ -538,6 +558,7 @@ export const dbUniverse = {
 				})
 				.from(botArcs)
 				.leftJoin(botSagas, eq(botArcs.sagaId, botSagas.id))
+				.where(and(eq(botArcs.visible, true), eq(botSagas.visible, true)))
 				.orderBy(asc(botSagas.orderIdx), asc(botArcs.orderIdx));
 			return {
 				arcs: rows.map((r) => ({
@@ -565,12 +586,14 @@ export const dbUniverse = {
 					.select({ id: botTechniques.id, name: botTechniques.name, count: cnt })
 					.from(botTechniques)
 					.innerJoin(botCharacterTechniques, eq(botCharacterTechniques.techniqueId, botTechniques.id))
+					.where(eq(botTechniques.visible, true))
 					.groupBy(botTechniques.id, botTechniques.name)
 					.orderBy(desc(cnt), asc(botTechniques.name)),
 				db
 					.select({ id: botArcs.id, name: botArcs.name, count: cnt })
 					.from(botArcs)
 					.leftJoin(botCharacterArcs, eq(botCharacterArcs.arcId, botArcs.id))
+					.where(eq(botArcs.visible, true))
 					.groupBy(botArcs.id, botArcs.name, botArcs.orderIdx)
 					.orderBy(asc(botArcs.orderIdx)),
 				db
@@ -611,13 +634,13 @@ export const dbUniverse = {
 
 	saga: (slug: string) =>
 		safe(async () => {
-			const [s] = await db.select().from(botSagas).where(eq(botSagas.slug, slug)).limit(1);
+			const [s] = await db.select().from(botSagas).where(and(eq(botSagas.slug, slug), eq(botSagas.visible, true))).limit(1);
 			if (!s) return null;
 			const arcs = (
 				await db
 					.select()
 					.from(botArcs)
-					.where(eq(botArcs.sagaId, s.id))
+					.where(and(eq(botArcs.sagaId, s.id), eq(botArcs.visible, true)))
 					.orderBy(asc(botArcs.orderIdx))
 			).map(toArc);
 			return { ...toSaga(s), arcs };
@@ -625,13 +648,13 @@ export const dbUniverse = {
 
 	arc: (slug: string) =>
 		safe(async () => {
-			const [a] = await db.select().from(botArcs).where(eq(botArcs.slug, slug)).limit(1);
+			const [a] = await db.select().from(botArcs).where(and(eq(botArcs.slug, slug), eq(botArcs.visible, true))).limit(1);
 			if (!a) return null;
 			const episodes = (
 				await db
 					.select()
 					.from(botEpisodes)
-					.where(eq(botEpisodes.arcId, a.id))
+					.where(and(eq(botEpisodes.arcId, a.id), eq(botEpisodes.visible, true)))
 					.orderBy(asc(botEpisodes.numberInSeries))
 			).map(toEpisode);
 			return { arc: toArc(a), episodes };
@@ -639,7 +662,7 @@ export const dbUniverse = {
 
 	episode: (id: number) =>
 		safe(async () => {
-			const [e] = await db.select().from(botEpisodes).where(eq(botEpisodes.id, id)).limit(1);
+			const [e] = await db.select().from(botEpisodes).where(and(eq(botEpisodes.id, id), eq(botEpisodes.visible, true))).limit(1);
 			return e ? toEpisode(e) : null;
 		}),
 
@@ -663,20 +686,25 @@ export const dbUniverse = {
 				? await db
 						.select()
 						.from(botEpisodes)
-						.where(eq(botEpisodes.series, series))
+						.where(and(eq(botEpisodes.series, series), eq(botEpisodes.visible, true)))
 						.orderBy(asc(botEpisodes.numberInSeries))
 						.limit(limit)
 						.offset(offset)
 				: await db
 						.select()
 						.from(botEpisodes)
+						.where(eq(botEpisodes.visible, true))
 						.orderBy(asc(botEpisodes.series), asc(botEpisodes.numberInSeries))
 						.limit(limit)
 						.offset(offset);
 			const [{ n }] = await db
 				.select({ n: sql<number>`count(*)::int` })
 				.from(botEpisodes)
-				.where(series ? eq(botEpisodes.series, series) : sql`true`);
+				.where(
+					series
+						? and(eq(botEpisodes.series, series), eq(botEpisodes.visible, true))
+						: eq(botEpisodes.visible, true)
+				);
 			return { episodes: rows.map(toEpisode), total: Number(n ?? 0) };
 		}),
 
@@ -689,6 +717,7 @@ export const dbUniverse = {
 			const rows = await db
 				.select({ series: botEpisodes.series, n: sql<number>`count(*)::int` })
 				.from(botEpisodes)
+				.where(eq(botEpisodes.visible, true))
 				.groupBy(botEpisodes.series);
 			return rows
 				.map((r) => ({ series: r.series, count: Number(r.n) }))
@@ -710,13 +739,25 @@ export const dbUniverse = {
 			const [prev] = await db
 				.select(lite)
 				.from(botEpisodes)
-				.where(and(eq(botEpisodes.series, series), lt(botEpisodes.numberInSeries, number)))
+				.where(
+					and(
+						eq(botEpisodes.series, series),
+						lt(botEpisodes.numberInSeries, number),
+						eq(botEpisodes.visible, true)
+					)
+				)
 				.orderBy(desc(botEpisodes.numberInSeries))
 				.limit(1);
 			const [next] = await db
 				.select(lite)
 				.from(botEpisodes)
-				.where(and(eq(botEpisodes.series, series), gt(botEpisodes.numberInSeries, number)))
+				.where(
+					and(
+						eq(botEpisodes.series, series),
+						gt(botEpisodes.numberInSeries, number),
+						eq(botEpisodes.visible, true)
+					)
+				)
 				.orderBy(asc(botEpisodes.numberInSeries))
 				.limit(1);
 			// Fenêtre de 12 épisodes voisins (centrée approximativement) pour le strip.
@@ -727,7 +768,8 @@ export const dbUniverse = {
 					and(
 						eq(botEpisodes.series, series),
 						gt(botEpisodes.numberInSeries, number - 7),
-						lt(botEpisodes.numberInSeries, number + 7)
+						lt(botEpisodes.numberInSeries, number + 7),
+						eq(botEpisodes.visible, true)
 					)
 				)
 				.orderBy(asc(botEpisodes.numberInSeries));
@@ -749,7 +791,7 @@ export const dbUniverse = {
 
 	movies: () =>
 		safe(async () => ({
-			movies: (await db.select().from(botMovies)).map(toMovie),
+			movies: (await db.select().from(botMovies).where(eq(botMovies.visible, true))).map(toMovie),
 		})),
 
 	movie: (slug: string) =>
@@ -757,7 +799,12 @@ export const dbUniverse = {
 			const [m] = await db
 				.select()
 				.from(botMovies)
-				.where(/^\d+$/.test(slug) ? eq(botMovies.id, Number(slug)) : eq(botMovies.slug, slug))
+				.where(
+					and(
+						/^\d+$/.test(slug) ? eq(botMovies.id, Number(slug)) : eq(botMovies.slug, slug),
+						eq(botMovies.visible, true)
+					)
+				)
 				.limit(1);
 			return m ? toMovie(m) : null;
 		}),
@@ -779,7 +826,7 @@ export const dbUniverse = {
 					release_date: botMovies.releaseDate,
 				})
 				.from(botMovies)
-				.where(eq(botMovies.series, series));
+				.where(and(eq(botMovies.series, series), eq(botMovies.visible, true)));
 			const sorted: MovieNavItem[] = rows
 				.map((r) => ({
 					id: r.id,
@@ -825,7 +872,8 @@ export const dbUniverse = {
 						image: botEpisodes.image,
 						players: botEpisodes.players,
 					})
-					.from(botEpisodes),
+					.from(botEpisodes)
+					.where(eq(botEpisodes.visible, true)),
 				db
 					.select({
 						id: botMovies.id,
@@ -837,7 +885,8 @@ export const dbUniverse = {
 						poster: botMovies.poster,
 						players: botMovies.players,
 					})
-					.from(botMovies),
+					.from(botMovies)
+					.where(eq(botMovies.visible, true)),
 				// Tomes canoniques uniquement (mêmes filtres que /wiki/manga) : on
 				// écarte les spin-offs (SD, Yamcha, Episode of Bardock…) rangés dans
 				// la même table. Ordre par numéro de tome, série DB avant DBS.
@@ -853,14 +902,17 @@ export const dbUniverse = {
 					})
 					.from(botMangaVolumes)
 					.where(
-						or(
-							and(
-								eq(botMangaVolumes.series, "DB"),
-								ilike(botMangaVolumes.title, "Dragon Ball Vol. %")
-							),
-							and(
-								eq(botMangaVolumes.series, "DBS"),
-								ilike(botMangaVolumes.title, "Dragon Ball Super Vol. %")
+						and(
+							eq(botMangaVolumes.visible, true),
+							or(
+								and(
+									eq(botMangaVolumes.series, "DB"),
+									ilike(botMangaVolumes.title, "Dragon Ball Vol. %")
+								),
+								and(
+									eq(botMangaVolumes.series, "DBS"),
+									ilike(botMangaVolumes.title, "Dragon Ball Super Vol. %")
+								)
 							)
 						)
 					),
@@ -931,12 +983,12 @@ export const dbUniverse = {
 
 	games: () =>
 		safe(async () => ({
-			games: (await db.select().from(botGames)).map(toGame),
+			games: (await db.select().from(botGames).where(eq(botGames.visible, true))).map(toGame),
 		})),
 
 	game: (slug: string) =>
 		safe(async () => {
-			const [g] = await db.select().from(botGames).where(eq(botGames.slug, slug)).limit(1);
+			const [g] = await db.select().from(botGames).where(and(eq(botGames.slug, slug), eq(botGames.visible, true))).limit(1);
 			if (!g) return null;
 			const characters = await db
 				.select({
@@ -947,7 +999,7 @@ export const dbUniverse = {
 				})
 				.from(botGameCharacters)
 				.innerJoin(botCharacters, eq(botCharacters.id, botGameCharacters.characterId))
-				.where(eq(botGameCharacters.gameId, g.id))
+				.where(and(eq(botGameCharacters.gameId, g.id), eq(botCharacters.visible, true)))
 				.orderBy(asc(botCharacters.name));
 			return { ...toGame(g), characters };
 		}),
@@ -965,18 +1017,18 @@ export const dbUniverse = {
 
 	races: () =>
 		safe(async () => ({
-			races: (await db.select().from(botRaces)).map(toRace),
+			races: (await db.select().from(botRaces).where(eq(botRaces.visible, true))).map(toRace),
 		})),
 
 	race: (slug: string) =>
 		safe(async () => {
-			const [r] = await db.select().from(botRaces).where(eq(botRaces.slug, slug)).limit(1);
+			const [r] = await db.select().from(botRaces).where(and(eq(botRaces.slug, slug), eq(botRaces.visible, true))).limit(1);
 			return r ? toRace(r) : null;
 		}),
 
 	transformations: () =>
 		safe(async () => ({
-			transformations: (await db.select().from(botTransformations)).map(toTransformation),
+			transformations: (await db.select().from(botTransformations).where(eq(botTransformations.visible, true))).map(toTransformation),
 		})),
 
 	mangaVolumes: (series = "DB") =>
@@ -985,7 +1037,7 @@ export const dbUniverse = {
 				await db
 					.select()
 					.from(botMangaVolumes)
-					.where(eq(botMangaVolumes.series, series))
+					.where(and(eq(botMangaVolumes.series, series), eq(botMangaVolumes.visible, true)))
 					.orderBy(asc(botMangaVolumes.volumeNumber))
 			).map(toMangaVolume),
 		})),
@@ -995,14 +1047,14 @@ export const dbUniverse = {
 			const [v] = await db
 				.select()
 				.from(botMangaVolumes)
-				.where(eq(botMangaVolumes.id, id))
+				.where(and(eq(botMangaVolumes.id, id), eq(botMangaVolumes.visible, true)))
 				.limit(1);
 			if (!v) return null;
 			const chapters = (
 				await db
 					.select()
 					.from(botMangaChapters)
-					.where(eq(botMangaChapters.volumeId, id))
+					.where(and(eq(botMangaChapters.volumeId, id), eq(botMangaChapters.visible, true)))
 					.orderBy(asc(botMangaChapters.chapterNumber))
 			).map(toMangaChapter);
 			return { ...toMangaVolume(v), chapters };
@@ -1017,8 +1069,12 @@ export const dbUniverse = {
 					.from(botMangaChapters)
 					.where(
 						series
-							? and(eq(botMangaChapters.series, series), isNotNull(botMangaChapters.pages))
-							: isNotNull(botMangaChapters.pages)
+							? and(
+									eq(botMangaChapters.series, series),
+									isNotNull(botMangaChapters.pages),
+									eq(botMangaChapters.visible, true)
+								)
+							: and(isNotNull(botMangaChapters.pages), eq(botMangaChapters.visible, true))
 					)
 					.orderBy(asc(botMangaChapters.series), asc(botMangaChapters.chapterNumber))
 			).map(toMangaChapter),
@@ -1030,7 +1086,7 @@ export const dbUniverse = {
 			const [c] = await db
 				.select()
 				.from(botMangaChapters)
-				.where(eq(botMangaChapters.id, id))
+				.where(and(eq(botMangaChapters.id, id), eq(botMangaChapters.visible, true)))
 				.limit(1);
 			if (!c) return null;
 			const [prev] = await db
@@ -1040,7 +1096,8 @@ export const dbUniverse = {
 					and(
 						eq(botMangaChapters.series, c.series),
 						isNotNull(botMangaChapters.pages),
-						lt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0)
+						lt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0),
+						eq(botMangaChapters.visible, true)
 					)
 				)
 				.orderBy(desc(botMangaChapters.chapterNumber))
@@ -1052,7 +1109,8 @@ export const dbUniverse = {
 					and(
 						eq(botMangaChapters.series, c.series),
 						isNotNull(botMangaChapters.pages),
-						gt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0)
+						gt(botMangaChapters.chapterNumber, c.chapterNumber ?? 0),
+						eq(botMangaChapters.visible, true)
 					)
 				)
 				.orderBy(asc(botMangaChapters.chapterNumber))
@@ -1151,7 +1209,7 @@ export const dbUniverse = {
 						race: botCharacters.race,
 					})
 					.from(botCharacters)
-					.where(fuzzyWhere(term, charCols))
+					.where(and(fuzzyWhere(term, charCols), eq(botCharacters.visible, true)))
 					.orderBy(...fuzzyOrder(term, charCols))
 					.limit(20),
 				db
@@ -1162,7 +1220,7 @@ export const dbUniverse = {
 						image: botPlanets.image,
 					})
 					.from(botPlanets)
-					.where(fuzzyWhere(term, planetCols))
+					.where(and(fuzzyWhere(term, planetCols), eq(botPlanets.visible, true)))
 					.orderBy(...fuzzyOrder(term, planetCols))
 					.limit(10),
 				db
@@ -1174,7 +1232,7 @@ export const dbUniverse = {
 						series: botSagas.series,
 					})
 					.from(botSagas)
-					.where(fuzzyWhere(term, sagaCols))
+					.where(and(fuzzyWhere(term, sagaCols), eq(botSagas.visible, true)))
 					.orderBy(...fuzzyOrder(term, sagaCols))
 					.limit(10),
 				db
@@ -1186,7 +1244,7 @@ export const dbUniverse = {
 						series: botMovies.series,
 					})
 					.from(botMovies)
-					.where(fuzzyWhere(term, movieCols))
+					.where(and(fuzzyWhere(term, movieCols), eq(botMovies.visible, true)))
 					.orderBy(...fuzzyOrder(term, movieCols))
 					.limit(10),
 				db
@@ -1197,7 +1255,7 @@ export const dbUniverse = {
 						title_ja: botGames.titleJa,
 					})
 					.from(botGames)
-					.where(fuzzyWhere(term, gameCols))
+					.where(and(fuzzyWhere(term, gameCols), eq(botGames.visible, true)))
 					.orderBy(...fuzzyOrder(term, gameCols))
 					.limit(10),
 				db
@@ -1209,7 +1267,7 @@ export const dbUniverse = {
 						image: botEpisodes.image,
 					})
 					.from(botEpisodes)
-					.where(fuzzyWhere(term, episodeCols))
+					.where(and(fuzzyWhere(term, episodeCols), eq(botEpisodes.visible, true)))
 					.orderBy(...fuzzyOrder(term, episodeCols))
 					.limit(12),
 				db
@@ -1221,7 +1279,7 @@ export const dbUniverse = {
 						type: botTechniques.type,
 					})
 					.from(botTechniques)
-					.where(fuzzyWhere(term, techniqueCols))
+					.where(and(fuzzyWhere(term, techniqueCols), eq(botTechniques.visible, true)))
 					.orderBy(...fuzzyOrder(term, techniqueCols))
 					.limit(10),
 				db
@@ -1232,7 +1290,7 @@ export const dbUniverse = {
 						name_ja: botRaces.nameJa,
 					})
 					.from(botRaces)
-					.where(fuzzyWhere(term, raceCols))
+					.where(and(fuzzyWhere(term, raceCols), eq(botRaces.visible, true)))
 					.orderBy(...fuzzyOrder(term, raceCols))
 					.limit(8),
 				db
@@ -1243,7 +1301,7 @@ export const dbUniverse = {
 						character_id: botTransformations.characterId,
 					})
 					.from(botTransformations)
-					.where(fuzzyWhere(term, transfoCols))
+					.where(and(fuzzyWhere(term, transfoCols), eq(botTransformations.visible, true)))
 					.orderBy(...fuzzyOrder(term, transfoCols))
 					.limit(24),
 				db
@@ -1256,7 +1314,7 @@ export const dbUniverse = {
 					})
 					.from(botArcs)
 					.leftJoin(botSagas, eq(botArcs.sagaId, botSagas.id))
-					.where(fuzzyWhere(term, arcCols))
+					.where(and(fuzzyWhere(term, arcCols), eq(botArcs.visible, true)))
 					.orderBy(...fuzzyOrder(term, arcCols))
 					.limit(10),
 				db
@@ -1268,7 +1326,7 @@ export const dbUniverse = {
 						cover: botMangaVolumes.cover,
 					})
 					.from(botMangaVolumes)
-					.where(volWhere)
+					.where(and(volWhere, eq(botMangaVolumes.visible, true)))
 					.orderBy(...fuzzyOrder(term, volCols), asc(botMangaVolumes.volumeNumber))
 					.limit(10),
 				db
@@ -1279,7 +1337,7 @@ export const dbUniverse = {
 						title: botMangaChapters.title,
 					})
 					.from(botMangaChapters)
-					.where(chapWhere)
+					.where(and(chapWhere, eq(botMangaChapters.visible, true)))
 					.orderBy(...fuzzyOrder(term, chapCols), asc(botMangaChapters.chapterNumber))
 					.limit(12),
 			]);

@@ -19,11 +19,15 @@ import { isCurrentUserAdmin } from "@/lib/session";
 import {
 	deleteWiki,
 	getWikiRow,
+	hasVisibility,
 	insertWiki,
 	isWikiTable,
 	listWiki,
 	listWikiOptions,
 	listWikiRelations,
+	listWikiVisibility,
+	setAllWikiVisibility,
+	setWikiVisibility,
 	updateWiki,
 } from "@/lib/wiki-admin";
 import { publicEntityUrl } from "@/lib/wiki-fields";
@@ -108,6 +112,12 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 			if (!col || !relId || !target) return badRequest("col, id, target requis");
 			return NextResponse.json({ ids: await listWikiRelations(table, col, relId, target) });
 		}
+		// Gestionnaire de visibilité : id + libellé + image + état visible.
+		if (sp.get("as") === "visibility") {
+			if (!hasVisibility(table)) return badRequest("Table sans colonne de visibilité");
+			const q = sp.get("q") ?? undefined;
+			return NextResponse.json({ items: await listWikiVisibility(table, { q }) });
+		}
 		const limit = Number(sp.get("limit")) || 50;
 		const offset = Number(sp.get("offset")) || 0;
 		const q = sp.get("q") ?? undefined;
@@ -125,6 +135,23 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 	const body = await readJson(req);
 	if (!body) return badRequest("JSON body requis");
 	try {
+		// Bascule de visibilité (une ligne ou toute la table) — écrit la colonne
+		// `visible` directement (pas via l'allowlist mutable de l'éditeur générique).
+		if (req.nextUrl.searchParams.get("as") === "visibility") {
+			if (!hasVisibility(table)) return badRequest("Table sans colonne de visibilité");
+			const visible = body.visible === true || body.visible === "true" || body.visible === 1;
+			if (body.all === true || body.all === "true") {
+				const updated = await setAllWikiVisibility(table, visible);
+				revalidateWiki(table);
+				return NextResponse.json({ ok: true, updated });
+			}
+			const id = body.id;
+			if (id == null || id === "") return badRequest("id ou all requis");
+			await setWikiVisibility(table, String(id), visible);
+			const row = await getWikiRow(table, String(id)).catch(() => null);
+			revalidateWiki(table, row ?? { id });
+			return NextResponse.json({ ok: true });
+		}
 		const row = await insertWiki(table, body);
 		revalidateWiki(table, row);
 		return NextResponse.json({ ok: true, row });

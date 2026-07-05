@@ -284,6 +284,118 @@ export async function deleteWiki(table: string, id: string): Promise<void> {
 	await db.delete(spec.table).where(pkCondition(spec, id));
 }
 
+// ── Visibilité éditoriale (colonne PG-only `visible`) ──────────────────────
+
+/**
+ * Tables « parcourables » du wiki portant la colonne `visible` (masquage du site
+ * public sans suppression). Doit rester synchronisé avec `visibleCol` dans
+ * `bot-schema.ts` et `scripts/add-wiki-visibility.ts`.
+ */
+export const VISIBILITY_TABLES = new Set<string>([
+	"db_characters",
+	"db_planets",
+	"db_transformations",
+	"db_races",
+	"db_techniques",
+	"db_sagas",
+	"db_arcs",
+	"db_episodes",
+	"db_movies",
+	"db_games",
+	"db_manga_volumes",
+	"db_manga_chapters",
+]);
+
+export function hasVisibility(table: string): boolean {
+	return VISIBILITY_TABLES.has(table);
+}
+
+export interface VisibilityRow {
+	id: string;
+	label: string;
+	image: string | null;
+	/** Contexte secondaire (série, type…) pour désambiguïser. */
+	extra: string | null;
+	visible: boolean;
+}
+
+function ensureVisibility(table: string): ResolvedTable {
+	const spec = getSpec(table);
+	if (!spec) throw new Error(`Table inconnue: ${table}`);
+	if (!VISIBILITY_TABLES.has(table)) throw new Error(`Table sans visibilité: ${table}`);
+	return spec;
+}
+
+/** Liste id + libellé + image + état `visible` de toutes les lignes (pour le manager). */
+export async function listWikiVisibility(
+	table: string,
+	{ q }: { q?: string } = {}
+): Promise<VisibilityRow[]> {
+	const spec = ensureVisibility(table);
+	const pkKey = pkCamelKeys(spec)[0];
+	const labelKey = ["name", "title"].find((k) => spec.columns.includes(k)) ?? pkKey;
+	const imageKey = ["image", "cover", "poster"].find((k) => spec.columns.includes(k)) ?? null;
+	const extraKey = ["series", "type"].find((k) => spec.columns.includes(k)) ?? null;
+
+	const sel: Record<string, unknown> = {
+		id: spec.table[pkKey],
+		label: spec.table[labelKey],
+		visible: spec.table.visible,
+	};
+	if (imageKey) sel.image = spec.table[imageKey];
+	if (extraKey) sel.extra = spec.table[extraKey];
+
+	const term = (q ?? "").trim();
+	const safeTerm = term.replace(/[\\%_]/g, (c) => `\\${c}`);
+	const where = term ? ilike(spec.table[labelKey], `%${safeTerm}%`) : undefined;
+
+	const rows = (await db
+		.select(sel as never)
+		.from(spec.table)
+		.where(where)
+		.orderBy(asc(spec.table[labelKey]), asc(spec.table[pkKey]))
+		.limit(5000)) as Array<{
+		id: unknown;
+		label: unknown;
+		visible: unknown;
+		image?: unknown;
+		extra?: unknown;
+	}>;
+	return rows.map((r) => ({
+		id: String(r.id),
+		label: String(r.label ?? r.id),
+		image: r.image != null ? String(r.image) : null,
+		extra: r.extra != null ? String(r.extra) : null,
+		// Défaut true : null/undefined (théorique) = visible.
+		visible: r.visible !== false,
+	}));
+}
+
+/** Bascule la visibilité d'une ligne. Lève si la pk est introuvable. */
+export async function setWikiVisibility(
+	table: string,
+	id: string,
+	visible: boolean
+): Promise<void> {
+	const spec = ensureVisibility(table);
+	const updated = (await db
+		.update(spec.table)
+		.set({ visible })
+		.where(pkCondition(spec, id))
+		.returning()) as Row[];
+	if (updated.length === 0) throw new Error(`Ligne introuvable: ${table}#${id}`);
+}
+
+/** Bascule TOUTES les lignes d'une table (« tout afficher / tout masquer »). Renvoie le nombre modifié. */
+export async function setAllWikiVisibility(table: string, visible: boolean): Promise<number> {
+	const spec = ensureVisibility(table);
+	const updated = (await db
+		.update(spec.table)
+		.set({ visible })
+		.returning({ id: spec.table[pkCamelKeys(spec)[0]] })) as Row[];
+	return updated.length;
+}
+
 // ── API snake_case (Server Components db-universe) ─────────────────────────
 
 /**
