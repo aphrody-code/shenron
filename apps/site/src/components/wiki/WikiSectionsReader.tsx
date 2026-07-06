@@ -7,9 +7,12 @@
  * en enfant : tous les panneaux restent dans le DOM (indexables, cache CDN
  * préservé) ; le filtre ne fait que masquer/afficher via l'attribut `hidden`.
  *
- * Aucune donnée fetchée côté client → l'îlot ne pilote que l'état de sélection.
+ * La barre de pilules est **collante** (sticky sous le header) → sur une fiche
+ * longue on peut sauter de catégorie sans remonter ; à la sélection, le contenu
+ * défile en douceur juste sous la barre. Aucune donnée fetchée côté client →
+ * l'îlot ne pilote que l'état de sélection.
  */
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 export type SectionAccent = "orange" | "blue" | "red";
 
@@ -60,33 +63,56 @@ export function WikiSectionsReader({
 	allLabel?: string;
 }) {
 	const [active, setActive] = useState<string>("all");
+	const contentRef = useRef<HTMLDivElement>(null);
 
 	if (panels.length === 0) return null;
+
+	// Garde-fou : dédoublonne les clés (une section de contenu peut avoir le même
+	// slug qu'un panneau ajouté — ex. « versions »/« affiliés ») pour ne pas casser
+	// les clés React ni faire basculer deux panneaux d'un seul clic de pilule.
+	const seen = new Set<string>();
+	const items = panels.map((p) => {
+		let key = p.key;
+		let n = 2;
+		while (seen.has(key)) key = `${p.key}-${n++}`;
+		seen.add(key);
+		return key === p.key ? p : { ...p, key };
+	});
+
 	// Un seul panneau → sélecteur inutile, rendu direct.
-	if (panels.length === 1) return <div className="space-y-12">{panels[0].node}</div>;
+	if (items.length === 1) return <div className="space-y-12">{items[0].node}</div>;
+
+	// À la sélection : filtre + défilement doux vers le haut du contenu (sous la
+	// barre collante) pour ne pas se retrouver au milieu/en bas d'une catégorie.
+	function select(key: string) {
+		setActive(key);
+		requestAnimationFrame(() =>
+			contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+		);
+	}
 
 	return (
 		<div className="space-y-8">
 			<nav
 				aria-label="Catégories de la fiche"
-				className="flex flex-wrap gap-2 border-b border-white/10 pb-6"
+				className="sticky top-16 z-30 -mx-6 flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/85 px-6 py-4 backdrop-blur-md lg:-mx-10 lg:px-10"
 			>
-				<Pill active={active === "all"} onClick={() => setActive("all")}>
+				<Pill active={active === "all"} onClick={() => select("all")}>
 					{allLabel}
 				</Pill>
-				{panels.map((p) => (
+				{items.map((p) => (
 					<Pill
 						key={p.key}
 						active={active === p.key}
 						accent={p.accent}
-						onClick={() => setActive(p.key)}
+						onClick={() => select(p.key)}
 					>
 						{p.label}
 					</Pill>
 				))}
 			</nav>
-			<div className="space-y-12">
-				{panels.map((p) => (
+			<div ref={contentRef} className="space-y-12 scroll-mt-32">
+				{items.map((p) => (
 					<div key={p.key} hidden={active !== "all" && active !== p.key}>
 						{p.node}
 					</div>

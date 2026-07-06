@@ -11,6 +11,12 @@
 import type { WikiSource } from "@/lib/shenron";
 import { WikiMarkdown } from "./WikiMarkdown";
 
+type Accent = "orange" | "blue" | "red";
+
+function accentText(accent: Accent): string {
+	return accent === "blue" ? "text-dbz-blue-light" : accent === "red" ? "text-dbz-red" : "text-dbz-orange";
+}
+
 /** Libellé court du type de source (kind RAG → étiquette FR). */
 function kindLabel(kind: string): string {
 	switch (kind) {
@@ -87,36 +93,62 @@ export function WikiArticle({
 						<h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-4">
 							Sources & références
 						</h3>
-						<ol className="space-y-1.5 text-sm">
-							{cited.map((s) => (
-								<li key={s.n} className="flex gap-3 text-white/60">
-									<span className={`shrink-0 font-mono text-xs ${accentClass}`}>[{s.n}]</span>
-									{s.url ? (
-										<a
-											href={s.url}
-											target="_blank"
-											rel="noopener noreferrer nofollow"
-											className="hover:text-white transition-colors link-underline break-words"
-										>
-											{s.label}
-											<span className="ml-2 text-[10px] uppercase tracking-widest text-white/30">
-												{kindLabel(s.kind)}
-											</span>
-										</a>
-									) : (
-										<span className="break-words">
-											{s.label}
-											<span className="ml-2 text-[10px] uppercase tracking-widest text-white/30">
-												{kindLabel(s.kind)}
-											</span>
-										</span>
-									)}
-								</li>
-							))}
-						</ol>
+						<SourceList cited={cited} accentClass={accentClass} />
 					</footer>
 				)}
 			</div>
+		</section>
+	);
+}
+
+/** Liste `<ol>` des références citées (partagée footer / bloc autonome). */
+function SourceList({ cited, accentClass }: { cited: WikiSource[]; accentClass: string }) {
+	return (
+		<ol className="space-y-1.5 text-sm">
+			{cited.map((s) => (
+				<li key={s.n} className="flex gap-3 text-white/60">
+					<span className={`shrink-0 font-mono text-xs ${accentClass}`}>[{s.n}]</span>
+					{s.url ? (
+						<a
+							href={s.url}
+							target="_blank"
+							rel="noopener noreferrer nofollow"
+							className="hover:text-white transition-colors link-underline break-words"
+						>
+							{s.label}
+							<span className="ml-2 text-[10px] uppercase tracking-widest text-white/30">
+								{kindLabel(s.kind)}
+							</span>
+						</a>
+					) : (
+						<span className="break-words">
+							{s.label}
+							<span className="ml-2 text-[10px] uppercase tracking-widest text-white/30">
+								{kindLabel(s.kind)}
+							</span>
+						</span>
+					)}
+				</li>
+			))}
+		</ol>
+	);
+}
+
+/**
+ * Bloc « Sources & références » autonome (panneau propre), à rendre **une seule
+ * fois** sous le sélecteur de catégories quand l'article a été éclaté en
+ * plusieurs panneaux (les [n] cités restent répartis dans les sections, mais la
+ * bibliographie s'affiche en pied de fiche). Se masque si aucune source.
+ */
+export function WikiSources({ sources, accent = "orange" }: { sources?: WikiSource[] | null; accent?: Accent }) {
+	const cited = (sources ?? []).filter((s) => s && s.label);
+	if (cited.length === 0) return null;
+	return (
+		<section className="dbz-panel p-6 sm:p-8">
+			<h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-4">
+				Sources & références
+			</h3>
+			<SourceList cited={cited} accentClass={accentText(accent)} />
 		</section>
 	);
 }

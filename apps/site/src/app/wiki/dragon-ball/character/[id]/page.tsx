@@ -1,17 +1,19 @@
 import { JsonLd } from "@/components/JsonLd";
 import { TrackView } from "@/components/TrackView";
 import { ViewTransition } from "@/components/ViewTransition";
-import { WikiArticle } from "@/components/wiki/WikiArticle";
-import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
-import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
+import { WikiSources } from "@/components/wiki/WikiArticle";
+import { WikiRelatedCharacters } from "@/components/wiki/WikiRelatedCharacters";
+import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { WikiImg } from "@/components/wiki/WikiImg";
+import { buildWikiContentPanels } from "@/lib/wiki-panels";
+import { TECH_SECTION_KEYS, TRANSFO_SECTION_KEYS } from "@/lib/wiki-article-sections";
 import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { cache } from "react";
+import { cache, type ReactNode } from "react";
 import type { BreadcrumbList, Person, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
 
@@ -105,103 +107,170 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			: undefined,
 	};
 
-	// ── Panneaux du sélecteur de catégories ───────────────────────────────────
-	// « Histoire » = article long-format sourcé s'il existe, sinon la description.
-	const historyNode = character.article ? (
-		<WikiArticle article={character.article} sources={character.articleSources} heading="Histoire" />
-	) : character.description ? (
-		<WikiArticle article={character.description} heading="Histoire" />
-	) : null;
-	const historyPanel: ReaderPanel | null = historyNode
-		? { key: "histoire", label: "Histoire", accent: "orange", node: historyNode }
-		: null;
+	// ── Catégories de la fiche ────────────────────────────────────────────────
+	// Contenu = article long-format éclaté par titre `##` (Histoire, Personnalité,
+	// Pouvoirs et techniques, Transformations, Anecdotes…) + surcharges/ajouts
+	// éditoriaux du studio (db_wiki_sections, ex. PWS). Zéro fabrication : on ne
+	// fait que structurer du contenu déjà présent, tout rendu côté serveur.
+	const contentPanels = await buildWikiContentPanels({
+		entityType: "character",
+		entityId: character.id,
+		article: character.article,
+		description: character.description,
+	});
 
-	// Panneaux de queue : Transformations puis Techniques (relationnels).
-	const trailingPanels: ReaderPanel[] = [];
-	if (character.transformations && character.transformations.length > 0) {
-		trailingPanels.push({
-			key: "transformations",
-			label: "Transformations",
-			accent: "orange",
-			node: (
-				<section className="space-y-8">
-					<div className="flex items-center gap-6">
-						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
-							TRANSFORMATIONS
-						</h2>
-						<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+	// Galeries relationnelles (vignettes de transformations, fiches techniques).
+	// `withHeading=false` quand on les fusionne dans une catégorie de l'article
+	// qui porte déjà son titre (évite un double bandeau).
+	const transfoGrid = (withHeading: boolean): ReactNode => (
+		<section className="space-y-8">
+			{withHeading && (
+				<div className="flex items-center gap-6">
+					<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-orange uppercase tracking-widest">
+						TRANSFORMATIONS
+					</h2>
+					<div className="h-px flex-1 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
+				</div>
+			)}
+			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
+				{character.transformations.map((transfo) => (
+					<div
+						key={transfo.id}
+						className="dbz-panel p-4 flex flex-col items-center group hover:scale-105 transition-transform duration-300"
+					>
+						<div className="aspect-square w-full bg-dbz-bg border border-dbz-border p-2 mb-4 overflow-hidden relative rounded-lg">
+							<div className="absolute inset-0 halftone opacity-10" />
+							<img
+								src={assetUrl(transfo.image)}
+								alt={transfo.name}
+								className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-700"
+							/>
+						</div>
+						<h3 className="text-xs font-bold text-white uppercase text-center group-hover:text-dbz-orange transition-colors leading-tight tracking-widest">
+							{transfo.name}
+						</h3>
+						{transfo.ki && <span className="scouter-text text-[10px] mt-2">KI: {transfo.ki}</span>}
 					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-						{character.transformations.map((transfo) => (
-							<div
-								key={transfo.id}
-								className="dbz-panel p-4 flex flex-col items-center group hover:scale-105 transition-transform duration-300"
+				))}
+			</div>
+		</section>
+	);
+
+	const techGrid = (withHeading: boolean): ReactNode => (
+		<section className="space-y-8">
+			{withHeading && (
+				<div className="flex items-center gap-6">
+					<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest">
+						TECHNIQUES & CAPACITÉS
+					</h2>
+					<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
+				</div>
+			)}
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+				{character.techniques.map(({ technique: tech }) => (
+					<div key={tech.id} className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group">
+						<div className="flex justify-between items-start mb-4">
+							<h3 className="text-xl font-bold text-white group-hover:text-dbz-blue-light transition-colors uppercase tracking-wider">
+								{tech.name}
+							</h3>
+							<span className="scouter-text text-[10px] text-dbz-blue-light/60">TECH_ID: {tech.id}</span>
+						</div>
+						{tech.description && (
+							<p className="text-sm text-gray-400 leading-relaxed line-clamp-3 font-sans">
+								{tech.description}
+							</p>
+						)}
+						<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+							<Link
+								href={`/wiki/dragon-ball/techniques/${tech.slug}`}
+								className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
 							>
-								<div className="aspect-square w-full bg-dbz-bg border border-dbz-border p-2 mb-4 overflow-hidden relative rounded-lg">
-									<div className="absolute inset-0 halftone opacity-10" />
-									<img
-										src={assetUrl(transfo.image)}
-										alt={transfo.name}
-										className="w-full h-full object-contain relative z-10 group-hover:scale-110 transition-transform duration-700"
-									/>
-								</div>
-								<h3 className="text-xs font-bold text-white uppercase text-center group-hover:text-dbz-orange transition-colors leading-tight tracking-widest">
-									{transfo.name}
-								</h3>
-								{transfo.ki && (
-									<span className="scouter-text text-[10px] mt-2">KI: {transfo.ki}</span>
-								)}
-							</div>
-						))}
+								Détails Technique →
+							</Link>
+						</div>
 					</div>
-				</section>
+				))}
+			</div>
+		</section>
+	);
+
+	// Assemble les pilules : catégories de contenu, puis fusion/ajout des galeries
+	// relationnelles, puis Versions et Personnages affiliés.
+	const panels: ReaderPanel[] = [...contentPanels];
+
+	const mergeOrAppendGrid = (
+		keys: Set<string>,
+		has: boolean,
+		render: (withHeading: boolean) => ReactNode,
+		key: string,
+		label: string,
+		accent: "orange" | "blue" | "red"
+	) => {
+		if (!has) return;
+		const idx = panels.findIndex((p) => keys.has(p.key));
+		if (idx >= 0) {
+			panels[idx] = {
+				...panels[idx],
+				node: (
+					<div className="space-y-12">
+						{panels[idx].node}
+						{render(false)}
+					</div>
+				),
+			};
+		} else {
+			panels.push({ key, label, accent, node: render(true) });
+		}
+	};
+
+	mergeOrAppendGrid(
+		TRANSFO_SECTION_KEYS,
+		character.transformations.length > 0,
+		transfoGrid,
+		"transformations",
+		"Transformations",
+		"orange"
+	);
+	mergeOrAppendGrid(
+		TECH_SECTION_KEYS,
+		character.techniques.length > 0,
+		techGrid,
+		"techniques",
+		"Techniques",
+		"blue"
+	);
+
+	if (character.versions.length > 0) {
+		panels.push({
+			key: "versions",
+			label: "Versions",
+			accent: "blue",
+			node: (
+				<WikiRelatedCharacters
+					heading="Versions & apparitions"
+					caption="Autres versions de ce personnage à travers les époques, les timelines et les jeux (GT, Xenoverse, Heroes…)."
+					items={character.versions}
+					accent="blue"
+				/>
 			),
 		});
 	}
-	if (character.techniques && character.techniques.length > 0) {
-		trailingPanels.push({
-			key: "techniques",
-			label: "Techniques",
-			accent: "blue",
+	if (character.affiliates.length > 0) {
+		panels.push({
+			key: "affilies",
+			label: "Personnages affiliés",
+			accent: "orange",
 			node: (
-				<section className="space-y-8">
-					<div className="flex items-center gap-6">
-						<h2 className="font-saiyan text-2xl sm:text-4xl md:text-5xl text-dbz-blue-light uppercase tracking-widest">
-							TECHNIQUES & CAPACITÉS
-						</h2>
-						<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
-					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-						{character.techniques.map(({ technique: tech }) => (
-							<div
-								key={tech.id}
-								className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group"
-							>
-								<div className="flex justify-between items-start mb-4">
-									<h3 className="text-xl font-bold text-white group-hover:text-dbz-blue-light transition-colors uppercase tracking-wider">
-										{tech.name}
-									</h3>
-									<span className="scouter-text text-[10px] text-dbz-blue-light/60">
-										TECH_ID: {tech.id}
-									</span>
-								</div>
-								{tech.description && (
-									<p className="text-sm text-gray-400 leading-relaxed line-clamp-3 font-sans">
-										{tech.description}
-									</p>
-								)}
-								<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
-									<Link
-										href={`/wiki/dragon-ball/techniques/${tech.slug}`}
-										className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
-									>
-										Détails Technique →
-									</Link>
-								</div>
-							</div>
-						))}
-					</div>
-				</section>
+				<WikiRelatedCharacters
+					heading="Personnages affiliés"
+					caption={
+						character.affiliation
+							? `Autres personnages liés à « ${character.affiliation} ».`
+							: undefined
+					}
+					items={character.affiliates}
+					accent="orange"
+				/>
 			),
 		});
 	}
@@ -345,15 +414,11 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 				</div>
 			</div>
 
-			{/* Sélecteur de catégories : Histoire (article/description) + sections
-			    éditoriales (personnalité, anecdotes, PWS…) + Transformations + Techniques.
-			    Tout est rendu côté serveur ; le sélecteur ne fait que filtrer l'affichage. */}
-			<WikiEntitySections
-				entityType="character"
-				entityId={character.id}
-				leading={historyPanel ? [historyPanel] : []}
-				trailing={trailingPanels}
-			/>
+			{/* Sélecteur de catégories : Histoire / Personnalité / Pouvoirs et techniques /
+			    Transformations / Anecdotes / PWS… — issu de l'article éclaté + du studio
+			    (db_wiki_sections). Barre collante ; tout rendu côté serveur (SEO/ISR). */}
+			<WikiSectionsReader panels={panels} />
+			<WikiSources sources={character.articleSources} />
 		</article>
 	);
 }

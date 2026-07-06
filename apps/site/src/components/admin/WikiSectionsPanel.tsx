@@ -122,7 +122,10 @@ export function WikiSectionsPanel({
 
 			<p className="text-xs text-white/45">
 				Blocs affichés en catégories sélectionnables sur la fiche (« Histoire », « Personnalité »,
-				« Anecdotes », « PWS »…). Techniques et transformations restent gérées dans « Relations ».
+				« Anecdotes », « PWS »…). Dès qu&apos;une fiche a des sections ici, elles définissent
+				<strong className="text-white/70"> seules</strong> ses catégories (le champ « Article »
+				n&apos;est plus affiché) : masquage, ordre et édition font foi. Techniques et
+				transformations restent gérées dans « Relations ».
 			</p>
 
 			{query.isError ? (

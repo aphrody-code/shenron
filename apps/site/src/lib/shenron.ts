@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, like, sql, inArray } from "drizzle-orm";
+import { and, asc, eq, like, ne, sql, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
 	botCharacters,
@@ -185,11 +185,66 @@ export interface DBRace extends WithArticle {
 	description: string | null;
 }
 
+/** Personnage lié (version alternative ou allié) — carte minimale cliquable. */
+export interface RelatedCharacter {
+	id: number;
+	name: string;
+	image: string | null;
+	race: string | null;
+}
+
 export interface CharacterWithRelations extends DBCharacter {
 	transformations: DBTransformation[];
 	originPlanet: DBPlanet | null;
 	techniques: Array<{ technique: DBTechnique }>;
+	/** Versions alternatives (même nom racine : `X`, `X (futur)`, `X (Xeno)`…). */
+	versions: RelatedCharacter[];
+	/** Personnages partageant la même affiliation (alliés / faction). */
+	affiliates: RelatedCharacter[];
 }
+
+/** Retire les parenthèses de version en fin de nom : « Son Goku (GT) (Xeno) » → « Son Goku ». */
+function stripVersionSuffix(name: string): string {
+	return name.replace(/(?:\s*\([^)]*\))+\s*$/, "").trim();
+}
+
+/** Normalise (accents retirés, casse/espaces) pour comparer des noms racine. */
+function foldName(s: string): string {
+	return s
+		.normalize("NFD")
+		.replace(/[̀-ͯ]/g, "")
+		.toLowerCase()
+		.replace(/\s+/g, " ")
+		.trim();
+}
+
+/**
+ * Affiliations « poubelle » (statut / fourre-tout) à ne jamais présenter comme
+ * « personnages affiliés » : elles regrouperaient des persos sans lien réel.
+ * Comparaison sur la forme normalisée (`foldName`).
+ */
+const AFFILIATION_BLOCKLIST = new Set([
+	"decede",
+	"decedee",
+	"decedes",
+	"decedees",
+	"other",
+	"others",
+	"autre",
+	"autres",
+	"villain",
+	"villains",
+	"mechant",
+	"mechants",
+	"inconnu",
+	"inconnue",
+	"unknown",
+	"n/a",
+	"na",
+	"aucun",
+	"aucune",
+	"none",
+]);
 
 /** Section de contenu éditorial d'une entité wiki (bloc markdown nommé). */
 export interface WikiSectionData {
@@ -447,7 +502,72 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 			} satisfies DBTechnique,
 		}));
 
-		return { ...mapCharacter(c), transformations, originPlanet, techniques };
+		// ── Versions alternatives : autres persos au même nom racine ────────────
+		// « Freezer » ↔ « Freezer (futur) » / « Freezer (Xeno) », etc. On récupère
+		// les candidats par préfixe (indexable) puis on filtre sur le nom racine
+		// normalisé (accents/casse) côté JS — plus sûr que du regex en SQL.
+		const rootRaw = stripVersionSuffix(c.name);
+		const selfRoot = foldName(rootRaw);
+		let versions: RelatedCharacter[] = [];
+		if (selfRoot.length >= 2) {
+			// Préfixe insensible casse+accents (unaccent, comme db-universe) : « Végéta
+			// (futur) » est bien candidat de « Vegeta ». `%`/`_`/`\` échappés pour LIKE.
+			const prefix = `${rootRaw.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
+			const cand = await db
+				.select({
+					id: botCharacters.id,
+					name: botCharacters.name,
+					image: botCharacters.image,
+					race: botCharacters.race,
+				})
+				.from(botCharacters)
+				.where(
+					and(
+						eq(botCharacters.visible, true),
+						ne(botCharacters.id, id),
+						sql`unaccent(lower(${botCharacters.name})) like unaccent(lower(${prefix}))`
+					)
+				)
+				.orderBy(asc(botCharacters.name))
+				.limit(80);
+			versions = cand
+				.filter((r) => foldName(stripVersionSuffix(r.name)) === selfRoot)
+				.slice(0, 16)
+				.map((r) => ({ id: r.id, name: r.name, image: r.image, race: r.race }));
+		}
+
+		// ── Personnages affiliés : même affiliation (hors valeurs poubelle) ─────
+		const aff = (c.affiliation ?? "").trim();
+		let affiliates: RelatedCharacter[] = [];
+		if (aff && !AFFILIATION_BLOCKLIST.has(foldName(aff))) {
+			const rows = await db
+				.select({
+					id: botCharacters.id,
+					name: botCharacters.name,
+					image: botCharacters.image,
+					race: botCharacters.race,
+				})
+				.from(botCharacters)
+				.where(
+					and(
+						eq(botCharacters.visible, true),
+						ne(botCharacters.id, id),
+						eq(botCharacters.affiliation, aff)
+					)
+				)
+				.orderBy(asc(botCharacters.name))
+				.limit(16);
+			affiliates = rows.map((r) => ({ id: r.id, name: r.name, image: r.image, race: r.race }));
+		}
+
+		return {
+			...mapCharacter(c),
+			transformations,
+			originPlanet,
+			techniques,
+			versions,
+			affiliates,
+		};
 	} catch (e) {
 		console.error("[shenron] getShenronCharacter a échoué:", e);
 		return null;
