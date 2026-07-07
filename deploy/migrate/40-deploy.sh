@@ -21,11 +21,13 @@ mkdir -p apps/bot/.bun-cache apps/bot/dist apps/bot/assets/subtitles \
          "$HOME/.gemini"
 
 # ── 2. Génération + build ────────────────────────────────────────────────────
+# N.B. on entre dans chaque package (cd) au lieu de `bun --filter` : ce build
+# canary de bun ne matche pas toujours le filtre workspace (le runtime, lui, ne
+# dépend pas de --filter — les units lancent `bun src/index.ts`).
 log "gen:entries + dashboard css"
-bun --filter @shenron/bot run gen:entries
-bun --filter @shenron/bot run dashboard:css
+( cd apps/bot && bun run gen:entries && bun run dashboard:css )
 log "build du site Next (a besoin de apps/site/.env — déjà transféré)"
-bun --filter @shenron/site build
+( cd apps/site && bun run build )
 
 # ── 3. Units systemd (install.sh résout User/paths par sed ; SANS --nginx) ───
 log "install des units systemd"
