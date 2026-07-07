@@ -7,12 +7,21 @@
  * même CRUD (Neon). `id === "new"` → création.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeft, CheckCircle, ExternalLink, Eye, Save } from "lucide-react";
+import {
+	AlertTriangle,
+	ArrowLeft,
+	CheckCircle,
+	ExternalLink,
+	Eye,
+	History,
+	Save,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RelationsPanel } from "@/components/admin/RelationsPanel";
 import { SmartField } from "@/components/admin/SmartField";
 import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
+import { WikiHistory } from "@/components/admin/WikiHistory";
 import { WikiSectionsPanel } from "@/components/admin/WikiSectionsPanel";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
@@ -246,6 +255,16 @@ export function WikiStudio({ table, id }: Props) {
 									(histoire, personnalité, anecdotes…).
 								</div>
 							))}
+						{mode === "edit" && (
+							<details className="dbz-panel p-5">
+								<summary className="flex cursor-pointer items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+									<History className="h-3.5 w-3.5" /> Historique des révisions
+								</summary>
+								<div className="mt-4">
+									<WikiHistory table={table} rowId={id} compact />
+								</div>
+							</details>
+						)}
 					</div>
 				</div>
 			)}

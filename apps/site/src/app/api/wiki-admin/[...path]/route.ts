@@ -1,10 +1,15 @@
 /**
- * /api/wiki-admin/* — CRUD **direct sur Neon** (schéma `bot`) pour le wiki
+ * /api/wiki-admin/* — CRUD **direct sur Postgres** (schéma `bot`) pour le wiki
  * éditorial Dragon Ball. Remplace le proxy `/api/bot-admin/database/:table` pour
- * les tables dont Neon est la source de vérité (cf. `WIKI_TABLES`).
+ * les tables dont Postgres est la source de vérité (cf. `WIKI_TABLES`).
  *
  * Server-only : importe `wiki-admin.ts` (Drizzle/Postgres) → jamais bundlé côté
  * client. Gate admin via Better Auth + `users.roleAdmin` (`isCurrentUserAdmin`).
+ *
+ * Chaque écriture (create/update/delete + bascule de visibilité une-ligne) laisse
+ * une **révision** (`public.wiki_revisions`) : snapshot avant/après + auteur, pour
+ * le flux d'activité /admin/wiki/history, le panneau historique du studio, et le
+ * retour arrière. Best-effort : une révision ratée ne fait jamais échouer l'édit.
  *
  * Contrat aligné sur l'API bot `/api/database` pour réutiliser les composants
  * Client verbatim :
@@ -15,7 +20,7 @@
  *   PATCH  /:table/:id           → { ok: true, row }
  *   DELETE /:table/:id           → { ok: true }
  */
-import { isCurrentUserAdmin } from "@/lib/session";
+import { getCurrentUser, isCurrentUserAdmin } from "@/lib/session";
 import {
 	deleteWiki,
 	getWikiRow,
@@ -31,8 +36,8 @@ import {
 	setWikiVisibility,
 	updateWiki,
 } from "@/lib/wiki-admin";
-import { publicEntityUrl } from "@/lib/wiki-fields";
-import { revalidatePath } from "next/cache";
+import { recordRevision, type RevisionActor } from "@/lib/wiki-revisions";
+import { revalidateSectionParent, revalidateWikiEntity } from "@/lib/wiki-revalidate";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -40,70 +45,14 @@ export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
-/** Pages liste publiques par table (revalidées à chaque écriture). */
-const WIKI_LIST_PATHS: Record<string, string[]> = {
-	db_characters: ["/wiki/personnages"],
-	db_planets: ["/wiki/planetes"],
-	db_sagas: ["/wiki/sagas"],
-	db_arcs: ["/wiki/sagas"],
-	db_movies: ["/wiki/films"],
-	db_games: ["/wiki/jeux"],
-	db_manga_volumes: ["/wiki/manga"],
-	db_manga_chapters: ["/wiki/manga"],
-	db_episodes: ["/wiki/episodes"],
-	db_techniques: ["/wiki/dragon-ball/techniques"],
-	db_races: ["/wiki/races"],
-	db_tools: ["/wiki/tools"],
-};
-
-/** entity_type d'une section → table wiki de l'entité parente (revalidation). */
-const SECTION_ENTITY_TABLE: Record<string, string> = {
-	character: "db_characters",
-	planet: "db_planets",
-	saga: "db_sagas",
-	arc: "db_arcs",
-	race: "db_races",
-	technique: "db_techniques",
-	game: "db_games",
-	movie: "db_movies",
-};
-
-/**
- * Purge le cache ISR des pages publiques impactées par une écriture wiki, pour
- * que l'édition apparaisse tout de suite (au lieu d'attendre la revalidation).
- */
-function revalidateWiki(table: string, row?: Record<string, unknown>): void {
+/** Auteur figé de la révision (best-effort ; null si non résolu). */
+async function currentActor(): Promise<RevisionActor> {
 	try {
-		for (const p of WIKI_LIST_PATHS[table] ?? []) revalidatePath(p);
-		revalidatePath("/wiki");
-		const detail = row ? publicEntityUrl(table, row) : null;
-		if (detail) revalidatePath(detail);
-		// Les transformations n'ont pas de page propre → elles s'affichent sur la
-		// fiche du personnage.
-		if (table === "db_transformations" && row?.characterId != null) {
-			revalidatePath(`/wiki/dragon-ball/character/${row.characterId}`);
-		}
+		const me = await getCurrentUser();
+		if (!me?.user) return null;
+		return { id: me.user.id ?? null, name: me.user.username ?? null };
 	} catch {
-		/* best-effort : ne jamais faire échouer l'écriture pour une revalidation */
-	}
-}
-
-/**
- * Purge la page détail de l'entité parente quand une de ses sections change
- * (best-effort : résout le slug/id via la table parente puis `publicEntityUrl`).
- */
-async function revalidateSectionParent(row: Record<string, unknown> | undefined): Promise<void> {
-	try {
-		if (!row) return;
-		const entityType = typeof row.entityType === "string" ? row.entityType : "";
-		const entityId = row.entityId;
-		const table = SECTION_ENTITY_TABLE[entityType];
-		if (!table || entityId == null) return;
-		const parent = await getWikiRow(table, String(entityId)).catch(() => null);
-		const url = parent ? publicEntityUrl(table, parent) : null;
-		if (url) revalidatePath(url);
-	} catch {
-		/* best-effort */
+		return null;
 	}
 }
 
@@ -184,19 +133,29 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 			const visible = body.visible === true || body.visible === "true" || body.visible === 1;
 			if (body.all === true || body.all === "true") {
 				const updated = await setAllWikiVisibility(table, visible);
-				revalidateWiki(table);
+				revalidateWikiEntity(table);
 				return NextResponse.json({ ok: true, updated });
 			}
 			const id = body.id;
 			if (id == null || id === "") return badRequest("id ou all requis");
+			const prev = await getWikiRow(table, String(id)).catch(() => null);
 			await setWikiVisibility(table, String(id), visible);
 			const row = await getWikiRow(table, String(id)).catch(() => null);
-			revalidateWiki(table, row ?? { id });
+			revalidateWikiEntity(table, row ?? { id });
+			await recordRevision({
+				table,
+				id: String(id),
+				action: "visibility",
+				before: { ...prev, visible: prev?.visible !== false },
+				after: { ...(row ?? { id }), visible },
+				actor: await currentActor(),
+			});
 			return NextResponse.json({ ok: true });
 		}
 		const row = await insertWiki(table, body);
-		revalidateWiki(table, row);
+		revalidateWikiEntity(table, row);
 		if (table === "db_wiki_sections") await revalidateSectionParent(row);
+		await recordRevision({ table, action: "create", after: row, actor: await currentActor() });
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
@@ -212,9 +171,20 @@ async function mutate(req: NextRequest, ctx: Ctx) {
 	const body = await readJson(req);
 	if (!body) return badRequest("JSON body requis");
 	try {
-		const row = await updateWiki(table, decodeURIComponent(id), body);
-		revalidateWiki(table, row);
+		const decoded = decodeURIComponent(id);
+		// Snapshot AVANT pour la révision (diff avant/après + retour arrière).
+		const before = await getWikiRow(table, decoded).catch(() => null);
+		const row = await updateWiki(table, decoded, body);
+		revalidateWikiEntity(table, row);
 		if (table === "db_wiki_sections") await revalidateSectionParent(row);
+		await recordRevision({
+			table,
+			id: decoded,
+			action: "update",
+			before,
+			after: row,
+			actor: await currentActor(),
+		});
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");
@@ -232,12 +202,20 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 	if (id == null) return badRequest("id requis");
 	try {
 		const decoded = decodeURIComponent(id);
-		// On lit la ligne AVANT suppression pour pouvoir purger la page détail
-		// (slug/id) qui n'existe plus après coup.
+		// On lit la ligne AVANT suppression pour purger la page détail (slug/id) qui
+		// n'existe plus après coup, et tracer la révision (retour arrière possible).
 		const before = await getWikiRow(table, decoded).catch(() => null);
 		await deleteWiki(table, decoded);
-		revalidateWiki(table, before ?? { id: decoded });
+		revalidateWikiEntity(table, before ?? { id: decoded });
 		if (table === "db_wiki_sections") await revalidateSectionParent(before ?? undefined);
+		await recordRevision({
+			table,
+			id: decoded,
+			action: "delete",
+			before,
+			after: null,
+			actor: await currentActor(),
+		});
 		return NextResponse.json({ ok: true });
 	} catch (err) {
 		return badRequest(err instanceof Error ? err.message : "erreur");

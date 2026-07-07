@@ -361,6 +361,50 @@ export const siteReports = pgTable(
 export type SiteReport = typeof siteReports.$inferSelect;
 export type SiteReportInsert = typeof siteReports.$inferInsert;
 
+// --- Historique des révisions du wiki (versioning CMS) ---
+//
+// Chaque écriture éditoriale passant par /api/wiki-admin (create/update/delete +
+// bascule de visibilité) laisse une trace ici : snapshot AVANT/APRÈS (colonnes
+// mutables uniquement, camelCase), auteur figé, horodatage. Sert au flux
+// d'activité /admin/wiki/history, au panneau « Historique » du studio, et au
+// **retour arrière** en un clic (restauration du snapshot `before`).
+//
+// Schéma `public` = table 100% site (comme site_events) → isolée de la sync
+// bot↔SQLite (le reverse-sync ne la touche jamais). `before`/`after` sont des
+// jsonb bornés aux colonnes éditables (pas de blob jsonb type `frames`).
+export const wikiRevisions = pgTable(
+	"wiki_revisions",
+	{
+		id: cuid(),
+		// Table wiki concernée (db_characters, db_sagas…) + pk figée de la ligne
+		// (stringifiée ; pk composite jointe par ":").
+		tableName: text("tableName").notNull(),
+		rowId: text("rowId").notNull(),
+		// create | update | delete | visibility | revert
+		action: text("action").notNull(),
+		// Libellé lisible de l'entité au moment de l'édit (nom/titre figé).
+		label: text("label"),
+		// Snapshots des colonnes mutables (null selon l'action).
+		before: jsonb("before").$type<Record<string, unknown> | null>(),
+		after: jsonb("after").$type<Record<string, unknown> | null>(),
+		// Auteur : users.id + username figé (null pour un edit système/token).
+		editorId: text("editorId"),
+		editorName: text("editorName"),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	},
+	(t) => [
+		index("wiki_revisions_entity_idx").on(t.tableName, t.rowId),
+		index("wiki_revisions_created_idx").on(t.createdAt),
+		index("wiki_revisions_editor_idx").on(t.editorId),
+		index("wiki_revisions_action_idx").on(t.action),
+	]
+);
+
+export type WikiRevision = typeof wikiRevisions.$inferSelect;
+export type WikiRevisionInsert = typeof wikiRevisions.$inferInsert;
+
 // --- Relations ---
 
 export const usersRelations = relations(users, ({ many }) => ({

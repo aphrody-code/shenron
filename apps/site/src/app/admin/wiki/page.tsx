@@ -1,17 +1,23 @@
 import { WikiManager } from "./WikiManager";
 import { db } from "@/lib/db";
+import { getWikiCmsStats } from "@/lib/wiki-admin";
+import { listRevisions } from "@/lib/wiki-revisions";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminWikiPage() {
-	const categories = await db.query.wikiCategories.findMany({
-		where: (c, { isNull }) => isNull(c.parentId),
-		with: {
-			children: { with: { pages: true } },
-			pages: true,
-		},
-		orderBy: (c, { asc }) => asc(c.order),
-	});
+	const [categories, stats, recent] = await Promise.all([
+		db.query.wikiCategories.findMany({
+			where: (c, { isNull }) => isNull(c.parentId),
+			with: {
+				children: { with: { pages: true } },
+				pages: true,
+			},
+			orderBy: (c, { asc }) => asc(c.order),
+		}),
+		getWikiCmsStats(),
+		listRevisions({ limit: 6 }),
+	]);
 
 	// Sérialise l'arbre pour le Client Component (recherche live).
 	const tree = categories.map((cat) => ({
@@ -28,5 +34,5 @@ export default async function AdminWikiPage() {
 		})),
 	}));
 
-	return <WikiManager categories={tree} />;
+	return <WikiManager categories={tree} stats={stats} recent={recent.rows} />;
 }

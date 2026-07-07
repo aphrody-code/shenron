@@ -283,6 +283,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		section: "encyclopedie",
 	},
 	{
+		href: "/admin/wiki/history",
+		label: "Historique wiki",
+		description: "Journal des révisions du wiki + retour arrière",
+		icon: <History className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
+	{
 		href: "/admin/posts",
 		label: "Articles / Actualités",
 		description: "Publications et annonces du serveur",

@@ -43,6 +43,13 @@
       "when": 1783069990316,
       "tag": "0005_yielding_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783388447135,
+      "tag": "0006_wiki_revisions",
+      "breakpoints": true
     }
   ]
 }

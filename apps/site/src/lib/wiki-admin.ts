@@ -18,7 +18,7 @@
  * auto (id) n'est jamais écrite à l'insert si absente du body.
  */
 import "server-only";
-import { and, asc, count, desc, eq, ilike, like, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, isNull, like, or, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as botSchema from "@/db/bot-schema";
 import { WIKI_TABLE_SPECS, type WikiTableSpec } from "@/lib/wiki-tables";
@@ -399,6 +399,90 @@ export async function setAllWikiVisibility(table: string, visible: boolean): Pro
 		.set({ visible })
 		.returning({ id: spec.table[pkCamelKeys(spec)[0]] })) as Row[];
 	return updated.length;
+}
+
+// ── Vue d'ensemble CMS : complétude du contenu par entité ──────────────────
+
+/** Entités « contenu » suivies dans le tableau de bord CMS (/admin/wiki). */
+export const CMS_ENTITY_TABLES = [
+	"db_characters",
+	"db_planets",
+	"db_transformations",
+	"db_races",
+	"db_techniques",
+	"db_sagas",
+	"db_arcs",
+	"db_episodes",
+	"db_movies",
+	"db_games",
+	"db_manga_volumes",
+] as const;
+
+export interface CmsEntityStat {
+	table: string;
+	total: number;
+	/** Lignes masquées du site public (visible = false). 0 si pas de colonne. */
+	hidden: number;
+	/** Lignes sans image/cover/poster. */
+	missingImage: number;
+	/** Lignes sans description/synopsis. */
+	missingDesc: number;
+	imageCol: string | null;
+	descCol: string | null;
+	hasVisibility: boolean;
+}
+
+/** Compte les lignes d'une table dont la colonne texte est NULL ou vide. */
+async function countEmpty(spec: ResolvedTable, col: string): Promise<number> {
+	const [{ value = 0 } = { value: 0 }] = await db
+		.select({ value: count() })
+		.from(spec.table)
+		.where(or(isNull(spec.table[col]), eq(spec.table[col], "")));
+	return Number(value);
+}
+
+/** Statistiques de complétude d'une entité (total, masquées, sans image/texte). */
+async function tableStat(table: string): Promise<CmsEntityStat> {
+	const spec = getSpec(table);
+	if (!spec) return {
+		table, total: 0, hidden: 0, missingImage: 0, missingDesc: 0,
+		imageCol: null, descCol: null, hasVisibility: false,
+	};
+	const cols = spec.columns;
+	const imageCol = ["image", "cover", "poster"].find((c) => cols.includes(c)) ?? null;
+	const descCol = ["description", "synopsis"].find((c) => cols.includes(c)) ?? null;
+	const hasVis = cols.includes("visible");
+	const [total, hidden, missingImage, missingDesc] = await Promise.all([
+		db.select({ value: count() }).from(spec.table).then((r) => Number(r[0]?.value ?? 0)),
+		hasVis
+			? db
+					.select({ value: count() })
+					.from(spec.table)
+					.where(eq(spec.table.visible, false))
+					.then((r) => Number(r[0]?.value ?? 0))
+			: Promise.resolve(0),
+		imageCol ? countEmpty(spec, imageCol) : Promise.resolve(0),
+		descCol ? countEmpty(spec, descCol) : Promise.resolve(0),
+	]);
+	return {
+		table,
+		total,
+		hidden,
+		missingImage,
+		missingDesc,
+		imageCol,
+		descCol,
+		hasVisibility: hasVis,
+	};
+}
+
+/**
+ * Vue d'ensemble CMS : complétude de chaque entité « contenu » (comptes réels
+ * Postgres). Alimente le tableau de bord /admin/wiki (cartes de complétude,
+ * signaux de contenu manquant). Requêtes parallèles indexées.
+ */
+export async function getWikiCmsStats(): Promise<CmsEntityStat[]> {
+	return Promise.all(CMS_ENTITY_TABLES.map((t) => tableStat(t)));
 }
 
 // ── Sections de contenu par entité (bot.db_wiki_sections) ──────────────────

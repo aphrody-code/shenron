@@ -1,12 +1,18 @@
 "use client";
 
 /**
- * Centre de contrôle du wiki : arborescence catégories → pages avec recherche
- * live, compteurs, et actions rapides (voir / éditer / ajouter). Reçoit l'arbre
- * sérialisé depuis le RSC parent.
+ * Tableau de bord CMS du wiki. Trois strates :
+ *   1. Cartes de complétude par entité (comptes réels, contenu manquant, masqués)
+ *      → parcourir la liste ou créer directement dans le studio ;
+ *   2. Flux des dernières révisions (versioning) → historique complet ;
+ *   3. Arborescence catégories → pages libres (markdown custom) avec recherche.
+ * Reçoit stats + révisions + arbre sérialisés depuis le RSC parent.
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { History, Plus, ArrowRight, Eye, ImageOff, FileText } from "lucide-react";
+import { TABLE_LABELS } from "@/lib/db-labels";
+import { isStudioTable } from "@/lib/wiki-fields";
 
 type PageNode = { id: string; title: string; slug: string };
 type CategoryNode = {
@@ -15,47 +21,174 @@ type CategoryNode = {
 	slug: string;
 	order: number;
 	pages: PageNode[];
-	children: {
-		id: string;
-		name: string;
-		slug: string;
-		pages: PageNode[];
-	}[];
+	children: { id: string; name: string; slug: string; pages: PageNode[] }[];
 };
 
-// Contenu structuré de l'encyclopédie : édité via les tables db_* du bot
-// (CRUD /admin/database/[table]) ou les éditeurs spécialisés /admin/db-universe.
-// C'est ICI que se modifient les descriptions des films, épisodes, persos, etc.
-const ENCYCLO: { label: string; kanji: string; href: string }[] = [
-	{
-		label: "Personnages",
-		kanji: "人物",
-		href: "/admin/database/db_characters",
-	},
-	{ label: "Films", kanji: "映画", href: "/admin/db-universe/films" },
-	{ label: "Épisodes", kanji: "話", href: "/admin/db-universe/episodes" },
-	{ label: "Planètes", kanji: "星", href: "/admin/database/db_planets" },
-	{ label: "Sagas", kanji: "編", href: "/admin/db-universe/sagas" },
-	{ label: "Arcs", kanji: "章", href: "/admin/database/db_arcs" },
-	{ label: "Races", kanji: "種族", href: "/admin/database/db_races" },
-	{
-		label: "Transformations",
-		kanji: "変身",
-		href: "/admin/database/db_transformations",
-	},
-	{ label: "Techniques", kanji: "技", href: "/admin/database/db_techniques" },
-	{ label: "Jeux", kanji: "遊", href: "/admin/db-universe/games" },
-	{
-		label: "Manga (tomes)",
-		kanji: "巻",
-		href: "/admin/database/db_manga_volumes",
-	},
-	{ label: "Actualités", kanji: "報", href: "/admin/database/db_news" },
+interface CmsEntityStat {
+	table: string;
+	total: number;
+	hidden: number;
+	missingImage: number;
+	missingDesc: number;
+	imageCol: string | null;
+	descCol: string | null;
+	hasVisibility: boolean;
+}
+
+interface RevisionLite {
+	id: string;
+	tableName: string;
+	rowId: string;
+	action: string;
+	label: string | null;
+	editorName: string | null;
+	createdAt: string;
+}
+
+// Kanji filigrane par entité (clé = table) — cohérent avec la vitrine publique.
+const ENTITY_KANJI: Record<string, string> = {
+	db_characters: "人物",
+	db_planets: "星",
+	db_transformations: "変身",
+	db_races: "種族",
+	db_techniques: "技",
+	db_sagas: "編",
+	db_arcs: "章",
+	db_episodes: "話",
+	db_movies: "映画",
+	db_games: "遊",
+	db_manga_volumes: "巻",
+};
+
+// Outils/tables utilitaires (pas de complétude de contenu à suivre).
+const TOOLS: { label: string; kanji: string; href: string }[] = [
+	{ label: "Chronologie", kanji: "年表", href: "/admin/chronologie" },
 	{ label: "Sources", kanji: "源", href: "/admin/db-universe/sources" },
-	{ label: "Assets", kanji: "画", href: "/admin/db-universe/assets" },
+	{ label: "Images & médias", kanji: "画", href: "/admin/db-universe/assets" },
+	{ label: "Visibilité", kanji: "眼", href: "/admin/visibilite" },
+	{ label: "Actualités", kanji: "報", href: "/admin/database/db_news" },
 ];
 
-export function WikiManager({ categories }: { categories: CategoryNode[] }) {
+const ACTION_LABEL: Record<string, { label: string; cls: string }> = {
+	create: { label: "création", cls: "text-green-300" },
+	update: { label: "édition", cls: "text-dbz-blue-light" },
+	delete: { label: "suppression", cls: "text-red-300" },
+	visibility: { label: "visibilité", cls: "text-dbz-yellow" },
+	revert: { label: "retour arrière", cls: "text-purple-300" },
+};
+
+function relTime(iso: string): string {
+	const s = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
+	if (s < 60) return "à l'instant";
+	const m = Math.round(s / 60);
+	if (m < 60) return `il y a ${m} min`;
+	const h = Math.round(m / 60);
+	if (h < 24) return `il y a ${h} h`;
+	return `il y a ${Math.round(h / 24)} j`;
+}
+
+/** Score de richesse : part de fiches ayant image ET description. */
+function richness(s: CmsEntityStat): number {
+	if (!s.total) return 0;
+	const missing = (s.imageCol ? s.missingImage : 0) + (s.descCol ? s.missingDesc : 0);
+	const slots = (s.imageCol ? 1 : 0) + (s.descCol ? 1 : 0);
+	if (!slots) return 100;
+	return Math.max(0, Math.round(100 * (1 - missing / (slots * s.total))));
+}
+
+function EntityCard({ s }: { s: CmsEntityStat }) {
+	const label = TABLE_LABELS[s.table] ?? s.table;
+	const kanji = ENTITY_KANJI[s.table] ?? "";
+	const studio = isStudioTable(s.table);
+	const pct = richness(s);
+	const barColor = pct >= 80 ? "bg-green-400" : pct >= 50 ? "bg-dbz-yellow" : "bg-dbz-red";
+	return (
+		<div className="dbz-panel group relative overflow-hidden p-4">
+			<span
+				aria-hidden
+				className="pointer-events-none absolute -right-2 -top-3 select-none font-jp text-6xl text-white/[0.04]"
+			>
+				{kanji}
+			</span>
+			<div className="relative z-10">
+				<div className="flex items-baseline justify-between gap-2">
+					<h3 className="font-saiyan text-lg uppercase tracking-wider text-white">{label}</h3>
+					<span className="tabular-nums font-scouter text-2xl text-dbz-orange">{s.total}</span>
+				</div>
+
+				{/* Barre de richesse du contenu */}
+				<div className="mt-3">
+					<div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-white/40">
+						<span>Complétude</span>
+						<span className="tabular-nums">{pct}%</span>
+					</div>
+					<div className="h-1.5 w-full overflow-hidden rounded bg-dbz-bg">
+						<div className={`h-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
+					</div>
+				</div>
+
+				{/* Signaux de contenu manquant */}
+				<div className="mt-3 flex flex-wrap gap-1.5 text-[10px]">
+					{s.imageCol && s.missingImage > 0 && (
+						<span className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-white/55">
+							<ImageOff className="h-3 w-3" />
+							{s.missingImage} sans image
+						</span>
+					)}
+					{s.descCol && s.missingDesc > 0 && (
+						<span className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-white/55">
+							<FileText className="h-3 w-3" />
+							{s.missingDesc} sans texte
+						</span>
+					)}
+					{s.hasVisibility && s.hidden > 0 && (
+						<span className="inline-flex items-center gap-1 rounded border border-dbz-yellow/30 px-1.5 py-0.5 text-dbz-yellow/80">
+							<Eye className="h-3 w-3" />
+							{s.hidden} masquée{s.hidden > 1 ? "s" : ""}
+						</span>
+					)}
+					{s.total > 0 &&
+						(!s.imageCol || s.missingImage === 0) &&
+						(!s.descCol || s.missingDesc === 0) &&
+						(!s.hasVisibility || s.hidden === 0) && (
+							<span className="rounded border border-green-500/30 px-1.5 py-0.5 text-green-300/80">
+								Complet
+							</span>
+						)}
+				</div>
+
+				{/* Actions */}
+				<div className="mt-4 flex items-center gap-2">
+					<Link
+						href={`/admin/database/${s.table}`}
+						className="inline-flex flex-1 items-center justify-center gap-1 rounded border border-dbz-border px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/70 transition-colors hover:border-dbz-orange hover:text-dbz-orange"
+					>
+						Parcourir
+						<ArrowRight className="h-3 w-3" />
+					</Link>
+					<Link
+						href={studio ? `/admin/wiki/studio/${s.table}/new` : `/admin/database/${s.table}`}
+						className="inline-flex items-center justify-center gap-1 rounded border border-dbz-orange/40 bg-dbz-orange/10 px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-dbz-orange transition-colors hover:bg-dbz-orange/20"
+						title="Créer une entrée"
+					>
+						<Plus className="h-3 w-3" />
+						Nouveau
+					</Link>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+export function WikiManager({
+	categories,
+	stats = [],
+	recent = [],
+}: {
+	categories: CategoryNode[];
+	stats?: CmsEntityStat[];
+	recent?: RevisionLite[];
+}) {
 	const [q, setQ] = useState("");
 
 	const totals = useMemo(() => {
@@ -66,13 +199,13 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 			pages += c.pages.length;
 			for (const sub of c.children) pages += sub.pages.length;
 		}
-		return { cats, pages };
-	}, [categories]);
+		const entities = stats.reduce((n, s) => n + s.total, 0);
+		return { cats, pages, entities };
+	}, [categories, stats]);
 
 	const needle = q.trim().toLowerCase();
 	const match = (s: string) => !needle || s.toLowerCase().includes(needle);
 
-	// Filtre l'arbre : garde une catégorie si elle matche ou contient une page/sous-cat qui matche.
 	const filtered = useMemo(() => {
 		if (!needle) return categories;
 		return categories
@@ -91,46 +224,106 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 	}, [categories, needle]);
 
 	return (
-		<div className="w-full max-w-6xl mx-auto">
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+		<div className="mx-auto w-full max-w-6xl">
+			<div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
 				<div>
-					<h1 className="text-4xl font-saiyan text-dbz-orange">GESTION DU WIKI</h1>
-					<p className="text-xs text-dbz-blue-light font-mono mt-1">
-						{totals.cats} catégorie{totals.cats > 1 ? "s" : ""} · {totals.pages} page
+					<h1 className="font-saiyan text-4xl text-dbz-orange">GESTION DU WIKI</h1>
+					<p className="mt-1 font-mono text-xs text-dbz-blue-light">
+						{totals.entities.toLocaleString("fr-FR")} fiches · {totals.cats} catégorie
+						{totals.cats > 1 ? "s" : ""} · {totals.pages} page{totals.pages > 1 ? "s" : ""} libre
 						{totals.pages > 1 ? "s" : ""}
 					</p>
 				</div>
-				<div className="flex gap-3">
-					<Link href="/admin/wiki/category/new" className="dbz-button !text-lg">
+				<div className="flex flex-wrap gap-3">
+					<Link href="/admin/wiki/history" className="dbz-button-ghost inline-flex items-center gap-2">
+						<History className="h-4 w-4" />
+						HISTORIQUE
+					</Link>
+					<Link href="/admin/wiki/category/new" className="dbz-button">
 						+ CATÉGORIE
 					</Link>
-					<Link href="/admin/wiki/page/new" className="dbz-button !text-lg">
+					<Link href="/admin/wiki/page/new" className="dbz-button">
 						+ PAGE
 					</Link>
 				</div>
 			</div>
 
-			{/* Encyclopédie — contenu structuré (db_*). Édition des descriptions
-			    films/épisodes/persos + images. */}
+			{/* Cartes de complétude par entité */}
 			<section className="mb-10">
-				<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase tracking-widest mb-1">
+				<h2 className="mb-1 font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">
 					Encyclopédie
 				</h2>
-				<p className="text-sm text-gray-400 mb-4">
-					Éditer le contenu des fiches (descriptions, images, dates…). C'est ici qu'on modifie
-					films, épisodes, personnages, etc.
+				<p className="mb-4 text-sm text-gray-400">
+					Complétude du contenu par type de fiche. Repère d'un coup d'œil ce qu'il reste à illustrer,
+					rédiger ou publier.
 				</p>
-				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-					{ENCYCLO.map((e) => (
+				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+					{stats.map((s) => (
+						<EntityCard key={s.table} s={s} />
+					))}
+				</div>
+			</section>
+
+			{/* Dernières révisions */}
+			{recent.length > 0 && (
+				<section className="mb-10">
+					<div className="mb-3 flex items-baseline justify-between">
+						<h2 className="font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">
+							Dernières modifications
+						</h2>
+						<Link
+							href="/admin/wiki/history"
+							className="text-xs font-bold uppercase tracking-wider text-dbz-orange/80 hover:text-dbz-orange"
+						>
+							Tout l'historique →
+						</Link>
+					</div>
+					<ul className="dbz-panel divide-y divide-dbz-border/40">
+						{recent.map((r) => {
+							const meta = ACTION_LABEL[r.action] ?? { label: r.action, cls: "text-white/60" };
+							const label = TABLE_LABELS[r.tableName] ?? r.tableName;
+							const canStudio = isStudioTable(r.tableName) && !r.rowId.includes(":");
+							return (
+								<li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2.5 text-sm">
+									<span className={`text-[11px] font-bold uppercase tracking-wider ${meta.cls}`}>
+										{meta.label}
+									</span>
+									{canStudio ? (
+										<Link
+											href={`/admin/wiki/studio/${r.tableName}/${encodeURIComponent(r.rowId)}`}
+											className="font-semibold text-white hover:text-dbz-orange"
+										>
+											{r.label || `#${r.rowId}`}
+										</Link>
+									) : (
+										<span className="font-semibold text-white">{r.label || `#${r.rowId}`}</span>
+									)}
+									<span className="text-[11px] text-white/35">{label}</span>
+									<span className="ml-auto text-[11px] text-white/40">
+										{r.editorName ? <span className="text-white/60">{r.editorName}</span> : "système"} ·{" "}
+										{relTime(r.createdAt)}
+									</span>
+								</li>
+							);
+						})}
+					</ul>
+				</section>
+			)}
+
+			{/* Outils & tables utilitaires */}
+			<section className="mb-10">
+				<h2 className="mb-3 font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">Outils</h2>
+				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+					{TOOLS.map((e) => (
 						<Link
 							key={e.href}
 							href={e.href}
-							className="dbz-panel p-4 flex items-center gap-3 hover:border-dbz-orange transition-colors group"
+							className="dbz-panel group flex items-center gap-3 p-4 transition-colors hover:border-dbz-orange"
 						>
-							<span className="text-2xl text-dbz-blue-light group-hover:text-dbz-orange transition-colors">
+							<span className="text-2xl text-dbz-blue-light transition-colors group-hover:text-dbz-orange">
 								{e.kanji}
 							</span>
-							<span className="font-saiyan uppercase tracking-wider text-sm text-gray-200 group-hover:text-white">
+							<span className="font-saiyan text-sm uppercase tracking-wider text-gray-200 group-hover:text-white">
 								{e.label}
 							</span>
 						</Link>
@@ -139,54 +332,48 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 			</section>
 
 			{/* Pages libres — table WikiPage (markdown + HTML + images custom). */}
-			<div className="flex items-baseline justify-between mb-4 border-t border-dbz-border pt-8">
-				<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase tracking-widest">
-					Pages libres
-				</h2>
-				<p className="text-xs text-gray-500">
-					Articles 100% custom (markdown, mise en page, images)
-				</p>
+			<div className="mb-4 flex items-baseline justify-between border-t border-dbz-border pt-8">
+				<h2 className="font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">Pages libres</h2>
+				<p className="text-xs text-gray-500">Articles 100% custom (markdown, mise en page, images)</p>
 			</div>
 
 			<input
 				value={q}
 				onChange={(e) => setQ(e.target.value)}
 				placeholder="Rechercher une page ou une catégorie…"
-				className="w-full p-3 mb-6 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white"
+				className="mb-6 w-full border-2 border-dbz-border bg-dbz-bg p-3 text-white outline-none focus:border-dbz-orange"
 			/>
 
 			<div className="space-y-6">
 				{filtered.length === 0 ? (
 					<div className="dbz-panel p-8 text-center">
-						<p className="text-2xl font-saiyan text-dbz-blue-light uppercase">
+						<p className="font-saiyan text-2xl uppercase text-dbz-blue-light">
 							{needle ? "Aucun résultat" : "Aucune catégorie. Créez la première."}
 						</p>
 					</div>
 				) : (
 					filtered.map((cat) => (
-						<div key={cat.id} className="dbz-panel p-6 space-y-4">
-							<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+						<div key={cat.id} className="dbz-panel space-y-4 p-6">
+							<div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
 								<div>
-									<h2 className="text-2xl font-saiyan text-dbz-yellow">
+									<h2 className="font-saiyan text-2xl text-dbz-yellow">
 										{cat.name}
-										<span className="ml-2 text-sm text-gray-500 font-mono">
-											({cat.pages.length})
-										</span>
+										<span className="ml-2 font-mono text-sm text-gray-500">({cat.pages.length})</span>
 									</h2>
-									<p className="text-xs text-dbz-blue-light font-mono mt-1">
+									<p className="mt-1 font-mono text-xs text-dbz-blue-light">
 										/{cat.slug} · order: {cat.order}
 									</p>
 								</div>
 								<div className="flex gap-3">
 									<Link
 										href={`/admin/wiki/category/${cat.id}`}
-										className="font-saiyan text-sm text-dbz-blue-light hover:text-dbz-yellow uppercase tracking-wider"
+										className="font-saiyan text-sm uppercase tracking-wider text-dbz-blue-light hover:text-dbz-yellow"
 									>
 										ÉDITER
 									</Link>
 									<Link
 										href={`/admin/wiki/page/new?category=${cat.id}`}
-										className="font-saiyan text-sm text-dbz-orange hover:text-dbz-yellow uppercase tracking-wider"
+										className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange hover:text-dbz-yellow"
 									>
 										+ PAGE
 									</Link>
@@ -194,25 +381,25 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 							</div>
 
 							{cat.pages.length > 0 && (
-								<ul className="space-y-1 ml-4 border-l-2 border-dbz-border pl-4">
+								<ul className="ml-4 space-y-1 border-l-2 border-dbz-border pl-4">
 									{cat.pages.map((p) => (
-										<li key={p.id} className="flex justify-between items-center group gap-3">
+										<li key={p.id} className="group flex items-center justify-between gap-3">
 											<Link
 												href={`/wiki/${cat.slug}/${p.slug}`}
-												className="text-sm text-gray-300 hover:text-dbz-orange transition-colors truncate"
+												className="truncate text-sm text-gray-300 transition-colors hover:text-dbz-orange"
 											>
 												{p.title}
 											</Link>
-											<span className="flex gap-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+											<span className="flex shrink-0 gap-3 opacity-0 transition-opacity group-hover:opacity-100">
 												<Link
 													href={`/wiki/${cat.slug}/${p.slug}`}
-													className="font-saiyan text-xs text-gray-400 hover:text-dbz-yellow uppercase"
+													className="font-saiyan text-xs uppercase text-gray-400 hover:text-dbz-yellow"
 												>
 													VOIR
 												</Link>
 												<Link
 													href={`/admin/wiki/page/${p.id}`}
-													className="font-saiyan text-xs text-dbz-blue-light hover:text-dbz-yellow uppercase"
+													className="font-saiyan text-xs uppercase text-dbz-blue-light hover:text-dbz-yellow"
 												>
 													ÉDITER
 												</Link>
@@ -226,32 +413,32 @@ export function WikiManager({ categories }: { categories: CategoryNode[] }) {
 								<div className="ml-4 space-y-3">
 									{cat.children.map((sub) => (
 										<div key={sub.id} className="border-l-2 border-dbz-blue/50 pl-4">
-											<div className="flex justify-between items-center mb-2">
+											<div className="mb-2 flex items-center justify-between">
 												<h3 className="font-saiyan text-lg text-dbz-blue-light">
 													{sub.name}
-													<span className="ml-2 text-xs text-gray-500 font-mono">
+													<span className="ml-2 font-mono text-xs text-gray-500">
 														({sub.pages.length})
 													</span>
 												</h3>
 												<Link
 													href={`/admin/wiki/category/${sub.id}`}
-													className="text-xs text-gray-500 hover:text-dbz-yellow uppercase"
+													className="text-xs uppercase text-gray-500 hover:text-dbz-yellow"
 												>
 													ÉDITER
 												</Link>
 											</div>
 											<ul className="space-y-1 text-sm">
 												{sub.pages.map((p) => (
-													<li key={p.id} className="flex justify-between group gap-3">
+													<li key={p.id} className="group flex justify-between gap-3">
 														<Link
 															href={`/wiki/${cat.slug}/${sub.slug}/${p.slug}`}
-															className="text-gray-400 hover:text-dbz-orange transition-colors truncate"
+															className="truncate text-gray-400 transition-colors hover:text-dbz-orange"
 														>
 															{p.title}
 														</Link>
 														<Link
 															href={`/admin/wiki/page/${p.id}`}
-															className="opacity-0 group-hover:opacity-100 font-saiyan text-xs text-dbz-blue-light hover:text-dbz-yellow uppercase shrink-0"
+															className="shrink-0 font-saiyan text-xs uppercase text-dbz-blue-light opacity-0 hover:text-dbz-yellow group-hover:opacity-100"
 														>
 															ÉDITER
 														</Link>
