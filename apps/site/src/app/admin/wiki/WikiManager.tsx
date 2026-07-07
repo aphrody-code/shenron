@@ -10,7 +10,7 @@
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { History, Plus, ArrowRight, Eye, ImageOff, FileText } from "lucide-react";
+import { History, Plus, ArrowRight, Eye, ImageOff, FileText, ClipboardList } from "lucide-react";
 import { TABLE_LABELS } from "@/lib/db-labels";
 import { isStudioTable } from "@/lib/wiki-fields";
 
@@ -127,19 +127,25 @@ function EntityCard({ s }: { s: CmsEntityStat }) {
 					</div>
 				</div>
 
-				{/* Signaux de contenu manquant */}
+				{/* Signaux de contenu manquant — cliquables vers la worklist */}
 				<div className="mt-3 flex flex-wrap gap-1.5 text-[10px]">
 					{s.imageCol && s.missingImage > 0 && (
-						<span className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-white/55">
+						<Link
+							href={`/admin/wiki/todo#${s.table}`}
+							className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-white/55 transition-colors hover:border-dbz-orange hover:text-dbz-orange"
+						>
 							<ImageOff className="h-3 w-3" />
 							{s.missingImage} sans image
-						</span>
+						</Link>
 					)}
 					{s.descCol && s.missingDesc > 0 && (
-						<span className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-white/55">
+						<Link
+							href={`/admin/wiki/todo#${s.table}`}
+							className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-white/55 transition-colors hover:border-dbz-orange hover:text-dbz-orange"
+						>
 							<FileText className="h-3 w-3" />
 							{s.missingDesc} sans texte
-						</span>
+						</Link>
 					)}
 					{s.hasVisibility && s.hidden > 0 && (
 						<span className="inline-flex items-center gap-1 rounded border border-dbz-yellow/30 px-1.5 py-0.5 text-dbz-yellow/80">
@@ -235,6 +241,10 @@ export function WikiManager({
 					</p>
 				</div>
 				<div className="flex flex-wrap gap-3">
+					<Link href="/admin/wiki/todo" className="dbz-button-ghost inline-flex items-center gap-2">
+						<ClipboardList className="h-4 w-4" />
+						À COMPLÉTER
+					</Link>
 					<Link href="/admin/wiki/history" className="dbz-button-ghost inline-flex items-center gap-2">
 						<History className="h-4 w-4" />
 						HISTORIQUE

@@ -510,6 +510,76 @@ export async function getWikiCmsStats(): Promise<CmsEntityStat[]> {
 	return Promise.all(CMS_ENTITY_TABLES.map((t) => tableStat(t)));
 }
 
+export interface IncompleteRow {
+	table: string;
+	id: string;
+	label: string;
+	image: string | null;
+	missingImage: boolean;
+	missingDesc: boolean;
+}
+
+/**
+ * Liste actionnable des fiches à compléter (image et/ou description manquante),
+ * par entité, plafonnée `perTable`. Alimente la worklist /admin/wiki/todo :
+ * chaque ligne renvoie vers son éditeur studio. Requêtes parallèles indexées.
+ */
+export async function listIncompleteContent(
+	perTable = 60
+): Promise<{ groups: Record<string, IncompleteRow[]>; order: string[] }> {
+	const groups: Record<string, IncompleteRow[]> = {};
+	await Promise.all(
+		CMS_ENTITY_TABLES.map(async (table) => {
+			const spec = getSpec(table);
+			if (!spec) return;
+			const cols = spec.columns;
+			const pkKey = pkCamelKeys(spec)[0];
+			const labelKey = ["name", "title"].find((c) => cols.includes(c)) ?? pkKey;
+			const imageCol = ["image", "cover", "poster"].find((c) => cols.includes(c)) ?? null;
+			const descCol = ["description", "synopsis"].find((c) => cols.includes(c)) ?? null;
+			if (!imageCol && !descCol) return;
+			const emptyOr = (c: string) => or(isNull(spec.table[c]), eq(spec.table[c], ""));
+			const conds = [
+				imageCol ? emptyOr(imageCol) : null,
+				descCol ? emptyOr(descCol) : null,
+			].filter(Boolean) as SQL[];
+			const where = (conds.length === 1 ? conds[0] : or(...conds)) as SQL;
+			const sel: Record<string, unknown> = {
+				id: spec.table[pkKey],
+				label: spec.table[labelKey],
+			};
+			if (imageCol) sel.image = spec.table[imageCol];
+			if (descCol) sel.descv = spec.table[descCol];
+			const rows = (await db
+				.select(sel as never)
+				.from(spec.table)
+				.where(where)
+				.orderBy(asc(spec.table[labelKey]))
+				.limit(perTable)) as Array<{
+				id: unknown;
+				label: unknown;
+				image?: unknown;
+				descv?: unknown;
+			}>;
+			const list = rows.map((r) => {
+				const img = r.image != null && r.image !== "" ? String(r.image) : null;
+				return {
+					table,
+					id: String(r.id),
+					label: String(r.label ?? r.id),
+					image: img,
+					missingImage: imageCol ? img == null : false,
+					missingDesc: descCol ? r.descv == null || r.descv === "" : false,
+				};
+			});
+			if (list.length) groups[table] = list;
+		})
+	);
+	// Ordre = celui de CMS_ENTITY_TABLES, en ne gardant que les non-vides.
+	const order = CMS_ENTITY_TABLES.filter((t) => groups[t]?.length);
+	return { groups, order };
+}
+
 // ── Sections de contenu par entité (bot.db_wiki_sections) ──────────────────
 
 export interface WikiSectionRow {
