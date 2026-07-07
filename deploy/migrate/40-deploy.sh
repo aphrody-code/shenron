@@ -18,7 +18,9 @@ log() { printf '\n\033[1;36m▶ %s\033[0m\n' "$*"; }
 log "préparation des dossiers runtime"
 mkdir -p apps/bot/.bun-cache apps/bot/dist apps/bot/assets/subtitles \
          apps/site/.next apps/site/.bun-cache apps/site/public/wiki \
-         "$HOME/.gemini"
+         apps/mcp/.bun-cache "$HOME/.gemini"
+# ^ apps/mcp/.bun-cache indispensable : sans lui le sandbox systemd de shenron-mcp
+#   (ProtectSystem=strict + ReadWritePaths=…/apps/mcp/.bun-cache) échoue en 226/NAMESPACE.
 
 # ── 2. Génération + build ────────────────────────────────────────────────────
 # N.B. on entre dans chaque package (cd) au lieu de `bun --filter` : ce build

@@ -77,6 +77,10 @@ brotli_min_length 256;
 brotli_types text/plain text/css text/xml text/javascript application/json application/javascript application/xml application/xml+rss application/x-javascript application/wasm image/svg+xml font/woff2;
 brotli_static on;
 limit_req_zone $binary_remote_addr zone=rpb_api:10m rate=30r/s;
+
+# upstream de l'API bot : à l'origine défini dans le vhost legacy shenron.rpbey.fr
+# (non déployé ici) mais référencé par bot.dragonballfr.com.conf → on le pose ici.
+upstream shenron_api { server 127.0.0.1:5006; keepalive 32; }
 NGINX
 
 sudo install -d -m 755 /var/www/html/.well-known/acme-challenge
