@@ -21,6 +21,7 @@ export function EpisodeCard({
 	hasVf,
 	hasVostfr,
 	width = "rail",
+	eager = false,
 }: {
 	href: string;
 	number: number | null;
@@ -33,6 +34,8 @@ export function EpisodeCard({
 	hasVostfr?: boolean;
 	/** "rail" = largeur fixe pour un rail horizontal ; "full" = pleine largeur (grille). */
 	width?: "rail" | "full";
+	/** Charge la vignette immédiatement (1er rail visible) — évite le flash de carte vide. */
+	eager?: boolean;
 }) {
 	const num = number != null ? String(number).padStart(3, "0") : "—";
 	return (
@@ -42,19 +45,21 @@ export function EpisodeCard({
 				width === "rail" ? "w-[260px] shrink-0 snap-start sm:w-[300px]" : "w-full"
 			}`}
 		>
-			<div className="relative aspect-video overflow-hidden rounded-lg bg-dbz-card shadow-lg ring-1 ring-white/[0.06] transition-all duration-300 group-hover/card:z-10 group-hover/card:ring-dbz-orange/60 group-focus-visible/card:ring-dbz-orange/60">
-				{image ? (
+			<div className="relative aspect-video overflow-hidden rounded-lg bg-gradient-to-br from-dbz-card to-black shadow-lg ring-1 ring-white/[0.06] transition-all duration-300 group-hover/card:z-10 group-hover/card:ring-dbz-orange/60 group-focus-visible/card:ring-dbz-orange/60">
+				{/* Filigrane du numéro : visible tant que la vignette n'a pas peint
+				    (la carte ne paraît jamais « vide/cassée » pendant le chargement). */}
+				<span className="pointer-events-none absolute inset-0 flex items-center justify-center font-saiyan text-2xl text-white/10">
+					{num}
+				</span>
+				{image && (
 					<img
 						src={assetUrl(image)}
 						alt=""
-						loading="lazy"
+						loading={eager ? "eager" : "lazy"}
 						decoding="async"
-						className="h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+						fetchPriority={eager ? "high" : "auto"}
+						className="relative h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
 					/>
-				) : (
-					<div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-dbz-card to-black">
-						<span className="font-saiyan text-2xl text-white/20">{num}</span>
-					</div>
 				)}
 
 				{/* Dégradé permanent bas + numéro HUD */}

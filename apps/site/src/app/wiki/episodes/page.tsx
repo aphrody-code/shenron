@@ -89,7 +89,7 @@ async function EpisodeRails({ series }: { series: string[] }) {
 	}
 	return (
 		<>
-			{present.map((g) => (
+			{present.map((g, rowIdx) => (
 				<StreamRow
 					key={g.series}
 					title={SERIES_LABELS[g.series] ?? g.series}
@@ -97,7 +97,7 @@ async function EpisodeRails({ series }: { series: string[] }) {
 					accent={ERA_ACCENT[eraOf(g.series)]}
 					seeAllHref={`/wiki/episodes/serie/${g.series}`}
 				>
-					{g.episodes.map((ep) => (
+					{g.episodes.map((ep, cardIdx) => (
 						<EpisodeCard
 							key={ep.id}
 							href={`/wiki/episodes/${ep.id}`}
@@ -108,6 +108,9 @@ async function EpisodeRails({ series }: { series: string[] }) {
 							year={yearOf(ep.air_date)}
 							hasVf={hasLang(ep.players, "vf")}
 							hasVostfr={hasLang(ep.players, "vostfr")}
+							// Premier rail, cartes au-dessus de la ligne de flottaison →
+							// chargement immédiat (pas de flash de vignette vide au fold).
+							eager={rowIdx === 0 && cardIdx < 6}
 						/>
 					))}
 					{g.total > g.episodes.length && (

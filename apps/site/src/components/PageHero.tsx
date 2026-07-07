@@ -15,6 +15,7 @@ export function PageHero({
 	imageAlt,
 	right,
 	height = "md",
+	imagePosition = "center",
 }: {
 	eyebrow: string;
 	title: string;
@@ -23,8 +24,16 @@ export function PageHero({
 	imageAlt: string;
 	right?: ReactNode;
 	height?: "sm" | "md" | "lg";
+	/** Cadrage vertical du cover (utile pour un visuel portrait recadré en bandeau). */
+	imagePosition?: "center" | "top" | "bottom";
 }) {
 	const h = height === "sm" ? "h-[300px]" : height === "lg" ? "h-[520px]" : "h-[420px]";
+	const objPos =
+		imagePosition === "top"
+			? "object-top"
+			: imagePosition === "bottom"
+				? "object-bottom"
+				: "object-center";
 	return (
 		<section
 			className={`relative ${h} w-full overflow-hidden border-b border-white/[0.08] vignette film-grain`}
@@ -35,7 +44,7 @@ export function PageHero({
 				fill
 				priority
 				sizes="100vw"
-				className="object-cover object-center ken-burns"
+				className={`object-cover ${objPos} ken-burns`}
 			/>
 			{/* Étagement des dégradés : verticale (lisibilité texte) + horizontale + halo bas */}
 			<div className="absolute inset-0 bg-gradient-to-t from-black via-black/65 to-black/25" />

@@ -1,6 +1,6 @@
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
-import { SAGAS_HERO } from "@/lib/db-banners";
+import { SERIES_BANNERS } from "@/lib/db-banners";
 import { MangaVolumeGrid } from "@/components/manga/MangaVolumeGrid";
 import { MangaInfoSection } from "@/components/manga/MangaInfoSection";
 import { MangaDialogueSearch } from "@/components/manga/MangaDialogueSearch";
@@ -52,14 +52,20 @@ export default async function MangaIndexPage() {
 		volume_id: ch.volume_id,
 	}));
 
+	// Hero = vraie couverture de tome (l'œuvre elle-même) plutôt qu'un bandeau
+	// événementiel générique ; repli sur la bannière d'ère si aucun tome.
+	const heroCover = dbVolumes[0]?.cover ?? dbsVolumes[0]?.cover ?? null;
+	const heroImage = heroCover ? assetUrl(heroCover) : SERIES_BANNERS.DB;
+
 	return (
 		<div className="reveal-up">
 			<PageHero
 				eyebrow="Manga"
 				title="Lecteur de scan"
 				lead="L'œuvre originale d'Akira Toriyama, planche par planche. Sélectionne un tome ou parcours les chapitres disponibles."
-				image={SAGAS_HERO}
-				imageAlt="Manga Dragon Ball"
+				image={heroImage}
+				imageAlt="Couverture du manga Dragon Ball"
+				imagePosition="top"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
