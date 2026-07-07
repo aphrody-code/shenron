@@ -89,14 +89,15 @@ export async function proxy(request: NextRequest) {
 		((pathname === "/wiki" || pathname.startsWith("/wiki/")) && !isPublicWiki(pathname));
 
 	if (blocked && !(await isAdmin(request))) {
-		// Au lieu de renvoyer silencieusement le visiteur sur la home (URL perdue,
-		// back-button cassé), on **rewrite** vers un écran « en préparation » servi
-		// à l'URL d'origine (noindex). Le middleware s'exécute toujours avant le
-		// cache → le contenu gated reste protégé ; l'admin passe (next()) au-dessus.
-		const teaser = request.nextUrl.clone();
-		teaser.pathname = "/wiki-bientot";
-		teaser.search = `?from=${encodeURIComponent(pathname)}`;
-		return NextResponse.rewrite(teaser);
+		// Au lieu de renvoyer silencieusement le visiteur sur la marketing home
+		// (aucun contexte, dead-end), on le redirige vers un écran « en préparation »
+		// dédié (noindex) qui explique et propose les sections déjà ouvertes. On
+		// construit la cible depuis `request.url` (Host nginx = dragonballfr.com) et
+		// non `nextUrl.clone()` (host interne localhost:3000 → tentative de proxy
+		// externe ECONNREFUSED). Le contenu gated n'est jamais rendu.
+		return NextResponse.redirect(
+			new URL(`/wiki-bientot?from=${encodeURIComponent(pathname)}`, request.url)
+		);
 	}
 
 	return NextResponse.next();
