@@ -80,9 +80,8 @@ export async function proxy(request: NextRequest) {
 	}
 
 	// Gating bêta : /tierlists/** + /wiki/** (hors episodes/films/manga) sont
-	// réservés aux admins/owner. Le public est redirigé vers l'accueil. Le code
-	// des pages reste intact — seul l'accès est bloqué ici. Réouverture au public
-	// = ajouter le préfixe dans WIKI_OPEN.
+	// réservés aux admins/owner. Le code des pages reste intact — seul l'accès est
+	// bloqué ici. Réouverture au public = ajouter le préfixe dans WIKI_OPEN.
 	const { pathname } = request.nextUrl;
 	const blocked =
 		pathname === "/tierlists" ||
@@ -90,7 +89,14 @@ export async function proxy(request: NextRequest) {
 		((pathname === "/wiki" || pathname.startsWith("/wiki/")) && !isPublicWiki(pathname));
 
 	if (blocked && !(await isAdmin(request))) {
-		return NextResponse.redirect(new URL("/", request.url));
+		// Au lieu de renvoyer silencieusement le visiteur sur la home (URL perdue,
+		// back-button cassé), on **rewrite** vers un écran « en préparation » servi
+		// à l'URL d'origine (noindex). Le middleware s'exécute toujours avant le
+		// cache → le contenu gated reste protégé ; l'admin passe (next()) au-dessus.
+		const teaser = request.nextUrl.clone();
+		teaser.pathname = "/wiki-bientot";
+		teaser.search = `?from=${encodeURIComponent(pathname)}`;
+		return NextResponse.rewrite(teaser);
 	}
 
 	return NextResponse.next();
