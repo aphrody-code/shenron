@@ -18,7 +18,7 @@
  * auto (id) n'est jamais écrite à l'insert si absente du body.
  */
 import "server-only";
-import { and, asc, count, desc, eq, ilike, isNull, like, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, isNull, like, max, or, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as botSchema from "@/db/bot-schema";
 import { WIKI_TABLE_SPECS, type WikiTableSpec } from "@/lib/wiki-tables";
@@ -251,6 +251,23 @@ export async function getWikiRow(table: string, id: string): Promise<Row | null>
 	return rows[0] ?? null;
 }
 
+/**
+ * Tables dont la pk est auto-générée par Postgres (IDENTITY / default) → ne
+ * jamais injecter d'id à l'insert. Toutes les autres tables wiki à pk numérique
+ * simple ont une pk `bigint` SANS séquence (héritée du SQLite du bot) → la
+ * création depuis le studio doit calculer le prochain id (max+1) elle-même,
+ * sinon `null value in column "id"`.
+ */
+const DB_AUTOGEN_PK = new Set<string>(["db_wiki_sections"]);
+
+/** Prochain id disponible (max+1) pour une table à pk numérique sans séquence. */
+async function nextPkValue(spec: ResolvedTable, pkKey: string): Promise<number> {
+	const [{ value = null } = { value: null }] = (await db
+		.select({ value: max(spec.table[pkKey]) })
+		.from(spec.table)) as Array<{ value: number | null }>;
+	return (value == null ? 0 : Number(value)) + 1;
+}
+
 export async function insertWiki(table: string, data: Row): Promise<Row> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
@@ -261,6 +278,14 @@ export async function insertWiki(table: string, data: Row): Promise<Row> {
 	// Tables de jointure (pk composite) : lier est idempotent → un re-lien d'une
 	// paire existante est un no-op au lieu d'une erreur unique_violation brute.
 	const isJoin = Array.isArray(spec.pk);
+	// Pk numérique simple non fournie et non auto-générée → attribue max+1 pour
+	// permettre la création d'entités depuis le studio (« Nouvelle entrée »).
+	if (!isJoin && !DB_AUTOGEN_PK.has(table)) {
+		const pkKey = pkCamelKeys(spec)[0];
+		if (values[pkKey] === undefined && colDataType(spec, pkKey) === "number") {
+			values[pkKey] = await nextPkValue(spec, pkKey);
+		}
+	}
 	const q = db.insert(spec.table).values(values as never);
 	const inserted = (await (isJoin ? q.onConflictDoNothing() : q).returning()) as Row[];
 	return inserted[0] ?? values;
