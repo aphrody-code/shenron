@@ -82,6 +82,12 @@ if [[ $DO_NGINX -eq 1 ]]; then
   # Le glob *.conf inclut bot.dragonballfr.com.conf (nouveau vhost API bot) en
   # plus de bot.rpbey.fr.conf / shenron.conf.
   sudo cp "$NGINX_SRC"/*.conf /etc/nginx/conf.d/
+  # Page d'erreur de marque servie par nginx quand l'upstream site est down
+  # (error_page 502/503/504 → /50x.html dans dragonballfr.com.conf).
+  if [[ -f "$NGINX_SRC/errorpages/50x.html" ]]; then
+    sudo install -D -m 0644 "$NGINX_SRC/errorpages/50x.html" /var/www/html/50x.html
+    echo "  ✓ page d'erreur 50x déployée (/var/www/html/50x.html)"
+  fi
   if sudo nginx -t; then
     sudo systemctl reload nginx
     echo "  ✓ nginx rechargé"

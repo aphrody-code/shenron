@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="refresh" content="15">
+<title>DBFR — un instant…</title>
+<style>
+  :root { color-scheme: dark light; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: grid; place-items: center;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(120% 120% at 50% 0%, #1a2440 0%, #0a0e1a 60%, #05070f 100%);
+    color: #e8ecf5; text-align: center; padding: 2rem;
+  }
+  .wrap { max-width: 30rem; }
+  .orb {
+    width: 96px; height: 96px; margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #ffe89a 0%, #ff9d2e 38%, #e8631a 70%, #b23c0a 100%);
+    box-shadow: 0 0 40px 6px rgba(255,157,46,.45), inset -6px -8px 18px rgba(120,40,0,.55);
+    position: relative; animation: pulse 2.4s ease-in-out infinite;
+  }
+  .orb::before, .orb::after {
+    content: "★"; position: absolute; color: #c0350f; font-size: 15px; line-height: 1;
+    text-shadow: 0 0 2px rgba(0,0,0,.3);
+  }
+  .orb::before { top: 30%; left: 30%; } .orb::after { top: 52%; left: 55%; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:.95} 50%{transform:scale(1.06);opacity:1} }
+  h1 { font-size: 1.5rem; margin: 0 0 .5rem; letter-spacing: .01em; }
+  p { margin: .35rem 0; color: #aab4cc; line-height: 1.5; }
+  .small { font-size: .82rem; color: #6d7793; margin-top: 1.5rem; }
+  a { color: #ffb347; text-decoration: none; font-weight: 600; }
+  @media (prefers-color-scheme: light) {
+    body { background: radial-gradient(120% 120% at 50% 0%, #fef3e2 0%, #fbe9d0 60%, #f4dcbc 100%); color: #2a2118; }
+    p { color: #6a5a45; } .small { color: #9a8a72; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="orb" aria-hidden="true"></div>
+    <h1>Le Dragon rassemble son énergie…</h1>
+    <p>Le site revient dans un instant. Cette page se recharge automatiquement.</p>
+    <p><a href="/">Réessayer maintenant</a></p>
+    <p class="small">dragonballfr.com — service momentanément indisponible</p>
+  </div>
+</body>
+</html>

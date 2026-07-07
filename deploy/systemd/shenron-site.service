@@ -17,6 +17,7 @@ Environment=HOME=/home/ubuntu
 Environment=PORT=3000
 Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/site/.bun-cache
 Environment=UV_THREADPOOL_SIZE=8
+Environment=NEXT_TELEMETRY_DISABLED=1
 
 # next start sous Bun, binaire next résolu en absolu (hoisté à la racine du
 # workspace) — pas de couche bunx (évite tout cache réseau/écriture hors sandbox).
@@ -29,10 +30,22 @@ KillSignal=SIGTERM
 
 Restart=always
 RestartSec=5
+# Backoff progressif si crash-loop (au lieu d'un flat 5s qui martèle le boot).
+RestartSteps=4
+RestartMaxDelaySec=45
 
-MemoryMax=1G
-MemoryHigh=768M
-MemoryLow=128M
+# Mémoire : Next 16 (canary) + cache ISR/fetch + RSC plafonnent bien au-dessus
+# des 768M initiaux ; sous cette limite le cgroup entrait en reclaim agressif
+# (MemoryHigh) → event-loop gelé → connexions Postgres locales en CONNECT_TIMEOUT
+# → 504/pages à 24s (incident 2026-07-07). Le VPS a 47G de RAM : on donne de la
+# marge. MemoryHigh = throttle doux (plateau confortable), MemoryMax = cap dur
+# (un runaway est tué puis relancé par Restart=always), MemoryLow = protégé du
+# reclaim système. MemoryAccounting explicite pour les métriques `systemctl show`.
+MemoryAccounting=true
+MemoryLow=256M
+MemoryHigh=2G
+MemoryMax=3G
+MemorySwapMax=512M
 TasksMax=256
 LimitNOFILE=131072
 OOMScoreAdjust=-300
