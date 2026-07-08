@@ -1,0 +1,62 @@
+[Unit]
+Description=filebrowser — serveur de fichiers + upload (files.dragonballfr.com)
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitBurst=10
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/filebrowser
+
+# Bind loopback uniquement — l'exposition publique passe par nginx (TLS + rate-limit).
+ExecStart=/usr/local/bin/filebrowser \
+  -d /home/ubuntu/filebrowser/filebrowser.db \
+  -a 127.0.0.1 -p 8081 \
+  -r /home/ubuntu/files
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=20
+KillMode=mixed
+KillSignal=SIGTERM
+
+Restart=always
+RestartSec=5
+
+MemoryMax=512M
+MemoryHigh=384M
+TasksMax=128
+LimitNOFILE=65536
+OOMScoreAdjust=-100
+CPUWeight=60
+IOWeight=60
+
+# Hardening (calqué sur shenron-embed.service)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+# Seuls la DB filebrowser et la racine servie sont writable.
+ReadWritePaths=/home/ubuntu/filebrowser /home/ubuntu/files
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=filebrowser
+
+[Install]
+WantedBy=multi-user.target

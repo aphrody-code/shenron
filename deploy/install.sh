@@ -53,13 +53,17 @@ rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
 echo "▶ activation service + timers (sqlite-backup 03:00, pg-backup 03:30, neon-sync /30min, neon-pull /15min, drive-sync daily)"
-sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-mcp.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
+sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-mcp.service filebrowser.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
 sudo systemctl enable --now shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer >/dev/null 2>&1 || true
 # Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
 sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # Serveur MCP public (mcp.dragonballfr.com) — proxy lecture seule RAG + API
 # publique vers le bot (:5006). Léger, démarre immédiatement (loopback :5010).
 sudo systemctl enable --now shenron-mcp.service >/dev/null 2>&1 || true
+# Serveur de fichiers + upload (files.dragonballfr.com) — Filebrowser en loopback
+# (:8081), fronté par nginx (deploy/nginx/files.dragonballfr.com.conf). Prérequis :
+# binaire /usr/local/bin/filebrowser + DB ~/filebrowser/filebrowser.db (cf. README).
+sudo systemctl enable --now filebrowser.service >/dev/null 2>&1 || true
 # Site Next.js (dragonballfr.com) — next start sous Bun sur 127.0.0.1:3000,
 # fronté par nginx (deploy/nginx/dragonballfr.com.conf). Nécessite un build
 # préalable : bun --filter @shenron/site build (cf. scripts/deploy-site.sh).
