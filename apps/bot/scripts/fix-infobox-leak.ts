@@ -62,7 +62,8 @@ for (const { col, requireJP } of COLUMNS) {
 	let nulled = 0;
 	for (const r of rows) {
 		const next = clean(r.v, !!requireJP);
-		next === null ? nulled++ : kept++;
+		if (next === null) nulled++;
+		else kept++;
 		if (!DRY) await sql`UPDATE bot.db_characters SET ${c} = ${next} WHERE id = ${r.id}`;
 	}
 	grand += rows.length;
