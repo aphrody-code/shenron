@@ -37,7 +37,7 @@ ssh "$TARGET" 'mkdir -p ~/shenron/apps/bot/data'
 rsync -a "$SNAP" "$TARGET":shenron/apps/bot/data/bot.db
 rm -f "$SNAP"
 
-# ── 3. Données lourdes (rag + modèles + assets + llm) ────────────────────────
+# ── 3. Données lourdes (rag + modèles + assets + llm + uploads wiki) ─────────
 log "data/rag (~1.4G), .models (~2.2G), assets (~3G), data/llm (opt.)"
 rsync -a --delete --info=progress2 "$SRC/apps/bot/data/rag/" "$TARGET":shenron/apps/bot/data/rag/
 rsync -a --delete --info=progress2 "$SRC/apps/bot/.models/"  "$TARGET":shenron/apps/bot/.models/
@@ -45,6 +45,14 @@ rsync -a --delete --info=progress2 "$SRC/apps/bot/assets/"   "$TARGET":shenron/a
 if [ -d "$SRC/apps/bot/data/llm" ]; then
   rsync -a --info=progress2 "$SRC/apps/bot/data/llm/" "$TARGET":shenron/apps/bot/data/llm/
 fi
+# Uploads wiki + clips de la home : gitignorés, servis par le bot via
+# /assets/wiki/* et /wiki/* depuis apps/site/public/wiki (images db_characters/
+# db_sagas uploadées à l'admin, mp4/.web.mp4/.poster.webp du héro). Oublié lors
+# de la migration 2026-07-08 → 1 400+ fichiers 404 (récupérés depuis l'ancien
+# VPS encore up). NE PAS retirer.
+log "apps/site/public/wiki (uploads admin + clips home)"
+ssh "$TARGET" 'mkdir -p ~/shenron/apps/site/public/wiki'
+rsync -a --delete --info=progress2 "$SRC/apps/site/public/wiki/" "$TARGET":shenron/apps/site/public/wiki/
 
 # ── 4. PostgreSQL shenron_site (public + bot), owners préservés ──────────────
 log "PostgreSQL shenron_site : pg_dump | pg_restore (stream)"

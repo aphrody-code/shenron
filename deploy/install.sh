@@ -92,8 +92,18 @@ if [[ $DO_NGINX -eq 1 ]]; then
     sudo install -D -m 0644 "$NGINX_SRC/errorpages/50x.html" /var/www/html/50x.html
     echo "  ✓ page d'erreur 50x déployée (/var/www/html/50x.html)"
   fi
+  # bot.dragonballfr.com.conf sert /wiki/ DIRECTEMENT (root apps/site/public,
+  # range/streaming vidéo) : www-data doit pouvoir traverser /home/ubuntu (750).
+  # Sans ce groupe, tous les clips/posters/uploads wiki répondent 404 (vécu à la
+  # migration VPS 2026-07-08). usermod ne touche les workers qu'au restart.
+  NEED_RESTART=0
+  if ! id -nG www-data | grep -qw ubuntu; then
+    sudo usermod -aG ubuntu www-data
+    NEED_RESTART=1
+    echo "  ✓ www-data ajouté au groupe ubuntu (accès nginx à /wiki/)"
+  fi
   if sudo nginx -t; then
-    sudo systemctl reload nginx
+    if [[ $NEED_RESTART -eq 1 ]]; then sudo systemctl restart nginx; else sudo systemctl reload nginx; fi
     echo "  ✓ nginx rechargé"
   else
     echo "  ✗ nginx -t a échoué — vhosts copiés mais PAS rechargés" >&2
