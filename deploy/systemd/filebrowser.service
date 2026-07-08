@@ -12,10 +12,12 @@ Group=ubuntu
 WorkingDirectory=/home/ubuntu/filebrowser
 
 # Bind loopback uniquement — l'exposition publique passe par nginx (TLS + rate-limit).
+# Racine servie = tout le dépôt shenron (accès complet demandé). Le reste de
+# la config (locale fr, branding, thème) vit dans la DB filebrowser.
 ExecStart=/usr/local/bin/filebrowser \
   -d /home/ubuntu/filebrowser/filebrowser.db \
   -a 127.0.0.1 -p 8081 \
-  -r /home/ubuntu/files
+  -r /home/ubuntu/shenron
 
 ExecStop=/bin/kill -SIGTERM $MAINPID
 TimeoutStopSec=20
@@ -51,8 +53,9 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@obsolete @privileged
 
-# Seuls la DB filebrowser et la racine servie sont writable.
-ReadWritePaths=/home/ubuntu/filebrowser /home/ubuntu/files
+# DB filebrowser + dépôt shenron (racine servie) writable ; le reste de /home
+# reste en lecture seule (ProtectHome), protégeant ~/.ssh, ~/.config, secrets.
+ReadWritePaths=/home/ubuntu/filebrowser /home/ubuntu/shenron
 
 StandardOutput=journal
 StandardError=journal
