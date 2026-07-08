@@ -14,6 +14,9 @@ WorkingDirectory=/home/ubuntu/shenron/apps/bot
 EnvironmentFile=/home/ubuntu/shenron/apps/bot/.env
 Environment=NODE_ENV=production
 Environment=HOME=/home/ubuntu
+# PATH explicite : le service spawn des sous-process `bun` (ex. AUTO-EVAL RAG) qui,
+# sans ~/.bun/bin dans le PATH systemd minimal, échouent en "Executable not found".
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=BUN_CONFIG_MAX_HTTP_REQUESTS=2048
 Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/bot/.bun-cache
 Environment=BUN_JSC_forceRAMSize=536870912
