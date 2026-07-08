@@ -17,8 +17,10 @@ import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { DEFAULT_PLAY_CARDS, type HomeConfig, type HomeSectionConfig } from "@/lib/home-scenes";
+import type { BestOfSagaView } from "@/lib/home-bestof";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { HomeClipField } from "./HomeClipField";
+import { SagaBestOf } from "./SagaBestOf";
 import {
 	useLiveBotState,
 	type BotStats,
@@ -146,6 +148,7 @@ export function HomeExperience({
 	wikiCounts,
 	characters,
 	sagas,
+	bestof = [],
 	posts,
 	topMembers = [],
 	presence = { total: 0, online: 0, members: [] },
@@ -156,6 +159,7 @@ export function HomeExperience({
 	wikiCounts: WikiCounts;
 	characters: FeaturedCharacter[];
 	sagas: SagaTeaser[];
+	bestof?: BestOfSagaView[];
 	posts: HomePost[];
 	topMembers?: TopMember[];
 	presence?: PresenceState;
@@ -164,10 +168,17 @@ export function HomeExperience({
 	const hasNews = posts.length > 0;
 	const heroScenes = config.hero.scenes;
 
-	// Sections de contenu affichées = activées en config (news requiert des posts).
+	// Sections de contenu affichées = activées en config (news requiert des posts,
+	// bestof requiert des sagas assemblées côté serveur).
 	const contentSections = useMemo(
-		() => config.sections.filter((s) => s.enabled && (s.id !== "news" || hasNews)),
-		[config.sections, hasNews]
+		() =>
+			config.sections.filter(
+				(s) =>
+					s.enabled &&
+					(s.id !== "news" || hasNews) &&
+					(s.id !== "bestof" || bestof.length > 0)
+			),
+		[config.sections, hasNews, bestof.length]
 	);
 
 	// Table des panneaux (héro + sections de contenu) pour la nav / le suivi.
@@ -188,6 +199,8 @@ export function HomeExperience({
 	);
 
 	const refs = useRef<(HTMLElement | null)[]>([]);
+	const deckRef = useRef<HTMLDivElement>(null);
+	const burstRef = useRef<HTMLDivElement>(null);
 	const [active, setActive] = useState(0);
 	// Mobile (≤640px) : plafonne le contenu du Panthéon pour tenir dans 100svh (le
 	// deck hijacke le scroll → le bas d'un panneau trop haut serait inatteignable).
@@ -201,6 +214,76 @@ export function HomeExperience({
 		return () => {
 			delete document.documentElement.dataset.home;
 		};
+	}, []);
+
+	// ── Immersion « jeu 3D » : tilt des cartes [data-tilt] + parallaxe pointeur ──
+	// Un seul listener pointermove délégué (rAF-throttlé) : met à jour les vars
+	// CSS --phx/--phy (parallaxe du héro) sur le deck et --rx/--ry/--gx/--gy
+	// (inclinaison 3D + reflet spéculaire) sur la carte survolée. Pointeur fin +
+	// motion OK uniquement — tactile et reduced-motion n'attachent rien.
+	useEffect(() => {
+		const root = deckRef.current;
+		if (!root) return;
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+		let raf = 0;
+		let ev: PointerEvent | null = null;
+		let tilted: HTMLElement | null = null;
+		const resetTilt = (el: HTMLElement) => {
+			el.style.removeProperty("--rx");
+			el.style.removeProperty("--ry");
+		};
+		const apply = () => {
+			raf = 0;
+			const e = ev;
+			if (!e) return;
+			root.style.setProperty("--phx", ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
+			root.style.setProperty("--phy", ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
+			const el = (e.target as HTMLElement).closest?.("[data-tilt]") as HTMLElement | null;
+			if (tilted && tilted !== el) resetTilt(tilted);
+			tilted = el;
+			if (!el) return;
+			const r = el.getBoundingClientRect();
+			const px = (e.clientX - r.left) / Math.max(1, r.width);
+			const py = (e.clientY - r.top) / Math.max(1, r.height);
+			el.style.setProperty("--rx", `${((0.5 - py) * 9).toFixed(2)}deg`);
+			el.style.setProperty("--ry", `${((px - 0.5) * 11).toFixed(2)}deg`);
+			el.style.setProperty("--gx", `${(px * 100).toFixed(1)}%`);
+			el.style.setProperty("--gy", `${(py * 100).toFixed(1)}%`);
+		};
+		const onMove = (e: PointerEvent) => {
+			ev = e;
+			if (!raf) raf = requestAnimationFrame(apply);
+		};
+		const onLeave = () => {
+			if (tilted) {
+				resetTilt(tilted);
+				tilted = null;
+			}
+		};
+		root.addEventListener("pointermove", onMove, { passive: true });
+		root.addEventListener("pointerleave", onLeave);
+		return () => {
+			root.removeEventListener("pointermove", onMove);
+			root.removeEventListener("pointerleave", onLeave);
+			if (raf) cancelAnimationFrame(raf);
+		};
+	}, []);
+
+	// Burst de ki au clic — un éclat d'énergie couleur accent à l'endroit du
+	// pointeur, sur TOUT le deck (liens compris : l'éclat accompagne la nav).
+	// DOM direct (pas de state) : zéro re-render, auto-nettoyé après l'animation.
+	const onDeckPointerDown = useCallback((e: React.PointerEvent) => {
+		if (e.button !== 0 || reduceRef.current) return;
+		const layer = burstRef.current;
+		if (!layer) return;
+		const b = document.createElement("span");
+		b.className = "ki-burst";
+		b.style.left = `${e.clientX}px`;
+		b.style.top = `${e.clientY}px`;
+		for (let i = 0; i < 6; i++) b.appendChild(document.createElement("i"));
+		layer.appendChild(b);
+		window.setTimeout(() => b.remove(), 750);
 	}, []);
 
 	// Suit la largeur (≤640px) pour réduire le contenu du Panthéon sur mobile.
@@ -520,7 +603,7 @@ export function HomeExperience({
 								</>
 							);
 							return t.href ? (
-								<Link key={t.k} href={t.href} className="home-stat-tile reveal-up">
+								<Link key={t.k} href={t.href} data-tilt className="home-stat-tile reveal-up">
 									{inner}
 								</Link>
 							) : (
@@ -540,6 +623,7 @@ export function HomeExperience({
 								<Link
 									key={c.id}
 									href={`/wiki/dragon-ball/character/${c.id}`}
+									data-tilt
 									className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
 								>
 									{c.image && (
@@ -569,6 +653,15 @@ export function HomeExperience({
 					</>
 				);
 
+			case "bestof":
+				return (
+					<SagaBestOf
+						sagas={bestof}
+						active={active === sections.findIndex((s) => s.id === cfg.id)}
+						compact={compact}
+					/>
+				);
+
 			case "sagas":
 				return (
 					<>
@@ -577,6 +670,7 @@ export function HomeExperience({
 								<Link
 									key={s.id}
 									href="/wiki/sagas"
+									data-tilt
 									className="group flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/30 p-4 transition-colors hover:border-[var(--accent)]"
 								>
 									{s.series && (
@@ -606,7 +700,7 @@ export function HomeExperience({
 							const m = guardianMeta(p.name);
 							const src = assetUrl(p.avatarUrl ?? p.avatar ?? "");
 							return (
-								<article key={p.id} className="home-guardian reveal-up">
+								<article key={p.id} data-tilt className="home-guardian reveal-up">
 									<span className="home-guardian__kanji" aria-hidden>
 										{m.kanji}
 									</span>
@@ -667,7 +761,7 @@ export function HomeExperience({
 				return (
 					<div className="home-cards">
 						{(cfg.cards ?? DEFAULT_PLAY_CARDS).map((c) => (
-							<Link key={c.href + c.title} href={c.href} className="home-card reveal-up">
+							<Link key={c.href + c.title} href={c.href} data-tilt className="home-card reveal-up">
 								<span className="home-card__kanji" aria-hidden>
 									{c.kanji}
 								</span>
@@ -686,7 +780,7 @@ export function HomeExperience({
 					<>
 						<div className="home-news">
 							{posts.slice(0, 3).map((p) => (
-								<Link key={p.id} href={`/post/${p.slug}`} className="home-news__item reveal-up">
+								<Link key={p.id} href={`/post/${p.slug}`} data-tilt className="home-news__item reveal-up">
 									{p.cover && (
 										<span className="home-news__cover">
 											<Image
@@ -745,10 +839,15 @@ export function HomeExperience({
 
 	return (
 		<div
+			ref={deckRef}
 			className="home-deck"
 			onClick={onDeckClick}
+			onPointerDown={onDeckPointerDown}
 			style={{ ["--accent" as string]: activeScene?.accent }}
 		>
+			{/* Couche des bursts de ki (clics) — fixe, au-dessus de tout, inerte */}
+			<div ref={burstRef} className="ki-burst-layer" aria-hidden />
+
 			{/* Navigation latérale — points HUD scouter */}
 			<nav className="home-dots" aria-label="Sections de la page">
 				{sections.map((s, i) => (

@@ -290,6 +290,15 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 		era: "namek",
 		accent: ERA_ACCENT.namek,
 	},
+	bestof: {
+		id: "bestof-section",
+		image: "./assets/dbz/characters/goku_normal.webp",
+		video: "/wiki/gfokufreezerjiren.mp4",
+		title: "Le best of",
+		kicker: "Les plus grands combats",
+		era: "saiyan",
+		accent: ERA_ACCENT.saiyan,
+	},
 	news: {
 		id: "vegeta-daima-news",
 		image: "/wiki/vegetadaima.poster.webp",
@@ -326,6 +335,7 @@ export const ERAS: readonly Era[] = [
 export type HomeSectionId =
 	| "pantheon"
 	| "universe"
+	| "bestof"
 	| "personnages"
 	| "sagas"
 	| "guardians"
@@ -359,6 +369,15 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 		title: "Voyage à travers l'univers",
 		subtitle:
 			"Personnages, planètes, sagas, épisodes, films et chapitres — chaque recoin de la saga, vérifié et en lien avec les ayants droit. Choisis ta destination.",
+		defaultEnabled: true,
+	},
+	bestof: {
+		navLabel: "Best of sagas",
+		kanji: "伝",
+		eyebrow: "Le best of",
+		title: "Les sagas légendaires",
+		subtitle:
+			"Choisis ta saga et replonge : les épisodes, les films et les tomes du manga qui ont fait la légende — en direct du wiki.",
 		defaultEnabled: true,
 	},
 	// Masqués par défaut en bêta : les routes /wiki/personnages et /wiki/sagas sont
@@ -420,6 +439,7 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 export const SECTION_ORDER: readonly HomeSectionId[] = [
 	"pantheon",
 	"universe",
+	"bestof",
 	"personnages",
 	"sagas",
 	"guardians",

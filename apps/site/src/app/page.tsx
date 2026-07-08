@@ -8,6 +8,7 @@ import {
 } from "@/lib/shenron";
 import { HomeExperience } from "@/components/home/HomeExperience";
 import { getHomeConfig } from "@/lib/home-config";
+import { getSagaBestOf } from "@/lib/home-bestof-data";
 import {
 	botSagas,
 	botEpisodes,
@@ -114,18 +115,29 @@ async function getSagas() {
 }
 
 export default async function Home() {
-	const [posts, personas, stats, wikiCounts, characters, sagas, topMembers, presence, config] =
-		await Promise.all([
-			getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
-			getShenronPersonas().catch(() => []),
-			getShenronStats(),
-			getWikiCounts(),
-			getFeaturedCharacters(),
-			getSagas(),
-			getShenronLeaderboard(12, true).catch(() => []),
-			getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
-			getHomeConfig(),
-		]);
+	const [
+		posts,
+		personas,
+		stats,
+		wikiCounts,
+		characters,
+		sagas,
+		bestof,
+		topMembers,
+		presence,
+		config,
+	] = await Promise.all([
+		getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
+		getShenronPersonas().catch(() => []),
+		getShenronStats(),
+		getWikiCounts(),
+		getFeaturedCharacters(),
+		getSagas(),
+		getSagaBestOf(),
+		getShenronLeaderboard(12, true).catch(() => []),
+		getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
+		getHomeConfig(),
+	]);
 
 	return (
 		<HomeExperience
@@ -156,6 +168,7 @@ export default async function Home() {
 				series: s.series,
 				description: s.description,
 			}))}
+			bestof={bestof}
 			posts={posts.map((p) => ({
 				id: p.id,
 				slug: p.slug,
