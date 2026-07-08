@@ -3,7 +3,7 @@
  * Helper OVH API (zone DNS) — signe et appelle l'API OVH depuis ~/.ovh.conf.
  * Usage :
  *   bun scripts/ovh-dns.ts get  /domain/zone/dragonballfr.com/record?fieldType=A
- *   bun scripts/ovh-dns.ts put  /domain/zone/dragonballfr.com/record/123 '{"target":"51.77.147.152"}'
+ *   bun scripts/ovh-dns.ts put  /domain/zone/dragonballfr.com/record/123 '{"target":"51.255.162.6"}'
  *   bun scripts/ovh-dns.ts post /domain/zone/dragonballfr.com/refresh
  *   bun scripts/ovh-dns.ts records dragonballfr.com A   # raccourci liste détaillée
  *   bun scripts/ovh-dns.ts setA dragonballfr.com <ip>   # met TOUS les A de la racine + www
