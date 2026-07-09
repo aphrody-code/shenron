@@ -68,6 +68,8 @@ export interface ShenronShopItem {
 	description: string | null;
 	price: number;
 	roleId: string | null;
+	/** Couleur hex du rôle cosmétique (items color/title/badge) — aperçu swatch. */
+	roleColor?: string;
 	preview?: string; // URL relative CDN site (ex: /banners/banner-01.jpg)
 }
 

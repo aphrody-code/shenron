@@ -1663,6 +1663,11 @@ export class ApiServer {
 						const items = await dbs.db.query.shopItems.findMany({
 							where: (s, { eq: e }) => e(s.enabled, true),
 						});
+						// Guilde (n'importe quel client) pour résoudre la couleur des rôles cosmétiques.
+						const clientMap = container.resolve<Map<string, Client>>("ClientMap");
+						const guild = [...clientMap.values()]
+							.map((c) => c.guilds.cache.get(env.GUILD_ID))
+							.find(Boolean);
 						return {
 							items: items.map((i) => {
 								let meta: Record<string, unknown> | undefined;
@@ -1679,6 +1684,13 @@ export class ApiServer {
 									const fname = meta.bannerPath.split("/").pop();
 									if (fname) preview = `/banners/${fname}`;
 								}
+								// Couleur hex du rôle cosmétique (items color/title/badge) pour l'aperçu.
+								let roleColor: string | undefined;
+								if (i.roleId && guild) {
+									const role = guild.roles.cache.get(i.roleId);
+									if (role && role.color)
+										roleColor = `#${role.color.toString(16).padStart(6, "0")}`;
+								}
 								return {
 									key: i.key,
 									type: i.type,
@@ -1686,6 +1698,7 @@ export class ApiServer {
 									description: i.description,
 									price: i.price,
 									roleId: i.roleId,
+									roleColor,
 									preview,
 								};
 							}),
@@ -2813,6 +2826,84 @@ export class ApiServer {
 						},
 					});
 				}),
+
+				// ── Boutique jouable depuis le SITE (user-authenticated) ──────
+				// Achat + équipement de cosmétiques directement sur dragonballfr.com
+				// (plus besoin de passer par Discord). Auth acting-user (proxy bot-user).
+				"/api/economy/balance": {
+					GET: async (req) => {
+						const userId = verifyActingUser(req);
+						if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+						const eco = container.resolve(EconomyService);
+						const [balance, inv, u] = await Promise.all([
+							eco.getBalance(userId),
+							eco.listInventory(userId),
+							eco.getUser(userId),
+						]);
+						return Response.json({
+							balance,
+							owned: inv.map((r) => ({ type: r.itemType, key: r.itemKey })),
+							equipped: {
+								card: u?.equippedCard ?? null,
+								badge: u?.equippedBadge ?? null,
+								color: u?.equippedColor ?? null,
+								title: u?.equippedTitle ?? null,
+								banner: u?.equippedBanner ?? null,
+							},
+						});
+					},
+				},
+				"/api/economy/purchase": {
+					POST: async (req) => {
+						const userId = verifyActingUser(req);
+						if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+						const body = (await req.json().catch(() => null)) as { key?: string } | null;
+						if (!body?.key) return Response.json({ error: "key requis" }, { status: 400 });
+						const eco = container.resolve(EconomyService);
+						const res = await eco.purchase(userId, body.key);
+						const balance = await eco.getBalance(userId);
+						return Response.json(
+							{ ok: res.ok, reason: res.reason, price: res.price, balance },
+							{ status: res.ok ? 200 : 400 }
+						);
+					},
+				},
+				"/api/economy/equip": {
+					POST: async (req) => {
+						const userId = verifyActingUser(req);
+						if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+						const body = (await req.json().catch(() => null)) as {
+							type?: string;
+							key?: string;
+						} | null;
+						const type = body?.type;
+						const key = body?.key;
+						const TYPES = ["card", "badge", "color", "title", "banner"];
+						if (!type || !TYPES.includes(type) || !key) {
+							return Response.json({ error: "type/key invalide" }, { status: 400 });
+						}
+						const eco = container.resolve(EconomyService);
+						const ok = await eco.equip(userId, type as "card", key);
+						if (!ok) return Response.json({ ok: false, reason: "Objet non possédé" }, { status: 400 });
+						// Rôle cosmétique Discord (color/title/badge) : posé à l'équipement,
+						// comme dans la commande /inventaire. Best-effort (membre hors serveur → skip).
+						let roleGranted = false;
+						if (type === "color" || type === "title" || type === "badge") {
+							const dbs = container.resolve(DatabaseService);
+							const shopItem = await dbs.db.query.shopItems.findFirst({
+								where: (s, { eq: e, and: a }) => a(e(s.type, type), e(s.key, key)),
+							});
+							if (shopItem?.roleId) {
+								const member = await resolveMember(userId);
+								if (member) {
+									await member.roles.add(shopItem.roleId, "Équipement boutique (site)").catch(() => {});
+									roleGranted = true;
+								}
+							}
+						}
+						return Response.json({ ok: true, roleGranted });
+					},
+				},
 
 				// ── Jeux jouables depuis le site (user-authenticated) ─────────
 				// Auth : HMAC-SHA256(discordId:ts) via headers X-Acting-User/Ts/Sig.
