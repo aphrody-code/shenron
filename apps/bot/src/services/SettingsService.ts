@@ -189,6 +189,14 @@ export const SETTINGS_KEYS: SettingDef[] = [
 			"Salons où les personas ne répondent JAMAIS (chat autonome désactivé). IDs séparés par des virgules. Les salons de type Annonces sont déjà exclus automatiquement.",
 	},
 	{
+		key: "chat.autonomous_enabled",
+		type: "bool",
+		category: "features",
+		default: false,
+		description:
+			"Réponses IA autonomes des bots sur le serveur (mention / nom / proactif). Désactivé : les personas n'engagent plus de conversation IA (l'indexation et les analytics restent actives). Réactiver ici pour rétablir le chat IA.",
+	},
+	{
 		key: "channel.achievement",
 		type: "snowflake",
 		category: "channels",

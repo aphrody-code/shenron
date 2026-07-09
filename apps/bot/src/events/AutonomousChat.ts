@@ -115,7 +115,13 @@ class BaseAutonomousChat {
 			}
 		}
 
-		// 2. Décider d'une réponse autonome.
+		// 2. Kill-switch réponses IA autonomes. Désactivable à chaud (`/config`,
+		// clé `chat.autonomous_enabled`) SANS redéploiement. L'indexation temps réel
+		// ci-dessus reste active (analytics) — seule la réponse IA est supprimée.
+		const settings = container.resolve(SettingsService);
+		if (!(await settings.getBool("chat.autonomous_enabled", false))) return;
+
+		// 3. Décider d'une réponse autonome.
 		const botUser = message.client.user;
 		if (!botUser) return;
 
