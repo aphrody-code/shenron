@@ -253,6 +253,14 @@ export const TABLES: TableSpec[] = [
 		description: "Wiki chapitres manga",
 	},
 	{
+		name: "db_manga_pages",
+		table: schema.dbMangaPages,
+		pk: "id",
+		// OCR des planches manga (texte reconnu) : correction éditoriale du texte/langue.
+		mutableColumns: ["text", "lang", "hasJa"],
+		description: "Wiki OCR des planches manga (texte reconnu)",
+	},
+	{
 		name: "db_races",
 		table: schema.dbRaces,
 		pk: "id",
