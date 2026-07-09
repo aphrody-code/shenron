@@ -21,13 +21,15 @@ export class DatabaseService {
 		this.sqlite.exec("PRAGMA synchronous = NORMAL");
 		this.sqlite.exec("PRAGMA foreign_keys = ON");
 		this.sqlite.exec("PRAGMA busy_timeout = 5000");
-		// Performance reads (leaderboard ORDER BY xp, action_logs filtres)
-		// - cache_size négatif = KiB (-64000 = 64 MiB, partagé via WAL across readers)
+		// Performance reads (leaderboard ORDER BY xp, action_logs filtres, RAG kNN)
+		// - cache_size négatif = KiB (-131072 = 128 MiB, partagé via WAL across readers)
 		// - temp_store=MEMORY évite les spills disque sur ORDER BY/GROUP BY
-		// - mmap_size=256MiB → page reads zero-copy (cap RAM systemd 1G ⇒ OK)
-		this.sqlite.exec("PRAGMA cache_size = -64000");
+		// - mmap_size=512MiB → page reads zero-copy (cap RAM systemd relevé à 2.5G ⇒ OK,
+		//   la base fait ~200-400 Mo ; mmap couvre quasi tout le fichier sans I/O)
+		// Le VPS a 11 Go et ~8 Go libres : on exploite la RAM pour éviter les I/O disque.
+		this.sqlite.exec("PRAGMA cache_size = -131072");
 		this.sqlite.exec("PRAGMA temp_store = MEMORY");
-		this.sqlite.exec("PRAGMA mmap_size = 268435456");
+		this.sqlite.exec("PRAGMA mmap_size = 536870912");
 		this.db = drizzle(this.sqlite, { schema });
 	}
 

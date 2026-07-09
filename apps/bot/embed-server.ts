@@ -25,12 +25,30 @@ import {
 const PORT = Number(process.env.EMBED_PORT ?? 5007);
 const HOST = process.env.EMBED_HOST ?? "127.0.0.1";
 
-// Préchauffe le modèle au boot (le premier embed coûte le chargement ONNX).
+// Préchauffe LES DEUX modèles au boot (embedder + reranker). Sans ça, le premier
+// /rerank après un (re)démarrage paie le chargement ONNX à chaud (~1.5-3 s) dans
+// le chemin RAG utilisateur. On a 3 G de RAM dédiée : autant tout charger tôt.
 const warmT0 = Date.now();
 await embedTexts(["warmup"], "query", 1);
-console.log(
-	`[embed] ${EMBED_MODEL} (${EMBED_DIM}d) prêt en ${Date.now() - warmT0} ms — http://${HOST}:${PORT}`
+await rerankTexts("warmup", ["warmup passage"]).catch((e) =>
+	console.error("[embed] warmup rerank échoué", e)
 );
+console.log(
+	`[embed] ${EMBED_MODEL} (${EMBED_DIM}d) + ${RERANK_MODEL} prêts en ${Date.now() - warmT0} ms — http://${HOST}:${PORT}`
+);
+
+// GC périodique (au lieu d'un Bun.gc(true) synchrone après CHAQUE requête, qui
+// ajoutait une pause plein-GC bloquante dans le chemin RAG). Avec 3 G de cap et
+// un RSS ~650 M, forcer un full-GC à chaque appel gaspillait de la latence pour
+// rien. On compacte de façon asynchrone tous les GC_EVERY appels.
+const GC_EVERY = 40;
+let reqSinceGc = 0;
+function maybeGc() {
+	if (++reqSinceGc >= GC_EVERY) {
+		reqSinceGc = 0;
+		Bun.gc(false); // asynchrone, non bloquant
+	}
+}
 
 Bun.serve({
 	port: PORT,
@@ -69,7 +87,7 @@ Bun.serve({
 			try {
 				const scores = await rerankTexts(query, passages);
 				const res = Response.json({ scores });
-				Bun.gc(true);
+				maybeGc();
 				return res;
 			} catch (e) {
 				console.error("[embed] rerank error", e);
@@ -97,7 +115,7 @@ Bun.serve({
 			try {
 				const vecs = await embedTexts(texts, kind);
 				const res = Response.json({ vectors: vecs.map((v) => Array.from(v)) });
-				Bun.gc(true);
+				maybeGc();
 				return res;
 			} catch (e) {
 				console.error("[embed] error", e);

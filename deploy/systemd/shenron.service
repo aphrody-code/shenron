@@ -19,8 +19,16 @@ Environment=HOME=/home/ubuntu
 Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=BUN_CONFIG_MAX_HTTP_REQUESTS=2048
 Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/bot/.bun-cache
-Environment=BUN_JSC_forceRAMSize=536870912
-Environment=UV_THREADPOOL_SIZE=8
+# JSC heap sizing : 1 GiB (ex-512 MiB). Le VPS a 11 Go / ~8 Go libres — un heap
+# trop petit forçait JSC à un GC agressif sur l'event-loop PARTAGÉ (6 clients
+# Discord + HTTP + SQLite + canvas), donc des micro-pauses de latence. On donne
+# de l'air : moins de collectes, moins de pauses, RAM libre exploitée. Reste bien
+# sous MemoryHigh=2G.
+Environment=BUN_JSC_forceRAMSize=1073741824
+# libuv threadpool : 12 (ex-8). Sert les offloads bloquants (encode canvas webp,
+# fs, crypto) → plus de rendus de cartes/lectures concurrents en parallèle sur
+# les 6 cœurs sans bloquer l'event-loop.
+Environment=UV_THREADPOOL_SIZE=12
 
 ExecStart=/home/ubuntu/.bun/bin/bun src/index.ts
 
@@ -32,10 +40,16 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-MemoryMax=1.5G
-MemoryHigh=1.2G
-# MemoryLow : 256M garantis hors-reclaim (RSS prod ~320M, cold canvas/sqlite).
-MemoryLow=256M
+# Caps relevés pour le VPS 11 Go (ex-1.5G/1.2G, tunés pour l'ancienne box).
+# MemoryHigh à 2G : le reclaim cgroup au ras du MemoryHigh gèle l'event-loop
+# (piège vécu côté site, cf. mémoire) → on éloigne le seuil de reclaim du RSS
+# réel (~790 M) tout en gardant un MemoryMax dur pour l'OOM-safety.
+# Somme des caps actifs (bot 2.5 + embed 3 + site 3 + mcp 0.5 = 9 G) < 11 G,
+# llm hors-ligne. Revoir si shenron-llm est réactivé.
+MemoryMax=2.5G
+MemoryHigh=2G
+# MemoryLow : 384M garantis hors-reclaim (RSS prod ~790M, cold canvas/sqlite).
+MemoryLow=384M
 TasksMax=256
 LimitNOFILE=131072
 OOMScoreAdjust=-500
