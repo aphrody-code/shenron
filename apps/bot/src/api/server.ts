@@ -71,6 +71,7 @@ import {
 	dbTransformations,
 	dbPlanets,
 } from "~/db/schema";
+import { COMMAND_CATALOG, runConsoleCommand } from "~/api/command-console";
 import { DatabaseService } from "~/db/index";
 import { RACE_IDS, isRaceId } from "~/lib/races";
 import { reloadRaceLevelRoles } from "~/lib/race-levels";
@@ -3323,6 +3324,27 @@ export class ApiServer {
 								{ status: 500 }
 							);
 						}
+					}),
+				},
+
+				// ── Console bot : exécution d'opérations réelles à distance ────
+				// GET  → catalogue des commandes (rendu par l'UI admin du site).
+				// POST → exécute { command, args } via les vrais services (XP, zénis,
+				// rôles, race, message). Admin-gated. Renvoie { ok, message, data }.
+				"/api/admin/console/commands": admin(async () =>
+					Response.json({ commands: COMMAND_CATALOG })
+				),
+				"/api/admin/console/exec": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							command?: string;
+							args?: Record<string, unknown>;
+						} | null;
+						if (!body?.command) {
+							return Response.json({ ok: false, message: "command requis" }, { status: 400 });
+						}
+						const result = await runConsoleCommand(body.command, body.args ?? {});
+						return Response.json(result, { status: result.ok ? 200 : 400 });
 					}),
 				},
 
