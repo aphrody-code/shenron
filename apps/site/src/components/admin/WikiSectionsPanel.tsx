@@ -18,16 +18,28 @@ import {
 	Eye,
 	EyeOff,
 	Layers,
+	Link2,
 	Loader2,
 	Plus,
 	Save,
+	Search,
 	Trash2,
+	X,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import { apiAt } from "@/lib/admin-api";
-import { SECTION_PRESETS, sectionKeyFromLabel, uploadSubdir } from "@/lib/wiki-fields";
+import { assetUrl } from "@/lib/assets";
+import { publicEntityUrl, SECTION_PRESETS, sectionKeyFromLabel, uploadSubdir } from "@/lib/wiki-fields";
 import { crudBase } from "@/lib/wiki-tables";
+
+/** Carte « page wiki affiliée » (miroir client de WikiSectionLink de bot-schema). */
+interface SectionLink {
+	href: string;
+	label: string;
+	image?: string;
+	sub?: string;
+}
 
 interface Section {
 	id: number;
@@ -37,9 +49,24 @@ interface Section {
 	label: string;
 	accent: string | null;
 	body: string | null;
+	groupLabel: string | null;
+	links: SectionLink[] | null;
 	sortOrder: number;
 	visible: boolean;
 }
+
+/** Types d'entités liables (table → libellé). */
+const LINKABLE_ENTITIES: { table: string; label: string; nameCol: string; imageCol: string }[] = [
+	{ table: "db_characters", label: "Personnages", nameCol: "name", imageCol: "image" },
+	{ table: "db_planets", label: "Planètes", nameCol: "name", imageCol: "image" },
+	{ table: "db_techniques", label: "Techniques", nameCol: "name", imageCol: "image" },
+	{ table: "db_transformations", label: "Transformations", nameCol: "name", imageCol: "image" },
+	{ table: "db_races", label: "Races", nameCol: "name", imageCol: "image" },
+	{ table: "db_sagas", label: "Sagas", nameCol: "name", imageCol: "image" },
+	{ table: "db_arcs", label: "Arcs", nameCol: "name", imageCol: "image" },
+	{ table: "db_games", label: "Jeux", nameCol: "name", imageCol: "image" },
+	{ table: "db_movies", label: "Films", nameCol: "title", imageCol: "image" },
+];
 
 const ACCENTS = [
 	{ key: "orange", label: "Orange", dot: "bg-dbz-orange" },
@@ -71,6 +98,16 @@ export function WikiSectionsPanel({
 			),
 	});
 	const sections = query.data?.items ?? [];
+	// Sous-catégories déjà utilisées → suggestions (datalist) dans chaque éditeur.
+	const groupNames = useMemo(
+		() =>
+			Array.from(
+				new Set(
+					sections.map((s) => s.groupLabel?.trim()).filter((g): g is string => !!g)
+				)
+			).sort(),
+		[sections]
+	);
 
 	const add = useMutation({
 		mutationFn: (preset: { key: string; label: string; accent: string }) =>
@@ -139,6 +176,7 @@ export function WikiSectionsPanel({
 							key={s.id}
 							section={s}
 							table={table}
+							groups={groupNames}
 							isFirst={i === 0}
 							isLast={i === sections.length - 1}
 							onMoveUp={() => move(i, -1)}
@@ -195,6 +233,7 @@ export function WikiSectionsPanel({
 function SectionRow({
 	section,
 	table,
+	groups,
 	isFirst,
 	isLast,
 	onMoveUp,
@@ -203,6 +242,7 @@ function SectionRow({
 }: {
 	section: Section;
 	table: string;
+	groups: string[];
 	isFirst: boolean;
 	isLast: boolean;
 	onMoveUp: () => void;
@@ -214,12 +254,25 @@ function SectionRow({
 	const [label, setLabel] = useState(section.label);
 	const [accent, setAccent] = useState(section.accent ?? "orange");
 	const [body, setBody] = useState(section.body ?? "");
+	const [groupLabel, setGroupLabel] = useState(section.groupLabel ?? "");
+	const [links, setLinks] = useState<SectionLink[]>(section.links ?? []);
 
 	const dirty =
-		label !== section.label || accent !== (section.accent ?? "orange") || body !== (section.body ?? "");
+		label !== section.label ||
+		accent !== (section.accent ?? "orange") ||
+		body !== (section.body ?? "") ||
+		groupLabel !== (section.groupLabel ?? "") ||
+		JSON.stringify(links) !== JSON.stringify(section.links ?? []);
 
 	const save = useMutation({
-		mutationFn: () => client.patch(`/db_wiki_sections/${section.id}`, { label, accent, body }),
+		mutationFn: () =>
+			client.patch(`/db_wiki_sections/${section.id}`, {
+				label,
+				accent,
+				body,
+				groupLabel: groupLabel.trim() || null,
+				links,
+			}),
 		onSuccess: onChanged,
 	});
 	const toggleVisible = useMutation({
@@ -244,7 +297,19 @@ function SectionRow({
 					onClick={() => setOpen((o) => !o)}
 					className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-white/90 hover:text-dbz-orange"
 				>
+					{section.groupLabel?.trim() && (
+						<span className="mr-2 inline-flex items-center gap-1 rounded bg-dbz-blue-light/15 px-1.5 py-0.5 align-middle text-[9px] font-bold uppercase tracking-wider text-dbz-blue-light">
+							<Layers className="h-2.5 w-2.5" />
+							{section.groupLabel}
+						</span>
+					)}
 					{section.label}
+					{(section.links?.length ?? 0) > 0 && (
+						<span className="ml-2 inline-flex items-center gap-0.5 align-middle text-[10px] text-white/40">
+							<Link2 className="h-3 w-3" />
+							{section.links?.length}
+						</span>
+					)}
 					{!section.visible && (
 						<span className="ml-2 text-[10px] uppercase tracking-widest text-white/35">masquée</span>
 					)}
@@ -326,13 +391,36 @@ function SectionRow({
 								))}
 							</select>
 						</label>
+						<label>
+							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+								Sous-catégorie
+							</span>
+							<input
+								className="input text-sm"
+								list="wiki-section-groups"
+								placeholder="ex. Powerscaling"
+								value={groupLabel}
+								onChange={(e) => setGroupLabel(e.target.value)}
+							/>
+							<datalist id="wiki-section-groups">
+								{groups.map((g) => (
+									<option key={g} value={g} />
+								))}
+							</datalist>
+						</label>
 					</div>
+					<p className="text-[11px] text-white/40 -mt-1">
+						Une <strong className="text-white/60">sous-catégorie</strong> regroupe plusieurs
+						sections sous un même onglet parent (ex. « Powerscaling »). Laisse vide pour une
+						catégorie de 1er niveau.
+					</p>
 					<MarkdownField
 						value={body}
 						onChange={setBody}
 						subdir={uploadSubdir(table)}
 						preview={false}
 					/>
+					<WikiSectionLinksEditor links={links} onChange={setLinks} />
 					<div className="flex items-center gap-2">
 						<button
 							type="button"
@@ -347,6 +435,178 @@ function SectionRow({
 						{save.isSuccess && !dirty && <span className="text-xs text-green-400">Enregistré.</span>}
 					</div>
 				</div>
+			)}
+		</div>
+	);
+}
+
+/** Ligne brute renvoyée par le CRUD wiki (colonnes camelCase). */
+type EntityRow = Record<string, unknown> & { id?: number | string; slug?: string };
+
+/**
+ * Éditeur de « pages wiki affiliées » d'une section : chaque lien = une carte
+ * (photo + libellé) vers une autre fiche wiki. Sélection par type d'entité +
+ * recherche ; l'ajout résout href (URL publique) + image (assetUrl) + libellé.
+ */
+function WikiSectionLinksEditor({
+	links,
+	onChange,
+}: {
+	links: SectionLink[];
+	onChange: (next: SectionLink[]) => void;
+}) {
+	const [picking, setPicking] = useState(false);
+	const [table, setTable] = useState(LINKABLE_ENTITIES[0].table);
+	const [q, setQ] = useState("");
+	const spec = LINKABLE_ENTITIES.find((e) => e.table === table) ?? LINKABLE_ENTITIES[0];
+	const client = apiAt(crudBase(table));
+
+	const list = useQuery({
+		queryKey: ["wiki-link-pick", table],
+		enabled: picking,
+		staleTime: 5 * 60_000,
+		queryFn: () => client.get<{ rows: EntityRow[] }>(`/${table}?limit=1000`),
+	});
+
+	const results = useMemo(() => {
+		const rows = list.data?.rows ?? [];
+		const needle = q.trim().toLowerCase();
+		const named = rows
+			.map((r) => ({
+				row: r,
+				name: String(r[spec.nameCol] ?? "").trim(),
+			}))
+			.filter((x) => x.name && (!needle || x.name.toLowerCase().includes(needle)));
+		return named.slice(0, 40);
+	}, [list.data, q, spec.nameCol]);
+
+	function add(row: EntityRow, name: string) {
+		const href = publicEntityUrl(table, row);
+		if (!href) return;
+		const rawImg = row[spec.imageCol];
+		const image = typeof rawImg === "string" && rawImg ? assetUrl(rawImg) : undefined;
+		if (links.some((l) => l.href === href)) return; // pas de doublon
+		onChange([...links, { href, label: name, image }]);
+	}
+
+	return (
+		<div className="rounded border border-dbz-border bg-dbz-card/30 p-3">
+			<div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+				<Link2 className="h-3.5 w-3.5" /> Pages wiki liées
+				<span className="text-white/30">({links.length})</span>
+			</div>
+			<p className="mb-2 text-[11px] text-white/40">
+				Cartes avec photo renvoyant vers d&apos;autres fiches wiki (ex. affilier des personnages
+				à une catégorie « Powerscaling »).
+			</p>
+
+			{links.length > 0 && (
+				<div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+					{links.map((l, i) => (
+						<div
+							key={`${l.href}-${i}`}
+							className="group relative flex items-center gap-2 rounded border border-dbz-border bg-dbz-bg/60 p-1.5"
+						>
+							{l.image ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={l.image}
+									alt=""
+									className="h-9 w-9 shrink-0 rounded object-cover"
+									loading="lazy"
+								/>
+							) : (
+								<div className="h-9 w-9 shrink-0 rounded bg-dbz-card" />
+							)}
+							<span className="min-w-0 flex-1 truncate text-xs text-white/85">{l.label}</span>
+							<button
+								type="button"
+								title="Retirer"
+								onClick={() => onChange(links.filter((_, j) => j !== i))}
+								className="rounded p-1 text-red-400 opacity-70 hover:opacity-100"
+							>
+								<X className="h-3.5 w-3.5" />
+							</button>
+						</div>
+					))}
+				</div>
+			)}
+
+			{picking ? (
+				<div className="space-y-2 rounded border border-dbz-border bg-dbz-bg/40 p-2">
+					<div className="flex gap-2">
+						<select
+							className="input text-xs"
+							value={table}
+							onChange={(e) => {
+								setTable(e.target.value);
+								setQ("");
+							}}
+						>
+							{LINKABLE_ENTITIES.map((e) => (
+								<option key={e.table} value={e.table}>
+									{e.label}
+								</option>
+							))}
+						</select>
+						<div className="relative flex-1">
+							<Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
+							<input
+								className="input pl-7 text-xs"
+								placeholder="Rechercher une fiche…"
+								value={q}
+								onChange={(e) => setQ(e.target.value)}
+								autoFocus
+							/>
+						</div>
+						<button type="button" onClick={() => setPicking(false)} className="btn btn-ghost shrink-0">
+							Fermer
+						</button>
+					</div>
+					{list.isLoading ? (
+						<p className="py-3 text-center text-xs text-white/40">
+							<Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Chargement…
+						</p>
+					) : (
+						<div className="max-h-56 space-y-1 overflow-y-auto">
+							{results.length === 0 ? (
+								<p className="py-2 text-center text-xs italic text-white/30">Aucun résultat.</p>
+							) : (
+								results.map(({ row, name }) => {
+									const rawImg = row[spec.imageCol];
+									const img = typeof rawImg === "string" && rawImg ? assetUrl(rawImg) : null;
+									const already = links.some((l) => l.href === publicEntityUrl(table, row));
+									return (
+										<button
+											key={String(row.id)}
+											type="button"
+											disabled={already || !publicEntityUrl(table, row)}
+											onClick={() => add(row, name)}
+											className="flex w-full items-center gap-2 rounded p-1 text-left hover:bg-white/5 disabled:opacity-40"
+										>
+											{img ? (
+												// eslint-disable-next-line @next/next/no-img-element
+												<img src={img} alt="" className="h-8 w-8 rounded object-cover" loading="lazy" />
+											) : (
+												<div className="h-8 w-8 rounded bg-dbz-card" />
+											)}
+											<span className="min-w-0 flex-1 truncate text-xs text-white/85">{name}</span>
+											{already ? (
+												<span className="text-[9px] uppercase text-white/30">ajouté</span>
+											) : (
+												<Plus className="h-3.5 w-3.5 text-dbz-orange" />
+											)}
+										</button>
+									);
+								})
+							)}
+						</div>
+					)}
+				</div>
+			) : (
+				<button type="button" onClick={() => setPicking(true)} className="btn btn-ghost">
+					<Plus className="h-4 w-4" /> Lier une page wiki
+				</button>
 			)}
 		</div>
 	);

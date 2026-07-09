@@ -379,6 +379,18 @@ export const botAssets = bot.table("db_assets", {
  * en sélecteur de catégories ; édité depuis le studio admin. Table PG-only : ni
  * poussée ni écrasée par les syncs (absente de toute liste de tables).
  */
+/** Carte « page wiki affiliée » attachée à une section : lien interne + photo. */
+export type WikiSectionLink = {
+	/** Chemin interne (ex. "/wiki/dragon-ball/character/12"). */
+	href: string;
+	/** Libellé affiché (nom de l'entité liée). */
+	label: string;
+	/** URL absolue de la photo (assetUrl), optionnelle. */
+	image?: string;
+	/** Sous-titre optionnel (ex. race, ère…). */
+	sub?: string;
+};
+
 export const botWikiSections = bot.table("db_wiki_sections", {
 	id: int("id").primaryKey(),
 	/** Type d'entité parente ("character", "planet", "saga", "race", "technique", "arc", "game", "movie"). */
@@ -392,6 +404,11 @@ export const botWikiSections = bot.table("db_wiki_sections", {
 	accent: text("accent"),
 	/** Corps markdown riche (rendu via WikiMarkdown). */
 	body: text("body"),
+	/** Sous-catégorie : nom d'un GROUPE parent qui regroupe plusieurs sections
+	 *  (ex. « Powerscaling »). NULL = section de 1er niveau. */
+	groupLabel: text("group_label"),
+	/** Pages wiki affiliées : cartes avec photo (liens internes). */
+	links: jsonb("links").$type<WikiSectionLink[]>(),
 	sortOrder: int("sort_order").notNull().default(0),
 	visible: boolean("visible").notNull().default(true),
 });

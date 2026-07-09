@@ -22,6 +22,8 @@ export interface ReaderPanel {
 	/** Libellé de la pilule. */
 	label: string;
 	accent?: SectionAccent | null;
+	/** Sous-catégorie parente (regroupe plusieurs panneaux sous un onglet). */
+	group?: string | null;
 	/** Contenu rendu côté serveur. */
 	node: ReactNode;
 }
@@ -62,7 +64,10 @@ export function WikiSectionsReader({
 	panels: ReaderPanel[];
 	allLabel?: string;
 }) {
+	// Sélection niveau 1 : "all" | clé d'un panneau non-groupé | "g:<groupe>".
 	const [active, setActive] = useState<string>("all");
+	// Sélection niveau 2 (dans un groupe actif) : "all" | clé d'un sous-panneau.
+	const [subActive, setSubActive] = useState<string>("all");
 	const contentRef = useRef<HTMLDivElement>(null);
 
 	if (panels.length === 0) return null;
@@ -82,13 +87,38 @@ export function WikiSectionsReader({
 	// Un seul panneau → sélecteur inutile, rendu direct.
 	if (items.length === 1) return <div className="space-y-12">{items[0].node}</div>;
 
-	// À la sélection : filtre + défilement doux vers le haut du contenu (sous la
-	// barre collante) pour ne pas se retrouver au milieu/en bas d'une catégorie.
-	function select(key: string) {
+	// Sous-catégories : ordre d'apparition + panneaux de 1er niveau (sans groupe).
+	const groupOrder: string[] = [];
+	for (const p of items) {
+		const g = p.group?.trim();
+		if (g && !groupOrder.includes(g)) groupOrder.push(g);
+	}
+	const ungrouped = items.filter((p) => !p.group?.trim());
+	const groupPanels = (g: string) => items.filter((p) => p.group?.trim() === g);
+	const activeGroup = active.startsWith("g:") ? active.slice(2) : null;
+
+	function selectTop(key: string) {
 		setActive(key);
+		setSubActive("all");
 		requestAnimationFrame(() =>
 			contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
 		);
+	}
+	function selectSub(key: string) {
+		setSubActive(key);
+		requestAnimationFrame(() =>
+			contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+		);
+	}
+
+	// Visibilité d'un panneau selon la sélection à 2 niveaux.
+	function visible(p: ReaderPanel): boolean {
+		if (active === "all") return true;
+		if (activeGroup) {
+			if (p.group?.trim() !== activeGroup) return false;
+			return subActive === "all" || subActive === p.key;
+		}
+		return p.key === active;
 	}
 
 	return (
@@ -97,23 +127,56 @@ export function WikiSectionsReader({
 				aria-label="Catégories de la fiche"
 				className="sticky top-16 z-30 -mx-6 flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/85 px-6 py-4 backdrop-blur-md lg:-mx-10 lg:px-10"
 			>
-				<Pill active={active === "all"} onClick={() => select("all")}>
+				<Pill active={active === "all"} onClick={() => selectTop("all")}>
 					{allLabel}
 				</Pill>
-				{items.map((p) => (
+				{ungrouped.map((p) => (
 					<Pill
 						key={p.key}
 						active={active === p.key}
 						accent={p.accent}
-						onClick={() => select(p.key)}
+						onClick={() => selectTop(p.key)}
 					>
 						{p.label}
 					</Pill>
 				))}
+				{groupOrder.map((g) => (
+					<Pill
+						key={`g:${g}`}
+						active={activeGroup === g}
+						accent={groupPanels(g)[0]?.accent ?? "blue"}
+						onClick={() => selectTop(`g:${g}`)}
+					>
+						{g}
+					</Pill>
+				))}
 			</nav>
+
+			{/* Barre de sous-catégorie (2e niveau) quand un groupe est actif. */}
+			{activeGroup && (
+				<nav
+					aria-label={`Sous-sections de ${activeGroup}`}
+					className="-mt-4 flex flex-wrap gap-2 px-1"
+				>
+					<Pill active={subActive === "all"} onClick={() => selectSub("all")}>
+						Tout · {activeGroup}
+					</Pill>
+					{groupPanels(activeGroup).map((p) => (
+						<Pill
+							key={`sub-${p.key}`}
+							active={subActive === p.key}
+							accent={p.accent}
+							onClick={() => selectSub(p.key)}
+						>
+							{p.label}
+						</Pill>
+					))}
+				</nav>
+			)}
+
 			<div ref={contentRef} className="space-y-12 scroll-mt-32">
 				{items.map((p) => (
-					<div key={p.key} hidden={active !== "all" && active !== p.key}>
+					<div key={p.key} hidden={!visible(p)}>
 						{p.node}
 					</div>
 				))}

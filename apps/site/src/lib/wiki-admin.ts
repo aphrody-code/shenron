@@ -100,6 +100,19 @@ function coerceValue(spec: ResolvedTable, key: string, value: unknown): unknown 
 	if (dt === "boolean") {
 		return value === true || value === "true" || value === 1 || value === "1";
 	}
+	// Colonnes jsonb (dataType Drizzle "json", ex. `links` des sections) : passe
+	// la valeur telle quelle → Drizzle sérialise le jsonb. NE JAMAIS String(value)
+	// ici (casserait un array en scalaire — cf. piège jsonb du CLAUDE.md).
+	if (dt === "json") {
+		if (typeof value === "string") {
+			try {
+				return JSON.parse(value);
+			} catch {
+				return null;
+			}
+		}
+		return value;
+	}
 	// text et fallback : string
 	return typeof value === "string" ? value : String(value);
 }
@@ -590,6 +603,8 @@ export interface WikiSectionRow {
 	label: string;
 	accent: string | null;
 	body: string | null;
+	groupLabel: string | null;
+	links: botSchema.WikiSectionLink[] | null;
 	sortOrder: number;
 	visible: boolean;
 }
@@ -617,6 +632,8 @@ export async function listWikiSectionsForEntity(
 		label: r.label,
 		accent: r.accent ?? null,
 		body: r.body ?? null,
+		groupLabel: r.groupLabel ?? null,
+		links: Array.isArray(r.links) ? r.links : null,
 		sortOrder: Number(r.sortOrder ?? 0),
 		visible: r.visible !== false,
 	}));

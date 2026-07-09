@@ -182,6 +182,8 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"label",
 			"accent",
 			"body",
+			"groupLabel",
+			"links",
 			"sortOrder",
 			"visible",
 		],

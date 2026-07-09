@@ -15,6 +15,7 @@
  * copie l'intégralité de l'article en sections (préambule rattaché à la 1re) →
  * bascule sans perte. Rendu 100 % côté serveur (SEO/ISR préservés).
  */
+import type { WikiSectionLink } from "@/db/bot-schema";
 import { getWikiSections, type WikiSource } from "@/lib/shenron";
 import {
 	sectionAccent,
@@ -23,6 +24,7 @@ import {
 	type SectionAccent,
 } from "@/lib/wiki-article-sections";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
+import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 
 export interface ContentPanel extends ReaderPanel {
@@ -36,6 +38,8 @@ interface RawSection {
 	label: string;
 	body: string;
 	accent: SectionAccent;
+	group?: string | null;
+	links?: WikiSectionLink[];
 }
 
 /**
@@ -66,6 +70,8 @@ export async function buildWikiContentPanels({
 			label: s.label,
 			body: s.body,
 			accent: s.accent ?? sectionAccent(s.label),
+			group: s.groupLabel,
+			links: s.links,
 		}));
 	} else if (article?.trim()) {
 		raw = splitArticleSections(article, fallbackHeading);
@@ -84,11 +90,22 @@ export async function buildWikiContentPanels({
 		let n = 2;
 		while (seen.has(key)) key = `${s.key}-${n++}`;
 		seen.add(key);
+		const links = s.links ?? [];
 		return {
 			key,
 			label: s.label,
 			accent: s.accent,
-			node: <WikiArticle article={s.body} heading={s.label} accent={s.accent} />,
+			group: s.group ?? null,
+			node: (
+				<div className="space-y-2">
+					{s.body.trim() ? (
+						<WikiArticle article={s.body} heading={s.label} accent={s.accent} />
+					) : (
+						<h2 className="font-saiyan text-2xl text-white">{s.label}</h2>
+					)}
+					{links.length > 0 && <WikiSectionLinks links={links} />}
+				</div>
+			),
 		} satisfies ContentPanel;
 	});
 }

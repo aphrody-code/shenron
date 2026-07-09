@@ -12,6 +12,7 @@ import {
 	botTechniques,
 	botTransformations,
 	botWikiSections,
+	type WikiSectionLink,
 	type WikiSource,
 } from "@/db/bot-schema";
 
@@ -253,6 +254,10 @@ export interface WikiSectionData {
 	label: string;
 	accent: "orange" | "blue" | "red" | null;
 	body: string;
+	/** Sous-catégorie parente (regroupement), ou null. */
+	groupLabel: string | null;
+	/** Pages wiki affiliées (cartes photo, liens internes). */
+	links: WikiSectionLink[];
 }
 
 const SECTION_ACCENTS = new Set(["orange", "blue", "red"]);
@@ -279,7 +284,9 @@ export async function getWikiSections(
 			)
 			.orderBy(asc(botWikiSections.sortOrder), asc(botWikiSections.id));
 		return rows
-			.filter((r) => (r.body ?? "").trim().length > 0)
+			// On garde une section qui a du corps OU des pages affiliées (une section
+			// purement « liens » — ex. une catégorie de renvois — reste valide).
+			.filter((r) => (r.body ?? "").trim().length > 0 || (r.links?.length ?? 0) > 0)
 			.map((r) => ({
 				id: r.id,
 				key: r.key,
@@ -288,6 +295,8 @@ export async function getWikiSections(
 					? r.accent
 					: null) as WikiSectionData["accent"],
 				body: r.body ?? "",
+				groupLabel: r.groupLabel?.trim() ? r.groupLabel.trim() : null,
+				links: Array.isArray(r.links) ? r.links.filter((l) => l && l.href && l.label) : [],
 			}));
 	} catch (e) {
 		console.error("[shenron] getWikiSections a échoué:", e);
