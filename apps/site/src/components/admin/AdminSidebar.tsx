@@ -131,6 +131,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		icon: <Send className="h-4 w-4" />,
 		section: "accueil",
 	},
+	{
+		href: "/admin/commandes",
+		label: "Exécuter une commande",
+		description: "Lancer une commande du bot à distance (XP, zénis, races, rôles…)",
+		icon: <Terminal className="h-4 w-4" />,
+		section: "accueil",
+	},
 
 	// SYSTÈME & TECHNIQUE
 	{
