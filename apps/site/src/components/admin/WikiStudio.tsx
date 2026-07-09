@@ -23,6 +23,7 @@ import { SmartField } from "@/components/admin/SmartField";
 import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
 import { WikiHistory } from "@/components/admin/WikiHistory";
 import { WikiSectionsPanel } from "@/components/admin/WikiSectionsPanel";
+import { WikiAiAssistant } from "@/components/admin/WikiAiAssistant";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
 import {
@@ -248,7 +249,18 @@ export function WikiStudio({ table, id }: Props) {
 							))}
 						{secType &&
 							(mode === "edit" ? (
-								<WikiSectionsPanel table={table} entityId={id} entityType={secType} />
+								<>
+									<WikiSectionsPanel table={table} entityId={id} entityType={secType} />
+									<WikiAiAssistant
+										entityType={secType}
+										entityId={id}
+										entityName={String(
+											(draft as Record<string, unknown>)?.name ??
+												(draft as Record<string, unknown>)?.title ??
+												""
+										)}
+									/>
+								</>
 							) : (
 								<div className="dbz-panel p-5 text-xs text-white/40">
 									Enregistre d&apos;abord cette entrée pour ajouter ses sections de contenu
