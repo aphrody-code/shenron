@@ -2,8 +2,7 @@ import { singleton, inject } from "tsyringe";
 import { createCanvas, loadImage, type Image, type SKRSContext2D } from "@aphrody/canvas";
 import { BackgroundCacheService } from "./BackgroundCacheService";
 import type { User } from "discord.js";
-import { formatXP, levelForXP, nextThresholdFrom } from "~/lib/xp";
-import { LEVEL_THRESHOLDS } from "~/lib/constants";
+import { formatXP, levelForXP, nextThresholdFrom, xpRequiredForLevel } from "~/lib/xp";
 import { logger } from "~/lib/logger";
 import { DatabaseService } from "~/db/index";
 import { cardThemes } from "~/db/schema";
@@ -521,8 +520,8 @@ export class CardService {
 		const BAR_W = width - TXT_X - PAD - 20;
 		const BAR_H = 28;
 
-		const thresholdMin =
-			level === 0 ? 0 : (LEVEL_THRESHOLDS.find((t) => t.level === level)?.xp ?? 0);
+		const baseXp = xpRequiredForLevel(level);
+		const thresholdMin = level === 0 || !Number.isFinite(baseXp) ? 0 : baseXp;
 		const thresholdMax = next?.xp ?? input.xp;
 		const progress =
 			thresholdMax > thresholdMin

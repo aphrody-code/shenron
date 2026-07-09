@@ -158,7 +158,7 @@ function num(args: Record<string, unknown>, k: string): number {
 }
 
 /** Résout un GuildMember depuis n'importe quel client persona ayant la guilde. */
-async function resolveMember(userId: string): Promise<GuildMember | null> {
+export async function resolveMember(userId: string): Promise<GuildMember | null> {
 	const clients = container.resolve<Map<string, Client>>("ClientMap");
 	for (const client of clients.values()) {
 		const guild = client.guilds.cache.get(env.GUILD_ID);

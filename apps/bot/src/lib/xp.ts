@@ -1,5 +1,28 @@
 import { LEVEL_THRESHOLDS } from "./constants";
 
+export type LevelThreshold = { level: number; xp: number };
+
+/**
+ * Paliers ACTIFS. Défaut = `LEVEL_THRESHOLDS` (en dur), mais éditables depuis
+ * l'admin : `loadLevelThresholds(db)` (au boot) et l'API remplacent ce tableau
+ * par ceux stockés en DB (`guild_settings` clé `xp.thresholds`). Toujours trié
+ * par xp croissant (invariant de `levelForXP`/`nextThresholdFrom`).
+ */
+let ACTIVE_THRESHOLDS: readonly LevelThreshold[] = LEVEL_THRESHOLDS;
+
+/** Remplace la courbe de niveaux active (validée + triée par xp croissant). */
+export function setLevelThresholds(rows: LevelThreshold[]): void {
+	const clean = rows
+		.filter((r) => Number.isFinite(r.level) && Number.isFinite(r.xp) && r.xp >= 0)
+		.sort((a, b) => a.xp - b.xp);
+	ACTIVE_THRESHOLDS = clean.length ? clean : LEVEL_THRESHOLDS;
+}
+
+/** Courbe de niveaux active (source unique de vérité runtime). */
+export function getLevelThresholds(): readonly LevelThreshold[] {
+	return ACTIVE_THRESHOLDS;
+}
+
 /**
  * Niveau atteint pour un XP. Reste en TS pur — bench (Bun 1.3.14, 1M iter)
  * mesure 5× plus lent en Rust à cause de l'overhead FFI napi (~130ns/call)
@@ -11,7 +34,7 @@ import { LEVEL_THRESHOLDS } from "./constants";
  */
 export function levelForXP(xp: number): number {
 	let level = 0;
-	for (const t of LEVEL_THRESHOLDS) {
+	for (const t of ACTIVE_THRESHOLDS) {
 		if (xp >= t.xp) level = t.level;
 		else break;
 	}
@@ -19,11 +42,11 @@ export function levelForXP(xp: number): number {
 }
 
 export function xpRequiredForLevel(level: number): number {
-	return LEVEL_THRESHOLDS.find((t) => t.level === level)?.xp ?? Infinity;
+	return ACTIVE_THRESHOLDS.find((t) => t.level === level)?.xp ?? Infinity;
 }
 
 export function nextThresholdFrom(xp: number) {
-	return LEVEL_THRESHOLDS.find((t) => t.xp > xp);
+	return ACTIVE_THRESHOLDS.find((t) => t.xp > xp);
 }
 
 export function randomInt(min: number, max: number): number {

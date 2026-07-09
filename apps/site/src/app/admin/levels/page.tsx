@@ -165,6 +165,7 @@ export default function LevelsPage() {
 			)}
 
 			<XpRatesCard config={config.data} loading={config.isLoading} />
+			<ThresholdCurveCard />
 			<ThresholdsCard
 				config={config.data}
 				distribution={distribution.data?.buckets}
@@ -277,6 +278,148 @@ function XpRatesCard({
 					);
 				})}
 			</div>
+		</div>
+	);
+}
+
+interface Threshold {
+	level: number;
+	xp: number;
+}
+
+/**
+ * Éditeur de la COURBE DE NIVEAUX (paliers XP → niveau). Modifie la table active
+ * côté bot (guild_settings.xp.thresholds) : ajout/suppression de paliers (jusqu'à
+ * 50), XP par niveau. La progression de TOUS les joueurs s'y recale à chaud.
+ */
+function ThresholdCurveCard() {
+	const qc = useQueryClient();
+	const query = useQuery({
+		queryKey: ["levels", "thresholds"],
+		queryFn: () => api.get<{ thresholds: Threshold[] }>("/levels/thresholds"),
+	});
+	const [rows, setRows] = useState<Threshold[] | null>(null);
+	const [err, setErr] = useState<string | null>(null);
+
+	// Hydrate l'état local depuis la DB une fois chargé (ou après reset).
+	const serverRows = query.data?.thresholds;
+	const current = rows ?? serverRows ?? [];
+
+	const save = useMutation({
+		mutationFn: (next: Threshold[]) =>
+			api.put<{ ok: boolean; thresholds: Threshold[] }>("/levels/thresholds", { thresholds: next }),
+		onSuccess: (res) => {
+			setErr(null);
+			setRows(res.thresholds);
+			void qc.invalidateQueries({ queryKey: ["levels"] });
+			void qc.invalidateQueries({ queryKey: ["levels", "config"] });
+		},
+		onError: (e) => setErr(e instanceof Error ? e.message : "Échec de l'enregistrement."),
+	});
+
+	function edit(i: number, field: keyof Threshold, value: number) {
+		setRows(current.map((r, j) => (j === i ? { ...r, [field]: value } : r)));
+	}
+	function addRow() {
+		const maxLevel = current.reduce((m, r) => Math.max(m, r.level), 0);
+		const maxXp = current.reduce((m, r) => Math.max(m, r.xp), 0);
+		setRows([...current, { level: maxLevel + 1, xp: maxXp * 2 || 1000 }]);
+	}
+	function removeRow(i: number) {
+		setRows(current.filter((_, j) => j !== i));
+	}
+
+	const dirty = JSON.stringify(current) !== JSON.stringify(serverRows ?? []);
+
+	return (
+		<div className="card">
+			<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
+				<TrendingUp className="h-4 w-4" />
+				Courbe de niveaux — paliers XP éditables
+			</h3>
+			<p className="mb-3 text-xs text-zinc-500">
+				Définissez l&apos;XP requis pour chaque niveau. La progression de tous les joueurs se
+				recale immédiatement (recalcul du niveau + rôles de palier au prochain gain d&apos;XP).
+				Jusqu&apos;à 50 paliers ; l&apos;XP doit croître avec le niveau.
+			</p>
+
+			{query.isLoading ? (
+				<div className="flex items-center gap-2 text-sm text-zinc-500">
+					<Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+				</div>
+			) : (
+				<div className="space-y-2">
+					<div className="flex items-center gap-3 px-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+						<span className="w-20">Niveau</span>
+						<span className="flex-1">XP requis</span>
+						<span className="w-8" />
+					</div>
+					{current
+						.slice()
+						.sort((a, b) => a.level - b.level)
+						.map((t) => {
+							const idx = current.indexOf(t);
+							return (
+								<div key={idx} className="flex items-center gap-3">
+									<input
+										type="number"
+										min={1}
+										value={t.level}
+										onChange={(e) => edit(idx, "level", Number(e.target.value))}
+										className="w-20 rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-xs text-white"
+									/>
+									<input
+										type="number"
+										min={0}
+										value={t.xp}
+										onChange={(e) => edit(idx, "xp", Number(e.target.value))}
+										className="flex-1 rounded border border-zinc-700 bg-zinc-900 px-2 py-1 font-mono text-xs text-white"
+									/>
+									<button
+										type="button"
+										onClick={() => removeRow(idx)}
+										title="Supprimer ce palier"
+										className="w-8 rounded p-1 text-red-400 hover:text-red-300"
+									>
+										<Trash2 className="h-4 w-4" />
+									</button>
+								</div>
+							);
+						})}
+					<div className="flex flex-wrap items-center gap-2 pt-2">
+						<button
+							type="button"
+							onClick={addRow}
+							className="inline-flex items-center gap-1 rounded border border-zinc-700 px-2 py-1 text-xs text-zinc-300 hover:border-brand-500"
+						>
+							<Plus className="h-3.5 w-3.5" /> Ajouter un palier
+						</button>
+						<button
+							type="button"
+							disabled={!dirty || save.isPending || current.length === 0}
+							onClick={() => save.mutate(current)}
+							className="inline-flex items-center gap-1 rounded bg-brand-600 px-3 py-1 text-xs font-bold text-white hover:bg-brand-500 disabled:opacity-40"
+						>
+							<Save className="h-3.5 w-3.5" />
+							{save.isPending ? "Enregistrement…" : "Enregistrer la courbe"}
+						</button>
+						{dirty && !save.isPending && (
+							<button
+								type="button"
+								onClick={() => {
+									setRows(null);
+									setErr(null);
+								}}
+								className="text-xs text-zinc-500 hover:text-zinc-300"
+							>
+								Annuler
+							</button>
+						)}
+						{save.isSuccess && !dirty && <span className="text-xs text-green-400">Enregistré ✓</span>}
+					</div>
+					{err && <p className="text-xs text-red-400">{err}</p>}
+				</div>
+			)}
 		</div>
 	);
 }

@@ -6,8 +6,7 @@
  *   - `levelUpMessage`          : passage de palier (3 variantes par niveau)
  *   - `rareDropMessage` (bonus) : événement rare (1-2% de chance d'être utilisé)
  */
-import { LEVEL_THRESHOLDS } from "./constants";
-import { formatXP } from "./xp";
+import { formatXP, xpRequiredForLevel } from "./xp";
 
 // ─── Quête quotidienne ────────────────────────────────────────────────────
 
@@ -155,7 +154,8 @@ const LEVEL_FLAVORS: Record<number, readonly string[]> = {
 };
 
 export function levelUpMessage(userId: string, newLevel: number): string {
-	const threshold = LEVEL_THRESHOLDS.find((t) => t.level === newLevel);
+	const reqXp = xpRequiredForLevel(newLevel);
+	const threshold = Number.isFinite(reqXp) ? { level: newLevel, xp: reqXp } : undefined;
 	const variants = LEVEL_FLAVORS[newLevel];
 	const flavor = variants ? pick(variants) : undefined;
 	const header = threshold

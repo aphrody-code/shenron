@@ -1,21 +1,24 @@
-import { LEVEL_THRESHOLDS } from "./constants";
+import { getLevelThresholds } from "./xp";
 
 /**
  * Pure TypeScript implementation of the duration/hash/XP methods
  * that previously linked to the deleted napi-rs Rust native FFI crate.
+ *
+ * Les fonctions de niveau lisent la courbe ACTIVE (`getLevelThresholds`, éditable
+ * depuis l'admin) — plus le tableau en dur — pour rester cohérentes avec `xp.ts`.
  */
 
 /** Niveau DBZ atteint pour un montant d'XP donné. 0 si en-dessous du palier 1. */
 export function levelForXP(xp: number): number {
 	let level = 0;
-	for (const t of LEVEL_THRESHOLDS) {
+	for (const t of getLevelThresholds()) {
 		if (xp >= t.xp) level = t.level;
 		else break;
 	}
 	return level;
 }
 
-/** Progression vers le palier suivant. `undefined` si déjà au niveau max (10). */
+/** Progression vers le palier suivant. `undefined` si déjà au niveau max. */
 export type XpProgress = {
 	current: number;
 	nextLevel: number;
@@ -23,7 +26,7 @@ export type XpProgress = {
 	needed: number;
 };
 export function xpProgress(xp: number): XpProgress | undefined {
-	const next = LEVEL_THRESHOLDS.find((t) => t.xp > xp);
+	const next = getLevelThresholds().find((t) => t.xp > xp);
 	if (!next) return undefined;
 	return {
 		current: xp,

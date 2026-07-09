@@ -11,6 +11,7 @@ import { env } from "./lib/env";
 import { logger } from "./lib/logger";
 import { DatabaseService } from "./db/index";
 import { loadRaceLevelRoles } from "./lib/race-levels";
+import { loadLevelThresholds } from "./lib/level-thresholds";
 import { runBootAudit } from "./lib/boot-audit";
 import { ApiServer } from "./api/server";
 import { existsSync } from "node:fs";
@@ -39,6 +40,15 @@ try {
 	logger.info("✓ race level roles loaded");
 } catch (err) {
 	logger.warn({ err }, "race level roles load skipped (first run?)");
+}
+
+// Hydrate la COURBE DE NIVEAUX éditable (guild_settings.xp.thresholds) — défaut
+// en dur si absente. Lue par levelForXP/xpProgress (hot-path, synchrone).
+try {
+	loadLevelThresholds(dbService.db);
+	logger.info("✓ level thresholds loaded");
+} catch (err) {
+	logger.warn({ err }, "level thresholds load skipped (first run?)");
 }
 
 // ────────────────────────────────────────────────────────

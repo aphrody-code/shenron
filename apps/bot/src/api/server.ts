@@ -38,7 +38,7 @@ import { CronRegistry } from "./cron-registry";
 import { ModerationService } from "~/services/ModerationService";
 import { TicketService } from "~/services/TicketService";
 import { SettingsService } from "~/services/SettingsService";
-import { LEVEL_THRESHOLDS } from "~/lib/constants";
+import { saveLevelThresholds } from "~/lib/level-thresholds";
 import { PERSONAS, PERSONA_IDS, type PersonaId } from "~/lib/personas";
 import type { APIEmbed, GuildMember, TextChannel } from "discord.js";
 import { verifyActingUser } from "./user-auth";
@@ -71,7 +71,7 @@ import {
 	dbTransformations,
 	dbPlanets,
 } from "~/db/schema";
-import { COMMAND_CATALOG, runConsoleCommand } from "~/api/command-console";
+import { COMMAND_CATALOG, resolveMember, runConsoleCommand } from "~/api/command-console";
 import { DatabaseService } from "~/db/index";
 import { RACE_IDS, isRaceId } from "~/lib/races";
 import { reloadRaceLevelRoles } from "~/lib/race-levels";
@@ -84,7 +84,7 @@ import { FusionService } from "~/services/FusionService";
 import { WikiService } from "~/services/WikiService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
 import { LevelService } from "~/services/LevelService";
-import { levelForXP, nextThresholdFrom } from "~/lib/xp";
+import { getLevelThresholds, levelForXP, nextThresholdFrom, type LevelThreshold } from "~/lib/xp";
 import { hybridSearch, logRagHealth } from "~/lib/rag";
 import { generateLlmAnswer } from "~/lib/llm";
 import { graphqlHandler } from "~/api/graphql";
@@ -3536,7 +3536,7 @@ export class ApiServer {
 					const settings = await dbs.db.select().from((await import("~/db/schema")).guildSettings);
 					const overrides = Object.fromEntries(settings.map((s) => [s.key, s.value]));
 					return Response.json({
-						thresholds: LEVEL_THRESHOLDS,
+						thresholds: getLevelThresholds(),
 						defaults: {
 							"xp.message.min": 15,
 							"xp.message.max": 25,
@@ -3548,12 +3548,65 @@ export class ApiServer {
 						overrides,
 					});
 				}),
+				// Courbe de niveaux ÉDITABLE (guild_settings.xp.thresholds).
+				// GET → courbe active ; PUT → remplace (validé, appliqué à chaud + persisté).
+				"/api/levels/thresholds": {
+					GET: admin(async () => Response.json({ thresholds: getLevelThresholds() })),
+					PUT: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							thresholds?: Array<{ level?: unknown; xp?: unknown }>;
+						} | null;
+						const raw = body?.thresholds;
+						if (!Array.isArray(raw) || raw.length === 0) {
+							return Response.json(
+								{ error: "thresholds: tableau non vide { level, xp } attendu" },
+								{ status: 400 }
+							);
+						}
+						if (raw.length > 50) {
+							return Response.json({ error: "Maximum 50 paliers." }, { status: 400 });
+						}
+						const rows: LevelThreshold[] = [];
+						const seenLevels = new Set<number>();
+						for (const r of raw) {
+							const level = Number(r.level);
+							const xp = Number(r.xp);
+							if (!Number.isInteger(level) || level < 1) {
+								return Response.json({ error: `Niveau invalide : ${r.level}` }, { status: 400 });
+							}
+							if (!Number.isFinite(xp) || xp < 0) {
+								return Response.json({ error: `XP invalide au niveau ${level}` }, { status: 400 });
+							}
+							if (seenLevels.has(level)) {
+								return Response.json({ error: `Niveau ${level} en double` }, { status: 400 });
+							}
+							seenLevels.add(level);
+							rows.push({ level, xp: Math.round(xp) });
+						}
+						// Cohérence : xp strictement croissant avec le niveau.
+						const byLevel = [...rows].sort((a, b) => a.level - b.level);
+						for (let i = 1; i < byLevel.length; i++) {
+							if (byLevel[i]!.xp <= byLevel[i - 1]!.xp) {
+								return Response.json(
+									{
+										error: `L'XP doit croître avec le niveau (niveau ${byLevel[i]!.level} ≤ niveau ${byLevel[i - 1]!.level}).`,
+									},
+									{ status: 400 }
+								);
+							}
+						}
+						const dbs = container.resolve(DatabaseService);
+						const applied = saveLevelThresholds(dbs.db, rows);
+						return Response.json({ ok: true, thresholds: applied });
+					}),
+				},
 				"/api/levels/distribution": admin(async () => {
 					const dbs = container.resolve(DatabaseService);
+					const curve = getLevelThresholds();
 					// Compte les users dans chaque tranche de palier (basé sur user.xp).
-					const buckets = LEVEL_THRESHOLDS.map((t, i) => ({
+					const buckets = curve.map((t, i) => ({
 						level: t.level,
-						minXp: i === 0 ? 0 : LEVEL_THRESHOLDS[i - 1]!.xp,
+						minXp: i === 0 ? 0 : curve[i - 1]!.xp,
 						maxXp: t.xp,
 					}));
 					const result: Array<{ level: number; minXp: number; maxXp: number; count: number }> = [];
@@ -3565,7 +3618,7 @@ export class ApiServer {
 						result.push({ ...b, count: Number(c) });
 					}
 					// Bucket "au-delà" pour ceux qui dépassent le dernier seuil
-					const lastXp = LEVEL_THRESHOLDS[LEVEL_THRESHOLDS.length - 1]!.xp;
+					const lastXp = curve[curve.length - 1]!.xp;
 					const [{ c: cBeyond = 0 } = { c: 0 }] = await dbs.db
 						.select({ c: sql<number>`COUNT(*)` })
 						.from(users)
@@ -3786,9 +3839,25 @@ export class ApiServer {
 							return Response.json({ error: "Utilisateur introuvable en base" }, { status: 404 });
 						}
 						const current = existing[0]!.xp;
-						const newXp = body.mode === "set" ? body.amount : Math.max(0, current + body.amount);
-						await dbs.db.update(users).set({ xp: newXp }).where(eq(users.id, userId));
-						return Response.json({ ok: true, userId, previousXp: current, newXp });
+						// Passe par LevelService → recalcule lastLevelReached, puis réaligne les
+						// rôles de palier de la race (sinon niveau + rôles se désynchronisent).
+						const levels = container.resolve(LevelService);
+						const newXp = body.mode === "set" ? Math.max(0, body.amount) : Math.max(0, current + body.amount);
+						const res =
+							body.mode === "set"
+								? await levels.setXP(userId, newXp)
+								: await levels.addXP(userId, body.amount, { propagateFusion: false });
+						const member = await resolveMember(userId);
+						if (member) await levels.syncRaceLevelRoles(member).catch(() => {});
+						return Response.json({
+							ok: true,
+							userId,
+							previousXp: current,
+							newXp,
+							newLevel: res.newLevel,
+							levelUp: res.levelUp,
+							rolesSynced: !!member,
+						});
 					}),
 				},
 				"/api/levels/users/:userId/zeni": {
@@ -3810,8 +3879,15 @@ export class ApiServer {
 							return Response.json({ error: "Utilisateur introuvable en base" }, { status: 404 });
 						}
 						const current = existing[0]!.zeni;
-						const newZeni = body.mode === "set" ? body.amount : Math.max(0, current + body.amount);
-						await dbs.db.update(users).set({ zeni: newZeni }).where(eq(users.id, userId));
+						const economy = container.resolve(EconomyService);
+						if (body.mode === "set") {
+							await economy.setZeni(userId, Math.max(0, body.amount));
+						} else if (body.amount >= 0) {
+							await economy.addZeni(userId, body.amount);
+						} else {
+							await economy.removeZeni(userId, -body.amount);
+						}
+						const newZeni = await economy.getBalance(userId);
 						return Response.json({ ok: true, userId, previousZeni: current, newZeni });
 					}),
 				},
