@@ -4,39 +4,38 @@ import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
+import { effectiveOpenKeys, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
+import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
 
-// Nav 100 % statique : aucune lecture de session côté serveur (pas de
-// `headers()`), sinon TOUTES les pages basculeraient en rendu dynamique et ne
-// seraient jamais mises en cache CDN/ISR. L'état d'auth (avatar, admin, sign-in)
-// est hydraté côté client via `/api/me` (cf. NavAuth / MobileNav + useMe).
+// Nav SANS session : on lit la config de lancement (DB, PAS de cookies/headers)
+// → reste cacheable CDN/ISR (revalidée à l'écriture de la config). L'état d'auth
+// (avatar, admin, sign-in) est hydraté côté client via `/api/me` (NavAuth).
+//
+// Les catégories wiki OUVERTES passent en liens publics ; les FERMÉES restent
+// réservées aux admins (îlot client `AdminNavLinks`, gate useMe). La bascule se
+// fait depuis /admin/lancement (data-driven, cf. wiki-launch.ts).
 
-// Bêta partielle : seules les sections Épisodes, Films et Manga sont ouvertes.
-// Wiki (personnages/sagas/arcs…) et Tierlists seront réactivés après le lancement.
-const PUBLIC_LINKS = [
-	{ href: "/", label: "Accueil" },
-	{ href: "/wiki/episodes", label: "Épisodes" },
-	{ href: "/wiki/films", label: "Films" },
-	{ href: "/wiki/chronologie", label: "Chronologie" },
-	{ href: "/wiki/manga", label: "Manga" },
-	{ href: "/actualites", label: "News" },
-];
+const STATIC_PUBLIC_HEAD = [{ href: "/", label: "Accueil" }];
+const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
+const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
-// Sections encore masquées au public (bêta) mais navigables par les admins :
-// exposées uniquement côté client via `AdminNavLinks`/`MobileNav` (gate useMe)
-// → la nav reste statique et cacheable pour tout le monde.
-const ADMIN_LINKS = [
-	{ href: "/wiki/personnages", label: "Personnages" },
-	{ href: "/wiki/planetes", label: "Planètes" },
-	{ href: "/wiki/sagas", label: "Sagas" },
-	{ href: "/wiki/races", label: "Races" },
-	{ href: "/wiki/dragon-ball/techniques", label: "Techniques" },
-	{ href: "/wiki/transformations", label: "Transformations" },
-	{ href: "/wiki/jeux", label: "Jeux" },
-	{ href: "/wiki/databooks", label: "Databooks" },
-	{ href: "/tierlists", label: "Tierlists" },
-];
+export async function SiteNav() {
+	const open = effectiveOpenKeys(await getOpenCategoryKeys());
+	const wikiLinks = LAUNCH_CATEGORIES.filter((c) => c.href).map((c) => ({
+		href: c.href as string,
+		label: c.label,
+		open: open.has(c.key),
+	}));
+	const PUBLIC_LINKS = [
+		...STATIC_PUBLIC_HEAD,
+		...wikiLinks.filter((l) => l.open).map(({ href, label }) => ({ href, label })),
+		...STATIC_PUBLIC_TAIL,
+	];
+	const ADMIN_LINKS = [
+		...wikiLinks.filter((l) => !l.open).map(({ href, label }) => ({ href, label })),
+		...STATIC_ADMIN,
+	];
 
-export function SiteNav() {
 	return (
 		// `view-transition-name` → la nav reste fixe pendant les slides
 		// directionnels (point d'ancrage spatial). CSS dans globals.css.

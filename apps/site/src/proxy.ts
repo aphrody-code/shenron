@@ -1,25 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isRequestAdmin } from "@/lib/proxy-admin";
+import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
+import { isPathOpen } from "@/lib/wiki-launch";
 
 // proxy.ts = « middleware » de Next 16 (renommé middleware.ts → proxy.ts).
 // Deux rôles : (1) canonicalisation du host vers dragonballfr.com ; (2) gating
-// bêta des sections non publiques (wiki hors episodes/films/manga, + tierlists),
+// bêta des sections non publiques (wiki hors catégories ouvertes, + tierlists),
 // avec exception admin/owner. Cf. https://nextjs.org/docs/messages/middleware-to-proxy
-
-/** Sections /wiki ouvertes au public en bêta (vérifié par préfixe de pathname). */
-const WIKI_OPEN = [
-	"/wiki/episodes",
-	"/wiki/films",
-	"/wiki/manga",
-	// Chronologie universelle : ne liste que des épisodes + films (déjà publics).
-	"/wiki/chronologie",
-] as const;
-
-/** Une route /wiki publique bêta ? (sinon réservée admin/owner) */
-function isPublicWiki(pathname: string): boolean {
-	return WIKI_OPEN.some((prefix) => pathname === prefix || pathname.startsWith(prefix + "/"));
-}
+//
+// Les catégories publiques ne sont PLUS codées en dur : elles viennent de la DB
+// (`wiki-launch-config`, singleton WikiLaunch, cache TTL) → bascule live depuis
+// /admin/lancement. Repli défaut = catégories bêta (episodes/films/manga/chrono).
 
 /**
  * Présence d'un cookie d'authentification (session Better Auth ou token admin).
@@ -79,14 +71,16 @@ export async function proxy(request: NextRequest) {
 		return NextResponse.redirect(url, 308);
 	}
 
-	// Gating bêta : /tierlists/** + /wiki/** (hors episodes/films/manga) sont
+	// Gating bêta : /tierlists/** + /wiki/** (hors catégories ouvertes) sont
 	// réservés aux admins/owner. Le code des pages reste intact — seul l'accès est
-	// bloqué ici. Réouverture au public = ajouter le préfixe dans WIKI_OPEN.
+	// bloqué ici. Réouverture au public = basculer la catégorie dans /admin/lancement.
 	const { pathname } = request.nextUrl;
+	const isWiki = pathname === "/wiki" || pathname.startsWith("/wiki/");
+	const openKeys = isWiki ? await getOpenCategoryKeys() : [];
 	const blocked =
 		pathname === "/tierlists" ||
 		pathname.startsWith("/tierlists/") ||
-		((pathname === "/wiki" || pathname.startsWith("/wiki/")) && !isPublicWiki(pathname));
+		(isWiki && !isPathOpen(pathname, openKeys));
 
 	if (blocked && !(await isAdmin(request))) {
 		// Au lieu de renvoyer silencieusement le visiteur sur la marketing home

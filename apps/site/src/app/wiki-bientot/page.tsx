@@ -1,6 +1,25 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Lock, ArrowRight } from "lucide-react";
+import { effectiveOpenKeys, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
+import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
+
+/** Kanji décoratif par catégorie (repli vide pour les nouvelles ouvertures). */
+const KANJI: Record<string, string> = {
+	episodes: "話",
+	films: "映画",
+	manga: "漫画",
+	chronologie: "年表",
+	personnages: "人物",
+	planetes: "惑星",
+	sagas: "編",
+	races: "種族",
+	techniques: "技",
+	transformations: "変身",
+	arcs: "章",
+	jeux: "遊",
+	databooks: "資料",
+};
 
 // Écran « section en préparation » servi *à l'URL d'origine* (via rewrite du
 // proxy) pour les sections wiki/tierlists encore gated en bêta — au lieu de
@@ -37,19 +56,19 @@ function labelFor(from: string): string {
 }
 
 // Sections déjà ouvertes au public (miroir de WIKI_OPEN dans proxy.ts).
-const OPEN_SECTIONS = [
-	{ href: "/wiki/episodes", label: "Épisodes", kanji: "話" },
-	{ href: "/wiki/films", label: "Films", kanji: "映画" },
-	{ href: "/wiki/manga", label: "Manga", kanji: "漫画" },
-	{ href: "/wiki/chronologie", label: "Chronologie", kanji: "年表" },
-];
-
 export default async function WikiComingSoonPage({
 	searchParams,
 }: {
 	searchParams: Promise<{ from?: string }>;
 }) {
 	const { from = "" } = await searchParams;
+	// Sections déjà ouvertes = source unique (config DB), plus de liste en dur.
+	const open = effectiveOpenKeys(await getOpenCategoryKeys());
+	const OPEN_SECTIONS = LAUNCH_CATEGORIES.filter((c) => c.href && open.has(c.key)).map((c) => ({
+		href: c.href as string,
+		label: c.label,
+		kanji: KANJI[c.key] ?? "",
+	}));
 	const label = labelFor(from);
 
 	return (

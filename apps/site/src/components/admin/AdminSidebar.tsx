@@ -35,6 +35,7 @@ import {
 	Gift,
 	Ticket,
 	MessageSquare,
+	Rocket,
 	Send,
 	Coins,
 	TrendingUp,
@@ -226,6 +227,13 @@ const ADMIN_LINKS: AdminLink[] = [
 	},
 
 	// ENCYCLOPÉDIE / WIKI DBZ
+	{
+		href: "/admin/lancement",
+		label: "Lancement wiki",
+		description: "Ouvrir les catégories au public une par une (gating bêta)",
+		icon: <Rocket className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
 	{
 		href: "/admin/visibilite",
 		label: "Visibilité",

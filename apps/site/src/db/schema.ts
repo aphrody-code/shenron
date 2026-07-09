@@ -316,6 +316,22 @@ export const chronologyConfig = pgTable("ChronologyConfig", {
 
 export type ChronologyConfigRow = typeof chronologyConfig.$inferSelect;
 
+/**
+ * Lancement wiki : quelles catégories sont ouvertes au public (gating bêta).
+ * Singleton `"default"`, `data.openKeys: string[]` (clés de `wiki-launch.ts`).
+ * Lu par le proxy (gating), la nav et le teaser ; édité depuis /admin/lancement.
+ */
+export const wikiLaunch = pgTable("WikiLaunch", {
+	id: text("id").primaryKey(),
+	data: jsonb("data").$type<{ openKeys: string[] }>().notNull(),
+	updatedBy: text("updatedBy"),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type WikiLaunchRow = typeof wikiLaunch.$inferSelect;
+
 // --- Signalements utilisateurs (tickets) ---
 //
 // « Signaler une erreur » : un membre connecté (compte Discord lié) nous remonte
