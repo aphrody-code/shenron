@@ -1,229 +1,338 @@
 "use client";
 
 /**
- * Console bot : exécute une commande RÉELLE du bot à distance (hors Discord).
- * Calquée sur « Envoyer un message » — sélection d'une commande dans le catalogue
- * (servi par le bot), champs dynamiques, confirmation pour les commandes qui
- * modifient l'état, puis exécution via le proxy admin et affichage du résultat.
+ * Exécuter une commande — liste TOUTES les slash commands du bot (catalogue
+ * auto-découvert) avec TOUS leurs paramètres, et les exécute à distance (hors
+ * Discord) via l'interaction synthétique du bot. Affiche les réponses capturées.
  */
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useTransition } from "react";
+import { AlertTriangle, ChevronRight, Loader2, Search, Terminal } from "lucide-react";
 import { api } from "@/lib/admin-api";
 
-type FieldType = "user" | "text" | "number" | "select" | "role" | "channel" | "persona";
-interface Field {
+interface OptionSpec {
 	name: string;
-	label: string;
-	type: FieldType;
-	required?: boolean;
-	placeholder?: string;
-	options?: { value: string; label: string }[];
+	description: string;
+	type: number;
+	typeName: string;
+	required: boolean;
+	choices: { name: string; value: string | number }[] | null;
+	minValue: number | null;
+	maxValue: number | null;
+	autocomplete: boolean;
 }
 interface CommandSpec {
+	persona: string | null;
+	group: string | null;
+	subgroup: string | null;
 	name: string;
-	label: string;
+	invocation: string;
 	description: string;
-	danger?: boolean;
-	fields: Field[];
+	options: OptionSpec[];
 }
-type ExecResult = { ok: boolean; message: string; data?: Record<string, unknown> } | null;
+interface Reply {
+	method: string;
+	content?: string;
+	embeds?: { title?: string; description?: string; fields?: { name: string; value: string }[] }[];
+	files?: number;
+	ephemeral?: boolean;
+}
+type ExecResult =
+	| { ok: boolean; persona: string | null; invocation: string; replies: Reply[]; error?: string }
+	| null;
+
+// Commandes interactives (pagination/modal/collector/voice/canvas) : la partie
+// interactive ne fonctionne pas en headless (on récupère la 1ère réponse). On
+// prévient l'admin sans bloquer.
+const INTERACTIVE = new Set([
+	"shop",
+	"wiki",
+	"top",
+	"ticket",
+	"eprofil",
+	"voc",
+	"scan",
+	"fusion",
+	"bingo",
+	"morpion",
+	"pendu",
+	"pfc",
+]);
 
 export function CommandRunner() {
 	const catalog = useQuery({
-		queryKey: ["console", "commands"],
-		queryFn: () => api.get<{ commands: CommandSpec[] }>("/admin/console/commands"),
+		queryKey: ["bot", "commands", "catalog"],
+		queryFn: () => api.get<{ commands: CommandSpec[]; count: number }>("/bot/commands/catalog"),
 		staleTime: 5 * 60_000,
 	});
 	const commands = useMemo(() => catalog.data?.commands ?? [], [catalog.data]);
 
-	const [selected, setSelected] = useState<string>("");
+	const [q, setQ] = useState("");
+	const [selected, setSelected] = useState<CommandSpec | null>(null);
 	const [args, setArgs] = useState<Record<string, string>>({});
-	const [confirmed, setConfirmed] = useState(false);
 	const [result, setResult] = useState<ExecResult>(null);
 	const [pending, startTransition] = useTransition();
 
-	const spec = commands.find((c) => c.name === selected);
+	const filtered = useMemo(() => {
+		const n = q.trim().toLowerCase();
+		return commands.filter(
+			(c) => !n || c.invocation.toLowerCase().includes(n) || c.description.toLowerCase().includes(n)
+		);
+	}, [commands, q]);
 
-	function pick(name: string) {
-		setSelected(name);
+	// Regroupe par persona pour la lisibilité.
+	const byPersona = useMemo(() => {
+		const map = new Map<string, CommandSpec[]>();
+		for (const c of filtered) {
+			const k = c.persona ?? "?";
+			const list = map.get(k) ?? [];
+			list.push(c);
+			map.set(k, list);
+		}
+		return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+	}, [filtered]);
+
+	function pick(c: CommandSpec) {
+		setSelected(c);
 		setArgs({});
-		setConfirmed(false);
 		setResult(null);
 	}
-	function setArg(k: string, v: string) {
-		setArgs((a) => ({ ...a, [k]: v }));
-	}
 
-	const missing = spec?.fields.some((f) => f.required && !String(args[f.name] ?? "").trim());
-
-	function submit(e: React.FormEvent) {
-		e.preventDefault();
-		if (!spec) return;
-		if (spec.danger && !confirmed) {
-			setConfirmed(true);
-			return;
-		}
+	function run() {
+		if (!selected) return;
+		const missing = selected.options.some((o) => o.required && !String(args[o.name] ?? "").trim());
+		if (missing) return;
 		setResult(null);
-		setConfirmed(false);
-		// Coerce les nombres (les inputs number renvoient des strings).
-		const payload: Record<string, unknown> = {};
-		for (const f of spec.fields) {
-			const raw = args[f.name];
-			if (raw == null || raw === "") continue;
-			payload[f.name] = f.type === "number" ? Number(raw) : raw;
-		}
 		startTransition(async () => {
 			try {
-				const res = await fetch("/api/bot-admin/admin/console/exec", {
+				const res = await fetch("/api/bot-admin/bot/commands/exec", {
 					method: "POST",
 					headers: { "content-type": "application/json" },
-					body: JSON.stringify({ command: spec.name, args: payload }),
+					body: JSON.stringify({ invocation: selected.invocation, options: args }),
 				});
-				const data = (await res.json()) as ExecResult;
-				setResult(data ?? { ok: false, message: `HTTP ${res.status}` });
-			} catch (err) {
-				setResult({ ok: false, message: err instanceof Error ? err.message : "erreur réseau" });
+				setResult((await res.json()) as ExecResult);
+			} catch (e) {
+				setResult({
+					ok: false,
+					persona: selected.persona,
+					invocation: selected.invocation,
+					replies: [],
+					error: e instanceof Error ? e.message : "erreur réseau",
+				});
 			}
 		});
 	}
 
+	const topName = selected ? (selected.group ?? selected.name) : "";
+	const interactive = selected && INTERACTIVE.has(topName);
+
 	return (
-		<div className="space-y-5">
-			{/* Sélecteur de commande */}
-			<div className="dbz-panel p-5">
-				<label className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-					Commande à exécuter
-				</label>
-				{catalog.isLoading ? (
-					<p className="text-xs text-white/40">Chargement du catalogue…</p>
-				) : catalog.isError ? (
-					<p className="text-xs text-red-400">Impossible de charger le catalogue des commandes.</p>
+		<div className="grid gap-5 lg:grid-cols-[320px_1fr]">
+			{/* Liste des commandes */}
+			<div className="dbz-panel flex max-h-[70vh] flex-col p-3">
+				<div className="relative mb-2">
+					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+					<input
+						className="w-full rounded border border-dbz-border bg-dbz-bg px-3 py-1.5 pl-8 text-sm text-white focus:border-dbz-orange focus:outline-none"
+						placeholder={`Rechercher parmi ${commands.length} commandes…`}
+						value={q}
+						onChange={(e) => setQ(e.target.value)}
+					/>
+				</div>
+				<div className="min-h-0 flex-1 overflow-y-auto pr-1">
+					{catalog.isLoading ? (
+						<p className="p-3 text-xs text-white/40">
+							<Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Chargement du catalogue…
+						</p>
+					) : catalog.isError ? (
+						<p className="p-3 text-xs text-red-400">Catalogue indisponible (bot hors-ligne ?).</p>
+					) : (
+						byPersona.map(([persona, cmds]) => (
+							<div key={persona} className="mb-2">
+								<p className="px-1 py-1 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+									{persona} · {cmds.length}
+								</p>
+								{cmds.map((c) => (
+									<button
+										key={c.invocation}
+										type="button"
+										onClick={() => pick(c)}
+										className={`flex w-full items-center gap-1 rounded px-2 py-1 text-left text-sm ${
+											selected?.invocation === c.invocation
+												? "bg-dbz-orange/15 text-white"
+												: "text-white/70 hover:bg-white/5"
+										}`}
+									>
+										<ChevronRight className="h-3 w-3 shrink-0 text-white/30" />
+										<span className="font-mono text-[13px]">/{c.invocation}</span>
+									</button>
+								))}
+							</div>
+						))
+					)}
+				</div>
+			</div>
+
+			{/* Formulaire + exécution */}
+			<div className="dbz-panel min-h-[300px] p-5">
+				{!selected ? (
+					<div className="flex h-full flex-col items-center justify-center text-center text-white/40">
+						<Terminal className="mb-2 h-8 w-8" />
+						<p className="text-sm">Sélectionne une commande à gauche pour l&apos;exécuter.</p>
+					</div>
 				) : (
-					<div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-						{commands.map((c) => (
-							<button
-								key={c.name}
-								type="button"
-								onClick={() => pick(c.name)}
-								className={`rounded border p-2 text-left transition-colors ${
-									selected === c.name
-										? "border-dbz-orange bg-dbz-orange/10"
-										: "border-dbz-border hover:border-dbz-orange/40"
-								}`}
-							>
-								<p className="font-saiyan text-sm text-white">{c.label}</p>
-								<p className="mt-0.5 text-[10px] leading-tight text-white/40">{c.description}</p>
-							</button>
-						))}
+					<div className="space-y-4">
+						<div>
+							<h2 className="font-mono text-lg text-dbz-orange">/{selected.invocation}</h2>
+							<p className="text-sm text-white/60">{selected.description}</p>
+							<p className="mt-1 text-[11px] uppercase tracking-widest text-white/30">
+								persona : {selected.persona}
+							</p>
+						</div>
+
+						{interactive && (
+							<div className="flex items-start gap-2 rounded border border-dbz-yellow/40 bg-dbz-yellow/5 p-2.5 text-xs text-dbz-yellow/90">
+								<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+								Commande interactive (menus/boutons/canvas) : seule la première réponse est capturée
+								hors Discord ; la partie interactive ne s&apos;exécute pas.
+							</div>
+						)}
+
+						{selected.options.length === 0 ? (
+							<p className="text-xs italic text-white/40">Aucun paramètre.</p>
+						) : (
+							<div className="space-y-3">
+								{selected.options.map((o) => (
+									<OptionField
+										key={o.name}
+										opt={o}
+										value={args[o.name] ?? ""}
+										onChange={(v) => setArgs((a) => ({ ...a, [o.name]: v }))}
+									/>
+								))}
+							</div>
+						)}
+
+						<button
+							type="button"
+							onClick={run}
+							disabled={pending}
+							className="dbz-button gap-2 disabled:opacity-50"
+						>
+							{pending ? (
+								<Loader2 className="h-4 w-4 animate-spin" />
+							) : (
+								<Terminal className="h-4 w-4" />
+							)}
+							Exécuter /{selected.invocation}
+						</button>
+
+						{result && <ResultView result={result} />}
 					</div>
 				)}
 			</div>
+		</div>
+	);
+}
 
-			{/* Formulaire de la commande */}
-			{spec && (
-				<form onSubmit={submit} className="dbz-panel space-y-4 p-5">
-					<div>
-						<h2 className="font-saiyan text-lg text-dbz-orange">{spec.label}</h2>
-						<p className="text-xs text-white/50">{spec.description}</p>
-					</div>
+function OptionField({
+	opt,
+	value,
+	onChange,
+}: {
+	opt: OptionSpec;
+	value: string;
+	onChange: (v: string) => void;
+}) {
+	const hint =
+		opt.type === 6
+			? "ID du membre"
+			: opt.type === 8
+				? "ID du rôle"
+				: opt.type === 7
+					? "ID du salon"
+					: "";
+	return (
+		<div>
+			<label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+				{opt.name}
+				{opt.required && <span className="text-dbz-red">*</span>}
+				<span className="font-normal normal-case text-white/30">{opt.typeName}</span>
+			</label>
+			{opt.choices && opt.choices.length > 0 ? (
+				<select
+					className="input w-full text-sm"
+					value={value}
+					onChange={(e) => onChange(e.target.value)}
+				>
+					<option value="">— choisir —</option>
+					{opt.choices.map((c) => (
+						<option key={String(c.value)} value={String(c.value)}>
+							{c.name}
+						</option>
+					))}
+				</select>
+			) : opt.type === 5 ? (
+				<select
+					className="input w-full text-sm"
+					value={value}
+					onChange={(e) => onChange(e.target.value)}
+				>
+					<option value="">— choisir —</option>
+					<option value="true">Oui</option>
+					<option value="false">Non</option>
+				</select>
+			) : (
+				<input
+					className="input w-full text-sm"
+					type={opt.type === 4 || opt.type === 10 ? "number" : "text"}
+					placeholder={opt.description || hint}
+					value={value}
+					onChange={(e) => onChange(e.target.value)}
+				/>
+			)}
+			{opt.description && <p className="mt-0.5 text-[10px] text-white/35">{opt.description}</p>}
+		</div>
+	);
+}
 
-					{spec.fields.map((f) => (
-						<div key={f.name}>
-							<label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-								{f.label}
-								{f.required && <span className="ml-1 text-dbz-red">*</span>}
-							</label>
-							{f.type === "select" || f.type === "persona" ? (
-								<select
-									className="input w-full text-sm"
-									value={args[f.name] ?? ""}
-									onChange={(e) => setArg(f.name, e.target.value)}
-									disabled={pending}
-								>
-									<option value="">— choisir —</option>
-									{(f.options ?? []).map((o) => (
-										<option key={o.value} value={o.value}>
-											{o.label}
-										</option>
-									))}
-								</select>
-							) : f.type === "text" ? (
-								<textarea
-									className="input w-full font-mono text-sm"
-									rows={f.name === "content" ? 4 : 2}
-									placeholder={f.placeholder}
-									value={args[f.name] ?? ""}
-									onChange={(e) => setArg(f.name, e.target.value)}
-									disabled={pending}
-								/>
-							) : (
-								<input
-									className="input w-full font-mono text-sm"
-									type={f.type === "number" ? "number" : "text"}
-									placeholder={
-										f.placeholder ??
-										(f.type === "user" || f.type === "role" || f.type === "channel"
-											? "ID Discord (17-20 chiffres)"
-											: "")
-									}
-									value={args[f.name] ?? ""}
-									onChange={(e) => setArg(f.name, e.target.value)}
-									disabled={pending}
-								/>
+function ResultView({ result }: { result: NonNullable<ExecResult> }) {
+	return (
+		<div
+			className={`rounded border-l-4 p-3 ${
+				result.ok ? "border-green-500 bg-green-500/5" : "border-red-500 bg-red-500/5"
+			}`}
+		>
+			<p className={`text-sm font-semibold ${result.ok ? "text-green-400" : "text-red-400"}`}>
+				{result.ok ? "Exécuté" : "Échec"} · {result.replies.length} réponse
+				{result.replies.length !== 1 ? "s" : ""}
+			</p>
+			{result.error && <p className="mt-1 text-xs text-red-400">{result.error}</p>}
+			{result.replies.map((r, i) => (
+				<div key={i} className="mt-2 rounded bg-black/40 p-2 text-xs text-white/80">
+					<span className="mr-2 text-[9px] uppercase text-white/30">{r.method}</span>
+					{r.content && <p className="whitespace-pre-wrap">{r.content}</p>}
+					{r.embeds?.map((e, j) => (
+						<div key={j} className="mt-1 border-l-2 border-dbz-orange/40 pl-2">
+							{e.title && <p className="font-bold text-white">{e.title}</p>}
+							{e.description && (
+								<p className="whitespace-pre-wrap text-white/70">{e.description}</p>
 							)}
+							{e.fields?.map((f, k) => (
+								<p key={k} className="mt-0.5">
+									<span className="font-semibold text-white/80">{f.name}:</span>{" "}
+									<span className="text-white/60">{f.value}</span>
+								</p>
+							))}
 						</div>
 					))}
-
-					{/* Confirmation pour les commandes qui modifient l'état */}
-					{confirmed && spec.danger ? (
-						<div className="rounded border-2 border-dbz-yellow/60 bg-dbz-yellow/5 p-4">
-							<p className="mb-2 font-saiyan text-dbz-yellow">Confirmer l&apos;exécution ?</p>
-							<p className="mb-3 text-sm text-white/70">
-								<strong>{spec.label}</strong> va s&apos;exécuter immédiatement sur le bot en
-								production.
-							</p>
-							<div className="flex gap-3">
-								<button type="submit" disabled={pending} className="dbz-button disabled:opacity-40">
-									{pending ? "Exécution…" : "Confirmer"}
-								</button>
-								<button
-									type="button"
-									onClick={() => setConfirmed(false)}
-									className="dbz-button-ghost"
-								>
-									Annuler
-								</button>
-							</div>
-						</div>
-					) : (
-						<button
-							type="submit"
-							disabled={pending || missing}
-							className="dbz-button disabled:cursor-not-allowed disabled:opacity-40"
-						>
-							{pending ? "Exécution…" : spec.danger ? "Exécuter…" : "Exécuter"}
-						</button>
+					{(r.files ?? 0) > 0 && (
+						<p className="mt-1 text-[10px] italic text-white/40">
+							[{r.files} fichier(s)/image(s) — non affichés hors Discord]
+						</p>
 					)}
-
-					{result && (
-						<div
-							className={`rounded border-l-4 p-4 ${
-								result.ok ? "border-green-500 bg-green-500/5" : "border-red-500 bg-red-500/5"
-							}`}
-						>
-							<p className={`text-sm font-semibold ${result.ok ? "text-green-400" : "text-red-400"}`}>
-								{result.ok ? "Exécuté" : "Échec"}
-							</p>
-							<p className="mt-1 text-sm text-white/80">{result.message}</p>
-							{result.data && (
-								<pre className="mt-2 overflow-x-auto rounded bg-black/40 p-2 text-[11px] text-white/60">
-									{JSON.stringify(result.data, null, 2)}
-								</pre>
-							)}
-						</div>
-					)}
-				</form>
-			)}
+				</div>
+			))}
 		</div>
 	);
 }
