@@ -72,6 +72,7 @@ import {
 	dbPlanets,
 } from "~/db/schema";
 import { COMMAND_CATALOG, resolveMember, runConsoleCommand } from "~/api/command-console";
+import { buildCommandCatalog, execCommand } from "~/api/command-exec";
 import { DatabaseService } from "~/db/index";
 import { RACE_IDS, isRaceId } from "~/lib/races";
 import { reloadRaceLevelRoles } from "~/lib/race-levels";
@@ -1363,6 +1364,28 @@ export class ApiServer {
 					}
 					return Response.json({ commands: leaves, count: leaves.length });
 				}),
+				// Catalogue COMPLET (toutes les feuilles + schéma d'options) pour la page
+				// admin « Exécuter une commande » — et exécution headless via interaction
+				// synthétique (cf. command-exec.ts).
+				"/api/bot/commands/catalog": admin(async () => Response.json(buildCommandCatalog())),
+				"/api/bot/commands/exec": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							invocation?: string;
+							options?: Record<string, unknown>;
+							channelId?: string;
+						} | null;
+						if (!body?.invocation) {
+							return Response.json({ error: "invocation requise" }, { status: 400 });
+						}
+						const res = await execCommand(
+							body.invocation,
+							body.options ?? {},
+							body.channelId
+						);
+						return Response.json(res, { status: res.ok ? 200 : 400 });
+					}),
+				},
 				"/api/bot/commands/permissions": {
 					GET: admin(async () => {
 						const svc = container.resolve(CommandPermissionsService);
