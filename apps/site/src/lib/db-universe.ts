@@ -17,6 +17,7 @@ import { db } from "@/lib/db";
 import { API_URL } from "@/lib/config";
 import {
 	botArcs,
+	botDatabooks,
 	botEpisodes,
 	botGames,
 	botMangaChapters,
@@ -403,6 +404,32 @@ function toMangaVolume(r: typeof botMangaVolumes.$inferSelect): MangaVolume {
 	};
 }
 
+export type Databook = {
+	id: number;
+	kind: string;
+	title: string;
+	title_ja: string | null;
+	author: string | null;
+	published_at: number | null;
+	cover: string | null;
+	description: string | null;
+	source_url: string | null;
+};
+
+function toDatabook(r: typeof botDatabooks.$inferSelect): Databook {
+	return {
+		id: r.id,
+		kind: r.kind,
+		title: r.title,
+		title_ja: r.titleJa,
+		author: r.author,
+		published_at: r.publishedAt,
+		cover: r.cover,
+		description: r.description,
+		source_url: r.sourceUrl,
+	};
+}
+
 function toMangaChapter(r: typeof botMangaChapters.$inferSelect): MangaChapter {
 	return {
 		id: r.id,
@@ -509,6 +536,7 @@ export const dbUniverse = {
 				transformations: botTransformations,
 				mangaVolumes: botMangaVolumes,
 				mangaChapters: botMangaChapters,
+				databooks: botDatabooks,
 				news: botNews,
 				tools: botTools,
 			} satisfies Record<string, PgTable>;
@@ -528,6 +556,7 @@ export const dbUniverse = {
 				botTransformations,
 				botMangaVolumes,
 				botMangaChapters,
+				botDatabooks,
 			]);
 			const entries = await Promise.all(
 				(Object.entries(tables) as [keyof typeof tables, PgTable][]).map(async ([key, table]) => {
@@ -1041,6 +1070,23 @@ export const dbUniverse = {
 					.orderBy(asc(botMangaVolumes.volumeNumber))
 			).map(toMangaVolume),
 		})),
+
+	/** Databooks & interviews visibles, triés par date (défaut : plus récent). */
+	databooks: (opts: { kind?: string; order?: "asc" | "desc" } = {}) =>
+		safe(async () => {
+			const conds = [eq(botDatabooks.visible, true)];
+			if (opts.kind) conds.push(eq(botDatabooks.kind, opts.kind));
+			const rows = await db
+				.select()
+				.from(botDatabooks)
+				.where(and(...conds))
+				.orderBy(
+					opts.order === "asc"
+						? asc(botDatabooks.publishedAt)
+						: desc(botDatabooks.publishedAt)
+				);
+			return { items: rows.map(toDatabook) };
+		}),
 
 	mangaVolume: (id: number) =>
 		safe(async () => {

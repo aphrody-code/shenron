@@ -113,6 +113,20 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 		pk: "id",
 		mutableColumns: ["series", "volumeNumber", "title", "titleJa", "publishedAt", "cover", "isbn"],
 	},
+	db_databooks: {
+		name: "db_databooks",
+		pk: "id",
+		mutableColumns: [
+			"kind",
+			"title",
+			"titleJa",
+			"author",
+			"publishedAt",
+			"cover",
+			"description",
+			"sourceUrl",
+		],
+	},
 	db_manga_chapters: {
 		name: "db_manga_chapters",
 		pk: "id",

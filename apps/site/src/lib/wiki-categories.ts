@@ -31,6 +31,7 @@ export const WIKI_CATEGORIES: WikiCategory[] = [
 	{ key: "episodes", label: "Épisodes", href: "/wiki/episodes", countKey: "episodes", group: "media" },
 	{ key: "manga", label: "Manga", href: "/wiki/manga", countKey: "mangaVolumes", group: "media" },
 	{ key: "jeux", label: "Jeux", href: "/wiki/jeux", countKey: "games", group: "media" },
+	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", countKey: "databooks", group: "media" },
 ];
 
 /** Catégories à surfacer dans la nav du wiki (hors navbar → pas de doublon). */

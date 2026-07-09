@@ -92,6 +92,7 @@ export const ENUM_OPTIONS: Record<string, { options: string[]; strict?: boolean 
 	"db_characters.gender": { options: ["Male", "Female"], strict: true },
 	"db_techniques.type": { options: ["super", "ultimate", "evasive", "awoken"], strict: true },
 	"shop_items.type": { options: ["card", "badge", "color", "title", "banner"], strict: true },
+	"db_databooks.kind": { options: ["databook", "interview"], strict: true },
 	"db_tools.category": { options: ["api", "modding", "shader", "utility"] },
 	"db_episodes.series": { options: ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"] },
 	"db_arcs.series": { options: ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"] },
@@ -344,6 +345,8 @@ export function publicEntityUrl(table: string, row: Record<string, unknown>): st
 			return slug ? `/wiki/films/${slug}` : null;
 		case "db_manga_volumes":
 			return hasId ? `/wiki/manga/volume/${id}` : null;
+		case "db_databooks":
+			return "/wiki/databooks";
 		case "db_episodes":
 			return hasId ? `/wiki/episodes/${id}` : null;
 		default:

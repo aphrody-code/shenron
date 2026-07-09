@@ -51,6 +51,7 @@ const TABLE_OBJECTS: Record<string, AnyTable> = {
 	db_arcs: botSchema.botArcs,
 	db_episodes: botSchema.botEpisodes,
 	db_manga_volumes: botSchema.botMangaVolumes,
+	db_databooks: botSchema.botDatabooks,
 	db_manga_chapters: botSchema.botMangaChapters,
 	db_movies: botSchema.botMovies,
 	db_games: botSchema.botGames,
@@ -271,7 +272,7 @@ export async function getWikiRow(table: string, id: string): Promise<Row | null>
  * création depuis le studio doit calculer le prochain id (max+1) elle-même,
  * sinon `null value in column "id"`.
  */
-const DB_AUTOGEN_PK = new Set<string>(["db_wiki_sections"]);
+const DB_AUTOGEN_PK = new Set<string>(["db_wiki_sections", "db_databooks"]);
 
 /** Prochain id disponible (max+1) pour une table à pk numérique sans séquence. */
 async function nextPkValue(spec: ResolvedTable, pkKey: string): Promise<number> {
@@ -346,6 +347,7 @@ export const VISIBILITY_TABLES = new Set<string>([
 	"db_movies",
 	"db_games",
 	"db_manga_volumes",
+	"db_databooks",
 	"db_manga_chapters",
 ]);
 
@@ -454,6 +456,7 @@ export const CMS_ENTITY_TABLES = [
 	"db_movies",
 	"db_games",
 	"db_manga_volumes",
+	"db_databooks",
 ] as const;
 
 export interface CmsEntityStat {

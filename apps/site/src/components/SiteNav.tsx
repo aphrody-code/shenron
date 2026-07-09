@@ -32,6 +32,7 @@ const ADMIN_LINKS = [
 	{ href: "/wiki/dragon-ball/techniques", label: "Techniques" },
 	{ href: "/wiki/transformations", label: "Transformations" },
 	{ href: "/wiki/jeux", label: "Jeux" },
+	{ href: "/wiki/databooks", label: "Databooks" },
 	{ href: "/tierlists", label: "Tierlists" },
 ];
 

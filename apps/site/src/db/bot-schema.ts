@@ -295,6 +295,22 @@ export const botMangaVolumes = bot.table("db_manga_volumes", {
 	...visibleCol,
 });
 
+/** Databooks & interviews (PG-only, cf. scripts/add-databooks.ts). */
+export const botDatabooks = bot.table("db_databooks", {
+	id: int("id").primaryKey(),
+	/** "databook" | "interview". */
+	kind: text("kind").notNull(),
+	title: text("title").notNull(),
+	titleJa: text("title_ja"),
+	author: text("author"),
+	/** Date de publication (epoch ms) — sert au tri. */
+	publishedAt: int("published_at"),
+	cover: text("cover"),
+	description: text("description"),
+	sourceUrl: text("source_url"),
+	...visibleCol,
+});
+
 export const botMangaChapters = bot.table("db_manga_chapters", {
 	id: int("id").primaryKey(),
 	series: text("series").notNull(),
