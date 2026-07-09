@@ -1596,7 +1596,7 @@ html[data-home] {
 .home-clip {
 	position: absolute;
 	left: 0;
-	width: clamp(8rem, 13vw, 13rem);
+	width: clamp(9.5rem, 16vw, 17rem);
 	aspect-ratio: 16 / 9;
 	border-radius: 0.6rem;
 	overflow: hidden;

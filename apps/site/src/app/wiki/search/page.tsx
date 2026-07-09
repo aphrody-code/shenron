@@ -234,7 +234,7 @@ export default async function SearchPage({
 													alt={c.name}
 													fill
 													sizes="(max-width: 768px) 50vw, 16vw"
-													className="object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+													className="object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 												/>
 											)}
 											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
@@ -276,7 +276,7 @@ export default async function SearchPage({
 												<img
 													src={assetUrl(p.image)}
 													alt={p.name}
-													className="w-full h-full object-contain relative z-10 opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_15px_rgba(75,168,255,0.2)]"
+													className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_15px_rgba(75,168,255,0.2)]"
 													loading="lazy"
 												/>
 											) : (
@@ -517,7 +517,7 @@ export default async function SearchPage({
 													src={assetUrl(t.image)}
 													alt={t.name}
 													loading="lazy"
-													className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+													className="absolute inset-0 w-full h-full object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 												/>
 											) : (
 												<div className="flex h-full w-full items-center justify-center">
@@ -585,7 +585,7 @@ export default async function SearchPage({
 													src={assetUrl(v.cover)}
 													alt={v.title ?? `Tome ${v.volume_number}`}
 													loading="lazy"
-													className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+													className="absolute inset-0 w-full h-full object-cover opacity-100 group-hover:scale-110 transition-all duration-700"
 												/>
 											) : (
 												<div className="flex h-full w-full items-center justify-center bg-zinc-900">

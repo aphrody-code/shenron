@@ -304,7 +304,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 				<div className="w-full lg:w-2/5 xl:w-1/3">
 					<div className="dbz-panel p-6 border-2 border-dbz-orange/30 bg-dbz-card relative overflow-hidden group">
-						<div className="absolute inset-0 halftone opacity-20 group-hover:opacity-30 transition-opacity" />
 						{/* Cible du morph partagé : même `name` que le thumbnail de la grille
 						    → l'image se déplie en continuité depuis la tuile cliquée.
 						    WikiImg : repli sur le portrait XV2 puis placeholder si l'image 404. */}

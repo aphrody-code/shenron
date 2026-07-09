@@ -311,6 +311,21 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 	},
 };
 
+// Pool COMPLET de clips vidéo pour le champ dérivant du héro : tous les plans de
+// HERO_SCENES + SECTION_SCENE qui portent une vidéo, dédupliqués par source. Le
+// champ en pioche aléatoirement (client-side) → « tous les clips » sur la home,
+// dans un ordre différent à chaque visite.
+export const ALL_CLIP_SCENES: readonly HomeScene[] = (() => {
+	const seen = new Set<string>();
+	const out: HomeScene[] = [];
+	for (const sc of [...HERO_SCENES, ...Object.values(SECTION_SCENE)]) {
+		if (!sc.video || seen.has(sc.video)) continue;
+		seen.add(sc.video);
+		out.push(sc);
+	}
+	return out;
+})();
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration éditable de la home (pilotée depuis /admin/home).
 //
@@ -560,7 +575,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
 		ctaLabel: "Commencer le voyage",
 		ctaHref: "/wiki/episodes",
 	},
-	clips: { desktop: 6, tablet: 3 },
+	clips: { desktop: 8, tablet: 4 },
 	sections: SECTION_ORDER.map((id) => ({
 		id,
 		enabled: SECTION_META[id].defaultEnabled,

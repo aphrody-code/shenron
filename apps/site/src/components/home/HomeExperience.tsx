@@ -16,7 +16,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { DEFAULT_PLAY_CARDS, type HomeConfig, type HomeSectionConfig } from "@/lib/home-scenes";
+import {
+	ALL_CLIP_SCENES,
+	DEFAULT_PLAY_CARDS,
+	type HomeConfig,
+	type HomeSectionConfig,
+} from "@/lib/home-scenes";
 import type { BestOfSagaView } from "@/lib/home-bestof";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { HomeClipField } from "./HomeClipField";
@@ -893,9 +898,10 @@ export function HomeExperience({
 						);
 					})}
 				</div>
-				{/* Clips qui dérivent à travers le héro (nombre piloté par la config) */}
+				{/* Clips qui dérivent à travers le héro : piochés ALÉATOIREMENT dans TOUT
+				    le pool vidéo (pas seulement les scènes du héro). Nombre piloté par la config. */}
 				<HomeClipField
-					scenes={heroScenes}
+					scenes={ALL_CLIP_SCENES}
 					active={active === 0}
 					maxDesktop={config.clips.desktop}
 					maxTablet={config.clips.tablet}

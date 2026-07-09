@@ -232,7 +232,7 @@ export default async function WikiIndex() {
 										alt={char.name}
 										fill
 										sizes="(max-width: 768px) 25vw, 12vw"
-										className="object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+										className="object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 										loading="lazy"
 									/>
 									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent z-20" />
@@ -281,7 +281,7 @@ export default async function WikiIndex() {
 											alt={movie.title}
 											fill
 											sizes="(max-width: 768px) 33vw, 16vw"
-											className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+											className="object-cover opacity-100 group-hover:scale-110 transition-all duration-700"
 											loading="lazy"
 										/>
 									) : (
@@ -332,7 +332,7 @@ export default async function WikiIndex() {
 										<img
 											src={assetUrl(ep.image)}
 											alt={ep.title}
-											className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+											className="w-full h-full object-cover opacity-100 group-hover:scale-110 transition-all duration-700"
 											loading="lazy"
 										/>
 									) : (
@@ -386,7 +386,7 @@ export default async function WikiIndex() {
 									<img
 										src={assetUrl(planet.image)}
 										alt={planet.name}
-										className="w-full h-full object-contain relative z-10 opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_20px_rgba(75,168,255,0.2)]"
+										className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_20px_rgba(75,168,255,0.2)]"
 										loading="lazy"
 									/>
 									<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-20" />

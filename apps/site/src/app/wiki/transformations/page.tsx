@@ -95,7 +95,7 @@ export default async function TransformationsPage() {
 											src={assetUrl(img)}
 											alt={g.name}
 											loading="lazy"
-											className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+											className="absolute inset-0 w-full h-full object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 										/>
 									) : (
 										<div className="flex h-full w-full items-center justify-center bg-zinc-900">

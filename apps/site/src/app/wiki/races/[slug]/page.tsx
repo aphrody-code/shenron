@@ -230,7 +230,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 										<img
 											src={assetUrl(char.image)}
 											alt={char.name}
-											className="w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+											className="w-full h-full object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 										/>
 										<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
 										<div className="absolute inset-x-0 bottom-0 p-4 z-30">

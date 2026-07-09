@@ -196,7 +196,7 @@ export function CharacterGrid({
 										src={c.image}
 										fallback={c.portraitXv2}
 										alt={c.name}
-										className="absolute inset-0 w-full h-full object-cover object-top opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700"
+										className="absolute inset-0 w-full h-full object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 									/>
 								</ViewTransition>
 								<div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent z-20" />

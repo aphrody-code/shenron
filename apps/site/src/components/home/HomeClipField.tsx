@@ -1,8 +1,9 @@
 "use client";
 
 // Champ de clips cinématiques qui dérivent à travers le héro — tous en même
-// temps, chacun à une hauteur, une vitesse, une taille tirées de l'index
-// (déterministe → zéro mismatch d'hydratation, ordre stable).
+// temps, chacun à une hauteur, une vitesse, une taille ALÉATOIRES. Le tirage se
+// fait exclusivement côté client (useEffect) → aucun mismatch d'hydratation (le
+// serveur rend null), et l'ordre/placement changent à chaque visite.
 // Purement décoratif : pointer-events:none, derrière le contenu du héro,
 // désactivé en reduced-motion / save-data, mis en pause hors panneau actif.
 import { useEffect, useRef, useState } from "react";
@@ -22,24 +23,44 @@ interface Drift {
 	readonly dir: "ltr" | "rtl";
 }
 
-// Paramètres déterministes basés sur l'index — même résultat SSR/CSR, pas de shuffle.
+// Mélange Fisher-Yates (client-only → Math.random autorisé, pas de SSR ici).
+function shuffled<T>(arr: readonly T[]): T[] {
+	const a = arr.slice();
+	for (let i = a.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[a[i], a[j]] = [a[j], a[i]];
+	}
+	return a;
+}
+const rand = (min: number, max: number) => min + Math.random() * (max - min);
+
+// Tirage ALÉATOIRE : on pioche `max` clips au hasard dans TOUT le pool vidéo, et
+// chaque clip reçoit une hauteur, une taille, une opacité et une vitesse tirées
+// au sort → champ vivant et différent à chaque chargement.
 function buildDrifts(scenes: readonly HomeScene[], max: number): Drift[] {
-	const count = Math.min(max, scenes.length);
-	return scenes.slice(0, count).map((sc, i) => {
-		const dur = 28 + ((i * 7) % 22); // 28–50 s
-		return {
-			key: `${sc.id}-${i}`,
-			src: sc.video ? assetUrl(sc.video.replace(/\.mp4$/i, ".web.mp4")) : "",
-			poster: sc.poster ? assetUrl(sc.poster) : assetUrl(sc.image),
-			top: 2 + ((i * 11) % 80), // 2–82 %
-			dur,
-			delay: -((i * dur) / count), // décale le départ pour remplir le champ dès le premier rendu
-			scale: 0.78 + ((i % 4) * 0.18), // 0.78–1.32
-			opacity: 0.42 + ((i % 3) * 0.1), // 0.42–0.62 (plus présents, plus nets)
-			blur: 0, // plus de flou → clips nets
-			dir: i % 2 === 0 ? "ltr" : "rtl",
-		};
-	});
+	const pool = scenes.filter((s) => s.video);
+	const count = Math.min(max, pool.length);
+	return shuffled(pool)
+		.slice(0, count)
+		.map((sc, i) => {
+			const dur = rand(26, 48); // 26–48 s, vitesses variées
+			return {
+				key: `${sc.id}-${i}`,
+				// Version web (720p ~4 Mbps) : nette à la taille d'affichage (≤ ~260px),
+				// bien plus légère que le master 1080p (60-90 Mo) → décode fluide même
+				// avec plusieurs clips simultanés.
+				src: sc.video ? assetUrl(sc.video.replace(/\.mp4$/i, ".web.mp4")) : "",
+				poster: sc.poster ? assetUrl(sc.poster) : assetUrl(sc.image),
+				top: rand(1, 84), // réparti sur toute la hauteur
+				dur,
+				// départ déjà en vol, échelonné → le champ est plein dès le 1er rendu
+				delay: -rand(0, dur),
+				scale: rand(0.82, 1.42), // tailles variées, plus présentes
+				opacity: rand(0.6, 0.9), // nettement plus vives/nettes qu'avant (0.42-0.62)
+				blur: 0,
+				dir: Math.random() < 0.5 ? "ltr" : "rtl",
+			};
+		});
 }
 
 // Composant isolé par clip — chaque vidéo a son propre ref pour play/pause.
