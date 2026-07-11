@@ -1,16 +1,15 @@
 "use client";
 
 /**
- * Sélecteur de catégories d'une fiche wiki : une barre de pilules (« Tout »,
- * « Histoire », « Personnalité », « Techniques »…) qui filtre l'affichage des
- * blocs de contenu. Chaque `node` est rendu **côté serveur** (RSC) et passé ici
- * en enfant : tous les panneaux restent dans le DOM (indexables, cache CDN
- * préservé) ; le filtre ne fait que masquer/afficher via l'attribut `hidden`.
+ * Sélecteur de catégories d'une fiche wiki — **2 niveaux** :
  *
- * La barre de pilules est **collante** (sticky sous le header) → sur une fiche
- * longue on peut sauter de catégorie sans remonter ; à la sélection, le contenu
- * défile en douceur juste sous la barre. Aucune donnée fetchée côté client →
- * l'îlot ne pilote que l'état de sélection.
+ *   1. Barre du haut : « Tout » + catégories de 1er niveau (Histoire, PWS…).
+ *      Les sections regroupées n'apparaissent **pas** ici — seul le nom du groupe
+ *      parent est affiché (ex. « PWS »).
+ *   2. Barre du bas (visible **uniquement** après clic sur un groupe parent) :
+ *      sous-catégories de ce groupe (ex. Vitesse, Durabilité, Puissance d'attaque).
+ *
+ * Chaque `node` est rendu côté serveur (RSC) ; le filtre masque/affiche via `hidden`.
  */
 import { useRef, useState, type ReactNode } from "react";
 import {
@@ -18,18 +17,16 @@ import {
 	sectionAccentStyle,
 	type SectionAccent,
 } from "@/lib/wiki-section-accents";
+import { normalizeWikiSectionGroups } from "@/lib/wiki-section-groups";
 
 export type { SectionAccent };
 
 export interface ReaderPanel {
-	/** Identifiant unique du panneau (clé React + état de sélection). */
 	key: string;
-	/** Libellé de la pilule. */
 	label: string;
 	accent?: SectionAccent | null;
-	/** Sous-catégorie parente (regroupe plusieurs panneaux sous un onglet). */
+	/** Groupe parent (onglet de 1er niveau). Les enfants s'affichent en barre 2. */
 	group?: string | null;
-	/** Contenu rendu côté serveur. */
 	node: ReactNode;
 }
 
@@ -63,19 +60,20 @@ export function WikiSectionsReader({
 	panels: ReaderPanel[];
 	allLabel?: string;
 }) {
-	// Sélection niveau 1 : "all" | clé d'un panneau non-groupé | "g:<groupe>".
 	const [active, setActive] = useState<string>("all");
-	// Sélection niveau 2 (dans un groupe actif) : "all" | clé d'un sous-panneau.
 	const [subActive, setSubActive] = useState<string>("all");
 	const contentRef = useRef<HTMLDivElement>(null);
+	const subNavRef = useRef<HTMLElement>(null);
 
 	if (panels.length === 0) return null;
 
-	// Garde-fou : dédoublonne les clés (une section de contenu peut avoir le même
-	// slug qu'un panneau ajouté — ex. « versions »/« affiliés ») pour ne pas casser
-	// les clés React ni faire basculer deux panneaux d'un seul clic de pilule.
+	// Normalise PWS et autres regroupements (corrige les inversions label/groupe).
+	const normalized = normalizeWikiSectionGroups(
+		panels.map((p) => ({ ...p, label: p.label.trim(), group: p.group?.trim() || null }))
+	);
+
 	const seen = new Set<string>();
-	const items = panels.map((p) => {
+	const items = normalized.map((p) => {
 		let key = p.key;
 		let n = 2;
 		while (seen.has(key)) key = `${p.key}-${n++}`;
@@ -83,48 +81,53 @@ export function WikiSectionsReader({
 		return key === p.key ? p : { ...p, key };
 	});
 
-	// Un seul panneau → sélecteur inutile, rendu direct.
 	if (items.length === 1) return <div className="space-y-12">{items[0].node}</div>;
 
-	// Sous-catégories : ordre d'apparition + panneaux de 1er niveau (sans groupe).
 	const groupOrder: string[] = [];
 	for (const p of items) {
-		const g = p.group?.trim();
+		const g = p.group;
 		if (g && !groupOrder.includes(g)) groupOrder.push(g);
 	}
-	const ungrouped = items.filter((p) => !p.group?.trim());
-	const groupPanels = (g: string) => items.filter((p) => p.group?.trim() === g);
+	const ungrouped = items.filter((p) => !p.group);
+	const groupPanels = (g: string) => items.filter((p) => p.group === g);
 	const activeGroup = active.startsWith("g:") ? active.slice(2) : null;
+	const activeChildren = activeGroup ? groupPanels(activeGroup) : [];
+
+	function scrollToContent() {
+		requestAnimationFrame(() =>
+			(subNavRef.current ?? contentRef.current)?.scrollIntoView({
+				behavior: "smooth",
+				block: "start",
+			})
+		);
+	}
 
 	function selectTop(key: string) {
 		setActive(key);
 		setSubActive("all");
-		requestAnimationFrame(() =>
-			contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-		);
-	}
-	function selectSub(key: string) {
-		setSubActive(key);
-		requestAnimationFrame(() =>
-			contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
-		);
+		scrollToContent();
 	}
 
-	// Visibilité d'un panneau selon la sélection à 2 niveaux.
+	function selectSub(key: string) {
+		setSubActive(key);
+		scrollToContent();
+	}
+
 	function visible(p: ReaderPanel): boolean {
 		if (active === "all") return true;
 		if (activeGroup) {
-			if (p.group?.trim() !== activeGroup) return false;
+			if (p.group !== activeGroup) return false;
 			return subActive === "all" || subActive === p.key;
 		}
 		return p.key === active;
 	}
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-6">
+			{/* ── Niveau 1 : catégories principales ── */}
 			<nav
 				aria-label="Catégories de la fiche"
-				className="sticky top-16 z-30 -mx-6 flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/85 px-6 py-4 backdrop-blur-md lg:-mx-10 lg:px-10"
+				className="sticky top-16 z-30 -mx-6 flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/90 px-6 py-4 backdrop-blur-md lg:-mx-10 lg:px-10"
 			>
 				<Pill active={active === "all"} onClick={() => selectTop("all")}>
 					{allLabel}
@@ -143,7 +146,7 @@ export function WikiSectionsReader({
 					<Pill
 						key={`g:${g}`}
 						active={activeGroup === g}
-						accent={groupPanels(g)[0]?.accent ?? "blue"}
+						accent={groupPanels(g)[0]?.accent ?? "red"}
 						onClick={() => selectTop(`g:${g}`)}
 					>
 						{g}
@@ -151,16 +154,20 @@ export function WikiSectionsReader({
 				))}
 			</nav>
 
-			{/* Barre de sous-catégorie (2e niveau) quand un groupe est actif. */}
-			{activeGroup && (
+			{/* ── Niveau 2 : sous-catégories (après clic sur un groupe parent) ── */}
+			{activeGroup && activeChildren.length > 0 && (
 				<nav
-					aria-label={`Sous-sections de ${activeGroup}`}
-					className="-mt-4 flex flex-wrap gap-2 px-1"
+					ref={subNavRef}
+					aria-label={`Sous-catégories de ${activeGroup}`}
+					className="sticky top-[7.25rem] z-20 -mx-6 flex flex-wrap items-center gap-2 border-b border-white/5 bg-dbz-card/80 px-6 py-3 backdrop-blur-md lg:-mx-10 lg:px-10"
 				>
+					<span className="mr-1 text-[9px] font-bold uppercase tracking-[0.22em] text-white/30">
+						{activeGroup}
+					</span>
 					<Pill active={subActive === "all"} onClick={() => selectSub("all")}>
-						Tout · {activeGroup}
+						Tout
 					</Pill>
-					{groupPanels(activeGroup).map((p) => (
+					{activeChildren.map((p) => (
 						<Pill
 							key={`sub-${p.key}`}
 							active={subActive === p.key}
@@ -173,7 +180,7 @@ export function WikiSectionsReader({
 				</nav>
 			)}
 
-			<div ref={contentRef} className="space-y-12 scroll-mt-32">
+			<div ref={contentRef} className="space-y-12 scroll-mt-40">
 				{items.map((p) => (
 					<div key={p.key} hidden={!visible(p)}>
 						{p.node}

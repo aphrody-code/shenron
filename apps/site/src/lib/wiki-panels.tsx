@@ -77,7 +77,15 @@ export async function buildWikiContentPanels({
 			}))
 		);
 	} else if (article?.trim()) {
-		raw = splitArticleSections(article, fallbackHeading);
+		raw = normalizeWikiSectionGroups(
+			splitArticleSections(article, fallbackHeading).map((s) => ({
+				key: s.key,
+				label: s.label,
+				body: s.body,
+				accent: s.accent,
+				group: null as string | null,
+			}))
+		);
 	} else if (description?.trim()) {
 		raw = [
 			{ key: sectionSlug(fallbackHeading), label: fallbackHeading, body: description.trim(), accent: "orange" },
