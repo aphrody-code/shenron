@@ -73,6 +73,11 @@ html {
 	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd); /* gris clair DB officiel */
 	--color-dbz-yellow: var(--dbz-yellow, #ffb200); /* alias accent doré */
 	--color-dbz-red: var(--dbz-red, #ff0000); /* rouge pur DB officiel */
+	--color-dbz-green: var(--dbz-green, #16a34a); /* namek / nature */
+	--color-dbz-purple: var(--dbz-purple, #a855f7); /* transformations / énergie */
+	--color-dbz-gold: var(--dbz-gold, #ffea00); /* saiyan / anecdotes */
+	--color-dbz-cyan: var(--dbz-cyan, #22d3ee); /* relations / affiliations */
+	--color-dbz-pink: var(--dbz-pink, #ec4899); /* divers / curiosités */
 
 	/* Gradients réutilisables */
 	--gradient-galactic: linear-gradient(135deg, #ff6b1a 0%, #ffd23f 50%, #ff3e00 100%);
@@ -130,6 +135,11 @@ html {
 	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd);
 	--color-dbz-yellow: var(--dbz-yellow, #ffb200);
 	--color-dbz-red: var(--dbz-red, #ff0000);
+	--color-dbz-green: var(--dbz-green, #16a34a);
+	--color-dbz-purple: var(--dbz-purple, #a855f7);
+	--color-dbz-gold: var(--dbz-gold, #ffea00);
+	--color-dbz-cyan: var(--dbz-cyan, #22d3ee);
+	--color-dbz-pink: var(--dbz-pink, #ec4899);
 }
 
 @layer base {

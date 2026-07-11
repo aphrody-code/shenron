@@ -25,6 +25,7 @@ import {
 } from "@/lib/wiki-article-sections";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
+import { normalizeWikiSectionGroups } from "@/lib/wiki-section-groups";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 
 export interface ContentPanel extends ReaderPanel {
@@ -65,14 +66,16 @@ export async function buildWikiContentPanels({
 	const dbSections = await getWikiSections(entityType, entityId);
 	let raw: RawSection[];
 	if (dbSections.length > 0) {
-		raw = dbSections.map((s) => ({
-			key: s.key || sectionSlug(s.label),
-			label: s.label,
-			body: s.body,
-			accent: s.accent ?? sectionAccent(s.label),
-			group: s.groupLabel,
-			links: s.links,
-		}));
+		raw = normalizeWikiSectionGroups(
+			dbSections.map((s) => ({
+				key: s.key || sectionSlug(s.label),
+				label: s.label,
+				body: s.body,
+				accent: s.accent ?? sectionAccent(s.label),
+				group: s.groupLabel,
+				links: s.links,
+			}))
+		);
 	} else if (article?.trim()) {
 		raw = splitArticleSections(article, fallbackHeading);
 	} else if (description?.trim()) {

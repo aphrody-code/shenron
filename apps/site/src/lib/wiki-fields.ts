@@ -6,6 +6,8 @@
  * Aucune dépendance server-only — importé par l'éditeur DB, le studio wiki et la
  * vignette de grille (tous Client Components).
  */
+import type { SectionAccent } from "@/lib/wiki-section-accents";
+import { PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
 import { isWikiTable } from "@/lib/wiki-tables";
 
 /** Colonnes dont la valeur est une image (vignette + champ d'upload). */
@@ -191,21 +193,41 @@ export function sectionEntityType(table: string): string | null {
 	return SECTION_ENTITY_TYPE[table] ?? null;
 }
 
+export { PWS_GROUP_NAME };
+
 /** Sections « suggérées » à l'ajout rapide (libellé + slug + accent). */
 export interface SectionPreset {
 	key: string;
 	label: string;
-	accent: "orange" | "blue" | "red";
+	accent: SectionAccent;
+	/** Groupe parent (onglet de 1er niveau). Vide = catégorie de tête. */
+	groupLabel?: string;
 }
 export const SECTION_PRESETS: SectionPreset[] = [
 	{ key: "histoire", label: "Histoire", accent: "orange" },
-	{ key: "personnalite", label: "Personnalité", accent: "blue" },
+	{ key: "personnalite", label: "Personnalité", accent: "cyan" },
 	{ key: "techniques", label: "Techniques", accent: "blue" },
-	{ key: "transformations", label: "Transformations", accent: "orange" },
-	{ key: "anecdotes", label: "Anecdotes", accent: "orange" },
-	{ key: "pws", label: "PWS", accent: "red" },
-	{ key: "apparence", label: "Apparence", accent: "orange" },
-	{ key: "relations", label: "Relations", accent: "blue" },
+	{ key: "transformations", label: "Transformations", accent: "purple" },
+	{ key: "anecdotes", label: "Anecdotes", accent: "gold" },
+	{ key: "apparence", label: "Apparence", accent: "green" },
+	{ key: "relations", label: "Relations", accent: "cyan" },
+];
+
+/** Pack PWS : 3 sous-sections regroupées sous l'onglet parent « PWS ». */
+export const PWS_GROUP_PRESETS: SectionPreset[] = [
+	{
+		key: "puissance-attaque",
+		label: "Puissance d'attaque",
+		accent: "red",
+		groupLabel: PWS_GROUP_NAME,
+	},
+	{ key: "vitesse", label: "Vitesse", accent: "red", groupLabel: PWS_GROUP_NAME },
+	{
+		key: "durabilite",
+		label: "Durabilité & Endurance",
+		accent: "red",
+		groupLabel: PWS_GROUP_NAME,
+	},
 ];
 
 /** Slug de section depuis un libellé libre (accents retirés, espaces → tirets). */

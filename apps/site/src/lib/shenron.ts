@@ -15,6 +15,11 @@ import {
 	type WikiSectionLink,
 	type WikiSource,
 } from "@/db/bot-schema";
+import {
+	normalizeSectionAccent,
+	SECTION_ACCENT_SET,
+	type SectionAccent,
+} from "@/lib/wiki-section-accents";
 
 export type { WikiSource };
 
@@ -254,15 +259,13 @@ export interface WikiSectionData {
 	id: number;
 	key: string;
 	label: string;
-	accent: "orange" | "blue" | "red" | null;
+	accent: SectionAccent | null;
 	body: string;
 	/** Sous-catégorie parente (regroupement), ou null. */
 	groupLabel: string | null;
 	/** Pages wiki affiliées (cartes photo, liens internes). */
 	links: WikiSectionLink[];
 }
-
-const SECTION_ACCENTS = new Set(["orange", "blue", "red"]);
 
 /**
  * Sections de contenu **visibles** d'une entité (personnage, planète, saga…),
@@ -293,8 +296,8 @@ export async function getWikiSections(
 				id: r.id,
 				key: r.key,
 				label: r.label,
-				accent: (r.accent && SECTION_ACCENTS.has(r.accent)
-					? r.accent
+				accent: (r.accent && SECTION_ACCENT_SET.has(r.accent)
+					? normalizeSectionAccent(r.accent)
 					: null) as WikiSectionData["accent"],
 				body: r.body ?? "",
 				groupLabel: r.groupLabel?.trim() ? r.groupLabel.trim() : null,

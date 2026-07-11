@@ -7,19 +7,13 @@
  * db-universe/shenron (fuite de `postgres` dans le bundle).
  */
 import type { RelatedCharacter } from "@/lib/shenron";
-import type { SectionAccent } from "@/lib/wiki-article-sections";
+import {
+	normalizeSectionAccent,
+	sectionAccentStyle,
+	type SectionAccent,
+} from "@/lib/wiki-section-accents";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import Link from "next/link";
-
-const ACCENT: Record<SectionAccent, { text: string; line: string; hover: string }> = {
-	orange: { text: "text-dbz-orange", line: "from-dbz-orange/50", hover: "group-hover:text-dbz-orange" },
-	blue: {
-		text: "text-dbz-blue-light",
-		line: "from-dbz-blue-light/50",
-		hover: "group-hover:text-dbz-blue-light",
-	},
-	red: { text: "text-dbz-red", line: "from-dbz-red/50", hover: "group-hover:text-dbz-red" },
-};
 
 export function WikiRelatedCharacters({
 	heading,
@@ -33,17 +27,17 @@ export function WikiRelatedCharacters({
 	accent?: SectionAccent;
 }) {
 	if (!items.length) return null;
-	const a = ACCENT[accent];
+	const style = sectionAccentStyle(normalizeSectionAccent(accent));
 
 	return (
 		<section className="space-y-8">
 			<div className="flex items-center gap-6">
 				<h2
-					className={`${a.text} font-saiyan text-2xl sm:text-4xl md:text-5xl uppercase tracking-widest`}
+					className={`${style.text} font-saiyan text-2xl sm:text-4xl md:text-5xl uppercase tracking-widest`}
 				>
 					{heading}
 				</h2>
-				<div className={`h-px flex-1 bg-gradient-to-r ${a.line} to-transparent`} />
+				<div className={`h-px flex-1 bg-gradient-to-r ${style.line} to-transparent`} />
 			</div>
 			{caption && <p className="max-w-3xl text-sm text-white/50">{caption}</p>}
 
@@ -65,12 +59,14 @@ export function WikiRelatedCharacters({
 							/>
 						</div>
 						<h3
-							className={`text-center text-xs font-bold uppercase leading-tight tracking-widest text-white transition-colors ${a.hover}`}
+							className={`text-center text-xs font-bold uppercase leading-tight tracking-widest text-white transition-colors ${style.relatedHover}`}
 						>
 							{c.name}
 						</h3>
 						{c.race && (
-							<span className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/35">{c.race}</span>
+							<span className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/35">
+								{c.race}
+							</span>
 						)}
 					</Link>
 				))}

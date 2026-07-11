@@ -16,6 +16,7 @@ import Link from "next/link";
 import { cache, type ReactNode } from "react";
 import type { BreadcrumbList, Person, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
+import type { SectionAccent } from "@/lib/wiki-section-accents";
 
 export const revalidate = 3600;
 
@@ -204,7 +205,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 		render: (withHeading: boolean) => ReactNode,
 		key: string,
 		label: string,
-		accent: "orange" | "blue" | "red"
+		accent: SectionAccent
 	) => {
 		if (!has) return;
 		const idx = panels.findIndex((p) => keys.has(p.key));
@@ -229,7 +230,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 		transfoGrid,
 		"transformations",
 		"Transformations",
-		"orange"
+		"purple"
 	);
 	mergeOrAppendGrid(
 		TECH_SECTION_KEYS,
@@ -259,7 +260,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 		panels.push({
 			key: "affilies",
 			label: "Personnages affiliés",
-			accent: "orange",
+			accent: "cyan",
 			node: (
 				<WikiRelatedCharacters
 					heading="Personnages affiliés"
@@ -269,7 +270,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 							: undefined
 					}
 					items={character.affiliates}
-					accent="orange"
+					accent="cyan"
 				/>
 			),
 		});

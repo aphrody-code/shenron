@@ -10,6 +10,7 @@
  * ne rend rien (aucun changement visuel sur les pages sans section).
  */
 import { getWikiSections } from "@/lib/shenron";
+import { normalizeWikiSectionGroups } from "@/lib/wiki-section-groups";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
@@ -27,17 +28,25 @@ export async function WikiEntitySections({
 }) {
 	const sections = await getWikiSections(entityType, entityId);
 
-	const sectionPanels: ReaderPanel[] = sections.map((s) => ({
+	const normalized = normalizeWikiSectionGroups(
+		sections.map((s) => ({
+			label: s.label,
+			group: s.groupLabel,
+			section: s,
+		}))
+	);
+
+	const sectionPanels: ReaderPanel[] = normalized.map(({ section: s, label, group }) => ({
 		key: `sec-${s.id}`,
-		label: s.label,
+		label,
 		accent: s.accent,
-		group: s.groupLabel,
+		group,
 		node: (
 			<div className="space-y-2">
 				{s.body.trim() ? (
-					<WikiArticle article={s.body} heading={s.label} accent={s.accent ?? "orange"} />
+					<WikiArticle article={s.body} heading={label} accent={s.accent ?? "orange"} />
 				) : (
-					<h2 className="font-saiyan text-2xl text-white">{s.label}</h2>
+					<h2 className="font-saiyan text-2xl text-white">{label}</h2>
 				)}
 				<WikiSectionLinks links={s.links} />
 			</div>

@@ -416,7 +416,7 @@ export const botWikiSections = bot.table("db_wiki_sections", {
 	key: text("key").notNull(),
 	/** Libellé affiché (pilule + titre du bloc). */
 	label: text("label").notNull(),
-	/** Couleur d'accent du bandeau ("orange" | "blue" | "red"), défaut orange. */
+	/** Couleur d'accent du bandeau (orange|blue|red|green|purple|gold|cyan|pink), défaut orange. */
 	accent: text("accent"),
 	/** Corps markdown riche (rendu via WikiMarkdown). */
 	body: text("body"),

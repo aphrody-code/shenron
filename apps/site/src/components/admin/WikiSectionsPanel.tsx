@@ -30,7 +30,14 @@ import { useMemo, useState } from "react";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import { apiAt } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
-import { publicEntityUrl, SECTION_PRESETS, sectionKeyFromLabel, uploadSubdir } from "@/lib/wiki-fields";
+import { SECTION_ACCENT_OPTIONS } from "@/lib/wiki-section-accents";
+import {
+	PWS_GROUP_PRESETS,
+	publicEntityUrl,
+	SECTION_PRESETS,
+	sectionKeyFromLabel,
+	uploadSubdir,
+} from "@/lib/wiki-fields";
 import { crudBase } from "@/lib/wiki-tables";
 
 /** Carte « page wiki affiliée » (miroir client de WikiSectionLink de bot-schema). */
@@ -68,11 +75,7 @@ const LINKABLE_ENTITIES: { table: string; label: string; nameCol: string; imageC
 	{ table: "db_movies", label: "Films", nameCol: "title", imageCol: "image" },
 ];
 
-const ACCENTS = [
-	{ key: "orange", label: "Orange", dot: "bg-dbz-orange" },
-	{ key: "blue", label: "Bleu", dot: "bg-dbz-blue-light" },
-	{ key: "red", label: "Rouge", dot: "bg-dbz-red" },
-];
+const ACCENTS = SECTION_ACCENT_OPTIONS;
 
 export function WikiSectionsPanel({
 	table,
@@ -110,15 +113,22 @@ export function WikiSectionsPanel({
 	);
 
 	const add = useMutation({
-		mutationFn: (preset: { key: string; label: string; accent: string }) =>
+		mutationFn: (preset: {
+			key: string;
+			label: string;
+			accent: string;
+			groupLabel?: string;
+			sortOrder?: number;
+		}) =>
 			client.post(`/db_wiki_sections`, {
 				entityType,
 				entityId,
 				key: preset.key,
 				label: preset.label,
 				accent: preset.accent,
+				groupLabel: preset.groupLabel?.trim() || null,
 				body: "",
-				sortOrder: sections.length,
+				sortOrder: preset.sortOrder ?? sections.length,
 			}),
 		onSuccess: invalidate,
 	});
@@ -145,6 +155,13 @@ export function WikiSectionsPanel({
 		if (!label) return;
 		add.mutate({ key: sectionKeyFromLabel(label), label, accent: "orange" });
 		setCustomLabel("");
+	}
+
+	async function addPwsPack() {
+		const base = sections.length;
+		for (const [i, preset] of PWS_GROUP_PRESETS.entries()) {
+			await add.mutateAsync({ ...preset, sortOrder: base + i });
+		}
 	}
 
 	return (
@@ -190,6 +207,14 @@ export function WikiSectionsPanel({
 			{/* Ajout rapide */}
 			<div className="space-y-2 border-t border-white/10 pt-3">
 				<div className="flex flex-wrap gap-1.5">
+					<button
+						type="button"
+						disabled={add.isPending}
+						onClick={() => void addPwsPack()}
+						className="inline-flex items-center gap-1 rounded border border-dbz-red/40 bg-dbz-red/10 px-2 py-1 text-xs font-semibold text-dbz-red transition-colors hover:border-dbz-red hover:bg-dbz-red/20 disabled:opacity-50"
+					>
+						<Plus className="h-3 w-3" /> Pack PWS
+					</button>
 					{SECTION_PRESETS.map((p) => (
 						<button
 							key={p.key}
@@ -393,12 +418,12 @@ function SectionRow({
 						</label>
 						<label>
 							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
-								Sous-catégorie
+								Groupe parent (onglet)
 							</span>
 							<input
 								className="input text-sm"
 								list="wiki-section-groups"
-								placeholder="ex. Powerscaling"
+								placeholder="ex. PWS"
 								value={groupLabel}
 								onChange={(e) => setGroupLabel(e.target.value)}
 							/>
@@ -410,9 +435,10 @@ function SectionRow({
 						</label>
 					</div>
 					<p className="text-[11px] text-white/40 -mt-1">
-						Une <strong className="text-white/60">sous-catégorie</strong> regroupe plusieurs
-						sections sous un même onglet parent (ex. « Powerscaling »). Laisse vide pour une
-						catégorie de 1er niveau.
+						Le <strong className="text-white/60">groupe parent</strong> devient l&apos;onglet de la
+						barre du haut (ex. « PWS »). Le <strong className="text-white/60">titre</strong> ci-dessus
+						est la sous-section affichée en dessous (ex. « Vitesse », « Puissance d&apos;attaque »).
+						Laisse vide pour une catégorie de 1er niveau (« Histoire », « Anecdotes »…).
 					</p>
 					<MarkdownField
 						value={body}

@@ -11,7 +11,10 @@
  * (aucun accès DB / JSX) → importable côté serveur comme client.
  */
 
-export type SectionAccent = "orange" | "blue" | "red";
+export type { SectionAccent } from "@/lib/wiki-section-accents";
+export { sectionAccent } from "@/lib/wiki-section-accents";
+
+import { sectionAccent, type SectionAccent } from "@/lib/wiki-section-accents";
 
 export interface ArticleSection {
 	/** Slug unique de la section (clé React + pilule + ancre). */
@@ -21,20 +24,6 @@ export interface ArticleSection {
 	/** Corps markdown de la section, titre H2 retiré (rendu comme heading à part). */
 	body: string;
 	accent: SectionAccent;
-}
-
-// L'accent colore la pilule + le bandeau. Bleu = capacités/personnalité,
-// rouge = powerscaling, orange = récit/défaut.
-const ACCENT_RULES: Array<[RegExp, SectionAccent]> = [
-	[/pws|power\s*scal|puissance|niveau de force/i, "red"],
-	[/personnalit|relation|caract[eè]re/i, "blue"],
-	[/pouvoir|technique|capacit|comp[eé]tence|ma[iî]trise/i, "blue"],
-];
-
-/** Couleur d'accent déduite du libellé d'une section (défaut orange). */
-export function sectionAccent(label: string): SectionAccent {
-	for (const [re, accent] of ACCENT_RULES) if (re.test(label)) return accent;
-	return "orange";
 }
 
 /** Slug ASCII stable depuis un libellé (accents retirés, non-alphanum → tiret). */
