@@ -116,6 +116,12 @@ export type Movie = {
 	stream_url: string | null;
 };
 
+export type GameMedia = {
+	type: "image" | "youtube";
+	url: string;
+	caption?: string | null;
+};
+
 export type Game = {
 	id: number;
 	slug: string;
@@ -128,6 +134,8 @@ export type Game = {
 	description: string | null;
 	cover: string | null;
 	official_url: string | null;
+	/** Galerie style Steam (images + trailers YouTube). */
+	media: GameMedia[];
 	characters?: Array<{ id: number; name: string; name_ja: string | null; image: string | null }>;
 };
 
@@ -353,6 +361,22 @@ function toMovie(r: typeof botMovies.$inferSelect): Movie {
 	};
 }
 
+function normalizeGameMedia(raw: unknown): GameMedia[] {
+	if (!Array.isArray(raw)) return [];
+	const out: GameMedia[] = [];
+	for (const item of raw) {
+		if (!item || typeof item !== "object") continue;
+		const o = item as Record<string, unknown>;
+		const url = typeof o.url === "string" ? o.url.trim() : "";
+		if (!url) continue;
+		const type = o.type === "youtube" ? "youtube" : "image";
+		const caption =
+			typeof o.caption === "string" && o.caption.trim() ? o.caption.trim() : null;
+		out.push({ type, url, caption });
+	}
+	return out;
+}
+
 function toGame(r: typeof botGames.$inferSelect): Game {
 	return {
 		id: r.id,
@@ -366,6 +390,7 @@ function toGame(r: typeof botGames.$inferSelect): Game {
 		description: r.description,
 		cover: r.cover,
 		official_url: r.officialUrl,
+		media: normalizeGameMedia(r.media),
 	};
 }
 

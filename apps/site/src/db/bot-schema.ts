@@ -263,6 +263,13 @@ export const botMovies = bot.table("db_movies", {
 	...visibleCol,
 });
 
+/** Média galerie jeu (jsonb `media`) — image asset ou trailer YouTube. */
+export type GameMediaItem = {
+	type: "image" | "youtube";
+	url: string;
+	caption?: string | null;
+};
+
 export const botGames = bot.table("db_games", {
 	id: int("id").primaryKey(),
 	slug: text("slug").notNull(),
@@ -275,6 +282,8 @@ export const botGames = bot.table("db_games", {
 	description: text("description"),
 	cover: text("cover"),
 	officialUrl: text("official_url"),
+	/** Galerie style Steam (screenshots + trailers). */
+	media: jsonb("media").$type<GameMediaItem[]>(),
 	...visibleCol,
 });
 

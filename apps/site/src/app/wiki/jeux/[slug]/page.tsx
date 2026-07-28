@@ -1,4 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import { GameMediaGallery } from "@/components/wiki/GameMediaGallery";
+import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { EntityRating } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
@@ -66,10 +69,14 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 			<JsonLd data={jsonLdData} />
 			<Link
 				href="/wiki/jeux"
-				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-8"
+				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-4"
 			>
 				← Tous les jeux
 			</Link>
+
+			<div className="mb-8">
+				<WikiAdminBar table="db_games" id={g.id} indexHref="/wiki/jeux" label={g.title} />
+			</div>
 
 			<header className="mb-12 flex flex-col sm:flex-row gap-8 items-start">
 				{g.cover && (
@@ -154,6 +161,19 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 						<WikiMarkdown body={g.description} />
 					</div>
 				</section>
+			)}
+
+			<div className="mb-12">
+				<EntityRating
+					targetType="game"
+					targetId={g.id}
+					signinCallback={`/wiki/jeux/${slug}`}
+					label="ce jeu"
+				/>
+			</div>
+
+			{g.media && g.media.length > 0 && (
+				<GameMediaGallery media={g.media} title={g.title} />
 			)}
 
 			{g.characters && g.characters.length > 0 && (

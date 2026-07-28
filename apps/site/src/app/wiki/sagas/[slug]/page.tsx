@@ -4,7 +4,9 @@ import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import WikiRagArchives from "@/components/wiki/WikiRagArchives";
+import { AggregateRatingBanner } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { getAggregateSummary, getRatingSummaries } from "@/lib/ratings";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,6 +58,11 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 	const saga = data;
 	const arcs = data.arcs ?? [];
 	const seriesLabel = SERIES_LABELS[saga.series] ?? saga.series;
+	const arcIds = arcs.map((a) => String(a.id));
+	const [sagaAvg, arcRatings] = await Promise.all([
+		getAggregateSummary("arc", arcIds),
+		getRatingSummaries("arc", arcIds),
+	]);
 
 	const jsonLdData: WithContext<CreativeWork> = {
 		"@context": "https://schema.org",
@@ -105,6 +112,18 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 						</div>
 					</div>
 				)}
+
+				<div className="mt-8">
+					<AggregateRatingBanner
+						average={sagaAvg.average}
+						count={sagaAvg.count}
+						subtitle={
+							sagaAvg.count > 0
+								? `${sagaAvg.count} note${sagaAvg.count > 1 ? "s" : ""} cumulées sur les arcs`
+								: "Note les arcs pour faire remonter la moyenne de la saga"
+						}
+					/>
+				</div>
 			</header>
 
 			{saga.article && (
@@ -143,6 +162,16 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 											{a.name}
 										</h3>
 										{a.name_ja && <p className="font-jp text-sm text-white/40 mt-1">{a.name_ja}</p>}
+										{(() => {
+											const r = arcRatings.get(String(a.id));
+											if (!r || r.count <= 0) return null;
+											return (
+												<p className="mt-2 text-[12px] font-display font-semibold text-dbz-orange">
+													★ {r.average.toFixed(1)}{" "}
+													<span className="text-white/40 font-normal">({r.count})</span>
+												</p>
+											);
+										})()}
 									</div>
 									<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
 										→

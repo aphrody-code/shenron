@@ -2,6 +2,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { EntityRating } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -82,6 +83,15 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 
 			<div className="mb-20">
 				<WikiEntitySections entityType="arc" entityId={arc.id} />
+			</div>
+
+			<div className="mb-20">
+				<EntityRating
+					targetType="arc"
+					targetId={arc.id}
+					signinCallback={`/wiki/arcs/${slug}`}
+					label="cet arc"
+				/>
 			</div>
 
 			{episodes.length > 0 && (

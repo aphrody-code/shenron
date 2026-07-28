@@ -80,6 +80,12 @@ type PersonaId = keyof typeof PERSONA_THEMES;
 
 export function FloatingAssistant() {
 	const pathname = usePathname();
+	// Masqué sur l'accueil (déjà chargé en VFX/SFX) et le back-office.
+	const hidden =
+		!pathname ||
+		pathname === "/" ||
+		pathname.startsWith("/admin") ||
+		pathname.startsWith("/signin");
 	const [isOpen, setIsOpen] = useState(false);
 	const [persona, setPersona] = useState<PersonaId>("whis");
 	const [input, setInput] = useState("");
@@ -221,6 +227,8 @@ export function FloatingAssistant() {
 			setIsLoading(false);
 		}
 	};
+
+	if (hidden) return null;
 
 	return (
 		<div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">

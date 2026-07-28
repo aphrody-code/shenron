@@ -1440,16 +1440,11 @@ html[data-home] {
 		),
 		linear-gradient(180deg, color-mix(in oklab, var(--accent) 7%, transparent), transparent 35%),
 		color-mix(in oklab, #0a0a0a 26%, transparent);
-	mix-blend-mode: hard-light;
+	mix-blend-mode: soft-light;
 }
+/* Ancien blob radial coloré (souvent bleu) — masqué pour artworks propres. */
 .scene-aura {
-	background: radial-gradient(
-		60% 55% at 72% 42%,
-		color-mix(in oklab, var(--accent) 40%, transparent),
-		transparent 70%
-	);
-	opacity: 0.36;
-	filter: blur(8px);
+	display: none;
 }
 .scene-bar {
 	position: absolute;

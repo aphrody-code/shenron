@@ -1,10 +1,12 @@
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { getRatingSummaries } from "@/lib/ratings";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { GAMES_HERO } from "@/lib/db-banners";
+import { RatingBadge } from "@/components/ratings/Stars";
 
 export const revalidate = 3600;
 
@@ -29,13 +31,17 @@ export default async function JeuxPage() {
 	const data = await dbUniverse.games();
 	if (!data || data.games.length === 0) notFound();
 	const games = data.games;
+	const ratings = await getRatingSummaries(
+		"game",
+		games.map((g) => String(g.id))
+	);
 
 	return (
 		<>
 			<PageHero
 				eyebrow="Bandai Namco Entertainment"
 				title="Jeux vidéo Dragon Ball"
-				lead={`${games.length} titres officiels — du fighting de FighterZ au RPG narratif de Kakarot, du mobile gacha Dokkan à Sparking ZERO sur PS5.`}
+				lead={`${games.length} titres officiels — du fighting de FighterZ au RPG narratif de Kakarot, du mobile gacha Dokkan à Sparking ZERO sur PS5. Note-les pour départager Xenoverse 2 et Sparking ZERO.`}
 				image={GAMES_HERO}
 				imageAlt="Jeux Dragon Ball"
 			/>
@@ -56,10 +62,27 @@ export default async function JeuxPage() {
 										sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
 										className="object-cover"
 									/>
+									{(() => {
+										const r = ratings.get(String(g.id));
+										if (!r || r.count <= 0) return null;
+										return (
+											<span className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full bg-black/75 backdrop-blur-sm border border-dbz-orange/40 px-2 py-0.5 text-[11px] font-display font-bold text-dbz-orange">
+												★ {r.average.toFixed(1)}
+											</span>
+										);
+									})()}
 								</div>
 							)}
 							<div className="p-6">
 								<h3 className="font-display font-bold text-[20px] text-white mb-1.5">{g.title}</h3>
+								{(() => {
+									const r = ratings.get(String(g.id));
+									return (
+										<div className="mb-2">
+											<RatingBadge average={r?.average ?? 0} count={r?.count ?? 0} />
+										</div>
+									);
+								})()}
 								{g.title_ja && (
 									<p className="font-jp text-[12px] text-dbz-orange/80 mb-4">{g.title_ja}</p>
 								)}

@@ -1,6 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { EntityRating } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Image from "next/image";
@@ -247,6 +248,13 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							</div>
 						</section>
 					)}
+
+					<EntityRating
+						targetType="movie"
+						targetId={m.id}
+						signinCallback={`/wiki/films/${slug}`}
+						label="ce film"
+					/>
 
 					<WikiEntitySections entityType="movie" entityId={m.id} />
 

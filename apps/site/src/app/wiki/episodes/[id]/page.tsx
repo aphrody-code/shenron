@@ -17,6 +17,7 @@ import { KenBurns } from "@/components/KenBurns";
 import { AnimatedMedia } from "@/components/media/AnimatedMedia";
 import { BackgroundImage } from "@/components/media/BackgroundImage";
 import { EpisodeScenes } from "./EpisodeScenes";
+import { EntityRating } from "@/components/ratings/EntityRating";
 import { JsonLd } from "@/components/JsonLd";
 import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
@@ -302,7 +303,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 
 				<EpisodeAdminEditor episodeId={ep.id} videoUrl={ep.video_url} subtitles={ep.subtitles} />
 
-				{/* === Corps : synopsis + nav === */}
+				{/* === Corps : synopsis + notes + nav === */}
 				<div className="space-y-12">
 					{ep.synopsis && (
 						<section className="dbz-panel p-8 relative overflow-hidden reveal-up">
@@ -315,6 +316,15 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 							</div>
 						</section>
 					)}
+
+					<div className="reveal-up">
+						<EntityRating
+							targetType="episode"
+							targetId={ep.id}
+							signinCallback={`/wiki/episodes/${ep.id}`}
+							label="cet épisode"
+						/>
+					</div>
 
 					{/* === Scènes : grille des frames extraites (îlot client) === */}
 					{hasFrames && (

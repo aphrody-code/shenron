@@ -34,6 +34,7 @@ import {
 	type PresenceState,
 } from "./useLiveBotState";
 import { DISCORD_INVITE } from "@/lib/config";
+import { sfx } from "@/lib/sfx";
 
 export interface WikiCounts {
 	sagas: number;
@@ -275,20 +276,95 @@ export function HomeExperience({
 		};
 	}, []);
 
-	// Burst de ki au clic — un éclat d'énergie couleur accent à l'endroit du
-	// pointeur, sur TOUT le deck (liens compris : l'éclat accompagne la nav).
-	// DOM direct (pas de state) : zéro re-render, auto-nettoyé après l'animation.
+	// Hold-to-kamehameha : appui long (~450 ms) → charge + beam ; relâchement
+	// anticipé annule le son. Simple tap → micro burst CSS silencieux.
+	const holdRef = useRef<{
+		timer: number | null;
+		x: number;
+		y: number;
+		armed: boolean;
+		fired: boolean;
+		pointerId: number;
+	} | null>(null);
+
 	const onDeckPointerDown = useCallback((e: React.PointerEvent) => {
 		if (e.button !== 0 || reduceRef.current) return;
+		const t = e.target as HTMLElement | null;
+		if (t?.closest?.("a,button,input,textarea,[data-no-advance]")) return;
+
+		sfx.unlock();
+		sfx.cancelKamehameha();
+
+		try {
+			(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+		} catch {
+			/* ignore */
+		}
+
+		const prev = holdRef.current;
+		if (prev?.timer != null) clearTimeout(prev.timer);
+
+		const pointerId = e.pointerId;
+		const x = e.clientX;
+		const y = e.clientY;
+		holdRef.current = {
+			timer: window.setTimeout(() => {
+				const cur = holdRef.current;
+				if (!cur || cur.pointerId !== pointerId) return;
+				cur.armed = true;
+				sfx.kamehamehaFull();
+				const layer = burstRef.current;
+				if (layer) {
+					const b = document.createElement("span");
+					b.className = "ki-burst ki-burst--kame";
+					b.style.left = `${cur.x}px`;
+					b.style.top = `${cur.y}px`;
+					for (let i = 0; i < 10; i++) b.appendChild(document.createElement("i"));
+					layer.appendChild(b);
+					window.setTimeout(() => b.remove(), 1000);
+				}
+				cur.fired = true;
+			}, 450),
+			x,
+			y,
+			armed: false,
+			fired: false,
+			pointerId,
+		};
+
 		const layer = burstRef.current;
-		if (!layer) return;
-		const b = document.createElement("span");
-		b.className = "ki-burst";
-		b.style.left = `${e.clientX}px`;
-		b.style.top = `${e.clientY}px`;
-		for (let i = 0; i < 6; i++) b.appendChild(document.createElement("i"));
-		layer.appendChild(b);
-		window.setTimeout(() => b.remove(), 750);
+		if (layer) {
+			const b = document.createElement("span");
+			b.className = "ki-burst";
+			b.style.left = `${x}px`;
+			b.style.top = `${y}px`;
+			for (let i = 0; i < 4; i++) b.appendChild(document.createElement("i"));
+			layer.appendChild(b);
+			window.setTimeout(() => b.remove(), 600);
+		}
+	}, []);
+
+	const onDeckPointerUp = useCallback((e: React.PointerEvent) => {
+		const h = holdRef.current;
+		if (!h || h.pointerId !== e.pointerId) return;
+		if (!h.armed && !h.fired) {
+			if (h.timer != null) clearTimeout(h.timer);
+			sfx.cancelKamehameha();
+		}
+		holdRef.current = null;
+		try {
+			(e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+		} catch {
+			/* ignore */
+		}
+	}, []);
+
+	const onDeckPointerCancel = useCallback((e: React.PointerEvent) => {
+		const h = holdRef.current;
+		if (!h || h.pointerId !== e.pointerId) return;
+		if (h.timer != null) clearTimeout(h.timer);
+		sfx.cancelKamehameha();
+		holdRef.current = null;
 	}, []);
 
 	// Suit la largeur (≤640px) pour réduire le contenu du Panthéon sur mobile.
@@ -848,6 +924,8 @@ export function HomeExperience({
 			className="home-deck"
 			onClick={onDeckClick}
 			onPointerDown={onDeckPointerDown}
+			onPointerUp={onDeckPointerUp}
+			onPointerCancel={onDeckPointerCancel}
 			style={{ ["--accent" as string]: activeScene?.accent }}
 		>
 			{/* Couche des bursts de ki (clics) — fixe, au-dessus de tout, inerte */}
