@@ -404,6 +404,12 @@ function toMangaVolume(r: typeof botMangaVolumes.$inferSelect): MangaVolume {
 	};
 }
 
+export type DatabookPage = {
+	number: number;
+	image: string | null;
+	text: string | null;
+};
+
 export type Databook = {
 	id: number;
 	kind: string;
@@ -414,7 +420,31 @@ export type Databook = {
 	cover: string | null;
 	description: string | null;
 	source_url: string | null;
+	category: string | null;
+	pages: DatabookPage[];
 };
+
+function toDatabookPages(raw: unknown): DatabookPage[] {
+	if (!Array.isArray(raw)) return [];
+	const out: DatabookPage[] = [];
+	for (let i = 0; i < raw.length; i++) {
+		const p = raw[i];
+		if (!p || typeof p !== "object") continue;
+		const o = p as Record<string, unknown>;
+		const n =
+			typeof o.number === "number" && Number.isFinite(o.number)
+				? Math.trunc(o.number)
+				: typeof o.number === "string" && Number.isFinite(Number(o.number))
+					? Math.trunc(Number(o.number))
+					: i + 1;
+		out.push({
+			number: n,
+			image: typeof o.image === "string" ? o.image : null,
+			text: typeof o.text === "string" ? o.text : null,
+		});
+	}
+	return out;
+}
 
 function toDatabook(r: typeof botDatabooks.$inferSelect): Databook {
 	return {
@@ -427,6 +457,8 @@ function toDatabook(r: typeof botDatabooks.$inferSelect): Databook {
 		cover: r.cover,
 		description: r.description,
 		source_url: r.sourceUrl,
+		category: r.category ?? null,
+		pages: toDatabookPages(r.pages),
 	};
 }
 
@@ -1086,6 +1118,17 @@ export const dbUniverse = {
 						: desc(botDatabooks.publishedAt)
 				);
 			return { items: rows.map(toDatabook) };
+		}),
+
+	/** Fiche databook / interview + pages lecteur. */
+	databook: (id: number) =>
+		safe(async () => {
+			const [row] = await db
+				.select()
+				.from(botDatabooks)
+				.where(and(eq(botDatabooks.id, id), eq(botDatabooks.visible, true)))
+				.limit(1);
+			return row ? toDatabook(row) : null;
 		}),
 
 	mangaVolume: (id: number) =>

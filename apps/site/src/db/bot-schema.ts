@@ -295,6 +295,13 @@ export const botMangaVolumes = bot.table("db_manga_volumes", {
 	...visibleCol,
 });
 
+/** Page d'un databook / interview (jsonb `pages`). */
+export type DatabookPage = {
+	number?: number | string | null;
+	image?: string | null;
+	text?: string | null;
+};
+
 /** Databooks & interviews (PG-only, cf. scripts/add-databooks.ts). */
 export const botDatabooks = bot.table("db_databooks", {
 	id: int("id").primaryKey(),
@@ -308,6 +315,10 @@ export const botDatabooks = bot.table("db_databooks", {
 	cover: text("cover"),
 	description: text("description"),
 	sourceUrl: text("source_url"),
+	/** Catégorie éditoriale (V-Jump, Pamphlet & Fair…). */
+	category: text("category"),
+	/** Slots lecteur : numéro + image + texte sous l'image. */
+	pages: jsonb("pages").$type<DatabookPage[]>(),
 	...visibleCol,
 });
 

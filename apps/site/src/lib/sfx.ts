@@ -56,7 +56,47 @@ function sequence(specs: ToneSpec[]) {
 }
 
 export const sfx = {
+	/** Débloque l'AudioContext (gesture utilisateur) — no-op safe côté serveur. */
+	unlock: () => {
+		audio();
+	},
 	click: () => tone({ freq: 800, dur: 0.05, type: "square", gain: 0.05 }),
+	select: () => tone({ freq: 660, dur: 0.06, type: "triangle", gain: 0.05 }),
+	whoosh: () => tone({ freq: 280, dur: 0.12, type: "sawtooth", gain: 0.04 }),
+	teleport: () =>
+		sequence([
+			{ freq: 880, dur: 0.04, type: "square", gain: 0.04 },
+			{ freq: 1320, dur: 0.06, type: "triangle", gain: 0.05 },
+		]),
+	/** Charge ki (synth) — fallback sans MP3. */
+	kiCharge: () => tone({ freq: 120, dur: 0.35, type: "sawtooth", gain: 0.05 }),
+	kamehameha: () =>
+		sequence([
+			{ freq: 200, dur: 0.2, type: "sawtooth", gain: 0.07 },
+			{ freq: 400, dur: 0.4, type: "square", gain: 0.08 },
+		]),
+	/** Séquence charge → onde (hold kamehameha). */
+	kamehamehaFull: () => {
+		sfx.kiCharge();
+		window.setTimeout(() => sfx.kamehameha(), 350);
+	},
+	cancelKamehameha: () => {
+		/* synth one-shots : rien à annuler */
+	},
+	powerUp: () => tone({ freq: 300, dur: 0.25, type: "triangle", gain: 0.06 }),
+	hit: () => tone({ freq: 90, dur: 0.06, type: "square", gain: 0.06 }),
+	punch: () => tone({ freq: 110, dur: 0.05, type: "square", gain: 0.05 }),
+	finalFlash: () => tone({ freq: 500, dur: 0.3, type: "sawtooth", gain: 0.06 }),
+	galick: () => tone({ freq: 450, dur: 0.25, type: "sawtooth", gain: 0.05 }),
+	over9000: () => tone({ freq: 700, dur: 0.2, type: "triangle", gain: 0.05 }),
+	nimbus: () => tone({ freq: 520, dur: 0.15, type: "sine", gain: 0.04 }),
+	scream: () => tone({ freq: 900, dur: 0.2, type: "sawtooth", gain: 0.04 }),
+	tapion: () => {
+		/* file-only placeholder */
+	},
+	stopTapion: () => {
+		/* no-op */
+	},
 	win: () =>
 		sequence([
 			{ freq: 523, dur: 0.08 },
