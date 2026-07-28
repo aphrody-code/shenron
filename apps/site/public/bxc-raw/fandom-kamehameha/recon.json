@@ -1,0 +1,35 @@
+{
+  "$schema": "bxc-recon-v1",
+  "url": "https://dragonball.fandom.com/wiki/Kamehameha",
+  "finalUrl": "https://dragonball.fandom.com/wiki/Kamehameha",
+  "httpStatus": 200,
+  "bytes": 6187,
+  "gotoMs": 756.17575,
+  "profile": "max",
+  "headers": {
+    "server": "cloudflare",
+    "cdnRayId": "a221b3505d5bb751-CDG",
+    "cdnVendor": "Cloudflare",
+    "cspHosts": [
+      "challenges.cloudflare.com"
+    ],
+    "cacheControl": "private, s-maxage=0, max-age=0, must-revalidate",
+    "contentSecurityPolicy": "default-src 'none'; script-src 'nonce-DWQU5ZHMI2WxlRFNVRrpna' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self'",
+    "contentType": "text/html; charset=UTF-8"
+  },
+  "frameworks": [],
+  "assets": [
+    {
+      "type": "script",
+      "url": "https://dragonball.fandom.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1?ray=a221b354bf4fb82b",
+      "host": "dragonball.fandom.com"
+    }
+  ],
+  "cssSelectors": [
+    "#challenge-error-text",
+    "*",
+    ".main-content",
+    "body",
+    "html"
+  ]
+}

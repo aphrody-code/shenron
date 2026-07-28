@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en-US" class="no-js">
+<head><meta charset="UTF-8"><script>if(navigator.userAgent.match(/MSIE|Internet Explorer/i)||navigator.userAgent.match(/Trident\/7\..*?rv:11/i)){var href=document.location.href;if(!href.match(/[?&]nowprocket/)){if(href.indexOf("?")==-1){if(href.indexOf("#")==-1){document.location.href=href+"?nowprocket=1"}else{document.location.href=href.replace("#","?nowprocket=1#")}}else{if(href.indexOf("#")==-1){document.location.href=href+"&nowprocket=1"}else{document.location.href=href.replace("#","&nowprocket=1#")}}}}</script><script>class RocketLazyLoadScripts{constructor(){this.triggerEvents=["keydown","mousedown","mousemove","touchmove","touchstart","touchend","wheel"],this.userEventHandler=this._triggerListener.bind(this),this.touchStartHandler=this._onTouchStart.bind(this),this.touchMoveHandler=this._onTouchMove.bind(this),this.touchEndHandler=this._onTouchEnd.bind(this),this.clickHandler=this._onClick.bind(this),this.interceptedClicks=[],window.addEventListener("pageshow",(e=>{this.persisted=e.persisted})),window.addEventListener("DOMContentLoaded",(()=>{this._preconnect3rdParties()})),this.delayedScripts={normal:[],async:[],defer:[]},this.allJQueries=[]}_addUserInteractionListener(e){document.hidden?e._triggerListener():(this.triggerEvents.forEach((t=>window.addEventListener(t,e.userEventHandler,{passive:!0}))),window.addEventListener("touchstart",e.touchStartHandler,{passive:!0}),window.addEventListener("mousedown",e.touchStartHandler),document.addEventListener("visibilitychange",e.userEventHandler))}_removeUserInteractionListener(){this.triggerEvents.forEach((e=>window.removeEventListener(e,this.userEventHandler,{passive:!0}))),document.removeEventListener("visibilitychange",this.userEventHandler)}_onTouchStart(e){"HTML"!==e.target.tagName&&(window.addEventListener("touchend",this.touchEndHandler),window.addEventListener("mouseup",this.touchEndHandler),window.addEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.addEventListener("mousemove",this.touchMoveHandler),e.target.addEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"onclick","rocket-onclick"))}_onTouchMove(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler),e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick")}_onTouchEnd(e){window.removeEventListener("touchend",this.touchEndHandler),window.removeEventListener("mouseup",this.touchEndHandler),window.removeEventListener("touchmove",this.touchMoveHandler,{passive:!0}),window.removeEventListener("mousemove",this.touchMoveHandler)}_onClick(e){e.target.removeEventListener("click",this.clickHandler),this._renameDOMAttribute(e.target,"rocket-onclick","onclick"),this.interceptedClicks.push(e),e.preventDefault(),e.stopPropagation(),e.stopImmediatePropagation()}_replayClicks(){window.removeEventListener("touchstart",this.touchStartHandler,{passive:!0}),window.removeEventListener("mousedown",this.touchStartHandler),this.interceptedClicks.forEach((e=>{e.target.dispatchEvent(new MouseEvent("click",{view:e.view,bubbles:!0,cancelable:!0}))}))}_renameDOMAttribute(e,t,n){e.hasAttribute&&e.hasAttribute(t)&&(event.target.setAttribute(n,event.target.getAttribute(t)),event.target.removeAttribute(t))}_triggerListener(){this._removeUserInteractionListener(this),"loading"===document.readyState?document.addEventListener("DOMContentLoaded",this._loadEverythingNow.bind(this)):this._loadEverythingNow()}_preconnect3rdParties(){let e=[];document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{if(t.hasAttribute("src")){const n=new URL(t.src).origin;n!==location.origin&&e.push({src:n,crossOrigin:t.crossOrigin||"module"===t.getAttribute("data-rocket-type")})}})),e=[...new Map(e.map((e=>[JSON.stringify(e),e]))).values()],this._batchInjectResourceHints(e,"preconnect")}async _loadEverythingNow(){this.lastBreath=Date.now(),this._delayEventListeners(),this._delayJQueryReady(this),this._handleDocumentWrite(),this._registerAllDelayedScripts(),this._preloadAllScripts(),await this._loadScriptsFromList(this.delayedScripts.normal),await this._loadScriptsFromList(this.delayedScripts.defer),await this._loadScriptsFromList(this.delayedScripts.async);try{await this._triggerDOMContentLoaded(),await this._triggerWindowLoad()}catch(e){}window.dispatchEvent(new Event("rocket-allScriptsLoaded")),this._replayClicks()}_registerAllDelayedScripts(){document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{e.hasAttribute("src")?e.hasAttribute("async")&&!1!==e.async?this.delayedScripts.async.push(e):e.hasAttribute("defer")&&!1!==e.defer||"module"===e.getAttribute("data-rocket-type")?this.delayedScripts.defer.push(e):this.delayedScripts.normal.push(e):this.delayedScripts.normal.push(e)}))}async _transformScript(e){return await this._littleBreath(),new Promise((t=>{const n=document.createElement("script");[...e.attributes].forEach((e=>{let t=e.nodeName;"type"!==t&&("data-rocket-type"===t&&(t="type"),n.setAttribute(t,e.nodeValue))})),e.hasAttribute("src")?(n.addEventListener("load",t),n.addEventListener("error",t)):(n.text=e.text,t());try{e.parentNode.replaceChild(n,e)}catch(e){t()}}))}async _loadScriptsFromList(e){const t=e.shift();return t?(await this._transformScript(t),this._loadScriptsFromList(e)):Promise.resolve()}_preloadAllScripts(){this._batchInjectResourceHints([...this.delayedScripts.normal,...this.delayedScripts.defer,...this.delayedScripts.async],"preload")}_batchInjectResourceHints(e,t){var n=document.createDocumentFragment();e.forEach((e=>{if(e.src){const i=document.createElement("link");i.href=e.src,i.rel=t,"preconnect"!==t&&(i.as="script"),e.getAttribute&&"module"===e.getAttribute("data-rocket-type")&&(i.crossOrigin=!0),e.crossOrigin&&(i.crossOrigin=e.crossOrigin),n.appendChild(i)}})),document.head.appendChild(n)}_delayEventListeners(){let e={};function t(t,n){!function(t){function n(n){return e[t].eventsToRewrite.indexOf(n)>=0?"rocket-"+n:n}e[t]||(e[t]={originalFunctions:{add:t.addEventListener,remove:t.removeEventListener},eventsToRewrite:[]},t.addEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.add.apply(t,arguments)},t.removeEventListener=function(){arguments[0]=n(arguments[0]),e[t].originalFunctions.remove.apply(t,arguments)})}(t),e[t].eventsToRewrite.push(n)}function n(e,t){let n=e[t];Object.defineProperty(e,t,{get:()=>n||function(){},set(i){e["rocket"+t]=n=i}})}t(document,"DOMContentLoaded"),t(window,"DOMContentLoaded"),t(window,"load"),t(window,"pageshow"),t(document,"readystatechange"),n(document,"onreadystatechange"),n(window,"onload"),n(window,"onpageshow")}_delayJQueryReady(e){let t=window.jQuery;Object.defineProperty(window,"jQuery",{get:()=>t,set(n){if(n&&n.fn&&!e.allJQueries.includes(n)){n.fn.ready=n.fn.init.prototype.ready=function(t){e.domReadyFired?t.bind(document)(n):document.addEventListener("rocket-DOMContentLoaded",(()=>t.bind(document)(n)))};const t=n.fn.on;n.fn.on=n.fn.init.prototype.on=function(){if(this[0]===window){function e(e){return e.split(" ").map((e=>"load"===e||0===e.indexOf("load.")?"rocket-jquery-load":e)).join(" ")}"string"==typeof arguments[0]||arguments[0]instanceof String?arguments[0]=e(arguments[0]):"object"==typeof arguments[0]&&Object.keys(arguments[0]).forEach((t=>{delete Object.assign(arguments[0],{[e(t)]:arguments[0][t]})[t]}))}return t.apply(this,arguments),this},e.allJQueries.push(n)}t=n}})}async _triggerDOMContentLoaded(){this.domReadyFired=!0,await this._littleBreath(),document.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),window.dispatchEvent(new Event("rocket-DOMContentLoaded")),await this._littleBreath(),document.dispatchEvent(new Event("rocket-readystatechange")),await this._littleBreath(),document.rocketonreadystatechange&&document.rocketonreadystatechange()}async _triggerWindowLoad(){await this._littleBreath(),window.dispatchEvent(new Event("rocket-load")),await this._littleBreath(),window.rocketonload&&window.rocketonload(),await this._littleBreath(),this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),await this._littleBreath();const e=new Event("rocket-pageshow");e.persisted=this.persisted,window.dispatchEvent(e),await this._littleBreath(),window.rocketonpageshow&&window.rocketonpageshow({persisted:this.persisted})}_handleDocumentWrite(){const e=new Map;document.write=document.writeln=function(t){const n=document.currentScript,i=document.createRange(),r=n.parentElement;let o=e.get(n);void 0===o&&(o=n.nextSibling,e.set(n,o));const s=document.createDocumentFragment();i.setStart(s,0),s.appendChild(i.createContextualFragment(t)),r.insertBefore(s,o)}}async _littleBreath(){Date.now()-this.lastBreath>45&&(await this._requestAnimFrame(),this.lastBreath=Date.now())}async _requestAnimFrame(){return document.hidden?new Promise((e=>setTimeout(e))):new Promise((e=>requestAnimationFrame(e)))}static run(){const e=new RocketLazyLoadScripts;e._addUserInteractionListener(e)}}RocketLazyLoadScripts.run();</script>
+	
+	
+
+	<link href="../wp-content/themes/toei/img/icons/favicon.ico" rel="shortcut icon">
+	<link href="../wp-content/themes/toei/img/icons/touch.png" rel="apple-touch-icon-precomposed">
+
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<meta name="viewport"
+	      content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="">
+	
+	<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+
+	<!-- This site is optimized with the Yoast SEO plugin v19.7.1 - https://yoast.com/wordpress/plugins/seo/ -->
+	<title>Dragon Ball Super: Beerus The ENHANCED edition of the anime Dragon Ball Super begins anew! - Toei Animation</title><link rel="preload" as="style" href="../../_external/fonts.googleapis.com/css__q6kshry" /><link rel="stylesheet" href="../../_external/fonts.googleapis.com/css__q6kshry" media="print" onload="this.media='all'" /><noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Acme%7COpen%20Sans%3A400%2C700%7CAbril%20FatFace%3A400%2C400i%2C700%2C700i%7CAlegreya%3A400%2C400i%2C700%2C700i%7CAlegreya%20Sans%3A400%2C400i%2C700%2C700i%7CAmatic%20SC%3A400%2C400i%2C700%2C700i%7CAnonymous%20Pro%3A400%2C400i%2C700%2C700i%7CArchitects%20Daughter%3A400%2C400i%2C700%2C700i%7CArchivo%3A400%2C400i%2C700%2C700i%7CArchivo%20Narrow%3A400%2C400i%2C700%2C700i%7CAsap%3A400%2C400i%2C700%2C700i%7CBarlow%3A400%2C400i%2C700%2C700i%7CBioRhyme%3A400%2C400i%2C700%2C700i%7CBonbon%3A400%2C400i%2C700%2C700i%7CCabin%3A400%2C400i%2C700%2C700i%7CCairo%3A400%2C400i%2C700%2C700i%7CCardo%3A400%2C400i%2C700%2C700i%7CChivo%3A400%2C400i%2C700%2C700i%7CConcert%20One%3A400%2C400i%2C700%2C700i%7CCormorant%3A400%2C400i%2C700%2C700i%7CCrimson%20Text%3A400%2C400i%2C700%2C700i%7CEczar%3A400%2C400i%2C700%2C700i%7CExo%202%3A400%2C400i%2C700%2C700i%7CFira%20Sans%3A400%2C400i%2C700%2C700i%7CFjalla%20One%3A400%2C400i%2C700%2C700i%7CFrank%20Ruhl%20Libre%3A400%2C400i%2C700%2C700i%7CGreat%20Vibes%3A400%2C400i%2C700%2C700i%7CHeebo%3A400%2C400i%2C700%2C700i%7CIBM%20Plex%3A400%2C400i%2C700%2C700i%7CInconsolata%3A400%2C400i%2C700%2C700i%7CIndie%20Flower%3A400%2C400i%2C700%2C700i%7CInknut%20Antiqua%3A400%2C400i%2C700%2C700i%7CInter%3A400%2C400i%2C700%2C700i%7CKarla%3A400%2C400i%2C700%2C700i%7CLibre%20Baskerville%3A400%2C400i%2C700%2C700i%7CLibre%20Franklin%3A400%2C400i%2C700%2C700i%7CMontserrat%3A400%2C400i%2C700%2C700i%7CNeuton%3A400%2C400i%2C700%2C700i%7CNotable%3A400%2C400i%2C700%2C700i%7CNothing%20You%20Could%20Do%3A400%2C400i%2C700%2C700i%7CNoto%20Sans%3A400%2C400i%2C700%2C700i%7CNunito%3A400%2C400i%2C700%2C700i%7COld%20Standard%20TT%3A400%2C400i%2C700%2C700i%7COxygen%3A400%2C400i%2C700%2C700i%7CPacifico%3A400%2C400i%2C700%2C700i%7CPoppins%3A400%2C400i%2C700%2C700i%7CProza%20Libre%3A400%2C400i%2C700%2C700i%7CPT%20Sans%3A400%2C400i%2C700%2C700i%7CPT%20Serif%3A400%2C400i%2C700%2C700i%7CRakkas%3A400%2C400i%2C700%2C700i%7CReenie%20Beanie%3A400%2C400i%2C700%2C700i%7CRoboto%20Slab%3A400%2C400i%2C700%2C700i%7CRopa%20Sans%3A400%2C400i%2C700%2C700i%7CRubik%3A400%2C400i%2C700%2C700i%7CShadows%20Into%20Light%3A400%2C400i%2C700%2C700i%7CSpace%20Mono%3A400%2C400i%2C700%2C700i%7CSpectral%3A400%2C400i%2C700%2C700i%7CSue%20Ellen%20Francisco%3A400%2C400i%2C700%2C700i%7CTitillium%20Web%3A400%2C400i%2C700%2C700i%7CUbuntu%3A400%2C400i%2C700%2C700i%7CVarela%3A400%2C400i%2C700%2C700i%7CVollkorn%3A400%2C400i%2C700%2C700i%7CWork%20Sans%3A400%2C400i%2C700%2C700i%7CYatra%20One%3A400%2C400i%2C700%2C700i&#038;display=swap" /></noscript>
+	<meta name="description" content="Jan. 25, 2026 (JAPAN)  — Today, at “Dragon Ball Genkidamatsuri”, an event held at Makuhari Messe in Japan, it was announced during the live stage “Exclusive Announcements! GENKIDASTAGE Part 2,” that the anime Dragon Ball Super, original work, story, and character design by Akira Toriyama, is set to begin anew as Dragon Ball Super: Beerus in Fall 2026!" />
+	<link rel="canonical" href="https://www.toei-animation.com/dragon-ball-super-beerus/" />
+	<meta property="og:locale" content="en_US" />
+	<meta property="og:type" content="article" />
+	<meta property="og:title" content="Dragon Ball Super: Beerus The ENHANCED edition of the anime Dragon Ball Super begins anew! - Toei Animation" />
+	<meta property="og:description" content="Jan. 25, 2026 (JAPAN)  — Today, at “Dragon Ball Genkidamatsuri”, an event held at Makuhari Messe in Japan, it was announced during the live stage “Exclusive Announcements! GENKIDASTAGE Part 2,” that the anime Dragon Ball Super, original work, story, and character design by Akira Toriyama, is set to begin anew as Dragon Ball Super: Beerus in Fall 2026!" />
+	<meta property="og:url" content="index.html" />
+	<meta property="og:site_name" content="Toei Animation" />
+	<meta property="article:published_time" content="2026-01-26T13:31:37+00:00" />
+	<meta property="article:modified_time" content="2026-02-05T08:44:50+00:00" />
+	<meta property="og:image" content="https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus.png" />
+	<meta property="og:image:width" content="1000" />
+	<meta property="og:image:height" content="559" />
+	<meta property="og:image:type" content="image/png" />
+	<meta name="author" content="usahoko" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:label1" content="Written by" />
+	<meta name="twitter:data1" content="usahoko" />
+	<meta name="twitter:label2" content="Est. reading time" />
+	<meta name="twitter:data2" content="5 minutes" />
+	<script type="application/ld+json" class="yoast-schema-graph">{"@context":"https://schema.org","@graph":[{"@type":"WebPage","@id":"https://www.toei-animation.com/dragon-ball-super-beerus/","url":"https://www.toei-animation.com/dragon-ball-super-beerus/","name":"Dragon Ball Super: Beerus The ENHANCED edition of the anime Dragon Ball Super begins anew! - Toei Animation","isPartOf":{"@id":"https://www.toei-animation.com/#website"},"primaryImageOfPage":{"@id":"https://www.toei-animation.com/dragon-ball-super-beerus/#primaryimage"},"image":{"@id":"https://www.toei-animation.com/dragon-ball-super-beerus/#primaryimage"},"thumbnailUrl":"https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus.png","datePublished":"2026-01-26T13:31:37+00:00","dateModified":"2026-02-05T08:44:50+00:00","author":{"@id":"https://www.toei-animation.com/#/schema/person/139fb87a75fa85c1cc74ae70d834bc38"},"description":"Jan. 25, 2026 (JAPAN)  — Today, at “Dragon Ball Genkidamatsuri”, an event held at Makuhari Messe in Japan, it was announced during the live stage “Exclusive Announcements! GENKIDASTAGE Part 2,” that the anime Dragon Ball Super, original work, story, and character design by Akira Toriyama, is set to begin anew as Dragon Ball Super: Beerus in Fall 2026!","breadcrumb":{"@id":"https://www.toei-animation.com/dragon-ball-super-beerus/#breadcrumb"},"inLanguage":"en-US","potentialAction":[{"@type":"ReadAction","target":["https://www.toei-animation.com/dragon-ball-super-beerus/"]}]},{"@type":"ImageObject","inLanguage":"en-US","@id":"https://www.toei-animation.com/dragon-ball-super-beerus/#primaryimage","url":"https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus.png","contentUrl":"https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus.png","width":1000,"height":559},{"@type":"BreadcrumbList","@id":"https://www.toei-animation.com/dragon-ball-super-beerus/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.toei-animation.com/"},{"@type":"ListItem","position":2,"name":"Dragon Ball Super: Beerus The ENHANCED edition of the anime Dragon Ball Super begins anew!"}]},{"@type":"WebSite","@id":"https://www.toei-animation.com/#website","url":"https://www.toei-animation.com/","name":"Toei Animation","description":"","potentialAction":[{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://www.toei-animation.com/?s={search_term_string}"},"query-input":"required name=search_term_string"}],"inLanguage":"en-US"},{"@type":"Person","@id":"https://www.toei-animation.com/#/schema/person/139fb87a75fa85c1cc74ae70d834bc38","name":"usahoko","image":{"@type":"ImageObject","inLanguage":"en-US","@id":"https://www.toei-animation.com/#/schema/person/image/","url":"https://secure.gravatar.com/avatar/9026e275b7433c391ef221af23d7dfa0?s=96&d=mm&r=g","contentUrl":"https://secure.gravatar.com/avatar/9026e275b7433c391ef221af23d7dfa0?s=96&d=mm&r=g","caption":"usahoko"},"url":"https://www.toei-animation.com/author/usahoko/"}]}</script>
+	<!-- / Yoast SEO plugin. -->
+
+
+<link rel='dns-prefetch' href='//fonts.gstatic.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link rel='stylesheet' id='wp-block-library-css' href="../wp-includes/css/dist/block-library/style.min__q1xl9rk.css" type='text/css' media='all' />
+<style id='wp-block-library-theme-inline-css' type='text/css'>
+.wp-block-audio figcaption{color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-audio figcaption{color:hsla(0,0%,100%,.65)}.wp-block-code{border:1px solid #ccc;border-radius:4px;font-family:Menlo,Consolas,monaco,monospace;padding:.8em 1em}.wp-block-embed figcaption{color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-embed figcaption{color:hsla(0,0%,100%,.65)}.blocks-gallery-caption{color:#555;font-size:13px;text-align:center}.is-dark-theme .blocks-gallery-caption{color:hsla(0,0%,100%,.65)}.wp-block-image figcaption{color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-image figcaption{color:hsla(0,0%,100%,.65)}.wp-block-pullquote{border-top:4px solid;border-bottom:4px solid;margin-bottom:1.75em;color:currentColor}.wp-block-pullquote__citation,.wp-block-pullquote cite,.wp-block-pullquote footer{color:currentColor;text-transform:uppercase;font-size:.8125em;font-style:normal}.wp-block-quote{border-left:.25em solid;margin:0 0 1.75em;padding-left:1em}.wp-block-quote cite,.wp-block-quote footer{color:currentColor;font-size:.8125em;position:relative;font-style:normal}.wp-block-quote.has-text-align-right{border-left:none;border-right:.25em solid;padding-left:0;padding-right:1em}.wp-block-quote.has-text-align-center{border:none;padding-left:0}.wp-block-quote.is-large,.wp-block-quote.is-style-large,.wp-block-quote.is-style-plain{border:none}.wp-block-search .wp-block-search__label{font-weight:700}:where(.wp-block-group.has-background){padding:1.25em 2.375em}.wp-block-separator.has-css-opacity{opacity:.4}.wp-block-separator{border:none;border-bottom:2px solid;margin-left:auto;margin-right:auto}.wp-block-separator.has-alpha-channel-opacity{opacity:1}.wp-block-separator:not(.is-style-wide):not(.is-style-dots){width:100px}.wp-block-separator.has-background:not(.is-style-dots){border-bottom:none;height:1px}.wp-block-separator.has-background:not(.is-style-wide):not(.is-style-dots){height:2px}.wp-block-table thead{border-bottom:3px solid}.wp-block-table tfoot{border-top:3px solid}.wp-block-table td,.wp-block-table th{padding:.5em;border:1px solid;word-break:normal}.wp-block-table figcaption{color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-table figcaption{color:hsla(0,0%,100%,.65)}.wp-block-video figcaption{color:#555;font-size:13px;text-align:center}.is-dark-theme .wp-block-video figcaption{color:hsla(0,0%,100%,.65)}.wp-block-template-part.has-background{padding:1.25em 2.375em;margin-top:0;margin-bottom:0}
+</style>
+<style id='global-styles-inline-css' type='text/css'>
+body{--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+</style>
+<link data-minify="1" rel='stylesheet' id='contact-form-7-css' href="../wp-content/cache/min/1/wp-content/plugins/contact-form-7/includes/css/styles__qimj8og.css" type='text/css' media='all' />
+<link rel='stylesheet' id='vendors-css' href="../wp-content/themes/toei/dist/css/vendors.min__qm9nx93.css" type='text/css' media='all' />
+<link data-minify="1" rel='stylesheet' id='custom-css' href="../wp-content/cache/min/1/wp-content/themes/toei/dist/css/custom.min__qimj8og.css" type='text/css' media='all' />
+<link rel='stylesheet' id='tac_css-css' href="../wp-content/themes/toei/dist/js/tac/css/tarteaucitron.min__q7t9woa.css" type='text/css' media='all' />
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-content/themes/toei/dist/js/tac/js.cookie.min__q7trtsh.js" id='cookiejs-js' defer></script>
+<script type="rocketlazyloadscript" id="tarteaucitron-js" data-rocket-type="text/javascript" src="../wp-content/themes/toei/dist/js/tac/tarteaucitron_matomo.min__q7trtsh.js" defer></script><script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-content/themes/toei/dist/js/tac/tarteaucitron.rnd_scripts_matomo.min__q2jlr2t.js" id='tac_script-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-content/themes/toei/dist/js/tac/tarteaucitron.rnd_init_matomo.min__qdbmsox.js" id='tac_init-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-content/themes/toei/dist/js/tac/tarteaucitron.services.min__q13rzi6.js" id='tac_services-js' defer></script>
+<link rel="https://api.w.org/" href="https://www.toei-animation.com/wp-json/" /><link rel="alternate" type="application/json" href="https://www.toei-animation.com/wp-json/wp/v2/posts/5003" /><link rel="alternate" type="application/json+oembed" href="https://www.toei-animation.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.toei-animation.com%2Fdragon-ball-super-beerus%2F" />
+<link rel="alternate" type="text/xml+oembed" href="https://www.toei-animation.com/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fwww.toei-animation.com%2Fdragon-ball-super-beerus%2F&#038;format=xml" />
+
+<link rel="preload" as="font" href="../wp-content/themes/toei/fonts/icons/toeicon__qjwtdlo.ttf" crossorigin><noscript><style id="rocket-lazyload-nojs-css">.rll-youtube-player, [data-lazy-src]{display:none !important;}</style></noscript></head>
+<body class="post-template-default single single-post postid-5003 single-format-standard dragon-ball-super-beerus">
+
+<!-- header -->
+<header class="header" role="banner">
+	<a href="../index.html" class="logo">
+					<img width="378" height="52" class="img-responsive" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20378%2052'%3E%3C/svg%3E" alt="Logo" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2019/03/logo.svg"><noscript><img width="378" height="52" class="img-responsive" src="https://www.toei-animation.com/wp-content/uploads/2019/03/logo.svg"
+			     alt="Logo"></noscript>
+			</a>
+	<div class="burger-menu">
+		<span></span>
+		<span></span>
+		<span></span>
+		<span></span>
+	</div>
+	<!-- nav -->
+	<nav class="nav-menu">
+		<ul id="menu-main-menu" class="header-menu"><li id="menu-item-203" class="catalog-menu menu-item menu-item-type-post_type_archive menu-item-object-series menu-item-has-children menu-item-203"><a href="../catalog/index.html">Our catalog</a>
+<ul class="sub-menu">
+	<li id="menu-item-1349" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1349"><a href="../catalog/index__qnk1ira.html">Family</a></li>
+	<li id="menu-item-1350" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1350"><a href="../catalog/index__qkdx7rp.html">Kids girls</a></li>
+	<li id="menu-item-1351" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1351"><a href="../catalog/index__qalzqob.html">Teens girls</a></li>
+	<li id="menu-item-1352" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1352"><a href="../catalog/index__qvf2c9f.html">Kids boys</a></li>
+	<li id="menu-item-1354" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1354"><a href="../catalog/index__qxy22v5.html">Teens boys</a></li>
+	<li id="menu-item-1356" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1356"><a href="../catalog/index__qpvh2n5.html">Adults</a></li>
+</ul>
+</li>
+<li id="menu-item-21" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-21"><a href="../about-us/index.html">About us</a></li>
+<li id="menu-item-24" class="news-menu menu-item menu-item-type-post_type menu-item-object-page current_page_parent menu-item-24"><a href="../news/index.html">News</a></li>
+<li id="menu-item-22" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-22"><a href="../contact/index.html">Contact</a></li>
+</ul>		<ul>
+			<li class="search-head">
+				<a href="#"><span class="toeicon icon-search"></span></a>
+			</li>
+			<li class="newsletter-head">
+				<a class="newsletter-head-fancy" data-fancybox data-src="#hidden-newsletter" href="javascript:;">
+					<span class="text">Newsletter</span>
+					<span class="toeicon icon-mail"></span>
+				</a>
+			</li>
+		</ul>
+		<!-- search -->
+<form class="search search-form-header" method="get"
+      action="https://www.toei-animation.com"
+      role="search">
+	<div class="form-container field">
+		<label for="search-field"
+		       class="field-label">To search, type and hit enter.</label>
+		<input type="search" id="search-field" name="s"
+		       class="field-input search-input">
+		<button class="search-submit" type="submit"
+		        role="button"><span class="toeicon icon-search"></span></button>
+	</div>
+	<a href="#" class="close-search"><span
+			class="toeicon icon-close"></span></a>
+</form>
+<!-- /search -->
+	</nav>
+	<!-- /nav -->
+</header>
+<!-- /header -->
+
+<main role="main">
+	<section>
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-9">
+					
+						<article
+							id="post-5003" class="news-single post-5003 post type-post status-publish format-standard has-post-thumbnail hentry category-press-releases">
+
+							<!-- post thumbnail -->
+															<img width="825" height="460" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20825%20460'%3E%3C/svg%3E" class="img-responsive post-img wp-post-image" alt="" data-lazy-srcset="https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-825x460.png 825w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-768x429.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-398x222.png 398w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-510x284.png 510w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-350x195.png 350w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus.png 1000w" data-lazy-sizes="(max-width: 825px) 100vw, 825px" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-825x460.png" /><noscript><img width="825" height="460" src="https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-825x460.png" class="img-responsive post-img wp-post-image" alt="" srcset="https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-825x460.png 825w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-768x429.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-398x222.png 398w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-510x284.png 510w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus-350x195.png 350w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBS-beerus.png 1000w" sizes="(max-width: 825px) 100vw, 825px" /></noscript>														<!-- /post thumbnail -->
+
+							<!-- post title -->
+							<h1 class="post-title">Dragon Ball Super: Beerus The ENHANCED edition of the anime Dragon Ball Super begins anew!</h1>
+							<!-- /post title -->
+
+							<!-- post categories -->
+							<p
+								class="post-categories"><a href="https://www.toei-animation.com/category/press-releases/" rel="category tag">Press releases</a></p>
+							<!-- /post categories -->
+
+							<!-- post details -->
+							<div class="post-details">
+								<div class="date">
+									<img width="59" height="44" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2059%2044'%3E%3C/svg%3E" alt="Logo" data-lazy-src="https://www.toei-animation.com/wp-content/themes/toei/img/logo-half.svg"><noscript><img width="59" height="44"
+										src="https://www.toei-animation.com/wp-content/themes/toei/img/logo-half.svg"
+										alt="Logo"></noscript>
+									<div>
+										<span
+											class="site-title">Toei Animation</span>
+										<span
+											class="date-value">Jan. 26, 2026</span>
+									</div>
+								</div>
+								<div class="block-social-share">
+	<span>Share on</span>
+	<ul>
+		<li class="facebook"><a href="http://www.facebook.com/sharer.php?u=https://www.toei-animation.com/dragon-ball-super-beerus/" target="_blank"><span class="toeicon icon-facebook"></span></a>
+		</li>
+		<li class="twitter"><a href="https://twitter.com/share?url=https://www.toei-animation.com/dragon-ball-super-beerus/&amp;text=Dragon Ball Super: Beerus The ENHANCED edition of the anime Dragon Ball Super begins anew!" target="_blank"><span class="toeicon icon-twitter"></span></a>
+		</li>
+		<li class="linkedin"><a href="http://www.linkedin.com/shareArticle?mini=true&amp;url=https://www.toei-animation.com/dragon-ball-super-beerus/" target="_blank"><span class="toeicon icon-linkedin"></span></a>
+		</li>
+	</ul>
+</div>
+							</div>
+							<!-- /post details -->
+
+							<div class="post-content">
+								<h3>Original Work, Story &amp; Character Design Akira Toriyama</h3>
+<h3>Dragon Ball Super: Beerus</h3>
+<h3>The ENHANCED edition of the anime Dragon Ball Super begins anew!</h3>
+<p>Jan. 25, 2026 (JAPAN)  — Today, at “<em>Dragon Ball</em> Genkidamatsuri”, an event held at Makuhari Messe in Japan, it was announced during the live stage “Exclusive Announcements! GENKIDASTAGE Part 2,” that the anime <em>Dragon Ball Super</em>, original work, story, and character design by Akira Toriyama, is set to begin anew as <em>Dragon Ball Super: Beerus </em>in Fall 2026!</p>
+<p><em>Dragon Ball Super: Beerus, </em>a project that was started a few years ago, is the newly ENHANCED edition of the anime <em>Dragon Ball Super</em>. ENHANCED by the latest visual expression, every scene, especially the battle scenes, is even more immersive, providing a more faithful and detailed reproduction of the original work by Akira Toriyama, and it will deliver a quality that is sure to fully satisfy audiences.</p>
+<p>In addition, the SUPER Launch Trailer and SUPER Launch Visual for this title are being released at this time. <em>Dragon Ball Super</em> will begin anew as <em>Dragon Ball Super: Beerus</em>. Please stay tuned for the future of this series, along with <em>Dragon Ball Super: The Galactic Patrol</em> that was announced at “Exclusive Announcements! GENKIDASTAGE Part 1.”</p>
+<p>&nbsp;</p>
+<h3>The visuals, sound, and structure have all been renewed with cutting-edge visual expression!<br />
+The ENHANCED edition of Dragon Ball Super unfolds!</h3>
+<p>Dragon Ball Super: Beerus is the ENHANCED edition of the TV anime Dragon Ball Super, for which Akira Toriyama created the original work, story, and character design. The project features extensive new cuts, revisions to existing scenes, a complete re-rendering of all footage, newly recorded dubbing with added score and sound effects, and a full reconstruction of the story. Living up to the name ENHANCED, this edition employs the latest visual expression to deliver greater power and immersion across all scenes, especially the battle sequences. The result is an ENHANCED edition that expresses Akira Toriyama’s original idea and worldbuilding more accurately, that will be broadcasted with highly satisfying quality.<br />
+The pinnacle of the DRAGON BALL 40th Anniversary, “Dragon Ball Genkidamatsuri” is being held today at Makuhari Messe. At the “Exclusive Announcements! GENKIDASTAGE Part 2,” with Ms. Masako Nozawa, voice of Son Goku, Mr. Koichi Yamadera, voice of the God of Destruction Beerus, and Executive Producer of Dragon Ball, Mr. Akio Iyoku, in attendance, it was announced that Dragon Ball Super: Beerus will premiere in the Fall of 2026. During the stage event, Ms. Nozawa expressed her excitement, Mr. Yamadera couldn’t hide how surprised he was, and they shared in the joy of Dragon Ball Super: Beerus beginning with all of the fans watching the stage.</p>
+<p><img class="alignnone size-full wp-image-5008" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201669%202362'%3E%3C/svg%3E" alt="" width="1669" height="2362" data-lazy-srcset="https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en.png 1669w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-768x1087.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-1085x1536.png 1085w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-1447x2048.png 1447w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-1320x1868.png 1320w" data-lazy-sizes="(max-width: 1669px) 100vw, 1669px" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en.png" /><noscript><img class="alignnone size-full wp-image-5008" src="https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en.png" alt="" width="1669" height="2362" srcset="https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en.png 1669w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-768x1087.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-1085x1536.png 1085w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-1447x2048.png 1447w, https://www.toei-animation.com/wp-content/uploads/2026/01/DBSB-Super-Launch-Visual_vertical-RGB_en-1320x1868.png 1320w" sizes="(max-width: 1669px) 100vw, 1669px" /></noscript></p>
+<p>&nbsp;</p>
+<h3>Where will the epic battle between the God of Destruction Beerus and Goku and his allies end up?<br />
+Watch the SUPER Launch Trailer and SUPER Launch Visual now!</h3>
+<p>The SUPER Launch Trailer and SUPER Launch Visual for Dragon Ball Super: Beerus were also unveiled during the stage event. The SUPER Launch Trailer opens with the God of Destruction Beerus in a long, deep sleep. Targeted by Beerus, the strongest being in the universe, Earth is in grave danger, thus Goku and his allies must rise up to protect it. Where will this epic battle between Super Saiyan God Goku vs. Beerus end up? The trailer shows not only the God of Destruction Beerus and Goku, but also Vegeta and Whis, and the rest of Goku’s allies.<br />
+The ENHANCED visuals promise a tense, edge-of-your-seat experience.<br />
+The SUPER Launch Visual depicts the God of Destruction Beerus and Goku, with space and Earth in the background. Additionally, the new SUPER Launch Visual is featured on the official Dragon Ball Super: Beerus website.</p>
+<p><img class="size-full wp-image-5004 aligncenter" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201085%20414'%3E%3C/svg%3E" alt="" width="1085" height="414" data-lazy-srcset="https://www.toei-animation.com/wp-content/uploads/2026/01/ga.jpg 1085w, https://www.toei-animation.com/wp-content/uploads/2026/01/ga-768x293.jpg 768w" data-lazy-sizes="(max-width: 1085px) 100vw, 1085px" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2026/01/ga.jpg" /><noscript><img class="size-full wp-image-5004 aligncenter" src="https://www.toei-animation.com/wp-content/uploads/2026/01/ga.jpg" alt="" width="1085" height="414" srcset="https://www.toei-animation.com/wp-content/uploads/2026/01/ga.jpg 1085w, https://www.toei-animation.com/wp-content/uploads/2026/01/ga-768x293.jpg 768w" sizes="(max-width: 1085px) 100vw, 1085px" /></noscript></p>
+<p>&nbsp;</p>
+<p>See the SUPER Launch Trailer Here</p>
+<p><iframe loading="lazy" title="Anime “Dragon Ball Super: Beerus” | SUPER Launch Trailer" width="900" height="506" src="about:blank" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen data-rocket-lazyload="fitvidscompatible" data-lazy-src="https://www.youtube.com/embed/OOmRInABehI?feature=oembed"></iframe><noscript><iframe title="Anime “Dragon Ball Super: Beerus” | SUPER Launch Trailer" width="900" height="506" src="https://www.youtube.com/embed/OOmRInABehI?feature=oembed" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></noscript></p>
+<p>&nbsp;</p>
+<p>Official Dragon Ball Super: Beerus Website   <a href="https://dragonball-super.com/en/" target="_blank" rel="noopener">https://dragonball-super.com/en/</a></p>
+<p>&nbsp;</p>
+<h3>Dragon Ball Super Begins, Anew!</h3>
+<p>Dragon Ball Super is embarking on a bold and ambitious new start with the ENHANCED edition, Dragon Ball Super: Beerus. Another new development is the brand new SUPER anime Dragon Ball Super: The Galactic Patrol, which was also announced on the same day at the “Dragon Ball Genkidamatsuri” on-stage event, “Exclusive Announcements! GENKIDASTAGE Part 1.”<br />
+Dragon Ball Super: The Galactic Patrol is the story that follows the “Universe Survival Arc” of the anime Dragon Ball Super that aired between 2015 and 2018. It appears in the manga Dragon Ball Super as the “Galactic Patrol Prisoner Arc.”</p>
+<p>&nbsp;</p>
+<p><strong>Title Overview</strong><br />
+Title: Dragon Ball Super: Beerus<br />
+Broadcast Information: Series premieres Fall of 2026!<br />
+Original Work, Story &amp; Character Design: Akira Toriyama<br />
+Dragon Ball Super: Beerus Official Website　<a href="https://dragonball-super.com/en/" target="_blank" rel="noopener">https://dragonball-super.com/en/</a><br />
+Anime Dragon Ball Official X　 <a href="https://x.com/DB_anime_info" target="_blank" rel="noopener">https://x.com/DB_anime_info</a></p>
+<div data-type="component-text">
+<div class="text-area">
+<p><strong>Event Information</strong></p>
+</div>
+</div>
+<div class="row">
+<div class="col-xs-12 col-md-12 ui-resizable" data-type="container-content">
+<div data-type="component-photo">
+<div class="photo-panel"><img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E" alt="" data-lazy-src="https://en.dragon-ball-official.com/dragonball/jp/news/2026/01/genki_2__3.jpg?_=1769521860" /><noscript><img src="https://en.dragon-ball-official.com/dragonball/jp/news/2026/01/genki_2__3.jpg?_=1769521860" alt="" /></noscript></div>
+</div>
+<div data-type="component-text">
+<div class="text-area">
+<p>&nbsp;</p>
+<p>Event Name: Dragon Ball Genkidamatsuri<br />
+Event Date (JST): January 25, 2026 (Sunday) 9:00AM～6:30PM (Last Entry：5:00PM)<br />
+Location: Makuhari Messe International Exhibition Hall 9～11<br />
+Entry: Free (※Prior Reservation Required)<br />
+Event Livestream URL : <a href="https://youtu.be/SkH1AHJDW6E" target="_blank" rel="noopener">https://youtu.be/SkH1AHJDW6E</a><br />
+Official Website : <a href="https://db-genkidamatsuri.com/en/" target="_blank" rel="noopener">https://db-genkidamatsuri.com/en/</a></p>
+</div>
+</div>
+</div>
+</div>
+<p>&nbsp;</p>
+<p>©BIRD STUDIO/SHUEISHA, TOEI ANIMATION</p>
+							</div>
+
+						</article>
+
+					
+						<div class="post-navigation">
+							<div
+								class="prev"><a href="../dragon-ball-super-the-galactic-patrol/index.html" rel="prev">Previous Post</a></div>
+							<div
+								class="next"><a href="https://www.toei-animation.com/star-detective-precure-announce/" rel="next">Next Post</a></div>
+						</div>
+
+							<div class="related-posts">
+		<h2 class="title">Similar articles</h2>
+		<div class="row related-posts-container">
+			
+	<div class="news-item-container flex-column col-md-6" data-aos="fade-up">
+		<!-- article -->
+		<article id="post-5223" class="news-item post-5223 post type-post status-publish format-standard has-post-thumbnail hentry category-press-releases">
+			<!-- post thumbnail -->
+			<a class="image-effect" href="https://www.toei-animation.com/op-heroines-broadcast-trailer/" title="New ONE PIECE HEROINES trailer released ahead of July 5 broadcast!">
+									<img width="398" height="222" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20398%20222'%3E%3C/svg%3E" class="img-responsive wp-post-image" alt="" data-lazy-srcset="https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-398x222.png 398w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-768x429.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-1536x859.png 1536w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-825x460.png 825w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-510x284.png 510w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-350x195.png 350w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-1320x738.png 1320w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines.png 2000w" data-lazy-sizes="(max-width: 398px) 100vw, 398px" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-398x222.png" /><noscript><img width="398" height="222" src="https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-398x222.png" class="img-responsive wp-post-image" alt="" loading="lazy" srcset="https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-398x222.png 398w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-768x429.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-1536x859.png 1536w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-825x460.png 825w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-510x284.png 510w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-350x195.png 350w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines-1320x738.png 1320w, https://www.toei-animation.com/wp-content/uploads/2026/07/2_Heroines.png 2000w" sizes="(max-width: 398px) 100vw, 398px" /></noscript>							</a>
+			<!-- /post thumbnail -->
+
+			<div class="post-content">
+				<!-- post details -->
+				<div class="post-details">
+					<span class="category"><a href="https://www.toei-animation.com/category/press-releases/" rel="category tag">Press releases</a></span>
+					|
+					<span class="date">July 3, 2026</span>
+				</div>
+				<!-- /post details -->
+
+				<!-- post title -->
+				<h2 class="post-title">
+					<a href="https://www.toei-animation.com/op-heroines-broadcast-trailer/" title="New ONE PIECE HEROINES trailer released ahead of July 5 broadcast!">New ONE PIECE HEROINES trailer released ahead...</a>
+				</h2>
+				<!-- /post title -->
+
+				<p class="post-excerpt">
+					New ONE PIECE HEROINES trailer released ahead of July 5 broadcast!				</p>
+
+				<div class="post-read-more">
+					<a class="btn btn-small" href="https://www.toei-animation.com/op-heroines-broadcast-trailer/" title="New ONE PIECE HEROINES trailer released ahead of July 5 broadcast!">Read more</a>
+				</div>
+
+			</div>
+		</article>
+		<!-- /article -->
+	</div>
+
+	<div class="news-item-container flex-column col-md-6" data-aos="fade-up">
+		<!-- article -->
+		<article id="post-5230" class="news-item post-5230 post type-post status-publish format-standard has-post-thumbnail hentry category-press-releases">
+			<!-- post thumbnail -->
+			<a class="image-effect" href="https://www.toei-animation.com/college-noir-season-2-visual/" title="College Noir Season 2 will be released on October 2026!">
+									<img width="398" height="222" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20398%20222'%3E%3C/svg%3E" class="img-responsive wp-post-image" alt="" data-lazy-srcset="https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-398x222.png 398w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-768x429.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-1536x859.png 1536w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-825x460.png 825w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-510x284.png 510w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-350x195.png 350w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-1320x738.png 1320w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir.png 2000w" data-lazy-sizes="(max-width: 398px) 100vw, 398px" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-398x222.png" /><noscript><img width="398" height="222" src="https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-398x222.png" class="img-responsive wp-post-image" alt="" loading="lazy" srcset="https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-398x222.png 398w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-768x429.png 768w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-1536x859.png 1536w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-825x460.png 825w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-510x284.png 510w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-350x195.png 350w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir-1320x738.png 1320w, https://www.toei-animation.com/wp-content/uploads/2026/07/1_College-noir.png 2000w" sizes="(max-width: 398px) 100vw, 398px" /></noscript>							</a>
+			<!-- /post thumbnail -->
+
+			<div class="post-content">
+				<!-- post details -->
+				<div class="post-details">
+					<span class="category"><a href="https://www.toei-animation.com/category/press-releases/" rel="category tag">Press releases</a></span>
+					|
+					<span class="date">July 3, 2026</span>
+				</div>
+				<!-- /post details -->
+
+				<!-- post title -->
+				<h2 class="post-title">
+					<a href="https://www.toei-animation.com/college-noir-season-2-visual/" title="College Noir Season 2 will be released on October 2026!">College Noir Season 2 will be released on Oct...</a>
+				</h2>
+				<!-- /post title -->
+
+				<p class="post-excerpt">
+					Produced by Studio La Cachette and directed by Ulysse Malassagne, the series, adapted from his bande dessinée, follows five teenagers in a remote Cantal boarding school where strange and supernatural events unfold. Co-p...				</p>
+
+				<div class="post-read-more">
+					<a class="btn btn-small" href="https://www.toei-animation.com/college-noir-season-2-visual/" title="College Noir Season 2 will be released on October 2026!">Read more</a>
+				</div>
+
+			</div>
+		</article>
+		<!-- /article -->
+	</div>
+		</div>
+	</div>
+
+									</div>
+				<div class="col-lg-3 sidebar-image-wrapper">
+					<div class="sidebar-image">
+						<div id="archives-3" class="widget widget_archive"><h3 class="title">Archives</h3>
+			<ul>
+					<li><a href="https://www.toei-animation.com/2026/07/">July 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2026/06/">June 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2026/05/">May 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2026/04/">April 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2026/03/">March 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2026/02/">February 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2026/01/">January 2026</a></li>
+	<li><a href="https://www.toei-animation.com/2025/12/">December 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/11/">November 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/10/">October 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/09/">September 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/08/">August 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/07/">July 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/06/">June 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/04/">April 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/03/">March 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/02/">February 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2025/01/">January 2025</a></li>
+	<li><a href="https://www.toei-animation.com/2024/10/">October 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/09/">September 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/07/">July 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/06/">June 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/05/">May 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/04/">April 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/03/">March 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2024/02/">February 2024</a></li>
+	<li><a href="https://www.toei-animation.com/2023/12/">December 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/10/">October 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/09/">September 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/08/">August 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/06/">June 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/05/">May 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/04/">April 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/03/">March 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/02/">February 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2023/01/">January 2023</a></li>
+	<li><a href="https://www.toei-animation.com/2022/12/">December 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2022/11/">November 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2022/10/">October 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2022/09/">September 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2022/08/">August 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2022/06/">June 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2022/05/">May 2022</a></li>
+	<li><a href="https://www.toei-animation.com/2021/11/">November 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2021/10/">October 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2021/09/">September 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2021/05/">May 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2021/04/">April 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2021/03/">March 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2021/02/">February 2021</a></li>
+	<li><a href="https://www.toei-animation.com/2020/12/">December 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/11/">November 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/10/">October 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/09/">September 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/07/">July 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/06/">June 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/05/">May 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/04/">April 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/03/">March 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2020/01/">January 2020</a></li>
+	<li><a href="https://www.toei-animation.com/2019/12/">December 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/10/">October 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/09/">September 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/07/">July 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/06/">June 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/05/">May 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/04/">April 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/03/">March 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/02/">February 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2019/01/">January 2019</a></li>
+	<li><a href="https://www.toei-animation.com/2018/12/">December 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/11/">November 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/09/">September 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/08/">August 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/07/">July 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/06/">June 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/05/">May 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/04/">April 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/03/">March 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/02/">February 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2018/01/">January 2018</a></li>
+	<li><a href="https://www.toei-animation.com/2017/12/">December 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/11/">November 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/10/">October 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/09/">September 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/07/">July 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/06/">June 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/05/">May 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/04/">April 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/03/">March 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/02/">February 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2017/01/">January 2017</a></li>
+	<li><a href="https://www.toei-animation.com/2016/12/">December 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/11/">November 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/10/">October 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/09/">September 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/07/">July 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/06/">June 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/05/">May 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/04/">April 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/03/">March 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/02/">February 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2016/01/">January 2016</a></li>
+	<li><a href="https://www.toei-animation.com/2015/12/">December 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/11/">November 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/10/">October 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/09/">September 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/07/">July 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/06/">June 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/05/">May 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/04/">April 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/03/">March 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/02/">February 2015</a></li>
+	<li><a href="https://www.toei-animation.com/2015/01/">January 2015</a></li>
+			</ul>
+
+			</div><div id="categories-3" class="widget widget_categories"><h3 class="title">Categories</h3>
+			<ul>
+					<li class="cat-item cat-item-8"><a href="https://www.toei-animation.com/category/licensing/">Licensing / Merchandising</a>
+</li>
+	<li class="cat-item cat-item-10"><a href="https://www.toei-animation.com/category/press-releases/">Press releases</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="https://www.toei-animation.com/category/tv-digital-dvd/">TV/Digital/DVD</a>
+</li>
+	<li class="cat-item cat-item-7"><a href="https://www.toei-animation.com/category/corporate/">Corporate</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="https://www.toei-animation.com/category/unclassified/">Unclassified</a>
+</li>
+			</ul>
+
+			</div>					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+
+<!-- footer -->
+<footer class="footer" role="contentinfo">
+	<div class="container">
+		<div class="footer-content">
+			<div class="footer-informations">
+				<a class="logo-footer" href="">
+					<img width="152" height="104" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20152%20104'%3E%3C/svg%3E" alt="" data-lazy-src="https://www.toei-animation.com/wp-content/uploads/2018/12/logo-footer.svg"><noscript><img width="152" height="104" src="https://www.toei-animation.com/wp-content/uploads/2018/12/logo-footer.svg" alt=""></noscript>
+				</a>
+				<ul class="details-footer">
+					<li class="network d-flex flex-wrap">
+						<a class="social-link" target="_blank" href="https://twitter.com/ToeiAnimationEU">
+							<svg class="svg-white" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+								<path id="path1009" d="M11.0435 12.1697L17.9523 21.5378L11 29.1545H12.5648L18.6517 22.4858L23.5695 29.1545H28.8942L21.5966 19.2596L28.0678 12.1697H26.503L20.8975 18.3112L16.3683 12.1697H11.0435ZM13.3447 13.3385H15.7908L26.5928 27.9857H24.1466L13.3447 13.3385Z"/>
+								<path id="Vector" d="M20 3.33333C29.1767 3.33333 36.6667 10.8032 36.6667 20C36.6667 29.1968 29.1968 36.6667 20 36.6667C10.8032 36.6667 3.33333 29.1968 3.33333 20C3.33333 10.8032 10.8032 3.33333 20 3.33333ZM20 0C8.95583 0 0 8.95582 0 20C0 31.0442 8.95583 40 20 40C31.0442 40 40 31.0442 40 20C40 8.95582 31.0241 0 20 0Z"/>
+							</svg>
+							<span>EU</span>
+						</a>
+						<a class="social-link" target="_blank" href="https://www.instagram.com/toei_animation_europe/">
+							<svg class="svg-white" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">
+								<path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 7.082c1.602 0 1.792.006 2.425.035 1.627.074 2.385.845 2.46 2.459.028.633.034.822.034 2.424s-.006 1.792-.034 2.424c-.075 1.613-.832 2.386-2.46 2.46-.633.028-.822.035-2.425.035-1.602 0-1.792-.006-2.424-.035-1.63-.075-2.385-.849-2.46-2.46-.028-.632-.035-.822-.035-2.424s.007-1.792.035-2.424c.074-1.615.832-2.386 2.46-2.46.632-.029.822-.034 2.424-.034zm0-1.082c-1.63 0-1.833.007-2.474.037-2.18.1-3.39 1.309-3.49 3.489-.029.641-.036.845-.036 2.474 0 1.63.007 1.834.036 2.474.1 2.179 1.31 3.39 3.49 3.49.641.029.844.036 2.474.036 1.63 0 1.834-.007 2.475-.036 2.176-.1 3.391-1.309 3.489-3.49.029-.64.036-.844.036-2.474 0-1.629-.007-1.833-.036-2.474-.098-2.177-1.309-3.39-3.489-3.489-.641-.03-.845-.037-2.475-.037zm0 2.919c-1.701 0-3.081 1.379-3.081 3.081s1.38 3.081 3.081 3.081 3.081-1.379 3.081-3.081c0-1.701-1.38-3.081-3.081-3.081zm0 5.081c-1.105 0-2-.895-2-2 0-1.104.895-2 2-2 1.104 0 2.001.895 2.001 2s-.897 2-2.001 2zm3.202-5.922c-.397 0-.72.322-.72.72 0 .397.322.72.72.72.398 0 .721-.322.721-.72 0-.398-.322-.72-.721-.72z" />
+							</svg>
+							<span>EU</span>
+						</a>
+						<a class="social-link" target="_blank" href="https://www.instagram.com/toei_animation_france/">
+							<svg class="svg-white" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">
+								<path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 7.082c1.602 0 1.792.006 2.425.035 1.627.074 2.385.845 2.46 2.459.028.633.034.822.034 2.424s-.006 1.792-.034 2.424c-.075 1.613-.832 2.386-2.46 2.46-.633.028-.822.035-2.425.035-1.602 0-1.792-.006-2.424-.035-1.63-.075-2.385-.849-2.46-2.46-.028-.632-.035-.822-.035-2.424s.007-1.792.035-2.424c.074-1.615.832-2.386 2.46-2.46.632-.029.822-.034 2.424-.034zm0-1.082c-1.63 0-1.833.007-2.474.037-2.18.1-3.39 1.309-3.49 3.489-.029.641-.036.845-.036 2.474 0 1.63.007 1.834.036 2.474.1 2.179 1.31 3.39 3.49 3.49.641.029.844.036 2.474.036 1.63 0 1.834-.007 2.475-.036 2.176-.1 3.391-1.309 3.489-3.49.029-.64.036-.844.036-2.474 0-1.629-.007-1.833-.036-2.474-.098-2.177-1.309-3.39-3.489-3.489-.641-.03-.845-.037-2.475-.037zm0 2.919c-1.701 0-3.081 1.379-3.081 3.081s1.38 3.081 3.081 3.081 3.081-1.379 3.081-3.081c0-1.701-1.38-3.081-3.081-3.081zm0 5.081c-1.105 0-2-.895-2-2 0-1.104.895-2 2-2 1.104 0 2.001.895 2.001 2s-.897 2-2.001 2zm3.202-5.922c-.397 0-.72.322-.72.72 0 .397.322.72.72.72.398 0 .721-.322.721-.72 0-.398-.322-.72-.721-.72z" />
+							</svg>
+							<span>FR</span>
+						</a>
+						<a class="social-link" target="_blank" href="https://www.instagram.com/toei_animation_italia">
+							<svg class="svg-white" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24">
+								<path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 7.082c1.602 0 1.792.006 2.425.035 1.627.074 2.385.845 2.46 2.459.028.633.034.822.034 2.424s-.006 1.792-.034 2.424c-.075 1.613-.832 2.386-2.46 2.46-.633.028-.822.035-2.425.035-1.602 0-1.792-.006-2.424-.035-1.63-.075-2.385-.849-2.46-2.46-.028-.632-.035-.822-.035-2.424s.007-1.792.035-2.424c.074-1.615.832-2.386 2.46-2.46.632-.029.822-.034 2.424-.034zm0-1.082c-1.63 0-1.833.007-2.474.037-2.18.1-3.39 1.309-3.49 3.489-.029.641-.036.845-.036 2.474 0 1.63.007 1.834.036 2.474.1 2.179 1.31 3.39 3.49 3.49.641.029.844.036 2.474.036 1.63 0 1.834-.007 2.475-.036 2.176-.1 3.391-1.309 3.489-3.49.029-.64.036-.844.036-2.474 0-1.629-.007-1.833-.036-2.474-.098-2.177-1.309-3.39-3.489-3.489-.641-.03-.845-.037-2.475-.037zm0 2.919c-1.701 0-3.081 1.379-3.081 3.081s1.38 3.081 3.081 3.081 3.081-1.379 3.081-3.081c0-1.701-1.38-3.081-3.081-3.081zm0 5.081c-1.105 0-2-.895-2-2 0-1.104.895-2 2-2 1.104 0 2.001.895 2.001 2s-.897 2-2.001 2zm3.202-5.922c-.397 0-.72.322-.72.72 0 .397.322.72.72.72.398 0 .721-.322.721-.72 0-.398-.322-.72-.721-.72z" />
+							</svg>
+							<span>IT</span>
+						</a>
+						<a class="social-link" target="_blank" href="https://www.linkedin.com/company/toei-animation-europe">
+							<svg class="svg-white" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+								<path id="Vector" d="M20 3.33334C29.1767 3.33334 36.6667 10.8032 36.6667 20C36.6667 29.1968 29.1968 36.6667 20 36.6667C10.8032 36.6667 3.33333 29.1968 3.33333 20C3.33333 10.8032 10.8032 3.33334 20 3.33334ZM20 0C8.95583 0 0 8.95583 0 20C0 31.0442 8.95583 40 20 40C31.0442 40 40 31.0442 40 20C40 8.95583 31.0241 0 20 0ZM16.6667 13.3333C16.6667 14.257 15.9237 15.0201 15 15.0201C14.0763 15.0201 13.3333 14.2771 13.3333 13.3333C13.3333 12.4096 14.0763 11.6466 15 11.6466C15.9237 11.6466 16.6667 12.3896 16.6667 13.3333ZM16.6667 16.6466H13.3333V26.6466H16.6667V16.6466ZM21.6667 16.6466H18.3333V26.6466H21.6667V21.8875C21.6667 19.0161 25 18.755 25 21.8875V26.6466H28.3333V21.0442C28.3333 15.5823 23.1325 15.7831 21.6667 18.4739V16.6466Z"/>
+							</svg>
+							<span>EU</span>
+						</a>
+					</li>
+					<li class="address">
+						<img width="12" height="15" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2012%2015'%3E%3C/svg%3E" alt="" data-lazy-src="https://www.toei-animation.com/wp-content/themes/toei/img/pin.png"><noscript><img width="12" height="15" src="https://www.toei-animation.com/wp-content/themes/toei/img/pin.png" alt=""></noscript>
+						Paris, France					</li>
+					<li class="email">
+						<img width="13" height="8" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2013%208'%3E%3C/svg%3E" alt="" data-lazy-src="https://www.toei-animation.com/wp-content/themes/toei/img/mail.png"><noscript><img width="13" height="8" src="https://www.toei-animation.com/wp-content/themes/toei/img/mail.png" alt=""></noscript>
+						Email:&nbsp;
+						<a href="mailto:marketing-taeu＠toei-anim.co.jp">marketing-taeu＠toei-anim.co.jp</a>
+					</li>
+					<li class="copyright">© 2020 Toei Animation EUROPE. All Rights Reserved.</li>
+				</ul>
+			</div>
+			<ul id="menu-footer-menu" class="footer-menu"><li id="menu-item-224" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-224"><a href="../about-us/index.html">Toei animation Europe</a></li>
+<li id="menu-item-223" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-223"><a href="https://www.toei-animation.com/legal-notice/">Legal notice</a></li>
+<li id="menu-item-222" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-222"><a href="https://www.toei-animation.com/copyrights/">Copyrights</a></li>
+<li id="menu-item-221" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-221"><a href="https://www.toei-animation.com/cookie-policy/">Cookie Policy</a></li>
+<li id="menu-item-2118" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2118"><a href="https://www.toei-animation.com/privacy-policy/">Privacy Policy</a></li>
+</ul>		</div>
+	</div>
+
+</footer>
+<!-- /footer -->
+
+<div style="display: none;" id="hidden-newsletter">
+	<img width="60" height="60" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2060%2060'%3E%3C/svg%3E" alt="" data-lazy-src="https://www.toei-animation.com/wp-content/themes/toei/img/newsletter.svg"><noscript><img width="60" height="60" src="https://www.toei-animation.com/wp-content/themes/toei/img/newsletter.svg" alt=""></noscript>
+	<p class="title">Subscribe to our newsletter !</p>
+	<p class="desc">Get the latest information to your inbox and stay updated.</p>
+	  
+  
+  <div class="
+    mailpoet_form_popup_overlay
+      "></div>
+  <div
+    id="mailpoet_form_1"
+    class="
+      mailpoet_form
+      mailpoet_form_php
+      mailpoet_form_position_
+      mailpoet_form_animation_
+    "
+      >
+    
+    <style type="text/css">
+     #mailpoet_form_1 .mailpoet_form {  }
+#mailpoet_form_1 .mailpoet_paragraph { line-height: 20px; }
+#mailpoet_form_1 .mailpoet_segment_label, #mailpoet_form_1 .mailpoet_text_label, #mailpoet_form_1 .mailpoet_textarea_label, #mailpoet_form_1 .mailpoet_select_label, #mailpoet_form_1 .mailpoet_radio_label, #mailpoet_form_1 .mailpoet_checkbox_label, #mailpoet_form_1 .mailpoet_list_label, #mailpoet_form_1 .mailpoet_date_label { display: block; font-weight: bold; }
+#mailpoet_form_1 .mailpoet_text, #mailpoet_form_1 .mailpoet_textarea, #mailpoet_form_1 .mailpoet_select, #mailpoet_form_1 .mailpoet_date_month, #mailpoet_form_1 .mailpoet_date_day, #mailpoet_form_1 .mailpoet_date_year, #mailpoet_form_1 .mailpoet_date { display: block; }
+#mailpoet_form_1 .mailpoet_text, #mailpoet_form_1 .mailpoet_textarea { width: 200px; }
+#mailpoet_form_1 .mailpoet_checkbox {  }
+#mailpoet_form_1 .mailpoet_submit input {  }
+#mailpoet_form_1 .mailpoet_divider {  }
+#mailpoet_form_1 .mailpoet_message {  }
+#mailpoet_form_1 .mailpoet_validate_success { font-weight: 600; color: #468847; }
+#mailpoet_form_1 .mailpoet_validate_error { color: #b94a48; }#mailpoet_form_1{;}#mailpoet_form_1 form.mailpoet_form {padding: 10px;}#mailpoet_form_1 .mailpoet_message {margin: 0; padding: 0 20px;}#mailpoet_form_1 .mailpoet_paragraph.last {margin-bottom: 0} @media (max-width: 500px) {#mailpoet_form_1 {background-image: none;}} @media (min-width: 500px) {#mailpoet_form_1 .last .mailpoet_paragraph:last-child {margin-bottom: 0}}  @media (max-width: 500px) {#mailpoet_form_1 .mailpoet_form_column:last-child .mailpoet_paragraph:last-child {margin-bottom: 0}} 
+    </style>
+
+    <form
+      target="_self"
+      method="post"
+      action="https://www.toei-animation.com/wp-admin/admin-post.php?action=mailpoet_subscription_form"
+      class="mailpoet_form mailpoet_form_form mailpoet_form_php"
+      novalidate
+      data-delay=""
+      data-exit-intent-enabled=""
+      data-font-family=""
+      data-cookie-expiration-time=""
+    >
+      <input type="hidden" name="data[form_id]" value="1" />
+      <input type="hidden" name="token" value="ce7d8d5747" />
+      <input type="hidden" name="api_version" value="v1" />
+      <input type="hidden" name="endpoint" value="subscribers" />
+      <input type="hidden" name="mailpoet_method" value="subscribe" />
+
+      <label class="mailpoet_hp_email_label" style="display: none !important;">Please leave this field empty<input type="email" name="data[email]"/></label><div class="mailpoet_paragraph "><label for="form_email_1" class="mailpoet_text_label" data-automation-id="form_email_label" >Enter your email here <span class="mailpoet_required">*</span></label><input type="email" autocomplete="email" class="mailpoet_text" id="form_email_1" name="data[form_field_MmQ1N2YxZmUyYWQ5X2VtYWls]" title="Enter your email here" value="" style="padding:5px;" data-automation-id="form_email" data-parsley-required="true" data-parsley-minlength="6" data-parsley-maxlength="150" data-parsley-type-message="This value should be a valid email." data-parsley-errors-container=".mailpoet_error_email_" data-parsley-required-message="This field is required." /></div>
+<div class="mailpoet_paragraph "><label for="form_first_name_1" class="mailpoet_text_label" data-automation-id="form_first_name_label" >Name <span class="mailpoet_required">*</span></label><input type="text" autocomplete="given-name" class="mailpoet_text" id="form_first_name_1" name="data[form_field_YTZkMWNjYzFiMzNiX2ZpcnN0X25hbWU=]" title="Name" value="" style="padding:5px;" data-automation-id="form_first_name" data-parsley-names='[&quot;Please specify a valid name.&quot;,&quot;Addresses in names are not permitted, please add your name instead.&quot;]' data-parsley-required="true" data-parsley-errors-container=".mailpoet_error_first_name_" data-parsley-required-message="This field is required." /></div>
+<div class="mailpoet_paragraph "><label for="form_last_name_1" class="mailpoet_text_label" data-automation-id="form_last_name_label" >Last name <span class="mailpoet_required">*</span></label><input type="text" autocomplete="family-name" class="mailpoet_text" id="form_last_name_1" name="data[form_field_MGM0ODc1YzJjYmUwX2xhc3RfbmFtZQ==]" title="Last name" value="" style="padding:5px;" data-automation-id="form_last_name" data-parsley-names='[&quot;Please specify a valid name.&quot;,&quot;Addresses in names are not permitted, please add your name instead.&quot;]' data-parsley-required="true" data-parsley-errors-container=".mailpoet_error_last_name_" data-parsley-required-message="This field is required." /></div>
+<div class="mailpoet_paragraph "><label for="form_1_1" class="mailpoet_text_label" >Company Name <span class="mailpoet_required">*</span></label><input type="text" autocomplete="on" class="mailpoet_text" id="form_1_1" name="data[cf_1]" title="Company Name" value="" style="padding:5px;" data-parsley-required="true" data-parsley-errors-container=".mailpoet_error_1_" data-parsley-required-message="This field is required." /></div>
+<div class="mailpoet_paragraph "><input type="submit" class="mailpoet_submit" value="Subscribe" data-automation-id="subscribe-submit-button" style="padding:5px;border-color:transparent;" /><span class="mailpoet_form_loading"><span class="mailpoet_bounce1"></span><span class="mailpoet_bounce2"></span><span class="mailpoet_bounce3"></span></span></div>
+
+      <div class="mailpoet_message">
+        <p class="mailpoet_validate_success" style="display:none;">Check your inbox or spam folder to confirm your subscription.
+        </p>
+        <p class="mailpoet_validate_error" style="display:none;">        </p>
+      </div>
+    </form>
+  </div>
+
+  	<span class="required">* All fields are required</span>
+</div>
+
+<link data-minify="1" rel='stylesheet' id='mailpoet_public-css' href="../wp-content/cache/min/1/wp-content/plugins/mailpoet/assets/dist/css/mailpoet-public.55cd0214__qimj8og.css" type='text/css' media='all' />
+
+
+
+<script type="rocketlazyloadscript" data-minify="1" data-rocket-type='text/javascript' src="../wp-content/cache/min/1/wp-content/plugins/contact-form-7/includes/swv/js/index__qimj8og.js" id='swv-js' defer></script>
+<script type='text/javascript' id='contact-form-7-js-extra'>
+/* <![CDATA[ */
+var wpcf7 = {"api":{"root":"https:\/\/www.toei-animation.com\/wp-json\/","namespace":"contact-form-7\/v1"},"cached":"1"};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-minify="1" data-rocket-type='text/javascript' src="../wp-content/cache/min/1/wp-content/plugins/contact-form-7/includes/js/index__qimj8og.js" id='contact-form-7-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' id='rocket-browser-checker-js-after'>
+"use strict";var _createClass=function(){function defineProperties(target,props){for(var i=0;i<props.length;i++){var descriptor=props[i];descriptor.enumerable=descriptor.enumerable||!1,descriptor.configurable=!0,"value"in descriptor&&(descriptor.writable=!0),Object.defineProperty(target,descriptor.key,descriptor)}}return function(Constructor,protoProps,staticProps){return protoProps&&defineProperties(Constructor.prototype,protoProps),staticProps&&defineProperties(Constructor,staticProps),Constructor}}();function _classCallCheck(instance,Constructor){if(!(instance instanceof Constructor))throw new TypeError("Cannot call a class as a function")}var RocketBrowserCompatibilityChecker=function(){function RocketBrowserCompatibilityChecker(options){_classCallCheck(this,RocketBrowserCompatibilityChecker),this.passiveSupported=!1,this._checkPassiveOption(this),this.options=!!this.passiveSupported&&options}return _createClass(RocketBrowserCompatibilityChecker,[{key:"_checkPassiveOption",value:function(self){try{var options={get passive(){return!(self.passiveSupported=!0)}};window.addEventListener("test",null,options),window.removeEventListener("test",null,options)}catch(err){self.passiveSupported=!1}}},{key:"initRequestIdleCallback",value:function(){!1 in window&&(window.requestIdleCallback=function(cb){var start=Date.now();return setTimeout(function(){cb({didTimeout:!1,timeRemaining:function(){return Math.max(0,50-(Date.now()-start))}})},1)}),!1 in window&&(window.cancelIdleCallback=function(id){return clearTimeout(id)})}},{key:"isDataSaverModeOn",value:function(){return"connection"in navigator&&!0===navigator.connection.saveData}},{key:"supportsLinkPrefetch",value:function(){var elem=document.createElement("link");return elem.relList&&elem.relList.supports&&elem.relList.supports("prefetch")&&window.IntersectionObserver&&"isIntersecting"in IntersectionObserverEntry.prototype}},{key:"isSlowConnection",value:function(){return"connection"in navigator&&"effectiveType"in navigator.connection&&("2g"===navigator.connection.effectiveType||"slow-2g"===navigator.connection.effectiveType)}}]),RocketBrowserCompatibilityChecker}();
+</script>
+<script type='text/javascript' id='rocket-preload-links-js-extra'>
+/* <![CDATA[ */
+var RocketPreloadLinksConfig = {"excludeUris":"\/contact\/|\/catalog\/|\/(?:.+\/)?feed(?:\/(?:.+\/?)?)?$|\/(?:.+\/)?embed\/|\/(index\\.php\/)?wp\\-json(\/.*|$)|\/refer\/|\/go\/|\/recommend\/|\/recommends\/","usesTrailingSlash":"1","imageExt":"jpg|jpeg|gif|png|tiff|bmp|webp|avif|pdf|doc|docx|xls|xlsx|php","fileExt":"jpg|jpeg|gif|png|tiff|bmp|webp|avif|pdf|doc|docx|xls|xlsx|php|html|htm","siteUrl":"https:\/\/www.toei-animation.com","onHoverDelay":"100","rateThrottle":"3"};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' id='rocket-preload-links-js-after'>
+(function() {
+"use strict";var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},e=function(){function i(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,t,n){return t&&i(e.prototype,t),n&&i(e,n),e}}();function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var t=function(){function n(e,t){i(this,n),this.browser=e,this.config=t,this.options=this.browser.options,this.prefetched=new Set,this.eventTime=null,this.threshold=1111,this.numOnHover=0}return e(n,[{key:"init",value:function(){!this.browser.supportsLinkPrefetch()||this.browser.isDataSaverModeOn()||this.browser.isSlowConnection()||(this.regex={excludeUris:RegExp(this.config.excludeUris,"i"),images:RegExp(".("+this.config.imageExt+")$","i"),fileExt:RegExp(".("+this.config.fileExt+")$","i")},this._initListeners(this))}},{key:"_initListeners",value:function(e){-1<this.config.onHoverDelay&&document.addEventListener("mouseover",e.listener.bind(e),e.listenerOptions),document.addEventListener("mousedown",e.listener.bind(e),e.listenerOptions),document.addEventListener("touchstart",e.listener.bind(e),e.listenerOptions)}},{key:"listener",value:function(e){var t=e.target.closest("a"),n=this._prepareUrl(t);if(null!==n)switch(e.type){case"mousedown":case"touchstart":this._addPrefetchLink(n);break;case"mouseover":this._earlyPrefetch(t,n,"mouseout")}}},{key:"_earlyPrefetch",value:function(t,e,n){var i=this,r=setTimeout(function(){if(r=null,0===i.numOnHover)setTimeout(function(){return i.numOnHover=0},1e3);else if(i.numOnHover>i.config.rateThrottle)return;i.numOnHover++,i._addPrefetchLink(e)},this.config.onHoverDelay);t.addEventListener(n,function e(){t.removeEventListener(n,e,{passive:!0}),null!==r&&(clearTimeout(r),r=null)},{passive:!0})}},{key:"_addPrefetchLink",value:function(i){return this.prefetched.add(i.href),new Promise(function(e,t){var n=document.createElement("link");n.rel="prefetch",n.href=i.href,n.onload=e,n.onerror=t,document.head.appendChild(n)}).catch(function(){})}},{key:"_prepareUrl",value:function(e){if(null===e||"object"!==(void 0===e?"undefined":r(e))||!1 in e||-1===["http:","https:"].indexOf(e.protocol))return null;var t=e.href.substring(0,this.config.siteUrl.length),n=this._getPathname(e.href,t),i={original:e.href,protocol:e.protocol,origin:t,pathname:n,href:t+n};return this._isLinkOk(i)?i:null}},{key:"_getPathname",value:function(e,t){var n=t?e.substring(this.config.siteUrl.length):e;return n.startsWith("/")||(n="/"+n),this._shouldAddTrailingSlash(n)?n+"/":n}},{key:"_shouldAddTrailingSlash",value:function(e){return this.config.usesTrailingSlash&&!e.endsWith("/")&&!this.regex.fileExt.test(e)}},{key:"_isLinkOk",value:function(e){return null!==e&&"object"===(void 0===e?"undefined":r(e))&&(!this.prefetched.has(e.href)&&e.origin===this.config.siteUrl&&-1===e.href.indexOf("?")&&-1===e.href.indexOf("#")&&!this.regex.excludeUris.test(e.href)&&!this.regex.images.test(e.href))}}],[{key:"run",value:function(){"undefined"!=typeof RocketPreloadLinksConfig&&new n(new RocketBrowserCompatibilityChecker({capture:!0,passive:!0}),RocketPreloadLinksConfig).init()}}]),n}();t.run();
+}());
+</script>
+<script type='text/javascript' id='vendors-js-extra'>
+/* <![CDATA[ */
+var series = {"autocomplete":"[{\"label\":\"Dragon Ball DAIMA\",\"value\":\"\"},{\"label\":\"GIRLS BAND CRY\",\"value\":\"\"},{\"label\":\"THE SUPERNATURAL SWEET SHOP\",\"value\":\"\"},{\"label\":\"THE FIRST SLAM DUNK\",\"value\":\"\"},{\"label\":\"DIGIMON ADVENTURE 02 THE BEGINNING\",\"value\":\"\"},{\"label\":\"Digimon Adventure Last Evolution Kizuna\",\"value\":\"\"},{\"label\":\"Le Coll\\u00e8ge Noir - Lament from Auvergne\",\"value\":\"\"},{\"label\":\"Run For Money - The Great Mission\",\"value\":\"\"},{\"label\":\"Digimon Ghost Game\",\"value\":\"\"},{\"label\":\"DIGIMON ADVENTURE (2020)\",\"value\":\"\"},{\"label\":\"Dragon Quest The adventure of Dai\",\"value\":\"\"},{\"label\":\"ARGUMENTED REALITY GIRLS TRINARY\",\"value\":\"\"},{\"label\":\"KADO: THE RIGHT ANSWER\",\"value\":\"\"},{\"label\":\"MAJIN BONE\",\"value\":\"\"},{\"label\":\"ROBOT GIRLS Z PLUS\",\"value\":\"\"},{\"label\":\"ROBOT GIRLS Z\",\"value\":\"\"},{\"label\":\"OLYNSSIS THE SILVER COLOR\",\"value\":\"\"},{\"label\":\"XENOSAGA - THE ANIMATION\",\"value\":\"\"},{\"label\":\"INTERLUDE\",\"value\":\"\"},{\"label\":\"GALAXY EXPRESS 999\",\"value\":\"\"},{\"label\":\"BALATACK\",\"value\":\"\"},{\"label\":\"PLANET ROBOT DANGUARD ACE\",\"value\":\"\"},{\"label\":\"JET MARS\",\"value\":\"\"},{\"label\":\"GA-KEEN, THE MAGNETIC ROBOT\",\"value\":\"\"},{\"label\":\"GAIKING\",\"value\":\"\"},{\"label\":\"DINO MECH GAIKING\",\"value\":\"\"},{\"label\":\"JEEG, THE STEEL ROBOT\",\"value\":\"\"},{\"label\":\"GOLDBANG\",\"value\":\"\"},{\"label\":\"MICROID S\",\"value\":\"\"},{\"label\":\"BABIL II\",\"value\":\"\"},{\"label\":\"CYBORG 009\",\"value\":\"\"},{\"label\":\"ROBIN IN THE RAINBOW TROOPS\",\"value\":\"\"},{\"label\":\"SPACE KID JUN\",\"value\":\"\"},{\"label\":\"MARIE & GALI\",\"value\":\"\"},{\"label\":\"ASATARO\",\"value\":\"\"},{\"label\":\"MY THREE DAUGHTERS\",\"value\":\"\"},{\"label\":\"MASTER HAMSTERS\",\"value\":\"\"},{\"label\":\"NONO CHAN\",\"value\":\"\"},{\"label\":\"PIP POP PATTLE\",\"value\":\"\"},{\"label\":\"THE THIRD ONE OF THE HARUBA\",\"value\":\"\"},{\"label\":\"CRAYON KINGDOM\",\"value\":\"\"},{\"label\":\"WORLD FAIRY TALE SERIES\",\"value\":\"\"},{\"label\":\"NEW MAPPLE TOWN STORY\",\"value\":\"\"},{\"label\":\"MAPPLE TOWN STORY\",\"value\":\"\"},{\"label\":\"KEIHIN KAZOKU\",\"value\":\"\"},{\"label\":\"BOBOBO-BO BO-BOBO\",\"value\":\"\"},{\"label\":\"TSURI BAKA NISSHI\",\"value\":\"\"},{\"label\":\"PUCHAN\",\"value\":\"\"},{\"label\":\"MIIKO\",\"value\":\"\"},{\"label\":\"I'M HANI TARO\",\"value\":\"\"},{\"label\":\"AZUMI MAMMA MIA\",\"value\":\"\"},{\"label\":\"GOLDFISH FORECAST\",\"value\":\"\"},{\"label\":\"MAGICAL TALULUTO\",\"value\":\"\"},{\"label\":\"KARIAGE-KUN\",\"value\":\"\"},{\"label\":\"MODERN KIDS\",\"value\":\"\"},{\"label\":\"GU-GU GANMO\",\"value\":\"\"},{\"label\":\"STOP!! HIBARI!!\",\"value\":\"\"},{\"label\":\"PATALLIRO\",\"value\":\"\"},{\"label\":\"SUPER GAL ASARI\",\"value\":\"\"},{\"label\":\"IKKYU-SAN\",\"value\":\"\"},{\"label\":\"FURIOUS ATARO\",\"value\":\"\"},{\"label\":\"AKANE-CHAN\",\"value\":\"\"},{\"label\":\"PYUN PYUN MARU\",\"value\":\"\"},{\"label\":\"HUSTLE PUNCH\",\"value\":\"\"},{\"label\":\"JEANNE, THE KAMIKAZE THIEF\",\"value\":\"\"},{\"label\":\"FUN FUN PHARMACY\",\"value\":\"\"},{\"label\":\"LALABEL, THE MAGICAL GIRL\",\"value\":\"\"},{\"label\":\"LULU, THE FLOWER ANGEL\",\"value\":\"\"},{\"label\":\"MEGU, THE LITTLE WITCH\",\"value\":\"\"},{\"label\":\"CUTEY HONEY FLASH\",\"value\":\"\"},{\"label\":\"CUTEY HONEY\",\"value\":\"\"},{\"label\":\"LIMIT-CHAN\",\"value\":\"\"},{\"label\":\"CHAPPIE, THE WITCH\",\"value\":\"\"},{\"label\":\"SARUTOBI ECCHAN\",\"value\":\"\"},{\"label\":\"MACO, THE MERMAID\",\"value\":\"\"},{\"label\":\"THE SECRETS OF AKKOCHAN\",\"value\":\"\"},{\"label\":\"SALLY, THE WITCH\",\"value\":\"\"},{\"label\":\"ROWDY SUMO WRESTLER MATSUTARO!!\",\"value\":\"\"},{\"label\":\"WORLD TRIGGER\",\"value\":\"\"},{\"label\":\"DRILAND\",\"value\":\"\"},{\"label\":\"TAICHI CHASER\",\"value\":\"\"},{\"label\":\"RING NI KAKERO\",\"value\":\"\"},{\"label\":\"BEET THE VANDEL BUSTER\",\"value\":\"\"},{\"label\":\"GASH BELL!!\",\"value\":\"\"},{\"label\":\"AIR MASTER\",\"value\":\"\"},{\"label\":\"MUSHURAMBO\",\"value\":\"\"},{\"label\":\"GULLIVER BOY\",\"value\":\"\"},{\"label\":\"SHINKEN LEGEND\",\"value\":\"\"},{\"label\":\"SHOOT!!\",\"value\":\"\"},{\"label\":\"SLAM DUNK\",\"value\":\"\"},{\"label\":\"GHOST SWEEPER MIKAMI\",\"value\":\"\"},{\"label\":\"THE GREAT ADVENTURE OF DAI\",\"value\":\"\"},{\"label\":\"OTOKO JUKU\",\"value\":\"\"},{\"label\":\"LOMIEN MAN\",\"value\":\"\"},{\"label\":\"NINJA AKAKAGE\",\"value\":\"\"},{\"label\":\"HAPPY LUCKY BIKKURIMAN\",\"value\":\"\"},{\"label\":\"SUPER PHOENIX\",\"value\":\"\"},{\"label\":\"BIKKURIMAN\",\"value\":\"\"},{\"label\":\"IKKI-MAN\",\"value\":\"\"},{\"label\":\"SILVER FANG\",\"value\":\"\"},{\"label\":\"WINGMAN\",\"value\":\"\"},{\"label\":\"LITTLE BIG NOSE\",\"value\":\"\"},{\"label\":\"MR. MUSCLEMAN\",\"value\":\"\"},{\"label\":\"GENKI, THE BOY CHAMP\",\"value\":\"\"},{\"label\":\"KING ARTHUR\",\"value\":\"\"},{\"label\":\"GRAND PRIX\",\"value\":\"\"},{\"label\":\"SUPER DUCH HAWK\",\"value\":\"\"},{\"label\":\"RYU, THE CAVE BOY\",\"value\":\"\"},{\"label\":\"AN APACHE BASEBALL TEAM\",\"value\":\"\"},{\"label\":\"A KICK FIEND\",\"value\":\"\"},{\"label\":\"TIGER MASK W\",\"value\":\"\"},{\"label\":\"TIGER MASK\",\"value\":\"\"},{\"label\":\"THE PIRATE PRINCE\",\"value\":\"\"},{\"label\":\"A LITTLE NINJA, FUJIMARU\",\"value\":\"\"},{\"label\":\"KEN, THE WILD BOY\",\"value\":\"\"},{\"label\":\"LOVE.COM - LOVELY COMPLEX\",\"value\":\"\"},{\"label\":\"KANPAI\",\"value\":\"\"},{\"label\":\"KYOUSOUGIGA\",\"value\":\"\"},{\"label\":\"FLAT BROKE SISTERS\",\"value\":\"\"},{\"label\":\"THE LEGEND OF GAMBLER - TETSUYA\",\"value\":\"\"},{\"label\":\"KAMISAMA KAZOKU\",\"value\":\"\"},{\"label\":\"IRIYA'S SKY, THE SUMMER WITH UFO\",\"value\":\"\"},{\"label\":\"NADJA\",\"value\":\"\"},{\"label\":\"KANON\",\"value\":\"\"},{\"label\":\"MOON GUARDIAN\",\"value\":\"\"},{\"label\":\"HANAYORI DANGO\",\"value\":\"\"},{\"label\":\"NEIGHBORHOOD STORY\",\"value\":\"\"},{\"label\":\"HELLO! LADY LYNN\",\"value\":\"\"},{\"label\":\"LADY LADY!!\",\"value\":\"\"},{\"label\":\"STEP, JUN\",\"value\":\"\"},{\"label\":\"THE PUMPKIN WINE\",\"value\":\"\"},{\"label\":\"HELLO, SANDYBELL\",\"value\":\"\"},{\"label\":\"THRILLER RESTAURANT\",\"value\":\"\"},{\"label\":\"MONONOKE\",\"value\":\"\"},{\"label\":\"AYAKASHI\",\"value\":\"\"},{\"label\":\"THE FILE OF YOUNG KINDAICHI\",\"value\":\"\"},{\"label\":\"NUBE\",\"value\":\"\"},{\"label\":\"DORORON ENMAKUN\",\"value\":\"\"},{\"label\":\"DEVIL BOY\",\"value\":\"\"},{\"label\":\"DEVIL MAN\",\"value\":\"\"},{\"label\":\"GETTA ROBOT G\",\"value\":\"\"},{\"label\":\"GETTA ROBOT\",\"value\":\"\"},{\"label\":\"LITTLE MEMOLE\",\"value\":\"\"},{\"label\":\"MARMALADE BOY\",\"value\":\"\"},{\"label\":\"LOVE IN ROCKnROLL\",\"value\":\"\"},{\"label\":\"KEN THE GREAT BEAR FIST\",\"value\":\"\"},{\"label\":\"TORIKO\",\"value\":\"\"},{\"label\":\"BAKUTSURI BARCODE HUNTER\",\"value\":\"\"},{\"label\":\"STARZINGER\",\"value\":\"\"},{\"label\":\"BUTT DETECTIVE\",\"value\":\"\"},{\"label\":\"GEGEGE NO KITARO\",\"value\":\"\"},{\"label\":\"CAPTAIN FUTURE\",\"value\":\"\"},{\"label\":\"UFO ROBOT GRENDIZER RAIDS\",\"value\":\"\"},{\"label\":\"GREAT MAZINGER\",\"value\":\"\"},{\"label\":\"MAZINGER Z\",\"value\":\"\"},{\"label\":\"MAGICAL DO RE MI\",\"value\":\"\"},{\"label\":\"PRETTY CURE\",\"value\":\"\"},{\"label\":\"CAPTAIN HARLOCK\",\"value\":\"\"},{\"label\":\"DR SLUMP ARALE\",\"value\":\"\"},{\"label\":\"DIGIMON UNIVERSE : APP MONSTERS\",\"value\":\"\"},{\"label\":\"Digimon\",\"value\":\"\"},{\"label\":\"SAINT SEIYA SAINTIA SHO\",\"value\":\"\"},{\"label\":\"SAINT SEIYA SOUL OF GOLD\",\"value\":\"\"},{\"label\":\"Saint Seiya Omega\",\"value\":\"\"},{\"label\":\"Saint Seiya\",\"value\":\"\"},{\"label\":\"Sailor Moon Crystal\",\"value\":\"\"},{\"label\":\"Sailor Moon\",\"value\":\"\"},{\"label\":\"ONE PIECE\",\"value\":\"\"},{\"label\":\"Dragon Ball Super\",\"value\":\"\"},{\"label\":\"Dragon Ball Z Kai\",\"value\":\"\"},{\"label\":\"Dragon Ball GT\",\"value\":\"\"},{\"label\":\"Dragon Ball Z\",\"value\":\"\"},{\"label\":\"Dragon Ball\",\"value\":\"\"}]"};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-content/themes/toei/dist/js/vendors.min__qm9nx93.js" id='vendors-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-content/themes/toei/dist/js/custom.min__q9vwo0v.js" id='custom-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../../_external/www.google.com/recaptcha/api__q6f1v4l.js" id='google-recaptcha-js'></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-includes/js/dist/vendor/regenerator-runtime.min__q4ru9i4.js" id='regenerator-runtime-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-includes/js/dist/vendor/wp-polyfill.min__q3cpcue.js" id='wp-polyfill-js'></script>
+<script type='text/javascript' id='wpcf7-recaptcha-js-extra'>
+/* <![CDATA[ */
+var wpcf7_recaptcha = {"sitekey":"6Lcq9PoUAAAAAKmXodV0koAin4RI0n3L3c8p6mlQ","actions":{"homepage":"homepage","contactform":"contactform"}};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-minify="1" data-rocket-type='text/javascript' src="../wp-content/cache/min/1/wp-content/plugins/contact-form-7/modules/recaptcha/index__qimj8og.js" id='wpcf7-recaptcha-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-includes/js/jquery/jquery.min__qtog2sk.js" id='jquery-core-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' src="../wp-includes/js/jquery/jquery-migrate.min__qtog0kj.js" id='jquery-migrate-js' defer></script>
+<script type='text/javascript' id='mailpoet_public-js-extra'>
+/* <![CDATA[ */
+var MailPoetForm = {"ajax_url":"https:\/\/www.toei-animation.com\/wp-admin\/admin-ajax.php","is_rtl":""};
+/* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-minify="1" data-rocket-type='text/javascript' src="../wp-content/cache/min/1/wp-content/plugins/mailpoet/assets/dist/js/public__qimj8og.js" id='mailpoet_public-js' defer></script>
+<script type="rocketlazyloadscript" data-rocket-type='text/javascript' id='mailpoet_public-js-after'>
+function initMailpoetTranslation() {
+  if (typeof MailPoet !== 'undefined') {
+    MailPoet.I18n.add('ajaxFailedErrorMessage', 'An error has happened while performing a request, please try again later.')
+  } else {
+    setTimeout(initMailpoetTranslation, 250);
+  }
+}
+setTimeout(initMailpoetTranslation, 250);
+</script>
+<script>window.lazyLoadOptions=[{elements_selector:"img[data-lazy-src],.rocket-lazyload,iframe[data-lazy-src]",data_src:"lazy-src",data_srcset:"lazy-srcset",data_sizes:"lazy-sizes",class_loading:"lazyloading",class_loaded:"lazyloaded",threshold:300,callback_loaded:function(element){if(element.tagName==="IFRAME"&&element.dataset.rocketLazyload=="fitvidscompatible"){if(element.classList.contains("lazyloaded")){if(typeof window.jQuery!="undefined"){if(jQuery.fn.fitVids){jQuery(element).parent().fitVids()}}}}}},{elements_selector:".rocket-lazyload",data_src:"lazy-src",data_srcset:"lazy-srcset",data_sizes:"lazy-sizes",class_loading:"lazyloading",class_loaded:"lazyloaded",threshold:300,}];window.addEventListener('LazyLoad::Initialized',function(e){var lazyLoadInstance=e.detail.instance;if(window.MutationObserver){var observer=new MutationObserver(function(mutations){var image_count=0;var iframe_count=0;var rocketlazy_count=0;mutations.forEach(function(mutation){for(var i=0;i<mutation.addedNodes.length;i++){if(typeof mutation.addedNodes[i].getElementsByTagName!=='function'){continue}
+if(typeof mutation.addedNodes[i].getElementsByClassName!=='function'){continue}
+images=mutation.addedNodes[i].getElementsByTagName('img');is_image=mutation.addedNodes[i].tagName=="IMG";iframes=mutation.addedNodes[i].getElementsByTagName('iframe');is_iframe=mutation.addedNodes[i].tagName=="IFRAME";rocket_lazy=mutation.addedNodes[i].getElementsByClassName('rocket-lazyload');image_count+=images.length;iframe_count+=iframes.length;rocketlazy_count+=rocket_lazy.length;if(is_image){image_count+=1}
+if(is_iframe){iframe_count+=1}}});if(image_count>0||iframe_count>0||rocketlazy_count>0){lazyLoadInstance.update()}});var b=document.getElementsByTagName("body")[0];var config={childList:!0,subtree:!0};observer.observe(b,config)}},!1)</script><script data-no-minify="1" async src="../wp-content/plugins/wp-rocket/assets/js/lazyload/17.5/lazyload.min.js"></script>
+</body>
+
+</html>
+<!-- This website is like a Rocket, isn't it? Performance optimized by WP Rocket. Learn more: https://wp-rocket.me - Debug: cached@1784998624 -->

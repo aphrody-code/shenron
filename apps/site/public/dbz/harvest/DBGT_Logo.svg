@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.0"
+   width="200"
+   height="120"
+   id="svg2306">
+  <defs
+     id="defs2309">
+    <linearGradient
+       id="linearGradient3332">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1"
+         offset="0"
+         id="stop3334" />
+      <stop
+         style="stop-color:#2f223c;stop-opacity:1"
+         offset="1"
+         id="stop3336" />
+    </linearGradient>
+    <radialGradient
+       cx="272.802"
+       cy="145.44675"
+       r="99.76078"
+       fx="272.802"
+       fy="145.44675"
+       id="radialGradient3340"
+       xlink:href="#linearGradient3332"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.1683414,-5.6434247e-2,0.2239364,0.6679952,51.668208,-8.3377528)" />
+  </defs>
+  <path
+     d="M 24.806831,88.943217 L 187.20598,11.915954 L 158.32075,82.203326 L 49.840691,90.227002 L 54.012999,85.733741 L 24.806831,88.943217 z "
+     style="opacity:1;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="path3326" />
+  <path
+     d="M 4.6912484,95.942941 C 64.832404,63.98759 127.53763,33.100587 197.53001,5.2499123 L 162.55283,87.276035 L 140.66463,91.125592 L 138.07488,96.269683 L 108.53807,115.49366 L 119.3328,90.004573 C 117.6361,93.624432 113.40514,92.997856 99.338514,92.997856 C 86.300818,92.997856 81.586611,93.04971 82.528329,90.058641 L 39.977955,95.014337 L 46.478137,89.13322 C 28.553829,91.707893 8.3232078,97.065083 4.6912484,95.942941 z "
+     style="opacity:1;color:#000000;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#695a6c;stroke-width:2.40747523;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="path2315" />
+  <path
+     d="M 48.71483,82.145668 L 156.34118,79.307727 L 175.50377,32.873963 L 161.47167,36.541601 L 176.54865,29.646435 L 183.67988,14.310128 L 48.71483,82.145668 z "
+     style="opacity:1;color:#000000;fill:#c90708;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="path3328" />
+  <path
+     d="M 177.23426,43.235531 L 166.31962,54.754772 L 149.70664,54.754772 L 132.96931,94.669729 L 118.51475,103.61367 L 138.67653,54.754772 L 103.82369,55.209552 L 94.273374,78.482072 L 113.11072,78.330486 L 115.57522,71.468041 L 109.4725,71.278336 L 102.9567,61.503738 L 130.1254,61.503738 L 122.32117,81.779771 C 121.07062,85.028799 116.54148,87.693059 113.10034,87.716663 L 86.731496,87.897502 C 83.373785,87.920532 82.491961,81.808848 83.462389,79.323565 L 93.239984,54.28303 C 96.773329,45.234092 104.74559,44.380042 114.7782,44.221638 L 177.23426,43.235531 z "
+     style="opacity:1;color:#000000;fill:url(#radialGradient3340);fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1.92597997;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="path3286" />
+  <path
+     d="M 133.76112,74.30878 L 145.20157,63.61309 L 143.12376,68.181753 L 133.76112,74.30878 z "
+     style="opacity:1;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;marker:none;marker-start:none;marker-mid:none;marker-end:none;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+     id="path3330" />
+</svg>

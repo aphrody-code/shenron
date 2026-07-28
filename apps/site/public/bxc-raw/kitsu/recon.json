@@ -1,0 +1,26 @@
+{
+  "$schema": "bxc-recon-v1",
+  "url": "https://kitsu.io/",
+  "finalUrl": "https://kitsu.io/",
+  "httpStatus": 200,
+  "bytes": 4868,
+  "gotoMs": 1206.960027,
+  "profile": "max",
+  "headers": {
+    "server": "cloudflare",
+    "cdnRayId": "a221bba62feb03ff-CDG",
+    "cdnVendor": "Cloudflare",
+    "cspHosts": [],
+    "cacheControl": "max-age=0, no-cache",
+    "contentType": "text/html"
+  },
+  "frameworks": [],
+  "assets": [
+    {
+      "type": "script",
+      "url": "https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=default,Intl,IntersectionObserver,fetch&amp;flags=gated&amp;unknown=polyfill",
+      "host": "cdnjs.cloudflare.com"
+    }
+  ],
+  "cssSelectors": []
+}

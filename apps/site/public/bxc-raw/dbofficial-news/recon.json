@@ -1,0 +1,27 @@
+{
+  "$schema": "bxc-recon-v1",
+  "url": "https://en.dragon-ball-official.com/news",
+  "finalUrl": "https://en.dragon-ball-official.com/news",
+  "httpStatus": 200,
+  "bytes": 467,
+  "gotoMs": 2554.012009,
+  "profile": "max",
+  "headers": {
+    "server": "nginx",
+    "xPoweredBy": "PHP/8.1.29",
+    "cdnRayId": "Vu7rH8OMRe0lR5hk2_uWmBFOmzp3TYipizmjVHu8PDhIa4mlJoWgyw==",
+    "cdnVendor": "AWS CloudFront",
+    "cspHosts": [],
+    "cacheControl": "no-cache, private",
+    "contentType": "text/html; charset=UTF-8"
+  },
+  "frameworks": [],
+  "assets": [
+    {
+      "type": "script",
+      "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+      "host": "cdn.cookielaw.org"
+    }
+  ],
+  "cssSelectors": []
+}

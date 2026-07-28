@@ -1,0 +1,35 @@
+{
+  "$schema": "bxc-recon-v1",
+  "url": "https://dragonball.fandom.com/wiki/Instant_Transmission",
+  "finalUrl": "https://dragonball.fandom.com/wiki/Instant_Transmission",
+  "httpStatus": 200,
+  "bytes": 6259,
+  "gotoMs": 583.882111,
+  "profile": "max",
+  "headers": {
+    "server": "cloudflare",
+    "cdnRayId": "a221b36b2ba7af97-CDG",
+    "cdnVendor": "Cloudflare",
+    "cspHosts": [
+      "challenges.cloudflare.com"
+    ],
+    "cacheControl": "private, s-maxage=0, max-age=0, must-revalidate",
+    "contentSecurityPolicy": "default-src 'none'; script-src 'nonce-kRId1FmL33y0jqdxVXNIJv' 'unsafe-eval' https://challenges.cloudflare.com; script-src-attr 'none'; style-src 'unsafe-inline'; img-src 'self' https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com blob:; child-src 'self' https://challenges.cloudflare.com blob:; worker-src blob:; form-action http: https:; base-uri 'self'",
+    "contentType": "text/html; charset=UTF-8"
+  },
+  "frameworks": [],
+  "assets": [
+    {
+      "type": "script",
+      "url": "https://dragonball.fandom.com/cdn-cgi/challenge-platform/h/g/orchestrate/chl_page/v1?ray=a221b36e88f8f3b3",
+      "host": "dragonball.fandom.com"
+    }
+  ],
+  "cssSelectors": [
+    "#challenge-error-text",
+    "*",
+    ".main-content",
+    "body",
+    "html"
+  ]
+}

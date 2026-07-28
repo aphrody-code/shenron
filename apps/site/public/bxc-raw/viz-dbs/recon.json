@@ -1,0 +1,27 @@
+{
+  "$schema": "bxc-recon-v1",
+  "url": "https://www.viz.com/shonenjump/chapters/dragon-ball-super",
+  "finalUrl": "https://www.viz.com/shonenjump/chapters/dragon-ball-super",
+  "httpStatus": 200,
+  "bytes": 1764,
+  "gotoMs": 0,
+  "profile": "max",
+  "headers": {
+    "cdnVendor": "Cached (Redis)",
+    "cspHosts": []
+  },
+  "frameworks": [],
+  "assets": [
+    {
+      "type": "script",
+      "url": "https://www.googletagmanager.com/gtm.js?id=GTM-NL4KN8G&amp;gtm_auth=ZarF2Qyfj6o5KCl8wozoZA&amp;gtm_preview=env-2&amp;gtm_cookies_win=x",
+      "host": "www.googletagmanager.com"
+    },
+    {
+      "type": "script",
+      "url": "https://code.jquery.com/jquery-1.11.3.min.js",
+      "host": "code.jquery.com"
+    }
+  ],
+  "cssSelectors": []
+}
