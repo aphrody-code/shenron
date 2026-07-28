@@ -58,12 +58,14 @@ restore_next() {
 }
 
 rollback() {
-  echo "✗ échec déploiement site — rollback vers $PREV_HEAD" >&2
-  git reset --hard "$PREV_HEAD" >/dev/null 2>&1 || true
+  # IMPORTANT : ne JAMAIS `git reset --hard` ici — ça efface le working tree
+  # (et a déjà shippé une version incomplète en prod). On restaure seulement
+  # le build `.next` précédent et on relance le service.
+  echo "✗ échec déploiement site — rollback build (.next) uniquement" >&2
   if restore_next; then
-    echo "  ↩ build précédent restauré depuis .next.prev (pas de rebuild)"
+    echo "  ↩ build précédent restauré depuis .next.prev (pas de rebuild, pas de git reset)"
   else
-    echo "  ⚠ aucun build précédent valide — rebuild depuis $PREV_HEAD" >&2
+    echo "  ⚠ aucun build précédent valide — tentative de rebuild sur HEAD" >&2
     NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" bun --filter @shenron/site build >/dev/null 2>&1 || true
   fi
   sudo systemctl restart shenron-site.service || true
