@@ -1971,7 +1971,7 @@ html[data-home] {
 	overflow: visible;
 	margin-bottom: 0.5rem;
 }
-.home-guardian__avatar :global(img) {
+.home-guardian__avatar img {
 	border-radius: 50%;
 	width: 56px;
 	height: 56px;
@@ -2170,7 +2170,7 @@ html[data-home] {
 	aspect-ratio: 16/9;
 	overflow: hidden;
 }
-.home-news__cover :global(img) {
+.home-news__cover img {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;

@@ -377,6 +377,58 @@ export const siteReports = pgTable(
 export type SiteReport = typeof siteReports.$inferSelect;
 export type SiteReportInsert = typeof siteReports.$inferInsert;
 
+// --- Notes communautaires (étoiles 1–5 + commentaire optionnel) ---
+//
+// Membres connectés (Discord lié) notent jeux, épisodes, films, arcs.
+// Une note par (type, id, user) — upsert. Les sagas affichent la moyenne
+// agrégée de leurs arcs. Commentaires facultatifs ; delete auteur/admin.
+export const RATING_TARGET_TYPES = ["game", "episode", "movie", "arc"] as const;
+export type RatingTargetType = (typeof RATING_TARGET_TYPES)[number];
+
+export const siteRatings = pgTable(
+	"site_ratings",
+	{
+		id: cuid(),
+		// game | episode | movie | arc
+		targetType: text("targetType").notNull(),
+		// id métier stringifié
+		targetId: text("targetId").notNull(),
+		userId: text("userId")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		// 1..5
+		score: integer("score").notNull(),
+		comment: text("comment"),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	},
+	(t) => [
+		unique("site_ratings_target_user_unique").on(t.targetType, t.targetId, t.userId),
+		index("site_ratings_target_idx").on(t.targetType, t.targetId),
+		index("site_ratings_user_idx").on(t.userId),
+		index("site_ratings_created_idx").on(t.createdAt),
+	]
+);
+
+export type SiteRating = typeof siteRatings.$inferSelect;
+export type SiteRatingInsert = typeof siteRatings.$inferInsert;
+
+// --- Page banners (singleton admin-editable heroes / series art) ---
+export const pageBanners = pgTable("PageBanners", {
+	id: text("id").primaryKey(),
+	data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+	updatedBy: text("updatedBy"),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type PageBanners = typeof pageBanners.$inferSelect;
+
 // --- Historique des révisions du wiki (versioning CMS) ---
 //
 // Chaque écriture éditoriale passant par /api/wiki-admin (create/update/delete +
@@ -427,6 +479,11 @@ export const usersRelations = relations(users, ({ many }) => ({
 	posts: many(posts),
 	comments: many(comments),
 	tierlists: many(tierlists),
+	ratings: many(siteRatings),
+}));
+
+export const siteRatingsRelations = relations(siteRatings, ({ one }) => ({
+	author: one(users, { fields: [siteRatings.userId], references: [users.id] }),
 }));
 
 export const postsRelations = relations(posts, ({ one, many }) => ({
