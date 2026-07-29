@@ -53,6 +53,7 @@ const TABLE_OBJECTS: Record<string, AnyTable> = {
 	db_manga_volumes: botSchema.botMangaVolumes,
 	db_databooks: botSchema.botDatabooks,
 	db_manga_chapters: botSchema.botMangaChapters,
+	db_manga_pages: botSchema.botMangaPages,
 	db_movies: botSchema.botMovies,
 	db_games: botSchema.botGames,
 	db_game_characters: botSchema.botGameCharacters,

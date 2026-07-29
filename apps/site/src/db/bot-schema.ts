@@ -360,6 +360,25 @@ export const botMangaChapters = bot.table("db_manga_chapters", {
 	...visibleCol,
 });
 
+/**
+ * OCR planches manga (PG miroir de bot SQLite `db_manga_pages`).
+ * Une ligne = une planche : texte OCR + métadonnées (série/tome/n°).
+ * 12k+ lignes en prod — éditable depuis wiki-admin /admin/database.
+ */
+export const botMangaPages = bot.table("db_manga_pages", {
+	id: int("id").primaryKey(),
+	series: text("series"),
+	tome: text("tome"),
+	planche: int("planche"),
+	/** Bulles OCR (json array de strings) — stocké text/jsonb selon sync. */
+	lines: text("lines"),
+	text: text("text"),
+	lang: text("lang"),
+	hasJa: int("has_ja"),
+	lineCount: int("line_count"),
+	charCount: int("char_count"),
+});
+
 export const botNews = bot.table("db_news", {
 	id: int("id").primaryKey(),
 	sourceId: text("source_id"),

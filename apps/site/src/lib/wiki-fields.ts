@@ -226,66 +226,37 @@ export const SECTION_PRESETS: SectionPreset[] = [
 	{ key: "relations", label: "Relations", accent: "cyan" },
 ];
 
-/** Pack PWS : sous-sections regroupées sous l'onglet parent « PWS ». */
+/**
+ * Pack PWS (9 sous-catégories) — aligné sur les clés déjà en base
+ * (`bot.db_wiki_sections` group_label=PWS, ex. Goku id=1).
+ */
 export const PWS_GROUP_PRESETS: SectionPreset[] = [
+	{ key: "force-de-frappe", label: "Force de Frappe", accent: "red", groupLabel: PWS_GROUP_NAME },
+	{ key: "force", label: "Puissance Potentiel", accent: "red", groupLabel: PWS_GROUP_NAME },
+	{ key: "force-de-soulever", label: "Force de Soulever", accent: "red", groupLabel: PWS_GROUP_NAME },
+	{ key: "vitesse", label: "Vitesse de Combat", accent: "orange", groupLabel: PWS_GROUP_NAME },
 	{
-		key: "force-de-frappe",
-		label: "Force de frappe",
-		accent: "red",
-		groupLabel: PWS_GROUP_NAME,
-	},
-	{ key: "vitesse", label: "Vitesse", accent: "red", groupLabel: PWS_GROUP_NAME },
-	{
-		key: "durabilite",
-		label: "Durabilité & Endurance",
-		accent: "red",
-		groupLabel: PWS_GROUP_NAME,
-	},
-	{
-		key: "puissance-ki",
-		label: "Puissance de Ki",
+		key: "vitesse-de-deplacement",
+		label: "Vitesse de Déplacement",
 		accent: "orange",
 		groupLabel: PWS_GROUP_NAME,
 	},
-	{
-		key: "intelligence-combat",
-		label: "Intelligence de combat",
-		accent: "cyan",
-		groupLabel: PWS_GROUP_NAME,
-	},
-	{
-		key: "capacites-speciales",
-		label: "Capacités spéciales",
-		accent: "purple",
-		groupLabel: PWS_GROUP_NAME,
-	},
-	{
-		key: "faiblesses",
-		label: "Faiblesses",
-		accent: "gold",
-		groupLabel: PWS_GROUP_NAME,
-	},
-	{
-		key: "equipement",
-		label: "Équipement",
-		accent: "green",
-		groupLabel: PWS_GROUP_NAME,
-	},
-	{
-		key: "feats",
-		label: "Feats & scaling",
-		accent: "blue",
-		groupLabel: PWS_GROUP_NAME,
-	},
+	{ key: "durabilite", label: "Durabilité", accent: "gold", groupLabel: PWS_GROUP_NAME },
+	{ key: "portee", label: "Portée d'Attaque", accent: "blue", groupLabel: PWS_GROUP_NAME },
+	{ key: "intelligence", label: "Intelligence", accent: "cyan", groupLabel: PWS_GROUP_NAME },
+	{ key: "faiblesse", label: "Faiblesse", accent: "purple", groupLabel: PWS_GROUP_NAME },
 ];
 
 /** Anciennes clés PWS → clés canoniques (ensureFullPwsPack / migration douce). */
 export const PWS_LEGACY_KEY_ALIASES: Record<string, string> = {
 	"puissance-attaque": "force-de-frappe",
 	"puissance-d-attaque": "force-de-frappe",
-	"attaque": "force-de-frappe",
-	"endurance": "durabilite",
+	attaque: "force-de-frappe",
+	endurance: "durabilite",
 	"durabilite-endurance": "durabilite",
+	faiblesses: "faiblesse",
+	"intelligence-combat": "intelligence",
+	"portee-d-attaque": "portee",
 };
 
 /** Slug de section depuis un libellé libre (accents retirés, espaces → tirets). */

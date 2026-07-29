@@ -140,6 +140,12 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 		pk: "id",
 		mutableColumns: ["series", "chapterNumber", "title", "titleJa", "volumeId", "publishedAt"],
 	},
+	db_manga_pages: {
+		name: "db_manga_pages",
+		pk: "id",
+		// OCR planches : édition text/lang/hasJa (pas de réécriture bulk des 12k lignes).
+		mutableColumns: ["series", "tome", "planche", "text", "lang", "hasJa", "lineCount", "charCount"],
+	},
 	db_movies: {
 		name: "db_movies",
 		pk: "id",
