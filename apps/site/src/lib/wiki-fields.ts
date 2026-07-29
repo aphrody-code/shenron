@@ -76,7 +76,6 @@ const FK_TARGET: Record<string, { table: string; pk: string }> = {
 	debutEpisodeId: { table: "db_episodes", pk: "id" },
 	debutChapterId: { table: "db_manga_chapters", pk: "id" },
 	debutSagaId: { table: "db_sagas", pk: "id" },
-	debutChapterId: { table: "db_manga_chapters", pk: "id" },
 	targetGameId: { table: "db_games", pk: "id" },
 	techniqueId: { table: "db_techniques", pk: "id" },
 	gameId: { table: "db_games", pk: "id" },
