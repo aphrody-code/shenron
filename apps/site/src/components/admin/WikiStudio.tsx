@@ -24,6 +24,8 @@ import { WikiEntityPreview } from "@/components/admin/WikiEntityPreview";
 import { WikiHistory } from "@/components/admin/WikiHistory";
 import { WikiSectionsPanel } from "@/components/admin/WikiSectionsPanel";
 import { WikiAiAssistant } from "@/components/admin/WikiAiAssistant";
+import { DatabookPagesPanel } from "@/components/admin/DatabookPagesPanel";
+import { GameMediaPanel } from "@/components/admin/GameMediaPanel";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
 import {
@@ -34,6 +36,9 @@ import {
 	sectionEntityType,
 } from "@/lib/wiki-fields";
 import { crudBase, WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
+
+/** jsonb gérés par un panneau dédié — pas de champ SmartField (sinon corruption string). */
+const JSONB_PANEL_COLS = /^(pages|media|stats|links|articleSources|frames|players|subtitles)$/;
 
 interface Props {
 	table: string;
@@ -53,7 +58,11 @@ export function WikiStudio({ table, id }: Props) {
 	const client = useMemo(() => apiAt(crudBase(table)), [table]);
 	const mode: "create" | "edit" = id === "new" ? "create" : "edit";
 	// `spec` est une constante de module → `mutableColumns` a une identité stable.
-	const cols = useMemo(() => spec?.mutableColumns ?? [], [spec]);
+	// On exclut les jsonb gérés par un panneau dédié (pages databook, media jeux…).
+	const cols = useMemo(
+		() => (spec?.mutableColumns ?? []).filter((c) => !JSONB_PANEL_COLS.test(c)),
+		[spec]
+	);
 
 	const [draft, setDraft] = useState<Record<string, string>>(() => toDraft(cols, null));
 	const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
@@ -280,6 +289,32 @@ export function WikiStudio({ table, id }: Props) {
 					</div>
 				</div>
 			)}
+
+			{/* Pages du lecteur databook — panneau dédié (jsonb `pages`). */}
+			{table === "db_databooks" &&
+				(mode === "edit" ? (
+					<div className="mt-2">
+						<DatabookPagesPanel databookId={id} />
+					</div>
+				) : (
+					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
+						Enregistre d&apos;abord cette entrée pour ajouter les pages du lecteur (numéro +
+						image + texte sous chaque planche).
+					</div>
+				))}
+
+			{/* Galerie médias jeu (images + YouTube) — panneau dédié (jsonb `media`). */}
+			{table === "db_games" &&
+				(mode === "edit" ? (
+					<div className="mt-2">
+						<GameMediaPanel gameId={id} />
+					</div>
+				) : (
+					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
+						Enregistre d&apos;abord ce jeu pour ajouter la galerie (screenshots + trailers
+						YouTube).
+					</div>
+				))}
 		</div>
 	);
 }

@@ -95,6 +95,17 @@ export const ENUM_OPTIONS: Record<string, { options: string[]; strict?: boolean 
 	"db_techniques.type": { options: ["super", "ultimate", "evasive", "awoken"], strict: true },
 	"shop_items.type": { options: ["card", "badge", "color", "title", "banner"], strict: true },
 	"db_databooks.kind": { options: ["databook", "interview"], strict: true },
+	"db_databooks.category": {
+		options: [
+			"V-Jump",
+			"Weekly Shonen Jump",
+			"Light Novel",
+			"Jump Anime Comics",
+			"Pamphlet & Fair",
+			"Autre",
+		],
+		strict: true,
+	},
 	"db_tools.category": { options: ["api", "modding", "shader", "utility"] },
 	"db_episodes.series": { options: ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"] },
 	"db_arcs.series": { options: ["DB", "DBZ", "DBGT", "DBS", "DB_DAIMA"] },
@@ -168,6 +179,7 @@ export const STUDIO_TABLES = new Set([
 	"db_manga_chapters",
 	"db_movies",
 	"db_games",
+	"db_databooks",
 	"db_tools",
 ]);
 export function isStudioTable(table: string): boolean {
@@ -356,7 +368,8 @@ export function publicEntityUrl(table: string, row: Record<string, unknown>): st
 		case "db_techniques":
 			return slug ? `/wiki/dragon-ball/techniques/${slug}` : null;
 		case "db_games":
-			return slug ? `/wiki/dragon-ball/games/${slug}` : null;
+			// Public : /wiki/jeux/[slug] (route canonique actuelle).
+			return slug ? `/wiki/jeux/${slug}` : null;
 		case "db_sagas":
 			return slug ? `/wiki/sagas/${slug}` : null;
 		case "db_arcs":
@@ -368,7 +381,7 @@ export function publicEntityUrl(table: string, row: Record<string, unknown>): st
 		case "db_manga_volumes":
 			return hasId ? `/wiki/manga/volume/${id}` : null;
 		case "db_databooks":
-			return "/wiki/databooks";
+			return hasId ? `/wiki/databooks/${id}` : "/wiki/databooks";
 		case "db_episodes":
 			return hasId ? `/wiki/episodes/${id}` : null;
 		default:

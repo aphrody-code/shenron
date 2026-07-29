@@ -118,6 +118,7 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 		pk: "id",
 		mutableColumns: [
 			"kind",
+			"category",
 			"title",
 			"titleJa",
 			"author",
@@ -125,6 +126,8 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"cover",
 			"description",
 			"sourceUrl",
+			// jsonb pages : DatabookPagesPanel (exclu du formulaire SmartField).
+			"pages",
 		],
 	},
 	db_manga_chapters: {
@@ -164,6 +167,8 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"description",
 			"cover",
 			"officialUrl",
+			// jsonb media : GameMediaPanel (exclu du formulaire SmartField).
+			"media",
 		],
 	},
 	db_game_characters: {
