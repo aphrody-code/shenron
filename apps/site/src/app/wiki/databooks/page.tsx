@@ -18,16 +18,21 @@ export default async function DatabooksIndexPage() {
 	const items = (data?.items ?? []).map((d) => ({
 		id: d.id,
 		kind: d.kind,
+		category: d.category ?? null,
 		title: d.title,
 		titleJa: d.title_ja,
 		author: d.author,
 		publishedAt: d.published_at,
-		cover: d.cover ? assetUrl(d.cover) : null,
+		// Chemin brut : DatabookGrid / WikiImg résolvent via assetUrl (évite
+		// double-préfixe et permet le repli placeholder si cover 404).
+		cover: d.cover,
 		description: d.description,
 		sourceUrl: d.source_url,
 	}));
 
-	const heroImage = items[0]?.cover ?? SERIES_BANNERS.DB;
+	const heroImage = items[0]?.cover
+		? assetUrl(items[0].cover)
+		: SERIES_BANNERS.DB;
 
 	return (
 		<div className="reveal-up">

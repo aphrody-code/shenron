@@ -1,34 +1,59 @@
 "use client";
 
 /**
- * Grille des databooks & interviews : onglets par type (Tout / Databooks /
- * Interviews), tri par date (plus récent / plus ancien) et recherche. Interface
- * calquée sur la grille manga (cartes couverture `dbz-panel`).
+ * Grille des databooks & interviews.
+ *
+ * Filtres **au même plan** (même style de boutons) :
+ *   Tout · Databooks · Interviews · V-Jump · Weekly Shonen Jump ·
+ *   Light Novel · Jump Anime Comics · Pamphlet & Fair · Autre
+ *
+ * Un seul filtre actif à la fois (pas de double rangée chips secondaires).
+ * + tri date + recherche.
  */
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowDownUp, BookOpen, Mic, Search } from "lucide-react";
+import { ViewTransition } from "@/components/ViewTransition";
+import { WikiImg } from "@/components/wiki/WikiImg";
+import { DATABOOK_CATEGORIES, resolveDatabookCategory } from "@/lib/databook-categories";
 
 export interface DatabookItem {
 	id: number;
 	kind: string;
+	/** Catégorie éditoriale (V-Jump, …). Null → traité comme « Autre ». */
+	category: string | null;
 	title: string;
 	titleJa: string | null;
 	author: string | null;
 	publishedAt: number | null;
+	/** Chemin d'asset brut (résolu via WikiImg / assetUrl), pas une URL absolue. */
 	cover: string | null;
 	description: string | null;
 	sourceUrl: string | null;
 }
 
-const TABS = [
-	{ key: "all", label: "Tout", icon: null },
-	{ key: "databook", label: "Databooks", icon: BookOpen },
-	{ key: "interview", label: "Interviews", icon: Mic },
-] as const;
+/** Filtre unifié : type (kind) ou catégorie éditoriale — même UI. */
+type FilterTab =
+	| { key: "all"; label: string; mode: "all"; icon: null }
+	| { key: "databook" | "interview"; label: string; mode: "kind"; icon: typeof BookOpen | typeof Mic }
+	| { key: string; label: string; mode: "category"; icon: null };
+
+const FILTER_TABS: FilterTab[] = [
+	{ key: "all", label: "Tout", mode: "all", icon: null },
+	{ key: "databook", label: "Databooks", mode: "kind", icon: BookOpen },
+	{ key: "interview", label: "Interviews", mode: "kind", icon: Mic },
+	...DATABOOK_CATEGORIES.map(
+		(c): FilterTab => ({
+			key: c,
+			label: c,
+			mode: "category",
+			icon: null,
+		})
+	),
+];
 
 function formatDate(v: number | null): string {
 	if (!v) return "—";
-	// SmartField stocke les dates en SECONDES (ou ms si ≥13 chiffres) → on normalise.
 	const ms = v >= 1e12 ? v : v * 1000;
 	try {
 		return new Date(ms).toLocaleDateString("fr-FR", { year: "numeric", month: "long" });
@@ -37,43 +62,72 @@ function formatDate(v: number | null): string {
 	}
 }
 
+function norm(s: string): string {
+	return s
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "")
+		.toLowerCase()
+		.trim();
+}
+
+const tabBtn =
+	"inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors";
+const tabActive = "border-dbz-orange bg-dbz-orange/10 text-white";
+const tabIdle =
+	"border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white";
+
 export function DatabookGrid({ items }: { items: DatabookItem[] }) {
-	const [tab, setTab] = useState<string>("all");
+	const [filter, setFilter] = useState<string>("all");
 	const [q, setQ] = useState("");
 	const [order, setOrder] = useState<"desc" | "asc">("desc");
 
+	const activeTab = FILTER_TABS.find((t) => t.key === filter) ?? FILTER_TABS[0]!;
+
 	const filtered = useMemo(() => {
-		const needle = q.trim().toLowerCase();
+		const needle = norm(q);
 		return items
-			.filter((d) => (tab === "all" ? true : d.kind === tab))
-			.filter((d) => !needle || `${d.title} ${d.author ?? ""}`.toLowerCase().includes(needle))
+			.filter((d) => {
+				if (activeTab.mode === "all") return true;
+				if (activeTab.mode === "kind") return d.kind === activeTab.key;
+				// category
+				return resolveDatabookCategory(d.category) === activeTab.key;
+			})
+			.filter((d) => {
+				if (!needle) return true;
+				const hay = norm(
+					`${d.title} ${d.titleJa ?? ""} ${d.author ?? ""} ${resolveDatabookCategory(d.category)}`
+				);
+				return hay.includes(needle);
+			})
 			.slice()
 			.sort((a, b) => {
 				const av = a.publishedAt ?? 0;
 				const bv = b.publishedAt ?? 0;
 				return order === "desc" ? bv - av : av - bv;
 			});
-	}, [items, tab, q, order]);
+	}, [items, activeTab, q, order]);
 
 	return (
 		<div className="space-y-6">
+			{/* Une seule rangée de filtres, tous au même plan (même taille / style). */}
 			<div className="flex flex-wrap items-center gap-3">
-				<div className="flex flex-wrap gap-2">
-					{TABS.map((t) => {
+				<div
+					className="flex flex-wrap gap-2"
+					role="group"
+					aria-label="Filtrer par type ou catégorie"
+				>
+					{FILTER_TABS.map((t) => {
 						const Icon = t.icon;
-						const active = tab === t.key;
+						const active = filter === t.key;
 						return (
 							<button
 								key={t.key}
 								type="button"
-								onClick={() => setTab(t.key)}
-								className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
-									active
-										? "border-dbz-orange bg-dbz-orange/10 text-white"
-										: "border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white"
-								}`}
+								onClick={() => setFilter(t.key)}
+								aria-pressed={active}
+								className={`${tabBtn} ${active ? tabActive : tabIdle}`}
 							>
-								{Icon && <Icon className="h-3.5 w-3.5" />}
+								{Icon && <Icon className="h-3.5 w-3.5" aria-hidden />}
 								{t.label}
 							</button>
 						);
@@ -82,7 +136,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 				<button
 					type="button"
 					onClick={() => setOrder((o) => (o === "desc" ? "asc" : "desc"))}
-					className="inline-flex items-center gap-1.5 rounded-lg border border-dbz-border px-3 py-1.5 text-sm text-white/70 hover:border-dbz-orange/40 hover:text-white"
+					className={`${tabBtn} ${tabIdle}`}
 					title="Inverser le tri par date"
 				>
 					<ArrowDownUp className="h-3.5 w-3.5" />
@@ -92,58 +146,84 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
 					<input
 						className="w-full rounded-lg border border-dbz-border bg-dbz-bg px-3 py-1.5 pl-8 text-sm text-white focus:border-dbz-orange focus:outline-none"
-						placeholder="Rechercher…"
+						placeholder="Rechercher un guide, un auteur…"
 						value={q}
 						onChange={(e) => setQ(e.target.value)}
+						aria-label="Rechercher un databook ou une interview"
 					/>
 				</div>
+				<p className="w-full text-[11px] uppercase tracking-wider text-dbz-orange/80 sm:w-auto sm:ml-0">
+					{filtered.length} / {items.length}
+				</p>
 			</div>
 
 			{filtered.length === 0 ? (
 				<p className="py-12 text-center text-sm italic text-white/40">
-					Aucun databook ni interview pour l&apos;instant.
+					{q.trim()
+						? `Aucun résultat pour « ${q.trim()} ».`
+						: "Aucun résultat pour ce filtre."}
 				</p>
 			) : (
-				<div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+				<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
 					{filtered.map((d) => {
-						const Card = d.sourceUrl ? "a" : "div";
+						const isInterview = d.kind === "interview";
+						const Icon = isInterview ? Mic : BookOpen;
+						const cat = resolveDatabookCategory(d.category);
 						return (
-							<Card
+							<Link
 								key={d.id}
-								{...(d.sourceUrl
-									? { href: d.sourceUrl, target: "_blank", rel: "noreferrer" }
-									: {})}
-								className="dbz-panel group overflow-hidden transition-all duration-300 hover:scale-[1.03]"
+								href={`/wiki/databooks/${d.id}`}
+								transitionTypes={["nav-forward"]}
+								aria-label={`${isInterview ? "Interview" : "Databook"} : ${d.title}`}
+								className="dbz-panel group ki-card relative cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.03] hover:border-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 							>
 								<div className="relative aspect-[2/3] overflow-hidden bg-dbz-bg">
+									<div className="pointer-events-none absolute inset-0 z-10 halftone opacity-10" />
 									{d.cover ? (
-										// eslint-disable-next-line @next/next/no-img-element
-										<img
-											src={d.cover}
-											alt={d.title}
-											loading="lazy"
-											className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-										/>
+										<ViewTransition name={`databook-img-${d.id}`} share="morph">
+											<WikiImg
+												src={d.cover}
+												alt={d.title}
+												className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+												loading="lazy"
+											/>
+										</ViewTransition>
 									) : (
-										<div className="flex h-full w-full items-center justify-center text-white/20">
-											<BookOpen className="h-10 w-10" />
+										<div className="absolute inset-0 flex items-center justify-center text-white/20">
+											<Icon className="h-10 w-10" />
 										</div>
 									)}
-									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-									<span className="absolute right-2 top-2 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-dbz-orange">
-										{d.kind === "interview" ? "Interview" : "Databook"}
+									<div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-black/25 to-transparent" />
+									<span aria-hidden className="ki-card__glow" />
+									<span className="absolute right-2 top-2 z-30 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-dbz-orange">
+										{isInterview ? "Interview" : "Databook"}
 									</span>
-									<div className="absolute inset-x-0 bottom-0 p-2.5">
-										<p className="line-clamp-2 font-display text-sm font-bold leading-tight text-white group-hover:text-dbz-orange">
+									{/* Badge catégorie (toujours visible pour repérer le filtre) */}
+									<span className="absolute left-2 top-2 z-30 max-w-[70%] truncate rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white/70">
+										{cat}
+									</span>
+									<div className="absolute inset-x-0 bottom-0 z-30 p-2.5">
+										<p className="line-clamp-2 font-display text-sm font-bold leading-tight text-white transition-colors group-hover:text-dbz-orange">
 											{d.title}
 										</p>
+										{d.titleJa && (
+											<p
+												className="mt-0.5 line-clamp-1 text-[10px] tracking-wider text-dbz-yellow/70"
+												style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
+											>
+												{d.titleJa}
+											</p>
+										)}
 										<p className="mt-0.5 text-[10px] text-white/50">
 											{formatDate(d.publishedAt)}
 											{d.author ? ` · ${d.author}` : ""}
 										</p>
+										<p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-dbz-orange/0 transition-colors group-hover:text-dbz-orange">
+											Voir la fiche →
+										</p>
 									</div>
 								</div>
-							</Card>
+							</Link>
 						);
 					})}
 				</div>
