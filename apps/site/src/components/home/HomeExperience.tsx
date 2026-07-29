@@ -22,9 +22,12 @@ import {
 	type HomeConfig,
 	type HomeSectionConfig,
 } from "@/lib/home-scenes";
+import { SECTION_ENTER_CUE } from "@/lib/home-media";
 import type { BestOfSagaView } from "@/lib/home-bestof";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { HomeClipField } from "./HomeClipField";
+import { HomeBattleFx, type HomeBattleFxApi } from "./HomeBattleFx";
+import { HomeKiAura } from "./HomeKiAura";
 import { SagaBestOf } from "./SagaBestOf";
 import {
 	useLiveBotState,
@@ -34,7 +37,7 @@ import {
 	type PresenceState,
 } from "./useLiveBotState";
 import { DISCORD_INVITE } from "@/lib/config";
-import { sfx } from "@/lib/sfx";
+import { applyHomeFx, sfx } from "@/lib/sfx";
 
 export interface WikiCounts {
 	sagas: number;
@@ -173,6 +176,13 @@ export function HomeExperience({
 	const live = useLiveBotState({ stats, personas, topMembers, presence });
 	const hasNews = posts.length > 0;
 	const heroScenes = config.hero.scenes;
+	const fx = config.fx;
+	const battleApiRef = useRef<HomeBattleFxApi | null>(null);
+
+	// Applique volume / enable / mapping SFX dès que la config home change.
+	useEffect(() => {
+		applyHomeFx(fx);
+	}, [fx]);
 
 	// Sections de contenu affichées = activées en config (news requiert des posts,
 	// bestof requiert des sagas assemblées côté serveur).
@@ -278,6 +288,7 @@ export function HomeExperience({
 
 	// Hold-to-kamehameha : appui long (~450 ms) → charge + beam ; relâchement
 	// anticipé annule le son. Simple tap → micro burst CSS silencieux.
+	// Gated par `fx.vfx.kameCss` (et canvas optionnel en parallèle).
 	const holdRef = useRef<{
 		timer: number | null;
 		x: number;
@@ -286,63 +297,78 @@ export function HomeExperience({
 		fired: boolean;
 		pointerId: number;
 	} | null>(null);
+	const kameCssOn = fx.vfx.kameCss;
+	const battleCanvasOn = fx.vfx.battleCanvas;
 
-	const onDeckPointerDown = useCallback((e: React.PointerEvent) => {
-		if (e.button !== 0 || reduceRef.current) return;
-		const t = e.target as HTMLElement | null;
-		if (t?.closest?.("a,button,input,textarea,[data-no-advance]")) return;
+	const onDeckPointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			if (e.button !== 0 || reduceRef.current) return;
+			const t = e.target as HTMLElement | null;
+			if (t?.closest?.("a,button,input,textarea,[data-no-advance]")) return;
 
-		sfx.unlock();
-		sfx.cancelKamehameha();
+			sfx.unlock();
+			sfx.cancelKamehameha();
 
-		try {
-			(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-		} catch {
-			/* ignore */
-		}
+			try {
+				(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+			} catch {
+				/* ignore */
+			}
 
-		const prev = holdRef.current;
-		if (prev?.timer != null) clearTimeout(prev.timer);
+			const prev = holdRef.current;
+			if (prev?.timer != null) clearTimeout(prev.timer);
 
-		const pointerId = e.pointerId;
-		const x = e.clientX;
-		const y = e.clientY;
-		holdRef.current = {
-			timer: window.setTimeout(() => {
-				const cur = holdRef.current;
-				if (!cur || cur.pointerId !== pointerId) return;
-				cur.armed = true;
-				sfx.kamehamehaFull();
+			const pointerId = e.pointerId;
+			const x = e.clientX;
+			const y = e.clientY;
+			holdRef.current = {
+				timer: window.setTimeout(() => {
+					const cur = holdRef.current;
+					if (!cur || cur.pointerId !== pointerId) return;
+					cur.armed = true;
+					sfx.kamehamehaFull();
+					if (kameCssOn) {
+						const layer = burstRef.current;
+						if (layer) {
+							const b = document.createElement("span");
+							b.className = "ki-burst ki-burst--kame";
+							b.style.left = `${cur.x}px`;
+							b.style.top = `${cur.y}px`;
+							for (let i = 0; i < 10; i++) b.appendChild(document.createElement("i"));
+							layer.appendChild(b);
+							window.setTimeout(() => b.remove(), 1000);
+						}
+					}
+					if (battleCanvasOn) {
+						battleApiRef.current?.burst("kamehameha", cur.x, cur.y);
+					}
+					cur.fired = true;
+				}, 450),
+				x,
+				y,
+				armed: false,
+				fired: false,
+				pointerId,
+			};
+
+			if (kameCssOn) {
 				const layer = burstRef.current;
 				if (layer) {
 					const b = document.createElement("span");
-					b.className = "ki-burst ki-burst--kame";
-					b.style.left = `${cur.x}px`;
-					b.style.top = `${cur.y}px`;
-					for (let i = 0; i < 10; i++) b.appendChild(document.createElement("i"));
+					b.className = "ki-burst";
+					b.style.left = `${x}px`;
+					b.style.top = `${y}px`;
+					for (let i = 0; i < 4; i++) b.appendChild(document.createElement("i"));
 					layer.appendChild(b);
-					window.setTimeout(() => b.remove(), 1000);
+					window.setTimeout(() => b.remove(), 600);
 				}
-				cur.fired = true;
-			}, 450),
-			x,
-			y,
-			armed: false,
-			fired: false,
-			pointerId,
-		};
-
-		const layer = burstRef.current;
-		if (layer) {
-			const b = document.createElement("span");
-			b.className = "ki-burst";
-			b.style.left = `${x}px`;
-			b.style.top = `${y}px`;
-			for (let i = 0; i < 4; i++) b.appendChild(document.createElement("i"));
-			layer.appendChild(b);
-			window.setTimeout(() => b.remove(), 600);
-		}
-	}, []);
+			}
+			if (battleCanvasOn) {
+				battleApiRef.current?.burst("hit", x, y);
+			}
+		},
+		[kameCssOn, battleCanvasOn]
+	);
 
 	const onDeckPointerUp = useCallback((e: React.PointerEvent) => {
 		const h = holdRef.current;
@@ -431,6 +457,26 @@ export function HomeExperience({
 		for (const el of refs.current) if (el) obs.observe(el);
 		return () => obs.disconnect();
 	}, [sections.length]);
+
+	// SFX d'entrée de panneau (SECTION_ENTER_CUE) — désactivable via fx.sectionEnterSfx.
+	const prevActiveRef = useRef<number | null>(null);
+	useEffect(() => {
+		if (!fx.sectionEnterSfx || !fx.enabled) {
+			prevActiveRef.current = active;
+			return;
+		}
+		if (prevActiveRef.current === null) {
+			prevActiveRef.current = active;
+			return; // pas de cue au premier paint
+		}
+		if (prevActiveRef.current === active) return;
+		prevActiveRef.current = active;
+		const id = sections[active]?.id ?? "hero";
+		const cue = SECTION_ENTER_CUE[id] ?? "teleport";
+		sfx.unlock();
+		const play = sfx[cue as keyof typeof sfx];
+		if (typeof play === "function") (play as () => void)();
+	}, [active, sections, fx.sectionEnterSfx, fx.enabled]);
 
 	// Molette → une section par geste avec boucle infinie cyclique
 	useEffect(() => {
@@ -918,18 +964,29 @@ export function HomeExperience({
 		return null;
 	};
 
+	const activeAccent = activeScene?.accent ?? "oklch(0.78 0.17 65)";
+
 	return (
 		<div
 			ref={deckRef}
 			className="home-deck"
+			data-scene-aura={fx.vfx.sceneAura ? "on" : "off"}
 			onClick={onDeckClick}
 			onPointerDown={onDeckPointerDown}
 			onPointerUp={onDeckPointerUp}
 			onPointerCancel={onDeckPointerCancel}
-			style={{ ["--accent" as string]: activeScene?.accent }}
+			style={{ ["--accent" as string]: activeAccent }}
 		>
 			{/* Couche des bursts de ki (clics) — fixe, au-dessus de tout, inerte */}
-			<div ref={burstRef} className="ki-burst-layer" aria-hidden />
+			{fx.vfx.kameCss && <div ref={burstRef} className="ki-burst-layer" aria-hidden />}
+			{fx.vfx.battleCanvas && (
+				<HomeBattleFx apiRef={battleApiRef} accent={activeAccent} />
+			)}
+			{fx.vfx.kiAura && (
+				<div className="pointer-events-none fixed inset-0 z-[1]" aria-hidden>
+					<HomeKiAura accent={activeAccent} active />
+				</div>
+			)}
 
 			{/* Navigation latérale — points HUD scouter */}
 			<nav className="home-dots" aria-label="Sections de la page">

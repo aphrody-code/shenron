@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { getCurrentUser, isCurrentUserAdmin } from "@/lib/session";
 import { getHomeConfig, saveHomeConfig } from "@/lib/home-config";
 import type { HomeClip } from "@/lib/home-scenes";
+import { HOME_SFX_FILE_OPTIONS } from "@/lib/home-fx";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -47,10 +48,42 @@ async function listClips(): Promise<HomeClip[]> {
 	}
 }
 
+/**
+ * Catalogue SFX : options statiques + scan `public/sfx` (mp3) pour les fichiers
+ * réellement présents (évite les options cassées si un MP3 est retiré).
+ */
+async function listSfxFiles(): Promise<string[]> {
+	const found = new Set<string>(HOME_SFX_FILE_OPTIONS);
+	try {
+		const root = join(process.cwd(), "public", "sfx");
+		const walk = async (dir: string, prefix: string) => {
+			const entries = await readdir(dir, { withFileTypes: true });
+			for (const e of entries) {
+				if (e.name.startsWith(".")) continue;
+				const rel = `${prefix}/${e.name}`;
+				if (e.isDirectory()) {
+					if (e.name === "harvest") continue; // archive ingest, pas pour le picker
+					await walk(join(dir, e.name), rel);
+				} else if (e.name.endsWith(".mp3") || e.name.endsWith(".wav")) {
+					found.add(`/sfx${rel}`);
+				}
+			}
+		};
+		await walk(root, "");
+	} catch {
+		/* keep static list */
+	}
+	return [...found].sort((a, b) => a.localeCompare(b));
+}
+
 export async function GET() {
 	if (!(await isCurrentUserAdmin())) return forbidden();
-	const [config, clips] = await Promise.all([getHomeConfig(), listClips()]);
-	return NextResponse.json({ config, clips });
+	const [config, clips, sfxFiles] = await Promise.all([
+		getHomeConfig(),
+		listClips(),
+		listSfxFiles(),
+	]);
+	return NextResponse.json({ config, clips, sfxFiles });
 }
 
 export async function PUT(req: NextRequest) {

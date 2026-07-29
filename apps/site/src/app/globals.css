@@ -1442,9 +1442,13 @@ html[data-home] {
 		color-mix(in oklab, #0a0a0a 26%, transparent);
 	mix-blend-mode: soft-light;
 }
-/* Ancien blob radial coloré (souvent bleu) — masqué pour artworks propres. */
+/* Ancien blob radial coloré (souvent bleu) — masqué par défaut (anti-voile).
+   Réactivable depuis /admin/home → VFX « Scene aura » (`data-scene-aura=on`). */
 .scene-aura {
 	display: none;
+}
+.home-deck[data-scene-aura="on"] .scene-aura {
+	display: block;
 }
 .scene-bar {
 	position: absolute;

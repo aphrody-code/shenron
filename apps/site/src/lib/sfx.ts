@@ -186,38 +186,55 @@ function stop(key: SfxKey) {
 	if (h) h.stop();
 }
 
+const DEFAULT_FILE: Record<SfxKey, string | null> = { ...FILE };
+
+const SFX_KEY_ALIASES: Record<string, SfxKey> = {
+	click: "click",
+	select: "select",
+	whoosh: "whoosh",
+	kiCharge: "kiCharge",
+	"ki-charge": "kiCharge",
+	kamehameha: "kamehameha",
+	powerUp: "powerUp",
+	"power-up": "powerUp",
+	teleport: "teleport",
+	hit: "hit",
+	punch: "punch",
+	finalFlash: "finalFlash",
+	"final-flash": "finalFlash",
+	galick: "galick",
+	over9000: "over9000",
+	nimbus: "nimbus",
+	scream: "scream",
+	tapion: "tapion",
+};
+
 export function configureSfx(
 	map: Partial<Record<string, string | null>> | null | undefined,
-	opts?: { volume?: number; enabled?: boolean; muted?: boolean }
+	opts?: { volume?: number; enabled?: boolean; muted?: boolean; resetDefaults?: boolean }
 ) {
 	if (opts?.volume != null) masterVolume = Math.max(0, Math.min(1, opts.volume));
 	if (opts?.enabled != null) enabled = opts.enabled;
 	if (opts?.muted != null) muted = opts.muted;
+	if (opts?.resetDefaults) {
+		for (const k of Object.keys(DEFAULT_FILE) as SfxKey[]) {
+			FILE[k] = DEFAULT_FILE[k];
+		}
+		howls.forEach((h) => {
+			try {
+				h.unload();
+			} catch {
+				/* ignore */
+			}
+		});
+		howls.clear();
+	}
 	if (map) {
-		const keyMap: Record<string, SfxKey> = {
-			click: "click",
-			select: "select",
-			whoosh: "whoosh",
-			kiCharge: "kiCharge",
-			"ki-charge": "kiCharge",
-			kamehameha: "kamehameha",
-			powerUp: "powerUp",
-			"power-up": "powerUp",
-			teleport: "teleport",
-			hit: "hit",
-			punch: "punch",
-			finalFlash: "finalFlash",
-			"final-flash": "finalFlash",
-			galick: "galick",
-			over9000: "over9000",
-			nimbus: "nimbus",
-			scream: "scream",
-			tapion: "tapion",
-		};
 		for (const [k, v] of Object.entries(map)) {
-			const key = keyMap[k] ?? (k as SfxKey);
+			const key = SFX_KEY_ALIASES[k] ?? (k as SfxKey);
 			if (!(key in FILE)) continue;
 			if (v !== undefined) {
+				// null → synth only (pas de fichier)
 				FILE[key] = v;
 				const old = howls.get(key);
 				if (old) {
@@ -232,10 +249,49 @@ export function configureSfx(
 		h.volume((VOL[key] ?? 0.2) * masterVolume);
 	}
 	try {
-		Howler.mute(muted);
+		Howler.mute(muted || !enabled);
 	} catch {
 		/* ignore */
 	}
+}
+
+/**
+ * Applique une config home `fx` résolue (volume + enable + map de fichiers).
+ * Remet d'abord les chemins par défaut, puis applique les overrides.
+ */
+export function applyHomeFx(fx: {
+	enabled: boolean;
+	sfxVolume: number;
+	sfxMap: Partial<Record<string, string | null>>;
+}): void {
+	const map: Partial<Record<string, string | null>> = {};
+	for (const [k, v] of Object.entries(fx.sfxMap)) {
+		if (v !== undefined) map[k] = v;
+	}
+	configureSfx(map, {
+		volume: fx.sfxVolume,
+		enabled: fx.enabled,
+		resetDefaults: true,
+	});
+}
+
+/** Préécoute d'un fichier SFX (admin). Ne mute pas le master. */
+export function previewSfxFile(src: string, volume = 0.6): () => void {
+	if (typeof window === "undefined" || !src) return () => {};
+	const h = new Howl({
+		src: [src],
+		volume: Math.max(0, Math.min(1, volume)),
+		html5: true,
+	});
+	h.play();
+	return () => {
+		try {
+			h.stop();
+			h.unload();
+		} catch {
+			/* ignore */
+		}
+	};
 }
 
 export function unlockSfx() {

@@ -7,6 +7,23 @@
 // Les chemins sont relatifs `./assets/...` → passés par `assetUrl()` côté rendu
 // pour pointer sur le CDN bot (`bot.dragonballfr.com`).
 
+import {
+	cloneHomeFx,
+	DEFAULT_HOME_FX,
+	resolveHomeFx,
+	type HomeFxConfig,
+} from "@/lib/home-fx";
+
+export type { HomeFxConfig, HomeSfxSlot, HomeVfxToggles } from "@/lib/home-fx";
+export {
+	DEFAULT_HOME_FX,
+	HOME_SFX_FILE_OPTIONS,
+	HOME_SFX_META,
+	HOME_SFX_SLOTS,
+	homeFxToConfigureArgs,
+	resolveHomeFx,
+} from "@/lib/home-fx";
+
 export type Era = "origin" | "saiyan" | "namek" | "android" | "buu" | "divine" | "summon";
 
 export interface HomeScene {
@@ -522,6 +539,8 @@ export interface HomeConfig {
 	/** Nombre de clips flottants dans le héro par largeur (téléphone = toujours 0). */
 	clips: { desktop: number; tablet: number };
 	sections: HomeSectionConfig[];
+	/** VFX/SFX home — volume, mapping fichiers, toggles effets. */
+	fx: HomeFxConfig;
 }
 
 /** Clip vidéo disponible pour le sélecteur de fond (exposé par /api/home-config). */
@@ -586,6 +605,7 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
 		subtitle: SECTION_META[id].subtitle,
 		scene: cloneScene(SECTION_SCENE[id] ?? HERO_SCENES[0]),
 	})),
+	fx: cloneHomeFx(DEFAULT_HOME_FX),
 };
 
 /**
@@ -686,5 +706,8 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 		if (!seen.has(id)) sections.push(defaultSection(id));
 	}
 
-	return { version: 1, hero, clips, sections };
+	// ── VFX/SFX (`fx`) — absorbe le legacy `{ sfxVolume: 0.4 }` seul ──
+	const fx = resolveHomeFx(p.fx);
+
+	return { version: 1, hero, clips, sections, fx };
 }
