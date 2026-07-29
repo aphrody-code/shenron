@@ -75,6 +75,8 @@ const FK_TARGET: Record<string, { table: string; pk: string }> = {
 	volumeId: { table: "db_manga_volumes", pk: "id" },
 	debutEpisodeId: { table: "db_episodes", pk: "id" },
 	debutChapterId: { table: "db_manga_chapters", pk: "id" },
+	debutSagaId: { table: "db_sagas", pk: "id" },
+	debutChapterId: { table: "db_manga_chapters", pk: "id" },
 	targetGameId: { table: "db_games", pk: "id" },
 	techniqueId: { table: "db_techniques", pk: "id" },
 	gameId: { table: "db_games", pk: "id" },
@@ -225,11 +227,11 @@ export const SECTION_PRESETS: SectionPreset[] = [
 	{ key: "relations", label: "Relations", accent: "cyan" },
 ];
 
-/** Pack PWS : 3 sous-sections regroupées sous l'onglet parent « PWS ». */
+/** Pack PWS : sous-sections regroupées sous l'onglet parent « PWS ». */
 export const PWS_GROUP_PRESETS: SectionPreset[] = [
 	{
-		key: "puissance-attaque",
-		label: "Puissance d'attaque",
+		key: "force-de-frappe",
+		label: "Force de frappe",
 		accent: "red",
 		groupLabel: PWS_GROUP_NAME,
 	},
@@ -240,7 +242,52 @@ export const PWS_GROUP_PRESETS: SectionPreset[] = [
 		accent: "red",
 		groupLabel: PWS_GROUP_NAME,
 	},
+	{
+		key: "puissance-ki",
+		label: "Puissance de Ki",
+		accent: "orange",
+		groupLabel: PWS_GROUP_NAME,
+	},
+	{
+		key: "intelligence-combat",
+		label: "Intelligence de combat",
+		accent: "cyan",
+		groupLabel: PWS_GROUP_NAME,
+	},
+	{
+		key: "capacites-speciales",
+		label: "Capacités spéciales",
+		accent: "purple",
+		groupLabel: PWS_GROUP_NAME,
+	},
+	{
+		key: "faiblesses",
+		label: "Faiblesses",
+		accent: "gold",
+		groupLabel: PWS_GROUP_NAME,
+	},
+	{
+		key: "equipement",
+		label: "Équipement",
+		accent: "green",
+		groupLabel: PWS_GROUP_NAME,
+	},
+	{
+		key: "feats",
+		label: "Feats & scaling",
+		accent: "blue",
+		groupLabel: PWS_GROUP_NAME,
+	},
 ];
+
+/** Anciennes clés PWS → clés canoniques (ensureFullPwsPack / migration douce). */
+export const PWS_LEGACY_KEY_ALIASES: Record<string, string> = {
+	"puissance-attaque": "force-de-frappe",
+	"puissance-d-attaque": "force-de-frappe",
+	"attaque": "force-de-frappe",
+	"endurance": "durabilite",
+	"durabilite-endurance": "durabilite",
+};
 
 /** Slug de section depuis un libellé libre (accents retirés, espaces → tirets). */
 export function sectionKeyFromLabel(label: string): string {

@@ -38,6 +38,11 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"affiliation",
 			"description",
 			"originPlanetId",
+			"debutEpisodeId",
+			"debutChapterId",
+			"debutSagaId",
+			// jsonb stats : CharacterStatsPanel (exclu SmartField via JSONB_PANEL_COLS).
+			"stats",
 		],
 	},
 	db_planets: {

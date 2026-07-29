@@ -1,20 +1,20 @@
 "use client";
 
 /**
- * Contrôle de LANCEMENT du wiki : bascule quelles catégories sont visibles au
- * public (gating bêta). Ouvrir une catégorie = son index + ses fiches détail
- * deviennent publics immédiatement (le reste reste réservé aux admins). Les
- * catégories bêta (episodes/films/manga/chronologie) sont verrouillées ON.
+ * Contrôle des catégories visibles au public (barre de nav + gating URL).
+ * Ouvrir = index + fiches publics. Bêta (épisodes/films/manga/chrono) verrouillées ON.
+ *
+ * UX : aperçu de la nav, bascules, actions rapides (bêta seule / tout ouvrir), save.
  */
-import { useState } from "react";
-import { Check, Loader2, Lock } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { ALWAYS_OPEN_KEYS, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
 
 export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 	const [open, setOpen] = useState<Set<string>>(new Set(initialOpen));
 	const [saving, setSaving] = useState(false);
 	const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-	const always = new Set(ALWAYS_OPEN_KEYS);
+	const always = useMemo(() => new Set(ALWAYS_OPEN_KEYS), []);
 
 	function toggle(key: string) {
 		if (always.has(key)) return;
@@ -24,6 +24,16 @@ export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 			else next.add(key);
 			return next;
 		});
+		setMsg(null);
+	}
+
+	function openAll() {
+		setOpen(new Set(LAUNCH_CATEGORIES.map((c) => c.key)));
+		setMsg(null);
+	}
+
+	function betaOnly() {
+		setOpen(new Set(ALWAYS_OPEN_KEYS));
 		setMsg(null);
 	}
 
@@ -39,7 +49,10 @@ export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 			const data = await res.json();
 			if (res.ok && data.ok) {
 				setOpen(new Set(data.openKeys));
-				setMsg({ ok: true, text: "Enregistré — les catégories ouvertes sont publiques." });
+				setMsg({
+					ok: true,
+					text: "Enregistré — la nav publique se met à jour sous ~30 s (rafraîchis la page).",
+				});
 			} else {
 				setMsg({ ok: false, text: data.error ?? "Échec de l'enregistrement." });
 			}
@@ -52,22 +65,87 @@ export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 
 	const openCount = LAUNCH_CATEGORIES.filter((c) => open.has(c.key) || always.has(c.key)).length;
 
+	// Même règle que SiteNav : 4 premiers wiki en ligne, le reste en « Plus ».
+	const openWikiLabels = LAUNCH_CATEGORIES.filter(
+		(c) => c.href && (always.has(c.key) || open.has(c.key))
+	).map((c) => c.label);
+	const inlinePreview = openWikiLabels.slice(0, 4);
+	const morePreview = openWikiLabels.slice(4);
+
+	const publicNavPreview = [
+		"Accueil",
+		...inlinePreview,
+		...(morePreview.length ? [`Plus (${morePreview.length})`] : []),
+		"News",
+	];
+
 	return (
 		<div className="space-y-5">
+			{/* Aperçu barre de nav (miroir SiteNav) */}
+			<div className="dbz-panel space-y-2 p-4">
+				<p className="text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+					Aperçu barre de navigation publique
+				</p>
+				<div className="flex flex-wrap items-center gap-1 rounded-lg border border-white/10 bg-black/40 px-2 py-2">
+					{publicNavPreview.map((label) => (
+						<span
+							key={label}
+							className={`rounded-md px-2.5 py-1 text-[13px] font-medium ${
+								label.startsWith("Plus")
+									? "text-white/45 border border-white/10"
+									: "text-white/75"
+							}`}
+						>
+							{label}
+						</span>
+					))}
+				</div>
+				{morePreview.length > 0 && (
+					<p className="text-[11px] text-white/40">
+						Dans « Plus » : {morePreview.join(" · ")}
+					</p>
+				)}
+				<p className="text-[11px] text-white/40">
+					Max 4 sections wiki en ligne (comme la nav d&apos;origine) — le surplus va dans le
+					menu <strong className="text-white/55">Plus</strong>. Les catégories décochées restent
+					visibles aux admins via <strong className="text-white/55">Sections</strong>.
+				</p>
+			</div>
+
 			<div className="dbz-panel flex flex-wrap items-center justify-between gap-3 p-4">
 				<p className="text-sm text-white/70">
 					<strong className="text-dbz-orange">{openCount}</strong> / {LAUNCH_CATEGORIES.length}{" "}
 					catégories publiques
 				</p>
-				<button
-					type="button"
-					onClick={save}
-					disabled={saving}
-					className="dbz-button gap-2 disabled:opacity-50"
-				>
-					{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-					Enregistrer
-				</button>
+				<div className="flex flex-wrap items-center gap-2">
+					<button
+						type="button"
+						onClick={betaOnly}
+						className="btn btn-ghost gap-1.5 text-xs"
+						title="Nav courte d'origine : Épisodes, Films, Chronologie, Manga"
+					>
+						<EyeOff className="h-3.5 w-3.5" />
+						Bêta seule
+					</button>
+					<button
+						type="button"
+						onClick={openAll}
+						className="btn btn-ghost gap-1.5 text-xs"
+						title="Rendre toutes les catégories publiques"
+					>
+						<Eye className="h-3.5 w-3.5" />
+						Tout ouvrir
+					</button>
+					<button
+						type="button"
+						onClick={save}
+						disabled={saving}
+						className="dbz-button gap-2 disabled:opacity-50"
+					>
+						{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+						Enregistrer
+					</button>
+				</div>
 			</div>
 
 			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -110,9 +188,9 @@ export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 				<p className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>{msg.text}</p>
 			)}
 			<p className="text-xs text-white/40">
-				Les catégories verrouillées <Lock className="inline h-3 w-3" /> sont déjà en ligne (bêta) et
-				ne peuvent pas être refermées. Ouvrir une catégorie rend publics son index ET ses fiches
-				détail ; sa fiche apparaît dans la barre de navigation à la prochaine revalidation.
+				Les cases avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie, Manga) sont
+				déjà en ligne et ne peuvent pas être refermées. Un clic pour basculer le reste, puis
+				Enregistrer.
 			</p>
 		</div>
 	);

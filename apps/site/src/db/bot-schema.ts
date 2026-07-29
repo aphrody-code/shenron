@@ -86,6 +86,13 @@ const visibleCol = {
 	visible: boolean("visible").notNull().default(true),
 };
 
+/** Stats custom scouter (label/value/accent) — panneau CharacterStatsPanel. */
+export type CharacterStat = {
+	label: string;
+	value: string;
+	accent?: string;
+};
+
 export const botCharacters = bot.table("db_characters", {
 	id: int("id").primaryKey(),
 	name: text("name").notNull(),
@@ -100,6 +107,12 @@ export const botCharacters = bot.table("db_characters", {
 	originPlanetId: int("origin_planet_id"),
 	nameJa: text("name_ja"),
 	nameRomaji: text("name_romaji"),
+	/** Première apparition (épisodes / chapitres / saga). */
+	debutEpisodeId: int("debut_episode_id"),
+	debutChapterId: int("debut_chapter_id"),
+	debutSagaId: int("debut_saga_id"),
+	/** Stats custom scouter (jsonb) — CharacterStatsPanel. */
+	stats: jsonb("stats").$type<CharacterStat[] | null>(),
 	...articleCols,
 	...visibleCol,
 });

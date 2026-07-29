@@ -100,6 +100,12 @@ export interface ShenronPresence {
 	members: PresenceMember[];
 }
 
+export interface CharacterStat {
+	label: string;
+	value: string;
+	accent?: string;
+}
+
 export interface DBCharacter extends WithArticle {
 	id: number;
 	name: string;
@@ -117,6 +123,11 @@ export interface DBCharacter extends WithArticle {
 	affiliation: string | null;
 	description: string | null;
 	originPlanetId: number | null;
+	/** Stats scouter custom (CharacterStatsPanel). */
+	stats: CharacterStat[] | null;
+	debutEpisodeId: number | null;
+	debutChapterId: number | null;
+	debutSagaId: number | null;
 }
 
 export interface DBPlanet extends WithArticle {
@@ -321,6 +332,24 @@ type CharacterRow = typeof botCharacters.$inferSelect;
 type PlanetRow = typeof botPlanets.$inferSelect;
 type TransfoRow = typeof botTransformations.$inferSelect;
 
+function mapCharacterStats(raw: unknown): CharacterStat[] | null {
+	if (!Array.isArray(raw) || raw.length === 0) return null;
+	const out: CharacterStat[] = [];
+	for (const s of raw) {
+		if (!s || typeof s !== "object") continue;
+		const o = s as Record<string, unknown>;
+		const label = typeof o.label === "string" ? o.label.trim() : "";
+		const value = typeof o.value === "string" ? o.value.trim() : "";
+		if (!label && !value) continue;
+		out.push({
+			label,
+			value,
+			accent: typeof o.accent === "string" && o.accent ? o.accent : undefined,
+		});
+	}
+	return out.length ? out : null;
+}
+
 function mapCharacter(r: CharacterRow): DBCharacter {
 	return {
 		id: r.id,
@@ -336,6 +365,10 @@ function mapCharacter(r: CharacterRow): DBCharacter {
 		affiliation: r.affiliation,
 		description: r.description,
 		originPlanetId: r.originPlanetId,
+		stats: mapCharacterStats(r.stats),
+		debutEpisodeId: r.debutEpisodeId ?? null,
+		debutChapterId: r.debutChapterId ?? null,
+		debutSagaId: r.debutSagaId ?? null,
 		article: r.article ?? null,
 		articleSources: r.articleSources ?? null,
 	};

@@ -9,11 +9,13 @@
  *      (`splitArticleSections`) — bootstrap gratuit d'une fiche non migrée ;
  *   3. sinon, la `description` courte en une seule section « Histoire ».
  *
+ * Pour les **personnages**, le pack PWS complet (pack power scaling (sous-catégories PWS))
+ * est toujours injecté s'il manque — l'onglet PWS et ses sous-onglets sont
+ * présents sur toutes les fiches, vides ou non.
+ *
  * db-first-replace (pas un merge) : dès qu'une section existe, masquer /
  * réordonner / supprimer / éditer au studio se répercute fidèlement (l'article
- * n'est plus consulté). La migration (`scripts/migrate-articles-to-sections.ts`)
- * copie l'intégralité de l'article en sections (préambule rattaché à la 1re) →
- * bascule sans perte. Rendu 100 % côté serveur (SEO/ISR préservés).
+ * n'est plus consulté). Rendu 100 % côté serveur (SEO/ISR préservés).
  */
 import type { WikiSectionLink } from "@/db/bot-schema";
 import { getWikiSections, type WikiSource } from "@/lib/shenron";
@@ -25,7 +27,12 @@ import {
 } from "@/lib/wiki-article-sections";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
-import { normalizeWikiSectionGroups } from "@/lib/wiki-section-groups";
+import { PwsStatSection } from "@/components/wiki/PwsStatSection";
+import { normalizeWikiSectionGroups, PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
+import {
+	PWS_GROUP_PRESETS,
+	PWS_LEGACY_KEY_ALIASES,
+} from "@/lib/wiki-fields";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 
 export interface ContentPanel extends ReaderPanel {
@@ -44,9 +51,84 @@ interface RawSection {
 }
 
 /**
+ * Garantit la présence du pack PWS complet (pack PWS complet) sur une fiche
+ * personnage. Ne duplique pas une clé/label déjà présent ; mappe les anciennes
+ * clés (`puissance-attaque` → `force-de-frappe`, etc.).
+ */
+export function ensureFullPwsPack(raw: RawSection[]): RawSection[] {
+	const normalized = normalizeWikiSectionGroups(raw);
+	const byKey = new Map(normalized.map((s) => [s.key, s]));
+	const byLabel = new Map(normalized.map((s) => [sectionSlug(s.label), s]));
+
+	// Remap legacy keys → canonical (sans perdre le body).
+	for (const [legacy, canon] of Object.entries(PWS_LEGACY_KEY_ALIASES)) {
+		const old = byKey.get(legacy);
+		if (old && !byKey.has(canon)) {
+			const remapped = {
+				...old,
+				key: canon,
+				group: PWS_GROUP_NAME,
+			};
+			byKey.delete(legacy);
+			byKey.set(canon, remapped);
+			byLabel.set(sectionSlug(remapped.label), remapped);
+		}
+	}
+
+	const out = [...byKey.values()].filter((s) => !PWS_LEGACY_KEY_ALIASES[s.key]);
+
+	// Ajoute les presets manquants (body vide → placeholder public).
+	for (const preset of PWS_GROUP_PRESETS) {
+		const hasKey = out.some((s) => s.key === preset.key);
+		const hasLabel = out.some(
+			(s) =>
+				s.group === PWS_GROUP_NAME &&
+				sectionSlug(s.label) === sectionSlug(preset.label)
+		);
+		if (hasKey || hasLabel) {
+			// Force le groupLabel PWS sur les matchs existants.
+			for (let i = 0; i < out.length; i++) {
+				if (
+					out[i].key === preset.key ||
+					(out[i].group === PWS_GROUP_NAME &&
+						sectionSlug(out[i].label) === sectionSlug(preset.label))
+				) {
+					out[i] = {
+						...out[i],
+						group: PWS_GROUP_NAME,
+						accent: out[i].accent || preset.accent,
+					};
+				}
+			}
+			continue;
+		}
+		out.push({
+			key: preset.key,
+			label: preset.label,
+			body: "",
+			accent: preset.accent,
+			group: PWS_GROUP_NAME,
+		});
+	}
+
+	// Ordonne : non-PWS d'abord (ordre d'origine), puis PWS dans l'ordre des presets.
+	const nonPws = out.filter((s) => s.group !== PWS_GROUP_NAME);
+	const pwsOrder = PWS_GROUP_PRESETS.map((p) => p.key);
+	const pws = out
+		.filter((s) => s.group === PWS_GROUP_NAME)
+		.sort((a, b) => {
+			const ia = pwsOrder.indexOf(a.key);
+			const ib = pwsOrder.indexOf(b.key);
+			return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+		});
+
+	return [...nonPws, ...pws];
+}
+
+/**
  * Sections de contenu d'une entité (source unique : DB → article → description).
  * Retourne des `ContentPanel` prêts pour `WikiSectionsReader`, à clés uniques.
- * Vide si aucune source.
+ * Vide si aucune source (sauf personnages : pack PWS minimal toujours présent).
  */
 export async function buildWikiContentPanels({
 	entityType,
@@ -88,10 +170,20 @@ export async function buildWikiContentPanels({
 		);
 	} else if (description?.trim()) {
 		raw = [
-			{ key: sectionSlug(fallbackHeading), label: fallbackHeading, body: description.trim(), accent: "orange" },
+			{
+				key: sectionSlug(fallbackHeading),
+				label: fallbackHeading,
+				body: description.trim(),
+				accent: "orange",
+			},
 		];
 	} else {
 		raw = [];
+	}
+
+	// Personnages : toujours le pack PWS complet (sous-catégories power scaling).
+	if (entityType === "character") {
+		raw = ensureFullPwsPack(raw);
 	}
 
 	// Clés uniques (garde-fou : deux sections de même slug ne cassent pas React).
@@ -102,12 +194,18 @@ export async function buildWikiContentPanels({
 		while (seen.has(key)) key = `${s.key}-${n++}`;
 		seen.add(key);
 		const links = s.links ?? [];
+		const isPws = s.group === PWS_GROUP_NAME;
 		return {
 			key,
 			label: s.label,
 			accent: s.accent,
 			group: s.group ?? null,
-			node: (
+			node: isPws ? (
+				<div className="space-y-2">
+					<PwsStatSection label={s.label} body={s.body} accent={s.accent} />
+					{links.length > 0 && <WikiSectionLinks links={links} />}
+				</div>
+			) : (
 				<div className="space-y-2">
 					{s.body.trim() ? (
 						<WikiArticle article={s.body} heading={s.label} accent={s.accent} />

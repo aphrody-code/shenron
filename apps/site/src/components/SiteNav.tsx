@@ -4,37 +4,55 @@ import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
+import { NavMore } from "@/components/NavMore";
 import { effectiveOpenKeys, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
 import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
 
-// Nav SANS session : on lit la config de lancement (DB, PAS de cookies/headers)
-// → reste cacheable CDN/ISR (revalidée à l'écriture de la config). L'état d'auth
-// (avatar, admin, sign-in) est hydraté côté client via `/api/me` (NavAuth).
-//
-// Les catégories wiki OUVERTES passent en liens publics ; les FERMÉES restent
-// réservées aux admins (îlot client `AdminNavLinks`, gate useMe). La bascule se
-// fait depuis /admin/lancement (data-driven, cf. wiki-launch.ts).
+/**
+ * Nav SANS session : config de lancement (DB) uniquement — pas de cookies/headers
+ * → cache CDN/ISR préservé. Auth via îlot client `/api/me`.
+ *
+ * UX calquée sur la nav bêta d'origine :
+ *  - barre principale **courte** (spine) pour ne jamais casser le layout ;
+ *  - catégories ouvertes en surplus → menu « Plus » ;
+ *  - catégories encore fermées → menu « Sections » admin only.
+ *
+ * Contrôle public : /admin/lancement (« Catégories du site »).
+ */
 
 const STATIC_PUBLIC_HEAD = [{ href: "/", label: "Accueil" }];
 const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
+/**
+ * Nombre max de liens wiki affichés en ligne dans la barre desktop
+ * (hors Accueil / News). Au-delà → menu « Plus ».
+ * 4 = spine bêta (Épisodes, Films, Chronologie, Manga) sans débordement.
+ */
+const MAX_INLINE_WIKI = 4;
+
+const linkClass =
+	"relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
+
 export async function SiteNav() {
 	const open = effectiveOpenKeys(await getOpenCategoryKeys());
-	const wikiLinks = LAUNCH_CATEGORIES.filter((c) => c.href).map((c) => ({
+
+	// Ordre stable = ordre du registre LAUNCH_CATEGORIES (design intentional).
+	const wikiOpen = LAUNCH_CATEGORIES.filter((c) => c.href && open.has(c.key)).map((c) => ({
 		href: c.href as string,
 		label: c.label,
-		open: open.has(c.key),
 	}));
-	const PUBLIC_LINKS = [
-		...STATIC_PUBLIC_HEAD,
-		...wikiLinks.filter((l) => l.open).map(({ href, label }) => ({ href, label })),
-		...STATIC_PUBLIC_TAIL,
-	];
-	const ADMIN_LINKS = [
-		...wikiLinks.filter((l) => !l.open).map(({ href, label }) => ({ href, label })),
-		...STATIC_ADMIN,
-	];
+	const wikiClosed = LAUNCH_CATEGORIES.filter((c) => c.href && !open.has(c.key)).map((c) => ({
+		href: c.href as string,
+		label: c.label,
+	}));
+
+	const inlineWiki = wikiOpen.slice(0, MAX_INLINE_WIKI);
+	const moreWiki = wikiOpen.slice(MAX_INLINE_WIKI);
+
+	// Mobile : tous les liens publics (pas de contrainte largeur).
+	const mobilePublic = [...STATIC_PUBLIC_HEAD, ...wikiOpen, ...STATIC_PUBLIC_TAIL];
+	const adminOnly = [...wikiClosed, ...STATIC_ADMIN];
 
 	return (
 		// `view-transition-name` → la nav reste fixe pendant les slides
@@ -55,10 +73,6 @@ export async function SiteNav() {
 					<span className="font-display font-bold text-[19px] tracking-tight text-dbz-orange leading-none transition-colors group-hover:text-white">
 						France
 					</span>
-					{/* Boule décorative : span aria-hidden → le Link garde son nom unique.
-					    Wrapper self-center clampé à la hauteur du wordmark (leading-none 19px)
-					    → la boule (22px) déborde symétriquement sans grandir la flex-line,
-					    donc items-baseline conserve la position exacte du texte (zéro shift). */}
 					<span
 						aria-hidden
 						className="ml-2 inline-flex h-[19px] w-[22px] shrink-0 items-center justify-center self-center"
@@ -71,22 +85,31 @@ export async function SiteNav() {
 					</span>
 				</Link>
 
-				{/* Nav desktop — Google Sans Flex 14px uppercase */}
+				{/* Nav desktop — spine compacte + overflow « Plus » + admin Sections */}
 				<nav
-					className="hidden lg:flex items-center gap-1 flex-1 justify-center"
+					className="hidden lg:flex items-center gap-1 flex-1 justify-center min-w-0"
 					aria-label="Navigation principale"
 				>
-					{PUBLIC_LINKS.map((l) => (
-						<Link
-							key={l.href}
-							href={l.href}
-							className="relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
-						>
+					{STATIC_PUBLIC_HEAD.map((l) => (
+						<Link key={l.href} href={l.href} className={linkClass}>
 							{l.label}
 						</Link>
 					))}
-					{/* Sections masquées en bêta — visibles uniquement pour l'admin (îlot client). */}
-					<AdminNavLinks links={ADMIN_LINKS} />
+					{inlineWiki.map((l) => (
+						<Link key={l.href} href={l.href} className={linkClass}>
+							{l.label}
+						</Link>
+					))}
+					{moreWiki.length > 0 && (
+						<NavMore links={moreWiki} label="Plus" hint="Autres sections" />
+					)}
+					{STATIC_PUBLIC_TAIL.map((l) => (
+						<Link key={l.href} href={l.href} className={linkClass}>
+							{l.label}
+						</Link>
+					))}
+					{/* Sections encore fermées au public — admins only */}
+					<AdminNavLinks links={adminOnly} />
 				</nav>
 
 				{/* Zone identité desktop — îlot client (auth via /api/me) */}
@@ -95,7 +118,7 @@ export async function SiteNav() {
 					<NavAuth />
 				</div>
 
-				<MobileNav links={PUBLIC_LINKS} adminLinks={ADMIN_LINKS} />
+				<MobileNav links={mobilePublic} adminLinks={adminOnly} />
 			</div>
 		</header>
 	);

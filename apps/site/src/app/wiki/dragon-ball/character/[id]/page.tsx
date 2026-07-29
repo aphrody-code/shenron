@@ -361,7 +361,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 						</div>
 					</div>
 
-					{(character.ki || character.maxKi) && (
+					{(character.ki || character.maxKi || (character.stats && character.stats.length > 0)) && (
 						<div
 							className="grid grid-cols-1 sm:grid-cols-2 gap-6 reveal-up"
 							style={{ animationDelay: "0.3s" }}
@@ -382,6 +382,17 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 									<p className="scouter-text text-4xl text-dbz-red">{character.maxKi}</p>
 								</div>
 							)}
+							{character.stats?.map((s) => (
+								<div
+									key={`${s.label}-${s.value}`}
+									className="dbz-panel p-6 border-l-4 border-l-dbz-blue-light"
+								>
+									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
+										{s.label || "Stat"}
+									</p>
+									<p className="scouter-text text-3xl text-dbz-blue-light">{s.value || "—"}</p>
+								</div>
+							))}
 						</div>
 					)}
 

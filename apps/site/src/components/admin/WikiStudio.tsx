@@ -26,6 +26,8 @@ import { WikiSectionsPanel } from "@/components/admin/WikiSectionsPanel";
 import { WikiAiAssistant } from "@/components/admin/WikiAiAssistant";
 import { DatabookPagesPanel } from "@/components/admin/DatabookPagesPanel";
 import { GameMediaPanel } from "@/components/admin/GameMediaPanel";
+import { CharacterStatsPanel } from "@/components/admin/CharacterStatsPanel";
+import { TransformationsPanel } from "@/components/admin/TransformationsPanel";
 import { apiAt } from "@/lib/admin-api";
 import { colLabel, TABLE_LABELS } from "@/lib/db-labels";
 import {
@@ -313,6 +315,20 @@ export function WikiStudio({ table, id }: Props) {
 					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
 						Enregistre d&apos;abord ce jeu pour ajouter la galerie (screenshots + trailers
 						YouTube).
+					</div>
+				))}
+
+			{/* Stats scouter + transformations d'un personnage. */}
+			{table === "db_characters" &&
+				(mode === "edit" ? (
+					<div className="mt-2 space-y-4">
+						<CharacterStatsPanel characterId={id} />
+						<TransformationsPanel characterId={id} />
+					</div>
+				) : (
+					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
+						Enregistre d&apos;abord ce personnage pour gérer ses stats scouter et ses
+						transformations.
 					</div>
 				))}
 		</div>

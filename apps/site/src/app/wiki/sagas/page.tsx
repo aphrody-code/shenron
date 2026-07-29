@@ -3,14 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
-import { SAGAS_HERO } from "@/lib/db-banners";
+import { pageHero } from "@/lib/banner-config";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Sagas Dragon Ball — DBFR",
+	title: "Sagas & arcs Dragon Ball — DBFR",
 	description:
-		"Toutes les sagas Dragon Ball, Dragon Ball Z, Dragon Ball Super, DBGT, DB Daima — résumées en français.",
+		"Toutes les sagas et arcs narratifs Dragon Ball, Dragon Ball Z, Super, GT et Daima — résumés en français.",
 	alternates: { canonical: "/wiki/sagas" },
 };
 
@@ -26,10 +26,28 @@ const SERIES_LABELS: Record<string, string> = {
 
 const SERIES_ORDER = ["DB", "DBZ", "DBGT", "DBS", "DBS_MANGA", "DBS_MOVIE", "DB_DAIMA"];
 
+type ArcLite = {
+	id: number;
+	slug: string;
+	name: string;
+	name_ja: string | null;
+	order_idx: number;
+	saga_slug: string | null;
+};
+
 export default async function SagasPage() {
-	const data = await dbUniverse.sagas();
+	const [data, arcsData] = await Promise.all([dbUniverse.sagas(), dbUniverse.arcs()]);
 	if (!data || data.sagas.length === 0) notFound();
 	const sagas = data.sagas;
+	const arcs = (arcsData?.arcs ?? []) as ArcLite[];
+
+	const arcsBySaga = new Map<string, ArcLite[]>();
+	for (const a of arcs) {
+		if (!a.saga_slug) continue;
+		const list = arcsBySaga.get(a.saga_slug) ?? [];
+		list.push(a);
+		arcsBySaga.set(a.saga_slug, list);
+	}
 
 	const bySeries = SERIES_ORDER.map((s) => ({
 		key: s,
@@ -37,80 +55,109 @@ export default async function SagasPage() {
 		sagas: sagas.filter((sg) => sg.series === s).sort((a, b) => a.order_idx - b.order_idx),
 	})).filter((g) => g.sagas.length > 0);
 
+	const totalArcs = arcs.length;
+
 	return (
 		<>
 			<PageHero
 				eyebrow="Univers Dragon Ball"
-				title="Toutes les sagas"
-				lead="De la quête des Dragon Balls par Goku enfant jusqu'au Monde des Démons de Daima — chaque arc narratif raconté en français."
-				image={SAGAS_HERO}
+				title="Sagas & arcs"
+				lead={`De la quête des Dragon Balls jusqu'au Monde des Démons de Daima — ${sagas.length} sagas et ${totalArcs} arcs narratifs, en un seul index.`}
+				image={await pageHero("sagas")}
 				imageAlt="Bannière officielle Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				{bySeries.map((g) => (
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
-							{g.label} <span className="text-white/40">— {g.sagas.length}</span>
+							{g.label}{" "}
+							<span className="text-white/40">
+								— {g.sagas.length} saga{g.sagas.length > 1 ? "s" : ""}
+							</span>
 						</h2>
-						<ol className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-							{g.sagas.map((s: Saga) => (
-								<li key={s.id}>
-									<Link
-										href={`/wiki/sagas/${s.slug}`}
-										className="group block rounded-xl bg-white/[0.04] border border-white/[0.06] hover:border-dbz-orange/60 hover:bg-white/[0.07] transition-colors h-full overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+						<div className="space-y-8">
+							{g.sagas.map((s: Saga) => {
+								const sagaArcs = (arcsBySaga.get(s.slug) ?? []).sort(
+									(a, b) => a.order_idx - b.order_idx
+								);
+								return (
+									<article
+										key={s.id}
+										id={`saga-${s.slug}`}
+										className="rounded-xl border border-white/[0.06] bg-white/[0.03] overflow-hidden"
 									>
-										{s.image ? (
-											<>
-												<div className="relative aspect-[16/5] w-full overflow-hidden">
+										{/* En-tête saga */}
+										<Link
+											href={`/wiki/sagas/${s.slug}`}
+											className="group flex flex-col sm:flex-row sm:items-stretch gap-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange"
+										>
+											{s.image && (
+												<div className="relative sm:w-56 md:w-72 shrink-0 aspect-[16/7] sm:aspect-auto overflow-hidden">
+													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
 														src={assetUrl(s.image)}
 														alt={s.name}
-														className="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700"
+														className="h-full w-full object-cover opacity-75 group-hover:opacity-95 group-hover:scale-105 transition-all duration-700"
 														loading="lazy"
 													/>
-													<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-													<div className="absolute bottom-0 inset-x-0 p-4">
-														<p className="font-display font-semibold text-[10px] tracking-[0.16em] uppercase text-dbz-orange mb-0.5">
-															Saga {s.order_idx}
-														</p>
-														<h3 className="font-saiyan text-[18px] text-white leading-tight tracking-widest group-hover:text-dbz-orange transition-colors">
-															{s.name}
-														</h3>
-														{s.name_ja && (
-															<p className="font-jp text-[11px] text-dbz-orange/80 mt-1">
-																{s.name_ja}
-															</p>
-														)}
-													</div>
+													<div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/40 hidden sm:block" />
 												</div>
-												{s.description && (
-													<p className="text-[12px] leading-relaxed text-white/65 line-clamp-2 px-4 py-3">
-														{s.description}
-													</p>
-												)}
-											</>
-										) : (
-											<div className="p-4">
-												<p className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-dbz-orange mb-2">
+											)}
+											<div className="flex-1 p-5 sm:p-6 min-w-0">
+												<p className="font-display font-semibold text-[10px] tracking-[0.16em] uppercase text-dbz-orange mb-1">
 													Saga {s.order_idx}
+													{sagaArcs.length > 0
+														? ` · ${sagaArcs.length} arc${sagaArcs.length > 1 ? "s" : ""}`
+														: ""}
 												</p>
-												<h3 className="font-display font-bold text-[18px] text-white leading-tight mb-1.5 group-hover:text-dbz-orange transition-colors">
+												<h3 className="font-saiyan text-2xl sm:text-3xl text-white tracking-widest group-hover:text-dbz-orange transition-colors">
 													{s.name}
 												</h3>
 												{s.name_ja && (
-													<p className="font-jp text-[12px] text-dbz-orange/80 mb-3">{s.name_ja}</p>
+													<p className="font-jp text-sm text-dbz-orange/80 mt-1">{s.name_ja}</p>
 												)}
 												{s.description && (
-													<p className="text-[13px] leading-relaxed text-white/65 line-clamp-3">
+													<p className="mt-3 text-sm leading-relaxed text-white/60 line-clamp-2">
 														{s.description}
 													</p>
 												)}
 											</div>
+										</Link>
+
+										{/* Arcs de la saga (fusion arcs narratifs) */}
+										{sagaArcs.length > 0 && (
+											<ul className="border-t border-white/[0.06] divide-y divide-white/[0.04]">
+												{sagaArcs.map((a) => (
+													<li key={a.id}>
+														<Link
+															href={`/wiki/arcs/${a.slug}`}
+															className="flex items-center gap-4 px-5 sm:px-6 py-3 hover:bg-white/[0.04] transition-colors group"
+														>
+															<span className="scouter-text text-[10px] text-dbz-orange/80 w-10 shrink-0">
+																#{String(a.order_idx).padStart(2, "0")}
+															</span>
+															<span className="min-w-0 flex-1">
+																<span className="font-display font-semibold text-sm text-white group-hover:text-dbz-orange transition-colors">
+																	{a.name}
+																</span>
+																{a.name_ja && (
+																	<span className="ml-2 font-jp text-[11px] text-white/35">
+																		{a.name_ja}
+																	</span>
+																)}
+															</span>
+															<span className="text-dbz-orange/0 group-hover:text-dbz-orange transition-colors text-sm">
+																→
+															</span>
+														</Link>
+													</li>
+												))}
+											</ul>
 										)}
-									</Link>
-								</li>
-							))}
-						</ol>
+									</article>
+								);
+							})}
+						</div>
 					</section>
 				))}
 			</div>
