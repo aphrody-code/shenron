@@ -6,7 +6,7 @@
  *   body: { type, id, score, comment? }
  *   → upsert note (Discord lié requis).
  */
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
@@ -17,10 +17,11 @@ import {
 	upsertRating,
 } from "@/lib/ratings";
 
-/** Home + page classements lisent les agrégats notes. */
+/** Home + page classements + badges podium (cache tag). */
 function revalidateTops() {
 	revalidatePath("/");
 	revalidatePath("/classements");
+	revalidateTag("community-tops", "max");
 }
 
 export const runtime = "nodejs";

@@ -3,6 +3,7 @@ import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
+import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -65,8 +66,9 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 
 				{arc.name_ja && <p className="font-jp text-2xl text-dbz-orange/80 mb-4">{arc.name_ja}</p>}
 
-				<div className="mb-8">
+				<div className="mb-8 flex flex-wrap items-center gap-2">
 					<EntityRatingSummary targetType="arc" targetId={arc.id} />
+					<CommunityRankBadge kind="arc" targetId={arc.id} />
 				</div>
 
 				{arc.description && (

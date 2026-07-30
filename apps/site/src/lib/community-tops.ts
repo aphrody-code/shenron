@@ -10,14 +10,16 @@ export const COMMUNITY_TOP_LIMIT = 3;
 export const COMMUNITY_TOP_PRIOR_VOTES = 2;
 export const COMMUNITY_TOP_PRIOR_MEAN = 3.5;
 
-export type CommunityTopKind = "episode" | "movie" | "game";
+export type CommunityTopKind = "episode" | "movie" | "game" | "arc";
 
 export type CommunityTopBoardId =
+	| "episodes-db"
 	| "episodes-dbz"
 	| "episodes-dbs"
 	| "episodes-gt"
 	| "episodes-daima"
 	| "episodes-kai"
+	| "arcs"
 	| "games"
 	| "movies";
 
@@ -30,7 +32,7 @@ export type CommunityTopBoardDef = {
 	/** Sous-titre d'incitation. */
 	teaser: string;
 	kind: CommunityTopKind;
-	/** Codes `db_episodes.series` / `db_movies.series` (vide = tous). */
+	/** Codes `db_episodes.series` (vide = tous / N/A pour game-movie-arc). */
 	series: readonly string[];
 	/** Lien « voir tout / noter ». */
 	browseHref: string;
@@ -41,10 +43,22 @@ export type CommunityTopBoardDef = {
 };
 
 /**
- * Les 7 tops demandés — ordre d'affichage fixe.
+ * Classements communautaires — ordre d'affichage fixe.
  * Kai = DBZ_KAI + DBZ_KAI_FINAL (The Final Chapters).
+ * DB classique en tête : la saga originelle n'était pas dans la 1ʳᵉ vague Omar.
  */
 export const COMMUNITY_TOP_BOARDS: readonly CommunityTopBoardDef[] = [
+	{
+		id: "episodes-db",
+		label: "DB",
+		title: "Top 3 épisodes — Dragon Ball",
+		teaser: "Tournois, Pilaf, Piccolo… le classic qui a tout lancé.",
+		kind: "episode",
+		series: ["DB"],
+		browseHref: "/wiki/episodes/serie/DB",
+		accent: "oklch(0.78 0.17 65)",
+		kanji: "球",
+	},
 	{
 		id: "episodes-dbz",
 		label: "DBZ",
@@ -101,6 +115,17 @@ export const COMMUNITY_TOP_BOARDS: readonly CommunityTopBoardDef[] = [
 		kanji: "改",
 	},
 	{
+		id: "arcs",
+		label: "Arcs",
+		title: "Top 3 arcs narratifs",
+		teaser: "Namek, Cell, Boo… les arcs les mieux notés de la communauté.",
+		kind: "arc",
+		series: [],
+		browseHref: "/wiki/sagas",
+		accent: "oklch(0.72 0.18 25)",
+		kanji: "弧",
+	},
+	{
 		id: "games",
 		label: "Jeux",
 		title: "Top 3 jeux vidéo",
@@ -153,6 +178,17 @@ export type CommunityTopsPayload = {
 	generatedAt: string;
 };
 
+/** Badge podium pour une fiche (serveur). */
+export type CommunityRankInfo = {
+	rank: 1 | 2 | 3;
+	boardId: CommunityTopBoardId;
+	boardLabel: string;
+	boardTitle: string;
+	average: number;
+	count: number;
+	href: string;
+};
+
 /** Score bayésien : (v·R + C·m) / (v + C). */
 export function bayesianScore(
 	average: number,
@@ -166,4 +202,27 @@ export function bayesianScore(
 
 export function boardById(id: string): CommunityTopBoardDef | undefined {
 	return COMMUNITY_TOP_BOARDS.find((b) => b.id === id);
+}
+
+/** Médaille visuelle selon le rang. */
+export function rankMedal(rank: 1 | 2 | 3): { emoji: string; label: string; className: string } {
+	if (rank === 1) {
+		return {
+			emoji: "🥇",
+			label: "#1",
+			className: "border-amber-400/50 bg-amber-400/15 text-amber-200",
+		};
+	}
+	if (rank === 2) {
+		return {
+			emoji: "🥈",
+			label: "#2",
+			className: "border-slate-300/40 bg-slate-300/10 text-slate-200",
+		};
+	}
+	return {
+		emoji: "🥉",
+		label: "#3",
+		className: "border-orange-400/40 bg-orange-400/10 text-orange-300",
+	};
 }

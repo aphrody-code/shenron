@@ -18,6 +18,7 @@ import { AnimatedMedia } from "@/components/media/AnimatedMedia";
 import { BackgroundImage } from "@/components/media/BackgroundImage";
 import { EpisodeScenes } from "./EpisodeScenes";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
+import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { JsonLd } from "@/components/JsonLd";
 import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
@@ -271,7 +272,10 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 								})}
 							</p>
 						)}
-						<EntityRatingSummary targetType="episode" targetId={ep.id} />
+						<div className="flex flex-wrap items-center gap-2">
+							<EntityRatingSummary targetType="episode" targetId={ep.id} />
+							<CommunityRankBadge kind="episode" targetId={ep.id} />
+						</div>
 					</div>
 				</header>
 

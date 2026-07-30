@@ -2,6 +2,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { GameMediaGallery } from "@/components/wiki/GameMediaGallery";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
+import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
@@ -99,7 +100,10 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 						{g.title}
 					</h1>
 					{g.title_ja && <p className="font-jp text-[20px] text-dbz-orange/85 mb-3">{g.title_ja}</p>}
-					<EntityRatingSummary targetType="game" targetId={g.id} />
+					<div className="flex flex-wrap items-center gap-2">
+						<EntityRatingSummary targetType="game" targetId={g.id} />
+						<CommunityRankBadge kind="game" targetId={g.id} />
+					</div>
 				</div>
 			</header>
 

@@ -2,6 +2,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
+import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Image from "next/image";
@@ -184,8 +185,9 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							</div>
 						)}
 
-						<div className="mb-4">
+						<div className="mb-4 flex flex-wrap items-center gap-2">
 							<EntityRatingSummary targetType="movie" targetId={m.id} />
+							<CommunityRankBadge kind="movie" targetId={m.id} />
 						</div>
 
 						<dl className="grid grid-cols-2 gap-4 max-w-md">

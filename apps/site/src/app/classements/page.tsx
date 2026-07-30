@@ -11,11 +11,11 @@ export const revalidate = 60;
 export const metadata: Metadata = {
 	title: "Classements — Top 3 de la communauté",
 	description:
-		"Top 3 épisodes DBZ, Super, GT, Daima, Kai, top 3 films et jeux vidéo — classés par les notes de la communauté DBFR. Note tes favoris pour les faire monter sur le podium.",
+		"Top 3 épisodes DB, DBZ, Super, GT, Daima, Kai, top 3 arcs, films et jeux — classés par les notes de la communauté DBFR. Note tes favoris pour le podium.",
 	...ogMeta({
 		title: "Classements — Top 3 de la communauté",
 		description:
-			"Les Top 3 épisodes, films et jeux notés par la communauté Dragon Ball FR.",
+			"Les Top 3 épisodes, arcs, films et jeux notés par la communauté Dragon Ball FR.",
 		type: "website",
 		canonical: "/classements",
 	}),
@@ -32,9 +32,10 @@ export default async function ClassementsPage() {
 			/>
 
 			<p className="mb-8 max-w-2xl text-sm leading-relaxed text-white/60">
-				Chaque membre connecté (Discord) peut noter épisodes, films et jeux.
+				Chaque membre connecté (Discord) peut noter épisodes, arcs, films et jeux.
 				Les podiums se mettent à jour en direct : plus un titre est bien noté
-				(et voté), plus il grimpe.{" "}
+				(et voté), plus il grimpe. Les #1, #2 et #3 affichent un{" "}
+				<strong className="text-white/80">badge communauté</strong> sur leur fiche.{" "}
 				{data.globalVotes > 0 ? (
 					<>
 						<strong className="text-white/80">{data.globalVotes}</strong> vote

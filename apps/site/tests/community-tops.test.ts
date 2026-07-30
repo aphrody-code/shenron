@@ -10,18 +10,25 @@ import {
 } from "../src/lib/community-tops";
 
 describe("community tops catalog", () => {
-	test("7 boards demandés (DBZ, DBS, GT, Daima, Kai, jeux, films)", () => {
-		expect(COMMUNITY_TOP_BOARDS).toHaveLength(7);
+	test("9 boards (DB + DBZ + DBS + GT + Daima + Kai + arcs + jeux + films)", () => {
+		expect(COMMUNITY_TOP_BOARDS).toHaveLength(9);
 		const ids = COMMUNITY_TOP_BOARDS.map((b) => b.id);
 		expect(ids).toEqual([
+			"episodes-db",
 			"episodes-dbz",
 			"episodes-dbs",
 			"episodes-gt",
 			"episodes-daima",
 			"episodes-kai",
+			"arcs",
 			"games",
 			"movies",
 		]);
+	});
+
+	test("DB classique + arcs présents", () => {
+		expect(boardById("episodes-db")?.series).toEqual(["DB"]);
+		expect(boardById("arcs")?.kind).toBe("arc");
 	});
 
 	test("Kai regroupe DBZ_KAI + FINAL", () => {

@@ -1,19 +1,22 @@
 /**
  * community-tops-data — assemblage **server-only** des Top 3 communautaires.
- * Agrège `site_ratings` × entités wiki (épisodes / films / jeux).
+ * Agrège `site_ratings` × entités wiki (épisodes / films / jeux / arcs).
  */
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { siteRatings } from "@/db/schema";
-import { botEpisodes, botMovies, botGames } from "@/db/bot-schema";
+import { botEpisodes, botMovies, botGames, botArcs } from "@/db/bot-schema";
 import {
 	COMMUNITY_TOP_BOARDS,
 	COMMUNITY_TOP_LIMIT,
 	bayesianScore,
+	type CommunityRankInfo,
 	type CommunityTopBoard,
 	type CommunityTopBoardDef,
 	type CommunityTopEntry,
+	type CommunityTopKind,
 	type CommunityTopsPayload,
 } from "@/lib/community-tops";
 
@@ -24,7 +27,9 @@ type AggRow = {
 	bayes: number;
 };
 
-async function ratingAggs(targetType: "episode" | "movie" | "game"): Promise<Map<string, AggRow>> {
+async function ratingAggs(
+	targetType: "episode" | "movie" | "game" | "arc"
+): Promise<Map<string, AggRow>> {
 	const rows = await db
 		.select({
 			targetId: siteRatings.targetId,
@@ -50,9 +55,7 @@ async function ratingAggs(targetType: "episode" | "movie" | "game"): Promise<Map
 	return map;
 }
 
-function rankEntries(
-	candidates: Omit<CommunityTopEntry, "rank">[]
-): CommunityTopEntry[] {
+function rankEntries(candidates: Omit<CommunityTopEntry, "rank">[]): CommunityTopEntry[] {
 	return candidates
 		.slice()
 		.sort((a, b) => {
@@ -212,16 +215,62 @@ async function buildGameBoard(
 	};
 }
 
-/**
- * Charge tous les boards Top 3. Ne throw jamais → home / classements
- * restent utilisables même si la table ratings est vide.
- */
-export async function getCommunityTops(): Promise<CommunityTopsPayload> {
+async function buildArcBoard(
+	def: CommunityTopBoardDef,
+	aggs: Map<string, AggRow>
+): Promise<CommunityTopBoard> {
+	const ids = [...aggs.keys()].filter((id) => /^\d+$/.test(id));
+	if (ids.length === 0) {
+		return { def, entries: [], totalVotes: 0, ratedCount: 0 };
+	}
+
+	const rows = await db
+		.select({
+			id: botArcs.id,
+			slug: botArcs.slug,
+			name: botArcs.name,
+			nameJa: botArcs.nameJa,
+			orderIdx: botArcs.orderIdx,
+		})
+		.from(botArcs)
+		.where(inArray(botArcs.id, ids.map(Number)));
+
+	let totalVotes = 0;
+	const candidates: Omit<CommunityTopEntry, "rank">[] = [];
+	for (const a of rows) {
+		const agg = aggs.get(String(a.id));
+		if (!agg) continue;
+		totalVotes += agg.count;
+		candidates.push({
+			id: String(a.id),
+			title: a.name,
+			subtitle:
+				a.orderIdx != null
+					? `Arc · ordre ${a.orderIdx}${a.nameJa ? ` · ${a.nameJa}` : ""}`
+					: a.nameJa ?? "Arc narratif",
+			image: null,
+			href: `/wiki/arcs/${a.slug}`,
+			average: agg.average,
+			count: agg.count,
+			bayes: agg.bayes,
+		});
+	}
+
+	return {
+		def,
+		entries: rankEntries(candidates),
+		totalVotes,
+		ratedCount: candidates.length,
+	};
+}
+
+async function loadCommunityTops(): Promise<CommunityTopsPayload> {
 	try {
-		const [epAggs, movieAggs, gameAggs] = await Promise.all([
+		const [epAggs, movieAggs, gameAggs, arcAggs] = await Promise.all([
 			ratingAggs("episode"),
 			ratingAggs("movie"),
 			ratingAggs("game"),
+			ratingAggs("arc"),
 		]);
 
 		const boards: CommunityTopBoard[] = [];
@@ -230,8 +279,10 @@ export async function getCommunityTops(): Promise<CommunityTopsPayload> {
 				boards.push(await buildEpisodeBoard(def, epAggs));
 			} else if (def.kind === "movie") {
 				boards.push(await buildMovieBoard(def, movieAggs));
-			} else {
+			} else if (def.kind === "game") {
 				boards.push(await buildGameBoard(def, gameAggs));
+			} else {
+				boards.push(await buildArcBoard(def, arcAggs));
 			}
 		}
 
@@ -254,4 +305,43 @@ export async function getCommunityTops(): Promise<CommunityTopsPayload> {
 			generatedAt: new Date().toISOString(),
 		};
 	}
+}
+
+/**
+ * Charge tous les boards Top 3 (cache 60 s — partagé home / classements / badges).
+ * Ne throw jamais.
+ */
+export const getCommunityTops = unstable_cache(loadCommunityTops, ["community-tops-v2"], {
+	revalidate: 60,
+	tags: ["community-tops"],
+});
+
+/**
+ * Rang podium d'une fiche (si elle est dans le top 3 d'un board).
+ * Prefère le meilleur rang si plusieurs boards matchent (ex. rare).
+ */
+export async function getCommunityRankFor(
+	kind: CommunityTopKind,
+	targetId: string | number
+): Promise<CommunityRankInfo | null> {
+	const id = String(targetId);
+	const data = await getCommunityTops();
+	let best: CommunityRankInfo | null = null;
+
+	for (const board of data.boards) {
+		if (board.def.kind !== kind) continue;
+		const entry = board.entries.find((e) => e.id === id);
+		if (!entry) continue;
+		const info: CommunityRankInfo = {
+			rank: entry.rank,
+			boardId: board.def.id,
+			boardLabel: board.def.label,
+			boardTitle: board.def.title,
+			average: entry.average,
+			count: entry.count,
+			href: `/classements#${board.def.id}`,
+		};
+		if (!best || info.rank < best.rank) best = info;
+	}
+	return best;
 }

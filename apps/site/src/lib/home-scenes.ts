@@ -428,7 +428,7 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 		eyebrow: "Les classements",
 		title: "Les Top 3 de la communauté",
 		subtitle:
-			"Épisodes DBZ, Super, GT, Daima, Kai, films et jeux — classés par vos notes. Note ton favori pour le propulser sur le podium.",
+			"Épisodes DB → Kai, arcs, films et jeux — classés par vos notes. Note ton favori pour le propulser (et décrocher le badge #1).",
 		defaultEnabled: true,
 	},
 	// Masqués par défaut en bêta : les routes /wiki/personnages et /wiki/sagas sont

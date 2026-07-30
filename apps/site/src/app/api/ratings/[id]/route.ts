@@ -11,12 +11,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { siteRatings } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { clearRatingComment, deleteRating, getRatingState, isRatingTargetType } from "@/lib/ratings";
 
 function revalidateTops() {
 	revalidatePath("/");
 	revalidatePath("/classements");
+	revalidateTag("community-tops", "max");
 }
 
 export const runtime = "nodejs";
