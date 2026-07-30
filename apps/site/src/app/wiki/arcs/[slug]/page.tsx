@@ -2,7 +2,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
-import { EntityRating } from "@/components/ratings/EntityRating";
+import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -63,7 +63,11 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 					{arc.name}
 				</h1>
 
-				{arc.name_ja && <p className="font-jp text-2xl text-dbz-orange/80 mb-8">{arc.name_ja}</p>}
+				{arc.name_ja && <p className="font-jp text-2xl text-dbz-orange/80 mb-4">{arc.name_ja}</p>}
+
+				<div className="mb-8">
+					<EntityRatingSummary targetType="arc" targetId={arc.id} />
+				</div>
 
 				{arc.description && (
 					<div className="dbz-panel p-8 relative overflow-hidden">
@@ -85,20 +89,11 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 				<WikiEntitySections entityType="arc" entityId={arc.id} />
 			</div>
 
-			<div className="mb-20">
-				<EntityRating
-					targetType="arc"
-					targetId={arc.id}
-					signinCallback={`/wiki/arcs/${slug}`}
-					label="cet arc"
-				/>
-			</div>
-
 			{episodes.length > 0 && (
 				<section className="mb-20">
 					<div className="flex items-center gap-6 mb-10">
 						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
-							Épisodes de l'Arc ({episodes.length})
+							Épisodes de l&apos;Arc ({episodes.length})
 						</h2>
 						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
 					</div>
@@ -142,6 +137,16 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 					</div>
 				</section>
 			)}
+
+			{/* Notes & avis — dernier bloc */}
+			<div className="mb-20">
+				<EntityRating
+					targetType="arc"
+					targetId={arc.id}
+					signinCallback={`/wiki/arcs/${slug}`}
+					label="cet arc"
+				/>
+			</div>
 		</div>
 	);
 }

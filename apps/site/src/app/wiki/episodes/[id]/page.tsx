@@ -17,7 +17,7 @@ import { KenBurns } from "@/components/KenBurns";
 import { AnimatedMedia } from "@/components/media/AnimatedMedia";
 import { BackgroundImage } from "@/components/media/BackgroundImage";
 import { EpisodeScenes } from "./EpisodeScenes";
-import { EntityRating } from "@/components/ratings/EntityRating";
+import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { JsonLd } from "@/components/JsonLd";
 import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
@@ -260,16 +260,19 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 						<p className="font-jp text-xl lg:text-2xl text-dbz-orange/85 mb-4">{ep.title_ja}</p>
 					)}
 
-					{ep.air_date && (
-						<p className="text-[13px] font-display tracking-widest uppercase text-white/55">
-							Première diffusion —{" "}
-							{new Date(ep.air_date * 1000).toLocaleDateString("fr-FR", {
-								day: "numeric",
-								month: "long",
-								year: "numeric",
-							})}
-						</p>
-					)}
+					<div className="flex flex-wrap items-center gap-4">
+						{ep.air_date && (
+							<p className="text-[13px] font-display tracking-widest uppercase text-white/55">
+								Première diffusion —{" "}
+								{new Date(ep.air_date * 1000).toLocaleDateString("fr-FR", {
+									day: "numeric",
+									month: "long",
+									year: "numeric",
+								})}
+							</p>
+						)}
+						<EntityRatingSummary targetType="episode" targetId={ep.id} />
+					</div>
 				</header>
 
 				{/* === Player === */}
@@ -303,7 +306,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 
 				<EpisodeAdminEditor episodeId={ep.id} videoUrl={ep.video_url} subtitles={ep.subtitles} />
 
-				{/* === Corps : synopsis + notes + nav === */}
+				{/* === Corps : synopsis + scènes + nav — notes tout en bas === */}
 				<div className="space-y-12">
 					{ep.synopsis && (
 						<section className="dbz-panel p-8 relative overflow-hidden reveal-up">
@@ -316,15 +319,6 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 							</div>
 						</section>
 					)}
-
-					<div className="reveal-up">
-						<EntityRating
-							targetType="episode"
-							targetId={ep.id}
-							signinCallback={`/wiki/episodes/${ep.id}`}
-							label="cet épisode"
-						/>
-					</div>
 
 					{/* === Scènes : grille des frames extraites (îlot client) === */}
 					{hasFrames && (
@@ -404,6 +398,16 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 							</div>
 						</section>
 					)}
+
+					{/* Notes & avis — dernier bloc (commentaires en fin de page) */}
+					<div className="reveal-up">
+						<EntityRating
+							targetType="episode"
+							targetId={ep.id}
+							signinCallback={`/wiki/episodes/${ep.id}`}
+							label="cet épisode"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

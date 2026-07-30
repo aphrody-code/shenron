@@ -1,7 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { GameMediaGallery } from "@/components/wiki/GameMediaGallery";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
-import { EntityRating } from "@/components/ratings/EntityRating";
+import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
@@ -98,7 +98,8 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 					<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-3">
 						{g.title}
 					</h1>
-					{g.title_ja && <p className="font-jp text-[20px] text-dbz-orange/85">{g.title_ja}</p>}
+					{g.title_ja && <p className="font-jp text-[20px] text-dbz-orange/85 mb-3">{g.title_ja}</p>}
+					<EntityRatingSummary targetType="game" targetId={g.id} />
 				</div>
 			</header>
 
@@ -163,15 +164,6 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 				</section>
 			)}
 
-			<div className="mb-12">
-				<EntityRating
-					targetType="game"
-					targetId={g.id}
-					signinCallback={`/wiki/jeux/${slug}`}
-					label="ce jeu"
-				/>
-			</div>
-
 			{g.media && g.media.length > 0 && (
 				<GameMediaGallery media={g.media} title={g.title} />
 			)}
@@ -218,6 +210,16 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 					Page officielle Bandai Namco
 				</a>
 			)}
+
+			{/* Notes & avis — dernier bloc */}
+			<div className="mt-16">
+				<EntityRating
+					targetType="game"
+					targetId={g.id}
+					signinCallback={`/wiki/jeux/${slug}`}
+					label="ce jeu"
+				/>
+			</div>
 		</div>
 	);
 }

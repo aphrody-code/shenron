@@ -1,17 +1,16 @@
 /**
- * Panneau de notation 1–5 étoiles pour une fiche wiki (jeu, épisode, film, arc).
+ * Notation 1–5 ★ pour fiches wiki (jeu, épisode, film, arc).
  *
- * - Lecture publique : moyenne + nombre de notes + commentaires.
- * - Écriture : membres connectés avec Discord lié (Better Auth).
- * - Commentaire optionnel ; suppression auteur ou admin.
- *
- * Îlot client → pages parentes restent ISR/cacheables.
+ * Split UX demandé :
+ *  - `EntityRatingSummary` → moyenne compacte en haut de page
+ *  - `EntityRating`        → onglets « Noter / Avis » tout en bas
+ *    (formulaire + commentaires ne monopolisent plus le milieu de page)
  */
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useId, useState } from "react";
+import { ChevronDown, Loader2, MessageSquare, Star, Trash2 } from "lucide-react";
 import { useMe } from "@/lib/use-me";
 import { RatingBadge, Stars } from "./Stars";
 
@@ -46,7 +45,7 @@ type State = {
 	comments: CommentRow[];
 };
 
-type Props = {
+type SharedProps = {
 	targetType: RatingTargetType;
 	targetId: string | number;
 	/** Chemin pour le callback après login Discord. */
@@ -57,30 +56,15 @@ type Props = {
 };
 
 const COMMENT_MAX = 800;
+const ANCHOR_ID = "notes";
 
-export function EntityRating({
-	targetType,
-	targetId,
-	signinCallback,
-	label = "cette fiche",
-	className = "",
-}: Props) {
-	const me = useMe();
+function useRatingState(targetType: RatingTargetType, targetId: string | number) {
 	const id = String(targetId);
 	const [state, setState] = useState<State | null>(null);
 	const [loadErr, setLoadErr] = useState<string | null>(null);
-	const [hover, setHover] = useState<number | null>(null);
-	const [draftScore, setDraftScore] = useState<number>(0);
-	const [draftComment, setDraftComment] = useState("");
-	const [saving, setSaving] = useState(false);
-	const [saveErr, setSaveErr] = useState<string | null>(null);
-	const [saveOk, setSaveOk] = useState(false);
-	const [deletingId, setDeletingId] = useState<string | null>(null);
 
 	const applyState = useCallback((s: State) => {
 		setState(s);
-		setDraftScore(s.mine?.score ?? 0);
-		setDraftComment(s.mine?.comment ?? "");
 	}, []);
 
 	const load = useCallback(async () => {
@@ -105,6 +89,114 @@ export function EntityRating({
 	useEffect(() => {
 		void load();
 	}, [load]);
+
+	return { id, state, setState: applyState, load, loadErr };
+}
+
+// ─── Moyenne compacte (haut de page) ─────────────────────────────────────────
+
+/**
+ * Badge moyenne uniquement — à placer dans l'en-tête de fiche.
+ * Clic → scroll vers l'onglet notes en bas (`#notes`).
+ */
+export function EntityRatingSummary({
+	targetType,
+	targetId,
+	className = "",
+}: {
+	targetType: RatingTargetType;
+	targetId: string | number;
+	className?: string;
+}) {
+	const { state, loadErr } = useRatingState(targetType, targetId);
+	const summary = state?.summary ?? { average: 0, count: 0 };
+
+	if (loadErr) {
+		return (
+			<span className={`text-[12px] text-white/35 ${className}`}>Notes indisponibles</span>
+		);
+	}
+
+	if (!state) {
+		return (
+			<span
+				className={`inline-block h-7 w-28 animate-pulse rounded-full bg-white/[0.06] ${className}`}
+				aria-hidden
+			/>
+		);
+	}
+
+	return (
+		<a
+			href={`#${ANCHOR_ID}`}
+			className={`group inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1.5 transition-colors hover:border-dbz-orange/50 hover:bg-dbz-orange/10 ${className}`}
+			title="Voir les notes et avis"
+		>
+			{summary.count > 0 ? (
+				<>
+					<Stars value={summary.average} size="sm" label="Moyenne" />
+					<span className="font-display text-sm font-bold tabular-nums text-white">
+						{summary.average.toFixed(1)}
+					</span>
+					<span className="text-[11px] text-white/45">
+						· {summary.count} note{summary.count > 1 ? "s" : ""}
+					</span>
+				</>
+			) : (
+				<>
+					<span className="text-dbz-orange/70" aria-hidden>
+						★
+					</span>
+					<span className="text-[12px] font-display font-semibold tracking-wide text-white/55 group-hover:text-dbz-orange">
+						Noter
+					</span>
+				</>
+			)}
+			<ChevronDown className="h-3.5 w-3.5 text-white/30 group-hover:text-dbz-orange" aria-hidden />
+		</a>
+	);
+}
+
+// ─── Onglets bas de page (formulaire + avis) ─────────────────────────────────
+
+type TabId = "rate" | "reviews";
+
+/**
+ * Panneau notes en onglets — à placer **en bas** de la fiche (après le contenu).
+ * Onglet « Noter » = saisie ; onglet « Avis » = commentaires communautaires.
+ */
+export function EntityRating({
+	targetType,
+	targetId,
+	signinCallback,
+	label = "cette fiche",
+	className = "",
+}: SharedProps) {
+	const me = useMe();
+	const { id, state, setState, load, loadErr } = useRatingState(targetType, targetId);
+	const [hover, setHover] = useState<number | null>(null);
+	const [draftScore, setDraftScore] = useState(0);
+	const [draftComment, setDraftComment] = useState("");
+	const [saving, setSaving] = useState(false);
+	const [saveErr, setSaveErr] = useState<string | null>(null);
+	const [saveOk, setSaveOk] = useState(false);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const [tab, setTab] = useState<TabId>("rate");
+	const baseId = useId();
+
+	// Sync draft quand l'état arrive / change.
+	useEffect(() => {
+		if (!state) return;
+		setDraftScore(state.mine?.score ?? 0);
+		setDraftComment(state.mine?.comment ?? "");
+	}, [state]);
+
+	// Si l'URL arrive avec #notes, ouvrir l'onglet Avis s'il y en a.
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		if (window.location.hash !== `#${ANCHOR_ID}`) return;
+		if (state && state.comments.length > 0) setTab("reviews");
+	}, [state]);
 
 	async function submit(score: number, comment: string) {
 		if (saving) return;
@@ -137,11 +229,13 @@ export function EntityRating({
 			}
 			if (!res.ok) {
 				const body = (await res.json().catch(() => null)) as { error?: string } | null;
-				setSaveErr(body?.error === "comment_too_long" ? "Commentaire trop long." : "Échec de l'envoi.");
+				setSaveErr(
+					body?.error === "comment_too_long" ? "Commentaire trop long." : "Échec de l'envoi."
+				);
 				return;
 			}
 			const data = (await res.json()) as State;
-			applyState({
+			setState({
 				summary: data.summary,
 				mine: data.mine,
 				comments: data.comments,
@@ -172,7 +266,7 @@ export function EntityRating({
 			}
 			const data = (await res.json()) as State;
 			if (data.summary) {
-				applyState({
+				setState({
 					summary: data.summary,
 					mine: data.mine ?? null,
 					comments: data.comments ?? [],
@@ -188,216 +282,281 @@ export function EntityRating({
 	}
 
 	const summary = state?.summary ?? { average: 0, count: 0 };
+	const comments = state?.comments ?? [];
 	const authReady = me !== undefined;
 	const canRate = Boolean(me?.authenticated);
+	const reviewCount = comments.length;
+
+	const tabBtn =
+		"inline-flex items-center gap-1.5 rounded-t-lg border border-b-0 px-4 py-2 text-sm font-semibold transition-colors";
+	const tabActive = "border-dbz-orange/50 bg-dbz-card text-white";
+	const tabIdle =
+		"border-transparent bg-transparent text-white/50 hover:text-white/80";
 
 	return (
 		<section
-			className={`dbz-panel p-6 sm:p-8 relative overflow-hidden ${className}`}
-			aria-labelledby={`rating-heading-${targetType}-${id}`}
+			id={ANCHOR_ID}
+			className={`scroll-mt-24 ${className}`}
+			aria-labelledby={`${baseId}-heading`}
 		>
-			<div className="absolute top-0 left-0 w-1 h-full bg-dbz-orange" />
-
-			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-				<div>
-					<h2
-						id={`rating-heading-${targetType}-${id}`}
-						className="font-display font-bold text-xl text-dbz-orange mb-2 uppercase tracking-widest"
+			{/* En-tête compact + onglets */}
+			<div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10">
+				<div className="flex flex-wrap items-end gap-1">
+					<button
+						type="button"
+						role="tab"
+						aria-selected={tab === "rate"}
+						aria-controls={`${baseId}-rate`}
+						id={`${baseId}-tab-rate`}
+						onClick={() => setTab("rate")}
+						className={`${tabBtn} ${tab === "rate" ? tabActive : tabIdle}`}
 					>
-						Notes de la communauté
-					</h2>
-					<p className="text-[13px] text-white/55">
-						Note {label} sur 5 étoiles. Commentaire facultatif.
-					</p>
+						<Star className="h-3.5 w-3.5 text-dbz-orange" aria-hidden />
+						Noter
+					</button>
+					<button
+						type="button"
+						role="tab"
+						aria-selected={tab === "reviews"}
+						aria-controls={`${baseId}-reviews`}
+						id={`${baseId}-tab-reviews`}
+						onClick={() => setTab("reviews")}
+						className={`${tabBtn} ${tab === "reviews" ? tabActive : tabIdle}`}
+					>
+						<MessageSquare className="h-3.5 w-3.5" aria-hidden />
+						Avis
+						{reviewCount > 0 && (
+							<span className="rounded bg-white/10 px-1.5 text-[11px] tabular-nums text-dbz-orange">
+								{reviewCount}
+							</span>
+						)}
+					</button>
 				</div>
-				<div className="flex flex-col items-start sm:items-end gap-1">
+
+				<div className="mb-2 flex items-center gap-2 pr-1">
 					{state ? (
 						<>
-							<div className="flex items-center gap-3">
-								<Stars value={summary.average} size="lg" label="Moyenne" />
-								<span className="font-display font-bold text-2xl tabular-nums text-white">
-									{summary.count > 0 ? summary.average.toFixed(1) : "—"}
-								</span>
-							</div>
+							<span className="sr-only" id={`${baseId}-heading`}>
+								Notes de la communauté
+							</span>
 							<RatingBadge average={summary.average} count={summary.count} />
 						</>
 					) : loadErr ? (
-						<p className="text-[13px] text-red-400">{loadErr}</p>
+						<span className="text-[12px] text-red-400">{loadErr}</span>
 					) : (
-						<div className="h-8 w-32 rounded bg-white/[0.04] animate-pulse" aria-hidden />
+						<span className="h-5 w-20 animate-pulse rounded bg-white/[0.06]" aria-hidden />
 					)}
 				</div>
 			</div>
 
-			{/* Zone de saisie */}
-			{!authReady ? (
-				<div className="h-[100px] rounded-xl bg-white/[0.02] border border-white/[0.06]" aria-hidden />
-			) : canRate ? (
-				<div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 sm:p-5 mb-6 space-y-4">
-					<div className="flex flex-wrap items-center gap-3">
-						<span className="text-[12px] font-display font-semibold tracking-[0.12em] uppercase text-white/50">
-							Ta note
-						</span>
-						<Stars
-							value={draftScore}
-							size="lg"
-							interactive
-							hover={hover}
-							onHover={setHover}
-							onSelect={(n) => {
-								setDraftScore(n);
-								// Clic étoile = envoi immédiat (score) ; commentaire via bouton.
-								void submit(n, draftComment);
-							}}
-							label="Ta note"
-						/>
-						{draftScore > 0 && (
-							<span className="text-[13px] text-white/70 tabular-nums">
-								{draftScore}/5
-							</span>
-						)}
-					</div>
-
-					<div>
-						<label
-							htmlFor={`rating-comment-${id}`}
-							className="block text-[12px] font-display font-semibold tracking-[0.12em] uppercase text-white/50 mb-2"
-						>
-							Commentaire <span className="normal-case tracking-normal text-white/35">(optionnel)</span>
-						</label>
-						<textarea
-							id={`rating-comment-${id}`}
-							value={draftComment}
-							onChange={(e) => setDraftComment(e.target.value.slice(0, COMMENT_MAX))}
-							rows={3}
-							maxLength={COMMENT_MAX}
-							placeholder="Un avis court sur le combat final, le roster, le fun…"
-							className="w-full rounded-lg bg-black/40 border border-white/10 px-3 py-2.5 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-dbz-orange/50 resize-y min-h-[72px]"
-						/>
-						<div className="mt-1 flex justify-between text-[11px] text-white/35">
-							<span>{draftComment.length}/{COMMENT_MAX}</span>
-							{state?.mine && (
-								<button
-									type="button"
-									className="hover:text-red-400 transition-colors"
-									onClick={() => void remove(state.mine!.id, "full")}
-									disabled={deletingId === state.mine.id}
-								>
-									Retirer ma note
-								</button>
-							)}
-						</div>
-					</div>
-
-					<div className="flex flex-wrap items-center gap-3">
-						<button
-							type="button"
-							disabled={saving || draftScore < 1}
-							onClick={() => void submit(draftScore, draftComment)}
-							className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase transition-colors disabled:opacity-40 disabled:pointer-events-none"
-						>
-							{saving ? (
-								<>
-									<Loader2 className="h-4 w-4 animate-spin mr-2" />
-									Envoi…
-								</>
-							) : state?.mine ? (
-								"Mettre à jour"
-							) : (
-								"Publier ma note"
-							)}
-						</button>
-						{saveOk && (
-							<span className="text-[13px] text-emerald-400">Enregistré !</span>
-						)}
-						{saveErr && <span className="text-[13px] text-red-400">{saveErr}</span>}
-					</div>
-				</div>
-			) : (
-				<div className="mb-6 p-5 rounded-xl bg-dbz-orange/10 border border-dbz-orange/30 flex flex-wrap items-center justify-between gap-4">
-					<p className="text-[14px] text-white/85">
-						Connecte-toi avec Discord pour noter {label}.
-					</p>
-					<Link
-						href={`/signin?callbackURL=${encodeURIComponent(signinCallback)}`}
-						className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase transition-colors whitespace-nowrap"
+			<div className="rounded-b-xl rounded-tr-xl border border-t-0 border-white/10 bg-dbz-card/80 p-4 sm:p-5">
+				{/* ── Onglet Noter ── */}
+				{tab === "rate" && (
+					<div
+						role="tabpanel"
+						id={`${baseId}-rate`}
+						aria-labelledby={`${baseId}-tab-rate`}
+						className="space-y-4"
 					>
-						Connexion Discord
-					</Link>
-				</div>
-			)}
+						<p className="text-[13px] text-white/50">
+							Note {label} sur 5 étoiles. Commentaire facultatif — les avis s&apos;affichent
+							dans l&apos;onglet voisin.
+						</p>
 
-			{/* Liste des commentaires */}
-			{state && state.comments.length > 0 && (
-				<div className="space-y-3">
-					<h3 className="font-display font-semibold text-[12px] tracking-[0.16em] uppercase text-white/45">
-						Avis ({state.comments.length})
-					</h3>
-					<ul className="space-y-3">
-						{state.comments.map((c) => {
-							const canDelete =
-								me?.isAdmin ||
-								(me?.authenticated && state.mine?.id === c.id);
-							return (
-								<li
-									key={c.id}
-									className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4"
-								>
-									<div className="flex items-start justify-between gap-3 mb-2">
-										<div className="flex items-center gap-3 min-w-0">
-											{c.author.avatar ? (
-												// eslint-disable-next-line @next/next/no-img-element
-												<img
-													src={c.author.avatar}
-													alt=""
-													className="h-8 w-8 rounded-full object-cover shrink-0"
-												/>
-											) : (
-												<div className="h-8 w-8 rounded-full bg-white/10 shrink-0" />
-											)}
-											<div className="min-w-0">
-												<p className="text-[13px] font-display font-semibold text-white truncate">
-													{c.author.username}
-												</p>
-												<div className="flex items-center gap-2">
-													<Stars value={c.score} size="sm" />
-													<span className="text-[11px] text-white/40">
-														{formatDate(c.updatedAt)}
-													</span>
-												</div>
-											</div>
-										</div>
-										{canDelete && (
+						{!authReady ? (
+							<div className="h-20 rounded-lg bg-white/[0.03]" aria-hidden />
+						) : canRate ? (
+							<div className="space-y-4">
+								<div className="flex flex-wrap items-center gap-3">
+									<span className="text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/45">
+										Ta note
+									</span>
+									<Stars
+										value={draftScore}
+										size="lg"
+										interactive
+										hover={hover}
+										onHover={setHover}
+										onSelect={(n) => {
+											setDraftScore(n);
+											void submit(n, draftComment);
+										}}
+										label="Ta note"
+									/>
+									{draftScore > 0 && (
+										<span className="text-[13px] tabular-nums text-white/70">
+											{draftScore}/5
+										</span>
+									)}
+								</div>
+
+								<div>
+									<label
+										htmlFor={`rating-comment-${id}`}
+										className="mb-1.5 block text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/45"
+									>
+										Commentaire{" "}
+										<span className="normal-case tracking-normal text-white/30">
+											(optionnel)
+										</span>
+									</label>
+									<textarea
+										id={`rating-comment-${id}`}
+										value={draftComment}
+										onChange={(e) => setDraftComment(e.target.value.slice(0, COMMENT_MAX))}
+										rows={2}
+										maxLength={COMMENT_MAX}
+										placeholder="Un avis court…"
+										className="min-h-[56px] w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-dbz-orange/50"
+									/>
+									<div className="mt-1 flex justify-between text-[11px] text-white/35">
+										<span>
+											{draftComment.length}/{COMMENT_MAX}
+										</span>
+										{state?.mine && (
 											<button
 												type="button"
-												title={me?.isAdmin ? "Supprimer la note (admin)" : "Supprimer mon avis"}
-												onClick={() => void remove(c.id, "full")}
-												disabled={deletingId === c.id}
-												className="p-1.5 rounded-md text-white/40 hover:text-red-400 hover:bg-white/5 transition-colors disabled:opacity-40"
+												className="transition-colors hover:text-red-400"
+												onClick={() => void remove(state.mine!.id, "full")}
+												disabled={deletingId === state.mine.id}
 											>
-												{deletingId === c.id ? (
-													<Loader2 className="h-4 w-4 animate-spin" />
-												) : (
-													<Trash2 className="h-4 w-4" />
-												)}
+												Retirer ma note
 											</button>
 										)}
 									</div>
-									<p className="text-[14px] text-white/80 leading-relaxed whitespace-pre-wrap">
-										{c.comment}
-									</p>
-								</li>
-							);
-						})}
-					</ul>
-				</div>
-			)}
+								</div>
 
-			{state && state.comments.length === 0 && summary.count > 0 && (
-				<p className="text-[13px] text-white/40">
-					Des notes sans commentaire pour l&apos;instant — sois le premier à laisser un avis !
-				</p>
-			)}
+								<div className="flex flex-wrap items-center gap-3">
+									<button
+										type="button"
+										disabled={saving || draftScore < 1}
+										onClick={() => void submit(draftScore, draftComment)}
+										className="inline-flex h-9 items-center rounded-full bg-dbz-orange px-4 font-display text-[11px] font-bold uppercase tracking-[0.1em] text-black transition-colors hover:bg-white disabled:pointer-events-none disabled:opacity-40"
+									>
+										{saving ? (
+											<>
+												<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+												Envoi…
+											</>
+										) : state?.mine ? (
+											"Mettre à jour"
+										) : (
+											"Publier ma note"
+										)}
+									</button>
+									{saveOk && (
+										<span className="text-[13px] text-emerald-400">Enregistré !</span>
+									)}
+									{saveErr && <span className="text-[13px] text-red-400">{saveErr}</span>}
+								</div>
+							</div>
+						) : (
+							<div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dbz-orange/25 bg-dbz-orange/10 px-4 py-3">
+								<p className="text-[13px] text-white/85">
+									Connecte-toi avec Discord pour noter {label}.
+								</p>
+								<Link
+									href={`/signin?callbackURL=${encodeURIComponent(signinCallback)}`}
+									className="inline-flex h-9 items-center whitespace-nowrap rounded-full bg-dbz-orange px-4 font-display text-[11px] font-bold uppercase tracking-[0.1em] text-black transition-colors hover:bg-white"
+								>
+									Connexion Discord
+								</Link>
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* ── Onglet Avis ── */}
+				{tab === "reviews" && (
+					<div
+						role="tabpanel"
+						id={`${baseId}-reviews`}
+						aria-labelledby={`${baseId}-tab-reviews`}
+					>
+						{!state ? (
+							<div className="h-16 animate-pulse rounded-lg bg-white/[0.04]" aria-hidden />
+						) : comments.length > 0 ? (
+							<ul className="space-y-3">
+								{comments.map((c) => {
+									const canDelete =
+										me?.isAdmin || (me?.authenticated && state.mine?.id === c.id);
+									return (
+										<li
+											key={c.id}
+											className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3.5"
+										>
+											<div className="mb-1.5 flex items-start justify-between gap-3">
+												<div className="flex min-w-0 items-center gap-2.5">
+													{c.author.avatar ? (
+														// eslint-disable-next-line @next/next/no-img-element
+														<img
+															src={c.author.avatar}
+															alt=""
+															className="h-7 w-7 shrink-0 rounded-full object-cover"
+														/>
+													) : (
+														<div className="h-7 w-7 shrink-0 rounded-full bg-white/10" />
+													)}
+													<div className="min-w-0">
+														<p className="truncate font-display text-[13px] font-semibold text-white">
+															{c.author.username}
+														</p>
+														<div className="flex items-center gap-2">
+															<Stars value={c.score} size="sm" />
+															<span className="text-[11px] text-white/40">
+																{formatDate(c.updatedAt)}
+															</span>
+														</div>
+													</div>
+												</div>
+												{canDelete && (
+													<button
+														type="button"
+														title={
+															me?.isAdmin
+																? "Supprimer la note (admin)"
+																: "Supprimer mon avis"
+														}
+														onClick={() => void remove(c.id, "full")}
+														disabled={deletingId === c.id}
+														className="rounded-md p-1.5 text-white/40 transition-colors hover:bg-white/5 hover:text-red-400 disabled:opacity-40"
+													>
+														{deletingId === c.id ? (
+															<Loader2 className="h-4 w-4 animate-spin" />
+														) : (
+															<Trash2 className="h-4 w-4" />
+														)}
+													</button>
+												)}
+											</div>
+											<p className="whitespace-pre-wrap text-[14px] leading-relaxed text-white/80">
+												{c.comment}
+											</p>
+										</li>
+									);
+								})}
+							</ul>
+						) : summary.count > 0 ? (
+							<p className="py-4 text-center text-[13px] text-white/40">
+								Des notes sans commentaire pour l&apos;instant — sois le premier à laisser
+								un avis dans l&apos;onglet <strong className="text-white/60">Noter</strong>.
+							</p>
+						) : (
+							<p className="py-4 text-center text-[13px] text-white/40">
+								Aucun avis pour l&apos;instant. Ouvre l&apos;onglet{" "}
+								<button
+									type="button"
+									onClick={() => setTab("rate")}
+									className="font-semibold text-dbz-orange hover:underline"
+								>
+									Noter
+								</button>{" "}
+								pour lancer le classement.
+							</p>
+						)}
+					</div>
+				)}
+			</div>
 		</section>
 	);
 }
@@ -420,11 +579,11 @@ export function AggregateRatingBanner({
 		>
 			<Stars value={average} size="md" label="Moyenne" />
 			<div>
-				<p className="font-display font-bold text-lg tabular-nums text-white leading-none">
+				<p className="font-display text-lg font-bold tabular-nums leading-none text-white">
 					{count > 0 ? average.toFixed(1) : "—"}
-					<span className="text-white/40 text-sm font-normal"> / 5</span>
+					<span className="text-sm font-normal text-white/40"> / 5</span>
 				</p>
-				<p className="text-[11px] text-white/45 mt-0.5">
+				<p className="mt-0.5 text-[11px] text-white/45">
 					{subtitle ??
 						(count > 0
 							? `${count} note${count > 1 ? "s" : ""} sur les arcs`

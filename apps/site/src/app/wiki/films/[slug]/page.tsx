@@ -1,7 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
-import { EntityRating } from "@/components/ratings/EntityRating";
+import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Image from "next/image";
@@ -184,6 +184,10 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							</div>
 						)}
 
+						<div className="mb-4">
+							<EntityRatingSummary targetType="movie" targetId={m.id} />
+						</div>
+
 						<dl className="grid grid-cols-2 gap-4 max-w-md">
 							{m.release_date && (
 								<div>
@@ -248,13 +252,6 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							</div>
 						</section>
 					)}
-
-					<EntityRating
-						targetType="movie"
-						targetId={m.id}
-						signinCallback={`/wiki/films/${slug}`}
-						label="ce film"
-					/>
 
 					<WikiEntitySections entityType="movie" entityId={m.id} />
 
@@ -323,6 +320,16 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 				>
 					⤳ Voir la chronologie universelle (épisodes + films)
 				</Link>
+			</div>
+
+			{/* Notes & avis — dernier bloc */}
+			<div className="mt-16">
+				<EntityRating
+					targetType="movie"
+					targetId={m.id}
+					signinCallback={`/wiki/films/${slug}`}
+					label="ce film"
+				/>
 			</div>
 		</div>
 	);
