@@ -6,6 +6,7 @@
  *   body: { type, id, score, comment? }
  *   → upsert note (Discord lié requis).
  */
+import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getCurrentUser } from "@/lib/session";
@@ -15,6 +16,12 @@ import {
 	isRatingTargetType,
 	upsertRating,
 } from "@/lib/ratings";
+
+/** Home + page classements lisent les agrégats notes. */
+function revalidateTops() {
+	revalidatePath("/");
+	revalidatePath("/classements");
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,6 +111,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 			score: parsed.score,
 			comment: parsed.comment === undefined ? undefined : parsed.comment,
 		});
+		revalidateTops();
 		return NextResponse.json({ ok: true, ...state });
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : "upsert_failed";

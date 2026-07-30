@@ -24,6 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		"/jeux/morpion",
 		"/jeux/pfc",
 		"/leaderboard",
+		"/classements",
 		"/licence",
 		"/personas",
 		"/commands",

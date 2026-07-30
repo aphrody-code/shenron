@@ -71,8 +71,8 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 	const book = await dbUniverse.databook(parseInt(id, 10));
 	if (!book) notFound();
 
-	const isInterview = book.kind === "interview";
 	const category = resolveDatabookCategory(book.category);
+	const isInterview = book.kind === "interview" || category === "Interview";
 	const cover = book.cover ? assetUrl(book.cover) : null;
 	// Pages avec au moins une image ou un texte (les slots vides restent admin-only).
 	const filledPages = book.pages.filter(
@@ -125,14 +125,8 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 
 					<div className="mt-8 space-y-4 border-t border-white/10 pt-6 text-xs font-display">
 						<div className="flex justify-between gap-4">
-							<span className="text-white/40">Type</span>
-							<span className="font-bold uppercase tracking-wider text-dbz-orange">
-								{isInterview ? "Interview" : "Databook"}
-							</span>
-						</div>
-						<div className="flex justify-between gap-4">
 							<span className="text-white/40">Catégorie</span>
-							<span className="font-bold tracking-wide text-white/85">{category}</span>
+							<span className="font-bold tracking-wide text-dbz-orange">{category}</span>
 						</div>
 						{book.published_at && (
 							<div className="flex justify-between gap-4">

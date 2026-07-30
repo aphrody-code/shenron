@@ -1,8 +1,16 @@
 /**
- * Catégories éditoriales des databooks / interviews — client-safe.
+ * Catégories unifiées des databooks / interviews / art books / guides.
  * Source unique pour la grille publique, le studio (ENUM_OPTIONS) et le schéma.
+ *
+ * Un seul champ éditorial (`category`) — plus de dualité kind/category en UI.
+ * La colonne `kind` reste en base (NOT NULL, index legacy) et est dérivée
+ * automatiquement de la catégorie à l'écriture.
  */
 export const DATABOOK_CATEGORIES = [
+	"Databook",
+	"Interview",
+	"Art Book",
+	"Guidebook",
 	"V-Jump",
 	"Weekly Shonen Jump",
 	"Light Novel",
@@ -13,10 +21,55 @@ export const DATABOOK_CATEGORIES = [
 
 export type DatabookCategory = (typeof DATABOOK_CATEGORIES)[number];
 
+/** Catégories « type d'ouvrage » (vs source éditoriale V-Jump, etc.). */
+export const DATABOOK_TYPE_CATEGORIES = [
+	"Databook",
+	"Interview",
+	"Art Book",
+	"Guidebook",
+] as const satisfies readonly DatabookCategory[];
+
+export type DatabookKind = "databook" | "interview" | "artbook" | "guidebook";
+
 export function resolveDatabookCategory(c: string | null | undefined): DatabookCategory {
 	const t = (c ?? "").trim();
 	if ((DATABOOK_CATEGORIES as readonly string[]).includes(t)) {
 		return t as DatabookCategory;
 	}
 	return "Autre";
+}
+
+/**
+ * Dérive la colonne technique `kind` depuis la catégorie unifiée.
+ * Les catégories éditoriales (V-Jump, …) restent rattachées à `databook`.
+ */
+export function kindFromCategory(c: string | null | undefined): DatabookKind {
+	switch (resolveDatabookCategory(c)) {
+		case "Interview":
+			return "interview";
+		case "Art Book":
+			return "artbook";
+		case "Guidebook":
+			return "guidebook";
+		default:
+			return "databook";
+	}
+}
+
+/** Libellé d'affichage à partir de kind (legacy) ou category. */
+export function databookTypeLabel(
+	kind: string | null | undefined,
+	category?: string | null
+): string {
+	const cat = resolveDatabookCategory(category);
+	if ((DATABOOK_TYPE_CATEGORIES as readonly string[]).includes(cat) && cat !== "Databook") {
+		return cat;
+	}
+	const k = (kind ?? "").toLowerCase();
+	if (k === "interview") return "Interview";
+	if (k === "artbook" || k === "art_book" || k === "art-book") return "Art Book";
+	if (k === "guidebook" || k === "guide_book" || k === "guide-book") return "Guidebook";
+	if (cat === "Databook") return "Databook";
+	// Catégorie éditoriale → l'ouvrage est un databook par défaut
+	return cat === "Autre" ? "Databook" : cat;
 }

@@ -11,7 +11,13 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { siteRatings } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
+import { revalidatePath } from "next/cache";
 import { clearRatingComment, deleteRating, getRatingState, isRatingTargetType } from "@/lib/ratings";
+
+function revalidateTops() {
+	revalidatePath("/");
+	revalidatePath("/classements");
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +70,8 @@ export async function DELETE(
 	} else {
 		await deleteRating(id);
 	}
+
+	revalidateTops();
 
 	// Renvoie l'état à jour pour rafraîchir le panneau sans re-fetch.
 	const targetType = row.targetType;

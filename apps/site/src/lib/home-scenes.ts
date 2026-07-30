@@ -316,6 +316,15 @@ export const SECTION_SCENE: Record<string, HomeScene> = {
 		era: "saiyan",
 		accent: ERA_ACCENT.saiyan,
 	},
+	tops: {
+		id: "tops-section",
+		image: "./assets/dbz/characters/vegeta_normal.webp",
+		video: "/wiki/vegetagokukaioken.mp4",
+		title: "Top 3",
+		kicker: "Le classement de la communauté",
+		era: "saiyan",
+		accent: ERA_ACCENT.saiyan,
+	},
 	news: {
 		id: "vegeta-daima-news",
 		image: "/wiki/vegetadaima.poster.webp",
@@ -368,6 +377,7 @@ export type HomeSectionId =
 	| "pantheon"
 	| "universe"
 	| "bestof"
+	| "tops"
 	| "personnages"
 	| "sagas"
 	| "guardians"
@@ -410,6 +420,15 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 		title: "Les sagas légendaires",
 		subtitle:
 			"Choisis ta saga et replonge : les épisodes, les films et les tomes du manga qui ont fait la légende — en direct du wiki.",
+		defaultEnabled: true,
+	},
+	tops: {
+		navLabel: "Top 3",
+		kanji: "頂",
+		eyebrow: "Les classements",
+		title: "Les Top 3 de la communauté",
+		subtitle:
+			"Épisodes DBZ, Super, GT, Daima, Kai, films et jeux — classés par vos notes. Note ton favori pour le propulser sur le podium.",
 		defaultEnabled: true,
 	},
 	// Masqués par défaut en bêta : les routes /wiki/personnages et /wiki/sagas sont
@@ -472,6 +491,7 @@ export const SECTION_ORDER: readonly HomeSectionId[] = [
 	"pantheon",
 	"universe",
 	"bestof",
+	"tops",
 	"personnages",
 	"sagas",
 	"guardians",

@@ -121,8 +121,9 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_databooks: {
 		name: "db_databooks",
 		pk: "id",
+		// Un seul champ catégorie (Art Book, Guidebook, V-Jump…).
+		// `kind` est dérivé auto côté wiki-admin — plus dans le formulaire.
 		mutableColumns: [
-			"kind",
 			"category",
 			"title",
 			"titleJa",

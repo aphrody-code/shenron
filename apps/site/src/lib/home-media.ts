@@ -576,6 +576,7 @@ function scoreClip(c: TaggedClip, sectionId: string, era?: Era): number {
 	// Affinités croisées (lore / combat / média).
 	const affinity: Record<string, string[]> = {
 		bestof: ["combat", "sagas", "hero"],
+		tops: ["combat", "saiyan", "hero", "episodes", "films", "jeux"],
 		atlas: ["hero", "summon", "divine"],
 		universe: ["hero", "combat"],
 		personnages: ["personnages", "combat"],
@@ -669,6 +670,7 @@ export type SectionEnterCue =
 export const SECTION_ENTER_CUE: Record<string, SectionEnterCue> = {
 	hero: "teleport",
 	bestof: "teleport",
+	tops: "teleport",
 	atlas: "teleport",
 	universe: "teleport",
 	personnages: "teleport",
@@ -696,6 +698,7 @@ export const SECTION_ENTER_BURST: Record<string, "hit" | "kamehameha" | "select"
 export const SECTION_VISUAL_INTENSITY: Record<string, "low" | "mid" | "high" | "peak"> = {
 	hero: "peak",
 	bestof: "peak",
+	tops: "high",
 	atlas: "high",
 	universe: "mid",
 	personnages: "high",
@@ -717,6 +720,7 @@ export const SECTION_VISUAL_INTENSITY: Record<string, "low" | "mid" | "high" | "
 export const SECTION_SCOUTER_LABEL: Record<string, string> = {
 	hero: "SCAN · ORIGINE",
 	bestof: "SCAN · SAGAS",
+	tops: "SCAN · PODIUM",
 	atlas: "SCAN · PORTAILS",
 	universe: "SCAN · COSMOS",
 	personnages: "SCAN · GUERRIERS",

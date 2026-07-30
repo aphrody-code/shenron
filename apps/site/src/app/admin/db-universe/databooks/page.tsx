@@ -44,7 +44,30 @@ function publishedMs(v: number | null): number {
 const GROUPS: { key: string; label: string }[] = [
 	{ key: "databook", label: "Databooks" },
 	{ key: "interview", label: "Interviews" },
+	{ key: "artbook", label: "Art Books" },
+	{ key: "guidebook", label: "Guidebooks" },
 ];
+
+function resolveKind(d: Databook): string {
+	const cat = (d.category ?? "").trim();
+	if (cat === "Interview") return "interview";
+	if (cat === "Art Book") return "artbook";
+	if (cat === "Guidebook") return "guidebook";
+	if (cat === "Databook") return "databook";
+	const k = (d.kind ?? "").toLowerCase();
+	if (k === "interview" || k === "artbook" || k === "guidebook" || k === "databook") return k;
+	return "databook";
+}
+
+function categoryBadge(d: Databook): string {
+	const cat = (d.category ?? "").trim();
+	if (cat) return cat;
+	const k = resolveKind(d);
+	if (k === "interview") return "Interview";
+	if (k === "artbook") return "Art Book";
+	if (k === "guidebook") return "Guidebook";
+	return "Databook";
+}
 
 export default async function AdminDatabooksPage() {
 	const raw = (await listWikiSnake("db_databooks", { limit: 500 })) as Databook[];
@@ -54,11 +77,11 @@ export default async function AdminDatabooksPage() {
 
 	const byKind = GROUPS.map((g) => ({
 		...g,
-		items: items.filter((d) => d.kind === g.key),
+		items: items.filter((d) => resolveKind(d) === g.key),
 	})).filter((g) => g.items.length > 0);
 
 	// Entrées avec un kind hors enum connu (saisie libre / legacy).
-	const other = items.filter((d) => !GROUPS.some((g) => g.key === d.kind));
+	const other = items.filter((d) => !GROUPS.some((g) => g.key === resolveKind(d)));
 	if (other.length > 0) {
 		byKind.push({ key: "other", label: "Autres", items: other });
 	}
@@ -98,8 +121,10 @@ export default async function AdminDatabooksPage() {
 						{withPages}/{items.length} avec pages · {totalPages} planches
 					</span>
 					<span className="rounded border border-dbz-border/50 bg-white/[0.03] px-2.5 py-1">
-						{items.filter((d) => d.kind === "databook").length} databooks ·{" "}
-						{items.filter((d) => d.kind === "interview").length} interviews
+						{items.filter((d) => resolveKind(d) === "databook").length} databooks ·{" "}
+						{items.filter((d) => resolveKind(d) === "interview").length} interviews ·{" "}
+						{items.filter((d) => resolveKind(d) === "artbook").length} art books ·{" "}
+						{items.filter((d) => resolveKind(d) === "guidebook").length} guides
 					</span>
 				</div>
 			)}
@@ -195,7 +220,7 @@ export default async function AdminDatabooksPage() {
 													)}
 													<div className="mt-1 flex flex-wrap items-center gap-2">
 														<span className="text-[10px] font-mono uppercase text-dbz-orange">
-															{d.kind === "interview" ? "Interview" : "Databook"}
+															{categoryBadge(d)}
 														</span>
 														{d.source_url && (
 															<a

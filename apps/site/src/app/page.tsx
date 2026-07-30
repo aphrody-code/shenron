@@ -9,6 +9,7 @@ import {
 import { HomeExperience } from "@/components/home/HomeExperience";
 import { getHomeConfig } from "@/lib/home-config";
 import { getSagaBestOf } from "@/lib/home-bestof-data";
+import { getCommunityTops } from "@/lib/community-tops-data";
 import {
 	botSagas,
 	botEpisodes,
@@ -123,6 +124,7 @@ export default async function Home() {
 		characters,
 		sagas,
 		bestof,
+		communityTops,
 		topMembers,
 		presence,
 		config,
@@ -134,6 +136,7 @@ export default async function Home() {
 		getFeaturedCharacters(),
 		getSagas(),
 		getSagaBestOf(),
+		getCommunityTops(),
 		getShenronLeaderboard(12, true).catch(() => []),
 		getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
 		getHomeConfig(),
@@ -169,6 +172,7 @@ export default async function Home() {
 				description: s.description,
 			}))}
 			bestof={bestof}
+			communityTops={communityTops}
 			posts={posts.map((p) => ({
 				id: p.id,
 				slug: p.slug,

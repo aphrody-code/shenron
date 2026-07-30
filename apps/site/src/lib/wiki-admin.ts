@@ -21,6 +21,7 @@ import "server-only";
 import { and, asc, count, desc, eq, ilike, isNull, like, max, or, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as botSchema from "@/db/bot-schema";
+import { kindFromCategory } from "@/lib/databook-categories";
 import { WIKI_TABLE_SPECS, type WikiTableSpec } from "@/lib/wiki-tables";
 
 // Les tables Drizzle bot-schema sont hétérogènes → any localisé et assumé
@@ -283,10 +284,25 @@ async function nextPkValue(spec: ResolvedTable, pkKey: string): Promise<number> 
 	return (value == null ? 0 : Number(value)) + 1;
 }
 
+/**
+ * Databooks : un seul champ UI (`category`). `kind` (NOT NULL, index legacy)
+ * est dérivé automatiquement — jamais exposé au formulaire.
+ */
+function applyDatabookKind(table: string, values: Row, { forInsert }: { forInsert: boolean }): void {
+	if (table !== "db_databooks") return;
+	if (values.category != null && values.category !== "") {
+		values.kind = kindFromCategory(String(values.category));
+	} else if (forInsert) {
+		values.category = "Autre";
+		values.kind = "databook";
+	}
+}
+
 export async function insertWiki(table: string, data: Row): Promise<Row> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
 	const values = buildValues(spec, data, { forInsert: true });
+	applyDatabookKind(table, values, { forInsert: true });
 	if (Object.keys(values).length === 0) {
 		throw new Error("Aucune colonne fournie.");
 	}
@@ -310,6 +326,7 @@ export async function updateWiki(table: string, id: string, data: Row): Promise<
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
 	const values = buildValues(spec, data, { forInsert: false });
+	applyDatabookKind(table, values, { forInsert: false });
 	if (Object.keys(values).length === 0) {
 		throw new Error("Aucune colonne mutable fournie.");
 	}

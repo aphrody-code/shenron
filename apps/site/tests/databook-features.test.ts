@@ -6,6 +6,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	DATABOOK_CATEGORIES,
+	kindFromCategory,
 	resolveDatabookCategory,
 } from "../src/lib/databook-categories";
 import {
@@ -15,8 +16,12 @@ import {
 } from "../src/lib/youtube";
 
 describe("databook categories", () => {
-	test("liste canonique complète (6 catégories demandées)", () => {
+	test("liste canonique unifiée (types + éditoriales)", () => {
 		expect([...DATABOOK_CATEGORIES]).toEqual([
+			"Databook",
+			"Interview",
+			"Art Book",
+			"Guidebook",
 			"V-Jump",
 			"Weekly Shonen Jump",
 			"Light Novel",
@@ -24,7 +29,7 @@ describe("databook categories", () => {
 			"Pamphlet & Fair",
 			"Autre",
 		]);
-		expect(DATABOOK_CATEGORIES).toHaveLength(6);
+		expect(DATABOOK_CATEGORIES).toHaveLength(10);
 	});
 
 	test("resolve null / vide → Autre", () => {
@@ -43,6 +48,16 @@ describe("databook categories", () => {
 	test("resolve valeur inconnue → Autre", () => {
 		expect(resolveDatabookCategory("Daizenshuu")).toBe("Autre");
 		expect(resolveDatabookCategory("v-jump")).toBe("Autre"); // case-sensitive
+	});
+
+	test("kindFromCategory dérive la colonne technique", () => {
+		expect(kindFromCategory("Interview")).toBe("interview");
+		expect(kindFromCategory("Art Book")).toBe("artbook");
+		expect(kindFromCategory("Guidebook")).toBe("guidebook");
+		expect(kindFromCategory("Databook")).toBe("databook");
+		expect(kindFromCategory("V-Jump")).toBe("databook");
+		expect(kindFromCategory("Autre")).toBe("databook");
+		expect(kindFromCategory(null)).toBe("databook");
 	});
 });
 
@@ -141,18 +156,19 @@ describe("source features shipped", () => {
 		expect(src).toContain("g.media");
 	});
 
-	test("grille : filtres unifiés (même plan type + catégories)", async () => {
+	test("grille : filtres unifiés (une seule liste de catégories)", async () => {
 		const src = await Bun.file(
 			new URL("../src/components/databooks/DatabookGrid.tsx", import.meta.url)
 		).text();
 		expect(src).toContain("DATABOOK_CATEGORIES");
 		expect(src).toContain("FILTER_TABS");
-		// Plus de 2e rangée de chips secondaires
+		// Plus de 2e rangée de chips secondaires ni dualité kind/category
 		expect(src).not.toContain("Toutes catégories");
-		// Catégories au même plan que Databooks / Interviews
-		expect(src).toContain('label: "Databooks"');
-		expect(src).toContain("V-Jump");
-		expect(src).toContain("Pamphlet & Fair");
+		expect(src).not.toContain('mode: "kind"');
+		// Types d'ouvrage dans les icônes de filtre
+		expect(src).toContain('"Art Book"');
+		expect(src).toContain("Guidebook");
+		expect(src).toContain("mode: \"category\"");
 	});
 });
 

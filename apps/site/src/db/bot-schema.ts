@@ -327,7 +327,11 @@ export type DatabookPage = {
 /** Databooks & interviews (PG-only, cf. scripts/add-databooks.ts). */
 export const botDatabooks = bot.table("db_databooks", {
 	id: int("id").primaryKey(),
-	/** "databook" | "interview". */
+	/**
+	 * Type technique dérivé de `category` à l'écriture :
+	 * "databook" | "interview" | "artbook" | "guidebook".
+	 * L'UI n'édite plus ce champ — source de vérité = `category`.
+	 */
 	kind: text("kind").notNull(),
 	title: text("title").notNull(),
 	titleJa: text("title_ja"),
@@ -337,7 +341,11 @@ export const botDatabooks = bot.table("db_databooks", {
 	cover: text("cover"),
 	description: text("description"),
 	sourceUrl: text("source_url"),
-	/** Catégorie éditoriale (V-Jump, Pamphlet & Fair…). */
+	/**
+	 * Catégorie unifiée (Databook, Interview, Art Book, Guidebook,
+	 * V-Jump, Weekly Shonen Jump, Light Novel, Jump Anime Comics,
+	 * Pamphlet & Fair, Autre). Voir `DATABOOK_CATEGORIES`.
+	 */
 	category: text("category"),
 	/** Slots lecteur : numéro + image + texte sous l'image. */
 	pages: jsonb("pages").$type<DatabookPage[]>(),

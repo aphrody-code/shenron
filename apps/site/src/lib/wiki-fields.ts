@@ -6,6 +6,7 @@
  * Aucune dépendance server-only — importé par l'éditeur DB, le studio wiki et la
  * vignette de grille (tous Client Components).
  */
+import { DATABOOK_CATEGORIES } from "@/lib/databook-categories";
 import type { SectionAccent } from "@/lib/wiki-section-accents";
 import { PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
 import { isWikiTable } from "@/lib/wiki-tables";
@@ -95,16 +96,9 @@ export const ENUM_OPTIONS: Record<string, { options: string[]; strict?: boolean 
 	"db_characters.gender": { options: ["Male", "Female"], strict: true },
 	"db_techniques.type": { options: ["super", "ultimate", "evasive", "awoken"], strict: true },
 	"shop_items.type": { options: ["card", "badge", "color", "title", "banner"], strict: true },
-	"db_databooks.kind": { options: ["databook", "interview"], strict: true },
+	// kind est dérivé auto de category (wiki-admin) — plus exposé en formulaire.
 	"db_databooks.category": {
-		options: [
-			"V-Jump",
-			"Weekly Shonen Jump",
-			"Light Novel",
-			"Jump Anime Comics",
-			"Pamphlet & Fair",
-			"Autre",
-		],
+		options: [...DATABOOK_CATEGORIES],
 		strict: true,
 	},
 	"db_tools.category": { options: ["api", "modding", "shader", "utility"] },

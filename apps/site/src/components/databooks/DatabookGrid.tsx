@@ -3,24 +3,26 @@
 /**
  * Grille des databooks & interviews.
  *
- * Filtres **au même plan** (même style de boutons) :
- *   Tout · Databooks · Interviews · V-Jump · Weekly Shonen Jump ·
- *   Light Novel · Jump Anime Comics · Pamphlet & Fair · Autre
+ * Filtres **unifiés** (même style de boutons) — un seul plan de catégories :
+ *   Tout · Databook · Interview · Art Book · Guidebook · V-Jump · …
  *
- * Un seul filtre actif à la fois (pas de double rangée chips secondaires).
- * + tri date + recherche.
+ * Un seul filtre actif à la fois + tri date + recherche.
  */
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowDownUp, BookOpen, Mic, Search } from "lucide-react";
+import { ArrowDownUp, BookOpen, Mic, Palette, BookMarked, Search } from "lucide-react";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
-import { DATABOOK_CATEGORIES, resolveDatabookCategory } from "@/lib/databook-categories";
+import {
+	DATABOOK_CATEGORIES,
+	resolveDatabookCategory,
+	type DatabookCategory,
+} from "@/lib/databook-categories";
 
 export interface DatabookItem {
 	id: number;
 	kind: string;
-	/** Catégorie éditoriale (V-Jump, …). Null → traité comme « Autre ». */
+	/** Catégorie unifiée (Databook, Interview, Art Book, V-Jump…). Null → « Autre ». */
 	category: string | null;
 	title: string;
 	titleJa: string | null;
@@ -32,25 +34,52 @@ export interface DatabookItem {
 	sourceUrl: string | null;
 }
 
-/** Filtre unifié : type (kind) ou catégorie éditoriale — même UI. */
 type FilterTab =
 	| { key: "all"; label: string; mode: "all"; icon: null }
-	| { key: "databook" | "interview"; label: string; mode: "kind"; icon: typeof BookOpen | typeof Mic }
-	| { key: string; label: string; mode: "category"; icon: null };
+	| {
+			key: DatabookCategory;
+			label: string;
+			mode: "category";
+			icon: typeof BookOpen | typeof Mic | typeof Palette | typeof BookMarked | null;
+	  };
+
+const CATEGORY_ICONS: Partial<
+	Record<DatabookCategory, typeof BookOpen | typeof Mic | typeof Palette | typeof BookMarked>
+> = {
+	Databook: BookOpen,
+	Interview: Mic,
+	"Art Book": Palette,
+	Guidebook: BookMarked,
+};
 
 const FILTER_TABS: FilterTab[] = [
 	{ key: "all", label: "Tout", mode: "all", icon: null },
-	{ key: "databook", label: "Databooks", mode: "kind", icon: BookOpen },
-	{ key: "interview", label: "Interviews", mode: "kind", icon: Mic },
 	...DATABOOK_CATEGORIES.map(
 		(c): FilterTab => ({
 			key: c,
 			label: c,
 			mode: "category",
-			icon: null,
+			icon: CATEGORY_ICONS[c] ?? null,
 		})
 	),
 ];
+
+/**
+ * Match filtre catégorie + legacy kind.
+ * Si `category` est déjà une valeur canonique (≠ Autre), elle prime.
+ * Sinon on retombe sur `kind` (données avant unification).
+ */
+function matchesCategory(d: DatabookItem, cat: DatabookCategory): boolean {
+	const resolved = resolveDatabookCategory(d.category);
+	if (resolved === cat) return true;
+	// Legacy : category vide/Autre + kind type précis
+	if (resolved !== "Autre") return false;
+	const kind = (d.kind ?? "").toLowerCase();
+	if (cat === "Interview" && kind === "interview") return true;
+	if (cat === "Art Book" && (kind === "artbook" || kind === "art_book")) return true;
+	if (cat === "Guidebook" && (kind === "guidebook" || kind === "guide_book")) return true;
+	return false;
+}
 
 function formatDate(v: number | null): string {
 	if (!v) return "—";
@@ -88,9 +117,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 		return items
 			.filter((d) => {
 				if (activeTab.mode === "all") return true;
-				if (activeTab.mode === "kind") return d.kind === activeTab.key;
-				// category
-				return resolveDatabookCategory(d.category) === activeTab.key;
+				return matchesCategory(d, activeTab.key as DatabookCategory);
 			})
 			.filter((d) => {
 				if (!needle) return true;
@@ -114,7 +141,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 				<div
 					className="flex flex-wrap gap-2"
 					role="group"
-					aria-label="Filtrer par type ou catégorie"
+					aria-label="Filtrer par catégorie"
 				>
 					{FILTER_TABS.map((t) => {
 						const Icon = t.icon;
@@ -166,15 +193,14 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 			) : (
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
 					{filtered.map((d) => {
-						const isInterview = d.kind === "interview";
-						const Icon = isInterview ? Mic : BookOpen;
 						const cat = resolveDatabookCategory(d.category);
+						const Icon = CATEGORY_ICONS[cat] ?? BookOpen;
 						return (
 							<Link
 								key={d.id}
 								href={`/wiki/databooks/${d.id}`}
 								transitionTypes={["nav-forward"]}
-								aria-label={`${isInterview ? "Interview" : "Databook"} : ${d.title}`}
+								aria-label={`${cat} : ${d.title}`}
 								className="dbz-panel group ki-card relative cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.03] hover:border-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 							>
 								<div className="relative aspect-[2/3] overflow-hidden bg-dbz-bg">
@@ -195,11 +221,8 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 									)}
 									<div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-black/25 to-transparent" />
 									<span aria-hidden className="ki-card__glow" />
-									<span className="absolute right-2 top-2 z-30 rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-dbz-orange">
-										{isInterview ? "Interview" : "Databook"}
-									</span>
-									{/* Badge catégorie (toujours visible pour repérer le filtre) */}
-									<span className="absolute left-2 top-2 z-30 max-w-[70%] truncate rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white/70">
+									{/* Un seul badge : la catégorie unifiée */}
+									<span className="absolute left-2 top-2 z-30 max-w-[85%] truncate rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-dbz-orange">
 										{cat}
 									</span>
 									<div className="absolute inset-x-0 bottom-0 z-30 p-2.5">

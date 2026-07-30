@@ -24,6 +24,8 @@ import {
 } from "@/lib/home-scenes";
 import { SECTION_ENTER_CUE } from "@/lib/home-media";
 import type { BestOfSagaView } from "@/lib/home-bestof";
+import type { CommunityTopsPayload } from "@/lib/community-tops";
+import { CommunityTops } from "@/components/ratings/CommunityTops";
 import { SceneBackdrop } from "./SceneBackdrop";
 import { HomeClipField } from "./HomeClipField";
 import { HomeBattleFx, type HomeBattleFxApi } from "./HomeBattleFx";
@@ -158,6 +160,7 @@ export function HomeExperience({
 	characters,
 	sagas,
 	bestof = [],
+	communityTops = null,
 	posts,
 	topMembers = [],
 	presence = { total: 0, online: 0, members: [] },
@@ -169,6 +172,8 @@ export function HomeExperience({
 	characters: FeaturedCharacter[];
 	sagas: SagaTeaser[];
 	bestof?: BestOfSagaView[];
+	/** Top 3 notes communautaires (épisodes / films / jeux). */
+	communityTops?: CommunityTopsPayload | null;
 	posts: HomePost[];
 	topMembers?: TopMember[];
 	presence?: PresenceState;
@@ -186,15 +191,17 @@ export function HomeExperience({
 
 	// Sections de contenu affichées = activées en config (news requiert des posts,
 	// bestof requiert des sagas assemblées côté serveur).
+	// `tops` s'affiche même sans votes (empty state = incitation à noter).
 	const contentSections = useMemo(
 		() =>
 			config.sections.filter(
 				(s) =>
 					s.enabled &&
 					(s.id !== "news" || hasNews) &&
-					(s.id !== "bestof" || bestof.length > 0)
+					(s.id !== "bestof" || bestof.length > 0) &&
+					(s.id !== "tops" || communityTops != null)
 			),
-		[config.sections, hasNews, bestof.length]
+		[config.sections, hasNews, bestof.length, communityTops]
 	);
 
 	// Table des panneaux (héro + sections de contenu) pour la nav / le suivi.
@@ -788,6 +795,11 @@ export function HomeExperience({
 						compact={compact}
 					/>
 				);
+
+			case "tops":
+				return communityTops ? (
+					<CommunityTops data={communityTops} compact={compact} showHeader={false} />
+				) : null;
 
 			case "sagas":
 				return (

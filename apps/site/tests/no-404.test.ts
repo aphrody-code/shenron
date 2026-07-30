@@ -133,12 +133,20 @@ async function check(path: string): Promise<Check> {
 		});
 		
 		const isProd = url.includes("dragonballfr.com");
-		const isNewLocalRoute = path === "/ask";
-		
+		// Routes locales pas encore en prod (ou sonde synthétique _probe sur
+		// endpoints dynamiques type /download qui 404 si l'id n'existe pas).
+		const isNewLocalRoute = path === "/ask" || path === "/classements";
+		const isSyntheticEntityProbe =
+			path.includes("/_probe/") &&
+			(path.endsWith("/download") || path.includes("/download?"));
+
 		return {
 			url: path,
 			status: res.status,
-			ok404: res.status !== 404 || (isProd && isNewLocalRoute),
+			ok404:
+				res.status !== 404 ||
+				(isProd && isNewLocalRoute) ||
+				(isSyntheticEntityProbe && res.status === 404),
 			ok5xx: res.status < 500,
 		};
 	} catch (e) {
