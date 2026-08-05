@@ -24,7 +24,7 @@ import { isCurrentUserAdmin } from "@/lib/session";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;
 
 /** Détecte le vrai type via magic-bytes (ignore le Content-Type client). */
 function sniffImage(b: Uint8Array): { type: string; ext: string } | null {
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
 		return Response.json({ error: "Fichier vide." }, { status: 400 });
 	}
 	if (file.size > MAX_BYTES) {
-		return Response.json({ error: "Image trop lourde (max 8 Mo)." }, { status: 413 });
+		return Response.json({ error: "Image trop lourde (max 50 Mo)." }, { status: 413 });
 	}
 
 	// Vérifie la signature binaire RÉELLE (pas le Content-Type client).

@@ -4972,9 +4972,9 @@ export class ApiServer {
 						if (!(file instanceof File)) {
 							return Response.json({ error: "champ 'file' manquant" }, { status: 400 });
 						}
-						const MAX = 8 * 1024 * 1024;
+						const MAX = 50 * 1024 * 1024;
 						if (file.size > MAX) {
-							return Response.json({ error: "Fichier trop lourd (max 8 Mo)" }, { status: 413 });
+							return Response.json({ error: "Fichier trop lourd (max 50 Mo)" }, { status: 413 });
 						}
 						const extByType: Record<string, string> = {
 							"image/png": ".png",

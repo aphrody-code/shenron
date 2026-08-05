@@ -179,7 +179,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 					</div>
 
 					{book.description?.trim() ? (
-						<div className="dbz-panel p-6 sm:p-8">
+						<div className="dbz-panel prose prose-invert wiki-content max-w-none p-6 sm:p-8">
 							<WikiMarkdown body={book.description} />
 						</div>
 					) : !hasPages ? (

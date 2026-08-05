@@ -20,7 +20,7 @@ import { api } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
 
 const ACCEPT = "image/png,image/jpeg,image/webp,image/gif";
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 50 * 1024 * 1024;
 
 interface Props {
 	/** Valeur courante (chemin DB `./assets/...`, `/wiki/...` ou URL http). */
@@ -65,7 +65,7 @@ export function ImageField({ value, onChange, subdir = "uploads", column }: Prop
 				return;
 			}
 			if (file.size > MAX_BYTES) {
-				setError("Image trop lourde (max 8 Mo).");
+				setError("Image trop lourde (max 50 Mo).");
 				return;
 			}
 			if (busyRef.current) return;
@@ -183,7 +183,7 @@ export function ImageField({ value, onChange, subdir = "uploads", column }: Prop
 						)}
 					</p>
 					<p className="truncate text-[11px] text-white/40">
-						{value ? value : "PNG · JPG · WebP · GIF — max 8 Mo"}
+						{value ? value : "PNG · JPG · WebP · GIF — max 50 Mo"}
 					</p>
 				</div>
 
