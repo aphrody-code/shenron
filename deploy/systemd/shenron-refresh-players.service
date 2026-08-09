@@ -1,0 +1,22 @@
+[Unit]
+Description=Detecte les lecteurs voir-anime morts (petit lot roulant) et tente un re-scrape live avant purge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/shenron
+EnvironmentFile=/home/ubuntu/.shenron-neon.env
+# Le re-scrape live (quand un lecteur mort est detecte) lance bxc en
+# sous-process (`~/bxc/scripts/refresh-embed-players.ts`) -> a besoin de bxc
+# sur le PATH, hors du bot durci. Curseur players_checked_at ASC NULLS FIRST,
+# LIMIT 15/table par defaut (cf. apps/bot/scripts/refresh-dead-embed-players.ts)
+# -> repasse sur tout le catalogue en environ une journee a raison d'1 run/30min.
+Environment=PATH=/home/ubuntu/.bun/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/ubuntu/.bun/bin/bun apps/bot/scripts/refresh-dead-embed-players.ts
+TimeoutStartSec=600
+Nice=15
+
+[Install]
+WantedBy=multi-user.target

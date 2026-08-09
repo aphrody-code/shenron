@@ -52,9 +52,9 @@ sudo cp "$TEMP_DIR"/*.service "$TEMP_DIR"/*.timer /etc/systemd/system/
 rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
-echo "▶ activation service + timers (sqlite-backup 03:00, pg-backup 03:30, neon-sync /30min, neon-pull /15min, drive-sync daily)"
-sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-mcp.service filebrowser.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer
-sudo systemctl enable --now shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer >/dev/null 2>&1 || true
+echo "▶ activation service + timers (sqlite-backup 03:00, pg-backup 03:30, neon-sync /30min, neon-pull /15min, drive-sync daily, watchdog /5min)"
+sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-mcp.service filebrowser.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer shenron-watchdog.timer
+sudo systemctl enable --now shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer shenron-watchdog.timer >/dev/null 2>&1 || true
 # Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
 sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # Serveur MCP public (mcp.dragonballfr.com) — proxy lecture seule RAG + API
@@ -76,7 +76,15 @@ sudo systemctl enable --now shenron-site.service >/dev/null 2>&1 || true
 #   sudo systemctl enable --now shenron-wiki-crawl.timer
 # stream-resolve : résolution flux vidéo (bxc headless) -> Neon, /2h. Opt-in :
 #   sudo systemctl enable --now shenron-stream-resolve.timer
-echo "  ✓ units installées · guild-sync/wiki-crawl/stream-resolve.timer laissés désactivés (opt-in)"
+# prune-players : purge en bloc des lecteurs episodes/films morts (link rot),
+# filet de sécurité hebdo dimanche 5h. Opt-in :
+#   sudo systemctl enable --now shenron-prune-players.timer
+# refresh-players : détecte les lecteurs morts par petits lots (curseur
+# players_checked_at) et tente un RE-SCRAPE LIVE ciblé (bxc) avant de purger —
+# contrairement à prune-players qui ne fait que retirer. Toutes les 30 min.
+# Opt-in (dépend de bxc) :
+#   sudo systemctl enable --now shenron-refresh-players.timer
+echo "  ✓ units installées · guild-sync/wiki-crawl/stream-resolve/prune-players/refresh-players.timer laissés désactivés (opt-in)"
 
 if [[ $DO_NGINX -eq 1 ]]; then
   echo "▶ vhosts nginx ($NGINX_SRC → /etc/nginx/conf.d/)"

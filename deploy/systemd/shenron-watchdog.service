@@ -1,0 +1,17 @@
+[Unit]
+Description=Watchdog auto-remediation (endpoints HTTP -> nginx/service restart, memoire services, purge swap)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+ExecStart=/home/ubuntu/shenron/scripts/watchdog.sh
+TimeoutStartSec=120
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-watchdog
+
+[Install]
+WantedBy=multi-user.target
