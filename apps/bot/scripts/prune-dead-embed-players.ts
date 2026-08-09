@@ -43,7 +43,18 @@ type Player = { name: string; provider: string; embedUrl: string; lang?: "vf" | 
 
 // Providers bloqués à 100% pour NOUS (politique sandbox du site, pas un lien
 // mort individuel) → purge en bloc, sans fetch.
-const BLANKET_DEAD = new Set(["streamhide", "voe", "streamtape"]);
+//
+// `filemoon` (weneverbeenfree.com) a migré vers une nouvelle plateforme
+// ("Byse Frontend", SPA) qui sert un shell HTML identique (200, pas de
+// signature morte) que le contenu existe ou non — un simple fetch() ne peut
+// PAS le distinguer (le "404 Not Found" n'apparaît qu'après hydratation JS,
+// et seulement si la page est réellement chargée dans une iframe, cf. anti
+// hotlink `window.self !== window.top`). Vérifié en conditions réelles
+// (Playwright, iframe identique à VideoLecteurs.tsx) sur 7 embeds pris au
+// hasard sur des épisodes différents : 7/7 morts → migration de plateforme
+// a cassé TOUS les anciens IDs, pas un cas de link rot partiel. Purgé en bloc
+// comme streamhide/voe/streamtape.
+const BLANKET_DEAD = new Set(["streamhide", "voe", "streamtape", "filemoon"]);
 
 // Providers jamais vus en échec dans les échantillons → on ne les fetch même
 // pas (gain de temps), gardés tels quels.
