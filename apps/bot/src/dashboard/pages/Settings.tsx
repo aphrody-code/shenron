@@ -15,6 +15,7 @@ import {
 	Ticket,
 	Film,
 	ExternalLink,
+	RefreshCw,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { api } from "../lib/api";
@@ -97,6 +98,15 @@ const CATEGORY_META: Record<string, { label: string; icon: React.ElementType; de
 	},
 };
 
+const TICKET_KINDS = ["report", "achat", "shop", "abus"] as const;
+const TICKET_KIND_META: Record<(typeof TICKET_KINDS)[number], { emoji: string; label: string }> = {
+	report: { emoji: "🚨", label: "Signaler" },
+	achat: { emoji: "🛒", label: "Achat" },
+	shop: { emoji: "🏪", label: "Shop" },
+	abus: { emoji: "⚠️", label: "Abus de perm" },
+};
+const TICKET_ACCESS_PREFIX = "tickets.access.";
+
 const CATEGORY_ORDER = [
 	"features",
 	"channels",
@@ -162,6 +172,21 @@ export function Settings() {
 		}
 		return out;
 	}, [valueMap]);
+	const ticketAccessRoles = useMemo(() => {
+		const out: Record<string, string[]> = { report: [], achat: [], shop: [], abus: [] };
+		for (const [k, v] of valueMap) {
+			if (!k.startsWith(TICKET_ACCESS_PREFIX)) continue;
+			if (!/^(true|1)$/i.test(v)) continue;
+			const rest = k.slice(TICKET_ACCESS_PREFIX.length); // "<kind>.<roleId>"
+			const dot = rest.indexOf(".");
+			if (dot === -1) continue;
+			const kind = rest.slice(0, dot);
+			const roleId = rest.slice(dot + 1);
+			if (!(kind in out)) continue;
+			out[kind]!.push(roleId);
+		}
+		return out;
+	}, [valueMap]);
 
 	if (schema.isLoading) return <div className="text-zinc-500">Chargement du schema…</div>;
 
@@ -188,6 +213,7 @@ export function Settings() {
 					onSet={(key, value) => set.mutate({ key, value })}
 					onUnset={(key) => unset.mutate(key)}
 					xpBoostRoles={category === "xp" ? xpBoostRoles : undefined}
+					ticketAccessRoles={category === "tickets" ? ticketAccessRoles : undefined}
 					pending={set.isPending || unset.isPending}
 				/>
 			))}
@@ -202,6 +228,7 @@ function CategorySection({
 	onSet,
 	onUnset,
 	xpBoostRoles,
+	ticketAccessRoles,
 	pending,
 }: {
 	category: string;
@@ -210,6 +237,7 @@ function CategorySection({
 	onSet: (key: string, value: string) => void;
 	onUnset: (key: string) => void;
 	xpBoostRoles?: { roleId: string; multiplier: string }[];
+	ticketAccessRoles?: Record<string, string[]>;
 	pending: boolean;
 }) {
 	const meta = CATEGORY_META[category] ?? {
@@ -262,6 +290,14 @@ function CategorySection({
 							entries={xpBoostRoles}
 							onSet={(roleId, mult) => onSet(`xp.boost.role.${roleId}`, mult)}
 							onUnset={(roleId) => onUnset(`xp.boost.role.${roleId}`)}
+							pending={pending}
+						/>
+					)}
+					{category === "tickets" && ticketAccessRoles && (
+						<TicketAccessEditor
+							entries={ticketAccessRoles}
+							onSet={(kind, roleId) => onSet(`${TICKET_ACCESS_PREFIX}${kind}.${roleId}`, "1")}
+							onUnset={(kind, roleId) => onUnset(`${TICKET_ACCESS_PREFIX}${kind}.${roleId}`)}
 							pending={pending}
 						/>
 					)}
@@ -561,6 +597,110 @@ function XpBoostRoleEditor({
 				>
 					Ajouter le booster
 				</button>
+			</div>
+		</div>
+	);
+}
+
+function TicketAccessEditor({
+	entries,
+	onSet,
+	onUnset,
+	pending,
+}: {
+	entries: Record<string, string[]>;
+	onSet: (kind: string, roleId: string) => void;
+	onUnset: (kind: string, roleId: string) => void;
+	pending: boolean;
+}) {
+	const [kind, setKind] = useState<(typeof TICKET_KINDS)[number]>("report");
+	const [roleId, setRoleId] = useState("");
+	const current = entries[kind] ?? [];
+
+	const sync = useMutation({
+		mutationFn: () =>
+			api.post<{ ok: boolean; updated: number; skipped: number }>("/tickets/sync-access"),
+	});
+
+	return (
+		<div className="mt-4 rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
+			<h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+				Accès staff par type de ticket
+			</h4>
+			<p className="mb-3 text-xs text-zinc-500">
+				Rôles ajoutés ici = accès (voir + écrire) aux <strong>nouveaux</strong> tickets de ce
+				type dès leur ouverture. Les Administrateurs voient déjà tout (bypass Discord). Pour
+				appliquer aussi aux tickets déjà ouverts, utiliser le bouton de resync ci-dessous.
+			</p>
+			<div className="mb-3 flex flex-wrap gap-2">
+				{TICKET_KINDS.map((k) => (
+					<button
+						key={k}
+						type="button"
+						onClick={() => setKind(k)}
+						className={`btn ${kind === k ? "btn-primary" : "btn-ghost"}`}
+					>
+						{TICKET_KIND_META[k].emoji} {TICKET_KIND_META[k].label}
+						<span className="ml-1 text-xs opacity-70">({(entries[k] ?? []).length})</span>
+					</button>
+				))}
+			</div>
+			<div className="space-y-2">
+				{current.length === 0 && (
+					<p className="text-xs italic text-zinc-600">
+						Aucun rôle configuré pour « {TICKET_KIND_META[kind].label} » — seul l'auteur du
+						ticket (+ Administrateur) le voit.
+					</p>
+				)}
+				{current.map((rid) => (
+					<div key={rid} className="flex items-center gap-2">
+						<RoleInline roleId={rid} />
+						<button
+							type="button"
+							onClick={() => onUnset(kind, rid)}
+							className="btn btn-ghost px-2 text-red-400"
+						>
+							<Trash2 className="h-3 w-3" />
+						</button>
+					</div>
+				))}
+			</div>
+			<div className="mt-3 flex items-center gap-2">
+				<RoleSelect value={roleId} onChange={setRoleId} className="flex-1" />
+				<button
+					type="button"
+					onClick={() => {
+						if (!roleId || current.includes(roleId)) return;
+						onSet(kind, roleId);
+						setRoleId("");
+					}}
+					disabled={pending || !roleId || current.includes(roleId)}
+					className="btn btn-primary"
+				>
+					Ajouter
+				</button>
+			</div>
+			<div className="mt-3 flex items-center gap-2 border-t border-zinc-800 pt-3">
+				<button
+					type="button"
+					onClick={() => sync.mutate()}
+					disabled={sync.isPending}
+					className="btn btn-ghost"
+				>
+					<RefreshCw className={`h-3 w-3 ${sync.isPending ? "animate-spin" : ""}`} />
+					Appliquer aux tickets déjà ouverts
+				</button>
+				{sync.data && (
+					<span className="text-xs text-zinc-400">
+						{sync.data.updated} salon(s) mis à jour
+						{sync.data.skipped > 0 ? ` · ${sync.data.skipped} introuvable(s)` : ""}
+					</span>
+				)}
+				{sync.isError && (
+					<span className="text-xs text-red-400">
+						{sync.error instanceof Error ? sync.error.message : "échec"}
+					</span>
+				)}
 			</div>
 		</div>
 	);

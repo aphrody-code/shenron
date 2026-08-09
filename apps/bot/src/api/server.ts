@@ -4685,6 +4685,19 @@ export class ApiServer {
 						return Response.json({ ok: true });
 					}),
 				},
+				// Rejoue la config d'accès par rôle (tickets.access.<kind>.<roleId>) sur
+				// tous les tickets déjà ouverts — utile après avoir ajouté un rôle modo
+				// dans les Réglages pour qu'il voie aussi les tickets en cours.
+				"/api/tickets/sync-access": {
+					POST: admin(async () => {
+						const client = container.resolve(Client);
+						const guild = client.guilds.cache.get(env.GUILD_ID);
+						if (!guild) return Response.json({ error: "guild introuvable" }, { status: 503 });
+						const tsvc = container.resolve(TicketService);
+						const result = await tsvc.syncOpenTicketsAccess(guild);
+						return Response.json({ ok: true, ...result });
+					}),
+				},
 
 				// ── Giveaways (page dédiée /giveaways) ────────────────────────
 				"/api/giveaways": admin(async (req) => {

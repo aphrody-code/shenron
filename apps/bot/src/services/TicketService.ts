@@ -14,16 +14,19 @@ import {
 import { DatabaseService } from "~/db/index";
 import { tickets } from "~/db/schema";
 import { env } from "~/lib/env";
-import { SettingsService } from "./SettingsService";
+import { SettingsService, type TicketKind } from "./SettingsService";
 import { MessageTemplateService } from "./MessageTemplateService";
 import { executeWebhook, parseWebhookUrl, type Embed as WebhookEmbed } from "~/lib/discord-webhook";
 import { logger } from "~/lib/logger";
 
-type TicketKind = "report" | "achat" | "shop" | "abus";
+export type { TicketKind };
 
 @singleton()
 export class TicketService {
-	constructor(@inject(DatabaseService) private dbs: DatabaseService) {}
+	constructor(
+		@inject(DatabaseService) private dbs: DatabaseService,
+		@inject(SettingsService) private settings: SettingsService
+	) {}
 
 	private get db() {
 		return this.dbs.db;
@@ -67,6 +70,7 @@ export class TicketService {
 		})) as TextChannel;
 
 		await this.db.insert(tickets).values({ channelId: channel.id, ownerId, kind, context });
+		await this.applyAccessRoles(guild, channel.id, kind);
 
 		// Header templatable depuis /messages (toggle enabled + texte custom).
 		// Si l'admin a désactivé l'événement, le canal du ticket reste créé mais
@@ -145,6 +149,53 @@ export class TicketService {
 
 	async findByChannel(channelId: string) {
 		return this.db.query.tickets.findFirst({ where: eq(tickets.channelId, channelId) });
+	}
+
+	/**
+	 * Pose les permission overwrites des rôles staff configurés (dashboard →
+	 * Réglages → Tickets → `tickets.access.<kind>.<roleId>`) sur un salon de
+	 * ticket. Rôles supprimés du serveur depuis leur config = ignorés
+	 * silencieusement (jamais d'échec de création de ticket pour ça).
+	 */
+	async applyAccessRoles(guild: Guild, channelId: string, kind: TicketKind): Promise<void> {
+		const roleIds = await this.settings.getTicketAccessRoles(kind);
+		if (roleIds.length === 0) return;
+		const ch = (await guild.channels.fetch(channelId).catch(() => null)) as TextChannel | null;
+		if (!ch) return;
+		for (const roleId of roleIds) {
+			if (!guild.roles.cache.has(roleId)) continue;
+			await ch.permissionOverwrites
+				.edit(roleId, {
+					ViewChannel: true,
+					SendMessages: true,
+					ReadMessageHistory: true,
+					AttachFiles: true,
+					ManageMessages: true,
+				})
+				.catch((err) => logger.warn({ err, roleId, channelId }, "ticket access role: edit failed"));
+		}
+	}
+
+	/**
+	 * Rejoue `applyAccessRoles` sur tous les tickets encore ouverts en DB —
+	 * pour que changer la config de rôles côté dashboard s'applique aussi aux
+	 * tickets déjà en cours (pas seulement aux futurs). Appelé à la demande
+	 * (bouton dashboard), pas automatiquement à chaque `set()`.
+	 */
+	async syncOpenTicketsAccess(guild: Guild): Promise<{ updated: number; skipped: number }> {
+		const open = await this.db.query.tickets.findMany({ where: eq(tickets.closed, false) });
+		let updated = 0;
+		let skipped = 0;
+		for (const t of open) {
+			const ch = await guild.channels.fetch(t.channelId).catch(() => null);
+			if (!ch) {
+				skipped++;
+				continue;
+			}
+			await this.applyAccessRoles(guild, t.channelId, t.kind as TicketKind);
+			updated++;
+		}
+		return { updated, skipped };
 	}
 
 	async close(channelId: string, closerId: string): Promise<boolean> {

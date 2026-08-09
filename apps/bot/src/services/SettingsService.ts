@@ -57,6 +57,12 @@ export interface SettingDef {
 
 export const XP_BOOST_ROLE_PREFIX = "xp.boost.role.";
 
+/** Types de ticket — cf. `TicketService`/`Ticket.ts` (garder synchro avec l'enum `db/schema.ts#tickets.kind`). */
+export const TICKET_KINDS = ["report", "achat", "shop", "abus"] as const;
+export type TicketKind = (typeof TICKET_KINDS)[number];
+/** Préfixe des rôles ayant accès à un type de ticket : `tickets.access.<kind>.<roleId>` = "1". */
+export const TICKET_ACCESS_PREFIX = "tickets.access.";
+
 export const SETTINGS_KEYS: SettingDef[] = [
 	// ── XP / niveaux ───────────────────────────────────────────────
 	{
@@ -603,6 +609,14 @@ export const SETTINGS_KEYS: SettingDef[] = [
 		description: "Nom affiché pour le webhook tickets",
 		default: "Shenron · Tickets",
 	},
+	{
+		key: TICKET_ACCESS_PREFIX,
+		type: "bool",
+		category: "tickets",
+		description:
+			"Préfixe — accès rôle par type de ticket (ex: tickets.access.report.<roleId> = 1). Donne à ce rôle la visibilité + écriture sur les nouveaux tickets de ce type dès leur création. N'affecte pas les tickets déjà ouverts (bouton dédié dans /tickets).",
+		prefix: true,
+	},
 
 	// ── GIFs sanctions (URL .gif/.mp4 — embed.image) ───────────────
 	{ key: "gif.warn", type: "string", category: "gifs", description: "GIF avertissement (warn)" },
@@ -878,6 +892,18 @@ export class SettingsService {
 					if (!Number.isFinite(n) || n <= 0)
 						throw new Error(`${key} attend un multiplier décimal > 0.`);
 				}
+				if (prefixDef.key === TICKET_ACCESS_PREFIX) {
+					const suffix = key.slice(prefixDef.key.length);
+					const dot = suffix.indexOf(".");
+					const kind = dot === -1 ? suffix : suffix.slice(0, dot);
+					const roleId = dot === -1 ? "" : suffix.slice(dot + 1);
+					if (!(TICKET_KINDS as readonly string[]).includes(kind))
+						throw new Error(`${key} : type de ticket inconnu (${TICKET_KINDS.join("/")}).`);
+					if (!/^\d{17,20}$/.test(roleId))
+						throw new Error(`${key} : suffixe doit être <kind>.<roleId> (snowflake).`);
+					if (!/^(true|1)$/i.test(value))
+						throw new Error(`${key} attend 1/true (présence = accès accordé).`);
+				}
 				def = prefixDef;
 			}
 		}
@@ -948,6 +974,25 @@ export class SettingsService {
 			const m = Number.parseFloat(value);
 			if (!Number.isFinite(m) || m <= 0) continue;
 			out.push({ roleId, multiplier: m });
+		}
+		return out;
+	}
+
+	/**
+	 * Rôles ayant accès à un type de ticket donné (`tickets.access.<kind>.<roleId>` = 1).
+	 * Utilisé par `TicketService` pour poser les permission overwrites à la création
+	 * du salon (et lors d'un resync manuel des tickets déjà ouverts).
+	 */
+	async getTicketAccessRoles(kind: TicketKind): Promise<string[]> {
+		await this.ensureFresh();
+		const prefix = `${TICKET_ACCESS_PREFIX}${kind}.`;
+		const out: string[] = [];
+		for (const [key, value] of this.cache) {
+			if (!key.startsWith(prefix)) continue;
+			if (!/^(true|1)$/i.test(value)) continue;
+			const roleId = key.slice(prefix.length);
+			if (!/^\d{17,20}$/.test(roleId)) continue;
+			out.push(roleId);
 		}
 		return out;
 	}
