@@ -1,0 +1,9 @@
+[Unit]
+Description=Purge hebdomadaire des lecteurs episodes/films morts (link rot streaming tiers)
+
+[Timer]
+OnCalendar=Sun 05:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
