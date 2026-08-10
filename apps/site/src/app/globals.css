@@ -1391,8 +1391,14 @@ html {
  * film-grain / reveal-up déjà définis plus haut.
  * ========================================================================= */
 
-html[data-home] {
-	scroll-snap-type: y proximity;
+/* scroll-snap = desktop/tablette (>640px) uniquement. Sur téléphone, le JS de
+ * HomeExperience désactive déjà le swipe/tap-to-advance (cf. `compact`) — garder
+ * le snap CSS en plus aurait quand même fait « rattraper » le scroll au panneau
+ * suivant au moindre frottement. Mobile = scroll de base, sans à-coups. */
+@media (min-width: 641px) {
+	html[data-home] {
+		scroll-snap-type: y proximity;
+	}
 }
 @media (prefers-reduced-motion: no-preference) {
 	html[data-home] {
@@ -1408,13 +1414,17 @@ html[data-home] {
 .home-section {
 	position: relative;
 	min-height: 100svh;
-	scroll-snap-align: start;
-	scroll-snap-stop: always;
 	display: flex;
 	align-items: center;
 	overflow: hidden;
 	isolation: isolate;
 	padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 7vw, 8rem) clamp(3rem, 7vh, 5rem);
+}
+@media (min-width: 641px) {
+	.home-section {
+		scroll-snap-align: start;
+		scroll-snap-stop: always;
+	}
 }
 
 /* ── Fond de scène (couches) ─────────────────────────────────────────────── */

@@ -12,7 +12,8 @@ import type { HomeScene } from "@/lib/home-scenes";
  * Exploitation correcte des MP4 :
  *  - une seule vidéo chargée/jouée à la fois (preload="none" + play()/pause() pilotés par `active`) ;
  *  - poster = frame extraite (affichage instantané, zéro flash noir) ;
- *  - reduced-motion / save-data → image seule (pas de vidéo) ;
+ *  - reduced-motion / save-data / téléphone (≤640px) → image seule (pas de vidéo) — le décodage vidéo
+ *    en continu (héro + panneaux) est le principal suspect des ralentissements/gestes ratés sur mobile ;
  *  - source = version web légère `.web.mp4` (720p/~2Mbps/faststart, servie par le VPS).
  */
 export function SceneBackdrop({
@@ -29,11 +30,16 @@ export function SceneBackdrop({
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [allowVideo, setAllowVideo] = useState(false);
 
-	// Côté client uniquement : autoriser la vidéo sauf reduced-motion / économiseur de données.
+	// Côté client uniquement : autoriser la vidéo sauf reduced-motion / économiseur de données /
+	// téléphone (même seuil que le champ de clips flottants — cf. HomeClipField `isPhone`).
 	useEffect(() => {
 		const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
-		setAllowVideo(!reduce && !conn?.saveData);
+		const mq = window.matchMedia("(max-width: 640px)");
+		const apply = () => setAllowVideo(!reduce && !conn?.saveData && !mq.matches);
+		apply();
+		mq.addEventListener("change", apply);
+		return () => mq.removeEventListener("change", apply);
 	}, []);
 
 	const hasVideo = !!scene.video && allowVideo;

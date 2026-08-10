@@ -433,11 +433,14 @@ export function HomeExperience({
 	);
 
 	// Clic sur le deck → panneau suivant (boucle). Rend l'expérience interactive au
-	// clic en plus de la molette/tactile. Ignore les clics sur un élément interactif
+	// clic en plus de la molette, sur DESKTOP uniquement (`compact` = téléphone) : au
+	// tactile, un tap sur une zone vide est un geste normal (relire, refermer un menu…),
+	// pas une intention de « page suivante » — l'avancer faisait sauter la page toute
+	// seule au moindre effleurement. Ignore aussi les clics sur un élément interactif
 	// (lien, bouton, champ, carte, points de nav) et une sélection de texte en cours.
 	const onDeckClick = useCallback(
 		(e: React.MouseEvent) => {
-			if (lockRef.current) return;
+			if (lockRef.current || compact) return;
 			const t = e.target as HTMLElement;
 			if (t.closest("a,button,input,select,textarea,label,[role='button'],[data-no-advance]")) {
 				return;
@@ -445,7 +448,7 @@ export function HomeExperience({
 			if (window.getSelection()?.toString()) return;
 			goTo((active + 1) % sections.length);
 		},
-		[active, sections.length, goTo]
+		[active, sections.length, goTo, compact]
 	);
 
 	// Suivi du panneau actif (scroll libre, ancrage, etc.)
@@ -535,8 +538,12 @@ export function HomeExperience({
 		return () => window.removeEventListener("keydown", onKey);
 	}, [active, sections.length, goTo]);
 
-	// Tactile (swipe vertical avec boucle infinie cyclique)
+	// Tactile (swipe vertical avec boucle infinie cyclique) — DESKTOP/TABLETTE uniquement.
+	// Sur téléphone (`compact`), ce geste entrait en conflit avec le scroll naturel (un
+	// simple frottement de lecture déclenchait un saut de panneau entier) → sur mobile la
+	// page défile normalement (scroll de base), navigation par les points/clavier seulement.
 	useEffect(() => {
+		if (compact) return;
 		let startY = 0;
 		const onStart = (e: TouchEvent) => {
 			startY = e.touches[0]?.clientY ?? 0;
@@ -555,7 +562,7 @@ export function HomeExperience({
 			window.removeEventListener("touchstart", onStart);
 			window.removeEventListener("touchend", onEnd);
 		};
-	}, [active, sections.length, goTo]);
+	}, [active, sections.length, goTo, compact]);
 
 	// Rotation lente des scènes héro (crossfade)
 	const [heroIdx, setHeroIdx] = useState(0);

@@ -121,8 +121,8 @@ export const HERO_SCENES: readonly HomeScene[] = [
 	// Clips additionnels — poster = frame extraite (le clip sert d'image aussi).
 	{
 		id: "bardock",
-		image: "/wiki/bardock.poster.webp",
-		poster: "/wiki/bardock.poster.webp",
+		image: "/wiki/bardock-poweringup.webp",
+		poster: "/wiki/bardock-poweringup.webp",
 		video: "/wiki/bardock.mp4",
 		title: "Bardock",
 		kicker: "Le père de Son Goku",
