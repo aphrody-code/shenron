@@ -1,6 +1,6 @@
 import { singleton, inject } from "tsyringe";
 import { and, desc, eq, sql, lte } from "drizzle-orm";
-import type { GuildMember, TextBasedChannel } from "discord.js";
+import type { Guild, GuildMember, TextBasedChannel } from "discord.js";
 import { DatabaseService } from "~/db/index";
 import { users, levelRewards, actionLogs, fusions } from "~/db/schema";
 import { or } from "drizzle-orm";
@@ -281,5 +281,41 @@ export class LevelService {
 			.update(users)
 			.set({ currentLevelRoleId: current, updatedAt: new Date() })
 			.where(eq(users.id, member.id));
+	}
+
+	/**
+	 * Passe TOUS les membres humains de la guilde par {@link syncRaceLevelRoles}.
+	 * Appelé par le cron `level-role-reconcile` (events/LevelRoleSync.ts) pour
+	 * rattraper les paliers manqués pendant un downtime, après une refonte des
+	 * échelles, ou pour un membre dont le rôle de race a été posé à la main.
+	 *
+	 * Séquentiel volontairement : `syncRaceLevelRoles` fait des appels REST
+	 * (add/remove de rôles) et paralléliser sur toute la guilde déclencherait le
+	 * rate-limit global. En régime établi la passe ne coûte quasi rien (early
+	 * return si la race n'a pas d'échelle, skip des rôles déjà posés).
+	 *
+	 * Une erreur sur un membre (rôle au-dessus du bot, membre parti en cours de
+	 * route) n'interrompt pas la passe : elle est comptée et loguée.
+	 */
+	async reconcileAllRaceLevelRoles(
+		guild: Guild
+	): Promise<{ scanned: number; synced: number; failed: number }> {
+		let scanned = 0;
+		let synced = 0;
+		let failed = 0;
+
+		for (const member of guild.members.cache.values()) {
+			if (member.user.bot) continue;
+			scanned++;
+			try {
+				await this.syncRaceLevelRoles(member);
+				synced++;
+			} catch (err) {
+				failed++;
+				logger.warn({ err, memberId: member.id }, "race level role reconcile failed");
+			}
+		}
+
+		return { scanned, synced, failed };
 	}
 }

@@ -33,6 +33,7 @@ import "./events/BioRole";
 import "./events/InteractionLog";
 import "./events/JailExpiry";
 import "./events/JoinLeave";
+import "./events/LevelRoleSync";
 import "./events/MessageLog";
 import "./events/MessageXP";
 import "./events/NewsScan";
