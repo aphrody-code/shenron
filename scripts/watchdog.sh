@@ -113,9 +113,23 @@ if [ "${swap_total:-0}" -gt 0 ]; then
     # (swapoff rapatrie TOUTES les pages swappées) sans re-déclencher un OOM.
     if [ "$mem_avail" -ge $(( swap_used * 2 )) ]; then
       if cooldown_ok "swap-purge" 120; then
-        log "  ↻ purge swap (swapoff -a && swapon -a) — marge RAM suffisante"
+        # `swapon -a` ne réactive QUE les entrées de /etc/fstab. Le swap de cet
+        # hôte (/swapfile-build) a été activé à la main et n'y figure pas : le
+        # couple `swapoff -a && swapon -a` le supprimait donc DÉFINITIVEMENT
+        # (vécu le 2026-08-13 — machine laissée sans swap juste après un OOM).
+        # On mémorise les volumes actifs et on les réactive explicitement.
+        mapfile -t swap_devs < <(swapon --show=NAME --noheadings 2>/dev/null)
+        log "  ↻ purge swap (${#swap_devs[@]} volume(s) : ${swap_devs[*]:-aucun}) — marge RAM suffisante"
         sudo swapoff -a 2>&1 | sed 's/^/    /'
-        sudo swapon -a 2>&1 | sed 's/^/    /'
+        for dev in "${swap_devs[@]}"; do
+          [ -n "$dev" ] || continue
+          sudo swapon "$dev" 2>&1 | sed 's/^/    /'
+        done
+        # Filet : réactive aussi ce que fstab déclare (si les deux coexistent).
+        sudo swapon -a 2>/dev/null
+        if [ "$(swapon --show=NAME --noheadings 2>/dev/null | wc -l)" -eq 0 ] && [ "${#swap_devs[@]}" -gt 0 ]; then
+          log "  ✗ ALERTE : le swap n'a PAS pu être réactivé après la purge"
+        fi
         mark_cooldown "swap-purge"
         free -h | sed 's/^/    /'
       else
