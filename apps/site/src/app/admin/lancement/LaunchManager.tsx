@@ -1,39 +1,94 @@
 "use client";
 
 /**
- * Contrôle des catégories visibles au public (barre de nav + gating URL).
- * Ouvrir = index + fiches publics. Bêta (épisodes/films/manga/chrono) verrouillées ON.
+ * Contrôle d'accès et classement des rubriques (catégories wiki + sections du
+ * site). Chaque rubrique porte un mode — public / connectés / rôles Discord /
+ * staff — appliqué par `proxy.ts`, et une position qui pilote l'ordre de la nav.
  *
- * UX : aperçu de la nav, bascules, actions rapides (bêta seule / tout ouvrir), save.
+ * Tout est persisté dans le jsonb `WikiLaunch.data` : ajouter une rubrique ou un
+ * mode ne demande aucune migration SQL.
  */
 import { useMemo, useState } from "react";
-import { Check, Eye, EyeOff, Loader2, Lock } from "lucide-react";
-import { ALWAYS_OPEN_KEYS, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
+import { ArrowDown, ArrowUp, Check, Loader2, Lock, Plus, Users, X } from "lucide-react";
+import {
+	ALL_ENTRIES,
+	ALWAYS_OPEN_KEYS,
+	orderedEntries,
+	resolveAccess,
+	type AccessMode,
+	type AccessRule,
+} from "@/lib/wiki-launch";
+import { RoleBadge, RoleSelect } from "@/components/admin/RoleSelect";
 
-export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
-	const [open, setOpen] = useState<Set<string>>(new Set(initialOpen));
+const MODES: { value: AccessMode; label: string; hint: string; tone: string }[] = [
+	{ value: "public", label: "Public", hint: "Visible par tous, indexable", tone: "border-green-500/60 bg-green-500/10 text-green-300" },
+	{ value: "members", label: "Connectés", hint: "Compte Discord lié requis", tone: "border-sky-500/60 bg-sky-500/10 text-sky-300" },
+	{ value: "roles", label: "Rôles", hint: "Rôles Discord choisis", tone: "border-amber-500/60 bg-amber-500/10 text-amber-300" },
+	{ value: "admin", label: "Staff", hint: "Équipe du site seulement", tone: "border-red-500/60 bg-red-500/10 text-red-300" },
+];
+
+export interface LaunchConfigDto {
+	openKeys: string[];
+	order: string[];
+	access: Record<string, AccessRule>;
+}
+
+export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
+	// L'état d'édition part des règles EFFECTIVES (règle stockée sinon dérivée de
+	// l'historique openKeys) : l'écran montre ce qui s'applique vraiment, pas un
+	// formulaire vide qui laisserait croire que tout est public.
+	const [access, setAccess] = useState<Record<string, AccessRule>>(() => {
+		const out: Record<string, AccessRule> = {};
+		for (const e of ALL_ENTRIES) out[e.key] = resolveAccess(e.key, initial);
+		return out;
+	});
+	const [order, setOrder] = useState<string[]>(() =>
+		orderedEntries(initial.order).map((e) => e.key)
+	);
 	const [saving, setSaving] = useState(false);
 	const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-	const always = useMemo(() => new Set(ALWAYS_OPEN_KEYS), []);
 
-	function toggle(key: string) {
+	const always = useMemo(() => new Set(ALWAYS_OPEN_KEYS), []);
+	const byKey = useMemo(() => new Map(ALL_ENTRIES.map((e) => [e.key, e])), []);
+	const rows = useMemo(
+		() => order.map((k) => byKey.get(k)).filter((e) => e !== undefined),
+		[order, byKey]
+	);
+
+	function setMode(key: string, mode: AccessMode) {
 		if (always.has(key)) return;
-		setOpen((prev) => {
-			const next = new Set(prev);
-			if (next.has(key)) next.delete(key);
-			else next.add(key);
-			return next;
+		setAccess((prev) => ({ ...prev, [key]: { mode, roleIds: prev[key]?.roleIds ?? [] } }));
+		setMsg(null);
+	}
+
+	function addRole(key: string, roleId: string) {
+		if (!roleId) return;
+		setAccess((prev) => {
+			const cur = prev[key] ?? { mode: "roles" as AccessMode, roleIds: [] };
+			if (cur.roleIds.includes(roleId)) return prev;
+			return { ...prev, [key]: { ...cur, roleIds: [...cur.roleIds, roleId] } };
 		});
 		setMsg(null);
 	}
 
-	function openAll() {
-		setOpen(new Set(LAUNCH_CATEGORIES.map((c) => c.key)));
+	function removeRole(key: string, roleId: string) {
+		setAccess((prev) => {
+			const cur = prev[key];
+			if (!cur) return prev;
+			return { ...prev, [key]: { ...cur, roleIds: cur.roleIds.filter((r) => r !== roleId) } };
+		});
 		setMsg(null);
 	}
 
-	function betaOnly() {
-		setOpen(new Set(ALWAYS_OPEN_KEYS));
+	function move(key: string, delta: number) {
+		setOrder((prev) => {
+			const i = prev.indexOf(key);
+			const j = i + delta;
+			if (i < 0 || j < 0 || j >= prev.length) return prev;
+			const next = [...prev];
+			[next[i], next[j]] = [next[j], next[i]];
+			return next;
+		});
 		setMsg(null);
 	}
 
@@ -41,17 +96,22 @@ export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 		setSaving(true);
 		setMsg(null);
 		try {
+			// `openKeys` reste synchronisé sur les rubriques wiki publiques : la nav et
+			// le teaser raisonnent encore en ouvert/fermé.
+			const openKeys = ALL_ENTRIES.filter(
+				(e) => e.scope !== "site" && access[e.key]?.mode === "public"
+			).map((e) => e.key);
+
 			const res = await fetch("/api/wiki-launch", {
 				method: "PUT",
 				headers: { "content-type": "application/json" },
-				body: JSON.stringify({ openKeys: [...open] }),
+				body: JSON.stringify({ openKeys, order, access }),
 			});
 			const data = await res.json();
 			if (res.ok && data.ok) {
-				setOpen(new Set(data.openKeys));
 				setMsg({
 					ok: true,
-					text: "Enregistré — la nav publique se met à jour sous ~30 s (rafraîchis la page).",
+					text: "Enregistré — l'accès s'applique sous ~30 s (cache du proxy).",
 				});
 			} else {
 				setMsg({ ok: false, text: data.error ?? "Échec de l'enregistrement." });
@@ -63,134 +123,143 @@ export function LaunchManager({ initialOpen }: { initialOpen: string[] }) {
 		}
 	}
 
-	const openCount = LAUNCH_CATEGORIES.filter((c) => open.has(c.key) || always.has(c.key)).length;
-
-	// Même règle que SiteNav : 4 premiers wiki en ligne, le reste en « Plus ».
-	const openWikiLabels = LAUNCH_CATEGORIES.filter(
-		(c) => c.href && (always.has(c.key) || open.has(c.key))
-	).map((c) => c.label);
-	const inlinePreview = openWikiLabels.slice(0, 4);
-	const morePreview = openWikiLabels.slice(4);
-
-	const publicNavPreview = [
-		"Accueil",
-		...inlinePreview,
-		...(morePreview.length ? [`Plus (${morePreview.length})`] : []),
-		"News",
-	];
+	const publicCount = ALL_ENTRIES.filter((e) => access[e.key]?.mode === "public").length;
 
 	return (
 		<div className="space-y-5">
-			{/* Aperçu barre de nav (miroir SiteNav) */}
-			<div className="dbz-panel space-y-2 p-4">
-				<p className="text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-					Aperçu barre de navigation publique
-				</p>
-				<div className="flex flex-wrap items-center gap-1 rounded-lg border border-white/10 bg-black/40 px-2 py-2">
-					{publicNavPreview.map((label) => (
-						<span
-							key={label}
-							className={`rounded-md px-2.5 py-1 text-[13px] font-medium ${
-								label.startsWith("Plus")
-									? "text-white/45 border border-white/10"
-									: "text-white/75"
-							}`}
-						>
-							{label}
-						</span>
-					))}
-				</div>
-				{morePreview.length > 0 && (
-					<p className="text-[11px] text-white/40">
-						Dans « Plus » : {morePreview.join(" · ")}
-					</p>
-				)}
-				<p className="text-[11px] text-white/40">
-					Max 4 sections wiki en ligne (comme la nav d&apos;origine) — le surplus va dans le
-					menu <strong className="text-white/55">Plus</strong>. Les catégories décochées restent
-					visibles aux admins via <strong className="text-white/55">Sections</strong>.
-				</p>
-			</div>
-
 			<div className="dbz-panel flex flex-wrap items-center justify-between gap-3 p-4">
-				<p className="text-sm text-white/70">
-					<strong className="text-dbz-orange">{openCount}</strong> / {LAUNCH_CATEGORIES.length}{" "}
-					catégories publiques
-				</p>
-				<div className="flex flex-wrap items-center gap-2">
-					<button
-						type="button"
-						onClick={betaOnly}
-						className="btn btn-ghost gap-1.5 text-xs"
-						title="Nav courte d'origine : Épisodes, Films, Chronologie, Manga"
-					>
-						<EyeOff className="h-3.5 w-3.5" />
-						Bêta seule
-					</button>
-					<button
-						type="button"
-						onClick={openAll}
-						className="btn btn-ghost gap-1.5 text-xs"
-						title="Rendre toutes les catégories publiques"
-					>
-						<Eye className="h-3.5 w-3.5" />
-						Tout ouvrir
-					</button>
-					<button
-						type="button"
-						onClick={save}
-						disabled={saving}
-						className="dbz-button gap-2 disabled:opacity-50"
-					>
-						{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-						Enregistrer
-					</button>
+				<div>
+					<p className="text-sm text-white/70">
+						<strong className="text-dbz-orange">{publicCount}</strong> / {ALL_ENTRIES.length}{" "}
+						rubriques publiques
+					</p>
+					<p className="text-[11px] text-white/40">
+						Le staff traverse toutes les restrictions. Les flèches changent l&apos;ordre de la
+						navigation.
+					</p>
 				</div>
+				<button
+					type="button"
+					onClick={save}
+					disabled={saving}
+					className="dbz-button gap-2 disabled:opacity-50"
+				>
+					{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+					Enregistrer
+				</button>
 			</div>
 
-			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-				{LAUNCH_CATEGORIES.map((c) => {
-					const locked = always.has(c.key);
-					const isOpen = locked || open.has(c.key);
+			<div className="space-y-2">
+				{rows.map((entry, index) => {
+					const key = entry.key;
+					const locked = always.has(key);
+					const rule = access[key] ?? { mode: "public" as AccessMode, roleIds: [] };
 					return (
-						<button
-							key={c.key}
-							type="button"
-							onClick={() => toggle(c.key)}
-							disabled={locked}
-							className={`flex items-center justify-between rounded-lg border-2 p-3 text-left transition-colors ${
-								isOpen
-									? "border-green-500/60 bg-green-500/10"
-									: "border-dbz-border bg-dbz-card/40 hover:border-dbz-orange/50"
-							} ${locked ? "cursor-not-allowed opacity-80" : ""}`}
-						>
-							<div className="min-w-0">
-								<p className="font-saiyan text-sm text-white">{c.label}</p>
-								<p className="truncate text-[10px] text-white/40">{c.prefixes.join(" · ")}</p>
+						<div key={key} className="dbz-panel space-y-3 p-3">
+							<div className="flex flex-wrap items-center gap-3">
+								<div className="flex shrink-0 flex-col">
+									<button
+										type="button"
+										onClick={() => move(key, -1)}
+										disabled={index === 0}
+										className="rounded p-0.5 text-white/40 hover:text-white disabled:opacity-20"
+										aria-label={`Monter ${entry.label}`}
+									>
+										<ArrowUp className="h-3.5 w-3.5" />
+									</button>
+									<button
+										type="button"
+										onClick={() => move(key, 1)}
+										disabled={index === rows.length - 1}
+										className="rounded p-0.5 text-white/40 hover:text-white disabled:opacity-20"
+										aria-label={`Descendre ${entry.label}`}
+									>
+										<ArrowDown className="h-3.5 w-3.5" />
+									</button>
+								</div>
+
+								<div className="min-w-0 flex-1">
+									<p className="flex items-center gap-1.5 font-saiyan text-sm text-white">
+										{entry.label}
+										{locked && <Lock className="h-3 w-3 text-white/40" />}
+										<span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/40">
+											{entry.scope === "site" ? "site" : "wiki"}
+										</span>
+									</p>
+									<p className="truncate text-[10px] text-white/40">
+										{entry.prefixes.join(" · ")}
+									</p>
+								</div>
+
+								<div className="flex flex-wrap gap-1">
+									{MODES.map((m) => (
+										<button
+											key={m.value}
+											type="button"
+											onClick={() => setMode(key, m.value)}
+											disabled={locked}
+											title={m.hint}
+											className={`rounded-md border px-2 py-1 text-[11px] font-medium transition-colors ${
+												rule.mode === m.value
+													? m.tone
+													: "border-dbz-border bg-dbz-card/40 text-white/50 hover:border-dbz-orange/50"
+											} ${locked ? "cursor-not-allowed opacity-60" : ""}`}
+										>
+											{m.label}
+										</button>
+									))}
+								</div>
 							</div>
-							<span
-								className={`ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${
-									isOpen ? "bg-green-500 text-black" : "bg-dbz-border text-white/40"
-								}`}
-							>
-								{locked ? (
-									<Lock className="h-3 w-3" />
-								) : isOpen ? (
-									<Check className="h-3.5 w-3.5" />
-								) : null}
-							</span>
-						</button>
+
+							{rule.mode === "roles" && (
+								<div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5">
+									<p className="flex items-center gap-1.5 text-[11px] text-amber-200/80">
+										<Users className="h-3 w-3" />
+										Rôles autorisés — un seul suffit pour accéder
+									</p>
+									<div className="flex flex-wrap gap-1.5">
+										{rule.roleIds.map((rid) => (
+											<span
+												key={rid}
+												className="inline-flex items-center gap-1.5 rounded-full border border-dbz-border bg-black/40 px-2 py-0.5 text-xs"
+											>
+												<RoleBadge roleId={rid} />
+												<button
+													type="button"
+													onClick={() => removeRole(key, rid)}
+													className="text-white/40 hover:text-red-400"
+													aria-label="Retirer ce rôle"
+												>
+													<X className="h-3 w-3" />
+												</button>
+											</span>
+										))}
+										{rule.roleIds.length === 0 && (
+											<span className="text-[11px] text-amber-200/60">
+												Aucun rôle : personne ne passera (hors staff).
+											</span>
+										)}
+									</div>
+									<div className="flex items-center gap-2">
+										<Plus className="h-3 w-3 shrink-0 text-white/30" />
+										<RoleSelect
+											value=""
+											onChange={(rid) => addRole(key, rid)}
+											placeholder="— Ajouter un rôle —"
+											className="max-w-xs"
+										/>
+									</div>
+								</div>
+							)}
+						</div>
 					);
 				})}
 			</div>
 
-			{msg && (
-				<p className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>{msg.text}</p>
-			)}
+			{msg && <p className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>{msg.text}</p>}
 			<p className="text-xs text-white/40">
-				Les cases avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie, Manga) sont
-				déjà en ligne et ne peuvent pas être refermées. Un clic pour basculer le reste, puis
-				Enregistrer.
+				Les rubriques avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie,
+				Manga) sont en ligne depuis la bêta et restent publiques.
 			</p>
 		</div>
 	);

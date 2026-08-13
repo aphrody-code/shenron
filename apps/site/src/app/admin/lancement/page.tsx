@@ -1,31 +1,31 @@
 import type { Metadata } from "next";
-import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 import { LaunchManager } from "./LaunchManager";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-	title: "Lancement du wiki",
+	title: "Accès et classement des rubriques",
 	robots: { index: false },
 };
 
 export default async function AdminLaunchPage() {
-	const openKeys = await getOpenCategoryKeys();
+	const config = await getLaunchConfig();
 
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-6">
 			<header>
-				<h1 className="mb-2 font-saiyan text-4xl text-dbz-orange">LANCEMENT DU WIKI</h1>
+				<h1 className="mb-2 font-saiyan text-4xl text-dbz-orange">ACCÈS DES RUBRIQUES</h1>
 				<p className="mb-1 text-sm text-white/60">
-					Choisis quelles catégories du wiki sont visibles par le public. Sors-les une par une :
-					basculer une catégorie l&apos;ouvre immédiatement (index + fiches), le reste reste
-					réservé aux admins.
+					Pour chaque catégorie du wiki et chaque section du site : qui peut la voir — tout le
+					monde, les membres connectés, certains rôles Discord, ou le staff seul. Les flèches
+					règlent l&apos;ordre d&apos;affichage.
 				</p>
 				<p className="text-xs uppercase tracking-widest text-white/30">
-					Gating bêta piloté par la DB · effet immédiat (cache 30 s)
+					Piloté par la DB · effet sous 30 s · aucune migration
 				</p>
 			</header>
-			<LaunchManager initialOpen={openKeys} />
+			<LaunchManager initial={config} />
 		</div>
 	);
 }

@@ -1,11 +1,17 @@
 /**
- * /api/wiki-launch — catégories wiki ouvertes au public (gate admin).
+ * /api/wiki-launch — contrôle d'accès et classement des rubriques (gate admin).
  *
- *   GET → { openKeys }         clés ouvertes (inclut les bêta verrouillées)
- *   PUT → { ok, openKeys }     enregistre + revalide le layout (nav/teaser/gating)
+ *   GET → { openKeys, order, access }   configuration courante
+ *   PUT → { ok, ...config }             enregistre + revalide le layout
+ *
+ * Le PUT accepte n'importe quel sous-ensemble des trois champs : la page
+ * /admin/lancement envoie l'accès et l'ordre séparément sans écraser le reste.
+ * Le nettoyage (clés inconnues, modes invalides, rôles non-snowflake) est fait
+ * dans `wiki-launch-config`, source unique de vérité.
  */
 import { getCurrentUser, isCurrentUserAdmin } from "@/lib/session";
-import { getOpenCategoryKeys, saveOpenCategoryKeys } from "@/lib/wiki-launch-config";
+import { getLaunchConfig, saveLaunchConfig } from "@/lib/wiki-launch-config";
+import type { AccessRule } from "@/lib/wiki-launch";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,24 +22,46 @@ const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 
 
 export async function GET() {
 	if (!(await isCurrentUserAdmin())) return forbidden();
-	return NextResponse.json({ openKeys: await getOpenCategoryKeys() });
+	return NextResponse.json(await getLaunchConfig());
 }
 
 export async function PUT(req: NextRequest) {
 	const me = await getCurrentUser();
 	if (!me?.user?.roleAdmin) return forbidden();
+
 	let body: unknown;
 	try {
 		body = await req.json();
 	} catch {
 		return NextResponse.json({ error: "JSON body requis" }, { status: 400 });
 	}
-	const keys = Array.isArray((body as { openKeys?: unknown })?.openKeys)
-		? ((body as { openKeys: unknown[] }).openKeys.filter((k) => typeof k === "string") as string[])
-		: null;
-	if (!keys) return NextResponse.json({ error: "openKeys[] attendu" }, { status: 400 });
-	const openKeys = await saveOpenCategoryKeys(keys, me.discordId || me.user.id);
+
+	const b = body as {
+		openKeys?: unknown;
+		order?: unknown;
+		access?: unknown;
+	};
+	const strings = (v: unknown) =>
+		Array.isArray(v) ? (v.filter((k) => typeof k === "string") as string[]) : undefined;
+
+	const patch: Parameters<typeof saveLaunchConfig>[0] = {};
+	const openKeys = strings(b.openKeys);
+	if (openKeys) patch.openKeys = openKeys;
+	const order = strings(b.order);
+	if (order) patch.order = order;
+	if (b.access && typeof b.access === "object") {
+		patch.access = b.access as Record<string, AccessRule>;
+	}
+
+	if (Object.keys(patch).length === 0) {
+		return NextResponse.json(
+			{ error: "openKeys[], order[] ou access{} attendu" },
+			{ status: 400 }
+		);
+	}
+
+	const config = await saveLaunchConfig(patch, me.discordId || me.user.id);
 	// Le gating/nav/teaser lisent la config dans le layout → revalide tout le site.
 	revalidatePath("/", "layout");
-	return NextResponse.json({ ok: true, openKeys });
+	return NextResponse.json({ ok: true, ...config });
 }

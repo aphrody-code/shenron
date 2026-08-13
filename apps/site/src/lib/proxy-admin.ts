@@ -26,13 +26,29 @@ import { baAccount, users } from "@/db/schema";
 import { env } from "@/lib/env";
 import { ADMIN_COOKIE, verifyAdminCookie } from "@/lib/admin-token";
 
-export async function isRequestAdmin(request: NextRequest): Promise<boolean> {
-	// 1) Admin par token (cookie signé HMAC) — aucune I/O DB.
-	if (verifyAdminCookie(request.cookies.get(ADMIN_COOKIE)?.value)) return true;
+export interface Visitor {
+	/** Staff du site (token admin, `roleAdmin`, owner ou allowlist env). */
+	isAdmin: boolean;
+	/** Session Better Auth valide (compte lié, pas forcément Discord). */
+	authenticated: boolean;
+	/** Snowflake Discord lié à la session — nécessaire au gating par rôle. */
+	discordId: string | null;
+}
+
+/**
+ * Identité du visiteur en UN passage : le gating par rôle a besoin du couple
+ * (staff ?, quel Discord ?), et refaire deux fois la lecture de session +
+ * jointure `baAccount` doublerait le coût sur le hot-path du proxy.
+ */
+export async function resolveVisitor(request: NextRequest): Promise<Visitor> {
+	// 1) Admin par token (cookie signé HMAC) — aucune I/O DB, aucune identité Discord.
+	if (verifyAdminCookie(request.cookies.get(ADMIN_COOKIE)?.value)) {
+		return { isAdmin: true, authenticated: true, discordId: null };
+	}
 
 	// 2) Session Discord (Better Auth) lue depuis les en-têtes de la requête.
 	const session = await auth.api.getSession({ headers: request.headers });
-	if (!session?.user) return false;
+	if (!session?.user) return { isAdmin: false, authenticated: false, discordId: null };
 
 	// Discord ID lié → clé du user métier (roleAdmin) et de l'allowlist env.
 	const [row] = await db
@@ -41,11 +57,16 @@ export async function isRequestAdmin(request: NextRequest): Promise<boolean> {
 		.leftJoin(users, eq(users.discordId, baAccount.accountId))
 		.where(and(eq(baAccount.userId, session.user.id), eq(baAccount.providerId, "discord")))
 		.limit(1);
-	if (!row) return false;
+	if (!row) return { isAdmin: false, authenticated: true, discordId: null };
 
-	return (
+	const isAdmin =
 		row.roleAdmin === true ||
 		row.discordId === env.OWNER_ID ||
-		env.OAUTH_ALLOWED_USERS.includes(row.discordId)
-	);
+		env.OAUTH_ALLOWED_USERS.includes(row.discordId);
+
+	return { isAdmin, authenticated: true, discordId: row.discordId ?? null };
+}
+
+export async function isRequestAdmin(request: NextRequest): Promise<boolean> {
+	return (await resolveVisitor(request)).isAdmin;
 }

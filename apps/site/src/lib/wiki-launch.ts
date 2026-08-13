@@ -11,6 +11,21 @@
  * `alwaysOpen` = catégories déjà publiques en bêta (episodes/films/manga/chrono) :
  * elles ne peuvent pas être refermées depuis l'admin (garde-fou).
  */
+/**
+ * Qui a le droit de voir une entrée :
+ *   public  → tout le monde, y compris les moteurs de recherche
+ *   members → visiteurs connectés (compte Discord lié)
+ *   roles   → connectés portant AU MOINS UN des `roleIds` sur le serveur Discord
+ *   admin   → staff du site uniquement (équivaut à « fermé »)
+ */
+export type AccessMode = "public" | "members" | "roles" | "admin";
+
+export interface AccessRule {
+	mode: AccessMode;
+	/** Rôles Discord autorisés — signifiant uniquement quand `mode === "roles"`. */
+	roleIds: string[];
+}
+
 export interface LaunchCategory {
 	key: string;
 	label: string;
@@ -20,6 +35,10 @@ export interface LaunchCategory {
 	prefixes: string[];
 	/** Toujours ouverte (bêta) — non refermable depuis l'admin. */
 	alwaysOpen?: boolean;
+	/** `wiki` = catégorie de l'encyclopédie ; `site` = section hors wiki. */
+	scope?: "wiki" | "site";
+	/** Accès appliqué tant que rien n'est enregistré en base. */
+	defaultMode?: AccessMode;
 }
 
 export const LAUNCH_CATEGORIES: LaunchCategory[] = [
@@ -39,6 +58,95 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 	{ key: "jeux", label: "Jeux", href: "/wiki/jeux", prefixes: ["/wiki/jeux", "/wiki/dragon-ball/games"] },
 	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"] },
 ];
+
+/**
+ * Sections du site HORS wiki, soumises au même contrôle d'accès (public /
+ * connectés / rôles Discord / staff) et au même classement.
+ *
+ * Les clés sont volontairement distinctes de celles du wiki (`jeux-hub` et non
+ * `jeux`) : elles cohabitent dans un unique espace de noms persisté en base.
+ * `tierlists` naît en `admin` car le proxy la gardait déjà en dur pour le staff —
+ * la migration ne doit rien ouvrir par surprise.
+ */
+export const SITE_SECTIONS: LaunchCategory[] = [
+	{ key: "tierlists", label: "Tier lists", href: "/tierlists", prefixes: ["/tierlists"], scope: "site", defaultMode: "admin" },
+	{ key: "classements", label: "Classements", href: "/classements", prefixes: ["/classements", "/leaderboard"], scope: "site", defaultMode: "public" },
+	{ key: "boutique", label: "Boutique", href: "/shop", prefixes: ["/shop"], scope: "site", defaultMode: "public" },
+	{ key: "jeux-hub", label: "Espace jeux", href: "/jeux", prefixes: ["/jeux"], scope: "site", defaultMode: "public" },
+	{ key: "actualites", label: "Actualités", href: "/actualites", prefixes: ["/actualites"], scope: "site", defaultMode: "public" },
+	{ key: "articles", label: "Articles communautaires", href: "/post", prefixes: ["/post"], scope: "site", defaultMode: "public" },
+	{ key: "assistant", label: "Assistant IA", href: "/ask", prefixes: ["/ask"], scope: "site", defaultMode: "public" },
+	{ key: "canvas", label: "Canvas", href: "/canvas", prefixes: ["/canvas"], scope: "site", defaultMode: "public" },
+	{ key: "stats", label: "Statistiques", href: "/stats", prefixes: ["/stats"], scope: "site", defaultMode: "public" },
+	{ key: "personas", label: "Personas", href: "/personas", prefixes: ["/personas"], scope: "site", defaultMode: "public" },
+	{ key: "commandes", label: "Commandes du bot", href: "/commands", prefixes: ["/commands"], scope: "site", defaultMode: "public" },
+	{ key: "profil", label: "Profil joueur", href: "/profil", prefixes: ["/profil"], scope: "site", defaultMode: "public" },
+];
+
+/** Registre complet : catégories wiki + sections du site. */
+export const ALL_ENTRIES: LaunchCategory[] = [...LAUNCH_CATEGORIES, ...SITE_SECTIONS];
+
+const BY_KEY = new Map(ALL_ENTRIES.map((e) => [e.key, e]));
+
+/** Entrée du registre pour une clé (undefined si la clé est obsolète). */
+export function entryByKey(key: string): LaunchCategory | undefined {
+	return BY_KEY.get(key);
+}
+
+/**
+ * Entrée gouvernant un pathname, par match de préfixe **le plus long** : sans ça
+ * `/wiki/dragon-ball/techniques` serait capté par une entrée `/wiki` plus courte.
+ */
+export function findEntry(pathname: string): LaunchCategory | undefined {
+	let best: LaunchCategory | undefined;
+	let bestLen = -1;
+	for (const e of ALL_ENTRIES) {
+		for (const p of e.prefixes) {
+			if ((pathname === p || pathname.startsWith(`${p}/`)) && p.length > bestLen) {
+				best = e;
+				bestLen = p.length;
+			}
+		}
+	}
+	return best;
+}
+
+/**
+ * Règle d'accès effective d'une clé.
+ *
+ * Rétrocompatibilité : tant qu'aucune règle n'est enregistrée, on **dérive** le
+ * comportement historique — une catégorie wiki présente dans `openKeys` est
+ * publique, sinon réservée au staff ; une section du site prend son
+ * `defaultMode`. Une entrée `alwaysOpen` est publique par construction et ne peut
+ * pas être restreinte (garde-fou bêta).
+ */
+export function resolveAccess(
+	key: string,
+	cfg: { openKeys: readonly string[]; access?: Readonly<Record<string, AccessRule>> }
+): AccessRule {
+	const entry = BY_KEY.get(key);
+	if (entry?.alwaysOpen) return { mode: "public", roleIds: [] };
+
+	const stored = cfg.access?.[key];
+	if (stored) return stored;
+
+	if (entry?.scope === "site") return { mode: entry.defaultMode ?? "public", roleIds: [] };
+	return { mode: cfg.openKeys.includes(key) ? "public" : "admin", roleIds: [] };
+}
+
+/** Registre trié selon l'ordre enregistré ; les clés inconnues gardent l'ordre du code. */
+export function orderedEntries(
+	order: readonly string[],
+	entries: readonly LaunchCategory[] = ALL_ENTRIES
+): LaunchCategory[] {
+	const rank = new Map(order.map((k, i) => [k, i]));
+	return [...entries].sort((a, b) => {
+		const ra = rank.get(a.key) ?? Number.MAX_SAFE_INTEGER;
+		const rb = rank.get(b.key) ?? Number.MAX_SAFE_INTEGER;
+		if (ra !== rb) return ra - rb;
+		return entries.indexOf(a) - entries.indexOf(b);
+	});
+}
 
 /** Clés toujours ouvertes (bêta), jamais refermables. */
 export const ALWAYS_OPEN_KEYS = LAUNCH_CATEGORIES.filter((c) => c.alwaysOpen).map((c) => c.key);

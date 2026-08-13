@@ -5,8 +5,8 @@ import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
 import { NavMore } from "@/components/NavMore";
-import { effectiveOpenKeys, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
-import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
+import { LAUNCH_CATEGORIES, orderedEntries, resolveAccess } from "@/lib/wiki-launch";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
  * Nav SANS session : config de lancement (DB) uniquement — pas de cookies/headers
@@ -35,17 +35,23 @@ const linkClass =
 	"relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
 
 export async function SiteNav() {
-	const open = effectiveOpenKeys(await getOpenCategoryKeys());
+	const cfg = await getLaunchConfig();
 
-	// Ordre stable = ordre du registre LAUNCH_CATEGORIES (design intentional).
-	const wikiOpen = LAUNCH_CATEGORIES.filter((c) => c.href && open.has(c.key)).map((c) => ({
-		href: c.href as string,
-		label: c.label,
-	}));
-	const wikiClosed = LAUNCH_CATEGORIES.filter((c) => c.href && !open.has(c.key)).map((c) => ({
-		href: c.href as string,
-		label: c.label,
-	}));
+	// Ordre piloté depuis /admin/lancement (repli : ordre du registre).
+	// La nav ne liste QUE les rubriques publiques : elle est rendue dans le layout
+	// racine, donc sans session — y afficher les rubriques réservées aux
+	// connectés/rôles obligerait à lire les cookies et ferait basculer TOUT le site
+	// en `private, no-store` (cf. piège latence). Les membres concernés y accèdent
+	// par lien direct ; le staff garde la liste complète dans « Sections ».
+	const ordered = orderedEntries(cfg.order, LAUNCH_CATEGORIES);
+	const isPublic = (key: string) => resolveAccess(key, cfg).mode === "public";
+
+	const wikiOpen = ordered
+		.filter((c) => c.href && isPublic(c.key))
+		.map((c) => ({ href: c.href as string, label: c.label }));
+	const wikiClosed = ordered
+		.filter((c) => c.href && !isPublic(c.key))
+		.map((c) => ({ href: c.href as string, label: c.label }));
 
 	const inlineWiki = wikiOpen.slice(0, MAX_INLINE_WIKI);
 	const moreWiki = wikiOpen.slice(MAX_INLINE_WIKI);
