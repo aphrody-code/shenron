@@ -129,4 +129,43 @@ else
   log "  aucun swap configuré"
 fi
 
+# ── 4. units systemd en échec + timers arrêtés ──────────────────────────────
+# Angle mort corrigé le 2026-08-13 : shenron-neon-pull a échoué en boucle du
+# 2026-07-11 au 2026-08-13 (3 doublons "Goku" en base bloquaient le reverse-sync)
+# sans que RIEN ne le signale — les volets 1-3 ne regardent que les endpoints
+# HTTP et la mémoire, or un timer oneshot qui échoue ne dégrade aucun endpoint :
+# le site restait vert pendant que le replica du bot pourrissait (167 épisodes
+# de retard côté /wiki Discord et RAG). Seul `healthcheck.sh`, manuel, le voyait.
+say_section "units en échec"
+failed_units=$(systemctl list-units 'shenron*' --state=failed --no-legend --plain 2>/dev/null | awk '{print $1}')
+if [ -z "$failed_units" ]; then
+  log "  ✓ aucune unit shenron* en échec"
+else
+  for u in $failed_units; do
+    log "  ✗ ALERTE : $u en échec — diagnostic: journalctl -u $u -n 50"
+    # Une seule relance par heure : si la cause est une donnée invalide (cas
+    # vécu), réessayer toutes les 5 min ne répare rien et noie le journal.
+    if cooldown_ok "failed-$u" 60; then
+      log "    ⟲ tentative de relance"
+      sudo systemctl reset-failed "$u" 2>&1 | sed 's/^/      /'
+      sudo systemctl start "$u" 2>&1 | sed 's/^/      /'
+      mark_cooldown "failed-$u"
+    else
+      log "    · relance sautée (cooldown 60 min) — échec persistant, intervention requise"
+    fi
+  done
+fi
+
+# Un timer désactivé/arrêté ne "échoue" jamais : il ne tourne simplement plus.
+# Cas silencieux tout aussi grave (sync figée), donc vérifié explicitement.
+say_section "timers actifs"
+for t in shenron-neon-sync shenron-neon-pull shenron-backup shenron-pg-backup shenron-watchdog; do
+  state=$(systemctl is-active "$t.timer" 2>/dev/null || true)
+  if [ "$state" = "active" ]; then
+    log "  ✓ $t.timer actif"
+  else
+    log "  ✗ ALERTE : $t.timer ${state:-inconnu} (attendu: active) — sync/backup à l'arrêt"
+  fi
+done
+
 log "=== fin ==="

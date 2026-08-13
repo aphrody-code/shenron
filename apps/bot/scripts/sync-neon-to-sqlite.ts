@@ -123,6 +123,14 @@ async function main() {
 	// rafraîchi mais db_transformations pas encore). FK off le temps du refresh
 	// (données Neon déjà cohérentes), hors transaction car PRAGMA ne change pas
 	// à l'intérieur d'une transaction ouverte.
+	// Une ligne source invalide au regard des contraintes SQLite (UNIQUE, NOT
+	// NULL, CHECK) ne doit PAS faire tomber le refresh des 18 tables : SQLite
+	// abandonne l'INSERT fautif (ON CONFLICT ABORT) sans annuler la transaction
+	// en cours, donc on catch par ligne, on la skippe, et on la rapporte. Sans
+	// ça, 3 doublons "Goku" créés depuis le studio ont figé le replica du bot
+	// pendant un mois (167 épisodes manquants côté Discord/RAG) — cf. l'échec
+	// de shenron-neon-pull du 2026-07-11 au 2026-08-13.
+	const skipped = new Map<string, string[]>();
 	sqlite.exec("PRAGMA foreign_keys = OFF");
 	try {
 		const apply = sqlite.transaction(() => {
@@ -130,7 +138,13 @@ async function main() {
 				sqlite.query(`DELETE FROM "${p.table}"`).run();
 				const stmt = sqlite.query(p.insertSql);
 				for (const r of p.rows) {
-					stmt.run(...p.cols.map((c) => encodeValue(p.table, c, r[c])));
+					try {
+						stmt.run(...p.cols.map((c) => encodeValue(p.table, c, r[c])));
+					} catch (e) {
+						const errs = skipped.get(p.table) ?? [];
+						errs.push(`id=${String(r.id ?? "?")} · ${(e as Error).message}`);
+						skipped.set(p.table, errs);
+					}
 				}
 			}
 		});
@@ -147,8 +161,14 @@ async function main() {
 			}
 		).n;
 		const ok = cnt === p.rows.length;
+		const skips = skipped.get(p.table) ?? [];
 		report.push({ table: p.table, neon: p.rows.length, sqlite: cnt, ok });
-		console.log(`${ok ? "✓" : "✗"} ${p.table.padEnd(26)} neon=${p.rows.length} sqlite=${cnt}`);
+		console.log(
+			`${ok ? "✓" : "✗"} ${p.table.padEnd(26)} neon=${p.rows.length} sqlite=${cnt}` +
+				(skips.length ? ` · ${skips.length} ligne(s) rejetée(s) — à corriger côté PG` : "")
+		);
+		for (const m of skips.slice(0, 5)) console.error(`    ↳ ${m}`);
+		if (skips.length > 5) console.error(`    ↳ … ${skips.length - 5} autre(s)`);
 	}
 
 	const bad = report.filter((r) => !r.ok);
