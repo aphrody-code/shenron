@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Lock, Ticket as TicketIcon, RefreshCw, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
+import { TicketAccessPanel } from "./TicketAccessPanel";
 
 interface TicketRow {
 	id: number;
@@ -69,6 +70,8 @@ export default function TicketsPage() {
 					Un ticket = un salon Discord dédié entre le membre et les modérateurs
 				</p>
 			</header>
+
+			<TicketAccessPanel />
 
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 flex-wrap">
