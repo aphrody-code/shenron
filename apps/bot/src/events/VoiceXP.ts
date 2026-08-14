@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { Bot, Discord, On, Once, type ArgsOf } from "@rpbey/discordy";
-import type { Client, GuildMember, VoiceBasedChannel } from "discord.js";
+import type { Client, Guild, GuildMember, VoiceBasedChannel } from "discord.js";
 import { LevelService } from "~/services/LevelService";
 import { VocalTempoService } from "~/services/VocalTempoService";
 import { SettingsService } from "~/services/SettingsService";
@@ -51,7 +51,10 @@ export class VoiceXPEvent {
 		const now = Date.now();
 		// Snapshot des boosts une fois par tick (cache 30s côté SettingsService)
 		const boosts = await this.settings.getXpBoostRoles();
-		const guild = client.guilds.cache.first();
+		const guild = client.guilds.cache.get(env.GUILD_ID) ?? client.guilds.cache.first();
+
+		// Vérité = état vocal réel de Discord, pas la mémoire d'events passés.
+		if (guild) await this.syncSessions(guild, now);
 
 		// Setting xp.voice.per_minute → conversion en per-tick (XP_VOICE_TICK_MS).
 		// Fallback constant `XP_PER_VOICE_TICK` si pas de setting.
@@ -62,7 +65,9 @@ export class VoiceXPEvent {
 				: XP_PER_VOICE_TICK;
 
 		for (const [userId, sess] of this.sessions) {
-			if (now - sess.lastTickAt < XP_VOICE_TICK_MS) continue;
+			// Marge de 5s : `setInterval` peut tirer quelques ms trop tôt et faire
+			// sauter un tick entier (XP vocal divisé par 2 sans raison visible).
+			if (now - sess.lastTickAt < XP_VOICE_TICK_MS - 5_000) continue;
 			sess.lastTickAt = now;
 
 			// Boost XP par rôle — MAX (ne stack pas). Inclut le boost booster auto.
@@ -87,6 +92,9 @@ export class VoiceXPEvent {
 			const u = await this.levels.getUser(userId);
 			gain = Math.floor(gain * voiceXpMultiplier(u?.race, u?.raceBoostUntil?.getTime() ?? 0, now));
 
+			// Temps de présence vocal (classement « vocal » + stats de profil).
+			await this.levels.addVoiceTime(userId, XP_VOICE_TICK_MS, new Date(sess.joinedAt));
+
 			const res = await this.levels.addXP(userId, gain);
 			if (res.levelUp) {
 				const member = await guild?.members.fetch(userId).catch(() => null);
@@ -96,6 +104,49 @@ export class VoiceXPEvent {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Réconcilie `sessions` avec l'état vocal réel de la guilde.
+	 *
+	 * `sessions` n'était alimentée que par `voiceStateUpdate` : après un restart
+	 * du bot (ou un event manqué / une reconnexion gateway), tous les membres
+	 * déjà connectés en vocal restaient invisibles → **zéro XP vocal** tant
+	 * qu'ils ne changeaient pas de salon ou ne re-toggle pas leur micro. Comme
+	 * le service redémarre à chaque déploiement, la map restait vide en pratique
+	 * (tick à 0 ms, aucun gain, classement figé).
+	 */
+	private async syncSessions(guild: Guild, now: number) {
+		const hubId = (await this.settings.getRaw("channel.vocal_tempo_hub")) ?? env.VOCAL_TEMPO_HUB_ID;
+		const eligible = new Set<string>();
+
+		for (const state of guild.voiceStates.cache.values()) {
+			const channel = state.channel;
+			if (!channel) continue;
+			const member = state.member ?? guild.members.cache.get(state.id);
+			if (!member || member.user.bot) continue;
+			if (channel.id === guild.afkChannelId) continue;
+			if (hubId && channel.id === hubId) continue; // salon d'accueil vocal tempo
+			if (state.selfMute || state.mute) continue; // muet = pas d'XP (spec)
+
+			eligible.add(state.id);
+			const sess = this.sessions.get(state.id);
+			if (sess) sess.channelId = channel.id;
+			else {
+				// Déjà en vocal avant qu'on le sache → éligible dès ce tick.
+				this.sessions.set(state.id, {
+					channelId: channel.id,
+					joinedAt: now,
+					lastTickAt: now - XP_VOICE_TICK_MS,
+				});
+			}
+		}
+
+		const stale: string[] = [];
+		for (const userId of this.sessions.keys()) {
+			if (!eligible.has(userId)) stale.push(userId);
+		}
+		for (const userId of stale) this.sessions.delete(userId);
 	}
 
 	@On({ event: "voiceStateUpdate" })

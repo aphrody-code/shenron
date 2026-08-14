@@ -42,6 +42,23 @@ export class LevelService {
 		return this.db.query.users.findFirst({ where: eq(users.id, userId) });
 	}
 
+	/**
+	 * Cumule du temps passé en vocal (`total_voice_ms`) — alimente le classement
+	 * « vocal » et les stats de profil. Personne ne l'écrivait : la colonne
+	 * restait à 0 pour tout le monde et le classement vocal était plat.
+	 */
+	async addVoiceTime(userId: string, ms: number, sessionStartedAt?: Date) {
+		if (ms <= 0) return;
+		await this.ensureUser(userId);
+		await this.db
+			.update(users)
+			.set({
+				totalVoiceMs: sql`${users.totalVoiceMs} + ${ms}`,
+				...(sessionStartedAt ? { lastVoiceJoinAt: sessionStartedAt } : {}),
+			})
+			.where(eq(users.id, userId));
+	}
+
 	async addXP(
 		userId: string,
 		amount: number,
