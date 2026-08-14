@@ -36,6 +36,10 @@ ExecStop=/bin/kill -SIGTERM $MAINPID
 TimeoutStopSec=30
 KillMode=mixed
 KillSignal=SIGTERM
+# Bun sort en 143 (128+SIGTERM) au lieu de mourir du signal : sans cette ligne
+# systemd marque l'unité `failed` à CHAQUE arrêt propre (diagnostic pollué,
+# watchdog qui voit une unit en échec). Repris de rose-griffon/rg.
+SuccessExitStatus=143
 
 Restart=always
 RestartSec=5
