@@ -34,19 +34,13 @@ RestartSec=5
 RestartSteps=4
 RestartMaxDelaySec=45
 
-# Mémoire : Next 16 (canary) + cache ISR/fetch + RSC plafonnent bien au-dessus
-# des 768M initiaux ; sous cette limite le cgroup entrait en reclaim agressif
-# (MemoryHigh) → event-loop gelé → connexions Postgres locales en CONNECT_TIMEOUT
-# → 504/pages à 24s (incident 2026-07-07). Le VPS a 47G de RAM : on donne de la
-# marge. MemoryHigh = throttle doux (plateau confortable), MemoryMax = cap dur
-# (un runaway est tué puis relancé par Restart=always), MemoryLow = protégé du
-# reclaim système. MemoryAccounting explicite pour les métriques `systemctl show`.
+# AUCUN plafond mémoire : le VPS est dédié au bot + au site. Tout cap crée un
+# reclaim cgroup au ras du seuil → event-loop gelé → Postgres en CONNECT_TIMEOUT
+# et pages à 24s (incident 2026-07-07). Next 16 (canary) + cache ISR/fetch + RSC
+# prennent ce qu'il leur faut. MemoryLow = garantie hors-reclaim (pas un cap),
+# MemoryAccounting pour garder les métriques `systemctl show`.
 MemoryAccounting=true
 MemoryLow=256M
-MemoryHigh=2G
-MemoryMax=3G
-MemorySwapMax=512M
-TasksMax=256
 LimitNOFILE=131072
 OOMScoreAdjust=-300
 CPUWeight=150

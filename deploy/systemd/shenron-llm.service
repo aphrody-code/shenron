@@ -26,10 +26,9 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-# Qwen2.5-3B Q4_K_M (~1.9 Go) + KV cache (ctx 4096) + overhead. 5 Go de marge.
-MemoryMax=5G
-MemoryHigh=4G
-TasksMax=256
+# Qwen2.5-3B Q4_K_M (~1.9 Go) + KV cache (ctx 4096) + overhead. Aucun plafond :
+# le LLM peut prendre toute la RAM disponible (ctx plus large, batch plus gros).
+MemoryAccounting=true
 LimitNOFILE=65536
 OOMScoreAdjust=-150
 CPUWeight=90

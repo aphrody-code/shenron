@@ -28,10 +28,10 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-# 2 modèles (e5-small + bge-reranker) + onnxruntime WASM ; 3 Go de marge (RAM libre dédiée).
-MemoryMax=3G
-MemoryHigh=2.5G
-TasksMax=128
+# 2 modèles (e5-small + bge-reranker) + onnxruntime WASM. Aucun plafond : la RAM
+# libre du VPS est là pour ça. OOMScoreAdjust garde le sidecar prioritaire face
+# aux jobs batch, mais il reste sacrifiable avant le bot (-200 vs -500).
+MemoryAccounting=true
 LimitNOFILE=65536
 OOMScoreAdjust=-200
 # Batch/sidecar : priorité basse vs bot interactif.

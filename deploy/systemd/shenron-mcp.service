@@ -30,10 +30,9 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-# Proxy léger (pas de modèle, pas de canvas) : 512 Mo largement suffisants.
-MemoryMax=512M
-MemoryHigh=384M
-TasksMax=128
+# Proxy léger (pas de modèle, pas de canvas). Aucun plafond : cohérent avec le
+# reste de la stack, le VPS n'est pas partagé avec d'autres locataires.
+MemoryAccounting=true
 LimitNOFILE=65536
 OOMScoreAdjust=-100
 CPUWeight=100

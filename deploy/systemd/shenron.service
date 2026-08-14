@@ -40,17 +40,14 @@ KillSignal=SIGTERM
 Restart=always
 RestartSec=5
 
-# Caps relevés pour le VPS 11 Go (ex-1.5G/1.2G, tunés pour l'ancienne box).
-# MemoryHigh à 2G : le reclaim cgroup au ras du MemoryHigh gèle l'event-loop
-# (piège vécu côté site, cf. mémoire) → on éloigne le seuil de reclaim du RSS
-# réel (~790 M) tout en gardant un MemoryMax dur pour l'OOM-safety.
-# Somme des caps actifs (bot 2.5 + embed 3 + site 3 + mcp 0.5 = 9 G) < 11 G,
-# llm hors-ligne. Revoir si shenron-llm est réactivé.
-MemoryMax=2.5G
-MemoryHigh=2G
-# MemoryLow : 384M garantis hors-reclaim (RSS prod ~790M, cold canvas/sqlite).
+# AUCUN plafond mémoire : le VPS est dédié au bot + au site, ils prennent ce
+# dont ils ont besoin. Pas de MemoryMax/MemoryHigh → pas de reclaim cgroup au
+# ras du seuil (piège vécu : reclaim = event-loop gelé, cf. incident site).
+# MemoryLow (garantie, PAS un cap) : 384M protégés du reclaim système.
+# OOMScoreAdjust=-500 : en cas de pression mémoire globale, le kernel tue
+# n'importe quoi d'autre (build, script batch) avant le bot.
+MemoryAccounting=true
 MemoryLow=384M
-TasksMax=256
 LimitNOFILE=131072
 OOMScoreAdjust=-500
 # cgroup v2 weights — boost CPU+IO vs jobs périodiques (batch). Default cgroup = 100.
