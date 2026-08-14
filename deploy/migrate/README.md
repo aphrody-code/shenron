@@ -22,13 +22,13 @@ Ubuntu 26.04, 6 vCores / 12 Go / 100 Go, OVH GRA — compte OVH `dragonballfr`.
 
 ## Ordre d'exécution
 
-| # | Script | Où | Rôle |
-|---|--------|-----|------|
-| 1 | `10-bootstrap-target.sh` | **cible** | paquets OS (PG18, Redis, nginx+brotli, certbot dns-ovh, ffmpeg, cairo/pango, tesseract), Bun canary, rôle+base PG, drop-in nginx (zone `rpb_api` + brotli) |
-| 2 | `20-clone-and-install.sh` | **cible** | `git clone` (repo public) + `bun install` + `gen:entries` |
-| 3 | `30-transfer-data.sh` | **source** | secrets (.env/ovh/neon), `bot.db` (VACUUM INTO), `data/rag`, `.models`, `assets`, dump/restore PostgreSQL, dump/restore Redis (RDB) |
-| 4 | `40-deploy.sh` | **cible** | build site, units systemd, **certbot dns-ovh** (avant les vhosts), vhosts `dragonballfr.com` uniquement, démarrage bot/site/embed/mcp, smoke loopback |
-| 5 | `cutover-dns.ts` | n'importe où (creds OVH) | bascule A+AAAA (`@`,`www`,`bot`,`mcp`) → nouvelle IP + refresh zone |
+| #   | Script                    | Où                       | Rôle                                                                                                                                                       |
+| --- | ------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `10-bootstrap-target.sh`  | **cible**                | paquets OS (PG18, Redis, nginx+brotli, certbot dns-ovh, ffmpeg, cairo/pango, tesseract), Bun canary, rôle+base PG, drop-in nginx (zone `rpb_api` + brotli) |
+| 2   | `20-clone-and-install.sh` | **cible**                | `git clone` (repo public) + `bun install` + `gen:entries`                                                                                                  |
+| 3   | `30-transfer-data.sh`     | **source**               | secrets (.env/ovh/neon), `bot.db` (VACUUM INTO), `data/rag`, `.models`, `assets`, dump/restore PostgreSQL, dump/restore Redis (RDB)                        |
+| 4   | `40-deploy.sh`            | **cible**                | build site, units systemd, **certbot dns-ovh** (avant les vhosts), vhosts `dragonballfr.com` uniquement, démarrage bot/site/embed/mcp, smoke loopback      |
+| 5   | `cutover-dns.ts`          | n'importe où (creds OVH) | bascule A+AAAA (`@`,`www`,`bot`,`mcp`) → nouvelle IP + refresh zone                                                                                        |
 
 ```bash
 # 1) cible

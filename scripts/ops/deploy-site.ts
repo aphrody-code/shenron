@@ -33,6 +33,14 @@ import { dirname, join } from "node:path";
 const HOME = process.env.HOME ?? "/home/ubuntu";
 const REPO = join(import.meta.dir, "..", "..");
 const SITE_DIR = join(REPO, "apps", "site");
+/**
+ * Sortie du build, VOLONTAIREMENT distincte du `.next` servi par le slot actif :
+ * on ne retire rien sous les pieds du process en service, et on repart d'un
+ * répertoire vide donc d'un build à froid (~8,1 Gio contre ~10,5 en incrémental,
+ * seuil de l'OOM killer sur ce VPS). Cf. `distDir` dans apps/site/next.config.ts.
+ */
+const BUILD_DIR_NAME = ".next-build";
+const BUILD_DIR = join(SITE_DIR, BUILD_DIR_NAME);
 const RELEASES_ROOT = join(HOME, "shenron-releases", "site");
 const RELEASES_DIR = join(RELEASES_ROOT, "releases");
 const STATE_FILE = join(RELEASES_ROOT, "state.json");
@@ -131,6 +139,26 @@ async function checkMemory(allowLow: boolean): Promise<void> {
 
 // ── build ───────────────────────────────────────────────────────────────────
 
+/**
+ * Le build réclame ~10,5 Gio de mémoire ANONYME sur une machine de 11 Gio : il
+ * ne survit que si le noyau accepte d'évacuer massivement vers le swap. Mesuré
+ * le 2026-08-14 — swappiness 100 : passe (sous Bun comme sous Node) ;
+ * swappiness 60 : tué par l'OOM killer à 10,2-10,5 Gio, trois fois de suite.
+ * On relève donc le curseur le temps du build seulement, puis on le restaure
+ * (une swappiness haute en régime permanent dégrade la latence des services).
+ */
+async function withSwappiness<T>(value: number, body: () => Promise<T>): Promise<T> {
+	const previous = (await readFile("/proc/sys/vm/swappiness", "utf8")).trim();
+	await sudo(["sysctl", "-w", `vm.swappiness=${value}`]);
+	log(`swappiness ${previous} → ${value} (le temps du build)`);
+	try {
+		return await body();
+	} finally {
+		await sudo(["sysctl", "-w", `vm.swappiness=${previous}`]);
+		log(`swappiness restaurée à ${previous}`);
+	}
+}
+
 async function currentSha(): Promise<string> {
 	const res = await run(["git", "rev-parse", "--short", "HEAD"]);
 	return res.stdout.trim();
@@ -148,8 +176,10 @@ async function buildSite(sha: string): Promise<string> {
 	const nextBin = join(REPO, "node_modules", "next", "dist", "bin", "next");
 	if (!existsSync(nextBin)) fail(`next introuvable : ${nextBin}`);
 
+	// Build à froid : on jette la sortie précédente AVANT de lancer Next.
+	await rm(BUILD_DIR, { recursive: true, force: true });
 	const startedAt = Date.now();
-	log(`build (Node) · deploymentId=${sha}`);
+	log(`build (Node, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}`);
 	const res = await run([nodeBin, nextBin, "build"], {
 		cwd: SITE_DIR,
 		env: {
@@ -157,10 +187,11 @@ async function buildSite(sha: string): Promise<string> {
 			NODE_ENV: "production",
 			NEXT_TELEMETRY_DISABLED: "1",
 			NEXT_DEPLOYMENT_ID: sha,
+			NEXT_DIST_DIR: BUILD_DIR_NAME,
 		},
 	});
 
-	const buildIdFile = join(SITE_DIR, ".next", "BUILD_ID");
+	const buildIdFile = join(BUILD_DIR, "BUILD_ID");
 	const fresh =
 		existsSync(buildIdFile) && (await stat(buildIdFile)).mtimeMs >= startedAt;
 	if (!fresh) {
@@ -195,7 +226,7 @@ async function publishRelease(version: string, previous: string | null): Promise
 		"-a",
 		"--exclude",
 		"cache/",
-		join(SITE_DIR, ".next") + "/",
+		BUILD_DIR + "/",
 		join(destSite, ".next") + "/",
 	]);
 	if (copy.code !== 0) fail(`copie de .next impossible :\n${copy.stderr}`);
@@ -410,9 +441,9 @@ async function commandDeploy(flags: { build: boolean; allowLowMemory: boolean })
 
 	if (flags.build) {
 		await checkMemory(flags.allowLowMemory);
-		await buildSite(sha);
-	} else if (!existsSync(join(SITE_DIR, ".next", "BUILD_ID"))) {
-		fail("--no-build demandé mais aucun build valide dans apps/site/.next");
+		await withSwappiness(100, () => buildSite(sha));
+	} else if (!existsSync(join(BUILD_DIR, "BUILD_ID"))) {
+		fail(`--no-build demandé mais aucun build valide dans apps/site/${BUILD_DIR_NAME}`);
 	}
 
 	// Slot cible = celui qui ne sert PAS. Au premier passage, l'amont pointe le
@@ -422,7 +453,7 @@ async function commandDeploy(flags: { build: boolean; allowLowMemory: boolean })
 	const target: SlotId = liveSlot === "a" ? "b" : "a";
 	log(`slot servant : ${liveSlot} (:${SLOTS[liveSlot].port}) → publication sur ${target}`);
 
-	const version = `${new Date().toISOString().replace(/[-:T]/g, "").slice(0, 15)}-${sha}`;
+	const version = `${new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14)}-${sha}`;
 	const releasePath = await publishRelease(version, state.release);
 	await pointSlot(target, releasePath);
 	await writeSlotEnv(target, sha);

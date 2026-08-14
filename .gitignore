@@ -116,3 +116,4 @@ apps/bot/data/manga-visual-map.json
 apps/bot/data/dbz-videos/
 apps/bot/data/rag/corpus-xv2.json
 apps/bot/data/llm/xv2_pretrain.jsonl
+.next-build

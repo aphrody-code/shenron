@@ -1,25 +1,38 @@
 export const meta = {
-	name: 'wiki-fandom-articles',
-	description: 'Génère des articles wiki FR ancrés MANGA (planches OCR + chapitres) et les écrit en PG bot.*',
-	phases: [{ title: 'Articles' }],
-}
+	name: "wiki-fandom-articles",
+	description:
+		"Génère des articles wiki FR ancrés MANGA (planches OCR + chapitres) et les écrit en PG bot.*",
+	phases: [{ title: "Articles" }],
+};
 
 // args = { type, ids } pour un seul type, OU { jobs: [{type, ids}, ...] } pour
 // enchaîner plusieurs types dans UN run sériel (évite de stacker des workflows
 // concurrents → rate-limit). `conc` borne la concurrence (défaut 6).
 // Robustesse : selon le harness, `args` peut arriver en objet OU en string JSON.
-let A = args
-if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = {} } }
-const JOBS = (A && Array.isArray(A.jobs))
-	? A.jobs.filter((j) => j && j.type && Array.isArray(j.ids) && j.ids.length)
-	: ((A && A.type && Array.isArray(A.ids)) ? [{ type: A.type, ids: A.ids }] : [])
-const CONC = (A && Number(A.conc)) || 6
-const totalAll = JOBS.reduce((n, j) => n + j.ids.length, 0)
-log(`${JOBS.length} job(s) · ${totalAll} entités · concurrence ${CONC}`)
-if (!totalAll) { log('Aucun id fourni — rien à faire.'); return [] }
+let A = args;
+if (typeof A === "string") {
+	try {
+		A = JSON.parse(A);
+	} catch {
+		A = {};
+	}
+}
+const JOBS =
+	A && Array.isArray(A.jobs)
+		? A.jobs.filter((j) => j && j.type && Array.isArray(j.ids) && j.ids.length)
+		: A && A.type && Array.isArray(A.ids)
+			? [{ type: A.type, ids: A.ids }]
+			: [];
+const CONC = (A && Number(A.conc)) || 6;
+const totalAll = JOBS.reduce((n, j) => n + j.ids.length, 0);
+log(`${JOBS.length} job(s) · ${totalAll} entités · concurrence ${CONC}`);
+if (!totalAll) {
+	log("Aucun id fourni — rien à faire.");
+	return [];
+}
 
 // Préfixe bash : charge DATABASE_URL (PG du site) depuis le fichier systemd-format.
-const ENV = `export DATABASE_URL="$(grep -h '^DATABASE_URL=' ~/.shenron-neon.env | tail -1 | cut -d= -f2- | tr -d '\\"')"`
+const ENV = `export DATABASE_URL="$(grep -h '^DATABASE_URL=' ~/.shenron-neon.env | tail -1 | cut -d= -f2- | tr -d '\\"')"`;
 
 // Consignes éditoriales par type (sections attendues, ton).
 const GUIDE = {
@@ -62,7 +75,7 @@ const GUIDE = {
 - ## Société / Culture
 - ## Membres notables
 - ## Anecdotes`,
-}
+};
 
 function composePrompt(type, id) {
 	return `Tu es encyclopédiste pour **dragonballfr.com**, un wiki Dragon Ball RIGOUREUSEMENT ANCRÉ DANS LE MANGA d'Akira Toriyama (et les databooks officiels). Tu rédiges l'ARTICLE long-format de l'entité ${type} #${id}.
@@ -98,49 +111,52 @@ bun apps/bot/scripts/wiki-articles.ts write ${type} ${id} --article-file /tmp/wi
 \`\`\`
 La commande affiche « ✓ ${type} #${id} : article N c, M sources. » en cas de succès.
 
-Réponds avec le statut final (l'objet structuré demandé).`
+Réponds avec le statut final (l'objet structuré demandé).`;
 }
 
 const STATUS = {
-	type: 'object',
+	type: "object",
 	additionalProperties: false,
-	required: ['id', 'ok', 'chars', 'nSources'],
+	required: ["id", "ok", "chars", "nSources"],
 	properties: {
-		id: { type: 'number' },
-		ok: { type: 'boolean', description: 'true si l\'écriture PG a réussi' },
-		chars: { type: 'number', description: 'longueur de l\'article écrit' },
-		nSources: { type: 'number', description: 'nombre de sources citées' },
-		note: { type: 'string', description: 'court résumé ou raison d\'échec' },
+		id: { type: "number" },
+		ok: { type: "boolean", description: "true si l'écriture PG a réussi" },
+		chars: { type: "number", description: "longueur de l'article écrit" },
+		nSources: { type: "number", description: "nombre de sources citées" },
+		note: { type: "string", description: "court résumé ou raison d'échec" },
 	},
-}
+};
 
 // Concurrence BORNÉE par batches séquentiels (défaut 6) : éviter de saturer la
 // concurrence de l'API (pipeline auto-16 + workflows concurrents → rate-limit).
 // « Aucune limite de temps » → on privilégie la fiabilité à la vitesse.
-phase('Articles')
-const summary = []
-let grandOk = 0
+phase("Articles");
+const summary = [];
+let grandOk = 0;
 for (const job of JOBS) {
-	const TYPE = job.type
-	const IDS = job.ids
-	let jobOk = 0
+	const TYPE = job.type;
+	const IDS = job.ids;
+	let jobOk = 0;
 	for (let i = 0; i < IDS.length; i += CONC) {
-		const chunk = IDS.slice(i, i + CONC)
+		const chunk = IDS.slice(i, i + CONC);
 		const r = await parallel(
-			chunk.map((id) => () => agent(composePrompt(TYPE, id), {
-				agentType: 'general-purpose',
-				label: `${TYPE}:${id}`,
-				phase: 'Articles',
-				schema: STATUS,
-			})),
-		)
-		jobOk += r.filter((x) => x && x.ok).length
-		const done = Math.min(i + CONC, IDS.length)
-		log(`[${TYPE}] ${done}/${IDS.length} traités · ${jobOk} OK cumulés`)
+			chunk.map(
+				(id) => () =>
+					agent(composePrompt(TYPE, id), {
+						agentType: "general-purpose",
+						label: `${TYPE}:${id}`,
+						phase: "Articles",
+						schema: STATUS,
+					})
+			)
+		);
+		jobOk += r.filter((x) => x && x.ok).length;
+		const done = Math.min(i + CONC, IDS.length);
+		log(`[${TYPE}] ${done}/${IDS.length} traités · ${jobOk} OK cumulés`);
 	}
-	grandOk += jobOk
-	summary.push({ type: TYPE, total: IDS.length, ok: jobOk, failed: IDS.length - jobOk })
-	log(`[${TYPE}] terminé : ${jobOk}/${IDS.length} OK`)
+	grandOk += jobOk;
+	summary.push({ type: TYPE, total: IDS.length, ok: jobOk, failed: IDS.length - jobOk });
+	log(`[${TYPE}] terminé : ${jobOk}/${IDS.length} OK`);
 }
-log(`GLOBAL : ${grandOk}/${totalAll} articles écrits.`)
-return { totalAll, ok: grandOk, jobs: summary }
+log(`GLOBAL : ${grandOk}/${totalAll} articles écrits.`);
+return { totalAll, ok: grandOk, jobs: summary };

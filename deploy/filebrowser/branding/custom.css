@@ -5,179 +5,242 @@
    ============================================================ */
 
 @font-face {
-  font-family: "Google Sans Flex";
-  src: url("/brand/google-sans-flex.woff2") format("woff2");
-  font-weight: 1 1000;
-  font-display: swap;
+	font-family: "Google Sans Flex";
+	src: url("/brand/google-sans-flex.woff2") format("woff2");
+	font-weight: 1 1000;
+	font-display: swap;
 }
 
 /* ---- Tokens du site ---- */
 :root {
-  --dbz-bg: #0a0e27;
-  --dbz-cream: #fff7e0;
-  --dbz-gold: #ffb200;
-  --dbz-gold-dark: #d99700;
-  --dbz-navy: #12173a;
-  --dbz-navy-hi: #1b2150;
-  --dbz-border: rgba(255, 178, 0, 0.16);
+	--dbz-bg: #0a0e27;
+	--dbz-cream: #fff7e0;
+	--dbz-gold: #ffb200;
+	--dbz-gold-dark: #d99700;
+	--dbz-navy: #12173a;
+	--dbz-navy-hi: #1b2150;
+	--dbz-border: rgba(255, 178, 0, 0.16);
 
-  /* Accent principal Filebrowser (liens, boutons, états actifs) → or DB */
-  --blue: var(--dbz-gold);
-  --dark-blue: var(--dbz-gold-dark);
-  --icon-blue: var(--dbz-gold);
-  --icon-yellow: #ffcb3d;
-  --icon-orange: #ff8a1a;
+	/* Accent principal Filebrowser (liens, boutons, états actifs) → or DB */
+	--blue: var(--dbz-gold);
+	--dark-blue: var(--dbz-gold-dark);
+	--icon-blue: var(--dbz-gold);
+	--icon-yellow: #ffcb3d;
+	--icon-orange: #ff8a1a;
 }
 
 /* ---- Thème sombre (le site est full-dark) ---- */
 :root.dark,
 :root {
-  --background: var(--dbz-bg);
-  --surfacePrimary: var(--dbz-navy);
-  --surfaceSecondary: var(--dbz-navy-hi);
-  --textPrimary: rgba(255, 247, 224, 0.62);   /* texte secondaire/atténué */
-  --textSecondary: var(--dbz-cream);           /* texte principal */
-  --divider: var(--dbz-border);
-  --dividerPrimary: rgba(255, 178, 0, 0.10);
-  --dividerSecondary: rgba(255, 178, 0, 0.20);
-  --borderPrimary: rgba(255, 247, 224, 0.06);
-  --borderSecondary: var(--dbz-border);
-  --hover: rgba(255, 178, 0, 0.10);
-  --iconPrimary: var(--dbz-gold);
-  --iconSecondary: var(--dbz-cream);
-  --iconTertiary: rgba(255, 247, 224, 0.45);
-  --action: #0a0a0a;                            /* texte sur bouton or */
-  --item-selected: rgba(255, 178, 0, 0.14);
+	--background: var(--dbz-bg);
+	--surfacePrimary: var(--dbz-navy);
+	--surfaceSecondary: var(--dbz-navy-hi);
+	--textPrimary: rgba(255, 247, 224, 0.62); /* texte secondaire/atténué */
+	--textSecondary: var(--dbz-cream); /* texte principal */
+	--divider: var(--dbz-border);
+	--dividerPrimary: rgba(255, 178, 0, 0.1);
+	--dividerSecondary: rgba(255, 178, 0, 0.2);
+	--borderPrimary: rgba(255, 247, 224, 0.06);
+	--borderSecondary: var(--dbz-border);
+	--hover: rgba(255, 178, 0, 0.1);
+	--iconPrimary: var(--dbz-gold);
+	--iconSecondary: var(--dbz-cream);
+	--iconTertiary: rgba(255, 247, 224, 0.45);
+	--action: #0a0a0a; /* texte sur bouton or */
+	--item-selected: rgba(255, 178, 0, 0.14);
 }
 
-html, body, #app, input, button, textarea, select {
-  font-family: "Google Sans Flex", system-ui, -apple-system, Arial, sans-serif !important;
+html,
+body,
+#app,
+input,
+button,
+textarea,
+select {
+	font-family:
+		"Google Sans Flex",
+		system-ui,
+		-apple-system,
+		Arial,
+		sans-serif !important;
 }
 
 /* Fond global : navy + nébuleuse dorée (écho du home du site) */
-body, #app {
-  background-color: var(--dbz-bg) !important;
-  background-image:
-    radial-gradient(ellipse 130% 70% at 50% 0%, rgba(255, 107, 26, 0.16), transparent 60%),
-    radial-gradient(ellipse at bottom left, rgba(255, 210, 63, 0.08), transparent 52%),
-    radial-gradient(ellipse at bottom right, rgba(75, 168, 255, 0.10), transparent 55%) !important;
-  background-attachment: fixed !important;
-  color: var(--dbz-cream);
+body,
+#app {
+	background-color: var(--dbz-bg) !important;
+	background-image:
+		radial-gradient(ellipse 130% 70% at 50% 0%, rgba(255, 107, 26, 0.16), transparent 60%),
+		radial-gradient(ellipse at bottom left, rgba(255, 210, 63, 0.08), transparent 52%),
+		radial-gradient(ellipse at bottom right, rgba(75, 168, 255, 0.1), transparent 55%) !important;
+	background-attachment: fixed !important;
+	color: var(--dbz-cream);
 }
 
 /* ---- Barre supérieure : dégradé galactique DB ---- */
 #search #input,
 header.header-bar,
 .header-bar {
-  background: linear-gradient(135deg, #ff6b1a 0%, #ffb200 52%, #ff3e00 100%) !important;
-  color: #0a0a0a !important;
-  box-shadow: 0 2px 18px rgba(255, 107, 26, 0.28);
-  border: none !important;
+	background: linear-gradient(135deg, #ff6b1a 0%, #ffb200 52%, #ff3e00 100%) !important;
+	color: #0a0a0a !important;
+	box-shadow: 0 2px 18px rgba(255, 107, 26, 0.28);
+	border: none !important;
 }
 .header-bar .action i,
 .header-bar .action span,
 .header-bar p,
-.header-bar .title { color: #0a0a0a !important; }
-.header-bar .action:hover { background: rgba(0, 0, 0, 0.12) !important; }
+.header-bar .title {
+	color: #0a0a0a !important;
+}
+.header-bar .action:hover {
+	background: rgba(0, 0, 0, 0.12) !important;
+}
 
 /* Barre de recherche : verre sombre bordé d'or */
 #search.active #input,
 #search #input {
-  background: rgba(10, 14, 39, 0.55) !important;
-  color: var(--dbz-cream) !important;
+	background: rgba(10, 14, 39, 0.55) !important;
+	color: var(--dbz-cream) !important;
 }
 
 /* ---- Barre latérale ---- */
 nav {
-  background: var(--dbz-navy) !important;
-  border-right: 1px solid var(--dbz-border) !important;
+	background: var(--dbz-navy) !important;
+	border-right: 1px solid var(--dbz-border) !important;
 }
 nav .action.active,
-nav .action:hover { background: var(--hover) !important; }
-nav .action.active > * { color: var(--dbz-gold) !important; }
-.credits, .credits a { color: rgba(255, 247, 224, 0.4) !important; }
+nav .action:hover {
+	background: var(--hover) !important;
+}
+nav .action.active > * {
+	color: var(--dbz-gold) !important;
+}
+.credits,
+.credits a {
+	color: rgba(255, 247, 224, 0.4) !important;
+}
 
 /* ---- Cartes / items ---- */
 #listing .item,
 .dashboard #listing .item {
-  background: var(--surfacePrimary) !important;
-  border: 1px solid var(--borderPrimary) !important;
-  border-radius: 10px !important;
+	background: var(--surfacePrimary) !important;
+	border: 1px solid var(--borderPrimary) !important;
+	border-radius: 10px !important;
 }
-#listing .item:hover { background: var(--hover) !important; }
+#listing .item:hover {
+	background: var(--hover) !important;
+}
 #listing .item[aria-selected="true"] {
-  background: var(--item-selected) !important;
-  border-color: var(--dbz-gold) !important;
+	background: var(--item-selected) !important;
+	border-color: var(--dbz-gold) !important;
 }
-#listing.list .item { border-radius: 8px !important; }
+#listing.list .item {
+	border-radius: 8px !important;
+}
 
 /* ---- Boutons ---- */
-.button--flat { color: var(--dbz-gold) !important; }
-.button--flat:hover { background: rgba(255, 178, 0, 0.12) !important; }
+.button--flat {
+	color: var(--dbz-gold) !important;
+}
+.button--flat:hover {
+	background: rgba(255, 178, 0, 0.12) !important;
+}
 .button.button--block,
 .button:not(.button--flat) {
-  background: linear-gradient(135deg, #ffb200 0%, #ff8a1a 100%) !important;
-  color: #0a0a0a !important;
-  font-weight: 600;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 14px rgba(255, 138, 26, 0.30);
+	background: linear-gradient(135deg, #ffb200 0%, #ff8a1a 100%) !important;
+	color: #0a0a0a !important;
+	font-weight: 600;
+	border-radius: 10px !important;
+	box-shadow: 0 4px 14px rgba(255, 138, 26, 0.3);
 }
-.button.button--block:hover { filter: brightness(1.06); }
+.button.button--block:hover {
+	filter: brightness(1.06);
+}
 
 /* ---- Cartes flottantes / prompts ---- */
-.card, .dashboard .card, .share__box {
-  background: var(--dbz-navy) !important;
-  border: 1px solid var(--dbz-border) !important;
-  border-radius: 14px !important;
-  color: var(--dbz-cream) !important;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
+.card,
+.dashboard .card,
+.share__box {
+	background: var(--dbz-navy) !important;
+	border: 1px solid var(--dbz-border) !important;
+	border-radius: 14px !important;
+	color: var(--dbz-cream) !important;
+	box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
 }
-.card h2, .card h3, .dashboard h1, .dashboard h2, .dashboard h3 { color: var(--dbz-cream) !important; }
-input, .input {
-  background: rgba(10, 14, 39, 0.6) !important;
-  border: 1px solid var(--dbz-border) !important;
-  color: var(--dbz-cream) !important;
-  border-radius: 9px !important;
+.card h2,
+.card h3,
+.dashboard h1,
+.dashboard h2,
+.dashboard h3 {
+	color: var(--dbz-cream) !important;
 }
-input:focus { border-color: var(--dbz-gold) !important; box-shadow: 0 0 0 3px rgba(255,178,0,.18) !important; }
+input,
+.input {
+	background: rgba(10, 14, 39, 0.6) !important;
+	border: 1px solid var(--dbz-border) !important;
+	color: var(--dbz-cream) !important;
+	border-radius: 9px !important;
+}
+input:focus {
+	border-color: var(--dbz-gold) !important;
+	box-shadow: 0 0 0 3px rgba(255, 178, 0, 0.18) !important;
+}
 
 /* Barre de progression / disque */
 progress::-webkit-progress-value,
-.progress div { background: var(--dbz-gold) !important; }
+.progress div {
+	background: var(--dbz-gold) !important;
+}
 
 /* ============================================================
    Page de connexion — carte « Codex » sur nébuleuse
    ============================================================ */
 #login {
-  background-color: var(--dbz-bg) !important;
-  background-image:
-    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(255, 107, 26, 0.22), transparent 60%),
-    radial-gradient(ellipse at bottom, rgba(75, 168, 255, 0.12), transparent 55%) !important;
-  color: var(--dbz-cream);
+	background-color: var(--dbz-bg) !important;
+	background-image:
+		radial-gradient(ellipse 120% 80% at 50% -10%, rgba(255, 107, 26, 0.22), transparent 60%),
+		radial-gradient(ellipse at bottom, rgba(75, 168, 255, 0.12), transparent 55%) !important;
+	color: var(--dbz-cream);
 }
 #login .card {
-  background: rgba(18, 23, 58, 0.82) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--dbz-border) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,178,0,.06);
+	background: rgba(18, 23, 58, 0.82) !important;
+	backdrop-filter: blur(12px);
+	border: 1px solid var(--dbz-border) !important;
+	border-radius: 18px !important;
+	box-shadow:
+		0 24px 80px rgba(0, 0, 0, 0.6),
+		0 0 0 1px rgba(255, 178, 0, 0.06);
 }
 #login .card h1 {
-  color: var(--dbz-cream) !important;
-  letter-spacing: 0.5px;
+	color: var(--dbz-cream) !important;
+	letter-spacing: 0.5px;
 }
-#login img { filter: drop-shadow(0 6px 20px rgba(255, 178, 0, 0.45)); }
+#login img {
+	filter: drop-shadow(0 6px 20px rgba(255, 178, 0, 0.45));
+}
 #login .button {
-  background: linear-gradient(135deg, #ffb200 0%, #ff6b1a 100%) !important;
-  color: #0a0a0a !important;
-  font-weight: 700;
+	background: linear-gradient(135deg, #ffb200 0%, #ff6b1a 100%) !important;
+	color: #0a0a0a !important;
+	font-weight: 700;
 }
 
 /* Liens */
-a { color: var(--dbz-gold); }
-a:hover { color: #ffcb3d; }
+a {
+	color: var(--dbz-gold);
+}
+a:hover {
+	color: #ffcb3d;
+}
 
 /* Scrollbar dorée discrète */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: rgba(255, 178, 0, 0.30); border-radius: 6px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 178, 0, 0.5); }
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+::-webkit-scrollbar-thumb {
+	background: rgba(255, 178, 0, 0.3);
+	border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 178, 0, 0.5);
+}

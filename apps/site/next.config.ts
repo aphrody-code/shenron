@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
 	// Undefined en dev local → ignoré. Cf. node_modules/next/dist/docs/.../self-hosting.md.
 	deploymentId: process.env.NEXT_DEPLOYMENT_ID,
 
+	// Répertoire de sortie pilotable par env. Le déploiement bleu/vert
+	// (scripts/ops/deploy-site.ts) bâtit dans `.next-build` pour deux raisons :
+	//   1. le slot en service lit `.next` — un build en place le lui retirait ;
+	//   2. repartir d'un répertoire VIDE force un build À FROID. Mesuré le
+	//      2026-08-14 : à froid ~8,1 Gio de RSS, en incrémental (cache Turbopack
+	//      déjà présent) ~10,5 Gio → OOM killer sur ce VPS de 11 Gio.
+	// Au runtime, aucun slot ne pose la variable : `next start` lit bien `.next`.
+	distDir: process.env.NEXT_DIST_DIR ?? ".next",
+
 	// PAS de `output: "standalone"` — testé le 2026-08-14, refusé pour cause de
 	// mémoire : le file tracing (nft) sur ce monorepo fait passer le build de
 	// ~8,1 à ~10,4 Gio de RSS et le fait tuer par l'OOM killer sur ce VPS (11 Gio).

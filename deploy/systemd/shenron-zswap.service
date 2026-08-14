@@ -1,0 +1,30 @@
+[Unit]
+# shenron-zswap.service — active zswap au boot (cache compressé devant le swap).
+#
+# Pourquoi : le build du site réclame ~10,5 Gio de mémoire anonyme sur une
+# machine de 11 Gio et ne survit qu'en évacuant massivement vers le swap — il a
+# brassé jusqu'à 15 Gio de swap disque le 2026-08-14. zswap compresse ces pages
+# (zstd) dans un pool RAM plafonné et ne les descend sur disque que si le pool
+# déborde : moins d'E/S disque, et plus de pages retenues par octet de swap.
+#
+# Ce n'est PAS du swap « en RAM » à la zram : zram prendrait de la RAM au
+# process qui en manque déjà. zswap n'utilise que ce que le noyau s'apprêtait
+# de toute façon à évacuer.
+#
+# Installé/activé par deploy/setup-swap.sh.
+Description=Active zswap (cache de swap compressé zstd)
+DefaultDependencies=no
+After=systemd-modules-load.service
+Before=swap.target
+ConditionPathExists=/sys/module/zswap/parameters/enabled
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Ordre important : compresseur et taille de pool AVANT l'activation.
+ExecStart=/bin/sh -c 'echo zstd > /sys/module/zswap/parameters/compressor'
+ExecStart=/bin/sh -c 'echo 25 > /sys/module/zswap/parameters/max_pool_percent'
+ExecStart=/bin/sh -c 'echo Y > /sys/module/zswap/parameters/enabled'
+
+[Install]
+WantedBy=sysinit.target

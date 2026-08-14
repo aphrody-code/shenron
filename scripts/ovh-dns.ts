@@ -60,7 +60,8 @@ async function call(method: string, path: string, body?: unknown): Promise<unkno
 async function listRecords(zone: string, fieldType?: string) {
 	const q = fieldType ? `?fieldType=${fieldType}` : "";
 	const ids = (await call("GET", `/domain/zone/${zone}/record${q}`)) as number[];
-	const out: { id: number; subDomain: string; fieldType: string; target: string; ttl: number }[] = [];
+	const out: { id: number; subDomain: string; fieldType: string; target: string; ttl: number }[] =
+		[];
 	for (const id of ids) {
 		const rec = (await call("GET", `/domain/zone/${zone}/record/${id}`)) as {
 			id: number;
@@ -81,10 +82,15 @@ if (cmd === "get") {
 } else if (cmd === "put") {
 	console.log(JSON.stringify(await call("PUT", rest[0], JSON.parse(rest[1])), null, 2));
 } else if (cmd === "post") {
-	console.log(JSON.stringify(await call("POST", rest[0], rest[1] ? JSON.parse(rest[1]) : undefined), null, 2));
+	console.log(
+		JSON.stringify(await call("POST", rest[0], rest[1] ? JSON.parse(rest[1]) : undefined), null, 2)
+	);
 } else if (cmd === "records") {
 	const recs = await listRecords(rest[0], rest[1]);
-	for (const r of recs) console.log(`#${r.id}  ${(r.subDomain || "@").padEnd(8)} ${r.fieldType.padEnd(6)} ttl=${String(r.ttl).padEnd(6)} -> ${r.target}`);
+	for (const r of recs)
+		console.log(
+			`#${r.id}  ${(r.subDomain || "@").padEnd(8)} ${r.fieldType.padEnd(6)} ttl=${String(r.ttl).padEnd(6)} -> ${r.target}`
+		);
 } else if (cmd === "setA") {
 	// Bascule TOUS les A (racine "@" + "www") d'une zone vers une nouvelle IP, puis refresh.
 	const zone = rest[0];

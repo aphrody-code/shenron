@@ -9,18 +9,24 @@ StartLimitIntervalSec=600
 Type=simple
 User=ubuntu
 Group=ubuntu
-WorkingDirectory=/home/ubuntu/shenron/apps/site
+WorkingDirectory=/home/ubuntu/shenron-releases/site/slot-a/apps/site
 
 EnvironmentFile=/home/ubuntu/shenron/apps/site/.env
 Environment=NODE_ENV=production
 Environment=HOME=/home/ubuntu
 Environment=PORT=3000
-Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/site/.bun-cache
+Environment=HOSTNAME=127.0.0.1
+Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron-releases/site/bun-cache
 Environment=UV_THREADPOOL_SIZE=8
 Environment=NEXT_TELEMETRY_DISABLED=1
 
-# next start sous Bun, binaire next résolu en absolu (hoisté à la racine du
-# workspace) — pas de couche bunx (évite tout cache réseau/écriture hors sandbox).
+# SLOT A du déploiement bleu/vert : `next start` depuis la VERSION FIGÉE pointée
+# par le lien `slot-a`, jamais depuis le dépôt — un build ne peut donc plus
+# retirer un fragment de route sous les pieds du process qui sert (panne vécue
+# le 2026-08-14). Le binaire next vient du dépôt (résolu en absolu) ; la version
+# porte un lien `node_modules` → dépôt pour la résolution runtime.
+# Doublure de bascule : shenron-site-b.service (:3010). Déploiement :
+# `bun scripts/ops/deploy-site.ts`.
 ExecStart=/home/ubuntu/.bun/bin/bun --bun /home/ubuntu/shenron/node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
 
 ExecStop=/bin/kill -SIGTERM $MAINPID
@@ -67,9 +73,9 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@obsolete @privileged
 
-# .next : cache incrémental ISR + fetch-cache écrits au runtime. .bun-cache :
-# cache transpiler Bun. node_modules : lecture seule (résolution next/deps).
-ReadWritePaths=/home/ubuntu/shenron/apps/site/.next /home/ubuntu/shenron/apps/site/.bun-cache
+# Le cache ISR/fetch est écrit dans la version courante → l'arbre des versions
+# doit être inscriptible. Le dépôt reste en lecture seule pour ce service.
+ReadWritePaths=/home/ubuntu/shenron-releases/site
 
 StandardOutput=journal
 StandardError=journal
