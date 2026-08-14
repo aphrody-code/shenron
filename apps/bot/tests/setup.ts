@@ -37,12 +37,33 @@ import { join } from "node:path";
 const migrationsFolder = join(import.meta.dir, "../src/db/migrations");
 console.log("Migrations folder:", migrationsFolder);
 migrate(db, { migrationsFolder });
-// Fix schema drift: add columns omitted from migrations but expected by code
-try {
-	sqlite.exec("ALTER TABLE users ADD COLUMN equipped_banner TEXT;");
-	sqlite.exec("ALTER TABLE level_rewards ADD COLUMN banner_url TEXT;");
-} catch (e) {
-	// ignore if already exists
+// Fix schema drift: objets absents des migrations mais attendus par le code
+// (posés à la main en prod). Chaque statement est isolé : un « already exists »
+// ne doit pas faire sauter les suivants.
+const drift = [
+	"ALTER TABLE users ADD COLUMN equipped_banner TEXT;",
+	"ALTER TABLE level_rewards ADD COLUMN banner_url TEXT;",
+	"ALTER TABLE users ADD COLUMN zeni_frozen INTEGER NOT NULL DEFAULT 0;",
+	`CREATE TABLE IF NOT EXISTS economy_flags (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		user_id TEXT NOT NULL,
+		severity TEXT NOT NULL DEFAULT 'medium',
+		code TEXT NOT NULL,
+		reason TEXT NOT NULL,
+		meta TEXT,
+		status TEXT NOT NULL DEFAULT 'open',
+		created_at INTEGER NOT NULL DEFAULT (CAST(unixepoch() * 1000 AS INTEGER)),
+		resolved_at INTEGER,
+		resolved_by TEXT,
+		resolve_note TEXT
+	);`,
+];
+for (const stmt of drift) {
+	try {
+		sqlite.exec(stmt);
+	} catch {
+		// déjà présent
+	}
 }
 const schemaInfo = sqlite.prepare("PRAGMA table_info(users)").all();
 console.log("Users table schema:", JSON.stringify(schemaInfo, null, 2));

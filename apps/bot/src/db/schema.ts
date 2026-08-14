@@ -37,6 +37,9 @@ export const users = sqliteTable(
 		lastDailyQuestAt: integer("last_daily_quest_at", { mode: "timestamp_ms" }),
 		dailyStreak: integer("daily_streak").notNull().default(0),
 
+		// Anti-triche economie : gel des gains/depenses (cf. AntiCheatService)
+		zeniFrozen: integer("zeni_frozen", { mode: "boolean" }).notNull().default(false),
+
 		// Customisation
 		equippedCard: text("equipped_card"),
 		equippedBadge: text("equipped_badge"),
@@ -272,6 +275,34 @@ export const actionLogs = sqliteTable(
 		index("idx_log_user").on(t.userId),
 		index("idx_log_action").on(t.action),
 		index("idx_log_created").on(t.createdAt),
+	]
+);
+
+/**
+ * Signalements anti-triche economie (AntiCheatService). La table existait deja
+ * en base (creee a la main) mais n'etait pas declaree ici → type-check rouge.
+ */
+export const economyFlags = sqliteTable(
+	"economy_flags",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		userId: text("user_id").notNull(),
+		severity: text("severity").notNull().default("medium"), // low | medium | high
+		code: text("code").notNull(),
+		reason: text("reason").notNull(),
+		meta: text("meta"), // JSON
+		status: text("status").notNull().default("open"), // open | resolved | ignored
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		resolvedAt: integer("resolved_at", { mode: "timestamp_ms" }),
+		resolvedBy: text("resolved_by"),
+		resolveNote: text("resolve_note"),
+	},
+	(t) => [
+		index("idx_economy_flags_user").on(t.userId),
+		index("idx_economy_flags_status").on(t.status),
+		index("idx_economy_flags_created").on(t.createdAt),
 	]
 );
 
