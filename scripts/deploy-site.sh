@@ -9,8 +9,17 @@
 #   bash scripts/deploy-site.sh           # build + restart + smoke
 #   bash scripts/deploy-site.sh --pull    # git pull d'abord (rollback si échec)
 #   bash scripts/deploy-site.sh --migrate # applique aussi les migrations Drizzle Neon
-#   bash scripts/deploy-site.sh --node    # build sous Node au lieu de Bun (mesure)
+#   bash scripts/deploy-site.sh --bun     # force le build sous Bun (défaut = Node)
 #   bash scripts/deploy-site.sh --allow-low-memory  # passe outre le garde-fou RAM
+#
+# RUNTIME DE BUILD = NODE (exception assumée à la règle Bun-only du repo, cf.
+# CLAUDE.md). Mesuré le 2026-08-14 sur ce VPS (11 Gio de RAM), à code identique :
+#   · sous Bun  : 2 builds tués par l'OOM killer (pics 9,5 et 10,5 Gio), le seul
+#                 abouti a mis ~11 min en saturant les 18 Gio de swap ;
+#   · sous Node : 236 s, pic ~8 Gio, aucun OOM.
+# Le SITE reste servi par Bun (`next start`, shenron-site.service) : seule
+# l'étape de build change de runtime. Idée reprise de rose-griffon/rg, dont le
+# `scripts/next-build.sh` build aussi ses apps Next sous Node.
 #
 # Migrations : opt-in (--migrate). drizzle-kit migrate est idempotent ; lit
 # DATABASE_URL depuis apps/site/.env (Neon prod). Aucun schéma touché sans le flag.
@@ -22,15 +31,16 @@ cd "$REPO"
 
 DO_PULL=0
 DO_MIGRATE=0
-DO_NODE=0
+DO_NODE=1   # défaut : build sous Node (cf. en-tête — mesures OOM du 2026-08-14)
 ALLOW_LOW_MEM=0
 for a in "$@"; do
   case "$a" in
     --pull) DO_PULL=1 ;;
     --migrate) DO_MIGRATE=1 ;;
     --node) DO_NODE=1 ;;
+    --bun) DO_NODE=0 ;;
     --allow-low-memory) ALLOW_LOW_MEM=1 ;;
-    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,28p' "$0"; exit 0 ;;
     *) echo "✗ arg inconnu: $a" >&2; exit 2 ;;
   esac
 done
@@ -100,7 +110,11 @@ rollback() {
     echo "  ↩ build précédent restauré depuis .next.prev (pas de rebuild, pas de git reset)"
   else
     echo "  ⚠ aucun build précédent valide — tentative de rebuild sur HEAD" >&2
-    NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" bun --filter @shenron/site build >/dev/null 2>&1 || true
+    # Dernière cartouche : on prend le runtime qui tient en mémoire sur ce VPS
+    # (Node), pas celui qui s'est fait tuer par l'OOM killer.
+    ( cd apps/site \
+      && NEXT_DEPLOYMENT_ID="$(git rev-parse --short HEAD)" TMPDIR="$BUILD_TMP" NODE_ENV=production \
+         "${NODE_BIN:-/usr/bin/node}" "$REPO/node_modules/next/dist/bin/next" build ) >/dev/null 2>&1 || true
   fi
   sudo systemctl restart shenron-site.service || true
   exit 1

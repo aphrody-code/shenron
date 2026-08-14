@@ -38,6 +38,7 @@ Monorepo standalone (sorti du VPS le 2026-05-16). Bot Discord DBZ multi-personas
 ### Règles dures
 1. **Pas d'édition manuelle sur le VPS dans `~/shenron/`** : tout passe par PR sur `github.com/aphrody-code/shenron` puis `git pull` côté VPS.
 2. **Bun obligatoire** : pas de `node`/`npm`/`pnpm`/`yarn`/`tsx`. Utiliser `bun`, `bunx`, `bun --filter <app> <cmd>`.
+   **Une seule exception, mesurée** : le **build** du site (`scripts/deploy-site.sh`) tourne sous **Node 22**. Sur ce VPS (11 Gio), à code identique, le build sous Bun s'est fait tuer par l'OOM killer (pics 9,5 et 10,5 Gio) alors que sous Node il passe en ~236 s avec un pic ~8 Gio. Le site reste **servi** par Bun (`next start`, `shenron-site.service`) : seule l'étape de build change de runtime. `--bun` force l'ancien comportement.
 3. **Secrets** : jamais dans le repo. `.env` est gitignored. Production = `apps/bot/.env` (bot) + `apps/site/.env` (site), chargés par systemd via `EnvironmentFile`. Écrire les `.env` avec `printf` (jamais `echo` → pollution `\n` qui casse `DISCORD_CLIENT_SECRET`).
 4. **Zéro FFI / Rust** : La stack Rust native `apps/bot/native/` est supprimée. Tout utilitaire (calcul de niveau, parsing) est écrit en TypeScript pur dans `apps/bot/src/lib/native.ts`.
 5. **Catalog de Dépendances** : Toutes les versions de dépendances du monorepo doivent utiliser la syntaxe de catalogue de Bun (`catalog:`) définie dans le `package.json` racine.
