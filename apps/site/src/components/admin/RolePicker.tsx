@@ -11,6 +11,8 @@ interface Role {
 	hexColor: string;
 	position: number;
 	managed: boolean;
+	/** Rôle de boost serveur (Nitro). Sélectionnable, mais Discord interdit au bot de l'attribuer. */
+	premiumSubscriber?: boolean;
 }
 
 interface Props {
@@ -60,7 +62,9 @@ export function RolePicker({
 				<option value="">{isLoading ? "Chargement..." : error ? "Erreur" : placeholder}</option>
 				{roles.map((r) => (
 					<option key={r.id} value={r.id}>
-						{r.name} {r.color !== 0 ? `· ${r.hexColor}` : ""}
+						{r.name}
+						{r.premiumSubscriber ? " · boost (non attribuable par le bot)" : ""}
+						{r.color !== 0 ? ` · ${r.hexColor}` : ""}
 					</option>
 				))}
 			</select>

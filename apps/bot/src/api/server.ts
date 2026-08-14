@@ -575,9 +575,11 @@ async function resolveMovieStream(rawId: string): Promise<HlsStream | null> {
 			);
 			return null;
 		}
-		const row = dbs.sqlite.query(`SELECT ${wanted.join(", ")} FROM db_movies WHERE id = ?`).get(
-			movieId
-		) as { video_url?: string | null; stream_url?: string | null; players?: string | null } | undefined;
+		const row = dbs.sqlite
+			.query(`SELECT ${wanted.join(", ")} FROM db_movies WHERE id = ?`)
+			.get(movieId) as
+			| { video_url?: string | null; stream_url?: string | null; players?: string | null }
+			| undefined;
 		if (!row) {
 			console.error(`[HLS] Film ID ${movieId} introuvable en base SQLite.`);
 			return null;
@@ -779,7 +781,9 @@ async function hlsSeg(req: Request, id: string): Promise<Response> {
 
 async function hlsDownload(id: string): Promise<Response> {
 	// Nom de fichier lisible selon le type d'entité (`movie-<n>` → film).
-	const downloadName = id.startsWith("movie-") ? `film-${id.slice("movie-".length)}.mp4` : `episode-${id}.mp4`;
+	const downloadName = id.startsWith("movie-")
+		? `film-${id.slice("movie-".length)}.mp4`
+		: `episode-${id}.mp4`;
 	let s = (await loadStreams())[id];
 	if (!s?.url) {
 		const newS = await resolveStreamOnDemand(id);
@@ -1378,11 +1382,7 @@ export class ApiServer {
 						if (!body?.invocation) {
 							return Response.json({ error: "invocation requise" }, { status: 400 });
 						}
-						const res = await execCommand(
-							body.invocation,
-							body.options ?? {},
-							body.channelId
-						);
+						const res = await execCommand(body.invocation, body.options ?? {}, body.channelId);
 						return Response.json(res, { status: res.ok ? 200 : 400 });
 					}),
 				},
@@ -1533,7 +1533,9 @@ export class ApiServer {
 
 				// ── Guild roles (role picker dashboard) ───────────────────────
 				// Liste les rôles de la guild via cache discord.js du persona donné
-				// (par défaut Shenron). Filtre @everyone + rôles managed (bots).
+				// (par défaut Shenron). Filtre @everyone + rôles managed (bots), SAUF le
+				// rôle de boost serveur (premiumSubscriberRole) : il est `managed` mais
+				// c'est un rôle humain légitime à cibler (gating, boosts XP, staff…).
 				"/api/bots/:id/guild/roles": admin((req) => {
 					const map = container.resolve<Map<string, Client>>("ClientMap");
 					const c = map.get(req.params.id);
@@ -1541,7 +1543,9 @@ export class ApiServer {
 					const guild = c.guilds.cache.get(env.GUILD_ID);
 					if (!guild) return Response.json({ error: "Guild introuvable" }, { status: 404 });
 					const roles = [...guild.roles.cache.values()]
-						.filter((r) => r.id !== guild.id && !r.managed)
+						.filter(
+							(r) => r.id !== guild.id && (!r.managed || r.tags?.premiumSubscriberRole === true)
+						)
 						.toSorted((a, b) => b.position - a.position)
 						.map((r) => ({
 							id: r.id,
@@ -1550,6 +1554,7 @@ export class ApiServer {
 							hexColor: r.hexColor,
 							position: r.position,
 							managed: r.managed,
+							premiumSubscriber: r.tags?.premiumSubscriberRole === true,
 						}));
 					return Response.json({ roles });
 				}),
@@ -2337,7 +2342,10 @@ export class ApiServer {
 							s
 								.replace(/\b(?:WWW\.|HTTPS?:\/\/)\S+/gi, " ")
 								.replace(/\b[A-Z0-9][A-Z0-9-]*\.(?:NET|FR|COM|ORG|MX|TO|IO|CC|ME)\b/gi, " ")
-								.replace(/\b(?:SCANTRAD|BLEACH-?MX|VOIRANIME|MANGA-?SCAN|LELSCAN|JATSCAN)\S*/gi, " ")
+								.replace(
+									/\b(?:SCANTRAD|BLEACH-?MX|VOIRANIME|MANGA-?SCAN|LELSCAN|JATSCAN)\S*/gi,
+									" "
+								)
 								.replace(/\s{2,}/g, " ")
 								.trim();
 						for (const r of rows) r.snippet = cleanSnip(r.snippet);
@@ -2907,7 +2915,8 @@ export class ApiServer {
 						}
 						const eco = container.resolve(EconomyService);
 						const ok = await eco.equip(userId, type as "card", key);
-						if (!ok) return Response.json({ ok: false, reason: "Objet non possédé" }, { status: 400 });
+						if (!ok)
+							return Response.json({ ok: false, reason: "Objet non possédé" }, { status: 400 });
 						// Rôle cosmétique Discord (color/title/badge) : posé à l'équipement,
 						// comme dans la commande /inventaire. Best-effort (membre hors serveur → skip).
 						let roleGranted = false;
@@ -2919,7 +2928,9 @@ export class ApiServer {
 							if (shopItem?.roleId) {
 								const member = await resolveMember(userId);
 								if (member) {
-									await member.roles.add(shopItem.roleId, "Équipement boutique (site)").catch(() => {});
+									await member.roles
+										.add(shopItem.roleId, "Équipement boutique (site)")
+										.catch(() => {});
 									roleGranted = true;
 								}
 							}
@@ -3475,8 +3486,7 @@ export class ApiServer {
 					const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 30));
 					const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
 					const client =
-						clientMap.get("grandPretre") ??
-						[...clientMap.values()].find((c) => c.isReady());
+						clientMap.get("grandPretre") ?? [...clientMap.values()].find((c) => c.isReady());
 					if (!client) {
 						return Response.json({ error: "aucun persona en ligne" }, { status: 503 });
 					}
@@ -3956,7 +3966,8 @@ export class ApiServer {
 						// Passe par LevelService → recalcule lastLevelReached, puis réaligne les
 						// rôles de palier de la race (sinon niveau + rôles se désynchronisent).
 						const levels = container.resolve(LevelService);
-						const newXp = body.mode === "set" ? Math.max(0, body.amount) : Math.max(0, current + body.amount);
+						const newXp =
+							body.mode === "set" ? Math.max(0, body.amount) : Math.max(0, current + body.amount);
 						const res =
 							body.mode === "set"
 								? await levels.setXP(userId, newXp)
@@ -4333,6 +4344,9 @@ export class ApiServer {
 									position: r.position,
 									memberCount: r.members.size,
 									managed: r.managed,
+									// Rôle de boost serveur : `managed` mais porté par des humains →
+									// les sélecteurs le gardent malgré `excludeManaged`.
+									premiumSubscriber: r.tags?.premiumSubscriberRole === true,
 								}));
 							roles.sort((a, b) => b.position - a.position);
 							return { roles, count: roles.length };

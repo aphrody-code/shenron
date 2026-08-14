@@ -8,6 +8,8 @@ interface Role {
 	color: number;
 	position: number;
 	managed?: boolean;
+	/** Rôle de boost serveur (Nitro). `managed` mais porté par des humains. */
+	premiumSubscriber?: boolean;
 	hoist?: boolean;
 }
 
@@ -72,7 +74,9 @@ export function RoleSelect({
 
 	const roles = useMemo(() => {
 		let list = data?.roles ?? [];
-		if (excludeManaged) list = list.filter((r) => !r.managed);
+		// `excludeManaged` vise les rôles d'intégration (bots) — le rôle de boost
+		// serveur reste sélectionnable (gating, boosts XP, accès staff…).
+		if (excludeManaged) list = list.filter((r) => !r.managed || r.premiumSubscriber);
 		if (!includeEveryone) list = list.filter((r) => r.name !== "@everyone");
 		return [...list].toSorted((a, b) => b.position - a.position);
 	}, [data, excludeManaged, includeEveryone]);
@@ -99,7 +103,9 @@ export function RoleSelect({
 				<option value="">{isLoading ? "Chargement…" : placeholder}</option>
 				{roles.map((r) => (
 					<option key={r.id} value={r.id}>
-						{r.name} {r.color !== 0 ? `· #${r.color.toString(16).padStart(6, "0")}` : ""}
+						{r.name}
+						{r.premiumSubscriber ? " · boost" : ""}
+						{r.color !== 0 ? ` · #${r.color.toString(16).padStart(6, "0")}` : ""}
 					</option>
 				))}
 			</select>
