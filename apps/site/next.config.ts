@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
 	// Undefined en dev local → ignoré. Cf. node_modules/next/dist/docs/.../self-hosting.md.
 	deploymentId: process.env.NEXT_DEPLOYMENT_ID,
 
+	// PAS de `output: "standalone"` — testé le 2026-08-14, refusé pour cause de
+	// mémoire : le file tracing (nft) sur ce monorepo fait passer le build de
+	// ~8,1 à ~10,4 Gio de RSS et le fait tuer par l'OOM killer sur ce VPS (11 Gio).
+	// Les versions figées du déploiement bleu/vert (scripts/ops/deploy-site.ts)
+	// n'en ont pas besoin : elles copient `.next` et lient `node_modules` au
+	// dépôt, ce qui suffit à isoler le process qui sert d'un build en cours.
+
 	// View Transitions API (React `<ViewTransition>`) — morph d'élément partagé
 	// grille→fiche, slides directionnels. Sans support navigateur, navigation
 	// normale sans animation (progressive enhancement). Cf. components/ViewTransition.tsx.

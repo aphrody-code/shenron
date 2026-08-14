@@ -1,0 +1,94 @@
+[Unit]
+# shenron-site-b.service — site dragonballfr.com, SLOT B (doublure de bascule).
+#
+# Copie conforme du slot A sur le port 3010 et le lien `slot-b`. Les deux slots
+# servent une VERSION FIGÉE publiée sous
+# /home/ubuntu/shenron-releases/site/releases/<version>, jamais le dépôt : un
+# build en cours ne peut donc plus retirer un fragment de route sous les pieds
+# du process qui sert les visiteurs.
+#
+# En régime stable un seul slot tourne ; l'autre ne démarre que le temps d'un
+# déploiement, jusqu'à ce que nginx bascule dessus (fichier d'amont généré,
+# /etc/nginx/shenron-upstreams/shenron_site.conf). Non activée au démarrage.
+#
+# Déploiement : `bun scripts/ops/deploy-site.ts`.
+Description=shenron-site — site Next.js 16 (dragonballfr.com) — slot B (doublure de déploiement)
+After=network.target network-online.target
+Wants=network-online.target
+StartLimitBurst=20
+StartLimitIntervalSec=600
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron-releases/site/slot-b/apps/site
+
+# L'env reste lu dans le DÉPÔT (source unique, chmod 600) : une version figée ne
+# doit pas figer les secrets. Les NEXT_PUBLIC_* sont déjà bakés au build.
+EnvironmentFile=/home/ubuntu/shenron/apps/site/.env
+Environment=NODE_ENV=production
+Environment=HOME=/home/ubuntu
+Environment=PORT=3010
+Environment=HOSTNAME=127.0.0.1
+Environment=UV_THREADPOOL_SIZE=8
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron-releases/site/bun-cache-b
+
+# `next start` depuis la VERSION FIGÉE : le binaire next vient du dépôt (résolu
+# en absolu), mais le `.next` servi est celui de la version, copié dans le slot.
+# La version porte un lien `node_modules` → dépôt pour la résolution runtime des
+# paquets externes (postgres, etc.) ; pas de `output: standalone`, dont le file
+# tracing fait exploser la mémoire du build sur ce VPS (cf. next.config.ts).
+ExecStart=/home/ubuntu/.bun/bin/bun --bun /home/ubuntu/shenron/node_modules/next/dist/bin/next start -p 3010 -H 127.0.0.1
+
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+# Bun sort en 143 (128+SIGTERM) au lieu de mourir du signal : sans cette ligne
+# systemd marque l'unité `failed` à CHAQUE arrêt propre (diagnostic pollué,
+# watchdog qui voit une unit en échec). Repris de rose-griffon/rg.
+SuccessExitStatus=143
+
+Restart=always
+RestartSec=5
+RestartSteps=4
+RestartMaxDelaySec=45
+
+# Aucun plafond mémoire (cf. shenron-site.service). OOMScoreAdjust plus tolérant
+# que le slot A : en pression mémoire, la doublure part avant la production.
+MemoryAccounting=true
+MemoryLow=256M
+LimitNOFILE=131072
+OOMScoreAdjust=-200
+CPUWeight=150
+IOWeight=150
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=false
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@obsolete @privileged
+
+# Le cache ISR/fetch est écrit dans la version courante → l'arbre des versions
+# doit être inscriptible. Le dépôt reste en lecture seule pour ce service.
+ReadWritePaths=/home/ubuntu/shenron-releases/site
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-site-b
+
+[Install]
+WantedBy=multi-user.target
