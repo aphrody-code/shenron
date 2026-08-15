@@ -2481,7 +2481,9 @@ html {
 	transform: scaleX(0);
 	opacity: 0;
 	background: linear-gradient(90deg, #f5bf41 0%, #ffb200 45%, #e94c1a 100%);
-	box-shadow: 0 0 10px rgba(245, 191, 65, 0.6), 0 0 4px rgba(233, 76, 26, 0.7);
+	box-shadow:
+		0 0 10px rgba(245, 191, 65, 0.6),
+		0 0 4px rgba(233, 76, 26, 0.7);
 	transition: opacity 200ms ease;
 }
 .nav-progress[data-status="loading"] .nav-progress__bar {
@@ -2491,7 +2493,9 @@ html {
 .nav-progress[data-status="done"] .nav-progress__bar {
 	opacity: 0;
 	transform: scaleX(1);
-	transition: transform 120ms ease-out, opacity 220ms ease 120ms;
+	transition:
+		transform 120ms ease-out,
+		opacity 220ms ease 120ms;
 }
 @keyframes nav-progress-trickle {
 	0% {
@@ -3088,4 +3092,40 @@ html {
 	.bestof__art {
 		animation: none !important;
 	}
+}
+
+/* === Tokens shadcn manquants (ajoutés pour components/ui/*) ===================
+   Le fichier ne définissait ni `--card`, ni `--popover`, ni `--input`, ni
+   `--destructive` (le `text-destructive` de `components/ui/button.tsx` était
+   donc une classe morte). On les ajoute ici, en bloc séparé et sans toucher aux
+   déclarations existantes ni aux tokens `--dbz-*`.
+   Les valeurs pointent sur les `--color-dbz-*` : l'éditeur de design
+   (/admin/design) reskin donc aussi ces primitives.                            */
+@theme inline {
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-input: var(--input);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+}
+
+:root,
+.dark {
+	--card: var(--color-dbz-card);
+	--card-foreground: var(--foreground);
+	--popover: var(--color-dbz-card);
+	--popover-foreground: var(--foreground);
+	--input: var(--color-dbz-border);
+	--destructive: var(--color-dbz-red);
+	--destructive-foreground: #ffffff;
+	--success: var(--color-dbz-green);
+	--success-foreground: #ffffff;
+	--warning: var(--color-dbz-gold);
+	--warning-foreground: #04050f;
 }

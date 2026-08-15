@@ -3,7 +3,7 @@ import { SITE_URL } from "@/lib/config";
 import { db } from "@/lib/db";
 import { posts } from "@/db/schema";
 import { botEpisodes, botMovies, botMangaVolumes, botMangaChapters } from "@/db/bot-schema";
-import { eq } from "drizzle-orm";
+import { publicPostFilter } from "@/lib/posts";
 
 export const revalidate = 86400; // Cache le sitemap pendant 24 heures
 
@@ -64,9 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}
 
 		// 1b. Vues série épisodes (statiques) `/wiki/episodes/serie/<series>`.
-		const episodeSeries = await db
-			.selectDistinct({ series: botEpisodes.series })
-			.from(botEpisodes);
+		const episodeSeries = await db.selectDistinct({ series: botEpisodes.series }).from(botEpisodes);
 		for (const s of episodeSeries) {
 			if (!s.series) continue;
 			sitemapEntries.push({
@@ -116,17 +114,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			});
 		}
 
-		// 5. Blog posts
+		// 5. Journal — articles + pages de thème.
+		// `publicPostFilter()` et non `published = true` : un article programmé est
+		// « publié » avec une date future, le lister ici l'exposerait avant l'heure.
 		const blogPosts = await db
-			.select({ slug: posts.slug, updatedAt: posts.updatedAt })
+			.select({ slug: posts.slug, updatedAt: posts.updatedAt, tags: posts.tags })
 			.from(posts)
-			.where(eq(posts.published, true));
+			.where(publicPostFilter());
 		for (const post of blogPosts) {
 			sitemapEntries.push({
-				url: `${SITE_URL}/post/${post.slug}`,
+				url: `${SITE_URL}/actualites/${post.slug}`,
 				lastModified: post.updatedAt ? new Date(post.updatedAt) : new Date(),
 				changeFrequency: "weekly",
 				priority: 0.8,
+			});
+		}
+
+		// Une page de thème n'est référencée que si elle a du contenu (pas d'URL
+		// indexable et vide).
+		const tags = new Set<string>();
+		for (const post of blogPosts) for (const t of post.tags ?? []) tags.add(t.toLowerCase());
+		for (const tag of tags) {
+			sitemapEntries.push({
+				url: `${SITE_URL}/actualites/theme/${encodeURIComponent(tag)}`,
+				lastModified: new Date(),
+				changeFrequency: "weekly",
+				priority: 0.5,
 			});
 		}
 	} catch (error) {

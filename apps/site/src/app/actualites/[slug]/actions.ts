@@ -18,7 +18,7 @@ export async function postCommentAction(
 		return { ok: false, error: `Trop long (max ${MAX_LEN} caractères)` };
 	}
 
-	const me = await requireUser(`/post/${slug}`);
+	const me = await requireUser(`/actualites/${slug}`);
 	if (!me.user) return { ok: false, error: "Profil utilisateur introuvable" };
 
 	const post = await db.query.posts.findFirst({
@@ -33,6 +33,6 @@ export async function postCommentAction(
 		body,
 	});
 
-	revalidatePath(`/post/${slug}`);
+	revalidatePath(`/actualites/${slug}`);
 	return { ok: true };
 }

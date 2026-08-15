@@ -653,7 +653,9 @@ export function HomeExperience({
 									</li>
 								))}
 								{live.topMembers.length === 0 && (
-									<li className="text-[13px] text-white/40">Classement momentanément indisponible.</li>
+									<li className="text-[13px] text-white/40">
+										Classement momentanément indisponible.
+									</li>
 								)}
 							</ol>
 							<Link href="/leaderboard" className="home-cta home-cta--ghost mt-3">
@@ -852,7 +854,13 @@ export function HomeExperience({
 									</span>
 									<span className="home-guardian__avatar">
 										{src ? (
-											<Image src={src} alt={p.name} width={72} height={72} className="object-cover" />
+											<Image
+												src={src}
+												alt={p.name}
+												width={72}
+												height={72}
+												className="object-cover"
+											/>
 										) : null}
 										<span
 											className={`home-guardian__status ${p.online ? "is-on" : ""}`}
@@ -926,7 +934,12 @@ export function HomeExperience({
 					<>
 						<div className="home-news">
 							{posts.slice(0, 3).map((p) => (
-								<Link key={p.id} href={`/post/${p.slug}`} data-tilt className="home-news__item reveal-up">
+								<Link
+									key={p.id}
+									href={`/actualites/${p.slug}`}
+									data-tilt
+									className="home-news__item reveal-up"
+								>
 									{p.cover && (
 										<span className="home-news__cover">
 											<Image
@@ -998,9 +1011,7 @@ export function HomeExperience({
 		>
 			{/* Couche des bursts de ki (clics) — fixe, au-dessus de tout, inerte */}
 			{fx.vfx.kameCss && <div ref={burstRef} className="ki-burst-layer" aria-hidden />}
-			{fx.vfx.battleCanvas && (
-				<HomeBattleFx apiRef={battleApiRef} accent={activeAccent} />
-			)}
+			{fx.vfx.battleCanvas && <HomeBattleFx apiRef={battleApiRef} accent={activeAccent} />}
 			{fx.vfx.kiAura && (
 				<div className="pointer-events-none fixed inset-0 z-[1]" aria-hidden>
 					<HomeKiAura accent={activeAccent} active />

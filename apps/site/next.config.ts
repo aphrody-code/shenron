@@ -137,6 +137,12 @@ const nextConfig: NextConfig = {
 			// sont PAS capturées : la source est le chemin exact, sans wildcard.
 			{ source: "/wiki/dragon-ball", destination: "/wiki/personnages", permanent: true },
 			{ source: "/profil", destination: "/profil/me", permanent: true },
+			// Journal : la fiche article vivait sous /post/:slug alors que l'index et
+			// le fil d'Ariane pointaient déjà /actualites — deux chemins pour une même
+			// ressource, donc du contenu dupliqué aux yeux de Google. Tout est
+			// désormais canonique sous /actualites/:slug ; les anciens liens (et les
+			// URL déjà indexées ou partagées) sont récupérés en 308 au routing.
+			{ source: "/post/:slug", destination: "/actualites/:slug", permanent: true },
 		];
 	},
 

@@ -39,9 +39,7 @@ export function CommentForm({ slug }: { slug: string }) {
 							<span aria-hidden="true">✗</span> {error}
 						</span>
 					) : (
-						<span className="text-xs text-white/40">
-							Texte simple — sauts de ligne conservés
-						</span>
+						<span className="text-xs text-white/40">Texte simple — sauts de ligne conservés</span>
 					)}
 				</div>
 				<button

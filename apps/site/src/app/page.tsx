@@ -19,6 +19,7 @@ import {
 	botMangaChapters,
 } from "@/db/bot-schema";
 import { sql } from "drizzle-orm";
+import { publicPostFilter } from "@/lib/posts";
 import { ogMeta } from "@/lib/og";
 
 export const revalidate = 120;
@@ -40,8 +41,10 @@ export const metadata: Metadata = {
 
 function getLatestPosts() {
 	return db.query.posts.findMany({
-		where: (p, { eq }) => eq(p.published, true),
-		orderBy: (p, { desc }) => desc(p.createdAt),
+		// Règle de visibilité unique du site : `published` seul laisserait remonter
+		// en home les articles programmés avant leur date de parution.
+		where: publicPostFilter(),
+		orderBy: (p, { desc }) => desc(p.publishedAt),
 		limit: 3,
 		with: { author: true },
 	});

@@ -7,7 +7,7 @@ import { CommentForm } from "./CommentForm";
 /**
  * Îlot client du bloc commentaire : décide entre le formulaire (membre connecté)
  * et le CTA de connexion via `/api/me`, sans lire cookies/headers côté serveur.
- * Garde la page /post/[slug] statique/ISR cacheable (cf. règle latence CLAUDE.md).
+ * Garde la page /actualites/[slug] statique/ISR cacheable (cf. règle latence CLAUDE.md).
  */
 export function CommentGate({ slug }: { slug: string }) {
 	const me = useMe();
@@ -32,7 +32,7 @@ export function CommentGate({ slug }: { slug: string }) {
 				Connecte-toi avec Discord pour commenter cet article.
 			</p>
 			<Link
-				href={`/signin?callbackURL=/post/${slug}`}
+				href={`/signin?callbackURL=/actualites/${slug}`}
 				className="inline-flex items-center h-10 px-5 rounded-full bg-dbz-orange hover:bg-white text-black font-display font-bold text-[12px] tracking-[0.10em] uppercase transition-colors whitespace-nowrap"
 			>
 				Connexion

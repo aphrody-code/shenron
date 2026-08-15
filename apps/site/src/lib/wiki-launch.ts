@@ -43,19 +43,68 @@ export interface LaunchCategory {
 
 export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 	// ── Déjà ouvertes en bêta (verrouillées ON) ──────────────────────────────
-	{ key: "episodes", label: "Épisodes", href: "/wiki/episodes", prefixes: ["/wiki/episodes"], alwaysOpen: true },
-	{ key: "films", label: "Films", href: "/wiki/films", prefixes: ["/wiki/films"], alwaysOpen: true },
-	{ key: "chronologie", label: "Chronologie", href: "/wiki/chronologie", prefixes: ["/wiki/chronologie"], alwaysOpen: true },
-	{ key: "manga", label: "Manga", href: "/wiki/manga", prefixes: ["/wiki/manga"], alwaysOpen: true },
+	{
+		key: "episodes",
+		label: "Épisodes",
+		href: "/wiki/episodes",
+		prefixes: ["/wiki/episodes"],
+		alwaysOpen: true,
+	},
+	{
+		key: "films",
+		label: "Films",
+		href: "/wiki/films",
+		prefixes: ["/wiki/films"],
+		alwaysOpen: true,
+	},
+	{
+		key: "chronologie",
+		label: "Chronologie",
+		href: "/wiki/chronologie",
+		prefixes: ["/wiki/chronologie"],
+		alwaysOpen: true,
+	},
+	{
+		key: "manga",
+		label: "Manga",
+		href: "/wiki/manga",
+		prefixes: ["/wiki/manga"],
+		alwaysOpen: true,
+	},
 	// ── Fermées par défaut, ouvrables une par une depuis /admin/lancement ─────
-	{ key: "personnages", label: "Personnages", href: "/wiki/personnages", prefixes: ["/wiki/personnages", "/wiki/dragon-ball/character"] },
-	{ key: "planetes", label: "Planètes", href: "/wiki/planetes", prefixes: ["/wiki/planetes", "/wiki/dragon-ball/planet"] },
+	{
+		key: "personnages",
+		label: "Personnages",
+		href: "/wiki/personnages",
+		prefixes: ["/wiki/personnages", "/wiki/dragon-ball/character"],
+	},
+	{
+		key: "planetes",
+		label: "Planètes",
+		href: "/wiki/planetes",
+		prefixes: ["/wiki/planetes", "/wiki/dragon-ball/planet"],
+	},
 	{ key: "races", label: "Races", href: "/wiki/races", prefixes: ["/wiki/races"] },
-	{ key: "transformations", label: "Transformations", href: "/wiki/transformations", prefixes: ["/wiki/transformations"] },
-	{ key: "techniques", label: "Techniques", href: "/wiki/dragon-ball/techniques", prefixes: ["/wiki/dragon-ball/techniques"] },
+	{
+		key: "transformations",
+		label: "Transformations",
+		href: "/wiki/transformations",
+		prefixes: ["/wiki/transformations"],
+	},
+	{
+		key: "techniques",
+		label: "Techniques",
+		href: "/wiki/dragon-ball/techniques",
+		prefixes: ["/wiki/dragon-ball/techniques"],
+	},
 	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", prefixes: ["/wiki/arcs"] },
 	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", prefixes: ["/wiki/sagas"] },
-	{ key: "jeux", label: "Jeux", href: "/wiki/jeux", prefixes: ["/wiki/jeux", "/wiki/dragon-ball/games"] },
+	{
+		key: "jeux",
+		label: "Jeux",
+		href: "/wiki/jeux",
+		prefixes: ["/wiki/jeux", "/wiki/dragon-ball/games"],
+	},
 	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"] },
 ];
 
@@ -69,18 +118,98 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
  * la migration ne doit rien ouvrir par surprise.
  */
 export const SITE_SECTIONS: LaunchCategory[] = [
-	{ key: "tierlists", label: "Tier lists", href: "/tierlists", prefixes: ["/tierlists"], scope: "site", defaultMode: "admin" },
-	{ key: "classements", label: "Classements", href: "/classements", prefixes: ["/classements", "/leaderboard"], scope: "site", defaultMode: "public" },
-	{ key: "boutique", label: "Boutique", href: "/shop", prefixes: ["/shop"], scope: "site", defaultMode: "public" },
-	{ key: "jeux-hub", label: "Espace jeux", href: "/jeux", prefixes: ["/jeux"], scope: "site", defaultMode: "public" },
-	{ key: "actualites", label: "Actualités", href: "/actualites", prefixes: ["/actualites"], scope: "site", defaultMode: "public" },
-	{ key: "articles", label: "Articles communautaires", href: "/post", prefixes: ["/post"], scope: "site", defaultMode: "public" },
-	{ key: "assistant", label: "Assistant IA", href: "/ask", prefixes: ["/ask"], scope: "site", defaultMode: "public" },
-	{ key: "canvas", label: "Canvas", href: "/canvas", prefixes: ["/canvas"], scope: "site", defaultMode: "public" },
-	{ key: "stats", label: "Statistiques", href: "/stats", prefixes: ["/stats"], scope: "site", defaultMode: "public" },
-	{ key: "personas", label: "Personas", href: "/personas", prefixes: ["/personas"], scope: "site", defaultMode: "public" },
-	{ key: "commandes", label: "Commandes du bot", href: "/commands", prefixes: ["/commands"], scope: "site", defaultMode: "public" },
-	{ key: "profil", label: "Profil joueur", href: "/profil", prefixes: ["/profil"], scope: "site", defaultMode: "public" },
+	{
+		key: "tierlists",
+		label: "Tier lists",
+		href: "/tierlists",
+		prefixes: ["/tierlists"],
+		scope: "site",
+		defaultMode: "admin",
+	},
+	{
+		key: "classements",
+		label: "Classements",
+		href: "/classements",
+		prefixes: ["/classements", "/leaderboard"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "boutique",
+		label: "Boutique",
+		href: "/shop",
+		prefixes: ["/shop"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "jeux-hub",
+		label: "Espace jeux",
+		href: "/jeux",
+		prefixes: ["/jeux"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "actualites",
+		label: "Actualités",
+		href: "/actualites",
+		prefixes: ["/actualites"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	// (Ancienne section « Articles communautaires » sur /post : supprimée avec la
+	// route. Les articles vivent sous /actualites, déjà couvert par l'entrée
+	// ci-dessus, et /post/:slug est redirigé en 308 au niveau du routing — donc
+	// avant même que ce registre soit consulté.)
+	{
+		key: "assistant",
+		label: "Assistant IA",
+		href: "/ask",
+		prefixes: ["/ask"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "canvas",
+		label: "Canvas",
+		href: "/canvas",
+		prefixes: ["/canvas"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "stats",
+		label: "Statistiques",
+		href: "/stats",
+		prefixes: ["/stats"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "personas",
+		label: "Personas",
+		href: "/personas",
+		prefixes: ["/personas"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "commandes",
+		label: "Commandes du bot",
+		href: "/commands",
+		prefixes: ["/commands"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
+		key: "profil",
+		label: "Profil joueur",
+		href: "/profil",
+		prefixes: ["/profil"],
+		scope: "site",
+		defaultMode: "public",
+	},
 ];
 
 /** Registre complet : catégories wiki + sections du site. */

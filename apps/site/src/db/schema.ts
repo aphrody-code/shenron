@@ -29,24 +29,74 @@ export const users = pgTable("User", {
 		.default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const posts = pgTable("Post", {
-	id: cuid(),
-	slug: text("slug").notNull().unique(),
-	title: text("title").notNull(),
-	cover: text("cover"),
-	excerpt: text("excerpt").notNull(),
-	body: text("body").notNull(),
-	published: boolean("published").notNull().default(false),
-	authorId: text("authorId")
-		.notNull()
-		.references(() => users.id),
-	createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
-		.notNull()
-		.default(sql`CURRENT_TIMESTAMP`),
-	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
-		.notNull()
-		.default(sql`CURRENT_TIMESTAMP`),
-});
+// --- Articles / journal éditorial ---
+// Cycle de vie d'un article. `published` (booléen historique) est CONSERVÉ et
+// tenu synchrone avec `status` : le sitemap, la home et les requêtes publiques
+// existantes s'appuient dessus, et un article « programmé » ne doit pas fuiter
+// avant l'heure. `status` porte l'intention éditoriale, `published` porte la
+// visibilité effective.
+export const POST_STATUSES = ["draft", "scheduled", "published"] as const;
+export type PostStatus = (typeof POST_STATUSES)[number];
+
+/** Document Tiptap sérialisé (ProseMirror JSON). Typé large : le schéma exact vit côté éditeur. */
+export type PostContentDoc = { type: string; content?: unknown[]; [k: string]: unknown };
+
+export const posts = pgTable(
+	"Post",
+	{
+		id: cuid(),
+		slug: text("slug").notNull().unique(),
+		title: text("title").notNull(),
+		cover: text("cover"),
+		excerpt: text("excerpt").notNull(),
+		/**
+		 * Corps historique en **Markdown**. Conservé tel quel pour les articles
+		 * écrits avant l'éditeur riche : tant que `contentHtml` est NULL, c'est lui
+		 * qui est rendu (via ReactMarkdown). Les articles créés/édités dans le
+		 * nouvel éditeur y stockent le texte brut extrait du document (recherche,
+		 * calcul du temps de lecture, repli ultime).
+		 */
+		body: text("body").notNull(),
+		/** Document Tiptap — source de vérité pour l'ÉDITION. */
+		contentJson: jsonb("contentJson").$type<PostContentDoc>(),
+		/** HTML rendu depuis `contentJson` — source de vérité pour l'AFFICHAGE public. */
+		contentHtml: text("contentHtml"),
+		published: boolean("published").notNull().default(false),
+		status: text("status").$type<PostStatus>().notNull().default("draft"),
+		/** Date de mise en ligne (peut être future = programmé). NULL tant que brouillon. */
+		publishedAt: timestamp("publishedAt", { precision: 3, mode: "date" }),
+		coverAlt: text("coverAlt"),
+		coverCaption: text("coverCaption"),
+		tags: jsonb("tags").$type<string[]>().notNull().default([]),
+		/** Mise en avant éditoriale (une seule tête d'affiche en haut du journal). */
+		featured: boolean("featured").notNull().default(false),
+		// --- SEO ---
+		seoTitle: text("seoTitle"),
+		seoDescription: text("seoDescription"),
+		/** Image sociale dédiée. À défaut, `cover` sert d'OG image. */
+		ogImage: text("ogImage"),
+		/** Canonique externe — à poser UNIQUEMENT si l'article est republié depuis ailleurs. */
+		canonicalUrl: text("canonicalUrl"),
+		noindex: boolean("noindex").notNull().default(false),
+		readingMinutes: integer("readingMinutes").notNull().default(1),
+		wordCount: integer("wordCount").notNull().default(0),
+		authorId: text("authorId")
+			.notNull()
+			.references(() => users.id),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	},
+	(t) => [
+		// Le journal public trie systématiquement les articles publiés par date de
+		// parution décroissante — index composite pour éviter le tri en mémoire.
+		index("Post_published_publishedAt_idx").on(t.published, t.publishedAt),
+		index("Post_status_idx").on(t.status),
+	]
+);
 
 // --- Tierlists communautaires ---
 // Un item = une carte (personnage/technique/… du wiki) figée dans la tierlist.

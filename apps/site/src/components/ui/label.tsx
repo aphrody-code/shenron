@@ -1,0 +1,21 @@
+import type * as React from "react";
+
+import { cn } from "@/lib/utils";
+
+function Label({ className, ...props }: React.ComponentProps<"label">) {
+	return (
+		<label
+			data-slot="label"
+			className={cn(
+				"flex items-center gap-2 text-sm leading-none font-medium text-foreground select-none",
+				"group-data-[disabled=true]/field:pointer-events-none group-data-[disabled=true]/field:opacity-50",
+				"peer-disabled:pointer-events-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+				"[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+				className
+			)}
+			{...props}
+		/>
+	);
+}
+
+export { Label };

@@ -39,7 +39,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 						>
 							{p.cover && (
 								<Link
-									href={`/post/${p.slug}`}
+									href={`/actualites/${p.slug}`}
 									className="block aspect-[16/9] relative bg-black overflow-hidden"
 								>
 									<Image
@@ -59,7 +59,7 @@ export function BlogTeaser({ posts }: { posts: PostTeaser[] }) {
 									{format(p.createdAt, "d MMM yyyy", { locale: fr })}
 								</time>
 								<h3 className="font-display font-bold text-[19px] text-white leading-tight mb-3 group-hover:text-dbz-orange transition-colors">
-									<Link href={`/post/${p.slug}`}>{p.title}</Link>
+									<Link href={`/actualites/${p.slug}`}>{p.title}</Link>
 								</h3>
 								<p className="text-[14px] text-white/65 leading-relaxed flex-1 mb-4 line-clamp-3">
 									{p.excerpt}
