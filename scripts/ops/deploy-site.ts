@@ -173,8 +173,16 @@ async function buildSite(sha: string): Promise<string> {
 	const buildTmp = process.env.BUILD_TMP ?? join(HOME, ".shenron-build-tmp");
 	await mkdir(buildTmp, { recursive: true });
 	const nodeBin = existsSync("/usr/bin/node") ? "/usr/bin/node" : "node";
-	const nextBin = join(REPO, "node_modules", "next", "dist", "bin", "next");
-	if (!existsSync(nextBin)) fail(`next introuvable : ${nextBin}`);
+	// `next` n'est pas toujours hoisté à la racine : selon l'ordre des
+	// `bun add`, bun peut le laisser dans le node_modules du workspace. On
+	// cherche donc aux deux emplacements plutôt que de présumer du layout —
+	// sinon un simple ajout de dépendance côté site casse le déploiement.
+	const nextCandidates = [
+		join(REPO, "node_modules", "next", "dist", "bin", "next"),
+		join(SITE_DIR, "node_modules", "next", "dist", "bin", "next"),
+	];
+	const nextBin = nextCandidates.find((p) => existsSync(p));
+	if (!nextBin) fail(`next introuvable (cherché : ${nextCandidates.join(", ")})`);
 
 	// Build à froid : on jette la sortie précédente AVANT de lancer Next.
 	await rm(BUILD_DIR, { recursive: true, force: true });
