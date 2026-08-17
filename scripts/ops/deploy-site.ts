@@ -154,9 +154,19 @@ async function withSwappiness<T>(value: number, body: () => Promise<T>): Promise
 	const previous = (await readFile("/proc/sys/vm/swappiness", "utf8")).trim();
 	await sudo(["sysctl", "-w", `vm.swappiness=${value}`]);
 	log(`swappiness ${previous} → ${value} (le temps du build)`);
+	// `fail()` sort par `process.exit`, qui ne déroule PAS le `finally` : un build
+	// en échec laissait donc la swappiness à 100 en permanence (dégradation de
+	// latence de tous les services, constatée sur 3 jours). Le filet est un
+	// gestionnaire `exit` qui restaure de façon SYNCHRONE — seule forme de
+	// nettoyage qu'un handler de sortie puisse mener à terme.
+	const restoreSync = () => {
+		Bun.spawnSync(["sudo", "sysctl", "-w", `vm.swappiness=${previous}`]);
+	};
+	process.on("exit", restoreSync);
 	try {
 		return await body();
 	} finally {
+		process.off("exit", restoreSync);
 		await sudo(["sysctl", "-w", `vm.swappiness=${previous}`]);
 		log(`swappiness restaurée à ${previous}`);
 	}
@@ -211,6 +221,13 @@ async function buildSite(sha: string): Promise<string> {
 		},
 	});
 
+	// Journal COMPLET conservé sur disque : la console ne montre que la queue de
+	// stderr, or l'erreur utile d'un build Next (page qui casse au prerender) est
+	// souvent des centaines de lignes plus haut, noyée dans la sortie des workers.
+	// Sans ce fichier, diagnostiquer imposait de relancer un build de 10 minutes.
+	const logFile = join(buildTmp, `build-${sha}.log`);
+	await writeFile(logFile, `${res.stdout}\n${res.stderr}`);
+
 	// Le code de sortie fait FOI. `BUILD_ID` est écrit AVANT la phase de
 	// finalisation (prerender-manifest, images-manifest, export-marker) : un
 	// build mort en finalisation laisse donc un BUILD_ID frais mais un `.next`
@@ -219,7 +236,7 @@ async function buildSite(sha: string): Promise<string> {
 	// n'apparaissant qu'au bout des 180s de sonde et sans le message d'erreur.
 	if (res.code !== 0) {
 		console.error(res.stderr.split("\n").slice(-30).join("\n"));
-		fail(`build échoué (code ${res.code})`);
+		fail(`build échoué (code ${res.code}) — journal complet : ${logFile}`);
 	}
 	const buildIdFile = join(BUILD_DIR, "BUILD_ID");
 	const fresh = existsSync(buildIdFile) && (await stat(buildIdFile)).mtimeMs >= startedAt;
