@@ -28,7 +28,9 @@ const ROOT = "/home/ubuntu/shenron";
 
 // Nettoyer les codes ANSI pour calculer la longueur réelle du texte
 function cleanAnsi(text: string): string {
-	return text.replace(/\x1b\[[0-9;]*m/g, "");
+	// ESC (U+001B) est le caractère de contrôle qu'on cherche justement à retirer.
+	// oxlint-disable-next-line no-control-regex
+	return text.replace(/\u001B\[[0-9;]*m/g, "");
 }
 
 // Formater et aligner le texte avec des espaces en tenant compte des codes de couleur
@@ -134,7 +136,7 @@ async function runDeploy(
 		try {
 			await $`bash ${ROOT}/scripts/deploy-shenron.sh ${deployArgs}`;
 			console.log(`\n✅ ${c.green}Déploiement du BOT réussi !${c.r}`);
-		} catch (err) {
+		} catch {
 			console.error(`\n❌ ${c.red}Échec du déploiement du BOT.${c.r}`);
 			if (target === "all") {
 				console.log(`⚠️  Déploiement du SITE annulé suite à l'échec du BOT.`);
@@ -151,7 +153,7 @@ async function runDeploy(
 
 			await $`${vercelCmd} deploy --prod --yes`.cwd(ROOT);
 			console.log(`\n✅ ${c.green}Déploiement du SITE réussi !${c.r}`);
-		} catch (err) {
+		} catch {
 			console.error(`\n❌ ${c.red}Échec du déploiement du SITE.${c.r}`);
 			process.exit(1);
 		}
@@ -187,7 +189,7 @@ async function runCron(sub: string, timerName?: string) {
 				const isActive = (await $`systemctl is-active ${s}`.text()).trim();
 				const activeColor = isActive === "active" ? c.green : c.red;
 				console.log(`  ● ${padText(s, 28)} : ${activeColor}${isActive.toUpperCase()}${c.r}`);
-			} catch (e) {
+			} catch {
 				console.log(`  ● ${padText(s, 28)} : ${c.yellow}INDISPONIBLE / ERREUR${c.r}`);
 			}
 		}
@@ -206,7 +208,7 @@ async function runCron(sub: string, timerName?: string) {
 				if (nextRun !== "N/A") {
 					console.log(`     └─ Prochain run : ${c.dim}${nextRun}${c.r}`);
 				}
-			} catch (e) {
+			} catch {
 				console.log(`  ⏰ ${padText(t, 26)} : ${c.yellow}INDISPONIBLE / ERREUR${c.r}`);
 			}
 		}
@@ -1253,7 +1255,6 @@ async function runLlmStatus() {
 		}
 	}
 
-	const { $ } = await import("bun");
 	console.log(`\n${c.b}Services LLM locaux (Ports de communication) :${c.r}`);
 	const ports = [
 		{ port: 5008, desc: "Serveur LLM local (llama.cpp / Qwen3B)" },

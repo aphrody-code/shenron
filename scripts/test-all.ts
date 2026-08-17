@@ -214,7 +214,7 @@ async function runScope(m: Member, files: string[]): Promise<Result> {
 	const env: Record<string, string> = {
 		NODE_ENV: "test",
 		FORCE_COLOR: "1",
-		...(m.policy.env ?? {}),
+		...m.policy.env,
 	};
 
 	// Prep steps (e.g. gen:entries) — must succeed or the scope is PREP-FAIL.

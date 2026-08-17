@@ -2,7 +2,18 @@ import nextConfig from "eslint-config-next";
 
 const eslintConfig = [
 	{
-		ignores: [".next/**", "dist/**", "build/**", "node_modules/**"],
+		// `.next-build/**` est le répertoire de build du déploiement bleu/vert
+		// (cf. scripts/ops/deploy-site.ts) : c'est de la sortie de compilation, pas des sources.
+		// `public/**` sert des fichiers statiques tels quels (dont les miroirs bxc, ~158 Mo
+		// de JS/CSS vendorés) : les linter n'a aucun sens et coûte plusieurs minutes par run.
+		ignores: [
+			".next/**",
+			".next-build/**",
+			"dist/**",
+			"build/**",
+			"node_modules/**",
+			"public/**",
+		],
 	},
 	...nextConfig,
 	{

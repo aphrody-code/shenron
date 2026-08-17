@@ -14,7 +14,6 @@ const ROOT = join(import.meta.dirname, "..");
 const DOC_LINKS_PATH = join(ROOT, "data/doc-links.json");
 const RAG_RAW_DIR = join(ROOT, "apps/bot/data/rag/raw/google-doc");
 const SHARD_PATH = "/tmp/shard-google-doc.json";
-const CORPUS_PATH = join(ROOT, "apps/bot/data/rag/corpus.json");
 const DB_PROD = join(ROOT, "apps/bot/data/bot.db");
 const DB_TMP = "/tmp/dbz-train.db";
 const BXC_DIR = process.env.BXC_DIR ?? join(os.homedir(), "bxc");
@@ -66,7 +65,7 @@ async function execBxcScrape(url: string): Promise<string | null> {
 		if (code === 0 && stdout.length > 50) {
 			return stdout;
 		}
-	} catch (e) {
+	} catch {
 		// Fail silently
 	}
 	return null;
@@ -127,7 +126,6 @@ async function main() {
 	mkdirSync(RAG_RAW_DIR, { recursive: true });
 
 	const shardDocs: any[] = [];
-	const activeCrawls = new Set<Promise<any>>();
 	const queue = [...filteredUrls];
 
 	console.log(`\n[1/7] Lancement du crawl en parallèle (concurrence = ${CONCURRENCY})...`);
@@ -237,7 +235,7 @@ async function main() {
 			Bun.spawn(["kill", "-9", pid]);
 			await new Promise((r) => setTimeout(r, 2000));
 		}
-	} catch (e) {
+	} catch {
 		// lsof non installé ou pas de processus
 	}
 
@@ -255,6 +253,7 @@ async function main() {
 			stderr: "inherit",
 		}
 	);
+	console.log(`[SERVE] Serveur LLM démarré (PID: ${serveProc.pid}).`);
 
 	console.log("\n=== PIPELINE DE CRAWL ET D'ENTRAÎNEMENT TERMINÉ AVEC SUCCÈS ===");
 }

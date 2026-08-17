@@ -3708,7 +3708,7 @@ export class ApiServer {
 							rows.push({ level, xp: Math.round(xp) });
 						}
 						// Cohérence : xp strictement croissant avec le niveau.
-						const byLevel = [...rows].sort((a, b) => a.level - b.level);
+						const byLevel = rows.toSorted((a, b) => a.level - b.level);
 						for (let i = 1; i < byLevel.length; i++) {
 							if (byLevel[i]!.xp <= byLevel[i - 1]!.xp) {
 								return Response.json(
@@ -4381,7 +4381,7 @@ export class ApiServer {
 							if (!membersClient) {
 								membersClient = [...clientMap.values()]
 									.filter((c) => c.isReady() && c.guilds.cache.has(env.GUILD_ID))
-									.sort(
+									.toSorted(
 										(a, b) =>
 											(b.guilds.cache.get(env.GUILD_ID)?.members.cache.size ?? 0) -
 											(a.guilds.cache.get(env.GUILD_ID)?.members.cache.size ?? 0)

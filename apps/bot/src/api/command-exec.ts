@@ -95,7 +95,7 @@ export function buildCommandCatalog(): { commands: CommandSpec[]; count: number 
 				})),
 			};
 		})
-		.sort((a, b) => a.invocation.localeCompare(b.invocation));
+		.toSorted((a, b) => a.invocation.localeCompare(b.invocation));
 	return { commands, count: commands.length };
 }
 
@@ -153,7 +153,8 @@ export async function execCommand(
 			c.type === ApplicationCommandType.ChatInput &&
 			[c.group, c.subgroup, c.name].filter(Boolean).join(" ") === invocation
 	);
-	if (!cmd) return { ok: false, persona: null, invocation, replies: [], error: "Commande inconnue." };
+	if (!cmd)
+		return { ok: false, persona: null, invocation, replies: [], error: "Commande inconnue." };
 
 	const persona = (cmd.botIds?.[0] ?? "shenron") as string;
 	const client = clients.get(persona);
@@ -186,7 +187,10 @@ export async function execCommand(
 	}
 
 	let data: AnyCmd[];
-	if (subgroup) data = [{ name: subgroup, type: 2, options: [{ name: subcommand, type: 1, options: leafData }] }];
+	if (subgroup)
+		data = [
+			{ name: subgroup, type: 2, options: [{ name: subcommand, type: 1, options: leafData }] },
+		];
 	else if (subcommand) data = [{ name: subcommand, type: 1, options: leafData }];
 	else data = leafData;
 

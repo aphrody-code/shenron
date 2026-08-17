@@ -14,12 +14,23 @@
 		"**/*.generated.ts",
 		"**/dist/**",
 		"**/.next/**",
+		"**/.next-build/**",
 		"**/.turbo/**",
 		"**/node_modules/**",
 		"**/data/**",
 		"**/*.min.js",
 		"**/*.compiled.css",
 		"**/patches/**",
-		"**/scratch/**"
+		"**/scratch/**",
+		"**/public/bxc-mirror/**",
+		"**/public/bxc-raw/**",
+		"KNOWLEDGE_BASE.md",
+		"**/src/_entries.ts",
+		"**/src/db/migrations/**",
+		"**/drizzle/**",
+		"apps/bot/assets/**",
+		"**/storage/**",
+		"**/target/**",
+		"**/var/**"
 	]
 }

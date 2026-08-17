@@ -46,9 +46,16 @@
 		"unicorn/no-array-for-each": "off",
 		"unicorn/prefer-top-level-await": "off",
 		"unicorn/no-array-reduce": "off",
-		"unicorn/consistent-function-scoping": "off"
+		"unicorn/consistent-function-scoping": "off",
+		"unicorn/require-post-message-target-origin": "off"
 	},
 	"overrides": [
+		{
+			"files": ["src/workers/**/*.ts"],
+			"rules": {
+				"unicorn/prefer-add-event-listener": "off"
+			}
+		},
 		{
 			"files": ["scripts/**/*.ts", "src/db/seed-*.ts", "src/db/migrate.ts"],
 			"rules": {

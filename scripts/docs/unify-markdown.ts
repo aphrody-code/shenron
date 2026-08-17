@@ -9,7 +9,7 @@
  */
 
 import { $ } from "bun";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { existsSync, writeFileSync, appendFileSync } from "node:fs";
 
 const OUTPUT_DEFAULT = "KNOWLEDGE_BASE.md";
@@ -108,7 +108,7 @@ function slugify(text: string): string {
 		.replace(/[^\w\-./]+/g, "")
 		.replace(/\//g, "-")
 		.replace(/\./g, "-")
-		.replace(/\-\-+/g, "-")
+		.replace(/--+/g, "-")
 		.replace(/^-+/, "")
 		.replace(/-+$/, "");
 }

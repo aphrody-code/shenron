@@ -63,105 +63,515 @@ type Source = { id: string; name: string; url: string; mode: "recon" | "mirror" 
  */
 const SOURCES: Source[] = [
 	// ── Officiel Toei / Shueisha / Bandai ───────────────────────────────────
-	{ id: "dbofficial-fr", name: "DB Official FR", url: "https://fr.dragon-ball-official.com/", mode: "both" },
-	{ id: "dbofficial-en", name: "DB Official EN", url: "https://en.dragon-ball-official.com/", mode: "both" },
+	{
+		id: "dbofficial-fr",
+		name: "DB Official FR",
+		url: "https://fr.dragon-ball-official.com/",
+		mode: "both",
+	},
+	{
+		id: "dbofficial-en",
+		name: "DB Official EN",
+		url: "https://en.dragon-ball-official.com/",
+		mode: "both",
+	},
 	// dbofficial-jp : domaine super-official souvent down — on garde le hub EN games
-	{ id: "dbofficial-games-hub", name: "DB Official games hub", url: "https://en.dragon-ball-official.com/games", mode: "both" },
-	{ id: "dbofficial-news", name: "DB Official news hub", url: "https://en.dragon-ball-official.com/news", mode: "recon" },
-	{ id: "dbofficial-fr-news", name: "DB Official FR news", url: "https://fr.dragon-ball-official.com/news", mode: "recon" },
-	{ id: "dbofficial-anime", name: "DB Official anime", url: "https://en.dragon-ball-official.com/anime", mode: "recon" },
-	{ id: "dbofficial-manga", name: "DB Official manga", url: "https://en.dragon-ball-official.com/manga", mode: "recon" },
-	{ id: "dbofficial-games", name: "DB Official games", url: "https://en.dragon-ball-official.com/games", mode: "recon" },
-	{ id: "bandai-eu", name: "Bandai EU Dragon Ball", url: "https://en.bandainamcoent.eu/dragon-ball", mode: "both" },
-	{ id: "bandai-eu-fr", name: "Bandai FR Dragon Ball", url: "https://www.bandainamcoent.eu/fr/dragon-ball", mode: "both" },
-	{ id: "bandai-news", name: "Bandai EU news", url: "https://en.bandainamcoent.eu/news", mode: "recon" },
-	{ id: "bandai-fighterz", name: "Bandai FighterZ", url: "https://en.bandainamcoent.eu/games/dragon-ball-fighterz", mode: "both" },
-	{ id: "bandai-sparking", name: "Bandai Sparking Zero", url: "https://en.bandainamcoent.eu/games/dragon-ball-sparking-zero", mode: "both" },
-	{ id: "bandai-xenoverse2", name: "Bandai Xenoverse 2", url: "https://en.bandainamcoent.eu/games/dragon-ball-xenoverse-2", mode: "recon" },
-	{ id: "bandai-dokkan", name: "Bandai Dokkan", url: "https://en.bandainamcoent.eu/games/dragon-ball-z-dokkan-battle", mode: "recon" },
-	{ id: "bandai-legends", name: "Bandai Legends", url: "https://en.bandainamcoent.eu/games/dragon-ball-legends", mode: "recon" },
+	{
+		id: "dbofficial-games-hub",
+		name: "DB Official games hub",
+		url: "https://en.dragon-ball-official.com/games",
+		mode: "both",
+	},
+	{
+		id: "dbofficial-news",
+		name: "DB Official news hub",
+		url: "https://en.dragon-ball-official.com/news",
+		mode: "recon",
+	},
+	{
+		id: "dbofficial-fr-news",
+		name: "DB Official FR news",
+		url: "https://fr.dragon-ball-official.com/news",
+		mode: "recon",
+	},
+	{
+		id: "dbofficial-anime",
+		name: "DB Official anime",
+		url: "https://en.dragon-ball-official.com/anime",
+		mode: "recon",
+	},
+	{
+		id: "dbofficial-manga",
+		name: "DB Official manga",
+		url: "https://en.dragon-ball-official.com/manga",
+		mode: "recon",
+	},
+	{
+		id: "dbofficial-games",
+		name: "DB Official games",
+		url: "https://en.dragon-ball-official.com/games",
+		mode: "recon",
+	},
+	{
+		id: "bandai-eu",
+		name: "Bandai EU Dragon Ball",
+		url: "https://en.bandainamcoent.eu/dragon-ball",
+		mode: "both",
+	},
+	{
+		id: "bandai-eu-fr",
+		name: "Bandai FR Dragon Ball",
+		url: "https://www.bandainamcoent.eu/fr/dragon-ball",
+		mode: "both",
+	},
+	{
+		id: "bandai-news",
+		name: "Bandai EU news",
+		url: "https://en.bandainamcoent.eu/news",
+		mode: "recon",
+	},
+	{
+		id: "bandai-fighterz",
+		name: "Bandai FighterZ",
+		url: "https://en.bandainamcoent.eu/games/dragon-ball-fighterz",
+		mode: "both",
+	},
+	{
+		id: "bandai-sparking",
+		name: "Bandai Sparking Zero",
+		url: "https://en.bandainamcoent.eu/games/dragon-ball-sparking-zero",
+		mode: "both",
+	},
+	{
+		id: "bandai-xenoverse2",
+		name: "Bandai Xenoverse 2",
+		url: "https://en.bandainamcoent.eu/games/dragon-ball-xenoverse-2",
+		mode: "recon",
+	},
+	{
+		id: "bandai-dokkan",
+		name: "Bandai Dokkan",
+		url: "https://en.bandainamcoent.eu/games/dragon-ball-z-dokkan-battle",
+		mode: "recon",
+	},
+	{
+		id: "bandai-legends",
+		name: "Bandai Legends",
+		url: "https://en.bandainamcoent.eu/games/dragon-ball-legends",
+		mode: "recon",
+	},
 	// www.bandainamcoent.com/games/dragon-ball → 404 (probe) : non listé
-	{ id: "toei-catalog", name: "Toei catalog DB", url: "https://www.toei-animation.com/catalog/dragon-ball/", mode: "both" },
-	{ id: "toei-home", name: "Toei Animation home", url: "https://www.toei-animation.com/", mode: "recon" },
-	{ id: "toei-jp-db", name: "Toei JP Dragon Ball", url: "https://www.toei-anim.co.jp/tv/dragon/", mode: "recon" },
-	{ id: "toei-jp-super", name: "Toei JP Super", url: "https://www.toei-anim.co.jp/special/dragonball_s/", mode: "recon" },
-	{ id: "shueisha", name: "Shueisha corporate", url: "https://www.shueisha.co.jp/en/", mode: "recon" },
-	{ id: "shonenjump-plus", name: "Shonen Jump+", url: "https://shonenjumpplus.com/", mode: "recon" },
+	{
+		id: "toei-catalog",
+		name: "Toei catalog DB",
+		url: "https://www.toei-animation.com/catalog/dragon-ball/",
+		mode: "both",
+	},
+	{
+		id: "toei-home",
+		name: "Toei Animation home",
+		url: "https://www.toei-animation.com/",
+		mode: "recon",
+	},
+	{
+		id: "toei-jp-db",
+		name: "Toei JP Dragon Ball",
+		url: "https://www.toei-anim.co.jp/tv/dragon/",
+		mode: "recon",
+	},
+	{
+		id: "toei-jp-super",
+		name: "Toei JP Super",
+		url: "https://www.toei-anim.co.jp/special/dragonball_s/",
+		mode: "recon",
+	},
+	{
+		id: "shueisha",
+		name: "Shueisha corporate",
+		url: "https://www.shueisha.co.jp/en/",
+		mode: "recon",
+	},
+	{
+		id: "shonenjump-plus",
+		name: "Shonen Jump+",
+		url: "https://shonenjumpplus.com/",
+		mode: "recon",
+	},
 	{ id: "viz-db", name: "Viz Dragon Ball", url: "https://www.viz.com/dragon-ball", mode: "recon" },
-	{ id: "viz-dbs", name: "Viz DB Super chapters", url: "https://www.viz.com/shonenjump/chapters/dragon-ball-super", mode: "recon" },
+	{
+		id: "viz-dbs",
+		name: "Viz DB Super chapters",
+		url: "https://www.viz.com/shonenjump/chapters/dragon-ball-super",
+		mode: "recon",
+	},
 	// ── News / presse ──────────────────────────────────────────────────────
-	{ id: "dbnews-fr", name: "dragonball.news FR", url: "https://dragonball.news/fr/", mode: "recon" },
+	{
+		id: "dbnews-fr",
+		name: "dragonball.news FR",
+		url: "https://dragonball.news/fr/",
+		mode: "recon",
+	},
 	{ id: "dbnews-en", name: "dragonball.news EN", url: "https://dragonball.news/", mode: "recon" },
-	{ id: "dbnews-games", name: "dragonball.news games", url: "https://dragonball.news/category/games/", mode: "recon" },
+	{
+		id: "dbnews-games",
+		name: "dragonball.news games",
+		url: "https://dragonball.news/category/games/",
+		mode: "recon",
+	},
 	// ── Référence fan historique ───────────────────────────────────────────
 	{ id: "kanzenshuu", name: "Kanzenshuu", url: "https://www.kanzenshuu.com/", mode: "mirror" },
-	{ id: "kanzenshuu-guides", name: "Kanzenshuu guides", url: "https://www.kanzenshuu.com/guides/", mode: "mirror" },
+	{
+		id: "kanzenshuu-guides",
+		name: "Kanzenshuu guides",
+		url: "https://www.kanzenshuu.com/guides/",
+		mode: "mirror",
+	},
 	// episode-guides/ → 404 (probe) — utiliser /episodes/ si dispo
-	{ id: "kanzenshuu-episodes", name: "Kanzenshuu episodes", url: "https://www.kanzenshuu.com/episodes/", mode: "recon" },
-	{ id: "kanzenshuu-movies", name: "Kanzenshuu movies", url: "https://www.kanzenshuu.com/movies/", mode: "recon" },
-	{ id: "kanzenshuu-manga", name: "Kanzenshuu manga", url: "https://www.kanzenshuu.com/manga/", mode: "recon" },
-	{ id: "kanzenshuu-reference", name: "Kanzenshuu reference", url: "https://www.kanzenshuu.com/reference/", mode: "recon" },
+	{
+		id: "kanzenshuu-episodes",
+		name: "Kanzenshuu episodes",
+		url: "https://www.kanzenshuu.com/episodes/",
+		mode: "recon",
+	},
+	{
+		id: "kanzenshuu-movies",
+		name: "Kanzenshuu movies",
+		url: "https://www.kanzenshuu.com/movies/",
+		mode: "recon",
+	},
+	{
+		id: "kanzenshuu-manga",
+		name: "Kanzenshuu manga",
+		url: "https://www.kanzenshuu.com/manga/",
+		mode: "recon",
+	},
+	{
+		id: "kanzenshuu-reference",
+		name: "Kanzenshuu reference",
+		url: "https://www.kanzenshuu.com/reference/",
+		mode: "recon",
+	},
 	// ── Fandom EN (pages riches en images) ─────────────────────────────────
-	{ id: "fandom-hub", name: "Fandom EN hub", url: "https://dragonball.fandom.com/wiki/Dragon_Ball_Wiki", mode: "recon" },
-	{ id: "fandom-goku", name: "Goku", url: "https://dragonball.fandom.com/wiki/Goku", mode: "recon" },
-	{ id: "fandom-vegeta", name: "Vegeta", url: "https://dragonball.fandom.com/wiki/Vegeta", mode: "recon" },
-	{ id: "fandom-gohan", name: "Gohan", url: "https://dragonball.fandom.com/wiki/Gohan", mode: "recon" },
-	{ id: "fandom-piccolo", name: "Piccolo", url: "https://dragonball.fandom.com/wiki/Piccolo", mode: "recon" },
-	{ id: "fandom-frieza", name: "Frieza", url: "https://dragonball.fandom.com/wiki/Frieza", mode: "recon" },
-	{ id: "fandom-cell", name: "Cell", url: "https://dragonball.fandom.com/wiki/Cell", mode: "recon" },
-	{ id: "fandom-buu", name: "Majin Buu", url: "https://dragonball.fandom.com/wiki/Majin_Buu", mode: "recon" },
-	{ id: "fandom-broly", name: "Broly", url: "https://dragonball.fandom.com/wiki/Broly", mode: "recon" },
-	{ id: "fandom-beerus", name: "Beerus", url: "https://dragonball.fandom.com/wiki/Beerus", mode: "recon" },
-	{ id: "fandom-whis", name: "Whis", url: "https://dragonball.fandom.com/wiki/Whis", mode: "recon" },
-	{ id: "fandom-trunks", name: "Trunks", url: "https://dragonball.fandom.com/wiki/Trunks", mode: "recon" },
-	{ id: "fandom-bulma", name: "Bulma", url: "https://dragonball.fandom.com/wiki/Bulma", mode: "recon" },
-	{ id: "fandom-krillin", name: "Krillin", url: "https://dragonball.fandom.com/wiki/Krillin", mode: "recon" },
-	{ id: "fandom-jiren", name: "Jiren", url: "https://dragonball.fandom.com/wiki/Jiren", mode: "recon" },
+	{
+		id: "fandom-hub",
+		name: "Fandom EN hub",
+		url: "https://dragonball.fandom.com/wiki/Dragon_Ball_Wiki",
+		mode: "recon",
+	},
+	{
+		id: "fandom-goku",
+		name: "Goku",
+		url: "https://dragonball.fandom.com/wiki/Goku",
+		mode: "recon",
+	},
+	{
+		id: "fandom-vegeta",
+		name: "Vegeta",
+		url: "https://dragonball.fandom.com/wiki/Vegeta",
+		mode: "recon",
+	},
+	{
+		id: "fandom-gohan",
+		name: "Gohan",
+		url: "https://dragonball.fandom.com/wiki/Gohan",
+		mode: "recon",
+	},
+	{
+		id: "fandom-piccolo",
+		name: "Piccolo",
+		url: "https://dragonball.fandom.com/wiki/Piccolo",
+		mode: "recon",
+	},
+	{
+		id: "fandom-frieza",
+		name: "Frieza",
+		url: "https://dragonball.fandom.com/wiki/Frieza",
+		mode: "recon",
+	},
+	{
+		id: "fandom-cell",
+		name: "Cell",
+		url: "https://dragonball.fandom.com/wiki/Cell",
+		mode: "recon",
+	},
+	{
+		id: "fandom-buu",
+		name: "Majin Buu",
+		url: "https://dragonball.fandom.com/wiki/Majin_Buu",
+		mode: "recon",
+	},
+	{
+		id: "fandom-broly",
+		name: "Broly",
+		url: "https://dragonball.fandom.com/wiki/Broly",
+		mode: "recon",
+	},
+	{
+		id: "fandom-beerus",
+		name: "Beerus",
+		url: "https://dragonball.fandom.com/wiki/Beerus",
+		mode: "recon",
+	},
+	{
+		id: "fandom-whis",
+		name: "Whis",
+		url: "https://dragonball.fandom.com/wiki/Whis",
+		mode: "recon",
+	},
+	{
+		id: "fandom-trunks",
+		name: "Trunks",
+		url: "https://dragonball.fandom.com/wiki/Trunks",
+		mode: "recon",
+	},
+	{
+		id: "fandom-bulma",
+		name: "Bulma",
+		url: "https://dragonball.fandom.com/wiki/Bulma",
+		mode: "recon",
+	},
+	{
+		id: "fandom-krillin",
+		name: "Krillin",
+		url: "https://dragonball.fandom.com/wiki/Krillin",
+		mode: "recon",
+	},
+	{
+		id: "fandom-jiren",
+		name: "Jiren",
+		url: "https://dragonball.fandom.com/wiki/Jiren",
+		mode: "recon",
+	},
 	{ id: "fandom-hit", name: "Hit", url: "https://dragonball.fandom.com/wiki/Hit", mode: "recon" },
-	{ id: "fandom-zamasu", name: "Zamasu", url: "https://dragonball.fandom.com/wiki/Zamasu", mode: "recon" },
-	{ id: "fandom-goku-black", name: "Goku Black", url: "https://dragonball.fandom.com/wiki/Goku_Black", mode: "recon" },
-	{ id: "fandom-kamehameha", name: "Kamehameha", url: "https://dragonball.fandom.com/wiki/Kamehameha", mode: "recon" },
-	{ id: "fandom-final-flash", name: "Final Flash", url: "https://dragonball.fandom.com/wiki/Final_Flash", mode: "recon" },
-	{ id: "fandom-instant-tx", name: "Instant Transmission", url: "https://dragonball.fandom.com/wiki/Instant_Transmission", mode: "recon" },
-	{ id: "fandom-special-beam", name: "Special Beam Cannon", url: "https://dragonball.fandom.com/wiki/Special_Beam_Cannon", mode: "recon" },
-	{ id: "fandom-spirit-bomb", name: "Spirit Bomb", url: "https://dragonball.fandom.com/wiki/Spirit_Bomb", mode: "recon" },
-	{ id: "fandom-ssj", name: "Super Saiyan", url: "https://dragonball.fandom.com/wiki/Super_Saiyan", mode: "recon" },
-	{ id: "fandom-ui", name: "Ultra Instinct", url: "https://dragonball.fandom.com/wiki/Ultra_Instinct", mode: "recon" },
-	{ id: "fandom-fusion", name: "Fusion", url: "https://dragonball.fandom.com/wiki/Fusion", mode: "recon" },
-	{ id: "fandom-dragonballs", name: "Dragon Balls", url: "https://dragonball.fandom.com/wiki/Dragon_Ball_(object)", mode: "recon" },
-	{ id: "fandom-saiyans", name: "Category Saiyans", url: "https://dragonball.fandom.com/wiki/Category:Saiyans", mode: "recon" },
-	{ id: "fandom-techniques", name: "Category Techniques", url: "https://dragonball.fandom.com/wiki/Category:Techniques", mode: "recon" },
-	{ id: "fandom-images", name: "Category Images", url: "https://dragonball.fandom.com/wiki/Category:Images", mode: "recon" },
-	{ id: "fandom-characters", name: "List of characters", url: "https://dragonball.fandom.com/wiki/List_of_characters", mode: "recon" },
+	{
+		id: "fandom-zamasu",
+		name: "Zamasu",
+		url: "https://dragonball.fandom.com/wiki/Zamasu",
+		mode: "recon",
+	},
+	{
+		id: "fandom-goku-black",
+		name: "Goku Black",
+		url: "https://dragonball.fandom.com/wiki/Goku_Black",
+		mode: "recon",
+	},
+	{
+		id: "fandom-kamehameha",
+		name: "Kamehameha",
+		url: "https://dragonball.fandom.com/wiki/Kamehameha",
+		mode: "recon",
+	},
+	{
+		id: "fandom-final-flash",
+		name: "Final Flash",
+		url: "https://dragonball.fandom.com/wiki/Final_Flash",
+		mode: "recon",
+	},
+	{
+		id: "fandom-instant-tx",
+		name: "Instant Transmission",
+		url: "https://dragonball.fandom.com/wiki/Instant_Transmission",
+		mode: "recon",
+	},
+	{
+		id: "fandom-special-beam",
+		name: "Special Beam Cannon",
+		url: "https://dragonball.fandom.com/wiki/Special_Beam_Cannon",
+		mode: "recon",
+	},
+	{
+		id: "fandom-spirit-bomb",
+		name: "Spirit Bomb",
+		url: "https://dragonball.fandom.com/wiki/Spirit_Bomb",
+		mode: "recon",
+	},
+	{
+		id: "fandom-ssj",
+		name: "Super Saiyan",
+		url: "https://dragonball.fandom.com/wiki/Super_Saiyan",
+		mode: "recon",
+	},
+	{
+		id: "fandom-ui",
+		name: "Ultra Instinct",
+		url: "https://dragonball.fandom.com/wiki/Ultra_Instinct",
+		mode: "recon",
+	},
+	{
+		id: "fandom-fusion",
+		name: "Fusion",
+		url: "https://dragonball.fandom.com/wiki/Fusion",
+		mode: "recon",
+	},
+	{
+		id: "fandom-dragonballs",
+		name: "Dragon Balls",
+		url: "https://dragonball.fandom.com/wiki/Dragon_Ball_(object)",
+		mode: "recon",
+	},
+	{
+		id: "fandom-saiyans",
+		name: "Category Saiyans",
+		url: "https://dragonball.fandom.com/wiki/Category:Saiyans",
+		mode: "recon",
+	},
+	{
+		id: "fandom-techniques",
+		name: "Category Techniques",
+		url: "https://dragonball.fandom.com/wiki/Category:Techniques",
+		mode: "recon",
+	},
+	{
+		id: "fandom-images",
+		name: "Category Images",
+		url: "https://dragonball.fandom.com/wiki/Category:Images",
+		mode: "recon",
+	},
+	{
+		id: "fandom-characters",
+		name: "List of characters",
+		url: "https://dragonball.fandom.com/wiki/List_of_characters",
+		mode: "recon",
+	},
 	// ── Fandom FR ──────────────────────────────────────────────────────────
-	{ id: "fandom-fr-hub", name: "Fandom FR hub", url: "https://dragonball.fandom.com/fr/wiki/Wiki_Dragon_Ball", mode: "recon" },
-	{ id: "fandom-fr-goku", name: "Son Goku FR", url: "https://dragonball.fandom.com/fr/wiki/Son_Goku", mode: "recon" },
-	{ id: "fandom-fr-vegeta", name: "Vegeta FR", url: "https://dragonball.fandom.com/fr/wiki/Vegeta", mode: "recon" },
-	{ id: "fandom-fr-techniques", name: "Techniques FR", url: "https://dragonball.fandom.com/fr/wiki/Cat%C3%A9gorie:Techniques", mode: "recon" },
+	{
+		id: "fandom-fr-hub",
+		name: "Fandom FR hub",
+		url: "https://dragonball.fandom.com/fr/wiki/Wiki_Dragon_Ball",
+		mode: "recon",
+	},
+	{
+		id: "fandom-fr-goku",
+		name: "Son Goku FR",
+		url: "https://dragonball.fandom.com/fr/wiki/Son_Goku",
+		mode: "recon",
+	},
+	{
+		id: "fandom-fr-vegeta",
+		name: "Vegeta FR",
+		url: "https://dragonball.fandom.com/fr/wiki/Vegeta",
+		mode: "recon",
+	},
+	{
+		id: "fandom-fr-techniques",
+		name: "Techniques FR",
+		url: "https://dragonball.fandom.com/fr/wiki/Cat%C3%A9gorie:Techniques",
+		mode: "recon",
+	},
 	// ── Super wiki ─────────────────────────────────────────────────────────
-	{ id: "dbs-fandom", name: "DB Super Wiki", url: "https://dragonballsuper.fandom.com/wiki/Dragon_Ball_Super_Wiki", mode: "recon" },
+	{
+		id: "dbs-fandom",
+		name: "DB Super Wiki",
+		url: "https://dragonballsuper.fandom.com/wiki/Dragon_Ball_Super_Wiki",
+		mode: "recon",
+	},
 	// ── Wikipedia ──────────────────────────────────────────────────────────
-	{ id: "wiki-db", name: "Wikipedia Dragon Ball", url: "https://en.wikipedia.org/wiki/Dragon_Ball", mode: "recon" },
-	{ id: "wiki-dbz", name: "Wikipedia DBZ", url: "https://en.wikipedia.org/wiki/Dragon_Ball_Z", mode: "recon" },
-	{ id: "wiki-dbs", name: "Wikipedia Super", url: "https://en.wikipedia.org/wiki/Dragon_Ball_Super", mode: "recon" },
-	{ id: "wiki-gt", name: "Wikipedia GT", url: "https://en.wikipedia.org/wiki/Dragon_Ball_GT", mode: "recon" },
-	{ id: "wiki-toriyama", name: "Wikipedia Toriyama", url: "https://en.wikipedia.org/wiki/Akira_Toriyama", mode: "recon" },
-	{ id: "wiki-fr-db", name: "Wikipedia FR DB", url: "https://fr.wikipedia.org/wiki/Dragon_Ball", mode: "recon" },
-	{ id: "wiki-fr-dbz", name: "Wikipedia FR DBZ", url: "https://fr.wikipedia.org/wiki/Dragon_Ball_Z", mode: "recon" },
+	{
+		id: "wiki-db",
+		name: "Wikipedia Dragon Ball",
+		url: "https://en.wikipedia.org/wiki/Dragon_Ball",
+		mode: "recon",
+	},
+	{
+		id: "wiki-dbz",
+		name: "Wikipedia DBZ",
+		url: "https://en.wikipedia.org/wiki/Dragon_Ball_Z",
+		mode: "recon",
+	},
+	{
+		id: "wiki-dbs",
+		name: "Wikipedia Super",
+		url: "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
+		mode: "recon",
+	},
+	{
+		id: "wiki-gt",
+		name: "Wikipedia GT",
+		url: "https://en.wikipedia.org/wiki/Dragon_Ball_GT",
+		mode: "recon",
+	},
+	{
+		id: "wiki-toriyama",
+		name: "Wikipedia Toriyama",
+		url: "https://en.wikipedia.org/wiki/Akira_Toriyama",
+		mode: "recon",
+	},
+	{
+		id: "wiki-fr-db",
+		name: "Wikipedia FR DB",
+		url: "https://fr.wikipedia.org/wiki/Dragon_Ball",
+		mode: "recon",
+	},
+	{
+		id: "wiki-fr-dbz",
+		name: "Wikipedia FR DBZ",
+		url: "https://fr.wikipedia.org/wiki/Dragon_Ball_Z",
+		mode: "recon",
+	},
 	// ── API / data ─────────────────────────────────────────────────────────
-	{ id: "dragonball-api", name: "dragonball-api web", url: "https://web.dragonball-api.com/", mode: "mirror" },
+	{
+		id: "dragonball-api",
+		name: "dragonball-api web",
+		url: "https://web.dragonball-api.com/",
+		mode: "mirror",
+	},
 	{ id: "jikan", name: "Jikan MAL API", url: "https://jikan.moe/", mode: "recon" },
-	{ id: "mal-db", name: "MyAnimeList DB", url: "https://myanimelist.net/anime/223/Dragon_Ball", mode: "recon" },
-	{ id: "mal-dbz", name: "MyAnimeList DBZ", url: "https://myanimelist.net/anime/813/Dragon_Ball_Z", mode: "recon" },
-	{ id: "anilist", name: "AniList search", url: "https://anilist.co/search/anime?search=Dragon%20Ball", mode: "recon" },
-	{ id: "kitsu", name: "Kitsu explore", url: "https://kitsu.io/explore/anime?text=dragon%20ball", mode: "recon" },
+	{
+		id: "mal-db",
+		name: "MyAnimeList DB",
+		url: "https://myanimelist.net/anime/223/Dragon_Ball",
+		mode: "recon",
+	},
+	{
+		id: "mal-dbz",
+		name: "MyAnimeList DBZ",
+		url: "https://myanimelist.net/anime/813/Dragon_Ball_Z",
+		mode: "recon",
+	},
+	{
+		id: "anilist",
+		name: "AniList search",
+		url: "https://anilist.co/search/anime?search=Dragon%20Ball",
+		mode: "recon",
+	},
+	{
+		id: "kitsu",
+		name: "Kitsu explore",
+		url: "https://kitsu.io/explore/anime?text=dragon%20ball",
+		mode: "recon",
+	},
 	// ── Sprites / game assets catalogs ─────────────────────────────────────
-	{ id: "spriters-ssw2", name: "Spriters SSW2", url: "https://www.spriters-resource.com/ds_dsi/dbzsupersonicwarriors2/", mode: "mirror" },
-	{ id: "spriters-aots", name: "Spriters Attack of Saiyans", url: "https://www.spriters-resource.com/ds_dsi/dragonballzattackofthesaiyans/", mode: "mirror" },
-	{ id: "spriters-extreme", name: "Spriters Extreme Butouden", url: "https://www.spriters-resource.com/nintendo_3ds/dragonballzextremebutouden/", mode: "mirror" },
-	{ id: "spriters-search", name: "Spriters search DB", url: "https://www.spriters-resource.com/search/?q=dragon+ball", mode: "recon" },
+	{
+		id: "spriters-ssw2",
+		name: "Spriters SSW2",
+		url: "https://www.spriters-resource.com/ds_dsi/dbzsupersonicwarriors2/",
+		mode: "mirror",
+	},
+	{
+		id: "spriters-aots",
+		name: "Spriters Attack of Saiyans",
+		url: "https://www.spriters-resource.com/ds_dsi/dragonballzattackofthesaiyans/",
+		mode: "mirror",
+	},
+	{
+		id: "spriters-extreme",
+		name: "Spriters Extreme Butouden",
+		url: "https://www.spriters-resource.com/nintendo_3ds/dragonballzextremebutouden/",
+		mode: "mirror",
+	},
+	{
+		id: "spriters-search",
+		name: "Spriters search DB",
+		url: "https://www.spriters-resource.com/search/?q=dragon+ball",
+		mode: "recon",
+	},
 	// ── Streaming editorial pages (key art only) ───────────────────────────
-	{ id: "crunchyroll-dbs", name: "Crunchyroll Super", url: "https://www.crunchyroll.com/series/G63VGG2NY/dragon-ball-super", mode: "recon" },
+	{
+		id: "crunchyroll-dbs",
+		name: "Crunchyroll Super",
+		url: "https://www.crunchyroll.com/series/G63VGG2NY/dragon-ball-super",
+		mode: "recon",
+	},
 ];
 
 type AssetHit = {
@@ -278,7 +688,9 @@ function extractFromReconJson(stdout: string, page: string): AssetHit[] {
 		}
 	} catch {
 		// also harvest media URLs from plain recon markdown dump
-		hits.push(...extractFromMarkdown(stdout, page).map((h) => ({ ...h, via: "bxc-recon" as const })));
+		hits.push(
+			...extractFromMarkdown(stdout, page).map((h) => ({ ...h, via: "bxc-recon" as const }))
+		);
 	}
 	return hits;
 }
@@ -392,11 +804,7 @@ async function harvestSource(src: (typeof SOURCES)[0]): Promise<AssetHit[]> {
 	if (doRecon && !MIRROR_ONLY) {
 		// 1) scrape --markdown (rag-harvest handleRecon pattern)
 		log(`[*] bxc scrape --markdown ${src.url}`);
-		const scrape = await execBxc(
-			"scrape",
-			[src.url, "--markdown", "--force"],
-			{ proxy, profile }
-		);
+		const scrape = await execBxc("scrape", [src.url, "--markdown", "--force"], { proxy, profile });
 		if (scrape.code === 0 && scrape.stdout.length > 80) {
 			const mdHits = extractFromMarkdown(scrape.stdout, src.url);
 			log(`  [scrape] ${mdHits.length} media URLs from markdown (${scrape.stdout.length} chars)`);
@@ -447,7 +855,7 @@ async function harvestSource(src: (typeof SOURCES)[0]): Promise<AssetHit[]> {
 		if (mir.code === 0) {
 			log(`  [mirror] ok (stdout ${mir.stdout.length}B)`);
 			// Scan mirrored tree for media files already on disk
-			const { readdirSync, statSync } = await import("node:fs");
+			const { readdirSync } = await import("node:fs");
 			function walk(d: string) {
 				let n = 0;
 				try {
@@ -593,9 +1001,7 @@ async function main() {
 		records: results,
 	};
 	writeFileSync(INV, JSON.stringify(inv, null, 2));
-	log(
-		`\n✓ ${ok.length} assets / ${(inv.summary.bytes / 1024 / 1024).toFixed(2)} MiB → ${INV}`
-	);
+	log(`\n✓ ${ok.length} assets / ${(inv.summary.bytes / 1024 / 1024).toFixed(2)} MiB → ${INV}`);
 
 	// Promote audio into public/sfx/ if new
 	for (const r of ok.filter((x) => x.kind === "audio")) {
