@@ -182,7 +182,9 @@ async function fetchAllPages<T>(endpoint: string): Promise<T[]> {
 	return all;
 }
 
-export async function ingestImages(opts: { force?: boolean; dbzDir?: string } = {}): Promise<InventoryRecord[]> {
+export async function ingestImages(
+	opts: { force?: boolean; dbzDir?: string } = {}
+): Promise<InventoryRecord[]> {
 	const root = opts.dbzDir ?? DBZ_DIR;
 	const force = opts.force ?? FORCE;
 	const records: InventoryRecord[] = [];

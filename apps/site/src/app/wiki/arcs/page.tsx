@@ -31,7 +31,12 @@ export default async function ArcsPage() {
 	for (const a of arcs) {
 		let g = sagas[sagas.length - 1];
 		if (!g || g.slug !== a.saga_slug) {
-			g = { slug: a.saga_slug, name: a.saga_name ?? "Autres arcs", series: a.saga_series, arcs: [] };
+			g = {
+				slug: a.saga_slug,
+				name: a.saga_name ?? "Autres arcs",
+				series: a.saga_series,
+				arcs: [],
+			};
 			sagas.push(g);
 		}
 		g.arcs.push(a);
@@ -94,7 +99,9 @@ export default async function ArcsPage() {
 												</span>
 											</div>
 											{a.name_ja && (
-												<p className="font-jp text-[11px] text-white/40 tracking-wider">{a.name_ja}</p>
+												<p className="font-jp text-[11px] text-white/40 tracking-wider">
+													{a.name_ja}
+												</p>
 											)}
 											{a.description && (
 												<p className="text-gray-400 text-[13px] font-sans leading-relaxed line-clamp-3">

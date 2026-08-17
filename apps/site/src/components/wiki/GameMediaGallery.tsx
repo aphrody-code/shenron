@@ -30,13 +30,7 @@ function resolvePreview(item: GalleryMedia): {
 	return { kind: "image", src, thumb: src };
 }
 
-export function GameMediaGallery({
-	media,
-	title,
-}: {
-	media: GalleryMedia[];
-	title: string;
-}) {
+export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; title: string }) {
 	const items = useMemo(
 		() =>
 			media
@@ -102,8 +96,7 @@ export function GameMediaGallery({
 									type="button"
 									onClick={() => setActive(i)}
 									aria-label={
-										item.caption ||
-										(item.kind === "youtube" ? `Vidéo ${i + 1}` : `Image ${i + 1}`)
+										item.caption || (item.kind === "youtube" ? `Vidéo ${i + 1}` : `Image ${i + 1}`)
 									}
 									aria-current={isActive ? "true" : undefined}
 									className={`relative h-16 w-28 shrink-0 overflow-hidden rounded-md border-2 transition-all ${

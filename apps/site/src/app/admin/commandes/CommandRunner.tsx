@@ -37,9 +37,13 @@ interface Reply {
 	files?: number;
 	ephemeral?: boolean;
 }
-type ExecResult =
-	| { ok: boolean; persona: string | null; invocation: string; replies: Reply[]; error?: string }
-	| null;
+type ExecResult = {
+	ok: boolean;
+	persona: string | null;
+	invocation: string;
+	replies: Reply[];
+	error?: string;
+} | null;
 
 // Commandes interactives (pagination/modal/collector/voice/canvas) : la partie
 // interactive ne fonctionne pas en headless (on récupère la 1ère réponse). On

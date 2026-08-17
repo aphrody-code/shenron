@@ -144,11 +144,15 @@ async function ingestVolume(volume: number, volumeId: number): Promise<void> {
 		INSERT INTO bot.db_manga_chapters (series, chapter_number, title, cover, pages, volume_id)
 		VALUES ('DB', ${volume}, ${`Tome ${volume}`}, ${cover}, ${sql.json(local)}, ${volumeId})
 		ON CONFLICT DO NOTHING`;
-	console.log(`   ✅ Tome ${volume} : ${local.length} planches (libre ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go)`);
+	console.log(
+		`   ✅ Tome ${volume} : ${local.length} planches (libre ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go)`
+	);
 }
 
 async function main() {
-	console.log(`📚 Ingestion Dragon Ball original (tomes ${FROM}→${TO})${dryRun ? " (dry-run)" : ""}`);
+	console.log(
+		`📚 Ingestion Dragon Ball original (tomes ${FROM}→${TO})${dryRun ? " (dry-run)" : ""}`
+	);
 	console.log(`   libre: ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go`);
 	const vols = await sql<{ id: number; volume_number: number }[]>`
 		SELECT id, volume_number FROM bot.db_manga_volumes WHERE title LIKE 'Dragon Ball Vol. %'`;

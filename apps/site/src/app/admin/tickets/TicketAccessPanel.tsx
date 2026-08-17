@@ -97,8 +97,8 @@ export function TicketAccessPanel() {
 						Accès staff par type de ticket
 					</h2>
 					<p className="text-[11px] text-white/45">
-						Ces rôles voient et écrivent dans les tickets du type concerné dès leur ouverture.
-						Sans rôle configuré, seul l&apos;auteur du ticket et le staff y ont accès.
+						Ces rôles voient et écrivent dans les tickets du type concerné dès leur ouverture. Sans
+						rôle configuré, seul l&apos;auteur du ticket et le staff y ont accès.
 					</p>
 				</div>
 				<button
@@ -124,7 +124,10 @@ export function TicketAccessPanel() {
 					{TICKET_KINDS.map((kind) => {
 						const roles = rolesByKind[kind] ?? [];
 						return (
-							<div key={kind} className="space-y-2 rounded-lg border border-dbz-border bg-black/30 p-3">
+							<div
+								key={kind}
+								className="space-y-2 rounded-lg border border-dbz-border bg-black/30 p-3"
+							>
 								<div>
 									<p className="font-saiyan text-sm text-white">{KIND_META[kind].label}</p>
 									<p className="text-[10px] text-white/40">{KIND_META[kind].hint}</p>

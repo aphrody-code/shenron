@@ -211,7 +211,11 @@ export default async function SearchPage({
 					)}
 
 					{results.characters.length > 0 && (
-						<section id="characters" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.1s" }}>
+						<section
+							id="characters"
+							className="reveal-up scroll-mt-24"
+							style={{ animationDelay: "0.1s" }}
+						>
 							<div className="flex items-center gap-6 mb-8">
 								<h2 className="font-saiyan text-3xl text-dbz-orange uppercase tracking-widest">
 									Guerriers Détectés ({results.characters.length})
@@ -256,7 +260,11 @@ export default async function SearchPage({
 					)}
 
 					{results.planets.length > 0 && (
-						<section id="planets" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.2s" }}>
+						<section
+							id="planets"
+							className="reveal-up scroll-mt-24"
+							style={{ animationDelay: "0.2s" }}
+						>
 							<div className="flex items-center gap-6 mb-8">
 								<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest">
 									Localisations ({results.planets.length})
@@ -304,7 +312,11 @@ export default async function SearchPage({
 
 					<div className="grid md:grid-cols-2 gap-12">
 						{results.sagas.length > 0 && (
-							<section id="sagas" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.3s" }}>
+							<section
+								id="sagas"
+								className="reveal-up scroll-mt-24"
+								style={{ animationDelay: "0.3s" }}
+							>
 								<div className="flex items-center gap-6 mb-6">
 									<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 										Chronologie
@@ -338,7 +350,11 @@ export default async function SearchPage({
 						)}
 
 						{results.movies.length > 0 && (
-							<section id="movies" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.4s" }}>
+							<section
+								id="movies"
+								className="reveal-up scroll-mt-24"
+								style={{ animationDelay: "0.4s" }}
+							>
 								<div className="flex items-center gap-6 mb-6">
 									<h2 className="font-saiyan text-2xl text-dbz-red uppercase tracking-widest">
 										Archives Cinéma
@@ -373,7 +389,11 @@ export default async function SearchPage({
 					</div>
 
 					{results.games.length > 0 && (
-						<section id="games" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.45s" }}>
+						<section
+							id="games"
+							className="reveal-up scroll-mt-24"
+							style={{ animationDelay: "0.45s" }}
+						>
 							<div className="flex items-center gap-6 mb-6">
 								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest">
 									Jeux ({results.games.length})
@@ -400,7 +420,11 @@ export default async function SearchPage({
 					)}
 
 					{results.episodes.length > 0 && (
-						<section id="episodes" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.5s" }}>
+						<section
+							id="episodes"
+							className="reveal-up scroll-mt-24"
+							style={{ animationDelay: "0.5s" }}
+						>
 							<div className="flex items-center gap-6 mb-6">
 								<h2 className="font-saiyan text-2xl text-dbz-blue-light uppercase tracking-widest">
 									Épisodes ({results.episodes.length})
@@ -441,7 +465,11 @@ export default async function SearchPage({
 					)}
 
 					{results.techniques.length > 0 && (
-						<section id="techniques" className="reveal-up scroll-mt-24" style={{ animationDelay: "0.55s" }}>
+						<section
+							id="techniques"
+							className="reveal-up scroll-mt-24"
+							style={{ animationDelay: "0.55s" }}
+						>
 							<div className="flex items-center gap-6 mb-6">
 								<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 									Techniques ({results.techniques.length})
@@ -589,7 +617,9 @@ export default async function SearchPage({
 												/>
 											) : (
 												<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-													<span className="text-zinc-700 font-saiyan text-xl">T{v.volume_number}</span>
+													<span className="text-zinc-700 font-saiyan text-xl">
+														T{v.volume_number}
+													</span>
 												</div>
 											)}
 											<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
@@ -638,29 +668,27 @@ export default async function SearchPage({
 					)}
 
 					{totalResults === 0 && (
-							<div className="dbz-panel p-10 max-w-3xl border-l-4 border-l-dbz-red reveal-up">
-								<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
-									AUCUNE ÉNERGIE DÉTECTÉE
-								</h2>
-								<p className="text-white/60 text-lg leading-relaxed mb-8">
-									Le Scouter n'a trouvé aucun résultat pour «{" "}
-									<span className="text-dbz-orange font-bold">{q}</span> ». Essaie un autre terme —
-									un nom de personnage, un titre de film, une saga ou une planète.
-								</p>
-								<div className="grid sm:grid-cols-2 gap-6 text-sm">
-									<div className="space-y-2">
-										<p className="text-dbz-orange font-bold uppercase tracking-widest">Guerriers</p>
-										<p className="text-white/40">Goku, Vegeta, Beerus, Jiren, Broly...</p>
-									</div>
-									<div className="space-y-2">
-										<p className="text-dbz-blue-light font-bold uppercase tracking-widest">
-											Mondes
-										</p>
-										<p className="text-white/40">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
-									</div>
+						<div className="dbz-panel p-10 max-w-3xl border-l-4 border-l-dbz-red reveal-up">
+							<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">
+								AUCUNE ÉNERGIE DÉTECTÉE
+							</h2>
+							<p className="text-white/60 text-lg leading-relaxed mb-8">
+								Le Scouter n'a trouvé aucun résultat pour «{" "}
+								<span className="text-dbz-orange font-bold">{q}</span> ». Essaie un autre terme — un
+								nom de personnage, un titre de film, une saga ou une planète.
+							</p>
+							<div className="grid sm:grid-cols-2 gap-6 text-sm">
+								<div className="space-y-2">
+									<p className="text-dbz-orange font-bold uppercase tracking-widest">Guerriers</p>
+									<p className="text-white/40">Goku, Vegeta, Beerus, Jiren, Broly...</p>
+								</div>
+								<div className="space-y-2">
+									<p className="text-dbz-blue-light font-bold uppercase tracking-widest">Mondes</p>
+									<p className="text-white/40">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
 								</div>
 							</div>
-						)}
+						</div>
+					)}
 				</div>
 			)}
 		</div>

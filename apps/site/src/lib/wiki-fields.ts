@@ -113,7 +113,10 @@ export const ENUM_OPTIONS: Record<string, { options: string[]; strict?: boolean 
 	"db_manga_volumes.series": { options: ["DB", "DBS"] },
 	"db_manga_chapters.series": { options: ["DB", "DBS"] },
 };
-export function enumOptionsFor(table: string, col: string): { options: string[]; strict?: boolean } | null {
+export function enumOptionsFor(
+	table: string,
+	col: string
+): { options: string[]; strict?: boolean } | null {
 	return ENUM_OPTIONS[`${table}.${col}`] ?? null;
 }
 
@@ -227,7 +230,12 @@ export const SECTION_PRESETS: SectionPreset[] = [
 export const PWS_GROUP_PRESETS: SectionPreset[] = [
 	{ key: "force-de-frappe", label: "Force de Frappe", accent: "red", groupLabel: PWS_GROUP_NAME },
 	{ key: "force", label: "Puissance Potentiel", accent: "red", groupLabel: PWS_GROUP_NAME },
-	{ key: "force-de-soulever", label: "Force de Soulever", accent: "red", groupLabel: PWS_GROUP_NAME },
+	{
+		key: "force-de-soulever",
+		label: "Force de Soulever",
+		accent: "red",
+		groupLabel: PWS_GROUP_NAME,
+	},
 	{ key: "vitesse", label: "Vitesse de Combat", accent: "orange", groupLabel: PWS_GROUP_NAME },
 	{
 		key: "vitesse-de-deplacement",

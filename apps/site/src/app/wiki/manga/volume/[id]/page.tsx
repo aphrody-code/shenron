@@ -14,9 +14,7 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
 	const readable = await dbUniverse.readableMangaChapters();
 	const volIds = new Set(
-		(readable?.chapters ?? [])
-			.map((c) => c.volume_id)
-			.filter((v): v is number => v != null)
+		(readable?.chapters ?? []).map((c) => c.volume_id).filter((v): v is number => v != null)
 	);
 	return [...volIds].map((id) => ({ id: String(id) }));
 }

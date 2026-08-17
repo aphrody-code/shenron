@@ -39,11 +39,7 @@ function jsonResult(data: unknown): ToolResult {
 /** Transforme une erreur en résultat MCP `isError` avec un message spécifique. */
 function errorResult(err: unknown): ToolResult {
 	const msg =
-		err instanceof ApiError
-			? err.message
-			: err instanceof Error
-				? err.message
-				: "Erreur inconnue";
+		err instanceof ApiError ? err.message : err instanceof Error ? err.message : "Erreur inconnue";
 	return { content: [{ type: "text", text: `Erreur : ${msg}` }], isError: true };
 }
 
@@ -93,10 +89,7 @@ export function registerAllTools(server: McpServer): void {
 					.max(25)
 					.optional()
 					.describe("Nombre de passages à renvoyer (défaut 8, max 25)"),
-				lang: z
-					.string()
-					.optional()
-					.describe("Filtrer par langue des documents (ex. 'fr', 'en')"),
+				lang: z.string().optional().describe("Filtrer par langue des documents (ex. 'fr', 'en')"),
 				entity: z
 					.string()
 					.optional()
@@ -169,7 +162,13 @@ export function registerAllTools(server: McpServer): void {
 				"Recherche plein-texte dans le wiki Dragon Ball de dragonballfr.com (personnages, planètes, races, sagas, techniques, transformations, épisodes, films, jeux). API : bot.dragonballfr.com/api/public/wiki/search.",
 			inputSchema: {
 				query: z.string().min(1).describe("Termes recherchés"),
-				limit: z.number().int().min(1).max(50).optional().describe("Nombre de résultats (défaut 20)"),
+				limit: z
+					.number()
+					.int()
+					.min(1)
+					.max(50)
+					.optional()
+					.describe("Nombre de résultats (défaut 20)"),
 			},
 			annotations: { title: "Recherche plein-texte du wiki", ...READ_ANNOTATIONS },
 		},
@@ -189,9 +188,7 @@ export function registerAllTools(server: McpServer): void {
 			description:
 				"Liste paginée d'entités du wiki Dragon Ball par catégorie. API : bot.dragonballfr.com/api/public/wiki/{category}.",
 			inputSchema: {
-				category: z
-					.enum(WIKI_LIST_CATEGORIES)
-					.describe("Catégorie d'entités à lister"),
+				category: z.enum(WIKI_LIST_CATEGORIES).describe("Catégorie d'entités à lister"),
 				limit: z.number().int().min(1).max(200).optional().describe("Taille de page (défaut 50)"),
 				offset: z.number().int().min(0).optional().describe("Décalage de pagination (défaut 0)"),
 			},
@@ -220,9 +217,7 @@ export function registerAllTools(server: McpServer): void {
 		},
 		async ({ category, id }) => {
 			try {
-				return jsonResult(
-					await apiGet(`/api/public/wiki/${category}/${encodeURIComponent(id)}`)
-				);
+				return jsonResult(await apiGet(`/api/public/wiki/${category}/${encodeURIComponent(id)}`));
 			} catch (err) {
 				return errorResult(err);
 			}
@@ -238,7 +233,13 @@ export function registerAllTools(server: McpServer): void {
 				"Recherche textuelle (OCR) dans les planches du manga Dragon Ball auto-hébergé sur dragonballfr.com. API : bot.dragonballfr.com/api/public/manga/search.",
 			inputSchema: {
 				query: z.string().min(1).describe("Texte recherché dans les planches"),
-				limit: z.number().int().min(1).max(50).optional().describe("Nombre de résultats (défaut 20)"),
+				limit: z
+					.number()
+					.int()
+					.min(1)
+					.max(50)
+					.optional()
+					.describe("Nombre de résultats (défaut 20)"),
 			},
 			annotations: { title: "Recherche dans le manga", ...READ_ANNOTATIONS },
 		},
@@ -258,7 +259,10 @@ export function registerAllTools(server: McpServer): void {
 			description:
 				"Liste les tomes du manga Dragon Ball, ou le détail d'un tome (avec ses planches) si série + tome sont fournis. API : bot.dragonballfr.com/api/public/manga/tomes.",
 			inputSchema: {
-				series: z.string().optional().describe("Slug de la série (ex. 'dragon-ball'); omettre pour tout lister"),
+				series: z
+					.string()
+					.optional()
+					.describe("Slug de la série (ex. 'dragon-ball'); omettre pour tout lister"),
 				tome: z.number().int().min(1).optional().describe("Numéro de tome (requiert 'series')"),
 			},
 			annotations: { title: "Tomes du manga", ...READ_ANNOTATIONS },
@@ -344,7 +348,13 @@ export function registerAllTools(server: McpServer): void {
 			description:
 				"Classement public des membres du serveur Discord par niveau/XP. API : bot.dragonballfr.com/api/public/leaderboard.",
 			inputSchema: {
-				limit: z.number().int().min(1).max(100).optional().describe("Taille du classement (défaut 20)"),
+				limit: z
+					.number()
+					.int()
+					.min(1)
+					.max(100)
+					.optional()
+					.describe("Taille du classement (défaut 20)"),
 			},
 			annotations: { title: "Classement des membres", ...READ_ANNOTATIONS },
 		},

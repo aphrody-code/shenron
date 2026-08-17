@@ -102,8 +102,7 @@ function norm(s: string): string {
 const tabBtn =
 	"inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors";
 const tabActive = "border-dbz-orange bg-dbz-orange/10 text-white";
-const tabIdle =
-	"border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white";
+const tabIdle = "border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white";
 
 export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 	const [filter, setFilter] = useState<string>("all");
@@ -138,11 +137,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 		<div className="space-y-6">
 			{/* Une seule rangée de filtres, tous au même plan (même taille / style). */}
 			<div className="flex flex-wrap items-center gap-3">
-				<div
-					className="flex flex-wrap gap-2"
-					role="group"
-					aria-label="Filtrer par catégorie"
-				>
+				<div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par catégorie">
 					{FILTER_TABS.map((t) => {
 						const Icon = t.icon;
 						const active = filter === t.key;
@@ -186,9 +181,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 
 			{filtered.length === 0 ? (
 				<p className="py-12 text-center text-sm italic text-white/40">
-					{q.trim()
-						? `Aucun résultat pour « ${q.trim()} ».`
-						: "Aucun résultat pour ce filtre."}
+					{q.trim() ? `Aucun résultat pour « ${q.trim()} ».` : "Aucun résultat pour ce filtre."}
 				</p>
 			) : (
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">

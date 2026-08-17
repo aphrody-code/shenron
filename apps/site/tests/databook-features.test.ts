@@ -9,11 +9,7 @@ import {
 	kindFromCategory,
 	resolveDatabookCategory,
 } from "../src/lib/databook-categories";
-import {
-	extractYoutubeId,
-	youtubeEmbedUrl,
-	youtubeThumbUrl,
-} from "../src/lib/youtube";
+import { extractYoutubeId, youtubeEmbedUrl, youtubeThumbUrl } from "../src/lib/youtube";
 
 describe("databook categories", () => {
 	test("liste canonique unifiée (types + éditoriales)", () => {
@@ -63,9 +59,7 @@ describe("databook categories", () => {
 
 describe("youtube helpers", () => {
 	test("extrait id depuis watch?v=", () => {
-		expect(extractYoutubeId("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBe(
-			"dQw4w9WgXcQ"
-		);
+		expect(extractYoutubeId("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
 	});
 
 	test("extrait id depuis youtu.be", () => {
@@ -73,12 +67,8 @@ describe("youtube helpers", () => {
 	});
 
 	test("extrait id depuis embed / shorts", () => {
-		expect(extractYoutubeId("https://www.youtube.com/embed/dQw4w9WgXcQ")).toBe(
-			"dQw4w9WgXcQ"
-		);
-		expect(extractYoutubeId("https://www.youtube.com/shorts/dQw4w9WgXcQ")).toBe(
-			"dQw4w9WgXcQ"
-		);
+		expect(extractYoutubeId("https://www.youtube.com/embed/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+		expect(extractYoutubeId("https://www.youtube.com/shorts/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
 	});
 
 	test("id brut 11 chars", () => {
@@ -95,9 +85,7 @@ describe("youtube helpers", () => {
 		expect(youtubeEmbedUrl("https://youtu.be/dQw4w9WgXcQ")).toBe(
 			"https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"
 		);
-		expect(youtubeThumbUrl("dQw4w9WgXcQ")).toBe(
-			"https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
-		);
+		expect(youtubeThumbUrl("dQw4w9WgXcQ")).toBe("https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg");
 		expect(youtubeEmbedUrl("bad")).toBeNull();
 	});
 });
@@ -168,7 +156,7 @@ describe("source features shipped", () => {
 		// Types d'ouvrage dans les icônes de filtre
 		expect(src).toContain('"Art Book"');
 		expect(src).toContain("Guidebook");
-		expect(src).toContain("mode: \"category\"");
+		expect(src).toContain('mode: "category"');
 	});
 });
 

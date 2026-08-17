@@ -112,7 +112,10 @@ export async function savePost(input: PostInput): Promise<SaveResult> {
 		.select({ slug: posts.slug })
 		.from(posts)
 		.where(data.id ? ne(posts.id, data.id) : undefined);
-	const slug = uniqueSlug(desired, taken.map((r) => r.slug));
+	const slug = uniqueSlug(
+		desired,
+		taken.map((r) => r.slug)
+	);
 
 	// --- Statut et date de parution ------------------------------------------
 	// `published` = validé par la rédaction ; `publishedAt` = date d'entrée en

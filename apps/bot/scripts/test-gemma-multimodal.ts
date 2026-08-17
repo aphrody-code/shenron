@@ -48,14 +48,27 @@ const b64 = async (path: string) =>
 const nManga = Number(flag("--manga", "3"));
 if (nManga > 0) {
 	const map = JSON.parse(await Bun.file(`${ROOT}data/manga-visual-map.json`).text()) as {
-		tomes: { series: string; tome: string; pages: { planche: number; image: string; text: string }[] }[];
+		tomes: {
+			series: string;
+			tome: string;
+			pages: { planche: number; image: string; text: string }[];
+		}[];
 	};
-	const withText: { series: string; tome: string; planche: number; image: string; text: string }[] = [];
+	const withText: { series: string; tome: string; planche: number; image: string; text: string }[] =
+		[];
 	for (const t of map.tomes)
 		for (const p of t.pages)
 			if (p.text && p.text.length > 60)
-				withText.push({ series: t.series, tome: t.tome, planche: p.planche, image: p.image, text: p.text });
-	console.log(`\n========== MANGA (vision) — ${MODEL} — ${withText.length} planches OCR dispo ==========`);
+				withText.push({
+					series: t.series,
+					tome: t.tome,
+					planche: p.planche,
+					image: p.image,
+					text: p.text,
+				});
+	console.log(
+		`\n========== MANGA (vision) — ${MODEL} — ${withText.length} planches OCR dispo ==========`
+	);
 	for (let i = 0; i < nManga; i++) {
 		const p = withText[Math.floor((i * withText.length) / nManga)];
 		if (!p) break;
@@ -96,7 +109,9 @@ if (video) {
 			"Voici des images extraites (dans l'ordre chronologique) d'un épisode ou film Dragon Ball. Décris la scène, le décor, et identifie les personnages visibles.",
 			frames
 		);
-		console.log(`\n--- ${frames.length} frames (${ts.join("s, ")}s) ---\n  Gemma👁️ : ${out.slice(0, 600)}`);
+		console.log(
+			`\n--- ${frames.length} frames (${ts.join("s, ")}s) ---\n  Gemma👁️ : ${out.slice(0, 600)}`
+		);
 	}
 } else {
 	console.log(

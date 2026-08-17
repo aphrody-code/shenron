@@ -464,7 +464,9 @@ if (existsSync(CORPUS)) {
 		if (existsSync(XV2_CORPUS)) {
 			const xv2 = JSON.parse(readFileSync(XV2_CORPUS, "utf-8")) as { docs: typeof corpus.docs };
 			corpus.docs.push(...xv2.docs);
-			console.log(`  + ${xv2.docs.length} docs Xenoverse 2 (persos/skills/mentors/histoire) fusionnés au corpus.`);
+			console.log(
+				`  + ${xv2.docs.length} docs Xenoverse 2 (persos/skills/mentors/histoire) fusionnés au corpus.`
+			);
 		}
 
 		let docCount = 0;
@@ -530,7 +532,7 @@ const queue: { index: number; batchTexts: string[] }[] = [];
 for (let i = 0; i < texts.length; i += BATCH_SIZE) {
 	queue.push({
 		index: i,
-		batchTexts: texts.slice(i, i + BATCH_SIZE)
+		batchTexts: texts.slice(i, i + BATCH_SIZE),
 	});
 }
 
@@ -557,12 +559,15 @@ async function worker() {
 					throw new Error(`HTTP ${res.status}`);
 				}
 				const data = (await res.json()) as { vectors: number[][] };
-				batchVectors = data.vectors.map(v => new Float32Array(v));
+				batchVectors = data.vectors.map((v) => new Float32Array(v));
 				success = true;
 			} catch (err) {
 				retries--;
 				if (retries === 0) {
-					console.error(`\n✗ Échec d'embedding pour le lot ${index} - ${index + batchTexts.length}:`, err);
+					console.error(
+						`\n✗ Échec d'embedding pour le lot ${index} - ${index + batchTexts.length}:`,
+						err
+					);
 					process.exit(1);
 				}
 				await new Promise((resolve) => setTimeout(resolve, 1000));

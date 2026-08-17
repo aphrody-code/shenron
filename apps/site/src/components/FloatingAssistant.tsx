@@ -28,7 +28,8 @@ const PERSONA_THEMES = {
 		bubbleBg: "bg-purple-500/10 border-purple-500/20 text-purple-200",
 		inputFocus: "focus:border-purple-500/50 focus:ring-purple-500/20",
 		placeholder: "Parle à Beerus le Destructeur...",
-		welcome: "Mmmh ? Encore un mortel insignifiant qui vient troubler ma sieste. Sois bref ou je pulvérise ton quadrant ! Et si tu as du pudding, c'est le moment.",
+		welcome:
+			"Mmmh ? Encore un mortel insignifiant qui vient troubler ma sieste. Sois bref ou je pulvérise ton quadrant ! Et si tu as du pudding, c'est le moment.",
 	},
 	shenron: {
 		name: "Shenron",

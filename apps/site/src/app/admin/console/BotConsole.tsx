@@ -259,7 +259,9 @@ export function BotConsole() {
 						{sendM.isPending ? "Envoi…" : "Envoyer"}
 					</button>
 					<span className="text-[12px] text-white/40">{content.length}/2000</span>
-					{sendError && <span className="text-[13px] font-semibold text-rose-400">{sendError}</span>}
+					{sendError && (
+						<span className="text-[13px] font-semibold text-rose-400">{sendError}</span>
+					)}
 					{sentUrl && (
 						<a
 							href={sentUrl}

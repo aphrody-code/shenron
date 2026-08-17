@@ -29,6 +29,7 @@ const COLUMNS = [
 		links: [
 			{ href: "/credits", label: "Crédits & sources" },
 			{ href: "/licence", label: "Licence & usage" },
+			{ href: "/confidentialite", label: "Confidentialité" },
 			{ href: "/credits#contact", label: "Signaler un contenu" },
 		],
 	},
@@ -56,8 +57,8 @@ export function SiteFooter() {
 						</span>
 					</Link>
 					<p className="text-[14px] text-white/60 leading-relaxed max-w-sm">
-						Le plus grand serveur Dragon Ball francophone — épisodes, films, manga, actualités
-						et une communauté Discord active. Site fan, non affilié aux ayants droit.
+						Le plus grand serveur Dragon Ball francophone — épisodes, films, manga, actualités et
+						une communauté Discord active. Site fan, non affilié aux ayants droit.
 					</p>
 				</div>
 

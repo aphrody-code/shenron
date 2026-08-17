@@ -541,11 +541,11 @@ Le vocal est automatiquement créé en rejoignant le hub configuré, et supprim�
 <details>
 <summary><strong>Wiki Dragon Ball</strong></summary>
 
-| Commande             | Description                                                                                                        |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos)                                                      |
-| `/races <race>`      | Personnages par race (Saiyan, Namekian, Android…)                                                                  |
-| `/planete <planète>` | Fiche planète                                                                                                      |
+| Commande             | Description                                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/wiki <personnage>` | Fiche avec transformations (autocomplete sur tous les persos)                                                                                        |
+| `/races <race>`      | Personnages par race (Saiyan, Namekian, Android…)                                                                                                    |
+| `/planete <planète>` | Fiche planète                                                                                                                                        |
 | `/ask <question>`    | Question FR en langage naturel → **RAG hybride+rerank** → réponse sourcée (citations [n] + % de pertinence) + bouton « Ouvrir le meilleur résultat » |
 
 </details>

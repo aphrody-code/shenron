@@ -17,37 +17,37 @@
 avec un **sexe** (Masculin/Féminin) sauf Namek et Race de Freezer (masculin uniquement
 dans le jeu). Libellés exacts (`tribeselect_text_fr`, idx 141-145) :
 
-| # | Race (FR) | Sexes | Description courte (verbatim jeu) |
-|--:|-----------|-------|-----------------------------------|
-| 1 | **Terrien** | M / F | « Stats équilibrées en attaque et en défense. » |
-| 2 | **Saiyen** | M / F | « Tribu de guerriers : santé faible mais attaques puissantes. » |
-| 3 | **Race de Freezer** | M | « Vitesse élevée, mais santé faible. » |
-| 4 | **Namek** | M | « Attaque faible mais santé élevée et récupération rapide de l'endurance. » |
-| 5 | **Majin** | M / F | « Défense augmentée si endurance max. Stats variables selon sexe. » |
+|   # | Race (FR)           | Sexes | Description courte (verbatim jeu)                                           |
+| --: | ------------------- | ----- | --------------------------------------------------------------------------- |
+|   1 | **Terrien**         | M / F | « Stats équilibrées en attaque et en défense. »                             |
+|   2 | **Saiyen**          | M / F | « Tribu de guerriers : santé faible mais attaques puissantes. »             |
+|   3 | **Race de Freezer** | M     | « Vitesse élevée, mais santé faible. »                                      |
+|   4 | **Namek**           | M     | « Attaque faible mais santé élevée et récupération rapide de l'endurance. » |
+|   5 | **Majin**           | M / F | « Défense augmentée si endurance max. Stats variables selon sexe. »         |
 
 ### Traits innés par race (verbatim de l'écran de sélection)
 
-- **Terrien** — *« Stats équilibrées en attaque et en défense. »* +
-  *« Ki automatiquement récupéré et attaques plus puissantes si au niv. max. »* +
-  *« Objets plus efficaces que les autres races et santé restaurée. »*
+- **Terrien** — _« Stats équilibrées en attaque et en défense. »_ +
+  _« Ki automatiquement récupéré et attaques plus puissantes si au niv. max. »_ +
+  _« Objets plus efficaces que les autres races et santé restaurée. »_
   → polyvalent ; **récup de Ki automatique**, bonus au **Ki max**, et **objets de soin plus efficaces**.
 
-- **Saiyen** — *« Une tribu de guerriers qui possède une très grande force, mais peu de santé. »* +
-  *« Attaques plus puissantes si santé faible. Stats augmentées après réanimation. »*
+- **Saiyen** — _« Une tribu de guerriers qui possède une très grande force, mais peu de santé. »_ +
+  _« Attaques plus puissantes si santé faible. Stats augmentées après réanimation. »_
   → glass cannon ; **Zenkai** : dégâts ↑ à basse santé et **boost de stats après une réanimation**.
 
-- **Race de Freezer** — *« Une race fragile qui domine ses ennemis grâce à sa grande vitesse. »* +
-  *« Récupération de l'endurance pendant l'attaque. Vitesse augmentée si santé faible. »*
+- **Race de Freezer** — _« Une race fragile qui domine ses ennemis grâce à sa grande vitesse. »_ +
+  _« Récupération de l'endurance pendant l'attaque. Vitesse augmentée si santé faible. »_
   → rapide et fragile ; **endurance qui remonte en attaquant**, **vitesse ↑ à basse santé**.
 
-- **Namek** — *« Attaque faible mais santé élevée et récupération rapide de l'endurance. »*
+- **Namek** — _« Attaque faible mais santé élevée et récupération rapide de l'endurance. »_
   → tank régénérant ; grosse santé, **endurance qui revient vite**, attaque faible.
 
-- **Majin** — *« Défense élevée mais récupération lente de l'endurance. »* +
-  *« Défense augmentée si endurance max. Stats variables selon sexe. »*
+- **Majin** — _« Défense élevée mais récupération lente de l'endurance. »_ +
+  _« Défense augmentée si endurance max. Stats variables selon sexe. »_
   → défensif, **stats fortement dépendantes du sexe** (voir §2).
 
-> Note jeu : en **version Lite**, *Saiyen (H/F)* et *Race de Freezer* sont indisponibles
+> Note jeu : en **version Lite**, _Saiyen (H/F)_ et _Race de Freezer_ sont indisponibles
 > (`tribeselect_text_fr` idx 189-193).
 
 ---
@@ -62,8 +62,9 @@ Règle générale (verbatim, `tribeselect_text_fr` idx 232-239) :
 > se remplit plus rapidement, mais une santé moins importante. »
 
 Variantes spécifiques **Majin** (idx 176-177) :
-- **Majin Masculin** : *« santé élevée et peu de dégâts subis tant que l'endurance est élevée. »*
-- **Majin Féminin** : *« santé plus faible, mais temps de récupération plus élevé permettant d'éviter les attaques critiques. »*
+
+- **Majin Masculin** : _« santé élevée et peu de dégâts subis tant que l'endurance est élevée. »_
+- **Majin Féminin** : _« santé plus faible, mais temps de récupération plus élevé permettant d'éviter les attaques critiques. »_
 
 ---
 
@@ -71,22 +72,24 @@ Variantes spécifiques **Majin** (idx 176-177) :
 
 Libellés exacts (`data1/data/msg/customize_status_text_fr.msg`, idx 129-133 + ki) :
 
-| Code radar | Stat (FR) | Effet (verbatim) |
-|-----------|-----------|------------------|
-| HEA | **Santé** | « Augmenter la santé maximum. » |
-| KI | **Ki** | « Augmenter le ki maximum. » |
-| STM | **Endurance** | « Augmenter l'endurance maximum. » |
-| ATK | **Attaques de base** | « Augmenter la puissance des attaques normales et des Kikohas. » |
-| STR | **Super frappes** | « Augmenter la puissance des attaques spéciales, ultimes et compétences d'évolution. » |
-| BLA | **Super Kikohas** | « Augmenter la puissance des super attaques de Ki. » |
+| Code radar | Stat (FR)            | Effet (verbatim)                                                                       |
+| ---------- | -------------------- | -------------------------------------------------------------------------------------- |
+| HEA        | **Santé**            | « Augmenter la santé maximum. »                                                        |
+| KI         | **Ki**               | « Augmenter le ki maximum. »                                                           |
+| STM        | **Endurance**        | « Augmenter l'endurance maximum. »                                                     |
+| ATK        | **Attaques de base** | « Augmenter la puissance des attaques normales et des Kikohas. »                       |
+| STR        | **Super frappes**    | « Augmenter la puissance des attaques spéciales, ultimes et compétences d'évolution. » |
+| BLA        | **Super Kikohas**    | « Augmenter la puissance des super attaques de Ki. »                                   |
 
 > Le diagramme radar du menu d'état affiche ces 6 axes (cf. `DESIGN.md` du toolkit dbxv2).
 > 49 descriptions de **tendances de stats** (QQ Bang / équipement) existent dans le même
-> fichier (idx 211-259) — ex. *« Endurance élevée. Privilégie la puissance des attaques
-> normales, réduit les autres capacités. »*
+> fichier (idx 211-259) — ex. _« Endurance élevée. Privilégie la puissance des attaques
+> normales, réduit les autres capacités. »_
 
 ### Style de combat de départ (`tribeselect_text_fr` idx 182-184)
+
 À la création, choix d'un préréglage de stats initiales :
+
 - **Équilibré** — « bon équilibre entre Kikohas et techniques de frappe »
 - **Frappe** — « penchant pour les frappes »
 - **Kikoha** — « penchant pour les Kikohas »
@@ -96,6 +99,7 @@ Libellés exacts (`data1/data/msg/customize_status_text_fr.msg`, idx 129-133 + k
 ## 4. Système de niveau & expérience
 
 ### 4.1 Niveau maximum
+
 **Niveau max = 180.** Preuve factuelle dans la table d'EXP
 (`system/avatar_growth_data.agd`) : l'EXP requise pour le niveau suivant
 (`exp_to_next`) reste **non nulle jusqu'au niveau 180**, puis **tombe à 0 à partir du
@@ -109,30 +113,32 @@ remontée jusqu'au cap. C'est cette rupture qui pouvait faire croire à tort à 
 
 ### 4.2 Courbe d'EXP (`avatar_growth_data.agd`, verbatim)
 
-| Niveau | EXP → niveau suivant | EXP cumulée pour l'atteindre |
-|------:|----------------------:|------------------------------:|
-| 1 | 100 | 0 |
-| 10 | 1 450 | 6 300 |
-| 50 | 22 450 | 398 800 |
-| 80 | 53 950 | 1 499 050 |
-| 90 | 5 503 950 | 17 788 550 |
-| 98 | 43 753 950 | 127 570 150 |
-| 99 | 500 000 | 171 324 100 |
-| 150 | 4 250 000 | 328 149 100 |
-| 179 | 8 150 000 | 471 049 100 |
-| **180** | 2 000 000 | **479 199 100** |
-| 181+ | 0 (cap atteint) | 481 199 100 |
+|  Niveau | EXP → niveau suivant | EXP cumulée pour l'atteindre |
+| ------: | -------------------: | ---------------------------: |
+|       1 |                  100 |                            0 |
+|      10 |                1 450 |                        6 300 |
+|      50 |               22 450 |                      398 800 |
+|      80 |               53 950 |                    1 499 050 |
+|      90 |            5 503 950 |                   17 788 550 |
+|      98 |           43 753 950 |                  127 570 150 |
+|      99 |              500 000 |                  171 324 100 |
+|     150 |            4 250 000 |                  328 149 100 |
+|     179 |            8 150 000 |                  471 049 100 |
+| **180** |            2 000 000 |              **479 199 100** |
+|    181+ |      0 (cap atteint) |                  481 199 100 |
 
 → atteindre le **niveau 180 demande ≈ 479,2 millions d'EXP cumulés** ; le total absolu de
 la table se fige à **481 199 100**. Le gros du grind est sur les tranches 90-98 puis
 150-180.
 
 ### 4.3 Coûts de niveau (`system/CharacterLevelupPriceList.clv`)
+
 Table de **180 entrées** (= le niveau max). Les coûts en jeu sont définis **jusqu'au
 niveau 80** (héritage du cap d'origine), puis la valeur passe à la sentinelle
 `0xFFFFFFFF` (−1) du niveau 81 au niveau 180. Ex. : niv 50 → 12 500, niv 80 → 250 000.
 
 ### 4.4 Monnaie de déblocage : médailles PT / SPT
+
 La création/personnalisation consomme des **médailles PT** (et **SPT**) pour débloquer
 options et apparences (`tribeselect_text_fr` idx 240-242, 256-262) — ex. changer
 tête/cheveux = **10 médailles PT**.
@@ -144,13 +150,13 @@ tête/cheveux = **10 médailles PT**.
 Les valeurs de stats par niveau/race vivent dans des binaires `system/*` propriétaires
 (format `#XXX` + marqueur `FE FF` + count) **non gérés par pyxenoverse** :
 
-| Fichier | Contenu |
-|---------|---------|
-| `system/level_character_parameter.lcp` | 199 entrées × 34 champs — paramètres de perso par niveau |
-| `system/parameter_spec_avater.psa` | 200 entrées × 8 floats — spec de croissance de l'avatar (CaC) |
-| `system/parameter_spec_char.psc` | spec des personnages du roster (184 Ko) |
-| `system/powerup_parameter.pup` | 72 entrées — paramètres d'investissement de stats |
-| `system/avatar_growth_data.agd` | table d'EXP (§4.2) |
+| Fichier                                | Contenu                                                       |
+| -------------------------------------- | ------------------------------------------------------------- |
+| `system/level_character_parameter.lcp` | 199 entrées × 34 champs — paramètres de perso par niveau      |
+| `system/parameter_spec_avater.psa`     | 200 entrées × 8 floats — spec de croissance de l'avatar (CaC) |
+| `system/parameter_spec_char.psc`       | spec des personnages du roster (184 Ko)                       |
+| `system/powerup_parameter.pup`         | 72 entrées — paramètres d'investissement de stats             |
+| `system/avatar_growth_data.agd`        | table d'EXP (§4.2)                                            |
 
 > Le détail numérique exact des multiplicateurs par race n'a pas été décodé champ-par-champ
 > (format binaire non documenté) ; les **traits qualitatifs** du §1 proviennent du texte
@@ -160,14 +166,14 @@ Les valeurs de stats par niveau/race vivent dans des binaires `system/*` propri�
 
 ## 6. Provenance des données (fichiers du jeu)
 
-| Donnée | Fichier extrait (`output/cpk/...`) |
-|--------|-------------------------------------|
-| Noms & traits des races, sexes, style de combat, médailles PT | `data1/data/msg/tribeselect_text_fr.msg(.json)` |
-| Noms des 6 stats + tendances QQ Bang | `data1/data/msg/customize_status_text_fr.msg(.json)` |
-| Table d'EXP, niveau max | `data/data/system/avatar_growth_data.agd` |
-| Coûts de niveau | `data/data/system/CharacterLevelupPriceList.clv` |
-| Croissance des paramètres avatar | `data/data/system/{level_character_parameter.lcp, parameter_spec_avater.psa, powerup_parameter.pup}` |
-| Tutoriels / aide | `data1/data/msg/{tutorial_text_fr, lobby_tutorial_text_fr}.msg(.json)` |
+| Donnée                                                        | Fichier extrait (`output/cpk/...`)                                                                   |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Noms & traits des races, sexes, style de combat, médailles PT | `data1/data/msg/tribeselect_text_fr.msg(.json)`                                                      |
+| Noms des 6 stats + tendances QQ Bang                          | `data1/data/msg/customize_status_text_fr.msg(.json)`                                                 |
+| Table d'EXP, niveau max                                       | `data/data/system/avatar_growth_data.agd`                                                            |
+| Coûts de niveau                                               | `data/data/system/CharacterLevelupPriceList.clv`                                                     |
+| Croissance des paramètres avatar                              | `data/data/system/{level_character_parameter.lcp, parameter_spec_avater.psa, powerup_parameter.pup}` |
+| Tutoriels / aide                                              | `data1/data/msg/{tutorial_text_fr, lobby_tutorial_text_fr}.msg(.json)`                               |
 
 ---
 
@@ -179,14 +185,14 @@ Discord) ; elle est posée comme rôle de race exclusif et module sa progression
 
 Les **6 races** correspondent aux **rôles Discord** du serveur (exclusifs) :
 
-| Race (rôle serveur) | Inspiration XV2 | Effet implémenté |
-|---------------------|------------------|------------------|
-| **Saiyan** | Saiyen : guerrier né, Zenkai | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
-| **Humain** | Terrien : équilibré, objets +efficaces | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers) |
-| **Namek** | Santé élevée, régén, patience | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour |
-| **Mutant** | Puissance brute et instable | **×1,4 XP en chat** (montée régulière à l'écrit) |
-| **Cyborg** | Machine infatigable/efficace | **×1,4 XP en vocal** (récompense la présence vocale) |
-| **Majin** | Défensif, joueur imprévisible | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo) |
+| Race (rôle serveur) | Inspiration XV2                        | Effet implémenté                                                                  |
+| ------------------- | -------------------------------------- | --------------------------------------------------------------------------------- |
+| **Saiyan**          | Saiyen : guerrier né, Zenkai           | **×1,25 XP** (chat+vocal) + **Zenkai** : +50 % XP pendant 1 h après chaque palier |
+| **Humain**          | Terrien : équilibré, objets +efficaces | **+25 % zéni** sur tous les gains (daily, drops, jeux, paliers)                   |
+| **Namek**           | Santé élevée, régén, patience          | **×1,1 XP** + **régén passive** : +200 XP & +200 zéni à la 1re activité du jour   |
+| **Mutant**          | Puissance brute et instable            | **×1,4 XP en chat** (montée régulière à l'écrit)                                  |
+| **Cyborg**          | Machine infatigable/efficace           | **×1,4 XP en vocal** (récompense la présence vocale)                              |
+| **Majin**           | Défensif, joueur imprévisible          | **+50 % zéni aux mini-jeux** (pfc/morpion/pendu/bingo)                            |
 
 Choisir une race **pose le rôle Discord exclusif** correspondant (et retire les autres). Les
 IDs de rôles sont dans `RACES[].roleId` (`lib/races.ts`). Le rôle **Saiyan** n'est **plus**
@@ -194,6 +200,7 @@ distribué automatiquement (c'était un auto-rôle posé à tout le monde) — c
 choix de race.
 
 ### Implémentation (fichiers)
+
 - **Catalogue + logique pure** (testée) : `apps/bot/src/lib/races.ts` (`tests/races.test.ts`).
 - **Commande** : `apps/bot/src/commands/race/Race.ts` (`/race` — embed + boutons, persona `kaio`).
 - **Schéma** : `users.race` / `race_chosen_at` / `race_boost_until` (Zenkai) / `last_race_regen_at`
@@ -207,6 +214,7 @@ choix de race.
 > points de départ équilibrables (cf. `lib/races.ts`).
 
 ### Phase 2 — rôles de palier PAR RACE — ✅ infra en place
+
 - **Échelles de transformations par race** : `apps/bot/src/lib/race-levels.ts`
   (`RACE_LEVEL_ROLES`, module pur testé `tests/race-levels.test.ts`). Chaque race a sa
   propre suite de rôles de palier (niveaux 1..10). **Saiyan** est peuplée (Kaioken → UI
@@ -220,6 +228,7 @@ choix de race.
   seuls les **rôles** de transformation sont par race.
 
 ### Phases suivantes (roadmap)
+
 - **Peupler les échelles non-Saiyan** dans `RACE_LEVEL_ROLES` (Namek, Mutant, Cyborg,
   Majin, Humain) une fois les rôles Discord créés. Cooldown/coût de changement de race,
   intégration carte de profil (`CardService`).

@@ -38,7 +38,10 @@ const opt = (f: string) => {
 };
 const APPLY = has("--apply");
 const ONLY_TYPE = opt("--type");
-const IDS = opt("--ids")?.split(",").map((s) => Number(s.trim())).filter((n) => !isNaN(n));
+const IDS = opt("--ids")
+	?.split(",")
+	.map((s) => Number(s.trim()))
+	.filter((n) => !isNaN(n));
 const LIMIT = opt("--limit") ? Number(opt("--limit")) : Infinity;
 
 // Type d'entité → table + builder d'URL de DÉTAIL sur le site.
@@ -70,7 +73,10 @@ interface Target {
 /** Clé canonique : on retire l'honorifique « Son » (Son Goku ≡ Goku) sans toucher
  * aux titres distinctifs (Roi Vegeta ≠ Vegeta). */
 function canonKey(name: string): string {
-	return name.toLowerCase().replace(/^son\s+/, "").trim();
+	return name
+		.toLowerCase()
+		.replace(/^son\s+/, "")
+		.trim();
 }
 
 const pg = postgres(DATABASE_URL, { max: 1, prepare: false });
@@ -85,13 +91,24 @@ async function loadTargets(): Promise<Target[]> {
 	for (const [kind, cfg] of Object.entries(KINDS) as [Kind, (typeof KINDS)[Kind]][]) {
 		const slugCol = ["sagas", "arcs", "races", "techniques"].includes(kind) ? ", slug" : "";
 		const rows = (await pg.unsafe(
-			`SELECT id, name${slugCol}, (article IS NOT NULL AND length(article) > 0) AS has_article FROM bot.${cfg.table}`,
+			`SELECT id, name${slugCol}, (article IS NOT NULL AND length(article) > 0) AS has_article FROM bot.${cfg.table}`
 		)) as unknown as Row[];
 		for (const r of rows) {
 			const name = (r.name ?? "").trim();
 			if (name.length < 4) continue; // anti-bruit
-			if ((kind === "sagas" || kind === "arcs" || kind === "races" || kind === "techniques") && !r.slug) continue;
-			out.push({ key: name.toLowerCase(), name, url: cfg.url(r), kind, id: r.id, hasArticle: !!r.has_article });
+			if (
+				(kind === "sagas" || kind === "arcs" || kind === "races" || kind === "techniques") &&
+				!r.slug
+			)
+				continue;
+			out.push({
+				key: name.toLowerCase(),
+				name,
+				url: cfg.url(r),
+				kind,
+				id: r.id,
+				hasArticle: !!r.has_article,
+			});
 		}
 	}
 	return out;
@@ -101,7 +118,14 @@ async function loadTargets(): Promise<Target[]> {
  * Linkifie un article. `self` = clé {kind,id} de l'entité de l'article (jamais liée).
  * Retourne [nouveauTexte, nbLiens].
  */
-function linkify(article: string, targets: Target[], byKey: Map<string, Target>, selfKind: Kind, selfId: number, selfName: string): [string, number] {
+function linkify(
+	article: string,
+	targets: Target[],
+	byKey: Map<string, Target>,
+	selfKind: Kind,
+	selfId: number,
+	selfName: string
+): [string, number] {
 	const selfCanon = canonKey(selfName); // « Son Goku » sur la page « Goku » → exclu
 	// Alternation triée par longueur de nom décroissante (greedy le plus spécifique).
 	const sorted = [...targets].toSorted((a, b) => b.name.length - a.name.length);
@@ -120,9 +144,15 @@ function linkify(article: string, targets: Target[], byKey: Map<string, Target>,
 	const mask = (text: string): string =>
 		text
 			// liens markdown déjà présents
-			.replace(/\[[^\]]*\]\([^)]*\)/g, (m) => { stash.push(m); return `${SENT_L}${stash.length - 1}${SENT_R}`; })
+			.replace(/\[[^\]]*\]\([^)]*\)/g, (m) => {
+				stash.push(m);
+				return `${SENT_L}${stash.length - 1}${SENT_R}`;
+			})
 			// code inline
-			.replace(/`[^`]*`/g, (m) => { stash.push(m); return `${SENT_L}${stash.length - 1}${SENT_R}`; });
+			.replace(/`[^`]*`/g, (m) => {
+				stash.push(m);
+				return `${SENT_L}${stash.length - 1}${SENT_R}`;
+			});
 	const unmask = (text: string): string =>
 		text.replace(new RegExp(`${SENT_L}(\\d+)${SENT_R}`, "g"), (_m, i) => stash[Number(i)]);
 
@@ -156,21 +186,27 @@ async function main() {
 	const byKey = new Map<string, Target>();
 	for (const t of targets) {
 		const cur = byKey.get(t.key);
-		if (!cur) { byKey.set(t.key, t); continue; }
-		const better = (t.hasArticle && !cur.hasArticle) || (t.hasArticle === cur.hasArticle && t.id < cur.id);
+		if (!cur) {
+			byKey.set(t.key, t);
+			continue;
+		}
+		const better =
+			(t.hasArticle && !cur.hasArticle) || (t.hasArticle === cur.hasArticle && t.id < cur.id);
 		if (better) byKey.set(t.key, t);
 	}
 	console.log(`${targets.length} entités liables (${byKey.size} noms uniques).`);
 
 	const kinds = (ONLY_TYPE ? [ONLY_TYPE] : Object.keys(KINDS)) as Kind[];
-	let totalArticles = 0, totalLinks = 0, changed = 0;
+	let totalArticles = 0,
+		totalLinks = 0,
+		changed = 0;
 
 	for (const kind of kinds) {
 		const cfg = KINDS[kind];
 		const where = ["article IS NOT NULL", "length(article) > 0"];
 		if (IDS?.length) where.push(`id IN (${IDS.join(",")})`);
 		const rows = (await pg.unsafe(
-			`SELECT id, name, article FROM bot.${cfg.table} WHERE ${where.join(" AND ")} ORDER BY id`,
+			`SELECT id, name, article FROM bot.${cfg.table} WHERE ${where.join(" AND ")} ORDER BY id`
 		)) as unknown as { id: number; name: string; article: string }[];
 
 		let n = 0;
@@ -192,7 +228,7 @@ async function main() {
 
 	console.log(
 		`\n${APPLY ? "APPLY" : "DRY-RUN"} · articles=${totalArticles} · modifiés=${changed} · liens insérés=${totalLinks}` +
-			(APPLY ? "" : "  (relancer avec --apply pour écrire)"),
+			(APPLY ? "" : "  (relancer avec --apply pour écrire)")
 	);
 	await pg.end();
 }

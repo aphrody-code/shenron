@@ -48,4 +48,3 @@ export function RailSkeleton({ variant = "poster" }: { variant?: "poster" | "epi
 		</div>
 	);
 }
-

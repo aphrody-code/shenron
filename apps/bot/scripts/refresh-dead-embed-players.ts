@@ -76,7 +76,11 @@ async function isDead(url: string): Promise<boolean> {
 	}
 }
 
-async function withConcurrency<T, R>(items: T[], n: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+async function withConcurrency<T, R>(
+	items: T[],
+	n: number,
+	fn: (item: T) => Promise<R>
+): Promise<R[]> {
 	const results: R[] = Array.from({ length: items.length });
 	let idx = 0;
 	async function worker() {
@@ -129,7 +133,13 @@ function dedupe(players: Player[]): Player[] {
 	return out;
 }
 
-type EpisodeRow = { id: number; title: string; series: string; numberInSeries: number | null; players: Player[] };
+type EpisodeRow = {
+	id: number;
+	title: string;
+	series: string;
+	numberInSeries: number | null;
+	players: Player[];
+};
 type MovieRow = { id: number; title: string; players: Player[] };
 
 async function processEpisodes() {
@@ -159,7 +169,9 @@ async function processMovies() {
 	`) as unknown as MovieRow[];
 	console.log(`\n=== db_movies — ${rows.length} ligne(s) à vérifier ===`);
 	for (const row of rows) {
-		await processRow("db_movies", row.id, row.title, row.players, () => rescrape(["movie", String(row.id)]));
+		await processRow("db_movies", row.id, row.title, row.players, () =>
+			rescrape(["movie", String(row.id)])
+		);
 	}
 }
 
@@ -176,7 +188,9 @@ async function processRow(
 
 	let finalPlayers = players;
 	if (anyDead) {
-		console.log(`  ⚠ #${id} ${title.slice(0, 40)} : ${players.length - alive.length} mort(s) → re-scrape live...`);
+		console.log(
+			`  ⚠ #${id} ${title.slice(0, 40)} : ${players.length - alive.length} mort(s) → re-scrape live...`
+		);
 		const fresh = await fetchFresh();
 		let freshAlive: Player[] = [];
 		if (fresh.length > 0) {

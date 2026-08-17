@@ -42,8 +42,12 @@ const movieYear = (releaseDate: number | null): string | null =>
 export async function getSagaBestOf(): Promise<BestOfSagaView[]> {
 	try {
 		const slugs = BESTOF_CURATION.map((c) => c.slug);
-		const epSeries = [...new Set(BESTOF_CURATION.flatMap((c) => (c.episodes ? [c.episodes.series] : [])))];
-		const tomeSeries = [...new Set(BESTOF_CURATION.flatMap((c) => (c.tomes ? [c.tomes.series] : [])))];
+		const epSeries = [
+			...new Set(BESTOF_CURATION.flatMap((c) => (c.episodes ? [c.episodes.series] : []))),
+		];
+		const tomeSeries = [
+			...new Set(BESTOF_CURATION.flatMap((c) => (c.tomes ? [c.tomes.series] : []))),
+		];
 		const movieSlugs = [...new Set(BESTOF_CURATION.flatMap((c) => c.movieSlugs ?? []))];
 
 		const [sagas, episodes, movies, volumes] = await Promise.all([
@@ -89,7 +93,9 @@ export async function getSagaBestOf(): Promise<BestOfSagaView[]> {
 							cover: botMangaVolumes.cover,
 						})
 						.from(botMangaVolumes)
-						.where(and(inArray(botMangaVolumes.series, tomeSeries), eq(botMangaVolumes.visible, true)))
+						.where(
+							and(inArray(botMangaVolumes.series, tomeSeries), eq(botMangaVolumes.visible, true))
+						)
 						.orderBy(asc(botMangaVolumes.volumeNumber))
 				: Promise.resolve([]),
 		]);

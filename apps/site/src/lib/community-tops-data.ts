@@ -93,9 +93,7 @@ async function buildEpisodeBoard(
 			image: botEpisodes.image,
 		})
 		.from(botEpisodes)
-		.where(
-			and(inArray(botEpisodes.id, numIds), inArray(botEpisodes.series, [...def.series]))
-		);
+		.where(and(inArray(botEpisodes.id, numIds), inArray(botEpisodes.series, [...def.series])));
 
 	let totalVotes = 0;
 	const candidates: Omit<CommunityTopEntry, "rank">[] = [];
@@ -247,7 +245,7 @@ async function buildArcBoard(
 			subtitle:
 				a.orderIdx != null
 					? `Arc · ordre ${a.orderIdx}${a.nameJa ? ` · ${a.nameJa}` : ""}`
-					: a.nameJa ?? "Arc narratif",
+					: (a.nameJa ?? "Arc narratif"),
 			image: null,
 			href: `/wiki/arcs/${a.slug}`,
 			average: agg.average,

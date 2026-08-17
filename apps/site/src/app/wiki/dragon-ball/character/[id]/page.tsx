@@ -169,12 +169,17 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			)}
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 				{character.techniques.map(({ technique: tech }) => (
-					<div key={tech.id} className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group">
+					<div
+						key={tech.id}
+						className="dbz-panel p-6 hover:border-dbz-blue-light transition-all group"
+					>
 						<div className="flex justify-between items-start mb-4">
 							<h3 className="text-xl font-bold text-white group-hover:text-dbz-blue-light transition-colors uppercase tracking-wider">
 								{tech.name}
 							</h3>
-							<span className="scouter-text text-[10px] text-dbz-blue-light/60">TECH_ID: {tech.id}</span>
+							<span className="scouter-text text-[10px] text-dbz-blue-light/60">
+								TECH_ID: {tech.id}
+							</span>
 						</div>
 						{tech.description && (
 							<p className="text-sm text-gray-400 leading-relaxed line-clamp-3 font-sans">

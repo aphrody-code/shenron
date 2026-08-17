@@ -21,10 +21,30 @@ import {
 import { RoleBadge, RoleSelect } from "@/components/admin/RoleSelect";
 
 const MODES: { value: AccessMode; label: string; hint: string; tone: string }[] = [
-	{ value: "public", label: "Public", hint: "Visible par tous, indexable", tone: "border-green-500/60 bg-green-500/10 text-green-300" },
-	{ value: "members", label: "Connectés", hint: "Compte Discord lié requis", tone: "border-sky-500/60 bg-sky-500/10 text-sky-300" },
-	{ value: "roles", label: "Rôles", hint: "Rôles Discord choisis", tone: "border-amber-500/60 bg-amber-500/10 text-amber-300" },
-	{ value: "admin", label: "Staff", hint: "Équipe du site seulement", tone: "border-red-500/60 bg-red-500/10 text-red-300" },
+	{
+		value: "public",
+		label: "Public",
+		hint: "Visible par tous, indexable",
+		tone: "border-green-500/60 bg-green-500/10 text-green-300",
+	},
+	{
+		value: "members",
+		label: "Connectés",
+		hint: "Compte Discord lié requis",
+		tone: "border-sky-500/60 bg-sky-500/10 text-sky-300",
+	},
+	{
+		value: "roles",
+		label: "Rôles",
+		hint: "Rôles Discord choisis",
+		tone: "border-amber-500/60 bg-amber-500/10 text-amber-300",
+	},
+	{
+		value: "admin",
+		label: "Staff",
+		hint: "Équipe du site seulement",
+		tone: "border-red-500/60 bg-red-500/10 text-red-300",
+	},
 ];
 
 export interface LaunchConfigDto {
@@ -186,9 +206,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 											{entry.scope === "site" ? "site" : "wiki"}
 										</span>
 									</p>
-									<p className="truncate text-[10px] text-white/40">
-										{entry.prefixes.join(" · ")}
-									</p>
+									<p className="truncate text-[10px] text-white/40">{entry.prefixes.join(" · ")}</p>
 								</div>
 
 								<div className="flex flex-wrap gap-1">
@@ -258,8 +276,8 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 
 			{msg && <p className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>{msg.text}</p>}
 			<p className="text-xs text-white/40">
-				Les rubriques avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie,
-				Manga) sont en ligne depuis la bêta et restent publiques.
+				Les rubriques avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie, Manga)
+				sont en ligne depuis la bêta et restent publiques.
 			</p>
 		</div>
 	);

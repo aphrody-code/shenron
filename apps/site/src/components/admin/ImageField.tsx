@@ -1,13 +1,6 @@
 "use client";
 
-import {
-	FolderOpen,
-	ImageOff,
-	Loader2,
-	Search,
-	Upload,
-	X,
-} from "lucide-react";
+import { FolderOpen, ImageOff, Loader2, Search, Upload, X } from "lucide-react";
 import {
 	useCallback,
 	useEffect,

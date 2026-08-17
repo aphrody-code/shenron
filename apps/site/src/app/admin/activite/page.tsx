@@ -81,8 +81,8 @@ export default function ActivitePage() {
 							Activité du site
 						</h1>
 						<p className="mt-2 text-white/60 text-sm leading-relaxed max-w-xl">
-							Audience web (télémétrie first-party, anonymisée & RGPD). Distinct des stats du
-							bot. Compteur public non-sensible sur{" "}
+							Audience web (télémétrie first-party, anonymisée & RGPD). Distinct des stats du bot.
+							Compteur public non-sensible sur{" "}
 							<Link href="/stats" className="text-dbz-orange hover:underline">
 								/stats
 							</Link>
@@ -225,7 +225,9 @@ export default function ActivitePage() {
 							);
 						})}
 						{d && d.sources.length === 0 && (
-							<p className="text-white/40 text-sm py-4 text-center">Aucune source sur la période.</p>
+							<p className="text-white/40 text-sm py-4 text-center">
+								Aucune source sur la période.
+							</p>
 						)}
 					</div>
 				</div>
@@ -570,7 +572,9 @@ function TrendChart({
 						transform: `translateX(${x(hover) > W / 2 ? "-105%" : "5%"})`,
 					}}
 				>
-					<div className="font-mono text-white/60 mb-1">{fmtBucket(points[hover].bucket, range)}</div>
+					<div className="font-mono text-white/60 mb-1">
+						{fmtBucket(points[hover].bucket, range)}
+					</div>
 					<div className="text-dbz-orange">
 						{fmtNum(points[hover].pageviews)} visite{points[hover].pageviews > 1 ? "s" : ""}
 					</div>

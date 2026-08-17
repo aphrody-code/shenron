@@ -125,8 +125,36 @@ function pickType(name: string | undefined): EntityType {
 
 // ── Helpers FTS5 ────────────────────────────────────────────────────────────
 const STOP = new Set([
-	"le","la","les","un","une","des","de","du","et","ou","a","au","aux","en","the","of","and",
-	"son","sa","ses","ce","cette","dans","pour","par","sur","est","the","to","in",
+	"le",
+	"la",
+	"les",
+	"un",
+	"une",
+	"des",
+	"de",
+	"du",
+	"et",
+	"ou",
+	"a",
+	"au",
+	"aux",
+	"en",
+	"the",
+	"of",
+	"and",
+	"son",
+	"sa",
+	"ses",
+	"ce",
+	"cette",
+	"dans",
+	"pour",
+	"par",
+	"sur",
+	"est",
+	"the",
+	"to",
+	"in",
 ]);
 
 /** Fold accents + minuscule + alnum → tokens (le tokenizer FTS est remove_diacritics 2). */
@@ -231,7 +259,10 @@ function cleanTitle(raw: string): string {
 		if (letters.length >= 2 && letters === letters.toUpperCase()) break; // run OCR / SFX
 		if (w) out.push(w);
 	}
-	return out.join(" ").replace(/\s{2,}/g, " ").trim();
+	return out
+		.join(" ")
+		.replace(/\s{2,}/g, " ")
+		.trim();
 }
 
 /** Extrait les titres de chapitres PROPRES d'un texte de planche (repères sûrs). */
@@ -369,15 +400,24 @@ async function cmdList(typeName: string, args: Args) {
 	// Régénération idempotente : articles encore sourcés Fandom/jeux (≠ manga pur).
 	// Un article migré (sources manga) sort automatiquement de ce filtre → relance reprenable.
 	if (args.flags.has("fandom-sources"))
-		conds.push("(article IS NOT NULL AND length(article) > 0 AND article_sources::text ~* '(fandom|wikia|xenoverse)')");
+		conds.push(
+			"(article IS NOT NULL AND length(article) > 0 AND article_sources::text ~* '(fandom|wikia|xenoverse)')"
+		);
 	if (args.flags.has("has-desc")) conds.push("length(coalesce(description,'')) > 0");
 	if (args.opts.ids) {
-		const ids = args.opts.ids.split(",").map((x) => Number(x.trim())).filter((n) => !isNaN(n));
+		const ids = args.opts.ids
+			.split(",")
+			.map((x) => Number(x.trim()))
+			.filter((n) => !isNaN(n));
 		if (ids.length) conds.push(`id IN (${ids.join(",")})`);
 	}
 	if (args.opts.names) {
-		const ns = args.opts.names.split(",").map((x) => x.trim().replace(/'/g, "''")).filter(Boolean);
-		if (ns.length) conds.push(`lower(${T.nameCol}) IN (${ns.map((n) => `'${n.toLowerCase()}'`).join(",")})`);
+		const ns = args.opts.names
+			.split(",")
+			.map((x) => x.trim().replace(/'/g, "''"))
+			.filter(Boolean);
+		if (ns.length)
+			conds.push(`lower(${T.nameCol}) IN (${ns.map((n) => `'${n.toLowerCase()}'`).join(",")})`);
 	}
 	const where = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
 	const limit = args.opts.limit ? `LIMIT ${Number(args.opts.limit)}` : "";
@@ -430,7 +470,9 @@ async function cmdWrite(typeName: string, idArg: string, args: Args) {
 		console.error(`✗ ${typeName} #${id} introuvable (0 lignes).`);
 		process.exit(1);
 	}
-	console.log(`✓ ${typeName} #${id} : article ${article.length} c, ${(sources as unknown[]).length ?? 0} sources.`);
+	console.log(
+		`✓ ${typeName} #${id} : article ${article.length} c, ${(sources as unknown[]).length ?? 0} sources.`
+	);
 }
 
 // ── Commande: migrate ───────────────────────────────────────────────────────
@@ -439,7 +481,9 @@ async function cmdMigrate() {
 	for (const T of Object.values(TYPES)) {
 		await pg.unsafe(`ALTER TABLE bot."${T.table}" ADD COLUMN IF NOT EXISTS article text`);
 		await pg.unsafe(`ALTER TABLE bot."${T.table}" ADD COLUMN IF NOT EXISTS article_sources jsonb`);
-		await pg.unsafe(`ALTER TABLE bot."${T.table}" ADD COLUMN IF NOT EXISTS article_updated_at bigint`);
+		await pg.unsafe(
+			`ALTER TABLE bot."${T.table}" ADD COLUMN IF NOT EXISTS article_updated_at bigint`
+		);
 		console.log(`✓ ${T.table} : colonnes article/article_sources/article_updated_at OK`);
 	}
 	await pg.end();

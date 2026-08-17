@@ -105,9 +105,7 @@ export function WikiSectionsPanel({
 	const groupNames = useMemo(
 		() =>
 			Array.from(
-				new Set(
-					sections.map((s) => s.groupLabel?.trim()).filter((g): g is string => !!g)
-				)
+				new Set(sections.map((s) => s.groupLabel?.trim()).filter((g): g is string => !!g))
 			).sort(),
 		[sections]
 	);
@@ -175,8 +173,8 @@ export function WikiSectionsPanel({
 			</div>
 
 			<p className="text-xs text-white/45">
-				Blocs affichés en catégories sélectionnables sur la fiche (« Histoire », « Personnalité »,
-				« Anecdotes », « PWS »…). Dès qu&apos;une fiche a des sections ici, elles définissent
+				Blocs affichés en catégories sélectionnables sur la fiche (« Histoire », « Personnalité », «
+				Anecdotes », « PWS »…). Dès qu&apos;une fiche a des sections ici, elles définissent
 				<strong className="text-white/70"> seules</strong> ses catégories (le champ « Article »
 				n&apos;est plus affiché) : masquage, ordre et édition font foi. Techniques et
 				transformations restent gérées dans « Relations ».
@@ -310,8 +308,7 @@ function SectionRow({
 		onSuccess: onChanged,
 	});
 
-	const dot =
-		ACCENTS.find((a) => a.key === (section.accent ?? "orange"))?.dot ?? "bg-dbz-orange";
+	const dot = ACCENTS.find((a) => a.key === (section.accent ?? "orange"))?.dot ?? "bg-dbz-orange";
 
 	return (
 		<div className="rounded border border-dbz-border bg-dbz-card/40">
@@ -336,7 +333,9 @@ function SectionRow({
 						</span>
 					)}
 					{!section.visible && (
-						<span className="ml-2 text-[10px] uppercase tracking-widest text-white/35">masquée</span>
+						<span className="ml-2 text-[10px] uppercase tracking-widest text-white/35">
+							masquée
+						</span>
 					)}
 				</button>
 				<div className="flex shrink-0 items-center gap-0.5 text-white/50">
@@ -436,9 +435,10 @@ function SectionRow({
 					</div>
 					<p className="text-[11px] text-white/40 -mt-1">
 						Le <strong className="text-white/60">groupe parent</strong> devient l&apos;onglet de la
-						barre du haut (ex. « PWS »). Le <strong className="text-white/60">titre</strong> ci-dessus
-						est la sous-section affichée en dessous (ex. « Vitesse », « Puissance d&apos;attaque »).
-						Laisse vide pour une catégorie de 1er niveau (« Histoire », « Anecdotes »…).
+						barre du haut (ex. « PWS »). Le <strong className="text-white/60">titre</strong>{" "}
+						ci-dessus est la sous-section affichée en dessous (ex. « Vitesse », « Puissance
+						d&apos;attaque »). Laisse vide pour une catégorie de 1er niveau (« Histoire », «
+						Anecdotes »…).
 					</p>
 					<MarkdownField
 						value={body}
@@ -457,8 +457,12 @@ function SectionRow({
 							<Save className="h-4 w-4" />
 							{save.isPending ? "Enregistrement…" : "Enregistrer la section"}
 						</button>
-						{save.isError && <span className="text-xs text-red-400">Échec de l&apos;enregistrement.</span>}
-						{save.isSuccess && !dirty && <span className="text-xs text-green-400">Enregistré.</span>}
+						{save.isError && (
+							<span className="text-xs text-red-400">Échec de l&apos;enregistrement.</span>
+						)}
+						{save.isSuccess && !dirty && (
+							<span className="text-xs text-green-400">Enregistré.</span>
+						)}
 					</div>
 				</div>
 			)}
@@ -522,8 +526,8 @@ function WikiSectionLinksEditor({
 				<span className="text-white/30">({links.length})</span>
 			</div>
 			<p className="mb-2 text-[11px] text-white/40">
-				Cartes avec photo renvoyant vers d&apos;autres fiches wiki (ex. affilier des personnages
-				à une catégorie « Powerscaling »).
+				Cartes avec photo renvoyant vers d&apos;autres fiches wiki (ex. affilier des personnages à
+				une catégorie « Powerscaling »).
 			</p>
 
 			{links.length > 0 && (
@@ -585,7 +589,11 @@ function WikiSectionLinksEditor({
 								autoFocus
 							/>
 						</div>
-						<button type="button" onClick={() => setPicking(false)} className="btn btn-ghost shrink-0">
+						<button
+							type="button"
+							onClick={() => setPicking(false)}
+							className="btn btn-ghost shrink-0"
+						>
 							Fermer
 						</button>
 					</div>
@@ -612,7 +620,12 @@ function WikiSectionLinksEditor({
 										>
 											{img ? (
 												// eslint-disable-next-line @next/next/no-img-element
-												<img src={img} alt="" className="h-8 w-8 rounded object-cover" loading="lazy" />
+												<img
+													src={img}
+													alt=""
+													className="h-8 w-8 rounded object-cover"
+													loading="lazy"
+												/>
 											) : (
 												<div className="h-8 w-8 rounded bg-dbz-card" />
 											)}

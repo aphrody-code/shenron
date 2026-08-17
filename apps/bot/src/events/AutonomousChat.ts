@@ -86,7 +86,14 @@ class BaseAutonomousChat {
 		const announceId = await settings.getSnowflake("channel.announce");
 		if (announceId && message.channelId === announceId) return true;
 		const raw = await settings.getString("chat.blacklist_channels", "");
-		if (raw && raw.split(/[\s,]+/).filter(Boolean).includes(message.channelId)) return true;
+		if (
+			raw &&
+			raw
+				.split(/[\s,]+/)
+				.filter(Boolean)
+				.includes(message.channelId)
+		)
+			return true;
 		return false;
 	}
 

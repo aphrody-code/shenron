@@ -5,7 +5,13 @@ import type { TierlistTier } from "@/db/schema";
  * Rendu lecture seule d'une tierlist (pages publiques + aperçu d'index).
  * Composant présentation pur (pas de `use client`) → rendu côté serveur.
  */
-export function TierlistView({ tiers, compact = false }: { tiers: TierlistTier[]; compact?: boolean }) {
+export function TierlistView({
+	tiers,
+	compact = false,
+}: {
+	tiers: TierlistTier[];
+	compact?: boolean;
+}) {
 	const cell = compact ? "h-9 w-9" : "h-14 w-14 sm:h-16 sm:w-16";
 	const label = compact ? "w-9 text-sm" : "w-14 sm:w-16 text-lg";
 	return (

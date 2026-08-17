@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import type { Article, BreadcrumbList, WithContext } from "schema-dts";
 
 import { JsonLd } from "@/components/JsonLd";
+import { AdUnit } from "@/components/ads/AdUnit";
 import { SITE_URL } from "@/lib/config";
 import { headingsFromHtml, publicPostFilter } from "@/lib/posts";
 import { CommentGate } from "./CommentGate";
@@ -104,7 +105,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 		"@type": "Article",
 		headline: post.title,
 		description: post.seoDescription ?? post.excerpt,
-		image: post.cover ? [post.cover.startsWith("http") ? post.cover : `${SITE_URL}${post.cover}`] : undefined,
+		image: post.cover
+			? [post.cover.startsWith("http") ? post.cover : `${SITE_URL}${post.cover}`]
+			: undefined,
 		datePublished: post.publishedAt?.toISOString(),
 		dateModified: post.updatedAt.toISOString(),
 		wordCount: post.wordCount || undefined,
@@ -198,16 +201,18 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 						{post.contentHtml ? (
 							// HTML régénéré côté serveur depuis le document Tiptap
 							// (`lib/posts.ts`) — jamais du balisage venu du navigateur.
-							<div
-								className="ed-prose"
-								dangerouslySetInnerHTML={{ __html: post.contentHtml }}
-							/>
+							<div className="ed-prose" dangerouslySetInnerHTML={{ __html: post.contentHtml }} />
 						) : (
 							// Repli : articles antérieurs à l'éditeur riche, encore en Markdown.
 							<div className="ed-prose">
 								<ReactMarkdown remarkPlugins={[remarkGfm]}>{post.body}</ReactMarkdown>
 							</div>
 						)}
+
+						{/* Annonce native en fin de lecture — après le corps de l'article,
+						    jamais insérée au milieu du texte (règle AdSense : l'annonce ne
+						    doit pas être confondue avec le contenu éditorial). */}
+						<AdUnit placement="article" className="mt-12" />
 
 						{post.tags?.length > 0 && (
 							<div className="ed-no-print mt-14 flex flex-wrap items-center gap-2 border-t border-[color:var(--ed-rule)] pt-6">
@@ -228,9 +233,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 						<section className="ed-no-print mt-16 border-t border-[color:var(--ed-rule)] pt-10">
 							<h2 className="text-[1.5rem] font-semibold tracking-[-0.015em]">
 								Commentaires{" "}
-								<span className="text-[color:var(--ed-ink-muted)]">
-									· {post.comments.length}
-								</span>
+								<span className="text-[color:var(--ed-ink-muted)]">· {post.comments.length}</span>
 							</h2>
 
 							{post.comments.length > 0 && (
@@ -274,16 +277,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 					{headings.length > 1 && (
 						<aside className="ed-no-print hidden lg:block">
 							<div className="sticky top-24">
-								<p className="ed-meta border-b border-[color:var(--ed-rule)] pb-2">
-									Sommaire
-								</p>
+								<p className="ed-meta border-b border-[color:var(--ed-rule)] pb-2">Sommaire</p>
 								<nav className="mt-3">
 									<ol className="space-y-2">
 										{headings.map((h) => (
-											<li
-												key={h.id}
-												style={{ paddingInlineStart: `${(h.level - 2) * 0.85}rem` }}
-											>
+											<li key={h.id} style={{ paddingInlineStart: `${(h.level - 2) * 0.85}rem` }}>
 												<a
 													href={`#${h.id}`}
 													className="block text-[0.875rem] leading-snug text-[color:var(--ed-ink-muted)] transition-colors hover:text-[color:var(--ed-accent)]"
@@ -337,6 +335,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 						</div>
 					</section>
 				)}
+
+				{/* Multiplex « contenus associés » — bas de page uniquement, après le
+				    contenu éditorial et les recommandations internes. */}
+				<AdUnit placement="multiplex" className="mt-20" label={null} />
 			</div>
 		</>
 	);

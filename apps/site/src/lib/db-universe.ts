@@ -370,8 +370,7 @@ function normalizeGameMedia(raw: unknown): GameMedia[] {
 		const url = typeof o.url === "string" ? o.url.trim() : "";
 		if (!url) continue;
 		const type = o.type === "youtube" ? "youtube" : "image";
-		const caption =
-			typeof o.caption === "string" && o.caption.trim() ? o.caption.trim() : null;
+		const caption = typeof o.caption === "string" && o.caption.trim() ? o.caption.trim() : null;
 		out.push({ type, url, caption });
 	}
 	return out;
@@ -629,7 +628,13 @@ export const dbUniverse = {
 
 	sagas: () =>
 		safe(async () => ({
-			sagas: (await db.select().from(botSagas).where(eq(botSagas.visible, true)).orderBy(asc(botSagas.orderIdx))).map(toSaga),
+			sagas: (
+				await db
+					.select()
+					.from(botSagas)
+					.where(eq(botSagas.visible, true))
+					.orderBy(asc(botSagas.orderIdx))
+			).map(toSaga),
 		})),
 
 	/** Tous les arcs (toutes sagas) + nom/slug de leur saga, pour l'index /wiki/arcs. */
@@ -671,7 +676,10 @@ export const dbUniverse = {
 				db
 					.select({ id: botTechniques.id, name: botTechniques.name, count: cnt })
 					.from(botTechniques)
-					.innerJoin(botCharacterTechniques, eq(botCharacterTechniques.techniqueId, botTechniques.id))
+					.innerJoin(
+						botCharacterTechniques,
+						eq(botCharacterTechniques.techniqueId, botTechniques.id)
+					)
 					.where(eq(botTechniques.visible, true))
 					.groupBy(botTechniques.id, botTechniques.name)
 					.orderBy(desc(cnt), asc(botTechniques.name)),
@@ -713,14 +721,26 @@ export const dbUniverse = {
 					label: a.name,
 					count: Number(a.count),
 				})),
-				charTechniques: group(ctRows, (r) => r.characterId, (r) => r.techniqueId),
-				charArcs: group(caRows, (r) => r.characterId, (r) => r.arcId),
+				charTechniques: group(
+					ctRows,
+					(r) => r.characterId,
+					(r) => r.techniqueId
+				),
+				charArcs: group(
+					caRows,
+					(r) => r.characterId,
+					(r) => r.arcId
+				),
 			};
 		}),
 
 	saga: (slug: string) =>
 		safe(async () => {
-			const [s] = await db.select().from(botSagas).where(and(eq(botSagas.slug, slug), eq(botSagas.visible, true))).limit(1);
+			const [s] = await db
+				.select()
+				.from(botSagas)
+				.where(and(eq(botSagas.slug, slug), eq(botSagas.visible, true)))
+				.limit(1);
 			if (!s) return null;
 			const arcs = (
 				await db
@@ -734,7 +754,11 @@ export const dbUniverse = {
 
 	arc: (slug: string) =>
 		safe(async () => {
-			const [a] = await db.select().from(botArcs).where(and(eq(botArcs.slug, slug), eq(botArcs.visible, true))).limit(1);
+			const [a] = await db
+				.select()
+				.from(botArcs)
+				.where(and(eq(botArcs.slug, slug), eq(botArcs.visible, true)))
+				.limit(1);
 			if (!a) return null;
 			const episodes = (
 				await db
@@ -748,7 +772,11 @@ export const dbUniverse = {
 
 	episode: (id: number) =>
 		safe(async () => {
-			const [e] = await db.select().from(botEpisodes).where(and(eq(botEpisodes.id, id), eq(botEpisodes.visible, true))).limit(1);
+			const [e] = await db
+				.select()
+				.from(botEpisodes)
+				.where(and(eq(botEpisodes.id, id), eq(botEpisodes.visible, true)))
+				.limit(1);
 			return e ? toEpisode(e) : null;
 		}),
 
@@ -805,9 +833,7 @@ export const dbUniverse = {
 				.from(botEpisodes)
 				.where(eq(botEpisodes.visible, true))
 				.groupBy(botEpisodes.series);
-			return rows
-				.map((r) => ({ series: r.series, count: Number(r.n) }))
-				.filter((r) => r.count > 0);
+			return rows.map((r) => ({ series: r.series, count: Number(r.n) })).filter((r) => r.count > 0);
 		}),
 
 	/**
@@ -1074,7 +1100,11 @@ export const dbUniverse = {
 
 	game: (slug: string) =>
 		safe(async () => {
-			const [g] = await db.select().from(botGames).where(and(eq(botGames.slug, slug), eq(botGames.visible, true))).limit(1);
+			const [g] = await db
+				.select()
+				.from(botGames)
+				.where(and(eq(botGames.slug, slug), eq(botGames.visible, true)))
+				.limit(1);
 			if (!g) return null;
 			const characters = await db
 				.select({
@@ -1108,13 +1138,19 @@ export const dbUniverse = {
 
 	race: (slug: string) =>
 		safe(async () => {
-			const [r] = await db.select().from(botRaces).where(and(eq(botRaces.slug, slug), eq(botRaces.visible, true))).limit(1);
+			const [r] = await db
+				.select()
+				.from(botRaces)
+				.where(and(eq(botRaces.slug, slug), eq(botRaces.visible, true)))
+				.limit(1);
 			return r ? toRace(r) : null;
 		}),
 
 	transformations: () =>
 		safe(async () => ({
-			transformations: (await db.select().from(botTransformations).where(eq(botTransformations.visible, true))).map(toTransformation),
+			transformations: (
+				await db.select().from(botTransformations).where(eq(botTransformations.visible, true))
+			).map(toTransformation),
 		})),
 
 	mangaVolumes: (series = "DB") =>
@@ -1138,9 +1174,7 @@ export const dbUniverse = {
 				.from(botDatabooks)
 				.where(and(...conds))
 				.orderBy(
-					opts.order === "asc"
-						? asc(botDatabooks.publishedAt)
-						: desc(botDatabooks.publishedAt)
+					opts.order === "asc" ? asc(botDatabooks.publishedAt) : desc(botDatabooks.publishedAt)
 				);
 			return { items: rows.map(toDatabook) };
 		}),

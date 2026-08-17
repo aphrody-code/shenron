@@ -25,9 +25,7 @@ const DiscordInviteFAB = dynamic(() =>
 );
 
 // Bouton flottant « Signaler une erreur » (îlot client, jamais critical).
-const ReportButton = dynamic(() =>
-	import("@/components/ReportButton").then((m) => m.ReportButton)
-);
+const ReportButton = dynamic(() => import("@/components/ReportButton").then((m) => m.ReportButton));
 
 // Google Sans Flex — police officielle Google, open-source 2025 (variable font,
 // axes opsz 6→144 + wght 1→1000). Servie en local depuis le woff2 v20 de
@@ -137,10 +135,7 @@ export default async function RootLayout({
 				/>
 				{/* Thème de design global surchargeant les tokens `--dbz-*` (voir globals.css). */}
 				{themeCss && (
-					<style
-						id="site-theme"
-						dangerouslySetInnerHTML={{ __html: `:root{${themeCss}}` }}
-					/>
+					<style id="site-theme" dangerouslySetInnerHTML={{ __html: `:root{${themeCss}}` }} />
 				)}
 			</head>
 			{/* Google Tag Manager — injecté via le composant officiel @next/third-parties */}

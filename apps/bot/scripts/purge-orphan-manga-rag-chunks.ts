@@ -42,7 +42,9 @@ const q = (sql: string) => db.query(sql).all() as Row[];
 const valid = new Set<string>();
 
 // Volumes (rag-build.ts:240-247)
-for (const v of q(`SELECT id, series, volume_number, title, title_ja, isbn FROM db_manga_volumes`)) {
+for (const v of q(
+	`SELECT id, series, volume_number, title, title_ja, isbn FROM db_manga_volumes`
+)) {
 	const title = `Volume ${s(v.volume_number)} — ${s(v.title)}`;
 	const content = collapse(
 		`Volume ${s(v.volume_number)} du manga ${s(v.series)}${v.title ? ` intitulé ${s(v.title)}` : ""}${v.title_ja ? ` (${s(v.title_ja)})` : ""}.${v.isbn ? ` ISBN: ${s(v.isbn)}` : ""}`
@@ -50,9 +52,13 @@ for (const v of q(`SELECT id, series, volume_number, title, title_ja, isbn FROM 
 	valid.add(title + KEYSEP + content);
 }
 // Chapitres (rag-build.ts:250-266)
-for (const ch of q(`SELECT id, series, chapter_number, title, title_ja, volume_id FROM db_manga_chapters`)) {
+for (const ch of q(
+	`SELECT id, series, chapter_number, title, title_ja, volume_id FROM db_manga_chapters`
+)) {
 	const vol = ch.volume_id
-		? (q(`SELECT volume_number FROM db_manga_volumes WHERE id = ${Number(ch.volume_id)}`)[0] as Row | undefined)
+		? (q(`SELECT volume_number FROM db_manga_volumes WHERE id = ${Number(ch.volume_id)}`)[0] as
+				| Row
+				| undefined)
 		: undefined;
 	const volCtx = vol ? ` (Volume ${s(vol.volume_number)})` : "";
 	const title = `Chapitre ${s(ch.chapter_number)} — ${s(ch.title)}`;
@@ -77,7 +83,9 @@ for (const c of chunks) {
 
 const totalManga = chunks.length;
 const uncovered = [...valid].filter((k) => !coveredValid.has(k));
-console.log(`chunks manga stockés : ${totalManga} · valides couverts : ${coveredValid.size} · ORPHELINS : ${orphanRowids.length}`);
+console.log(
+	`chunks manga stockés : ${totalManga} · valides couverts : ${coveredValid.size} · ORPHELINS : ${orphanRowids.length}`
+);
 
 // ── Garde-fous ──────────────────────────────────────────────────────────────
 if (uncovered.length > 0) {
@@ -94,7 +102,9 @@ if (orphanRowids.length === 0) {
 	process.exit(0);
 }
 if (orphanRowids.length >= totalManga) {
-	console.error(`✗ ABORT : suppression de TOUS les chunks manga (${orphanRowids.length}/${totalManga}) — incohérent.`);
+	console.error(
+		`✗ ABORT : suppression de TOUS les chunks manga (${orphanRowids.length}/${totalManga}) — incohérent.`
+	);
 	db.close();
 	process.exit(1);
 }
@@ -103,7 +113,9 @@ const [{ pre_rag }] = q(`SELECT count(*) AS pre_rag FROM rag_chunks`) as any;
 const [{ pre_vec }] = q(`SELECT count(*) AS pre_vec FROM vec_chunks`) as any;
 
 if (DRY) {
-	console.log(`· DRY-RUN : ${orphanRowids.length} rowids seraient supprimés de rag_chunks + vec_chunks (pre rag=${pre_rag} vec=${pre_vec}).`);
+	console.log(
+		`· DRY-RUN : ${orphanRowids.length} rowids seraient supprimés de rag_chunks + vec_chunks (pre rag=${pre_rag} vec=${pre_vec}).`
+	);
 	db.close();
 	process.exit(0);
 }
@@ -121,16 +133,26 @@ try {
 	const postRag = (q(`SELECT count(*) AS n FROM rag_chunks`)[0] as any).n as number;
 	const postVec = (q(`SELECT count(*) AS n FROM vec_chunks`)[0] as any).n as number;
 	if (postRag !== pre_rag - orphanRowids.length || postVec !== pre_vec - orphanRowids.length) {
-		throw new Error(`compte post incohérent : rag ${pre_rag}->${postRag}, vec ${pre_vec}->${postVec}, attendu -${orphanRowids.length}`);
+		throw new Error(
+			`compte post incohérent : rag ${pre_rag}->${postRag}, vec ${pre_vec}->${postVec}, attendu -${orphanRowids.length}`
+		);
 	}
 	// Chunks manga restants = total - orphelins (les chunks à clé valide, doublons
 	// de clé inclus, sont conservés → peut dépasser le nb de clés distinctes).
-	const remainingManga = (q(`SELECT count(*) AS n FROM rag_chunks WHERE kind IN ('manga_volume','manga_chapter')`)[0] as any).n as number;
+	const remainingManga = (
+		q(
+			`SELECT count(*) AS n FROM rag_chunks WHERE kind IN ('manga_volume','manga_chapter')`
+		)[0] as any
+	).n as number;
 	if (remainingManga !== totalManga - orphanRowids.length) {
-		throw new Error(`chunks manga restants ${remainingManga} ≠ attendu ${totalManga - orphanRowids.length}`);
+		throw new Error(
+			`chunks manga restants ${remainingManga} ≠ attendu ${totalManga - orphanRowids.length}`
+		);
 	}
 	db.run("COMMIT");
-	console.log(`✓ COMMIT : rag_chunks ${pre_rag}→${postRag} · vec_chunks ${pre_vec}→${postVec} · chunks manga restants ${remainingManga}`);
+	console.log(
+		`✓ COMMIT : rag_chunks ${pre_rag}→${postRag} · vec_chunks ${pre_vec}→${postVec} · chunks manga restants ${remainingManga}`
+	);
 } catch (e) {
 	db.run("ROLLBACK");
 	console.error("✗ ROLLBACK :", (e as Error).message);

@@ -27,10 +27,7 @@ export function StreamRow({
 			<div className="mb-3 flex items-end justify-between gap-4">
 				<h2 className="flex items-center gap-2.5 font-display text-[19px] font-bold text-white sm:text-[22px]">
 					{accent && (
-						<span
-							className="h-5 w-1.5 shrink-0 rounded-full"
-							style={{ backgroundColor: accent }}
-						/>
+						<span className="h-5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: accent }} />
 					)}
 					{title}
 					{count != null && (

@@ -59,7 +59,10 @@ export function sanitizeTiers(
 	input: unknown
 ): { tiers: TierlistTier[]; totalItems: number } | null {
 	const tiers = Array.isArray(input)
-		? input.map(asTier).filter((x): x is TierlistTier => x !== null).slice(0, MAX_TIERS)
+		? input
+				.map(asTier)
+				.filter((x): x is TierlistTier => x !== null)
+				.slice(0, MAX_TIERS)
 		: [];
 	if (tiers.length === 0) return null;
 	const totalItems = tiers.reduce((n, t) => n + t.items.length, 0);

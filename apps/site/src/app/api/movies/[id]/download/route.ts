@@ -85,7 +85,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 	if (!me?.user) {
 		// Location relatif (résolu contre l'URL publique côté navigateur).
 		const back = encodeURIComponent(`/wiki/films/${m.slug}`);
-		return new Response(null, { status: 302, headers: { Location: `/signin?callbackURL=${back}` } });
+		return new Response(null, {
+			status: 302,
+			headers: { Location: `/signin?callbackURL=${back}` },
+		});
 	}
 
 	// 1) MP4 direct stocké. Guard `URL.canParse` : une valeur admin non-absolue

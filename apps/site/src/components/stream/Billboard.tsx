@@ -61,7 +61,10 @@ export function Billboard({
 				aria-hidden
 				className="halftone pointer-events-none absolute inset-0 opacity-[0.06] mix-blend-overlay"
 			/>
-			<div aria-hidden className="speed-lines pointer-events-none absolute inset-0 opacity-[0.04]" />
+			<div
+				aria-hidden
+				className="speed-lines pointer-events-none absolute inset-0 opacity-[0.04]"
+			/>
 
 			<div className="relative z-10 mx-auto flex h-full max-w-[1400px] items-end px-6 pb-12 lg:px-10 lg:pb-16">
 				<div className="flex w-full items-end gap-8">
@@ -81,12 +84,18 @@ export function Billboard({
 							<div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-display font-semibold uppercase tracking-wide text-white/70">
 								{metaParts.map((m, i) => (
 									<span key={i} className="flex items-center gap-3">
-										{i > 0 && <span aria-hidden className="text-white/25">·</span>}
+										{i > 0 && (
+											<span aria-hidden className="text-white/25">
+												·
+											</span>
+										)}
 										{m}
 									</span>
 								))}
 								{hasVf && (
-									<span className="rounded bg-namek/85 px-1.5 py-0.5 text-[10px] text-black">VF</span>
+									<span className="rounded bg-namek/85 px-1.5 py-0.5 text-[10px] text-black">
+										VF
+									</span>
 								)}
 								{hasVostfr && (
 									<span className="rounded bg-dbz-blue-light/85 px-1.5 py-0.5 text-[10px] text-black">
@@ -137,13 +146,7 @@ export function Billboard({
 					{poster && (
 						<div className="hidden shrink-0 lg:block">
 							<div className="relative aspect-[2/3] w-44 overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10">
-								<Image
-									src={assetUrl(poster)}
-									alt=""
-									fill
-									sizes="176px"
-									className="object-cover"
-								/>
+								<Image src={assetUrl(poster)} alt="" fill sizes="176px" className="object-cover" />
 							</div>
 						</div>
 					)}

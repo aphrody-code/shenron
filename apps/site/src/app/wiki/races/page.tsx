@@ -107,10 +107,7 @@ const colorThemes: Record<string, typeof defaultTheme> = {
 };
 
 export default async function RacesPage() {
-	const [races, characters] = await Promise.all([
-		getShenronRaces(),
-		getShenronCharacters(),
-	]);
+	const [races, characters] = await Promise.all([getShenronRaces(), getShenronCharacters()]);
 
 	return (
 		<div className="reveal-up min-h-screen bg-black">
@@ -126,12 +123,10 @@ export default async function RacesPage() {
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 					{races.map((race, idx) => {
 						const theme = colorThemes[race.slug] || defaultTheme;
-						
+
 						// Get characters belonging to this race
 						const rawRaces = getRawRaceNamesForSlug(race.slug, race.name);
-						const raceChars = characters.filter(
-							(c) => c.race && rawRaces.includes(c.race)
-						);
+						const raceChars = characters.filter((c) => c.race && rawRaces.includes(c.race));
 						const charAvatars = raceChars.filter((c) => !!c.image).slice(0, 4);
 
 						return (
@@ -142,7 +137,9 @@ export default async function RacesPage() {
 								style={{ animationDelay: `${0.1 + idx * 0.05}s` }}
 							>
 								{/* Glowing background gradient */}
-								<div className={`absolute inset-0 bg-gradient-to-br ${theme.bgGrad} opacity-40 transition-opacity group-hover:opacity-60 pointer-events-none`} />
+								<div
+									className={`absolute inset-0 bg-gradient-to-br ${theme.bgGrad} opacity-40 transition-opacity group-hover:opacity-60 pointer-events-none`}
+								/>
 
 								{/* Watermark Japanese Characters */}
 								{race.nameJa && (
@@ -154,7 +151,9 @@ export default async function RacesPage() {
 								<div className="relative z-10 space-y-4">
 									<header className="flex justify-between items-start">
 										<div>
-											<h2 className={`text-3xl font-saiyan tracking-widest leading-none ${theme.text} mb-2`}>
+											<h2
+												className={`text-3xl font-saiyan tracking-widest leading-none ${theme.text} mb-2`}
+											>
 												{race.name}
 											</h2>
 											{race.nameJa && (
@@ -163,7 +162,9 @@ export default async function RacesPage() {
 												</p>
 											)}
 										</div>
-										<span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${theme.badge}`}>
+										<span
+											className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${theme.badge}`}
+										>
 											{raceChars.length} Guerrier{raceChars.length > 1 ? "s" : ""}
 										</span>
 									</header>
@@ -208,7 +209,9 @@ export default async function RacesPage() {
 											Aucun membre répertorié
 										</span>
 									)}
-									<span className={`text-xl ${theme.text} translate-x-[-5px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300`}>
+									<span
+										className={`text-xl ${theme.text} translate-x-[-5px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-300`}
+									>
 										→
 									</span>
 								</div>

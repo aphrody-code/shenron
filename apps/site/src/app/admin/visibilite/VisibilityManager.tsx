@@ -40,7 +40,10 @@ const TABLES: { name: string; label: string }[] = [
 
 const client = apiAt("/api/wiki-admin");
 const norm = (s: string) =>
-	s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+	s
+		.normalize("NFD")
+		.replace(/[̀-ͯ]/g, "")
+		.toLowerCase();
 
 export function VisibilityManager() {
 	const [table, setTable] = useState(TABLES[0]!.name);
@@ -66,8 +69,7 @@ export function VisibilityManager() {
 
 	// Bascule d'une entité — mise à jour optimiste du cache pour un rendu instantané.
 	const toggle = useMutation({
-		mutationFn: (v: { id: string; visible: boolean }) =>
-			client.post(`/${table}?as=visibility`, v),
+		mutationFn: (v: { id: string; visible: boolean }) => client.post(`/${table}?as=visibility`, v),
 		onMutate: async (v) => {
 			await qc.cancelQueries({ queryKey });
 			const prev = qc.getQueryData<{ items: VisibilityRow[] }>(queryKey);
@@ -142,7 +144,11 @@ export function VisibilityManager() {
 						disabled={busyBulk || items.length === 0}
 						className="inline-flex items-center gap-1.5 rounded-lg border border-namek/40 bg-namek/10 px-3 py-1.5 text-[12px] font-semibold text-namek transition-colors hover:bg-namek/20 disabled:opacity-40"
 					>
-						{busyBulk ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+						{busyBulk ? (
+							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						) : (
+							<Eye className="h-3.5 w-3.5" />
+						)}
 						Tout afficher
 					</button>
 					<button
@@ -151,7 +157,11 @@ export function VisibilityManager() {
 						disabled={busyBulk || items.length === 0}
 						className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/70 transition-colors hover:bg-white/10 disabled:opacity-40"
 					>
-						{busyBulk ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <EyeOff className="h-3.5 w-3.5" />}
+						{busyBulk ? (
+							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						) : (
+							<EyeOff className="h-3.5 w-3.5" />
+						)}
 						Tout masquer
 					</button>
 				</div>
@@ -163,9 +173,7 @@ export function VisibilityManager() {
 					<Loader2 className="h-5 w-5 animate-spin" /> Chargement…
 				</div>
 			) : list.isError ? (
-				<p className="dbz-panel py-12 text-center text-red-400">
-					Erreur de chargement. Réessaie.
-				</p>
+				<p className="dbz-panel py-12 text-center text-red-400">Erreur de chargement. Réessaie.</p>
 			) : filtered.length === 0 ? (
 				<p className="dbz-panel py-12 text-center text-white/40">
 					{items.length === 0 ? "Aucune entité." : "Aucun résultat pour cette recherche."}

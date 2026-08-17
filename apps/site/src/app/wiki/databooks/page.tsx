@@ -30,9 +30,7 @@ export default async function DatabooksIndexPage() {
 		sourceUrl: d.source_url,
 	}));
 
-	const heroImage = items[0]?.cover
-		? assetUrl(items[0].cover)
-		: SERIES_BANNERS.DB;
+	const heroImage = items[0]?.cover ? assetUrl(items[0].cover) : SERIES_BANNERS.DB;
 
 	return (
 		<div className="reveal-up">

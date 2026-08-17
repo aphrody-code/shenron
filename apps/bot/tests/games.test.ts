@@ -10,12 +10,7 @@ import {
 	optimalMorpionMoves,
 	type MorpionCell,
 } from "../src/services/games/morpion";
-import {
-	counterOf,
-	decideBotChoice,
-	resolvePfc,
-	type PfcChoice,
-} from "../src/services/games/pfc";
+import { counterOf, decideBotChoice, resolvePfc, type PfcChoice } from "../src/services/games/pfc";
 import {
 	BINGO_MAX_ATTEMPTS,
 	bingoMaxAttempts,

@@ -20,6 +20,7 @@ import { EpisodeScenes } from "./EpisodeScenes";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { JsonLd } from "@/components/JsonLd";
+import { AdUnit } from "@/components/ads/AdUnit";
 import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
 import { SITE_URL as SITE } from "@/lib/config";
 import { excerpt } from "../_text";
@@ -157,7 +158,9 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 	// (`video_url`/`stream_url`). Un fallback image seul n'est PAS téléchargeable →
 	// on masque le bouton pour ne jamais présenter un lien qui renverrait un 404.
 	const canDownload =
-		(ep.players != null && ep.players.length > 0) || Boolean(ep.video_url) || Boolean(ep.stream_url);
+		(ep.players != null && ep.players.length > 0) ||
+		Boolean(ep.video_url) ||
+		Boolean(ep.stream_url);
 
 	// === Scènes d'épisode (additif, dégradation gracieuse) ===
 	// On ne garde que les frames réellement écrites (imagePath non null : un
@@ -402,6 +405,11 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 							</div>
 						</section>
 					)}
+
+					{/* Bannière display en fin de fiche — après le lecteur, le synopsis et
+					    la navigation d'épisodes, jamais collée aux contrôles de lecture
+					    (les clics accidentels sont un motif de suspension AdSense). */}
+					<AdUnit placement="display" className="my-4" />
 
 					{/* Notes & avis — dernier bloc (commentaires en fin de page) */}
 					<div className="reveal-up">

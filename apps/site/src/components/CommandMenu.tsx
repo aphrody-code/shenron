@@ -72,7 +72,13 @@ type SearchResults = {
 	}>;
 	races: Array<{ id: number; slug: string; name: string; name_ja: string | null }>;
 	transformations: Array<{ id: number; name: string; image: string | null; character_id: number }>;
-	arcs: Array<{ id: number; slug: string; name: string; name_ja: string | null; saga_slug: string | null }>;
+	arcs: Array<{
+		id: number;
+		slug: string;
+		name: string;
+		name_ja: string | null;
+		saga_slug: string | null;
+	}>;
 	mangaVolumes: Array<{
 		id: number;
 		series: string;
@@ -453,7 +459,9 @@ export function CommandMenu() {
 									value={`vol-${v.id}-${v.title ?? v.volume_number}`}
 									onSelect={() => go(`/wiki/manga/volume/${v.id}`)}
 									image={v.cover}
-									title={v.title ? `Tome ${v.volume_number} — ${v.title}` : `Tome ${v.volume_number}`}
+									title={
+										v.title ? `Tome ${v.volume_number} — ${v.title}` : `Tome ${v.volume_number}`
+									}
 									subtitle={v.series}
 									kind="Tome"
 									accent="blue"
@@ -470,7 +478,9 @@ export function CommandMenu() {
 									value={`chap-${c.id}-${c.title ?? c.chapter_number}`}
 									onSelect={() => go(`/wiki/manga/${c.id}`)}
 									title={
-										c.title ? `Chapitre ${c.chapter_number} — ${c.title}` : `Chapitre ${c.chapter_number}`
+										c.title
+											? `Chapitre ${c.chapter_number} — ${c.title}`
+											: `Chapitre ${c.chapter_number}`
 									}
 									subtitle={c.series}
 									kind="Chapitre"

@@ -28,7 +28,8 @@ if (!DATABASE_URL) {
 const APPLY = process.argv.includes("--apply");
 
 // Unités/valeurs jamais attestées dans le manga ou les databooks officiels.
-const FAN = /\b(billion|trillion|quadrillion|quintillion|sextillion|septillion|octillion|googol|googolplex)\b/i;
+const FAN =
+	/\b(billion|trillion|quadrillion|quintillion|sextillion|septillion|octillion|googol|googolplex)\b/i;
 const isNonCanon = (v: string | null): boolean => {
 	if (!v) return false;
 	const s = v.trim().toLowerCase();
@@ -39,10 +40,12 @@ const isNonCanon = (v: string | null): boolean => {
 
 const pg = postgres(DATABASE_URL, { max: 1, prepare: false });
 const rows = (await pg.unsafe(
-	`SELECT id, name, ki, max_ki FROM bot.db_characters WHERE ki IS NOT NULL OR max_ki IS NOT NULL`,
+	`SELECT id, name, ki, max_ki FROM bot.db_characters WHERE ki IS NOT NULL OR max_ki IS NOT NULL`
 )) as unknown as { id: number; name: string; ki: string | null; max_ki: string | null }[];
 
-let kiCleared = 0, maxCleared = 0, rowsTouched = 0;
+let kiCleared = 0,
+	maxCleared = 0,
+	rowsTouched = 0;
 for (const r of rows) {
 	const clrKi = isNonCanon(r.ki);
 	const clrMax = isNonCanon(r.max_ki);
@@ -52,16 +55,16 @@ for (const r of rows) {
 	if (clrMax) maxCleared++;
 	console.log(
 		`#${r.id} ${String(r.name).padEnd(18)} ` +
-			`ki:${clrKi ? `「${r.ki}」→NULL` : "ok"}  max_ki:${clrMax ? `「${r.max_ki}」→NULL` : "ok"}`,
+			`ki:${clrKi ? `「${r.ki}」→NULL` : "ok"}  max_ki:${clrMax ? `「${r.max_ki}」→NULL` : "ok"}`
 	);
 	if (APPLY) {
 		await pg.unsafe(
-			`UPDATE bot.db_characters SET ki = ${clrKi ? "NULL" : "ki"}, max_ki = ${clrMax ? "NULL" : "max_ki"} WHERE id = ${r.id}`,
+			`UPDATE bot.db_characters SET ki = ${clrKi ? "NULL" : "ki"}, max_ki = ${clrMax ? "NULL" : "max_ki"} WHERE id = ${r.id}`
 		);
 	}
 }
 console.log(
 	`\n${APPLY ? "APPLY" : "DRY-RUN"} · lignes touchées=${rowsTouched} · ki vidés=${kiCleared} · max_ki vidés=${maxCleared}` +
-		(APPLY ? "" : "  (relancer avec --apply)"),
+		(APPLY ? "" : "  (relancer avec --apply)")
 );
 await pg.end();

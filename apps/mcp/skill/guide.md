@@ -37,11 +37,11 @@ source.
 
 ## Trois surfaces, un même fond
 
-| Surface | Pour qui | Comment |
-|---|---|---|
-| **API REST publique** | scripts, curl, ce skill | `https://bot.dragonballfr.com/api/public/*` — voir `references/api.md` |
-| **Serveur MCP** | clients MCP (Claude, Grok, Gemini, Ollama) | `https://mcp.dragonballfr.com/mcp` — 14 outils — voir `references/mcp-graphql.md` |
-| **GraphQL** | requêtes relationnelles | `https://bot.dragonballfr.com/graphql` — voir `references/mcp-graphql.md` |
+| Surface               | Pour qui                                   | Comment                                                                           |
+| --------------------- | ------------------------------------------ | --------------------------------------------------------------------------------- |
+| **API REST publique** | scripts, curl, ce skill                    | `https://bot.dragonballfr.com/api/public/*` — voir `references/api.md`            |
+| **Serveur MCP**       | clients MCP (Claude, Grok, Gemini, Ollama) | `https://mcp.dragonballfr.com/mcp` — 14 outils — voir `references/mcp-graphql.md` |
+| **GraphQL**           | requêtes relationnelles                    | `https://bot.dragonballfr.com/graphql` — voir `references/mcp-graphql.md`         |
 
 Le helper `scripts/db.sh` enveloppe l'API REST (curl + jq) pour les usages
 courants — c'est le chemin le plus rapide depuis un terminal.

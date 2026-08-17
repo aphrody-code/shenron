@@ -76,7 +76,9 @@ export default async function TierlistsPage() {
 										)}
 									</div>
 									<h2 className="truncate text-lg font-bold text-white">{tl.title}</h2>
-									<p className="text-[12px] text-white/45">par {tl.author?.username ?? "un Saiyan"}</p>
+									<p className="text-[12px] text-white/45">
+										par {tl.author?.username ?? "un Saiyan"}
+									</p>
 								</div>
 								{(likeCounts[tl.id] ?? 0) > 0 && (
 									<span className="shrink-0 rounded-full bg-rose-500/15 px-2 py-0.5 text-[12px] font-bold text-rose-300">

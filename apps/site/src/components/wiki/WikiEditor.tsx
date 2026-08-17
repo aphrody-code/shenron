@@ -276,17 +276,13 @@ export function WikiEditor({
 						// l'article non sauvegardé). On annule toujours puis on filtre.
 						e.preventDefault();
 						setDragging(false);
-						const file = Array.from(e.dataTransfer.files).find((f) =>
-							f.type.startsWith("image/")
-						);
+						const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
 						if (file) uploadAndInsert(file);
 						else if (e.dataTransfer.files.length)
 							setUploadErr("Le fichier déposé n'est pas une image.");
 					}}
 					onPaste={(e) => {
-						const file = Array.from(e.clipboardData.files).find((f) =>
-							f.type.startsWith("image/")
-						);
+						const file = Array.from(e.clipboardData.files).find((f) => f.type.startsWith("image/"));
 						if (file) {
 							e.preventDefault();
 							uploadAndInsert(file);

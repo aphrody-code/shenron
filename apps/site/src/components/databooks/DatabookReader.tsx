@@ -163,7 +163,8 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 	const virtualizer = useVirtualizer({
 		count: total,
 		getScrollElement: () => scrollParentRef.current,
-		estimateSize: () => (typeof window === "undefined" ? 1100 : Math.round(window.innerHeight * 0.95)),
+		estimateSize: () =>
+			typeof window === "undefined" ? 1100 : Math.round(window.innerHeight * 0.95),
 		overscan: 2,
 	});
 
@@ -199,11 +200,14 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		goTo(current + 1);
 	}, [current, goTo]);
 
-	const openLightbox = useCallback((idx?: number) => {
-		if (typeof idx === "number") setCurrent(idx);
-		const item = items[typeof idx === "number" ? idx : current];
-		if (item?.imageUrl) setLightbox(true);
-	}, [items, current]);
+	const openLightbox = useCallback(
+		(idx?: number) => {
+			if (typeof idx === "number") setCurrent(idx);
+			const item = items[typeof idx === "number" ? idx : current];
+			if (item?.imageUrl) setLightbox(true);
+		},
+		[items, current]
+	);
 
 	const btn =
 		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-border bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-40";
@@ -212,9 +216,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 
 	const currentItem = items[current];
 	const currentNum = currentItem?.number ?? current + 1;
-	const counter = total
-		? `n°${currentNum} · ${Math.min(current + 1, total)}/${total}`
-		: "0 / 0";
+	const counter = total ? `n°${currentNum} · ${Math.min(current + 1, total)}/${total}` : "0 / 0";
 	const currentText = currentItem?.text ?? null;
 	const currentImage = currentItem?.imageUrl ?? null;
 
@@ -236,9 +238,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 			</p>
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
 				{currentText ? (
-					<p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">
-						{currentText}
-					</p>
+					<p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">{currentText}</p>
 				) : (
 					<p className="text-sm italic text-white/35">Aucune description pour cette page.</p>
 				)}
@@ -544,9 +544,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 					onClick={() => setLightbox(false)}
 				>
 					<div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-						<span className="min-w-0 truncate text-sm font-bold text-white">
-							{title}
-						</span>
+						<span className="min-w-0 truncate text-sm font-bold text-white">{title}</span>
 						<span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold tabular-nums text-dbz-orange">
 							n°{currentNum}
 						</span>

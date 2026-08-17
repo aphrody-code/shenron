@@ -9,15 +9,7 @@
  * SmartField / buildSubmitBody).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	ChevronDown,
-	ChevronUp,
-	Hash,
-	Loader2,
-	Plus,
-	Save,
-	Trash2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Hash, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
 import { apiAt } from "@/lib/admin-api";
@@ -197,7 +189,9 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 	const renumberFrom = () => {
 		const start = Math.max(0, Math.trunc(Number(startFrom) || 1));
 		setPages((arr) => arr.map((p, i) => ({ ...p, number: String(start + i) })));
-		setToast(`Numéros remis à ${start}…${start + Math.max(0, pages.length - 1)} (pense à enregistrer).`);
+		setToast(
+			`Numéros remis à ${start}…${start + Math.max(0, pages.length - 1)} (pense à enregistrer).`
+		);
 	};
 
 	const update = (i: number, patch: Partial<DatabookPageDraft>) =>
@@ -276,8 +270,8 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 						Comme le manga : une planche par page, avec un{" "}
 						<strong className="text-white/60">numéro</strong> (auto, modifiable) et un{" "}
 						<strong className="text-white/60">texte en dessous</strong>. Fixe le nombre de pages
-						d&apos;abord — tu n&apos;es pas obligé de tout remplir. L&apos;ordre de lecture =
-						ordre des slots ; le n° est juste l&apos;étiquette affichée.
+						d&apos;abord — tu n&apos;es pas obligé de tout remplir. L&apos;ordre de lecture = ordre
+						des slots ; le n° est juste l&apos;étiquette affichée.
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
@@ -294,8 +288,8 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 
 			{dupNumbers.size > 0 && (
 				<p className="rounded border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-200/90">
-					Numéros en double : {Array.from(dupNumbers).join(", ")}. Tu peux les garder (ex. recto/verso)
-					ou les corriger / renuméroter.
+					Numéros en double : {Array.from(dupNumbers).join(", ")}. Tu peux les garder (ex.
+					recto/verso) ou les corriger / renuméroter.
 				</p>
 			)}
 

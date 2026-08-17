@@ -77,7 +77,9 @@ export default async function StatsPage() {
 			)}
 
 			{/* --- Activité du site (audience web, anonymisée) --- */}
-			<h2 className="font-saiyan text-2xl text-dbz-orange uppercase mt-14 mb-2">Activité du site</h2>
+			<h2 className="font-saiyan text-2xl text-dbz-orange uppercase mt-14 mb-2">
+				Activité du site
+			</h2>
 			<p className="text-sm text-white/50 mb-5">
 				L'audience web de Dragon Ball France, anonymisée (jamais d'adresse IP) et en direct.
 			</p>

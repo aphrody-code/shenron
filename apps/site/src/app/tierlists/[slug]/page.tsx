@@ -27,7 +27,8 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const tl = await getTierlistBySlug(slug);
 	if (!tl) return { title: "Tierlist introuvable" };
-	const desc = tl.description || `Tierlist Dragon Ball par ${tl.author?.username ?? "la communauté"}.`;
+	const desc =
+		tl.description || `Tierlist Dragon Ball par ${tl.author?.username ?? "la communauté"}.`;
 	return {
 		title: tl.title,
 		description: desc,
@@ -69,9 +70,7 @@ export default async function TierlistPage({ params }: { params: Promise<{ slug:
 				</div>
 			)}
 
-			{tl.description && (
-				<p className="mb-6 text-center text-white/65">{tl.description}</p>
-			)}
+			{tl.description && <p className="mb-6 text-center text-white/65">{tl.description}</p>}
 
 			<div className="dbz-panel p-4">
 				<TierlistView tiers={tl.tiers} />

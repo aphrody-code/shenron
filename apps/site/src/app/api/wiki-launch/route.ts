@@ -54,10 +54,7 @@ export async function PUT(req: NextRequest) {
 	}
 
 	if (Object.keys(patch).length === 0) {
-		return NextResponse.json(
-			{ error: "openKeys[], order[] ou access{} attendu" },
-			{ status: 400 }
-		);
+		return NextResponse.json({ error: "openKeys[], order[] ou access{} attendu" }, { status: 400 });
 	}
 
 	const config = await saveLaunchConfig(patch, me.discordId || me.user.id);

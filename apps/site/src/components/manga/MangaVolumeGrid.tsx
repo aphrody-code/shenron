@@ -243,7 +243,10 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 
 			{/* Sélecteur d'onglets (style Scouter) et recherche */}
 			<div className="flex flex-col lg:flex-row border-b border-white/10 gap-4 pb-px justify-between items-start lg:items-center">
-				<div role="tablist" className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-none">
+				<div
+					role="tablist"
+					className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-none"
+				>
 					<button
 						type="button"
 						role="tab"
@@ -382,8 +385,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 								<div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/40 to-transparent" />
 							</div>
 							<p className="text-xs text-white/50 max-w-2xl font-display">
-								L&apos;œuvre originale d&apos;Akira Toriyama en couleur, téléchargée et lue directement
-								sur DBFR.
+								L&apos;œuvre originale d&apos;Akira Toriyama en couleur, téléchargée et lue
+								directement sur DBFR.
 							</p>
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
 								{dbColorChapters.map((chapter, idx) => (
@@ -462,8 +465,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 								<div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/40 to-transparent" />
 							</div>
 							<p className="text-xs text-white/50 max-w-2xl font-display">
-								Dragon Ball en couleur, téléchargé et lu directement sur DBFR — aucune redirection vers
-								un site externe.
+								Dragon Ball en couleur, téléchargé et lu directement sur DBFR — aucune redirection
+								vers un site externe.
 							</p>
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
 								{colorChapters.map((chapter, idx) => (

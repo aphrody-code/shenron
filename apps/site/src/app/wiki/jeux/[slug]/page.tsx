@@ -99,7 +99,9 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 					<h1 className="font-display font-bold text-[40px] md:text-[56px] leading-[1.05] tracking-[-0.01em] text-white mb-3">
 						{g.title}
 					</h1>
-					{g.title_ja && <p className="font-jp text-[20px] text-dbz-orange/85 mb-3">{g.title_ja}</p>}
+					{g.title_ja && (
+						<p className="font-jp text-[20px] text-dbz-orange/85 mb-3">{g.title_ja}</p>
+					)}
 					<div className="flex flex-wrap items-center gap-2">
 						<EntityRatingSummary targetType="game" targetId={g.id} />
 						<CommunityRankBadge kind="game" targetId={g.id} />
@@ -168,9 +170,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 				</section>
 			)}
 
-			{g.media && g.media.length > 0 && (
-				<GameMediaGallery media={g.media} title={g.title} />
-			)}
+			{g.media && g.media.length > 0 && <GameMediaGallery media={g.media} title={g.title} />}
 
 			{g.characters && g.characters.length > 0 && (
 				<section className="mb-12">

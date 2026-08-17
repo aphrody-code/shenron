@@ -59,10 +59,7 @@ export function shortSagaLabel(sagaName: string | null | undefined): string | nu
  * @param name nom brut DB
  * @param debutSagaName nom de la saga d'apparition (optionnel)
  */
-export function characterIdentity(
-	name: string,
-	debutSagaName?: string | null
-): CharacterIdentity {
+export function characterIdentity(name: string, debutSagaName?: string | null): CharacterIdentity {
 	const { baseName, versionFromName } = parseCharacterName(name);
 	const saga = shortSagaLabel(debutSagaName);
 	return {

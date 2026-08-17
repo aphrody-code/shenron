@@ -66,7 +66,15 @@ const RACE: Record<string, string> = {
 	"Suu Shenron": "Unknown",
 };
 // genres connus (le reste : non renseigné)
-const FEMALE = new Set(["Pan", "Videl", "Vados", "Towa", "Kaïo Shin du temps", "C-21", "Ribrianne"]);
+const FEMALE = new Set([
+	"Pan",
+	"Videl",
+	"Vados",
+	"Towa",
+	"Kaïo Shin du temps",
+	"C-21",
+	"Ribrianne",
+]);
 
 const dbs = container.resolve(DatabaseService);
 const db = dbs.db;

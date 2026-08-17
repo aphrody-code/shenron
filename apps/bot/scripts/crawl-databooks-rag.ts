@@ -12,13 +12,22 @@
 import { join } from "node:path";
 
 const OUT = join(import.meta.dir, "..", "data", "rag", "shard-databooks.json");
-const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36";
+const UA =
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36";
 const CONC = 4;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const ENT: Record<string, string> = {
-	"&amp;": "&", "&quot;": '"', "&#160;": " ", "&nbsp;": " ", "&#8217;": "'",
-	"&#8212;": "—", "&#39;": "'", "&lt;": "<", "&gt;": ">", "&#8230;": "…",
+	"&amp;": "&",
+	"&quot;": '"',
+	"&#160;": " ",
+	"&nbsp;": " ",
+	"&#8217;": "'",
+	"&#8212;": "—",
+	"&#39;": "'",
+	"&lt;": "<",
+	"&gt;": ">",
+	"&#8230;": "…",
 };
 function detag(html: string): string {
 	return html
@@ -41,12 +50,19 @@ function extract(url: string, html: string): string {
 	}
 	if (url.includes("neoseeker.com")) {
 		// Concatène le contenu des posts du forum.
-		const posts = [...html.matchAll(/<div[^>]*class="[^"]*\b(?:postContent|message|post-content|content)\b[^"]*"[^>]*>([\s\S]*?)<\/div>\s*(?:<\/div>|<div class="post)/gi)]
+		const posts = [
+			...html.matchAll(
+				/<div[^>]*class="[^"]*\b(?:postContent|message|post-content|content)\b[^"]*"[^>]*>([\s\S]*?)<\/div>\s*(?:<\/div>|<div class="post)/gi
+			),
+		]
 			.map((m) => detag(m[1]))
 			.filter((t) => t.length > 80);
 		if (posts.length) return posts.join("\n\n");
 		// fallback : plus gros bloc texte de l'article
-		const main = html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? "";
+		const main =
+			html.match(/<article[\s\S]*?<\/article>/i)?.[0] ??
+			html.match(/<main[\s\S]*?<\/main>/i)?.[0] ??
+			"";
 		return detag(main || html.match(/<body[\s\S]*?<\/body>/i)?.[0] || "");
 	}
 	// Générique : main/article/content sinon body.
@@ -62,23 +78,39 @@ function extract(url: string, html: string): string {
 /** Neoseeker : URLs de pagination du thread (page 2..N). */
 function neoseekerPages(url: string, html: string): string[] {
 	const pages = new Set<string>();
-	for (const m of html.matchAll(/href="(https:\/\/www\.neoseeker\.com\/forums\/88\/t\d+-[^"#?]*?(?:-\d+)?)"/g)) {
+	for (const m of html.matchAll(
+		/href="(https:\/\/www\.neoseeker\.com\/forums\/88\/t\d+-[^"#?]*?(?:-\d+)?)"/g
+	)) {
 		if (/-\d+$/.test(m[1])) pages.add(m[1]);
 	}
 	return [...pages].slice(0, 12);
 }
 
 const slug = (u: string) =>
-	"db-" + u.replace(/^https?:\/\//, "").replace(/web\.archive\.org\/web\/\d+\//, "").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").slice(0, 75);
+	"db-" +
+	u
+		.replace(/^https?:\/\//, "")
+		.replace(/web\.archive\.org\/web\/\d+\//, "")
+		.replace(/[^a-z0-9]+/gi, "-")
+		.replace(/^-|-$/g, "")
+		.slice(0, 75);
 
 async function fetchPage(url: string): Promise<string | null> {
 	for (let a = 0; a < 3; a++) {
 		try {
-			const r = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(35000) });
-			if (r.status === 429) { await sleep(3000); continue; }
+			const r = await fetch(url, {
+				headers: { "User-Agent": UA },
+				signal: AbortSignal.timeout(35000),
+			});
+			if (r.status === 429) {
+				await sleep(3000);
+				continue;
+			}
 			if (!r.ok) return null;
 			return await r.text();
-		} catch { await sleep(600); }
+		} catch {
+			await sleep(600);
+		}
 	}
 	return null;
 }
@@ -109,16 +141,26 @@ const KANZENTAI = [
 	`${W}/20120328072955/http://www.kanzentai.com/trans-daiz04.php?m=10&id=interview`,
 ];
 const NEOSEEKER = [
-	"t2433621-chozenshuu-volumes-translated", "t2435436-akira-toriyama-world-1990-dragon-ball-parts-translated",
-	"t2444252-dragon-ball-daima-blu-ray-standard-edition-booklet-translated", "t2413614-dragon-ball-film-animation-comics-translated",
-	"t2418249-dragon-ball-forever-guidebook-translated", "t2418929-dragon-ball-extreme-battle-collection-rounds-translated",
-	"t2417053-dragon-ball-tv-anime-guide-son-goku-densetsu-translated", "t2418960-toei-anime-fair-pamphlets-translated",
-	"t2415368-jump-anime-library-1-dragon-ball-movie-12-translated", "t2415637-jump-anime-collection-3-dragon-ball-movie-13-translated",
-	"t2420656-dragon-ball-super-exciting-guide-translated", "t2421303-dragon-book-movies-translated",
-	"t2422558-daizenshuu-volumes-translated", "t2424996-2008-ova-bog-rof-dbs-broly-super-hero-anime-comics-translated",
-	"t2427454-dragon-ball-battle-of-gods-theatrical-program-booklet-translated", "t2427840-dragon-ball-battle-of-gods-official-movie-guide-translated",
-	"t2428182-resurrection-pamphlet-translated", "t2428555-dragon-ball-volume-translated",
-	"t2428650-dragon-ball-super-broly-pamphlet-translated", "t2428774-dragon-ball-super-broly-theatrical-program-super-edition-translated",
+	"t2433621-chozenshuu-volumes-translated",
+	"t2435436-akira-toriyama-world-1990-dragon-ball-parts-translated",
+	"t2444252-dragon-ball-daima-blu-ray-standard-edition-booklet-translated",
+	"t2413614-dragon-ball-film-animation-comics-translated",
+	"t2418249-dragon-ball-forever-guidebook-translated",
+	"t2418929-dragon-ball-extreme-battle-collection-rounds-translated",
+	"t2417053-dragon-ball-tv-anime-guide-son-goku-densetsu-translated",
+	"t2418960-toei-anime-fair-pamphlets-translated",
+	"t2415368-jump-anime-library-1-dragon-ball-movie-12-translated",
+	"t2415637-jump-anime-collection-3-dragon-ball-movie-13-translated",
+	"t2420656-dragon-ball-super-exciting-guide-translated",
+	"t2421303-dragon-book-movies-translated",
+	"t2422558-daizenshuu-volumes-translated",
+	"t2424996-2008-ova-bog-rof-dbs-broly-super-hero-anime-comics-translated",
+	"t2427454-dragon-ball-battle-of-gods-theatrical-program-booklet-translated",
+	"t2427840-dragon-ball-battle-of-gods-official-movie-guide-translated",
+	"t2428182-resurrection-pamphlet-translated",
+	"t2428555-dragon-ball-volume-translated",
+	"t2428650-dragon-ball-super-broly-pamphlet-translated",
+	"t2428774-dragon-ball-super-broly-theatrical-program-super-edition-translated",
 	"t2429889-gt-perfect-files-translated",
 ].map((t) => `https://www.neoseeker.com/forums/88/${t}/`);
 const OTHER = [
@@ -162,20 +204,40 @@ async function main() {
 		await Promise.all(
 			batch.map(async (url) => {
 				const html = await fetchPage(url);
-				if (!html) { console.warn(`✗ ${url.slice(-50)}`); return; }
+				if (!html) {
+					console.warn(`✗ ${url.slice(-50)}`);
+					return;
+				}
 				if (url.includes("neoseeker.com"))
-					for (const p of neoseekerPages(url, html)) if (!visited.has(p) && !queue.includes(p)) queue.push(p);
+					for (const p of neoseekerPages(url, html))
+						if (!visited.has(p) && !queue.includes(p)) queue.push(p);
 				const text = extract(url, html);
 				if (text.length < 500) return;
-				const title = html.match(/<title>([^<]*)<\/title>/i)?.[1]?.replace(/\s*[-|–].*$/, "").trim() || url;
-				docs.push({ id: slug(url), name: `${title} (databook)`, url, chars: text.length, markdown: `# ${title}\n\n${text.slice(0, 15000)}` });
+				const title =
+					html
+						.match(/<title>([^<]*)<\/title>/i)?.[1]
+						?.replace(/\s*[-|–].*$/, "")
+						.trim() || url;
+				docs.push({
+					id: slug(url),
+					name: `${title} (databook)`,
+					url,
+					chars: text.length,
+					markdown: `# ${title}\n\n${text.slice(0, 15000)}`,
+				});
 				console.log(`✓ ${docs.length} ${title.slice(0, 50)} (${text.length}c)`);
 			})
 		);
 		await sleep(250);
 	}
-	await Bun.write(OUT, JSON.stringify({ generatedAt: "databooks", count: docs.length, docs }, null, 0));
+	await Bun.write(
+		OUT,
+		JSON.stringify({ generatedAt: "databooks", count: docs.length, docs }, null, 0)
+	);
 	console.log(`[DATABOOKS] TERMINÉ — ${docs.length} docs → ${OUT}`);
 }
 
-main().catch((e) => { console.error("[DATABOOKS]", e); process.exit(1); });
+main().catch((e) => {
+	console.error("[DATABOOKS]", e);
+	process.exit(1);
+});

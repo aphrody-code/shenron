@@ -77,7 +77,8 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 				await refresh();
 			} else {
 				setFlash({ key: it.key, ok: false, msg: data.reason ?? "Achat impossible." });
-				if (typeof data.balance === "number") setState((s) => (s ? { ...s, balance: data.balance } : s));
+				if (typeof data.balance === "number")
+					setState((s) => (s ? { ...s, balance: data.balance } : s));
 			}
 		} catch {
 			setFlash({ key: it.key, ok: false, msg: "Erreur réseau." });
@@ -173,7 +174,9 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 											</div>
 										</div>
 										{it.description && (
-											<p className="mb-3 line-clamp-2 flex-1 text-xs text-white/50">{it.description}</p>
+											<p className="mb-3 line-clamp-2 flex-1 text-xs text-white/50">
+												{it.description}
+											</p>
 										)}
 										{/* Action */}
 										<div className="mt-auto">

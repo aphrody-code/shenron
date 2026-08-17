@@ -85,23 +85,32 @@ export function splitArticleSections(
 	}
 
 	if (blocks.length === 0) {
-		return [{ key: sectionSlug(fallbackLabel), label: fallbackLabel, body: src.trim(), accent: "orange" }];
+		return [
+			{ key: sectionSlug(fallbackLabel), label: fallbackLabel, body: src.trim(), accent: "orange" },
+		];
 	}
 
 	const pre = preamble.join("\n").trim();
 	if (pre) blocks[0].lines.unshift(pre, "");
 
 	const seen = new Set<string>();
-	return blocks
-		.map((b) => {
-			let key = sectionSlug(b.label);
-			let n = 2;
-			while (seen.has(key)) key = `${sectionSlug(b.label)}-${n++}`;
-			seen.add(key);
-			return { key, label: b.label, body: b.lines.join("\n").trim(), accent: sectionAccent(b.label) };
-		})
-		// Section vide (titre sans corps) : ignorée, comme les sections DB vides.
-		.filter((s) => s.body.length > 0);
+	return (
+		blocks
+			.map((b) => {
+				let key = sectionSlug(b.label);
+				let n = 2;
+				while (seen.has(key)) key = `${sectionSlug(b.label)}-${n++}`;
+				seen.add(key);
+				return {
+					key,
+					label: b.label,
+					body: b.lines.join("\n").trim(),
+					accent: sectionAccent(b.label),
+				};
+			})
+			// Section vide (titre sans corps) : ignorée, comme les sections DB vides.
+			.filter((s) => s.body.length > 0)
+	);
 }
 
 /**

@@ -34,9 +34,15 @@ async function main() {
 				"resolvedAt" timestamp(3)
 			)
 		`);
-		await sql.unsafe(`CREATE INDEX IF NOT EXISTS site_reports_status_idx ON public."site_reports" (status)`);
-		await sql.unsafe(`CREATE INDEX IF NOT EXISTS site_reports_created_idx ON public."site_reports" ("createdAt")`);
-		await sql.unsafe(`CREATE INDEX IF NOT EXISTS site_reports_user_idx ON public."site_reports" ("userId")`);
+		await sql.unsafe(
+			`CREATE INDEX IF NOT EXISTS site_reports_status_idx ON public."site_reports" (status)`
+		);
+		await sql.unsafe(
+			`CREATE INDEX IF NOT EXISTS site_reports_created_idx ON public."site_reports" ("createdAt")`
+		);
+		await sql.unsafe(
+			`CREATE INDEX IF NOT EXISTS site_reports_user_idx ON public."site_reports" ("userId")`
+		);
 		console.log("✓ public.site_reports (+ index status/created/user)");
 	} finally {
 		await sql.end({ timeout: 5 });

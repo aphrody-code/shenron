@@ -25,11 +25,13 @@
   `db_characters`, `db_transformations`, `db_races`, `db_techniques`, `db_character_techniques`, `db_planets`, `db_sagas`, `db_arcs`, `db_episodes`, `db_movies`, `db_games`, `db_game_characters`, `db_manga_volumes`, `db_manga_chapters`, `db_news`, `db_tools`, `db_sources`, `db_licenses`, `db_assets`.
 
 **⚠️ Colonnes Neon-only (ABSENTES du SQLite bot → un reseed depuis SQLite les laisse NULL) :**
+
 - `db_episodes` : `subtitles`, **`players`** (lecteurs VF/VOSTFR), `stream_url/headers/provider/at`, **`frames`** (scènes), `scene_preview`.
 - `db_movies` : `subtitles`, `players`, `stream_*`.
 - `db_manga_chapters` : **`pages`** (URLs webp du lecteur de scan — sans elles, le lecteur manga est vide).
 
 **Syncs bot ↔ base (via `DATABASE_URL` de `~/.shenron-neon.env`, postgres-js) :**
+
 - Forward `apps/bot/scripts/sync-sqlite-to-neon.ts` : runtime + `db_news` SQLite→base (exclut wiki éditorial + `ba_*` + FTS5).
 - Reverse `apps/bot/scripts/sync-neon-to-sqlite.ts` : wiki éditorial (liste `apps/bot/scripts/_wiki-editorial.ts`) base→SQLite, par **intersection de colonnes** → les colonnes Neon-only sont auto-ignorées au reverse (donc inchangé après migration). Convertit les `Date` Postgres en **secondes** epoch pour SQLite (sinon corruption an ~57000).
 
@@ -45,11 +47,13 @@ Le quota bloque **tout** `pg_dump` Neon maintenant. Donc :
 ## Runbook
 
 ### 1. Installer PostgreSQL 18
+
 ```bash
 ssh vps 'sudo apt update && sudo apt install -y postgresql postgresql-contrib && sudo systemctl enable --now postgresql && psql --version'
 ```
 
 ### 2. Rôle + base + schéma `bot`
+
 ```bash
 ssh vps "sudo -u postgres psql -v ON_ERROR_STOP=1 <<'SQL'
 CREATE ROLE shenron WITH LOGIN PASSWORD '__CHANGEME_STRONG__';
@@ -60,27 +64,34 @@ GRANT ALL ON SCHEMA public TO shenron;
 ALTER DATABASE shenron_site SET search_path = public, bot;
 SQL"
 ```
+
 - Connexion **locale uniquement** (`127.0.0.1:5432`). Vérifier `listen_addresses='localhost'` (défaut). `pg_hba.conf` : `host shenron_site shenron 127.0.0.1/32 scram-sha-256`.
 
 ### 3. Pointer les env vers le PG local (`printf`, jamais `echo` ; chmod 600)
+
 ```bash
 LOCAL_URL='postgresql://shenron:__CHANGEME_STRONG__@127.0.0.1:5432/shenron_site'
 # apps/site/.env : remplacer la ligne DATABASE_URL (garder l'ancienne Neon en commentaire pour backfill B)
 # ~/.shenron-neon.env : idem DATABASE_URL=$LOCAL_URL
 ```
+
 > ⚠️ Le hook PreToolUse bloque l'édition de `.env` par l'agent → l'utilisateur édite ces 2 fichiers à la main, ou via `printf >>` en session `!`.
 
 ### 4. (Optionnel) re-tuner `apps/site/src/lib/db.ts`
+
 `prepare:false`/`max:1` étaient pour le pooler pgbouncer de Neon. En local (pas de pgbouncer) on peut `prepare:true`, `max:10`, `idle_timeout:60`. **Optionnel** — l'existant marche tel quel. Si modifié → PR + build.
 
 ### 5. Créer le schéma `public` (migrations Drizzle du site)
+
 ```bash
 ssh vps 'export PATH=$HOME/.bun/bin:$PATH; cd ~/shenron/apps/site && bunx drizzle-kit migrate'
 # → crée public.User/Post/.../ba_*/site_events/user_preferences
 ```
 
 ### 6. Créer les tables `bot.*` dans le PG local
+
 Les `bot.*` ne sont PAS dans les migrations du site (lecture seule via `bot-schema.ts`). Générer leur DDL depuis le schéma Drizzle :
+
 ```bash
 # Créer apps/site/drizzle.config.bot.ts éphémère :
 #   schema:"./src/db/bot-schema.ts", out:"./drizzle-bot", dialect:"postgresql",
@@ -92,24 +103,29 @@ ssh vps "sudo -u postgres psql shenron_site -c '\\dt bot.*'"   # toutes les tabl
 ```
 
 ### 7. Seed `bot.*` depuis le SQLite bot
+
 Écrire `apps/bot/scripts/seed-pg-from-sqlite.ts` (inspiré de `sync-sqlite-to-neon.ts` mais **SANS l'exclusion wiki** — on veut éditorial + runtime). Lit `data/bot.db`, INSERT dans `bot.*` du PG local (`DATABASE_URL`). **Respecter l'ordre FK** : `db_planets`/`db_races` → `db_characters` → `db_transformations`/`db_techniques`/`db_character_techniques` ; `db_sagas` → `db_arcs` → `db_episodes` ; `db_manga_volumes` → `db_manga_chapters` ; `db_games` → `db_game_characters` ; `db_sources`/`db_licenses` → `db_assets`. **Convertir les dates** (secondes epoch SQLite → `timestamp`/`bigint` Postgres). Colonnes Neon-only laissées NULL → étape 8.
+
 ```bash
 ssh vps 'export PATH=$HOME/.bun/bin:$PATH; cd ~/shenron/apps/bot && bun scripts/seed-pg-from-sqlite.ts'
 ```
 
 ### 8. Re-dériver les colonnes Neon-only
+
 - `db_manga_chapters.pages` → re-run l'ingest qui liste les webp par chapitre depuis `apps/bot/assets/manga/` (script d'ingest des pages de chapitre).
 - `db_episodes.players` / `db_movies.players` → `bun scripts/import-voiranime-players-vf.ts` + `import-voiranime-players.ts` (dataset `~/bxc/data/voiranime/dragon-ball-full.json`) — écrivent `players` dans la base (= PG local via `DATABASE_URL`).
 - `db_episodes.frames` / `scene_preview` → `ingest-episode-frames.ts` (si masters dispo) — **optionnel**, peut attendre.
 - **Alternative fidèle** : quand le quota Neon se réinitialise, `pg_dump` ces colonnes depuis Neon → `UPDATE` ciblé en local.
 
 ### 9. Rebuild + restart du site
+
 ```bash
 ssh vps 'sudo systemctl reset-failed shenron-site 2>/dev/null; export PATH=$HOME/.bun/bin:$PATH; cd ~/shenron && bash scripts/deploy-site.sh'
 # build contre PG local (zéro quota) → .next valide → shenron-site UP
 ```
 
 ### 10. Restart bot + syncs (pointent désormais le PG local)
+
 ```bash
 ssh vps 'sudo systemctl restart shenron && \
   sudo systemctl start shenron-neon-sync.service && \
@@ -118,31 +134,37 @@ ssh vps 'sudo systemctl restart shenron && \
 ```
 
 ### 11. Vérifications
+
 ```bash
 curl -sI https://dragonballfr.com/wiki/personnages | grep -iE 'HTTP|cache-control'   # 200 + public
 curl -s  https://dragonballfr.com/wiki/manga | grep -o 'Cherche une réplique'        # bloc recherche
 ssh vps "sudo -u postgres psql shenron_site -c 'select count(*) from bot.db_characters'"  # ~1323
 ```
+
 - `/wiki/manga` → lecteur OK si pages re-dérivées (étape 8). `/wiki/episodes/<id>` → lecteurs OK si players re-dérivés. Login Discord → session dans `public.ba_session`.
 
 ### 12. Durabilité & hardening
+
 - **Backup quotidien** : timer systemd calqué sur `shenron-backup.timer` → `pg_dump shenron_site | gzip > ~/shenron/apps/site/backups/pg-$(date +%F).sql.gz`.
 - **Fix la cause de l'outage** : durcir `scripts/deploy-site.sh` → **sauvegarder `.next` avant build** (`mv apps/site/.next apps/site/.next.prev`) et le **restaurer au rollback** (la fonction `rollback()` ne restaure que le git aujourd'hui). C'est l'absence de ça qui a transformé un build raté en site mort.
 - Tuning PG modeste (petite base) : `shared_buffers=512MB`, `work_mem=16MB`, `effective_cache_size=2GB`.
 
 ## À committer (PR)
+
 - `apps/bot/scripts/seed-pg-from-sqlite.ts` (nouveau).
-- `apps/site/drizzle.config.bot.ts` (création schéma bot.*).
+- `apps/site/drizzle.config.bot.ts` (création schéma bot.\*).
 - `scripts/deploy-site.sh` : backup/restore `.next` au rollback.
 - `apps/site/src/lib/db.ts` : tuning local (si modifié).
-- `CLAUDE.md` : remplacer « DB site = Neon » → « **DB site = PostgreSQL local VPS** (`127.0.0.1:5432`, base `shenron_site`, schémas `public` + `bot`) ; Neon décommissionné (backup froid, repli si besoin) ». MAJ sections *Services VPS*, *DB & migrations*, *Sources de vérité*, et les pièges Neon (pooler/serverless).
+- `CLAUDE.md` : remplacer « DB site = Neon » → « **DB site = PostgreSQL local VPS** (`127.0.0.1:5432`, base `shenron_site`, schémas `public` + `bot`) ; Neon décommissionné (backup froid, repli si besoin) ». MAJ sections _Services VPS_, _DB & migrations_, _Sources de vérité_, et les pièges Neon (pooler/serverless).
 - Workflows `.github/workflows/{neon-branch,deploy-vercel}.yml` : déjà en standby ; la branche Neon par PR n'a plus d'objet (désactiver/noter).
 
 ## Rollback de la migration
+
 - Le **SQLite bot n'est jamais modifié** (source de re-seed) → sûr. Le PG local est jetable (`DROP DATABASE shenron_site`).
 - Revenir à Neon : remettre l'ancienne `DATABASE_URL` Neon dans les 2 env (quand le quota sera relevé) + `deploy-site.sh`.
 
 ## Risques / points d'attention
+
 1. **Perte `public.*` Neon** (sessions/posts/télémétrie) si option A sans backfill → prévenir l'utilisateur ; option B quand le quota reset.
 2. **Colonnes Neon-only** (players/pages/frames) : sans étape 8 → lecteurs manga/épisodes vides.
 3. **Ordre FK** + **conversion de dates** au seed (étape 7).

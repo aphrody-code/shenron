@@ -28,8 +28,10 @@ const SEEDS = [
 	"/databook/tv-animation-part/",
 ];
 // Chemins de référence à suivre ; on exclut blog daté, tags, forum, médias.
-const INCLUDE = /^\/(databook|guidebook|encyclopedia|guide|references?|anime|manga|movies?|tidbits)\b/i;
-const EXCLUDE = /\/(tag|category|author|forum|feed|wp-|page)\b|\/\d{4}\/\d{2}\/|\.(css|js|png|jpe?g|gif|svg|webp|ico|pdf|zip|mp[34])(\?|$)/i;
+const INCLUDE =
+	/^\/(databook|guidebook|encyclopedia|guide|references?|anime|manga|movies?|tidbits)\b/i;
+const EXCLUDE =
+	/\/(tag|category|author|forum|feed|wp-|page)\b|\/\d{4}\/\d{2}\/|\.(css|js|png|jpe?g|gif|svg|webp|ico|pdf|zip|mp[34])(\?|$)/i;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -42,7 +44,18 @@ function extractText(html: string): string {
 		.replace(/<nav[\s\S]*?<\/nav>/gi, " ")
 		.replace(/<(figure|figcaption|aside)[\s\S]*?<\/\1>/gi, " ")
 		.replace(/<[^>]+>/g, " ")
-		.replace(/&#?\w+;/g, (c) => ({ "&amp;": "&", "&quot;": '"', "&#160;": " ", "&nbsp;": " ", "&#8217;": "'", "&#8212;": "—" }[c] ?? " "))
+		.replace(
+			/&#?\w+;/g,
+			(c) =>
+				({
+					"&amp;": "&",
+					"&quot;": '"',
+					"&#160;": " ",
+					"&nbsp;": " ",
+					"&#8217;": "'",
+					"&#8212;": "—",
+				})[c] ?? " "
+		)
 		.replace(/\s+/g, " ")
 		.trim();
 }
@@ -79,7 +92,12 @@ async function fetchPage(url: string): Promise<string | null> {
 }
 
 const slug = (u: string) =>
-	"kz-" + u.slice(BASE.length).replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").slice(0, 70);
+	"kz-" +
+	u
+		.slice(BASE.length)
+		.replace(/[^a-z0-9]+/gi, "-")
+		.replace(/^-|-$/g, "")
+		.slice(0, 70);
 
 async function main() {
 	const visited = new Set<string>();
@@ -98,8 +116,10 @@ async function main() {
 				const text = extractText(html);
 				if (text.length < 400) return;
 				const title =
-					html.match(/<title>([^<]*)<\/title>/i)?.[1]?.replace(/\s*[|–-]\s*Kanzenshuu.*$/i, "").trim() ??
-					url;
+					html
+						.match(/<title>([^<]*)<\/title>/i)?.[1]
+						?.replace(/\s*[|–-]\s*Kanzenshuu.*$/i, "")
+						.trim() ?? url;
 				docs.push({
 					id: slug(url),
 					name: `${title} (kanzenshuu)`,

@@ -28,17 +28,17 @@ natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requêt
 
 ## Outils (14, tous `readOnlyHint`)
 
-| Outil | Rôle |
-|---|---|
-| `rag_search` | Recherche hybride (BM25 + dense + rerank) → passages sourcés **dédupliqués**, avec `score` ∈ [0,1] (comparable au sein d'une même réponse) ; filtres optionnels `lang` / `entity` / `sourceId` |
-| `rag_ask` | Renvoie surtout des `hits` sourcés (le rédacteur LLM est **OFF**) → s'appuyer sur les passages pour citer |
-| `sources` | Sources/corpus indexés par le RAG |
-| `wiki_search` | Recherche plein-texte du wiki |
-| `wiki_list` | Liste paginée d'entités (`characters`, `planets`, `races`, `techniques`, `transformations`, `sagas`, `episodes`, `movies`, `games`) |
-| `wiki_get` | Détail d'une entité par id/slug |
-| `manga_search` / `manga_tomes` / `manga_page` | Manga (recherche OCR, tomes, planches) |
-| `bot_stats` / `bot_personas` / `bot_leaderboard` / `bot_commands` | Bot Discord (stats, 6 personas, classement, commandes) |
-| `news` | Actualités Dragon Ball |
+| Outil                                                             | Rôle                                                                                                                                                                                           |
+| ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `rag_search`                                                      | Recherche hybride (BM25 + dense + rerank) → passages sourcés **dédupliqués**, avec `score` ∈ [0,1] (comparable au sein d'une même réponse) ; filtres optionnels `lang` / `entity` / `sourceId` |
+| `rag_ask`                                                         | Renvoie surtout des `hits` sourcés (le rédacteur LLM est **OFF**) → s'appuyer sur les passages pour citer                                                                                      |
+| `sources`                                                         | Sources/corpus indexés par le RAG                                                                                                                                                              |
+| `wiki_search`                                                     | Recherche plein-texte du wiki                                                                                                                                                                  |
+| `wiki_list`                                                       | Liste paginée d'entités (`characters`, `planets`, `races`, `techniques`, `transformations`, `sagas`, `episodes`, `movies`, `games`)                                                            |
+| `wiki_get`                                                        | Détail d'une entité par id/slug                                                                                                                                                                |
+| `manga_search` / `manga_tomes` / `manga_page`                     | Manga (recherche OCR, tomes, planches)                                                                                                                                                         |
+| `bot_stats` / `bot_personas` / `bot_leaderboard` / `bot_commands` | Bot Discord (stats, 6 personas, classement, commandes)                                                                                                                                         |
+| `news`                                                            | Actualités Dragon Ball                                                                                                                                                                         |
 
 ## Connexion
 
@@ -47,7 +47,7 @@ natif Bun — pas de `node:http`). Un serveur + un transport neufs **par requêt
   skill auto-découverte + ce serveur MCP distant déclaré inline (`mcpServers.dragonball`, transport
   `streamable-http` → `https://mcp.dragonballfr.com/mcp`) — aucune config manuelle.
   NB : la marketplace vit dans ce monorepo (`.claude-plugin/marketplace.json`) ⇒ l'`add` clone tout le dépôt.
-- **Claude (web / desktop)** : Réglages → Connecteurs → *Ajouter un connecteur personnalisé* →
+- **Claude (web / desktop)** : Réglages → Connecteurs → _Ajouter un connecteur personnalisé_ →
   URL `https://mcp.dragonballfr.com/mcp`, authentification **Aucune**.
 - **Claude Code (sans plugin)** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
 - **Gemini / Grok / autres** : ajouter un serveur MCP distant **Streamable HTTP** → `https://mcp.dragonballfr.com/mcp` (sans en-tête d'auth).

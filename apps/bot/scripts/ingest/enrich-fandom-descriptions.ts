@@ -30,7 +30,13 @@ const API = "https://dragonball.fandom.com/fr/api.php";
 const UA = "ShenronBot/1.0 (dragonballfr.com)";
 const sql = postgres(NEON, { max: 4, prepare: false });
 
-const ENT: Record<string, string> = { "&amp;": "&", "&quot;": '"', "&#160;": " ", "&nbsp;": " ", "&#39;": "'" };
+const ENT: Record<string, string> = {
+	"&amp;": "&",
+	"&quot;": '"',
+	"&#160;": " ",
+	"&nbsp;": " ",
+	"&#39;": "'",
+};
 
 async function introFor(name: string): Promise<string | null> {
 	const u = new URL(API);

@@ -141,7 +141,9 @@ export function WikiAiAssistant({
 						{hits.map((h, i) => (
 							<div key={i} className="rounded border border-dbz-border bg-dbz-bg/50 p-2 text-xs">
 								<div className="mb-0.5 flex items-center justify-between gap-2">
-									<span className="truncate font-semibold text-white/80">{h.title || "Source"}</span>
+									<span className="truncate font-semibold text-white/80">
+										{h.title || "Source"}
+									</span>
 									{h.url && (
 										<a
 											href={h.url}

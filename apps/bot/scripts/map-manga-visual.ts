@@ -23,7 +23,14 @@ const db = new Database(`${ROOT}data/bot.db`, { readonly: true });
 const ocr = new Map<string, { text: string; has_ja: number; line_count: number }>();
 for (const r of db
 	.query("SELECT series, tome, planche, text, has_ja, line_count FROM db_manga_pages")
-	.all() as { series: string; tome: string; planche: number; text: string; has_ja: number; line_count: number }[]) {
+	.all() as {
+	series: string;
+	tome: string;
+	planche: number;
+	text: string;
+	has_ja: number;
+	line_count: number;
+}[]) {
 	ocr.set(`${r.series}|${r.tome}|${r.planche}`, r);
 }
 

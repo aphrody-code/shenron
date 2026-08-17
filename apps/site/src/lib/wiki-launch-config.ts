@@ -82,7 +82,10 @@ function sanitizeAccess(stored: unknown): Record<string, AccessRule> {
 		// Mode « rôles » sans aucun rôle = piège à trou de sécurité inverse (personne
 		// ne passe, y compris le staff qui croyait avoir ouvert) → on retombe sur
 		// « connectés », intention la plus proche.
-		out[key] = { mode: mode === "roles" && roleIds.length === 0 ? "members" : (mode as AccessMode), roleIds };
+		out[key] = {
+			mode: mode === "roles" && roleIds.length === 0 ? "members" : (mode as AccessMode),
+			roleIds,
+		};
 	}
 	return out;
 }

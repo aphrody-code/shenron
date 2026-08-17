@@ -64,8 +64,7 @@ const RACE_OPTIONS: { id: string; label: string }[] = [
 	{ id: "majin", label: "Majin" },
 ];
 
-const raceLabel = (race: string): string =>
-	RACE_OPTIONS.find((r) => r.id === race)?.label ?? race;
+const raceLabel = (race: string): string => RACE_OPTIONS.find((r) => r.id === race)?.label ?? race;
 
 interface TopUser {
 	id: string;
@@ -172,10 +171,7 @@ export default function LevelsPage() {
 				loading={distribution.isLoading}
 			/>
 			<RewardsCard rewards={rewards.data?.rewards ?? []} loading={rewards.isLoading} />
-			<RaceRewardsCard
-				rewards={raceRewards.data?.rewards ?? []}
-				loading={raceRewards.isLoading}
-			/>
+			<RaceRewardsCard rewards={raceRewards.data?.rewards ?? []} loading={raceRewards.isLoading} />
 			<TopsCard />
 			<ManualActionsCard />
 		</div>
@@ -338,8 +334,8 @@ function ThresholdCurveCard() {
 				Courbe de niveaux — paliers XP éditables
 			</h3>
 			<p className="mb-3 text-xs text-zinc-500">
-				Définissez l&apos;XP requis pour chaque niveau. La progression de tous les joueurs se
-				recale immédiatement (recalcul du niveau + rôles de palier au prochain gain d&apos;XP).
+				Définissez l&apos;XP requis pour chaque niveau. La progression de tous les joueurs se recale
+				immédiatement (recalcul du niveau + rôles de palier au prochain gain d&apos;XP).
 				Jusqu&apos;à 50 paliers ; l&apos;XP doit croître avec le niveau.
 			</p>
 
@@ -415,7 +411,9 @@ function ThresholdCurveCard() {
 								Annuler
 							</button>
 						)}
-						{save.isSuccess && !dirty && <span className="text-xs text-green-400">Enregistré ✓</span>}
+						{save.isSuccess && !dirty && (
+							<span className="text-xs text-green-400">Enregistré ✓</span>
+						)}
 					</div>
 					{err && <p className="text-xs text-red-400">{err}</p>}
 				</div>
@@ -794,9 +792,9 @@ function RaceRewardsCard({ rewards, loading }: { rewards: RaceReward[]; loading:
 					Rôles de palier par race ({rewards.length})
 				</h3>
 				<p className="mt-0.5 text-xs text-zinc-500">
-					Rôle de transformation attribué à chaque montée de palier, propre à chaque race. C&apos;est
-					cette table qui pilote les rôles distribués lors des level-up (indépendante des bonus zénis
-					ci-dessus). Une race sans palier configuré ne reçoit ni ne perd aucun rôle de
+					Rôle de transformation attribué à chaque montée de palier, propre à chaque race.
+					C&apos;est cette table qui pilote les rôles distribués lors des level-up (indépendante des
+					bonus zénis ci-dessus). Une race sans palier configuré ne reçoit ni ne perd aucun rôle de
 					transformation.
 				</p>
 			</div>

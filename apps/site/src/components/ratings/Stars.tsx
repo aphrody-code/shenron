@@ -126,9 +126,7 @@ export function RatingBadge({
 		>
 			<span aria-hidden>★</span>
 			<span className="tabular-nums text-white">{average.toFixed(1)}</span>
-			<span className="text-white/45 font-normal">
-				({count})
-			</span>
+			<span className="text-white/45 font-normal">({count})</span>
 		</span>
 	);
 }

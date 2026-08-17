@@ -51,7 +51,9 @@ export function PwsStatSection({
 						Section power scaling à compléter — éditable dans le studio (Pack PWS).
 					</p>
 				) : shortStat ? (
-					<p className={`scouter-text text-3xl sm:text-4xl md:text-5xl ${style.pillActive.includes("text-") ? "" : "text-dbz-orange"} leading-tight`}>
+					<p
+						className={`scouter-text text-3xl sm:text-4xl md:text-5xl ${style.pillActive.includes("text-") ? "" : "text-dbz-orange"} leading-tight`}
+					>
 						<span className="text-dbz-orange drop-shadow-[0_0_12px_rgba(255,178,0,0.35)]">
 							{trimmed}
 						</span>

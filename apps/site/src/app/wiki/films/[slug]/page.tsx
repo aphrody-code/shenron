@@ -14,6 +14,7 @@ import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 import { JsonLd } from "@/components/JsonLd";
+import { AdUnit } from "@/components/ads/AdUnit";
 import type { Movie as MovieSchema, WithContext } from "schema-dts";
 
 export const revalidate = 3600;
@@ -31,7 +32,6 @@ const SERIES_LABELS: Record<string, string> = {
 	DBZ_OVA: "OVA Dragon Ball Z",
 	DBZ_SPECIAL: "Téléfilm Dragon Ball Z",
 };
-
 
 export async function generateMetadata({
 	params,
@@ -298,10 +298,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 			</div>
 
 			{nav && (nav.prev || nav.next) && (
-				<nav
-					aria-label="Navigation entre films"
-					className="mt-16 grid gap-4 sm:grid-cols-2"
-				>
+				<nav aria-label="Navigation entre films" className="mt-16 grid gap-4 sm:grid-cols-2">
 					{nav.prev ? (
 						<MovieNavCard dir="prev" m={nav.prev} />
 					) : (
@@ -323,6 +320,9 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 					⤳ Voir la chronologie universelle (épisodes + films)
 				</Link>
 			</div>
+
+			{/* Bannière display en fin de fiche — à distance des contrôles du lecteur. */}
+			<AdUnit placement="display" className="mt-16" />
 
 			{/* Notes & avis — dernier bloc */}
 			<div className="mt-16">

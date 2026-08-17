@@ -30,7 +30,10 @@ export async function POST(req: Request) {
 	}
 
 	const tiers = Array.isArray(b.tiers)
-		? b.tiers.map(asTier).filter((x): x is TierlistTier => x !== null).slice(0, MAX_TIERS)
+		? b.tiers
+				.map(asTier)
+				.filter((x): x is TierlistTier => x !== null)
+				.slice(0, MAX_TIERS)
 		: [];
 	if (tiers.length === 0) {
 		return Response.json({ error: "Tierlist vide." }, { status: 400 });

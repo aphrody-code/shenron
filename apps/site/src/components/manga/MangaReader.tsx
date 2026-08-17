@@ -248,7 +248,9 @@ export function MangaReader({
 		>
 			{/* Barre de contrôles */}
 			<div className="dbz-panel z-10 flex flex-wrap items-center gap-2 border-b border-dbz-border px-3 py-2">
-				<span className="mr-1 min-w-0 max-w-[40ch] truncate text-sm font-bold text-white">{title}</span>
+				<span className="mr-1 min-w-0 max-w-[40ch] truncate text-sm font-bold text-white">
+					{title}
+				</span>
 
 				<span className="ml-auto rounded bg-dbz-bg px-2 py-1 text-xs font-bold tabular-nums text-dbz-orange">
 					{counter}
@@ -319,7 +321,12 @@ export function MangaReader({
 
 				{/* Navigation chapitres */}
 				{prevHref ? (
-					<Link href={prevHref} className={btn} aria-label="Chapitre précédent" title="Chapitre précédent">
+					<Link
+						href={prevHref}
+						className={btn}
+						aria-label="Chapitre précédent"
+						title="Chapitre précédent"
+					>
 						<ChevronLeft size={14} aria-hidden /> Préc.
 					</Link>
 				) : (
@@ -328,7 +335,12 @@ export function MangaReader({
 					</span>
 				)}
 				{nextHref ? (
-					<Link href={nextHref} className={btn} aria-label="Chapitre suivant" title="Chapitre suivant">
+					<Link
+						href={nextHref}
+						className={btn}
+						aria-label="Chapitre suivant"
+						title="Chapitre suivant"
+					>
 						Suiv. <ChevronRight size={14} aria-hidden />
 					</Link>
 				) : (

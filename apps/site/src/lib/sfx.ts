@@ -301,9 +301,18 @@ export function unlockSfx() {
 		return;
 	}
 	unlocked = true;
-	(["click", "select", "hit", "whoosh", "kamehameha", "kiCharge", "teleport", "powerUp"] as SfxKey[]).forEach(
-		(k) => getHowl(k)
-	);
+	(
+		[
+			"click",
+			"select",
+			"hit",
+			"whoosh",
+			"kamehameha",
+			"kiCharge",
+			"teleport",
+			"powerUp",
+		] as SfxKey[]
+	).forEach((k) => getHowl(k));
 	const c = audio();
 	if (c?.state === "suspended") void c.resume();
 	try {

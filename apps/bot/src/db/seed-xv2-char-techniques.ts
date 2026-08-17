@@ -114,7 +114,8 @@ for (const [code, cats] of Object.entries(skillsets)) {
 }
 
 console.log(`✓ ${links} liens perso↔technique XV2 (${linkedChars} persos liés)`);
-if (unresolvedTech) console.log(`  (${unresolvedTech} occurrences de compétences sans technique en base)`);
+if (unresolvedTech)
+	console.log(`  (${unresolvedTech} occurrences de compétences sans technique en base)`);
 const total = await db.select({ c: dbCharacterTechniques.characterId }).from(dbCharacterTechniques);
 console.log(`→ db_character_techniques : ${total.length} liens`);
 dbs.close();

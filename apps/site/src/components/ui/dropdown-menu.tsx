@@ -12,10 +12,7 @@ const DropdownMenu = MenuPrimitive.Root;
 
 const DropdownMenuGroup = MenuPrimitive.Group;
 
-function DropdownMenuTrigger({
-	className,
-	...props
-}: Omit<MenuPrimitive.Trigger.Props, "key">) {
+function DropdownMenuTrigger({ className, ...props }: Omit<MenuPrimitive.Trigger.Props, "key">) {
 	return (
 		<MenuPrimitive.Trigger
 			data-slot="dropdown-menu-trigger"
@@ -80,10 +77,7 @@ function DropdownMenuItem({
 	);
 }
 
-function DropdownMenuLabel({
-	className,
-	...props
-}: Omit<MenuPrimitive.GroupLabel.Props, "key">) {
+function DropdownMenuLabel({ className, ...props }: Omit<MenuPrimitive.GroupLabel.Props, "key">) {
 	return (
 		<MenuPrimitive.GroupLabel
 			data-slot="dropdown-menu-label"

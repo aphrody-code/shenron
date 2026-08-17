@@ -122,9 +122,7 @@ export async function getRatingSummaries(
 			count: count(),
 		})
 		.from(siteRatings)
-		.where(
-			and(eq(siteRatings.targetType, targetType), inArray(siteRatings.targetId, targetIds))
-		)
+		.where(and(eq(siteRatings.targetType, targetType), inArray(siteRatings.targetId, targetIds)))
 		.groupBy(siteRatings.targetId);
 
 	for (const r of rows) {
@@ -153,9 +151,7 @@ export async function getAggregateSummary(
 			count: count(),
 		})
 		.from(siteRatings)
-		.where(
-			and(eq(siteRatings.targetType, targetType), inArray(siteRatings.targetId, targetIds))
-		);
+		.where(and(eq(siteRatings.targetType, targetType), inArray(siteRatings.targetId, targetIds)));
 
 	const c = Number(row?.count ?? 0);
 	if (!c) return emptySummary();

@@ -31,7 +31,10 @@ function seriesTome(file: string): { series: string; tome: string } {
 
 /** Nettoyage léger d'une bulle OCR : garde le JP (kanji/kana isolé = mot), drop le bruit pur. */
 function cleanLine(l: string): string | null {
-	const t = l.replace(/^[-*]\s*/, "").replace(/\s+/g, " ").trim();
+	const t = l
+		.replace(/^[-*]\s*/, "")
+		.replace(/\s+/g, " ")
+		.trim();
 	if (!t) return null;
 	if (CJK.test(t)) return t;
 	const alnum = (t.match(/[\p{L}\p{N}]/gu) || []).length;
@@ -103,7 +106,14 @@ sqlite.run(
 );
 const allRows = sqlite
 	.query("SELECT id, series, tome, planche, text, lang FROM db_manga_pages")
-	.all() as { id: number; series: string; tome: string; planche: number; text: string; lang: string }[];
+	.all() as {
+	id: number;
+	series: string;
+	tome: string;
+	planche: number;
+	text: string;
+	lang: string;
+}[];
 const insFts = sqlite.query(
 	"INSERT INTO manga_pages_fts(rowid, text, series, tome, planche, lang) VALUES (?,?,?,?,?,?)"
 );

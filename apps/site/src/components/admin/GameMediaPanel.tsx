@@ -6,16 +6,7 @@
  * Save dédiée (jsonb exclu de SmartField / buildSubmitBody).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-	ChevronDown,
-	ChevronUp,
-	Film,
-	ImageIcon,
-	Loader2,
-	Plus,
-	Save,
-	Trash2,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Film, ImageIcon, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
 import { apiAt } from "@/lib/admin-api";
@@ -140,9 +131,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 			// Re-normalise l'état local (URLs YouTube nettoyées) pour coller au save.
 			setItems((arr) => {
 				const next = arr.map((p) =>
-					p.type === "youtube" && p.url.trim()
-						? { ...p, url: normalizeYoutubeUrl(p.url) }
-						: p
+					p.type === "youtube" && p.url.trim() ? { ...p, url: normalizeYoutubeUrl(p.url) } : p
 				);
 				setSavedSnap(snapshot(next));
 				return next;
@@ -351,10 +340,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 									column="media"
 								/>
 							) : (
-								<YoutubeField
-									value={item.url}
-									onChange={(url) => update(i, { url })}
-								/>
+								<YoutubeField value={item.url} onChange={(url) => update(i, { url })} />
 							)}
 
 							<label className="mt-3 block">
@@ -392,13 +378,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
  * type=text (pas url) pour accepter youtu.be / watch?v= / id brut sans
  * validation HTML5 trop stricte.
  */
-function YoutubeField({
-	value,
-	onChange,
-}: {
-	value: string;
-	onChange: (url: string) => void;
-}) {
+function YoutubeField({ value, onChange }: { value: string; onChange: (url: string) => void }) {
 	const trimmed = value.trim();
 	const id = trimmed ? extractYoutubeId(trimmed) : null;
 	const thumb = id ? youtubeThumbUrl(id) : null;
@@ -461,9 +441,7 @@ function YoutubeField({
 						<p className="text-[11px] font-display font-semibold uppercase tracking-wider text-dbz-orange">
 							Aperçu OK
 						</p>
-						<p className="mt-0.5 break-all font-mono text-[11px] text-white/50">
-							id&nbsp;: {id}
-						</p>
+						<p className="mt-0.5 break-all font-mono text-[11px] text-white/50">id&nbsp;: {id}</p>
 						<p className="mt-1 text-[11px] text-white/40">
 							La vignette YouTube s&apos;affiche → le lien est valide.
 						</p>

@@ -207,7 +207,13 @@ function SceneBackground({
 }
 
 // ── Éditeur des cartes du « Terrain » ────────────────────────────────────────
-function CardsEditor({ cards, onChange }: { cards: PlayCard[]; onChange: (c: PlayCard[]) => void }) {
+function CardsEditor({
+	cards,
+	onChange,
+}: {
+	cards: PlayCard[];
+	onChange: (c: PlayCard[]) => void;
+}) {
 	const set = (i: number, patch: Partial<PlayCard>) =>
 		onChange(cards.map((c, j) => (j === i ? { ...c, ...patch } : c)));
 	return (
@@ -314,7 +320,11 @@ function SectionCard({
 						<ChevronDown className="h-4 w-4" />
 					</button>
 				</div>
-				<button type="button" onClick={() => setOpen((v) => !v)} className="flex flex-1 items-center gap-2 text-left">
+				<button
+					type="button"
+					onClick={() => setOpen((v) => !v)}
+					className="flex flex-1 items-center gap-2 text-left"
+				>
 					<span className="badge font-mono">{section.id}</span>
 					<span className="font-semibold">{section.navLabel}</span>
 					<span className="text-lg leading-none text-dbz-yellow/70">{section.kanji}</span>
@@ -398,8 +408,8 @@ function SectionCard({
 					</label>
 					{isCustom && (
 						<div className="block text-xs text-zinc-400">
-							Contenu (éditeur riche — mise en forme, images/gifs, embeds, aperçu live ; même
-							moteur que le wiki)
+							Contenu (éditeur riche — mise en forme, images/gifs, embeds, aperçu live ; même moteur
+							que le wiki)
 							<div className="mt-1">
 								<MarkdownField
 									value={section.body ?? ""}
@@ -462,7 +472,8 @@ function FxPanel({
 		stopPreview.current = previewSfxFile(src, fx.sfxVolume);
 	};
 
-	const options = sfxFiles.length > 0 ? sfxFiles : Object.values(HOME_SFX_META).map((m) => m.defaultFile);
+	const options =
+		sfxFiles.length > 0 ? sfxFiles : Object.values(HOME_SFX_META).map((m) => m.defaultFile);
 
 	return (
 		<div className="card space-y-4 p-4">
@@ -471,8 +482,8 @@ function FxPanel({
 				<h3 className="font-semibold text-dbz-yellow">VFX & SFX</h3>
 			</div>
 			<p className="text-xs text-zinc-400">
-				Volume, fichiers par slot, effets visuels. Pas de musique de fond auto (ocarina reste
-				opt-in via le slot Tapion uniquement).
+				Volume, fichiers par slot, effets visuels. Pas de musique de fond auto (ocarina reste opt-in
+				via le slot Tapion uniquement).
 			</p>
 
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -695,13 +706,7 @@ export default function HomeEditor() {
 						changements s'appliquent au site public après enregistrement.
 					</p>
 				</div>
-				<a
-					href="/"
-					target="_blank"
-					rel="noreferrer"
-					className="btn btn-ghost"
-					title="Voir la home"
-				>
+				<a href="/" target="_blank" rel="noreferrer" className="btn btn-ghost" title="Voir la home">
 					<ExternalLink className="mr-1 h-4 w-4" /> Voir
 				</a>
 				<button
@@ -830,7 +835,10 @@ export default function HomeEditor() {
 					</div>
 					<div className="space-y-3">
 						{heroScenes.map((sc, i) => (
-							<div key={`${sc.id}-${i}`} className="rounded-lg border border-zinc-800 bg-black/30 p-3">
+							<div
+								key={`${sc.id}-${i}`}
+								className="rounded-lg border border-zinc-800 bg-black/30 p-3"
+							>
 								<div className="mb-2 flex items-center gap-2">
 									<span className="badge font-mono text-[10px]">#{i + 1}</span>
 									<input
@@ -838,7 +846,9 @@ export default function HomeEditor() {
 										value={sc.title}
 										onChange={(e) =>
 											patchHero({
-												scenes: heroScenes.map((s, j) => (j === i ? { ...s, title: e.target.value } : s)),
+												scenes: heroScenes.map((s, j) =>
+													j === i ? { ...s, title: e.target.value } : s
+												),
 											})
 										}
 										placeholder="Titre (légende)"
@@ -891,7 +901,8 @@ export default function HomeEditor() {
 						))}
 					</div>
 					<p className="mt-2 text-[11px] text-zinc-500">
-						Les {config.clips.desktop} premières scènes servent aussi de clips flottants sur desktop.
+						Les {config.clips.desktop} premières scènes servent aussi de clips flottants sur
+						desktop.
 					</p>
 				</div>
 			</div>

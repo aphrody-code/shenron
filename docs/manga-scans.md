@@ -21,11 +21,11 @@ les planches sont téléchargées sur le VPS et servies depuis `bot.dragonballfr
 
 ## Contenu disponible
 
-| Série | État | Source |
-|---|---|---|
-| **Dragon Ball Super** (N&B) | complet (23 tomes / 103 chapitres) | scan-vf.net → self-host |
-| **Dragon Ball original VF** (N&B) | **complet — 42 tomes** | Sushi Scan → CDN anime-sama |
-| **Dragon Ball Full Color** | « L'enfance de Goku » — 2 tomes | Sushi Scan → CDN anime-sama |
+| Série                             | État                               | Source                      |
+| --------------------------------- | ---------------------------------- | --------------------------- |
+| **Dragon Ball Super** (N&B)       | complet (23 tomes / 103 chapitres) | scan-vf.net → self-host     |
+| **Dragon Ball original VF** (N&B) | **complet — 42 tomes**             | Sushi Scan → CDN anime-sama |
+| **Dragon Ball Full Color**        | « L'enfance de Goku » — 2 tomes    | Sushi Scan → CDN anime-sama |
 
 Total : **~12 700 planches self-hostées**. Le manga JP (VO) n'est pas disponible
 proprement depuis le VPS (MangaDex n'héberge pas le raw JP de DB ; les agrégateurs

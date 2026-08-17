@@ -57,9 +57,7 @@ function EmptySlot({ rank, browseHref }: { rank: 1 | 2 | 3; browseHref: string }
 					<p className="text-[11px] font-bold uppercase tracking-wider text-white/35">
 						Place libre
 					</p>
-					<p className="text-[10px] leading-snug text-white/30">
-						Note pour l&apos;occuper
-					</p>
+					<p className="text-[10px] leading-snug text-white/30">Note pour l&apos;occuper</p>
 				</div>
 			</div>
 			<Link
@@ -72,13 +70,7 @@ function EmptySlot({ rank, browseHref }: { rank: 1 | 2 | 3; browseHref: string }
 	);
 }
 
-function PodiumCard({
-	board,
-	rank,
-}: {
-	board: CommunityTopBoard;
-	rank: 1 | 2 | 3;
-}) {
+function PodiumCard({ board, rank }: { board: CommunityTopBoard; rank: 1 | 2 | 3 }) {
 	const entry = board.entries.find((e) => e.rank === rank);
 	const meta = RANK_META[rank];
 	if (!entry) {
@@ -94,7 +86,11 @@ function PodiumCard({
 				className={`group relative flex w-full max-w-[9.5rem] flex-col overflow-hidden rounded-xl border bg-black/40 transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange sm:max-w-[11rem] ${meta.ring} ${
 					isFirst ? "max-w-[11rem] sm:max-w-[12.5rem]" : ""
 				}`}
-				style={{ borderColor: isFirst ? "color-mix(in oklch, var(--tops-accent) 55%, transparent)" : undefined }}
+				style={{
+					borderColor: isFirst
+						? "color-mix(in oklch, var(--tops-accent) 55%, transparent)"
+						: undefined,
+				}}
 			>
 				<div className="relative aspect-[2/3] overflow-hidden bg-dbz-bg">
 					{entry.image ? (
@@ -207,7 +203,7 @@ export function CommunityTops({
 	const boards = data.boards;
 	const firstWithVotes = boards.findIndex((b) => b.entries.length > 0);
 	const [active, setActive] = useState(
-		firstWithVotes >= 0 ? boards[firstWithVotes]!.def.id : boards[0]?.def.id ?? "episodes-dbz"
+		firstWithVotes >= 0 ? boards[firstWithVotes]!.def.id : (boards[0]?.def.id ?? "episodes-dbz")
 	);
 
 	const board = useMemo(
@@ -233,8 +229,8 @@ export function CommunityTops({
 							Les Top 3 de la communauté
 						</h2>
 						<p className="mt-1 max-w-2xl text-sm text-white/55">
-							Épisodes, films et jeux classés par vos notes. Note ton favori pour le
-							faire entrer — ou rester — sur le podium.
+							Épisodes, films et jeux classés par vos notes. Note ton favori pour le faire entrer —
+							ou rester — sur le podium.
 							{data.globalVotes > 0 && (
 								<>
 									{" "}
@@ -254,11 +250,7 @@ export function CommunityTops({
 				</div>
 			)}
 
-			<div
-				className="flex flex-wrap gap-2"
-				role="tablist"
-				aria-label="Choisir un top 3"
-			>
+			<div className="flex flex-wrap gap-2" role="tablist" aria-label="Choisir un top 3">
 				{boards.map((b) => {
 					const selected = b.def.id === board.def.id;
 					return (

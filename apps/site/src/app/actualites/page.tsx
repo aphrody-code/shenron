@@ -3,6 +3,7 @@ import { posts as postsTable } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { publicPostFilter } from "@/lib/posts";
 import { DISCORD_INVITE } from "@/lib/config";
+import { AdUnit } from "@/components/ads/AdUnit";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
@@ -72,8 +73,8 @@ export default async function ActualitesPage({
 				<p className="ed-kicker">Dragon Ball France</p>
 				<h1 className="ed-title mt-2">Le Journal</h1>
 				<p className="ed-standfirst mt-4 max-w-[46rem]">
-					Sorties anime, chapitres du manga, films, événements et analyses — suivis et racontés
-					par la communauté francophone.
+					Sorties anime, chapitres du manga, films, événements et analyses — suivis et racontés par
+					la communauté francophone.
 				</p>
 				<div className="ed-meta mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
 					<span>
@@ -115,6 +116,10 @@ export default async function ActualitesPage({
 							))}
 						</div>
 					)}
+
+					{/* Bannière display en bas de liste — au-dessus de la pagination,
+					    donc jamais confondue avec un article de la grille. */}
+					<AdUnit placement="display" className="mt-16" />
 
 					{totalPages > 1 && <Pagination page={page} totalPages={totalPages} />}
 				</>
@@ -268,12 +273,10 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
 function EmptyState() {
 	return (
 		<div className="max-w-[38rem] border-b border-[color:var(--ed-rule)] py-20">
-			<h2 className="text-[1.75rem] font-semibold tracking-[-0.015em]">
-				Le journal ouvre bientôt
-			</h2>
+			<h2 className="text-[1.75rem] font-semibold tracking-[-0.015em]">Le journal ouvre bientôt</h2>
 			<p className="mt-4 text-[1.0625rem] leading-relaxed text-[color:var(--ed-ink-soft)]">
-				Les premiers articles sont en préparation. En attendant, l&apos;univers est déjà là :
-				le manga, les épisodes et les films se parcourent dès maintenant.
+				Les premiers articles sont en préparation. En attendant, l&apos;univers est déjà là : le
+				manga, les épisodes et les films se parcourent dès maintenant.
 			</p>
 			<div className="ed-meta mt-8 flex flex-wrap gap-x-6 gap-y-3">
 				<Link href="/wiki/manga" className="hover:text-[color:var(--ed-accent)]">

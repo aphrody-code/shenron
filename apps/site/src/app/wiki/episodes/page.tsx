@@ -49,7 +49,9 @@ export default async function EpisodesLanding() {
 				title="Les épisodes Dragon Ball"
 				meta={[`${grandTotal} épisodes`, `${availableSeries.length} séries`, "VF · VOSTFR"]}
 				synopsis="De Dragon Ball à Dragon Ball Daima — l'intégrale de l'anime, épisode par épisode, en VF et VOSTFR. Choisis ta série et lance la lecture."
-				primaryHref={opener ? `/wiki/episodes/${opener.id}` : `/wiki/episodes/serie/${openerSeries}`}
+				primaryHref={
+					opener ? `/wiki/episodes/${opener.id}` : `/wiki/episodes/serie/${openerSeries}`
+				}
 				primaryLabel="Commencer l'aventure"
 				secondaryHref="/wiki/chronologie"
 				secondaryLabel="Chronologie"

@@ -7,12 +7,7 @@
 // Les chemins sont relatifs `./assets/...` → passés par `assetUrl()` côté rendu
 // pour pointer sur le CDN bot (`bot.dragonballfr.com`).
 
-import {
-	cloneHomeFx,
-	DEFAULT_HOME_FX,
-	resolveHomeFx,
-	type HomeFxConfig,
-} from "@/lib/home-fx";
+import { cloneHomeFx, DEFAULT_HOME_FX, resolveHomeFx, type HomeFxConfig } from "@/lib/home-fx";
 
 export type { HomeFxConfig, HomeSfxSlot, HomeVfxToggles } from "@/lib/home-fx";
 export {

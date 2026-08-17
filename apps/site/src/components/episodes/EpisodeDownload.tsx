@@ -20,12 +20,15 @@ interface EpisodeDownloadProps {
  * Pendant le chargement de l'état, on pointe sur `href` (la route bounce vers
  * /signin si besoin).
  */
-export function EpisodeDownload({ href, signinCallback, title, className = "" }: EpisodeDownloadProps) {
+export function EpisodeDownload({
+	href,
+	signinCallback,
+	title,
+	className = "",
+}: EpisodeDownloadProps) {
 	const me = useMe();
 	const loggedOut = me !== undefined && !me.authenticated;
-	const target = loggedOut
-		? `/signin?callbackURL=${encodeURIComponent(signinCallback)}`
-		: href;
+	const target = loggedOut ? `/signin?callbackURL=${encodeURIComponent(signinCallback)}` : href;
 	const filename = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.mp4`;
 
 	return (

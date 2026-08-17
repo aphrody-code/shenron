@@ -135,7 +135,9 @@ async function upsertChapter(tome: ColorTome, pages: string[]) {
 
 async function main() {
 	console.log(`🎨 Ingestion Dragon Ball Full Color${dryRun ? " (dry-run)" : ""}`);
-	console.log(`   assets: ${ASSETS_ROOT}  ·  libre: ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go`);
+	console.log(
+		`   assets: ${ASSETS_ROOT}  ·  libre: ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go`
+	);
 	for (const tome of TOMES) {
 		console.log(`\n📕 ${tome.title}`);
 		try {

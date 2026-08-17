@@ -245,7 +245,10 @@ export function WikiManager({
 						<ClipboardList className="h-4 w-4" />
 						À COMPLÉTER
 					</Link>
-					<Link href="/admin/wiki/history" className="dbz-button-ghost inline-flex items-center gap-2">
+					<Link
+						href="/admin/wiki/history"
+						className="dbz-button-ghost inline-flex items-center gap-2"
+					>
 						<History className="h-4 w-4" />
 						HISTORIQUE
 					</Link>
@@ -264,8 +267,8 @@ export function WikiManager({
 					Encyclopédie
 				</h2>
 				<p className="mb-4 text-sm text-gray-400">
-					Complétude du contenu par type de fiche. Repère d'un coup d'œil ce qu'il reste à illustrer,
-					rédiger ou publier.
+					Complétude du contenu par type de fiche. Repère d'un coup d'œil ce qu'il reste à
+					illustrer, rédiger ou publier.
 				</p>
 				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 					{stats.map((s) => (
@@ -294,7 +297,10 @@ export function WikiManager({
 							const label = TABLE_LABELS[r.tableName] ?? r.tableName;
 							const canStudio = isStudioTable(r.tableName) && !r.rowId.includes(":");
 							return (
-								<li key={r.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2.5 text-sm">
+								<li
+									key={r.id}
+									className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-2.5 text-sm"
+								>
 									<span className={`text-[11px] font-bold uppercase tracking-wider ${meta.cls}`}>
 										{meta.label}
 									</span>
@@ -310,8 +316,12 @@ export function WikiManager({
 									)}
 									<span className="text-[11px] text-white/35">{label}</span>
 									<span className="ml-auto text-[11px] text-white/40">
-										{r.editorName ? <span className="text-white/60">{r.editorName}</span> : "système"} ·{" "}
-										{relTime(r.createdAt)}
+										{r.editorName ? (
+											<span className="text-white/60">{r.editorName}</span>
+										) : (
+											"système"
+										)}{" "}
+										· {relTime(r.createdAt)}
 									</span>
 								</li>
 							);
@@ -322,7 +332,9 @@ export function WikiManager({
 
 			{/* Outils & tables utilitaires */}
 			<section className="mb-10">
-				<h2 className="mb-3 font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">Outils</h2>
+				<h2 className="mb-3 font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">
+					Outils
+				</h2>
 				<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
 					{TOOLS.map((e) => (
 						<Link
@@ -343,8 +355,12 @@ export function WikiManager({
 
 			{/* Pages libres — table WikiPage (markdown + HTML + images custom). */}
 			<div className="mb-4 flex items-baseline justify-between border-t border-dbz-border pt-8">
-				<h2 className="font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">Pages libres</h2>
-				<p className="text-xs text-gray-500">Articles 100% custom (markdown, mise en page, images)</p>
+				<h2 className="font-saiyan text-2xl uppercase tracking-widest text-dbz-yellow">
+					Pages libres
+				</h2>
+				<p className="text-xs text-gray-500">
+					Articles 100% custom (markdown, mise en page, images)
+				</p>
 			</div>
 
 			<input
@@ -368,7 +384,9 @@ export function WikiManager({
 								<div>
 									<h2 className="font-saiyan text-2xl text-dbz-yellow">
 										{cat.name}
-										<span className="ml-2 font-mono text-sm text-gray-500">({cat.pages.length})</span>
+										<span className="ml-2 font-mono text-sm text-gray-500">
+											({cat.pages.length})
+										</span>
 									</h2>
 									<p className="mt-1 font-mono text-xs text-dbz-blue-light">
 										/{cat.slug} · order: {cat.order}

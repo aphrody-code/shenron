@@ -152,7 +152,11 @@ const server = Bun.serve({
 			} catch (err) {
 				console.error("[mcp] erreur handleRequest:", err);
 				return json(
-					{ jsonrpc: "2.0", error: { code: -32603, message: "Erreur interne du serveur MCP" }, id: null },
+					{
+						jsonrpc: "2.0",
+						error: { code: -32603, message: "Erreur interne du serveur MCP" },
+						id: null,
+					},
 					500
 				);
 			}
@@ -185,4 +189,6 @@ const server = Bun.serve({
 });
 
 console.log(`[mcp] Shenron MCP v${VERSION} — http://${server.hostname}:${server.port}/mcp`);
-console.log(`[mcp] upstream API: ${API_BASE} — ${TOOL_NAMES.length} outils — public: ${PUBLIC_URL}/mcp`);
+console.log(
+	`[mcp] upstream API: ${API_BASE} — ${TOOL_NAMES.length} outils — public: ${PUBLIC_URL}/mcp`
+);

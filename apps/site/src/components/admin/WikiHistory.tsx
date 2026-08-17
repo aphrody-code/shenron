@@ -45,10 +45,7 @@ interface Revision {
 
 const client = apiAt("/api/wiki-history");
 
-const ACTION_META: Record<
-	string,
-	{ label: string; cls: string; icon: React.ReactNode }
-> = {
+const ACTION_META: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
 	create: {
 		label: "Création",
 		cls: "border-green-500/40 text-green-300 bg-green-500/10",
@@ -126,8 +123,7 @@ export function WikiHistory({
 
 	const query = useQuery({
 		queryKey: ["wiki-history", table ?? "*", rowId ?? "*", action, page],
-		queryFn: () =>
-			client.get<{ rows: Revision[]; total: number }>(`?${qs.toString()}`),
+		queryFn: () => client.get<{ rows: Revision[]; total: number }>(`?${qs.toString()}`),
 	});
 
 	const revert = useMutation({

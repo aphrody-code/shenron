@@ -20,7 +20,7 @@ Discord + le RAG lisent le réplica SQLite**.
 
 - **`ingest-fandom-full.ts`** — ingestion riche depuis `dragonball.fandom.com/fr`
   via l'**API MediaWiki** (officielle, paginée). `--cat characters|planets|locations
-  [--limit N] [--dry-run]`.
+[--limit N] [--dry-run]`.
   - `categorymembers` → liste des pages d'une catégorie (FR « Personnages » = 1271
     pages).
   - `prop=pageimages|extracts|revisions` (batch 25) → image originale + wikitext.
@@ -39,11 +39,11 @@ Discord + le RAG lisent le réplica SQLite**.
 
 ## Croissance obtenue (2026-06-22)
 
-| Table | Avant | Après |
-|---|---|---|
-| `db_characters` | 108 | **1323** (904 descriptions) |
-| `db_planets` | 20 | **62** |
-| `db_arcs` | 0 | **23** |
+| Table           | Avant | Après                       |
+| --------------- | ----- | --------------------------- |
+| `db_characters` | 108   | **1323** (904 descriptions) |
+| `db_planets`    | 20    | **62**                      |
+| `db_arcs`       | 0     | **23**                      |
 
 Toutes les images wiki sont **self-hostées** (0 hotlink `http%`).
 

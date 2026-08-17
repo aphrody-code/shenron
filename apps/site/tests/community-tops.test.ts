@@ -68,9 +68,7 @@ describe("source features", () => {
 		expect(ui).toContain("CommunityTopsFull");
 		expect(ui).toContain("PODIUM_ORDER");
 
-		const page = await Bun.file(
-			new URL("../src/app/classements/page.tsx", import.meta.url)
-		).text();
+		const page = await Bun.file(new URL("../src/app/classements/page.tsx", import.meta.url)).text();
 		expect(page).toContain("getCommunityTops");
 		expect(page).toContain("CommunityTopsFull");
 	});
@@ -82,9 +80,7 @@ describe("source features", () => {
 		expect(home).toContain('case "tops"');
 		expect(home).toContain("communityTops");
 
-		const scenes = await Bun.file(
-			new URL("../src/lib/home-scenes.ts", import.meta.url)
-		).text();
+		const scenes = await Bun.file(new URL("../src/lib/home-scenes.ts", import.meta.url)).text();
 		expect(scenes).toContain('"tops"');
 		expect(scenes).toContain("Les Top 3 de la communauté");
 	});

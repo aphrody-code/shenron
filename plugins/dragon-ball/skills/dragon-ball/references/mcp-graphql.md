@@ -14,10 +14,11 @@ Dragon Ball directement dans un assistant.
 `bot_personas`, `bot_leaderboard`, `bot_commands`, `news`.
 
 **Connexion :**
-- **Claude (web/desktop)** : Réglages → Connecteurs → *Ajouter un connecteur
-  personnalisé* → URL `https://mcp.dragonballfr.com/mcp`, authentification « Aucune ».
+
+- **Claude (web/desktop)** : Réglages → Connecteurs → _Ajouter un connecteur
+  personnalisé_ → URL `https://mcp.dragonballfr.com/mcp`, authentification « Aucune ».
 - **Claude Code** : `claude mcp add --transport http shenron https://mcp.dragonballfr.com/mcp`
-- **Gemini / Grok / autres** : serveur MCP distant *Streamable HTTP*, même URL, sans en-tête d'auth.
+- **Gemini / Grok / autres** : serveur MCP distant _Streamable HTTP_, même URL, sans en-tête d'auth.
 - **Ollama** (via un bridge MCP, ex. `mcphost` / Open WebUI) : serveur HTTP, même URL.
 
 Test rapide du handshake (JSON-RPC) :
@@ -55,11 +56,21 @@ Champs de requête de premier niveau : `character(s)`, `planet(s)`, `race(s)`,
 
 ```graphql
 {
-  ragSearch(q: "saga Cell", limit: 5) {
-    mode
-    results { kind title url snippet }
-  }
-  counts { characters planets sagas techniques }
+	ragSearch(q: "saga Cell", limit: 5) {
+		mode
+		results {
+			kind
+			title
+			url
+			snippet
+		}
+	}
+	counts {
+		characters
+		planets
+		sagas
+		techniques
+	}
 }
 ```
 

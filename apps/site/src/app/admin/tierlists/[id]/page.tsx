@@ -9,11 +9,7 @@ import { saveOfficialTierlist } from "../_actions";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Éditer une tier list" };
 
-export default async function EditTierlistPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function EditTierlistPage({ params }: { params: Promise<{ id: string }> }) {
 	await requireAdmin();
 	const { id } = await params;
 	const tl = await getTierlistForAdmin(id);
@@ -58,7 +54,10 @@ export default async function EditTierlistPage({
 				initialPublished={tl.published}
 			/>
 
-			<Link href="/admin/tierlists" className="inline-block text-sm text-white/50 hover:text-white/80">
+			<Link
+				href="/admin/tierlists"
+				className="inline-block text-sm text-white/50 hover:text-white/80"
+			>
 				← Retour à la modération
 			</Link>
 		</div>

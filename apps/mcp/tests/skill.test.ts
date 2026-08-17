@@ -15,7 +15,12 @@ function collect(): Captured {
 	const prompts: Captured["prompts"] = [];
 	const fake = {
 		registerTool() {},
-		registerResource(name: string, uri: string, config: { mimeType?: string }, cb: (u: URL) => any) {
+		registerResource(
+			name: string,
+			uri: string,
+			config: { mimeType?: string },
+			cb: (u: URL) => any
+		) {
 			resources.push({ name, uri, config, cb });
 		},
 		registerPrompt(name: string, config: Record<string, unknown>, cb: (a: any) => any) {

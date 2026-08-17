@@ -31,7 +31,11 @@ export async function POST(req: NextRequest) {
 	if (!query) return NextResponse.json({ error: "query requise" }, { status: 400 });
 	const limit = Math.min(12, Math.max(1, Number(body?.limit) || 8));
 
-	const rag = await dbUniverse.rag(query, limit, body?.entity ? { entity: body.entity } : undefined);
+	const rag = await dbUniverse.rag(
+		query,
+		limit,
+		body?.entity ? { entity: body.entity } : undefined
+	);
 	const results = (rag?.results ?? []).map((r) => ({
 		title: r.title,
 		url: r.url,
@@ -56,9 +60,7 @@ export async function POST(req: NextRequest) {
 	}
 	let markdown = paras.join("\n\n");
 	if (sources.length > 0) {
-		markdown += `\n\n**Sources :** ${sources
-			.map((s) => `[${s.title}](${s.url})`)
-			.join(" · ")}`;
+		markdown += `\n\n**Sources :** ${sources.map((s) => `[${s.title}](${s.url})`).join(" · ")}`;
 	}
 
 	return NextResponse.json({

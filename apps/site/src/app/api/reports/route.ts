@@ -47,10 +47,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 		me = null;
 	}
 	if (!me?.user?.id) {
-		return NextResponse.json(
-			{ ok: false, error: "auth_required" },
-			{ status: 401 }
-		);
+		return NextResponse.json({ ok: false, error: "auth_required" }, { status: 401 });
 	}
 
 	if (rateLimited(me.user.id)) {

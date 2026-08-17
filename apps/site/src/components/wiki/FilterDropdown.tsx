@@ -142,7 +142,9 @@ export function FilterDropdown({
 												</svg>
 											)}
 										</span>
-										<span className={`flex-1 truncate text-[13px] ${on ? "text-white" : "text-white/70"}`}>
+										<span
+											className={`flex-1 truncate text-[13px] ${on ? "text-white" : "text-white/70"}`}
+										>
 											{o.label}
 										</span>
 										{o.count != null && (

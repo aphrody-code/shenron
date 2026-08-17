@@ -152,9 +152,7 @@ export class TikTokService {
 			.setColor(LIVE_COLOR)
 			.setTitle(`🔴 ${p.nickname} est EN LIVE sur TikTok`)
 			.setURL(p.liveUrl)
-			.setDescription(
-				`Rejoins le live de [@${p.uniqueId}](${p.liveUrl}) maintenant sur TikTok !`
-			)
+			.setDescription(`Rejoins le live de [@${p.uniqueId}](${p.liveUrl}) maintenant sur TikTok !`)
 			.addFields({ name: "Lien", value: p.liveUrl })
 			.setFooter({ text: "TikTok • LIVE" })
 			.setTimestamp(new Date());

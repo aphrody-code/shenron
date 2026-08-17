@@ -36,8 +36,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-orange",
 		line: "from-dbz-orange/50",
 		dot: "bg-dbz-orange",
-		pillActive:
-			"bg-dbz-orange text-black border-dbz-orange shadow-[0_0_18px_rgba(255,178,0,0.35)]",
+		pillActive: "bg-dbz-orange text-black border-dbz-orange shadow-[0_0_18px_rgba(255,178,0,0.35)]",
 		relatedHover: "group-hover:text-dbz-orange",
 	},
 	blue: {
@@ -62,8 +61,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-green",
 		line: "from-dbz-green/50",
 		dot: "bg-dbz-green",
-		pillActive:
-			"bg-dbz-green text-white border-dbz-green shadow-[0_0_18px_rgba(22,163,74,0.35)]",
+		pillActive: "bg-dbz-green text-white border-dbz-green shadow-[0_0_18px_rgba(22,163,74,0.35)]",
 		relatedHover: "group-hover:text-dbz-green",
 	},
 	purple: {
@@ -80,8 +78,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-gold",
 		line: "from-dbz-gold/50",
 		dot: "bg-dbz-gold",
-		pillActive:
-			"bg-dbz-gold text-black border-dbz-gold shadow-[0_0_18px_rgba(255,234,0,0.35)]",
+		pillActive: "bg-dbz-gold text-black border-dbz-gold shadow-[0_0_18px_rgba(255,234,0,0.35)]",
 		relatedHover: "group-hover:text-dbz-gold",
 	},
 	cyan: {
@@ -89,8 +86,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-cyan",
 		line: "from-dbz-cyan/50",
 		dot: "bg-dbz-cyan",
-		pillActive:
-			"bg-dbz-cyan text-black border-dbz-cyan shadow-[0_0_18px_rgba(34,211,238,0.35)]",
+		pillActive: "bg-dbz-cyan text-black border-dbz-cyan shadow-[0_0_18px_rgba(34,211,238,0.35)]",
 		relatedHover: "group-hover:text-dbz-cyan",
 	},
 	pink: {
@@ -98,8 +94,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-pink",
 		line: "from-dbz-pink/50",
 		dot: "bg-dbz-pink",
-		pillActive:
-			"bg-dbz-pink text-white border-dbz-pink shadow-[0_0_18px_rgba(236,72,153,0.35)]",
+		pillActive: "bg-dbz-pink text-white border-dbz-pink shadow-[0_0_18px_rgba(236,72,153,0.35)]",
 		relatedHover: "group-hover:text-dbz-pink",
 	},
 };
@@ -107,17 +102,16 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 /** Options pour le sélecteur de couleur dans le studio admin. */
 export const SECTION_ACCENT_OPTIONS = SECTION_ACCENT_KEYS.map((key) => ({
 	key,
-	label:
-		{
-			orange: "Orange",
-			blue: "Bleu",
-			red: "Rouge",
-			green: "Vert",
-			purple: "Violet",
-			gold: "Or",
-			cyan: "Cyan",
-			pink: "Rose",
-		}[key],
+	label: {
+		orange: "Orange",
+		blue: "Bleu",
+		red: "Rouge",
+		green: "Vert",
+		purple: "Violet",
+		gold: "Or",
+		cyan: "Cyan",
+		pink: "Rose",
+	}[key],
 	dot: SECTION_ACCENT_STYLES[key].dot,
 }));
 

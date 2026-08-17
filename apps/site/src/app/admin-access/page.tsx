@@ -16,8 +16,8 @@ export default function AdminAccessPage() {
 			<div>
 				<h1 className="text-2xl font-bold text-white">Accès administrateur</h1>
 				<p className="mt-2 text-sm text-white/55">
-					Connexion par token, sans passer par Discord. Saisis le token admin du bot
-					(<code className="text-white/70">SHENRON_ADMIN_TOKEN</code>) pour ouvrir une session admin
+					Connexion par token, sans passer par Discord. Saisis le token admin du bot (
+					<code className="text-white/70">SHENRON_ADMIN_TOKEN</code>) pour ouvrir une session admin
 					sur ce navigateur.
 				</p>
 			</div>

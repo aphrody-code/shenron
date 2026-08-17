@@ -67,7 +67,9 @@ async function reconstructDbRegularVolumes(): Promise<number> {
 		const n = Number(dir.slice(3));
 		const volId = volIdByNum.get(n);
 		if (!volId) {
-			console.warn(`! regular/vol${n} sur disque mais pas de « Dragon Ball Vol. ${n} » en base — skip`);
+			console.warn(
+				`! regular/vol${n} sur disque mais pas de « Dragon Ball Vol. ${n} » en base — skip`
+			);
 			continue;
 		}
 		const files = (await readdir(join(regularRoot, dir)))

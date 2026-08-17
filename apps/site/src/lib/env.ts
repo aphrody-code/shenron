@@ -51,6 +51,14 @@ export const env = createEnv({
 		NEXT_PUBLIC_GTM_ID: z.string().optional(),
 		NEXT_PUBLIC_GA_ID: z.string().optional(),
 		NEXT_PUBLIC_ADSENSE_CLIENT: z.string().optional(),
+		// IDs des blocs AdSense (`data-ad-slot`, 10 chiffres). Résolus par
+		// `@/lib/ads` ; un emplacement sans ID reste éteint. Les annonces
+		// automatiques ne dépendent d'aucun de ces IDs.
+		NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE: z.string().optional(),
+		NEXT_PUBLIC_ADSENSE_SLOT_DISPLAY: z.string().optional(),
+		NEXT_PUBLIC_ADSENSE_SLOT_INFEED: z.string().optional(),
+		NEXT_PUBLIC_ADSENSE_LAYOUT_KEY_INFEED: z.string().optional(),
+		NEXT_PUBLIC_ADSENSE_SLOT_MULTIPLEX: z.string().optional(),
 		NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
 		NEXT_PUBLIC_FIREBASE_API_KEY: z.string().optional(),
 		NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: z.string().optional(),
@@ -68,6 +76,11 @@ export const env = createEnv({
 		NEXT_PUBLIC_GTM_ID: process.env.NEXT_PUBLIC_GTM_ID,
 		NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
 		NEXT_PUBLIC_ADSENSE_CLIENT: process.env.NEXT_PUBLIC_ADSENSE_CLIENT,
+		NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE: process.env.NEXT_PUBLIC_ADSENSE_SLOT_ARTICLE,
+		NEXT_PUBLIC_ADSENSE_SLOT_DISPLAY: process.env.NEXT_PUBLIC_ADSENSE_SLOT_DISPLAY,
+		NEXT_PUBLIC_ADSENSE_SLOT_INFEED: process.env.NEXT_PUBLIC_ADSENSE_SLOT_INFEED,
+		NEXT_PUBLIC_ADSENSE_LAYOUT_KEY_INFEED: process.env.NEXT_PUBLIC_ADSENSE_LAYOUT_KEY_INFEED,
+		NEXT_PUBLIC_ADSENSE_SLOT_MULTIPLEX: process.env.NEXT_PUBLIC_ADSENSE_SLOT_MULTIPLEX,
 		NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
 		NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
 		NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,

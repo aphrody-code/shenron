@@ -76,7 +76,9 @@ export function UserSelect({
 	const selectedQuery = useQuery({
 		queryKey: ["discord", "member", value],
 		queryFn: () =>
-			api.get<{ members: Member[] }>(`/discord/members?search=${encodeURIComponent(value)}&limit=5`),
+			api.get<{ members: Member[] }>(
+				`/discord/members?search=${encodeURIComponent(value)}&limit=5`
+			),
 		staleTime: 60_000,
 		enabled: !!value,
 	});
@@ -107,7 +109,9 @@ export function UserSelect({
 		<div ref={boxRef} className={`relative ${className ?? ""}`}>
 			{value && !open ? (
 				<div className="flex items-center gap-2 rounded-lg border border-dbz-border bg-dbz-bg/60 px-2 py-1.5">
-					{selected?.avatar && <img src={selected.avatar} alt="" className="h-6 w-6 rounded-full" />}
+					{selected?.avatar && (
+						<img src={selected.avatar} alt="" className="h-6 w-6 rounded-full" />
+					)}
 					<span className="min-w-0 flex-1 truncate text-sm">
 						{selected ? (
 							<>
@@ -159,7 +163,9 @@ export function UserSelect({
 				<div className="absolute z-30 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-dbz-border bg-dbz-card shadow-xl">
 					{search.isLoading && <p className="p-2 text-xs text-zinc-500">Recherche…</p>}
 					{!search.isLoading && debounced.trim().length < 1 && (
-						<p className="p-2 text-xs text-zinc-500">Tape un pseudo, un nom d'affichage ou un ID.</p>
+						<p className="p-2 text-xs text-zinc-500">
+							Tape un pseudo, un nom d'affichage ou un ID.
+						</p>
 					)}
 					{!search.isLoading && debounced.trim().length >= 1 && results.length === 0 && (
 						<p className="p-2 text-xs text-zinc-500">Aucun membre trouvé.</p>
@@ -180,7 +186,9 @@ export function UserSelect({
 								<span className="block truncate text-sm font-semibold text-white">
 									{m.displayName}
 									{m.bot && (
-										<span className="ml-1 rounded bg-dbz-blue/50 px-1 text-[9px] uppercase">bot</span>
+										<span className="ml-1 rounded bg-dbz-blue/50 px-1 text-[9px] uppercase">
+											bot
+										</span>
 									)}
 								</span>
 								<span className="block truncate text-[11px] text-white/45">

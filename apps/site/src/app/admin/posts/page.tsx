@@ -27,9 +27,7 @@ export default async function AdminPosts({
 	searchParams: Promise<{ statut?: string }>;
 }) {
 	const { statut } = await searchParams;
-	const filter: FilterKey = FILTERS.some((f) => f.key === statut)
-		? (statut as FilterKey)
-		: "all";
+	const filter: FilterKey = FILTERS.some((f) => f.key === statut) ? (statut as FilterKey) : "all";
 
 	const all = await db.query.posts.findMany({
 		orderBy: (p, { desc }) => desc(p.updatedAt),
@@ -107,7 +105,10 @@ export default async function AdminPosts({
 						const status = effectiveStatus(post);
 						const date = post.publishedAt ?? post.updatedAt;
 						return (
-							<li key={post.id} className="group bg-white/[0.02] transition-colors hover:bg-white/[0.05]">
+							<li
+								key={post.id}
+								className="group bg-white/[0.02] transition-colors hover:bg-white/[0.05]"
+							>
 								<Link
 									href={`/admin/posts/${post.id}`}
 									className="flex items-center gap-4 px-4 py-3.5"

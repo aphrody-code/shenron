@@ -105,7 +105,10 @@ export function DbAddButton({ table, label = "Ajouter" }: { table: string; label
 	// Entités « contenu » → studio visuel (form + aperçu live + upload images).
 	if (isStudioTable(table)) {
 		return (
-			<Link href={`/admin/wiki/studio/${table}/new`} className="dbz-button inline-flex items-center gap-2">
+			<Link
+				href={`/admin/wiki/studio/${table}/new`}
+				className="dbz-button inline-flex items-center gap-2"
+			>
 				<Plus className="h-4 w-4" />
 				{label}
 			</Link>

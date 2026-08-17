@@ -90,9 +90,7 @@ export function HomeMediaRail({
 						</span>
 						<span className="home-media-card__meta">
 							<span className="home-media-card__title">{item.title}</span>
-							{item.subtitle && (
-								<span className="home-media-card__sub">{item.subtitle}</span>
-							)}
+							{item.subtitle && <span className="home-media-card__sub">{item.subtitle}</span>}
 						</span>
 					</Link>
 				);

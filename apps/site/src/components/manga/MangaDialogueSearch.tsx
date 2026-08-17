@@ -80,7 +80,10 @@ export function MangaDialogueSearch() {
 		<section className="mb-16 lg:mb-24" aria-labelledby={`${inputId}-title`}>
 			<header className="mb-6">
 				<span className="scouter-text mb-2 block text-lg text-dbz-orange">Recherche</span>
-				<h2 id={`${inputId}-title`} className="font-saiyan text-2xl tracking-widest text-white sm:text-3xl">
+				<h2
+					id={`${inputId}-title`}
+					className="font-saiyan text-2xl tracking-widest text-white sm:text-3xl"
+				>
 					Cherche une réplique
 				</h2>
 				<p className="mt-2 max-w-2xl text-sm text-white/60">

@@ -20,7 +20,14 @@ import { levelForXP } from "~/lib/xp";
 import { EconomyService } from "~/services/EconomyService";
 import { LevelService } from "~/services/LevelService";
 
-export type ConsoleFieldType = "user" | "text" | "number" | "select" | "role" | "channel" | "persona";
+export type ConsoleFieldType =
+	| "user"
+	| "text"
+	| "number"
+	| "select"
+	| "role"
+	| "channel"
+	| "persona";
 
 export interface ConsoleField {
 	name: string;
@@ -225,7 +232,11 @@ export async function runConsoleCommand(
 				if (amount >= 0) await economy.addZeni(userId, amount);
 				else await economy.removeZeni(userId, -amount);
 				const bal = await economy.getBalance(userId);
-				return { ok: true, message: `Zénis ajustés de ${amount} → solde ${bal}.`, data: { balance: bal } };
+				return {
+					ok: true,
+					message: `Zénis ajustés de ${amount} → solde ${bal}.`,
+					data: { balance: bal },
+				};
 			}
 			case "setzeni": {
 				const userId = str(args, "userId");
@@ -248,7 +259,8 @@ export async function runConsoleCommand(
 					const toRemove = RACE_ROLE_IDS.filter(
 						(r) => r !== def.roleId && member.roles.cache.has(r)
 					);
-					if (toRemove.length) await member.roles.remove(toRemove, "Race (console)").catch(() => {});
+					if (toRemove.length)
+						await member.roles.remove(toRemove, "Race (console)").catch(() => {});
 					if (!member.roles.cache.has(def.roleId))
 						await member.roles.add(def.roleId, `Race : ${def.name} (console)`).catch(() => {});
 					await levels.syncRaceLevelRoles(member).catch(() => {});
@@ -294,10 +306,16 @@ export async function runConsoleCommand(
 				if (!channel || !channel.isTextBased() || !("send" in channel)) {
 					return { ok: false, message: "Salon textuel introuvable." };
 				}
-				const sent = await (channel as { send: (o: { content: string }) => Promise<{ id: string }> }).send({
+				const sent = await (
+					channel as { send: (o: { content: string }) => Promise<{ id: string }> }
+				).send({
 					content,
 				});
-				return { ok: true, message: `Message envoyé (id ${sent.id}).`, data: { messageId: sent.id } };
+				return {
+					ok: true,
+					message: `Message envoyé (id ${sent.id}).`,
+					data: { messageId: sent.id },
+				};
 			}
 			default:
 				return { ok: false, message: `Commande inconnue : ${command}` };

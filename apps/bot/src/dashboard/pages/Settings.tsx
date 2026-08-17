@@ -628,9 +628,9 @@ function TicketAccessEditor({
 				Accès staff par type de ticket
 			</h4>
 			<p className="mb-3 text-xs text-zinc-500">
-				Rôles ajoutés ici = accès (voir + écrire) aux <strong>nouveaux</strong> tickets de ce
-				type dès leur ouverture. Les Administrateurs voient déjà tout (bypass Discord). Pour
-				appliquer aussi aux tickets déjà ouverts, utiliser le bouton de resync ci-dessous.
+				Rôles ajoutés ici = accès (voir + écrire) aux <strong>nouveaux</strong> tickets de ce type
+				dès leur ouverture. Les Administrateurs voient déjà tout (bypass Discord). Pour appliquer
+				aussi aux tickets déjà ouverts, utiliser le bouton de resync ci-dessous.
 			</p>
 			<div className="mb-3 flex flex-wrap gap-2">
 				{TICKET_KINDS.map((k) => (
@@ -648,8 +648,8 @@ function TicketAccessEditor({
 			<div className="space-y-2">
 				{current.length === 0 && (
 					<p className="text-xs italic text-zinc-600">
-						Aucun rôle configuré pour « {TICKET_KIND_META[kind].label} » — seul l'auteur du
-						ticket (+ Administrateur) le voit.
+						Aucun rôle configuré pour « {TICKET_KIND_META[kind].label} » — seul l'auteur du ticket
+						(+ Administrateur) le voit.
 					</p>
 				)}
 				{current.map((rid) => (

@@ -65,7 +65,10 @@ async function call(
 	if (!res.ok) {
 		// Message court et spécifique, jamais le corps HTML/stacktrace complet.
 		const snippet = text.slice(0, 200).replace(/\s+/g, " ").trim();
-		throw new ApiError(`API ${res.status} sur ${path}${snippet ? ` — ${snippet}` : ""}`, res.status);
+		throw new ApiError(
+			`API ${res.status} sur ${path}${snippet ? ` — ${snippet}` : ""}`,
+			res.status
+		);
 	}
 	try {
 		return text ? JSON.parse(text) : null;

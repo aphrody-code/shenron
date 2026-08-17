@@ -222,9 +222,7 @@ export async function listWiki(
  * (name/title/slug), triées, plafond élevé. Évite de rapatrier des lignes
  * complètes (jsonb compris) et la troncature à 500 de `listWiki`.
  */
-export async function listWikiOptions(
-	table: string
-): Promise<{ value: string; label: string }[]> {
+export async function listWikiOptions(table: string): Promise<{ value: string; label: string }[]> {
 	const spec = getSpec(table);
 	if (!spec) throw new Error(`Table inconnue: ${table}`);
 	const pkKey = pkCamelKeys(spec)[0];
@@ -288,7 +286,11 @@ async function nextPkValue(spec: ResolvedTable, pkKey: string): Promise<number> 
  * Databooks : un seul champ UI (`category`). `kind` (NOT NULL, index legacy)
  * est dérivé automatiquement — jamais exposé au formulaire.
  */
-function applyDatabookKind(table: string, values: Row, { forInsert }: { forInsert: boolean }): void {
+function applyDatabookKind(
+	table: string,
+	values: Row,
+	{ forInsert }: { forInsert: boolean }
+): void {
 	if (table !== "db_databooks") return;
 	if (values.category != null && values.category !== "") {
 		values.kind = kindFromCategory(String(values.category));
@@ -503,16 +505,26 @@ async function countEmpty(spec: ResolvedTable, col: string): Promise<number> {
 /** Statistiques de complétude d'une entité (total, masquées, sans image/texte). */
 async function tableStat(table: string): Promise<CmsEntityStat> {
 	const spec = getSpec(table);
-	if (!spec) return {
-		table, total: 0, hidden: 0, missingImage: 0, missingDesc: 0,
-		imageCol: null, descCol: null, hasVisibility: false,
-	};
+	if (!spec)
+		return {
+			table,
+			total: 0,
+			hidden: 0,
+			missingImage: 0,
+			missingDesc: 0,
+			imageCol: null,
+			descCol: null,
+			hasVisibility: false,
+		};
 	const cols = spec.columns;
 	const imageCol = ["image", "cover", "poster"].find((c) => cols.includes(c)) ?? null;
 	const descCol = ["description", "synopsis"].find((c) => cols.includes(c)) ?? null;
 	const hasVis = cols.includes("visible");
 	const [total, hidden, missingImage, missingDesc] = await Promise.all([
-		db.select({ value: count() }).from(spec.table).then((r) => Number(r[0]?.value ?? 0)),
+		db
+			.select({ value: count() })
+			.from(spec.table)
+			.then((r) => Number(r[0]?.value ?? 0)),
 		hasVis
 			? db
 					.select({ value: count() })
@@ -573,10 +585,9 @@ export async function listIncompleteContent(
 			const descCol = ["description", "synopsis"].find((c) => cols.includes(c)) ?? null;
 			if (!imageCol && !descCol) return;
 			const emptyOr = (c: string) => or(isNull(spec.table[c]), eq(spec.table[c], ""));
-			const conds = [
-				imageCol ? emptyOr(imageCol) : null,
-				descCol ? emptyOr(descCol) : null,
-			].filter(Boolean) as SQL[];
+			const conds = [imageCol ? emptyOr(imageCol) : null, descCol ? emptyOr(descCol) : null].filter(
+				Boolean
+			) as SQL[];
 			const where = (conds.length === 1 ? conds[0] : or(...conds)) as SQL;
 			const sel: Record<string, unknown> = {
 				id: spec.table[pkKey],

@@ -102,10 +102,7 @@ export function WikiStudio({ table, id }: Props) {
 		mutationFn: async () => {
 			const body = buildSubmitBody(draft, row, cols, { mode });
 			if (mode === "create") return client.post<{ ok: boolean; row?: Row }>(`/${table}`, body);
-			return client.put<{ ok: boolean; row?: Row }>(
-				`/${table}/${encodeURIComponent(id)}`,
-				body
-			);
+			return client.put<{ ok: boolean; row?: Row }>(`/${table}/${encodeURIComponent(id)}`, body);
 		},
 		onSuccess: (res) => {
 			qc.invalidateQueries({ queryKey: ["db", table] });
@@ -235,7 +232,11 @@ export function WikiStudio({ table, id }: Props) {
 								onChange={(v) => setDraft((d) => ({ ...d, [c]: v }))}
 							/>
 						))}
-						<button type="submit" disabled={save.isPending || notReady} className="btn btn-primary w-full">
+						<button
+							type="submit"
+							disabled={save.isPending || notReady}
+							className="btn btn-primary w-full"
+						>
 							<Save className="h-4 w-4" />
 							{save.isPending ? "Enregistrement…" : "Enregistrer"}
 						</button>
@@ -300,8 +301,8 @@ export function WikiStudio({ table, id }: Props) {
 					</div>
 				) : (
 					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
-						Enregistre d&apos;abord cette entrée pour ajouter les pages du lecteur (numéro +
-						image + texte sous chaque planche).
+						Enregistre d&apos;abord cette entrée pour ajouter les pages du lecteur (numéro + image +
+						texte sous chaque planche).
 					</div>
 				))}
 
@@ -313,8 +314,7 @@ export function WikiStudio({ table, id }: Props) {
 					</div>
 				) : (
 					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
-						Enregistre d&apos;abord ce jeu pour ajouter la galerie (screenshots + trailers
-						YouTube).
+						Enregistre d&apos;abord ce jeu pour ajouter la galerie (screenshots + trailers YouTube).
 					</div>
 				))}
 

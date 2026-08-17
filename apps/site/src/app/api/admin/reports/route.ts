@@ -109,11 +109,7 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
 	}
 
 	try {
-		const [row] = await db
-			.update(siteReports)
-			.set(patch)
-			.where(eq(siteReports.id, id))
-			.returning();
+		const [row] = await db.update(siteReports).set(patch).where(eq(siteReports.id, id)).returning();
 		if (!row) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
 		return NextResponse.json({ ok: true, row: toRow(row) });
 	} catch (err) {

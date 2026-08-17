@@ -33,9 +33,7 @@ function SelectTrigger({
 			{...props}
 		>
 			{children}
-			<SelectPrimitive.Icon
-				render={<ChevronDownIcon className="size-4 opacity-60" />}
-			/>
+			<SelectPrimitive.Icon render={<ChevronDownIcon className="size-4 opacity-60" />} />
 		</SelectPrimitive.Trigger>
 	);
 }
@@ -86,11 +84,7 @@ function SelectContent({
 	);
 }
 
-function SelectItem({
-	className,
-	children,
-	...props
-}: Omit<SelectPrimitive.Item.Props, "key">) {
+function SelectItem({ className, children, ...props }: Omit<SelectPrimitive.Item.Props, "key">) {
 	return (
 		<SelectPrimitive.Item
 			data-slot="select-item"
@@ -111,10 +105,7 @@ function SelectItem({
 	);
 }
 
-function SelectGroupLabel({
-	className,
-	...props
-}: Omit<SelectPrimitive.GroupLabel.Props, "key">) {
+function SelectGroupLabel({ className, ...props }: Omit<SelectPrimitive.GroupLabel.Props, "key">) {
 	return (
 		<SelectPrimitive.GroupLabel
 			data-slot="select-group-label"
@@ -124,10 +115,7 @@ function SelectGroupLabel({
 	);
 }
 
-function SelectSeparator({
-	className,
-	...props
-}: Omit<SelectPrimitive.Separator.Props, "key">) {
+function SelectSeparator({ className, ...props }: Omit<SelectPrimitive.Separator.Props, "key">) {
 	return (
 		<SelectPrimitive.Separator
 			data-slot="select-separator"

@@ -131,14 +131,13 @@ async function check(path: string): Promise<Check> {
 			signal: ctrl.signal,
 			headers: { "user-agent": "shenron-no-404-test/1.0" },
 		});
-		
+
 		const isProd = url.includes("dragonballfr.com");
 		// Routes locales pas encore en prod (ou sonde synthétique _probe sur
 		// endpoints dynamiques type /download qui 404 si l'id n'existe pas).
 		const isNewLocalRoute = path === "/ask" || path === "/classements";
 		const isSyntheticEntityProbe =
-			path.includes("/_probe/") &&
-			(path.endsWith("/download") || path.includes("/download?"));
+			path.includes("/_probe/") && (path.endsWith("/download") || path.includes("/download?"));
 
 		return {
 			url: path,

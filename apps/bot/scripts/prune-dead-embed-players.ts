@@ -96,7 +96,11 @@ async function isDead(url: string): Promise<boolean> {
 }
 
 /** Limite la concurrence sans dépendance externe. */
-async function withConcurrency<T, R>(items: T[], n: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+async function withConcurrency<T, R>(
+	items: T[],
+	n: number,
+	fn: (item: T) => Promise<R>
+): Promise<R[]> {
 	const results: R[] = Array.from({ length: items.length });
 	let idx = 0;
 	async function worker() {
@@ -110,7 +114,9 @@ async function withConcurrency<T, R>(items: T[], n: number, fn: (item: T) => Pro
 	return results;
 }
 
-async function prunePlayers(players: Player[]): Promise<{ kept: Player[]; droppedBlanket: number; droppedChecked: number }> {
+async function prunePlayers(
+	players: Player[]
+): Promise<{ kept: Player[]; droppedBlanket: number; droppedChecked: number }> {
 	const toCheck: Player[] = [];
 	const kept: Player[] = [];
 	let droppedBlanket = 0;

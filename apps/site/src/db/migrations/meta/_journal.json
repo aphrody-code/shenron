@@ -1,55 +1,55 @@
 {
-  "version": "7",
-  "dialect": "postgresql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "7",
-      "when": 1780262440545,
-      "tag": "0000_dark_johnny_blaze",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1781315954039,
-      "tag": "0001_natural_switch",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1781317952994,
-      "tag": "0002_complete_callisto",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1781753166548,
-      "tag": "0003_curly_the_professor",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1783018894651,
-      "tag": "0004_panoramic_vin_gonzales",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1783069990316,
-      "tag": "0005_yielding_vulcan",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1783388447135,
-      "tag": "0006_wiki_revisions",
-      "breakpoints": true
-    }
-  ]
+	"version": "7",
+	"dialect": "postgresql",
+	"entries": [
+		{
+			"idx": 0,
+			"version": "7",
+			"when": 1780262440545,
+			"tag": "0000_dark_johnny_blaze",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1781315954039,
+			"tag": "0001_natural_switch",
+			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1781317952994,
+			"tag": "0002_complete_callisto",
+			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1781753166548,
+			"tag": "0003_curly_the_professor",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1783018894651,
+			"tag": "0004_panoramic_vin_gonzales",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1783069990316,
+			"tag": "0005_yielding_vulcan",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1783388447135,
+			"tag": "0006_wiki_revisions",
+			"breakpoints": true
+		}
+	]
 }

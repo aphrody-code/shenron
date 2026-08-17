@@ -282,52 +282,55 @@ export type WikiCountsExtended = {
 };
 
 export async function getWikiCountsExtended(): Promise<WikiCountsExtended> {
-	return safe(async () => {
-		const [
-			sagas,
-			episodes,
-			movies,
-			characters,
-			planets,
-			chapters,
-			games,
-			databooks,
-			races,
-			transformations,
-		] = await Promise.all([
-			db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
-			db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
-			db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
-			db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
-			db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
-			db.select({ count: sql<number>`count(*)::int` }).from(botMangaVolumes),
-			db.select({ count: sql<number>`count(*)::int` }).from(botGames),
-			db.select({ count: sql<number>`count(*)::int` }).from(botDatabooks),
-			db.select({ count: sql<number>`count(*)::int` }).from(botRaces),
-			db.select({ count: sql<number>`count(*)::int` }).from(botTransformations),
-		]);
-		return {
-			sagas: sagas[0]?.count ?? 0,
-			episodes: episodes[0]?.count ?? 0,
-			movies: movies[0]?.count ?? 0,
-			characters: characters[0]?.count ?? 0,
-			planets: planets[0]?.count ?? 0,
-			chapters: chapters[0]?.count ?? 0,
-			games: games[0]?.count ?? 0,
-			databooks: databooks[0]?.count ?? 0,
-			races: races[0]?.count ?? 0,
-			transformations: transformations[0]?.count ?? 0,
-		};
-	}, {
-		sagas: 0,
-		episodes: 0,
-		movies: 0,
-		characters: 0,
-		planets: 0,
-		chapters: 0,
-		games: 0,
-		databooks: 0,
-		races: 0,
-		transformations: 0,
-	});
+	return safe(
+		async () => {
+			const [
+				sagas,
+				episodes,
+				movies,
+				characters,
+				planets,
+				chapters,
+				games,
+				databooks,
+				races,
+				transformations,
+			] = await Promise.all([
+				db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
+				db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
+				db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
+				db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
+				db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
+				db.select({ count: sql<number>`count(*)::int` }).from(botMangaVolumes),
+				db.select({ count: sql<number>`count(*)::int` }).from(botGames),
+				db.select({ count: sql<number>`count(*)::int` }).from(botDatabooks),
+				db.select({ count: sql<number>`count(*)::int` }).from(botRaces),
+				db.select({ count: sql<number>`count(*)::int` }).from(botTransformations),
+			]);
+			return {
+				sagas: sagas[0]?.count ?? 0,
+				episodes: episodes[0]?.count ?? 0,
+				movies: movies[0]?.count ?? 0,
+				characters: characters[0]?.count ?? 0,
+				planets: planets[0]?.count ?? 0,
+				chapters: chapters[0]?.count ?? 0,
+				games: games[0]?.count ?? 0,
+				databooks: databooks[0]?.count ?? 0,
+				races: races[0]?.count ?? 0,
+				transformations: transformations[0]?.count ?? 0,
+			};
+		},
+		{
+			sagas: 0,
+			episodes: 0,
+			movies: 0,
+			characters: 0,
+			planets: 0,
+			chapters: 0,
+			games: 0,
+			databooks: 0,
+			races: 0,
+			transformations: 0,
+		}
+	);
 }

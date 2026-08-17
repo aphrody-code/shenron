@@ -220,19 +220,73 @@ describe("RAG Déduplication & diversification", () => {
 		const insVector = dbs.sqlite.query("INSERT INTO vec_chunks (rowid, embedding) VALUES (?, ?)");
 		const vec = (v: number) => new Float32Array(384).fill(v);
 		// Deux chunks DISTINCTS partageant la MÊME url Fandom → doivent fusionner en 1.
-		insChunk.run(10, "technique", "Kamehameha", "/wiki/kamehameha", "Le Kamehameha de Goku.", "fr", "fandom-fr", "Goku");
+		insChunk.run(
+			10,
+			"technique",
+			"Kamehameha",
+			"/wiki/kamehameha",
+			"Le Kamehameha de Goku.",
+			"fr",
+			"fandom-fr",
+			"Goku"
+		);
 		insVector.run(10, vec(0.9));
-		insChunk.run(11, "technique", "Kamehameha (variante)", "/wiki/kamehameha", "Kamehameha encore Goku.", "fr", "fandom-fr", "Goku");
+		insChunk.run(
+			11,
+			"technique",
+			"Kamehameha (variante)",
+			"/wiki/kamehameha",
+			"Kamehameha encore Goku.",
+			"fr",
+			"fandom-fr",
+			"Goku"
+		);
 		insVector.run(11, vec(0.85));
 		// Deux planches manga distinctes partageant l'url générique → NE doivent PAS fusionner.
-		insChunk.run(12, "source", "DB Tome 1 p5", "/wiki/manga", "Goku lance un Kamehameha planche 5.", "fr", "manga", "Goku");
+		insChunk.run(
+			12,
+			"source",
+			"DB Tome 1 p5",
+			"/wiki/manga",
+			"Goku lance un Kamehameha planche 5.",
+			"fr",
+			"manga",
+			"Goku"
+		);
 		insVector.run(12, vec(0.8));
-		insChunk.run(13, "source", "DB Tome 1 p6", "/wiki/manga", "Goku Kamehameha planche 6.", "fr", "manga", "Goku");
+		insChunk.run(
+			13,
+			"source",
+			"DB Tome 1 p6",
+			"/wiki/manga",
+			"Goku Kamehameha planche 6.",
+			"fr",
+			"manga",
+			"Goku"
+		);
 		insVector.run(13, vec(0.78));
 		// Deux chunks Fandom au TITRE identique mais URL VIDE → repli titre → fusion.
-		insChunk.run(14, "source", "Genkidama", "", "Genkidama de Goku, Kamehameha cousin.", "fr", "fandom-fr", "Goku");
+		insChunk.run(
+			14,
+			"source",
+			"Genkidama",
+			"",
+			"Genkidama de Goku, Kamehameha cousin.",
+			"fr",
+			"fandom-fr",
+			"Goku"
+		);
 		insVector.run(14, vec(0.7));
-		insChunk.run(15, "source", "Genkidama", "", "Genkidama Goku encore Kamehameha.", "fr", "fandom-fr", "Goku");
+		insChunk.run(
+			15,
+			"source",
+			"Genkidama",
+			"",
+			"Genkidama Goku encore Kamehameha.",
+			"fr",
+			"fandom-fr",
+			"Goku"
+		);
 		insVector.run(15, vec(0.69));
 
 		global.fetch = async (url, options) => {
@@ -249,10 +303,13 @@ describe("RAG Déduplication & diversification", () => {
 					if (Array.isArray(b.passages)) n = b.passages.length;
 				} catch {}
 				// Scores décroissants distincts → ordre stable + dedup garde le max.
-				return new Response(JSON.stringify({ scores: Array.from({ length: n }, (_, i) => 1 - i * 0.05) }), {
-					status: 200,
-					headers: { "content-type": "application/json" },
-				});
+				return new Response(
+					JSON.stringify({ scores: Array.from({ length: n }, (_, i) => 1 - i * 0.05) }),
+					{
+						status: 200,
+						headers: { "content-type": "application/json" },
+					}
+				);
 			}
 			return originalFetch(url, options);
 		};

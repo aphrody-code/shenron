@@ -30,7 +30,10 @@ function ipOf(req: Request): string {
 	if (realIp) return realIp;
 	const xff = req.headers.get("x-forwarded-for");
 	if (xff) {
-		const parts = xff.split(",").map((s) => s.trim()).filter(Boolean);
+		const parts = xff
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
 		if (parts.length) return parts[parts.length - 1]!;
 	}
 	return "unknown";
@@ -56,7 +59,10 @@ export async function POST(req: Request) {
 		return Response.json({ error: "Accès admin par token désactivé." }, { status: 503 });
 	}
 	if (throttled(ipOf(req))) {
-		return Response.json({ error: "Trop de tentatives. Réessaie dans une minute." }, { status: 429 });
+		return Response.json(
+			{ error: "Trop de tentatives. Réessaie dans une minute." },
+			{ status: 429 }
+		);
 	}
 	const body = (await req.json().catch(() => null)) as { token?: string } | null;
 	const token = typeof body?.token === "string" ? body.token : "";

@@ -119,18 +119,14 @@ export function BannerQuickEdit({
 	}, [pageKey, seriesKey]);
 
 	if (q.isLoading || !cfg) {
-		return (
-			<div className="dbz-panel p-4 text-sm text-white/40">Chargement de la bannière…</div>
-		);
+		return <div className="dbz-panel p-4 text-sm text-white/40">Chargement de la bannière…</div>;
 	}
 
 	return (
 		<div className="dbz-panel space-y-4 p-5">
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
-					<h3 className="font-saiyan text-lg uppercase tracking-wider text-dbz-orange">
-						{title}
-					</h3>
+					<h3 className="font-saiyan text-lg uppercase tracking-wider text-dbz-orange">{title}</h3>
 					<p className="mt-0.5 text-xs text-white/45">
 						Billboard / hero de la page publique. Upload, URL, ou galerie officielle Toei.
 					</p>
@@ -173,9 +169,7 @@ export function BannerQuickEdit({
 					<ImageField
 						value={pageVal}
 						onChange={(v) =>
-							setCfg((c) =>
-								c && pageKey ? { ...c, pages: { ...c.pages, [pageKey]: v } } : c
-							)
+							setCfg((c) => (c && pageKey ? { ...c, pages: { ...c.pages, [pageKey]: v } } : c))
 						}
 						subdir="banners"
 						column={pageKey}
@@ -186,9 +180,7 @@ export function BannerQuickEdit({
 							className="text-[11px] text-white/40 hover:text-dbz-orange"
 							onClick={() =>
 								setCfg((c) =>
-									c && pageKey
-										? { ...c, pages: { ...c.pages, [pageKey]: pageDefault } }
-										: c
+									c && pageKey ? { ...c, pages: { ...c.pages, [pageKey]: pageDefault } } : c
 								)
 							}
 						>
@@ -202,8 +194,7 @@ export function BannerQuickEdit({
 				<div className="space-y-2 border-t border-dbz-border/40 pt-4">
 					<div className="flex items-center justify-between gap-2">
 						<label className="text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-							Série ·{" "}
-							{(SERIES_BANNER_LABELS as Record<string, string>)[seriesKey] ?? seriesKey}
+							Série · {(SERIES_BANNER_LABELS as Record<string, string>)[seriesKey] ?? seriesKey}
 						</label>
 						<button
 							type="button"
@@ -231,9 +222,7 @@ export function BannerQuickEdit({
 						value={seriesVal}
 						onChange={(v) =>
 							setCfg((c) =>
-								c && seriesKey
-									? { ...c, series: { ...c.series, [seriesKey]: v } }
-									: c
+								c && seriesKey ? { ...c, series: { ...c.series, [seriesKey]: v } } : c
 							)
 						}
 						subdir="banners"
@@ -245,9 +234,7 @@ export function BannerQuickEdit({
 							className="text-[11px] text-white/40 hover:text-dbz-orange"
 							onClick={() =>
 								setCfg((c) =>
-									c && seriesKey
-										? { ...c, series: { ...c.series, [seriesKey]: seriesDefault } }
-										: c
+									c && seriesKey ? { ...c, series: { ...c.series, [seriesKey]: seriesDefault } } : c
 								)
 							}
 						>
@@ -271,9 +258,7 @@ export function BannerQuickEdit({
 				<div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/75 p-4 backdrop-blur">
 					<div className="dbz-panel flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden">
 						<div className="flex items-center justify-between border-b border-dbz-border/50 p-4">
-							<p className="font-saiyan text-sm uppercase text-dbz-orange">
-								Galerie bannières
-							</p>
+							<p className="font-saiyan text-sm uppercase text-dbz-orange">Galerie bannières</p>
 							<button type="button" className="btn btn-ghost" onClick={() => setLibOpen(false)}>
 								Fermer
 							</button>

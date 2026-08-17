@@ -63,9 +63,9 @@ async function main() {
 		const pgColType = new Map(pgCols.map((c) => [c.column_name, c.data_type]));
 
 		// La table existe-t-elle côté SQLite ?
-		const sqliteCols = (
-			sqlite.query(`PRAGMA table_info("${t}")`).all() as { name: string }[]
-		).map((c) => c.name);
+		const sqliteCols = (sqlite.query(`PRAGMA table_info("${t}")`).all() as { name: string }[]).map(
+			(c) => c.name
+		);
 		if (sqliteCols.length === 0) {
 			console.warn(`! bot.${t.padEnd(26)} absente du SQLite — skip`);
 			report.push({ table: t, src: 0, dst: 0, cols: 0, ok: true });
@@ -131,7 +131,9 @@ async function main() {
 		console.error("✗ Mismatch de counts — seed incomplet.");
 		process.exit(1);
 	}
-	console.log(`✓ Seed SQLite → PostgreSQL (schéma bot)${DRY ? " (dry-run)" : ""} complet et vérifié.`);
+	console.log(
+		`✓ Seed SQLite → PostgreSQL (schéma bot)${DRY ? " (dry-run)" : ""} complet et vérifié.`
+	);
 }
 
 main().catch((e) => {

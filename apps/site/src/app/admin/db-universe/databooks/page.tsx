@@ -244,9 +244,7 @@ export default async function AdminDatabooksPage() {
 														</a>
 													</div>
 												</td>
-												<td className="p-2 text-[11px] text-white/55">
-													{fmtDate(d.published_at)}
-												</td>
+												<td className="p-2 text-[11px] text-white/55">{fmtDate(d.published_at)}</td>
 												<td className="p-2 text-xs text-white/70">{d.author ?? "—"}</td>
 												<td className="p-2 text-center">
 													<span

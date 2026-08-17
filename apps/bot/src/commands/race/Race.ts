@@ -68,7 +68,10 @@ export class RaceCommands {
 		return row;
 	}
 
-	@Slash({ name: "race", description: "Choisis ta race (modifie ta progression : XP, vocal, zéni, jeux)" })
+	@Slash({
+		name: "race",
+		description: "Choisis ta race (modifie ta progression : XP, vocal, zéni, jeux)",
+	})
 	async race(interaction: CommandInteraction) {
 		const u = await this.levels.getUser(interaction.user.id);
 		await interaction.reply({
@@ -106,7 +109,9 @@ export class RaceCommands {
 
 		await interaction.update({
 			embeds: [
-				this.overview(id).setTitle(`${def.emoji} Tu es désormais ${def.name} !`).setColor(def.color),
+				this.overview(id)
+					.setTitle(`${def.emoji} Tu es désormais ${def.name} !`)
+					.setColor(def.color),
 			],
 			components: [this.buttons(id)],
 		});

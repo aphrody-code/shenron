@@ -46,12 +46,12 @@ export async function GET() {
 			<link>${xml(url)}</link>
 			<guid isPermaLink="true">${xml(url)}</guid>
 			<description>${xml(post.excerpt)}</description>${
-				post.publishedAt
-					? `\n			<pubDate>${post.publishedAt.toUTCString()}</pubDate>`
-					: ""
-			}${post.author?.username ? `\n			<dc:creator>${xml(post.author.username)}</dc:creator>` : ""}${
-				(post.tags ?? []).map((t) => `\n			<category>${xml(t)}</category>`).join("")
-			}${cover ? `\n			<enclosure url="${xml(cover)}" type="image/jpeg" />` : ""}${
+				post.publishedAt ? `\n			<pubDate>${post.publishedAt.toUTCString()}</pubDate>` : ""
+			}${post.author?.username ? `\n			<dc:creator>${xml(post.author.username)}</dc:creator>` : ""}${(
+				post.tags ?? []
+			)
+				.map((t) => `\n			<category>${xml(t)}</category>`)
+				.join("")}${cover ? `\n			<enclosure url="${xml(cover)}" type="image/jpeg" />` : ""}${
 				post.contentHtml
 					? `\n			<content:encoded><![CDATA[${post.contentHtml.replace(/]]>/g, "]]&gt;")}]]></content:encoded>`
 					: ""
@@ -68,7 +68,9 @@ export async function GET() {
 		<description>Sorties anime, chapitres du manga, films, événements et analyses Dragon Ball.</description>
 		<language>fr-FR</language>
 		<atom:link href="${SITE_URL}/actualites/rss.xml" rel="self" type="application/rss+xml" />${
-			rows[0]?.publishedAt ? `\n		<lastBuildDate>${rows[0].publishedAt.toUTCString()}</lastBuildDate>` : ""
+			rows[0]?.publishedAt
+				? `\n		<lastBuildDate>${rows[0].publishedAt.toUTCString()}</lastBuildDate>`
+				: ""
 		}
 ${items}
 	</channel>

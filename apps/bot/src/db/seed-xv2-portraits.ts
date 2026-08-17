@@ -74,7 +74,9 @@ for (const [code, raw] of Object.entries(catalog.characters)) {
 
 const dbs = container.resolve(DatabaseService);
 const db = dbs.db;
-const existing = await db.select({ id: dbCharacters.id, name: dbCharacters.name }).from(dbCharacters);
+const existing = await db
+	.select({ id: dbCharacters.id, name: dbCharacters.name })
+	.from(dbCharacters);
 
 let set = 0;
 const unmatched: string[] = [];

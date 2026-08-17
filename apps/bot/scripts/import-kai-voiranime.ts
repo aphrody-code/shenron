@@ -123,9 +123,10 @@ const sql = postgres(NEON_URL, { max: 2, prepare: false });
 await sql`ALTER TABLE bot.db_episodes ADD COLUMN IF NOT EXISTS players jsonb`;
 
 // IDs manuels : pas d'IDENTITY auto partout.
-const [{ max: maxIdRaw }] = (await sql`SELECT COALESCE(MAX(id), 0) AS max FROM bot.db_episodes`) as {
-	max: string | number;
-}[];
+const [{ max: maxIdRaw }] =
+	(await sql`SELECT COALESCE(MAX(id), 0) AS max FROM bot.db_episodes`) as {
+		max: string | number;
+	}[];
 let nextId = Number(maxIdRaw) + 1;
 
 type Target = {
@@ -148,11 +149,13 @@ let created = 0;
 let skippedExisting = 0;
 let playersUpdated = 0;
 let noMatch = 0;
-const perSeries: Record<string, { created: number; existing: number; withPlayers: number; noMatch: number }> =
-	{
-		DBZ_KAI: { created: 0, existing: 0, withPlayers: 0, noMatch: 0 },
-		DBZ_KAI_FINAL: { created: 0, existing: 0, withPlayers: 0, noMatch: 0 },
-	};
+const perSeries: Record<
+	string,
+	{ created: number; existing: number; withPlayers: number; noMatch: number }
+> = {
+	DBZ_KAI: { created: 0, existing: 0, withPlayers: 0, noMatch: 0 },
+	DBZ_KAI_FINAL: { created: 0, existing: 0, withPlayers: 0, noMatch: 0 },
+};
 
 for (const t of targets) {
 	const stats = perSeries[t.series]!;

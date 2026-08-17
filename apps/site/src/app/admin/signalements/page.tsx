@@ -127,9 +127,7 @@ export default function SignalementsPage() {
 					<p className="font-saiyan uppercase tracking-widest text-white/50">
 						Aucun signalement {filter !== "all" ? reportStatusLabel(filter).toLowerCase() : ""}
 					</p>
-					<p className="mt-1 text-sm text-white/35">
-						Les remontées des membres apparaîtront ici.
-					</p>
+					<p className="mt-1 text-sm text-white/35">Les remontées des membres apparaîtront ici.</p>
 				</div>
 			) : (
 				<div className="space-y-3">
@@ -206,9 +204,7 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 					Par <span className="text-white/75">{report.username ?? "?"}</span>
 				</span>
 				{report.discordId && <span className="font-mono">Discord ID : {report.discordId}</span>}
-				{report.resolvedBy && (
-					<span>· traité par {report.resolvedBy}</span>
-				)}
+				{report.resolvedBy && <span>· traité par {report.resolvedBy}</span>}
 			</div>
 
 			{/* Note interne */}

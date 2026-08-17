@@ -1,21 +1,21 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
-  "name": "dragon-ball",
-  "displayName": "Dragon Ball — dragonballfr.com",
-  "version": "0.1.0",
-  "description": "Base de connaissance Dragon Ball vivante et sourcée de dragonballfr.com : skill (RAG hybride, wiki, manga, lore, helper terminal) + serveur MCP public en lecture seule (14 outils proxifiant le RAG et l'API publique). Aucun secret, aucune écriture.",
-  "author": {
-    "name": "Yohan Pierre",
-    "email": "contact@aphrody-code.dev"
-  },
-  "homepage": "https://dragonballfr.com",
-  "repository": "https://github.com/aphrody-code/shenron",
-  "license": "Apache-2.0",
-  "keywords": ["dragon-ball", "dbz", "dbs", "rag", "wiki", "manga", "mcp", "dragonballfr"],
-  "mcpServers": {
-    "dragonball": {
-      "type": "streamable-http",
-      "url": "https://mcp.dragonballfr.com/mcp"
-    }
-  }
+	"$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+	"name": "dragon-ball",
+	"displayName": "Dragon Ball — dragonballfr.com",
+	"version": "0.1.0",
+	"description": "Base de connaissance Dragon Ball vivante et sourcée de dragonballfr.com : skill (RAG hybride, wiki, manga, lore, helper terminal) + serveur MCP public en lecture seule (14 outils proxifiant le RAG et l'API publique). Aucun secret, aucune écriture.",
+	"author": {
+		"name": "Yohan Pierre",
+		"email": "contact@aphrody-code.dev"
+	},
+	"homepage": "https://dragonballfr.com",
+	"repository": "https://github.com/aphrody-code/shenron",
+	"license": "Apache-2.0",
+	"keywords": ["dragon-ball", "dbz", "dbs", "rag", "wiki", "manga", "mcp", "dragonballfr"],
+	"mcpServers": {
+		"dragonball": {
+			"type": "streamable-http",
+			"url": "https://mcp.dragonballfr.com/mcp"
+		}
+	}
 }

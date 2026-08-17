@@ -179,7 +179,9 @@ export async function getAnalyticsOverview(range: AnalyticsRange): Promise<Analy
 			.where(
 				and(cur, sql`(${siteEvents.referrer} is null or ${siteEvents.referrer} not like '/%')`)
 			)
-			.groupBy(sql`case when ${siteEvents.referrer} is null then '(direct)' else ${siteEvents.referrer} end`)
+			.groupBy(
+				sql`case when ${siteEvents.referrer} is null then '(direct)' else ${siteEvents.referrer} end`
+			)
 			.orderBy(desc(sql`count(*)`))
 			.limit(15),
 		// Top entités wiki consultées (fiches perso/saga/film…).
@@ -285,7 +287,9 @@ export async function getPublicActivity(): Promise<PublicActivity> {
 				views: sql<number>`count(*)::int`,
 			})
 			.from(siteEvents)
-			.where(and(sql`${siteEvents.ts} >= now() - interval '30 days'`, eq(siteEvents.type, "pageview")))
+			.where(
+				and(sql`${siteEvents.ts} >= now() - interval '30 days'`, eq(siteEvents.type, "pageview"))
+			)
 			.groupBy(siteEvents.path)
 			.orderBy(desc(sql`count(*)`))
 			.limit(8),

@@ -23,13 +23,13 @@ valeurs par position via la table d'entrées — un parser naïf désaligne les 
 `G13` confondu avec "Bulma" alors que c'est "C-13"). L'appariement se fait par **nom
 normalisé + synonymes**.
 
-| Script | Effet |
-|--------|-------|
-| `bun db:seed-xv2-portraits` | Pose `db_characters.portrait_xv2` sur les persos existants appariés par nom. |
-| `bun db:seed-xv2-characters` | Ajoute les persos XV2 absents qui ont un portrait (forme de base, hors transfos/NPC/grands singes). |
-| `bun db:seed-xv2-transformations` | Lie les formes (« X (Super Saiyen…) ») au perso de base dans `db_transformations`. |
-| `bun db:seed-xv2-techniques` | Importe les compétences XV2 dans `db_techniques` (type + description d'effet). |
-| `bun db:seed-xv2-char-techniques` | Lie chaque perso à son loadout XV2 dans `db_character_techniques`. |
+| Script                            | Effet                                                                                               |
+| --------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `bun db:seed-xv2-portraits`       | Pose `db_characters.portrait_xv2` sur les persos existants appariés par nom.                        |
+| `bun db:seed-xv2-characters`      | Ajoute les persos XV2 absents qui ont un portrait (forme de base, hors transfos/NPC/grands singes). |
+| `bun db:seed-xv2-transformations` | Lie les formes (« X (Super Saiyen…) ») au perso de base dans `db_transformations`.                  |
+| `bun db:seed-xv2-techniques`      | Importe les compétences XV2 dans `db_techniques` (type + description d'effet).                      |
+| `bun db:seed-xv2-char-techniques` | Lie chaque perso à son loadout XV2 dans `db_character_techniques`.                                  |
 
 Tous additifs/idempotents (dédup par nom canonique ; purge des lignes XV2 avant ré-insert).
 
@@ -45,6 +45,7 @@ Tous additifs/idempotents (dédup par nom canonique ; purge des lignes XV2 avant
 ## Régénérer depuis le jeu
 
 Côté toolkit `dbxv2` (jeu possédé légalement) :
+
 - `_bridge_portraits.py` → ré-extrait les portraits + manifest depuis `CHARA01.emb.unpacked`.
 - `_xv2_catalog.py` → ré-extrait `xv2-catalog.json` (parser `.msg` maison : clés + valeurs FR).
 

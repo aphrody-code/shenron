@@ -84,11 +84,15 @@ async function main() {
 			if (why) drop.push({ p, why });
 			else keep.push(p);
 		}
-		console.log(`   retirées: ${drop.length} → ${drop.map((d) => `${d.p.split("/").pop()}[${d.why}]`).join(" ")}`);
+		console.log(
+			`   retirées: ${drop.length} → ${drop.map((d) => `${d.p.split("/").pop()}[${d.why}]`).join(" ")}`
+		);
 
 		if (drop.length === 0) continue;
 		if (drop.length / pages.length > MAX_DROP_RATIO) {
-			console.error(`   ⚠️ ${drop.length}/${pages.length} > ${MAX_DROP_RATIO * 100}% — abort ce tome (OCR douteux)`);
+			console.error(
+				`   ⚠️ ${drop.length}/${pages.length} > ${MAX_DROP_RATIO * 100}% — abort ce tome (OCR douteux)`
+			);
 			continue;
 		}
 		if (dryRun) continue;

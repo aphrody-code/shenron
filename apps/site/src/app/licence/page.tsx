@@ -29,9 +29,13 @@ export default function LicencePage() {
 				<h2>1. Statut du site</h2>
 				<p>
 					DBFR est un projet associatif, édité bénévolement par des fans francophones de Dragon
-					Ball. <strong>Aucun revenu commercial</strong> n'est généré (pas de publicité, pas de
-					vente de produits dérivés, pas d'abonnement). Les éventuels liens vers des boutiques
-					officielles (Bandai Namco, dbz-store, Toei Shop) ne sont pas affiliés.
+					Ball. Le site <strong>ne vend ni produits dérivés ni abonnement</strong> et ne
+					commercialise aucun contenu Dragon Ball. Il affiche en revanche des{" "}
+					<strong>annonces publicitaires</strong> (Google AdSense) dont les recettes servent
+					exclusivement à couvrir les frais d'hébergement, de nom de domaine et de bande passante du
+					projet — voir la <Link href="/confidentialite">politique de confidentialité</Link>. Les
+					éventuels liens vers des boutiques officielles (Bandai Namco, dbz-store, Toei Shop) ne
+					sont pas affiliés.
 				</p>
 				<p>
 					Le site n'est <strong>en aucune façon affilié, sponsorisé, ou approuvé</strong> par Bird
@@ -107,11 +111,12 @@ export default function LicencePage() {
 
 				<h2>5. Hébergement &amp; données utilisateurs</h2>
 				<p>
-					Site hébergé par <a href="https://vercel.com/">Vercel Inc.</a> (États-Unis et France).
-					Authentification via Discord OAuth (
+					Site hébergé sur un serveur dédié <a href="https://www.ovhcloud.com/">OVHcloud</a>{" "}
+					(France, Gravelines). Authentification via Discord OAuth (
 					<a href="https://discord.com/developers/docs">Discord Inc.</a>). Aucune donnée personnelle
 					n'est revendue. Tu peux demander suppression de ton compte à tout moment via le serveur
-					Discord.
+					Discord. Le détail des traitements (mesure d'audience, publicité, cookies) figure dans la{" "}
+					<Link href="/confidentialite">politique de confidentialité</Link>.
 				</p>
 
 				<h2 id="takedown">6. Demande de retrait (DMCA / droit voisin)</h2>

@@ -11,11 +11,7 @@ export type HomeTransitionApi = {
 	flash: (accentCss?: string) => void;
 };
 
-export function HomeTransition({
-	apiRef,
-}: {
-	apiRef: MutableRefObject<HomeTransitionApi | null>;
-}) {
+export function HomeTransition({ apiRef }: { apiRef: MutableRefObject<HomeTransitionApi | null> }) {
 	const elRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {

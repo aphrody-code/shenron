@@ -135,7 +135,9 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 			<div className="space-y-16">
 				<header className="relative">
 					<div className="flex items-center gap-4 mb-4">
-						<p className={`font-display font-semibold text-[12px] tracking-[0.3em] uppercase ${theme.text}`}>
+						<p
+							className={`font-display font-semibold text-[12px] tracking-[0.3em] uppercase ${theme.text}`}
+						>
 							Classification Biologique
 						</p>
 						<div className="h-px w-12 bg-dbz-border" />
@@ -146,9 +148,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 					</h1>
 
 					{race.nameJa && (
-						<p className={`font-jp text-3xl ${theme.text} opacity-80 mb-8`}>
-							{race.nameJa}
-						</p>
+						<p className={`font-jp text-3xl ${theme.text} opacity-80 mb-8`}>{race.nameJa}</p>
 					)}
 
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -162,8 +162,12 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 								/>
 							) : (
 								race.description && (
-									<div className={`dbz-panel p-10 relative overflow-hidden ${theme.border} ${theme.glow}`}>
-										<div className={`absolute top-0 left-0 w-1.5 h-full ${theme.text.replace("text-", "bg-")}`} />
+									<div
+										className={`dbz-panel p-10 relative overflow-hidden ${theme.border} ${theme.glow}`}
+									>
+										<div
+											className={`absolute top-0 left-0 w-1.5 h-full ${theme.text.replace("text-", "bg-")}`}
+										/>
 										<div className="prose prose-invert max-w-none wiki-content">
 											<WikiMarkdown body={race.description} />
 										</div>
@@ -174,11 +178,13 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 
 						{/* Origin Planet Sidebar */}
 						{race.homePlanet && (
-							<div className={`dbz-panel p-6 border ${theme.border} ${theme.glow} flex flex-col items-center text-center space-y-4`}>
+							<div
+								className={`dbz-panel p-6 border ${theme.border} ${theme.glow} flex flex-col items-center text-center space-y-4`}
+							>
 								<p className={`text-[10px] font-bold ${theme.text} tracking-[0.25em] uppercase`}>
 									Monde d&apos;Origine
 								</p>
-								
+
 								{race.homePlanet.image && (
 									<div className="relative w-28 h-28 overflow-hidden bg-black/40 rounded-full flex items-center justify-center p-3 border border-white/5">
 										<img
@@ -197,7 +203,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 										{race.homePlanet.name}
 									</Link>
 								</h3>
-								
+
 								{race.homePlanet.description && (
 									<p className="text-gray-400 text-xs leading-relaxed">
 										{race.homePlanet.description}

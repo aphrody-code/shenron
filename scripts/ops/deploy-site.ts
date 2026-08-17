@@ -115,7 +115,10 @@ async function readState(): Promise<DeployState> {
 
 async function writeState(next: Omit<DeployState, "updatedAt">): Promise<void> {
 	await mkdir(RELEASES_ROOT, { recursive: true });
-	await writeFile(STATE_FILE, `${JSON.stringify({ ...next, updatedAt: new Date().toISOString() }, null, "\t")}\n`);
+	await writeFile(
+		STATE_FILE,
+		`${JSON.stringify({ ...next, updatedAt: new Date().toISOString() }, null, "\t")}\n`
+	);
 }
 
 // ── garde-fou mémoire ───────────────────────────────────────────────────────
@@ -200,8 +203,7 @@ async function buildSite(sha: string): Promise<string> {
 	});
 
 	const buildIdFile = join(BUILD_DIR, "BUILD_ID");
-	const fresh =
-		existsSync(buildIdFile) && (await stat(buildIdFile)).mtimeMs >= startedAt;
+	const fresh = existsSync(buildIdFile) && (await stat(buildIdFile)).mtimeMs >= startedAt;
 	if (!fresh) {
 		console.error(res.stderr.split("\n").slice(-15).join("\n"));
 		fail(`build échoué — BUILD_ID absent ou périmé (code ${res.code})`);
@@ -260,7 +262,10 @@ async function publishRelease(version: string, previous: string | null): Promise
 	await symlink(join(REPO, "node_modules"), join(dest, "node_modules"));
 	await symlink(join(SITE_DIR, "public"), join(destSite, "public"));
 	await mkdir(join(dest, "apps", "bot", "public"), { recursive: true });
-	await symlink(join(REPO, "apps", "bot", "public", "db"), join(dest, "apps", "bot", "public", "db"));
+	await symlink(
+		join(REPO, "apps", "bot", "public", "db"),
+		join(dest, "apps", "bot", "public", "db")
+	);
 
 	const size = (await run(["du", "-sh", dest])).stdout.split("\t")[0];
 	log(`✓ version publiée (${size?.trim()})`);
@@ -313,7 +318,9 @@ async function probeSlot(slot: SlotId): Promise<boolean> {
 				codes.push(res.status);
 				if (res.status >= 500) throw new Error(`${path} → ${res.status}`);
 			}
-			log(`✓ slot ${slot} (:${port}) répond — ${PROBES.map((p, i) => `${p} ${codes[i]}`).join(", ")}`);
+			log(
+				`✓ slot ${slot} (:${port}) répond — ${PROBES.map((p, i) => `${p} ${codes[i]}`).join(", ")}`
+			);
 			return true;
 		} catch (error) {
 			lastError = error instanceof Error ? error.message : String(error);
@@ -436,7 +443,9 @@ async function commandStatus(): Promise<void> {
 		const active = (await run(["systemctl", "is-active", slot.unit])).stdout.trim();
 		const target = (await run(["readlink", "-f", slot.link])).stdout.trim() || "(non pointé)";
 		const live = livePort === slot.port ? "← trafic" : "        ";
-		console.log(`slot ${id} :${slot.port}  ${live}  ${active.padEnd(10)} ${target.split("/").pop()}`);
+		console.log(
+			`slot ${id} :${slot.port}  ${live}  ${active.padEnd(10)} ${target.split("/").pop()}`
+		);
 	}
 	const releases = await listReleases();
 	console.log(`versions      : ${releases.slice(0, 5).join(", ") || "(aucune)"}`);
@@ -506,7 +515,11 @@ async function commandRollback(): Promise<void> {
 	}
 	await switchTraffic(target);
 	await stopSlot(liveSlot);
-	await writeState({ live: target, release: state.previousRelease, previousRelease: state.release });
+	await writeState({
+		live: target,
+		release: state.previousRelease,
+		previousRelease: state.release,
+	});
 	log(`✓ rollback effectué · slot ${target} · version ${state.previousRelease}`);
 }
 

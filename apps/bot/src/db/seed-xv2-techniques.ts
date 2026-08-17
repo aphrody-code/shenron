@@ -51,7 +51,9 @@ const CAT_VALUES = ["super", "ultimate", "awoken", "evasive"];
 await db.delete(dbTechniques).where(inArray(dbTechniques.type, CAT_VALUES));
 
 // Index des techniques déjà présentes (normalisé) + slugs pris.
-const existing = await db.select({ name: dbTechniques.name, slug: dbTechniques.slug }).from(dbTechniques);
+const existing = await db
+	.select({ name: dbTechniques.name, slug: dbTechniques.slug })
+	.from(dbTechniques);
 const seenNames = new Set(existing.map((t) => norm(t.name)));
 const usedSlugs = new Set(existing.map((t) => t.slug));
 

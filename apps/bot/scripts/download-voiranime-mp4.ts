@@ -31,7 +31,9 @@ const pos = argv.filter((a, i) => !a.startsWith("--") && !argv[i - 1]?.startsWit
 const series = (pos[0] ?? "").toUpperCase();
 const epArg = pos[1] ?? "";
 if (!SERIES.has(series) || !epArg) {
-	console.error("Usage: bun scripts/download-voiranime-mp4.ts <DB|DBZ|DBGT|DBS|DB_DAIMA> <ep|a-b> [--duration sec] [--out dir] [--limit N]");
+	console.error(
+		"Usage: bun scripts/download-voiranime-mp4.ts <DB|DBZ|DBGT|DBS|DB_DAIMA> <ep|a-b> [--duration sec] [--out dir] [--limit N]"
+	);
 	process.exit(1);
 }
 const duration = Number(opt("duration", "0"));
@@ -39,7 +41,9 @@ const limit = Number(opt("limit", "0"));
 const OUT = opt("out") || `${ROOT}data/dbz-videos`;
 mkdirSync(OUT, { recursive: true });
 
-const [from, to] = epArg.includes("-") ? epArg.split("-").map(Number) : [Number(epArg), Number(epArg)];
+const [from, to] = epArg.includes("-")
+	? epArg.split("-").map(Number)
+	: [Number(epArg), Number(epArg)];
 let numbers: number[] = [];
 for (let n = from; n <= to; n++) numbers.push(n);
 if (limit > 0) numbers = numbers.slice(0, limit);
@@ -69,7 +73,9 @@ async function resolve(n: number): Promise<Resolved> {
 	}
 }
 
-console.log(`▶ ${series} : ${numbers.length} épisode(s) → ${OUT}${duration > 0 ? ` (clips ${duration}s)` : ""}`);
+console.log(
+	`▶ ${series} : ${numbers.length} épisode(s) → ${OUT}${duration > 0 ? ` (clips ${duration}s)` : ""}`
+);
 let ok = 0;
 for (const n of numbers) {
 	const out = `${OUT}/${series}-${String(n).padStart(3, "0")}.mp4`;

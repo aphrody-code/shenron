@@ -137,7 +137,9 @@ async function main() {
 			break;
 		}
 		const ext = ch.pages.filter(isExternal).length;
-		console.log(`\n📄 ${ch.series} #${ch.chapter_number} (id ${ch.id}) — ${ext} planche(s) externe(s)`);
+		console.log(
+			`\n📄 ${ch.series} #${ch.chapter_number} (id ${ch.id}) — ${ext} planche(s) externe(s)`
+		);
 		const { ok, pages } = await selfhostChapter(ch);
 		if (!ok) {
 			failed++;
@@ -147,7 +149,9 @@ async function main() {
 			await sql`UPDATE bot.db_manga_chapters SET pages=${sql.json(pages)} WHERE id=${ch.id}`;
 		}
 		done++;
-		console.log(`   ✅ ${pages.length} planches locales (libre: ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go)`);
+		console.log(
+			`   ✅ ${pages.length} planches locales (libre: ${((await freeBytes()) / 2 ** 30).toFixed(2)} Go)`
+		);
 	}
 
 	console.log(`\n✨ Terminé : ${done} rapatrié(s), ${failed} échec(s)/partiel(s).`);

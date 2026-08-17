@@ -54,11 +54,7 @@ async function main() {
 	if (existsSync(CORPUS)) renameSync(CORPUS, CORPUS + ".bak");
 	await Bun.write(
 		CORPUS,
-		JSON.stringify(
-			{ generatedAt: "merged", count: merged.length, docs: merged },
-			null,
-			0
-		)
+		JSON.stringify({ generatedAt: "merged", count: merged.length, docs: merged }, null, 0)
 	);
 	const mb = (Bun.file(CORPUS).size / 2 ** 20).toFixed(0);
 	console.log(`✨ corpus.json écrit: ${merged.length} docs, ${mb} Mo (ancien → corpus.json.bak)`);

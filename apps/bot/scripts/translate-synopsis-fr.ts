@@ -93,10 +93,19 @@ async function lingva(text: string): Promise<Tr> {
 				headers: { Accept: "application/json" },
 				signal: AbortSignal.timeout(8_000),
 			});
-			if (!res.ok) { last = new Error(`lingva ${inst} HTTP ${res.status}`); continue; }
+			if (!res.ok) {
+				last = new Error(`lingva ${inst} HTTP ${res.status}`);
+				continue;
+			}
 			const d = (await res.json()) as { translation?: string; info?: { detectedSource?: string } };
-			if (!d.translation) { last = new Error(`lingva ${inst} vide`); continue; }
-			return { translated: d.translation, detected: (d.info?.detectedSource ?? "auto").toLowerCase() };
+			if (!d.translation) {
+				last = new Error(`lingva ${inst} vide`);
+				continue;
+			}
+			return {
+				translated: d.translation,
+				detected: (d.info?.detectedSource ?? "auto").toLowerCase(),
+			};
 		} catch (e) {
 			last = e as Error;
 		}
@@ -133,7 +142,11 @@ async function translateText(text: string): Promise<Tr> {
 				const msg = (e as Error).message;
 				if (/429|403/.test(msg)) await sleep(1000 * 2 ** attempt);
 				if (attempt >= 2) {
-					try { done = await lingva(piece); } catch { /* retente Google */ }
+					try {
+						done = await lingva(piece);
+					} catch {
+						/* retente Google */
+					}
 				}
 			}
 		}
@@ -161,9 +174,9 @@ for (const { table, col, colFr, idCol } of TABLES) {
 
 	const limitClause = LIMIT > 0 ? `LIMIT ${LIMIT}` : "";
 	const whereExtra = FORCE ? "" : `AND ${colFr} IS NULL`;
-	const rows = await sql.unsafe(
+	const rows = (await sql.unsafe(
 		`SELECT ${idCol}, ${col} FROM bot.${table} WHERE ${col} IS NOT NULL AND ${col} != '' ${whereExtra} ORDER BY ${idCol} ${limitClause}`
-	) as Array<Record<string, string>>;
+	)) as Array<Record<string, string>>;
 
 	if (rows.length === 0) {
 		console.log(`[${table}] Aucun synopsis à traduire.`);
@@ -175,7 +188,10 @@ for (const { table, col, colFr, idCol } of TABLES) {
 	for (const row of rows) {
 		const id = row[idCol];
 		const text = row[col];
-		if (!text?.trim()) { totalSkipped++; continue; }
+		if (!text?.trim()) {
+			totalSkipped++;
+			continue;
+		}
 
 		// Sauter si déjà français (sauf --force)
 		if (!FORCE && looksFrench(text)) {
@@ -204,10 +220,10 @@ for (const { table, col, colFr, idCol } of TABLES) {
 			console.log(`  [${table}#${id}] (${result.detected}→fr) "${preview}…"`);
 			totalTranslated++;
 		} else {
-			await sql.unsafe(
-				`UPDATE bot.${table} SET ${colFr} = $1 WHERE ${idCol} = $2`,
-				[result.translated, id]
-			);
+			await sql.unsafe(`UPDATE bot.${table} SET ${colFr} = $1 WHERE ${idCol} = $2`, [
+				result.translated,
+				id,
+			]);
 			console.log(`  ✓ [${table}#${id}] (${result.detected}→fr) "${preview}"`);
 			totalTranslated++;
 			await sleep(DELAY);
@@ -215,7 +231,9 @@ for (const { table, col, colFr, idCol } of TABLES) {
 	}
 }
 
-console.log(`\nTerminé — traduits: ${totalTranslated} | sautés: ${totalSkipped} | échecs: ${totalFailed}`);
+console.log(
+	`\nTerminé — traduits: ${totalTranslated} | sautés: ${totalSkipped} | échecs: ${totalFailed}`
+);
 if (DRY) console.log("(--dry-run : rien n'a été écrit)");
 else if (totalTranslated > 0) {
 	console.log("\nPour propager au replica SQLite du bot :");

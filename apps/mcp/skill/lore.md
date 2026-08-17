@@ -7,8 +7,8 @@ fiches), la source de vérité reste `dragonballfr.com` (RAG + wiki).**
 ## Séries et niveaux de canon
 
 - **Dragon Ball** (manga, Akira Toriyama, 1984–1995, 42 tomes / 519 chapitres) =
-  **le canon de référence**. Animes : *Dragon Ball* (enfance de Goku) puis
-  *Dragon Ball Z* (2ᵉ moitié, dès l'arc Saiyan) ; *Dragon Ball Kai* = remaster de DBZ.
+  **le canon de référence**. Animes : _Dragon Ball_ (enfance de Goku) puis
+  _Dragon Ball Z_ (2ᵉ moitié, dès l'arc Saiyan) ; _Dragon Ball Kai_ = remaster de DBZ.
 - **Dragon Ball Super** (manga 2015–, Toyotarō supervisé par Toriyama ; anime
   2015–2018) = suite **canon** après Boo. ⚠️ manga et anime Super **divergent**
   par endroits (arc Trunks du futur, arc Survie).
@@ -41,14 +41,14 @@ survivant** → **Super Hero** (Gamma 1 & 2, Cell Max).
 
 1. **Ôzaru** — singe géant (queue + pleine lune / Onde de Lumière Astrale).
 2. **Super Saiyan** — cheveux dorés ; Goku le 1ᵉʳ sur **Namek face à Freezer**.
-3. SSJ Grade 2 / 3 (« Ultra Super Saiyan », masse musculaire — *branche morte*,
+3. SSJ Grade 2 / 3 (« Ultra Super Saiyan », masse musculaire — _branche morte_,
    Trunks/Vegeta avant les Cell Games).
 4. **Super Saiyan 2** — Gohan contre Cell.
 5. **Super Saiyan 3** — Goku contre Boo.
-6. **Super Saiyan God** (rouge) — rituel de 6 Saiyans au cœur pur (*Battle of Gods*).
-7. **Super Saiyan God SS / « Blue »** (SSGSS, bleu) — *Resurrection F* ; variantes
+6. **Super Saiyan God** (rouge) — rituel de 6 Saiyans au cœur pur (_Battle of Gods_).
+7. **Super Saiyan God SS / « Blue »** (SSGSS, bleu) — _Resurrection F_ ; variantes
    **SSB Kaioken** (Goku) et **SSJ Rosé** (Goku Black).
-8. **Ultra Instinct** (Migatte no Gokui) — état divin, *signe* puis *maîtrisé*
+8. **Ultra Instinct** (Migatte no Gokui) — état divin, _signe_ puis _maîtrisé_
    (Tournoi du Pouvoir). Ce n'est pas une « transfo Saiyan » mais un état de combat.
 9. **Super Saiyan 4** — **GT uniquement** (Ôzaru doré → SSJ4).
 10. **Super Saiyan Légendaire** — **Broly** (films), distinct de la lignée ci-dessus.
@@ -58,7 +58,7 @@ survivant** → **Super Hero** (Gamma 1 & 2, Cell Max).
 Saiyan · Namékien · Terrien/Humain · **Race de Freezer** (glaciale/arcosienne) ·
 Majin · Cyborg/Androïde — plus les divinités (Kaiô, Dieux de la destruction,
 Anges). Les Namékiens sont hermaphrodites et pondent ; les Saiyans gardent une
-queue (source de l'Ôzaru) et se renforcent après un quasi-K.O. (*zenkai*).
+queue (source de l'Ôzaru) et se renforcent après un quasi-K.O. (_zenkai_).
 
 ## Dragon Balls
 

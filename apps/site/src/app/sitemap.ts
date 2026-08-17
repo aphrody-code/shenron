@@ -26,6 +26,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		"/leaderboard",
 		"/classements",
 		"/licence",
+		// Exigée par les règles AdSense (cookies tiers / publicité) : doit être
+		// atteignable ET indexable, pas seulement liée en pied de page.
+		"/confidentialite",
 		"/personas",
 		"/commands",
 		"/stats",

@@ -161,12 +161,7 @@ export function HomeBattleFx({
 								const a = (i / 20) * Math.PI * 2 + age * 10;
 								const dist = rad * 0.75 + (i % 4) * 5;
 								ctx.fillStyle = "rgba(200,235,255,0.85)";
-								ctx.fillRect(
-									b.x + Math.cos(a) * dist - 1.5,
-									b.y + Math.sin(a) * dist - 1.5,
-									3,
-									3
-								);
+								ctx.fillRect(b.x + Math.cos(a) * dist - 1.5, b.y + Math.sin(a) * dist - 1.5, 3, 3);
 							}
 						} else if (age < beamEnd) {
 							const p = (age - chargeEnd) / (beamEnd - chargeEnd);
@@ -256,10 +251,6 @@ export function HomeBattleFx({
 	}, [apiRef]);
 
 	return (
-		<canvas
-			ref={canvasRef}
-			className="pointer-events-none fixed inset-0 z-[45]"
-			aria-hidden
-		/>
+		<canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-[45]" aria-hidden />
 	);
 }

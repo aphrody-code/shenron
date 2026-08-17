@@ -49,7 +49,8 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 
 	const row = useQuery({
 		queryKey: ["wiki-studio", "db_characters", characterId, "stats"],
-		queryFn: () => client.get<Record<string, unknown>>(`/db_characters/${encodeURIComponent(characterId)}`),
+		queryFn: () =>
+			client.get<Record<string, unknown>>(`/db_characters/${encodeURIComponent(characterId)}`),
 		staleTime: 30_000,
 	});
 

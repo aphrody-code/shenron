@@ -58,7 +58,10 @@ export default async function NewOfficialTierlistPage({
 						</Link>
 					))}
 				</div>
-				<Link href="/admin/tierlists" className="inline-block text-sm text-white/50 hover:text-white/80">
+				<Link
+					href="/admin/tierlists"
+					className="inline-block text-sm text-white/50 hover:text-white/80"
+				>
 					← Retour à la modération
 				</Link>
 			</div>
@@ -113,7 +116,10 @@ export default async function NewOfficialTierlistPage({
 				/>
 			)}
 
-			<Link href="/admin/tierlists/new" className="inline-block text-sm text-white/50 hover:text-white/80">
+			<Link
+				href="/admin/tierlists/new"
+				className="inline-block text-sm text-white/50 hover:text-white/80"
+			>
 				← Changer de pool
 			</Link>
 		</div>

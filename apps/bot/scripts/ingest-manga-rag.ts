@@ -37,7 +37,10 @@ function seriesOf(file: string): { series: string; label: string } {
 // CJK (kana/kanji) ; on ne droppe que le bruit pur (symboles, mono-lettre latine).
 const CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u;
 function cleanLine(l: string): string | null {
-	const t = l.replace(/^[-*]\s*/, "").replace(/\s+/g, " ").trim();
+	const t = l
+		.replace(/^[-*]\s*/, "")
+		.replace(/\s+/g, " ")
+		.trim();
 	if (!t) return null;
 	if (CJK.test(t)) return t; // toute ligne contenant du JP est conservée
 	const alnum = (t.match(/[\p{L}\p{N}]/gu) || []).length;

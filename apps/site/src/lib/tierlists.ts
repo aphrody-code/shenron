@@ -84,10 +84,12 @@ export function categoryOf(race: string | null | undefined): string {
 	if (r.includes("saiyan") || r.includes("saïen") || r.includes("saiyen")) return "Saiyans";
 	if (r.includes("android") || r.includes("androïde") || r.includes("cyborg")) return "Androïdes";
 	if (r.includes("namek")) return "Nameks";
-	if (r.includes("frieza") || r.includes("freezer") || r.includes("freeza")) return "Race de Freezer";
+	if (r.includes("frieza") || r.includes("freezer") || r.includes("freeza"))
+		return "Race de Freezer";
 	if (r.includes("majin")) return "Majins";
 	if (r.includes("angel") || r.includes("ange")) return "Anges";
-	if (r.includes("nucleico") || r.includes("kaio") || r.includes("kaïo")) return "Kaïos & divinités";
+	if (r.includes("nucleico") || r.includes("kaio") || r.includes("kaïo"))
+		return "Kaïos & divinités";
 	if (r.includes("god") || r.includes("dieu") || r.includes("divin")) return "Dieux";
 	if (r.includes("human") || r.includes("terrien") || r.includes("humain")) return "Humains";
 	if (r.includes("jiren")) return "Univers 11";

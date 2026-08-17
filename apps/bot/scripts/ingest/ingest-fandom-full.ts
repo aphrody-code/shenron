@@ -120,7 +120,8 @@ const CATS: Record<string, Cat> = {
 		category: "Lieux",
 		table: "db_locations",
 		dir: "locations",
-		map: (d) => (d.image ? { name: d.title, image: d.image, description: nn(d.description) } : null),
+		map: (d) =>
+			d.image ? { name: d.title, image: d.image, description: nn(d.description) } : null,
 	},
 };
 
@@ -234,7 +235,8 @@ async function main() {
 				continue;
 			}
 			const imgSrc: string | null = p.original?.source ?? null;
-			const wikitext: string = p.revisions?.[0]?.slots?.main?.["*"] ?? p.revisions?.[0]?.["*"] ?? "";
+			const wikitext: string =
+				p.revisions?.[0]?.slots?.main?.["*"] ?? p.revisions?.[0]?.["*"] ?? "";
 			const local = imgSrc ? await downloadImage(imgSrc, cfg.dir, slugify(title)) : null;
 			const parsed: ParsedPage = {
 				title,

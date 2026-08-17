@@ -20,14 +20,15 @@ instantanées et OCR du batch de planches en minutes au lieu d'heures.
 
 ## Vue d'ensemble — 3 services sur GPU
 
-| Service | Port | Backend GPU | Code |
-|---|---|---|---|
-| **LLM conversationnel** | 11434 (Ollama) | **Ollama + `gemma4:12b`** sur CUDA (`think:false`) | `src/lib/llm.ts` (backend `ollama`) |
-| **Embeddings + reranker (RAG)** | 5007 | sidecar Python `sentence-transformers` CUDA (drop-in du sidecar TS) | `embed-server-gpu.py` |
-| **OCR manga** | — | `paddlepaddle-gpu` + `device="gpu"` | `scripts/transcribe-manga.py` |
-| _LLM alt. (secondaire)_ | 5008 | llama.cpp `-DGGML_CUDA=ON` + `-ngl 99`, Qwen2.5-3B GGUF | — |
+| Service                         | Port           | Backend GPU                                                         | Code                                |
+| ------------------------------- | -------------- | ------------------------------------------------------------------- | ----------------------------------- |
+| **LLM conversationnel**         | 11434 (Ollama) | **Ollama + `gemma4:12b`** sur CUDA (`think:false`)                  | `src/lib/llm.ts` (backend `ollama`) |
+| **Embeddings + reranker (RAG)** | 5007           | sidecar Python `sentence-transformers` CUDA (drop-in du sidecar TS) | `embed-server-gpu.py`               |
+| **OCR manga**                   | —              | `paddlepaddle-gpu` + `device="gpu"`                                 | `scripts/transcribe-manga.py`       |
+| _LLM alt. (secondaire)_         | 5008           | llama.cpp `-DGGML_CUDA=ON` + `-ngl 99`, Qwen2.5-3B GGUF             | —                                   |
 
 **Budget VRAM (12 Go, ~10 Go libres hors desktop)** — les trois ne tiennent pas tous à fond en même temps :
+
 - `gemma4:12b` ≈ **8,4 Go** (ctx 8192), sidecar embeddings+reranker ≈ **1,5 Go**, OCR Paddle ≈ **2 Go**.
 - LLM + embeddings cohabitent (~9,9 Go). L'**OCR est un batch** : le lancer pendant que Gemma occupe 8,4 Go
   pousse au-delà de 12 Go → faire tourner l'OCR quand le LLM est déchargé (cf. `keep_alive`, ci-dessous),
@@ -65,13 +66,13 @@ La voie historique (`LLM_BACKEND=local` → endpoint OpenAI `:5008`, pour llama.
 
 ### Best practices Ollama appliquées
 
-| Paramètre | Valeur | Raison |
-|---|---|---|
-| `think` | `false` | coupe le CoT des modèles reasoning (sinon `content` vide). |
-| `options.num_ctx` | **8192** (`LLM_NUM_CTX`) | le défaut modèle (4096) tronque système + faits RAG + historique. |
-| `keep_alive` | **`30m`** (`LLM_KEEP_ALIVE`) | résidence VRAM bornée — laisse la place aux sidecars embeddings/OCR.
-  `-1` (résident à vie) pinnerait 8,4 Go en permanence. `0` déchargerait après chaque appel. |
-| `options.num_predict` | 320 (`LLM_NUM_PREDICT`) | budget de génération aligné au comportement existant. |
+| Paramètre                                                                                  | Valeur                       | Raison                                                               |
+| ------------------------------------------------------------------------------------------ | ---------------------------- | -------------------------------------------------------------------- |
+| `think`                                                                                    | `false`                      | coupe le CoT des modèles reasoning (sinon `content` vide).           |
+| `options.num_ctx`                                                                          | **8192** (`LLM_NUM_CTX`)     | le défaut modèle (4096) tronque système + faits RAG + historique.    |
+| `keep_alive`                                                                               | **`30m`** (`LLM_KEEP_ALIVE`) | résidence VRAM bornée — laisse la place aux sidecars embeddings/OCR. |
+| `-1` (résident à vie) pinnerait 8,4 Go en permanence. `0` déchargerait après chaque appel. |
+| `options.num_predict`                                                                      | 320 (`LLM_NUM_PREDICT`)      | budget de génération aligné au comportement existant.                |
 
 **Serveur Ollama** (env systemd, déjà en place sur cette machine) :
 `OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KEEP_ALIVE=30m`, `OLLAMA_MAX_LOADED_MODELS=2`.
@@ -158,7 +159,7 @@ recognizer** (le vrai gain de qualité — cf. ci-dessous) :
   `device="gpu"` (et **non** l'ancien `use_gpu=True`). Le fallback CPU est strictement identique à avant
   (`enable_mkldnn=False`, `cpu_threads`).
 - **Recognizer FR (`OCR_LANG`, défaut `fr`)** : le script forçait `text_recognition_model_name=
-  "PP-OCRv5_mobile_rec"`, qui est le recognizer **CN/EN** — appliqué à du **français**, il détruisait
+"PP-OCRv5_mobile_rec"`, qui est le recognizer **CN/EN** — appliqué à du **français**, il détruisait
   accents et apostrophes (`SÛR→SUR`, `MÊME→MEME`, `N'OSERIEZ→NOSERIEZ`, `QU'EST-CE→QUEST-CE`).
   `lang="fr"` charge le recognizer **latin** (en pratique `PP-OCRv6_medium_rec`) qui restitue
   `é è ê û ç` et les apostrophes. **A/B validé sur planche réelle** — c'est l'essentiel de la montée

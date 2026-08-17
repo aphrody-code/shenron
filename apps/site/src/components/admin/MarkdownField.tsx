@@ -79,7 +79,9 @@ function escapeAttr(s: string): string {
 
 /** Disposition en N colonnes (markdown autorisé dans chaque colonne). */
 function colsSnippet(n: number): string {
-	const cols = Array.from({ length: n }, (_, i) => `<div>\n\nColonne ${i + 1}\n\n</div>`).join("\n");
+	const cols = Array.from({ length: n }, (_, i) => `<div>\n\nColonne ${i + 1}\n\n</div>`).join(
+		"\n"
+	);
 	return `\n<div class="wiki-cols wiki-cols-${n}">\n${cols}\n</div>\n\n`;
 }
 
@@ -164,7 +166,10 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 			return;
 		}
 		const { from, to } = view.state.selection.main;
-		view.dispatch({ changes: { from, to, insert: text }, selection: { anchor: from + text.length } });
+		view.dispatch({
+			changes: { from, to, insert: text },
+			selection: { anchor: from + text.length },
+		});
 		view.focus();
 	}
 
@@ -215,10 +220,10 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 			const data = (await res.json().catch(() => ({}))) as { path?: string; error?: string };
 			if (!res.ok || !data.path) throw new Error(data.error ?? `Upload échoué (${res.status}).`);
 			insertAtCursor(
-					uploadModeRef.current === "banner"
-						? bannerSnippet(data.path)
-						: imageSnippet(data.path, size, placement)
-				);
+				uploadModeRef.current === "banner"
+					? bannerSnippet(data.path)
+					: imageSnippet(data.path, size, placement)
+			);
 		} catch (e) {
 			setErr(e instanceof Error ? e.message : "Upload échoué.");
 		} finally {
@@ -260,8 +265,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				if (f) {
 					uploadModeRef.current = "image";
 					void upload(f);
-				} else if (e.dataTransfer.files.length)
-					setErr("Le fichier déposé n'est pas une image.");
+				} else if (e.dataTransfer.files.length) setErr("Le fichier déposé n'est pas une image.");
 			}}
 			onPaste={(e) => {
 				const f = Array.from(e.clipboardData.files).find((x) => x.type.startsWith("image/"));
@@ -344,7 +348,11 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					disabled={uploading}
 					className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow disabled:opacity-50"
 				>
-					{uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImagePlus className="h-3 w-3" />}
+					{uploading ? (
+						<Loader2 className="h-3 w-3 animate-spin" />
+					) : (
+						<ImagePlus className="h-3 w-3" />
+					)}
 					Image
 				</button>
 				<input
@@ -364,7 +372,9 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					onClick={() => setKiOpen((o) => !o)}
 					title="Insérer un niveau de puissance (Ki) avec son contexte"
 					className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
-						kiOpen ? "bg-dbz-orange/20 text-dbz-orange" : "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
+						kiOpen
+							? "bg-dbz-orange/20 text-dbz-orange"
+							: "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
 					}`}
 				>
 					<Gauge className="h-3 w-3" /> Ki
@@ -374,7 +384,9 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					onClick={() => setSecOpen((o) => !o)}
 					title="Insérer une catégorie repliable (nom libre) pour trier le contenu"
 					className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-semibold ${
-						secOpen ? "bg-dbz-orange/20 text-dbz-orange" : "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
+						secOpen
+							? "bg-dbz-orange/20 text-dbz-orange"
+							: "text-dbz-blue-light hover:bg-dbz-bg hover:text-dbz-yellow"
 					}`}
 				>
 					<ListTree className="h-3 w-3" /> Section
@@ -464,8 +476,8 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 						Insérer
 					</button>
 					<span className="text-[10px] text-white/40">
-						Catégorie au nom de ton choix — écris dedans (images, badges Ki…). Empiles-en autant
-						que tu veux.
+						Catégorie au nom de ton choix — écris dedans (images, badges Ki…). Empiles-en autant que
+						tu veux.
 					</span>
 				</div>
 			)}
@@ -475,13 +487,25 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 				<div className="space-y-2 rounded border border-dbz-orange/30 bg-dbz-orange/5 p-2.5 text-xs">
 					<div className="flex flex-wrap items-center gap-1.5">
 						<span className={designLabel}>Colonnes</span>
-						<button type="button" className={designBtn} onClick={() => insertAtCursor(colsSnippet(2))}>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => insertAtCursor(colsSnippet(2))}
+						>
 							2 colonnes
 						</button>
-						<button type="button" className={designBtn} onClick={() => insertAtCursor(colsSnippet(3))}>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => insertAtCursor(colsSnippet(3))}
+						>
 							3 colonnes
 						</button>
-						<button type="button" className={designBtn} onClick={() => insertAtCursor(gallerySnippet())}>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => insertAtCursor(gallerySnippet())}
+						>
 							Galerie d'images
 						</button>
 					</div>
@@ -629,7 +653,11 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 						>
 							Séparateur
 						</button>
-						<button type="button" className={designBtn} onClick={() => insertAtCursor(spacerSnippet())}>
+						<button
+							type="button"
+							className={designBtn}
+							onClick={() => insertAtCursor(spacerSnippet())}
+						>
 							Espace
 						</button>
 					</div>

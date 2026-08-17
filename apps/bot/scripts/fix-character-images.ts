@@ -85,9 +85,17 @@ interface Thumb {
 	url: string;
 	title: string;
 }
-async function apiQuery(url: string): Promise<Record<string, { title?: string; thumbnail?: { source?: string }; missing?: string }> | null> {
+async function apiQuery(
+	url: string
+): Promise<Record<
+	string,
+	{ title?: string; thumbnail?: { source?: string }; missing?: string }
+> | null> {
 	try {
-		const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(12000) });
+		const res = await fetch(url, {
+			headers: { "User-Agent": UA },
+			signal: AbortSignal.timeout(12000),
+		});
 		if (!res.ok) return null;
 		const data = (await res.json()) as { query?: { pages?: Record<string, never> } };
 		return (data.query?.pages as never) ?? null;
@@ -140,7 +148,10 @@ function extOf(u: string): string {
 
 async function download(url: string, dest: string): Promise<boolean> {
 	try {
-		const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(20000) });
+		const res = await fetch(url, {
+			headers: { "User-Agent": UA },
+			signal: AbortSignal.timeout(20000),
+		});
 		if (!res.ok) return false;
 		const buf = new Uint8Array(await res.arrayBuffer());
 		if (buf.byteLength < 200) return false;

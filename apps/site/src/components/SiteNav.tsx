@@ -106,9 +106,7 @@ export async function SiteNav() {
 							{l.label}
 						</Link>
 					))}
-					{moreWiki.length > 0 && (
-						<NavMore links={moreWiki} label="Plus" hint="Autres sections" />
-					)}
+					{moreWiki.length > 0 && <NavMore links={moreWiki} label="Plus" hint="Autres sections" />}
 					{STATIC_PUBLIC_TAIL.map((l) => (
 						<Link key={l.href} href={l.href} className={linkClass}>
 							{l.label}

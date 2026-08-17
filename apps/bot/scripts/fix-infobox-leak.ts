@@ -71,7 +71,9 @@ for (const { col, requireJP } of COLUMNS) {
 		`${DRY ? "[dry] " : ""}db_characters.${col}: ${rows.length} pollué(s) → ${kept} valeur conservée, ${nulled} NULL`
 	);
 	for (const r of rows.slice(0, 3))
-		console.log(`   #${r.id} ${r.name}: ${JSON.stringify(r.v.slice(0, 90))} → ${JSON.stringify(clean(r.v, !!requireJP))}`);
+		console.log(
+			`   #${r.id} ${r.name}: ${JSON.stringify(r.v.slice(0, 90))} → ${JSON.stringify(clean(r.v, !!requireJP))}`
+		);
 }
 console.log(`\n${DRY ? "[dry] " : ""}TOTAL ${grand} cellule(s) traitée(s) sur db_characters.`);
 await sql.end();

@@ -18,7 +18,8 @@ interface Props {
 }
 
 /** Champs jamais affichés en chip (clés internes, URLs, dates, techniques). */
-const HIDDEN_CHIP = /(^id$|Id$|^slug$|^orderIdx$|Idx$|^malId$|anilistId|^isbn$|url$|Url$|date|At$)/i;
+const HIDDEN_CHIP =
+	/(^id$|Id$|^slug$|^orderIdx$|Idx$|^malId$|anilistId|^isbn$|url$|Url$|date|At$)/i;
 
 export function WikiEntityPreview({ table, draft }: Props) {
 	const cols = Object.keys(draft);
@@ -34,9 +35,15 @@ export function WikiEntityPreview({ table, draft }: Props) {
 	const maxKi = val("maxKi");
 
 	const used = new Set(
-		[roles.image, roles.title, roles.titleJa, roles.titleRomaji, roles.description, "ki", "maxKi"].filter(
-			Boolean
-		) as string[]
+		[
+			roles.image,
+			roles.title,
+			roles.titleJa,
+			roles.titleRomaji,
+			roles.description,
+			"ki",
+			"maxKi",
+		].filter(Boolean) as string[]
 	);
 	// Chips : champs scalaires restants, non vides, non techniques. Les booléens
 	// sont rendus Oui/Non (pas la string brute "true"/"false").
@@ -91,7 +98,9 @@ export function WikiEntityPreview({ table, draft }: Props) {
 					</h1>
 					{(ja || romaji) && (
 						<div className="flex flex-wrap items-center gap-3">
-							{ja && <span className="text-xl font-bold tracking-widest text-dbz-orange">{ja}</span>}
+							{ja && (
+								<span className="text-xl font-bold tracking-widest text-dbz-orange">{ja}</span>
+							)}
 							{romaji && (
 								<span className="text-xs uppercase italic tracking-[0.2em] text-white/50">
 									{romaji}
@@ -107,7 +116,8 @@ export function WikiEntityPreview({ table, draft }: Props) {
 									className="border border-dbz-orange/30 bg-dbz-orange/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-dbz-orange/90"
 									title={c.label}
 								>
-									<span className="text-white/40">{c.label}</span> <span className="text-white/90">{c.value}</span>
+									<span className="text-white/40">{c.label}</span>{" "}
+									<span className="text-white/90">{c.value}</span>
 								</span>
 							))}
 						</div>

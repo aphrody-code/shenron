@@ -29,10 +29,7 @@ type Entry = {
 	group: "official" | "wiki";
 };
 
-async function listDir(
-	abs: string,
-	map: (name: string) => Entry | null
-): Promise<Entry[]> {
+async function listDir(abs: string, map: (name: string) => Entry | null): Promise<Entry[]> {
 	try {
 		const names = await readdir(abs);
 		const out: Entry[] = [];
@@ -43,9 +40,7 @@ async function listDir(
 			if (/\.(avif|webp)$/i.test(name)) {
 				const stem = name.replace(/\.(avif|webp)$/i, "");
 				const hasMaster = names.some((n) =>
-					new RegExp(`^${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.(png|jpe?g)$`, "i").test(
-						n
-					)
+					new RegExp(`^${stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.(png|jpe?g)$`, "i").test(n)
 				);
 				if (hasMaster) continue;
 			}
@@ -119,9 +114,7 @@ export async function GET() {
 		),
 	]);
 
-	const items = [...official, ...toei, ...wiki].sort((a, b) =>
-		a.name.localeCompare(b.name)
-	);
+	const items = [...official, ...toei, ...wiki].sort((a, b) => a.name.localeCompare(b.name));
 
 	return NextResponse.json({
 		count: items.length,

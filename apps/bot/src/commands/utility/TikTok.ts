@@ -38,7 +38,10 @@ export class TikTokCommands {
 		@inject(TikTokService) private tiktok: TikTokService
 	) {}
 
-	@Slash({ name: "setup", description: "Configurer salon, rôle et pseudo, et activer la surveillance" })
+	@Slash({
+		name: "setup",
+		description: "Configurer salon, rôle et pseudo, et activer la surveillance",
+	})
 	async setup(
 		@SlashOption({
 			name: "salon",
@@ -78,7 +81,9 @@ export class TikTokCommands {
 						[
 							`Compte : **@${username}**`,
 							`Salon : <#${channel.id}>`,
-							role ? `Ping : <@&${role.id}>` : "Ping : _aucun rôle_ (utilise `/tiktok setup` avec un rôle)",
+							role
+								? `Ping : <@&${role.id}>`
+								: "Ping : _aucun rôle_ (utilise `/tiktok setup` avec un rôle)",
 							"",
 							"Les membres s'abonnent avec `/notif-tiktok`. Vérif immédiate avec `/tiktok test`.",
 						].join("\n")
@@ -101,7 +106,10 @@ export class TikTokCommands {
 		});
 	}
 
-	@Slash({ name: "videos", description: "Activer/désactiver les notifs de nouvelles vidéos (le live reste actif)" })
+	@Slash({
+		name: "videos",
+		description: "Activer/désactiver les notifs de nouvelles vidéos (le live reste actif)",
+	})
 	async videos(
 		@SlashOption({
 			name: "actif",
@@ -142,7 +150,9 @@ export class TikTokCommands {
 			embeds: [
 				successEmbed(
 					"Proxy TikTok " + (url?.trim() ? "défini" : "retiré"),
-					url?.trim() ? "Les requêtes TikTok passeront par ce proxy." : "Requêtes en direct depuis le VPS."
+					url?.trim()
+						? "Les requêtes TikTok passeront par ce proxy."
+						: "Requêtes en direct depuis le VPS."
 				),
 			],
 			flags: MessageFlags.Ephemeral,
@@ -251,16 +261,17 @@ export class TikTokNotifCommand {
 			if (member.roles.cache.has(roleId)) {
 				await member.roles.remove(roleId, "opt-out notif tiktok");
 				await interaction.reply({
-					embeds: [
-						successEmbed("Désabonné", "Tu ne recevras plus les notifications TikTok."),
-					],
+					embeds: [successEmbed("Désabonné", "Tu ne recevras plus les notifications TikTok.")],
 					flags: MessageFlags.Ephemeral,
 				});
 			} else {
 				await member.roles.add(roleId, "opt-in notif tiktok");
 				await interaction.reply({
 					embeds: [
-						successEmbed("Abonné", `Tu seras pingé (<@&${roleId}>) à chaque live et nouvelle vidéo TikTok !`),
+						successEmbed(
+							"Abonné",
+							`Tu seras pingé (<@&${roleId}>) à chaque live et nouvelle vidéo TikTok !`
+						),
 					],
 					flags: MessageFlags.Ephemeral,
 				});

@@ -128,7 +128,10 @@ async function lingva(text: string): Promise<Tr> {
 				last = new Error(`lingva ${inst} vide`);
 				continue;
 			}
-			return { translated: d.translation, detected: (d.info?.detectedSource ?? "auto").toLowerCase() };
+			return {
+				translated: d.translation,
+				detected: (d.info?.detectedSource ?? "auto").toLowerCase(),
+			};
 		} catch (e) {
 			last = e as Error;
 		}

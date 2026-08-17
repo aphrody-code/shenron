@@ -219,7 +219,12 @@ export async function countRevisions(table: string, rowId: string): Promise<numb
 export async function revertRevision(
 	id: string,
 	actor: RevisionActor
-): Promise<{ table: string; rowId: string; mode: "restore" | "reinsert" | "delete"; row: Row | null }> {
+): Promise<{
+	table: string;
+	rowId: string;
+	mode: "restore" | "reinsert" | "delete";
+	row: Row | null;
+}> {
 	const rev = await getRevision(id);
 	if (!rev) throw new Error("Révision introuvable");
 	const table = rev.tableName;

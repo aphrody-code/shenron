@@ -211,7 +211,9 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 
 				<StatusBadge status={draft.status} publishedAt={dateInput} />
 
-				{dirty && <span className="text-[12px] text-amber-300">Modifications non enregistrées</span>}
+				{dirty && (
+					<span className="text-[12px] text-amber-300">Modifications non enregistrées</span>
+				)}
 				{!dirty && savedAt && (
 					<span className="inline-flex items-center gap-1.5 text-[12px] text-emerald-300">
 						<Check className="size-3.5" />
@@ -231,24 +233,17 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 							Voir en ligne
 						</a>
 					)}
-					<Button
-						variant="outline"
-						size="lg"
-						disabled={pending}
-						onClick={() => submit("draft")}
-					>
+					<Button variant="outline" size="lg" disabled={pending} onClick={() => submit("draft")}>
 						Enregistrer le brouillon
 					</Button>
 					<Button
 						size="lg"
 						disabled={pending || slugState === "taken"}
-						onClick={() => submit(dateInput && new Date(dateInput) > new Date() ? "scheduled" : "published")}
+						onClick={() =>
+							submit(dateInput && new Date(dateInput) > new Date() ? "scheduled" : "published")
+						}
 					>
-						{pending ? (
-							<Loader2 className="size-4 animate-spin" />
-						) : (
-							<Save className="size-4" />
-						)}
+						{pending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
 						{dateInput && new Date(dateInput) > new Date() ? "Programmer" : "Publier"}
 					</Button>
 				</div>

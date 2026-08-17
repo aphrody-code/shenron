@@ -15,7 +15,14 @@ import {
 } from "~/lib/constants";
 import { env } from "~/lib/env";
 import { randomInt } from "~/lib/xp";
-import { messageXpMultiplier, applyZeniRace, hasRegen, REGEN_MS, REGEN_XP, REGEN_ZENI } from "~/lib/races";
+import {
+	messageXpMultiplier,
+	applyZeniRace,
+	hasRegen,
+	REGEN_MS,
+	REGEN_XP,
+	REGEN_ZENI,
+} from "~/lib/races";
 import { resolveLevelChannel } from "~/lib/announce";
 import { boosterXpMultiplier } from "~/lib/booster";
 import { MessageTemplateService } from "~/services/MessageTemplateService";
@@ -158,7 +165,9 @@ export class MessageXPEvent {
 		let gain = randomInt(xpMin, xpMax);
 
 		// Multiplicateur de RACE (Saiyen ×1.25 / Namek ×1.1 / Zenkai actif…).
-		gain = Math.floor(gain * messageXpMultiplier(user.race, user.raceBoostUntil?.getTime() ?? 0, now));
+		gain = Math.floor(
+			gain * messageXpMultiplier(user.race, user.raceBoostUntil?.getTime() ?? 0, now)
+		);
 
 		// Régén passive Namek : 1×/24 h, à la 1re activité du jour (+XP & +zéni).
 		if (hasRegen(user.race) && now - (user.lastRaceRegenAt?.getTime() ?? 0) >= REGEN_MS) {

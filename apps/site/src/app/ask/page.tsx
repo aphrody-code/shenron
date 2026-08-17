@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import { 
-	Send, 
-	Sparkles, 
-	BookOpen, 
+import {
+	Send,
+	Sparkles,
+	BookOpen,
 	HelpCircle,
 	RefreshCw,
 	ChevronRight,
-	Compass
+	Compass,
 } from "lucide-react";
 
 const KiCanvas = dynamic(() => import("@/components/site/KiCanvas").then((m) => m.KiCanvas), {
@@ -38,15 +38,16 @@ const PERSONAS = {
 		bubbleBg: "bg-cyan-500/10 border-cyan-500/20 text-cyan-100",
 		textColor: "text-cyan-300",
 		placeholder: "Posez votre question à Whis, jeune disciple...",
-		welcome: "Oh oh ! Bonjour, jeune disciple. J'ai réuni les archives de l'Univers 7 pour guider votre entraînement spirituel. Quelle curiosité s'empare de vous aujourd'hui ?",
+		welcome:
+			"Oh oh ! Bonjour, jeune disciple. J'ai réuni les archives de l'Univers 7 pour guider votre entraînement spirituel. Quelle curiosité s'empare de vous aujourd'hui ?",
 		suggestions: [
 			"Comment Goku a-t-il atteint le Super Saiyan ?",
 			"Qui est le Grand Prêtre ?",
-			"Quelle est la différence entre l'Ultra Instinct et l'Ultra Ego ?"
+			"Quelle est la différence entre l'Ultra Instinct et l'Ultra Ego ?",
 		],
 		kiColor: 0x22d3ee,
 		kiAccent: 0xfcd34d,
-		density: 0.8
+		density: 0.8,
 	},
 	beerus: {
 		id: "beerus",
@@ -61,15 +62,16 @@ const PERSONAS = {
 		bubbleBg: "bg-purple-500/10 border-purple-500/20 text-purple-100",
 		textColor: "text-purple-300",
 		placeholder: "Parlez à Beerus... Soyez bref !",
-		welcome: "Mmmh ? Encore un mortel insignifiant qui vient troubler ma sieste. Sois bref ou je pulvérise ton quadrant ! Et si tu as du pudding, c'est le moment.",
+		welcome:
+			"Mmmh ? Encore un mortel insignifiant qui vient troubler ma sieste. Sois bref ou je pulvérise ton quadrant ! Et si tu as du pudding, c'est le moment.",
 		suggestions: [
 			"Quel est le pouvoir du Hakaï ?",
 			"Qui est le plus fort entre Goku et Beerus ?",
-			"Où se trouve la planète de Beerus ?"
+			"Où se trouve la planète de Beerus ?",
 		],
 		kiColor: 0xa855f7,
 		kiAccent: 0xec4899,
-		density: 1.2
+		density: 1.2,
 	},
 	shenron: {
 		id: "shenron",
@@ -84,15 +86,16 @@ const PERSONAS = {
 		bubbleBg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-200",
 		textColor: "text-emerald-300",
 		placeholder: "Exprimez votre vœu, mortel...",
-		welcome: "Je suis Shenron. Tu as rassemblé les sept Dragon Balls. Formule ta question, mortel. Hâte-toi, ma puissance a des limites et mon temps est compté !",
+		welcome:
+			"Je suis Shenron. Tu as rassemblé les sept Dragon Balls. Formule ta question, mortel. Hâte-toi, ma puissance a des limites et mon temps est compté !",
 		suggestions: [
 			"Comment ont été créées les Dragon Balls ?",
 			"Qui est le créateur du dragon Shenron ?",
-			"Quelles sont les limites des vœux de Shenron ?"
+			"Quelles sont les limites des vœux de Shenron ?",
 		],
 		kiColor: 0x10b981,
 		kiAccent: 0xf59e0b,
-		density: 0.9
+		density: 0.9,
 	},
 	grandpretre: {
 		id: "grandpretre",
@@ -107,15 +110,16 @@ const PERSONAS = {
 		bubbleBg: "bg-sky-500/10 border-sky-500/20 text-sky-100",
 		textColor: "text-sky-300",
 		placeholder: "Adressez-vous au Grand Prêtre, voyageur...",
-		welcome: "Salutations. Sa Majesté le Roi de Tout m'a chargé d'observer les connaissances de cette dimension. Parlez de vos quêtes de vérité sans crainte.",
+		welcome:
+			"Salutations. Sa Majesté le Roi de Tout m'a chargé d'observer les connaissances de cette dimension. Parlez de vos quêtes de vérité sans crainte.",
 		suggestions: [
 			"Qui est le Roi de Tout (Zeno) ?",
 			"Combien y a-t-il d'univers au total ?",
-			"Quel est le rôle du Grand Prêtre ?"
+			"Quel est le rôle du Grand Prêtre ?",
 		],
 		kiColor: 0x7dd3fc,
 		kiAccent: 0x2563eb,
-		density: 0.7
+		density: 0.7,
 	},
 	kaio: {
 		id: "kaio",
@@ -130,15 +134,16 @@ const PERSONAS = {
 		bubbleBg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-100",
 		textColor: "text-emerald-300",
 		placeholder: "Raconte une blague à Maître Kaïo...",
-		welcome: "Ohoho ! Salut mon grand ! Tu as réussi à traverser le chemin du serpent pour venir me voir ? Raconte-moi une bonne blague, ou demande-moi tout sur les techniques secrètes !",
+		welcome:
+			"Ohoho ! Salut mon grand ! Tu as réussi à traverser le chemin du serpent pour venir me voir ? Raconte-moi une bonne blague, ou demande-moi tout sur les techniques secrètes !",
 		suggestions: [
 			"Qu'est-ce que le Genkidama ?",
 			"Peux-tu m'expliquer le Kaio-ken ?",
-			"Raconte-moi une blague !"
+			"Raconte-moi une blague !",
 		],
 		kiColor: 0x34d399,
 		kiAccent: 0x38bdf8,
-		density: 0.9
+		density: 0.9,
 	},
 	enma: {
 		id: "enma",
@@ -153,16 +158,17 @@ const PERSONAS = {
 		bubbleBg: "bg-red-500/10 border-red-500/20 text-red-100",
 		textColor: "text-red-300",
 		placeholder: "Quel dossier voulez-vous consulter ?",
-		welcome: "Silence ! J'ai une montagne de dossiers d'âmes à tamponner aujourd'hui et Freezer recommence à s'agiter en enfer ! Soyez bref, je n'ai pas de temps à perdre.",
+		welcome:
+			"Silence ! J'ai une montagne de dossiers d'âmes à tamponner aujourd'hui et Freezer recommence à s'agiter en enfer ! Soyez bref, je n'ai pas de temps à perdre.",
 		suggestions: [
 			"Où vont les âmes des méchants après la mort ?",
 			"Que s'est-il passé avec le dossier de Raditz ?",
-			"Comment fonctionne le tribunal d'Enma ?"
+			"Comment fonctionne le tribunal d'Enma ?",
 		],
 		kiColor: 0xef4444,
 		kiAccent: 0xd97706,
-		density: 1.1
-	}
+		density: 1.1,
+	},
 };
 
 type PersonaId = keyof typeof PERSONAS;
@@ -174,7 +180,7 @@ export default function AskPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [activeSources, setActiveSources] = useState<any[]>([]);
 	const [searchMode, setSearchMode] = useState<string>("");
-	
+
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const chatTheme = PERSONAS[persona];
 
@@ -184,8 +190,8 @@ export default function AskPage() {
 			{
 				id: "welcome",
 				role: "assistant",
-				content: chatTheme.welcome
-			}
+				content: chatTheme.welcome,
+			},
 		]);
 		setActiveSources([]);
 		setSearchMode("");
@@ -201,12 +207,9 @@ export default function AskPage() {
 
 		const userMsg = textToSend.trim();
 		const userMsgId = Math.random().toString(36).substring(2);
-		
+
 		setInput("");
-		setMessages((prev) => [
-			...prev,
-			{ id: userMsgId, role: "user", content: userMsg }
-		]);
+		setMessages((prev) => [...prev, { id: userMsgId, role: "user", content: userMsg }]);
 		setIsLoading(true);
 
 		try {
@@ -228,7 +231,7 @@ export default function AskPage() {
 
 			const data = await res.json();
 			const botResponse = data.answer || "Même les dieux restent muets sur cette question...";
-			
+
 			if (data.hits && data.hits.length > 0) {
 				setActiveSources(data.hits);
 				setSearchMode(data.mode || "hybrid");
@@ -237,13 +240,13 @@ export default function AskPage() {
 			const botMsgId = Math.random().toString(36).substring(2);
 			setMessages((prev) => [
 				...prev,
-				{ 
-					id: botMsgId, 
-					role: "assistant", 
+				{
+					id: botMsgId,
+					role: "assistant",
 					content: botResponse,
 					hits: data.hits,
-					mode: data.mode
-				}
+					mode: data.mode,
+				},
 			]);
 		} catch (err) {
 			console.error(err);
@@ -252,8 +255,9 @@ export default function AskPage() {
 				{
 					id: `err-${Date.now()}`,
 					role: "assistant",
-					content: "Une perturbation cosmique bloque mes sens divins. Veuillez me reposer votre question dans un instant."
-				}
+					content:
+						"Une perturbation cosmique bloque mes sens divins. Veuillez me reposer votre question dans un instant.",
+				},
 			]);
 		} finally {
 			setIsLoading(false);
@@ -268,8 +272,8 @@ export default function AskPage() {
 			{
 				id: "welcome",
 				role: "assistant",
-				content: chatTheme.welcome
-			}
+				content: chatTheme.welcome,
+			},
 		]);
 		setActiveSources([]);
 		setSearchMode("");
@@ -278,20 +282,20 @@ export default function AskPage() {
 	return (
 		<div className="flex-1 w-full min-h-[calc(100vh-4rem)] flex flex-col bg-dbz-bg relative overflow-hidden">
 			{/* Arrière-plan thématique dynamique */}
-			<div 
+			<div
 				className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 ease-in-out opacity-20"
 				style={{
-					background: `radial-gradient(circle at 50% 30%, ${chatTheme.glowBg}, transparent 65%)`
+					background: `radial-gradient(circle at 50% 30%, ${chatTheme.glowBg}, transparent 65%)`,
 				}}
 			/>
 
 			{/* WebGPU Ki canvas background */}
 			<div className="absolute inset-0 z-0 pointer-events-none opacity-20 transition-all duration-1000">
-				<KiCanvas 
+				<KiCanvas
 					key={persona} // Force re-mount on swap to reset system preference resizing correctly
-					color={chatTheme.kiColor} 
-					colorAccent={chatTheme.kiAccent} 
-					density={chatTheme.density} 
+					color={chatTheme.kiColor}
+					colorAccent={chatTheme.kiAccent}
+					density={chatTheme.density}
 					className="w-full h-full"
 				/>
 			</div>
@@ -303,13 +307,16 @@ export default function AskPage() {
 					<div className="dbz-panel p-6 bg-dbz-card/40 border border-white/5 backdrop-blur-md">
 						<div className="flex items-center gap-2 mb-3">
 							<Sparkles className="w-5 h-5 text-dbz-orange animate-pulse" />
-							<span className="scouter-text text-xs text-dbz-orange font-bold">ORACLE CONNECTÉ</span>
+							<span className="scouter-text text-xs text-dbz-orange font-bold">
+								ORACLE CONNECTÉ
+							</span>
 						</div>
 						<h1 className="text-3xl font-saiyan tracking-widest text-white mb-2">
 							CONSEIL DES DIEUX
 						</h1>
 						<p className="text-xs text-zinc-400 leading-relaxed font-sans">
-							Interrogez les entités les plus sages et puissantes de l'Univers 7. Leurs réponses s'appuient sur les archives sacrées du wiki.
+							Interrogez les entités les plus sages et puissantes de l'Univers 7. Leurs réponses
+							s'appuient sur les archives sacrées du wiki.
 						</p>
 					</div>
 
@@ -334,10 +341,14 @@ export default function AskPage() {
 									>
 										<span className="text-2xl">{p.icon}</span>
 										<div className="flex-1 min-w-0">
-											<p className={`text-sm font-display font-bold leading-tight ${isSelected ? "text-black" : "text-white"}`}>
+											<p
+												className={`text-sm font-display font-bold leading-tight ${isSelected ? "text-black" : "text-white"}`}
+											>
 												{p.name}
 											</p>
-											<p className={`text-[10px] truncate uppercase tracking-wider ${isSelected ? "text-black/70" : "text-zinc-500"}`}>
+											<p
+												className={`text-[10px] truncate uppercase tracking-wider ${isSelected ? "text-black/70" : "text-zinc-500"}`}
+											>
 												{p.role}
 											</p>
 										</div>
@@ -389,7 +400,7 @@ export default function AskPage() {
 								</p>
 							</div>
 						</div>
-						
+
 						<button
 							onClick={clearHistory}
 							className="p-2 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 text-zinc-400 hover:text-white transition-all text-xs flex items-center gap-1.5 font-display"
@@ -414,7 +425,7 @@ export default function AskPage() {
 										{chatTheme.icon}
 									</div>
 								)}
-								
+
 								<div className="flex flex-col gap-1">
 									<div
 										className={`p-4 rounded-2xl text-sm leading-relaxed font-sans shadow-md ${
@@ -428,7 +439,10 @@ export default function AskPage() {
 									{msg.hits && msg.hits.length > 0 && (
 										<div className="flex items-center gap-1 px-1 mt-1 text-[9px] text-zinc-500">
 											<BookOpen className="w-3 h-3 text-dbz-orange/60" />
-											<span>RAG {msg.mode === "hybrid+rerank" ? "hybride + rerank" : "lexical"} · {msg.hits.length} sources consultées</span>
+											<span>
+												RAG {msg.mode === "hybrid+rerank" ? "hybride + rerank" : "lexical"} ·{" "}
+												{msg.hits.length} sources consultées
+											</span>
 										</div>
 									)}
 								</div>
@@ -440,10 +454,21 @@ export default function AskPage() {
 								<div className="w-8 h-8 rounded-full bg-black/50 border border-white/10 flex items-center justify-center text-base shrink-0 select-none">
 									{chatTheme.icon}
 								</div>
-								<div className={`p-4 rounded-2xl border rounded-tl-none ${chatTheme.bubbleBg} flex items-center gap-1.5`}>
-									<span className={`w-2 h-2 rounded-full bg-current opacity-70 animate-bounce`} style={{ animationDelay: "0ms" }} />
-									<span className={`w-2 h-2 rounded-full bg-current opacity-70 animate-bounce`} style={{ animationDelay: "150ms" }} />
-									<span className={`w-2 h-2 rounded-full bg-current opacity-70 animate-bounce`} style={{ animationDelay: "300ms" }} />
+								<div
+									className={`p-4 rounded-2xl border rounded-tl-none ${chatTheme.bubbleBg} flex items-center gap-1.5`}
+								>
+									<span
+										className={`w-2 h-2 rounded-full bg-current opacity-70 animate-bounce`}
+										style={{ animationDelay: "0ms" }}
+									/>
+									<span
+										className={`w-2 h-2 rounded-full bg-current opacity-70 animate-bounce`}
+										style={{ animationDelay: "150ms" }}
+									/>
+									<span
+										className={`w-2 h-2 rounded-full bg-current opacity-70 animate-bounce`}
+										style={{ animationDelay: "300ms" }}
+									/>
 								</div>
 							</div>
 						)}
@@ -486,29 +511,32 @@ export default function AskPage() {
 								Sources consultées
 							</h3>
 						</div>
-						
+
 						{activeSources.length === 0 ? (
 							<div className="flex-1 flex flex-col items-center justify-center text-center p-6 border border-dashed border-white/5 rounded-2xl bg-black/20">
 								<Compass className="w-8 h-8 text-zinc-600 mb-3" />
 								<p className="text-xs text-zinc-500 font-sans">
-									Posez une question lore pour voir les documents RAG consultés par l'Oracle en temps réel.
+									Posez une question lore pour voir les documents RAG consultés par l'Oracle en
+									temps réel.
 								</p>
 							</div>
 						) : (
 							<div className="flex flex-col gap-3 flex-1 overflow-y-auto max-h-[520px] scrollbar-thin">
 								<div className="flex items-center justify-between text-[10px] text-zinc-500 border-b border-white/5 pb-2">
 									<span>MODE: {searchMode.toUpperCase()}</span>
-									<span>{activeSources.filter(s => s.kind !== "page_context").length} DOCUMENTS</span>
+									<span>
+										{activeSources.filter((s) => s.kind !== "page_context").length} DOCUMENTS
+									</span>
 								</div>
-								
+
 								{activeSources
-									.filter(s => s.kind !== "page_context")
+									.filter((s) => s.kind !== "page_context")
 									.map((src, i) => {
 										// URL absolute resolution
-										const fullUrl = src.url.startsWith("http") 
-											? src.url 
+										const fullUrl = src.url.startsWith("http")
+											? src.url
 											: `https://dragonballfr.com${src.url.startsWith("/") ? "" : "/"}${src.url}`;
-											
+
 										return (
 											<a
 												key={i}
@@ -521,7 +549,9 @@ export default function AskPage() {
 													<span className="text-[9px] uppercase tracking-wider text-dbz-orange font-bold font-display bg-dbz-orange/10 px-2 py-0.5 rounded border border-dbz-orange/20">
 														{src.kind === "character" ? "Perso" : src.kind}
 													</span>
-													<span className="text-[9px] text-zinc-500 font-sans">Source #{i+1}</span>
+													<span className="text-[9px] text-zinc-500 font-sans">
+														Source #{i + 1}
+													</span>
 												</div>
 												<h4 className="text-xs font-bold text-white group-hover:text-dbz-orange transition-colors truncate">
 													{src.title}

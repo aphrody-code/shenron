@@ -65,9 +65,7 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 	const remove = useMutation({
 		mutationFn: (targetId: string) => {
 			// id composite DANS L'ORDRE pk de la jointure.
-			const id = spec.pkOrder
-				.map((k) => (k === spec.selfCol ? entityId : targetId))
-				.join(",");
+			const id = spec.pkOrder.map((k) => (k === spec.selfCol ? entityId : targetId)).join(",");
 			return joinClient.delete(`/${spec.joinTable}/${encodeURIComponent(id)}`);
 		},
 		onSuccess: invalidate,
@@ -85,7 +83,9 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 	return (
 		<div>
 			<div className="mb-2 flex items-center gap-2">
-				<h4 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">{spec.label}</h4>
+				<h4 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">
+					{spec.label}
+				</h4>
 				<span className="text-xs text-white/40">({ids.length})</span>
 				{(related.isLoading || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/40" />}
 			</div>
@@ -94,7 +94,9 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 				<p className="text-xs text-red-400">Chargement des relations échoué.</p>
 			) : (
 				<div className="mb-2 flex flex-wrap gap-1.5">
-					{ids.length === 0 && <span className="text-xs italic text-white/30">Aucune relation.</span>}
+					{ids.length === 0 && (
+						<span className="text-xs italic text-white/30">Aucune relation.</span>
+					)}
 					{ids.map((id) => (
 						<span
 							key={id}

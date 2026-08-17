@@ -420,9 +420,13 @@ const MangaPage = builder.objectRef<MangaPageRow>("MangaPage").implement({
 });
 
 const MangaTome = builder
-	.objectRef<{ series: string; tome: string; planches: number; lines: number; planches_ja: number }>(
-		"MangaTome"
-	)
+	.objectRef<{
+		series: string;
+		tome: string;
+		planches: number;
+		lines: number;
+		planches_ja: number;
+	}>("MangaTome")
 	.implement({
 		description: "Tome/chapitre manga transcrit + compteurs.",
 		fields: (t) => ({

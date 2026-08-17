@@ -29,10 +29,7 @@ import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { PwsStatSection } from "@/components/wiki/PwsStatSection";
 import { normalizeWikiSectionGroups, PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
-import {
-	PWS_GROUP_PRESETS,
-	PWS_LEGACY_KEY_ALIASES,
-} from "@/lib/wiki-fields";
+import { PWS_GROUP_PRESETS, PWS_LEGACY_KEY_ALIASES } from "@/lib/wiki-fields";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 
 export interface ContentPanel extends ReaderPanel {
@@ -81,9 +78,7 @@ export function ensureFullPwsPack(raw: RawSection[]): RawSection[] {
 	for (const preset of PWS_GROUP_PRESETS) {
 		const hasKey = out.some((s) => s.key === preset.key);
 		const hasLabel = out.some(
-			(s) =>
-				s.group === PWS_GROUP_NAME &&
-				sectionSlug(s.label) === sectionSlug(preset.label)
+			(s) => s.group === PWS_GROUP_NAME && sectionSlug(s.label) === sectionSlug(preset.label)
 		);
 		if (hasKey || hasLabel) {
 			// Force le groupLabel PWS sur les matchs existants.

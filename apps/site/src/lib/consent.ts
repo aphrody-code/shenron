@@ -97,6 +97,38 @@ export function setConsent(analytics: boolean): void {
 	for (const l of listeners) l(current);
 }
 
+/**
+ * Variante appliquée quand un **CMP certifié IAB TCF** est présent sur la page
+ * (« Confidentialité et messages » d'AdSense / Funding Choices). Dans ce cas,
+ * c'est le CMP qui est la source de vérité du consentement publicitaire :
+ *  - il pilote lui-même `ad_storage` / `ad_user_data` / `ad_personalization`
+ *    auprès de Google — on n'y touche pas, sous peine d'écraser un signal
+ *    certifié par un signal maison (et de perdre la diffusion dans l'EEE) ;
+ *  - on ne recopie que la dimension *mesure d'audience*, qui pilote notre
+ *    télémétrie first-party et `analytics_storage`.
+ *
+ * `decided` passe à `true` : notre propre bannière ne doit plus s'afficher, le
+ * visiteur a déjà tranché dans celle du CMP.
+ */
+export function setConsentFromCmp(analytics: boolean): void {
+	current = { analytics, decided: true };
+	if (isBrowser) {
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+		} catch {
+			/* ignore */
+		}
+		const w = window as GtagWindow;
+		const update = { analytics_storage: analytics ? "granted" : "denied" };
+		if (typeof w.gtag === "function") w.gtag("consent", "update", update);
+		else {
+			w.dataLayer ??= [];
+			w.dataLayer.push(["consent", "update", update]);
+		}
+	}
+	for (const l of listeners) l(current);
+}
+
 /** S'abonne aux changements de consentement. Retourne un cleanup. */
 export function onConsentChange(fn: (c: ConsentState) => void): () => void {
 	listeners.add(fn);

@@ -108,10 +108,7 @@ export async function POST(req: Request) {
 	}
 
 	if (quotaExceeded(me.user.id, file.size)) {
-		return Response.json(
-			{ error: "Quota d'upload atteint. Réessaie plus tard." },
-			{ status: 429 }
-		);
+		return Response.json({ error: "Quota d'upload atteint. Réessaie plus tard." }, { status: 429 });
 	}
 
 	// Réémet un fichier propre (type corrigé d'après les magic-bytes) + le

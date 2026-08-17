@@ -18,7 +18,14 @@ export const metadata: Metadata = {
 	alternates: { canonical: "/wiki/films" },
 };
 
-const SERIES_ORDER = ["DBS_MOVIE", "DBZ_MOVIE", "DB_MOVIE", "DBZ_OVA", "DBZ_SPECIAL", "DB_DAIMA_MOVIE"];
+const SERIES_ORDER = [
+	"DBS_MOVIE",
+	"DBZ_MOVIE",
+	"DB_MOVIE",
+	"DBZ_OVA",
+	"DBZ_SPECIAL",
+	"DB_DAIMA_MOVIE",
+];
 const SERIES_LABELS: Record<string, string> = {
 	DB_MOVIE: "Films Dragon Ball",
 	DBZ_MOVIE: "Films Dragon Ball Z",

@@ -90,13 +90,11 @@ export class AntiCheatService {
 				CREATE INDEX IF NOT EXISTS idx_economy_flags_created ON economy_flags(created_at);
 			`);
 			// Colonne users.zeni_frozen (ajoutée après coup).
-			const cols = this.dbs.sqlite
-				.query(`PRAGMA table_info(users)`)
-				.all() as Array<{ name: string }>;
+			const cols = this.dbs.sqlite.query(`PRAGMA table_info(users)`).all() as Array<{
+				name: string;
+			}>;
 			if (!cols.some((c) => c.name === "zeni_frozen")) {
-				this.dbs.sqlite.exec(
-					`ALTER TABLE users ADD COLUMN zeni_frozen INTEGER NOT NULL DEFAULT 0`
-				);
+				this.dbs.sqlite.exec(`ALTER TABLE users ADD COLUMN zeni_frozen INTEGER NOT NULL DEFAULT 0`);
 			}
 		} catch (e) {
 			logger.warn({ err: e }, "[anticheat] ensureSchema partial failure");
@@ -148,7 +146,12 @@ export class AntiCheatService {
 				code: "SPIKE",
 				severity: ctx.amount >= t.maxSingle * 4 ? "critical" : "high",
 				reason: `Gain unitaire anormal : +${ctx.amount} zeni (seuil ${t.maxSingle}) via ${ctx.source}`,
-				meta: { amount: ctx.amount, threshold: t.maxSingle, source: ctx.source, detail: ctx.detail },
+				meta: {
+					amount: ctx.amount,
+					threshold: t.maxSingle,
+					source: ctx.source,
+					detail: ctx.detail,
+				},
 				freeze: true,
 			});
 		}
@@ -351,11 +354,13 @@ export class AntiCheatService {
 
 	// ── API admin ────────────────────────────────────────────────────────────
 
-	async listFlags(opts: {
-		status?: string;
-		limit?: number;
-		offset?: number;
-	} = {}) {
+	async listFlags(
+		opts: {
+			status?: string;
+			limit?: number;
+			offset?: number;
+		} = {}
+	) {
 		const limit = Math.min(200, opts.limit ?? 50);
 		const offset = Math.max(0, opts.offset ?? 0);
 		const status = opts.status && opts.status !== "all" ? opts.status : undefined;

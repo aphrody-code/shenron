@@ -46,7 +46,11 @@ export const HOME_SFX_META: Record<
 		defaultFile: "/sfx/kamehameha.mp3",
 		description: "Onde (phase 2 hold)",
 	},
-	powerUp: { label: "Power-up", defaultFile: "/sfx/power-up.mp3", description: "Montée de puissance" },
+	powerUp: {
+		label: "Power-up",
+		defaultFile: "/sfx/power-up.mp3",
+		description: "Montée de puissance",
+	},
 	teleport: {
 		label: "Téléportation",
 		defaultFile: "/sfx/teleport.mp3",
@@ -217,7 +221,8 @@ export function resolveHomeFx(patch: unknown): HomeFxConfig {
 	const vfxRaw = (p.vfx && typeof p.vfx === "object" ? p.vfx : {}) as Record<string, unknown>;
 
 	const sfxMap: Partial<Record<HomeSfxSlot, string | null>> = {};
-	const mapRaw = p.sfxMap && typeof p.sfxMap === "object" ? (p.sfxMap as Record<string, unknown>) : {};
+	const mapRaw =
+		p.sfxMap && typeof p.sfxMap === "object" ? (p.sfxMap as Record<string, unknown>) : {};
 	for (const slot of HOME_SFX_SLOTS) {
 		if (!(slot in mapRaw)) continue;
 		const path = sanitizeSfxPath(mapRaw[slot]);

@@ -123,7 +123,13 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 			const ep = c.filter((x) => x.kind === "episode").length;
 			const mv = c.filter((x) => x.kind === "movie").length;
 			rows.push(
-				<EraHeader key={`h:${it.era}`} era={it.era} episodes={ep} movies={mv} manga={c.length - ep - mv} />
+				<EraHeader
+					key={`h:${it.era}`}
+					era={it.era}
+					episodes={ep}
+					movies={mv}
+					manga={c.length - ep - mv}
+				/>
 			);
 		}
 		rows.push(<Row key={timelineKey(it)} it={it} grouped={sort === "era"} />);
@@ -249,7 +255,8 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 			)}
 
 			<p className="text-[11px] text-white/30 text-center pt-2">
-				Chronologie officielle Dragon Ball France — {items.length} entrées, ordre validé par l'équipe.
+				Chronologie officielle Dragon Ball France — {items.length} entrées, ordre validé par
+				l'équipe.
 			</p>
 		</div>
 	);

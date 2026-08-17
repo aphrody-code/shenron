@@ -27,7 +27,10 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 		// Location RELATIF : le navigateur le résout contre l'URL publique
 		// (derrière nginx, `req.url` porterait l'hôte loopback interne).
 		const back = encodeURIComponent(`/wiki/episodes/${id}`);
-		return new Response(null, { status: 302, headers: { Location: `/signin?callbackURL=${back}` } });
+		return new Response(null, {
+			status: 302,
+			headers: { Location: `/signin?callbackURL=${back}` },
+		});
 	}
 
 	const ep = await dbUniverse.episode(Number(id));

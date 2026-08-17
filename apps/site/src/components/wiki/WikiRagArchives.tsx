@@ -4,7 +4,8 @@ import { dbUniverse } from "@/lib/db-universe";
 /** Pertinence normalisée → libellé + couleur (heuristique d'affichage). */
 function relevance(score?: number): { label: string; cls: string } | null {
 	if (typeof score !== "number") return null;
-	if (score >= 0.66) return { label: "Très pertinent", cls: "text-emerald-300 border-emerald-400/40" };
+	if (score >= 0.66)
+		return { label: "Très pertinent", cls: "text-emerald-300 border-emerald-400/40" };
 	if (score >= 0.45) return { label: "Pertinent", cls: "text-amber-300 border-amber-400/40" };
 	return { label: "Contexte", cls: "text-zinc-400 border-zinc-500/40" };
 }

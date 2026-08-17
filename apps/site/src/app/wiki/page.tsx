@@ -172,7 +172,10 @@ export default async function WikiIndex() {
 								{/* Barre d'encre accent (gouttière de case) */}
 								<span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${fx.bar}`} />
 								{/* Trame screentone façon planche */}
-								<span aria-hidden className="absolute inset-0 screentone opacity-50 pointer-events-none" />
+								<span
+									aria-hidden
+									className="absolute inset-0 screentone opacity-50 pointer-events-none"
+								/>
 								{/* Kanji filigrane */}
 								{fx.kanji && (
 									<span aria-hidden className="cat-card__kanji font-jp">

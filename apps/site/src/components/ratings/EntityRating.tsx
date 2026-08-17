@@ -112,9 +112,7 @@ export function EntityRatingSummary({
 	const summary = state?.summary ?? { average: 0, count: 0 };
 
 	if (loadErr) {
-		return (
-			<span className={`text-[12px] text-white/35 ${className}`}>Notes indisponibles</span>
-		);
+		return <span className={`text-[12px] text-white/35 ${className}`}>Notes indisponibles</span>;
 	}
 
 	if (!state) {
@@ -290,8 +288,7 @@ export function EntityRating({
 	const tabBtn =
 		"inline-flex items-center gap-1.5 rounded-t-lg border border-b-0 px-4 py-2 text-sm font-semibold transition-colors";
 	const tabActive = "border-dbz-orange/50 bg-dbz-card text-white";
-	const tabIdle =
-		"border-transparent bg-transparent text-white/50 hover:text-white/80";
+	const tabIdle = "border-transparent bg-transparent text-white/50 hover:text-white/80";
 
 	return (
 		<section
@@ -359,8 +356,8 @@ export function EntityRating({
 						className="space-y-4"
 					>
 						<p className="text-[13px] text-white/50">
-							Note {label} sur 5 étoiles. Commentaire facultatif — les avis s&apos;affichent
-							dans l&apos;onglet voisin.
+							Note {label} sur 5 étoiles. Commentaire facultatif — les avis s&apos;affichent dans
+							l&apos;onglet voisin.
 						</p>
 
 						{!authReady ? (
@@ -384,9 +381,7 @@ export function EntityRating({
 										label="Ta note"
 									/>
 									{draftScore > 0 && (
-										<span className="text-[13px] tabular-nums text-white/70">
-											{draftScore}/5
-										</span>
+										<span className="text-[13px] tabular-nums text-white/70">{draftScore}/5</span>
 									)}
 								</div>
 
@@ -396,9 +391,7 @@ export function EntityRating({
 										className="mb-1.5 block text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/45"
 									>
 										Commentaire{" "}
-										<span className="normal-case tracking-normal text-white/30">
-											(optionnel)
-										</span>
+										<span className="normal-case tracking-normal text-white/30">(optionnel)</span>
 									</label>
 									<textarea
 										id={`rating-comment-${id}`}
@@ -444,9 +437,7 @@ export function EntityRating({
 											"Publier ma note"
 										)}
 									</button>
-									{saveOk && (
-										<span className="text-[13px] text-emerald-400">Enregistré !</span>
-									)}
+									{saveOk && <span className="text-[13px] text-emerald-400">Enregistré !</span>}
 									{saveErr && <span className="text-[13px] text-red-400">{saveErr}</span>}
 								</div>
 							</div>
@@ -468,18 +459,13 @@ export function EntityRating({
 
 				{/* ── Onglet Avis ── */}
 				{tab === "reviews" && (
-					<div
-						role="tabpanel"
-						id={`${baseId}-reviews`}
-						aria-labelledby={`${baseId}-tab-reviews`}
-					>
+					<div role="tabpanel" id={`${baseId}-reviews`} aria-labelledby={`${baseId}-tab-reviews`}>
 						{!state ? (
 							<div className="h-16 animate-pulse rounded-lg bg-white/[0.04]" aria-hidden />
 						) : comments.length > 0 ? (
 							<ul className="space-y-3">
 								{comments.map((c) => {
-									const canDelete =
-										me?.isAdmin || (me?.authenticated && state.mine?.id === c.id);
+									const canDelete = me?.isAdmin || (me?.authenticated && state.mine?.id === c.id);
 									return (
 										<li
 											key={c.id}
@@ -512,11 +498,7 @@ export function EntityRating({
 												{canDelete && (
 													<button
 														type="button"
-														title={
-															me?.isAdmin
-																? "Supprimer la note (admin)"
-																: "Supprimer mon avis"
-														}
+														title={me?.isAdmin ? "Supprimer la note (admin)" : "Supprimer mon avis"}
 														onClick={() => void remove(c.id, "full")}
 														disabled={deletingId === c.id}
 														className="rounded-md p-1.5 text-white/40 transition-colors hover:bg-white/5 hover:text-red-400 disabled:opacity-40"
@@ -538,8 +520,8 @@ export function EntityRating({
 							</ul>
 						) : summary.count > 0 ? (
 							<p className="py-4 text-center text-[13px] text-white/40">
-								Des notes sans commentaire pour l&apos;instant — sois le premier à laisser
-								un avis dans l&apos;onglet <strong className="text-white/60">Noter</strong>.
+								Des notes sans commentaire pour l&apos;instant — sois le premier à laisser un avis
+								dans l&apos;onglet <strong className="text-white/60">Noter</strong>.
 							</p>
 						) : (
 							<p className="py-4 text-center text-[13px] text-white/40">

@@ -62,7 +62,9 @@ async function loadData(): Promise<LoadResponse> {
 	return r.json();
 }
 
-async function saveData(config: ChronologyConfig): Promise<{ ok: boolean; config: ChronologyConfig }> {
+async function saveData(
+	config: ChronologyConfig
+): Promise<{ ok: boolean; config: ChronologyConfig }> {
 	const r = await fetch("/api/chronologie-config", {
 		method: "PUT",
 		credentials: "same-origin",
@@ -479,8 +481,8 @@ export default function ChronologyEditor() {
 					<p className="text-xs text-zinc-400">
 						Ordre officiel de <strong className="text-white">{stats.total}</strong> entrées ·{" "}
 						{stats.curated} curatée{stats.curated > 1 ? "s" : ""} · {stats.hidden} masquée
-						{stats.hidden > 1 ? "s" : ""} · {stats.pinned} épinglée{stats.pinned > 1 ? "s" : ""}. Les
-						changements s'appliquent au public après enregistrement.
+						{stats.hidden > 1 ? "s" : ""} · {stats.pinned} épinglée{stats.pinned > 1 ? "s" : ""}.
+						Les changements s'appliquent au public après enregistrement.
 					</p>
 				</div>
 				<a
@@ -504,7 +506,12 @@ export default function ChronologyEditor() {
 				>
 					<RotateCcw className="mr-1 h-4 w-4" /> Tout auto
 				</button>
-				<button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="btn btn-primary">
+				<button
+					type="button"
+					onClick={() => save.mutate()}
+					disabled={save.isPending}
+					className="btn btn-primary"
+				>
 					<Save className="mr-1 h-4 w-4" /> {save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>
@@ -628,7 +635,10 @@ function EraHeader({
 			style={isDropTarget ? { boxShadow: `inset 0 -2px 0 0 ${ERA_ACCENT[era]}` } : undefined}
 		>
 			<span className="h-4 w-1.5 rounded-full" style={{ backgroundColor: ERA_ACCENT[era] }} />
-			<h3 className="font-saiyan text-xl uppercase tracking-wide" style={{ color: ERA_ACCENT[era] }}>
+			<h3
+				className="font-saiyan text-xl uppercase tracking-wide"
+				style={{ color: ERA_ACCENT[era] }}
+			>
 				{ERA_LABELS[era]}
 			</h3>
 			<span className="text-[11px] text-zinc-500 font-mono">{count}</span>
@@ -759,7 +769,9 @@ function EntryRow({
 								? "cursor-grab text-zinc-600 hover:text-dbz-orange active:cursor-grabbing"
 								: "cursor-not-allowed text-zinc-800"
 						}`}
-						title={reorderEnabled ? "Glisser pour réordonner / mélanger" : "Désactivé (filtres actifs)"}
+						title={
+							reorderEnabled ? "Glisser pour réordonner / mélanger" : "Désactivé (filtres actifs)"
+						}
 						aria-label="Glisser pour réordonner"
 					>
 						<GripVertical className="h-5 w-5" />
@@ -896,7 +908,9 @@ function EntryRow({
 						<input
 							type="date"
 							value={toISO(it.date)}
-							onChange={(e) => onSet({ date: e.target.value ? fromISO(e.target.value) : undefined })}
+							onChange={(e) =>
+								onSet({ date: e.target.value ? fromISO(e.target.value) : undefined })
+							}
 							className="input mt-1"
 						/>
 						{raw?.date != null && (

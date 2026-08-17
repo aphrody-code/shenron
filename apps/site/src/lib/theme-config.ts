@@ -17,11 +17,7 @@ const SINGLETON_ID = "default";
 
 export const getSiteTheme = cache(async (): Promise<SiteTheme> => {
 	try {
-		const [row] = await db
-			.select()
-			.from(siteTheme)
-			.where(eq(siteTheme.id, SINGLETON_ID))
-			.limit(1);
+		const [row] = await db.select().from(siteTheme).where(eq(siteTheme.id, SINGLETON_ID)).limit(1);
 		if (!row) return DEFAULT_SITE_THEME;
 		return resolveSiteTheme(row.data);
 	} catch (e) {

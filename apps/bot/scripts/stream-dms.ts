@@ -52,7 +52,9 @@ try {
 	state = JSON.parse(readFileSync(STATE, "utf-8"));
 } catch {}
 
-console.log(`[stream] ${Object.keys(dms).length} DM suivi(s) en tant que ${me.username}, poll ${POLL_MS}ms`);
+console.log(
+	`[stream] ${Object.keys(dms).length} DM suivi(s) en tant que ${me.username}, poll ${POLL_MS}ms`
+);
 
 interface DiscordMsg {
 	id: string;
@@ -82,7 +84,9 @@ async function poll(): Promise<void> {
 				};
 				appendFileSync(FEEDBACK, `${JSON.stringify(rec)}\n`);
 				const att = rec.attachments.length ? ` [+${rec.attachments.length} PJ]` : "";
-				console.log(`[DM ${rec.author}] ${(m.content || "").replace(/\n/g, " ").slice(0, 200)}${att}`);
+				console.log(
+					`[DM ${rec.author}] ${(m.content || "").replace(/\n/g, " ").slice(0, 200)}${att}`
+				);
 			}
 		} catch {
 			// transient (réseau / rate-limit) — on réessaie au prochain tick

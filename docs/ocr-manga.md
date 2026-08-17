@@ -13,12 +13,12 @@ quel. Il faut une étape de **détection des bulles + ordre de lecture** en amon
 
 ## Options évaluées (FR, CPU, à l'échelle)
 
-| Approche | Layout / ordre | Langue | CPU | Note |
-|---|---|---|---|---|
-| **comic-text-detector** → crop → **PaddleOCR/Tesseract `fra`** | oui (détecteur) | FR ✅ | oui | Pipeline 2 étages, agnostique de la langue pour la détection. **Meilleur compromis local.** |
-| **VLM vision** (dots.ocr OSS ; ou modèle vision cloud) | oui (1 passe) | multilingue ✅ | lent sur CPU | Meilleure qualité « layout+texte+markdown » en un coup. dots.ocr = OSS le plus proche. |
-| manga-ocr (kha-white) | bulles | **JP only ❌** | oui | Inadapté au VF. |
-| PaddleOCR seul / docTR | partiel | FR ✅ | oui | Recognition correcte, layout faible. |
+| Approche                                                       | Layout / ordre  | Langue         | CPU          | Note                                                                                        |
+| -------------------------------------------------------------- | --------------- | -------------- | ------------ | ------------------------------------------------------------------------------------------- |
+| **comic-text-detector** → crop → **PaddleOCR/Tesseract `fra`** | oui (détecteur) | FR ✅          | oui          | Pipeline 2 étages, agnostique de la langue pour la détection. **Meilleur compromis local.** |
+| **VLM vision** (dots.ocr OSS ; ou modèle vision cloud)         | oui (1 passe)   | multilingue ✅ | lent sur CPU | Meilleure qualité « layout+texte+markdown » en un coup. dots.ocr = OSS le plus proche.      |
+| manga-ocr (kha-white)                                          | bulles          | **JP only ❌** | oui          | Inadapté au VF.                                                                             |
+| PaddleOCR seul / docTR                                         | partiel         | FR ✅          | oui          | Recognition correcte, layout faible.                                                        |
 
 ## Recommandation
 

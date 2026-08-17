@@ -57,7 +57,10 @@ export function PageHero({
 			{/* Trame demi-teinte façon planche manga */}
 			<div className="absolute inset-0 halftone opacity-[0.07] mix-blend-overlay pointer-events-none" />
 			{/* Lignes de vitesse — focus action façon planche Toriyama */}
-			<div aria-hidden className="absolute inset-0 speed-lines opacity-[0.05] pointer-events-none" />
+			<div
+				aria-hidden
+				className="absolute inset-0 speed-lines opacity-[0.05] pointer-events-none"
+			/>
 
 			<div className="relative h-full mx-auto max-w-[1280px] px-6 lg:px-10 flex items-end pb-14">
 				<div className="flex-1 max-w-2xl reveal-up">

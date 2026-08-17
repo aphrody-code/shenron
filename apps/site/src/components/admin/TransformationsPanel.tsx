@@ -107,9 +107,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 							</div>
 							<div className="min-w-0 flex-1">
 								<p className="truncate text-sm font-semibold text-white">{t.name}</p>
-								{t.ki && (
-									<p className="scouter-text text-[10px] text-dbz-orange">KI {t.ki}</p>
-								)}
+								{t.ki && <p className="scouter-text text-[10px] text-dbz-orange">KI {t.ki}</p>}
 							</div>
 							<Link
 								href={`/admin/wiki/studio/db_transformations/${t.id}`}

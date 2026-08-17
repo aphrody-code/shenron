@@ -49,7 +49,8 @@ export function NavigationProgress() {
 				return;
 			}
 			if (url.origin !== window.location.origin) return;
-			if (url.pathname === window.location.pathname && url.search === window.location.search) return;
+			if (url.pathname === window.location.pathname && url.search === window.location.search)
+				return;
 			start();
 		}
 		document.addEventListener("click", onClick, true);
@@ -62,7 +63,6 @@ export function NavigationProgress() {
 			return;
 		} // ignore le mount
 		finish();
-		 
 	}, [pathname]);
 
 	useEffect(
@@ -70,7 +70,7 @@ export function NavigationProgress() {
 			if (doneTimer.current) clearTimeout(doneTimer.current);
 			if (guardTimer.current) clearTimeout(guardTimer.current);
 		},
-		[],
+		[]
 	);
 
 	return (

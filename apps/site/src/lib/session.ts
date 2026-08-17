@@ -57,11 +57,7 @@ async function resolveTokenAdmin(): Promise<CurrentUser> {
 	const ownerId = env.OWNER_ID;
 	let value: CurrentUser;
 	if (ownerId) {
-		const [existing] = await db
-			.select()
-			.from(users)
-			.where(eq(users.discordId, ownerId))
-			.limit(1);
+		const [existing] = await db.select().from(users).where(eq(users.discordId, ownerId)).limit(1);
 		let row = existing;
 		// N'écrit QUE si nécessaire (ligne absente ou pas encore admin).
 		if (!row || !row.roleAdmin) {

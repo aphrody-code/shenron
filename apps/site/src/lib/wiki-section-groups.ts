@@ -9,8 +9,7 @@
 export const PWS_GROUP_NAME = "PWS";
 
 /** Sous-sections PWS reconnues même si le groupe parent n'a pas été renseigné. */
-const PWS_CHILD_LABEL_RE =
-	/puissance\s*d['']?\s*attaque|^vitesse$|durabilit[eé]|endurance/i;
+const PWS_CHILD_LABEL_RE = /puissance\s*d['']?\s*attaque|^vitesse$|durabilit[eé]|endurance/i;
 
 export interface GroupableSection {
 	label: string;

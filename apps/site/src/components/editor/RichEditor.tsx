@@ -409,21 +409,13 @@ export function RichEditor({
 						disabled={uploading}
 						onClick={() => fileInputRef.current?.click()}
 					/>
-					<TbButton
-						icon={VideoEmbedIcon}
-						label="Intégrer une vidéo YouTube"
-						onClick={addYoutube}
-					/>
+					<TbButton icon={VideoEmbedIcon} label="Intégrer une vidéo YouTube" onClick={addYoutube} />
 					<TbButton
 						icon={TableIcon}
 						label="Insérer un tableau"
 						active={state.inTable}
 						onClick={() =>
-							editor
-								.chain()
-								.focus()
-								.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-								.run()
+							editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
 						}
 					/>
 					{state.inTable && (

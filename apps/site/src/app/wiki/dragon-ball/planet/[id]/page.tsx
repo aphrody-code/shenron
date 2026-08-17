@@ -73,7 +73,12 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 				<span>← Retour aux planètes</span>
 			</Link>
 
-			<WikiAdminBar table="db_planets" id={planet.id} indexHref="/wiki/planetes" label={planet.name} />
+			<WikiAdminBar
+				table="db_planets"
+				id={planet.id}
+				indexHref="/wiki/planetes"
+				label={planet.name}
+			/>
 
 			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 				<div className="w-full lg:w-2/5 xl:w-1/2">

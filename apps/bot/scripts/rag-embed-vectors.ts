@@ -41,7 +41,9 @@ const chunks = db.query("SELECT rowid, title, content FROM rag_chunks ORDER BY r
 const texts = chunks.map((c) => `${c.title}. ${c.content}`.slice(0, 1200));
 const vectors: Float32Array[] = Array.from({ length: texts.length });
 
-console.log(`→ embeddings via sidecar (${EMBED_URL}) sur ${chunks.length} chunks (sans toucher rag_chunks)…`);
+console.log(
+	`→ embeddings via sidecar (${EMBED_URL}) sur ${chunks.length} chunks (sans toucher rag_chunks)…`
+);
 const t0 = Date.now();
 
 const queue: { index: number; batchTexts: string[] }[] = [];
@@ -78,13 +80,17 @@ async function worker(): Promise<void> {
 		}
 		for (let j = 0; j < batchVectors.length; j++) vectors[item.index + j] = batchVectors[j];
 		if (++done % 10 === 0 || done === totalBatches) {
-			process.stdout.write(`\r  embedding ${((done / totalBatches) * 100).toFixed(1)}% (${done}/${totalBatches} lots)`);
+			process.stdout.write(
+				`\r  embedding ${((done / totalBatches) * 100).toFixed(1)}% (${done}/${totalBatches} lots)`
+			);
 		}
 	}
 }
 
 await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
-console.log(`\n✓ Embeddings calculés en ${Math.round((Date.now() - t0) / 1000)}s. Insertion atomique…`);
+console.log(
+	`\n✓ Embeddings calculés en ${Math.round((Date.now() - t0) / 1000)}s. Insertion atomique…`
+);
 
 // Insertion atomique : le bot bascule en une fois de lexical → hybride.
 db.run(`CREATE VIRTUAL TABLE IF NOT EXISTS vec_chunks USING vec0(embedding float[${EMBED_DIM}])`);
@@ -94,7 +100,9 @@ db.transaction(() => {
 	for (let i = 0; i < chunks.length; i++) insVec.run(chunks[i].rowid, vectors[i]);
 })();
 
-db.run("CREATE TABLE IF NOT EXISTS rag_meta (model TEXT, dim INTEGER, count INTEGER, built_at INTEGER)");
+db.run(
+	"CREATE TABLE IF NOT EXISTS rag_meta (model TEXT, dim INTEGER, count INTEGER, built_at INTEGER)"
+);
 db.run("DELETE FROM rag_meta");
 db.query("INSERT INTO rag_meta (model, dim, count, built_at) VALUES (?, ?, ?, ?)").run(
 	EMBED_MODEL,

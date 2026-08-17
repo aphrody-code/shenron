@@ -35,7 +35,11 @@ import { posts, type PostContentDoc } from "@/db/schema";
  * — `/actualites`, la fiche article, la home, le sitemap et le flux RSS.
  */
 export function publicPostFilter(): SQL | undefined {
-	return and(eq(posts.published, true), isNotNull(posts.publishedAt), lte(posts.publishedAt, new Date()));
+	return and(
+		eq(posts.published, true),
+		isNotNull(posts.publishedAt),
+		lte(posts.publishedAt, new Date())
+	);
 }
 
 /** Une entrée du sommaire d'un article. */

@@ -12,7 +12,7 @@
  *
  * Deep-link : `?page=episodes` ou `?series=DBZ` scroll/highlight la ligne.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { ImageIcon, Library, RotateCcw, Save } from "lucide-react";
@@ -91,9 +91,7 @@ function BannerRow({
 		<div
 			ref={ref}
 			id={id}
-			className={`dbz-panel overflow-hidden ${
-				highlighted ? "ring-2 ring-dbz-orange/70" : ""
-			}`}
+			className={`dbz-panel overflow-hidden ${highlighted ? "ring-2 ring-dbz-orange/70" : ""}`}
 		>
 			<div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start">
 				<div className="relative h-20 w-full shrink-0 overflow-hidden rounded border border-dbz-border bg-black/40 sm:w-36">
@@ -222,8 +220,6 @@ export function BannersEditor() {
 		setLibTarget(null);
 	};
 
-	const pageKeys = useMemo(() => PAGE_HERO_KEYS, []);
-
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-8">
 			{toast && (
@@ -271,7 +267,7 @@ export function BannersEditor() {
 					Image large en tête de chaque landing wiki / catalogue.
 				</p>
 				<div className="space-y-3">
-					{pageKeys.map((key) => (
+					{PAGE_HERO_KEYS.map((key) => (
 						<BannerRow
 							key={key}
 							id={`page-${key}`}

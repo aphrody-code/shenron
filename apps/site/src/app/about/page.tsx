@@ -5,7 +5,8 @@ import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata = {
 	title: "À propos",
-	description: "Découvrez DBFR, le hub communautaire français dédié à l'univers de Dragon Ball. Wiki, bot interactif et communauté active.",
+	description:
+		"Découvrez DBFR, le hub communautaire français dédié à l'univers de Dragon Ball. Wiki, bot interactif et communauté active.",
 	alternates: { canonical: "/about" },
 };
 
@@ -21,7 +22,8 @@ export default function AboutPage() {
 					L'ALLIANCE DBFR
 				</h1>
 				<p className="text-lg text-zinc-400 leading-relaxed font-sans">
-					DBFR est le plus grand sanctuaire francophone dédié à la légende de Dragon Ball. Unissant une base de connaissances encyclopédique à un écosystème communautaire unique.
+					DBFR est le plus grand sanctuaire francophone dédié à la légende de Dragon Ball. Unissant
+					une base de connaissances encyclopédique à un écosystème communautaire unique.
 				</p>
 			</header>
 
@@ -36,10 +38,14 @@ export default function AboutPage() {
 							Archives de Shenron
 						</h2>
 						<p className="text-sm text-zinc-400 font-sans leading-relaxed">
-							Une base de données exhaustive et rigoureuse sur tous les aspects de la saga : personnages, techniques, sagas, films, mangas et jeux vidéo.
+							Une base de données exhaustive et rigoureuse sur tous les aspects de la saga :
+							personnages, techniques, sagas, films, mangas et jeux vidéo.
 						</p>
 					</div>
-					<Link href="/wiki" className="text-xs font-bold text-dbz-orange uppercase tracking-wider mt-6 inline-flex items-center gap-1">
+					<Link
+						href="/wiki"
+						className="text-xs font-bold text-dbz-orange uppercase tracking-wider mt-6 inline-flex items-center gap-1"
+					>
 						Explorer la base →
 					</Link>
 				</div>
@@ -53,10 +59,14 @@ export default function AboutPage() {
 							Écosystème Divin
 						</h2>
 						<p className="text-sm text-zinc-400 font-sans leading-relaxed">
-							Six gardiens virtuels (Beerus, Whis, Shenron, etc.) animés par une IA de pointe et connectés en temps réel pour animer et protéger la communauté.
+							Six gardiens virtuels (Beerus, Whis, Shenron, etc.) animés par une IA de pointe et
+							connectés en temps réel pour animer et protéger la communauté.
 						</p>
 					</div>
-					<Link href="/personas" className="text-xs font-bold text-purple-400 uppercase tracking-wider mt-6 inline-flex items-center gap-1">
+					<Link
+						href="/personas"
+						className="text-xs font-bold text-purple-400 uppercase tracking-wider mt-6 inline-flex items-center gap-1"
+					>
 						Consulter les Dieux →
 					</Link>
 				</div>
@@ -70,10 +80,16 @@ export default function AboutPage() {
 							La Communauté
 						</h2>
 						<p className="text-sm text-zinc-400 font-sans leading-relaxed">
-							Des milliers de combattants échangeant chaque jour sur le Discord, progressant dans les niveaux de puissance, et participant à des quêtes légendaires.
+							Des milliers de combattants échangeant chaque jour sur le Discord, progressant dans
+							les niveaux de puissance, et participant à des quêtes légendaires.
 						</p>
 					</div>
-					<a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-cyan-400 uppercase tracking-wider mt-6 inline-flex items-center gap-1">
+					<a
+						href={DISCORD_INVITE}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="text-xs font-bold text-cyan-400 uppercase tracking-wider mt-6 inline-flex items-center gap-1"
+					>
 						Rejoindre le front →
 					</a>
 				</div>
@@ -92,13 +108,16 @@ export default function AboutPage() {
 							Unir les générations de fans
 						</h2>
 						<p className="text-sm text-zinc-400 font-sans leading-relaxed">
-							Que vous ayez vibré devant le Club Dorothée dans les années 90, découvert le Super Saiyan à l'ère de Dragon Ball Z Kai, ou que vous suiviez avec ferveur les arcs de Dragon Ball Super et Daima, vous faites partie de notre clan.
+							Que vous ayez vibré devant le Club Dorothée dans les années 90, découvert le Super
+							Saiyan à l'ère de Dragon Ball Z Kai, ou que vous suiviez avec ferveur les arcs de
+							Dragon Ball Super et Daima, vous faites partie de notre clan.
 						</p>
 						<p className="text-sm text-zinc-400 font-sans leading-relaxed">
-							Nous militons pour un espace d'échange sain, de respect mutuel, et de célébration de l'œuvre d'Akira Toriyama.
+							Nous militons pour un espace d'échange sain, de respect mutuel, et de célébration de
+							l'œuvre d'Akira Toriyama.
 						</p>
 					</div>
-					
+
 					{/* Valeurs / Liste */}
 					<div className="space-y-4">
 						<div className="flex gap-4 items-start p-4 rounded-xl bg-black/30 border border-white/5">
@@ -107,7 +126,10 @@ export default function AboutPage() {
 							</div>
 							<div>
 								<h4 className="text-sm font-display font-bold text-white">Rigueur Canonique</h4>
-								<p className="text-xs text-zinc-500 font-sans mt-0.5">Toutes nos fiches et informations sont sourcées et validées par les archives officielles.</p>
+								<p className="text-xs text-zinc-500 font-sans mt-0.5">
+									Toutes nos fiches et informations sont sourcées et validées par les archives
+									officielles.
+								</p>
 							</div>
 						</div>
 						<div className="flex gap-4 items-start p-4 rounded-xl bg-black/30 border border-white/5">
@@ -116,7 +138,10 @@ export default function AboutPage() {
 							</div>
 							<div>
 								<h4 className="text-sm font-display font-bold text-white">Entraide & Partage</h4>
-								<p className="text-xs text-zinc-500 font-sans mt-0.5">Les plus expérimentés guident les nouveaux venus à travers les sagas et techniques.</p>
+								<p className="text-xs text-zinc-500 font-sans mt-0.5">
+									Les plus expérimentés guident les nouveaux venus à travers les sagas et
+									techniques.
+								</p>
 							</div>
 						</div>
 						<div className="flex gap-4 items-start p-4 rounded-xl bg-black/30 border border-white/5">
@@ -124,8 +149,12 @@ export default function AboutPage() {
 								<Award className="w-4 h-4" />
 							</div>
 							<div>
-								<h4 className="text-sm font-display font-bold text-white">Innovation Technologique</h4>
-								<p className="text-xs text-zinc-500 font-sans mt-0.5">Intégration d'outils interactifs de pointe comme notre Oracle RAG Hybride.</p>
+								<h4 className="text-sm font-display font-bold text-white">
+									Innovation Technologique
+								</h4>
+								<p className="text-xs text-zinc-500 font-sans mt-0.5">
+									Intégration d'outils interactifs de pointe comme notre Oracle RAG Hybride.
+								</p>
 							</div>
 						</div>
 					</div>
@@ -134,15 +163,26 @@ export default function AboutPage() {
 
 			{/* Appel à l'action */}
 			<section className="text-center space-y-6 max-w-xl mx-auto py-8">
-				<h3 className="text-2xl font-display font-bold text-white">Prêt à entamer votre voyage ?</h3>
+				<h3 className="text-2xl font-display font-bold text-white">
+					Prêt à entamer votre voyage ?
+				</h3>
 				<p className="text-sm text-zinc-400 font-sans leading-relaxed">
-					Rejoignez notre armée de guerriers sur Discord ou plongez directement dans l'exploration de notre vaste univers.
+					Rejoignez notre armée de guerriers sur Discord ou plongez directement dans l'exploration
+					de notre vaste univers.
 				</p>
 				<div className="flex justify-center gap-4">
-					<a href={DISCORD_INVITE} target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 rounded-xl bg-dbz-orange hover:bg-white text-black font-display font-bold text-xs tracking-wider uppercase transition-all hover:scale-105 active:scale-98 shadow-lg shadow-dbz-orange/20">
+					<a
+						href={DISCORD_INVITE}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="px-6 py-2.5 rounded-xl bg-dbz-orange hover:bg-white text-black font-display font-bold text-xs tracking-wider uppercase transition-all hover:scale-105 active:scale-98 shadow-lg shadow-dbz-orange/20"
+					>
 						Rejoindre le Discord
 					</a>
-					<Link href="/wiki" className="px-6 py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-white font-display font-bold text-xs tracking-wider uppercase transition-all hover:scale-105 active:scale-98 bg-white/5">
+					<Link
+						href="/wiki"
+						className="px-6 py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-white font-display font-bold text-xs tracking-wider uppercase transition-all hover:scale-105 active:scale-98 bg-white/5"
+					>
 						Visiter le Codex
 					</Link>
 				</div>

@@ -152,9 +152,7 @@ export function SagaBestOf({
 					</p>
 					<h3 className="bestof__name">{saga.name}</h3>
 					<p className="bestof__tagline">{saga.tagline}</p>
-					{!compact && saga.description && (
-						<p className="bestof__desc">{saga.description}</p>
-					)}
+					{!compact && saga.description && <p className="bestof__desc">{saga.description}</p>}
 					{stats.length > 0 && (
 						<p className="bestof__stats">
 							{stats.map((s, i) => (

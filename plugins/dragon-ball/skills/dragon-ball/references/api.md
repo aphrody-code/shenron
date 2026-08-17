@@ -5,6 +5,7 @@ sans authentification**, CORS ouvert. Réponses JSON (sauf images PNG). Spec
 machine : `GET /api/openapi.json` ; UI : `https://bot.dragonballfr.com/api/docs`.
 
 ## Sommaire
+
 - [RAG (recherche / réponse)](#rag)
 - [Wiki — listes et fiches](#wiki)
 - [Manga](#manga)
@@ -16,9 +17,9 @@ machine : `GET /api/openapi.json` ; UI : `https://bot.dragonballfr.com/api/docs`
 
 ## RAG
 
-| Méthode & chemin | Paramètres | Renvoie |
-|---|---|---|
-| `GET /api/public/rag/search` | `q` (requis, ≥2 car.), `limit` (1–25, déf. 8) | `{ q, mode, results: RagHit[] }` |
+| Méthode & chemin                 | Paramètres                                                                                    | Renvoie                            |
+| -------------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `GET /api/public/rag/search`     | `q` (requis, ≥2 car.), `limit` (1–25, déf. 8)                                                 | `{ q, mode, results: RagHit[] }`   |
 | `GET\|POST /api/public/rag/chat` | `q`, `persona` (déf. `whis`), `lang`, `entity`, `sourceId` — en query-string **ou** body JSON | `{ answer, hits: RagHit[], mode }` |
 
 `mode` ∈ `hybrid+rerank | hybrid | lexical` (dégradation gracieuse si le sidecar
@@ -40,21 +41,21 @@ Recherche plein-texte transverse : `GET /api/public/wiki/search?q=...&limit=` (1
 Chaque catégorie expose une **liste** (`?limit=` 1–200 déf. 50, `&offset=`) et une
 **fiche** (par `id` numérique ou `slug`) :
 
-| Catégorie | Liste | Fiche |
-|---|---|---|
-| Personnages | `GET .../wiki/characters` | `.../wiki/characters/{id}` |
-| Planètes | `GET .../wiki/planets` | `.../wiki/planets/{id}` |
-| Races | `GET .../wiki/races` | `.../wiki/races/{slug}` |
-| Techniques | `GET .../wiki/techniques` | `.../wiki/techniques/{slug}` |
-| Transformations | `GET .../wiki/transformations` | — |
-| Sagas | `GET .../wiki/sagas` | `.../wiki/sagas/{slug}` |
-| Arcs | — | `.../wiki/arcs/{slug}` |
-| Épisodes | `GET .../wiki/episodes` | `.../wiki/episodes/{id}` |
-| Films | `GET .../wiki/movies` | `.../wiki/movies/{slug}` |
-| Jeux | `GET .../wiki/games` | `.../wiki/games/{slug}` |
-| Outils/objets | `GET .../wiki/tools` | `.../wiki/tools/{slug}` |
-| Tomes manga | `GET .../wiki/manga/volumes` | `.../wiki/manga/volumes/{id}` |
-| Actus | `GET .../wiki/news` | — |
+| Catégorie       | Liste                          | Fiche                         |
+| --------------- | ------------------------------ | ----------------------------- |
+| Personnages     | `GET .../wiki/characters`      | `.../wiki/characters/{id}`    |
+| Planètes        | `GET .../wiki/planets`         | `.../wiki/planets/{id}`       |
+| Races           | `GET .../wiki/races`           | `.../wiki/races/{slug}`       |
+| Techniques      | `GET .../wiki/techniques`      | `.../wiki/techniques/{slug}`  |
+| Transformations | `GET .../wiki/transformations` | —                             |
+| Sagas           | `GET .../wiki/sagas`           | `.../wiki/sagas/{slug}`       |
+| Arcs            | —                              | `.../wiki/arcs/{slug}`        |
+| Épisodes        | `GET .../wiki/episodes`        | `.../wiki/episodes/{id}`      |
+| Films           | `GET .../wiki/movies`          | `.../wiki/movies/{slug}`      |
+| Jeux            | `GET .../wiki/games`           | `.../wiki/games/{slug}`       |
+| Outils/objets   | `GET .../wiki/tools`           | `.../wiki/tools/{slug}`       |
+| Tomes manga     | `GET .../wiki/manga/volumes`   | `.../wiki/manga/volumes/{id}` |
+| Actus           | `GET .../wiki/news`            | —                             |
 
 ```bash
 curl -s "https://bot.dragonballfr.com/api/public/wiki/sagas" | jq '.sagas[] | {name, series, order_idx, slug}'
@@ -64,12 +65,12 @@ curl -s "https://bot.dragonballfr.com/api/public/wiki/search?q=kamehameha&limit=
 
 ## Manga
 
-| Chemin | Paramètres | Renvoie |
-|---|---|---|
-| `GET /api/public/manga/tomes` | — | liste des tomes |
-| `GET /api/public/manga/tomes/{series}/{tome}` | path | détail d'un tome + planches |
-| `GET /api/public/manga/page/{series}/{tome}/{planche}` | path | métadonnées + URL image d'une planche |
-| `GET /api/public/manga/search` | `q`, `limit` | recherche texte (OCR) dans les planches |
+| Chemin                                                 | Paramètres   | Renvoie                                 |
+| ------------------------------------------------------ | ------------ | --------------------------------------- |
+| `GET /api/public/manga/tomes`                          | —            | liste des tomes                         |
+| `GET /api/public/manga/tomes/{series}/{tome}`          | path         | détail d'un tome + planches             |
+| `GET /api/public/manga/page/{series}/{tome}/{planche}` | path         | métadonnées + URL image d'une planche   |
+| `GET /api/public/manga/search`                         | `q`, `limit` | recherche texte (OCR) dans les planches |
 
 ```bash
 curl -s "https://bot.dragonballfr.com/api/public/manga/search?q=kamehameha&limit=5" | jq
@@ -77,34 +78,34 @@ curl -s "https://bot.dragonballfr.com/api/public/manga/search?q=kamehameha&limit
 
 ## Bot & communauté
 
-| Chemin | Paramètres | Renvoie |
-|---|---|---|
-| `GET /api/public/stats` | — | stats serveur Discord (membres, niveaux…) |
-| `GET /api/public/presence` | — | présence/état temps réel |
-| `GET /api/public/personas` | — | les 6 personas (Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo) |
-| `GET /api/public/commands` | — | commandes Discord publiques |
-| `GET /api/public/leaderboard` | `limit` | classement par niveau/XP |
-| `GET /api/public/user/{discordId}` | path | profil public d'un membre |
-| `GET /api/public/shop` | — | boutique |
-| `GET /api/public/profile/{discordId}/card.png` | path | **image PNG** carte de profil |
-| `GET /api/public/profile/{discordId}/scan.png` | path | **image PNG** scouter |
+| Chemin                                         | Paramètres | Renvoie                                                          |
+| ---------------------------------------------- | ---------- | ---------------------------------------------------------------- |
+| `GET /api/public/stats`                        | —          | stats serveur Discord (membres, niveaux…)                        |
+| `GET /api/public/presence`                     | —          | présence/état temps réel                                         |
+| `GET /api/public/personas`                     | —          | les 6 personas (Shenron, Beerus, Whis, Grand Prêtre, Enma, Kaïo) |
+| `GET /api/public/commands`                     | —          | commandes Discord publiques                                      |
+| `GET /api/public/leaderboard`                  | `limit`    | classement par niveau/XP                                         |
+| `GET /api/public/user/{discordId}`             | path       | profil public d'un membre                                        |
+| `GET /api/public/shop`                         | —          | boutique                                                         |
+| `GET /api/public/profile/{discordId}/card.png` | path       | **image PNG** carte de profil                                    |
+| `GET /api/public/profile/{discordId}/scan.png` | path       | **image PNG** scouter                                            |
 
 ## Divers
 
-| Chemin | Renvoie |
-|---|---|
-| `GET /api/public/news` | actualités Dragon Ball (`?limit=`) |
-| `GET /api/public/sources` | sources/corpus indexés par le RAG |
-| `GET /api/public/assets` | assets exposés |
-| `GET /api/public/eval/{cache-stats,reports,lore-stats}` | diagnostics (qualité RAG/LLM, stats lore) |
-| `GET /graphql` | endpoint GraphQL (GraphiQL activé) — cf. `mcp-graphql.md` |
-| `GET /api/openapi.json` · `GET /api/docs` | spec OpenAPI 3.1 + UI Scalar |
-| `GET /health` | sonde |
+| Chemin                                                  | Renvoie                                                   |
+| ------------------------------------------------------- | --------------------------------------------------------- |
+| `GET /api/public/news`                                  | actualités Dragon Ball (`?limit=`)                        |
+| `GET /api/public/sources`                               | sources/corpus indexés par le RAG                         |
+| `GET /api/public/assets`                                | assets exposés                                            |
+| `GET /api/public/eval/{cache-stats,reports,lore-stats}` | diagnostics (qualité RAG/LLM, stats lore)                 |
+| `GET /graphql`                                          | endpoint GraphQL (GraphiQL activé) — cf. `mcp-graphql.md` |
+| `GET /api/openapi.json` · `GET /api/docs`               | spec OpenAPI 3.1 + UI Scalar                              |
+| `GET /health`                                           | sonde                                                     |
 
 ## Champs des entités
 
 - **Character** : `id, name, name_ja, name_romaji, race, gender, affiliation, ki,
-  max_ki, origin_planet_id, description, image`. `ki`/`max_ki` sont indicatifs et
+max_ki, origin_planet_id, description, image`. `ki`/`max_ki` sont indicatifs et
   dépendent du support (databook/anime) — à citer avec contexte.
 - **Saga** : `id, name, name_ja, slug, series, order_idx, description, image`.
   Trie par `order_idx` pour l'ordre chronologique au sein d'une `series`.

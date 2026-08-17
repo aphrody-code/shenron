@@ -12,7 +12,12 @@ import { db } from "@/lib/db";
 import { siteRatings } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { clearRatingComment, deleteRating, getRatingState, isRatingTargetType } from "@/lib/ratings";
+import {
+	clearRatingComment,
+	deleteRating,
+	getRatingState,
+	isRatingTargetType,
+} from "@/lib/ratings";
 
 function revalidateTops() {
 	revalidatePath("/");

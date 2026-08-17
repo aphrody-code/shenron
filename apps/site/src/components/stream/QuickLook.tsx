@@ -44,7 +44,10 @@ export function QuickLook({
 					<p className="mb-2 font-display text-[11px] font-semibold uppercase tracking-[0.18em] text-dbz-orange">
 						{eyebrow}
 					</p>
-					<h2 id="stream-modal-title" className="title-gold font-saiyan text-3xl font-bold uppercase leading-tight sm:text-4xl">
+					<h2
+						id="stream-modal-title"
+						className="title-gold font-saiyan text-3xl font-bold uppercase leading-tight sm:text-4xl"
+					>
 						{title}
 					</h2>
 					{titleJa && <p className="mt-1 font-jp text-[13px] text-white/60">{titleJa}</p>}

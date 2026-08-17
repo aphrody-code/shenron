@@ -90,7 +90,9 @@ async function main() {
 			if (sample.length < 6) sample.push(`#${id}: ${secs.map((s) => s.label).join(" · ")}`);
 		}
 
-		console.log(`\n${apply ? "✓ APPLIQUÉ" : "▷ DRY-RUN (aucune écriture)"} — table=${table} entity=${entityType}`);
+		console.log(
+			`\n${apply ? "✓ APPLIQUÉ" : "▷ DRY-RUN (aucune écriture)"} — table=${table} entity=${entityType}`
+		);
 		console.table(stats);
 		if (sample.length) {
 			console.log("Exemples de découpage :");
