@@ -194,6 +194,15 @@ async function buildSite(sha: string): Promise<string> {
 	const res = await run([nodeBin, nextBin, "build"], {
 		cwd: SITE_DIR,
 		env: {
+			// `env` REMPLACE l'environnement : tout ce qui n'est pas listé ici
+			// disparaît. PATH et HOME doivent donc être repassés explicitement.
+			// Turbopack démarre un pool de process Node pour évaluer PostCSS sur
+			// le CSS de dépendance (ex. swiper/swiper.css) et panique sans PATH
+			// (« the PATH environment variable should always be set: NotPresent »,
+			// turbopack-node/src/process_pool). Le build mourait alors APRÈS avoir
+			// écrit BUILD_ID, ce qui le faisait passer pour un succès.
+			PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+			HOME: process.env.HOME ?? "/home/ubuntu",
 			TMPDIR: buildTmp,
 			NODE_ENV: "production",
 			NEXT_TELEMETRY_DISABLED: "1",
@@ -202,11 +211,29 @@ async function buildSite(sha: string): Promise<string> {
 		},
 	});
 
+	// Le code de sortie fait FOI. `BUILD_ID` est écrit AVANT la phase de
+	// finalisation (prerender-manifest, images-manifest, export-marker) : un
+	// build mort en finalisation laisse donc un BUILD_ID frais mais un `.next`
+	// amputé. Ne se fier qu'à sa fraîcheur revenait à publier une version que
+	// `next start` refuse d'ouvrir (ENOENT prerender-manifest.json), l'échec
+	// n'apparaissant qu'au bout des 180s de sonde et sans le message d'erreur.
+	if (res.code !== 0) {
+		console.error(res.stderr.split("\n").slice(-30).join("\n"));
+		fail(`build échoué (code ${res.code})`);
+	}
 	const buildIdFile = join(BUILD_DIR, "BUILD_ID");
 	const fresh = existsSync(buildIdFile) && (await stat(buildIdFile)).mtimeMs >= startedAt;
 	if (!fresh) {
 		console.error(res.stderr.split("\n").slice(-15).join("\n"));
 		fail(`build échoué — BUILD_ID absent ou périmé (code ${res.code})`);
+	}
+	// Garde-fou de complétude : ces artefacts sont les derniers écrits par
+	// `next build` et `next start` en dépend au démarrage. Leur absence signe
+	// un build tronqué qu'il ne faut pas publier.
+	for (const artefact of ["prerender-manifest.json", "routes-manifest.json"]) {
+		if (!existsSync(join(BUILD_DIR, artefact))) {
+			fail(`build incomplet — ${artefact} manquant dans ${BUILD_DIR_NAME}`);
+		}
 	}
 	const buildId = (await Bun.file(buildIdFile).text()).trim();
 	log(`✓ build en ${Math.round((Date.now() - startedAt) / 1000)}s · BUILD_ID=${buildId}`);
