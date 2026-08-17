@@ -1,113 +1,113 @@
 {
-  "$schema": "bxc-recon-v1",
-  "url": "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
-  "finalUrl": "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
-  "httpStatus": 200,
-  "bytes": 284719,
-  "gotoMs": 0,
-  "profile": "max",
-  "headers": {
-    "cdnVendor": "Cached (Redis)",
-    "cspHosts": []
-  },
-  "frameworks": [],
-  "assets": [
-    {
-      "type": "stylesheet",
-      "url": "https://en.wikipedia.org/w/load.php?lang=en&amp;modules=ext.cite.parsoid.styles%7Cext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediamessages.styles%7Cjquery.makeCollapsible.styles%7Cmediawiki.skinning.content.parsoid%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022",
-      "host": "en.wikipedia.org"
-    },
-    {
-      "type": "stylesheet",
-      "url": "https://en.wikipedia.org/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022",
-      "host": "en.wikipedia.org"
-    },
-    {
-      "type": "script",
-      "url": "https://en.wikipedia.org/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022",
-      "host": "en.wikipedia.org"
-    },
-    {
-      "type": "image",
-      "url": "https://en.wikipedia.org/static/images/icons/enwiki-25.svg",
-      "host": "en.wikipedia.org"
-    },
-    {
-      "type": "image",
-      "url": "https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg",
-      "host": "en.wikipedia.org"
-    },
-    {
-      "type": "image",
-      "url": "https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-en-25.svg",
-      "host": "en.wikipedia.org"
-    },
-    {
-      "type": "image",
-      "url": "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Dragon_Ball_Super_Volume_1.png/250px-Dragon_Ball_Super_Volume_1.png",
-      "host": "upload.wikimedia.org"
-    },
-    {
-      "type": "image",
-      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Wikipe-tan_face.svg/20px-Wikipe-tan_face.svg.png",
-      "host": "upload.wikimedia.org"
-    }
-  ],
-  "cssSelectors": [
-    ".mw-parser-output .citation .mw-selflink",
-    ".mw-parser-output .citation q",
-    ".mw-parser-output .citation:target",
-    ".mw-parser-output .cs1-code",
-    ".mw-parser-output .cs1-format",
-    ".mw-parser-output .cs1-hidden-error",
-    ".mw-parser-output .cs1-kern-left",
-    ".mw-parser-output .cs1-kern-right",
-    ".mw-parser-output .cs1-maint",
-    ".mw-parser-output .cs1-visible-error",
-    ".mw-parser-output .cs1-ws-icon a",
-    ".mw-parser-output .hatnote",
-    ".mw-parser-output .hatnote i",
-    ".mw-parser-output .hatnote+link+.hatnote",
-    ".mw-parser-output .hatnote+span.mw-empty-elt+.hatnote",
-    ".mw-parser-output .id-lock-free.id-lock-free a",
-    ".mw-parser-output .id-lock-limited.id-lock-limited a",
-    ".mw-parser-output .id-lock-registration.id-lock-registration a",
-    ".mw-parser-output .id-lock-subscription.id-lock-subscription a",
-    ".mw-parser-output .infobox",
-    ".mw-parser-output .infobox .navbar",
-    ".mw-parser-output .infobox-3cols-child",
-    ".mw-parser-output .infobox-hiddenrow",
-    ".mw-parser-output .infobox-subbox",
-    ".mw-parser-output .plainlist ol",
-    ".mw-parser-output .plainlist ol li",
-    ".mw-parser-output .plainlist ul",
-    ".mw-parser-output .plainlist ul li",
-    ".mw-parser-output .references[data-mw-group=lower-alpha]",
-    ".mw-parser-output .references[data-mw-group=lower-greek]",
-    ".mw-parser-output .references[data-mw-group=lower-roman]",
-    ".mw-parser-output .references[data-mw-group=upper-alpha]",
-    ".mw-parser-output .references[data-mw-group=upper-roman]",
-    ".mw-parser-output .reflist-columns-2",
-    ".mw-parser-output .reflist-columns-3",
-    ".mw-parser-output cite.citation",
-    ".mw-parser-output div.hatnote",
-    ".mw-parser-output div.reflist-liststyle-lower-alpha .references",
-    ".mw-parser-output div.reflist-liststyle-lower-greek .references",
-    ".mw-parser-output div.reflist-liststyle-lower-roman .references",
-    ".mw-parser-output div.reflist-liststyle-upper-alpha .references",
-    ".mw-parser-output div.reflist-liststyle-upper-roman .references",
-    "body.ns-0 .mw-parser-output .hatnote",
-    "body.skin--responsive .mw-parser-output .infobox-table",
-    "body.skin--responsive .mw-parser-output .infobox-table td",
-    "body.skin--responsive .mw-parser-output .infobox-table th",
-    "body.skin--responsive .mw-parser-output .infobox-table>caption",
-    "body.skin--responsive .mw-parser-output .infobox-table>tbody",
-    "body.skin--responsive.skin--responsive .mw-parser-output .infobox .infobox-hiddenrow",
-    "body.skin-vector-2022 .mw-parser-output .reflist-columns-2",
-    "body.skin-vector-2022 .mw-parser-output .reflist-columns-3",
-    "html.skin-theme-clientpref-night .mw-parser-output .cs1-maint",
-    "html.skin-theme-clientpref-night .mw-parser-output .infobox-full-data:not(.notheme)>div:not(.notheme)[style]",
-    "html.skin-theme-clientpref-os .mw-parser-output .cs1-maint",
-    "html.skin-theme-clientpref-os .mw-parser-output .infobox-full-data:not(.notheme)>div:not(.notheme)[style]"
-  ]
+	"$schema": "bxc-recon-v1",
+	"url": "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
+	"finalUrl": "https://en.wikipedia.org/wiki/Dragon_Ball_Super",
+	"httpStatus": 200,
+	"bytes": 284719,
+	"gotoMs": 0,
+	"profile": "max",
+	"headers": {
+		"cdnVendor": "Cached (Redis)",
+		"cspHosts": []
+	},
+	"frameworks": [],
+	"assets": [
+		{
+			"type": "stylesheet",
+			"url": "https://en.wikipedia.org/w/load.php?lang=en&amp;modules=ext.cite.parsoid.styles%7Cext.cite.styles%7Cext.uls.interlanguage%7Cext.visualEditor.desktopArticleTarget.noscript%7Cext.wikimediamessages.styles%7Cjquery.makeCollapsible.styles%7Cmediawiki.skinning.content.parsoid%7Cskins.vector.icons%2Cstyles%7Cskins.vector.search.codex.styles%7Cwikibase.client.init&amp;only=styles&amp;skin=vector-2022",
+			"host": "en.wikipedia.org"
+		},
+		{
+			"type": "stylesheet",
+			"url": "https://en.wikipedia.org/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector-2022",
+			"host": "en.wikipedia.org"
+		},
+		{
+			"type": "script",
+			"url": "https://en.wikipedia.org/w/load.php?lang=en&amp;modules=startup&amp;only=scripts&amp;raw=1&amp;skin=vector-2022",
+			"host": "en.wikipedia.org"
+		},
+		{
+			"type": "image",
+			"url": "https://en.wikipedia.org/static/images/icons/enwiki-25.svg",
+			"host": "en.wikipedia.org"
+		},
+		{
+			"type": "image",
+			"url": "https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg",
+			"host": "en.wikipedia.org"
+		},
+		{
+			"type": "image",
+			"url": "https://en.wikipedia.org/static/images/mobile/copyright/wikipedia-tagline-en-25.svg",
+			"host": "en.wikipedia.org"
+		},
+		{
+			"type": "image",
+			"url": "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Dragon_Ball_Super_Volume_1.png/250px-Dragon_Ball_Super_Volume_1.png",
+			"host": "upload.wikimedia.org"
+		},
+		{
+			"type": "image",
+			"url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Wikipe-tan_face.svg/20px-Wikipe-tan_face.svg.png",
+			"host": "upload.wikimedia.org"
+		}
+	],
+	"cssSelectors": [
+		".mw-parser-output .citation .mw-selflink",
+		".mw-parser-output .citation q",
+		".mw-parser-output .citation:target",
+		".mw-parser-output .cs1-code",
+		".mw-parser-output .cs1-format",
+		".mw-parser-output .cs1-hidden-error",
+		".mw-parser-output .cs1-kern-left",
+		".mw-parser-output .cs1-kern-right",
+		".mw-parser-output .cs1-maint",
+		".mw-parser-output .cs1-visible-error",
+		".mw-parser-output .cs1-ws-icon a",
+		".mw-parser-output .hatnote",
+		".mw-parser-output .hatnote i",
+		".mw-parser-output .hatnote+link+.hatnote",
+		".mw-parser-output .hatnote+span.mw-empty-elt+.hatnote",
+		".mw-parser-output .id-lock-free.id-lock-free a",
+		".mw-parser-output .id-lock-limited.id-lock-limited a",
+		".mw-parser-output .id-lock-registration.id-lock-registration a",
+		".mw-parser-output .id-lock-subscription.id-lock-subscription a",
+		".mw-parser-output .infobox",
+		".mw-parser-output .infobox .navbar",
+		".mw-parser-output .infobox-3cols-child",
+		".mw-parser-output .infobox-hiddenrow",
+		".mw-parser-output .infobox-subbox",
+		".mw-parser-output .plainlist ol",
+		".mw-parser-output .plainlist ol li",
+		".mw-parser-output .plainlist ul",
+		".mw-parser-output .plainlist ul li",
+		".mw-parser-output .references[data-mw-group=lower-alpha]",
+		".mw-parser-output .references[data-mw-group=lower-greek]",
+		".mw-parser-output .references[data-mw-group=lower-roman]",
+		".mw-parser-output .references[data-mw-group=upper-alpha]",
+		".mw-parser-output .references[data-mw-group=upper-roman]",
+		".mw-parser-output .reflist-columns-2",
+		".mw-parser-output .reflist-columns-3",
+		".mw-parser-output cite.citation",
+		".mw-parser-output div.hatnote",
+		".mw-parser-output div.reflist-liststyle-lower-alpha .references",
+		".mw-parser-output div.reflist-liststyle-lower-greek .references",
+		".mw-parser-output div.reflist-liststyle-lower-roman .references",
+		".mw-parser-output div.reflist-liststyle-upper-alpha .references",
+		".mw-parser-output div.reflist-liststyle-upper-roman .references",
+		"body.ns-0 .mw-parser-output .hatnote",
+		"body.skin--responsive .mw-parser-output .infobox-table",
+		"body.skin--responsive .mw-parser-output .infobox-table td",
+		"body.skin--responsive .mw-parser-output .infobox-table th",
+		"body.skin--responsive .mw-parser-output .infobox-table>caption",
+		"body.skin--responsive .mw-parser-output .infobox-table>tbody",
+		"body.skin--responsive.skin--responsive .mw-parser-output .infobox .infobox-hiddenrow",
+		"body.skin-vector-2022 .mw-parser-output .reflist-columns-2",
+		"body.skin-vector-2022 .mw-parser-output .reflist-columns-3",
+		"html.skin-theme-clientpref-night .mw-parser-output .cs1-maint",
+		"html.skin-theme-clientpref-night .mw-parser-output .infobox-full-data:not(.notheme)>div:not(.notheme)[style]",
+		"html.skin-theme-clientpref-os .mw-parser-output .cs1-maint",
+		"html.skin-theme-clientpref-os .mw-parser-output .infobox-full-data:not(.notheme)>div:not(.notheme)[style]"
+	]
 }

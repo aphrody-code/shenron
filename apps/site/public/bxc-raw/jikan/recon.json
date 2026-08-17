@@ -1,22 +1,22 @@
 {
-  "$schema": "bxc-recon-v1",
-  "url": "https://jikan.moe/",
-  "finalUrl": "https://jikan.moe/",
-  "httpStatus": 200,
-  "bytes": 3936,
-  "gotoMs": 0,
-  "profile": "max",
-  "headers": {
-    "cdnVendor": "Cached (Redis)",
-    "cspHosts": []
-  },
-  "frameworks": [],
-  "assets": [
-    {
-      "type": "stylesheet",
-      "url": "https://jikan.moe/scss/bootstrap.scss",
-      "host": "jikan.moe"
-    }
-  ],
-  "cssSelectors": []
+	"$schema": "bxc-recon-v1",
+	"url": "https://jikan.moe/",
+	"finalUrl": "https://jikan.moe/",
+	"httpStatus": 200,
+	"bytes": 3936,
+	"gotoMs": 0,
+	"profile": "max",
+	"headers": {
+		"cdnVendor": "Cached (Redis)",
+		"cspHosts": []
+	},
+	"frameworks": [],
+	"assets": [
+		{
+			"type": "stylesheet",
+			"url": "https://jikan.moe/scss/bootstrap.scss",
+			"host": "jikan.moe"
+		}
+	],
+	"cssSelectors": []
 }

@@ -1,11 +1,11 @@
 {
-  "seed": "https://www.dragonballsuper-official.com/",
-  "rootHtmlPath": "www.dragonballsuper-official.com/index.html",
-  "startedAt": "2026-07-28T06:00:35.709Z",
-  "completedAt": "2026-07-28T06:00:36.152Z",
-  "durationMs": 443.637022,
-  "totalAssets": 0,
-  "totalBytes": 0,
-  "failed": 0,
-  "assets": []
+	"seed": "https://www.dragonballsuper-official.com/",
+	"rootHtmlPath": "www.dragonballsuper-official.com/index.html",
+	"startedAt": "2026-07-28T06:00:35.709Z",
+	"completedAt": "2026-07-28T06:00:36.152Z",
+	"durationMs": 443.637022,
+	"totalAssets": 0,
+	"totalBytes": 0,
+	"failed": 0,
+	"assets": []
 }

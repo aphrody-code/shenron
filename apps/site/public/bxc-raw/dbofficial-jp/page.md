@@ -4,7 +4,7 @@ This site can’t be reached
 
 Check if there is a typo in www.dragonballsuper-official.com.
 
-DNS\_PROBE\_FINISHED\_NXDOMAIN
+DNS_PROBE_FINISHED_NXDOMAIN
 
 Reload
 

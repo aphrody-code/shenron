@@ -1,11 +1,11 @@
 {
-  "seed": "https://en.bandainamcoent.eu/games/dragon-ball-sparking-zero",
-  "rootHtmlPath": "en.bandainamcoent.eu/games/dragon-ball-sparking-zero",
-  "startedAt": "2026-07-28T06:02:41.013Z",
-  "completedAt": "2026-07-28T06:02:41.640Z",
-  "durationMs": 627.192637,
-  "totalAssets": 0,
-  "totalBytes": 0,
-  "failed": 0,
-  "assets": []
+	"seed": "https://en.bandainamcoent.eu/games/dragon-ball-sparking-zero",
+	"rootHtmlPath": "en.bandainamcoent.eu/games/dragon-ball-sparking-zero",
+	"startedAt": "2026-07-28T06:02:41.013Z",
+	"completedAt": "2026-07-28T06:02:41.640Z",
+	"durationMs": 627.192637,
+	"totalAssets": 0,
+	"totalBytes": 0,
+	"failed": 0,
+	"assets": []
 }

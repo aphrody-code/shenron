@@ -1,27 +1,27 @@
 {
-  "$schema": "bxc-recon-v1",
-  "url": "https://fr.dragon-ball-official.com/news",
-  "finalUrl": "https://fr.dragon-ball-official.com/news",
-  "httpStatus": 200,
-  "bytes": 471,
-  "gotoMs": 2495.597367,
-  "profile": "max",
-  "headers": {
-    "server": "nginx",
-    "xPoweredBy": "PHP/8.1.29",
-    "cdnRayId": "MuI51fgXBOql7wG0UtoAIjdUKTnhmRMvLBVRhz8N6nm-Ux2_mFok1g==",
-    "cdnVendor": "AWS CloudFront",
-    "cspHosts": [],
-    "cacheControl": "no-cache, private",
-    "contentType": "text/html; charset=UTF-8"
-  },
-  "frameworks": [],
-  "assets": [
-    {
-      "type": "script",
-      "url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
-      "host": "cdn.cookielaw.org"
-    }
-  ],
-  "cssSelectors": []
+	"$schema": "bxc-recon-v1",
+	"url": "https://fr.dragon-ball-official.com/news",
+	"finalUrl": "https://fr.dragon-ball-official.com/news",
+	"httpStatus": 200,
+	"bytes": 471,
+	"gotoMs": 2495.597367,
+	"profile": "max",
+	"headers": {
+		"server": "nginx",
+		"xPoweredBy": "PHP/8.1.29",
+		"cdnRayId": "MuI51fgXBOql7wG0UtoAIjdUKTnhmRMvLBVRhz8N6nm-Ux2_mFok1g==",
+		"cdnVendor": "AWS CloudFront",
+		"cspHosts": [],
+		"cacheControl": "no-cache, private",
+		"contentType": "text/html; charset=UTF-8"
+	},
+	"frameworks": [],
+	"assets": [
+		{
+			"type": "script",
+			"url": "https://cdn.cookielaw.org/scripttemplates/otSDKStub.js",
+			"host": "cdn.cookielaw.org"
+		}
+	],
+	"cssSelectors": []
 }

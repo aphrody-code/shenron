@@ -4,7 +4,7 @@ Your connection is not private
 
 Attackers might be trying to steal your information from **dragonball.news** (for example, passwords, messages, or credit cards). [Learn more about this warning](#)
 
-net::ERR\_CERT\_COMMON\_NAME\_INVALID
+net::ERR_CERT_COMMON_NAME_INVALID
 
 Subject: \*.srv.contents.ne.jp
 
@@ -103,11 +103,11 @@ oyi3B43njTOQ5yOf+1CceWxG1bQVs5ZufpsMljq4Ui0/1lvh+wjChP4kqKOJ2qxq
 4RgqsahDYVvTH9w7jXbyLeiNdd8XM2w9U/t7y0Ff/9yi0GE44Za4rF2LN9d11TPA  
 mRGunUHBcnWEvgJBQl9nJEiU0Zsnvgc/ubhPgXRR4Xq37Z0j4r7g1SgEEzwxA57d  
 emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=  
-\-----END CERTIFICATE-----  
+\-----END CERTIFICATE-----
 
-Certificate Transparency:   
+Certificate Transparency:
 
-SCT (Embedded in certificate, From unknown log)  
+SCT (Embedded in certificate, From unknown log)
 
 SCT (Embedded in certificate, From unknown log)
 
@@ -115,7 +115,7 @@ Help improve security on the web for everyone by sending [URLs of some pages you
 
 [Turn on enhanced protection](#) to get Chrome's highest level of security
 
-Back to safety  Advanced
+Back to safety Advanced
 
 This server could not prove that it is **dragonball.news**; its security certificate is from **\*.srv.contents.ne.jp**. This may be caused by a misconfiguration or an attacker intercepting your connection.
 

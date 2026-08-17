@@ -19,18 +19,18 @@ Sons DBZ récupérés via [MyInstants](https://www.myinstants.com/en/search/?nam
 (CDN `/media/sounds/*.mp3`) + images [dragonball-api.com](https://dragonball-api.com).
 L'équipe DBFR déclare les droits d'usage FR (Toei/Shueisha).
 
-| Fichier | Usage home |
-|---------|------------|
-| `kamehameha.mp3` | Double-clic deck — **clip long authentique** (~11 s, charge + onde) |
-| `kamehameha-wave.mp3` | Onde seule (~7.6 s) — variante |
-| `kamehameha-short.mp3` | Ancien clip court (~4 s) — archive |
-| `ki-charge.mp3` | Charge de ki (pré-kame + sagas) |
-| `hit.mp3` / `punch.mp3` | Clic simple |
-| `select.mp3` | Choix UI |
-| `whoosh.mp3` | Changement de panneau |
-| `teleport.mp3` | Instant transmission |
-| `power-up.mp3` | Power-up / Kaio-ken |
-| `final-flash.mp3`, `galick.mp3`, `over9000.mp3`, `nimbus.mp3`, `scream.mp3` | Extras |
+| Fichier                                                                     | Usage home                                                          |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `kamehameha.mp3`                                                            | Double-clic deck — **clip long authentique** (~11 s, charge + onde) |
+| `kamehameha-wave.mp3`                                                       | Onde seule (~7.6 s) — variante                                      |
+| `kamehameha-short.mp3`                                                      | Ancien clip court (~4 s) — archive                                  |
+| `ki-charge.mp3`                                                             | Charge de ki (pré-kame + sagas)                                     |
+| `hit.mp3` / `punch.mp3`                                                     | Clic simple                                                         |
+| `select.mp3`                                                                | Choix UI                                                            |
+| `whoosh.mp3`                                                                | Changement de panneau                                               |
+| `teleport.mp3`                                                              | Instant transmission                                                |
+| `power-up.mp3`                                                              | Power-up / Kaio-ken                                                 |
+| `final-flash.mp3`, `galick.mp3`, `over9000.mp3`, `nimbus.mp3`, `scream.mp3` | Extras                                                              |
 
 Copie « archive » aussi sous `official/`.
 

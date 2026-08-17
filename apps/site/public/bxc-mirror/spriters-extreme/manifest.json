@@ -1,11 +1,11 @@
 {
-  "seed": "https://www.spriters-resource.com/nintendo_3ds/dragonballzextremebutouden/",
-  "rootHtmlPath": "www.spriters-resource.com/nintendo_3ds/dragonballzextremebutouden/index.html",
-  "startedAt": "2026-07-28T06:12:13.800Z",
-  "completedAt": "2026-07-28T06:12:14.586Z",
-  "durationMs": 786.605352,
-  "totalAssets": 0,
-  "totalBytes": 0,
-  "failed": 0,
-  "assets": []
+	"seed": "https://www.spriters-resource.com/nintendo_3ds/dragonballzextremebutouden/",
+	"rootHtmlPath": "www.spriters-resource.com/nintendo_3ds/dragonballzextremebutouden/index.html",
+	"startedAt": "2026-07-28T06:12:13.800Z",
+	"completedAt": "2026-07-28T06:12:14.586Z",
+	"durationMs": 786.605352,
+	"totalAssets": 0,
+	"totalBytes": 0,
+	"failed": 0,
+	"assets": []
 }
