@@ -28,8 +28,24 @@ export class ApiError extends Error {
 
 type Query = Record<string, string | number | boolean | undefined | null>;
 
-function buildUrl(path: string, query?: Query): string {
-	const url = new URL(`${API_BASE}${path.startsWith("/") ? path : `/${path}`}`);
+/**
+ * Base de l'API du SITE. Distincte de `API_BASE` : les databooks sont servis par
+ * Next (`/api/databooks`), pas par le bot — leur contenu vit dans le Postgres du
+ * site, que le bot n'expose pas.
+ *
+ * On passe par le NOM PUBLIC et non par un port loopback : le site tourne en
+ * bleu/vert (slot A sur 3000, slot B sur 3010, un seul actif à la fois). Coder
+ * `127.0.0.1:3000` en dur ferait taper un slot arrêté un déploiement sur deux.
+ * nginx, lui, route toujours vers le slot en service.
+ */
+export const SITE_API_BASE = (
+	process.env.SHENRON_SITE_API_URL ??
+	process.env.SHENRON_SITE_URL ??
+	"https://dragonballfr.com"
+).replace(/\/$/, "");
+
+function buildUrl(path: string, query?: Query, base: string = API_BASE): string {
+	const url = new URL(`${base}${path.startsWith("/") ? path : `/${path}`}`);
 	if (query) {
 		for (const [k, v] of Object.entries(query)) {
 			if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
@@ -41,9 +57,9 @@ function buildUrl(path: string, query?: Query): string {
 async function call(
 	method: "GET" | "POST",
 	path: string,
-	opts: { query?: Query; body?: unknown; timeoutMs?: number } = {}
+	opts: { query?: Query; body?: unknown; timeoutMs?: number; base?: string } = {}
 ): Promise<unknown> {
-	const url = buildUrl(path, opts.query);
+	const url = buildUrl(path, opts.query, opts.base);
 	const init: RequestInit = {
 		method,
 		headers: { accept: "application/json" },
@@ -83,6 +99,11 @@ export function apiGet(path: string, query?: Query, timeoutMs?: number): Promise
 
 export function apiPost(path: string, body: unknown, timeoutMs?: number): Promise<unknown> {
 	return call("POST", path, { body, timeoutMs });
+}
+
+/** GET sur l'API du SITE (databooks). Lecture seule, comme le reste du serveur. */
+export function siteGet(path: string, query?: Query, timeoutMs?: number): Promise<unknown> {
+	return call("GET", path, { query, timeoutMs, base: SITE_API_BASE });
 }
 
 /**

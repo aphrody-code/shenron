@@ -14,7 +14,7 @@
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { absolutize, apiGet, ApiError, apiPost } from "./api.ts";
+import { absolutize, apiGet, ApiError, apiPost, siteGet } from "./api.ts";
 
 const MAX_RESULT_CHARS = 90_000;
 
@@ -399,6 +399,95 @@ export function registerAllTools(server: McpServer): void {
 		async ({ limit }) => {
 			try {
 				return jsonResult(await apiGet("/api/public/news", { limit }));
+			} catch (err) {
+				return errorResult(err);
+			}
+		}
+	);
+
+	// ── Databooks / interviews / artbooks ──────────────────────────────────
+	// Servis par l'API du SITE (Next), pas par le bot : leur contenu — 318 fiches
+	// et 11 513 planches — vit dans le Postgres du site.
+	server.registerTool(
+		"databooks_search",
+		{
+			title: "Recherche dans les databooks Dragon Ball",
+			description:
+				"Recherche plein texte française dans les guides officiels, artbooks et interviews Dragon Ball (titre, titre japonais, auteur, description). Renvoie les fiches correspondantes avec leur couverture et leur nombre de planches. API : dragonballfr.com/api/databooks.",
+			inputSchema: {
+				q: z.string().min(1).max(200).optional().describe("Termes recherchés (plein texte)"),
+				kind: z
+					.enum(["databook", "interview", "artbook"])
+					.optional()
+					.describe("Restreindre à un type d'ouvrage"),
+				category: z
+					.string()
+					.max(80)
+					.optional()
+					.describe("Catégorie éditoriale (ex. « V-Jump », « Art Book », « Interview »)"),
+				limit: z.number().int().min(1).max(100).optional().describe("Nombre de fiches (défaut 20)"),
+				offset: z.number().int().min(0).optional().describe("Décalage de pagination"),
+			},
+			annotations: { title: "Recherche dans les databooks Dragon Ball", ...READ_ANNOTATIONS },
+		},
+		async ({ q, kind, category, limit, offset }) => {
+			try {
+				const r = (await siteGet("/api/databooks", {
+					q,
+					kind,
+					category,
+					limit: limit ?? 20,
+					offset,
+				})) as { items?: Record<string, unknown>[]; total?: number };
+				// Les planches sont volumineuses (jusqu'à 300 par fiche) : la liste n'en
+				// renvoie que le compte, `databooks_get` sert le détail.
+				const items = (r.items ?? []).map(({ pages, ...reste }) => ({
+					...reste,
+					pageCount: Array.isArray(pages) ? pages.length : 0,
+					url: `/wiki/databooks/${reste.id}`,
+				}));
+				return jsonResult({ total: r.total ?? items.length, items });
+			} catch (err) {
+				return errorResult(err);
+			}
+		}
+	);
+
+	server.registerTool(
+		"databooks_get",
+		{
+			title: "Fiche databook Dragon Ball",
+			description:
+				"Détail d'un guide, artbook ou interview Dragon Ball : métadonnées, couverture et planches. Le texte de chaque planche n'est présent que si elle a été transcrite. API : dragonballfr.com/api/databooks/{id}.",
+			inputSchema: {
+				id: z.number().int().min(1).describe("Identifiant de la fiche"),
+				includePages: z
+					.boolean()
+					.optional()
+					.describe("Inclure les planches et leur transcription (défaut : oui)"),
+				maxPages: z
+					.number()
+					.int()
+					.min(1)
+					.max(300)
+					.optional()
+					.describe("Plafond de planches renvoyées (défaut 50)"),
+			},
+			annotations: { title: "Fiche databook Dragon Ball", ...READ_ANNOTATIONS },
+		},
+		async ({ id, includePages, maxPages }) => {
+			try {
+				const fiche = (await siteGet(`/api/databooks/${id}`)) as Record<string, unknown>;
+				const pages = Array.isArray(fiche.pages) ? (fiche.pages as Record<string, unknown>[]) : [];
+				const plafond = maxPages ?? 50;
+				return jsonResult({
+					...fiche,
+					url: `/wiki/databooks/${id}`,
+					pageCount: pages.length,
+					pagesTranscrites: pages.filter((p) => typeof p.text === "string" && p.text).length,
+					pages: includePages === false ? undefined : pages.slice(0, plafond),
+					pagesTronquees: includePages === false ? undefined : pages.length > plafond,
+				});
 			} catch (err) {
 				return errorResult(err);
 			}

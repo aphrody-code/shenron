@@ -42,6 +42,8 @@ const TOOL_NAMES = [
 	"bot_leaderboard",
 	"bot_commands",
 	"news",
+	"databooks_search",
+	"databooks_get",
 ];
 
 /** Construit une instance MCP fraîche (stateless : une par requête). */

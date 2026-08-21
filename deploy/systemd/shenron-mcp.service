@@ -18,6 +18,9 @@ Environment=MCP_PUBLIC_URL=https://mcp.dragonballfr.com
 # Proxy lecture seule vers l'API publique du bot (loopback).
 Environment=SHENRON_API_URL=http://127.0.0.1:5006
 Environment=SHENRON_SITE_URL=https://dragonballfr.com
+# API databooks du site (Next). Nom public et non port loopback : le site
+# tourne en bleu/vert, le port du slot actif change à chaque déploiement.
+Environment=SHENRON_SITE_API_URL=https://dragonballfr.com
 Environment=BUN_RUNTIME_TRANSPILER_CACHE_PATH=/home/ubuntu/shenron/apps/mcp/.bun-cache
 
 ExecStart=/home/ubuntu/.bun/bin/bun src/index.ts
