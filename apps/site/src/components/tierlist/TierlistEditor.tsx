@@ -311,8 +311,9 @@ export function TierlistEditor({
 			</div>
 
 			<p className="text-[12px] text-white/50">
-				Sélectionne une carte puis tape un tier pour la placer — ou glisse-la directement (sur
-				ordinateur). {selected ? "Carte sélectionnée : tape un tier." : ""}
+				Sélectionne une carte puis tape un tier pour la placer — au clavier, Entrée sur la carte
+				puis Entrée sur la pastille du tier. Ou glisse-la directement (sur ordinateur).{" "}
+				{selected ? "Carte sélectionnée : tape un tier." : ""}
 			</p>
 
 			{/* Tiers */}
@@ -327,12 +328,18 @@ export function TierlistEditor({
 							selected ? "cursor-pointer border-[#ffd54f]/40" : "border-white/10"
 						}`}
 					>
-						<div
-							className="flex w-14 shrink-0 items-center justify-center text-lg font-black text-black/85 sm:w-16"
+						<button
+							type="button"
+							onClick={(e) => {
+								e.stopPropagation();
+								onTapZone(t.id);
+							}}
+							aria-label={`Placer la carte sélectionnée dans le tier ${t.label}`}
+							className="flex w-14 shrink-0 cursor-pointer items-center justify-center text-lg font-black text-black/85 sm:w-16"
 							style={{ background: t.color }}
 						>
 							{t.label}
-						</div>
+						</button>
 						<div className="flex min-h-[4.5rem] flex-1 flex-wrap content-start gap-1 bg-black/30 p-1.5">
 							{t.items.map(renderCard)}
 						</div>
@@ -350,10 +357,18 @@ export function TierlistEditor({
 				}`}
 			>
 				<div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-					<span className="text-[12px] font-bold uppercase tracking-[0.14em] text-white/55">
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							onTapZone("pool");
+						}}
+						aria-label="Renvoyer la carte sélectionnée dans la réserve"
+						className="cursor-pointer text-[12px] font-bold uppercase tracking-[0.14em] text-white/55"
+					>
 						Réserve · {visiblePool.length}
 						{visiblePool.length !== board.pool.length ? ` / ${board.pool.length}` : ""}
-					</span>
+					</button>
 					<button
 						type="button"
 						onClick={(e) => {

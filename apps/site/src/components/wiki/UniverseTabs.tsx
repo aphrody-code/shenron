@@ -9,6 +9,7 @@ import { FilterDropdown } from "./FilterDropdown";
 import { ViewTransition } from "@/components/ViewTransition";
 import { assetUrl } from "@/lib/assets";
 import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
+import { onTablistKeyDown } from "@/lib/tablist-keys";
 
 // Autres entrées encyclopédiques (hors onglets Perso/Planètes) exposées DANS la
 // même barre — Races, Transformations, Techniques, Arcs. On n'y met jamais les
@@ -64,13 +65,19 @@ export function UniverseTabs({
 			    les autres entrées encyclopédiques (Races, Transformations, Techniques,
 			    Arcs). Aucune catégorie de la navbar ici → pas de doublon avec la nav. */}
 			<div className="flex items-center overflow-x-auto border-b border-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-				<div role="tablist" className="flex shrink-0">
+				<div
+					role="tablist"
+					aria-label="Univers Dragon Ball"
+					onKeyDown={onTablistKeyDown}
+					className="flex shrink-0"
+				>
 					<button
 						type="button"
 						role="tab"
 						id="universe-tab-personnages"
 						aria-selected={activeTab === "personnages"}
 						aria-controls="universe-panel-personnages"
+						tabIndex={activeTab === "personnages" ? 0 : -1}
 						onClick={() => setActiveTab("personnages")}
 						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 							activeTab === "personnages" ? "text-dbz-orange" : "text-white/60 hover:text-white"
@@ -87,6 +94,7 @@ export function UniverseTabs({
 						id="universe-tab-planetes"
 						aria-selected={activeTab === "planetes"}
 						aria-controls="universe-panel-planetes"
+						tabIndex={activeTab === "planetes" ? 0 : -1}
 						onClick={() => setActiveTab("planetes")}
 						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 							activeTab === "planetes" ? "text-dbz-orange" : "text-white/60 hover:text-white"

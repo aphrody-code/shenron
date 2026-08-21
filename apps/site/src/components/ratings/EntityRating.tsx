@@ -13,6 +13,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import { ChevronDown, Loader2, MessageSquare, Star, Trash2 } from "lucide-react";
 import { useMe } from "@/lib/use-me";
 import { RatingBadge, Stars } from "./Stars";
+import { onTablistKeyDown } from "@/lib/tablist-keys";
 
 /** Aligné sur `RATING_TARGET_TYPES` (schema) — union locale pour rester client-safe. */
 export type RatingTargetType = "game" | "episode" | "movie" | "arc";
@@ -297,13 +298,19 @@ export function EntityRating({
 		>
 			{/* En-tête compact + onglets */}
 			<div className="flex flex-wrap items-end justify-between gap-3 border-b border-white/10">
-				<div className="flex flex-wrap items-end gap-1">
+				<div
+					className="flex flex-wrap items-end gap-1"
+					role="tablist"
+					aria-label="Notes et avis"
+					onKeyDown={onTablistKeyDown}
+				>
 					<button
 						type="button"
 						role="tab"
 						aria-selected={tab === "rate"}
 						aria-controls={`${baseId}-rate`}
 						id={`${baseId}-tab-rate`}
+						tabIndex={tab === "rate" ? 0 : -1}
 						onClick={() => setTab("rate")}
 						className={`${tabBtn} ${tab === "rate" ? tabActive : tabIdle}`}
 					>
@@ -316,6 +323,7 @@ export function EntityRating({
 						aria-selected={tab === "reviews"}
 						aria-controls={`${baseId}-reviews`}
 						id={`${baseId}-tab-reviews`}
+						tabIndex={tab === "reviews" ? 0 : -1}
 						onClick={() => setTab("reviews")}
 						className={`${tabBtn} ${tab === "reviews" ? tabActive : tabIdle}`}
 					>

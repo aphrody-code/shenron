@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Crown, Medal, Star, Trophy } from "lucide-react";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import type { CommunityTopBoard, CommunityTopsPayload } from "@/lib/community-tops";
+import { onTablistKeyDown } from "@/lib/tablist-keys";
 
 const RANK_META: Record<
 	1 | 2 | 3,
@@ -250,7 +251,12 @@ export function CommunityTops({
 				</div>
 			)}
 
-			<div className="flex flex-wrap gap-2" role="tablist" aria-label="Choisir un top 3">
+			<div
+				className="flex flex-wrap gap-2"
+				role="tablist"
+				aria-label="Choisir un top 3"
+				onKeyDown={onTablistKeyDown}
+			>
 				{boards.map((b) => {
 					const selected = b.def.id === board.def.id;
 					return (
@@ -259,6 +265,7 @@ export function CommunityTops({
 							type="button"
 							role="tab"
 							aria-selected={selected}
+							tabIndex={selected ? 0 : -1}
 							onClick={() => setActive(b.def.id)}
 							className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
 								selected

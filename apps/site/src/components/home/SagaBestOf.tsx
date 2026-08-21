@@ -9,6 +9,7 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import type { BestOfSagaView } from "@/lib/home-bestof";
+import { onTablistKeyDown } from "@/lib/tablist-keys";
 
 const pad = (n: number): string => String(n).padStart(2, "0");
 
@@ -84,16 +85,6 @@ export function SagaBestOf({
 		mediaRef.current?.scrollTo({ left: 0, behavior: "smooth" });
 	}, [sel]);
 
-	const onRailKey = (e: React.KeyboardEvent) => {
-		if (e.key === "ArrowRight") {
-			e.preventDefault();
-			select((sel + 1) % sagas.length);
-		} else if (e.key === "ArrowLeft") {
-			e.preventDefault();
-			select((sel - 1 + sagas.length) % sagas.length);
-		}
-	};
-
 	if (!saga) return null;
 
 	const stats = [
@@ -114,7 +105,7 @@ export function SagaBestOf({
 				className="bestof__rail"
 				role="tablist"
 				aria-label="Choisir une saga"
-				onKeyDown={onRailKey}
+				onKeyDown={onTablistKeyDown}
 			>
 				{sagas.map((s, i) => (
 					<button
@@ -122,6 +113,7 @@ export function SagaBestOf({
 						type="button"
 						role="tab"
 						aria-selected={i === sel}
+						tabIndex={i === sel ? 0 : -1}
 						data-tilt
 						className={`bestof-card${i === sel ? " is-on" : ""}`}
 						style={{ ["--accent" as string]: s.accent }}

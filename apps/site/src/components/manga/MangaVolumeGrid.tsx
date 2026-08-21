@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BookOpen, Library, Layers, Search, Award, Lock, Trophy, Palette } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import { onTablistKeyDown } from "@/lib/tablist-keys";
 
 /** Un chapitre est « couleur » (édition Full Color) si son titre le signale. */
 const isColorChapter = (title?: string | null) => /full\s*color|couleur/i.test(title ?? "");
@@ -245,6 +246,8 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 			<div className="flex flex-col lg:flex-row border-b border-white/10 gap-4 pb-px justify-between items-start lg:items-center">
 				<div
 					role="tablist"
+					aria-label="Collections du manga"
+					onKeyDown={onTablistKeyDown}
 					className="flex gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 scrollbar-none"
 				>
 					<button
@@ -253,6 +256,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						id="manga-tab-dbs"
 						aria-controls="manga-panel-dbs"
 						aria-selected={tab === "dbs"}
+						tabIndex={tab === "dbs" ? 0 : -1}
 						onClick={() => setTab("dbs")}
 						className={tab === "dbs" ? tabBtnActive : tabBtn}
 					>
@@ -265,6 +269,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						id="manga-tab-db"
 						aria-controls="manga-panel-db"
 						aria-selected={tab === "db"}
+						tabIndex={tab === "db" ? 0 : -1}
 						onClick={() => setTab("db")}
 						className={tab === "db" ? tabBtnActive : tabBtn}
 					>
@@ -277,6 +282,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						id="manga-tab-scans"
 						aria-controls="manga-panel-scans"
 						aria-selected={tab === "scans"}
+						tabIndex={tab === "scans" ? 0 : -1}
 						onClick={() => setTab("scans")}
 						className={tab === "scans" ? tabBtnActive : tabBtn}
 					>
@@ -289,6 +295,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						id="manga-tab-achievements"
 						aria-controls="manga-panel-achievements"
 						aria-selected={tab === "achievements"}
+						tabIndex={tab === "achievements" ? 0 : -1}
 						onClick={() => setTab("achievements")}
 						className={tab === "achievements" ? tabBtnActive : tabBtn}
 					>
