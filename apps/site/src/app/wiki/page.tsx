@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GatedWrap } from "@/components/GatedLink";
 import {
 	getShenronCharacters,
 	getShenronMovies,
@@ -213,16 +214,16 @@ export default async function WikiIndex() {
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
 						</div>
-						<Link
+						<GatedWrap
 							href="/wiki/personnages"
 							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
 						>
 							Voir tous ({c.characters}) →
-						</Link>
+						</GatedWrap>
 					</div>
 					<div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4">
 						{featuredChars.map((char, idx) => (
-							<Link
+							<GatedWrap
 								key={char.id}
 								href={`/wiki/dragon-ball/character/${char.id}`}
 								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
@@ -245,7 +246,7 @@ export default async function WikiIndex() {
 										</p>
 									</div>
 								</div>
-							</Link>
+							</GatedWrap>
 						))}
 					</div>
 				</section>
@@ -369,16 +370,16 @@ export default async function WikiIndex() {
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
 						</div>
-						<Link
+						<GatedWrap
 							href="/wiki/planetes"
 							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
 						>
 							{planets.length} mondes →
-						</Link>
+						</GatedWrap>
 					</div>
 					<div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
 						{featuredPlanets.map((planet, idx) => (
-							<Link
+							<GatedWrap
 								key={planet.id}
 								href={`/wiki/dragon-ball/planet/${planet.id}`}
 								className="group flex flex-col dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
@@ -399,7 +400,7 @@ export default async function WikiIndex() {
 										</p>
 									</div>
 								</div>
-							</Link>
+							</GatedWrap>
 						))}
 					</div>
 				</section>

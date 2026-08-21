@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 import { isPathPublic } from "@/lib/wiki-launch";
 
@@ -71,22 +71,32 @@ export async function GatedWrap({
 	href,
 	children,
 	className = "",
+	style,
+	title,
 }: {
 	href: string;
 	children: ReactNode;
 	className?: string;
+	/** Styles en ligne des cartes (délai d'animation en cascade, notamment). */
+	style?: CSSProperties;
+	title?: string;
 }) {
 	const cfg = await getLaunchConfig().catch(() => null);
 	const open = cfg ? isPathPublic(href, cfg) : true;
 	if (open) {
 		return (
-			<Link href={href} className={className}>
+			<Link href={href} className={className} style={style} title={title}>
 				{children}
 			</Link>
 		);
 	}
 	return (
-		<div className={`${className} cursor-default opacity-70`} aria-disabled="true">
+		<div
+			className={`${className} cursor-default opacity-70`}
+			style={style}
+			title="Cette section ouvrira bientôt"
+			aria-disabled="true"
+		>
 			{children}
 		</div>
 	);

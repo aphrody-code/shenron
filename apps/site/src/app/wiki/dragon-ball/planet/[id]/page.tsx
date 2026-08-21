@@ -6,8 +6,8 @@ import { ViewTransition } from "@/components/ViewTransition";
 import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedWrap } from "@/components/GatedLink";
 import { JsonLd } from "@/components/JsonLd";
 import type { Place, WithContext } from "schema-dts";
 import type { Metadata } from "next";
@@ -169,7 +169,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 					</div>
 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
 						{planet.characters.map((char, idx) => (
-							<Link
+							<GatedWrap
 								key={char.id}
 								href={`/wiki/dragon-ball/character/${char.id}`}
 								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
@@ -189,7 +189,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 										</p>
 									</div>
 								</div>
-							</Link>
+							</GatedWrap>
 						))}
 					</div>
 				</section>

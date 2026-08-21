@@ -13,19 +13,22 @@ import "server-only";
 import { and, avg, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 import { db } from "@/lib/db";
-import {
+import { siteRatings, users, type RatingTargetType, type SiteRating } from "@/db/schema";
+
+// Les règles pures vivent dans `ratings-rules.ts` (client-safe) : ce module
+// impose `server-only`, ce qui les rendait intestables et forçait le fichier de
+// test à en tenir une copie. Réexportées ici pour ne rien casser côté appelants.
+export {
 	RATING_TARGET_TYPES,
-	siteRatings,
-	users,
+	RATING_COMMENT_MAX,
+	RATING_SCORE_MIN,
+	RATING_SCORE_MAX,
+	isRatingTargetType,
+	clampScore,
 	type RatingTargetType,
-	type SiteRating,
-} from "@/db/schema";
+} from "@/lib/ratings-rules";
 
-export { RATING_TARGET_TYPES, type RatingTargetType };
-
-export const RATING_COMMENT_MAX = 800;
-export const RATING_SCORE_MIN = 1;
-export const RATING_SCORE_MAX = 5;
+import { RATING_COMMENT_MAX, clampScore } from "@/lib/ratings-rules";
 
 export type RatingSummary = {
 	average: number;
@@ -61,17 +64,6 @@ export type RatingState = {
 
 function emptySummary(): RatingSummary {
 	return { average: 0, count: 0 };
-}
-
-export function isRatingTargetType(v: unknown): v is RatingTargetType {
-	return typeof v === "string" && (RATING_TARGET_TYPES as readonly string[]).includes(v);
-}
-
-export function clampScore(n: number): number | null {
-	if (!Number.isFinite(n)) return null;
-	const s = Math.round(n);
-	if (s < RATING_SCORE_MIN || s > RATING_SCORE_MAX) return null;
-	return s;
 }
 
 function rowToMine(r: SiteRating): UserRating {

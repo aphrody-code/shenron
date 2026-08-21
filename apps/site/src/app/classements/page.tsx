@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GatedLink } from "@/components/GatedLink";
 import { PageHeader } from "@/components/PageHeader";
 import { CommunityTopsFull } from "@/components/ratings/CommunityTops";
 import { getCommunityTops } from "@/lib/community-tops-data";
@@ -72,9 +73,9 @@ export default async function ClassementsPage() {
 					<Link href="/wiki/films" className="btn btn-ghost">
 						Films
 					</Link>
-					<Link href="/wiki/jeux" className="btn btn-ghost">
+					<GatedLink href="/wiki/jeux" className="btn btn-ghost">
 						Jeux
-					</Link>
+					</GatedLink>
 				</div>
 			</div>
 		</div>

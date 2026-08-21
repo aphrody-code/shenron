@@ -1,22 +1,20 @@
 /**
- * Tests unitaires pure (pas de DB) pour la couche notes.
- * Les helpers `isRatingTargetType` / `clampScore` vivent dans lib/ratings (server-only) ;
- * on rejoue les règles ici pour valider le contrat API.
+ * Règles de validation des notes — testées SUR LE CODE RÉEL.
+ *
+ * Ce fichier re-déclarait auparavant `isRatingTargetType` et `clampScore`
+ * localement, faute de pouvoir importer `lib/ratings.ts` (marqué `server-only`,
+ * donc rejeté par bun test). Il testait donc une copie : changer la vraie
+ * implémentation ne pouvait pas le faire échouer. Les règles vivent désormais
+ * dans `lib/ratings-rules.ts`, client-safe, et sont importées ici.
  */
 import { describe, expect, test } from "bun:test";
+import {
+	RATING_TARGET_TYPES,
+	clampScore,
+	isRatingTargetType,
+} from "../src/lib/ratings-rules";
 
-const TYPES = ["game", "episode", "movie", "arc"] as const;
-
-function isRatingTargetType(v: unknown): boolean {
-	return typeof v === "string" && (TYPES as readonly string[]).includes(v);
-}
-
-function clampScore(n: number): number | null {
-	if (!Number.isFinite(n)) return null;
-	const s = Math.round(n);
-	if (s < 1 || s > 5) return null;
-	return s;
-}
+const TYPES = RATING_TARGET_TYPES;
 
 describe("rating target types", () => {
 	test("accepte game/episode/movie/arc", () => {

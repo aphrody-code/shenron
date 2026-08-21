@@ -12,8 +12,8 @@ import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedWrap } from "@/components/GatedLink";
 import { cache, type ReactNode } from "react";
 import type { Person, WithContext } from "schema-dts";
 import type { SectionAccent } from "@/lib/wiki-section-accents";
@@ -172,12 +172,12 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 							</p>
 						)}
 						<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
-							<Link
+							<GatedWrap
 								href={`/wiki/dragon-ball/techniques/${tech.slug}`}
 								className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
 							>
 								Détails Technique →
-							</Link>
+							</GatedWrap>
 						</div>
 					</div>
 				))}
@@ -384,7 +384,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 					)}
 
 					{character.originPlanet && (
-						<Link
+						<GatedWrap
 							href={`/wiki/dragon-ball/planet/${character.originPlanet.id}`}
 							className="dbz-panel p-6 flex items-center gap-6 hover:border-dbz-orange transition-all group reveal-up"
 							style={{ animationDelay: "0.4s" }}
@@ -407,7 +407,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 							<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-2xl">
 								→
 							</span>
-						</Link>
+						</GatedWrap>
 					)}
 				</div>
 			</div>

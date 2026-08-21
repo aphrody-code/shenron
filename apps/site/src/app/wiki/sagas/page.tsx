@@ -2,6 +2,7 @@ import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { dbUniverse, assetUrl, type Saga } from "@/lib/db-universe";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedWrap } from "@/components/GatedLink";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { pageHero } from "@/lib/banner-config";
@@ -131,7 +132,7 @@ export default async function SagasPage() {
 											<ul className="border-t border-white/[0.06] divide-y divide-white/[0.04]">
 												{sagaArcs.map((a) => (
 													<li key={a.id}>
-														<Link
+														<GatedWrap
 															href={`/wiki/arcs/${a.slug}`}
 															className="flex items-center gap-4 px-5 sm:px-6 py-3 hover:bg-white/[0.04] transition-colors group"
 														>
@@ -151,7 +152,7 @@ export default async function SagasPage() {
 															<span className="text-dbz-orange/0 group-hover:text-dbz-orange transition-colors text-sm">
 																→
 															</span>
-														</Link>
+														</GatedWrap>
 													</li>
 												))}
 											</ul>

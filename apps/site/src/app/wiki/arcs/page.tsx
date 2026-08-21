@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedLink } from "@/components/GatedLink";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { WikiCategoryNav } from "@/components/wiki/WikiCategoryNav";
@@ -65,12 +66,12 @@ export default async function ArcsPage() {
 							<section key={s.slug ?? s.name}>
 								<div className="flex items-center gap-4 mb-6">
 									{s.slug ? (
-										<Link
+										<GatedLink
 											href={`/wiki/sagas/${s.slug}`}
 											className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest hover:text-white transition-colors"
 										>
 											{s.name}
-										</Link>
+										</GatedLink>
 									) : (
 										<h2 className="font-saiyan text-2xl text-dbz-orange uppercase tracking-widest">
 											{s.name}

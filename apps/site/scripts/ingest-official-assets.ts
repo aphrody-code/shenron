@@ -117,7 +117,13 @@ async function downloadOne(
 	}
 }
 
-async function mapPool<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+// `readonly T[]` et non `T[]` : la fonction ne fait que LIRE `items`, et
+// l'exiger mutable rejetait les catalogues déclarés `as const`.
+async function mapPool<T, R>(
+	items: readonly T[],
+	limit: number,
+	fn: (t: T) => Promise<R>
+): Promise<R[]> {
 	const out: R[] = [];
 	let i = 0;
 	async function worker() {

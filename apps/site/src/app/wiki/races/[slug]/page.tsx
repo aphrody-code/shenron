@@ -5,8 +5,8 @@ import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedWrap } from "@/components/GatedLink";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -195,12 +195,12 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 								)}
 
 								<h3 className="text-2xl font-saiyan tracking-widest text-white">
-									<Link
+									<GatedWrap
 										href={`/wiki/dragon-ball/planet/${race.homePlanet.id}`}
 										className={`hover:${theme.text} transition-colors`}
 									>
 										{race.homePlanet.name}
-									</Link>
+									</GatedWrap>
 								</h3>
 
 								{race.homePlanet.description && (
@@ -224,7 +224,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
 							{race.characters.map((char, idx) => (
-								<Link
+								<GatedWrap
 									key={char.id}
 									href={`/wiki/dragon-ball/character/${char.id}`}
 									className="group dbz-panel overflow-hidden hover:scale-105 hover:border-dbz-orange transition-all duration-300"
@@ -244,7 +244,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 											</p>
 										</div>
 									</div>
-								</Link>
+								</GatedWrap>
 							))}
 						</div>
 					</section>
