@@ -1,3 +1,4 @@
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
@@ -43,6 +44,7 @@ export default async function DatabooksIndexPage() {
 				imagePosition="top"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-10 lg:py-24">
+				<Breadcrumbs className="mb-8" items={[{ label: "Databooks" }]} />
 				<DatabookGrid items={items} />
 			</div>
 		</div>

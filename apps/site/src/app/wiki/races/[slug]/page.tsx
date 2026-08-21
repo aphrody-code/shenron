@@ -6,6 +6,7 @@ import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -22,9 +23,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const race = await getShenronRace(slug);
-	if (!race) return { title: "Race Dragon Ball — DBFR" };
+	if (!race) return { title: "Race Dragon Ball" };
 	return {
-		title: `${race.name} — Race Dragon Ball | DBFR`,
+		title: `${race.name} — Race Dragon Ball`,
 		description: race.description ?? `Détails de la race ${race.name}.`,
 		alternates: { canonical: `/wiki/races/${slug}` },
 	};
@@ -121,12 +122,10 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up min-h-screen bg-black">
-			<Link
-				href="/wiki/races"
-				className={`inline-flex items-center gap-2 ${theme.text} hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline`}
-			>
-				<span>← Toutes les races</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-12"
+				items={[{ label: "Races & peuples", href: "/wiki/races" }, { label: race.name }]}
+			/>
 
 			<div className="mb-6">
 				<WikiAdminBar table="db_races" id={race.id} indexHref="/wiki/races" label={race.name} />

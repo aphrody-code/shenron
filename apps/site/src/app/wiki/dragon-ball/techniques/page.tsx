@@ -1,6 +1,7 @@
 import { getShenronTechniques } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Image from "next/image";
 import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
@@ -9,7 +10,7 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Techniques Dragon Ball — DBFR",
+	title: "Techniques Dragon Ball",
 	description:
 		"Catalogue des techniques et capacités de l'univers Dragon Ball : Kamehameha, Genkidama, Final Flash et plus.",
 	alternates: { canonical: "/wiki/dragon-ball/techniques" },
@@ -40,6 +41,7 @@ export default async function TechniquesPage() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
+				<Breadcrumbs items={[{ label: "Techniques" }]} />
 				<div className="flex items-center gap-4 mb-2">
 					<Link
 						href="/wiki/dragon-ball"

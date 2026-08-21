@@ -22,10 +22,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const game = await getShenronGame(slug);
-	if (!game) return { title: "Jeu Dragon Ball — DBFR" };
+	if (!game) return { title: "Jeu Dragon Ball" };
 	const description = game.description ?? `Fiche détaillée du jeu ${game.title}.`;
 	return {
-		title: `${game.title} — Jeu Dragon Ball | DBFR`,
+		title: `${game.title} — Jeu Dragon Ball`,
 		description,
 		...ogMeta({
 			title: `${game.title} — DBFR`,

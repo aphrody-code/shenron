@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { getShenronCharacters } from "@/lib/shenron";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
@@ -11,7 +12,7 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Transformations Dragon Ball — DBFR",
+	title: "Transformations Dragon Ball",
 	description:
 		"Toutes les transformations de l'univers Dragon Ball : Super Saiyan, Super Saiyan God, Ultra Instinct, formes finales et leurs guerriers.",
 	alternates: { canonical: "/wiki/transformations" },
@@ -70,6 +71,7 @@ export default async function TransformationsPage() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">
+				<Breadcrumbs className="mb-8" items={[{ label: "Transformations" }]} />
 				<WikiCategoryNav active="transformations" className="mb-12" />
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">

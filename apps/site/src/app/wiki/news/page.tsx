@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-	title: "Actualités Dragon Ball — DBFR",
+	title: "Actualités Dragon Ball",
 	description:
 		"Dernières news, annonces officielles et rumeurs sur l'univers Dragon Ball (Daima, Sparking ZERO, Manga).",
 	alternates: { canonical: "/wiki/news" },

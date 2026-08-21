@@ -13,9 +13,9 @@ import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { cache, type ReactNode } from "react";
-import type { BreadcrumbList, Person, WithContext } from "schema-dts";
-import { SITE_URL as SITE } from "@/lib/config";
+import type { Person, WithContext } from "schema-dts";
 import type { SectionAccent } from "@/lib/wiki-section-accents";
 
 export const revalidate = 3600;
@@ -77,21 +77,6 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 	const character = await getChar(parseInt(id, 10));
 
 	if (!character) notFound();
-
-	const breadcrumb: WithContext<BreadcrumbList> = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE}/` },
-			{
-				"@type": "ListItem",
-				position: 2,
-				name: "Personnages",
-				item: `${SITE}/wiki/dragon-ball`,
-			},
-			{ "@type": "ListItem", position: 3, name: character.name },
-		],
-	};
 
 	const personSchema: WithContext<Person> = {
 		"@context": "https://schema.org",
@@ -288,18 +273,15 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			data-lang="fr"
 			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
 		>
-			<JsonLd data={breadcrumb} />
 			<JsonLd data={personSchema} />
 			<TrackView entityType="character" entityId={character.id} entityName={character.name} />
-			<Link
-				href="/wiki/personnages"
-				// `nav-back` → slide directionnel inverse (retour vers la grille).
-				transitionTypes={["nav-back"]}
-				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
-			>
-				<span>← Retour aux personnages</span>
-			</Link>
-
+			<Breadcrumbs
+				className="mb-4"
+				items={[
+					{ label: "L'Univers", href: "/wiki/personnages" },
+					{ label: character.name },
+				]}
+			/>
 			<WikiAdminBar
 				table="db_characters"
 				id={character.id}

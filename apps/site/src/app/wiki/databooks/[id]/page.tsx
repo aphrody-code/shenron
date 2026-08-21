@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BookOpen, ExternalLink, Mic } from "lucide-react";
@@ -55,7 +55,7 @@ export async function generateMetadata({
 		: `${book.title} — guide officiel Dragon Ball sur DBFR.`;
 	const cover = book.cover ? assetUrl(book.cover) : undefined;
 	return {
-		title: `${book.title} — Databooks DBFR`,
+		title: `${book.title} — Databooks`,
 		description,
 		...ogMeta({
 			title: book.title,
@@ -82,13 +82,10 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
-			<Link
-				href="/wiki/databooks"
-				transitionTypes={["nav-back"]}
-				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
-			>
-				<span>← Retour aux databooks</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-4"
+				items={[{ label: "Databooks", href: "/wiki/databooks" }, { label: book.title }]}
+			/>
 
 			<div className="mb-10">
 				<WikiAdminBar

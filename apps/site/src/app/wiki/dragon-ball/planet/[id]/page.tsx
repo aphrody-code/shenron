@@ -7,6 +7,7 @@ import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
 import type { Place, WithContext } from "schema-dts";
 import type { Metadata } from "next";
@@ -26,11 +27,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { id } = await params;
 	const planet = await getShenronPlanet(parseInt(id));
-	if (!planet) return { title: "Planète — DBFR" };
+	if (!planet) return { title: "Planète" };
 	const description =
 		planet.description ?? `Fiche encyclopédique de la planète ${planet.name} dans Dragon Ball.`;
 	return {
-		title: `${planet.name} — Planète | DBFR`,
+		title: `${planet.name} — Planète`,
 		description,
 		...ogMeta({
 			title: `${planet.name} — DBFR`,
@@ -65,13 +66,14 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
 		>
 			<JsonLd data={jsonLdData} />
-			<Link
-				href="/wiki/personnages?tab=planetes"
-				transitionTypes={["nav-back"]}
-				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-4 link-underline"
-			>
-				<span>← Retour aux planètes</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-4"
+				items={[
+					{ label: "L'Univers", href: "/wiki/personnages" },
+					{ label: "Planètes", href: "/wiki/personnages?tab=planetes" },
+					{ label: planet.name },
+				]}
+			/>
 
 			<WikiAdminBar
 				table="db_planets"

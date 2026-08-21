@@ -7,6 +7,7 @@ import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import Image from "next/image";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { stripSourceTags } from "@/lib/media";
@@ -126,12 +127,14 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 	return (
 		<div className="mx-auto max-w-[1180px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<JsonLd data={jsonLdData} />
-			<Link
-				href="/wiki/films"
-				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-8 link-underline"
-			>
-				← Tous les films
-			</Link>
+			<Breadcrumbs
+				className="mb-8"
+				items={[
+					{ label: "Films", href: "/wiki/films" },
+					{ label: SERIES_LABELS[m.series] ?? "Film", href: "/wiki/films" },
+					{ label: m.title },
+				]}
+			/>
 
 			<div className="mb-6">
 				<WikiAdminBar table="db_movies" id={m.id} indexHref="/wiki/films" label={m.title} />

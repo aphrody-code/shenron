@@ -6,6 +6,7 @@ import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRa
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 
@@ -25,9 +26,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const data = await dbUniverse.arc(slug);
-	if (!data) return { title: "Arc — DBFR" };
+	if (!data) return { title: "Arc" };
 	return {
-		title: `${data.arc.name} — Arc Dragon Ball | DBFR`,
+		title: `${data.arc.name} — Arc Dragon Ball`,
 		description: data.arc.description ?? `Détails de l'arc ${data.arc.name}.`,
 		alternates: { canonical: `/wiki/arcs/${slug}` },
 	};
@@ -41,12 +42,14 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 
 	return (
 		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
-			<Link
-				href="/wiki/sagas"
-				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
-			>
-				<span>← Retour aux sagas</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-12"
+				items={[
+					{ label: "Sagas & arcs", href: "/wiki/sagas" },
+					{ label: "Arcs", href: "/wiki/arcs" },
+					{ label: arc.name },
+				]}
+			/>
 
 			<div className="mb-6">
 				<WikiAdminBar table="db_arcs" id={arc.id} indexHref="/wiki/sagas" label={arc.name} />

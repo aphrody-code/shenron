@@ -1,8 +1,9 @@
+import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { getRatingSummaries } from "@/lib/ratings";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { GAMES_HERO } from "@/lib/db-banners";
@@ -11,7 +12,7 @@ import { RatingBadge } from "@/components/ratings/Stars";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Jeux vidéo Dragon Ball — DBFR",
+	title: "Jeux vidéo Dragon Ball",
 	description:
 		"Catalogue des jeux vidéo officiels Dragon Ball : Kakarot, Sparking ZERO, Xenoverse, FighterZ, Dokkan Battle, Legends et plus.",
 	alternates: { canonical: "/wiki/jeux" },
@@ -29,7 +30,7 @@ function excerpt(text: string | null | undefined, max = 180): string {
 
 export default async function JeuxPage() {
 	const data = await dbUniverse.games();
-	if (!data || data.games.length === 0) notFound();
+	if (!data || data.games.length === 0) return <SectionUnavailable title="Jeux vidéo Dragon Ball" />;
 	const games = data.games;
 	const ratings = await getRatingSummaries(
 		"game",
@@ -46,6 +47,7 @@ export default async function JeuxPage() {
 				imageAlt="Jeux Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<Breadcrumbs className="mb-8" items={[{ label: "Jeux vidéo" }]} />
 				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
 					{games.map((g) => (
 						<Link

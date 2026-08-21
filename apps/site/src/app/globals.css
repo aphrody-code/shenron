@@ -37,7 +37,62 @@
 }
 
 html {
-	scroll-behavior: smooth;
+	/* Défilement doux — mais JAMAIS imposé : `scroll-behavior: smooth` non gardé
+	   déclenche des nausées chez les personnes sensibles au mouvement, et rend le
+	   saut du lien d'évitement (#contenu) lent au clavier. */
+	scroll-behavior: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+/* ==========================================================================
+   Accessibilité — socle global
+   ========================================================================== */
+
+/* Lien d'évitement (WCAG 2.4.1). Hors écran par défaut, il revient dans le flux
+   dès qu'il prend le focus : il ne doit JAMAIS être `display:none` (un élément
+   masqué ainsi n'est pas focusable, donc le raccourci n'existe plus). */
+.skip-link {
+	position: fixed;
+	top: 0.5rem;
+	left: 0.5rem;
+	z-index: 200;
+	transform: translateY(-160%);
+	padding: 0.65rem 1.1rem;
+	border-radius: 0.5rem;
+	border: 1px solid var(--dbz-orange, #ffb200);
+	background: #0a0a0a;
+	color: #fff;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	box-shadow: 0 8px 30px rgb(0 0 0 / 0.6);
+	transition: transform 140ms ease;
+}
+.skip-link:focus-visible {
+	transform: translateY(0);
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+/* `<main tabIndex={-1}>` : cible du lien d'évitement. Il reçoit le focus par
+   programme (jamais au clavier), donc pas d'anneau — sinon un contour géant
+   entoure toute la page après le saut. */
+main:focus {
+	outline: none;
+}
+
+/* Anneau de focus global au clavier. Beaucoup de contrôles du site sont des
+   `<div>`/`<a>` stylés : sans cette règle, la navigation au clavier est
+   invisible sur une bonne partie de l'interface. `:focus-visible` (et non
+   `:focus`) → aucun anneau au clic souris. */
+:focus-visible {
+	outline: 2px solid var(--dbz-orange, #ffb200);
+	outline-offset: 2px;
+	border-radius: 2px;
 }
 
 @theme inline {

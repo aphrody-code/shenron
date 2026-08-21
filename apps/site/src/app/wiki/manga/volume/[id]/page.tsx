@@ -1,5 +1,5 @@
 import { dbUniverse } from "@/lib/db-universe";
-import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
@@ -53,12 +53,13 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
-			<Link
-				href={`/wiki/manga?series=${volume.series}`}
-				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
-			>
-				<span>← Retour à la liste</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-12"
+				items={[
+					{ label: "Manga", href: "/wiki/manga" },
+					{ label: `Tome ${volume.volume_number}` },
+				]}
+			/>
 
 			<div className="flex flex-col md:flex-row gap-12 lg:gap-20">
 				<div className="w-full md:w-1/3 lg:w-1/4">

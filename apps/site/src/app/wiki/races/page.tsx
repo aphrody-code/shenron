@@ -1,5 +1,6 @@
 import { getShenronRaces, getShenronCharacters, getRawRaceNamesForSlug } from "@/lib/shenron";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { SAGAS_HERO } from "@/lib/db-banners";
 import { assetUrl } from "@/lib/db-universe";
@@ -8,7 +9,7 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Races Dragon Ball — DBFR",
+	title: "Races Dragon Ball",
 	description:
 		"Les races de l'univers Dragon Ball : Saiyans, Nameks, Humains, Cyborgs, Démons du Froid et bien plus.",
 	alternates: { canonical: "/wiki/races" },
@@ -120,6 +121,7 @@ export default async function RacesPage() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<Breadcrumbs className="mb-10" items={[{ label: "Races & peuples" }]} />
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 					{races.map((race, idx) => {
 						const theme = colorThemes[race.slug] || defaultTheme;

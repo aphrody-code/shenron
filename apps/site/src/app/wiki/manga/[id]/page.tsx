@@ -2,8 +2,8 @@ import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { MangaReader } from "@/components/manga/MangaReader";
 import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -59,13 +59,13 @@ export default async function MangaReaderPage({ params }: { params: Promise<{ id
 
 	return (
 		<div className="mx-auto w-full min-w-0 max-w-[1200px] px-6 lg:px-10 py-10 lg:py-16 reveal-up overflow-x-hidden">
-			<Link
-				href="/wiki/manga"
-				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-8 link-underline"
-			>
-				<ChevronLeft className="w-4 h-4" aria-hidden="true" />
-				<span>Tous les chapitres</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-8"
+				items={[
+					{ label: "Manga", href: "/wiki/manga" },
+					{ label: `Chapitre ${chapter.chapter_number}` },
+				]}
+			/>
 
 			<header className="mb-10">
 				{/* Eyebrow « Chapitre N » uniquement quand le titre est un vrai sous-titre :

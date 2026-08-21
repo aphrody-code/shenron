@@ -1,3 +1,4 @@
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 // SPDX-License-Identifier: Apache-2.0
 
 import { getShenronCharacters, getShenronPlanets } from "@/lib/shenron";
@@ -10,7 +11,7 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Encyclopédie Dragon Ball — DBFR",
+	title: "Encyclopédie Dragon Ball",
 	description:
 		"Tous les personnages canon et les planètes de l'univers Dragon Ball. Fiches descriptives, ki, noms japonais, statuts et caractéristiques.",
 	alternates: { canonical: "/wiki/personnages" },
@@ -41,6 +42,7 @@ export default async function PersonnagesPage({
 				imageAlt="Univers Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-16 reveal-up">
+				<Breadcrumbs className="mb-8" items={[{ label: "L'Univers" }]} />
 				<UniverseTabs
 					characters={characters.map((c) => ({
 						id: c.id,

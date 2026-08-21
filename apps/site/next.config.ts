@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
 	// Undefined en dev local → ignoré. Cf. node_modules/next/dist/docs/.../self-hosting.md.
 	deploymentId: process.env.NEXT_DEPLOYMENT_ID,
 
+	// Pas de `x-powered-by: Next.js` : la version exacte du framework est une
+	// info gratuite pour un scan automatisé, et elle ne sert à personne côté client.
+	poweredByHeader: false,
+
 	// Répertoire de sortie pilotable par env. Le déploiement bleu/vert
 	// (scripts/ops/deploy-site.ts) bâtit dans `.next-build` pour deux raisons :
 	//   1. le slot en service lit `.next` — un build en place le lui retirait ;
@@ -181,6 +185,41 @@ const nextConfig: NextConfig = {
 					{ key: "X-Content-Type-Options", value: "nosniff" },
 					{ key: "X-Frame-Options", value: "SAMEORIGIN" },
 					{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+					// CSP volontairement RÉDUITE aux directives qui ne peuvent rien
+					// casser ici. Pas de `script-src` / `frame-src` : la page charge
+					// GTM + AdSense (scripts tiers injectés dynamiquement) et embarque
+					// les lecteurs vidéo des hébergeurs (vidmoly, mail.ru, yourupload…)
+					// dont la liste bouge — une allowlist figée couperait la lecture.
+					// Ce qui reste couvre les vecteurs réels :
+					//   object-src   → plus de <embed>/<object> Flash-like injectés
+					//   base-uri     → interdit de réécrire la base des URL relatives
+					//   form-action  → un <form> injecté ne peut pas exfiltrer ailleurs
+					//   frame-ancestors → clickjacking (doublon moderne de X-Frame-Options)
+					{
+						key: "Content-Security-Policy",
+						value:
+							"object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
+					},
+					// Aucune de ces API n'est utilisée par le site : les refuser évite
+					// qu'un script tiers (régie pub) puisse les demander en notre nom.
+					{
+						key: "Permissions-Policy",
+						value:
+							"camera=(), microphone=(), geolocation=(), browsing-topics=(), interest-cohort=(), payment=(), usb=()",
+					},
+					// L'auth Discord passe par une fenêtre OAuth → `allow-popups`, pas
+					// `same-origin` strict (qui casserait le retour de callback).
+					{ key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+					{ key: "X-DNS-Prefetch-Control", value: "on" },
+				],
+			},
+			{
+				// Le manifeste PWA est servi cross-origin par certains navigateurs
+				// (installation) et change rarement.
+				source: "/manifest.webmanifest",
+				headers: [
+					{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" },
+					{ key: "Content-Type", value: "application/manifest+json; charset=utf-8" },
 				],
 			},
 		];

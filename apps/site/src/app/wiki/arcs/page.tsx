@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { WikiCategoryNav } from "@/components/wiki/WikiCategoryNav";
@@ -10,7 +11,7 @@ import type { Metadata } from "next";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Arcs narratifs Dragon Ball — DBFR",
+	title: "Arcs narratifs Dragon Ball",
 	description:
 		"Tous les arcs narratifs de Dragon Ball, regroupés par saga : de la quête des Dragon Balls aux combats contre Freezer, Cell, Majin Boo et au-delà.",
 	alternates: { canonical: "/wiki/arcs" },
@@ -53,6 +54,7 @@ export default async function ArcsPage() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">
+				<Breadcrumbs className="mb-8" items={[{ label: "Arcs narratifs" }]} />
 				<WikiCategoryNav active="arcs" className="mb-12" />
 
 				{sagas.length === 0 ? (

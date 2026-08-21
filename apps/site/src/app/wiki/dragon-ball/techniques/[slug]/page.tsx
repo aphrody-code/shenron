@@ -6,6 +6,7 @@ import { getShenronTechnique, getShenronTechniques } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
@@ -27,10 +28,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const tech = await getShenronTechnique(slug);
-	if (!tech) return { title: "Technique Dragon Ball — DBFR" };
+	if (!tech) return { title: "Technique Dragon Ball" };
 	const description = tech.description ?? `Fiche détaillée de la technique ${tech.name}.`;
 	return {
-		title: `${tech.name} — Technique Dragon Ball | DBFR`,
+		title: `${tech.name} — Technique Dragon Ball`,
 		description,
 		...ogMeta({
 			title: `${tech.name} — DBFR`,
@@ -68,12 +69,13 @@ export default async function TechniqueDetailPage({
 			className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up"
 		>
 			<JsonLd data={jsonLdData} />
-			<Link
-				href="/wiki/dragon-ball/techniques"
-				className="inline-flex items-center gap-2 text-dbz-blue-light hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
-			>
-				<span>← Toutes les techniques</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-12"
+				items={[
+					{ label: "Techniques", href: "/wiki/dragon-ball/techniques" },
+					{ label: tech.name },
+				]}
+			/>
 
 			<div className="mb-6">
 				<WikiAdminBar

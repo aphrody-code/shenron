@@ -11,7 +11,6 @@ import { NavigationProgress } from "@/components/NavigationProgress";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { ConsentGate } from "@/components/ConsentGate";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
-import { FirebaseInitializer } from "@/components/FirebaseInitializer";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { SITE_URL } from "@/lib/config";
 import { env } from "@/lib/env";
@@ -180,16 +179,24 @@ export default async function RootLayout({
 					className="fixed inset-0 z-[-1] pointer-events-none starfield starfield-anim opacity-50"
 					aria-hidden
 				/>
+				{/* Évitement de navigation (WCAG 2.4.1) — premier élément focusable du
+				    document, visible seulement au clavier. Sans lui, un utilisateur au
+				    clavier ou au lecteur d'écran retraverse toute la nav (+ le menu
+				    « Plus ») à chaque page avant d'atteindre le contenu. */}
+				<a href="#contenu" className="skip-link">
+					Aller au contenu
+				</a>
 				<NavigationProgress />
 				<PageViewTracker />
 				<SiteNav />
-				<main className="relative z-10 flex-1 w-full flex flex-col">{children}</main>
+				<main id="contenu" tabIndex={-1} className="relative z-10 flex-1 w-full flex flex-col">
+					{children}
+				</main>
 				<SiteFooter />
 				<DiscordInviteFAB />
 				<ReportButton />
 				<FloatingAssistant />
 				<ConsentGate />
-				<FirebaseInitializer />
 				<Toaster
 					theme="dark"
 					position="bottom-right"

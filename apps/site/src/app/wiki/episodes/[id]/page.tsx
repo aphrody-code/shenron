@@ -20,9 +20,9 @@ import { EpisodeScenes } from "./EpisodeScenes";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { JsonLd } from "@/components/JsonLd";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AdUnit } from "@/components/ads/AdUnit";
-import type { TVEpisode, BreadcrumbList, WithContext } from "schema-dts";
-import { SITE_URL as SITE } from "@/lib/config";
+import type { TVEpisode, WithContext } from "schema-dts";
 import { excerpt } from "../_text";
 
 export const revalidate = 3600;
@@ -206,25 +206,9 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 		datePublished: ep.air_date ? new Date(ep.air_date * 1000).toISOString() : undefined,
 	};
 
-	const breadcrumbSchema: WithContext<BreadcrumbList> = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE}/` },
-			{
-				"@type": "ListItem",
-				position: 2,
-				name: "Épisodes",
-				item: `${SITE}/wiki/episodes`,
-			},
-			{ "@type": "ListItem", position: 3, name: `${seriesLabel} — Épisode ${ep.number_in_series}` },
-		],
-	};
-
 	return (
 		<div className="relative">
 			<JsonLd data={episodeSchema} />
-			<JsonLd data={breadcrumbSchema} />
 			{/* === Backdrop cinématique plein cadre (vignette épisode floutée) === */}
 			<div className="absolute inset-x-0 top-0 h-[70vh] -z-0 overflow-hidden">
 				{ep.image ? (
@@ -237,12 +221,17 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 			</div>
 
 			<div className="relative z-10 mx-auto max-w-[1180px] px-6 lg:px-10 pt-10 pb-20">
-				<Link
-					href={`/wiki/episodes/serie/${ep.series}`}
-					className="inline-flex items-center gap-2 text-white/70 hover:text-dbz-orange transition-colors font-bold uppercase text-[11px] tracking-widest mb-10 link-underline"
-				>
-					<span>← {seriesLabel}</span>
-				</Link>
+				{/* Fil d'Ariane : remplace l'ancien lien « ← <série> » isolé (qui ne
+				    disait ni où l'on se trouve dans l'arborescence, ni comment remonter
+				    plus haut) et porte en même temps le balisage `BreadcrumbList`. */}
+				<Breadcrumbs
+					className="mb-10"
+					items={[
+						{ label: "Épisodes", href: "/wiki/episodes" },
+						{ label: seriesLabel, href: `/wiki/episodes/serie/${ep.series}` },
+						{ label: `Épisode ${ep.number_in_series}` },
+					]}
+				/>
 
 				{/* === En-tête superposé au backdrop === */}
 				<header className="mb-8 reveal-up">
