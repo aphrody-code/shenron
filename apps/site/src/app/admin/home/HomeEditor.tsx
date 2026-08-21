@@ -9,7 +9,6 @@
  *    flottants (desktop / tablette) ;
  *  - Sections : ordre, activation, clip de fond, ère (grade couleur), libellé de
  *    nav, kanji, exergue, titre, sous-titre ; cartes d'action pour « Le terrain » ;
- *  - VFX/SFX : volume, enable, mapping fichiers par slot, toggles effets.
  *
  * Écrit un document JSON unique via PUT /api/home-config (gate admin) qui revalide
  * `/`. Repli : sans config en DB, la home reste identique aux défauts du code.
@@ -37,23 +36,17 @@ import {
 	DEFAULT_PLAY_CARDS,
 	ERA_ACCENT,
 	ERAS,
-	HOME_SFX_META,
-	HOME_SFX_SLOTS,
 	type Era,
 	type HomeConfig,
-	type HomeFxConfig,
 	type HomeScene,
 	type HomeClip,
 	type HomeSectionConfig,
-	type HomeSfxSlot,
 	type PlayCard,
 } from "@/lib/home-scenes";
-import { previewSfxFile } from "@/lib/sfx";
 
 interface LoadResponse {
 	config: HomeConfig;
 	clips: HomeClip[];
-	sfxFiles?: string[];
 }
 
 async function loadConfig(): Promise<LoadResponse> {
@@ -439,151 +432,6 @@ function SectionCard({
 	);
 }
 
-/** Panneau VFX/SFX — volume, mapping slots, toggles. */
-function FxPanel({
-	fx,
-	sfxFiles,
-	onChange,
-}: {
-	fx: HomeFxConfig;
-	sfxFiles: string[];
-	onChange: (fx: HomeFxConfig) => void;
-}) {
-	const stopPreview = useRef<(() => void) | null>(null);
-	useEffect(
-		() => () => {
-			stopPreview.current?.();
-		},
-		[]
-	);
-
-	const patch = (p: Partial<HomeFxConfig>) => onChange({ ...fx, ...p });
-	const patchVfx = (p: Partial<HomeFxConfig["vfx"]>) =>
-		onChange({ ...fx, vfx: { ...fx.vfx, ...p } });
-	const setSlot = (slot: HomeSfxSlot, path: string) => {
-		const next = { ...fx.sfxMap };
-		if (!path) delete next[slot];
-		else next[slot] = path;
-		onChange({ ...fx, sfxMap: next });
-	};
-
-	const playPreview = (src: string) => {
-		stopPreview.current?.();
-		stopPreview.current = previewSfxFile(src, fx.sfxVolume);
-	};
-
-	const options =
-		sfxFiles.length > 0 ? sfxFiles : Object.values(HOME_SFX_META).map((m) => m.defaultFile);
-
-	return (
-		<div className="card space-y-4 p-4">
-			<div className="flex items-center gap-2">
-				<Volume2 className="h-4 w-4 text-dbz-orange" />
-				<h3 className="font-semibold text-dbz-yellow">VFX & SFX</h3>
-			</div>
-			<p className="text-xs text-zinc-400">
-				Volume, fichiers par slot, effets visuels. Pas de musique de fond auto (ocarina reste opt-in
-				via le slot Tapion uniquement).
-			</p>
-
-			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-				<label className="flex items-center gap-2 text-sm text-white/80">
-					<input
-						type="checkbox"
-						checked={fx.enabled}
-						onChange={(e) => patch({ enabled: e.target.checked })}
-					/>
-					SFX activés
-				</label>
-				<label className="flex items-center gap-2 text-sm text-white/80">
-					<input
-						type="checkbox"
-						checked={fx.sectionEnterSfx}
-						onChange={(e) => patch({ sectionEnterSfx: e.target.checked })}
-					/>
-					SFX à l&apos;entrée des panneaux (téléport)
-				</label>
-				<label className="text-xs text-zinc-400 sm:col-span-2 lg:col-span-1">
-					Volume maître ({Math.round(fx.sfxVolume * 100)}%)
-					<input
-						type="range"
-						min={0}
-						max={1}
-						step={0.01}
-						className="mt-1 w-full"
-						value={fx.sfxVolume}
-						onChange={(e) => patch({ sfxVolume: Number(e.target.value) })}
-					/>
-				</label>
-			</div>
-
-			<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-				{(
-					[
-						["kameCss", "Burst kame CSS (hold)"],
-						["battleCanvas", "Canvas kame (BattleFx)"],
-						["kiAura", "Aura ki (Pixi)"],
-						["sceneAura", "Scene aura (voile)"],
-					] as const
-				).map(([key, label]) => (
-					<label key={key} className="flex items-center gap-2 text-sm text-white/80">
-						<input
-							type="checkbox"
-							checked={fx.vfx[key]}
-							onChange={(e) => patchVfx({ [key]: e.target.checked })}
-						/>
-						{label}
-					</label>
-				))}
-			</div>
-
-			<div className="space-y-2 border-t border-white/10 pt-3">
-				<p className="text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-					Mapping des slots SFX
-				</p>
-				<div className="grid gap-2 lg:grid-cols-2">
-					{HOME_SFX_SLOTS.map((slot) => {
-						const meta = HOME_SFX_META[slot];
-						const value = fx.sfxMap[slot] ?? "";
-						const effective = value || meta.defaultFile;
-						return (
-							<div
-								key={slot}
-								className="flex flex-wrap items-end gap-2 rounded border border-zinc-800 bg-black/30 p-2"
-							>
-								<label className="min-w-[10rem] flex-1 text-xs text-zinc-400">
-									<span className="font-semibold text-white/80">{meta.label}</span>
-									<span className="mt-0.5 block text-[10px] text-zinc-500">{meta.description}</span>
-									<select
-										className="input mt-1 w-full font-mono text-[11px]"
-										value={value}
-										onChange={(e) => setSlot(slot, e.target.value)}
-									>
-										<option value="">Défaut ({meta.defaultFile})</option>
-										{options.map((f) => (
-											<option key={f} value={f}>
-												{f}
-											</option>
-										))}
-									</select>
-								</label>
-								<button
-									type="button"
-									className="btn btn-ghost px-2 py-1 text-xs"
-									onClick={() => playPreview(effective)}
-									title="Préécouter"
-								>
-									▶
-								</button>
-							</div>
-						);
-					})}
-				</div>
-			</div>
-		</div>
-	);
-}
-
 export default function HomeEditor() {
 	const query = useQuery({ queryKey: ["home-config"], queryFn: loadConfig });
 	const [config, setConfig] = useState<HomeConfig | null>(null);
@@ -600,7 +448,6 @@ export default function HomeEditor() {
 	}, [toast]);
 
 	const clips = useMemo(() => query.data?.clips ?? [], [query.data]);
-	const sfxFiles = useMemo(() => query.data?.sfxFiles ?? [], [query.data]);
 
 	const save = useMutation({
 		mutationFn: () => saveConfig(config as HomeConfig),
@@ -906,13 +753,6 @@ export default function HomeEditor() {
 					</p>
 				</div>
 			</div>
-
-			{/* ── VFX / SFX ── */}
-			<FxPanel
-				fx={config.fx}
-				sfxFiles={sfxFiles}
-				onChange={(fx) => setConfig((c) => (c ? { ...c, fx } : c))}
-			/>
 
 			{/* ── Sections ── */}
 			<div className="space-y-2">

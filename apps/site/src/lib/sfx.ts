@@ -293,53 +293,6 @@ export function configureSfx(
 	}
 }
 
-/**
- * Applique une config home `fx` résolue (volume + enable + map de fichiers).
- * Remet d'abord les chemins par défaut, puis applique les overrides.
- */
-export function applyHomeFx(fx: {
-	enabled: boolean;
-	sfxVolume: number;
-	sfxMap: Partial<Record<string, string | null>>;
-}): void {
-	const map: Partial<Record<string, string | null>> = {};
-	for (const [k, v] of Object.entries(fx.sfxMap)) {
-		if (v !== undefined) map[k] = v;
-	}
-	configureSfx(map, {
-		volume: fx.sfxVolume,
-		enabled: fx.enabled,
-		resetDefaults: true,
-	});
-}
-
-/** Préécoute d'un fichier SFX (admin). Ne mute pas le master. */
-export function previewSfxFile(src: string, volume = 0.6): () => void {
-	if (typeof window === "undefined" || !src) return () => {};
-	let handle: Howl | null = null;
-	let cancelled = false;
-	// Le module peut ne pas être encore chargé : on l'attend, et on honore une
-	// annulation survenue entre-temps (l'admin a relâché le bouton).
-	void import("howler").then((m) => {
-		if (cancelled) return;
-		handle = new m.Howl({
-			src: [src],
-			volume: Math.max(0, Math.min(1, volume)),
-			html5: true,
-		});
-		handle.play();
-	});
-	return () => {
-		cancelled = true;
-		try {
-			handle?.stop();
-			handle?.unload();
-		} catch {
-			/* ignore */
-		}
-	};
-}
-
 export function unlockSfx() {
 	if (unlocked) {
 		const c = audio();
