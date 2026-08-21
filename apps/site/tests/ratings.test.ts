@@ -8,11 +8,7 @@
  * dans `lib/ratings-rules.ts`, client-safe, et sont importées ici.
  */
 import { describe, expect, test } from "bun:test";
-import {
-	RATING_TARGET_TYPES,
-	clampScore,
-	isRatingTargetType,
-} from "../src/lib/ratings-rules";
+import { RATING_TARGET_TYPES, clampScore, isRatingTargetType } from "../src/lib/ratings-rules";
 
 const TYPES = RATING_TARGET_TYPES;
 

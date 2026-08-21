@@ -39,14 +39,19 @@ describe("findEntry — préfixe le plus long", () => {
 describe("resolveAccess", () => {
 	test("une rubrique alwaysOpen ne peut pas être refermée", () => {
 		for (const key of ALWAYS_OPEN_KEYS) {
-			expect(resolveAccess(key, { openKeys: [], access: { [key]: { mode: "admin", roleIds: [] } } }).mode).toBe(
-				"public"
-			);
+			expect(
+				resolveAccess(key, { openKeys: [], access: { [key]: { mode: "admin", roleIds: [] } } }).mode
+			).toBe("public");
 		}
 	});
 
 	test("une règle enregistrée prime sur le défaut", () => {
-		expect(resolveAccess("personnages", { openKeys: ["personnages"], access: { personnages: { mode: "members", roleIds: [] } } }).mode).toBe("members");
+		expect(
+			resolveAccess("personnages", {
+				openKeys: ["personnages"],
+				access: { personnages: { mode: "members", roleIds: [] } },
+			}).mode
+		).toBe("members");
 	});
 
 	test("sans règle, une catégorie wiki suit openKeys", () => {

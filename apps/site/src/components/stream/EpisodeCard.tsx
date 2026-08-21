@@ -69,7 +69,11 @@ export function EpisodeCard({
 						// Largeurs réelles de la carte : 260/300 px en rail, une colonne de
 						// grille sinon. Sans `sizes`, Next sert la variante pleine largeur
 						// d'écran — soit exactement le gaspillage qu'on cherche à supprimer.
-						sizes={width === "rail" ? "(min-width: 640px) 300px, 260px" : "(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"}
+						sizes={
+							width === "rail"
+								? "(min-width: 640px) 300px, 260px"
+								: "(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"
+						}
 						quality={70}
 						priority={priority}
 						loading={eager || priority ? "eager" : "lazy"}

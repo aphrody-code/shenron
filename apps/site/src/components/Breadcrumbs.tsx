@@ -2,6 +2,8 @@ import Link from "next/link";
 import type { BreadcrumbList, WithContext } from "schema-dts";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/config";
+import { isPathPublic } from "@/lib/wiki-launch";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
  * Fil d'Ariane — UI **et** `BreadcrumbList` JSON-LD dans le même composant.
@@ -18,7 +20,7 @@ import { SITE_URL } from "@/lib/config";
  */
 export type Crumb = { label: string; href?: string };
 
-export function Breadcrumbs({
+export async function Breadcrumbs({
 	items,
 	className = "",
 }: {
@@ -26,7 +28,15 @@ export function Breadcrumbs({
 	/** Classes du `<nav>` (marges). */
 	className?: string;
 }) {
-	const trail: Crumb[] = [{ label: "Accueil", href: "/" }, ...items];
+	// Un maillon qui pointe une rubrique refermée depuis /admin/lancement est une
+	// impasse — et, balisé en `BreadcrumbList`, une impasse **annoncée à Google**.
+	// On garde le maillon (le chemin reste lisible) mais on retire sa cible : il
+	// devient un simple repère, exactement comme la page courante.
+	const cfg = await getLaunchConfig().catch(() => null);
+	const brut: Crumb[] = [{ label: "Accueil", href: "/" }, ...items];
+	const trail: Crumb[] = brut.map((c) =>
+		c.href && cfg && !isPathPublic(c.href, cfg) ? { label: c.label } : c
+	);
 
 	const schema: WithContext<BreadcrumbList> = {
 		"@context": "https://schema.org",

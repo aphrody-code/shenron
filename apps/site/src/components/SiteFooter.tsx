@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { DragonBall } from "@/components/DragonBall";
 import { DISCORD_INVITE } from "@/lib/config";
+import { isPathPublic } from "@/lib/wiki-launch";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 const COLUMNS = [
 	{
@@ -45,7 +47,13 @@ const COLUMNS = [
 	},
 ];
 
-export function SiteFooter() {
+export async function SiteFooter() {
+	// Le pied de page liste des rubriques refermables depuis /admin/lancement : sans
+	// cette lecture, il continuait de les annoncer sur TOUTES les pages du site
+	// (une fermeture de « Sagas & arcs » y laissait un 307 en bas de chaque page).
+	const cfg = await getLaunchConfig().catch(() => null);
+	const ouvert = (href: string) => (cfg ? isPathPublic(href, cfg) : true);
+
 	return (
 		<footer className="relative mt-auto bg-[#070707] border-t border-white/[0.06]">
 			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-16 grid gap-10 lg:grid-cols-[1.4fr_3fr]">
@@ -79,16 +87,18 @@ export function SiteFooter() {
 								{col.title}
 							</h4>
 							<ul className="space-y-2.5">
-								{col.links.map((l) => (
-									<li key={l.href}>
-										<Link
-											href={l.href}
-											className="text-[14px] text-white/72 hover:text-white transition-colors"
-										>
-											{l.label}
-										</Link>
-									</li>
-								))}
+								{col.links
+									.filter((l) => l.href.startsWith("http") || ouvert(l.href))
+									.map((l) => (
+										<li key={l.href}>
+											<Link
+												href={l.href}
+												className="text-[14px] text-white/72 hover:text-white transition-colors"
+											>
+												{l.label}
+											</Link>
+										</li>
+									))}
 							</ul>
 						</div>
 					))}

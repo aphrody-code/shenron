@@ -49,7 +49,9 @@ describe("tokens de thème", () => {
 		const litteraux = css
 			.split("\n")
 			.filter((l) => !/--color-dbz-(ember|ki|amber):/.test(l) && !l.trimStart().startsWith("(`"))
-			.filter((l) => /#(ff6b1a|4ba8ff|ffd23f)|rgba\((255, *107, *26|75, *168, *255|255, *210, *63)/i.test(l));
+			.filter((l) =>
+				/#(ff6b1a|4ba8ff|ffd23f)|rgba\((255, *107, *26|75, *168, *255|255, *210, *63)/i.test(l)
+			);
 		expect(litteraux).toEqual([]);
 	});
 });

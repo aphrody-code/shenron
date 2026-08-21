@@ -164,7 +164,11 @@ export default async function WikiIndex() {
 						const textColor =
 							s.color.split(" ").find((c) => c.startsWith("text-")) ?? "text-dbz-orange";
 						return (
-							<Link
+							// Le hub annonçait ses rubriques quelle que soit la configuration de
+							// lancement : une rubrique refermée y restait une carte cliquable
+							// menant à un 307. `GatedWrap` conserve la carte et son compteur, et
+							// ne retire que la navigation.
+							<GatedWrap
 								key={s.title}
 								href={s.href}
 								className="cat-card group p-6 reveal-up"
@@ -198,7 +202,7 @@ export default async function WikiIndex() {
 									</div>
 									<p className="text-gray-400 text-xs font-sans leading-relaxed mt-2">{s.desc}</p>
 								</div>
-							</Link>
+							</GatedWrap>
 						);
 					})}
 				</div>

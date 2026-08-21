@@ -53,7 +53,9 @@ const documentOrigine = (globalThis as { document?: unknown }).document;
 beforeEach(() => {
 	empeche = 0;
 	onglets = [faireOnglet(true), faireOnglet(false), faireOnglet(false)];
-	(globalThis as { document?: { activeElement: unknown } }).document = { activeElement: onglets[0] };
+	(globalThis as { document?: { activeElement: unknown } }).document = {
+		activeElement: onglets[0],
+	};
 });
 
 afterAll(() => {
@@ -125,7 +127,7 @@ describe("câblage des jeux d'onglets", () => {
 		expect(muets).toEqual([]);
 	});
 
-	test("aucun role=\"tab\" ne vit hors d'un tablist", async () => {
+	test('aucun role="tab" ne vit hors d\'un tablist', async () => {
 		const { Glob } = await import("bun");
 		const racine = new URL("../src/", import.meta.url).pathname;
 		const orphelins: string[] = [];

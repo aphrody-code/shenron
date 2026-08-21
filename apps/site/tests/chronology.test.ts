@@ -47,7 +47,9 @@ describe("resolveChronologyConfig", () => {
 	});
 
 	test("les ères inconnues sont ignorées et l'ordre est complété", () => {
-		const cfg = resolveChronologyConfig({ eraOrder: ["pas-une-ere", DEFAULT_CHRONOLOGY_CONFIG.eraOrder[2]] });
+		const cfg = resolveChronologyConfig({
+			eraOrder: ["pas-une-ere", DEFAULT_CHRONOLOGY_CONFIG.eraOrder[2]],
+		});
 		expect(cfg.eraOrder).not.toContain("pas-une-ere");
 		// Toutes les ères connues restent présentes, sans doublon.
 		expect(new Set(cfg.eraOrder).size).toBe(cfg.eraOrder.length);
@@ -56,7 +58,11 @@ describe("resolveChronologyConfig", () => {
 
 	test("un override vide est éliminé, un override utile est conservé", () => {
 		const cfg = resolveChronologyConfig({
-			overrides: { "episode:1": {}, "episode:2": { hidden: true }, "episode:3": { titre: "faux champ" } },
+			overrides: {
+				"episode:1": {},
+				"episode:2": { hidden: true },
+				"episode:3": { titre: "faux champ" },
+			},
 		});
 		expect(cfg.overrides["episode:1"]).toBeUndefined();
 		expect(cfg.overrides["episode:2"]).toEqual({ hidden: true });
@@ -81,7 +87,9 @@ describe("applyChronology", () => {
 
 	test("une entrée masquée disparaît du public", () => {
 		const items = [ep(1), ep(2)];
-		const cfg = resolveChronologyConfig({ overrides: { [timelineKey(items[1]!)]: { hidden: true } } });
+		const cfg = resolveChronologyConfig({
+			overrides: { [timelineKey(items[1]!)]: { hidden: true } },
+		});
 		expect(applyChronology(items, cfg).map((i) => i.id)).toEqual([1]);
 	});
 
@@ -113,7 +121,11 @@ describe("applyChronology", () => {
 
 describe("compareTimeline", () => {
 	test("tri par titre, alphabétique", () => {
-		const items = [ep(3, { title: "Cellule" }), ep(1, { title: "Aube" }), ep(2, { title: "Bataille" })];
+		const items = [
+			ep(3, { title: "Cellule" }),
+			ep(1, { title: "Aube" }),
+			ep(2, { title: "Bataille" }),
+		];
 		expect([...items].sort(compareTimeline("title")).map((i) => i.title)).toEqual([
 			"Aube",
 			"Bataille",

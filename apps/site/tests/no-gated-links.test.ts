@@ -94,8 +94,30 @@ describe("liens vers les rubriques gatables", () => {
 				for (const prefix of cat.prefixes) {
 					// On ne regarde que les `href` de `<Link>`/`<a>`, pas les chaînes
 					// quelconques (libellés, commentaires, `probe` de test).
-					const re = new RegExp(`href=(?:"${prefix}(?:/|")|\\{\`${prefix}/)`, "g");
-					const nus = [...src.matchAll(re)].filter((m) => !estProtege(src, m.index ?? 0));
+					// `href="/wiki/x"` et `href={`/wiki/x/…`}` dans le JSX, mais AUSSI
+					// `href: "/wiki/x"` dans une table de liens (`const COLUMNS = [...]`).
+					// C'est cette seconde forme qui a laissé le pied de page annoncer une
+					// rubrique fermée en bas de CHAQUE page du site.
+					const re = new RegExp(
+						`href=(?:"${prefix}(?:/|")|\\{\`${prefix}/)|href:\\s*"${prefix}(?:/|")`,
+						"g"
+					);
+					// Un fichier qui résout lui-même le gating (`isPathPublic`) filtre déjà
+					// ses liens : c'est une alternative valable à `GatedLink`.
+					if (src.includes("isPathPublic")) continue;
+					// `<Breadcrumbs>` résout lui-même le gating de ses maillons : un
+					// `href:` passé dans ses `items` est déjà neutralisé à la source.
+					const parBrisure = /<Breadcrumbs\b/.test(src);
+					// Table de liens (`href: "/wiki/x"`) : elle est forcément rendue plus
+					// loin dans le fichier, où la protection est visible.
+					const parEnveloppe = /<(?:Gated(?:Link|Wrap)|ClientGatedWrap)\b/.test(src);
+					const nus = [...src.matchAll(re)].filter((m) => {
+						const i = m.index ?? 0;
+						if (estProtege(src, i)) return false;
+						const litteral = src.slice(i, i + 6).startsWith("href:");
+						if (litteral && (parBrisure || parEnveloppe)) return false;
+						return true;
+					});
 					if (nus.length === 0) continue;
 					offenders.push(`${file.replace(SRC, "src")} → ${prefix} (${nus.length})`);
 				}
