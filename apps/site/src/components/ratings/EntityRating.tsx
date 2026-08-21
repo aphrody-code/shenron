@@ -27,7 +27,6 @@ type CommentRow = {
 		id: string;
 		username: string;
 		avatar: string | null;
-		discordId: string;
 	};
 };
 

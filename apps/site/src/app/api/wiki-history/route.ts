@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 		});
 		return NextResponse.json(result);
 	} catch (err) {
-		return badRequest(err instanceof Error ? err.message : "erreur");
+		return writeFailed("wiki-history", err);
 	}
 }
 
@@ -63,6 +63,32 @@ export async function POST(req: NextRequest) {
 		revalidateWikiEntity(res.table, row ?? { id: res.rowId });
 		return NextResponse.json({ ok: true, ...res });
 	} catch (err) {
-		return badRequest(err instanceof Error ? err.message : "erreur");
+		return writeFailed("wiki-history", err);
 	}
+}
+
+/**
+ * Erreur d'écriture → réponse propre, et journalisation côté serveur.
+ *
+ * Auparavant : `badRequest(err.message)`. Deux défauts. (1) Les messages de
+ * postgres-js portent les noms de contrainte, de colonne et de table — de la
+ * cartographie de schéma offerte au client. (2) Une panne de la base répondait
+ * **400** et n'écrivait **rien** dans le journal : côté exploitation, une
+ * indisponibilité était indiscernable d'une saisie invalide.
+ *
+ * Les erreurs métier (levées volontairement par `wiki-admin.ts`, ex. « Ligne
+ * introuvable ») restent renvoyées telles quelles : elles sont écrites pour
+ * l'utilisateur et ne contiennent rien d'interne.
+ */
+function writeFailed(context: string, err: unknown): NextResponse {
+	const msg = err instanceof Error ? err.message : String(err);
+	console.error(`[${context}]`, err);
+	// Signature d'une erreur du pilote PostgreSQL (code SQLSTATE) → on masque.
+	const isDriverError =
+		typeof (err as { code?: unknown })?.code === "string" ||
+		/constraint|violates|relation |column |syntax error/i.test(msg);
+	if (isDriverError) {
+		return NextResponse.json({ error: "Écriture refusée par la base." }, { status: 500 });
+	}
+	return NextResponse.json({ error: msg || "erreur" }, { status: 400 });
 }

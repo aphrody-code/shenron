@@ -42,7 +42,6 @@ export type RatingComment = {
 		id: string;
 		username: string;
 		avatar: string | null;
-		discordId: string;
 	};
 };
 
@@ -177,7 +176,9 @@ export async function listRatingComments(
 			authorId: users.id,
 			username: users.username,
 			avatar: users.avatar,
-			discordId: users.discordId,
+			// PAS de `users.discordId` : `GET /api/ratings` est public et le client
+			// n'affiche jamais ce champ (cf. `EntityRating`). Le sérialiser exposait
+			// l'identifiant Discord de chaque commentateur à n'importe qui.
 		})
 		.from(siteRatings)
 		.innerJoin(users, eq(users.id, siteRatings.userId))
@@ -201,7 +202,6 @@ export async function listRatingComments(
 			id: r.authorId,
 			username: r.username,
 			avatar: r.avatar,
-			discordId: r.discordId,
 		},
 	}));
 }

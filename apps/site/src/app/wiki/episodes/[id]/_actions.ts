@@ -62,7 +62,11 @@ export async function updateEpisodeMedia(episodeId: number, formData: FormData) 
 	await requireAdmin();
 	if (!Number.isInteger(episodeId)) return;
 
-	const videoUrl = String(formData.get("videoUrl") ?? "").trim() || null;
+	// `videoUrl` finit en en-tête `Location` (`/api/episodes/[id]/download`) : on
+	// n'accepte donc que du http(s) absolu. Sans ça, un `javascript:` collé ici
+	// devenait une redirection ouverte stockée, et une valeur relative un 500.
+	// Le champ voisin `subtitles` était déjà validé — pas celui-ci.
+	const videoUrl = safeHttpUrl(String(formData.get("videoUrl") ?? ""));
 	const subtitles = parseSubtitles(String(formData.get("subtitles") ?? ""));
 
 	await db
@@ -112,4 +116,13 @@ export async function uploadEpisodeSubtitle(
 	} catch (err) {
 		return { error: err instanceof Error ? err.message : "Upload échoué" };
 	}
+}
+
+/** N'accepte qu'une URL absolue http(s) ; tout le reste devient `null`. */
+function safeHttpUrl(raw: string): string | null {
+	const v = raw.trim();
+	if (!v) return null;
+	if (!URL.canParse(v)) return null;
+	const u = new URL(v);
+	return u.protocol === "http:" || u.protocol === "https:" ? u.toString() : null;
 }

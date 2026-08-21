@@ -38,6 +38,15 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 		return new Response("Épisode introuvable.", { status: 404 });
 	}
 
-	const target = ep.video_url ? ep.video_url : apiUrl(`api/hls/${id}/download`);
+	// Garde `URL.canParse` + protocole, comme la route films (qui documente déjà
+	// le piège) : `video_url` est saisi à la main côté admin sans validation, et
+	// `Response.redirect` sur une valeur relative lève → 500. Un `javascript:`
+	// deviendrait par ailleurs une redirection ouverte. Valeur douteuse → on
+	// retombe sur le résolveur du bot plutôt que d'échouer.
+	const stored = ep.video_url && URL.canParse(ep.video_url) ? new URL(ep.video_url) : null;
+	const target =
+		stored && (stored.protocol === "http:" || stored.protocol === "https:")
+			? stored.toString()
+			: apiUrl(`api/hls/${id}/download`);
 	return Response.redirect(target, 302);
 }
