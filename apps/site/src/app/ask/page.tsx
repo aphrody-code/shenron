@@ -487,6 +487,7 @@ export default function AskPage() {
 							type="text"
 							value={input}
 							onChange={(e) => setInput(e.target.value)}
+							aria-label="Votre question sur l'univers Dragon Ball"
 							placeholder={chatTheme.placeholder}
 							disabled={isLoading}
 							className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-dbz-orange/50 transition-all font-sans"

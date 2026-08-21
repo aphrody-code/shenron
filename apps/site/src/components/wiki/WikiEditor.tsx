@@ -11,7 +11,7 @@ import CodeMirror, { oneDark } from "@uiw/react-codemirror";
 import { EditorView } from "@codemirror/view";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import { useRef, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 
 type Category = { id: string; name: string };
 
@@ -54,6 +54,9 @@ export function WikiEditor({
 	submitLabel: string;
 	defaultCategoryId?: string;
 }) {
+	const idTitre = useId();
+	const idCategorie = useId();
+	const idOrdre = useId();
 	const [body, setBody] = useState(initial?.body ?? "");
 	const [placement, setPlacement] = useState<Placement>("wiki-float-right");
 	const [uploadErr, setUploadErr] = useState<string | null>(null);
@@ -160,10 +163,14 @@ export function WikiEditor({
 		<form action={action} className="space-y-4">
 			<div className="dbz-panel p-6 space-y-4">
 				<div>
-					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
+					<label
+						htmlFor={idTitre}
+						className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2"
+					>
 						Titre
 					</label>
 					<input
+						id={idTitre}
 						name="title"
 						required
 						defaultValue={initial?.title}
@@ -173,10 +180,14 @@ export function WikiEditor({
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 					<div className="sm:col-span-2">
-						<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
+						<label
+							htmlFor={idCategorie}
+							className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2"
+						>
 							Catégorie
 						</label>
 						<select
+							id={idCategorie}
 							name="categoryId"
 							required
 							defaultValue={initial?.categoryId ?? defaultCategoryId ?? ""}
@@ -191,10 +202,14 @@ export function WikiEditor({
 						</select>
 					</div>
 					<div>
-						<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
+						<label
+							htmlFor={idOrdre}
+							className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2"
+						>
 							Ordre
 						</label>
 						<input
+							id={idOrdre}
 							type="number"
 							name="order"
 							defaultValue={initial?.order ?? 0}

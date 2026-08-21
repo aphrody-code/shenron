@@ -296,6 +296,7 @@ export function TierlistEditor({
 					value={title}
 					onChange={(e) => setTitle(e.target.value)}
 					maxLength={120}
+					aria-label="Titre de ta tierlist"
 					placeholder="Titre de ta tierlist"
 					className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm font-bold text-white outline-none focus:border-[#ffd54f]"
 				/>
@@ -303,6 +304,7 @@ export function TierlistEditor({
 					value={description}
 					onChange={(e) => setDescription(e.target.value)}
 					maxLength={200}
+					aria-label="Description de la tierlist (optionnelle)"
 					placeholder="Description (optionnelle)"
 					className="rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white/80 outline-none focus:border-[#ffd54f]"
 				/>
@@ -374,6 +376,7 @@ export function TierlistEditor({
 							value={addLabel}
 							onChange={(e) => setAddLabel(e.target.value)}
 							maxLength={60}
+							aria-label="Nom de la nouvelle carte"
 							placeholder="Nom de la carte (ex. Gogeta Blue)"
 							className="rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#ffd54f] sm:col-span-2"
 						/>
@@ -381,6 +384,7 @@ export function TierlistEditor({
 							<input
 								ref={fileRef}
 								type="file"
+								aria-label="Image de la nouvelle carte"
 								accept="image/png,image/jpeg,image/webp,image/gif"
 								onChange={(e) => {
 									const f = e.target.files?.[0];
@@ -394,6 +398,7 @@ export function TierlistEditor({
 							<input
 								value={addUrl}
 								onChange={(e) => setAddUrl(e.target.value)}
+								aria-label="URL de l'image de la carte"
 								placeholder="…ou colle une URL d'image"
 								className="min-w-0 flex-1 rounded-md border border-white/15 bg-black/50 px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#ffd54f]"
 							/>
@@ -424,6 +429,7 @@ export function TierlistEditor({
 						<input
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
+							aria-label="Rechercher une carte dans le vivier"
 							placeholder="Rechercher une carte…"
 							className="w-full rounded-md border border-white/12 bg-black/50 px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#ffd54f] sm:max-w-xs"
 						/>

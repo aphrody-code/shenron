@@ -255,6 +255,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 							type="search"
 							value={q}
 							onChange={(e) => setQ(e.target.value)}
+							aria-label="Rechercher un titre dans la chronologie"
 							placeholder="Rechercher un titre…"
 							className="w-full h-9 pl-9 pr-3 rounded-lg bg-dbz-bg/70 border border-dbz-border focus:border-dbz-orange outline-none text-[13px] text-white placeholder:text-white/50"
 						/>

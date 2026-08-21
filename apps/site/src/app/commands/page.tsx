@@ -92,6 +92,7 @@ export default async function CommandsPage({
 				<input
 					name="q"
 					defaultValue={query}
+					aria-label="Rechercher une commande"
 					placeholder="Rechercher une commande..."
 					className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white"
 				/>

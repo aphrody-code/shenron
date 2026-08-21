@@ -117,18 +117,21 @@ export function EpisodeMediaEditor({
 							<input
 								value={t.lang}
 								onChange={(e) => setTrack(i, { lang: e.target.value })}
+								aria-label={`Code langue de la piste ${i + 1}`}
 								placeholder="lang (fr)"
 								className="w-20 rounded-md bg-black/40 border border-dbz-border px-2 py-1.5 text-sm text-white"
 							/>
 							<input
 								value={t.label}
 								onChange={(e) => setTrack(i, { label: e.target.value })}
+								aria-label={`Libellé de la piste ${i + 1}`}
 								placeholder="Libellé (Français)"
 								className="w-36 rounded-md bg-black/40 border border-dbz-border px-2 py-1.5 text-sm text-white"
 							/>
 							<input
 								value={t.src}
 								onChange={(e) => setTrack(i, { src: e.target.value })}
+								aria-label={`Chemin du fichier de la piste ${i + 1}`}
 								placeholder="assets/subtitles/db_episodes/<id>/fr.srt"
 								className="flex-1 min-w-[220px] rounded-md bg-black/40 border border-dbz-border px-2 py-1.5 text-sm text-white"
 							/>
@@ -151,12 +154,14 @@ export function EpisodeMediaEditor({
 						<input
 							value={uploadLang}
 							onChange={(e) => setUploadLang(e.target.value.toLowerCase())}
+							aria-label="Code langue du fichier à importer"
 							placeholder="lang (fr)"
 							className="w-20 rounded-md bg-black/40 border border-dbz-border px-2 py-1.5 text-sm text-white"
 						/>
 						<input
 							ref={fileRef}
 							type="file"
+							aria-label="Fichier de sous-titres à importer (.vtt ou .srt)"
 							accept=".vtt,.srt,text/vtt,application/x-subrip"
 							className="flex-1 min-w-[200px] text-sm text-white/80 file:mr-3 file:rounded-full file:border-0 file:bg-dbz-border file:px-3 file:py-1.5 file:text-white"
 						/>

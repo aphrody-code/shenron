@@ -440,6 +440,7 @@ export function RichEditor({
 				<input
 					ref={fileInputRef}
 					type="file"
+					aria-label="Insérer des images dans l'article"
 					accept="image/png,image/jpeg,image/webp,image/gif"
 					multiple
 					className="hidden"
@@ -466,6 +467,7 @@ export function RichEditor({
 							}
 							if (e.key === "Escape") setLinkOpen(false);
 						}}
+						aria-label="URL du lien à insérer"
 						placeholder="https://exemple.fr/page"
 						className="min-w-0 flex-1 rounded-md border border-white/15 bg-black/40 px-3 py-1.5 font-mono text-[13px] text-white outline-none focus:border-white/40"
 					/>

@@ -45,6 +45,7 @@ export function AdminAccessForm() {
 				value={token}
 				onChange={(e) => setToken(e.target.value)}
 				autoComplete="off"
+				aria-label="Token d'accès administrateur"
 				placeholder="Token admin"
 				className="rounded-lg border border-white/15 bg-black/40 px-3 py-2.5 text-sm text-white outline-none focus:border-dbz-orange"
 			/>

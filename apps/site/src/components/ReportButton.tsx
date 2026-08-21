@@ -11,7 +11,7 @@
  */
 import { CheckCircle2, Flag, Loader2, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
 import { REPORT_CATEGORIES, REPORT_MESSAGE_MAX } from "@/lib/report-types";
 import { useMe } from "@/lib/use-me";
@@ -21,6 +21,8 @@ type Phase = "idle" | "sending" | "done" | "error";
 export function ReportButton() {
 	const pathname = usePathname();
 	const me = useMe();
+	const idCategorie = useId();
+	const idMessage = useId();
 	const [open, setOpen] = useState(false);
 	const [category, setCategory] = useState<string>(REPORT_CATEGORIES[0].key);
 	const [message, setMessage] = useState("");
@@ -155,10 +157,14 @@ export function ReportButton() {
 									</p>
 
 									<div>
-										<label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-dbz-blue-light">
+										<label
+											htmlFor={idCategorie}
+											className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-dbz-blue-light"
+										>
 											Type de problème
 										</label>
 										<select
+											id={idCategorie}
 											className="input w-full text-sm"
 											value={category}
 											onChange={(e) => setCategory(e.target.value)}
@@ -172,10 +178,14 @@ export function ReportButton() {
 									</div>
 
 									<div>
-										<label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-dbz-blue-light">
+										<label
+											htmlFor={idMessage}
+											className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-dbz-blue-light"
+										>
 											Décris le problème
 										</label>
 										<textarea
+											id={idMessage}
 											className="input min-h-[110px] w-full resize-y text-sm"
 											placeholder="Ex : l'image de Goku ne se charge pas, le lien vers la saga X est cassé, une info est fausse…"
 											maxLength={REPORT_MESSAGE_MAX}

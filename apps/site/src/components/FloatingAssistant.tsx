@@ -326,6 +326,7 @@ export function FloatingAssistant() {
 							type="text"
 							value={input}
 							onChange={(e) => setInput(e.target.value)}
+							aria-label="Votre message à l'assistant"
 							placeholder={theme.placeholder}
 							className={`flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none transition-all ${theme.inputFocus}`}
 						/>
