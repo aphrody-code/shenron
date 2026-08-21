@@ -89,7 +89,7 @@ export default function SignInPage() {
 					className="absolute inset-0 opacity-40"
 					style={{
 						background:
-							"radial-gradient(ellipse 60% 60% at 50% 40%, rgba(255,107,26,0.22), transparent 65%), radial-gradient(ellipse 50% 50% at 80% 70%, rgba(255,178,0,0.16), transparent 70%)",
+							"radial-gradient(ellipse 60% 60% at 50% 40%, color-mix(in srgb, var(--color-dbz-ember) 22%, transparent), transparent 65%), radial-gradient(ellipse 50% 50% at 80% 70%, rgba(255,178,0,0.16), transparent 70%)",
 					}}
 				/>
 			</div>

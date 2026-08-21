@@ -164,7 +164,7 @@ export function UniverseTabs({
 												src={assetUrl(p.image)}
 												alt={p.name}
 												loading="lazy"
-												className="relative z-10 w-full h-full object-contain opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_20px_rgba(75,168,255,0.2)]"
+												className="relative z-10 w-full h-full object-contain opacity-100 group-hover:scale-110 transition-all duration-700 halo-ki"
 											/>
 										</ViewTransition>
 									) : (

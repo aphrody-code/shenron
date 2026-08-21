@@ -14,8 +14,8 @@ type AuraColor = "orange" | "yellow" | "blue" | "red" | "green" | "purple";
 
 const AURA_RGBA: Record<AuraColor, string> = {
 	orange: "rgba(255, 178, 0, 0.55)",
-	yellow: "rgba(255, 210, 63, 0.6)",
-	blue: "rgba(75, 168, 255, 0.55)",
+	yellow: "color-mix(in srgb, var(--color-dbz-amber) 60%, transparent)",
+	blue: "color-mix(in srgb, var(--color-dbz-ki) 55%, transparent)",
 	red: "rgba(255, 60, 60, 0.55)",
 	green: "rgba(74, 222, 128, 0.5)",
 	purple: "rgba(192, 132, 252, 0.5)",

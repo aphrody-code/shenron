@@ -91,7 +91,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 							<img
 								src={assetUrl(planet.image)}
 								alt={planet.name}
-								className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_30px_rgba(75,168,255,0.3)] group-hover:scale-110 transition-transform duration-1000"
+								className="w-full h-auto object-contain relative z-10 halo-ki-lg group-hover:scale-110 transition-transform duration-1000"
 							/>
 						</ViewTransition>
 						<div className="absolute inset-0 bg-gradient-to-t from-dbz-blue/40 to-transparent" />
@@ -102,7 +102,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 					<div className="reveal-up" style={{ animationDelay: "0.1s" }}>
 						<h1
 							className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-saiyan text-white mb-4 leading-none break-words"
-							style={{ textShadow: "0 0 20px rgba(75,168,255,0.2)" }}
+							style={{ textShadow: "0 0 20px color-mix(in srgb, var(--color-dbz-ki) 20%, transparent)" }}
 						>
 							{planet.name}
 						</h1>

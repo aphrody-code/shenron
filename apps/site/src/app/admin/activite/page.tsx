@@ -483,8 +483,8 @@ function TrendChart({
 			>
 				<defs>
 					<linearGradient id="activite-area" x1="0" y1="0" x2="0" y2="1">
-						<stop offset="0%" stopColor="var(--color-dbz-orange, #ff6b1a)" stopOpacity="0.45" />
-						<stop offset="100%" stopColor="var(--color-dbz-orange, #ff6b1a)" stopOpacity="0.02" />
+						<stop offset="0%" stopColor="var(--color-dbz-orange)" stopOpacity="0.45" />
+						<stop offset="100%" stopColor="var(--color-dbz-orange)" stopOpacity="0.02" />
 					</linearGradient>
 				</defs>
 
@@ -506,7 +506,7 @@ function TrendChart({
 				<polyline
 					points={areaTop}
 					fill="none"
-					stroke="var(--color-dbz-orange, #ff6b1a)"
+					stroke="var(--color-dbz-orange)"
 					strokeWidth={2}
 					vectorEffect="non-scaling-stroke"
 				/>
@@ -535,7 +535,7 @@ function TrendChart({
 							cx={x(hover)}
 							cy={y(points[hover].pageviews)}
 							r={3.5}
-							fill="var(--color-dbz-orange, #ff6b1a)"
+							fill="var(--color-dbz-orange)"
 						/>
 						<circle
 							cx={x(hover)}

@@ -135,7 +135,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 									</div>
 									<div className="h-4 bg-dbz-bg border-2 border-dbz-border p-0.5 relative overflow-hidden">
 										<div
-											className="h-full shadow-[0_0_12px_rgba(255,107,26,0.6)]"
+											className="h-full halo-ember-bar"
 											style={{
 												width: `${progressPct}%`,
 												background: "linear-gradient(90deg,#6366f1,#a855f7,#38bdf8)",

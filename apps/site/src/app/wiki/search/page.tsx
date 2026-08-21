@@ -298,7 +298,7 @@ export default async function SearchPage({
 												<img
 													src={assetUrl(p.image)}
 													alt={p.name}
-													className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_15px_rgba(75,168,255,0.2)]"
+													className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 halo-ki-sm"
 													loading="lazy"
 												/>
 											) : (

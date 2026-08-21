@@ -134,12 +134,20 @@ main:focus {
 	--color-dbz-cyan: var(--dbz-cyan, #22d3ee); /* relations / affiliations */
 	--color-dbz-pink: var(--dbz-pink, #ec4899); /* divers / curiosités */
 
+	/* Accents « énergie » d'origine, antérieurs au recalibrage sur la charte
+	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
+	   déclarés en tokens — avec leur valeur historique en défaut, donc rendu
+	   inchangé — pour que /admin/design les pilote comme le reste. */
+	--color-dbz-ember: var(--dbz-ember, #ff6b1a); /* orange braise (halos, sunburst) */
+	--color-dbz-ki: var(--dbz-ki, #4ba8ff); /* bleu ki (LED, glows, planètes) */
+	--color-dbz-amber: var(--dbz-amber, #ffd23f); /* ambre (dégradés, texte ghost) */
+
 	/* Gradients réutilisables */
-	--gradient-galactic: linear-gradient(135deg, #ff6b1a 0%, #ffd23f 50%, #ff3e00 100%);
+	--gradient-galactic: linear-gradient(135deg, var(--color-dbz-ember) 0%, var(--color-dbz-amber) 50%, #ff3e00 100%);
 	--gradient-nebula:
-		radial-gradient(ellipse 130% 70% at 50% 0%, rgba(255, 107, 26, 0.22), transparent 62%),
-		radial-gradient(ellipse at bottom right, rgba(75, 168, 255, 0.14), transparent 55%),
-		radial-gradient(ellipse at bottom left, rgba(255, 210, 63, 0.1), transparent 50%);
+		radial-gradient(ellipse 130% 70% at 50% 0%, color-mix(in srgb, var(--color-dbz-ember) 22%, transparent), transparent 62%),
+		radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--color-dbz-ki) 14%, transparent), transparent 55%),
+		radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--color-dbz-amber) 10%, transparent), transparent 50%);
 
 	--color-primary: var(--color-dbz-orange);
 	--color-primary-foreground: #ffffff;
@@ -230,7 +238,7 @@ main:focus {
 		color: #f0f0ff;
 	}
 	::selection {
-		background: rgba(255, 107, 26, 0.4);
+		background: color-mix(in srgb, var(--color-dbz-ember) 40%, transparent);
 		color: #fff;
 	}
 }
@@ -280,7 +288,7 @@ main:focus {
 	.dbz-panel {
 		@apply bg-dbz-card/80 backdrop-blur-sm border border-dbz-border relative;
 		box-shadow:
-			0 0 0 1px rgba(255, 107, 26, 0.08),
+			0 0 0 1px color-mix(in srgb, var(--color-dbz-ember) 8%, transparent),
 			0 8px 32px rgba(0, 0, 0, 0.5),
 			inset 0 1px 0 rgba(255, 255, 255, 0.03);
 		border-radius: 0.75rem;
@@ -289,10 +297,10 @@ main:focus {
 			box-shadow 0.25s;
 	}
 	.dbz-panel:hover {
-		border-color: rgba(255, 107, 26, 0.5);
+		border-color: color-mix(in srgb, var(--color-dbz-ember) 50%, transparent);
 		box-shadow:
-			0 0 0 1px rgba(255, 107, 26, 0.25),
-			0 12px 48px rgba(255, 107, 26, 0.15),
+			0 0 0 1px color-mix(in srgb, var(--color-dbz-ember) 25%, transparent),
+			0 12px 48px color-mix(in srgb, var(--color-dbz-ember) 15%, transparent),
 			inset 0 1px 0 rgba(255, 255, 255, 0.05);
 	}
 
@@ -304,7 +312,7 @@ main:focus {
 		background-position: 0% 50%;
 		border-radius: 0.5rem;
 		box-shadow:
-			0 4px 16px rgba(255, 107, 26, 0.35),
+			0 4px 16px color-mix(in srgb, var(--color-dbz-ember) 35%, transparent),
 			inset 0 1px 0 rgba(255, 255, 255, 0.2);
 		letter-spacing: 0.12em;
 		font-size: 0.95rem;
@@ -312,33 +320,33 @@ main:focus {
 	.dbz-button:hover {
 		background-position: 100% 50%;
 		box-shadow:
-			0 6px 24px rgba(255, 107, 26, 0.5),
+			0 6px 24px color-mix(in srgb, var(--color-dbz-ember) 50%, transparent),
 			inset 0 1px 0 rgba(255, 255, 255, 0.3);
 		transform: translateY(-1px);
 	}
 	.dbz-button:active {
 		transform: translateY(1px);
 		box-shadow:
-			0 2px 8px rgba(255, 107, 26, 0.4),
+			0 2px 8px color-mix(in srgb, var(--color-dbz-ember) 40%, transparent),
 			inset 0 1px 0 rgba(255, 255, 255, 0.15);
 	}
 	.dbz-button-ghost {
 		@apply font-sans font-semibold uppercase tracking-widest px-5 py-2.5 inline-flex items-center justify-center transition-all border;
-		background: rgba(255, 107, 26, 0.06);
-		color: #ffd23f;
-		border-color: rgba(255, 107, 26, 0.3);
+		background: color-mix(in srgb, var(--color-dbz-ember) 6%, transparent);
+		color: var(--color-dbz-amber);
+		border-color: color-mix(in srgb, var(--color-dbz-ember) 30%, transparent);
 		border-radius: 0.5rem;
 	}
 	.dbz-button-ghost:hover {
-		background: rgba(255, 107, 26, 0.18);
-		border-color: rgba(255, 107, 26, 0.6);
+		background: color-mix(in srgb, var(--color-dbz-ember) 18%, transparent);
+		border-color: color-mix(in srgb, var(--color-dbz-ember) 60%, transparent);
 		color: #fff;
 	}
 
 	/* === Texte stylé === */
 	.scouter-text {
 		@apply font-scouter text-dbz-yellow tracking-widest uppercase;
-		text-shadow: 0 0 8px rgba(255, 210, 63, 0.6);
+		text-shadow: 0 0 8px color-mix(in srgb, var(--color-dbz-amber) 60%, transparent);
 	}
 	.text-galactic {
 		background: var(--gradient-galactic);
@@ -395,14 +403,14 @@ main:focus {
 			to bottom,
 			transparent 0,
 			transparent 2px,
-			rgba(255, 107, 26, 0.04) 2px,
-			rgba(255, 107, 26, 0.04) 3px
+			color-mix(in srgb, var(--color-dbz-ember) 4%, transparent) 2px,
+			color-mix(in srgb, var(--color-dbz-ember) 4%, transparent) 3px
 		);
 	}
 	.hud-grid {
 		background-image:
-			linear-gradient(rgba(255, 107, 26, 0.07) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(255, 107, 26, 0.07) 1px, transparent 1px);
+			linear-gradient(color-mix(in srgb, var(--color-dbz-ember) 7%, transparent) 1px, transparent 1px),
+			linear-gradient(90deg, color-mix(in srgb, var(--color-dbz-ember) 7%, transparent) 1px, transparent 1px);
 		background-size: 24px 24px;
 	}
 	.hud-frame {
@@ -431,10 +439,10 @@ main:focus {
 		width: 6px;
 		height: 6px;
 		border-radius: 50%;
-		background: #4ba8ff;
+		background: var(--color-dbz-ki);
 		box-shadow:
-			0 0 8px #4ba8ff,
-			0 0 16px rgba(75, 168, 255, 0.5);
+			0 0 8px var(--color-dbz-ki),
+			0 0 16px color-mix(in srgb, var(--color-dbz-ki) 50%, transparent);
 		animation: led-pulse 1.6s ease-in-out infinite;
 	}
 	@keyframes led-pulse {
@@ -462,7 +470,7 @@ main:focus {
 		background: linear-gradient(
 			to bottom,
 			transparent 0%,
-			rgba(255, 107, 26, 0.08) 50%,
+			color-mix(in srgb, var(--color-dbz-ember) 8%, transparent) 50%,
 			transparent 100%
 		);
 		animation: hud-sweep 6s linear infinite;
@@ -470,11 +478,11 @@ main:focus {
 
 	/* === Manga FX réutilisés (recolored) === */
 	.halftone {
-		background-image: radial-gradient(rgba(255, 107, 26, 0.18) 1px, transparent 1.5px);
+		background-image: radial-gradient(color-mix(in srgb, var(--color-dbz-ember) 18%, transparent) 1px, transparent 1.5px);
 		background-size: 4px 4px;
 	}
 	.halftone-orange {
-		background-image: radial-gradient(rgba(75, 168, 255, 0.25) 1px, transparent 1.6px);
+		background-image: radial-gradient(color-mix(in srgb, var(--color-dbz-ki) 25%, transparent) 1px, transparent 1.6px);
 		background-size: 5px 5px;
 	}
 	/* Screentone neutre (trame benday de gris) — ombrage façon planche manga
@@ -488,8 +496,8 @@ main:focus {
 			from 0deg at 50% 50%,
 			transparent 0deg,
 			transparent 4deg,
-			rgba(255, 107, 26, 0.3) 4deg,
-			rgba(255, 107, 26, 0.3) 4.4deg
+			color-mix(in srgb, var(--color-dbz-ember) 30%, transparent) 4deg,
+			color-mix(in srgb, var(--color-dbz-ember) 30%, transparent) 4.4deg
 		);
 		-webkit-mask-image: radial-gradient(circle at center, transparent 28%, black 70%);
 		mask-image: radial-gradient(circle at center, transparent 28%, black 70%);
@@ -497,11 +505,26 @@ main:focus {
 	.sunburst {
 		background: repeating-conic-gradient(
 			from 0deg at 50% 50%,
-			#ff6b1a 0deg,
-			#ff6b1a 6deg,
-			#4ba8ff 6deg,
-			#4ba8ff 12deg
+			var(--color-dbz-ember) 0deg,
+			var(--color-dbz-ember) 6deg,
+			var(--color-dbz-ki) 6deg,
+			var(--color-dbz-ki) 12deg
 		);
+	}
+	/* Halos d'accent réutilisables. Ils existaient en valeurs arbitraires Tailwind
+	   (`drop-shadow-[0_0_20px_rgba(75,168,255,0.2)]`), littéral en dur qui échappait
+	   à /admin/design ; adossés aux tokens, ils suivent désormais le thème. */
+	.halo-ki-sm {
+		filter: drop-shadow(0 0 15px color-mix(in srgb, var(--color-dbz-ki) 20%, transparent));
+	}
+	.halo-ki {
+		filter: drop-shadow(0 0 20px color-mix(in srgb, var(--color-dbz-ki) 20%, transparent));
+	}
+	.halo-ki-lg {
+		filter: drop-shadow(0 0 30px color-mix(in srgb, var(--color-dbz-ki) 30%, transparent));
+	}
+	.halo-ember-bar {
+		box-shadow: 0 0 12px color-mix(in srgb, var(--color-dbz-ember) 60%, transparent);
 	}
 	.ink-edge {
 		clip-path: polygon(0 0, 100% 0, 99% 100%, 0 98%, 0 4%);
@@ -512,7 +535,7 @@ main:focus {
 		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
-		filter: drop-shadow(0 0 16px rgba(255, 107, 26, 0.5)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+		filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-dbz-ember) 50%, transparent)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
 		letter-spacing: 0.04em;
 	}
 	@keyframes ki-pulse {
@@ -574,15 +597,15 @@ main:focus {
 	.starfield {
 		background-image:
 			radial-gradient(1px 1px at 25% 12%, rgba(255, 255, 255, 0.9), transparent),
-			radial-gradient(1px 1px at 70% 28%, rgba(255, 107, 26, 0.8), transparent),
+			radial-gradient(1px 1px at 70% 28%, color-mix(in srgb, var(--color-dbz-ember) 80%, transparent), transparent),
 			radial-gradient(1px 1px at 15% 45%, rgba(255, 255, 255, 0.7), transparent),
-			radial-gradient(2px 2px at 88% 60%, rgba(75, 168, 255, 0.9), transparent),
+			radial-gradient(2px 2px at 88% 60%, color-mix(in srgb, var(--color-dbz-ki) 90%, transparent), transparent),
 			radial-gradient(1px 1px at 40% 75%, rgba(255, 255, 255, 0.6), transparent),
-			radial-gradient(1px 1px at 60% 92%, rgba(255, 210, 63, 0.8), transparent),
+			radial-gradient(1px 1px at 60% 92%, color-mix(in srgb, var(--color-dbz-amber) 80%, transparent), transparent),
 			radial-gradient(1px 1px at 92% 18%, rgba(255, 255, 255, 0.5), transparent),
 			radial-gradient(1px 1px at 5% 70%, rgba(217, 33, 33, 0.7), transparent),
 			radial-gradient(1px 1px at 50% 5%, rgba(255, 255, 255, 0.4), transparent),
-			radial-gradient(1px 1px at 33% 33%, rgba(255, 107, 26, 0.5), transparent);
+			radial-gradient(1px 1px at 33% 33%, color-mix(in srgb, var(--color-dbz-ember) 50%, transparent), transparent);
 		background-size: 600px 600px;
 		background-repeat: repeat;
 	}
@@ -609,13 +632,13 @@ main:focus {
 	/* === Nebula glow utility === */
 	.glow-violet {
 		box-shadow:
-			0 0 24px rgba(255, 107, 26, 0.4),
-			0 0 48px rgba(255, 107, 26, 0.2);
+			0 0 24px color-mix(in srgb, var(--color-dbz-ember) 40%, transparent),
+			0 0 48px color-mix(in srgb, var(--color-dbz-ember) 20%, transparent);
 	}
 	.glow-cyan {
 		box-shadow:
-			0 0 24px rgba(75, 168, 255, 0.4),
-			0 0 48px rgba(75, 168, 255, 0.2);
+			0 0 24px color-mix(in srgb, var(--color-dbz-ki) 40%, transparent),
+			0 0 48px color-mix(in srgb, var(--color-dbz-ki) 20%, transparent);
 	}
 
 	/* === Ken Burns — zoom + pan lents sur une image de fond (effet ciné) ===
@@ -659,7 +682,7 @@ main:focus {
 		background:
 			radial-gradient(40% 50% at 25% 30%, rgba(255, 178, 0, 0.22), transparent 70%),
 			radial-gradient(45% 55% at 78% 65%, rgba(255, 62, 0, 0.16), transparent 70%),
-			radial-gradient(35% 45% at 60% 18%, rgba(75, 168, 255, 0.12), transparent 70%);
+			radial-gradient(35% 45% at 60% 18%, color-mix(in srgb, var(--color-dbz-ki) 12%, transparent), transparent 70%);
 		filter: blur(60px);
 		animation: aurora-drift 24s ease-in-out infinite;
 		will-change: transform;

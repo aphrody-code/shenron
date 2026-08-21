@@ -390,7 +390,7 @@ export default async function WikiIndex() {
 									<img
 										src={assetUrl(planet.image)}
 										alt={planet.name}
-										className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 drop-shadow-[0_0_20px_rgba(75,168,255,0.2)]"
+										className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 halo-ki"
 										loading="lazy"
 									/>
 									<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-20" />

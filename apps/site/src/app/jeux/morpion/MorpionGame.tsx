@@ -51,7 +51,7 @@ function CellButton({
 				boxShadow: highlighted
 					? "0 0 18px rgba(74,222,128,0.7), inset 0 0 12px rgba(74,222,128,0.4)"
 					: value === "X"
-						? "inset 0 0 14px rgba(75,168,255,0.35)"
+						? "inset 0 0 14px color-mix(in srgb, var(--color-dbz-ki) 35%, transparent)"
 						: value === "O"
 							? "inset 0 0 14px rgba(255,178,0,0.3)"
 							: undefined,

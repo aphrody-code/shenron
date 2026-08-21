@@ -20,6 +20,9 @@ export const THEME_COLOR_VARS = {
 	blueLight: "--dbz-blue-light",
 	yellow: "--dbz-yellow",
 	red: "--dbz-red",
+	ember: "--dbz-ember",
+	ki: "--dbz-ki",
+	amber: "--dbz-amber",
 } as const;
 
 export type ThemeColorKey = keyof typeof THEME_COLOR_VARS;
@@ -41,6 +44,9 @@ export const THEME_COLORS: readonly ThemeColorMeta[] = [
 	{ key: "blue", label: "Bleu profond", hint: "Navy secondaire" },
 	{ key: "blueLight", label: "Gris clair", hint: "Texte secondaire clair" },
 	{ key: "orangeDark", label: "Doré foncé", hint: "État pressé des boutons" },
+	{ key: "ember", label: "Orange braise", hint: "Halos, sunburst, dégradé galactique" },
+	{ key: "ki", label: "Bleu ki", hint: "LED, halos de planètes, effets d'énergie" },
+	{ key: "amber", label: "Ambre", hint: "Dégradés et texte des boutons fantômes" },
 ];
 
 export type ThemeColors = Record<ThemeColorKey, string>;
@@ -64,6 +70,9 @@ export const DEFAULT_SITE_THEME: SiteTheme = {
 		blueLight: "#cdcdcd",
 		yellow: "#ffb200",
 		red: "#ff0000",
+		ember: "#ff6b1a",
+		ki: "#4ba8ff",
+		amber: "#ffd23f",
 	},
 	radius: 0.5,
 };
