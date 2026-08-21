@@ -25,6 +25,9 @@ export interface DatabookPageDraft {
 }
 
 let keySeq = 0;
+/** Pages affichées d'un bloc ; « voir plus » élargit la fenêtre. */
+const FENETRE = 20;
+
 function newKey(): string {
 	keySeq += 1;
 	return `dbp-${Date.now().toString(36)}-${keySeq}`;
@@ -79,6 +82,26 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 	const client = apiAt(crudBase("db_databooks"));
 	const qc = useQueryClient();
 	const [pages, setPages] = useState<DatabookPageDraft[]>([]);
+	// Fenêtrage + filtre. Sans eux, le panneau rendait TOUTES les pages d'un coup,
+	// chacune avec son champ image : 233 blocs et 233 images sur la fiche la plus
+	// fournie. Ingérable — et la transcription de masse rendrait la relecture
+	// (11 775 planches) impossible sans « n'afficher que ce qui reste à faire ».
+	const [filtre, setFiltre] = useState<"tous" | "sans-texte" | "avec-texte">("tous");
+	const [fenetre, setFenetre] = useState(FENETRE);
+
+	const transcrites = pages.filter((p) => p.text.trim().length > 0).length;
+	// On conserve l'INDEX D'ORIGINE : tous les gestionnaires (renuméroter,
+	// supprimer, déplacer) raisonnent sur la position réelle dans `pages`, pas
+	// sur celle de la vue filtrée.
+	const affichees = pages
+		.map((page, i) => ({ page, i }))
+		.filter(({ page }) =>
+			filtre === "tous"
+				? true
+				: filtre === "avec-texte"
+					? page.text.trim().length > 0
+					: page.text.trim().length === 0
+		);
 	const [savedSnap, setSavedSnap] = useState("[]");
 	const [countInput, setCountInput] = useState("0");
 	const [startFrom, setStartFrom] = useState("1");
@@ -390,117 +413,167 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 					Aucune page. Indique un nombre ci-dessus ou clique « Ajouter ».
 				</p>
 			) : (
-				<ul className="space-y-4">
-					{pages.map((page, i) => {
-						const displayN = page.number.trim() || String(i + 1);
-						const isDup = dupNumbers.has(page.number.trim());
-						const isLast = i === pages.length - 1;
-						return (
-							<li
-								key={page._key}
-								ref={isLast ? listEndRef : undefined}
-								className="rounded-lg border border-dbz-border/50 bg-black/25 p-4"
-							>
-								<div className="mb-3 flex flex-wrap items-center gap-2">
-									<label
-										className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 ${
-											isDup ? "bg-amber-500/20 ring-1 ring-amber-400/50" : "bg-dbz-orange/15"
-										}`}
-									>
-										<span className="text-[10px] font-bold uppercase tracking-wider text-dbz-orange/80">
-											N°
-										</span>
-										<input
-											type="number"
-											inputMode="numeric"
-											className="w-14 border-0 bg-transparent p-0 text-center font-mono text-[12px] font-bold tabular-nums text-dbz-orange outline-none focus:ring-0"
-											value={page.number}
-											onChange={(e) => update(i, { number: e.target.value })}
-											onBlur={() => {
-												const n = Number(page.number);
-												if (!Number.isFinite(n)) update(i, { number: String(i + 1) });
-												else update(i, { number: String(Math.trunc(n)) });
-											}}
-											aria-label={`Numéro de la page (slot ${i + 1})`}
-											title="Numéro affiché (auto, modifiable)"
-										/>
-									</label>
-									<span className="text-[10px] text-white/50">
-										slot {i + 1}
-										{displayN !== String(i + 1) ? ` · affiché n°${displayN}` : ""}
-									</span>
-									{!page.image.trim() && !page.text.trim() && (
-										<span className="text-[10px] uppercase tracking-wider text-white/50">
-											Slot vide
-										</span>
-									)}
-									{isDup && (
-										<span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
-											Doublon
-										</span>
-									)}
-									<div className="ml-auto flex items-center gap-1">
-										<button
-											type="button"
-											className="btn btn-ghost h-7 px-2"
-											disabled={i === 0}
-											onClick={() => move(i, -1)}
-											title="Monter (change l'ordre de lecture, pas le n°)"
-											aria-label={`Monter la page ${displayN}`}
-										>
-											<ChevronUp className="h-3.5 w-3.5" />
-										</button>
-										<button
-											type="button"
-											className="btn btn-ghost h-7 px-2"
-											disabled={i === pages.length - 1}
-											onClick={() => move(i, 1)}
-											title="Descendre (change l'ordre de lecture, pas le n°)"
-											aria-label={`Descendre la page ${displayN}`}
-										>
-											<ChevronDown className="h-3.5 w-3.5" />
-										</button>
-										<button
-											type="button"
-											className="btn btn-ghost h-7 px-2 text-red-400 hover:border-red-500/50 hover:bg-red-500/10"
-											onClick={() => remove(i)}
-											title="Supprimer ce slot"
-											aria-label={`Supprimer la page ${displayN}`}
-										>
-											<Trash2 className="h-3.5 w-3.5" />
-										</button>
-									</div>
-								</div>
+				<>
+					<div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+						<span className="font-semibold text-white/70">
+							{transcrites}/{pages.length} page(s) transcrite(s)
+						</span>
+						<div className="ml-auto flex gap-1" role="group" aria-label="Filtrer les pages">
+							{(
+								[
+									["tous", `Toutes (${pages.length})`],
+									["sans-texte", `À transcrire (${pages.length - transcrites})`],
+									["avec-texte", `Transcrites (${transcrites})`],
+								] as const
+							).map(([cle, libelle]) => (
+								<button
+									key={cle}
+									type="button"
+									onClick={() => {
+										setFiltre(cle);
+										setFenetre(FENETRE);
+									}}
+									aria-pressed={filtre === cle}
+									className={`rounded-md border px-2.5 py-1 font-semibold transition-colors ${
+										filtre === cle
+											? "border-dbz-orange bg-dbz-orange/10 text-white"
+											: "border-white/15 text-white/60 hover:border-white/35 hover:text-white"
+									}`}
+								>
+									{libelle}
+								</button>
+							))}
+						</div>
+					</div>
 
-								<div className="grid gap-4 lg:grid-cols-2">
-									<div>
-										<span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-											Image (planche)
-										</span>
-										<ImageField
-											value={page.image}
-											onChange={(v) => update(i, { image: v })}
-											subdir="databooks"
-											column={`page-${displayN}`}
-										/>
-									</div>
-									<div>
-										<label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-											Texte sous l&apos;image
-										</label>
-										<textarea
-											className="input min-h-[140px] w-full resize-y text-sm leading-relaxed"
-											placeholder="Description, légende, notes… (affiché sous la planche sur la page publique)"
-											value={page.text}
-											onChange={(e) => update(i, { text: e.target.value })}
-											rows={6}
-										/>
-									</div>
-								</div>
-							</li>
-						);
-					})}
-				</ul>
+					{affichees.length === 0 ? (
+						<p className="py-6 text-center text-sm text-white/50">
+							Aucune page ne correspond à ce filtre.
+						</p>
+					) : (
+						<ul className="space-y-4">
+							{affichees.slice(0, fenetre).map(({ page, i }) => {
+								const displayN = page.number.trim() || String(i + 1);
+								const isDup = dupNumbers.has(page.number.trim());
+								const isLast = i === pages.length - 1;
+								return (
+									<li
+										key={page._key}
+										ref={isLast ? listEndRef : undefined}
+										className="rounded-lg border border-dbz-border/50 bg-black/25 p-4"
+									>
+										<div className="mb-3 flex flex-wrap items-center gap-2">
+											<label
+												className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 ${
+													isDup ? "bg-amber-500/20 ring-1 ring-amber-400/50" : "bg-dbz-orange/15"
+												}`}
+											>
+												<span className="text-[10px] font-bold uppercase tracking-wider text-dbz-orange/80">
+													N°
+												</span>
+												<input
+													type="number"
+													inputMode="numeric"
+													className="w-14 border-0 bg-transparent p-0 text-center font-mono text-[12px] font-bold tabular-nums text-dbz-orange outline-none focus:ring-0"
+													value={page.number}
+													onChange={(e) => update(i, { number: e.target.value })}
+													onBlur={() => {
+														const n = Number(page.number);
+														if (!Number.isFinite(n)) update(i, { number: String(i + 1) });
+														else update(i, { number: String(Math.trunc(n)) });
+													}}
+													aria-label={`Numéro de la page (slot ${i + 1})`}
+													title="Numéro affiché (auto, modifiable)"
+												/>
+											</label>
+											<span className="text-[10px] text-white/50">
+												slot {i + 1}
+												{displayN !== String(i + 1) ? ` · affiché n°${displayN}` : ""}
+											</span>
+											{!page.image.trim() && !page.text.trim() && (
+												<span className="text-[10px] uppercase tracking-wider text-white/50">
+													Slot vide
+												</span>
+											)}
+											{isDup && (
+												<span className="text-[10px] font-bold uppercase tracking-wider text-amber-300/90">
+													Doublon
+												</span>
+											)}
+											<div className="ml-auto flex items-center gap-1">
+												<button
+													type="button"
+													className="btn btn-ghost h-7 px-2"
+													disabled={i === 0}
+													onClick={() => move(i, -1)}
+													title="Monter (change l'ordre de lecture, pas le n°)"
+													aria-label={`Monter la page ${displayN}`}
+												>
+													<ChevronUp className="h-3.5 w-3.5" />
+												</button>
+												<button
+													type="button"
+													className="btn btn-ghost h-7 px-2"
+													disabled={i === pages.length - 1}
+													onClick={() => move(i, 1)}
+													title="Descendre (change l'ordre de lecture, pas le n°)"
+													aria-label={`Descendre la page ${displayN}`}
+												>
+													<ChevronDown className="h-3.5 w-3.5" />
+												</button>
+												<button
+													type="button"
+													className="btn btn-ghost h-7 px-2 text-red-400 hover:border-red-500/50 hover:bg-red-500/10"
+													onClick={() => remove(i)}
+													title="Supprimer ce slot"
+													aria-label={`Supprimer la page ${displayN}`}
+												>
+													<Trash2 className="h-3.5 w-3.5" />
+												</button>
+											</div>
+										</div>
+
+										<div className="grid gap-4 lg:grid-cols-2">
+											<div>
+												<span className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+													Image (planche)
+												</span>
+												<ImageField
+													value={page.image}
+													onChange={(v) => update(i, { image: v })}
+													subdir="databooks"
+													column={`page-${displayN}`}
+												/>
+											</div>
+											<div>
+												<label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
+													Texte sous l&apos;image
+												</label>
+												<textarea
+													className="input min-h-[140px] w-full resize-y text-sm leading-relaxed"
+													placeholder="Description, légende, notes… (affiché sous la planche sur la page publique)"
+													value={page.text}
+													onChange={(e) => update(i, { text: e.target.value })}
+													rows={6}
+												/>
+											</div>
+										</div>
+									</li>
+								);
+							})}
+						</ul>
+					)}
+					{affichees.length > fenetre && (
+						<button
+							type="button"
+							onClick={() => setFenetre((f) => f + FENETRE)}
+							className="mt-4 w-full rounded-lg border border-white/15 py-2 text-xs font-semibold text-white/70 transition-colors hover:border-dbz-orange hover:text-white"
+						>
+							Voir {Math.min(FENETRE, affichees.length - fenetre)} page(s) de plus ·{" "}
+							{Math.min(fenetre, affichees.length)}/{affichees.length}
+						</button>
+					)}
+				</>
 			)}
 
 			{pages.length > 0 && (
