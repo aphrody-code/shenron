@@ -234,8 +234,12 @@ async function currentSha(): Promise<string> {
  * `withBuildVmTuning()` relève déjà le temps du build. Node n'apportait donc
  * rien et contredisait la règle Bun-only du dépôt.
  *
- * `--bun` force le runtime Bun malgré le shebang `#!/usr/bin/env node` du binaire
- * `next` : sans lui, Bun se contenterait de déléguer à Node.
+ * On passe le FICHIER `next` à bun (`bun <fichier> build`) : dans cette forme, Bun
+ * est déjà le runtime et le shebang `#!/usr/bin/env node` n'est pas consulté.
+ * Surtout, on n'utilise PAS `bun --bun` : ce drapeau se propage aux process
+ * enfants via `NODE_OPTIONS`, et Turbopack lance un pool de process **Node** pour
+ * évaluer PostCSS — lesquels refusent de démarrer avec
+ * « node: --bun is not allowed in NODE_OPTIONS » (build échoué le 2026-08-21).
  *
  * Le succès se juge sur un BUILD_ID **frais**, pas sur le code retour.
  */
@@ -259,7 +263,7 @@ async function buildSite(sha: string): Promise<string> {
 	await rm(BUILD_DIR, { recursive: true, force: true });
 	const startedAt = Date.now();
 	log(`build (Bun, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}`);
-	const res = await run([bunBin, "--bun", nextBin, "build"], {
+	const res = await run([bunBin, nextBin, "build"], {
 		cwd: SITE_DIR,
 		env: {
 			// `env` REMPLACE l'environnement : tout ce qui n'est pas listé ici
