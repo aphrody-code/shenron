@@ -10,7 +10,7 @@ import { resolveDatabookCategory } from "@/lib/databook-categories";
 import { assetUrl, dbUniverse } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import { JsonLd } from "@/components/JsonLd";
-import { parseDatabookId } from "@/lib/databooks-rules";
+import { isDatabookIndexable, parseDatabookId } from "@/lib/databooks-rules";
 import { toMillis, yearOf } from "@/lib/epoch";
 
 export const revalidate = 3600;
@@ -95,6 +95,10 @@ export async function generateMetadata({
 	return {
 		title: `${book.title} — Databooks`,
 		description,
+		// Fiche sans planche ni description : navigable, mais hors index tant
+		// qu'elle n'a rien à montrer (cf. `isDatabookIndexable`). La règle se
+		// répare seule dès qu'une transcription arrive.
+		...(isDatabookIndexable(book) ? {} : { robots: { index: false, follow: true } }),
 		...ogMeta({
 			title: book.title,
 			description,

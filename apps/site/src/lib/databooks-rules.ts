@@ -52,3 +52,30 @@ export function parseDatabookId(brut: string): number | null {
 	const n = Number(brut);
 	return Number.isSafeInteger(n) && n > 0 ? n : null;
 }
+
+/** En deçà, une description ne dit rien d'utile (souvent « — » ou un mot). */
+const DESCRIPTION_MIN = 40;
+
+/**
+ * La fiche a-t-elle assez de substance pour mériter d'être indexée ?
+ *
+ * 21 des 318 fiches n'ont NI planche NI description — dont les 5 interviews en
+ * entier. Elles n'affichent qu'un titre et une couverture : rien qui réponde à
+ * une recherche. Les laisser indexables, c'est publier 21 pages minces et
+ * décevoir le visiteur qui clique.
+ *
+ * La règle se répare seule : dès qu'une transcription ou une description arrive,
+ * la fiche redevient indexable au prochain rendu. Elle reste navigable dans tous
+ * les cas — on retire l'indexation, pas la page.
+ */
+export function isDatabookIndexable(fiche: {
+	description?: string | null;
+	pages?: { image?: string | null; text?: string | null }[] | null;
+}): boolean {
+	const pages = Array.isArray(fiche.pages) ? fiche.pages : [];
+	const aDuContenu = pages.some(
+		(p) => (p?.image ?? null) !== null || (p?.text ?? "").trim() !== ""
+	);
+	if (aDuContenu) return true;
+	return (fiche.description ?? "").trim().length >= DESCRIPTION_MIN;
+}

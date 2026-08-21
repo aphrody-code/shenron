@@ -11,7 +11,7 @@
  * base inutile et une ligne d'erreur par URL malformée.
  */
 import { describe, expect, test } from "bun:test";
-import { normalizePages, parseDatabookId } from "../src/lib/databooks-rules";
+import { isDatabookIndexable, normalizePages, parseDatabookId } from "../src/lib/databooks-rules";
 
 describe("normalizePages", () => {
 	test("une valeur non tableau ne casse rien", () => {
@@ -50,5 +50,44 @@ describe("garde d'identifiant", () => {
 		for (const v of ["abc", "1abc", "-1", "0", "", " 1", "1.5", "1e3", "999999999999999999999"]) {
 			expect(parseDatabookId(v)).toBeNull();
 		}
+	});
+});
+
+describe("isDatabookIndexable", () => {
+	test("une fiche avec des planches est indexable", () => {
+		expect(isDatabookIndexable({ description: null, pages: [{ image: "a.jpg" }] })).toBe(true);
+	});
+
+	test("une planche transcrite suffit, même sans image", () => {
+		expect(isDatabookIndexable({ description: null, pages: [{ text: "du texte" }] })).toBe(true);
+	});
+
+	test("une description substantielle suffit, même sans planche", () => {
+		expect(
+			isDatabookIndexable({
+				description: "Recueil des illustrations couleur de la première série, publié en 1995.",
+				pages: [],
+			})
+		).toBe(true);
+	});
+
+	test("ni planche ni description : hors index", () => {
+		// Cas réel : 21 fiches sur 318, dont les 5 interviews en entier.
+		expect(isDatabookIndexable({ description: null, pages: [] })).toBe(false);
+		expect(isDatabookIndexable({ description: "—", pages: [] })).toBe(false);
+		expect(isDatabookIndexable({ description: "  ", pages: null })).toBe(false);
+	});
+
+	test("des planches vides ne comptent pas pour du contenu", () => {
+		expect(isDatabookIndexable({ description: null, pages: [{ image: null, text: "" }] })).toBe(
+			false
+		);
+	});
+
+	test("la règle se répare seule quand une transcription arrive", () => {
+		const avant = { description: null, pages: [{ image: null, text: "" }] };
+		expect(isDatabookIndexable(avant)).toBe(false);
+		const apres = { description: null, pages: [{ image: null, text: "planche transcrite" }] };
+		expect(isDatabookIndexable(apres)).toBe(true);
 	});
 });

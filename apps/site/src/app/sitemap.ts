@@ -20,6 +20,7 @@ import { eq } from "drizzle-orm";
 import { publicPostFilter } from "@/lib/posts";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 import { isPathPublic, type AccessSnapshot } from "@/lib/wiki-launch";
+import { isDatabookIndexable } from "@/lib/databooks-rules";
 
 export const revalidate = 86400; // Cache le sitemap pendant 24 heures
 
@@ -187,11 +188,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			return rows.map((r) => [`/wiki/dragon-ball/techniques/${r.slug}`, 0.5, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
+			// On n'annonce pas une fiche vide. 21 des 318 databooks n'ont ni planche
+			// ni description — les lister, c'est promettre à un moteur un contenu
+			// qui n'existe pas. `isDatabookIndexable` gouverne aussi le `robots` de
+			// la page : le sitemap et la balise disent la même chose, par
+			// construction. Le jour où la transcription arrive, la fiche revient.
 			const rows = await db
-				.select({ id: botDatabooks.id })
+				.select({
+					id: botDatabooks.id,
+					description: botDatabooks.description,
+					pages: botDatabooks.pages,
+				})
 				.from(botDatabooks)
 				.where(eq(botDatabooks.visible, true));
-			return rows.map((r) => [`/wiki/databooks/${r.id}`, 0.5, new Date()] as const);
+			return rows
+				.filter((r) => isDatabookIndexable(r as never))
+				.map((r) => [`/wiki/databooks/${r.id}`, 0.5, new Date()] as const);
 		}),
 		// Journal : `publicPostFilter()` et non `published = true` — un article
 		// programmé est « publié » avec une date future, le lister l'exposerait
