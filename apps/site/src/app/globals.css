@@ -1574,14 +1574,6 @@ main:focus {
 		color-mix(in oklab, #0a0a0a 26%, transparent);
 	mix-blend-mode: soft-light;
 }
-/* Ancien blob radial coloré (souvent bleu) — masqué par défaut (anti-voile).
-   Réactivable depuis /admin/home → VFX « Scene aura » (`data-scene-aura=on`). */
-.scene-aura {
-	display: none;
-}
-.home-deck[data-scene-aura="on"] .scene-aura {
-	display: block;
-}
 .scene-bar {
 	position: absolute;
 	left: 0;
@@ -2356,7 +2348,6 @@ main:focus {
 /* Reduced motion — coupe ken-burns / aura / snap doux */
 @media (prefers-reduced-motion: reduce) {
 	.scene-img--live,
-	.scene-aura.ki-pulse,
 	.home-scroll-hint__arrow {
 		animation: none !important;
 	}
@@ -2646,168 +2637,6 @@ main:focus {
 	.nav-progress__orb {
 		display: none;
 	}
-}
-
-/* =========================================================================
- * HOME — IMMERSION « JEU 3D » : tilt des cartes, burst de ki au clic,
- * parallaxe pointeur du héro. Tout est gardé pointeur fin + hover + motion OK
- * (tactile et reduced-motion ne paient rien) ; les vars --rx/--ry/--gx/--gy
- * (carte survolée) et --phx/--phy (deck) sont posées par HomeExperience.
- * ========================================================================= */
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-	.home-deck [data-tilt] {
-		position: relative;
-		transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-		transform-style: preserve-3d;
-		transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-		will-change: transform;
-	}
-	.home-deck [data-tilt]:hover {
-		transition: transform 0.08s linear;
-		transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
-			translateY(-3px) scale(1.012);
-	}
-	/* Reflet spéculaire qui suit le pointeur sur la carte inclinée. */
-	.home-deck [data-tilt]::before {
-		content: "";
-		position: absolute;
-		inset: 0;
-		z-index: 6;
-		pointer-events: none;
-		border-radius: inherit;
-		background: radial-gradient(
-			220px circle at var(--gx, 50%) var(--gy, 50%),
-			rgba(255, 255, 255, 0.14),
-			transparent 65%
-		);
-		opacity: 0;
-		transition: opacity 0.35s ease;
-	}
-	.home-deck [data-tilt]:hover::before {
-		opacity: 1;
-	}
-
-	/* Parallaxe pointeur — le héro respire en profondeur (contenu vers le
-	   pointeur, caption/clips/aura en contre-mouvement → effet de scène 3D). */
-	.home-hero__content {
-		transform: perspective(1200px) rotateX(calc(var(--phy, 0) * -2.2deg))
-			rotateY(calc(var(--phx, 0) * 3deg))
-			translate3d(calc(var(--phx, 0) * 8px), calc(var(--phy, 0) * 5px), 0);
-		transform-style: preserve-3d;
-		transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-	}
-	.home-hero__caption {
-		translate: calc(var(--phx, 0) * -12px) calc(var(--phy, 0) * -7px);
-		transition: translate 0.35s ease-out;
-	}
-	.home-clip-field {
-		translate: calc(var(--phx, 0) * -16px) calc(var(--phy, 0) * -10px);
-		transition: translate 0.5s ease-out;
-	}
-	.home-hero .scene-aura {
-		translate: calc(var(--phx, 0) * 14px) calc(var(--phy, 0) * 10px);
-	}
-}
-
-/* Burst de ki au clic — éclat cœur + onde + 6 étincelles couleur accent. */
-.ki-burst {
-	position: absolute;
-	width: 0;
-	height: 0;
-}
-.ki-burst::before {
-	content: "";
-	position: absolute;
-	inset: -16px;
-	border-radius: 50%;
-	background: radial-gradient(
-		circle,
-		color-mix(in oklab, var(--accent, #ffb200) 80%, #fff) 0%,
-		color-mix(in oklab, var(--accent, #ffb200) 45%, transparent) 40%,
-		transparent 70%
-	);
-	animation: ki-burst-core 0.45s ease-out both;
-}
-.ki-burst::after {
-	content: "";
-	position: absolute;
-	inset: -24px;
-	border-radius: 50%;
-	border: 2px solid color-mix(in oklab, var(--accent, #ffb200) 75%, #fff);
-	animation: ki-burst-ring 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.ki-burst i {
-	position: absolute;
-	left: -1px;
-	top: -6px;
-	width: 2.5px;
-	height: 12px;
-	border-radius: 2px;
-	background: linear-gradient(180deg, #fff, var(--accent, #ffb200), transparent);
-	animation: ki-burst-spark 0.55s ease-out both;
-}
-.ki-burst i:nth-child(1) {
-	--a: 0deg;
-}
-.ki-burst i:nth-child(2) {
-	--a: 60deg;
-}
-.ki-burst i:nth-child(3) {
-	--a: 120deg;
-}
-.ki-burst i:nth-child(4) {
-	--a: 180deg;
-}
-.ki-burst i:nth-child(5) {
-	--a: 240deg;
-}
-.ki-burst i:nth-child(6) {
-	--a: 300deg;
-}
-@keyframes ki-burst-core {
-	from {
-		transform: scale(0.4);
-		opacity: 0.9;
-	}
-	to {
-		transform: scale(1.6);
-		opacity: 0;
-	}
-}
-@keyframes ki-burst-ring {
-	from {
-		transform: scale(0.2);
-		opacity: 0.85;
-	}
-	to {
-		transform: scale(1.9);
-		opacity: 0;
-	}
-}
-@keyframes ki-burst-spark {
-	from {
-		transform: rotate(var(--a)) translateY(8px) scaleY(1);
-		opacity: 1;
-	}
-	to {
-		transform: rotate(var(--a)) translateY(48px) scaleY(0.35);
-		opacity: 0;
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-}
-
-/* =========================================================================
- * HOME — BEST OF DES SAGAS : écran de sélection façon jeu (rail de sagas +
- * scène centrale + rail média épisodes/films/tomes). Données SSR (wiki PG),
- * liens 100 % routes publiques. Budget vertical serré : le panneau vit dans
- * 100svh, tout est clampé et dégrade par hauteur/largeur d'écran.
- * ========================================================================= */
-#bestof .home-panel {
-	max-width: 84rem;
-}
-#bestof .home-panel__head {
-	margin-bottom: clamp(0.9rem, 2.4vh, 1.6rem);
 }
 
 .bestof {

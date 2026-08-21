@@ -99,10 +99,15 @@ export function SceneBackdrop({
 			<div className="scene-grade absolute inset-0" />
 			{/* Lisibilité — dégradé bas concentré sous le contenu (laisse le clip net en
 			    haut) + voile haut léger. Allégé vs avant → clips plus nets. */}
+			{/* Voile de LISIBILITÉ, indépendant de la scène affichée.
+			    Les fonds sont des images de l'anime : certaines sont très claires
+			    (ciel de Namek, désert) et le texte blanc du héros passait alors sur
+			    un bleu ciel — sous le seuil AA, sans qu'aucune configuration ne le
+			    signale. Ce dégradé latéral assombrit le côté où vit le texte sans
+			    écraser l'image, et se combine au dégradé vertical existant. */}
+			<div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-dbz-bg/85 via-dbz-bg/45 to-dbz-bg/10" />
 			<div className="absolute inset-0 bg-gradient-to-t from-dbz-bg via-dbz-bg/25 to-transparent" />
 			<div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-dbz-bg/55 to-transparent" />
-			{/* Aura d'énergie — halo radial accentué, pulse quand actif */}
-			<div className={`scene-aura absolute inset-0 ${active ? "ki-pulse" : ""}`} />
 			{/* Grain argentique discret (allégé pour ne pas ternir le clip) */}
 			<div className="film-grain absolute inset-0 opacity-[0.09]" />
 			{/* Letterbox cinéma */}

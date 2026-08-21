@@ -114,7 +114,6 @@ export function SagaBestOf({
 						role="tab"
 						aria-selected={i === sel}
 						tabIndex={i === sel ? 0 : -1}
-						data-tilt
 						className={`bestof-card${i === sel ? " is-on" : ""}`}
 						style={{ ["--accent" as string]: s.accent }}
 						onClick={() => select(i)}
@@ -191,7 +190,6 @@ export function SagaBestOf({
 					<Link
 						key={m.href}
 						href={m.href}
-						data-tilt
 						className={`bestof-media bestof-media--${m.kind}`}
 						aria-label={`${KIND_LABEL[m.kind]} — ${m.label}`}
 					>

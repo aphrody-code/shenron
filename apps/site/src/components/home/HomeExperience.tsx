@@ -502,7 +502,7 @@ export function HomeExperience({
 								</>
 							);
 							return t.href ? (
-								<Link key={t.k} href={t.href} data-tilt className="home-stat-tile reveal-up">
+								<Link key={t.k} href={t.href} className="home-stat-tile reveal-up">
 									{inner}
 								</Link>
 							) : (
@@ -523,7 +523,6 @@ export function HomeExperience({
 									key={c.id}
 									access={access}
 									href={`/wiki/dragon-ball/character/${c.id}`}
-									data-tilt
 									className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
 								>
 									{c.image && (
@@ -580,7 +579,6 @@ export function HomeExperience({
 									key={s.id}
 									access={access}
 									href="/wiki/sagas"
-									data-tilt
 									className="group flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/30 p-4 transition-colors hover:border-[var(--accent)]"
 								>
 									{s.series && (
@@ -614,7 +612,7 @@ export function HomeExperience({
 							const m = guardianMeta(p.name);
 							const src = assetUrl(p.avatarUrl ?? p.avatar ?? "");
 							return (
-								<article key={p.id} data-tilt className="home-guardian reveal-up">
+								<article key={p.id} className="home-guardian reveal-up">
 									<span className="home-guardian__kanji" aria-hidden>
 										{m.kanji}
 									</span>
@@ -681,7 +679,7 @@ export function HomeExperience({
 				return (
 					<div className="home-cards">
 						{(cfg.cards ?? DEFAULT_PLAY_CARDS).map((c) => (
-							<Link key={c.href + c.title} href={c.href} data-tilt className="home-card reveal-up">
+							<Link key={c.href + c.title} href={c.href} className="home-card reveal-up">
 								<span className="home-card__kanji" aria-hidden>
 									{c.kanji}
 								</span>
@@ -703,7 +701,6 @@ export function HomeExperience({
 								<Link
 									key={p.id}
 									href={`/actualites/${p.slug}`}
-									data-tilt
 									className="home-news__item reveal-up"
 								>
 									{p.cover && (
