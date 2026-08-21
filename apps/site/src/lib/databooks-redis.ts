@@ -17,39 +17,68 @@ import "server-only";
  * est un bonus de lecture, pas un chemin critique. Un `throw` ici ferait échouer
  * une écriture Postgres pourtant réussie.
  */
-import { RedisClient } from "bun";
 
 /** Base 4 : 0/1/3 sont prises par le bot (indexeur, files, mémoire LLM). */
 const DB_INDEX = 4;
 const PREFIXE = "dbfr:databook";
 
-let client: RedisClient | null = null;
+/**
+ * Client minimal — juste ce que ce module utilise de `Bun.RedisClient`.
+ *
+ * Le type est déclaré à la main parce que le module `bun` n'est PAS importable
+ * statiquement ici : le site est SERVI par Bun mais CONSTRUIT par Node 22
+ * (exception documentée dans CLAUDE.md). Un `import { RedisClient } from "bun"`
+ * en tête de fichier fait échouer le build avec `Cannot find module 'bun'` — vécu
+ * le 2026-08-21, build interrompu avant la bascule. L'import est donc dynamique
+ * et n'a lieu qu'à l'exécution, sous Bun.
+ */
+interface ClientRedis {
+	onclose: ((err: Error) => void) | null;
+	get(key: string): Promise<string | null>;
+	set(key: string, value: string): Promise<unknown>;
+	del(key: string): Promise<unknown>;
+	sadd(key: string, member: string): Promise<unknown>;
+	srem(key: string, member: string): Promise<unknown>;
+	scard(key: string): Promise<number>;
+}
+
+let client: ClientRedis | null = null;
+let chargement: Promise<ClientRedis | null> | null = null;
 let indisponible = false;
 
-function redis(): RedisClient | null {
+async function redis(): Promise<ClientRedis | null> {
 	if (indisponible) return null;
 	if (client) return client;
-	try {
-		const base = process.env.REDIS_URL ?? "redis://127.0.0.1:6379";
-		const url = new URL(base);
-		url.pathname = `/${DB_INDEX}`;
-		const c = new RedisClient(url.toString(), {
-			autoReconnect: true,
-			maxRetries: 20,
-			enableOfflineQueue: false,
-		});
-		// Client jetable : à la fermeture, la commande suivante en rebâtit un.
-		// (Le singleton `bun.redis` abandonne définitivement après `maxRetries` —
-		// panne vécue côté bot le 2026-08-21, 8 500 erreurs en douze heures.)
-		c.onclose = () => {
-			if (client === c) client = null;
-		};
-		client = c;
-		return c;
-	} catch {
-		indisponible = true;
-		return null;
-	}
+	if (chargement) return chargement;
+	chargement = (async () => {
+		try {
+			const { RedisClient } = (await import("bun")) as unknown as {
+				RedisClient: new (url: string, opts: Record<string, unknown>) => ClientRedis;
+			};
+			const url = new URL(process.env.REDIS_URL ?? "redis://127.0.0.1:6379");
+			url.pathname = `/${DB_INDEX}`;
+			const c = new RedisClient(url.toString(), {
+				autoReconnect: true,
+				maxRetries: 20,
+				enableOfflineQueue: false,
+			});
+			// Client jetable : à la fermeture, la commande suivante en rebâtit un.
+			// (Le singleton `bun.redis` abandonne définitivement après `maxRetries` —
+			// panne vécue côté bot le 2026-08-21, 8 500 erreurs en douze heures.)
+			c.onclose = () => {
+				if (client === c) client = null;
+				chargement = null;
+			};
+			client = c;
+			return c;
+		} catch {
+			indisponible = true;
+			return null;
+		} finally {
+			chargement = null;
+		}
+	})();
+	return chargement;
 }
 
 interface FicheIndexable {
@@ -73,7 +102,7 @@ const CLE_TOUS = `${PREFIXE}s:all`;
 
 /** Indexe (ou réindexe) une fiche. Retire de l'index si elle est masquée. */
 export async function indexDatabook(fiche: FicheIndexable): Promise<void> {
-	const r = redis();
+	const r = await redis();
 	if (!r) return;
 	try {
 		if (!fiche.visible) {
@@ -106,7 +135,7 @@ export async function indexDatabook(fiche: FicheIndexable): Promise<void> {
 
 /** Retire une fiche de l'index (suppression ou passage en masqué). */
 export async function forgetDatabook(id: number): Promise<void> {
-	const r = redis();
+	const r = await redis();
 	if (!r) return;
 	try {
 		const brut = await r.get(cleFiche(id));
@@ -124,7 +153,7 @@ export async function forgetDatabook(id: number): Promise<void> {
 
 /** Lit une fiche indexée. `null` si absente ou si Redis est indisponible. */
 export async function readIndexedDatabook(id: number): Promise<Record<string, unknown> | null> {
-	const r = redis();
+	const r = await redis();
 	if (!r) return null;
 	try {
 		const brut = await r.get(cleFiche(id));
@@ -136,7 +165,7 @@ export async function readIndexedDatabook(id: number): Promise<Record<string, un
 
 /** Compte des entrées indexées — sonde de santé de l'index. */
 export async function databookIndexStats(): Promise<{ total: number; disponible: boolean }> {
-	const r = redis();
+	const r = await redis();
 	if (!r) return { total: 0, disponible: false };
 	try {
 		const n = await r.scard(CLE_TOUS);
