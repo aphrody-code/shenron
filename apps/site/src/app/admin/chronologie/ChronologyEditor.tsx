@@ -896,7 +896,12 @@ function EntryRow({
 					{hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
 				</button>
 
-				<button type="button" onClick={onToggleExpand} className="btn btn-ghost px-2">
+				<button
+					type="button"
+					onClick={onToggleExpand}
+					className="btn btn-ghost px-2"
+					aria-label="Déplier ou replier cette ère"
+				>
 					<ChevronDown className={`h-4 w-4 transition-transform ${expanded ? "rotate-180" : ""}`} />
 				</button>
 			</div>

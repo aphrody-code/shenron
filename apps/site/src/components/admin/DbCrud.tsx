@@ -318,7 +318,12 @@ function FieldModal({
 						<h3 className="font-saiyan text-lg uppercase text-dbz-orange">{title}</h3>
 						<p className="mt-0.5 font-mono text-xs text-white/50">{subtitle}</p>
 					</div>
-					<button type="button" onClick={onClose} className="btn btn-ghost px-2">
+					<button
+						type="button"
+						onClick={onClose}
+						className="btn btn-ghost px-2"
+						aria-label="Fermer"
+					>
 						<X className="h-4 w-4" />
 					</button>
 				</div>

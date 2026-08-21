@@ -304,7 +304,12 @@ function GalleryPicker({
 							onChange={(e) => setFilter(e.target.value)}
 						/>
 					</div>
-					<button type="button" onClick={onClose} className="btn btn-ghost px-2">
+					<button
+						type="button"
+						onClick={onClose}
+						className="btn btn-ghost px-2"
+						aria-label="Fermer"
+					>
 						<X className="h-4 w-4" />
 					</button>
 				</div>

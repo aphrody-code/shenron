@@ -619,6 +619,7 @@ function ThemeEditor({
 							{isCreate ? "Nouveau thème" : `Modifier « ${draft.name} »`}
 						</h3>
 						<button
+							aria-label="Fermer"
 							type="button"
 							onClick={onClose}
 							className="ml-auto dbz-button-ghost !px-2 !py-1"
@@ -984,7 +985,12 @@ function AssetPickerModal({
 					<h3 className="font-saiyan text-dbz-orange text-lg uppercase">
 						Choisir une image de fond
 					</h3>
-					<button type="button" onClick={onClose} className="ml-auto dbz-button-ghost !px-2 !py-1">
+					<button
+						type="button"
+						onClick={onClose}
+						className="ml-auto dbz-button-ghost !px-2 !py-1"
+						aria-label="Fermer"
+					>
 						<X className="h-4 w-4" />
 					</button>
 				</div>

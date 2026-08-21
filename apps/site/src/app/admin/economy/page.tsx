@@ -83,7 +83,12 @@ function ConfirmDialog({
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
 					</div>
-					<button type="button" onClick={onCancel} className="ml-auto btn btn-ghost px-1 py-1">
+					<button
+						type="button"
+						onClick={onCancel}
+						className="ml-auto btn btn-ghost px-1 py-1"
+						aria-label="Fermer"
+					>
 						<X className="h-4 w-4" />
 					</button>
 				</div>

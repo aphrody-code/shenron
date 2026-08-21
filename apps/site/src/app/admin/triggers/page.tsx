@@ -48,7 +48,12 @@ function ConfirmDialog({
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
 					</div>
-					<button type="button" onClick={onCancel} className="ml-auto btn btn-ghost px-1 py-1">
+					<button
+						type="button"
+						onClick={onCancel}
+						className="ml-auto btn btn-ghost px-1 py-1"
+						aria-label="Fermer"
+					>
 						<X className="h-4 w-4" />
 					</button>
 				</div>
@@ -340,7 +345,12 @@ function TriggerEditor({
 					<h3 className="text-lg font-semibold">
 						{isCreate ? "Créer un déclencheur" : `Modifier « ${draft.code} »`}
 					</h3>
-					<button type="button" onClick={onClose} className="ml-auto btn btn-ghost px-2">
+					<button
+						type="button"
+						onClick={onClose}
+						className="ml-auto btn btn-ghost px-2"
+						aria-label="Fermer"
+					>
 						<X className="h-3 w-3" />
 					</button>
 				</div>
