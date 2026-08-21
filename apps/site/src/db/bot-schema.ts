@@ -9,6 +9,21 @@
  * REST du bot pour les pages publiques /wiki) → découplé de la dispo du process
  * bot. Toutes les colonnes int SQLite arrivent en `bigint` Postgres, les autres
  * en `text` — on type donc à l'identique. Lecture seule : aucune écriture site.
+ *
+ * ── INDEX : voir `src/db/bot-indexes.sql` ───────────────────────────────────
+ * Les index de ce schéma ne sont volontairement PAS déclarés ici. Ce fichier
+ * n'ayant jamais porté d'`index()`, les tables du wiki n'ont longtemps eu que
+ * leur clé primaire (deux tables de jointure n'avaient même pas ça) : mesuré le
+ * 2026-08-21, 272 000 balayages séquentiels sur `db_episodes`, 76 000 sur
+ * `db_manga_chapters`. Ils vivent désormais dans `bot-indexes.sql`, appliqué par
+ * `scripts/apply-bot-indexes.ts`.
+ *
+ * Pourquoi pas ici : les index qui comptent sont des index PARTIELS
+ * (`WHERE visible`) et des GIN `gin_trgm_ops`, que drizzle-kit ne restitue pas
+ * fidèlement. Les déclarer produirait un écart permanent au diff — et donc une
+ * invitation à lancer un `push` sur le schéma `bot`, qui voudrait droper les
+ * colonnes propres à PostgreSQL (`players`, `frames`, `pages`, `subtitles`).
+ * Toute modification d'index passe par le fichier SQL, pas par ce fichier.
  */
 import { bigint, boolean, jsonb, pgSchema, text } from "drizzle-orm/pg-core";
 

@@ -43,4 +43,17 @@ fi
 # Purge > 14 jours.
 find "$DEST_DIR" -name 'shenron_site-*.sql.gz' -mtime +14 -delete
 
+# ANALYZE quotidien, accroché ici plutôt qu'à un timer de plus.
+#
+# Ce n'est pas de la cosmétique : constaté le 2026-08-21, cinq tables du wiki
+# (db_characters, db_planets, db_races, db_techniques, db_manga_chapters)
+# n'avaient JAMAIS été analysées — last_analyze ET last_autoanalyze à NULL. Le
+# planificateur voyait 0 ligne là où il y en avait 1 323 et choisissait un
+# balayage séquentiel même quand un index existait. Le seed initial et le
+# re-seed depuis SQLite repeuplent les tables sans déclencher l'autoanalyse
+# assez tôt : on la force, juste après le dump donc hors heure de pointe.
+if ! psql "$DATABASE_URL" -X -q -c 'ANALYZE;' 2>/dev/null; then
+  echo "! ANALYZE a échoué (non bloquant)" >&2
+fi
+
 echo "[$TS] shenron pg backup: $(numfmt --to=iec "$SIZE") → $DEST"
