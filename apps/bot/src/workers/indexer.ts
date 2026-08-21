@@ -10,7 +10,37 @@
  * l'intent privilégié GuildMembers. La détection de lore utilise des limites de mots (\b) pour
  * éviter les faux positifs ("cell" dans "excellent").
  */
-import { redis } from "bun";
+import { RedisClient } from "bun";
+
+/**
+ * Client Redis résilient.
+ *
+ * Le singleton `bun.redis` abandonne après `maxRetries` (10 par défaut) : une
+ * fois ce quota épuisé, TOUTE commande ultérieure jette
+ * `ERR_REDIS_CONNECTION_CLOSED`, définitivement. Vécu le 2026-08-21 — Redis a
+ * redémarré, le bot ne s'est jamais reconnecté et a produit ~8 500 erreurs en
+ * douze heures (≈ 49 par minute) pendant que l'indexation des messages restait
+ * muette. Le service ne « tombe » pas : il boucle.
+ *
+ * Ici le client est jetable : `onclose` l'oublie, la commande suivante en
+ * rebâtit un. La reconnexion n'a donc pas de plafond, et la file hors-ligne
+ * absorbe les commandes émises pendant la coupure.
+ */
+let client: RedisClient | null = null;
+
+function r(): RedisClient {
+	if (client) return client;
+	const c = new RedisClient(process.env.REDIS_URL, {
+		autoReconnect: true,
+		maxRetries: 20,
+		enableOfflineQueue: true,
+	});
+	c.onclose = () => {
+		if (client === c) client = null;
+	};
+	client = c;
+	return c;
+}
 import { readFileSync, existsSync } from "node:fs";
 
 interface IndexChannel {
@@ -208,14 +238,14 @@ function upsertUser(
 	bot: boolean
 ): void {
 	promises.push(
-		redis.hset(`dbz:user:${id}`, {
+		r().hset(`dbz:user:${id}`, {
 			id,
 			username,
 			displayName: displayName || username,
 			bot: bot ? "true" : "false",
 		})
 	);
-	promises.push(redis.sadd("dbz:users", id));
+	promises.push(r().sadd("dbz:users", id));
 }
 
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
@@ -227,24 +257,24 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 		if (type === "INDEX_CHANNELS") {
 			for (const ch of data) {
 				promises.push(
-					redis.hset(`dbz:channel:${ch.id}`, {
+					r().hset(`dbz:channel:${ch.id}`, {
 						id: ch.id,
 						name: ch.name,
 						type: ch.type,
 						parentId: ch.parentId ?? "",
 					})
 				);
-				promises.push(redis.sadd("dbz:channels", ch.id));
+				promises.push(r().sadd("dbz:channels", ch.id));
 			}
 		} else if (type === "INDEX_USERS") {
 			for (const u of data) {
 				upsertUser(promises, u.id, u.username, u.displayName, u.bot);
-				if (u.joinedAt) promises.push(redis.hset(`dbz:user:${u.id}`, { joinedAt: u.joinedAt }));
+				if (u.joinedAt) promises.push(r().hset(`dbz:user:${u.id}`, { joinedAt: u.joinedAt }));
 			}
 		} else if (type === "INDEX_MESSAGES") {
 			for (const msg of data) {
 				promises.push(
-					redis.hset(`dbz:message:${msg.id}`, {
+					r().hset(`dbz:message:${msg.id}`, {
 						id: msg.id,
 						content: msg.content,
 						authorId: msg.authorId,
@@ -252,8 +282,8 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 						createdAt: msg.createdAt,
 					})
 				);
-				promises.push(redis.rpush(`dbz:channel:${msg.channelId}:messages`, msg.id));
-				promises.push(redis.ltrim(`dbz:channel:${msg.channelId}:messages`, -1000, -1));
+				promises.push(r().rpush(`dbz:channel:${msg.channelId}:messages`, msg.id));
+				promises.push(r().ltrim(`dbz:channel:${msg.channelId}:messages`, -1000, -1));
 
 				// Indexer l'auteur (peuple dbz:user:* sans intent GuildMembers).
 				if (msg.authorName) {
@@ -265,7 +295,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 						!!msg.authorBot
 					);
 				}
-				promises.push(redis.hincrby(`dbz:user:${msg.authorId}:stats`, "messages", 1));
+				promises.push(r().hincrby(`dbz:user:${msg.authorId}:stats`, "messages", 1));
 
 				// Analytics de lore (limites de mots & canonicalisation sémantique).
 				const content = msg.content || "";
@@ -292,9 +322,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 				}
 
 				for (const entity of foundEntities) {
-					promises.push(redis.hincrby(`dbz:user:${msg.authorId}:lore`, entity, 1));
-					promises.push(redis.hincrby(`dbz:channel:${msg.channelId}:lore`, entity, 1));
-					promises.push(redis.hincrby("dbz:global:lore", entity, 1));
+					promises.push(r().hincrby(`dbz:user:${msg.authorId}:lore`, entity, 1));
+					promises.push(r().hincrby(`dbz:channel:${msg.channelId}:lore`, entity, 1));
+					promises.push(r().hincrby("dbz:global:lore", entity, 1));
 				}
 
 				// Sentiment par mots-clés sur texte normalisé (plus de faux-négatifs d'accents).
@@ -303,8 +333,8 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 				for (const re of POS_RE) if (re.test(normContent)) pos++;
 				for (const re of NEG_RE) if (re.test(normContent)) neg++;
 				const bucket = pos > neg ? "positive" : neg > pos ? "negative" : "neutral";
-				promises.push(redis.hincrby(`dbz:user:${msg.authorId}:sentiment`, bucket, 1));
-				promises.push(redis.hincrby("dbz:global:sentiment", bucket, 1));
+				promises.push(r().hincrby(`dbz:user:${msg.authorId}:sentiment`, bucket, 1));
+				promises.push(r().hincrby("dbz:global:sentiment", bucket, 1));
 			}
 		}
 

@@ -29,6 +29,27 @@ export class RedisIndexerService {
 	 *  ce backfill profond (8x l'ancien cap de 50) tourne au boot + cron sans marteler l'API Discord.
 	 *  0 = illimité (déconseillé sur gros serveurs). Surcharge via REDIS_INDEX_MAX_MESSAGES. */
 	private readonly maxBackfill = Number(process.env.REDIS_INDEX_MAX_MESSAGES ?? 400);
+	/** Dernier passage de journalisation d'échec, et échecs tus depuis. */
+	private dernierEchec = 0;
+	private echecsTus = 0;
+
+	/**
+	 * Journalise un échec d'indexation au plus une fois par minute.
+	 *
+	 * Quand Redis est injoignable, chaque lot échoue : le 2026-08-21, la même
+	 * ligne est sortie ~8 500 fois en douze heures, noyant tout le reste du
+	 * journal du bot. Le regroupement conserve l'information (et le compte des
+	 * occurrences tues) sans rendre `journalctl -u shenron` inutilisable.
+	 */
+	private logEchec(type: string, error?: unknown) {
+		this.echecsTus += 1;
+		const maintenant = Date.now();
+		if (maintenant - this.dernierEchec < 60_000) return;
+		const repetitions = this.echecsTus > 1 ? ` (${this.echecsTus} échec(s) depuis le dernier message)` : "";
+		console.error(`[REDIS INDEXER] Erreur type ${type}${repetitions} :`, error || "Échec d'insertion");
+		this.dernierEchec = maintenant;
+		this.echecsTus = 0;
+	}
 
 	constructor() {
 		this.initWorker();
@@ -44,7 +65,7 @@ export class RedisIndexerService {
 				if (status === "success") {
 					console.log(`[REDIS INDEXER] ${type} : ${count} items indexés.`);
 				} else {
-					console.error(`[REDIS INDEXER] Erreur type ${type} :`, error || "Échec d'insertion");
+					this.logEchec(type, error);
 				}
 			};
 			this.worker.onerror = (err) => {
