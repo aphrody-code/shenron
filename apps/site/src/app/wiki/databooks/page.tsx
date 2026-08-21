@@ -4,6 +4,7 @@ import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { SERIES_BANNERS } from "@/lib/db-banners";
 import { DatabookGrid } from "@/components/databooks/DatabookGrid";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 export const revalidate = 3600;
 
@@ -15,7 +16,12 @@ export const metadata: Metadata = {
 };
 
 export default async function DatabooksIndexPage() {
-	const data = await dbUniverse.databooks({ order: "desc" });
+	// `access` : la grille est un composant client et ne peut pas lire la
+	// configuration de lancement ; on la résout ici et on la lui passe.
+	const [data, access] = await Promise.all([
+		dbUniverse.databooks({ order: "desc" }),
+		getLaunchConfig().catch(() => null),
+	]);
 	const items = (data?.items ?? []).map((d) => ({
 		id: d.id,
 		kind: d.kind,
@@ -45,7 +51,7 @@ export default async function DatabooksIndexPage() {
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-10 lg:py-24">
 				<Breadcrumbs className="mb-8" items={[{ label: "Databooks" }]} />
-				<DatabookGrid items={items} />
+				<DatabookGrid items={items} access={access} />
 			</div>
 		</div>
 	);

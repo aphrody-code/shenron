@@ -10,7 +10,7 @@ import { getAggregateSummary, getRatingSummaries } from "@/lib/ratings";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { GatedLink } from "@/components/GatedLink";
+import { GatedLink, GatedWrap } from "@/components/GatedLink";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
@@ -147,7 +147,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 
 					<div className="grid gap-4">
 						{arcs.map((a, idx) => (
-							<Link
+							<GatedWrap
 								key={a.id}
 								href={`/wiki/arcs/${a.slug}`}
 								className="dbz-panel p-6 hover:bg-white/5 transition-all group reveal-up"
@@ -177,7 +177,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 										→
 									</span>
 								</div>
-							</Link>
+							</GatedWrap>
 						))}
 					</div>
 				</section>

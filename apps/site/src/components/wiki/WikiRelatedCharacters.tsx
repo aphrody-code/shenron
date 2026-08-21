@@ -14,6 +14,7 @@ import {
 } from "@/lib/wiki-section-accents";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import Link from "next/link";
+import { GatedWrap } from "@/components/GatedLink";
 
 export function WikiRelatedCharacters({
 	heading,
@@ -43,7 +44,7 @@ export function WikiRelatedCharacters({
 
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
 				{items.map((c) => (
-					<Link
+					<GatedWrap
 						key={c.id}
 						href={`/wiki/dragon-ball/character/${c.id}`}
 						className="dbz-panel group flex flex-col items-center p-3 transition-transform duration-300 hover:scale-105"
@@ -68,7 +69,7 @@ export function WikiRelatedCharacters({
 								{c.race}
 							</span>
 						)}
-					</Link>
+					</GatedWrap>
 				))}
 			</div>
 		</section>

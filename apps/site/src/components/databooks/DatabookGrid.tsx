@@ -18,6 +18,8 @@ import {
 	resolveDatabookCategory,
 	type DatabookCategory,
 } from "@/lib/databook-categories";
+import { ClientGatedWrap } from "@/components/GatedClientLink";
+import type { AccessSnapshot } from "@/lib/wiki-launch";
 
 export interface DatabookItem {
 	id: number;
@@ -104,7 +106,14 @@ const tabBtn =
 const tabActive = "border-dbz-orange bg-dbz-orange/10 text-white";
 const tabIdle = "border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white";
 
-export function DatabookGrid({ items }: { items: DatabookItem[] }) {
+export function DatabookGrid({
+	items,
+	access,
+}: {
+	items: DatabookItem[];
+	/** Instantané de la configuration de lancement, résolu côté serveur. */
+	access?: AccessSnapshot | null;
+}) {
 	const [filter, setFilter] = useState<string>("all");
 	const [q, setQ] = useState("");
 	const [order, setOrder] = useState<"desc" | "asc">("desc");
@@ -189,7 +198,8 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 						const cat = resolveDatabookCategory(d.category);
 						const Icon = CATEGORY_ICONS[cat] ?? BookOpen;
 						return (
-							<Link
+							<ClientGatedWrap
+								access={access}
 								key={d.id}
 								href={`/wiki/databooks/${d.id}`}
 								transitionTypes={["nav-forward"]}
@@ -239,7 +249,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 										</p>
 									</div>
 								</div>
-							</Link>
+							</ClientGatedWrap>
 						);
 					})}
 				</div>

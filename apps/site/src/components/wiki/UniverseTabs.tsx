@@ -10,6 +10,8 @@ import { ViewTransition } from "@/components/ViewTransition";
 import { assetUrl } from "@/lib/assets";
 import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
+import { ClientGatedWrap } from "@/components/GatedClientLink";
+import type { AccessSnapshot } from "@/lib/wiki-launch";
 
 // Autres entrées encyclopédiques (hors onglets Perso/Planètes) exposées DANS la
 // même barre — Races, Transformations, Techniques, Arcs. On n'y met jamais les
@@ -41,7 +43,8 @@ export function UniverseTabs({
 	initialTab = "personnages",
 	counts = {},
 	facets,
-}: Props) {
+	access,
+}: Props & { access?: AccessSnapshot | null }) {
 	const [activeTab, setActiveTab] = useState<string>(initialTab);
 	const [planetStatus, setPlanetStatus] = useState<string[]>([]);
 
@@ -113,7 +116,8 @@ export function UniverseTabs({
 					{OTHER_CATS.map((c) => {
 						const n = counts[c.countKey];
 						return (
-							<Link
+							<ClientGatedWrap
+								access={access}
 								key={c.key}
 								href={c.href}
 								className="px-4 py-3 font-display font-semibold text-sm text-white/55 hover:text-white whitespace-nowrap transition-colors"
@@ -122,7 +126,7 @@ export function UniverseTabs({
 								{typeof n === "number" && n > 0 && (
 									<span className="ml-1 text-[11px] text-white/50 tabular-nums">{n}</span>
 								)}
-							</Link>
+							</ClientGatedWrap>
 						);
 					})}
 				</div>
@@ -135,7 +139,7 @@ export function UniverseTabs({
 					id="universe-panel-personnages"
 					aria-labelledby="universe-tab-personnages"
 				>
-					<CharacterGrid characters={characters} facets={facets} />
+					<CharacterGrid characters={characters} facets={facets} access={access} />
 				</div>
 			) : (
 				<div
@@ -157,7 +161,8 @@ export function UniverseTabs({
 					</div>
 					<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 reveal-grid">
 						{filteredPlanets.map((p) => (
-							<Link
+							<ClientGatedWrap
+								access={access}
 								key={p.id}
 								href={`/wiki/dragon-ball/planet/${p.id}`}
 								transitionTypes={["nav-forward"]}
@@ -197,7 +202,7 @@ export function UniverseTabs({
 										)}
 									</div>
 								</div>
-							</Link>
+							</ClientGatedWrap>
 						))}
 					</div>
 				</div>

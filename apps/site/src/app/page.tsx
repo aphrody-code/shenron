@@ -21,6 +21,7 @@ import {
 import { sql } from "drizzle-orm";
 import { publicPostFilter } from "@/lib/posts";
 import { ogMeta } from "@/lib/og";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 export const revalidate = 120;
 
@@ -131,6 +132,7 @@ export default async function Home() {
 		topMembers,
 		presence,
 		config,
+		access,
 	] = await Promise.all([
 		getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
 		getShenronPersonas().catch(() => []),
@@ -143,11 +145,16 @@ export default async function Home() {
 		getShenronLeaderboard(12, true).catch(() => []),
 		getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
 		getHomeConfig(),
+		// Instantané de la configuration de lancement : le deck est un composant
+		// client et ne peut pas le lire. Sans lui, l'accueil publie des liens vers
+		// des rubriques fermées dès que la section correspondante est activée.
+		getLaunchConfig().catch(() => null),
 	]);
 
 	return (
 		<HomeExperience
 			config={config}
+			access={access}
 			stats={stats}
 			personas={personas.map((p) => ({
 				id: p.id,

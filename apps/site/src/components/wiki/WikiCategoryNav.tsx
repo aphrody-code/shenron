@@ -4,6 +4,8 @@ import "server-only";
 import Link from "next/link";
 import { dbUniverse } from "@/lib/db-universe";
 import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
+import { isPathPublic } from "@/lib/wiki-launch";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
  * Nav des sous-entités encyclopédiques du wiki (Personnages, Planètes, Races,
@@ -24,6 +26,12 @@ export async function WikiCategoryNav({
 }) {
 	const counts = (await dbUniverse.counts()) ?? {};
 	const cats = ENCYCLOPEDIA_CATEGORIES.filter((c) => !omit.includes(c.key));
+	// Cette nav est montée par TOUTES les pages encyclopédiques : tant qu'elle
+	// ignorait le gating, chacune publiait un lien mort par rubrique fermée
+	// (`/wiki/{personnages,races,transformations}` → 307 vers `/wiki-bientot`).
+	// Config illisible → on laisse tout ouvert, comme `GatedLink` : mieux vaut
+	// une redirection qu'une nav éteinte parce que PostgreSQL a hoqueté.
+	const cfg = await getLaunchConfig().catch(() => null);
 
 	return (
 		<nav
@@ -33,25 +41,47 @@ export async function WikiCategoryNav({
 			{cats.map((c) => {
 				const n = (counts as Record<string, number>)[c.countKey];
 				const isActive = active === c.key;
+				const open = cfg ? isPathPublic(c.href, cfg) : true;
+				const base =
+					"inline-flex items-center gap-1.5 shrink-0 h-9 px-4 rounded-full border text-[13px] font-display font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black";
+				const compteur = typeof n === "number" && n > 0 && (
+					<span
+						className={`text-[11px] tabular-nums ${isActive ? "text-black/55" : "text-white/50"}`}
+					>
+						{n}
+					</span>
+				);
+
+				if (!open) {
+					return (
+						<span
+							key={c.key}
+							aria-disabled="true"
+							title="Cette section ouvrira bientôt"
+							className={`${base} cursor-default border-white/[0.06] bg-white/[0.02] text-white/50`}
+						>
+							{c.label}
+							{compteur}
+							<span className="rounded-full border border-white/15 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-white/50">
+								bientôt
+							</span>
+						</span>
+					);
+				}
+
 				return (
 					<Link
 						key={c.key}
 						href={c.href}
 						aria-current={isActive ? "page" : undefined}
-						className={`inline-flex items-center gap-1.5 shrink-0 h-9 px-4 rounded-full border text-[13px] font-display font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
+						className={`${base} ${
 							isActive
 								? "bg-dbz-orange text-black border-dbz-orange"
 								: "bg-white/[0.04] text-white/70 border-white/[0.1] hover:text-white hover:border-white/30"
 						}`}
 					>
 						{c.label}
-						{typeof n === "number" && n > 0 && (
-							<span
-								className={`text-[11px] tabular-nums ${isActive ? "text-black/55" : "text-white/50"}`}
-							>
-								{n}
-							</span>
-						)}
+						{compteur}
 					</Link>
 				);
 			})}

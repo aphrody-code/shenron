@@ -48,6 +48,8 @@ import {
 	type PresenceState,
 } from "./useLiveBotState";
 import { DISCORD_INVITE } from "@/lib/config";
+import { ClientGatedWrap } from "@/components/GatedClientLink";
+import type { AccessSnapshot } from "@/lib/wiki-launch";
 import { applyHomeFx, sfx } from "@/lib/sfx";
 
 export interface WikiCounts {
@@ -173,6 +175,7 @@ export function HomeExperience({
 	posts,
 	topMembers = [],
 	presence = { total: 0, online: 0, members: [] },
+	access = null,
 }: {
 	config: HomeConfig;
 	stats: BotStats;
@@ -186,6 +189,8 @@ export function HomeExperience({
 	posts: HomePost[];
 	topMembers?: TopMember[];
 	presence?: PresenceState;
+	/** Configuration de lancement résolue côté serveur (rubriques ouvertes). */
+	access?: AccessSnapshot | null;
 }) {
 	const live = useLiveBotState({ stats, personas, topMembers, presence });
 	const hasNews = posts.length > 0;
@@ -772,8 +777,9 @@ export function HomeExperience({
 					<>
 						<div className="grid grid-cols-3 gap-3 reveal-up sm:grid-cols-4 lg:grid-cols-6">
 							{characters.map((c) => (
-								<Link
+								<ClientGatedWrap
 									key={c.id}
+									access={access}
 									href={`/wiki/dragon-ball/character/${c.id}`}
 									data-tilt
 									className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
@@ -796,12 +802,16 @@ export function HomeExperience({
 											</span>
 										)}
 									</span>
-								</Link>
+								</ClientGatedWrap>
 							))}
 						</div>
-						<Link href="/wiki/personnages" className="home-cta home-cta--ghost">
+						<ClientGatedWrap
+							access={access}
+							href="/wiki/personnages"
+							className="home-cta home-cta--ghost"
+						>
 							Tous les personnages
-						</Link>
+						</ClientGatedWrap>
 					</>
 				);
 
@@ -824,8 +834,9 @@ export function HomeExperience({
 					<>
 						<div className="grid gap-4 reveal-up sm:grid-cols-2 lg:grid-cols-4">
 							{sagas.map((s) => (
-								<Link
+								<ClientGatedWrap
 									key={s.id}
+									access={access}
 									href="/wiki/sagas"
 									data-tilt
 									className="group flex flex-col gap-1.5 rounded-xl border border-white/10 bg-black/30 p-4 transition-colors hover:border-[var(--accent)]"
@@ -841,12 +852,16 @@ export function HomeExperience({
 											{s.description}
 										</span>
 									)}
-								</Link>
+								</ClientGatedWrap>
 							))}
 						</div>
-						<Link href="/wiki/sagas" className="home-cta home-cta--ghost">
+						<ClientGatedWrap
+							access={access}
+							href="/wiki/sagas"
+							className="home-cta home-cta--ghost"
+						>
 							Toutes les sagas
-						</Link>
+						</ClientGatedWrap>
 					</>
 				);
 

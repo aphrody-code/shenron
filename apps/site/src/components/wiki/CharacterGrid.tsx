@@ -6,6 +6,8 @@ import { SlidersHorizontal } from "lucide-react";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { CharacterFilterModal, type FacetOption } from "@/components/wiki/CharacterFilterModal";
+import { ClientGatedWrap } from "@/components/GatedClientLink";
+import type { AccessSnapshot } from "@/lib/wiki-launch";
 
 // Grille personnages filtrable (client). Importe `@/lib/assets` (client-safe),
 // JAMAIS db-universe/shenron (server-only → `postgres` fuiterait dans le bundle).
@@ -45,9 +47,12 @@ function norm(s: string): string {
 export function CharacterGrid({
 	characters,
 	facets,
+	access,
 }: {
 	characters: GridCharacter[];
 	facets?: CharacterFacets;
+	/** Instantané de la configuration de lancement, résolu côté serveur. */
+	access?: AccessSnapshot | null;
 }) {
 	const [query, setQuery] = useState("");
 	const [races, setRaces] = useState<string[]>([]);
@@ -177,7 +182,8 @@ export function CharacterGrid({
 			) : (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 reveal-grid">
 					{visible.map((c) => (
-						<Link
+						<ClientGatedWrap
+							access={access}
 							key={c.id}
 							href={`/wiki/dragon-ball/character/${c.id}`}
 							// `nav-forward` → slide directionnel à l'arrivée sur la fiche
@@ -213,7 +219,7 @@ export function CharacterGrid({
 									</p>
 								</div>
 							</div>
-						</Link>
+						</ClientGatedWrap>
 					))}
 				</div>
 			)}
