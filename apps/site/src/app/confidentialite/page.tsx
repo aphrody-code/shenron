@@ -12,7 +12,7 @@ import { DISCORD_INVITE } from "@/lib/config";
  * Page statique, sans cookie ni header → cache CDN préservé.
  */
 export const metadata: Metadata = {
-	title: "Politique de confidentialité — DBFR",
+	title: "Politique de confidentialité",
 	description:
 		"Cookies, mesure d'audience, publicité Google AdSense, données de compte Discord : ce que DBFR collecte, pourquoi, et comment refuser ou effacer.",
 	alternates: { canonical: "/confidentialite" },

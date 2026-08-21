@@ -1,6 +1,21 @@
+import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 import { getShenronPersonas } from "@/lib/shenron";
 import Link from "next/link";
 import { PageHeader } from "@/components/PageHeader";
+
+export const metadata: Metadata = {
+	title: "Les six personas du bot",
+	description:
+		"Shenron, Beerus, Whis, le Grand Prêtre, Enma et Kaïo — les six bots Discord de Dragon Ball France, leurs rôles et leurs commandes.",
+	...ogMeta({
+		title: "Les six personas — DBFR",
+		description:
+			"Shenron, Beerus, Whis, le Grand Prêtre, Enma et Kaïo : six bots Discord, six rôles distincts.",
+		type: "website",
+		canonical: "/personas",
+	}),
+};
 
 export const revalidate = 30;
 

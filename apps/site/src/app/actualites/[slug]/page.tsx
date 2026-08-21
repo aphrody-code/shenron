@@ -9,9 +9,10 @@ import remarkGfm from "remark-gfm";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { Metadata } from "next";
-import type { Article, BreadcrumbList, WithContext } from "schema-dts";
+import type { Article, WithContext } from "schema-dts";
 
 import { JsonLd } from "@/components/JsonLd";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { AdUnit } from "@/components/ads/AdUnit";
 import { SITE_URL } from "@/lib/config";
 import { headingsFromHtml, publicPostFilter } from "@/lib/posts";
@@ -124,28 +125,27 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 		mainEntityOfPage: { "@type": "WebPage", "@id": url },
 	};
 
-	const breadcrumbSchema: WithContext<BreadcrumbList> = {
-		"@context": "https://schema.org",
-		"@type": "BreadcrumbList",
-		itemListElement: [
-			{ "@type": "ListItem", position: 1, name: "Accueil", item: `${SITE_URL}/` },
-			{ "@type": "ListItem", position: 2, name: "Le Journal", item: `${SITE_URL}/actualites` },
-			{ "@type": "ListItem", position: 3, name: post.title, item: url },
-		],
-	};
-
 	return (
 		<>
 			<JsonLd data={articleSchema} />
-			<JsonLd data={breadcrumbSchema} />
 			<ReadingProgress />
 
 			<div className="mx-auto max-w-[1180px] px-6 py-12 lg:px-10 lg:py-16">
-				<nav className="ed-meta ed-no-print mb-10">
-					<Link href="/actualites" className="hover:text-[color:var(--ed-accent)]">
-						← Le Journal
-					</Link>
-				</nav>
+				<Breadcrumbs
+					className="ed-no-print mb-10"
+					items={[
+						{ label: "Le Journal", href: "/actualites" },
+						...(post.tags?.length
+							? [
+									{
+										label: post.tags[0],
+										href: `/actualites/theme/${encodeURIComponent(post.tags[0].toLowerCase())}`,
+									},
+								]
+							: []),
+						{ label: post.title },
+					]}
+				/>
 
 				{/* ---- Titraille ------------------------------------------------- */}
 				<header className="mx-auto max-w-[46rem]">

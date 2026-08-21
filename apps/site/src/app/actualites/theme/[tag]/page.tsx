@@ -3,6 +3,7 @@ import { posts as postsTable } from "@/db/schema";
 import { and, desc, sql } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Image from "next/image";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -81,12 +82,11 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
 
 	return (
 		<div className="mx-auto max-w-[1180px] px-6 py-14 lg:px-10 lg:py-20">
+			<Breadcrumbs
+				className="mb-8"
+				items={[{ label: "Le Journal", href: "/actualites" }, { label }]}
+			/>
 			<header className="border-b-2 border-[color:var(--ed-ink)] pb-6">
-				<p className="ed-kicker">
-					<Link href="/actualites" className="hover:underline">
-						Le Journal
-					</Link>
-				</p>
 				<h1 className="ed-title mt-2">{label}</h1>
 				<p className="ed-meta mt-5">
 					{rows.length} article{rows.length > 1 ? "s" : ""}

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata: Metadata = {
-	title: "Licence & usage — DBFR",
+	title: "Licence & usage",
 	description:
 		"Politique d'usage des contenus DBFR, mentions fair-use, attribution Fandom CC-BY-SA, contact pour demande de retrait.",
 	alternates: { canonical: "/licence" },

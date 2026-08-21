@@ -5,7 +5,7 @@ import { BackgroundImage, HeroBackground } from "@/components/media/BackgroundIm
 import { GifEncoderDemo } from "./GifEncoderDemo";
 
 export const metadata: Metadata = {
-	title: "Démo média — DBFR",
+	title: "Démo média",
 	description:
 		"Démonstration interne des composants média : AnimatedMedia (vidéo/GIF/WebP lazy + play/pause), BackgroundImage (ken-burns/parallax/fixed) et encodage frames → GIF (modern-gif).",
 	robots: { index: false, follow: false },

@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 import { getShenronCommands, getShenronPersonas } from "@/lib/shenron";
 import { PageHeader } from "@/components/PageHeader";
+
+export const metadata: Metadata = {
+	title: "Toutes les commandes du bot",
+	description:
+		"La liste complète des commandes Discord de Dragon Ball France, persona par persona : économie, niveaux, wiki, modération et mini-jeux.",
+	...ogMeta({
+		title: "Commandes du bot — DBFR",
+		description: "Toutes les commandes Discord de Dragon Ball France, persona par persona.",
+		type: "website",
+		canonical: "/commands",
+	}),
+};
 
 export const revalidate = 3600;
 

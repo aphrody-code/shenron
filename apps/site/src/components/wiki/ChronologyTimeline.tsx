@@ -9,7 +9,7 @@
  * films, tri alternatif diffusion/titre, export de la liste officielle). Aucune
  * composition personnelle — l'édition vit exclusivement côté admin.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Film, Tv, BookOpen, Play, Search, Copy, Check, Download } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
@@ -31,6 +31,9 @@ import {
 const yearOf = (sec: number | null) => (sec ? new Date(sec * 1000).getFullYear() : null);
 
 const SORTS: SortMode[] = ["era", "date", "title"];
+
+/** Taille d'un lot de rendu de la frise (cf. rendu incrémental plus bas). */
+const CHUNK = 150;
 
 export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] }) {
 	const [eras, setEras] = useState<Set<Era>>(() => new Set(ERA_ORDER));
@@ -113,22 +116,69 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 		}
 	}
 
+	// Répartition par ère du jeu FILTRÉ, calculée en UNE passe. L'ancienne version
+	// rappelait `filtered.filter(...)` dans la boucle de rendu : sur ~750 entrées
+	// ça faisait ~560 000 comparaisons à CHAQUE frappe dans le champ de recherche.
+	const filteredEraStats = useMemo(() => {
+		const m = new Map<Era, { total: number; episodes: number; movies: number }>();
+		for (const it of filtered) {
+			let e = m.get(it.era);
+			if (!e) {
+				e = { total: 0, episodes: 0, movies: 0 };
+				m.set(it.era, e);
+			}
+			e.total++;
+			if (it.kind === "episode") e.episodes++;
+			else if (it.kind === "movie") e.movies++;
+		}
+		return m;
+	}, [filtered]);
+
+	// Rendu incrémental. Poser les ~750 lignes d'un coup, c'est ~7 500 nœuds DOM
+	// (Lighthouse alerte au-delà de 1 400) et une page HTML de 1,6 Mo. On en pose
+	// un premier lot, puis on étend à l'approche du bas de liste (ou au clic, si
+	// IntersectionObserver n'est pas disponible).
+	const [limit, setLimit] = useState(CHUNK);
+	// Tout changement de filtre/tri repart du premier lot : sinon, filtrer après
+	// avoir déroulé 600 entrées laisserait une liste courte déjà « toute chargée ».
+	useEffect(() => {
+		setLimit(CHUNK);
+	}, [eras, showEpisodes, showMovies, showManga, q, sort]);
+
+	const visible = limit >= filtered.length ? filtered : filtered.slice(0, limit);
+	const hasMore = visible.length < filtered.length;
+
+	const sentinelRef = useRef<HTMLDivElement | null>(null);
+	useEffect(() => {
+		if (!hasMore) return;
+		const node = sentinelRef.current;
+		if (!node || typeof IntersectionObserver === "undefined") return;
+		const io = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((e) => e.isIntersecting)) setLimit((n) => n + CHUNK);
+			},
+			// Marge généreuse : on charge le lot suivant avant que l'utilisateur
+			// n'atteigne réellement le bas, donc sans à-coup visible.
+			{ rootMargin: "800px 0px" }
+		);
+		io.observe(node);
+		return () => io.disconnect();
+	}, [hasMore]);
+
 	// Rendu : groupé par ère (tri officiel) ou plat (date/titre).
 	const rows: React.ReactNode[] = [];
 	let lastEra: Era | null = null;
-	for (const it of filtered) {
+	for (const it of visible) {
 		if (sort === "era" && it.era !== lastEra) {
 			lastEra = it.era;
-			const c = filtered.filter((x) => x.era === it.era);
-			const ep = c.filter((x) => x.kind === "episode").length;
-			const mv = c.filter((x) => x.kind === "movie").length;
+			const c = filteredEraStats.get(it.era) ?? { total: 0, episodes: 0, movies: 0 };
 			rows.push(
 				<EraHeader
 					key={`h:${it.era}`}
 					era={it.era}
-					episodes={ep}
-					movies={mv}
-					manga={c.length - ep - mv}
+					episodes={c.episodes}
+					movies={c.movies}
+					manga={c.total - c.episodes - c.movies}
 				/>
 			);
 		}
@@ -251,7 +301,23 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 					Aucune entrée ne correspond aux filtres.
 				</p>
 			) : (
-				<div className="space-y-1.5">{rows}</div>
+				<>
+					<div className="space-y-1.5">{rows}</div>
+					{hasMore && (
+						<div ref={sentinelRef} className="pt-6 text-center">
+							<button
+								type="button"
+								onClick={() => setLimit((n) => n + CHUNK)}
+								className="dbz-button-ghost !text-xs"
+							>
+								Afficher {Math.min(CHUNK, filtered.length - visible.length)} entrées de plus
+								<span className="ml-2 text-white/35">
+									{visible.length} / {filtered.length}
+								</span>
+							</button>
+						</div>
+					)}
+				</>
 			)}
 
 			<p className="text-[11px] text-white/30 text-center pt-2">

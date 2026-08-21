@@ -1,5 +1,19 @@
+import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 import { PageHeader } from "@/components/PageHeader";
 import { API_URL as API } from "@/lib/config";
+
+export const metadata: Metadata = {
+	title: "Cartes et visuels générés",
+	description:
+		"Les visuels générés à la volée par le bot Dragon Ball France : cartes de profil, bannières et rendus canvas, avec leurs paramètres.",
+	...ogMeta({
+		title: "Cartes & visuels — DBFR",
+		description: "Les rendus canvas du bot Dragon Ball France et leurs paramètres.",
+		type: "website",
+		canonical: "/canvas",
+	}),
+};
 
 const SAMPLES = [
 	{

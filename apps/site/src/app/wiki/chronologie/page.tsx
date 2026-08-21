@@ -1,5 +1,6 @@
+import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { bannerForSeries } from "@/lib/db-banners";
 import { dbUniverse } from "@/lib/db-universe";
 import { getChronologyConfig } from "@/lib/chronology-config";
@@ -8,13 +9,18 @@ import { Billboard } from "@/components/stream/Billboard";
 import { ChronologyTimeline } from "@/components/wiki/ChronologyTimeline";
 import { ogMeta } from "@/lib/og";
 
-// Rendu dynamique (runtime) et non prérendu au build : (1) la curation admin se
-// reflète immédiatement sur le public sans attendre une revalidation ISR ; (2) on
-// évite qu'un build lancé pendant une indispo DB fige un 404 en cache ISR (le
-// prérendu SSG appelle `notFound()` si la DB ne répond pas, et ce 404 resterait
-// servi jusqu'à expiration). La page ne lit ni cookies ni session → pas d'impact
-// sur le cache des autres routes.
-export const dynamic = "force-dynamic";
+// ISR et non `force-dynamic`. Le rendu dynamique coûtait 3 requêtes PG (~750
+// lignes) + le rendu de toute la frise À CHAQUE VISITE : ~575 ms de TTFB, zéro
+// cache CDN, sur une page publique et immuable entre deux éditions admin.
+//
+// Les deux raisons qui avaient motivé `force-dynamic` sont traitées autrement :
+//   1. fraîcheur de la curation → `/api/chronologie-config` (PUT) appelle déjà
+//      `revalidatePath("/wiki/chronologie")` : la purge est immédiate à
+//      l'enregistrement, la revalidation périodique n'est qu'un filet ;
+//   2. 404 figé par un build lancé pendant une indispo DB → on ne renvoie PLUS
+//      `notFound()` sur dataset vide/injoignable. On rend un état dégradé
+//      `noindex` qui se répare tout seul à la revalidation suivante (cf. plus bas).
+export const revalidate = 300;
 
 export const metadata: Metadata = {
 	title: "Chronologie universelle",
@@ -31,12 +37,11 @@ export const metadata: Metadata = {
 
 export default async function ChronologiePage() {
 	const [raw, config] = await Promise.all([dbUniverse.timeline(), getChronologyConfig()]);
-	if (!raw || raw.length === 0) notFound();
 
 	// Frise FIXE : la curation admin (ordre, ère, date, masquage, notes) est
 	// appliquée côté serveur → le public reçoit la chronologie officielle résolue.
-	const items = applyChronology(raw, config);
-	if (items.length === 0) notFound();
+	const items = raw && raw.length > 0 ? applyChronology(raw, config) : [];
+	if (items.length === 0) return <ChronologieUnavailable />;
 
 	const episodes = items.filter((i) => i.kind === "episode").length;
 	const movies = items.filter((i) => i.kind === "movie").length;
@@ -61,8 +66,38 @@ export default async function ChronologiePage() {
 				secondaryLabel="Les épisodes"
 			/>
 			<div className="w-full mx-auto max-w-[1200px] px-6 py-12 lg:px-10 lg:py-16">
+				<Breadcrumbs className="mb-8" items={[{ label: "Chronologie" }]} />
 				<ChronologyTimeline items={items} />
 			</div>
 		</>
+	);
+}
+
+/**
+ * État dégradé : dataset vide ou base injoignable au moment du (pré)rendu.
+ *
+ * Volontairement un 200 `noindex` et non un `notFound()` : sous ISR, un 404 rendu
+ * pendant une panne PG resterait servi jusqu'à expiration du cache, alors que la
+ * frise, elle, est revenue. Ici la page se répare d'elle-même à la revalidation
+ * suivante, et `noindex` empêche Google de mémoriser la version vide entre-temps.
+ * (React 19 remonte `<meta>` dans le `<head>` où qu'il soit rendu.)
+ */
+function ChronologieUnavailable() {
+	return (
+		<div className="mx-auto w-full max-w-[720px] px-6 py-24 text-center">
+			<meta name="robots" content="noindex, follow" />
+			<h1 className="font-display text-3xl font-bold text-white">Chronologie universelle</h1>
+			<p className="mt-4 text-white/60">
+				La frise est momentanément indisponible. Elle revient d'elle-même d'ici quelques minutes.
+			</p>
+			<div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+				<Link href="/wiki/episodes" className="dbz-button !text-xs">
+					Les épisodes
+				</Link>
+				<Link href="/wiki/films" className="dbz-button-ghost !text-xs">
+					Les films
+				</Link>
+			</div>
+		</div>
 	);
 }

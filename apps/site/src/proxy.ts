@@ -74,11 +74,25 @@ export async function proxy(request: NextRequest) {
 		return NextResponse.redirect(url, 308);
 	}
 
+	const { pathname } = request.nextUrl;
+
+	// Journal : l'ancienne pagination `?page=N` est morte. Lire `searchParams`
+	// dans une page la rend dynamique sous Next 16 (`no-store`), donc l'index le
+	// plus crawlé du site n'était jamais caché — la pagination vit maintenant sous
+	// `/actualites/page/N`, prérendue. La récupération des vieux liens se fait ICI
+	// et pas dans `redirects()` de next.config : Next y recopie la query dans la
+	// destination, ce qui reboucle à l'infini sur `?page=1`.
+	if (pathname === "/actualites" && request.nextUrl.searchParams.has("page")) {
+		const raw = request.nextUrl.searchParams.get("page") ?? "1";
+		const n = /^[0-9]+$/.test(raw) ? Number(raw) : 1;
+		const target = new URL(n >= 2 ? `/actualites/page/${n}` : "/actualites", request.url);
+		return NextResponse.redirect(target, 308);
+	}
+
 	// Contrôle d'accès par rubrique : chaque catégorie wiki et chaque section du
 	// site porte un mode (public / connectés / rôles Discord / staff) piloté depuis
 	// /admin/lancement. Le code des pages reste intact — seul l'accès est arbitré
 	// ici. Le staff traverse tout.
-	const { pathname } = request.nextUrl;
 	const entry = findEntry(pathname);
 	const isWiki = pathname === "/wiki" || pathname.startsWith("/wiki/");
 
