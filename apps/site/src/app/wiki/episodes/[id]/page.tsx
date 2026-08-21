@@ -21,6 +21,8 @@ import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRa
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { JsonLd } from "@/components/JsonLd";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { TrackHistory } from "@/components/history/TrackHistory";
+import { ShareButton } from "@/components/ShareButton";
 import { AdUnit } from "@/components/ads/AdUnit";
 import type { TVEpisode, WithContext } from "schema-dts";
 import { excerpt } from "../_text";
@@ -224,14 +226,29 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 				{/* Fil d'Ariane : remplace l'ancien lien « ← <série> » isolé (qui ne
 				    disait ni où l'on se trouve dans l'arborescence, ni comment remonter
 				    plus haut) et porte en même temps le balisage `BreadcrumbList`. */}
+				<TrackHistory
+					kind="episode"
+					id={ep.id}
+					title={ep.title}
+					href={`/wiki/episodes/${ep.id}`}
+					image={ep.image}
+					caption={`${seriesLabel} · épisode ${ep.number_in_series}`}
+				/>
 				<Breadcrumbs
-					className="mb-10"
+					className="mb-4"
 					items={[
 						{ label: "Épisodes", href: "/wiki/episodes" },
 						{ label: seriesLabel, href: `/wiki/episodes/serie/${ep.series}` },
 						{ label: `Épisode ${ep.number_in_series}` },
 					]}
 				/>
+				<div className="mb-10">
+					<ShareButton
+						title={`${ep.title} — ${seriesLabel}`}
+						text={`Épisode ${ep.number_in_series} de ${seriesLabel}`}
+						path={`/wiki/episodes/${ep.id}`}
+					/>
+				</div>
 
 				{/* === En-tête superposé au backdrop === */}
 				<header className="mb-8 reveal-up">

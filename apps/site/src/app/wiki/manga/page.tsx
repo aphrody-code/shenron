@@ -1,4 +1,5 @@
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ContinueRail } from "@/components/history/ContinueRail";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { SERIES_BANNERS } from "@/lib/db-banners";
@@ -71,6 +72,7 @@ export default async function MangaIndexPage() {
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				<Breadcrumbs className="mb-8" items={[{ label: "Manga" }]} />
+				<ContinueRail kinds={["chapter"]} title="Reprendre la lecture" />
 				<MangaDialogueSearch />
 
 				<MangaVolumeGrid

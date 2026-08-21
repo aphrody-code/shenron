@@ -179,6 +179,18 @@ export const SITE_SECTIONS: LaunchCategory[] = [
 		defaultMode: "public",
 	},
 	{
+		// Sans entrée ici, `/wiki/hasard` retomberait sur le défaut « sous /wiki,
+		// fermé » du proxy et redirigerait vers /wiki-bientot. La route ne fait
+		// elle-même que rediriger vers une rubrique OUVERTE (elle relit ce même
+		// registre) : l'ouvrir n'expose donc rien de fermé.
+		key: "hasard",
+		label: "Au hasard",
+		href: "/wiki/hasard",
+		prefixes: ["/wiki/hasard"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
 		// La recherche n'avait AUCUNE entrée au registre : `/wiki/search` retombait
 		// donc sur le défaut « sous /wiki, fermé » et redirigeait tout anonyme vers
 		// /wiki-bientot — alors que `SiteJsonLd` annonce à Google une sitelinks

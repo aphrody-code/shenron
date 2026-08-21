@@ -2,6 +2,7 @@ import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ContinueRail } from "@/components/history/ContinueRail";
 import type { Metadata } from "next";
 import { bannerForSeries, FILMS_HERO } from "@/lib/db-banners";
 import { eraOf, ERA_ACCENT } from "@/lib/chronology";
@@ -91,6 +92,7 @@ export default async function FilmsPage() {
 
 			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
 				<Breadcrumbs className="mb-8" items={[{ label: "Films" }]} />
+				<ContinueRail kinds={["movie"]} title="Reprendre le visionnage" />
 				{groups.map((g) => (
 					<StreamRow
 						key={g.key}

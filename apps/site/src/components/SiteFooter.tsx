@@ -6,27 +6,36 @@ const COLUMNS = [
 	{
 		title: "Explorer",
 		links: [
+			{ href: "/wiki/episodes", label: "Épisodes" },
 			{ href: "/wiki/manga", label: "Manga" },
 			{ href: "/wiki/films", label: "Films" },
+			{ href: "/wiki/sagas", label: "Sagas & arcs" },
 			{ href: "/wiki/chronologie", label: "Chronologie" },
+			// Le pied de page était la SEULE porte d'entrée de plusieurs sections ;
+			// `/ask` (l'assistant, 570 lignes) et `/wiki/hasard` n'y figuraient pas
+			// et n'avaient donc aucun lien entrant sur tout le site.
+			{ href: "/wiki/hasard", label: "Une fiche au hasard" },
 			{ href: "/actualites", label: "Actualités" },
-			{ href: "/leaderboard", label: "Classement XP" },
-			{ href: "/classements", label: "Top 3 notes" },
-			{ href: "/stats", label: "Statistiques" },
 		],
 	},
 	{
 		title: "Communauté",
 		links: [
 			{ href: DISCORD_INVITE, label: "Rejoindre le Discord" },
+			{ href: "/ask", label: "Assistant Dragon Ball" },
 			{ href: "/personas", label: "Le bot du serveur" },
+			{ href: "/commands", label: "Commandes du bot" },
+			{ href: "/leaderboard", label: "Classement XP" },
+			{ href: "/classements", label: "Top 3 notes" },
 			{ href: "/shop", label: "Boutique zénis" },
 			{ href: "/jeux", label: "Mini-jeux" },
+			{ href: "/stats", label: "Statistiques" },
 		],
 	},
 	{
 		title: "Légal",
 		links: [
+			{ href: "/about", label: "À propos" },
 			{ href: "/credits", label: "Crédits & sources" },
 			{ href: "/licence", label: "Licence & usage" },
 			{ href: "/confidentialite", label: "Confidentialité" },

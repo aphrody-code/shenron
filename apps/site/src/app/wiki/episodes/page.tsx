@@ -1,6 +1,7 @@
 import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ContinueRail } from "@/components/history/ContinueRail";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { bannerForSeries } from "@/lib/db-banners";
@@ -59,6 +60,7 @@ export default async function EpisodesLanding() {
 			/>
 			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
 				<Breadcrumbs className="mb-8" items={[{ label: "Épisodes" }]} />
+				<ContinueRail kinds={["episode"]} title="Reprendre le visionnage" />
 				<Suspense
 					fallback={
 						<>

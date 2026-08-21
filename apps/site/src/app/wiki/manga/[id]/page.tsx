@@ -3,6 +3,8 @@ import { MangaReader } from "@/components/manga/MangaReader";
 import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { TrackHistory } from "@/components/history/TrackHistory";
+import { ShareButton } from "@/components/ShareButton";
 
 import type { Metadata } from "next";
 
@@ -59,6 +61,13 @@ export default async function MangaReaderPage({ params }: { params: Promise<{ id
 
 	return (
 		<div className="mx-auto w-full min-w-0 max-w-[1200px] px-6 lg:px-10 py-10 lg:py-16 reveal-up overflow-x-hidden">
+			<TrackHistory
+				kind="chapter"
+				id={chapter.id}
+				title={chapterTitle(chapter)}
+				href={`/wiki/manga/${chapter.id}`}
+				caption={`${chapter.series ?? "Manga"} · chapitre ${chapter.chapter_number}`}
+			/>
 			<Breadcrumbs
 				className="mb-8"
 				items={[
@@ -66,6 +75,13 @@ export default async function MangaReaderPage({ params }: { params: Promise<{ id
 					{ label: `Chapitre ${chapter.chapter_number}` },
 				]}
 			/>
+			<div className="mb-8">
+				<ShareButton
+					title={chapterTitle(chapter)}
+					text={`${chapter.series ?? "Manga"} — chapitre ${chapter.chapter_number}`}
+					path={`/wiki/manga/${chapter.id}`}
+				/>
+			</div>
 
 			<header className="mb-10">
 				{/* Eyebrow « Chapitre N » uniquement quand le titre est un vrai sous-titre :

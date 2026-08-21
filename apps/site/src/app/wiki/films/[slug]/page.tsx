@@ -8,6 +8,8 @@ import { ogMeta } from "@/lib/og";
 import Image from "next/image";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { TrackHistory } from "@/components/history/TrackHistory";
+import { ShareButton } from "@/components/ShareButton";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { stripSourceTags } from "@/lib/media";
@@ -127,6 +129,14 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 	return (
 		<div className="mx-auto max-w-[1180px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<JsonLd data={jsonLdData} />
+			<TrackHistory
+				kind="movie"
+				id={m.slug}
+				title={m.title}
+				href={`/wiki/films/${m.slug}`}
+				image={m.poster}
+				caption={SERIES_LABELS[m.series] ?? "Film"}
+			/>
 			<Breadcrumbs
 				className="mb-8"
 				items={[
@@ -135,6 +145,13 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 					{ label: m.title },
 				]}
 			/>
+			<div className="mb-8">
+				<ShareButton
+					title={m.title}
+					text={SERIES_LABELS[m.series] ?? "Film Dragon Ball"}
+					path={`/wiki/films/${m.slug}`}
+				/>
+			</div>
 
 			<div className="mb-6">
 				<WikiAdminBar table="db_movies" id={m.id} indexHref="/wiki/films" label={m.title} />
