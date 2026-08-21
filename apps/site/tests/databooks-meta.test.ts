@@ -118,3 +118,17 @@ describe("horodatages du wiki (lib/epoch)", () => {
 		}
 	});
 });
+
+describe("normalisation à l'écriture (toSeconds)", () => {
+	test("des millisecondes deviennent des secondes", async () => {
+		const { toSeconds } = await import("../src/lib/epoch");
+		expect(toSeconds(836956800000)).toBe(836956800);
+	});
+
+	test("des secondes restent inchangées", async () => {
+		const { toSeconds } = await import("../src/lib/epoch");
+		expect(toSeconds(836956800)).toBe(836956800);
+		// Idempotent : réécrire une valeur déjà normalisée ne la dégrade pas.
+		expect(toSeconds(toSeconds(836956800000))).toBe(836956800);
+	});
+});

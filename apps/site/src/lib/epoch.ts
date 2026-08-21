@@ -27,3 +27,16 @@ export function yearOf(v: number | null | undefined): number | null {
 	const an = new Date(toMillis(v)).getFullYear();
 	return Number.isFinite(an) ? an : null;
 }
+
+/**
+ * Ramène un horodatage d'écriture en SECONDES.
+ *
+ * Toute la base wiki stocke des secondes — vérifié le 2026-08-21 sur
+ * `db_episodes.air_date`, `db_movies.release_date`, `db_games.release_date` et
+ * `db_databooks.published_at` : zéro valeur en millisecondes. Une API ouverte à
+ * des clients externes est le moyen le plus court d'y introduire un `Date.now()`
+ * et de créer deux unités dans la même colonne. On normalise donc à l'entrée.
+ */
+export function toSeconds(v: number): number {
+	return Math.trunc(v >= SEUIL_MS ? v / 1000 : v);
+}

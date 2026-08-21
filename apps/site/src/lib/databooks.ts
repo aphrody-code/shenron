@@ -20,6 +20,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { botDatabooks } from "@/db/bot-schema";
 import { forgetDatabook, indexDatabook } from "@/lib/databooks-redis";
+import { toSeconds } from "@/lib/epoch";
 import { normalizePages, type DatabookPageInput } from "@/lib/databooks-rules";
 
 /** Fiche telle que servie par l'API. */
@@ -144,7 +145,14 @@ function toColumns(w: DatabookWrite): Record<string, unknown> {
 	if (w.title !== undefined) c.title = w.title;
 	if (w.title_ja !== undefined) c.titleJa = w.title_ja;
 	if (w.author !== undefined) c.author = w.author;
-	if (w.published_at !== undefined) c.publishedAt = w.published_at;
+	// Normalisé en secondes : l'API est ouverte à des clients externes, et un
+	// `Date.now()` déposé tel quel créerait deux unités dans la même colonne.
+	if (w.published_at !== undefined) {
+		c.publishedAt =
+			w.published_at === null || !Number.isFinite(w.published_at)
+				? null
+				: toSeconds(w.published_at);
+	}
 	if (w.cover !== undefined) c.cover = w.cover;
 	if (w.description !== undefined) c.description = w.description;
 	if (w.source_url !== undefined) c.sourceUrl = w.source_url;
