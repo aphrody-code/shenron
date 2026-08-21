@@ -15,7 +15,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
-import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
+import dynamic from "next/dynamic";
+
+// Chargé à la demande : `WikiMarkdown` traîne toute la chaîne markdown
+// (react-markdown + remark-gfm/breaks + rehype-raw/sanitize/slug/autolink),
+// et l'accueil ne s'en sert QUE pour le corps d'une section personnalisée —
+// que la plupart des configurations n'ont pas. Statique, il pesait sur chaque
+// visite de la page d'entrée pour un rendu presque jamais demandé.
+const WikiMarkdown = dynamic(() =>
+	import("@/components/wiki/WikiMarkdown").then((m) => m.WikiMarkdown)
+);
 import {
 	ALL_CLIP_SCENES,
 	DEFAULT_PLAY_CARDS,
