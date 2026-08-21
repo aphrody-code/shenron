@@ -77,7 +77,7 @@ export default async function ArcsPage() {
 										</h2>
 									)}
 									{s.series && (
-										<span className="scouter-text text-[10px] text-white/40 border border-white/15 rounded px-1.5 py-0.5">
+										<span className="scouter-text text-[10px] text-white/50 border border-white/15 rounded px-1.5 py-0.5">
 											{s.series}
 										</span>
 									)}
@@ -101,7 +101,7 @@ export default async function ArcsPage() {
 												</span>
 											</div>
 											{a.name_ja && (
-												<p className="font-jp text-[11px] text-white/40 tracking-wider">
+												<p className="font-jp text-[11px] text-white/50 tracking-wider">
 													{a.name_ja}
 												</p>
 											)}

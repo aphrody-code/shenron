@@ -254,7 +254,7 @@ export function WikiStudio({ table, id }: Props) {
 							(mode === "edit" ? (
 								<RelationsPanel table={table} entityId={id} />
 							) : (
-								<div className="dbz-panel p-5 text-xs text-white/40">
+								<div className="dbz-panel p-5 text-xs text-white/50">
 									Enregistre d&apos;abord cette entrée pour gérer ses relations (techniques,
 									personnages…).
 								</div>
@@ -274,7 +274,7 @@ export function WikiStudio({ table, id }: Props) {
 									/>
 								</>
 							) : (
-								<div className="dbz-panel p-5 text-xs text-white/40">
+								<div className="dbz-panel p-5 text-xs text-white/50">
 									Enregistre d&apos;abord cette entrée pour ajouter ses sections de contenu
 									(histoire, personnalité, anecdotes…).
 								</div>
@@ -300,7 +300,7 @@ export function WikiStudio({ table, id }: Props) {
 						<DatabookPagesPanel databookId={id} />
 					</div>
 				) : (
-					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
+					<div className="dbz-panel mt-2 p-5 text-xs text-white/50">
 						Enregistre d&apos;abord cette entrée pour ajouter les pages du lecteur (numéro + image +
 						texte sous chaque planche).
 					</div>
@@ -313,7 +313,7 @@ export function WikiStudio({ table, id }: Props) {
 						<GameMediaPanel gameId={id} />
 					</div>
 				) : (
-					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
+					<div className="dbz-panel mt-2 p-5 text-xs text-white/50">
 						Enregistre d&apos;abord ce jeu pour ajouter la galerie (screenshots + trailers YouTube).
 					</div>
 				))}
@@ -326,7 +326,7 @@ export function WikiStudio({ table, id }: Props) {
 						<TransformationsPanel characterId={id} />
 					</div>
 				) : (
-					<div className="dbz-panel mt-2 p-5 text-xs text-white/40">
+					<div className="dbz-panel mt-2 p-5 text-xs text-white/50">
 						Enregistre d&apos;abord ce personnage pour gérer ses stats scouter et ses
 						transformations.
 					</div>

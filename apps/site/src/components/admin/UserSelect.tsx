@@ -116,7 +116,7 @@ export function UserSelect({
 						{selected ? (
 							<>
 								<span className="font-semibold text-white">{selected.displayName}</span>{" "}
-								<span className="text-white/40">@{selected.username}</span>
+								<span className="text-white/50">@{selected.username}</span>
 							</>
 						) : (
 							<code className="font-mono text-xs text-white/70">{value}</code>
@@ -147,9 +147,9 @@ export function UserSelect({
 				</div>
 			) : (
 				<div className="flex items-center gap-2 rounded-lg border border-dbz-border bg-dbz-bg/60 px-2">
-					<Search className="h-4 w-4 shrink-0 text-white/40" />
+					<Search className="h-4 w-4 shrink-0 text-white/50" />
 					<input
-						className="w-full bg-transparent py-1.5 text-sm outline-none placeholder:text-white/40"
+						className="w-full bg-transparent py-1.5 text-sm outline-none placeholder:text-white/50"
 						value={q}
 						onChange={(e) => setQ(e.target.value)}
 						onFocus={() => setOpen(true)}
@@ -191,7 +191,7 @@ export function UserSelect({
 										</span>
 									)}
 								</span>
-								<span className="block truncate text-[11px] text-white/45">
+								<span className="block truncate text-[11px] text-white/50">
 									@{m.username} · {m.id}
 								</span>
 							</span>

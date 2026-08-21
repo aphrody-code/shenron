@@ -114,7 +114,7 @@ export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; titl
 											loading="lazy"
 										/>
 									) : (
-										<span className="flex h-full w-full items-center justify-center bg-zinc-900 text-white/30">
+										<span className="flex h-full w-full items-center justify-center bg-zinc-900 text-white/50">
 											{item.kind === "youtube" ? (
 												<Film className="h-5 w-5" />
 											) : (

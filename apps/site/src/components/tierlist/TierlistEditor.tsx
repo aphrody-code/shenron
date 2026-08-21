@@ -308,7 +308,7 @@ export function TierlistEditor({
 				/>
 			</div>
 
-			<p className="text-[12px] text-white/45">
+			<p className="text-[12px] text-white/50">
 				Sélectionne une carte puis tape un tier pour la placer — ou glisse-la directement (sur
 				ordinateur). {selected ? "Carte sélectionnée : tape un tier." : ""}
 			</p>
@@ -463,16 +463,16 @@ export function TierlistEditor({
 					{visiblePool.map(renderCard)}
 					{board.pool.length === 0 &&
 						(placedCount > 0 ? (
-							<span className="text-[12px] italic text-white/35">
+							<span className="text-[12px] italic text-white/50">
 								Toutes les cartes sont classées.
 							</span>
 						) : (
-							<span className="text-[12px] italic text-white/35">
+							<span className="text-[12px] italic text-white/50">
 								Ajoute tes propres cartes avec le bouton « + Ajouter une image ».
 							</span>
 						))}
 					{board.pool.length > 0 && visiblePool.length === 0 && (
-						<span className="text-[12px] italic text-white/35">
+						<span className="text-[12px] italic text-white/50">
 							Aucune carte ne correspond à ce filtre.
 						</span>
 					)}

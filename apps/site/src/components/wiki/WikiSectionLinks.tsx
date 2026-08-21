@@ -31,7 +31,7 @@ export function WikiSectionLinks({ links }: { links: WikiSectionLink[] }) {
 						<p className="truncate font-display text-sm font-bold text-white/90 group-hover:text-dbz-orange">
 							{l.label}
 						</p>
-						{l.sub && <p className="truncate text-[11px] text-white/45">{l.sub}</p>}
+						{l.sub && <p className="truncate text-[11px] text-white/50">{l.sub}</p>}
 						<span className="mt-0.5 inline-block text-[10px] font-semibold uppercase tracking-wider text-dbz-blue-light/70">
 							Voir la fiche →
 						</span>

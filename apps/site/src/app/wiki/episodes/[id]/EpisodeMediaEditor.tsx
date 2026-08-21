@@ -108,7 +108,7 @@ export function EpisodeMediaEditor({
 					</div>
 
 					{tracks.length === 0 && (
-						<p className="text-white/40 text-sm">Aucune piste. « + Ajouter » pour en créer une.</p>
+						<p className="text-white/50 text-sm">Aucune piste. « + Ajouter » pour en créer une.</p>
 					)}
 
 					{tracks.map((t, i) => (

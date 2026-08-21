@@ -118,7 +118,7 @@ export default function ProfilePage() {
 		return (
 			<div className="dbz-panel p-8 text-center">
 				<p className="text-dbz-blue-light font-saiyan text-xl mb-2">CHARGEMENT…</p>
-				<p className="text-sm text-white/40">Récupération de votre profil Discord en cours.</p>
+				<p className="text-sm text-white/50">Récupération de votre profil Discord en cours.</p>
 			</div>
 		);
 	}
@@ -260,12 +260,12 @@ export default function ProfilePage() {
 
 			{/* Membership sur le serveur */}
 			{member.isLoading && (
-				<div className="dbz-panel p-4 text-sm text-white/40">
+				<div className="dbz-panel p-4 text-sm text-white/50">
 					Chargement de votre statut sur le serveur…
 				</div>
 			)}
 			{member.isError && (
-				<div className="dbz-panel p-4 text-sm text-white/40">
+				<div className="dbz-panel p-4 text-sm text-white/50">
 					Impossible de récupérer votre statut sur le serveur.
 				</div>
 			)}
@@ -276,11 +276,11 @@ export default function ProfilePage() {
 					</h3>
 					<dl className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
 						<div>
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">Surnom</dt>
+							<dt className="text-white/50 text-xs uppercase tracking-widest mb-1">Surnom</dt>
 							<dd className="text-white font-medium">{member.data.member.nick ?? "—"}</dd>
 						</div>
 						<div>
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1 flex items-center gap-1">
+							<dt className="text-white/50 text-xs uppercase tracking-widest mb-1 flex items-center gap-1">
 								<Calendar className="h-3 w-3" />
 								Date d&apos;arrivée
 							</dt>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
 							</dd>
 						</div>
 						<div>
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">
+							<dt className="text-white/50 text-xs uppercase tracking-widest mb-1">
 								Boost actif depuis
 							</dt>
 							<dd className="text-white font-medium">
@@ -307,7 +307,7 @@ export default function ProfilePage() {
 							</dd>
 						</div>
 						<div>
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-1">Statut</dt>
+							<dt className="text-white/50 text-xs uppercase tracking-widest mb-1">Statut</dt>
 							<dd>
 								{member.data.member.communication_disabled_until &&
 								new Date(member.data.member.communication_disabled_until) > new Date() ? (
@@ -326,12 +326,12 @@ export default function ProfilePage() {
 							</dd>
 						</div>
 						<div className="sm:col-span-2 lg:col-span-3">
-							<dt className="text-white/40 text-xs uppercase tracking-widest mb-2">
+							<dt className="text-white/50 text-xs uppercase tracking-widest mb-2">
 								Vos rôles ({member.data.member.roles.length})
 							</dt>
 							<dd>
 								{member.data.member.roles.length === 0 ? (
-									<span className="text-white/30 text-sm">Aucun rôle attribué</span>
+									<span className="text-white/50 text-sm">Aucun rôle attribué</span>
 								) : (
 									<div className="flex flex-wrap gap-1">
 										{member.data.member.roles.map((rid) => (
@@ -357,17 +357,17 @@ export default function ProfilePage() {
 					Mes serveurs Discord
 					{guilds.data ? ` (${guilds.data.guilds.length})` : ""}
 				</h3>
-				<p className="text-xs text-white/30 mb-4">
+				<p className="text-xs text-white/50 mb-4">
 					Serveurs Discord où vous êtes présent. Le serveur du bot est mis en avant.
 				</p>
 				{guilds.isLoading && (
-					<div className="text-sm text-white/40">Chargement de vos serveurs…</div>
+					<div className="text-sm text-white/50">Chargement de vos serveurs…</div>
 				)}
 				{guilds.isError && (
-					<div className="text-sm text-white/40">Liste des serveurs indisponible.</div>
+					<div className="text-sm text-white/50">Liste des serveurs indisponible.</div>
 				)}
 				{guilds.data && guilds.data.guilds.length === 0 && (
-					<div className="text-sm text-white/40">Aucun serveur en commun.</div>
+					<div className="text-sm text-white/50">Aucun serveur en commun.</div>
 				)}
 				{guilds.data && guilds.data.guilds.length > 0 && (
 					<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -396,7 +396,7 @@ export default function ProfilePage() {
 									<p className="truncate text-sm font-semibold text-white" title={g.name}>
 										{g.isCurrent ? <span className="text-dbz-orange">{g.name}</span> : g.name}
 									</p>
-									<p className="text-xs text-white/40">
+									<p className="text-xs text-white/50">
 										{g.owner && "Propriétaire · "}
 										{g.approximate_member_count?.toLocaleString("fr-FR") ?? "?"} membres
 										{g.isCurrent && " · serveur du bot"}
@@ -437,7 +437,7 @@ function SessionCard({ user }: { user: SessionUser | undefined }) {
 				<div className="space-y-1 text-sm">
 					<div className="font-semibold text-white">{user.username ?? "Utilisateur"}</div>
 					{user.id && (
-						<div className="font-mono text-xs text-white/40" title="Identifiant Discord">
+						<div className="font-mono text-xs text-white/50" title="Identifiant Discord">
 							{user.id}
 						</div>
 					)}
@@ -468,7 +468,7 @@ function Field({
 }) {
 	return (
 		<div>
-			<div className="mb-1 flex items-center gap-2 text-xs text-white/40">
+			<div className="mb-1 flex items-center gap-2 text-xs text-white/50">
 				{icon}
 				<span>{label}</span>
 			</div>

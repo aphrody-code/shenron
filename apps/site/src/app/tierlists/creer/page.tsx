@@ -43,7 +43,7 @@ export default async function CreerTierlistPage({
 						</Link>
 					))}
 				</div>
-				<p className="mt-8 text-center text-[13px] text-white/40">
+				<p className="mt-8 text-center text-[13px] text-white/50">
 					Les cartes proviennent du wiki Dragon Ball FR.
 				</p>
 			</div>
@@ -71,7 +71,7 @@ export default async function CreerTierlistPage({
 					initialTiers={emptyTiers()}
 				/>
 			)}
-			<p className="mt-6 text-center text-[13px] text-white/40">
+			<p className="mt-6 text-center text-[13px] text-white/50">
 				<Link href="/tierlists/creer" className="hover:text-white/70">
 					← Changer de thème
 				</Link>

@@ -66,7 +66,7 @@ export default function TicketsPage() {
 				<p className="text-sm text-white/60 mb-1">
 					Gérez les tickets d&apos;assistance ouverts par les membres du serveur.
 				</p>
-				<p className="text-xs text-white/30 uppercase tracking-widest">
+				<p className="text-xs text-white/50 uppercase tracking-widest">
 					Un ticket = un salon Discord dédié entre le membre et les modérateurs
 				</p>
 			</header>
@@ -88,7 +88,7 @@ export default function TicketsPage() {
 							</button>
 						))}
 					</div>
-					<span className="ml-auto text-xs text-white/40">
+					<span className="ml-auto text-xs text-white/50">
 						{tickets.data?.total ?? 0} ticket
 						{(tickets.data?.total ?? 0) !== 1 ? "s" : ""}
 					</span>
@@ -106,14 +106,14 @@ export default function TicketsPage() {
 			{tickets.isLoading && (
 				<div className="dbz-panel p-8 text-center">
 					<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
-					<p className="text-sm text-white/40">Récupération des tickets.</p>
+					<p className="text-sm text-white/50">Récupération des tickets.</p>
 				</div>
 			)}
 
 			{tickets.isError && (
 				<div className="dbz-panel p-6 text-center border-l-4 border-red-500">
 					<p className="font-saiyan text-red-400 mb-2">Erreur de chargement</p>
-					<p className="text-sm text-white/40">
+					<p className="text-sm text-white/50">
 						Impossible de récupérer les tickets. Vérifiez que le bot est en ligne.
 					</p>
 				</div>
@@ -122,7 +122,7 @@ export default function TicketsPage() {
 			{!tickets.isLoading && !tickets.isError && tickets.data?.rows.length === 0 && (
 				<div className="dbz-panel p-8 text-center">
 					<p className="font-saiyan text-dbz-yellow text-xl mb-2">AUCUN TICKET</p>
-					<p className="text-sm text-white/40">
+					<p className="text-sm text-white/50">
 						{filter === "open"
 							? "Aucun ticket ouvert. Tout va bien !"
 							: filter === "closed"
@@ -169,9 +169,9 @@ export default function TicketsPage() {
 										<span className={`font-semibold text-sm ${meta.color.split(" ")[0]}`}>
 											{meta.label}
 										</span>
-										<span className="text-xs text-white/30 font-mono">#{t.id}</span>
+										<span className="text-xs text-white/50 font-mono">#{t.id}</span>
 										{t.closed ? (
-											<span className="px-2 py-0.5 text-xs font-bold bg-white/5 text-white/30 border border-white/10 rounded uppercase">
+											<span className="px-2 py-0.5 text-xs font-bold bg-white/5 text-white/50 border border-white/10 rounded uppercase">
 												Fermé
 											</span>
 										) : (
@@ -182,11 +182,11 @@ export default function TicketsPage() {
 									</div>
 
 									{meta.description && (
-										<p className="text-xs text-white/30 mb-2">{meta.description}</p>
+										<p className="text-xs text-white/50 mb-2">{meta.description}</p>
 									)}
 
 									{/* Dates */}
-									<div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/40 mb-2">
+									<div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/50 mb-2">
 										<span>
 											Ouvert le{" "}
 											{createdDate.toLocaleDateString("fr-FR", {

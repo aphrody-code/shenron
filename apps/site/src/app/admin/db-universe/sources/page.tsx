@@ -42,10 +42,10 @@ export default async function AdminSourcesPage() {
 
 			{sources.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">
 						Aucune source enregistrée
 					</p>
-					<p className="text-white/40 text-sm">
+					<p className="text-white/50 text-sm">
 						Les sources s&apos;affichent ici une fois que des assets ont été importés.
 					</p>
 				</div>
@@ -89,7 +89,7 @@ export default async function AdminSourcesPage() {
 										>
 											{s.name}
 										</a>
-										<p className="text-[11px] text-white/45 mt-0.5 font-mono truncate max-w-md">
+										<p className="text-[11px] text-white/50 mt-0.5 font-mono truncate max-w-md">
 											{s.url}
 										</p>
 									</td>
@@ -108,7 +108,7 @@ export default async function AdminSourcesPage() {
 												{s.license_key}
 											</span>
 										)}
-										<p className="text-[10px] text-white/40 mt-1">{s.license_name}</p>
+										<p className="text-[10px] text-white/50 mt-1">{s.license_name}</p>
 									</td>
 									<td className="p-3 align-top text-xs text-white/75">
 										{s.attribution_template ? (

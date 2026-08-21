@@ -69,7 +69,7 @@ export function JsonEditor({
 						<Check className="h-3 w-3" /> JSON valide
 					</span>
 				) : (
-					<span className="text-white/40">Vide</span>
+					<span className="text-white/50">Vide</span>
 				)}
 				<button
 					type="button"

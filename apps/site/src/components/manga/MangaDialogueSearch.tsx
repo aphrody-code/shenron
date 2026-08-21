@@ -102,7 +102,7 @@ export function MangaDialogueSearch() {
 			>
 				<div className="relative flex-1">
 					<Search
-						className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40"
+						className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
 						aria-hidden="true"
 					/>
 					<input
@@ -112,7 +112,7 @@ export function MangaDialogueSearch() {
 						onChange={(e) => setQ(e.target.value)}
 						placeholder="Rechercher un dialogue…"
 						aria-label="Rechercher un dialogue du manga"
-						className="w-full rounded-lg border border-white/10 bg-black/40 py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/30 focus:border-dbz-orange focus:outline-none"
+						className="w-full rounded-lg border border-white/10 bg-black/40 py-3 pl-10 pr-4 text-sm text-white placeholder:text-white/50 focus:border-dbz-orange focus:outline-none"
 					/>
 				</div>
 				<button

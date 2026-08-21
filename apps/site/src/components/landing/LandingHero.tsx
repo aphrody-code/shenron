@@ -97,7 +97,7 @@ export function LandingHero() {
 			{/* Scroll cue en bas */}
 			<div
 				aria-hidden
-				className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40 hero-cue"
+				className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50 hero-cue"
 			>
 				<span className="font-display font-bold text-[10px] tracking-[0.4em] uppercase">
 					Défiler

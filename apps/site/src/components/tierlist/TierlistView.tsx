@@ -46,7 +46,7 @@ export function TierlistView({
 							</span>
 						))}
 						{t.items.length === 0 && (
-							<span className="px-2 py-1 text-[11px] italic text-white/30">—</span>
+							<span className="px-2 py-1 text-[11px] italic text-white/50">—</span>
 						)}
 					</div>
 				</div>

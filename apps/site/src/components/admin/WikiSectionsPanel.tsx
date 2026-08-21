@@ -166,13 +166,13 @@ export function WikiSectionsPanel({
 		<div className="dbz-panel space-y-4 p-5">
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 				<Layers className="h-3.5 w-3.5" /> Sections de contenu
-				<span className="text-white/30">({sections.length})</span>
+				<span className="text-white/50">({sections.length})</span>
 				{(query.isFetching || reorder.isPending || add.isPending) && (
-					<Loader2 className="h-3 w-3 animate-spin text-white/40" />
+					<Loader2 className="h-3 w-3 animate-spin text-white/50" />
 				)}
 			</div>
 
-			<p className="text-xs text-white/45">
+			<p className="text-xs text-white/50">
 				Blocs affichés en catégories sélectionnables sur la fiche (« Histoire », « Personnalité », «
 				Anecdotes », « PWS »…). Dès qu&apos;une fiche a des sections ici, elles définissent
 				<strong className="text-white/70"> seules</strong> ses catégories (le champ « Article »
@@ -183,7 +183,7 @@ export function WikiSectionsPanel({
 			{query.isError ? (
 				<p className="text-xs text-red-400">Chargement des sections échoué.</p>
 			) : sections.length === 0 ? (
-				<p className="text-xs italic text-white/30">Aucune section pour l&apos;instant.</p>
+				<p className="text-xs italic text-white/50">Aucune section pour l&apos;instant.</p>
 			) : (
 				<div className="space-y-2">
 					{sections.map((s, i) => (
@@ -327,13 +327,13 @@ function SectionRow({
 					)}
 					{section.label}
 					{(section.links?.length ?? 0) > 0 && (
-						<span className="ml-2 inline-flex items-center gap-0.5 align-middle text-[10px] text-white/40">
+						<span className="ml-2 inline-flex items-center gap-0.5 align-middle text-[10px] text-white/50">
 							<Link2 className="h-3 w-3" />
 							{section.links?.length}
 						</span>
 					)}
 					{!section.visible && (
-						<span className="ml-2 text-[10px] uppercase tracking-widest text-white/35">
+						<span className="ml-2 text-[10px] uppercase tracking-widest text-white/50">
 							masquée
 						</span>
 					)}
@@ -390,7 +390,7 @@ function SectionRow({
 				<div className="space-y-3 border-t border-white/10 p-3">
 					<div className="flex flex-wrap gap-3">
 						<label className="flex-1">
-							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 								Titre
 							</span>
 							<input
@@ -400,7 +400,7 @@ function SectionRow({
 							/>
 						</label>
 						<label>
-							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 								Accent
 							</span>
 							<select
@@ -416,7 +416,7 @@ function SectionRow({
 							</select>
 						</label>
 						<label>
-							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+							<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 								Groupe parent (onglet)
 							</span>
 							<input
@@ -433,7 +433,7 @@ function SectionRow({
 							</datalist>
 						</label>
 					</div>
-					<p className="text-[11px] text-white/40 -mt-1">
+					<p className="text-[11px] text-white/50 -mt-1">
 						Le <strong className="text-white/60">groupe parent</strong> devient l&apos;onglet de la
 						barre du haut (ex. « PWS »). Le <strong className="text-white/60">titre</strong>{" "}
 						ci-dessus est la sous-section affichée en dessous (ex. « Vitesse », « Puissance
@@ -523,9 +523,9 @@ function WikiSectionLinksEditor({
 		<div className="rounded border border-dbz-border bg-dbz-card/30 p-3">
 			<div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 				<Link2 className="h-3.5 w-3.5" /> Pages wiki liées
-				<span className="text-white/30">({links.length})</span>
+				<span className="text-white/50">({links.length})</span>
 			</div>
-			<p className="mb-2 text-[11px] text-white/40">
+			<p className="mb-2 text-[11px] text-white/50">
 				Cartes avec photo renvoyant vers d&apos;autres fiches wiki (ex. affilier des personnages à
 				une catégorie « Powerscaling »).
 			</p>
@@ -580,7 +580,7 @@ function WikiSectionLinksEditor({
 							))}
 						</select>
 						<div className="relative flex-1">
-							<Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/30" />
+							<Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/50" />
 							<input
 								className="input pl-7 text-xs"
 								placeholder="Rechercher une fiche…"
@@ -598,13 +598,13 @@ function WikiSectionLinksEditor({
 						</button>
 					</div>
 					{list.isLoading ? (
-						<p className="py-3 text-center text-xs text-white/40">
+						<p className="py-3 text-center text-xs text-white/50">
 							<Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Chargement…
 						</p>
 					) : (
 						<div className="max-h-56 space-y-1 overflow-y-auto">
 							{results.length === 0 ? (
-								<p className="py-2 text-center text-xs italic text-white/30">Aucun résultat.</p>
+								<p className="py-2 text-center text-xs italic text-white/50">Aucun résultat.</p>
 							) : (
 								results.map(({ row, name }) => {
 									const rawImg = row[spec.imageCol];
@@ -631,7 +631,7 @@ function WikiSectionLinksEditor({
 											)}
 											<span className="min-w-0 flex-1 truncate text-xs text-white/85">{name}</span>
 											{already ? (
-												<span className="text-[9px] uppercase text-white/30">ajouté</span>
+												<span className="text-[9px] uppercase text-white/50">ajouté</span>
 											) : (
 												<Plus className="h-3.5 w-3.5 text-dbz-orange" />
 											)}

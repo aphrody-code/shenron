@@ -112,7 +112,7 @@ export function UniverseTabs({
 							>
 								{c.label}
 								{typeof n === "number" && n > 0 && (
-									<span className="ml-1 text-[11px] text-white/35 tabular-nums">{n}</span>
+									<span className="ml-1 text-[11px] text-white/50 tabular-nums">{n}</span>
 								)}
 							</Link>
 						);

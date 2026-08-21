@@ -80,7 +80,7 @@ export function PersonasShowcase({
 
 									{/* Bottom ki-line accent */}
 									<div className="mt-5 pt-4 border-t border-dbz-border/60 flex items-center justify-between">
-										<span className="font-scouter text-[9px] tracking-[0.3em] text-white/40">
+										<span className="font-scouter text-[9px] tracking-[0.3em] text-white/50">
 											EN LIGNE
 										</span>
 										<span className="led" aria-hidden />

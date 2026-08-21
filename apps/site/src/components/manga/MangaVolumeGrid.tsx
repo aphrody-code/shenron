@@ -359,7 +359,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						</Link>
 					))}
 					{filteredDbs.length === 0 && (
-						<div className="col-span-full py-16 text-center text-white/30 italic">
+						<div className="col-span-full py-16 text-center text-white/50 italic">
 							Aucun volume ne correspond à votre recherche.
 						</div>
 					)}
@@ -439,7 +439,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					)}
 
 					{filteredDb.length === 0 && dbColorChapters.length === 0 && (
-						<div className="py-16 text-center text-white/30 italic">
+						<div className="py-16 text-center text-white/50 italic">
 							Aucun volume ne correspond à votre recherche.
 						</div>
 					)}
@@ -486,7 +486,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					)}
 
 					{filteredChapters.length === 0 && (
-						<div className="py-16 text-center text-white/30 italic">
+						<div className="py-16 text-center text-white/50 italic">
 							Aucun chapitre ne correspond à votre recherche.
 						</div>
 					)}
@@ -510,7 +510,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						</div>
 						<div className="grid grid-cols-2 gap-8 text-center md:text-left">
 							<div>
-								<span className="block text-[10px] uppercase text-white/40 tracking-wider font-mono">
+								<span className="block text-[10px] uppercase text-white/50 tracking-wider font-mono">
 									Chapitres Lus
 								</span>
 								<span className="font-saiyan text-3xl text-dbz-orange tracking-widest leading-none">
@@ -518,7 +518,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 								</span>
 							</div>
 							<div>
-								<span className="block text-[10px] uppercase text-white/40 tracking-wider font-mono">
+								<span className="block text-[10px] uppercase text-white/50 tracking-wider font-mono">
 									Rang Débloqué
 								</span>
 								<span className="font-saiyan text-2xl text-white tracking-widest leading-none block mt-1">

@@ -106,7 +106,7 @@ export function AdUnit({ placement, className = "", label = "Publicité" }: AdUn
 		const shape = AD_PLACEMENTS[placement];
 		return (
 			<div
-				className={`ed-no-print grid w-full place-items-center rounded-sm border border-dashed border-white/15 bg-white/[0.02] text-[11px] uppercase tracking-[0.18em] text-white/30 ${className}`}
+				className={`ed-no-print grid w-full place-items-center rounded-sm border border-dashed border-white/15 bg-white/[0.02] text-[11px] uppercase tracking-[0.18em] text-white/50 ${className}`}
 				style={{ minHeight: shape.minHeight }}
 			>
 				Emplacement pub · {placement} · {shape.format}
@@ -126,7 +126,7 @@ export function AdUnit({ placement, className = "", label = "Publicité" }: AdUn
 			aria-hidden={state === "unfilled"}
 		>
 			{label && state !== "unfilled" && (
-				<p className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">
+				<p className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-white/50">
 					{label}
 				</p>
 			)}

@@ -82,7 +82,7 @@ export default async function NewsPage({
 										})}
 									</span>
 									<div className="h-px w-8 bg-dbz-border" />
-									<span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+									<span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
 										Source: {new URL(item.source_url).hostname.replace("www.", "")}
 									</span>
 								</div>
@@ -112,7 +112,7 @@ export default async function NewsPage({
 
 					{news.length === 0 && (
 						<div className="dbz-panel p-12 text-center border-dashed">
-							<p className="text-white/40 font-display italic">
+							<p className="text-white/50 font-display italic">
 								Aucune actualité récente détectée par le Scouter.
 							</p>
 						</div>

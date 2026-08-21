@@ -54,7 +54,7 @@ export default function GiveawaysPage() {
 				<p className="text-sm text-white/60 mb-1">
 					Gérez les tirages au sort actifs et passés sur votre serveur.
 				</p>
-				<p className="text-xs text-white/30 uppercase tracking-widest">
+				<p className="text-xs text-white/50 uppercase tracking-widest">
 					Créés via la commande <strong>/giveaway</strong> · tirage automatique toutes les minutes
 				</p>
 			</header>
@@ -74,7 +74,7 @@ export default function GiveawaysPage() {
 							</button>
 						))}
 					</div>
-					<span className="ml-auto text-xs text-white/40">
+					<span className="ml-auto text-xs text-white/50">
 						{giveaways.data?.total ?? 0} tirage
 						{(giveaways.data?.total ?? 0) !== 1 ? "s" : ""}
 					</span>
@@ -92,14 +92,14 @@ export default function GiveawaysPage() {
 			{giveaways.isLoading && (
 				<div className="dbz-panel p-8 text-center">
 					<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
-					<p className="text-sm text-white/40">Récupération des tirages au sort.</p>
+					<p className="text-sm text-white/50">Récupération des tirages au sort.</p>
 				</div>
 			)}
 
 			{giveaways.isError && (
 				<div className="dbz-panel p-6 text-center border-l-4 border-red-500">
 					<p className="font-saiyan text-red-400 mb-2">Erreur de chargement</p>
-					<p className="text-sm text-white/40">
+					<p className="text-sm text-white/50">
 						Impossible de récupérer les tirages. Vérifiez que le bot est en ligne.
 					</p>
 				</div>
@@ -108,7 +108,7 @@ export default function GiveawaysPage() {
 			{!giveaways.isLoading && !giveaways.isError && giveaways.data?.rows.length === 0 && (
 				<div className="dbz-panel p-8 text-center">
 					<p className="font-saiyan text-dbz-yellow text-xl mb-2">AUCUN TIRAGE</p>
-					<p className="text-sm text-white/40">
+					<p className="text-sm text-white/50">
 						{filter === "active"
 							? "Aucun tirage au sort en cours. Utilisez /giveaway sur Discord pour en créer un."
 							: filter === "ended"
@@ -141,9 +141,9 @@ export default function GiveawaysPage() {
 									{/* Titre + état */}
 									<div className="flex items-center gap-2 flex-wrap mb-2">
 										<span className="font-saiyan text-white text-lg truncate">{g.title}</span>
-										<span className="text-xs text-white/30 font-mono">#{g.id}</span>
+										<span className="text-xs text-white/50 font-mono">#{g.id}</span>
 										{g.ended ? (
-											<span className="px-2 py-0.5 text-xs font-bold bg-white/5 text-white/40 border border-white/10 rounded uppercase">
+											<span className="px-2 py-0.5 text-xs font-bold bg-white/5 text-white/50 border border-white/10 rounded uppercase">
 												Terminé
 											</span>
 										) : (
@@ -155,12 +155,12 @@ export default function GiveawaysPage() {
 
 									{/* Récompense */}
 									<p className="text-sm mb-1">
-										<span className="text-white/40">Récompense : </span>
+										<span className="text-white/50">Récompense : </span>
 										<strong className="text-dbz-yellow">{g.reward}</strong>
 									</p>
 
 									{/* Détails */}
-									<div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/40 mb-2">
+									<div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/50 mb-2">
 										<span>
 											<Users className="h-3 w-3 inline mr-0.5" />
 											{g.entries ?? 0} participant
@@ -197,7 +197,7 @@ export default function GiveawaysPage() {
 									{/* Gagnants */}
 									{g.ended && winnerIds.length > 0 && (
 										<div className="mt-2 p-2 rounded border border-dbz-yellow/20 bg-dbz-yellow/5">
-											<p className="text-xs text-white/40 uppercase tracking-widest mb-1">
+											<p className="text-xs text-white/50 uppercase tracking-widest mb-1">
 												Gagnant{winnerIds.length !== 1 ? "s" : ""}
 											</p>
 											<div className="flex flex-wrap gap-1">
@@ -214,7 +214,7 @@ export default function GiveawaysPage() {
 										</div>
 									)}
 									{g.ended && winnerIds.length === 0 && g.winnerIds !== null && (
-										<p className="text-sm text-white/30 mt-2">Aucun gagnant désigné.</p>
+										<p className="text-sm text-white/50 mt-2">Aucun gagnant désigné.</p>
 									)}
 								</div>
 

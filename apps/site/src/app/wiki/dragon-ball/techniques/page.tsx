@@ -62,7 +62,7 @@ export default async function TechniquesPage() {
 								{type}
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />
-							<span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+							<span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
 								{byType[type].length}
 							</span>
 						</div>

@@ -23,7 +23,7 @@ export default function GlobalError({
 				<h1 className="title-jagged text-5xl md:text-7xl leading-none mb-6">ERREUR</h1>
 				<p className="text-white/70 mb-2">Quelque chose s'est mal passé.</p>
 				{error.digest && (
-					<p className="text-xs text-white/40 font-mono mb-6">digest: {error.digest}</p>
+					<p className="text-xs text-white/50 font-mono mb-6">digest: {error.digest}</p>
 				)}
 				<div className="flex items-center justify-center gap-3 mt-6">
 					<button type="button" onClick={() => reset()} className="dbz-button !text-xs">

@@ -266,7 +266,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 					<h3 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">
 						Pages du lecteur
 					</h3>
-					<p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/45">
+					<p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/50">
 						Comme le manga : une planche par page, avec un{" "}
 						<strong className="text-white/60">numéro</strong> (auto, modifiable) et un{" "}
 						<strong className="text-white/60">texte en dessous</strong>. Fixe le nombre de pages
@@ -280,7 +280,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 							Non enregistré
 						</span>
 					)}
-					<span className="rounded border border-dbz-border/50 bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/45">
+					<span className="rounded border border-dbz-border/50 bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/50">
 						{filled}/{pages.length} remplie{pages.length > 1 ? "s" : ""}
 					</span>
 				</div>
@@ -386,7 +386,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 			</div>
 
 			{pages.length === 0 ? (
-				<p className="py-6 text-center text-sm text-white/40">
+				<p className="py-6 text-center text-sm text-white/50">
 					Aucune page. Indique un nombre ci-dessus ou clique « Ajouter ».
 				</p>
 			) : (
@@ -425,12 +425,12 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 											title="Numéro affiché (auto, modifiable)"
 										/>
 									</label>
-									<span className="text-[10px] text-white/30">
+									<span className="text-[10px] text-white/50">
 										slot {i + 1}
 										{displayN !== String(i + 1) ? ` · affiché n°${displayN}` : ""}
 									</span>
 									{!page.image.trim() && !page.text.trim() && (
-										<span className="text-[10px] uppercase tracking-wider text-white/30">
+										<span className="text-[10px] uppercase tracking-wider text-white/50">
 											Slot vide
 										</span>
 									)}

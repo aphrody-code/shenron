@@ -169,7 +169,7 @@ export default function AuditPage() {
 					<div>
 						<p className="font-semibold">Impossible de charger le journal.</p>
 						{source === "discord" && (
-							<p className="text-xs text-white/40 mt-0.5">
+							<p className="text-xs text-white/50 mt-0.5">
 								Vérifiez que le bot possède la permission &quot;Voir le journal d&apos;audit&quot;
 								sur le serveur.
 							</p>

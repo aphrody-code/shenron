@@ -122,24 +122,24 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 
 					<div className="mt-8 space-y-4 border-t border-white/10 pt-6 text-xs font-display">
 						<div className="flex justify-between gap-4">
-							<span className="text-white/40">Catégorie</span>
+							<span className="text-white/50">Catégorie</span>
 							<span className="font-bold tracking-wide text-dbz-orange">{category}</span>
 						</div>
 						{book.published_at && (
 							<div className="flex justify-between gap-4">
-								<span className="text-white/40">Publication</span>
+								<span className="text-white/50">Publication</span>
 								<span className="font-bold text-white">{formatDate(book.published_at)}</span>
 							</div>
 						)}
 						{book.author && (
 							<div className="flex justify-between gap-4">
-								<span className="text-white/40">Auteur</span>
+								<span className="text-white/50">Auteur</span>
 								<span className="font-bold text-white text-right">{book.author}</span>
 							</div>
 						)}
 						{hasPages && (
 							<div className="flex justify-between gap-4">
-								<span className="text-white/40">Pages</span>
+								<span className="text-white/50">Pages</span>
 								<span className="font-bold text-white">{filledPages.length}</span>
 							</div>
 						)}
@@ -180,7 +180,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 							<WikiMarkdown body={book.description} />
 						</div>
 					) : !hasPages ? (
-						<div className="dbz-panel p-8 text-center text-sm italic text-white/40">
+						<div className="dbz-panel p-8 text-center text-sm italic text-white/50">
 							Aucune description pour l&apos;instant — le contenu sera ajouté prochainement.
 						</div>
 					) : null}
@@ -196,7 +196,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 						<h2 className="font-saiyan text-2xl uppercase tracking-wider text-dbz-yellow sm:text-3xl">
 							Pages
 						</h2>
-						<span className="text-[11px] font-bold uppercase tracking-widest text-white/40">
+						<span className="text-[11px] font-bold uppercase tracking-widest text-white/50">
 							Planche + description
 						</span>
 					</div>

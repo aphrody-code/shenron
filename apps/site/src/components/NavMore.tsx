@@ -63,7 +63,7 @@ export function NavMore({
 					className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-lg border border-white/10 bg-[rgba(10,10,10,0.97)] p-1.5 shadow-xl backdrop-blur-xl"
 				>
 					{hint && (
-						<p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/35">
+						<p className="px-3 pb-1.5 pt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">
 							{hint}
 						</p>
 					)}

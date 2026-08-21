@@ -181,7 +181,7 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 										{/* Action */}
 										<div className="mt-auto">
 											{loggedIn !== true ? (
-												<div className="rounded border-2 border-dbz-border p-2 text-center text-[11px] text-white/40">
+												<div className="rounded border-2 border-dbz-border p-2 text-center text-[11px] text-white/50">
 													Connexion requise
 												</div>
 											) : isEquipped ? (

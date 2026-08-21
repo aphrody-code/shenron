@@ -199,8 +199,8 @@ export function WikiHistory({
 			) : rows.length === 0 ? (
 				<div className="card py-10 text-center">
 					<Clock className="mx-auto mb-2 h-6 w-6 text-white/25" />
-					<p className="font-saiyan uppercase text-white/40">Aucune révision</p>
-					<p className="mt-1 text-sm text-white/40">
+					<p className="font-saiyan uppercase text-white/50">Aucune révision</p>
+					<p className="mt-1 text-sm text-white/50">
 						{scoped
 							? "Cette entité n'a pas encore d'historique d'édition."
 							: "Les modifications du wiki apparaîtront ici."}
@@ -241,15 +241,15 @@ export function WikiHistory({
 										) : (
 											<span className="font-semibold text-white">{r.label || `#${r.rowId}`}</span>
 										)}
-										<span className="ml-2 text-[11px] text-white/35">
+										<span className="ml-2 text-[11px] text-white/50">
 											{tableLabel} · {r.rowId}
 										</span>
 									</span>
-									<span className="text-[11px] text-white/45">
+									<span className="text-[11px] text-white/50">
 										{r.editorName ? (
 											<span className="text-white/70">{r.editorName}</span>
 										) : (
-											<span className="italic text-white/35">système</span>
+											<span className="italic text-white/50">système</span>
 										)}{" "}
 										· {relTime(r.createdAt)}
 									</span>
@@ -287,7 +287,7 @@ export function WikiHistory({
 														<td className="w-40 py-1.5 pr-3 font-mono text-[11px] text-dbz-blue-light">
 															{colLabel(k)}
 														</td>
-														<td className="py-1.5 pr-3 text-white/45 line-through decoration-red-400/40">
+														<td className="py-1.5 pr-3 text-white/50 line-through decoration-red-400/40">
 															{short(r.before?.[k])}
 														</td>
 														<td className="py-1.5 text-white/85">{short(r.after?.[k])}</td>
@@ -334,7 +334,7 @@ export function WikiHistory({
 
 			{/* Pagination */}
 			{total > limit && (
-				<div className="flex items-center justify-between text-xs text-white/45">
+				<div className="flex items-center justify-between text-xs text-white/50">
 					<button
 						type="button"
 						onClick={() => setPage((p) => Math.max(0, p - 1))}

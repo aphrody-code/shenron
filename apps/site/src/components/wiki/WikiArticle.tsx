@@ -75,7 +75,7 @@ export function WikiArticle({
 
 				{cited.length > 0 && (
 					<footer className="mt-10 pt-6 border-t border-white/10">
-						<h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-4">
+						<h3 className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-4">
 							Sources & références
 						</h3>
 						<SourceList cited={cited} accentClass={style.text} />
@@ -101,14 +101,14 @@ function SourceList({ cited, accentClass }: { cited: WikiSource[]; accentClass: 
 							className="hover:text-white transition-colors link-underline break-words"
 						>
 							{s.label}
-							<span className="ml-2 text-[10px] uppercase tracking-widest text-white/30">
+							<span className="ml-2 text-[10px] uppercase tracking-widest text-white/50">
 								{kindLabel(s.kind)}
 							</span>
 						</a>
 					) : (
 						<span className="break-words">
 							{s.label}
-							<span className="ml-2 text-[10px] uppercase tracking-widest text-white/30">
+							<span className="ml-2 text-[10px] uppercase tracking-widest text-white/50">
 								{kindLabel(s.kind)}
 							</span>
 						</span>
@@ -137,7 +137,7 @@ export function WikiSources({
 	const style = sectionAccentStyle(normalizeSectionAccent(accent));
 	return (
 		<section className="dbz-panel p-6 sm:p-8">
-			<h3 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-4">
+			<h3 className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-4">
 				Sources & références
 			</h3>
 			<SourceList cited={cited} accentClass={style.text} />

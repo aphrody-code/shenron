@@ -454,7 +454,7 @@ export function RichEditor({
 			{/* ---- Éditeur de lien ------------------------------------------------ */}
 			{linkOpen && (
 				<div className="flex flex-wrap items-center gap-2 border-b border-white/10 bg-[#141416] px-3 py-2">
-					<Link2 className="size-4 text-white/40" aria-hidden />
+					<Link2 className="size-4 text-white/50" aria-hidden />
 					<input
 						autoFocus
 						value={linkValue}
@@ -501,7 +501,7 @@ export function RichEditor({
 
 			{/* ---- Pied : statistiques ------------------------------------------- */}
 			<div className="flex items-center justify-between gap-4 border-t border-white/10 bg-[#141416] px-4 py-2">
-				<span className="text-[11px] tabular-nums text-white/40">
+				<span className="text-[11px] tabular-nums text-white/50">
 					{state.words} mot{state.words > 1 ? "s" : ""} · {state.characters} signes ·{" "}
 					{Math.max(1, Math.round(state.words / 220))} min de lecture
 				</span>

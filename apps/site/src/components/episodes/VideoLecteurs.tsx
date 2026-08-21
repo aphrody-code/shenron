@@ -117,7 +117,7 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 					loading="lazy"
 				/>
 			</div>
-			<p className="text-[11px] text-white/35">
+			<p className="text-[11px] text-white/50">
 				{hasLangs && lang ? `${LANG_LABEL[lang]} · ` : ""}Lecteur externe «{" "}
 				{cleanName(current.name)} ». Les liens peuvent expirer — relancer l'import si un lecteur ne
 				répond pas.

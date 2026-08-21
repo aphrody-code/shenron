@@ -71,11 +71,11 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 		<div className="dbz-panel space-y-4 p-5">
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 				<Sparkles className="h-3.5 w-3.5" /> Transformations
-				<span className="text-white/30">({rows.length})</span>
-				{(list.isFetching || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/40" />}
+				<span className="text-white/50">({rows.length})</span>
+				{(list.isFetching || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/50" />}
 			</div>
 
-			<p className="text-xs text-white/45">
+			<p className="text-xs text-white/50">
 				Formes et évolutions de ce personnage. Ajoutées ici, elles s&apos;affichent sur sa fiche
 				publique et dans l&apos;index des transformations — plus besoin de créer une entrée globale
 				puis de choisir le perso à la main.
@@ -84,7 +84,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 			{list.isError ? (
 				<p className="text-xs text-red-400">Chargement des transformations échoué.</p>
 			) : rows.length === 0 && !adding ? (
-				<p className="text-xs italic text-white/30">Aucune transformation pour l&apos;instant.</p>
+				<p className="text-xs italic text-white/50">Aucune transformation pour l&apos;instant.</p>
 			) : (
 				<div className="space-y-2">
 					{rows.map((t) => (
@@ -133,7 +133,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 			{adding ? (
 				<div className="space-y-3 border-t border-white/10 pt-3">
 					<label>
-						<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+						<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 							Nom de la forme
 						</span>
 						<input
@@ -145,7 +145,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 						/>
 					</label>
 					<label>
-						<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+						<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 							Ki (optionnel)
 						</span>
 						<input
@@ -156,7 +156,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 						/>
 					</label>
 					<div>
-						<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+						<span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 							Image (optionnel)
 						</span>
 						<ImageField

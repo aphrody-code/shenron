@@ -131,7 +131,7 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 										{ep.title}
 									</p>
 									{ep.title_ja && (
-										<p className="font-jp text-xs text-white/30 mt-1 truncate">{ep.title_ja}</p>
+										<p className="font-jp text-xs text-white/50 mt-1 truncate">{ep.title_ja}</p>
 									)}
 								</div>
 								<span className="text-dbz-orange opacity-0 group-hover:opacity-100 transition-opacity text-xl shrink-0">

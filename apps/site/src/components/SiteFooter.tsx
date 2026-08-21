@@ -86,7 +86,7 @@ export function SiteFooter() {
 			</div>
 
 			<div className="border-t border-white/[0.06]">
-				<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/45">
+				<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/50">
 					<p className="leading-relaxed max-w-3xl">
 						© {new Date().getFullYear()} DBFR — site communautaire de fans. Dragon Ball, Dragon Ball
 						Z, Dragon Ball Super, Dragon Ball Daima et tous les personnages associés sont © Bird

@@ -181,7 +181,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 									</span>
 								)}
 								{m.title_romaji && (
-									<span className="text-sm italic uppercase tracking-[0.2em] text-white/40">
+									<span className="text-sm italic uppercase tracking-[0.2em] text-white/50">
 										{m.title_romaji}
 									</span>
 								)}
@@ -196,7 +196,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 						<dl className="grid grid-cols-2 gap-4 max-w-md">
 							{m.release_date && (
 								<div>
-									<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1">
+									<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/50 mb-1">
 										Sortie
 									</dt>
 									<dd className="font-display text-white">
@@ -210,7 +210,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							)}
 							{m.duration_min && (
 								<div>
-									<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1">
+									<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/50 mb-1">
 										Durée
 									</dt>
 									<dd className="font-display text-white">{m.duration_min} min</dd>
@@ -240,7 +240,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							<span className="font-saiyan text-3xl text-white/25 tracking-widest">
 								Lecteur bientôt disponible
 							</span>
-							<p className="max-w-sm text-[13px] text-white/45">
+							<p className="max-w-sm text-[13px] text-white/50">
 								Aucune source de lecture n'est disponible pour ce film pour le moment.
 							</p>
 						</div>
@@ -368,7 +368,7 @@ function MovieNavCard({ dir, m }: { dir: "prev" | "next"; m: MovieNavItem }) {
 					{m.title}
 				</span>
 				{m.release_date && (
-					<span className="block text-[12px] text-white/45">
+					<span className="block text-[12px] text-white/50">
 						{new Date(m.release_date * 1000).getFullYear()}
 					</span>
 				)}

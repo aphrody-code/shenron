@@ -87,7 +87,7 @@ export function WikiAiAssistant({
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 				<Sparkles className="h-3.5 w-3.5" /> Assistant sources (RAG)
 			</div>
-			<p className="text-xs text-white/45">
+			<p className="text-xs text-white/50">
 				Donne une instruction : l&apos;assistant récupère des <strong>passages sourcés</strong> de
 				la base (aucune IA générative — extraits réels + citations) et prépare un brouillon que tu
 				relis puis insères comme section.
@@ -161,7 +161,7 @@ export function WikiAiAssistant({
 					</div>
 
 					<div>
-						<label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+						<label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 							Brouillon (markdown, sourcé) — relis/édite avant d&apos;insérer
 						</label>
 						<textarea

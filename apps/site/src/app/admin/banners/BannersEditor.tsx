@@ -108,7 +108,7 @@ function BannerRow({
 					<div className="flex flex-wrap items-baseline justify-between gap-2">
 						<div>
 							<div className="text-sm font-semibold text-white">{label}</div>
-							{hint && <div className="text-[11px] text-white/40">{hint}</div>}
+							{hint && <div className="text-[11px] text-white/50">{hint}</div>}
 						</div>
 						<div className="flex items-center gap-2">
 							{onOpenLibrary && (
@@ -133,7 +133,7 @@ function BannerRow({
 						<button
 							type="button"
 							onClick={() => onChange(defaultValue)}
-							className="inline-flex items-center gap-1 text-[11px] text-white/45 hover:text-dbz-orange"
+							className="inline-flex items-center gap-1 text-[11px] text-white/50 hover:text-dbz-orange"
 						>
 							<RotateCcw className="h-3 w-3" />
 							Revenir au défaut
@@ -263,7 +263,7 @@ export function BannersEditor() {
 
 			<section className="space-y-3">
 				<h2 className="font-saiyan text-lg uppercase text-dbz-yellow">Pages (heroes)</h2>
-				<p className="text-xs text-white/40">
+				<p className="text-xs text-white/50">
 					Image large en tête de chaque landing wiki / catalogue.
 				</p>
 				<div className="space-y-3">
@@ -285,7 +285,7 @@ export function BannersEditor() {
 
 			<section className="space-y-3">
 				<h2 className="font-saiyan text-lg uppercase text-dbz-yellow">Séries</h2>
-				<p className="text-xs text-white/40">
+				<p className="text-xs text-white/50">
 					Utilisées par les vues série (ex. /wiki/episodes/serie/DBZ) et les aperçus sans image
 					d&apos;épisode.
 				</p>
@@ -346,9 +346,9 @@ export function BannersEditor() {
 						</div>
 						<div className="overflow-y-auto p-4">
 							{lib.isLoading ? (
-								<p className="py-8 text-center text-sm text-white/40">Chargement…</p>
+								<p className="py-8 text-center text-sm text-white/50">Chargement…</p>
 							) : (lib.data?.length ?? 0) === 0 ? (
-								<p className="py-8 text-center text-sm text-white/40">
+								<p className="py-8 text-center text-sm text-white/50">
 									Aucune image (toei / dbofficial / wiki/banners).
 								</p>
 							) : (

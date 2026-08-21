@@ -134,12 +134,12 @@ export default async function TransformationsPage() {
 														</div>
 													))}
 												</div>
-												<span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+												<span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
 													{g.members.length} guerrier{g.members.length > 1 ? "s" : ""}
 												</span>
 											</div>
 										) : (
-											<span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+											<span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
 												{g.members.length} guerrier{g.members.length > 1 ? "s" : ""}
 											</span>
 										)}

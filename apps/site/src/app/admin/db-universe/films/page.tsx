@@ -46,8 +46,8 @@ export default async function AdminFilmsPage() {
 
 			{movies.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">Aucun film enregistré</p>
-					<p className="text-white/40 text-sm">
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">Aucun film enregistré</p>
+					<p className="text-white/50 text-sm">
 						Les films s&apos;affichent ici une fois importés depuis Jikan.
 					</p>
 				</div>
@@ -121,7 +121,7 @@ export default async function AdminFilmsPage() {
 													{m.title_ja}
 												</div>
 											)}
-											<div className="text-[10px] text-white/30 font-mono mt-0.5">{m.slug}</div>
+											<div className="text-[10px] text-white/50 font-mono mt-0.5">{m.slug}</div>
 										</td>
 										<td className="p-2 font-mono text-xs text-dbz-orange">{m.series}</td>
 										<td className="p-2 text-[11px] text-white/55">

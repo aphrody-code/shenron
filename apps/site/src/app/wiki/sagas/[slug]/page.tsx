@@ -161,14 +161,14 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 										<h3 className="font-display font-bold text-xl text-white group-hover:text-dbz-orange transition-colors">
 											{a.name}
 										</h3>
-										{a.name_ja && <p className="font-jp text-sm text-white/40 mt-1">{a.name_ja}</p>}
+										{a.name_ja && <p className="font-jp text-sm text-white/50 mt-1">{a.name_ja}</p>}
 										{(() => {
 											const r = arcRatings.get(String(a.id));
 											if (!r || r.count <= 0) return null;
 											return (
 												<p className="mt-2 text-[12px] font-display font-semibold text-dbz-orange">
 													★ {r.average.toFixed(1)}{" "}
-													<span className="text-white/40 font-normal">({r.count})</span>
+													<span className="text-white/50 font-normal">({r.count})</span>
 												</p>
 											);
 										})()}

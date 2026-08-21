@@ -33,7 +33,7 @@ export default async function FilmModal({ params }: { params: Promise<{ slug: st
 		return (
 			<Modal>
 				<div className="p-10 text-center">
-					<p id="stream-modal-title" className="font-saiyan text-2xl uppercase text-white/45">
+					<p id="stream-modal-title" className="font-saiyan text-2xl uppercase text-white/50">
 						Aperçu indisponible
 					</p>
 					<p className="mt-2 text-sm text-white/50">

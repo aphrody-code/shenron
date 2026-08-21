@@ -256,7 +256,7 @@ main:focus {
 		@apply bg-dbz-red text-white hover:brightness-110;
 	}
 	.input {
-		@apply w-full rounded-md border border-dbz-border bg-dbz-bg/70 px-3 py-2 text-sm text-white placeholder:text-white/40 focus:border-dbz-orange focus:outline-none;
+		@apply w-full rounded-md border border-dbz-border bg-dbz-bg/70 px-3 py-2 text-sm text-white placeholder:text-white/50 focus:border-dbz-orange focus:outline-none;
 	}
 	select.input {
 		@apply appearance-none;
@@ -596,6 +596,14 @@ main:focus {
 	}
 	.starfield-anim {
 		animation: star-drift 240s linear infinite;
+	}
+	/* Le champ d'étoiles est rendu sur CHAQUE page (layout.tsx) : c'était la
+	   seule animation perpétuelle du site à échapper à `prefers-reduced-motion`,
+	   sur un site qui la respecte partout ailleurs. */
+	@media (prefers-reduced-motion: reduce) {
+		.starfield-anim {
+			animation: none;
+		}
 	}
 
 	/* === Nebula glow utility === */
@@ -1410,7 +1418,7 @@ main:focus {
 
 	/* Indicateur "pas de données" — état vide lisible */
 	.admin-empty {
-		@apply flex flex-col items-center justify-center gap-3 py-12 text-center text-white/40;
+		@apply flex flex-col items-center justify-center gap-3 py-12 text-center text-white/50;
 	}
 	.admin-empty p {
 		@apply text-sm max-w-xs leading-relaxed;
@@ -3183,4 +3191,29 @@ main:focus {
 	--success-foreground: #ffffff;
 	--warning: var(--color-dbz-gold);
 	--warning-foreground: #04050f;
+}
+
+/* ==========================================================================
+   Calques flottants — cohabitation
+   ========================================================================== */
+
+/* Quatre éléments fixes se partagent le bas de l'écran : invitation Discord et
+   « Signaler une erreur » à gauche, assistant à droite, bandeau de consentement
+   par-dessus. Sur mobile le bandeau s'étend sur TOUTE la largeur à `bottom-24`
+   et recouvrait les deux boutons de gauche. Le temps du choix — ponctuel, une
+   seule fois par visiteur — on efface les boutons secondaires. L'assistant
+   reste : il est à droite, hors de la trajectoire du bandeau sur grand écran. */
+html[data-consent-open] .fab-secondary {
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+@media (min-width: 768px) {
+	/* Au-delà de 768 px le bandeau est ancré à droite (`md:left-auto`) : les
+	   boutons de gauche ne sont plus masqués. */
+	html[data-consent-open] .fab-secondary {
+		opacity: 1;
+		pointer-events: auto;
+		visibility: visible;
+	}
 }

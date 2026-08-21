@@ -113,7 +113,7 @@ export function RatingBadge({
 	if (count <= 0) {
 		return (
 			<span
-				className={`inline-flex items-center gap-1 text-[11px] font-display tracking-wide text-white/40 ${className}`}
+				className={`inline-flex items-center gap-1 text-[11px] font-display tracking-wide text-white/50 ${className}`}
 			>
 				<span className="text-white/25">★</span> Pas encore noté
 			</span>
@@ -126,7 +126,7 @@ export function RatingBadge({
 		>
 			<span aria-hidden>★</span>
 			<span className="tabular-nums text-white">{average.toFixed(1)}</span>
-			<span className="text-white/45 font-normal">({count})</span>
+			<span className="text-white/50 font-normal">({count})</span>
 		</span>
 	);
 }

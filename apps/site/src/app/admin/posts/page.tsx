@@ -89,7 +89,7 @@ export default async function AdminPosts({
 					</p>
 					{filter === "all" && (
 						<>
-							<p className="max-w-md text-[14px] text-white/45">
+							<p className="max-w-md text-[14px] text-white/50">
 								Le journal est vide. Le premier article donnera le ton du site.
 							</p>
 							<Button size="lg" render={<Link href="/admin/posts/new" />} className="mt-2">
@@ -136,8 +136,8 @@ export default async function AdminPosts({
 											)}
 											{post.title}
 										</p>
-										<p className="mt-0.5 truncate text-[13px] text-white/45">{post.excerpt}</p>
-										<p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-white/35">
+										<p className="mt-0.5 truncate text-[13px] text-white/50">{post.excerpt}</p>
+										<p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-white/50">
 											<span>{post.author?.username ?? "—"}</span>
 											<span aria-hidden>·</span>
 											<span>{format(date, "d MMM yyyy", { locale: fr })}</span>

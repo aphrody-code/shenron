@@ -171,7 +171,7 @@ export function ThemeRowActions({ theme }: { theme: Theme }) {
 				className={`px-2 py-1 text-[10px] uppercase tracking-widest border rounded ${
 					theme.enabled
 						? "border-green-400/50 text-green-300 hover:bg-green-500/10"
-						: "border-white/20 text-white/40 hover:bg-white/5"
+						: "border-white/20 text-white/50 hover:bg-white/5"
 				}`}
 			>
 				{theme.enabled ? "ON" : "OFF"}
@@ -222,7 +222,7 @@ function ThemeEditModal({ theme, onClose }: { theme: Theme; onClose: () => void 
 					<h3 className="font-saiyan text-xl text-fuchsia-300">
 						Éditer thème · <code className="text-cyan-300">{theme.id}</code>
 					</h3>
-					<button type="button" onClick={onClose} className="text-white/40 hover:text-white">
+					<button type="button" onClick={onClose} className="text-white/50 hover:text-white">
 						✗
 					</button>
 				</div>
@@ -281,7 +281,7 @@ function ThemeEditModal({ theme, onClose }: { theme: Theme; onClose: () => void 
 									className="h-12 rounded border border-dbz-border"
 									style={{ background: vals[k] }}
 								/>
-								<div className="text-[9px] text-white/40 mt-1 font-mono">{k}</div>
+								<div className="text-[9px] text-white/50 mt-1 font-mono">{k}</div>
 							</div>
 						))}
 					</div>

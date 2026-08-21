@@ -64,7 +64,7 @@ export function TierlistLike({ tierlistId }: { tierlistId: string }) {
 		>
 			<span className="text-base leading-none">{liked ? "♥" : "♡"}</span>
 			<span>{count ?? "…"}</span>
-			<span className="text-white/45">j'aime</span>
+			<span className="text-white/50">j'aime</span>
 		</button>
 	);
 }

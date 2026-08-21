@@ -153,7 +153,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 						<strong className="text-dbz-orange">{publicCount}</strong> / {ALL_ENTRIES.length}{" "}
 						rubriques publiques
 					</p>
-					<p className="text-[11px] text-white/40">
+					<p className="text-[11px] text-white/50">
 						Le staff traverse toutes les restrictions. Les flèches changent l&apos;ordre de la
 						navigation.
 					</p>
@@ -182,7 +182,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 										type="button"
 										onClick={() => move(key, -1)}
 										disabled={index === 0}
-										className="rounded p-0.5 text-white/40 hover:text-white disabled:opacity-20"
+										className="rounded p-0.5 text-white/50 hover:text-white disabled:opacity-20"
 										aria-label={`Monter ${entry.label}`}
 									>
 										<ArrowUp className="h-3.5 w-3.5" />
@@ -191,7 +191,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 										type="button"
 										onClick={() => move(key, 1)}
 										disabled={index === rows.length - 1}
-										className="rounded p-0.5 text-white/40 hover:text-white disabled:opacity-20"
+										className="rounded p-0.5 text-white/50 hover:text-white disabled:opacity-20"
 										aria-label={`Descendre ${entry.label}`}
 									>
 										<ArrowDown className="h-3.5 w-3.5" />
@@ -201,12 +201,12 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 								<div className="min-w-0 flex-1">
 									<p className="flex items-center gap-1.5 font-saiyan text-sm text-white">
 										{entry.label}
-										{locked && <Lock className="h-3 w-3 text-white/40" />}
-										<span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/40">
+										{locked && <Lock className="h-3 w-3 text-white/50" />}
+										<span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/50">
 											{entry.scope === "site" ? "site" : "wiki"}
 										</span>
 									</p>
-									<p className="truncate text-[10px] text-white/40">{entry.prefixes.join(" · ")}</p>
+									<p className="truncate text-[10px] text-white/50">{entry.prefixes.join(" · ")}</p>
 								</div>
 
 								<div className="flex flex-wrap gap-1">
@@ -245,7 +245,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 												<button
 													type="button"
 													onClick={() => removeRole(key, rid)}
-													className="text-white/40 hover:text-red-400"
+													className="text-white/50 hover:text-red-400"
 													aria-label="Retirer ce rôle"
 												>
 													<X className="h-3 w-3" />
@@ -259,7 +259,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 										)}
 									</div>
 									<div className="flex items-center gap-2">
-										<Plus className="h-3 w-3 shrink-0 text-white/30" />
+										<Plus className="h-3 w-3 shrink-0 text-white/50" />
 										<RoleSelect
 											value=""
 											onChange={(rid) => addRole(key, rid)}
@@ -275,7 +275,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 			</div>
 
 			{msg && <p className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>{msg.text}</p>}
-			<p className="text-xs text-white/40">
+			<p className="text-xs text-white/50">
 				Les rubriques avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie, Manga)
 				sont en ligne depuis la bêta et restent publiques.
 			</p>

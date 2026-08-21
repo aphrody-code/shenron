@@ -47,7 +47,7 @@ export function PwsStatSection({
 				</div>
 
 				{!trimmed ? (
-					<p className="text-sm italic text-white/35">
+					<p className="text-sm italic text-white/50">
 						Section power scaling à compléter — éditable dans le studio (Pack PWS).
 					</p>
 				) : shortStat ? (

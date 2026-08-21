@@ -99,7 +99,7 @@ export function QuickLook({
 					{synopsis ? (
 						<p className="text-[14px] leading-relaxed text-white/75">{synopsis}</p>
 					) : (
-						<p className="text-[14px] italic text-white/40">Synopsis à venir.</p>
+						<p className="text-[14px] italic text-white/50">Synopsis à venir.</p>
 					)}
 				</div>
 			</div>

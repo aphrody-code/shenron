@@ -111,7 +111,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 			<dl className="grid sm:grid-cols-2 gap-6 mb-12 p-6 rounded-xl bg-white/[0.04] border border-white/[0.06]">
 				{g.release_date && (
 					<div>
-						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1.5">
+						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/50 mb-1.5">
 							Date de sortie
 						</dt>
 						<dd className="text-white text-[15px]">
@@ -125,7 +125,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 				)}
 				{g.developer && (
 					<div>
-						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1.5">
+						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/50 mb-1.5">
 							Développeur
 						</dt>
 						<dd className="text-white text-[15px]">{g.developer}</dd>
@@ -133,7 +133,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 				)}
 				{g.publisher && (
 					<div>
-						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1.5">
+						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/50 mb-1.5">
 							Éditeur
 						</dt>
 						<dd className="text-white text-[15px]">{g.publisher}</dd>
@@ -141,7 +141,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 				)}
 				{platforms.length > 0 && (
 					<div>
-						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/45 mb-1.5">
+						<dt className="font-display font-semibold text-[11px] tracking-[0.16em] uppercase text-white/50 mb-1.5">
 							Plateformes
 						</dt>
 						<dd className="flex flex-wrap gap-1.5">

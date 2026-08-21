@@ -107,7 +107,7 @@ export default async function TechniqueDetailPage({
 						<div className="flex items-center gap-4 mb-4">
 							<span className="scouter-text text-xl text-dbz-blue-light">TECH_ID: {tech.id}</span>
 							<div className="h-px w-12 bg-dbz-border" />
-							<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-white/40">
+							<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-white/50">
 								{tech.type ?? "Capacité"}
 							</p>
 						</div>

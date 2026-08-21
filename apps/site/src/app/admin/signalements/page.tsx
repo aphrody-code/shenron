@@ -112,7 +112,7 @@ export default function SignalementsPage() {
 						</span>
 					</button>
 				))}
-				{q.isFetching && <Loader2 className="h-4 w-4 animate-spin self-center text-white/40" />}
+				{q.isFetching && <Loader2 className="h-4 w-4 animate-spin self-center text-white/50" />}
 			</div>
 
 			{q.isError && (
@@ -127,7 +127,7 @@ export default function SignalementsPage() {
 					<p className="font-saiyan uppercase tracking-widest text-white/50">
 						Aucun signalement {filter !== "all" ? reportStatusLabel(filter).toLowerCase() : ""}
 					</p>
-					<p className="mt-1 text-sm text-white/35">Les remontées des membres apparaîtront ici.</p>
+					<p className="mt-1 text-sm text-white/50">Les remontées des membres apparaîtront ici.</p>
 				</div>
 			) : (
 				<div className="space-y-3">
@@ -190,7 +190,7 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 				>
 					{report.path}
 				</Link>
-				<span className="ml-auto text-[11px] text-white/40">{fmtDate(report.createdAt)}</span>
+				<span className="ml-auto text-[11px] text-white/50">{fmtDate(report.createdAt)}</span>
 			</div>
 
 			{/* Message */}
@@ -199,7 +199,7 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 			</p>
 
 			{/* Rapporteur */}
-			<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/45">
+			<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-white/50">
 				<span>
 					Par <span className="text-white/75">{report.username ?? "?"}</span>
 				</span>
@@ -209,7 +209,7 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 
 			{/* Note interne */}
 			<div className="flex items-start gap-2">
-				<MessageSquare className="mt-2 h-3.5 w-3.5 shrink-0 text-white/30" />
+				<MessageSquare className="mt-2 h-3.5 w-3.5 shrink-0 text-white/50" />
 				<textarea
 					className="input min-h-[38px] flex-1 resize-y text-xs"
 					placeholder="Note interne (traitement)…"

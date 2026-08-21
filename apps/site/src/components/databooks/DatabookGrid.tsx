@@ -165,7 +165,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 					{order === "desc" ? "Plus récent" : "Plus ancien"}
 				</button>
 				<div className="relative ml-auto min-w-[200px] flex-1 sm:max-w-xs">
-					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 					<input
 						className="w-full rounded-lg border border-dbz-border bg-dbz-bg px-3 py-1.5 pl-8 text-sm text-white focus:border-dbz-orange focus:outline-none"
 						placeholder="Rechercher un guide, un auteur…"
@@ -180,7 +180,7 @@ export function DatabookGrid({ items }: { items: DatabookItem[] }) {
 			</div>
 
 			{filtered.length === 0 ? (
-				<p className="py-12 text-center text-sm italic text-white/40">
+				<p className="py-12 text-center text-sm italic text-white/50">
 					{q.trim() ? `Aucun résultat pour « ${q.trim()} ».` : "Aucun résultat pour ce filtre."}
 				</p>
 			) : (

@@ -67,12 +67,12 @@ function FilterSection({
 					onChange={(e) => setQ(e.target.value)}
 					placeholder={`Filtrer ${title.toLowerCase()}…`}
 					aria-label={`Rechercher dans ${title}`}
-					className="mb-2 h-9 w-full rounded-lg border border-white/10 bg-white/[0.05] px-3 text-sm text-white placeholder:text-white/40 focus:border-dbz-orange/60 focus:outline-none"
+					className="mb-2 h-9 w-full rounded-lg border border-white/10 bg-white/[0.05] px-3 text-sm text-white placeholder:text-white/50 focus:border-dbz-orange/60 focus:outline-none"
 				/>
 			)}
 			<div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
 				{shown.length === 0 && (
-					<p className="px-1 py-2 text-xs italic text-white/40">Aucun résultat.</p>
+					<p className="px-1 py-2 text-xs italic text-white/50">Aucun résultat.</p>
 				)}
 				{shown.map((o) => {
 					const on = selectedSet.has(o.value);
@@ -91,7 +91,7 @@ function FilterSection({
 							/>
 							<span className="flex-1 truncate">{o.label}</span>
 							{typeof o.count === "number" && (
-								<span className="shrink-0 text-[11px] tabular-nums text-white/40">{o.count}</span>
+								<span className="shrink-0 text-[11px] tabular-nums text-white/50">{o.count}</span>
 							)}
 						</label>
 					);

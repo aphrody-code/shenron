@@ -77,7 +77,7 @@ export function WikiAdminBar({
 			</button>
 			<a
 				href="/admin/visibilite"
-				className="text-white/40 underline-offset-2 transition-colors hover:text-white/70 hover:underline"
+				className="text-white/50 underline-offset-2 transition-colors hover:text-white/70 hover:underline"
 			>
 				Gérer la visibilité
 			</a>

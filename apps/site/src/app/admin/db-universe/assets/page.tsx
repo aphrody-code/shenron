@@ -86,10 +86,10 @@ export default async function AdminAssetsPage({
 
 			{assets.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">
 						Aucun média dans cette catégorie
 					</p>
-					<p className="text-white/40 text-sm">
+					<p className="text-white/50 text-sm">
 						La catégorie <strong className="text-white/60">{bucketLabel}</strong> ne contient pas
 						encore d&apos;images.
 					</p>

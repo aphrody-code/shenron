@@ -54,10 +54,10 @@ function EmptySlot({ rank, browseHref }: { rank: 1 | 2 | 3; browseHref: string }
 					<span className={`font-saiyan text-3xl opacity-30 ${meta.medal}`}>{rank}</span>
 				</div>
 				<div className="space-y-1 p-2.5 text-center">
-					<p className="text-[11px] font-bold uppercase tracking-wider text-white/35">
+					<p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
 						Place libre
 					</p>
-					<p className="text-[10px] leading-snug text-white/30">Note pour l&apos;occuper</p>
+					<p className="text-[10px] leading-snug text-white/50">Note pour l&apos;occuper</p>
 				</div>
 			</div>
 			<Link
@@ -126,11 +126,11 @@ function PodiumCard({ board, rank }: { board: CommunityTopBoard; rank: 1 | 2 | 3
 						{entry.title}
 					</p>
 					{entry.subtitle && (
-						<p className="line-clamp-1 text-[10px] uppercase tracking-wider text-white/45">
+						<p className="line-clamp-1 text-[10px] uppercase tracking-wider text-white/50">
 							{entry.subtitle}
 						</p>
 					)}
-					<p className="text-[10px] text-white/40">
+					<p className="text-[10px] text-white/50">
 						{entry.count} note{entry.count > 1 ? "s" : ""}
 					</p>
 				</div>
@@ -155,7 +155,7 @@ function BoardPodium({ board }: { board: CommunityTopBoard }) {
 					</h3>
 					<p className="mt-1.5 max-w-xl text-sm text-white/55">{board.def.teaser}</p>
 				</div>
-				<div className="text-right text-[11px] uppercase tracking-wider text-white/40">
+				<div className="text-right text-[11px] uppercase tracking-wider text-white/50">
 					{board.ratedCount > 0 ? (
 						<>
 							<span className="text-dbz-orange">{board.ratedCount}</span> noté
@@ -164,7 +164,7 @@ function BoardPodium({ board }: { board: CommunityTopBoard }) {
 							{board.totalVotes > 1 ? "s" : ""}
 						</>
 					) : (
-						<span className="text-white/35">Aucun vote encore — sois le premier</span>
+						<span className="text-white/50">Aucun vote encore — sois le premier</span>
 					)}
 				</div>
 			</div>
@@ -180,7 +180,7 @@ function BoardPodium({ board }: { board: CommunityTopBoard }) {
 					Voir tout & noter
 				</Link>
 				{board.entries.length > 0 && board.entries.length < 3 && (
-					<p className="text-[11px] text-white/40">
+					<p className="text-[11px] text-white/50">
 						Encore {3 - board.entries.length} place
 						{3 - board.entries.length > 1 ? "s" : ""} à prendre sur le podium
 					</p>
@@ -234,7 +234,7 @@ export function CommunityTops({
 							{data.globalVotes > 0 && (
 								<>
 									{" "}
-									<span className="text-white/40">
+									<span className="text-white/50">
 										· {data.globalVotes} vote{data.globalVotes > 1 ? "s" : ""} au total
 									</span>
 								</>

@@ -647,7 +647,7 @@ export function AdminSidebar() {
 										value={q}
 										onChange={(e) => setQ(e.target.value)}
 										placeholder="Rechercher une section…"
-										className="w-full h-9 px-3 bg-dbz-bg/80 border border-dbz-yellow/30 focus:border-dbz-orange outline-none font-display text-[12px] text-white placeholder:text-white/40 rounded"
+										className="w-full h-9 px-3 bg-dbz-bg/80 border border-dbz-yellow/30 focus:border-dbz-orange outline-none font-display text-[12px] text-white placeholder:text-white/50 rounded"
 										aria-label="Filtrer le menu"
 									/>
 								</div>
@@ -721,7 +721,7 @@ export function AdminSidebar() {
 															>
 																{l.label}
 															</span>
-															<span className="block font-display text-[10px] text-white/40 truncate mt-0.5 leading-tight">
+															<span className="block font-display text-[10px] text-white/50 truncate mt-0.5 leading-tight">
 																{l.description}
 															</span>
 														</div>

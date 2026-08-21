@@ -61,7 +61,7 @@ export function WikiEntityPreview({ table, draft }: Props) {
 		return (
 			<div className="flex h-full min-h-[320px] flex-col items-center justify-center gap-2 text-center">
 				<span className="font-saiyan text-2xl uppercase text-white/15">Aperçu de la page</span>
-				<p className="max-w-xs text-sm text-white/30">
+				<p className="max-w-xs text-sm text-white/50">
 					Remplis les champs à gauche : l&apos;aperçu de la page wiki se construit ici en temps
 					réel.
 				</p>
@@ -116,7 +116,7 @@ export function WikiEntityPreview({ table, draft }: Props) {
 									className="border border-dbz-orange/30 bg-dbz-orange/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-dbz-orange/90"
 									title={c.label}
 								>
-									<span className="text-white/40">{c.label}</span>{" "}
+									<span className="text-white/50">{c.label}</span>{" "}
 									<span className="text-white/90">{c.value}</span>
 								</span>
 							))}
@@ -153,7 +153,7 @@ export function WikiEntityPreview({ table, draft }: Props) {
 function KiCard({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="dbz-panel border-l-4 border-l-dbz-orange p-4">
-			<p className="mb-1 text-[10px] font-bold uppercase tracking-[0.3em] text-white/40">{label}</p>
+			<p className="mb-1 text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">{label}</p>
 			<p className="scouter-text break-words text-2xl text-dbz-orange">{value}</p>
 		</div>
 	);

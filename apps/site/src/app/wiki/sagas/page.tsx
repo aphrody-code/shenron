@@ -73,7 +73,7 @@ export default async function SagasPage() {
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">
 							{g.label}{" "}
-							<span className="text-white/40">
+							<span className="text-white/50">
 								— {g.sagas.length} saga{g.sagas.length > 1 ? "s" : ""}
 							</span>
 						</h2>
@@ -143,7 +143,7 @@ export default async function SagasPage() {
 																	{a.name}
 																</span>
 																{a.name_ja && (
-																	<span className="ml-2 font-jp text-[11px] text-white/35">
+																	<span className="ml-2 font-jp text-[11px] text-white/50">
 																		{a.name_ja}
 																	</span>
 																)}

@@ -21,7 +21,7 @@ export default async function AdminLaunchPage() {
 					monde, les membres connectés, certains rôles Discord, ou le staff seul. Les flèches
 					règlent l&apos;ordre d&apos;affichage.
 				</p>
-				<p className="text-xs uppercase tracking-widest text-white/30">
+				<p className="text-xs uppercase tracking-widest text-white/50">
 					Piloté par la DB · effet sous 30 s · aucune migration
 				</p>
 			</header>

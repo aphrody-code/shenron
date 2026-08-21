@@ -64,7 +64,7 @@ export function WikiRelatedCharacters({
 							{c.name}
 						</h3>
 						{c.race && (
-							<span className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/35">
+							<span className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/50">
 								{c.race}
 							</span>
 						)}

@@ -133,7 +133,7 @@ export function SmartField({ table, col, value, onChange, original }: Props) {
 					readOnly
 					spellCheck={false}
 				/>
-				<p className="text-[10px] text-white/40">
+				<p className="text-[10px] text-white/50">
 					Champ JSON structuré — non éditable ici (édité via les scripts/outils dédiés).
 				</p>
 			</div>

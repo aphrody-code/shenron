@@ -16,7 +16,7 @@ export default async function CanvasThemesPage() {
 						<p className="text-sm text-white/60 mb-1">
 							Gérez les thèmes visuels des cartes de profil des membres.
 						</p>
-						<p className="text-xs text-white/30 uppercase tracking-widest">
+						<p className="text-xs text-white/50 uppercase tracking-widest">
 							{data.rows.length} thème{data.rows.length !== 1 ? "s" : ""} en base · rechargé par le
 							bot dans les 60 secondes
 						</p>
@@ -41,7 +41,7 @@ export default async function CanvasThemesPage() {
 			{data.rows.length === 0 ? (
 				<div className="dbz-panel p-8 text-center">
 					<p className="font-saiyan text-dbz-yellow text-xl mb-2">AUCUN THÈME</p>
-					<p className="text-sm text-white/40">
+					<p className="text-sm text-white/50">
 						Aucun thème en base — les cartes utilisent les thèmes intégrés par défaut du bot.
 					</p>
 				</div>
@@ -83,7 +83,7 @@ export default async function CanvasThemesPage() {
 							{/* Infos et actions */}
 							<div className="p-3 space-y-2">
 								{t.bgFile && (
-									<p className="text-[10px] text-white/40 font-mono truncate" title={t.bgFile}>
+									<p className="text-[10px] text-white/50 font-mono truncate" title={t.bgFile}>
 										Image de fond : {t.bgFile}
 									</p>
 								)}

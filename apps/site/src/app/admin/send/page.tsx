@@ -10,7 +10,7 @@ export default function AdminSendPage() {
 				<p className="text-sm text-white/60 mb-1">
 					Postez un message dans un salon Discord via l&apos;un des 6 bots.
 				</p>
-				<p className="text-xs text-white/30 uppercase tracking-widest">
+				<p className="text-xs text-white/50 uppercase tracking-widest">
 					Le message sera envoyé immédiatement · Markdown Discord supporté
 				</p>
 			</header>

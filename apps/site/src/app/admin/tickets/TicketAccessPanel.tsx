@@ -96,7 +96,7 @@ export function TicketAccessPanel() {
 						<Shield className="h-4 w-4" />
 						Accès staff par type de ticket
 					</h2>
-					<p className="text-[11px] text-white/45">
+					<p className="text-[11px] text-white/50">
 						Ces rôles voient et écrivent dans les tickets du type concerné dès leur ouverture. Sans
 						rôle configuré, seul l&apos;auteur du ticket et le staff y ont accès.
 					</p>
@@ -118,7 +118,7 @@ export function TicketAccessPanel() {
 			</div>
 
 			{settings.isLoading ? (
-				<p className="text-sm text-white/40">Chargement…</p>
+				<p className="text-sm text-white/50">Chargement…</p>
 			) : (
 				<div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 					{TICKET_KINDS.map((kind) => {
@@ -130,7 +130,7 @@ export function TicketAccessPanel() {
 							>
 								<div>
 									<p className="font-saiyan text-sm text-white">{KIND_META[kind].label}</p>
-									<p className="text-[10px] text-white/40">{KIND_META[kind].hint}</p>
+									<p className="text-[10px] text-white/50">{KIND_META[kind].hint}</p>
 								</div>
 
 								<div className="flex flex-wrap gap-1.5">
@@ -143,7 +143,7 @@ export function TicketAccessPanel() {
 											<button
 												type="button"
 												onClick={() => revoke.mutate({ kind, roleId: rid })}
-												className="text-white/40 hover:text-red-400"
+												className="text-white/50 hover:text-red-400"
 												aria-label="Retirer ce rôle"
 											>
 												<X className="h-3 w-3" />
@@ -151,12 +151,12 @@ export function TicketAccessPanel() {
 										</span>
 									))}
 									{roles.length === 0 && (
-										<span className="text-[11px] text-white/35">Aucun rôle configuré</span>
+										<span className="text-[11px] text-white/50">Aucun rôle configuré</span>
 									)}
 								</div>
 
 								<div className="flex items-center gap-2">
-									<Plus className="h-3 w-3 shrink-0 text-white/30" />
+									<Plus className="h-3 w-3 shrink-0 text-white/50" />
 									<RoleSelect
 										value=""
 										onChange={(roleId) => roleId && grant.mutate({ kind, roleId })}

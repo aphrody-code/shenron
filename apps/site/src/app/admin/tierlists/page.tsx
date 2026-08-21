@@ -129,7 +129,7 @@ export default async function AdminTierlistsPage({
 			{rows.length === 0 ? (
 				<div className="dbz-panel p-8 text-center">
 					<p className="font-saiyan text-dbz-yellow text-xl mb-2">AUCUNE TIER LIST</p>
-					<p className="text-sm text-white/40">
+					<p className="text-sm text-white/50">
 						{q || filter !== "all"
 							? "Aucun résultat pour ce filtre."
 							: "Aucune tier list n'a encore été créée."}

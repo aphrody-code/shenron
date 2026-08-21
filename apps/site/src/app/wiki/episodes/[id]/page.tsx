@@ -354,7 +354,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 					{/* === Strip des épisodes voisins === */}
 					{nav && nav.around.length > 1 && (
 						<section>
-							<h2 className="font-display font-bold text-[12px] tracking-[0.3em] uppercase text-white/45 mb-4">
+							<h2 className="font-display font-bold text-[12px] tracking-[0.3em] uppercase text-white/50 mb-4">
 								Dans {seriesLabel}
 							</h2>
 							<div className="flex gap-3 overflow-x-auto pb-3 -mx-1 px-1 [scrollbar-width:thin]">

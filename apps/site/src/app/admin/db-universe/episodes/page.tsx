@@ -80,10 +80,10 @@ export default async function AdminEpisodesPage({
 
 			{eps.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">
 						Aucun épisode pour cette série
 					</p>
-					<p className="text-white/40 text-sm">
+					<p className="text-white/50 text-sm">
 						Les épisodes de{" "}
 						<strong className="text-white/60">{SERIES_LABELS[series] ?? series}</strong> n&apos;ont
 						pas encore été importés.
@@ -155,7 +155,7 @@ export default async function AdminEpisodesPage({
 
 			{/* Note de pagination */}
 			{eps.length === 500 && total > 500 && (
-				<p className="mt-4 text-center text-xs text-white/40">
+				<p className="mt-4 text-center text-xs text-white/50">
 					Affichage limité à 500 épisodes. {total - 500} épisode
 					{total - 500 > 1 ? "s" : ""} supplémentaire
 					{total - 500 > 1 ? "s" : ""} non affiché{total - 500 > 1 ? "s" : ""}.

@@ -118,7 +118,7 @@ function EntityCard({ s }: { s: CmsEntityStat }) {
 
 				{/* Barre de richesse du contenu */}
 				<div className="mt-3">
-					<div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-white/40">
+					<div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wider text-white/50">
 						<span>Complétude</span>
 						<span className="tabular-nums">{pct}%</span>
 					</div>
@@ -314,8 +314,8 @@ export function WikiManager({
 									) : (
 										<span className="font-semibold text-white">{r.label || `#${r.rowId}`}</span>
 									)}
-									<span className="text-[11px] text-white/35">{label}</span>
-									<span className="ml-auto text-[11px] text-white/40">
+									<span className="text-[11px] text-white/50">{label}</span>
+									<span className="ml-auto text-[11px] text-white/50">
 										{r.editorName ? (
 											<span className="text-white/60">{r.editorName}</span>
 										) : (

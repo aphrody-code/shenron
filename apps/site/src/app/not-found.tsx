@@ -12,7 +12,7 @@ export default function NotFound() {
 					</p>
 					<h1 className="title-jagged text-7xl md:text-9xl leading-none mb-6">404</h1>
 					<p className="text-white/70 mb-2">Cette page s'est perdue dans le néant cosmique.</p>
-					<p className="text-white/40 text-sm mb-8">
+					<p className="text-white/50 text-sm mb-8">
 						Même les sept boules de cristal sont dispersées ici.
 					</p>
 					{/* Les 7 Dragon Balls dispersées — décor thématique (cf. components/DragonBall). */}

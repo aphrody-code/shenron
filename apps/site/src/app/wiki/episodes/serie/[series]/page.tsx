@@ -118,7 +118,7 @@ export default async function EpisodeSeriePage({
 						style={{ backgroundColor: ERA_ACCENT[eraOf(series)] }}
 					/>
 					{SERIES_LABELS[series] ?? series}
-					<span className="font-mono text-[14px] font-normal text-white/40">{total} épisodes</span>
+					<span className="font-mono text-[14px] font-normal text-white/50">{total} épisodes</span>
 				</h2>
 
 				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -111,7 +111,7 @@ export function EntityRatingSummary({
 	const summary = state?.summary ?? { average: 0, count: 0 };
 
 	if (loadErr) {
-		return <span className={`text-[12px] text-white/35 ${className}`}>Notes indisponibles</span>;
+		return <span className={`text-[12px] text-white/50 ${className}`}>Notes indisponibles</span>;
 	}
 
 	if (!state) {
@@ -135,7 +135,7 @@ export function EntityRatingSummary({
 					<span className="font-display text-sm font-bold tabular-nums text-white">
 						{summary.average.toFixed(1)}
 					</span>
-					<span className="text-[11px] text-white/45">
+					<span className="text-[11px] text-white/50">
 						· {summary.count} note{summary.count > 1 ? "s" : ""}
 					</span>
 				</>
@@ -149,7 +149,7 @@ export function EntityRatingSummary({
 					</span>
 				</>
 			)}
-			<ChevronDown className="h-3.5 w-3.5 text-white/30 group-hover:text-dbz-orange" aria-hidden />
+			<ChevronDown className="h-3.5 w-3.5 text-white/50 group-hover:text-dbz-orange" aria-hidden />
 		</a>
 	);
 }
@@ -364,7 +364,7 @@ export function EntityRating({
 						) : canRate ? (
 							<div className="space-y-4">
 								<div className="flex flex-wrap items-center gap-3">
-									<span className="text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/45">
+									<span className="text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/50">
 										Ta note
 									</span>
 									<Stars
@@ -387,10 +387,10 @@ export function EntityRating({
 								<div>
 									<label
 										htmlFor={`rating-comment-${id}`}
-										className="mb-1.5 block text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/45"
+										className="mb-1.5 block text-[11px] font-display font-semibold uppercase tracking-[0.12em] text-white/50"
 									>
 										Commentaire{" "}
-										<span className="normal-case tracking-normal text-white/30">(optionnel)</span>
+										<span className="normal-case tracking-normal text-white/50">(optionnel)</span>
 									</label>
 									<textarea
 										id={`rating-comment-${id}`}
@@ -399,9 +399,9 @@ export function EntityRating({
 										rows={2}
 										maxLength={COMMENT_MAX}
 										placeholder="Un avis court…"
-										className="min-h-[56px] w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-dbz-orange/50"
+										className="min-h-[56px] w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[14px] text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-dbz-orange/50"
 									/>
-									<div className="mt-1 flex justify-between text-[11px] text-white/35">
+									<div className="mt-1 flex justify-between text-[11px] text-white/50">
 										<span>
 											{draftComment.length}/{COMMENT_MAX}
 										</span>
@@ -488,7 +488,7 @@ export function EntityRating({
 														</p>
 														<div className="flex items-center gap-2">
 															<Stars value={c.score} size="sm" />
-															<span className="text-[11px] text-white/40">
+															<span className="text-[11px] text-white/50">
 																{formatDate(c.updatedAt)}
 															</span>
 														</div>
@@ -500,7 +500,7 @@ export function EntityRating({
 														title={me?.isAdmin ? "Supprimer la note (admin)" : "Supprimer mon avis"}
 														onClick={() => void remove(c.id, "full")}
 														disabled={deletingId === c.id}
-														className="rounded-md p-1.5 text-white/40 transition-colors hover:bg-white/5 hover:text-red-400 disabled:opacity-40"
+														className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/5 hover:text-red-400 disabled:opacity-40"
 													>
 														{deletingId === c.id ? (
 															<Loader2 className="h-4 w-4 animate-spin" />
@@ -518,12 +518,12 @@ export function EntityRating({
 								})}
 							</ul>
 						) : summary.count > 0 ? (
-							<p className="py-4 text-center text-[13px] text-white/40">
+							<p className="py-4 text-center text-[13px] text-white/50">
 								Des notes sans commentaire pour l&apos;instant — sois le premier à laisser un avis
 								dans l&apos;onglet <strong className="text-white/60">Noter</strong>.
 							</p>
 						) : (
-							<p className="py-4 text-center text-[13px] text-white/40">
+							<p className="py-4 text-center text-[13px] text-white/50">
 								Aucun avis pour l&apos;instant. Ouvre l&apos;onglet{" "}
 								<button
 									type="button"
@@ -562,9 +562,9 @@ export function AggregateRatingBanner({
 			<div>
 				<p className="font-display text-lg font-bold tabular-nums leading-none text-white">
 					{count > 0 ? average.toFixed(1) : "—"}
-					<span className="text-sm font-normal text-white/40"> / 5</span>
+					<span className="text-sm font-normal text-white/50"> / 5</span>
 				</p>
-				<p className="mt-0.5 text-[11px] text-white/45">
+				<p className="mt-0.5 text-[11px] text-white/50">
 					{subtitle ??
 						(count > 0
 							? `${count} note${count > 1 ? "s" : ""} sur les arcs`

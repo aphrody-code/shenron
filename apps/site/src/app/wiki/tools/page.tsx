@@ -64,7 +64,7 @@ export default async function ToolsPage() {
 													⭐ {tool.stars}
 												</span>
 											</div>
-											<p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3">
+											<p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-3">
 												Auteur: {tool.author} · {tool.language || "N/A"}
 											</p>
 											<p className="text-gray-400 text-sm font-sans leading-relaxed line-clamp-3">

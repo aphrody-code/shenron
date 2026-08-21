@@ -157,7 +157,7 @@ export function ImageField({ value, onChange, subdir = "uploads", column }: Prop
 							}}
 						/>
 					) : (
-						<ImageOff className="h-5 w-5 text-white/30" />
+						<ImageOff className="h-5 w-5 text-white/50" />
 					)}
 				</div>
 
@@ -175,7 +175,7 @@ export function ImageField({ value, onChange, subdir = "uploads", column }: Prop
 							</>
 						)}
 					</p>
-					<p className="truncate text-[11px] text-white/40">
+					<p className="truncate text-[11px] text-white/50">
 						{value ? value : "PNG · JPG · WebP · GIF — max 50 Mo"}
 					</p>
 				</div>
@@ -296,7 +296,7 @@ function GalleryPicker({
 				<div className="mb-3 flex items-center gap-3">
 					<h3 className="font-saiyan text-lg uppercase text-dbz-orange">Galerie d'images</h3>
 					<div className="relative ml-auto">
-						<Search className="pointer-events-none absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/40" />
+						<Search className="pointer-events-none absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-white/50" />
 						<input
 							className="input h-8 w-56 pl-7 text-xs"
 							placeholder="Filtrer par nom…"
@@ -342,7 +342,7 @@ function GalleryPicker({
 						))}
 					</div>
 				)}
-				<p className="mt-2 shrink-0 text-[10px] text-white/30">
+				<p className="mt-2 shrink-0 text-[10px] text-white/50">
 					{files && shown.length < files.length
 						? `${shown.length} sur ${files.length} affichées — affinez le filtre.`
 						: files

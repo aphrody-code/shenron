@@ -38,7 +38,7 @@ export function SectionError({
 				L&apos;affichage a échoué. C&apos;est souvent passager — réessayer suffit en général.
 			</p>
 			{error.digest && (
-				<p className="mt-4 font-mono text-[11px] text-white/35">digest : {error.digest}</p>
+				<p className="mt-4 font-mono text-[11px] text-white/50">digest : {error.digest}</p>
 			)}
 			<div className="mt-8 flex flex-wrap items-center justify-center gap-3">
 				<button type="button" onClick={reset} className="dbz-button !text-xs">

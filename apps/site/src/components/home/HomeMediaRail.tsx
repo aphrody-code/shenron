@@ -40,7 +40,7 @@ export function HomeMediaRail({
 
 	if (items.length === 0) {
 		return (
-			<p className="text-[13px] text-white/45">
+			<p className="text-[13px] text-white/50">
 				Aucun média pour ce panneau — reviens après la prochaine sync wiki.
 			</p>
 		);

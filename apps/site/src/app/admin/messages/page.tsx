@@ -58,7 +58,7 @@ export default function MessagesPage() {
 		return (
 			<div className="dbz-panel p-8 text-center">
 				<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
-				<p className="text-sm text-white/40">Récupération des messages automatiques.</p>
+				<p className="text-sm text-white/50">Récupération des messages automatiques.</p>
 			</div>
 		);
 
@@ -66,7 +66,7 @@ export default function MessagesPage() {
 		return (
 			<div className="dbz-panel p-6 text-center border-l-4 border-red-500">
 				<p className="font-saiyan text-red-400 mb-2">Erreur de chargement</p>
-				<p className="text-sm text-white/40">
+				<p className="text-sm text-white/50">
 					Impossible de récupérer les messages. Vérifiez que le bot est en ligne.
 				</p>
 			</div>
@@ -83,7 +83,7 @@ export default function MessagesPage() {
 					Configurez les messages envoyés automatiquement par le bot lors d&apos;événements sur le
 					serveur.
 				</p>
-				<p className="text-xs text-white/30 uppercase tracking-widest">
+				<p className="text-xs text-white/50 uppercase tracking-widest">
 					{events.length} événement{events.length !== 1 ? "s" : ""} · rechargé côté bot sous 30
 					secondes
 				</p>
@@ -95,7 +95,7 @@ export default function MessagesPage() {
 					<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-3">
 						Événements ({events.length})
 					</h3>
-					<p className="text-xs text-white/30 mb-3">
+					<p className="text-xs text-white/50 mb-3">
 						Cliquez sur un événement pour modifier son message et son salon de destination.
 					</p>
 					<div className="space-y-1">
@@ -114,7 +114,7 @@ export default function MessagesPage() {
 									<p className="font-medium text-white text-xs truncate">
 										{e.description || e.event}
 									</p>
-									<code className="font-mono text-[10px] text-white/30">{e.event}</code>
+									<code className="font-mono text-[10px] text-white/50">{e.event}</code>
 								</div>
 								<div className="flex flex-col items-end gap-0.5 shrink-0">
 									{e.isCustom && (
@@ -138,7 +138,7 @@ export default function MessagesPage() {
 					{current ? (
 						<EventEditor entry={current} />
 					) : (
-						<div className="dbz-panel p-8 text-center text-white/30">
+						<div className="dbz-panel p-8 text-center text-white/50">
 							Sélectionnez un événement pour modifier son message.
 						</div>
 					)}
@@ -200,7 +200,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">
 							{entry.description || entry.event}
 						</h3>
-						<code className="text-xs font-mono text-white/30">{entry.event}</code>
+						<code className="text-xs font-mono text-white/50">{entry.event}</code>
 						{entry.embed && (
 							<p className="text-xs text-dbz-blue-light mt-1">
 								Ce message est envoyé sous forme d&apos;encart enrichi (embed Discord).
@@ -222,7 +222,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 					<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 						Salon de destination
 					</label>
-					<p className="text-xs text-white/30 mb-2">
+					<p className="text-xs text-white/50 mb-2">
 						Choisissez dans quel salon Discord ce message sera envoyé.
 					</p>
 					<select
@@ -245,7 +245,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 					<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 						Contenu du message
 					</label>
-					<p className="text-xs text-white/30 mb-2">
+					<p className="text-xs text-white/50 mb-2">
 						Utilisez <code className="text-dbz-yellow">{"{nom}"}</code> pour insérer des valeurs
 						dynamiques (voir la liste ci-dessous).
 					</p>
@@ -306,7 +306,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							Prévisualiser le message
 						</h3>
 					</div>
-					<p className="text-xs text-white/30">
+					<p className="text-xs text-white/50">
 						Renseignez des exemples pour chaque variable et générez un aperçu du message final.
 					</p>
 					<div className="grid gap-3 sm:grid-cols-2">
@@ -315,7 +315,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 								<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 									<code className="text-dbz-yellow normal-case font-mono">{`{${v.name}}`}</code>
 									{" — "}
-									<span className="text-white/30 normal-case font-normal">{v.description}</span>
+									<span className="text-white/50 normal-case font-normal">{v.description}</span>
 								</label>
 								<input
 									className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-2 text-sm"
@@ -336,7 +336,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 					</button>
 					{previewResult && (
 						<div className="rounded border border-dbz-border bg-black/30 p-4">
-							<p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">
+							<p className="text-[10px] uppercase tracking-widest text-white/50 mb-2">
 								Rendu final
 							</p>
 							<p className="whitespace-pre-wrap text-sm text-white">{previewResult}</p>
@@ -347,10 +347,10 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 
 			{/* Template par défaut */}
 			<div className="dbz-panel p-4">
-				<h3 className="text-[10px] font-bold uppercase tracking-widest text-white/30 mb-2">
+				<h3 className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-2">
 					Message par défaut (référence)
 				</h3>
-				<pre className="overflow-x-auto rounded bg-black/40 p-3 text-xs text-white/40 border border-dbz-border">
+				<pre className="overflow-x-auto rounded bg-black/40 p-3 text-xs text-white/50 border border-dbz-border">
 					{entry.defaultTemplate}
 				</pre>
 			</div>
@@ -376,7 +376,7 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 		return (
 			<p className="mt-1 text-xs text-dbz-blue-light">
 				Cible contextuelle : <strong>{label}</strong>{" "}
-				<span className="text-white/30">
+				<span className="text-white/50">
 					— résolu automatiquement par le bot selon le contexte.
 				</span>
 			</p>
@@ -396,7 +396,7 @@ function ResolvedChannel({ channelKey }: { channelKey: string }) {
 	return (
 		<p className="mt-1 text-xs text-green-400">
 			Salon : {c ? <strong>#{c.name}</strong> : value}{" "}
-			<span className="text-white/30 font-mono text-[10px]">({value})</span>
+			<span className="text-white/50 font-mono text-[10px]">({value})</span>
 		</p>
 	);
 }

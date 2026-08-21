@@ -46,8 +46,8 @@ export default async function AdminGamesPage() {
 
 			{games.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">Aucun jeu enregistré</p>
-					<p className="text-white/40 text-sm">Les jeux s&apos;affichent ici une fois importés.</p>
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">Aucun jeu enregistré</p>
+					<p className="text-white/50 text-sm">Les jeux s&apos;affichent ici une fois importés.</p>
 				</div>
 			) : (
 				<div className="overflow-x-auto">
@@ -126,7 +126,7 @@ export default async function AdminGamesPage() {
 													Site officiel
 												</a>
 											)}
-											<div className="text-[10px] text-white/30 font-mono mt-0.5">{g.slug}</div>
+											<div className="text-[10px] text-white/50 font-mono mt-0.5">{g.slug}</div>
 										</td>
 										<td className="p-2">
 											<div className="flex flex-wrap gap-1">

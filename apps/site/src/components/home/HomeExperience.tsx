@@ -619,7 +619,7 @@ export function HomeExperience({
 										>
 											<span
 												className={`w-6 shrink-0 text-center text-sm font-black ${
-													m.rank <= 3 ? RANK_COLOR[m.rank - 1] : "text-white/40"
+													m.rank <= 3 ? RANK_COLOR[m.rank - 1] : "text-white/50"
 												}`}
 											>
 												{m.rank}
@@ -642,7 +642,7 @@ export function HomeExperience({
 												<span className="block truncate text-[13px] font-bold leading-tight text-white">
 													{m.username ?? "Guerrier anonyme"}
 												</span>
-												<span className="block text-[10px] uppercase tracking-[0.12em] text-white/45">
+												<span className="block text-[10px] uppercase tracking-[0.12em] text-white/50">
 													Niveau {m.level}
 												</span>
 											</span>
@@ -653,7 +653,7 @@ export function HomeExperience({
 									</li>
 								))}
 								{live.topMembers.length === 0 && (
-									<li className="text-[13px] text-white/40">
+									<li className="text-[13px] text-white/50">
 										Classement momentanément indisponible.
 									</li>
 								)}
@@ -703,7 +703,7 @@ export function HomeExperience({
 										))}
 									</ul>
 								) : (
-									<p className="mt-3 text-[12px] text-white/45">
+									<p className="mt-3 text-[12px] text-white/50">
 										{live.presence.online > 0
 											? `${live.presence.online} guerrier(s) en ligne sur le serveur.`
 											: "Aucun guerrier en ligne pour l'instant."}

@@ -355,7 +355,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 						>
 							{character.ki && (
 								<div className="dbz-panel p-6 border-l-4 border-l-dbz-orange">
-									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
+									<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-2">
 										KI Actuel
 									</p>
 									<p className="scouter-text text-4xl text-dbz-orange">{character.ki}</p>
@@ -363,7 +363,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 							)}
 							{character.maxKi && (
 								<div className="dbz-panel p-6 border-l-4 border-l-dbz-red">
-									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
+									<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-2">
 										KI Maximum
 									</p>
 									<p className="scouter-text text-4xl text-dbz-red">{character.maxKi}</p>
@@ -374,7 +374,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 									key={`${s.label}-${s.value}`}
 									className="dbz-panel p-6 border-l-4 border-l-dbz-blue-light"
 								>
-									<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-2">
+									<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-2">
 										{s.label || "Stat"}
 									</p>
 									<p className="scouter-text text-3xl text-dbz-blue-light">{s.value || "—"}</p>
@@ -397,7 +397,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 								/>
 							</div>
 							<div className="flex-1">
-								<p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em] mb-1">
+								<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-1">
 									Planète d'Origine
 								</p>
 								<p className="text-2xl font-saiyan text-white group-hover:text-dbz-orange transition-colors uppercase tracking-widest">

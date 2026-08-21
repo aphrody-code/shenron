@@ -157,7 +157,7 @@ export function BotConsole() {
 			<div className="rounded-xl border border-white/10 bg-black/40">
 				<div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
 					<span className="flex items-center gap-2 text-sm font-bold text-white/80">
-						<Hash className="h-4 w-4 text-white/40" />
+						<Hash className="h-4 w-4 text-white/50" />
 						{messagesQ.data?.channelName ?? (channelId ? "Salon" : "Aucun salon sélectionné")}
 					</span>
 					<button
@@ -172,15 +172,15 @@ export function BotConsole() {
 				</div>
 				<div className="flex max-h-[50vh] flex-col gap-3 overflow-y-auto p-4">
 					{!channelId && (
-						<p className="text-sm italic text-white/35">
+						<p className="text-sm italic text-white/50">
 							Sélectionne un salon pour voir les messages.
 						</p>
 					)}
 					{channelId && messagesQ.isLoading && (
-						<p className="text-sm italic text-white/35">Chargement…</p>
+						<p className="text-sm italic text-white/50">Chargement…</p>
 					)}
 					{channelId && messagesQ.data?.messages.length === 0 && (
-						<p className="text-sm italic text-white/35">Aucun message récent.</p>
+						<p className="text-sm italic text-white/50">Aucun message récent.</p>
 					)}
 					{messagesQ.data?.messages.map((m) => (
 						<div key={m.id} className="flex gap-2.5">
@@ -202,7 +202,7 @@ export function BotConsole() {
 											bot
 										</span>
 									)}
-									<span className="text-[11px] text-white/35">
+									<span className="text-[11px] text-white/50">
 										{new Date(m.createdAt).toLocaleTimeString("fr-FR", {
 											hour: "2-digit",
 											minute: "2-digit",
@@ -211,7 +211,7 @@ export function BotConsole() {
 								</div>
 								<p className="whitespace-pre-wrap break-words text-sm text-white/75">
 									{m.content || (
-										<span className="italic text-white/30">
+										<span className="italic text-white/50">
 											{m.embedCount > 0 || m.attachments.length > 0
 												? "[pièce jointe / embed]"
 												: "[message vide]"}
@@ -258,7 +258,7 @@ export function BotConsole() {
 						<Send className="h-4 w-4" />
 						{sendM.isPending ? "Envoi…" : "Envoyer"}
 					</button>
-					<span className="text-[12px] text-white/40">{content.length}/2000</span>
+					<span className="text-[12px] text-white/50">{content.length}/2000</span>
 					{sendError && (
 						<span className="text-[13px] font-semibold text-rose-400">{sendError}</span>
 					)}

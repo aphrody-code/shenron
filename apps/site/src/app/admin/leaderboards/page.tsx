@@ -88,7 +88,7 @@ function LeaderboardInner() {
 							className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-md text-xs uppercase tracking-widest transition-colors ${
 								m.key === metric
 									? `${m.color} border-current bg-current/10 font-bold`
-									: "border-dbz-border text-white/40 hover:border-white/40 hover:text-white/70"
+									: "border-dbz-border text-white/50 hover:border-white/40 hover:text-white/70"
 							}`}
 						>
 							<Icon className="h-3 w-3" />
@@ -112,7 +112,7 @@ function LeaderboardInner() {
 					<AlertTriangle className="h-5 w-5 shrink-0" />
 					<div>
 						<p className="font-semibold">Impossible de charger le classement.</p>
-						<p className="text-xs text-white/40 mt-0.5">
+						<p className="text-xs text-white/50 mt-0.5">
 							Vérifiez que le bot est en ligne puis rechargez la page.
 						</p>
 					</div>
@@ -167,7 +167,7 @@ function LeaderboardInner() {
 							))}
 							{data.users.length === 0 && (
 								<tr>
-									<td colSpan={4} className="p-8 text-center text-white/40">
+									<td colSpan={4} className="p-8 text-center text-white/50">
 										Aucun joueur enregistré pour cette métrique.
 									</td>
 								</tr>
@@ -175,7 +175,7 @@ function LeaderboardInner() {
 						</tbody>
 					</table>
 					{data.users.length > 0 && (
-						<p className="p-3 text-[10px] text-white/30 text-right border-t border-dbz-border">
+						<p className="p-3 text-[10px] text-white/50 text-right border-t border-dbz-border">
 							{data.users.length} membre{data.users.length !== 1 ? "s" : ""} affichés
 						</p>
 					)}

@@ -99,7 +99,7 @@ function TabBtn({
 			className={`font-saiyan text-sm uppercase tracking-wider px-4 py-2 -mb-px border-b-2 transition-colors ${
 				active
 					? "border-dbz-orange text-dbz-orange"
-					: "border-transparent text-white/40 hover:text-white/70"
+					: "border-transparent text-white/50 hover:text-white/70"
 			}`}
 		>
 			{children}
@@ -134,7 +134,7 @@ export default function CanvasPage() {
 				<p className="text-sm text-white/60 mb-1">
 					Prévisualisez les images générées par le bot et éditez les thèmes des cartes de profil.
 				</p>
-				<p className="text-xs text-white/30 uppercase tracking-widest">
+				<p className="text-xs text-white/50 uppercase tracking-widest">
 					Rendu en direct via Skia · mise en cache 60 secondes
 				</p>
 			</header>
@@ -186,7 +186,7 @@ function PreviewSection({
 		return (
 			<div className="dbz-panel p-8 text-center">
 				<p className="font-saiyan text-dbz-orange text-xl mb-2">CHARGEMENT…</p>
-				<p className="text-sm text-white/40">Récupération des canvases disponibles.</p>
+				<p className="text-sm text-white/50">Récupération des canvases disponibles.</p>
 			</div>
 		);
 
@@ -194,7 +194,7 @@ function PreviewSection({
 		return (
 			<div className="dbz-panel p-8 text-center border-l-4 border-red-500">
 				<p className="font-saiyan text-red-400 text-xl mb-2">ERREUR</p>
-				<p className="text-sm text-white/40">
+				<p className="text-sm text-white/50">
 					Impossible de charger la liste des canvases. Vérifiez que le bot est en ligne.
 				</p>
 			</div>
@@ -203,7 +203,7 @@ function PreviewSection({
 	return (
 		<div className="space-y-6">
 			<div className="dbz-panel p-4">
-				<p className="text-xs text-white/40 uppercase tracking-widest mb-3">
+				<p className="text-xs text-white/50 uppercase tracking-widest mb-3">
 					Choisissez le type d&apos;image à prévisualiser
 				</p>
 				<div className="flex flex-wrap gap-2">
@@ -292,7 +292,7 @@ function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 					<p className="font-saiyan text-dbz-yellow text-sm uppercase">
 						Thèmes des cartes de profil
 					</p>
-					<p className="text-xs text-white/40">
+					<p className="text-xs text-white/50">
 						Couleurs et fond utilisés par la commande de profil. Les modifications sont appliquées
 						en direct (cache bot purgé à l&apos;enregistrement).
 					</p>
@@ -307,7 +307,7 @@ function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 			</div>
 
 			{themes.isLoading && (
-				<div className="flex items-center gap-2 text-white/40 text-sm">
+				<div className="flex items-center gap-2 text-white/50 text-sm">
 					<Loader2 className="h-4 w-4 animate-spin" /> Chargement des thèmes…
 				</div>
 			)}
@@ -327,7 +327,7 @@ function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 					/>
 				))}
 				{!themes.isLoading && rows.length === 0 && (
-					<div className="dbz-panel p-6 col-span-full text-center text-sm text-white/40">
+					<div className="dbz-panel p-6 col-span-full text-center text-sm text-white/50">
 						Aucun thème en base. Créez-en un — il s&apos;ajoutera aux thèmes intégrés du bot.
 					</div>
 				)}
@@ -367,7 +367,7 @@ function ThemeCard({
 						Masqué
 					</span>
 				)}
-				<code className="ml-auto text-[10px] text-white/30">{theme.id}</code>
+				<code className="ml-auto text-[10px] text-white/50">{theme.id}</code>
 			</div>
 			<div className="flex gap-1">
 				{[theme.accent, theme.aura, theme.bgGrad1, theme.bgGrad2, theme.bgGrad3].map((c, i) => (
@@ -493,7 +493,7 @@ function GradientBar({
 					className="flex-1 accent-dbz-orange"
 				/>
 			</div>
-			<p className="text-[10px] text-white/30">
+			<p className="text-[10px] text-white/50">
 				Dégradé utilisé seulement si aucune image de fond n&apos;est définie.
 			</p>
 		</div>
@@ -535,7 +535,7 @@ function RangeField({
 				onChange={(e) => onChange(Number(e.target.value))}
 				className="w-full accent-dbz-orange"
 			/>
-			{hint && <p className="mt-0.5 text-[10px] text-white/30">{hint}</p>}
+			{hint && <p className="mt-0.5 text-[10px] text-white/50">{hint}</p>}
 		</div>
 	);
 }
@@ -679,7 +679,7 @@ function ThemeEditor({
 								className={`w-full flex items-center justify-center gap-1.5 p-2 text-sm border-2 ${
 									draft.enabled
 										? "border-dbz-orange text-dbz-orange"
-										: "border-dbz-border text-white/40"
+										: "border-dbz-border text-white/50"
 								}`}
 							>
 								{draft.enabled ? (
@@ -723,7 +723,7 @@ function ThemeEditor({
 						<div className="sm:col-span-2">
 							<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 								Image de fond (optionnelle)
-								<span className="ml-1 normal-case text-white/30">
+								<span className="ml-1 normal-case text-white/50">
 									— vide = dégradé seul · ex : une bannière comme fond
 								</span>
 							</label>
@@ -788,7 +788,7 @@ function ThemeEditor({
 					{previewUrl ? (
 						<div>
 							<div className="flex items-center justify-between mb-1">
-								<p className="text-[10px] text-white/30 uppercase tracking-widest">
+								<p className="text-[10px] text-white/50 uppercase tracking-widest">
 									Aperçu (état enregistré)
 								</p>
 								<button
@@ -804,13 +804,13 @@ function ThemeEditor({
 								alt={draft.name}
 								className="w-full rounded border border-dbz-border"
 							/>
-							<p className="mt-1 text-[10px] text-white/30">
+							<p className="mt-1 text-[10px] text-white/50">
 								Enregistrez pour voir vos changements de couleurs/fond ici.
 							</p>
 						</div>
 					) : (
 						isCreate && (
-							<p className="text-[10px] text-white/30">
+							<p className="text-[10px] text-white/50">
 								L&apos;aperçu sera disponible après la première création.
 							</p>
 						)
@@ -889,7 +889,7 @@ function AssetGrid({ dir, onPick }: { dir: string; onPick?: (path: string) => vo
 
 	if (assets.isLoading)
 		return (
-			<div className="flex items-center gap-2 text-white/40 text-sm">
+			<div className="flex items-center gap-2 text-white/50 text-sm">
 				<Loader2 className="h-4 w-4 animate-spin" /> Chargement des images…
 			</div>
 		);
@@ -901,7 +901,7 @@ function AssetGrid({ dir, onPick }: { dir: string; onPick?: (path: string) => vo
 		);
 	if (files.length === 0)
 		return (
-			<div className="dbz-panel p-6 text-center text-sm text-white/40">
+			<div className="dbz-panel p-6 text-center text-sm text-white/50">
 				Aucune image dans ce dossier.
 			</div>
 		);
@@ -960,7 +960,7 @@ function AssetGallery({ onPick }: { onPick?: (path: string) => void }) {
 					</button>
 				))}
 				{!onPick && (
-					<span className="ml-auto text-[10px] text-white/30">
+					<span className="ml-auto text-[10px] text-white/50">
 						Cliquez une image pour copier son chemin
 					</span>
 				)}
@@ -1012,7 +1012,7 @@ function CanvasPreview({ def, members }: { def: CanvasDef; members: DiscordMembe
 			<div className="dbz-panel p-5 space-y-4 lg:col-span-1">
 				<div>
 					<h3 className="font-saiyan text-dbz-yellow text-base uppercase mb-0.5">{def.name}</h3>
-					<p className="text-xs text-white/40">{CANVAS_DESCRIPTIONS[def.id] ?? def.description}</p>
+					<p className="text-xs text-white/50">{CANVAS_DESCRIPTIONS[def.id] ?? def.description}</p>
 				</div>
 
 				{def.id === "profile" && (
@@ -1189,17 +1189,17 @@ function CanvasPreview({ def, members }: { def: CanvasDef; members: DiscordMembe
 					{isValid ? (
 						<img src={url} alt={def.name} className="max-w-full rounded" loading="lazy" />
 					) : (
-						<p className="text-sm text-white/30 text-center">
+						<p className="text-sm text-white/50 text-center">
 							Renseignez les paramètres à gauche pour afficher l&apos;aperçu.
 						</p>
 					)}
 				</div>
 				{isValid && (
 					<div className="mt-3">
-						<p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">
+						<p className="text-[10px] text-white/50 uppercase tracking-widest mb-1">
 							URL générée (pour intégration)
 						</p>
-						<code className="block break-all rounded bg-black/40 p-2 text-[10px] text-white/40 border border-dbz-border">
+						<code className="block break-all rounded bg-black/40 p-2 text-[10px] text-white/50 border border-dbz-border">
 							{url}
 						</code>
 					</div>
@@ -1253,7 +1253,7 @@ function MemberSelect({
 				))}
 			</select>
 			{filtered.length > 50 && (
-				<p className="mt-1 text-[10px] text-white/30">
+				<p className="mt-1 text-[10px] text-white/50">
 					{filtered.length} résultats — affinez la recherche.
 				</p>
 			)}

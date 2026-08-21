@@ -181,7 +181,7 @@ export default function ActivitePage() {
 											<Link href={p.path} className="text-white hover:text-dbz-orange">
 												{prettyPath(p.path)}
 											</Link>
-											<div className="text-[10px] text-white/35 font-mono truncate max-w-[240px]">
+											<div className="text-[10px] text-white/50 font-mono truncate max-w-[240px]">
 												{p.path}
 											</div>
 										</td>
@@ -225,7 +225,7 @@ export default function ActivitePage() {
 							);
 						})}
 						{d && d.sources.length === 0 && (
-							<p className="text-white/40 text-sm py-4 text-center">
+							<p className="text-white/50 text-sm py-4 text-center">
 								Aucune source sur la période.
 							</p>
 						)}
@@ -253,7 +253,7 @@ export default function ActivitePage() {
 							</li>
 						))}
 						{d && d.topEntities.length === 0 && (
-							<li className="text-white/40 text-sm py-3 text-center">Aucune vue de fiche.</li>
+							<li className="text-white/50 text-sm py-3 text-center">Aucune vue de fiche.</li>
 						)}
 					</ul>
 				</div>
@@ -268,7 +268,7 @@ export default function ActivitePage() {
 							</li>
 						))}
 						{d && d.topSearches.length === 0 && (
-							<li className="text-white/40 text-sm py-3 text-center">Aucune recherche.</li>
+							<li className="text-white/50 text-sm py-3 text-center">Aucune recherche.</li>
 						)}
 					</ul>
 				</div>
@@ -295,13 +295,13 @@ export default function ActivitePage() {
 							);
 						})}
 						{d && d.eventTypes.length === 0 && (
-							<p className="text-white/40 text-sm py-4 text-center">Aucun événement.</p>
+							<p className="text-white/50 text-sm py-4 text-center">Aucun événement.</p>
 						)}
 					</div>
 				</div>
 			</div>
 
-			<p className="text-[11px] text-white/30 text-center">
+			<p className="text-[11px] text-white/50 text-center">
 				Données anonymisées (jamais d'IP brute) · visiteurs comptés par pseudonyme stable ·
 				rafraîchi automatiquement toutes les 30 s
 				{d ? ` · dernière mesure ${new Date(d.generatedAt).toLocaleTimeString("fr-FR")}` : ""}
@@ -347,7 +347,7 @@ function KpiCard({
 function DeltaBadge({ delta }: { delta: number | null | undefined }) {
 	if (delta === null || delta === undefined) {
 		return (
-			<span className="inline-flex items-center gap-0.5 text-[11px] text-white/30">
+			<span className="inline-flex items-center gap-0.5 text-[11px] text-white/50">
 				<Minus className="h-3 w-3" />
 			</span>
 		);
@@ -405,7 +405,7 @@ function Legend() {
 function EmptyRow({ colSpan }: { colSpan: number }) {
 	return (
 		<tr>
-			<td colSpan={colSpan} className="p-6 text-center text-white/40 text-sm">
+			<td colSpan={colSpan} className="p-6 text-center text-white/50 text-sm">
 				Aucune donnée sur la période. Les visites se peuplent au fil de la navigation (avec
 				consentement analytics).
 			</td>
@@ -449,7 +449,7 @@ function TrendChart({
 
 	if (n === 0) {
 		return (
-			<div className="h-[220px] flex items-center justify-center text-sm text-white/40">
+			<div className="h-[220px] flex items-center justify-center text-sm text-white/50">
 				{loading ? "Chargement…" : "Aucune visite enregistrée sur la période."}
 			</div>
 		);

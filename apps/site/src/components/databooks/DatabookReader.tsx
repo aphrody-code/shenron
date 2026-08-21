@@ -222,7 +222,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 
 	if (total === 0) {
 		return (
-			<div className="dbz-panel flex min-h-[200px] items-center justify-center rounded-lg p-8 text-sm text-white/40">
+			<div className="dbz-panel flex min-h-[200px] items-center justify-center rounded-lg p-8 text-sm text-white/50">
 				Aucune page à afficher pour le moment.
 			</div>
 		);
@@ -232,7 +232,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		<div className="flex h-full min-h-0 flex-col">
 			<p className="mb-2 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-dbz-orange/80">
 				Page {currentNum}
-				<span className="ml-2 font-normal normal-case tracking-normal text-white/35">
+				<span className="ml-2 font-normal normal-case tracking-normal text-white/50">
 					({current + 1}/{total})
 				</span>
 			</p>
@@ -240,7 +240,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 				{currentText ? (
 					<p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">{currentText}</p>
 				) : (
-					<p className="text-sm italic text-white/35">Aucune description pour cette page.</p>
+					<p className="text-sm italic text-white/50">Aucune description pour cette page.</p>
 				)}
 			</div>
 		</div>
@@ -350,7 +350,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 													</span>
 												</button>
 											) : (
-												<div className="px-6 text-center text-sm text-white/40">
+												<div className="px-6 text-center text-sm text-white/50">
 													Page {item.number} — pas d&apos;image
 												</div>
 											)}
@@ -436,7 +436,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 													/>
 												</button>
 											) : (
-												<div className="flex min-h-[120px] items-center justify-center rounded border border-dashed border-white/10 bg-black/40 text-sm text-white/35">
+												<div className="flex min-h-[120px] items-center justify-center rounded border border-dashed border-white/10 bg-black/40 text-sm text-white/50">
 													Pas d&apos;image pour cette page
 												</div>
 											)}
@@ -483,7 +483,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 										loading="lazy"
 									/>
 								) : (
-									<span className="flex h-full w-full items-center justify-center bg-zinc-900 text-[9px] text-white/40">
+									<span className="flex h-full w-full items-center justify-center bg-zinc-900 text-[9px] text-white/50">
 										txt
 									</span>
 								)}

@@ -86,8 +86,8 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 				<h4 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">
 					{spec.label}
 				</h4>
-				<span className="text-xs text-white/40">({ids.length})</span>
-				{(related.isLoading || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/40" />}
+				<span className="text-xs text-white/50">({ids.length})</span>
+				{(related.isLoading || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/50" />}
 			</div>
 
 			{related.isError ? (
@@ -95,7 +95,7 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 			) : (
 				<div className="mb-2 flex flex-wrap gap-1.5">
 					{ids.length === 0 && (
-						<span className="text-xs italic text-white/30">Aucune relation.</span>
+						<span className="text-xs italic text-white/50">Aucune relation.</span>
 					)}
 					{ids.map((id) => (
 						<span

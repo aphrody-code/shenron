@@ -202,12 +202,12 @@ export default async function RacesPage() {
 													</div>
 												)}
 											</div>
-											<span className="text-[10px] font-bold text-white/40 group-hover:text-white/60 transition-colors uppercase tracking-widest font-sans">
+											<span className="text-[10px] font-bold text-white/50 group-hover:text-white/60 transition-colors uppercase tracking-widest font-sans">
 												Membres
 											</span>
 										</div>
 									) : (
-										<span className="text-[10px] font-bold text-white/30 uppercase tracking-widest font-sans">
+										<span className="text-[10px] font-bold text-white/50 uppercase tracking-widest font-sans">
 											Aucun membre répertorié
 										</span>
 									)}

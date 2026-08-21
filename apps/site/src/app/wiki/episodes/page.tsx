@@ -89,7 +89,7 @@ async function EpisodeRails({ series }: { series: string[] }) {
 	);
 	const present = groups.filter((g): g is NonNullable<typeof g> => !!g && g.episodes.length > 0);
 	if (present.length === 0) {
-		return <p className="py-12 text-center text-white/40">Aucun épisode à afficher.</p>;
+		return <p className="py-12 text-center text-white/50">Aucun épisode à afficher.</p>;
 	}
 	return (
 		<>

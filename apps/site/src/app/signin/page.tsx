@@ -137,7 +137,7 @@ export default function SignInPage() {
 					</div>
 				)}
 
-				<div className="mt-8 pt-6 border-t border-white/[0.08] text-[12px] text-white/45 leading-relaxed text-center">
+				<div className="mt-8 pt-6 border-t border-white/[0.08] text-[12px] text-white/50 leading-relaxed text-center">
 					Aucun mot de passe stocké. L'authentification passe par Discord OAuth. En te connectant tu
 					acceptes nos{" "}
 					<Link

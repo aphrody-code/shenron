@@ -47,7 +47,7 @@ export async function WikiCategoryNav({
 						{c.label}
 						{typeof n === "number" && n > 0 && (
 							<span
-								className={`text-[11px] tabular-nums ${isActive ? "text-black/55" : "text-white/40"}`}
+								className={`text-[11px] tabular-nums ${isActive ? "text-black/55" : "text-white/50"}`}
 							>
 								{n}
 							</span>

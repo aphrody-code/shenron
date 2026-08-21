@@ -109,7 +109,7 @@ export default async function JeuxPage() {
 								<dl className="text-[12px] text-white/65 space-y-1">
 									{g.release_date && (
 										<div>
-											<dt className="inline text-white/45">Sortie : </dt>
+											<dt className="inline text-white/50">Sortie : </dt>
 											<dd className="inline">
 												{new Date(g.release_date * 1000).toLocaleDateString("fr-FR", {
 													day: "numeric",
@@ -121,13 +121,13 @@ export default async function JeuxPage() {
 									)}
 									{g.developer && (
 										<div>
-											<dt className="inline text-white/45">Studio : </dt>
+											<dt className="inline text-white/50">Studio : </dt>
 											<dd className="inline">{g.developer}</dd>
 										</div>
 									)}
 									{g.publisher && (
 										<div>
-											<dt className="inline text-white/45">Éditeur : </dt>
+											<dt className="inline text-white/50">Éditeur : </dt>
 											<dd className="inline">{g.publisher}</dd>
 										</div>
 									)}

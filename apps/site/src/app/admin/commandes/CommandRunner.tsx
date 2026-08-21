@@ -135,7 +135,7 @@ export function CommandRunner() {
 			{/* Liste des commandes */}
 			<div className="dbz-panel flex max-h-[70vh] flex-col p-3">
 				<div className="relative mb-2">
-					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 					<input
 						className="w-full rounded border border-dbz-border bg-dbz-bg px-3 py-1.5 pl-8 text-sm text-white focus:border-dbz-orange focus:outline-none"
 						placeholder={`Rechercher parmi ${commands.length} commandes…`}
@@ -145,7 +145,7 @@ export function CommandRunner() {
 				</div>
 				<div className="min-h-0 flex-1 overflow-y-auto pr-1">
 					{catalog.isLoading ? (
-						<p className="p-3 text-xs text-white/40">
+						<p className="p-3 text-xs text-white/50">
 							<Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Chargement du catalogue…
 						</p>
 					) : catalog.isError ? (
@@ -167,7 +167,7 @@ export function CommandRunner() {
 												: "text-white/70 hover:bg-white/5"
 										}`}
 									>
-										<ChevronRight className="h-3 w-3 shrink-0 text-white/30" />
+										<ChevronRight className="h-3 w-3 shrink-0 text-white/50" />
 										<span className="font-mono text-[13px]">/{c.invocation}</span>
 									</button>
 								))}
@@ -180,7 +180,7 @@ export function CommandRunner() {
 			{/* Formulaire + exécution */}
 			<div className="dbz-panel min-h-[300px] p-5">
 				{!selected ? (
-					<div className="flex h-full flex-col items-center justify-center text-center text-white/40">
+					<div className="flex h-full flex-col items-center justify-center text-center text-white/50">
 						<Terminal className="mb-2 h-8 w-8" />
 						<p className="text-sm">Sélectionne une commande à gauche pour l&apos;exécuter.</p>
 					</div>
@@ -189,7 +189,7 @@ export function CommandRunner() {
 						<div>
 							<h2 className="font-mono text-lg text-dbz-orange">/{selected.invocation}</h2>
 							<p className="text-sm text-white/60">{selected.description}</p>
-							<p className="mt-1 text-[11px] uppercase tracking-widest text-white/30">
+							<p className="mt-1 text-[11px] uppercase tracking-widest text-white/50">
 								persona : {selected.persona}
 							</p>
 						</div>
@@ -203,7 +203,7 @@ export function CommandRunner() {
 						)}
 
 						{selected.options.length === 0 ? (
-							<p className="text-xs italic text-white/40">Aucun paramètre.</p>
+							<p className="text-xs italic text-white/50">Aucun paramètre.</p>
 						) : (
 							<div className="space-y-3">
 								{selected.options.map((o) => (
@@ -261,7 +261,7 @@ function OptionField({
 			<label className="mb-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 				{opt.name}
 				{opt.required && <span className="text-dbz-red">*</span>}
-				<span className="font-normal normal-case text-white/30">{opt.typeName}</span>
+				<span className="font-normal normal-case text-white/50">{opt.typeName}</span>
 			</label>
 			{opt.choices && opt.choices.length > 0 ? (
 				<select
@@ -295,7 +295,7 @@ function OptionField({
 					onChange={(e) => onChange(e.target.value)}
 				/>
 			)}
-			{opt.description && <p className="mt-0.5 text-[10px] text-white/35">{opt.description}</p>}
+			{opt.description && <p className="mt-0.5 text-[10px] text-white/50">{opt.description}</p>}
 		</div>
 	);
 }
@@ -314,7 +314,7 @@ function ResultView({ result }: { result: NonNullable<ExecResult> }) {
 			{result.error && <p className="mt-1 text-xs text-red-400">{result.error}</p>}
 			{result.replies.map((r, i) => (
 				<div key={i} className="mt-2 rounded bg-black/40 p-2 text-xs text-white/80">
-					<span className="mr-2 text-[9px] uppercase text-white/30">{r.method}</span>
+					<span className="mr-2 text-[9px] uppercase text-white/50">{r.method}</span>
 					{r.content && <p className="whitespace-pre-wrap">{r.content}</p>}
 					{r.embeds?.map((e, j) => (
 						<div key={j} className="mt-1 border-l-2 border-dbz-orange/40 pl-2">
@@ -331,7 +331,7 @@ function ResultView({ result }: { result: NonNullable<ExecResult> }) {
 						</div>
 					))}
 					{(r.files ?? 0) > 0 && (
-						<p className="mt-1 text-[10px] italic text-white/40">
+						<p className="mt-1 text-[10px] italic text-white/50">
 							[{r.files} fichier(s)/image(s) — non affichés hors Discord]
 						</p>
 					)}

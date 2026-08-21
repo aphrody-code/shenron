@@ -59,7 +59,7 @@ export function AdminAccessForm() {
 			<button
 				type="button"
 				onClick={logout}
-				className="text-[12px] text-white/45 hover:text-white/70"
+				className="text-[12px] text-white/50 hover:text-white/70"
 			>
 				Fermer la session admin token
 			</button>

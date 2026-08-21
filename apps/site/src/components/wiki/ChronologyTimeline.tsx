@@ -191,7 +191,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 			<div className="dbz-panel p-4 sm:p-5 space-y-4">
 				{/* Ères */}
 				<div className="flex flex-wrap items-center gap-2">
-					<span className="text-[11px] font-display font-semibold uppercase tracking-[0.14em] text-white/40 mr-1">
+					<span className="text-[11px] font-display font-semibold uppercase tracking-[0.14em] text-white/50 mr-1">
 						Ères
 					</span>
 					{ERA_ORDER.filter((e) => (eraCounts.get(e) ?? 0) > 0).map((e) => {
@@ -211,14 +211,14 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 									style={{ backgroundColor: on ? "rgba(0,0,0,0.55)" : ERA_ACCENT[e] }}
 								/>
 								{ERA_LABELS[e]}
-								<span className={on ? "text-black/60" : "text-white/30"}>{eraCounts.get(e)}</span>
+								<span className={on ? "text-black/60" : "text-white/50"}>{eraCounts.get(e)}</span>
 							</button>
 						);
 					})}
 					<button
 						type="button"
 						onClick={eras.size === ERA_ORDER.length ? noneEras : allEras}
-						className="ml-auto text-[11px] text-white/40 hover:text-dbz-orange transition-colors"
+						className="ml-auto text-[11px] text-white/50 hover:text-dbz-orange transition-colors"
 					>
 						{eras.size === ERA_ORDER.length ? "Tout décocher" : "Tout cocher"}
 					</button>
@@ -250,13 +250,13 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 					</div>
 
 					<div className="relative flex-1 min-w-[180px]">
-						<Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/30" />
+						<Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
 						<input
 							type="search"
 							value={q}
 							onChange={(e) => setQ(e.target.value)}
 							placeholder="Rechercher un titre…"
-							className="w-full h-9 pl-9 pr-3 rounded-lg bg-dbz-bg/70 border border-dbz-border focus:border-dbz-orange outline-none text-[13px] text-white placeholder:text-white/35"
+							className="w-full h-9 pl-9 pr-3 rounded-lg bg-dbz-bg/70 border border-dbz-border focus:border-dbz-orange outline-none text-[13px] text-white placeholder:text-white/50"
 						/>
 					</div>
 
@@ -283,7 +283,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 						{filtered.length > 1 ? "s" : ""} affichée{filtered.length > 1 ? "s" : ""}
 					</span>
 					<span className="text-white/20">·</span>
-					<span className="text-[11px] text-white/40">Exporter :</span>
+					<span className="text-[11px] text-white/50">Exporter :</span>
 					<ExportBtn label="JSON" onClick={() => doExport("json")} />
 					<ExportBtn label="CSV" onClick={() => doExport("csv")} />
 					<ExportBtn label="Markdown" onClick={() => doExport("md")} />
@@ -297,7 +297,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 
 			{/* Frise */}
 			{filtered.length === 0 ? (
-				<p className="dbz-panel py-12 text-center text-white/40">
+				<p className="dbz-panel py-12 text-center text-white/50">
 					Aucune entrée ne correspond aux filtres.
 				</p>
 			) : (
@@ -311,7 +311,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 								className="dbz-button-ghost !text-xs"
 							>
 								Afficher {Math.min(CHUNK, filtered.length - visible.length)} entrées de plus
-								<span className="ml-2 text-white/35">
+								<span className="ml-2 text-white/50">
 									{visible.length} / {filtered.length}
 								</span>
 							</button>
@@ -320,7 +320,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 				</>
 			)}
 
-			<p className="text-[11px] text-white/30 text-center pt-2">
+			<p className="text-[11px] text-white/50 text-center pt-2">
 				Chronologie officielle Dragon Ball France — {items.length} entrées, ordre validé par
 				l'équipe.
 			</p>
@@ -401,7 +401,7 @@ function EraHeader({
 			>
 				{ERA_LABELS[era]}
 			</h2>
-			<span className="text-[11px] text-white/35 font-mono">{parts.join(" · ")}</span>
+			<span className="text-[11px] text-white/50 font-mono">{parts.join(" · ")}</span>
 			<span className="flex-1 h-px" style={{ backgroundColor: `${ERA_ACCENT[era]}33` }} />
 		</div>
 	);
@@ -489,7 +489,7 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 						{it.title || "(sans titre)"}
 					</span>
 				</div>
-				<div className="flex items-center gap-2 text-[11px] text-white/40">
+				<div className="flex items-center gap-2 text-[11px] text-white/50">
 					{!grouped && (
 						<span
 							className="inline-flex items-center gap-1"

@@ -48,7 +48,7 @@ export default async function WikiTodoPage() {
 				</div>
 			) : (
 				<>
-					<p className="text-sm text-white/45">
+					<p className="text-sm text-white/50">
 						<span className="font-bold text-dbz-orange">{total}</span> fiche{total > 1 ? "s" : ""} à
 						compléter (plafonné à 80 par type).
 					</p>
@@ -58,7 +58,7 @@ export default async function WikiTodoPage() {
 							<section key={table} id={table} className="scroll-mt-24">
 								<h2 className="mb-3 flex items-baseline gap-2 font-saiyan text-xl uppercase tracking-widest text-dbz-yellow">
 									{TABLE_LABELS[table] ?? table}
-									<span className="font-mono text-xs text-white/35">{rows.length}</span>
+									<span className="font-mono text-xs text-white/50">{rows.length}</span>
 								</h2>
 								<ul className="dbz-panel divide-y divide-dbz-border/40">
 									{rows.map((r) => (
@@ -82,7 +82,7 @@ export default async function WikiTodoPage() {
 												</span>
 												<span className="min-w-0 flex-1">
 													<span className="block truncate font-semibold text-white">{r.label}</span>
-													<span className="font-mono text-[10px] text-white/30">#{r.id}</span>
+													<span className="font-mono text-[10px] text-white/50">#{r.id}</span>
 												</span>
 												<span className="flex shrink-0 gap-1.5">
 													{r.missingImage && (

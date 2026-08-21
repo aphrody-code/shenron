@@ -109,7 +109,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 					<p className="text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 						Stats (cartes scouter)
 					</p>
-					<p className="mt-0.5 text-[11px] text-white/40">
+					<p className="mt-0.5 text-[11px] text-white/50">
 						En plus du Ki / Ki max — ex. Vitesse, Rang, Puissance d&apos;attaque…
 					</p>
 				</div>
@@ -126,7 +126,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 			{toast && <p className="text-xs text-dbz-orange">{toast}</p>}
 
 			{stats.length === 0 ? (
-				<p className="py-4 text-center text-xs italic text-white/35">
+				<p className="py-4 text-center text-xs italic text-white/50">
 					Aucune stat custom. Ki / Ki max restent gérés dans le formulaire principal.
 				</p>
 			) : (
@@ -137,7 +137,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 							className="flex flex-col gap-2 rounded-lg border border-dbz-border/50 bg-black/20 p-3 sm:flex-row sm:items-end"
 						>
 							<div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-3">
-								<label className="block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+								<label className="block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 									Libellé
 									<input
 										className="input mt-1 w-full text-sm"
@@ -146,7 +146,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 										onChange={(e) => update(i, { label: e.target.value })}
 									/>
 								</label>
-								<label className="block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+								<label className="block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 									Valeur
 									<input
 										className="input mt-1 w-full font-mono text-sm"
@@ -155,7 +155,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 										onChange={(e) => update(i, { value: e.target.value })}
 									/>
 								</label>
-								<label className="block text-[10px] font-semibold uppercase tracking-wider text-white/40">
+								<label className="block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 									Accent
 									<select
 										className="input mt-1 w-full text-sm"

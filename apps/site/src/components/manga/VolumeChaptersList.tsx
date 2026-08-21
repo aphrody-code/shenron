@@ -107,7 +107,7 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 					);
 				})}
 				{readableChapters.length === 0 && (
-					<p className="text-white/40 italic">Chapitres de ce tome en cours d&apos;ajout.</p>
+					<p className="text-white/50 italic">Chapitres de ce tome en cours d&apos;ajout.</p>
 				)}
 			</div>
 		</div>

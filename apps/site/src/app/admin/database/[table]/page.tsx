@@ -179,7 +179,7 @@ export default function TablePage() {
 					{spec?.description && <p className="text-xs text-white/50">{spec.description}</p>}
 					<code className="text-[10px] text-white/25 font-mono">{table}</code>
 				</div>
-				<div className="text-sm text-white/40 tabular-nums">
+				<div className="text-sm text-white/50 tabular-nums">
 					{total.toLocaleString("fr-FR")} entrée{total > 1 ? "s" : ""} · page {page + 1} sur{" "}
 					{Math.max(1, totalPages)}
 				</div>
@@ -197,7 +197,7 @@ export default function TablePage() {
 					["name", "title", "slug", "nameJa", "titleJa"].includes(c)
 				) && (
 					<div className="relative max-w-sm">
-						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 						<input
 							className="input pl-9"
 							placeholder={`Rechercher dans ${humanLabel.toLowerCase()}…`}
@@ -220,8 +220,8 @@ export default function TablePage() {
 				</div>
 			) : rows.data?.rows.length === 0 ? (
 				<div className="card text-center py-12">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">Aucune entrée</p>
-					<p className="text-white/40 text-sm mb-4">Cette section est vide pour l&apos;instant.</p>
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">Aucune entrée</p>
+					<p className="text-white/50 text-sm mb-4">Cette section est vide pour l&apos;instant.</p>
 					{spec && !spec.readonly && (
 						<button type="button" onClick={openCreate} className="btn btn-primary">
 							<Plus className="h-4 w-4" />
@@ -293,7 +293,7 @@ export default function TablePage() {
 				>
 					Page précédente
 				</button>
-				<span className="text-xs text-white/40 tabular-nums">
+				<span className="text-xs text-white/50 tabular-nums">
 					{offset + 1}–{Math.min(offset + limit, total)} / {total.toLocaleString("fr-FR")}
 				</span>
 				<button
@@ -424,7 +424,7 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 						<h3 className="font-saiyan text-lg uppercase text-dbz-orange">
 							{mode === "create" ? "Nouvelle entrée" : "Modifier l'entrée"}
 						</h3>
-						<p className="text-xs text-white/40 font-mono mt-0.5">
+						<p className="text-xs text-white/50 font-mono mt-0.5">
 							{mode === "create"
 								? spec.name
 								: `${spec.name} · ${spec.pk} = ${String(row[spec.pk])}`}

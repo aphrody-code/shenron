@@ -70,7 +70,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
 					className="w-full max-w-2xl mx-auto rounded-lg border border-dbz-border"
 					loading="lazy"
 				/>
-				<p className="text-center text-[10px] uppercase tracking-widest text-white/40 mt-3">
+				<p className="text-center text-[10px] uppercase tracking-widest text-white/50 mt-3">
 					Rendue en direct par le bot · identique à <code>/profil</code> sur Discord
 				</p>
 			</section>

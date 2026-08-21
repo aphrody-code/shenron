@@ -211,7 +211,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 					<h3 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">
 						Galerie médias
 					</h3>
-					<p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/45">
+					<p className="mt-1 max-w-xl text-[11px] leading-relaxed text-white/50">
 						Style Steam : screenshots et trailers YouTube sous la description. Ajoute des{" "}
 						<strong className="text-white/60">images</strong> (upload) ou des{" "}
 						<strong className="text-white/60">liens YouTube</strong> (gameplay / trailer).
@@ -223,7 +223,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 							Non enregistré
 						</span>
 					)}
-					<span className="rounded border border-dbz-border/50 bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/45">
+					<span className="rounded border border-dbz-border/50 bg-white/[0.03] px-2 py-1 text-[10px] uppercase tracking-wider text-white/50">
 						{filled}/{items.length} média{items.length > 1 ? "s" : ""}
 					</span>
 					<button
@@ -257,7 +257,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 			</div>
 
 			{items.length === 0 ? (
-				<p className="py-6 text-center text-sm italic text-white/35">
+				<p className="py-6 text-center text-sm italic text-white/50">
 					Aucun média — ajoute une image ou un trailer YouTube.
 				</p>
 			) : (
@@ -442,7 +442,7 @@ function YoutubeField({ value, onChange }: { value: string; onChange: (url: stri
 							Aperçu OK
 						</p>
 						<p className="mt-0.5 break-all font-mono text-[11px] text-white/50">id&nbsp;: {id}</p>
-						<p className="mt-1 text-[11px] text-white/40">
+						<p className="mt-1 text-[11px] text-white/50">
 							La vignette YouTube s&apos;affiche → le lien est valide.
 						</p>
 					</div>

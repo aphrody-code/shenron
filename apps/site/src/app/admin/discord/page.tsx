@@ -51,7 +51,7 @@ export default async function AdminDiscordPage() {
 				<p className="text-sm text-dbz-blue-light mb-1">
 					Vue en direct de votre serveur Discord : salons et rôles actuels.
 				</p>
-				<p className="text-xs text-white/40 uppercase tracking-widest">
+				<p className="text-xs text-white/50 uppercase tracking-widest">
 					{channels.length} salon{channels.length !== 1 ? "s" : ""} · {roles.length} rôle
 					{roles.length !== 1 ? "s" : ""}
 				</p>
@@ -68,7 +68,7 @@ export default async function AdminDiscordPage() {
 
 			<section>
 				<h2 className="text-2xl font-saiyan text-dbz-yellow uppercase mb-1">Salons</h2>
-				<p className="text-xs text-white/40 mb-4">
+				<p className="text-xs text-white/50 mb-4">
 					Les salons sont regroupés par type. Chaque salon affiche son nom et son identifiant
 					interne Discord.
 				</p>
@@ -87,11 +87,11 @@ export default async function AdminDiscordPage() {
 									<div key={type} className="dbz-panel p-4">
 										<h3 className="font-saiyan text-base text-dbz-blue-light mb-0.5 uppercase">
 											{meta.label}{" "}
-											<span className="text-white/40 font-mono text-xs normal-case">
+											<span className="text-white/50 font-mono text-xs normal-case">
 												({list.length})
 											</span>
 										</h3>
-										<p className="text-[10px] text-white/30 mb-3">{meta.description}</p>
+										<p className="text-[10px] text-white/50 mb-3">{meta.description}</p>
 										<ul className="space-y-1 text-xs">
 											{list
 												.sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
@@ -116,7 +116,7 @@ export default async function AdminDiscordPage() {
 
 			<section>
 				<h2 className="text-2xl font-saiyan text-dbz-yellow uppercase mb-1">Rôles</h2>
-				<p className="text-xs text-white/40 mb-4">
+				<p className="text-xs text-white/50 mb-4">
 					Rôles du serveur classés par priorité décroissante. Les rôles
 					&laquo;&nbsp;gérés&nbsp;&raquo; appartiennent à un bot ou une intégration.
 				</p>

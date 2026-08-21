@@ -135,7 +135,7 @@ export default async function SearchPage({
 							defaultValue={q}
 							placeholder="Goku, Namek, Tournoi du Pouvoir, Kakarot…"
 							autoFocus
-							className="w-full h-14 pl-12 pr-5 rounded-xl bg-dbz-card/50 border-2 border-dbz-border focus:border-dbz-orange focus:bg-dbz-card outline-none text-white placeholder:text-white/30 font-display text-lg transition-all"
+							className="w-full h-14 pl-12 pr-5 rounded-xl bg-dbz-card/50 border-2 border-dbz-border focus:border-dbz-orange focus:bg-dbz-card outline-none text-white placeholder:text-white/50 font-display text-lg transition-all"
 						/>
 					</div>
 					<button type="submit" className="dbz-button h-14 px-10">
@@ -218,7 +218,7 @@ export default async function SearchPage({
 									className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-dbz-orange/40 text-[12px] font-display font-semibold tracking-wide transition-colors"
 								>
 									{label}
-									<span className="text-white/35 tabular-nums">{n}</span>
+									<span className="text-white/50 tabular-nums">{n}</span>
 								</a>
 							))}
 						</div>
@@ -261,7 +261,7 @@ export default async function SearchPage({
 													{c.name}
 												</p>
 												{c.name_ja && (
-													<p className="font-jp text-[10px] text-white/40 font-bold mt-1">
+													<p className="font-jp text-[10px] text-white/50 font-bold mt-1">
 														{c.name_ja}
 													</p>
 												)}
@@ -349,7 +349,7 @@ export default async function SearchPage({
 													<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
 														{s.name}
 													</p>
-													<p className="text-[10px] font-display tracking-[0.2em] uppercase text-white/40 mt-1">
+													<p className="text-[10px] font-display tracking-[0.2em] uppercase text-white/50 mt-1">
 														{s.series}
 													</p>
 												</div>
@@ -388,7 +388,7 @@ export default async function SearchPage({
 														{m.title}
 													</p>
 													{m.title_ja && (
-														<p className="font-jp text-[10px] text-white/40 mt-1">{m.title_ja}</p>
+														<p className="font-jp text-[10px] text-white/50 mt-1">{m.title_ja}</p>
 													)}
 												</div>
 												<span className="text-dbz-red opacity-0 group-hover:opacity-100 transition-opacity">
@@ -425,7 +425,7 @@ export default async function SearchPage({
 											{g.title}
 										</p>
 										{g.title_ja && (
-											<p className="font-jp text-[10px] text-white/40 mt-1">{g.title_ja}</p>
+											<p className="font-jp text-[10px] text-white/50 mt-1">{g.title_ja}</p>
 										)}
 									</Link>
 								))}
@@ -501,7 +501,7 @@ export default async function SearchPage({
 											{t.name}
 										</p>
 										{(t.name_ja || t.type) && (
-											<p className="font-jp text-[10px] text-white/40 mt-1">
+											<p className="font-jp text-[10px] text-white/50 mt-1">
 												{t.name_ja ?? t.type}
 											</p>
 										)}
@@ -530,7 +530,7 @@ export default async function SearchPage({
 											{r.name}
 										</p>
 										{r.name_ja && (
-											<p className="font-jp text-[10px] text-white/40 mt-1">{r.name_ja}</p>
+											<p className="font-jp text-[10px] text-white/50 mt-1">{r.name_ja}</p>
 										)}
 									</Link>
 								))}
@@ -598,7 +598,7 @@ export default async function SearchPage({
 											{a.name}
 										</p>
 										{a.name_ja && (
-											<p className="font-jp text-[10px] text-white/40 mt-1">{a.name_ja}</p>
+											<p className="font-jp text-[10px] text-white/50 mt-1">{a.name_ja}</p>
 										)}
 									</Link>
 								))}
@@ -694,11 +694,11 @@ export default async function SearchPage({
 							<div className="grid sm:grid-cols-2 gap-6 text-sm">
 								<div className="space-y-2">
 									<p className="text-dbz-orange font-bold uppercase tracking-widest">Guerriers</p>
-									<p className="text-white/40">Goku, Vegeta, Beerus, Jiren, Broly...</p>
+									<p className="text-white/50">Goku, Vegeta, Beerus, Jiren, Broly...</p>
 								</div>
 								<div className="space-y-2">
 									<p className="text-dbz-blue-light font-bold uppercase tracking-widest">Mondes</p>
-									<p className="text-white/40">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
+									<p className="text-white/50">Terre, Namek, Vegeta, Yardrat, Kaio...</p>
 								</div>
 							</div>
 						</div>

@@ -48,7 +48,7 @@ export function PosterCard({
 					/>
 				) : (
 					<div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-dbz-card to-black">
-						<span className="px-2 text-center font-saiyan text-sm uppercase text-white/30">
+						<span className="px-2 text-center font-saiyan text-sm uppercase text-white/50">
 							{title}
 						</span>
 					</div>

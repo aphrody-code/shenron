@@ -316,7 +316,7 @@ function FieldModal({
 				<div className="mb-5 flex items-center justify-between">
 					<div>
 						<h3 className="font-saiyan text-lg uppercase text-dbz-orange">{title}</h3>
-						<p className="mt-0.5 font-mono text-xs text-white/40">{subtitle}</p>
+						<p className="mt-0.5 font-mono text-xs text-white/50">{subtitle}</p>
 					</div>
 					<button type="button" onClick={onClose} className="btn btn-ghost px-2">
 						<X className="h-4 w-4" />

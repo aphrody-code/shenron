@@ -18,7 +18,7 @@ export default function AdminCommandesPage() {
 					leurs paramètres, exécutables à distance (hors Discord). Le résultat de la commande est
 					affiché ici.
 				</p>
-				<p className="text-xs uppercase tracking-widest text-white/30">
+				<p className="text-xs uppercase tracking-widest text-white/50">
 					Opérations réelles en production · effet immédiat · réponses capturées
 				</p>
 			</header>

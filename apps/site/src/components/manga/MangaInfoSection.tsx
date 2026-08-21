@@ -37,7 +37,7 @@ export function MangaInfoSection() {
 							</h3>
 						</div>
 
-						<p className="text-xs text-white/40 leading-relaxed font-display">
+						<p className="text-xs text-white/50 leading-relaxed font-display">
 							Les maisons d&apos;édition détentrices des droits de publication et responsables de
 							l&apos;impression des tomes physiques.
 						</p>
@@ -109,7 +109,7 @@ export function MangaInfoSection() {
 							</h3>
 						</div>
 
-						<p className="text-xs text-white/40 leading-relaxed font-display">
+						<p className="text-xs text-white/50 leading-relaxed font-display">
 							Les plateformes d&apos;origine ou sous licence officielle pour lire les tomes et
 							chapitres au format numérique.
 						</p>
@@ -181,7 +181,7 @@ export function MangaInfoSection() {
 							</h3>
 						</div>
 
-						<p className="text-xs text-white/40 leading-relaxed font-display">
+						<p className="text-xs text-white/50 leading-relaxed font-display">
 							Les projets communautaires et fan-mangas d&apos;exception, portés par leurs propres
 							auteurs et diffusés avec leur accord.
 						</p>

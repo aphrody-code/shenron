@@ -118,7 +118,7 @@ export function CharacterGrid({
 			<div className="flex flex-col sm:flex-row sm:items-center gap-3">
 				<div className="relative flex-1 max-w-md">
 					<svg
-						className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40"
+						className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50"
 						viewBox="0 0 24 24"
 						fill="none"
 						stroke="currentColor"
@@ -134,7 +134,7 @@ export function CharacterGrid({
 						onChange={(e) => setQuery(e.target.value)}
 						placeholder="Rechercher un guerrier…"
 						aria-label="Rechercher un personnage"
-						className="w-full h-11 pl-11 pr-4 rounded-full bg-white/[0.05] border border-white/[0.1] text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-dbz-orange/60 focus:bg-white/[0.07] transition-colors"
+						className="w-full h-11 pl-11 pr-4 rounded-full bg-white/[0.05] border border-white/[0.1] text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-dbz-orange/60 focus:bg-white/[0.07] transition-colors"
 					/>
 				</div>
 				<button
@@ -159,7 +159,7 @@ export function CharacterGrid({
 					<button
 						type="button"
 						onClick={resetFilters}
-						className="text-[11px] font-bold uppercase tracking-wider text-white/45 hover:text-dbz-orange transition-colors"
+						className="text-[11px] font-bold uppercase tracking-wider text-white/50 hover:text-dbz-orange transition-colors"
 					>
 						Réinitialiser
 					</button>

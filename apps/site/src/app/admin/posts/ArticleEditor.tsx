@@ -297,7 +297,7 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2 text-[14px]">
-								<CalendarClock className="size-4 text-white/40" />
+								<CalendarClock className="size-4 text-white/50" />
 								Publication
 							</CardTitle>
 						</CardHeader>
@@ -313,7 +313,7 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 										setDirty(true);
 									}}
 								/>
-								<p className="text-[12px] text-white/45">
+								<p className="text-[12px] text-white/50">
 									Une date future programme l&apos;article : il sortira tout seul le moment venu.
 								</p>
 							</div>
@@ -355,7 +355,7 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 									type="button"
 									onClick={() => coverInputRef.current?.click()}
 									disabled={coverUploading}
-									className="grid aspect-[16/9] w-full place-items-center gap-2 rounded-lg border border-dashed border-white/20 text-white/45 transition-colors hover:border-white/40 hover:text-white/70"
+									className="grid aspect-[16/9] w-full place-items-center gap-2 rounded-lg border border-dashed border-white/20 text-white/50 transition-colors hover:border-white/40 hover:text-white/70"
 								>
 									{coverUploading ? (
 										<Loader2 className="size-5 animate-spin" />
@@ -386,7 +386,7 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 									onChange={(e) => set("coverAlt", e.target.value)}
 									placeholder="Ce que montre l'image"
 								/>
-								<p className="text-[12px] text-white/45">
+								<p className="text-[12px] text-white/50">
 									Lu par les lecteurs d&apos;écran et indexé par Google Images.
 								</p>
 							</div>
@@ -419,7 +419,7 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 									onChange={(e) => set("excerpt", e.target.value)}
 									placeholder="Le paragraphe d'accroche affiché dans les listes et sous le titre."
 								/>
-								<p className="text-[12px] text-white/45">
+								<p className="text-[12px] text-white/50">
 									Laissé vide, il est généré depuis le début de l&apos;article.
 								</p>
 							</div>
@@ -542,7 +542,7 @@ function SlugField({
 }) {
 	return (
 		<div className="flex flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-			<span className="shrink-0 font-mono text-[12px] text-white/35">
+			<span className="shrink-0 font-mono text-[12px] text-white/50">
 				{siteUrl.replace(/^https?:\/\//, "")}/actualites/
 			</span>
 			<input
@@ -551,7 +551,7 @@ function SlugField({
 				placeholder="slug-de-l-article"
 				className="min-w-0 flex-1 border-0 bg-transparent font-mono text-[12px] text-white outline-none placeholder:text-white/25"
 			/>
-			{state === "checking" && <Loader2 className="size-3.5 animate-spin text-white/40" />}
+			{state === "checking" && <Loader2 className="size-3.5 animate-spin text-white/50" />}
 			{state === "free" && (
 				<span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
 					<Check className="size-3.5" /> disponible
@@ -590,7 +590,7 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) 
 							<button
 								type="button"
 								onClick={() => onChange(tags.filter((t) => t !== tag))}
-								className="grid size-4 place-items-center rounded text-white/40 hover:text-white"
+								className="grid size-4 place-items-center rounded text-white/50 hover:text-white"
 								aria-label={`Retirer ${tag}`}
 							>
 								<X className="size-3" />
@@ -640,7 +640,7 @@ function ToggleRow({
 					{icon}
 					{label}
 				</p>
-				<p className="text-[12px] leading-snug text-white/45">{hint}</p>
+				<p className="text-[12px] leading-snug text-white/50">{hint}</p>
 			</div>
 		</div>
 	);
@@ -654,7 +654,7 @@ function Counter({ value, limit }: { value: number; limit: number }) {
 		<span
 			className={cn(
 				"text-[11px] tabular-nums",
-				over ? "text-red-400" : near ? "text-amber-400" : "text-white/35"
+				over ? "text-red-400" : near ? "text-amber-400" : "text-white/50"
 			)}
 		>
 			{value}/{limit}

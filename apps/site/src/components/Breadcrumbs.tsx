@@ -45,7 +45,7 @@ export function Breadcrumbs({
 		<>
 			<JsonLd data={schema} />
 			<nav aria-label="Fil d'Ariane" className={className}>
-				<ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] tracking-[0.02em] text-white/45">
+				<ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] tracking-[0.02em] text-white/50">
 					{trail.map((c, i) => {
 						const last = i === trail.length - 1;
 						return (

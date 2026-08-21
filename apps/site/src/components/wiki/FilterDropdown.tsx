@@ -106,12 +106,12 @@ export function FilterDropdown({
 							onChange={(e) => setQ(e.target.value)}
 							placeholder="Filtrer…"
 							aria-label={`Filtrer ${label}`}
-							className="mb-2 w-full h-9 px-3 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white text-[13px] placeholder:text-white/40 focus:outline-none focus:border-dbz-orange/60"
+							className="mb-2 w-full h-9 px-3 rounded-lg bg-white/[0.05] border border-white/[0.1] text-white text-[13px] placeholder:text-white/50 focus:outline-none focus:border-dbz-orange/60"
 						/>
 					)}
 					<div className="max-h-72 overflow-y-auto pr-1 space-y-0.5 [scrollbar-width:thin]">
 						{shown.length === 0 ? (
-							<p className="px-2.5 py-3 text-[12px] text-white/40">Aucune option.</p>
+							<p className="px-2.5 py-3 text-[12px] text-white/50">Aucune option.</p>
 						) : (
 							shown.map((o) => {
 								const on = selected.includes(o.value);
@@ -148,7 +148,7 @@ export function FilterDropdown({
 											{o.label}
 										</span>
 										{o.count != null && (
-											<span className="text-white/35 text-[11px] tabular-nums">{o.count}</span>
+											<span className="text-white/50 text-[11px] tabular-nums">{o.count}</span>
 										)}
 									</button>
 								);
@@ -159,7 +159,7 @@ export function FilterDropdown({
 						<button
 							type="button"
 							onClick={() => onChange([])}
-							className="mt-1 w-full text-center text-[11px] uppercase tracking-widest font-bold text-white/40 hover:text-dbz-orange py-1.5 transition-colors"
+							className="mt-1 w-full text-center text-[11px] uppercase tracking-widest font-bold text-white/50 hover:text-dbz-orange py-1.5 transition-colors"
 						>
 							Tout effacer
 						</button>

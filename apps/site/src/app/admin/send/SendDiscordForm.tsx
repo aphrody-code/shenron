@@ -96,7 +96,7 @@ export function SendDiscordForm() {
 				<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 					Bot expéditeur
 				</label>
-				<p className="text-xs text-white/40 mb-2">
+				<p className="text-xs text-white/50 mb-2">
 					Choisissez lequel des 6 bots enverra le message.
 				</p>
 				<div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -113,7 +113,7 @@ export function SendDiscordForm() {
 							}`}
 						>
 							<p className="font-saiyan text-sm text-white">{p.label}</p>
-							<p className="text-[10px] text-white/40">{p.description}</p>
+							<p className="text-[10px] text-white/50">{p.description}</p>
 						</button>
 					))}
 				</div>
@@ -124,10 +124,10 @@ export function SendDiscordForm() {
 				<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 					Salon de destination
 				</label>
-				<p className="text-xs text-white/40 mb-2">
+				<p className="text-xs text-white/50 mb-2">
 					Sélectionnez le salon Discord où envoyer le message.
 				</p>
-				{channelsQuery.isLoading && <p className="text-xs text-white/40">Chargement des salons…</p>}
+				{channelsQuery.isLoading && <p className="text-xs text-white/50">Chargement des salons…</p>}
 				{channelsQuery.isError && (
 					<p className="text-xs text-red-400">
 						Impossible de charger les salons. Entrez l&apos;identifiant manuellement ci-dessous.
@@ -183,7 +183,7 @@ export function SendDiscordForm() {
 				<label className="block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light mb-1">
 					Contenu du message
 				</label>
-				<p className="text-xs text-white/40 mb-2">
+				<p className="text-xs text-white/50 mb-2">
 					Le Markdown Discord est supporté : **gras**, *italique*, &gt;citation, etc.
 				</p>
 				<textarea
@@ -196,7 +196,7 @@ export function SendDiscordForm() {
 					className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-3 font-mono text-sm"
 					disabled={pending}
 				/>
-				<p className="text-[10px] text-white/30 mt-1 text-right">
+				<p className="text-[10px] text-white/50 mt-1 text-right">
 					{content.length} / 2000 caractères
 				</p>
 			</div>

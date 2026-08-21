@@ -110,7 +110,7 @@ export default async function AdminDatabooksPage() {
 			</p>
 
 			{items.length > 0 && (
-				<div className="mb-6 flex flex-wrap gap-3 text-[11px] uppercase tracking-wider text-white/45">
+				<div className="mb-6 flex flex-wrap gap-3 text-[11px] uppercase tracking-wider text-white/50">
 					<span className="rounded border border-dbz-border/50 bg-white/[0.03] px-2.5 py-1">
 						{withCover}/{items.length} covers
 					</span>
@@ -135,8 +135,8 @@ export default async function AdminDatabooksPage() {
 
 			{items.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="mb-1 font-saiyan text-xl uppercase text-white/30">Aucune entrée</p>
-					<p className="text-sm text-white/40">
+					<p className="mb-1 font-saiyan text-xl uppercase text-white/50">Aucune entrée</p>
+					<p className="text-sm text-white/50">
 						Ajoutez un databook ou une interview pour commencer.
 					</p>
 				</div>
@@ -145,7 +145,7 @@ export default async function AdminDatabooksPage() {
 					<section key={g.key} className="mb-10">
 						<h2 className="mb-3 border-b-2 border-dbz-yellow/30 pb-2 font-saiyan text-2xl uppercase text-dbz-yellow">
 							{g.label}{" "}
-							<span className="font-sans text-sm font-normal normal-case text-white/40">
+							<span className="font-sans text-sm font-normal normal-case text-white/50">
 								{g.items.length}
 							</span>
 						</h2>
@@ -236,7 +236,7 @@ export default async function AdminDatabooksPage() {
 															href={`/wiki/databooks/${d.id}`}
 															target="_blank"
 															rel="noopener noreferrer"
-															className="inline-flex items-center gap-0.5 text-[10px] text-white/40 hover:text-dbz-orange"
+															className="inline-flex items-center gap-0.5 text-[10px] text-white/50 hover:text-dbz-orange"
 															title="Page publique"
 														>
 															<ExternalLink className="h-2.5 w-2.5" />
@@ -264,7 +264,7 @@ export default async function AdminDatabooksPage() {
 														className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
 															isVisible
 																? "bg-green-500/15 text-green-300"
-																: "bg-white/5 text-white/35"
+																: "bg-white/5 text-white/50"
 														}`}
 													>
 														{isVisible ? "ON" : "OFF"}

@@ -59,10 +59,10 @@ export default async function AdminSagasPage() {
 
 			{sagas.length === 0 ? (
 				<div className="dbz-panel p-12 text-center">
-					<p className="font-saiyan text-xl uppercase text-white/30 mb-1">
+					<p className="font-saiyan text-xl uppercase text-white/50 mb-1">
 						Aucune saga enregistrée
 					</p>
-					<p className="text-white/40 text-sm">
+					<p className="text-white/50 text-sm">
 						Les sagas s&apos;affichent ici une fois importées.
 					</p>
 				</div>
@@ -71,7 +71,7 @@ export default async function AdminSagasPage() {
 					<section key={g.series} className="mb-10">
 						<h2 className="font-saiyan text-2xl text-dbz-yellow uppercase mb-3 border-b-2 border-dbz-yellow/30 pb-2">
 							{g.label}{" "}
-							<span className="text-white/40 text-sm font-sans normal-case">
+							<span className="text-white/50 text-sm font-sans normal-case">
 								{g.items.length} saga{g.items.length > 1 ? "s" : ""}
 							</span>
 						</h2>

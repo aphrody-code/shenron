@@ -76,7 +76,7 @@ export default async function TierlistsPage() {
 										)}
 									</div>
 									<h2 className="truncate text-lg font-bold text-white">{tl.title}</h2>
-									<p className="text-[12px] text-white/45">
+									<p className="text-[12px] text-white/50">
 										par {tl.author?.username ?? "un Saiyan"}
 									</p>
 								</div>

@@ -161,7 +161,7 @@ export function WikiSectionsReader({
 					aria-label={`Sous-catégories de ${activeGroup}`}
 					className="sticky top-[7.25rem] z-20 -mx-6 flex flex-wrap items-center gap-2 border-b border-white/5 bg-dbz-card/80 px-6 py-3 backdrop-blur-md lg:-mx-10 lg:px-10"
 				>
-					<span className="mr-1 text-[9px] font-bold uppercase tracking-[0.22em] text-white/30">
+					<span className="mr-1 text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">
 						{activeGroup}
 					</span>
 					<Pill active={subActive === "all"} onClick={() => selectSub("all")}>

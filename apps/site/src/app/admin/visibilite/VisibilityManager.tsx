@@ -120,20 +120,20 @@ export function VisibilityManager() {
 			{/* Barre d'actions : recherche + compteurs + bascule de masse */}
 			<div className="dbz-panel flex flex-wrap items-center gap-3 p-4">
 				<div className="relative min-w-[200px] flex-1">
-					<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+					<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 					<input
 						type="search"
 						value={q}
 						onChange={(e) => setQ(e.target.value)}
 						placeholder="Rechercher…"
-						className="h-9 w-full rounded-lg border border-dbz-border bg-dbz-bg/70 pl-9 pr-3 text-[13px] text-white outline-none placeholder:text-white/35 focus:border-dbz-orange"
+						className="h-9 w-full rounded-lg border border-dbz-border bg-dbz-bg/70 pl-9 pr-3 text-[13px] text-white outline-none placeholder:text-white/50 focus:border-dbz-orange"
 					/>
 				</div>
 				<div className="flex items-center gap-3 text-[13px]">
 					<span className="inline-flex items-center gap-1.5 text-namek">
 						<Eye className="h-4 w-4" /> {visibleCount}
 					</span>
-					<span className="inline-flex items-center gap-1.5 text-white/40">
+					<span className="inline-flex items-center gap-1.5 text-white/50">
 						<EyeOff className="h-4 w-4" /> {hiddenCount}
 					</span>
 				</div>
@@ -175,7 +175,7 @@ export function VisibilityManager() {
 			) : list.isError ? (
 				<p className="dbz-panel py-12 text-center text-red-400">Erreur de chargement. Réessaie.</p>
 			) : filtered.length === 0 ? (
-				<p className="dbz-panel py-12 text-center text-white/40">
+				<p className="dbz-panel py-12 text-center text-white/50">
 					{items.length === 0 ? "Aucune entité." : "Aucun résultat pour cette recherche."}
 				</p>
 			) : (
@@ -223,7 +223,7 @@ function VisibilityCard({ row, onToggle }: { row: VisibilityRow; onToggle: () =>
 			</div>
 			<div className="min-w-0 flex-1">
 				<p className="truncate font-display text-[14px] font-semibold text-white">{label}</p>
-				<p className="truncate text-[11px] text-white/40">
+				<p className="truncate text-[11px] text-white/50">
 					{extra ? `${extra} · ` : ""}#{row.id}
 				</p>
 			</div>
@@ -231,7 +231,7 @@ function VisibilityCard({ row, onToggle }: { row: VisibilityRow; onToggle: () =>
 				className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${
 					visible
 						? "bg-namek/15 text-namek group-hover:bg-namek/25"
-						: "bg-white/5 text-white/40 group-hover:bg-white/10"
+						: "bg-white/5 text-white/50 group-hover:bg-white/10"
 				}`}
 			>
 				{visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}

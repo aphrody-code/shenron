@@ -81,20 +81,20 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 					{/* Métadonnées du Tome */}
 					<div className="mt-8 space-y-4 border-t border-white/10 pt-6 font-display text-xs">
 						<div className="flex justify-between">
-							<span className="text-white/40">Série :</span>
+							<span className="text-white/50">Série :</span>
 							<span className="text-white font-bold">
 								{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"}
 							</span>
 						</div>
 						{volume.title_ja && (
 							<div className="flex justify-between">
-								<span className="text-white/40">Titre Original :</span>
+								<span className="text-white/50">Titre Original :</span>
 								<span className="text-white font-bold font-mono">{volume.title_ja}</span>
 							</div>
 						)}
 						{volume.published_at && (
 							<div className="flex justify-between">
-								<span className="text-white/40">Publication :</span>
+								<span className="text-white/50">Publication :</span>
 								<span className="text-white font-bold">
 									{new Date(volume.published_at * 1000).toLocaleDateString("fr-FR", {
 										year: "numeric",
@@ -105,7 +105,7 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 						)}
 						{volume.isbn && (
 							<div className="flex justify-between flex-wrap gap-2">
-								<span className="text-white/40">ISBN :</span>
+								<span className="text-white/50">ISBN :</span>
 								<span className="text-white font-mono font-bold break-all">{volume.isbn}</span>
 							</div>
 						)}

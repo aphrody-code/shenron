@@ -443,7 +443,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					>
 						Insérer
 					</button>
-					<span className="text-[10px] text-white/40">
+					<span className="text-[10px] text-white/50">
 						S&apos;insère au curseur — répète-le pour chaque palier de puissance.
 					</span>
 				</div>
@@ -475,7 +475,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 					>
 						Insérer
 					</button>
-					<span className="text-[10px] text-white/40">
+					<span className="text-[10px] text-white/50">
 						Catégorie au nom de ton choix — écris dedans (images, badges Ki…). Empiles-en autant que
 						tu veux.
 					</span>
@@ -592,7 +592,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 						>
 							Choisir une image…
 						</button>
-						<span className="text-[10px] text-white/40">Image de fond + titre superposé.</span>
+						<span className="text-[10px] text-white/50">Image de fond + titre superposé.</span>
 					</div>
 
 					<div className="flex flex-wrap items-center gap-1.5">
@@ -662,7 +662,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 						</button>
 					</div>
 
-					<p className="text-[10px] leading-snug text-white/40">
+					<p className="text-[10px] leading-snug text-white/50">
 						Tu peux aussi écrire du HTML/CSS libre directement (mise en page, couleurs, polices…).
 						Seul le JavaScript est bloqué pour la sécurité du site.
 					</p>
@@ -682,7 +682,7 @@ export function MarkdownField({ value, onChange, subdir = "inline", preview = fa
 							{value.trim() ? (
 								<WikiMarkdown body={value} />
 							) : (
-								<p className="italic text-white/30">L&apos;aperçu s&apos;affiche ici…</p>
+								<p className="italic text-white/50">L&apos;aperçu s&apos;affiche ici…</p>
 							)}
 						</div>
 					</div>

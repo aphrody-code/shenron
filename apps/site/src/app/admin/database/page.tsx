@@ -150,13 +150,13 @@ export default function DatabasePage() {
 										</div>
 										{t.readonly && (
 											<span title="Lecture seule" className="inline-flex">
-												<Lock className="h-3 w-3 text-white/30" />
+												<Lock className="h-3 w-3 text-white/50" />
 											</span>
 										)}
 									</div>
 									{t.description && <p className="text-xs text-white/50 mb-2">{t.description}</p>}
 									<div className="flex flex-wrap gap-2 text-[10px]">
-										<span className="badge border-dbz-border/60 text-white/40">
+										<span className="badge border-dbz-border/60 text-white/50">
 											<code className="font-mono">{t.name}</code>
 										</span>
 										{!t.readonly && t.mutableColumns.length > 0 && (
@@ -168,7 +168,7 @@ export default function DatabasePage() {
 											</span>
 										)}
 										{t.readonly && (
-											<span className="badge border-white/20 text-white/30">lecture seule</span>
+											<span className="badge border-white/20 text-white/50">lecture seule</span>
 										)}
 									</div>
 								</button>

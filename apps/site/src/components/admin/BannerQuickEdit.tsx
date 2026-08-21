@@ -119,7 +119,7 @@ export function BannerQuickEdit({
 	}, [pageKey, seriesKey]);
 
 	if (q.isLoading || !cfg) {
-		return <div className="dbz-panel p-4 text-sm text-white/40">Chargement de la bannière…</div>;
+		return <div className="dbz-panel p-4 text-sm text-white/50">Chargement de la bannière…</div>;
 	}
 
 	return (
@@ -127,7 +127,7 @@ export function BannerQuickEdit({
 			<div className="flex flex-wrap items-start justify-between gap-3">
 				<div>
 					<h3 className="font-saiyan text-lg uppercase tracking-wider text-dbz-orange">{title}</h3>
-					<p className="mt-0.5 text-xs text-white/45">
+					<p className="mt-0.5 text-xs text-white/50">
 						Billboard / hero de la page publique. Upload, URL, ou galerie officielle Toei.
 					</p>
 				</div>
@@ -177,7 +177,7 @@ export function BannerQuickEdit({
 					{pageVal !== pageDefault && (
 						<button
 							type="button"
-							className="text-[11px] text-white/40 hover:text-dbz-orange"
+							className="text-[11px] text-white/50 hover:text-dbz-orange"
 							onClick={() =>
 								setCfg((c) =>
 									c && pageKey ? { ...c, pages: { ...c.pages, [pageKey]: pageDefault } } : c
@@ -231,7 +231,7 @@ export function BannerQuickEdit({
 					{seriesVal !== seriesDefault && (
 						<button
 							type="button"
-							className="text-[11px] text-white/40 hover:text-dbz-orange"
+							className="text-[11px] text-white/50 hover:text-dbz-orange"
 							onClick={() =>
 								setCfg((c) =>
 									c && seriesKey ? { ...c, series: { ...c.series, [seriesKey]: seriesDefault } } : c
@@ -265,9 +265,9 @@ export function BannerQuickEdit({
 						</div>
 						<div className="overflow-y-auto p-4">
 							{lib.isLoading ? (
-								<p className="py-8 text-center text-sm text-white/40">Chargement…</p>
+								<p className="py-8 text-center text-sm text-white/50">Chargement…</p>
 							) : (lib.data?.length ?? 0) === 0 ? (
-								<p className="py-8 text-center text-sm text-white/40">
+								<p className="py-8 text-center text-sm text-white/50">
 									Aucune image trouvée (toei / dbofficial / wiki/banners).
 								</p>
 							) : (
