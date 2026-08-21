@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { TrackHistory } from "@/components/history/TrackHistory";
 import { ShareButton } from "@/components/ShareButton";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { stripSourceTags } from "@/lib/media";
@@ -145,7 +146,15 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 					{ label: m.title },
 				]}
 			/>
-			<div className="mb-8">
+			<div className="mb-8 flex flex-wrap items-center gap-3">
+				<FavoriteButton
+					kind="movie"
+					id={m.slug}
+					title={m.title}
+					href={`/wiki/films/${m.slug}`}
+					image={m.poster}
+					caption={SERIES_LABELS[m.series] ?? "Film"}
+				/>
 				<ShareButton
 					title={m.title}
 					text={SERIES_LABELS[m.series] ?? "Film Dragon Ball"}

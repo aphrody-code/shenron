@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { TrackHistory } from "@/components/history/TrackHistory";
 import { ShareButton } from "@/components/ShareButton";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 import type { Metadata } from "next";
 
@@ -75,7 +76,14 @@ export default async function MangaReaderPage({ params }: { params: Promise<{ id
 					{ label: `Chapitre ${chapter.chapter_number}` },
 				]}
 			/>
-			<div className="mb-8">
+			<div className="mb-8 flex flex-wrap items-center gap-3">
+				<FavoriteButton
+					kind="chapter"
+					id={chapter.id}
+					title={chapterTitle(chapter)}
+					href={`/wiki/manga/${chapter.id}`}
+					caption={`${chapter.series ?? "Manga"} · chapitre ${chapter.chapter_number}`}
+				/>
 				<ShareButton
 					title={chapterTitle(chapter)}
 					text={`${chapter.series ?? "Manga"} — chapitre ${chapter.chapter_number}`}

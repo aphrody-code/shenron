@@ -15,6 +15,7 @@ const COLUMNS = [
 			// `/ask` (l'assistant, 570 lignes) et `/wiki/hasard` n'y figuraient pas
 			// et n'avaient donc aucun lien entrant sur tout le site.
 			{ href: "/wiki/hasard", label: "Une fiche au hasard" },
+			{ href: "/favoris", label: "Mes favoris" },
 			{ href: "/actualites", label: "Actualités" },
 		],
 	},

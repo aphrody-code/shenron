@@ -23,6 +23,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { TrackHistory } from "@/components/history/TrackHistory";
 import { ShareButton } from "@/components/ShareButton";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { AdUnit } from "@/components/ads/AdUnit";
 import type { TVEpisode, WithContext } from "schema-dts";
 import { excerpt } from "../_text";
@@ -242,7 +243,15 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 						{ label: `Épisode ${ep.number_in_series}` },
 					]}
 				/>
-				<div className="mb-10">
+				<div className="mb-10 flex flex-wrap items-center gap-3">
+					<FavoriteButton
+						kind="episode"
+						id={ep.id}
+						title={ep.title}
+						href={`/wiki/episodes/${ep.id}`}
+						image={ep.image}
+						caption={`${seriesLabel} · épisode ${ep.number_in_series}`}
+					/>
 					<ShareButton
 						title={`${ep.title} — ${seriesLabel}`}
 						text={`Épisode ${ep.number_in_series} de ${seriesLabel}`}
