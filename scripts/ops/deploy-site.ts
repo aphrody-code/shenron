@@ -55,7 +55,19 @@ const SLOTS: Record<SlotId, { unit: string; port: number; link: string }> = {
 };
 
 /** Chemins sondés après démarrage d'un slot ; tout code < 500 vaut « vivant ». */
-const PROBES = ["/", "/wiki/sagas", "/wiki/personnages", "/api/me"];
+// Sondes : une par famille de rendu, pour qu'un slot cassé soit détecté AVANT
+// la bascule. `/wiki/personnages` est fermée au public (307) — c'est justement
+// ce qu'on veut vérifier ; `/favoris` couvre les pages client, `/actualites`
+// la pagination segmentée, `/wiki/hasard` un route handler.
+const PROBES = [
+	"/",
+	"/wiki/sagas",
+	"/wiki/personnages",
+	"/actualites",
+	"/favoris",
+	"/wiki/hasard",
+	"/api/me",
+];
 const PUBLIC_URL = "https://dragonballfr.com/";
 const BOOT_TIMEOUT_MS = 180_000;
 const KEEP_RELEASES = 3;

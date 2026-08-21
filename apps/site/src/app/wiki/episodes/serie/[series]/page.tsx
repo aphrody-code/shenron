@@ -1,4 +1,5 @@
 import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
+import { EpisodeSeriesGrid } from "./EpisodeSeriesGrid";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
@@ -7,7 +8,6 @@ import { assetUrl } from "@/lib/assets";
 import { bannerForSeries } from "@/lib/db-banners";
 import { eraOf, ERA_ACCENT } from "@/lib/chronology";
 import { Billboard } from "@/components/stream/Billboard";
-import { EpisodeCard } from "@/components/stream/EpisodeCard";
 import {
 	SERIES_LABELS,
 	SERIES_YEARS,
@@ -121,23 +121,19 @@ export default async function EpisodeSeriePage({
 					<span className="font-mono text-[14px] font-normal text-white/50">{total} épisodes</span>
 				</h2>
 
-				<div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-					{episodes.map((ep) => (
-						<EpisodeCard
-							key={ep.id}
-							href={`/wiki/episodes/${ep.id}`}
-							number={ep.number_in_series}
-							title={ep.title}
-							titleJa={ep.title_ja}
-							image={ep.image}
-							synopsis={stripSourceTags(ep.synopsis)}
-							year={yearOf(ep.air_date)}
-							hasVf={hasLang(ep.players, "vf")}
-							hasVostfr={hasLang(ep.players, "vostfr")}
-							width="full"
-						/>
-					))}
-				</div>
+				<EpisodeSeriesGrid
+					episodes={episodes.map((ep) => ({
+						id: ep.id,
+						number: ep.number_in_series,
+						title: ep.title,
+						titleJa: ep.title_ja,
+						image: ep.image,
+						synopsis: stripSourceTags(ep.synopsis),
+						year: yearOf(ep.air_date),
+						hasVf: hasLang(ep.players, "vf"),
+						hasVostfr: hasLang(ep.players, "vostfr"),
+					}))}
+				/>
 			</div>
 		</>
 	);
