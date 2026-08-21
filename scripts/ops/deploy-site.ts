@@ -143,32 +143,63 @@ async function checkMemory(allowLow: boolean): Promise<void> {
 // ── build ───────────────────────────────────────────────────────────────────
 
 /**
- * Le build réclame ~10,5 Gio de mémoire ANONYME sur une machine de 11 Gio : il
- * ne survit que si le noyau accepte d'évacuer massivement vers le swap. Mesuré
- * le 2026-08-14 — swappiness 100 : passe (sous Bun comme sous Node) ;
- * swappiness 60 : tué par l'OOM killer à 10,2-10,5 Gio, trois fois de suite.
- * On relève donc le curseur le temps du build seulement, puis on le restaure
- * (une swappiness haute en régime permanent dégrade la latence des services).
+ * Réglages noyau tenus le temps du build seulement.
+ *
+ * `vm.swappiness` — le build réclame ~10,5 Gio de mémoire ANONYME sur une
+ * machine de 11 Gio : il ne survit que si le noyau accepte d'évacuer massivement
+ * vers le swap. Mesuré le 2026-08-14 — swappiness 100 : passe ; swappiness 60 :
+ * tué par l'OOM killer à 10,2-10,5 Gio, trois fois de suite.
+ *
+ * `vm.min_free_kbytes` et `vm.watermark_scale_factor` — ajoutés le 2026-08-21
+ * après deux morts consécutives à 8,2 puis 9,4 Gio ALORS QUE le swap avait
+ * encore 14 Gio de libre. Le journal noyau est explicite :
+ *
+ *     postgres invoked oom-killer: gfp_mask=…, order=1
+ *     Out of memory: Killed process (next-build)
+ *
+ * `order=1`, c'est une allocation noyau de 8 Kio qui échoue — pas un manque de
+ * mémoire globale, mais un manque de mémoire LIBRE À L'INSTANT T. Le build
+ * grossit plus vite que kswapd ne récupère, les réserves passent sous le seuil
+ * bas, et le noyau tue le plus gros consommateur. Relever la réserve minimale
+ * (64 → 512 Mio) et déclencher la récupération bien plus tôt
+ * (`watermark_scale_factor` 10 → 300, soit 3 % de la zone) fait travailler
+ * kswapd en continu au lieu de le laisser courir derrière. Les deux réglages
+ * coûteraient de la RAM utile en régime permanent : ils sont restaurés ensuite.
  */
-async function withSwappiness<T>(value: number, body: () => Promise<T>): Promise<T> {
-	const previous = (await readFile("/proc/sys/vm/swappiness", "utf8")).trim();
-	await sudo(["sysctl", "-w", `vm.swappiness=${value}`]);
-	log(`swappiness ${previous} → ${value} (le temps du build)`);
+const BUILD_VM_TUNABLES: ReadonlyArray<{ key: string; value: string }> = [
+	{ key: "vm.swappiness", value: "100" },
+	{ key: "vm.min_free_kbytes", value: "524288" },
+	{ key: "vm.watermark_scale_factor", value: "300" },
+];
+
+async function withBuildVmTuning<T>(body: () => Promise<T>): Promise<T> {
+	const previous: Array<{ key: string; value: string }> = [];
+	for (const { key, value } of BUILD_VM_TUNABLES) {
+		const path = `/proc/sys/${key.replace(/\./g, "/")}`;
+		const before = (await readFile(path, "utf8")).trim();
+		previous.push({ key, value: before });
+		await sudo(["sysctl", "-w", `${key}=${value}`]);
+		log(`${key} ${before} → ${value} (le temps du build)`);
+	}
 	// `fail()` sort par `process.exit`, qui ne déroule PAS le `finally` : un build
-	// en échec laissait donc la swappiness à 100 en permanence (dégradation de
+	// en échec laissait les réglages en place en permanence (dégradation de
 	// latence de tous les services, constatée sur 3 jours). Le filet est un
 	// gestionnaire `exit` qui restaure de façon SYNCHRONE — seule forme de
 	// nettoyage qu'un handler de sortie puisse mener à terme.
 	const restoreSync = () => {
-		Bun.spawnSync(["sudo", "sysctl", "-w", `vm.swappiness=${previous}`]);
+		for (const { key, value } of previous) {
+			Bun.spawnSync(["sudo", "sysctl", "-w", `${key}=${value}`]);
+		}
 	};
 	process.on("exit", restoreSync);
 	try {
 		return await body();
 	} finally {
 		process.off("exit", restoreSync);
-		await sudo(["sysctl", "-w", `vm.swappiness=${previous}`]);
-		log(`swappiness restaurée à ${previous}`);
+		for (const { key, value } of previous) {
+			await sudo(["sysctl", "-w", `${key}=${value}`]);
+		}
+		log(`réglages noyau restaurés (${previous.map((p) => `${p.key}=${p.value}`).join(", ")})`);
 	}
 }
 
@@ -502,7 +533,7 @@ async function commandDeploy(flags: { build: boolean; allowLowMemory: boolean })
 
 	if (flags.build) {
 		await checkMemory(flags.allowLowMemory);
-		await withSwappiness(100, () => buildSite(sha));
+		await withBuildVmTuning(() => buildSite(sha));
 	} else if (!existsSync(join(BUILD_DIR, "BUILD_ID"))) {
 		fail(`--no-build demandé mais aucun build valide dans apps/site/${BUILD_DIR_NAME}`);
 	}
