@@ -298,7 +298,9 @@ export const siteEvents = pgTable(
 );
 
 // Préférences dérivées (agrégat des events) — une ligne par identité
-// (userId si connu, sinon anonId). Rafraîchie par le module recommendations.
+// (userId si connu, sinon anonId). Porte aussi les favoris des comptes connectés
+// (cf. /api/favorites) ; le moteur de recommandations qui la remplissait a été
+// retiré le 2026-08-21, faute d'avoir jamais été branché.
 export const userPreferences = pgTable(
 	"user_preferences",
 	{

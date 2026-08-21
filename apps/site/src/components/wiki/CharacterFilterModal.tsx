@@ -7,7 +7,8 @@
 // TOUTES les catégories actives (ET entre catégories), avec un OU à l'intérieur
 // d'une catégorie. Accessible : role=dialog, Échap + clic hors panneau ferment,
 // scroll du body verrouillé. Zéro dépendance Radix (thème DBZ maison).
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 import { SlidersHorizontal, X } from "lucide-react";
 
 export type FacetOption = { value: string; label: string; count?: number };
@@ -135,20 +136,11 @@ export function CharacterFilterModal({
 	const titleId = useId();
 	const activeCount = races.length + techniques.length + arcs.length;
 
-	// Échap ferme + verrou du scroll body pendant l'ouverture.
-	useEffect(() => {
-		if (!open) return;
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
-		};
-		document.addEventListener("keydown", onKey);
-		const prev = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
-		return () => {
-			document.removeEventListener("keydown", onKey);
-			document.body.style.overflow = prev;
-		};
-	}, [open, onClose]);
+	// Échap, verrou du scroll, MAIS AUSSI déplacement/piège/restitution du focus —
+	// les trois derniers manquaient : le focus restait sur le bouton déclencheur
+	// derrière le voile et Tab parcourait la page en dessous de la modale.
+	const panelRef = useRef<HTMLDivElement>(null);
+	useFocusTrap(panelRef, open, onClose);
 
 	if (!open) return null;
 
@@ -165,7 +157,13 @@ export function CharacterFilterModal({
 				onClick={onClose}
 				className="absolute inset-0 bg-black/70 backdrop-blur-sm"
 			/>
-			<div className="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-dbz-border bg-dbz-card shadow-2xl sm:rounded-2xl">
+			<div
+				ref={panelRef}
+				// `tabIndex={-1}` : cible du focus à l'ouverture, sans entrer dans
+				// l'ordre de tabulation.
+				tabIndex={-1}
+				className="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-dbz-border bg-dbz-card shadow-2xl outline-none sm:rounded-2xl"
+			>
 				{/* En-tête */}
 				<div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
 					<SlidersHorizontal className="h-4 w-4 text-dbz-orange" />

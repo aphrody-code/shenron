@@ -4,8 +4,8 @@ import "server-only";
  * Couche analytics d'AUDIENCE du site (trafic web), au-dessus de la table
  * `site_events` (télémétrie first-party RGPD-safe, cf. `/api/telemetry`).
  *
- * Distincte de `recommendations.ts` (qui agrège les mêmes events mais PAR
- * IDENTITÉ pour la reco perso) : ici tout est GLOBAL / site-wide.
+ * Toutes les agrégations ici sont GLOBALES / site-wide — aucune n'est rattachée
+ * à une identité.
  *
  * server-only : tape le Postgres du site via Drizzle. Ne JAMAIS importer depuis
  * un Client Component (le driver `postgres` fuiterait dans le bundle). Consommé

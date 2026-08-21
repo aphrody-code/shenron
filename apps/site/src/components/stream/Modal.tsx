@@ -14,13 +14,11 @@
  * verrouillé. Animations entrée/sortie via `motion` (l'exit joue AVANT le
  * `router.back()` via `onExitComplete`) ; respecte `prefers-reduced-motion`.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { X } from "lucide-react";
-
-const FOCUSABLE =
-	'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 export function Modal({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
@@ -29,54 +27,10 @@ export function Modal({ children }: { children: React.ReactNode }) {
 	const panelRef = useRef<HTMLDivElement>(null);
 	const close = useCallback(() => setOpen(false), []);
 
-	useEffect(() => {
-		const prevFocused = document.activeElement as HTMLElement | null;
-		// Déplace le focus dans la modale (panneau focusable via tabIndex=-1).
-		panelRef.current?.focus();
-
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				close();
-				return;
-			}
-			if (e.key !== "Tab") return;
-			// Piège de focus : Tab/Shift+Tab bouclent dans le panneau.
-			const panel = panelRef.current;
-			if (!panel) return;
-			const items = panel.querySelectorAll<HTMLElement>(FOCUSABLE);
-			if (items.length === 0) {
-				e.preventDefault();
-				panel.focus();
-				return;
-			}
-			const first = items[0]!;
-			const last = items[items.length - 1]!;
-			const active = document.activeElement as HTMLElement | null;
-			// Le focus s'est échappé du panneau (ex. clic sur du texte non focusable
-			// → blur vers <body>) : on le ramène dans la modale.
-			if (!active || !panel.contains(active)) {
-				e.preventDefault();
-				(e.shiftKey ? last : first).focus();
-			} else if (e.shiftKey && active === first) {
-				e.preventDefault();
-				last.focus();
-			} else if (!e.shiftKey && active === last) {
-				e.preventDefault();
-				first.focus();
-			}
-		};
-		document.addEventListener("keydown", onKey);
-
-		const prevOverflow = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
-
-		return () => {
-			document.removeEventListener("keydown", onKey);
-			document.body.style.overflow = prevOverflow;
-			// Rends le focus à l'élément déclencheur (la carte cliquée).
-			prevFocused?.focus?.();
-		};
-	}, [close]);
+	// Déplacement du focus, piège Tab/Shift+Tab, verrou du scroll et restitution :
+	// mutualisés dans `useFocusTrap` (extrait d'ici) pour que la modale de filtres
+	// du wiki, qui n'en avait aucun, hérite du même comportement.
+	useFocusTrap(panelRef, true, close);
 
 	return (
 		<AnimatePresence onExitComplete={() => router.back()}>
