@@ -5,7 +5,8 @@ import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRa
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
-import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedWrap } from "@/components/GatedLink";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -26,10 +27,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const g = await dbUniverse.game(slug);
-	if (!g) return { title: "Jeu — DBFR" };
+	if (!g) return { title: "Jeu" };
 	const description = g.description ?? `${g.title} (${g.developer ?? "Bandai Namco"}).`;
 	return {
-		title: `${g.title} — Jeu vidéo Dragon Ball | DBFR`,
+		title: `${g.title} — Jeu vidéo Dragon Ball`,
 		description,
 		...ogMeta({
 			title: `${g.title} — DBFR`,
@@ -68,12 +69,10 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 	return (
 		<div className="mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
 			<JsonLd data={jsonLdData} />
-			<Link
-				href="/wiki/jeux"
-				className="inline-flex items-center gap-2 text-[13px] font-display font-semibold tracking-[0.10em] uppercase text-dbz-orange hover:text-white transition-colors mb-4"
-			>
-				← Tous les jeux
-			</Link>
+			<Breadcrumbs
+				className="mb-4"
+				items={[{ label: "Jeux vidéo", href: "/wiki/jeux" }, { label: g.title }]}
+			/>
 
 			<div className="mb-8">
 				<WikiAdminBar table="db_games" id={g.id} indexHref="/wiki/jeux" label={g.title} />
@@ -179,7 +178,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 					</h2>
 					<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
 						{g.characters.map((c) => (
-							<Link
+							<GatedWrap
 								key={c.id}
 								href={`/wiki/dragon-ball/character/${c.id}`}
 								className="group flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-white/[0.04]"
@@ -198,7 +197,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 								<span className="text-center text-[12px] leading-tight text-white/80 group-hover:text-dbz-orange">
 									{c.name}
 								</span>
-							</Link>
+							</GatedWrap>
 						))}
 					</div>
 				</section>

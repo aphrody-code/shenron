@@ -9,6 +9,8 @@ import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { getAggregateSummary, getRatingSummaries } from "@/lib/ratings";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedLink } from "@/components/GatedLink";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { JsonLd } from "@/components/JsonLd";
@@ -36,11 +38,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { slug } = await params;
 	const data = await dbUniverse.saga(slug);
-	if (!data) return { title: "Saga — DBFR" };
+	if (!data) return { title: "Saga" };
 	const description =
 		data.description ?? `Saga ${data.name} de ${SERIES_LABELS[data.series] ?? data.series}.`;
 	return {
-		title: `${data.name} — Saga Dragon Ball | DBFR`,
+		title: `${data.name} — Saga Dragon Ball`,
 		description,
 		...ogMeta({
 			title: `${data.name} — DBFR`,
@@ -79,12 +81,10 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 	return (
 		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<JsonLd data={jsonLdData} />
-			<Link
-				href="/wiki/sagas"
-				className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest mb-12 link-underline"
-			>
-				<span>← Toutes les sagas</span>
-			</Link>
+			<Breadcrumbs
+				className="mb-12"
+				items={[{ label: "Sagas & arcs", href: "/wiki/sagas" }, { label: saga.name }]}
+			/>
 
 			<div className="mb-6">
 				<WikiAdminBar table="db_sagas" id={saga.id} indexHref="/wiki/sagas" label={saga.name} />
@@ -189,9 +189,9 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 					<Link href={`/wiki/episodes/serie/${saga.series}`} className="dbz-button">
 						VOIR LES ÉPISODES
 					</Link>
-					<Link href="/wiki/personnages" className="dbz-button-ghost">
+					<GatedLink href="/wiki/personnages" className="dbz-button-ghost">
 						PERSONNAGES
-					</Link>
+					</GatedLink>
 				</div>
 			</section>
 

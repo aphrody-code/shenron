@@ -426,8 +426,10 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 			"Épisodes DB → Kai, arcs, films et jeux — classés par vos notes. Note ton favori pour le propulser (et décrocher le badge #1).",
 		defaultEnabled: true,
 	},
-	// Masqués par défaut en bêta : les routes /wiki/personnages et /wiki/sagas sont
-	// fermées côté proxy → activer ces panneaux nécessite de rouvrir ces routes.
+	// Panneaux dont la destination dépend du gating (/admin/lancement). Un panneau
+	// activé alors que sa rubrique est fermée enverrait le visiteur sur
+	// /wiki-bientot depuis la page d'accueil : on ne l'active par défaut que
+	// lorsque la route est ouverte.
 	personnages: {
 		navLabel: "Personnages",
 		kanji: "戦士",
@@ -444,7 +446,9 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 		title: "Le voyage à travers les sagas",
 		subtitle:
 			"Des origines à la divinité — suis la saga complète : Dragon Ball, Z, Super et GT, arc après arc.",
-		defaultEnabled: false,
+		// `/wiki/sagas` (33 sagas) et `/wiki/arcs` (65 arcs) sont ouverts : le
+		// panneau mène à du contenu réel, on l'active.
+		defaultEnabled: true,
 	},
 	guardians: {
 		navLabel: "Les gardiens",

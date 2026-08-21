@@ -1,4 +1,6 @@
-import { dbUniverse } from "@/lib/db-universe";
+import { dbUniverse, type SearchResults } from "@/lib/db-universe";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
+import { isPathPublic, type AccessSnapshot } from "@/lib/wiki-launch";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/db-universe";
@@ -8,7 +10,7 @@ import { Suspense } from "react";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-	title: "Recherche Dragon Ball — DBFR",
+	title: "Recherche Dragon Ball",
 	description:
 		"Recherche dans tout l'univers Dragon Ball : personnages, planètes, races, transformations, techniques, sagas, arcs, films, épisodes, jeux, tomes et chapitres du manga.",
 	// Page de résultats paramétrée (?q=) : on ne veut pas indexer la combinatoire
@@ -76,8 +78,20 @@ export default async function SearchPage({
 }) {
 	const sp = await searchParams;
 	const q = (sp.q ?? "").trim();
-	const [results, rag] =
-		q.length >= 2 ? await Promise.all([dbUniverse.search(q), dbUniverse.rag(q, 8)]) : [null, null];
+	const [raw, rag, cfg] =
+		q.length >= 2
+			? await Promise.all([
+					dbUniverse.search(q),
+					dbUniverse.rag(q, 8),
+					getLaunchConfig().catch(() => null),
+				])
+			: [null, null, null];
+
+	// On retire les catégories dont la rubrique n'est pas ouverte, plutôt que de
+	// désactiver les liens un à un : un résultat qu'on ne peut pas ouvrir n'est
+	// pas un résultat. C'est déjà ce que fait la palette ⌘K — la page de
+	// recherche, elle, les affichait tous et renvoyait vers /wiki-bientot.
+	const results = raw ? filterGated(raw, cfg) : null;
 
 	// Récap par catégorie (chips de saut + total) — n'affiche que les non vides.
 	const summary: Array<[id: string, label: string, n: number]> = results
@@ -693,4 +707,33 @@ export default async function SearchPage({
 			)}
 		</div>
 	);
+}
+
+/**
+ * Vide les familles de résultats dont la route de destination est fermée.
+ *
+ * Le chemin témoin de chaque famille suffit : le gating est par rubrique, donc
+ * si `/wiki/dragon-ball/character/1` est fermé, tous les personnages le sont.
+ * Sans config lisible on ne filtre rien — dégrader vers « aucun résultat » sur
+ * un hoquet de la base serait pire que quelques liens qui redirigent.
+ */
+function filterGated(r: SearchResults, cfg: AccessSnapshot | null): SearchResults {
+	if (!cfg) return r;
+	const open = (probe: string) => isPathPublic(probe, cfg);
+	const keep = <T,>(list: T[], probe: string): T[] => (open(probe) ? list : []);
+	return {
+		...r,
+		characters: keep(r.characters, "/wiki/dragon-ball/character/1"),
+		planets: keep(r.planets, "/wiki/dragon-ball/planet/1"),
+		races: keep(r.races, "/wiki/races/x"),
+		transformations: keep(r.transformations, "/wiki/transformations"),
+		techniques: keep(r.techniques, "/wiki/dragon-ball/techniques/x"),
+		sagas: keep(r.sagas, "/wiki/sagas/x"),
+		arcs: keep(r.arcs, "/wiki/arcs/x"),
+		movies: keep(r.movies, "/wiki/films/x"),
+		episodes: keep(r.episodes, "/wiki/episodes/1"),
+		games: keep(r.games, "/wiki/jeux/x"),
+		mangaVolumes: keep(r.mangaVolumes, "/wiki/manga/volume/1"),
+		mangaChapters: keep(r.mangaChapters, "/wiki/manga/1"),
+	};
 }

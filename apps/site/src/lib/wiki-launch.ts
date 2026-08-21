@@ -179,6 +179,20 @@ export const SITE_SECTIONS: LaunchCategory[] = [
 		defaultMode: "public",
 	},
 	{
+		// La recherche n'avait AUCUNE entrée au registre : `/wiki/search` retombait
+		// donc sur le défaut « sous /wiki, fermé » et redirigeait tout anonyme vers
+		// /wiki-bientot — alors que `SiteJsonLd` annonce à Google une sitelinks
+		// searchbox pointant précisément cette URL, et que la palette ⌘K s'appuie
+		// dessus. La page est `noindex, follow` : elle n'ajoute pas de contenu
+		// mince à l'index, elle sert la découverte.
+		key: "recherche",
+		label: "Recherche",
+		href: "/wiki/search",
+		prefixes: ["/wiki/search"],
+		scope: "site",
+		defaultMode: "public",
+	},
+	{
 		key: "stats",
 		label: "Statistiques",
 		href: "/stats",
@@ -300,4 +314,38 @@ export function openPrefixes(stored: readonly string[]): string[] {
 /** Un pathname /wiki est-il publiquement ouvert selon les clés fournies ? */
 export function isPathOpen(pathname: string, stored: readonly string[]): boolean {
 	return openPrefixes(stored).some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+/**
+ * Configuration d'accès minimale nécessaire pour trancher « cette URL est-elle
+ * publique ? ». Volontairement structurelle et non le type `LaunchConfig`
+ * complet (`wiki-launch-config.ts` est `server-only`) : ce module reste
+ * importable depuis un composant client.
+ */
+export type AccessSnapshot = {
+	openKeys: readonly string[];
+	access?: Readonly<Record<string, AccessRule>>;
+};
+
+/**
+ * Cette URL est-elle accessible à un visiteur **anonyme** ?
+ *
+ * `isPathOpen` ne regarde que l'héritage `openKeys` et ignore donc les modes
+ * `members` / `roles` / `admin` posés depuis /admin/lancement. C'est cette
+ * fonction-ci qui fait autorité partout où l'on décide d'émettre un lien ou une
+ * URL de sitemap : le proxy applique la même règle (`findEntry` + `resolveAccess`),
+ * donc ce qu'on annonce ici est exactement ce que le visiteur obtiendra.
+ *
+ * Hors registre : sous `/wiki` on ferme par défaut (même politique que
+ * `proxy.ts`), ailleurs la page est publique (accueil, à propos, crédits…).
+ */
+export function isPathPublic(pathname: string, cfg: AccessSnapshot): boolean {
+	const entry = findEntry(pathname);
+	if (!entry) return !(pathname === "/wiki" || pathname.startsWith("/wiki/"));
+	return resolveAccess(entry.key, cfg).mode === "public";
+}
+
+/** Clés de rubrique réellement publiques, dans l'ordre du registre. */
+export function publicEntries(cfg: AccessSnapshot): LaunchCategory[] {
+	return ALL_ENTRIES.filter((e) => resolveAccess(e.key, cfg).mode === "public");
 }
