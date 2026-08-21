@@ -17,12 +17,16 @@ import { GatedWrap } from "@/components/GatedLink";
 import { cache, type ReactNode } from "react";
 import type { Person, WithContext } from "schema-dts";
 import type { SectionAccent } from "@/lib/wiki-section-accents";
+import { capParams } from "@/lib/prerender";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
 	const list = await getShenronCharacters();
-	return list.map((c) => ({ id: String(c.id) }));
+	// 1 323 fiches, et la rubrique « personnages » est encore fermée au public :
+	// les prérendre toutes au build serait payer un cache que personne ne lit.
+	// L'ISR prend le relais à la demande (cf. lib/prerender).
+	return capParams(list.map((c) => ({ id: String(c.id) })), 100);
 }
 
 // Mémoïsé par requête : generateMetadata + le composant partagent un seul fetch.

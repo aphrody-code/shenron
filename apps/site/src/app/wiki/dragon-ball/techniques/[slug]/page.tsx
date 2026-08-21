@@ -13,12 +13,15 @@ import { JsonLd } from "@/components/JsonLd";
 import type { DefinedTerm, WithContext } from "schema-dts";
 import { SITE_URL } from "@/lib/config";
 import { ogMeta } from "@/lib/og";
+import { capParams } from "@/lib/prerender";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
 	const list = await getShenronTechniques();
-	return list.map((t) => ({ slug: t.slug }));
+	// 825 fiches pour une rubrique tout juste ouverte : on prérend les plus
+	// susceptibles d'être visitées, l'ISR fait le reste.
+	return capParams(list.map((t) => ({ slug: t.slug })), 300);
 }
 
 export async function generateMetadata({
