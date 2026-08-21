@@ -798,8 +798,7 @@ main:focus {
 
 @media (prefers-reduced-motion: reduce) {
 	/* Neutralise le smooth-scroll global (l.40) pour les utilisateurs
-	 * motion-sensibles sur TOUTES les pages (ancres, retour haut). Les resets
-	 * home-scoped plus bas ne couvrent que html[data-home]. */
+	 * motion-sensibles sur TOUTES les pages (ancres, retour haut). */
 	html {
 		scroll-behavior: auto;
 	}
@@ -1522,26 +1521,18 @@ main:focus {
 }
 
 /* =========================================================================
- * HOME — expérience cinématique full-page « Codex Shenron »
- * Panneaux plein écran, scroll-snap document, fonds animés (scènes DB),
- * navigation molette/clavier/tactile. Réutilise ken-burns / ki-pulse /
- * film-grain / reveal-up déjà définis plus haut.
+ * HOME — panneaux plein écran « Codex Shenron »
+ * Fonds animés (scènes DB) et défilement NORMAL : ni scroll-snap, ni détournement
+ * de la molette, du tactile ou des touches de défilement. Réutilise
+ * ken-burns / film-grain / reveal-up définis plus haut.
  * ========================================================================= */
 
-/* scroll-snap = desktop/tablette (>640px) uniquement. Sur téléphone, le JS de
- * HomeExperience désactive déjà le swipe/tap-to-advance (cf. `compact`) — garder
- * le snap CSS en plus aurait quand même fait « rattraper » le scroll au panneau
- * suivant au moindre frottement. Mobile = scroll de base, sans à-coups. */
-@media (min-width: 641px) {
-	html[data-home] {
-		scroll-snap-type: y proximity;
-	}
-}
-@media (prefers-reduced-motion: no-preference) {
-	html[data-home] {
-		scroll-behavior: smooth;
-	}
-}
+/* Plus de `scroll-snap-type` ni de `scroll-behavior` posés sur le document par
+ * l'accueil : la page défile normalement. Le snap « rattrapait » le scroll au
+ * panneau suivant, ce qui empêchait de lire à son rythme et rendait la sélection
+ * de texte hasardeuse. La navigation par les points latéraux passe par
+ * `scrollIntoView({ behavior: "smooth" })`, qui respecte déjà prefers-reduced-motion
+ * côté composant. */
 
 .home-deck {
 	position: relative;
@@ -1556,12 +1547,6 @@ main:focus {
 	overflow: hidden;
 	isolation: isolate;
 	padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 7vw, 8rem) clamp(3rem, 7vh, 5rem);
-}
-@media (min-width: 641px) {
-	.home-section {
-		scroll-snap-align: start;
-		scroll-snap-stop: always;
-	}
 }
 
 /* ── Fond de scène (couches) ─────────────────────────────────────────────── */
@@ -2375,9 +2360,6 @@ main:focus {
 	.home-scroll-hint__arrow {
 		animation: none !important;
 	}
-	html[data-home] {
-		scroll-behavior: auto;
-	}
 }
 
 /* =========================================================================
@@ -2728,12 +2710,6 @@ main:focus {
 }
 
 /* Burst de ki au clic — éclat cœur + onde + 6 étincelles couleur accent. */
-.ki-burst-layer {
-	position: fixed;
-	inset: 0;
-	z-index: 60;
-	pointer-events: none;
-}
 .ki-burst {
 	position: absolute;
 	width: 0;
@@ -2819,9 +2795,6 @@ main:focus {
 	}
 }
 @media (prefers-reduced-motion: reduce) {
-	.ki-burst-layer {
-		display: none;
-	}
 }
 
 /* =========================================================================

@@ -1,10 +1,21 @@
 "use client";
 
-// Home cinématique full-page « Codex Shenron » — chaque facette du site/bot est
-// un panneau plein écran avec fond animé (meilleures scènes DB en ken-burns +
-// grade d'ère + grain + aura ki). Navigation molette / clavier / tactile →
-// transition franche d'un panneau à l'autre (scroll-snap document + contrôleur
-// JS déterministe). Tout l'affichage reflète l'état RÉEL et LIVE du bot.
+// Home full-page « Codex Shenron » — chaque facette du site/bot est un panneau
+// plein écran avec un fond en ken-burns. Tout l'affichage reflète l'état RÉEL et
+// LIVE du bot.
+//
+// DÉFILEMENT NORMAL. La page a longtemps détourné la molette, le tactile, les
+// touches de défilement (Espace, ↓, Page suiv., Début/Fin) et le clic pour
+// avancer d'un panneau à la fois, avec scroll-snap au niveau du document. C'était
+// hostile : plus de défilement au rythme du lecteur, plus de sélection de texte
+// sans risque de saut, et surtout un `preventDefault()` sur les touches de
+// défilement standard — ce qui casse la navigation clavier et la voix off d'un
+// lecteur d'écran. Les points de navigation latéraux restent, en simple ancre.
+//
+// SANS SFX NI VFX. Les sons (kamehameha à l'appui long, cue d'entrée de panneau),
+// l'inclinaison 3D des cartes au pointeur, la parallaxe, l'aura de ki, le canvas
+// de combat et le champ de clips flottants ont été retirés : ils coûtaient du JS
+// sur la page d'entrée, tournaient en continu, et n'apportaient rien à la lecture.
 //
 // Contenu ÉDITABLE : sections (ordre / activation / clip de fond / textes),
 // pool de clips du héro, nombre de clips flottants et cartes du terrain sont
@@ -25,20 +36,12 @@ import dynamic from "next/dynamic";
 const WikiMarkdown = dynamic(() =>
 	import("@/components/wiki/WikiMarkdown").then((m) => m.WikiMarkdown)
 );
-import {
-	ALL_CLIP_SCENES,
-	DEFAULT_PLAY_CARDS,
-	type HomeConfig,
-	type HomeSectionConfig,
-} from "@/lib/home-scenes";
+import { DEFAULT_PLAY_CARDS, type HomeConfig, type HomeSectionConfig } from "@/lib/home-scenes";
 import { SECTION_ENTER_CUE } from "@/lib/home-media";
 import type { BestOfSagaView } from "@/lib/home-bestof";
 import type { CommunityTopsPayload } from "@/lib/community-tops";
 import { CommunityTops } from "@/components/ratings/CommunityTops";
 import { SceneBackdrop } from "./SceneBackdrop";
-import { HomeClipField } from "./HomeClipField";
-import { HomeBattleFx, type HomeBattleFxApi } from "./HomeBattleFx";
-import { HomeKiAura } from "./HomeKiAura";
 import { SagaBestOf } from "./SagaBestOf";
 import {
 	useLiveBotState,
@@ -50,7 +53,6 @@ import {
 import { DISCORD_INVITE } from "@/lib/config";
 import { ClientGatedWrap } from "@/components/GatedClientLink";
 import type { AccessSnapshot } from "@/lib/wiki-launch";
-import { applyHomeFx, sfx } from "@/lib/sfx";
 
 export interface WikiCounts {
 	sagas: number;
@@ -195,13 +197,6 @@ export function HomeExperience({
 	const live = useLiveBotState({ stats, personas, topMembers, presence });
 	const hasNews = posts.length > 0;
 	const heroScenes = config.hero.scenes;
-	const fx = config.fx;
-	const battleApiRef = useRef<HomeBattleFxApi | null>(null);
-
-	// Applique volume / enable / mapping SFX dès que la config home change.
-	useEffect(() => {
-		applyHomeFx(fx);
-	}, [fx]);
 
 	// Sections de contenu affichées = activées en config (news requiert des posts,
 	// bestof requiert des sagas assemblées côté serveur).
@@ -237,181 +232,14 @@ export function HomeExperience({
 
 	const refs = useRef<(HTMLElement | null)[]>([]);
 	const deckRef = useRef<HTMLDivElement>(null);
-	const burstRef = useRef<HTMLDivElement>(null);
 	const [active, setActive] = useState(0);
 	// Mobile (≤640px) : plafonne le contenu du Panthéon pour tenir dans 100svh (le
 	// deck hijacke le scroll → le bas d'un panneau trop haut serait inatteignable).
 	const [compact, setCompact] = useState(false);
-	const lockRef = useRef(false);
 	const reduceRef = useRef(false);
 
 	useEffect(() => {
 		reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-		document.documentElement.dataset.home = "1";
-		return () => {
-			delete document.documentElement.dataset.home;
-		};
-	}, []);
-
-	// ── Immersion « jeu 3D » : tilt des cartes [data-tilt] + parallaxe pointeur ──
-	// Un seul listener pointermove délégué (rAF-throttlé) : met à jour les vars
-	// CSS --phx/--phy (parallaxe du héro) sur le deck et --rx/--ry/--gx/--gy
-	// (inclinaison 3D + reflet spéculaire) sur la carte survolée. Pointeur fin +
-	// motion OK uniquement — tactile et reduced-motion n'attachent rien.
-	useEffect(() => {
-		const root = deckRef.current;
-		if (!root) return;
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-		if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-		let raf = 0;
-		let ev: PointerEvent | null = null;
-		let tilted: HTMLElement | null = null;
-		const resetTilt = (el: HTMLElement) => {
-			el.style.removeProperty("--rx");
-			el.style.removeProperty("--ry");
-		};
-		const apply = () => {
-			raf = 0;
-			const e = ev;
-			if (!e) return;
-			root.style.setProperty("--phx", ((e.clientX / window.innerWidth) * 2 - 1).toFixed(3));
-			root.style.setProperty("--phy", ((e.clientY / window.innerHeight) * 2 - 1).toFixed(3));
-			const el = (e.target as HTMLElement).closest?.("[data-tilt]") as HTMLElement | null;
-			if (tilted && tilted !== el) resetTilt(tilted);
-			tilted = el;
-			if (!el) return;
-			const r = el.getBoundingClientRect();
-			const px = (e.clientX - r.left) / Math.max(1, r.width);
-			const py = (e.clientY - r.top) / Math.max(1, r.height);
-			el.style.setProperty("--rx", `${((0.5 - py) * 9).toFixed(2)}deg`);
-			el.style.setProperty("--ry", `${((px - 0.5) * 11).toFixed(2)}deg`);
-			el.style.setProperty("--gx", `${(px * 100).toFixed(1)}%`);
-			el.style.setProperty("--gy", `${(py * 100).toFixed(1)}%`);
-		};
-		const onMove = (e: PointerEvent) => {
-			ev = e;
-			if (!raf) raf = requestAnimationFrame(apply);
-		};
-		const onLeave = () => {
-			if (tilted) {
-				resetTilt(tilted);
-				tilted = null;
-			}
-		};
-		root.addEventListener("pointermove", onMove, { passive: true });
-		root.addEventListener("pointerleave", onLeave);
-		return () => {
-			root.removeEventListener("pointermove", onMove);
-			root.removeEventListener("pointerleave", onLeave);
-			if (raf) cancelAnimationFrame(raf);
-		};
-	}, []);
-
-	// Hold-to-kamehameha : appui long (~450 ms) → charge + beam ; relâchement
-	// anticipé annule le son. Simple tap → micro burst CSS silencieux.
-	// Gated par `fx.vfx.kameCss` (et canvas optionnel en parallèle).
-	const holdRef = useRef<{
-		timer: number | null;
-		x: number;
-		y: number;
-		armed: boolean;
-		fired: boolean;
-		pointerId: number;
-	} | null>(null);
-	const kameCssOn = fx.vfx.kameCss;
-	const battleCanvasOn = fx.vfx.battleCanvas;
-
-	const onDeckPointerDown = useCallback(
-		(e: React.PointerEvent) => {
-			if (e.button !== 0 || reduceRef.current) return;
-			const t = e.target as HTMLElement | null;
-			if (t?.closest?.("a,button,input,textarea,[data-no-advance]")) return;
-
-			sfx.unlock();
-			sfx.cancelKamehameha();
-
-			try {
-				(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-			} catch {
-				/* ignore */
-			}
-
-			const prev = holdRef.current;
-			if (prev?.timer != null) clearTimeout(prev.timer);
-
-			const pointerId = e.pointerId;
-			const x = e.clientX;
-			const y = e.clientY;
-			holdRef.current = {
-				timer: window.setTimeout(() => {
-					const cur = holdRef.current;
-					if (!cur || cur.pointerId !== pointerId) return;
-					cur.armed = true;
-					sfx.kamehamehaFull();
-					if (kameCssOn) {
-						const layer = burstRef.current;
-						if (layer) {
-							const b = document.createElement("span");
-							b.className = "ki-burst ki-burst--kame";
-							b.style.left = `${cur.x}px`;
-							b.style.top = `${cur.y}px`;
-							for (let i = 0; i < 10; i++) b.appendChild(document.createElement("i"));
-							layer.appendChild(b);
-							window.setTimeout(() => b.remove(), 1000);
-						}
-					}
-					if (battleCanvasOn) {
-						battleApiRef.current?.burst("kamehameha", cur.x, cur.y);
-					}
-					cur.fired = true;
-				}, 450),
-				x,
-				y,
-				armed: false,
-				fired: false,
-				pointerId,
-			};
-
-			if (kameCssOn) {
-				const layer = burstRef.current;
-				if (layer) {
-					const b = document.createElement("span");
-					b.className = "ki-burst";
-					b.style.left = `${x}px`;
-					b.style.top = `${y}px`;
-					for (let i = 0; i < 4; i++) b.appendChild(document.createElement("i"));
-					layer.appendChild(b);
-					window.setTimeout(() => b.remove(), 600);
-				}
-			}
-			if (battleCanvasOn) {
-				battleApiRef.current?.burst("hit", x, y);
-			}
-		},
-		[kameCssOn, battleCanvasOn]
-	);
-
-	const onDeckPointerUp = useCallback((e: React.PointerEvent) => {
-		const h = holdRef.current;
-		if (!h || h.pointerId !== e.pointerId) return;
-		if (!h.armed && !h.fired) {
-			if (h.timer != null) clearTimeout(h.timer);
-			sfx.cancelKamehameha();
-		}
-		holdRef.current = null;
-		try {
-			(e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-		} catch {
-			/* ignore */
-		}
-	}, []);
-
-	const onDeckPointerCancel = useCallback((e: React.PointerEvent) => {
-		const h = holdRef.current;
-		if (!h || h.pointerId !== e.pointerId) return;
-		if (h.timer != null) clearTimeout(h.timer);
-		sfx.cancelKamehameha();
-		holdRef.current = null;
 	}, []);
 
 	// Suit la largeur (≤640px) pour réduire le contenu du Panthéon sur mobile.
@@ -433,36 +261,13 @@ export function HomeExperience({
 			const idx = Math.max(0, Math.min(sections.length - 1, i));
 			const el = refs.current[idx];
 			if (!el) return;
-			lockRef.current = true;
 			el.scrollIntoView({
 				behavior: reduceRef.current ? "auto" : "smooth",
 				block: "start",
 			});
 			setActive(idx);
-			window.setTimeout(() => {
-				lockRef.current = false;
-			}, 650);
 		},
 		[sections.length]
-	);
-
-	// Clic sur le deck → panneau suivant (boucle). Rend l'expérience interactive au
-	// clic en plus de la molette, sur DESKTOP uniquement (`compact` = téléphone) : au
-	// tactile, un tap sur une zone vide est un geste normal (relire, refermer un menu…),
-	// pas une intention de « page suivante » — l'avancer faisait sauter la page toute
-	// seule au moindre effleurement. Ignore aussi les clics sur un élément interactif
-	// (lien, bouton, champ, carte, points de nav) et une sélection de texte en cours.
-	const onDeckClick = useCallback(
-		(e: React.MouseEvent) => {
-			if (lockRef.current || compact) return;
-			const t = e.target as HTMLElement;
-			if (t.closest("a,button,input,select,textarea,label,[role='button'],[data-no-advance]")) {
-				return;
-			}
-			if (window.getSelection()?.toString()) return;
-			goTo((active + 1) % sections.length);
-		},
-		[active, sections.length, goTo, compact]
 	);
 
 	// Suivi du panneau actif (scroll libre, ancrage, etc.)
@@ -481,43 +286,6 @@ export function HomeExperience({
 		for (const el of refs.current) if (el) obs.observe(el);
 		return () => obs.disconnect();
 	}, [sections.length]);
-
-	// SFX d'entrée de panneau (SECTION_ENTER_CUE) — désactivable via fx.sectionEnterSfx.
-	const prevActiveRef = useRef<number | null>(null);
-	useEffect(() => {
-		if (!fx.sectionEnterSfx || !fx.enabled) {
-			prevActiveRef.current = active;
-			return;
-		}
-		if (prevActiveRef.current === null) {
-			prevActiveRef.current = active;
-			return; // pas de cue au premier paint
-		}
-		if (prevActiveRef.current === active) return;
-		prevActiveRef.current = active;
-		const id = sections[active]?.id ?? "hero";
-		const cue = SECTION_ENTER_CUE[id] ?? "teleport";
-		sfx.unlock();
-		const play = sfx[cue as keyof typeof sfx];
-		if (typeof play === "function") (play as () => void)();
-	}, [active, sections, fx.sectionEnterSfx, fx.enabled]);
-
-	// Molette → une section par geste avec boucle infinie cyclique
-	useEffect(() => {
-		const onWheel = (e: WheelEvent) => {
-			if (Math.abs(e.deltaY) < 12) return;
-			if (lockRef.current) {
-				e.preventDefault();
-				return;
-			}
-			const dir = e.deltaY > 0 ? 1 : -1;
-			const target = (active + dir + sections.length) % sections.length;
-			e.preventDefault();
-			goTo(target);
-		};
-		window.addEventListener("wheel", onWheel, { passive: false });
-		return () => window.removeEventListener("wheel", onWheel);
-	}, [active, sections.length, goTo]);
 
 	// Clavier avec boucle infinie cyclique
 	useEffect(() => {
@@ -551,32 +319,6 @@ export function HomeExperience({
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
 	}, [active, sections.length, goTo]);
-
-	// Tactile (swipe vertical avec boucle infinie cyclique) — DESKTOP/TABLETTE uniquement.
-	// Sur téléphone (`compact`), ce geste entrait en conflit avec le scroll naturel (un
-	// simple frottement de lecture déclenchait un saut de panneau entier) → sur mobile la
-	// page défile normalement (scroll de base), navigation par les points/clavier seulement.
-	useEffect(() => {
-		if (compact) return;
-		let startY = 0;
-		const onStart = (e: TouchEvent) => {
-			startY = e.touches[0]?.clientY ?? 0;
-		};
-		const onEnd = (e: TouchEvent) => {
-			if (lockRef.current) return;
-			const dy = startY - (e.changedTouches[0]?.clientY ?? startY);
-			if (Math.abs(dy) > 64) {
-				const dir = dy > 0 ? 1 : -1;
-				goTo((active + dir + sections.length) % sections.length);
-			}
-		};
-		window.addEventListener("touchstart", onStart, { passive: true });
-		window.addEventListener("touchend", onEnd, { passive: true });
-		return () => {
-			window.removeEventListener("touchstart", onStart);
-			window.removeEventListener("touchend", onEnd);
-		};
-	}, [active, sections.length, goTo, compact]);
 
 	// Rotation lente des scènes héro (crossfade)
 	const [heroIdx, setHeroIdx] = useState(0);
@@ -1023,25 +765,7 @@ export function HomeExperience({
 	const activeAccent = activeScene?.accent ?? "oklch(0.78 0.17 65)";
 
 	return (
-		<div
-			ref={deckRef}
-			className="home-deck"
-			data-scene-aura={fx.vfx.sceneAura ? "on" : "off"}
-			onClick={onDeckClick}
-			onPointerDown={onDeckPointerDown}
-			onPointerUp={onDeckPointerUp}
-			onPointerCancel={onDeckPointerCancel}
-			style={{ ["--accent" as string]: activeAccent }}
-		>
-			{/* Couche des bursts de ki (clics) — fixe, au-dessus de tout, inerte */}
-			{fx.vfx.kameCss && <div ref={burstRef} className="ki-burst-layer" aria-hidden />}
-			{fx.vfx.battleCanvas && <HomeBattleFx apiRef={battleApiRef} accent={activeAccent} />}
-			{fx.vfx.kiAura && (
-				<div className="pointer-events-none fixed inset-0 z-[1]" aria-hidden>
-					<HomeKiAura accent={activeAccent} active />
-				</div>
-			)}
-
+		<div ref={deckRef} className="home-deck" style={{ ["--accent" as string]: activeAccent }}>
 			{/* Navigation latérale — points HUD scouter */}
 			<nav className="home-dots" aria-label="Sections de la page">
 				{sections.map((s, i) => (
@@ -1087,14 +811,6 @@ export function HomeExperience({
 						);
 					})}
 				</div>
-				{/* Clips qui dérivent à travers le héro : piochés ALÉATOIREMENT dans TOUT
-				    le pool vidéo (pas seulement les scènes du héro). Nombre piloté par la config. */}
-				<HomeClipField
-					scenes={ALL_CLIP_SCENES}
-					active={active === 0}
-					maxDesktop={config.clips.desktop}
-					maxTablet={config.clips.tablet}
-				/>
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">
 						<span className="home-kicker__jp">ドラゴンボール</span>
