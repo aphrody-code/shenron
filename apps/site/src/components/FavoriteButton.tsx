@@ -12,7 +12,7 @@
  */
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useMe } from "@/lib/use-me";
 import {
 	FAVORITES_EVENT,

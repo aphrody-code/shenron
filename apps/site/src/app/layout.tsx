@@ -4,7 +4,6 @@ import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import dynamic from "next/dynamic";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
-import { Toaster } from "sonner";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { NavigationProgress } from "@/components/NavigationProgress";
@@ -197,16 +196,6 @@ export default async function RootLayout({
 				<ReportButton />
 				<FloatingAssistant />
 				<ConsentGate />
-				<Toaster
-					theme="dark"
-					position="bottom-right"
-					closeButton
-					toastOptions={{
-						classNames: {
-							toast: "!bg-dbz-card !border-dbz-border !text-white !font-display",
-						},
-					}}
-				/>
 			</body>
 		</html>
 	);

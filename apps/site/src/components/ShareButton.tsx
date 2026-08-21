@@ -13,7 +13,7 @@
  */
 import { useEffect, useState } from "react";
 import { Check, Link2, Share2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 export function ShareButton({
 	title,
