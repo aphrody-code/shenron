@@ -8,7 +8,12 @@ QUIET=0; [ "${1:-}" = "--quiet" ] && QUIET=1
 RC=0
 say(){ [ "$QUIET" = 0 ] && echo -e "$@"; }
 
-SERVICES=(shenron shenron-site shenron-mcp shenron-embed filebrowser postgresql nginx)
+SERVICES=(shenron shenron-mcp shenron-embed filebrowser postgresql nginx)
+# Le site tourne en bleu/vert : UN SEUL des deux slots est actif à la fois
+# (shenron-site = slot A, shenron-site-b = slot B), l'autre est arrêté par
+# construction. Les lister comme des services ordinaires faisait crier au loup à
+# chaque déploiement — un healthcheck qui alerte à tort n'est plus lu.
+SITE_SLOTS=(shenron-site shenron-site-b)
 ONESHOT_TIMERS=(shenron-backup shenron-pg-backup shenron-neon-sync shenron-neon-pull)
 
 say "\033[1m=== Services ===\033[0m"
@@ -17,6 +22,17 @@ for s in "${SERVICES[@]}"; do
   if [ "$st" = active ]; then say "  \033[32m●\033[0m $s : active"
   else say "  \033[31m✗\033[0m $s : $st"; RC=1; fi
 done
+
+# Site : exactement un slot actif attendu.
+SITE_ACTIFS=()
+for s in "${SITE_SLOTS[@]}"; do
+  [ "$(systemctl is-active "$s" 2>/dev/null)" = active ] && SITE_ACTIFS+=("$s")
+done
+case "${#SITE_ACTIFS[@]}" in
+  1) say "  \033[32m●\033[0m shenron-site : active (slot ${SITE_ACTIFS[0]})" ;;
+  0) say "  \033[31m✗\033[0m shenron-site : aucun slot actif"; RC=1 ;;
+  *) say "  \033[31m✗\033[0m shenron-site : ${#SITE_ACTIFS[@]} slots actifs (${SITE_ACTIFS[*]}) — bascule inachevée"; RC=1 ;;
+esac
 
 say "\n\033[1m=== Unités en échec ===\033[0m"
 FAILED=$(systemctl --failed --no-pager --plain 2>/dev/null | grep -c '\.service' || true)
