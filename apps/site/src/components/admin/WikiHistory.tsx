@@ -151,7 +151,6 @@ export function WikiHistory({
 
 	const rows = query.data?.rows ?? [];
 	const total = query.data?.total ?? 0;
-	const totalPages = Math.max(1, Math.ceil(total / limit));
 
 	return (
 		<div className="space-y-4">

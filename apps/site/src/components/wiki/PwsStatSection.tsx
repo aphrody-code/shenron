@@ -25,7 +25,7 @@ export function PwsStatSection({
 	const shortStat =
 		trimmed &&
 		!/^#{1,6}\s/m.test(trimmed) &&
-		!/[*_`>\[]/m.test(trimmed) &&
+		!/[*_`>[]/m.test(trimmed) &&
 		trimmed.length <= 80 &&
 		trimmed.split("\n").filter(Boolean).length <= 2;
 
