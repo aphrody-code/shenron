@@ -72,10 +72,9 @@ export async function runBootAudit(client: Client) {
 
 	// `gate` = ce que l'absence de la variable désactive silencieusement. Une
 	// variable simplement optionnelle reste ignorée ; celle qui commande un
-	// contrôle de modération doit se signaler, sinon le contrôle disparaît sans
-	// bruit. Vécu : `JAIL_ROLE_ID` n'était pas défini en production, donc un
-	// membre au cachot pouvait quitter le serveur et revenir pour s'en défaire —
-	// aucune trace, ni au démarrage ni au rejoin.
+	// contrôle de modération doit se signaler. Sans ce garde-fou, perdre
+	// `JAIL_ROLE_ID` rendrait le re-cachot au rejoin inopérant sans la moindre
+	// trace : `JoinLeave.onJoin` teste la variable et passe son chemin.
 	const roleChecks: Array<[string, string | undefined, string?]> = [
 		["JAIL_ROLE_ID", env.JAIL_ROLE_ID, "le re-cachot au rejoin et la commande /jail"],
 		["URL_IN_BIO_ROLE_ID", env.URL_IN_BIO_ROLE_ID],
