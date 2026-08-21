@@ -9,7 +9,41 @@
  * Extras optionnels :
  *   punch, final-flash, galick, over9000, nimbus, scream, tapion (ocarina)
  */
-import { Howl, Howler } from "howler";
+import type { Howl } from "howler";
+
+/**
+ * `howler` est chargé PARESSEUSEMENT, au premier son.
+ *
+ * L'import statique le faisait entrer dans le bundle de la page d'accueil :
+ * `HomeExperience` importe ce module, `app/page.tsx` rend `HomeExperience`. Or
+ * aucun son ne peut être joué avant une interaction (les navigateurs bloquent
+ * l'audio automatique), donc ce poids était payé par 100 % des visiteurs pour
+ * 0 % d'usage immédiat.
+ *
+ * Tant que le module n'est pas là, `getHowl` renvoie `null` et l'appelant
+ * retombe sur la synthèse Web Audio (`tone`) déjà prévue comme repli — le tout
+ * premier clic sonne donc en synthèse, les suivants en échantillon.
+ */
+type HowlerModule = typeof import("howler");
+let howlerMod: HowlerModule | null = null;
+let howlerLoading: Promise<void> | null = null;
+
+function ensureHowler(): void {
+	if (howlerMod || howlerLoading || typeof window === "undefined") return;
+	howlerLoading = import("howler")
+		.then((m) => {
+			howlerMod = m;
+			// Le mode muet a pu être posé avant l'arrivée du module.
+			try {
+				m.Howler.mute(muted || !enabled);
+			} catch {
+				/* ignore */
+			}
+		})
+		.catch(() => {
+			/* pack audio indisponible : la synthèse Web Audio prend le relais */
+		});
+}
 
 export type SfxKey =
 	| "click"
@@ -153,9 +187,13 @@ function getHowl(key: SfxKey): Howl | null {
 	if (typeof window === "undefined") return null;
 	const src = FILE[key];
 	if (!src) return null;
+	if (!howlerMod) {
+		ensureHowler();
+		return null; // repli synthèse le temps du chargement
+	}
 	let h = howls.get(key);
 	if (!h) {
-		h = new Howl({
+		h = new howlerMod.Howl({
 			src: [src],
 			volume: (VOL[key] ?? 0.2) * masterVolume,
 			html5: true,
@@ -249,7 +287,7 @@ export function configureSfx(
 		h.volume((VOL[key] ?? 0.2) * masterVolume);
 	}
 	try {
-		Howler.mute(muted || !enabled);
+		howlerMod?.Howler.mute(muted || !enabled);
 	} catch {
 		/* ignore */
 	}
@@ -278,16 +316,24 @@ export function applyHomeFx(fx: {
 /** Préécoute d'un fichier SFX (admin). Ne mute pas le master. */
 export function previewSfxFile(src: string, volume = 0.6): () => void {
 	if (typeof window === "undefined" || !src) return () => {};
-	const h = new Howl({
-		src: [src],
-		volume: Math.max(0, Math.min(1, volume)),
-		html5: true,
+	let handle: Howl | null = null;
+	let cancelled = false;
+	// Le module peut ne pas être encore chargé : on l'attend, et on honore une
+	// annulation survenue entre-temps (l'admin a relâché le bouton).
+	void import("howler").then((m) => {
+		if (cancelled) return;
+		handle = new m.Howl({
+			src: [src],
+			volume: Math.max(0, Math.min(1, volume)),
+			html5: true,
+		});
+		handle.play();
 	});
-	h.play();
 	return () => {
+		cancelled = true;
 		try {
-			h.stop();
-			h.unload();
+			handle?.stop();
+			handle?.unload();
 		} catch {
 			/* ignore */
 		}
@@ -301,6 +347,9 @@ export function unlockSfx() {
 		return;
 	}
 	unlocked = true;
+	// Premier geste utilisateur = moment idéal pour aller chercher `howler` :
+	// l'audio devient autorisé, et le téléchargement ne pèse plus sur le rendu.
+	ensureHowler();
 	(
 		[
 			"click",
