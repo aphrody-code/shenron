@@ -36,7 +36,11 @@ import {
 	setWikiVisibility,
 	updateWiki,
 } from "@/lib/wiki-admin";
-import { recordRevision, type RevisionActor } from "@/lib/wiki-revisions";
+import {
+	recordBulkVisibilityRevision,
+	recordRevision,
+	type RevisionActor,
+} from "@/lib/wiki-revisions";
 import { revalidateSectionParent, revalidateWikiEntity } from "@/lib/wiki-revalidate";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -114,7 +118,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 		const q = sp.get("q") ?? undefined;
 		return NextResponse.json(await listWiki(table, { limit, offset, q }));
 	} catch (err) {
-		return badRequest(err instanceof Error ? err.message : "erreur");
+		return writeFailed("wiki-admin", err);
 	}
 }
 
@@ -132,9 +136,20 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 			if (!hasVisibility(table)) return badRequest("Table sans colonne de visibilité");
 			const visible = body.visible === true || body.visible === "true" || body.visible === 1;
 			if (body.all === true || body.all === "true") {
-				const updated = await setAllWikiVisibility(table, visible);
+				// L'audit est écrit AVANT la réponse, et son échec fait échouer la
+				// requête : une bascule de masse non tracée est irréversible. C'est
+				// ce `return` prématuré qui a laissé 2 309 lignes masquées en prod
+				// sans aucune trace dans `wiki_revisions`.
+				const { updated, previous } = await setAllWikiVisibility(table, visible);
+				await recordBulkVisibilityRevision({
+					table,
+					visible,
+					previous,
+					updated,
+					actor: await currentActor(),
+				});
 				revalidateWikiEntity(table);
-				return NextResponse.json({ ok: true, updated });
+				return NextResponse.json({ ok: true, updated, reversible: previous.length > 0 });
 			}
 			const id = body.id;
 			if (id == null || id === "") return badRequest("id ou all requis");
@@ -158,7 +173,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 		await recordRevision({ table, action: "create", after: row, actor: await currentActor() });
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
-		return badRequest(err instanceof Error ? err.message : "erreur");
+		return writeFailed("wiki-admin", err);
 	}
 }
 
@@ -187,7 +202,7 @@ async function mutate(req: NextRequest, ctx: Ctx) {
 		});
 		return NextResponse.json({ ok: true, row });
 	} catch (err) {
-		return badRequest(err instanceof Error ? err.message : "erreur");
+		return writeFailed("wiki-admin", err);
 	}
 }
 
@@ -218,6 +233,32 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
 		});
 		return NextResponse.json({ ok: true });
 	} catch (err) {
-		return badRequest(err instanceof Error ? err.message : "erreur");
+		return writeFailed("wiki-admin", err);
 	}
+}
+
+/**
+ * Erreur d'écriture → réponse propre, et journalisation côté serveur.
+ *
+ * Auparavant : `badRequest(err.message)`. Deux défauts. (1) Les messages de
+ * postgres-js portent les noms de contrainte, de colonne et de table — de la
+ * cartographie de schéma offerte au client. (2) Une panne de la base répondait
+ * **400** et n'écrivait **rien** dans le journal : côté exploitation, une
+ * indisponibilité était indiscernable d'une saisie invalide.
+ *
+ * Les erreurs métier (levées volontairement par `wiki-admin.ts`, ex. « Ligne
+ * introuvable ») restent renvoyées telles quelles : elles sont écrites pour
+ * l'utilisateur et ne contiennent rien d'interne.
+ */
+function writeFailed(context: string, err: unknown): NextResponse {
+	const msg = err instanceof Error ? err.message : String(err);
+	console.error(`[${context}]`, err);
+	// Signature d'une erreur du pilote PostgreSQL (code SQLSTATE) → on masque.
+	const isDriverError =
+		typeof (err as { code?: unknown })?.code === "string" ||
+		/constraint|violates|relation |column |syntax error/i.test(msg);
+	if (isDriverError) {
+		return NextResponse.json({ error: "Écriture refusée par la base." }, { status: 500 });
+	}
+	return NextResponse.json({ error: msg || "erreur" }, { status: 400 });
 }

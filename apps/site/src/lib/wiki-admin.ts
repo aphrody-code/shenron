@@ -18,7 +18,20 @@
  * auto (id) n'est jamais écrite à l'insert si absente du body.
  */
 import "server-only";
-import { and, asc, count, desc, eq, ilike, isNull, like, max, or, type SQL } from "drizzle-orm";
+import {
+	and,
+	asc,
+	count,
+	desc,
+	eq,
+	ilike,
+	inArray,
+	isNull,
+	like,
+	max,
+	or,
+	type SQL,
+} from "drizzle-orm";
 import { db } from "@/lib/db";
 import * as botSchema from "@/db/bot-schema";
 import { kindFromCategory } from "@/lib/databook-categories";
@@ -451,14 +464,81 @@ export async function setWikiVisibility(
 	if (updated.length === 0) throw new Error(`Ligne introuvable: ${table}#${id}`);
 }
 
-/** Bascule TOUTES les lignes d'une table (« tout afficher / tout masquer »). Renvoie le nombre modifié. */
-export async function setAllWikiVisibility(table: string, visible: boolean): Promise<number> {
+/** État de visibilité d'une ligne, tel que capturé AVANT une bascule de masse. */
+export interface VisibilityState {
+	id: string;
+	visible: boolean;
+}
+
+/**
+ * Bascule TOUTES les lignes d'une table (« tout afficher / tout masquer »).
+ *
+ * Renvoie l'état **d'avant** de chaque ligne, et pas seulement un compte : sans
+ * lui, l'opération est irréversible. C'est exactement ce qui s'est produit en
+ * production — 2 309 lignes (1 322 personnages, 825 techniques, 81
+ * transformations, 62 planètes, 18 races) masquées d'un coup, sans trace dans
+ * `wiki_revisions` et sans retour arrière possible, parce que cette fonction ne
+ * rendait qu'un `number` et que le route handler répondait avant d'écrire
+ * l'audit. L'appelant DOIT passer ce résultat à `recordBulkVisibilityRevision`.
+ *
+ * L'`UPDATE` reste volontairement sans `WHERE` (c'est la sémantique voulue) ;
+ * c'est la capture préalable qui rend l'opération sûre.
+ */
+export async function setAllWikiVisibility(
+	table: string,
+	visible: boolean
+): Promise<{ updated: number; previous: VisibilityState[] }> {
 	const spec = ensureVisibility(table);
+	const pkCol = spec.table[pkCamelKeys(spec)[0]];
+
+	// Capture AVANT bascule. Bornée : au-delà, on renonce à l'instantané plutôt
+	// que d'écrire un jsonb démesuré (`db_manga_pages` ≈ 12 500 lignes).
+	const before = (await db
+		.select({ id: pkCol, visible: spec.table.visible })
+		.from(spec.table)
+		.limit(BULK_VISIBILITY_SNAPSHOT_CAP + 1)) as Array<{ id: unknown; visible: unknown }>;
+
+	const previous: VisibilityState[] =
+		before.length > BULK_VISIBILITY_SNAPSHOT_CAP
+			? []
+			: before.map((r) => ({ id: String(r.id), visible: r.visible !== false }));
+
 	const updated = (await db
 		.update(spec.table)
 		.set({ visible })
-		.returning({ id: spec.table[pkCamelKeys(spec)[0]] })) as Row[];
-	return updated.length;
+		.returning({ id: pkCol })) as Row[];
+
+	return { updated: updated.length, previous };
+}
+
+/**
+ * Au-delà de ce nombre de lignes, l'instantané d'une bascule de masse n'est pas
+ * conservé (le revert devient « tout remettre à l'état demandé », pas ligne à
+ * ligne). Seule `db_manga_pages` dépasse ce seuil aujourd'hui.
+ */
+export const BULK_VISIBILITY_SNAPSHOT_CAP = 20_000;
+
+/** Réapplique un instantané de visibilité ligne à ligne (retour arrière). */
+export async function restoreWikiVisibility(
+	table: string,
+	states: VisibilityState[]
+): Promise<number> {
+	const spec = ensureVisibility(table);
+	// Deux `UPDATE … IN (…)` (un par valeur cible) plutôt qu'un par ligne : le
+	// revert d'un masquage de 1 300 personnages ne doit pas faire 1 300 requêtes.
+	let touched = 0;
+	for (const want of [true, false]) {
+		const ids = states.filter((s) => s.visible === want).map((s) => s.id);
+		if (ids.length === 0) continue;
+		const pkCol = spec.table[pkCamelKeys(spec)[0]];
+		const rows = (await db
+			.update(spec.table)
+			.set({ visible: want })
+			.where(inArray(pkCol, ids as never[]))
+			.returning({ id: pkCol })) as Row[];
+		touched += rows.length;
+	}
+	return touched;
 }
 
 // ── Vue d'ensemble CMS : complétude du contenu par entité ──────────────────

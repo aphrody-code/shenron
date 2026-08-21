@@ -23,12 +23,22 @@ import {
 	getWikiRow,
 	hasVisibility,
 	insertWiki,
+	restoreWikiVisibility,
+	setAllWikiVisibility,
 	setWikiVisibility,
 	updateWiki,
+	type VisibilityState,
 } from "@/lib/wiki-admin";
 
 export type RevisionActor = { id: string | null; name: string | null } | null;
-export type RevisionAction = "create" | "update" | "delete" | "visibility" | "revert";
+export type RevisionAction =
+	| "create"
+	| "update"
+	| "delete"
+	| "visibility"
+	/** Bascule « tout afficher / tout masquer » sur une table entière. */
+	| "visibility-all"
+	| "revert";
 
 type Row = Record<string, unknown>;
 
@@ -125,6 +135,41 @@ export async function recordRevision(input: {
 		console.error("[wiki-revisions] record failed:", err);
 	}
 }
+
+/**
+ * Trace une bascule de visibilité de MASSE, avec l'état ligne à ligne d'avant.
+ *
+ * Ne passe pas par `recordRevision` : `snapshot()` y réduit la charge aux
+ * colonnes mutables d'UNE ligne et écarte les objets, ce qui détruirait
+ * précisément la liste qu'on veut conserver. On écrit donc directement, avec une
+ * forme dédiée que `revertRevision` sait rejouer.
+ *
+ * Contrairement à `recordRevision`, cette fonction **propage** ses erreurs :
+ * une bascule de masse non tracée est irréversible, l'appelant doit le savoir.
+ */
+export async function recordBulkVisibilityRevision(input: {
+	table: string;
+	visible: boolean;
+	/** État de chaque ligne AVANT la bascule (vide si au-delà du plafond). */
+	previous: VisibilityState[];
+	updated: number;
+	actor?: RevisionActor;
+}): Promise<void> {
+	await db.insert(wikiRevisions).values({
+		tableName: input.table,
+		// `*` = la table entière ; aucune pk réelle ne peut valoir ça.
+		rowId: BULK_ROW_ID,
+		action: "visibility-all",
+		label: `${input.visible ? "Tout afficher" : "Tout masquer"} · ${input.updated} lignes`,
+		before: { rows: input.previous, truncated: input.previous.length === 0 },
+		after: { visible: input.visible, updated: input.updated },
+		editorId: input.actor?.id ?? null,
+		editorName: input.actor?.name ?? null,
+	});
+}
+
+/** `rowId` conventionnel d'une révision portant sur une table entière. */
+export const BULK_ROW_ID = "*";
 
 export interface RevisionView {
 	id: string;
@@ -233,6 +278,31 @@ export async function revertRevision(
 	const rowId = rev.rowId;
 	const before = (rev.before as Row | null) ?? null;
 	const current = await getWikiRow(table, rowId).catch(() => null);
+
+	// Revert d'une bascule de MASSE : on réapplique l'instantané ligne à ligne.
+	// Sans instantané (table au-delà du plafond de capture), on bascule la table
+	// à l'inverse de ce qui avait été demandé — le mieux qu'on puisse garantir.
+	if (rev.action === "visibility-all" && hasVisibility(table)) {
+		const before = (rev.before as { rows?: VisibilityState[] } | null) ?? null;
+		const after = (rev.after as { visible?: boolean } | null) ?? null;
+		const rows = Array.isArray(before?.rows) ? before.rows : [];
+		let restored: number;
+		if (rows.length > 0) {
+			restored = await restoreWikiVisibility(table, rows);
+		} else {
+			const res = await setAllWikiVisibility(table, after?.visible !== true);
+			restored = res.updated;
+		}
+		await recordRevision({
+			table,
+			id: rowId,
+			action: "revert",
+			before: null,
+			after: null,
+			actor,
+		});
+		return { table, rowId, mode: "restore", row: { restored } };
+	}
 
 	// Revert d'une bascule de visibilité → restauration via le chemin dédié
 	// (la colonne `visible` n'est pas mutable côté éditeur).
