@@ -400,18 +400,40 @@ function mapTransfo(r: TransfoRow): DBTransformation {
 	};
 }
 
-export async function getShenronUser(discordId: string): Promise<ShenronUser | null> {
+/**
+ * Profil d'un membre, en distinguant les deux échecs.
+ *
+ * `getShenronUser` rendait `null` aussi bien pour « ce membre n'existe pas » que
+ * pour « l'API du bot est injoignable », et la page appelante répondait 404 dans
+ * les deux cas — un visiteur voyait donc « profil introuvable » pendant un
+ * simple redémarrage du bot, et repartait en croyant son compte perdu.
+ */
+export type ShenronUserResult =
+	| { status: "ok"; user: ShenronUser }
+	| { status: "absent" }
+	| { status: "unavailable" };
+
+export async function getShenronUserResult(discordId: string): Promise<ShenronUserResult> {
 	try {
 		const res = await fetch(`${SHENRON_API_URL}/api/public/user/${discordId}`, {
 			next: { revalidate: 60 },
+			// Sans délai maximal, un bot qui accepte la connexion sans répondre
+			// bloque le rendu de la page jusqu'au timeout par défaut.
+			signal: AbortSignal.timeout(8_000),
 		});
-		if (!res.ok) return null;
-		return res.json();
+		if (res.status === 404) return { status: "absent" };
+		if (!res.ok) return { status: "unavailable" };
+		return { status: "ok", user: (await res.json()) as ShenronUser };
 	} catch (e) {
-		// Bot injoignable → null (la page appelante fait notFound), pas une 500.
-		console.error("[shenron] getShenronUser a échoué:", e);
-		return null;
+		console.error("[shenron] getShenronUserResult a échoué:", e);
+		return { status: "unavailable" };
 	}
+}
+
+/** Variante historique : `null` couvre indistinctement absent et indisponible. */
+export async function getShenronUser(discordId: string): Promise<ShenronUser | null> {
+	const r = await getShenronUserResult(discordId);
+	return r.status === "ok" ? r.user : null;
 }
 
 export async function getShenronShop(): Promise<ShenronShopItem[]> {

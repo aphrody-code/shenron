@@ -1,5 +1,6 @@
+import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { getProfileCardUrl } from "@/lib/assets";
-import { getShenronUser } from "@/lib/shenron";
+import { getShenronUserResult } from "@/lib/shenron";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -10,9 +11,25 @@ const fmt = (n: number | null | undefined) =>
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
-	const user = await getShenronUser(id);
+	const result = await getShenronUserResult(id);
 
-	if (!user) notFound();
+	// API du bot injoignable ≠ membre inexistant : on ne renvoie 404 que pour le
+	// second cas, sinon un redémarrage du bot ferait croire au visiteur que son
+	// profil a disparu.
+	if (result.status === "unavailable") {
+		return (
+			<SectionUnavailable
+				title="Profil temporairement indisponible"
+				message="Le service qui héberge les profils ne répond pas. Réessaie dans un instant — rien n'est perdu."
+				links={[
+					{ href: "/leaderboard", label: "Le classement" },
+					{ href: "/", label: "Accueil" },
+				]}
+			/>
+		);
+	}
+	if (result.status === "absent") notFound();
+	const user = result.user;
 
 	const equipped = user.equipped || {};
 	const username = user.username || "Guerrier Inconnu";

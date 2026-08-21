@@ -1,6 +1,7 @@
+import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { dbUniverse } from "@/lib/db-universe";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 import { bannerForSeries, FILMS_HERO } from "@/lib/db-banners";
 import { eraOf, ERA_ACCENT } from "@/lib/chronology";
@@ -39,7 +40,7 @@ const yearOf = (sec: number | null) => (sec ? new Date(sec * 1000).getFullYear()
 
 export default async function FilmsPage() {
 	const data = await dbUniverse.movies();
-	if (!data || data.movies.length === 0) notFound();
+	if (!data || data.movies.length === 0) return <SectionUnavailable title="Films Dragon Ball" />;
 	const movies = data.movies.map((m) => ({ ...m, synopsis: stripSourceTags(m.synopsis) }));
 
 	// Film mis en avant = le plus récent daté (effet « nouveauté » en billboard).
@@ -89,6 +90,7 @@ export default async function FilmsPage() {
 			/>
 
 			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+				<Breadcrumbs className="mb-8" items={[{ label: "Films" }]} />
 				{groups.map((g) => (
 					<StreamRow
 						key={g.key}

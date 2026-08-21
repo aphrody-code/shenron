@@ -1,4 +1,6 @@
+import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import Link from "next/link";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { assetUrl } from "@/lib/assets";
@@ -55,7 +57,13 @@ export default async function EpisodeSeriePage({
 		getEpisodesCached(series, MAX_EPISODES, 0).catch(() => null),
 		getEpisodeSeriesCached().catch(() => null),
 	]);
-	if (!data || data.episodes.length === 0) notFound();
+	// Deux échecs distincts que l'ancien `notFound()` unique confondait :
+	//   data === null            → la requête a échoué (base injoignable)
+	//   data.episodes.length = 0 → la série demandée n'existe pas
+	// Le premier ne doit surtout pas figer un 404 en cache ISR ; le second est un
+	// vrai 404.
+	if (!data) return <SectionUnavailable title="Épisodes Dragon Ball" />;
+	if (data.episodes.length === 0) notFound();
 
 	const { episodes, total } = data;
 	const navSeries = orderSeries(seriesRows);
@@ -75,6 +83,13 @@ export default async function EpisodeSeriePage({
 				secondaryLabel="Chronologie"
 			/>
 			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+				<Breadcrumbs
+					className="mb-8"
+					items={[
+						{ label: "Épisodes", href: "/wiki/episodes" },
+						{ label: SERIES_LABELS[series] ?? series },
+					]}
+				/>
 				<nav className="mb-8 flex flex-wrap gap-2">
 					<Link
 						href="/wiki/episodes"

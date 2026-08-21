@@ -1,6 +1,7 @@
+import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { dbUniverse, assetUrl, type Saga } from "@/lib/db-universe";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 import { PageHero } from "@/components/PageHero";
 import { pageHero } from "@/lib/banner-config";
@@ -8,7 +9,7 @@ import { pageHero } from "@/lib/banner-config";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-	title: "Sagas & arcs Dragon Ball — DBFR",
+	title: "Sagas & arcs Dragon Ball",
 	description:
 		"Toutes les sagas et arcs narratifs Dragon Ball, Dragon Ball Z, Super, GT et Daima — résumés en français.",
 	alternates: { canonical: "/wiki/sagas" },
@@ -37,7 +38,7 @@ type ArcLite = {
 
 export default async function SagasPage() {
 	const [data, arcsData] = await Promise.all([dbUniverse.sagas(), dbUniverse.arcs()]);
-	if (!data || data.sagas.length === 0) notFound();
+	if (!data || data.sagas.length === 0) return <SectionUnavailable title="Sagas & arcs" />;
 	const sagas = data.sagas;
 	const arcs = (arcsData?.arcs ?? []) as ArcLite[];
 
@@ -67,6 +68,7 @@ export default async function SagasPage() {
 				imageAlt="Bannière officielle Dragon Ball"
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+				<Breadcrumbs className="mb-10" items={[{ label: "Sagas & arcs" }]} />
 				{bySeries.map((g) => (
 					<section key={g.key} className="mb-16">
 						<h2 className="font-display font-bold text-[24px] text-white border-b border-white/10 pb-3 mb-6">

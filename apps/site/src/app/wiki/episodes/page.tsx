@@ -1,5 +1,6 @@
+import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { bannerForSeries } from "@/lib/db-banners";
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
 export default async function EpisodesLanding() {
 	const seriesRows = await getEpisodeSeriesCached().catch(() => null);
 	const availableSeries = orderSeries(seriesRows);
-	if (availableSeries.length === 0) notFound();
+	if (availableSeries.length === 0) return <SectionUnavailable title="Épisodes Dragon Ball" />;
 
 	const counts = new Map((seriesRows ?? []).map((r) => [r.series, r.count]));
 	const grandTotal = [...counts.values()].reduce((a, b) => a + b, 0);
@@ -57,6 +58,7 @@ export default async function EpisodesLanding() {
 				secondaryLabel="Chronologie"
 			/>
 			<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10 lg:py-14">
+				<Breadcrumbs className="mb-8" items={[{ label: "Épisodes" }]} />
 				<Suspense
 					fallback={
 						<>
