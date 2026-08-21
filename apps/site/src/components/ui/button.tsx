@@ -1,3 +1,19 @@
+/**
+ * Trousse `components/ui/` — périmètre volontairement restreint.
+ *
+ * Ces primitives (base-ui + cva + tokens shadcn : `bg-primary`, `ring`,
+ * `destructive`…) ne servent QU'À l'éditeur d'articles de l'admin
+ * (`app/admin/posts/`). Elles ne sont pas le système de design du site.
+ *
+ * Le langage visuel de dragonballfr.com vit dans `globals.css` : `.dbz-button`,
+ * `.dbz-panel`, `.btn`, `.input`, adossés aux tokens `--color-dbz-*` que
+ * `/admin/design` pilote au runtime. Les 460 `<button>` du site l'utilisent —
+ * c'est cohérent, thémable, et il n'y a rien à « migrer ».
+ *
+ * Autrement dit : ne pas généraliser `<Button>`, et ne pas supprimer ces
+ * fichiers non plus (l'éditeur d'articles en dépend). L'état intermédiaire est
+ * ici un choix, pas un oubli.
+ */
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 
