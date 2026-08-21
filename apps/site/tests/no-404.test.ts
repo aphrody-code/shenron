@@ -138,6 +138,11 @@ async function check(path: string): Promise<Check> {
 		const isNewLocalRoute = path === "/ask" || path === "/classements";
 		const isSyntheticEntityProbe =
 			path.includes("/_probe/") && (path.endsWith("/download") || path.includes("/download?"));
+		// `/api/databooks/:id` VALIDE son segment avant de toucher la base : un
+		// identifiant non numérique renvoie 404 sans requête (`parseDatabookId`).
+		// C'est le comportement voulu — sonder cette route avec `_probe` ne prouve
+		// donc rien sur son existence, et son 404 n'est pas une régression.
+		const isValidatedIdRoute = /^\/api\/databooks\/[^/]+/.test(path) && path.includes("_probe");
 
 		return {
 			url: path,
@@ -145,7 +150,7 @@ async function check(path: string): Promise<Check> {
 			ok404:
 				res.status !== 404 ||
 				(isProd && isNewLocalRoute) ||
-				(isSyntheticEntityProbe && res.status === 404),
+				((isSyntheticEntityProbe || isValidatedIdRoute) && res.status === 404),
 			ok5xx: res.status < 500,
 		};
 	} catch (e) {
