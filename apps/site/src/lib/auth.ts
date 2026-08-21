@@ -43,7 +43,15 @@ export const auth = betterAuth({
 	session: {
 		cookieCache: { enabled: true, maxAge: 5 * 60 },
 	},
-	logger: { level: "debug" },
+	// Journal : en `debug`, Better Auth écrit dans le journal systemd le JETON DE
+	// SESSION EN CLAIR de chaque visiteur connecté (`findOne session … value:
+	// "<token>"`, pourtant marqué `mode: "sensitive"`), avec son e-mail, son IP et
+	// son user-agent — 343 jetons et 686 couples IP/UA sur les seules 24 h du
+	// 2026-08-21. Un jeton de session dans un log se rejoue tel quel en cookie, et
+	// le journal est lisible par le groupe `adm` (donc par tout process tournant
+	// sous `ubuntu` : bot, MCP, crawler). En production, on se limite aux
+	// avertissements ; `onAPIError` ci-dessous garde les traces qui servent vraiment.
+	logger: { level: env.NODE_ENV === "production" ? "warn" : "debug" },
 	// Capture explicite des erreurs d'API (sinon une exception au create user
 	// ou à l'échange de code Discord est avalée → 302 vers errorURL sans trace).
 	onAPIError: {
@@ -62,7 +70,9 @@ export const auth = betterAuth({
 	},
 	database: drizzleAdapter(db, {
 		provider: "pg",
-		debugLogs: true,
+		// Même raison : l'adaptateur Drizzle journalise les valeurs des clauses WHERE,
+		// dont le jeton de session. Bavard en développement seulement.
+		debugLogs: env.NODE_ENV !== "production",
 		schema: {
 			user: schema.baUser,
 			session: schema.baSession,
