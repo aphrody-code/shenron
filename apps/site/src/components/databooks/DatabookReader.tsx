@@ -34,6 +34,7 @@ import "swiper/css/virtual";
 
 import { assetUrl } from "@/lib/assets";
 import { useFocusTrap } from "@/lib/use-focus-trap";
+import { optimizedSrc, optimizedSrcSet } from "@/lib/images";
 
 export type DatabookReaderPage = {
 	/** Numéro affiché (auto 1…N, modifiable côté admin). */
@@ -376,7 +377,9 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 												>
 													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
-														src={item.imageUrl}
+														src={optimizedSrc(item.imageUrl, 1080)}
+														srcSet={optimizedSrcSet(item.imageUrl, [828, 1080, 1920]) || undefined}
+														sizes="(min-width: 1024px) 900px, 100vw"
 														alt={`${title} — page ${item.number}`}
 														loading={Math.abs(i - current) <= 1 ? "eager" : "lazy"}
 														draggable={false}
@@ -465,7 +468,9 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 												>
 													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
-														src={item.imageUrl}
+														src={optimizedSrc(item.imageUrl, 1080)}
+														srcSet={optimizedSrcSet(item.imageUrl, [828, 1080, 1920]) || undefined}
+														sizes="(min-width: 768px) 768px, 100vw"
 														alt={`${title} — page ${item.number}`}
 														loading={Math.abs(vi.index - current) <= 1 ? "eager" : "lazy"}
 														draggable={false}
@@ -514,7 +519,9 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 								{item.imageUrl ? (
 									// eslint-disable-next-line @next/next/no-img-element
 									<img
-										src={item.imageUrl}
+										// Vignette de 48×64 px : elle chargeait le scan source (jusqu'à
+										// 5 Mio) pour un timbre-poste, jusqu'à 40 fois par fiche.
+										src={optimizedSrc(item.imageUrl, 96)}
 										alt=""
 										className="h-full w-full object-cover"
 										loading="lazy"
