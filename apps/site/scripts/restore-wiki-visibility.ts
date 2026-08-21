@@ -49,8 +49,10 @@ async function main() {
 	const url = process.env.DATABASE_URL;
 	if (!url) throw new Error("DATABASE_URL requis (Postgres du site).");
 
-	const tables = (valueOf("--tables")?.split(",").map((t) => t.trim()).filter(Boolean) ??
-		[...DEFAULT_TABLES]) as string[];
+	const tables = (valueOf("--tables")
+		?.split(",")
+		.map((t) => t.trim())
+		.filter(Boolean) ?? [...DEFAULT_TABLES]) as string[];
 
 	// Garde-fou : le nom de table est interpolé dans le SQL (postgres-js ne
 	// paramètre pas les identifiants). On n'accepte que des tables connues.

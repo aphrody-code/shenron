@@ -9,6 +9,8 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { resolveDatabookCategory } from "@/lib/databook-categories";
 import { assetUrl, dbUniverse } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
+import { JsonLd } from "@/components/JsonLd";
+import { parseDatabookId } from "@/lib/databooks-rules";
 
 export const revalidate = 3600;
 
@@ -48,8 +50,9 @@ export async function generateMetadata({
 	params: Promise<{ id: string }>;
 }): Promise<Metadata> {
 	const { id } = await params;
-	const book = await dbUniverse.databook(parseInt(id, 10));
-	if (!book) return { title: "Databook introuvable" };
+	const n = parseDatabookId(id);
+	const book = n === null ? null : await dbUniverse.databook(n);
+	if (!book) return { title: "Databook introuvable", robots: { index: false, follow: true } };
 	const description = book.description
 		? plainText(book.description)
 		: `${book.title} — guide officiel Dragon Ball sur DBFR.`;
@@ -68,7 +71,8 @@ export async function generateMetadata({
 
 export default async function DatabookDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
-	const book = await dbUniverse.databook(parseInt(id, 10));
+	const n = parseDatabookId(id);
+	const book = n === null ? null : await dbUniverse.databook(n);
 	if (!book) notFound();
 
 	const category = resolveDatabookCategory(book.category);
@@ -80,8 +84,33 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 	);
 	const hasPages = filledPages.length > 0;
 
+	// Balisage de la fiche. Les 318 databooks n'avaient AUCUN JSON-LD alors que
+	// tous les autres types du wiki en ont un : ni type d'entité, ni auteur, ni
+	// date pour les moteurs. Une interview est un `Article`, un artbook ou un
+	// guide est un `Book`.
+	const jsonLd = {
+		"@context": "https://schema.org",
+		"@type": isInterview ? "Article" : "Book",
+		name: book.title,
+		headline: book.title,
+		alternateName: book.title_ja ?? undefined,
+		inLanguage: "fr",
+		image: book.cover ? assetUrl(book.cover) : undefined,
+		description: book.description ? plainText(book.description, 300) : undefined,
+		author: book.author ? { "@type": "Person", name: book.author } : undefined,
+		datePublished: book.published_at
+			? new Date(book.published_at >= 1e12 ? book.published_at : book.published_at * 1000)
+					.toISOString()
+					.split("T")[0]
+			: undefined,
+		// `numberOfPages` n'a de sens que pour un ouvrage réellement paginé.
+		...(isInterview ? {} : { numberOfPages: book.pages.length || undefined }),
+		isBasedOn: book.source_url ?? undefined,
+	};
+
 	return (
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+			<JsonLd data={jsonLd as never} />
 			<Breadcrumbs
 				className="mb-4"
 				items={[{ label: "Databooks", href: "/wiki/databooks" }, { label: book.title }]}

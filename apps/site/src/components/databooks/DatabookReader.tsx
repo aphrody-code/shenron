@@ -33,6 +33,7 @@ import "swiper/css/zoom";
 import "swiper/css/virtual";
 
 import { assetUrl } from "@/lib/assets";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 export type DatabookReaderPage = {
 	/** Numéro affiché (auto 1…N, modifiable côté admin). */
@@ -85,6 +86,7 @@ function resolvePages(pages: DatabookReaderPage[]): ResolvedPage[] {
 export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElement {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const swiperRef = useRef<SwiperClass | null>(null);
+	const lightboxRef = useRef<HTMLDivElement>(null);
 	const baseId = useId();
 
 	const items = useMemo(() => resolvePages(pages), [pages]);
@@ -95,6 +97,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 	const [current, setCurrent] = useState(0);
 	/** Lightbox plein écran sur la planche courante (indépendant du mode). */
 	const [lightbox, setLightbox] = useState(false);
+	useFocusTrap(lightboxRef, lightbox, () => setLightbox(false));
 
 	// Clamp l'index si le nombre de pages change (édition live / revalidation).
 	useEffect(() => {
@@ -126,17 +129,44 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		return () => document.removeEventListener("fullscreenchange", onChange);
 	}, []);
 
-	// Escape ferme le lightbox.
+	// Navigation clavier des planches.
+	//
+	// Les flèches ne fonctionnaient QUE la visionneuse ouverte : en mode paginé,
+	// tourner les pages au clavier était impossible — il fallait viser les deux
+	// boutons à la souris. Elles pilotent désormais aussi le mode paginé, et
+	// `Début`/`Fin` sautent aux extrémités.
 	useEffect(() => {
-		if (!lightbox) return;
+		const actif = lightbox || mode === "paged";
+		if (!actif) return;
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setLightbox(false);
-			if (e.key === "ArrowLeft") setCurrent((c) => Math.max(0, c - 1));
-			if (e.key === "ArrowRight") setCurrent((c) => Math.min(total - 1, c + 1));
+			const cible = e.target as HTMLElement | null;
+			const tag = cible?.tagName;
+			if (tag === "INPUT" || tag === "TEXTAREA" || cible?.isContentEditable) return;
+			switch (e.key) {
+				case "Escape":
+					if (lightbox) setLightbox(false);
+					return;
+				case "ArrowLeft":
+					e.preventDefault();
+					setCurrent((c) => Math.max(0, c - 1));
+					return;
+				case "ArrowRight":
+					e.preventDefault();
+					setCurrent((c) => Math.min(total - 1, c + 1));
+					return;
+				case "Home":
+					e.preventDefault();
+					setCurrent(0);
+					return;
+				case "End":
+					e.preventDefault();
+					setCurrent(total - 1);
+					return;
+			}
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
-	}, [lightbox, total]);
+	}, [lightbox, mode, total]);
 
 	// Bloque le scroll body quand lightbox ouverte.
 	useEffect(() => {
@@ -230,7 +260,14 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 
 	const legendBlock = (
 		<div className="flex h-full min-h-0 flex-col">
-			<p className="mb-2 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-dbz-orange/80">
+			<p
+				// Région live : tourner une page ne change qu'une image et un bloc de
+				// texte, sans rien qui l'annonce. Un lecteur d'écran restait muet sur le
+				// changement — l'utilisateur ne savait pas où il en était.
+				aria-live="polite"
+				aria-atomic="true"
+				className="mb-2 shrink-0 text-[10px] font-bold uppercase tracking-[0.2em] text-dbz-orange/80"
+			>
 				Page {currentNum}
 				<span className="ml-2 font-normal normal-case tracking-normal text-white/50">
 					({current + 1}/{total})
@@ -537,6 +574,12 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 			{/* Lightbox agrandissement planche */}
 			{lightbox && currentImage && (
 				<div
+					ref={lightboxRef}
+					// `tabIndex={-1}` : requis par `useFocusTrap`, qui donne le focus au
+					// panneau à l'ouverture. Sans piège, la tabulation continuait DERRIÈRE
+					// la visionneuse plein écran — le focus disparaissait pour l'utilisateur
+					// clavier et pour le lecteur d'écran.
+					tabIndex={-1}
 					role="dialog"
 					aria-modal="true"
 					aria-label={`${title} — page ${currentNum} agrandie`}
