@@ -34,8 +34,10 @@ est en français, sinon dans sa langue d'origine (beaucoup sont en japonais).
 - Garde l'ordre de lecture naturel de la planche.
 - Utilise du markdown léger : ## pour un titre de section, - pour une liste,
   **gras** pour un intitulé de fiche technique.
-- N'invente RIEN. Une zone illisible : écris [illisible]. Une planche sans
-  texte (illustration pleine page) : renvoie une chaîne vide, pas une description.
+- N'invente RIEN. Une zone illisible : écris [illisible].
+- Une planche sans aucun texte (illustration pleine page) : envoie
+  "text": null — surtout pas une description de l'image. Une chaîne vide ou
+  blanche est ignorée par l'API (elle protège les transcriptions existantes).
 - Ne traduis pas de toi-même : transcris. La traduction est une autre étape.
 
 COMMENT TU LE DÉPOSES

@@ -70,6 +70,10 @@ curl -X POST https://dragonballfr.com/api/databooks/1/transcription \
   complète ; les images non redonnées sont conservées depuis l'état précédent.
 - `description` (facultatif) — chapô de la fiche, en markdown, rendu comme un
   article par `WikiMarkdown`.
+- `"text": null` **efface** la transcription d'une page. Une chaîne vide ou
+  blanche est en revanche **ignorée** : c'est presque toujours une planche que le
+  modèle n'a pas su lire, et la traiter comme un effacement détruirait une bonne
+  transcription au passage suivant.
 
 Réponse :
 

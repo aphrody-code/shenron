@@ -25,12 +25,13 @@ const PREFIXE = "dbfr:databook";
 /**
  * Client minimal — juste ce que ce module utilise de `Bun.RedisClient`.
  *
- * Le type est déclaré à la main parce que le module `bun` n'est PAS importable
- * statiquement ici : le site est SERVI par Bun mais CONSTRUIT par Node 22
- * (exception documentée dans CLAUDE.md). Un `import { RedisClient } from "bun"`
- * en tête de fichier fait échouer le build avec `Cannot find module 'bun'` — vécu
- * le 2026-08-21, build interrompu avant la bascule. L'import est donc dynamique
- * et n'a lieu qu'à l'exécution, sous Bun.
+ * Le type est déclaré à la main et l'import du module `bun` est DYNAMIQUE : ce
+ * module est chargé par le collecteur de Next au build, et un
+ * `import { RedisClient } from "bun"` en tête de fichier a fait échouer un build
+ * le 2026-08-21 (`Cannot find module 'bun'`, le build tournait alors sous Node).
+ * Le build est repassé sous Bun depuis, mais l'import différé reste le bon choix :
+ * il garde ce module chargeable par n'importe quel outil d'analyse, et le client
+ * n'est ouvert qu'au premier accès réel à l'index.
  */
 interface ClientRedis {
 	onclose: ((err: Error) => void) | null;

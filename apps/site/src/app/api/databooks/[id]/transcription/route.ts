@@ -91,13 +91,26 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 		return NextResponse.json({ error: "Fiche introuvable." }, { status: 404, headers: CORS });
 	}
 
-	// Textes déposés, indexés par numéro de page.
-	const textes = new Map<number, string>();
+	// Textes déposés, indexés par numéro de page. `null` = effacer explicitement.
+	//
+	// Une chaîne vide ou blanche est IGNORÉE, pas traitée comme un effacement :
+	// c'est presque toujours une planche que le modèle n'a pas su lire, et la
+	// prendre pour un effacement détruirait une transcription correcte au
+	// prochain passage. Pour retirer un texte, il faut le dire — `"text": null`.
+	const textes = new Map<number, string | null>();
 	let ignorees = 0;
 	for (const e of entrees) {
 		const n = Number(e?.number);
+		if (!Number.isSafeInteger(n) || n <= 0) {
+			ignorees++;
+			continue;
+		}
+		if (e?.text === null) {
+			textes.set(n, null);
+			continue;
+		}
 		const t = typeof e?.text === "string" ? e.text.trim() : "";
-		if (!Number.isSafeInteger(n) || n <= 0 || !t) {
+		if (!t) {
 			ignorees++;
 			continue;
 		}

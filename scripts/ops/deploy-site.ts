@@ -225,14 +225,25 @@ async function currentSha(): Promise<string> {
 }
 
 /**
- * Build dans le dépôt, sous Node (le build sous Bun se fait tuer par l'OOM
- * killer sur ce VPS : ~10,5 Gio contre ~8,1 sous Node, cf. CLAUDE.md).
+ * Build dans le dépôt, sous **Bun**.
+ *
+ * Le build a tourné sous Node du 2026-08-14 au 2026-08-21, en supposant qu'il y
+ * consommait moins de mémoire. La mesure a démenti : ~10,5 Gio de mémoire
+ * anonyme **quel que soit le runtime**, et des morts par OOM sous Node comme
+ * sous Bun. Le seul facteur qui décide est `vm.swappiness` — que
+ * `withBuildVmTuning()` relève déjà le temps du build. Node n'apportait donc
+ * rien et contredisait la règle Bun-only du dépôt.
+ *
+ * `--bun` force le runtime Bun malgré le shebang `#!/usr/bin/env node` du binaire
+ * `next` : sans lui, Bun se contenterait de déléguer à Node.
+ *
  * Le succès se juge sur un BUILD_ID **frais**, pas sur le code retour.
  */
 async function buildSite(sha: string): Promise<string> {
 	const buildTmp = process.env.BUILD_TMP ?? join(HOME, ".shenron-build-tmp");
 	await mkdir(buildTmp, { recursive: true });
-	const nodeBin = existsSync("/usr/bin/node") ? "/usr/bin/node" : "node";
+	const bunBin = process.env.BUN_BIN ?? join(HOME, ".bun", "bin", "bun");
+	if (!existsSync(bunBin)) fail(`bun introuvable (${bunBin}) — requis pour le build.`);
 	// `next` n'est pas toujours hoisté à la racine : selon l'ordre des
 	// `bun add`, bun peut le laisser dans le node_modules du workspace. On
 	// cherche donc aux deux emplacements plutôt que de présumer du layout —
@@ -247,8 +258,8 @@ async function buildSite(sha: string): Promise<string> {
 	// Build à froid : on jette la sortie précédente AVANT de lancer Next.
 	await rm(BUILD_DIR, { recursive: true, force: true });
 	const startedAt = Date.now();
-	log(`build (Node, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}`);
-	const res = await run([nodeBin, nextBin, "build"], {
+	log(`build (Bun, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}`);
+	const res = await run([bunBin, "--bun", nextBin, "build"], {
 		cwd: SITE_DIR,
 		env: {
 			// `env` REMPLACE l'environnement : tout ce qui n'est pas listé ici
@@ -258,7 +269,9 @@ async function buildSite(sha: string): Promise<string> {
 			// (« the PATH environment variable should always be set: NotPresent »,
 			// turbopack-node/src/process_pool). Le build mourait alors APRÈS avoir
 			// écrit BUILD_ID, ce qui le faisait passer pour un succès.
-			PATH: process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin",
+			// `env` REMPLACE l'environnement : bun doit rester dans le PATH, sinon le
+			// pool de process de Turbopack ne sait plus se relancer.
+			PATH: `${dirname(bunBin)}:${process.env.PATH ?? "/usr/local/bin:/usr/bin:/bin"}`,
 			HOME: process.env.HOME ?? "/home/ubuntu",
 			TMPDIR: buildTmp,
 			NODE_ENV: "production",
