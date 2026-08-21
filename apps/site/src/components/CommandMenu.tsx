@@ -127,7 +127,7 @@ function count(r: SearchResults): number {
 	);
 }
 
-export function CommandMenu() {
+export function CommandMenu({ variant = "bar" }: { variant?: "bar" | "icon" } = {}) {
 	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [query, setQuery] = useState("");
@@ -213,7 +213,15 @@ export function CommandMenu() {
 				type="button"
 				onClick={() => setOpen(true)}
 				aria-label="Rechercher dans l'univers Dragon Ball (Ctrl+K)"
-				className="group inline-flex items-center gap-2.5 h-9 pl-3 pr-2.5 rounded-full bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-dbz-orange/40 text-white/55 hover:text-white/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+				className={
+					variant === "icon"
+						? // Déclencheur compact de l'en-tête mobile : la palette n'était
+							// rendue que dans un conteneur `hidden lg:flex`, donc AUCUNE
+							// recherche n'existait sous 1024 px — ni bouton, ni champ, et le
+							// raccourci ⌘K ne veut rien dire sans clavier.
+							"grid h-10 w-10 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+						: "group inline-flex items-center gap-2.5 h-9 pl-3 pr-2.5 rounded-full bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-dbz-orange/40 text-white/55 hover:text-white/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+				}
 			>
 				<svg
 					width="15"
@@ -229,12 +237,18 @@ export function CommandMenu() {
 					<circle cx="11" cy="11" r="8" />
 					<path d="m21 21-4.3-4.3" />
 				</svg>
-				<span className="hidden xl:inline font-display text-[13px] tracking-normal">
-					Rechercher…
-				</span>
-				<kbd className="hidden xl:inline-flex items-center gap-0.5 font-display text-[10px] font-semibold text-white/40 bg-white/[0.06] border border-white/10 rounded px-1.5 py-0.5">
-					⌘K
-				</kbd>
+				{variant === "bar" && (
+					<>
+						{/* Visible dès `lg` et non `xl` : entre 1024 et 1280 px la barre est
+						    large, et le bouton n'affichait qu'une loupe muette. */}
+						<span className="hidden lg:inline font-display text-[13px] tracking-normal">
+							Rechercher…
+						</span>
+						<kbd className="hidden lg:inline-flex items-center gap-0.5 font-display text-[10px] font-semibold text-white/50 bg-white/[0.06] border border-white/10 rounded px-1.5 py-0.5">
+							⌘K
+						</kbd>
+					</>
+				)}
 			</button>
 
 			<Command.Dialog
@@ -266,7 +280,7 @@ export function CommandMenu() {
 						value={query}
 						onValueChange={setQuery}
 						placeholder="Un épisode, un film, un tome…"
-						className="h-14 w-full bg-transparent text-white placeholder:text-white/30 font-display text-base outline-none"
+						className="h-14 w-full bg-transparent text-white placeholder:text-white/50 font-display text-base outline-none"
 					/>
 					{loading && (
 						<span className="shrink-0">
@@ -275,15 +289,15 @@ export function CommandMenu() {
 					)}
 				</div>
 
-				<Command.List className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:font-display [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-white/35">
+				<Command.List className="max-h-[60vh] overflow-y-auto overscroll-contain p-2 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:font-display [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-bold [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-[0.18em] [&_[cmdk-group-heading]]:text-white/50">
 					{term.length >= 2 && !loading && total === 0 && (
-						<Command.Empty className="px-3 py-10 text-center text-sm text-white/45">
+						<Command.Empty className="px-3 py-10 text-center text-sm text-white/50">
 							Aucune énergie détectée pour «&nbsp;
 							<span className="text-dbz-orange">{term}</span>&nbsp;».
 						</Command.Empty>
 					)}
 					{term.length < 2 && (
-						<p className="px-3 py-10 text-center text-sm text-white/35">
+						<p className="px-3 py-10 text-center text-sm text-white/50">
 							Tape au moins 2 caractères pour scanner l'univers.
 						</p>
 					)}
@@ -545,7 +559,7 @@ function Item({
 					{title}
 				</span>
 				{subtitle && (
-					<span className="block truncate font-display text-[11px] text-white/40">{subtitle}</span>
+					<span className="block truncate font-display text-[11px] text-white/50">{subtitle}</span>
 				)}
 			</span>
 			<span

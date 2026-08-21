@@ -122,6 +122,12 @@ export async function SiteNav() {
 					<NavAuth />
 				</div>
 
+				{/* Recherche mobile : rendue HORS du conteneur `hidden lg:flex`
+				    ci-dessus, sinon elle disparaît sous 1024 px — c'est-à-dire pour
+				    l'essentiel du trafic. */}
+				<div className="ml-auto flex items-center lg:hidden">
+					<CommandMenu variant="icon" />
+				</div>
 				<MobileNav links={mobilePublic} adminLinks={adminOnly} />
 			</div>
 		</header>

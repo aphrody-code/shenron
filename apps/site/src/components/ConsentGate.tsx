@@ -142,6 +142,17 @@ export function ConsentGate() {
 		};
 	}, []);
 
+	// Marque le document tant que le bandeau occupe le bas de l'écran. Sur mobile
+	// il s'étend sur toute la largeur à `bottom-24` et recouvrait les boutons
+	// flottants « Signaler » et « Discord » — quatre calques se disputaient le même
+	// coin. La règle CSS `html[data-consent-open]` (globals.css) efface les FAB
+	// secondaires le temps du choix, qui est de toute façon ponctuel.
+	useEffect(() => {
+		if (!visible) return;
+		document.documentElement.setAttribute("data-consent-open", "");
+		return () => document.documentElement.removeAttribute("data-consent-open");
+	}, [visible]);
+
 	if (!visible) return null;
 
 	const accept = () => {

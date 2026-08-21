@@ -232,11 +232,15 @@ export function FloatingAssistant() {
 	if (hidden) return null;
 
 	return (
-		<div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+		<div className="fixed bottom-4 right-4 z-50 flex flex-col items-end sm:bottom-6 sm:right-6">
 			{/* Fenêtre de Chat */}
 			{isOpen && (
 				<div
-					className="mb-4 w-96 h-[520px] rounded-2xl border border-white/10 bg-black/80 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform scale-100 origin-bottom-right"
+					// `w-96` (384 px) fixe débordait de l'écran sur un téléphone de
+					// 360-390 px, décalage de 16 px compris : le bord gauche du panneau
+					// sortait du viewport. Hauteur en `dvh` pour tenir compte de la
+					// barre d'URL mobile et du clavier virtuel, que `520px` ignorait.
+					className="mb-4 w-[calc(100vw-2rem)] max-w-[24rem] h-[min(520px,70dvh)] rounded-2xl border border-white/10 bg-black/80 backdrop-blur-xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform scale-100 origin-bottom-right sm:w-96"
 					style={{ boxShadow: `0 10px 30px -5px ${theme.bgGlow}` }}
 				>
 					{/* Header */}

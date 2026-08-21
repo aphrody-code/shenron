@@ -94,7 +94,7 @@ export function ReportButton() {
 					setErr(null);
 				}}
 				aria-label="Signaler une erreur"
-				className="fixed bottom-20 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-dbz-orange/40 bg-[rgba(10,10,10,0.85)] px-4 py-2.5 text-[13px] font-display font-semibold text-dbz-orange shadow-lg backdrop-blur-md transition-all hover:bg-dbz-orange hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-24 md:left-6"
+				className="fab-secondary fixed bottom-20 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-dbz-orange/40 bg-[rgba(10,10,10,0.85)] px-4 py-2.5 text-[13px] font-display font-semibold text-dbz-orange shadow-lg backdrop-blur-md transition-all hover:bg-dbz-orange hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-24 md:left-6"
 			>
 				<Flag className="h-4 w-4" />
 				<span className="hidden sm:inline">Signaler une erreur</span>
@@ -150,7 +150,7 @@ export function ReportButton() {
 								</div>
 							) : (
 								<>
-									<p className="text-xs text-white/45">
+									<p className="text-xs text-white/50">
 										Page concernée : <span className="font-mono text-white/70">{pathname}</span>
 									</p>
 
@@ -182,7 +182,7 @@ export function ReportButton() {
 											value={message}
 											onChange={(e) => setMessage(e.target.value)}
 										/>
-										<p className="mt-1 text-right text-[10px] text-white/30">
+										<p className="mt-1 text-right text-[10px] text-white/50">
 											{message.length}/{REPORT_MESSAGE_MAX}
 										</p>
 									</div>

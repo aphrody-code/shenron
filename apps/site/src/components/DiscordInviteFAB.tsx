@@ -23,7 +23,7 @@ export function DiscordInviteFAB() {
 	const inviteUrl = DISCORD_INVITE;
 
 	return (
-		<div className="fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50">
+		<div className="fab-secondary fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50">
 			<div className="relative inline-block">
 				<button
 					type="button"

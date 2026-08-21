@@ -34,7 +34,7 @@ export function MobileNav({ links, adminLinks = [] }: Props) {
 	}, [open]);
 
 	return (
-		<div className="lg:hidden ml-auto">
+		<div className="lg:hidden">
 			<button
 				type="button"
 				aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
