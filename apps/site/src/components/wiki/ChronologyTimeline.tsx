@@ -13,6 +13,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Film, Tv, BookOpen, Play, Search, Copy, Check, Download } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import Image from "next/image";
+import { isEditableAsset } from "@/lib/images";
 import {
 	ERA_ORDER,
 	ERA_LABELS,
@@ -438,12 +440,18 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 							isMovie || isManga ? "w-10" : "w-[104px]"
 						}`}
 					>
-						<img
+						<Image
 							src={assetUrl(it.image)}
 							alt=""
-							loading="lazy"
-							decoding="async"
-							className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+							fill
+							// La miniature fait 104×56 px (40×56 pour un film ou un tome) et
+							// chargeait pourtant le JPEG source : ~71 Kio pour une image de la
+							// taille d'un timbre, × 150 sur la page. `sizes` fixe la largeur
+							// réelle et l'optimiseur sert la variante correspondante.
+							sizes={isMovie || isManga ? "40px" : "104px"}
+							quality={70}
+							unoptimized={isEditableAsset(it.image)}
+							className="object-cover transition-transform duration-300 group-hover:scale-110"
 						/>
 						{!(isMovie || isManga) && it.number != null && (
 							<span className="scouter-text absolute left-1 top-1 bg-black/70 px-1 py-0.5 text-[9px] leading-none text-dbz-orange">

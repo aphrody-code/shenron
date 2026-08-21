@@ -201,6 +201,7 @@ export function CharacterGrid({
 									<WikiImg
 										src={c.image}
 										fallback={c.portraitXv2}
+										sizes="(min-width: 1280px) 210px, (min-width: 768px) 25vw, 45vw"
 										alt={c.name}
 										className="absolute inset-0 w-full h-full object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
 									/>

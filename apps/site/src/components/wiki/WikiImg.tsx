@@ -11,7 +11,9 @@
  * d'image brisée du navigateur. Client (gestion `onError`).
  */
 import { useState } from "react";
+import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
+import { isEditableAsset } from "@/lib/images";
 
 export function WikiImg({
 	src,
@@ -20,6 +22,7 @@ export function WikiImg({
 	className,
 	placeholderClassName,
 	loading,
+	sizes,
 }: {
 	/** Chemin d'asset BRUT (résolu via assetUrl en interne), ou null. */
 	src: string | null | undefined;
@@ -30,6 +33,18 @@ export function WikiImg({
 	/** Classes du placeholder (par défaut : fond carte DBZ + halftone). */
 	placeholderClassName?: string;
 	loading?: "lazy" | "eager";
+	/**
+	 * Largeur de rendu CSS (ex. `"104px"`, `"(min-width:1024px) 200px, 45vw"`).
+	 *
+	 * Le fournir bascule le rendu sur `next/image` en mode `fill` : l'image est
+	 * alors redimensionnée et servie en AVIF/WebP au lieu du JPEG source. À NE
+	 * fournir que si le parent est positionné et dimensionné — sinon `fill`
+	 * casserait la mise en page (cas de la fiche personnage, en `h-auto`).
+	 *
+	 * Sans `sizes`, on garde le `<img>` d'origine : hauteur intrinsèque préservée,
+	 * comportement inchangé.
+	 */
+	sizes?: string;
 }) {
 	// Chaîne d'URL candidates dédupliquée (résolues).
 	const chain = [src, fallback]
@@ -55,16 +70,36 @@ export function WikiImg({
 		);
 	}
 
+	const onError = () => {
+		if (idx < chain.length - 1) setIdx(idx + 1);
+		else setDead(true);
+	};
+
+	if (sizes) {
+		return (
+			<Image
+				src={chain[idx]!}
+				alt={alt}
+				fill
+				sizes={sizes}
+				quality={70}
+				// Téléversement de l'admin : servi tel quel pour rester frais dès le
+				// remplacement (cf. lib/images.ts).
+				unoptimized={isEditableAsset(chain[idx])}
+				loading={loading ?? "lazy"}
+				className={className}
+				onError={onError}
+			/>
+		);
+	}
+
 	return (
 		<img
 			src={chain[idx]}
 			alt={alt}
 			loading={loading ?? "lazy"}
 			className={className}
-			onError={() => {
-				if (idx < chain.length - 1) setIdx(idx + 1);
-				else setDead(true);
-			}}
+			onError={onError}
 		/>
 	);
 }

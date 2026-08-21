@@ -213,6 +213,7 @@ export function DatabookGrid({
 											<WikiImg
 												src={d.cover}
 												alt={d.title}
+												sizes="(min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
 												className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
 												loading="lazy"
 											/>

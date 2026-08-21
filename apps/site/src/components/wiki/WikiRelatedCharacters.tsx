@@ -53,6 +53,7 @@ export function WikiRelatedCharacters({
 							<div className="halftone absolute inset-0 opacity-10" />
 							<WikiImg
 								src={c.image}
+								sizes="(min-width: 1280px) 160px, (min-width: 768px) 22vw, 45vw"
 								alt={c.name}
 								loading="lazy"
 								className="relative z-10 h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"

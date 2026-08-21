@@ -98,6 +98,7 @@ function PodiumCard({ board, rank }: { board: CommunityTopBoard; rank: 1 | 2 | 3
 						<WikiImg
 							src={entry.image}
 							alt={entry.title}
+							sizes="(min-width: 1024px) 220px, (min-width: 640px) 30vw, 45vw"
 							className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
 							loading="lazy"
 						/>
