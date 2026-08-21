@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GatedWrap } from "@/components/GatedLink";
 import {
-	getShenronCharacters,
+	getShenronCharacterCards,
 	getShenronMovies,
 	getShenronPlanets,
 	getShenronRaces,
@@ -103,7 +103,7 @@ const CARD_FX: Record<string, { kanji: string; bar: string }> = {
 
 export default async function WikiIndex() {
 	const [characters, movies, planets, races, techniques, episodesData, counts] = await Promise.all([
-		getShenronCharacters(),
+		getShenronCharacterCards(),
 		getShenronMovies(),
 		getShenronPlanets(),
 		getShenronRaces(),

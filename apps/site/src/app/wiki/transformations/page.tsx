@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { getShenronCharacters } from "@/lib/shenron";
+import { getShenronCharacterCards } from "@/lib/shenron";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { WikiCategoryNav } from "@/components/wiki/WikiCategoryNav";
@@ -33,7 +33,7 @@ type Group = { name: string; image: string | null; ki: string | null; members: M
 export default async function TransformationsPage() {
 	const [data, characters] = await Promise.all([
 		dbUniverse.transformations(),
-		getShenronCharacters(),
+		getShenronCharacterCards(),
 	]);
 	const transformations = data?.transformations ?? [];
 	const charById = new Map(characters.map((c) => [c.id, c]));

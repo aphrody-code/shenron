@@ -490,6 +490,59 @@ export async function getShenronPresence(): Promise<ShenronPresence> {
 	}
 }
 
+/** Colonnes strictement nécessaires à une grille / une liste de personnages. */
+const CHARACTER_CARD_COLUMNS = {
+	id: botCharacters.id,
+	name: botCharacters.name,
+	nameJa: botCharacters.nameJa,
+	nameRomaji: botCharacters.nameRomaji,
+	image: botCharacters.image,
+	portraitXv2: botCharacters.portraitXv2,
+	ki: botCharacters.ki,
+	maxKi: botCharacters.maxKi,
+	race: botCharacters.race,
+	gender: botCharacters.gender,
+	affiliation: botCharacters.affiliation,
+	originPlanetId: botCharacters.originPlanetId,
+} as const;
+
+/** Personnage réduit à ce qu'une liste affiche (ni article, ni description). */
+export type DBCharacterCard = {
+	[K in keyof typeof CHARACTER_CARD_COLUMNS]: DBCharacter[K & keyof DBCharacter];
+};
+
+/**
+ * Personnages pour les LISTES — sans les colonnes de texte long.
+ *
+ * `getShenronCharacters()` faisait un `SELECT *` sur les 1 323 fiches : 1,34 Mio
+ * transférés et désérialisés à chaque rendu, dont **767 Kio pour la seule
+ * colonne `article`** (le corps rédactionnel de la fiche). Or aucune des cinq
+ * pages appelantes n'affiche l'article : elles montrent un nom, une image, une
+ * race. Le `generateStaticParams` de la fiche personnage, lui, n'avait besoin
+ * que de l'`id` — et chargeait tout le corpus.
+ */
+export async function getShenronCharacterCards(query?: string): Promise<DBCharacterCard[]> {
+	try {
+		const q = query?.trim();
+		const base = db.select(CHARACTER_CARD_COLUMNS).from(botCharacters);
+		const rows = q
+			? await base
+					.where(
+						and(
+							like(sql`lower(${botCharacters.name})`, `%${q.toLowerCase()}%`),
+							eq(botCharacters.visible, true)
+						)
+					)
+					.limit(25)
+			: await base.where(eq(botCharacters.visible, true));
+		return rows as DBCharacterCard[];
+	} catch (e) {
+		console.error("[shenron] getShenronCharacterCards a échoué:", e);
+		return [];
+	}
+}
+
+/** Variante complète (articles compris). Réservée à ce qui lit vraiment l'article. */
 export async function getShenronCharacters(query?: string): Promise<DBCharacter[]> {
 	try {
 		const q = query?.trim();
@@ -544,28 +597,92 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 			.limit(1);
 		if (!c) return null;
 
-		const transformations = (
-			await db
+		// Les cinq requêtes qui suivent ne dépendent QUE de la ligne `c` déjà
+		// chargée, jamais les unes des autres — elles étaient pourtant enchaînées :
+		// cinq allers-retours en série sur le chemin de rendu de CHAQUE fiche de
+		// personnage. Un seul `Promise.all` ramène la latence à celle de la plus
+		// lente. Les branches inutiles rendent un tableau vide sans toucher la base.
+		const rootRaw = stripVersionSuffix(c.name);
+		const selfRoot = foldName(rootRaw);
+		const aff = (c.affiliation ?? "").trim();
+		// Préfixe insensible casse+accents : « Végéta (futur) » est bien candidat de
+		// « Vegeta ». `%`, `_` et l'antislash sont échappés pour LIKE.
+		const versionPrefix = rootRaw.replace(/[\\%_]/g, (m) => `\\${m}`) + "%";
+
+		const [transfoRows, planetRow, techRows, versionCandidates, affiliateRows] = await Promise.all([
+			db
 				.select()
 				.from(botTransformations)
-				.where(and(eq(botTransformations.characterId, id), eq(botTransformations.visible, true)))
-		).map(mapTransfo);
+				.where(and(eq(botTransformations.characterId, id), eq(botTransformations.visible, true))),
+			c.originPlanetId != null
+				? db
+						.select()
+						.from(botPlanets)
+						.where(and(eq(botPlanets.id, c.originPlanetId), eq(botPlanets.visible, true)))
+						.limit(1)
+				: Promise.resolve([]),
+			db
+				.select({ t: botTechniques })
+				.from(botCharacterTechniques)
+				.innerJoin(botTechniques, eq(botCharacterTechniques.techniqueId, botTechniques.id))
+				.where(and(eq(botCharacterTechniques.characterId, id), eq(botTechniques.visible, true))),
+			// Versions alternatives : « Freezer » ↔ « Freezer (futur) » / « (Xeno) ».
+			// Candidats par préfixe (indexable), puis filtre sur le nom racine
+			// normalisé côté JS — plus sûr qu'un regex en SQL.
+			selfRoot.length >= 2
+				? db
+						.select({
+							id: botCharacters.id,
+							name: botCharacters.name,
+							image: botCharacters.image,
+							race: botCharacters.race,
+						})
+						.from(botCharacters)
+						.where(
+							and(
+								eq(botCharacters.visible, true),
+								ne(botCharacters.id, id),
+								sql`unaccent(lower(${botCharacters.name})) like unaccent(lower(${versionPrefix}))`
+							)
+						)
+						.orderBy(asc(botCharacters.name))
+						.limit(80)
+				: Promise.resolve([]),
+			// Personnages affiliés : même affiliation (hors valeurs poubelle).
+			aff && !AFFILIATION_BLOCKLIST.has(foldName(aff))
+				? db
+						.select({
+							id: botCharacters.id,
+							name: botCharacters.name,
+							image: botCharacters.image,
+							race: botCharacters.race,
+						})
+						.from(botCharacters)
+						.where(
+							and(
+								eq(botCharacters.visible, true),
+								ne(botCharacters.id, id),
+								eq(botCharacters.affiliation, aff)
+							)
+						)
+						.orderBy(asc(botCharacters.name))
+						.limit(16)
+				: Promise.resolve([]),
+		]);
 
-		let originPlanet: DBPlanet | null = null;
-		if (c.originPlanetId != null) {
-			const [p] = await db
-				.select()
-				.from(botPlanets)
-				.where(and(eq(botPlanets.id, c.originPlanetId), eq(botPlanets.visible, true)))
-				.limit(1);
-			originPlanet = p ? mapPlanet(p) : null;
-		}
+		const transformations = transfoRows.map(mapTransfo);
+		const originPlanet = planetRow[0] ? mapPlanet(planetRow[0]) : null;
+		const versions: RelatedCharacter[] = versionCandidates
+			.filter((r) => foldName(stripVersionSuffix(r.name)) === selfRoot)
+			.slice(0, 16)
+			.map((r) => ({ id: r.id, name: r.name, image: r.image, race: r.race }));
+		const affiliates: RelatedCharacter[] = affiliateRows.map((r) => ({
+			id: r.id,
+			name: r.name,
+			image: r.image,
+			race: r.race,
+		}));
 
-		const techRows = await db
-			.select({ t: botTechniques })
-			.from(botCharacterTechniques)
-			.innerJoin(botTechniques, eq(botCharacterTechniques.techniqueId, botTechniques.id))
-			.where(and(eq(botCharacterTechniques.characterId, id), eq(botTechniques.visible, true)));
 		const techniques = techRows.map((r) => ({
 			technique: {
 				id: r.t.id,
@@ -580,64 +697,6 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 				articleSources: r.t.articleSources ?? null,
 			} satisfies DBTechnique,
 		}));
-
-		// ── Versions alternatives : autres persos au même nom racine ────────────
-		// « Freezer » ↔ « Freezer (futur) » / « Freezer (Xeno) », etc. On récupère
-		// les candidats par préfixe (indexable) puis on filtre sur le nom racine
-		// normalisé (accents/casse) côté JS — plus sûr que du regex en SQL.
-		const rootRaw = stripVersionSuffix(c.name);
-		const selfRoot = foldName(rootRaw);
-		let versions: RelatedCharacter[] = [];
-		if (selfRoot.length >= 2) {
-			// Préfixe insensible casse+accents (unaccent, comme db-universe) : « Végéta
-			// (futur) » est bien candidat de « Vegeta ». `%`/`_`/`\` échappés pour LIKE.
-			const prefix = `${rootRaw.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
-			const cand = await db
-				.select({
-					id: botCharacters.id,
-					name: botCharacters.name,
-					image: botCharacters.image,
-					race: botCharacters.race,
-				})
-				.from(botCharacters)
-				.where(
-					and(
-						eq(botCharacters.visible, true),
-						ne(botCharacters.id, id),
-						sql`unaccent(lower(${botCharacters.name})) like unaccent(lower(${prefix}))`
-					)
-				)
-				.orderBy(asc(botCharacters.name))
-				.limit(80);
-			versions = cand
-				.filter((r) => foldName(stripVersionSuffix(r.name)) === selfRoot)
-				.slice(0, 16)
-				.map((r) => ({ id: r.id, name: r.name, image: r.image, race: r.race }));
-		}
-
-		// ── Personnages affiliés : même affiliation (hors valeurs poubelle) ─────
-		const aff = (c.affiliation ?? "").trim();
-		let affiliates: RelatedCharacter[] = [];
-		if (aff && !AFFILIATION_BLOCKLIST.has(foldName(aff))) {
-			const rows = await db
-				.select({
-					id: botCharacters.id,
-					name: botCharacters.name,
-					image: botCharacters.image,
-					race: botCharacters.race,
-				})
-				.from(botCharacters)
-				.where(
-					and(
-						eq(botCharacters.visible, true),
-						ne(botCharacters.id, id),
-						eq(botCharacters.affiliation, aff)
-					)
-				)
-				.orderBy(asc(botCharacters.name))
-				.limit(16);
-			affiliates = rows.map((r) => ({ id: r.id, name: r.name, image: r.image, race: r.race }));
-		}
 
 		return {
 			...mapCharacter(c),

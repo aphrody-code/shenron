@@ -11,6 +11,7 @@
  * servait l'API REST du bot.
  */
 import "server-only";
+import { cache } from "react";
 import { and, asc, desc, eq, gt, ilike, isNotNull, lt, or, sql } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
@@ -577,7 +578,14 @@ export const dbUniverse = {
 	 * libellés « N personnages / N films … » — fini les nombres codés en dur qui
 	 * se désynchronisent dès que la DB grossit. Un seul round-trip groupé.
 	 */
-	counts: () =>
+	/**
+	 * Mémoïsé par `cache()` (portée : un rendu). `counts()` déclenche 16 requêtes
+	 * de comptage ; `/wiki/arcs` et `/wiki/transformations` l'appellent une fois
+	 * pour la page ET une fois via `WikiCategoryNav`, soit 32 requêtes pour un
+	 * seul rendu. Aucun autre helper de ce module n'est mémoïsé — celui-ci le
+	 * mérite parce qu'il est à la fois le plus coûteux et le plus rappelé.
+	 */
+	counts: cache(() =>
 		safe(async () => {
 			const tables = {
 				characters: botCharacters,
@@ -624,7 +632,8 @@ export const dbUniverse = {
 				})
 			);
 			return Object.fromEntries(entries) as Record<keyof typeof tables, number>;
-		}),
+		})
+	),
 
 	sagas: () =>
 		safe(async () => ({

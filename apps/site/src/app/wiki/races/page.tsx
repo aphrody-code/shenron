@@ -1,4 +1,4 @@
-import { getShenronRaces, getShenronCharacters, getRawRaceNamesForSlug } from "@/lib/shenron";
+import { getShenronRaces, getShenronCharacterCards, getRawRaceNamesForSlug } from "@/lib/shenron";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
@@ -108,7 +108,7 @@ const colorThemes: Record<string, typeof defaultTheme> = {
 };
 
 export default async function RacesPage() {
-	const [races, characters] = await Promise.all([getShenronRaces(), getShenronCharacters()]);
+	const [races, characters] = await Promise.all([getShenronRaces(), getShenronCharacterCards()]);
 
 	return (
 		<div className="reveal-up min-h-screen bg-black">

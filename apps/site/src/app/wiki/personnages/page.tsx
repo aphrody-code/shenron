@@ -1,7 +1,7 @@
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 // SPDX-License-Identifier: Apache-2.0
 
-import { getShenronCharacters, getShenronPlanets } from "@/lib/shenron";
+import { getShenronCharacterCards, getShenronPlanets } from "@/lib/shenron";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { UniverseTabs } from "@/components/wiki/UniverseTabs";
@@ -26,7 +26,7 @@ export default async function PersonnagesPage({
 	const initialTab = sp.tab || "personnages";
 
 	const [characters, planets, counts, facets] = await Promise.all([
-		getShenronCharacters(),
+		getShenronCharacterCards(),
 		getShenronPlanets(),
 		dbUniverse.counts(),
 		dbUniverse.characterFacets(),

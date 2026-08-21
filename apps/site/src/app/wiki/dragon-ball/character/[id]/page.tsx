@@ -8,7 +8,7 @@ import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { buildWikiContentPanels } from "@/lib/wiki-panels";
 import { TECH_SECTION_KEYS, TRANSFO_SECTION_KEYS } from "@/lib/wiki-article-sections";
-import { getShenronCharacter, getShenronCharacters } from "@/lib/shenron";
+import { getShenronCharacter, getShenronCharacterCards } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -22,7 +22,7 @@ import { capParams } from "@/lib/prerender";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-	const list = await getShenronCharacters();
+	const list = await getShenronCharacterCards();
 	// 1 323 fiches, et la rubrique « personnages » est encore fermée au public :
 	// les prérendre toutes au build serait payer un cache que personne ne lit.
 	// L'ISR prend le relais à la demande (cf. lib/prerender).
