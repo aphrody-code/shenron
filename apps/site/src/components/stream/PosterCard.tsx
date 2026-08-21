@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import { isEditableAsset } from "@/lib/images";
 
 /**
  * PosterCard — carte affiche 2:3 (films, tomes de manga) façon streaming.
@@ -44,6 +45,8 @@ export function PosterCard({
 						alt=""
 						fill
 						sizes="160px"
+						quality={70}
+						unoptimized={isEditableAsset(poster)}
 						className="object-cover transition-transform duration-500 group-hover/card:scale-105"
 					/>
 				) : (

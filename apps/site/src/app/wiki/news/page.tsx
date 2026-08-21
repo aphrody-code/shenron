@@ -6,6 +6,7 @@ import { PageHero } from "@/components/PageHero";
 import { Markdown } from "@/components/Markdown";
 import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
+import { isEditableAsset } from "@/lib/images";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,11 @@ export default async function NewsPage({
 										src={assetUrl(item.image)}
 										alt={item.title}
 										fill
+										// Sans `sizes`, Next sert la variante pleine largeur d'écran
+										// pour une vignette qui n'occupe qu'une colonne.
+										sizes="(min-width: 1024px) 380px, (min-width: 640px) 45vw, 92vw"
+										quality={70}
+										unoptimized={isEditableAsset(item.image)}
 										className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700"
 									/>
 								) : (

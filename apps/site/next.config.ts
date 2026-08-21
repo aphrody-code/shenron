@@ -41,15 +41,32 @@ const nextConfig: NextConfig = {
 	// Docs : https://nextjs.org/docs/app/api-reference/components/image#formats
 	// Note : chaque format est caché séparément (storage ↑ mais latence ↓ après warm).
 	images: {
-		// Images wiki éditables en place via l'admin (réécriture du fichier au même
-		// chemin). L'optimiseur Vercel cache l'image optimisée par URL source ; une
-		// fois figée, un remplacement n'apparaissait jamais. On désactive donc
-		// l'optimisation : le navigateur charge l'asset directement depuis le bot,
-		// qui répond `no-cache` + ETag → revalidation 304 bon marché tant que le
-		// fichier est identique, image fraîche dès qu'il change. Pas d'optim
-		// AVIF/resize, mais éditabilité garantie (existant + futur, sans purge).
-		unoptimized: true,
+		// Optimisation RÉTABLIE (elle était coupée globalement). Le motif d'origine
+		// — sur Vercel, une image remplacée depuis l'admin restait figée à jamais —
+		// ne s'applique plus depuis l'auto-hébergement : l'optimiseur local expire
+		// son cache disque selon le `Cache-Control` de la source. Et les seules
+		// images réellement remplaçables en place (`assets/wiki/**`) sont exclues
+		// une par une, cf. `lib/images.ts` + `isEditableAsset`.
+		//
+		// L'enjeu : une vignette d'épisode passe de ~60 Kio (JPEG source) à ~15 Kio
+		// (AVIF à la largeur rendue), soit −73 % ; les pages de liste en portent
+		// jusqu'à 85.
 		formats: ["image/avif", "image/webp"],
+		// Requis depuis Next 16 : sans liste blanche, n'importe qui peut faire
+		// recalculer l'image à toutes les qualités. Une seule valeur suffit ici.
+		qualities: [70],
+		// Plancher du cache disque (`.next/cache/images`). Le TTL réel est le
+		// MAXIMUM de cette valeur et du `max-age` de la source : 1 jour pour
+		// `/assets/**`, un an pour `/db/**` (immuable). Le déploiement bleu/vert
+		// conserve ce cache d'une version à l'autre (cf. scripts/ops/deploy-site.ts) :
+		// sans ça, chaque mise en ligne repartait d'un cache froid et refaisait
+		// toutes les transformations sur un VPS déjà juste en mémoire.
+		minimumCacheTTL: 3600,
+		// Vignettes de grille : le site n'a pas de rendu au-delà de ~640 px de large
+		// pour une carte. Restreindre la liste évite de faire calculer — et stocker —
+		// des variantes que personne ne demande.
+		imageSizes: [64, 96, 128, 192, 256, 384],
+		deviceSizes: [640, 828, 1080, 1200, 1920],
 		// Bot expose les assets DB via /db/* (Cache-Control immutable + Vary:Accept côté bot).
 		remotePatterns: [
 			// API/assets du bot — hôte public actuel (bot.dragonballfr.com). Les
@@ -110,8 +127,6 @@ const nextConfig: NextConfig = {
 				pathname: "/**",
 			},
 		],
-		deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920, 2048, 3840],
-		imageSizes: [16, 32, 48, 64, 96, 128, 192, 256, 384],
 		dangerouslyAllowSVG: false,
 	},
 

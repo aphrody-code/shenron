@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Play } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import { isEditableAsset } from "@/lib/images";
 
 /**
  * EpisodeCard — carte vignette 16:9 (épisodes) façon streaming.
@@ -22,6 +24,7 @@ export function EpisodeCard({
 	hasVostfr,
 	width = "rail",
 	eager = false,
+	priority = false,
 }: {
 	href: string;
 	number: number | null;
@@ -35,7 +38,14 @@ export function EpisodeCard({
 	/** "rail" = largeur fixe pour un rail horizontal ; "full" = pleine largeur (grille). */
 	width?: "rail" | "full";
 	/** Charge la vignette immédiatement (1er rail visible) — évite le flash de carte vide. */
+	/** Charge la vignette sans attendre le défilement (première rangée). */
 	eager?: boolean;
+	/**
+	 * Précharge la vignette (`<link rel="preload">`). À RÉSERVER à l'image LCP :
+	 * six préchargements sur une rangée se disputent la bande passante et
+	 * retardent précisément celle qu'on voulait accélérer.
+	 */
+	priority?: boolean;
 }) {
 	const num = number != null ? String(number).padStart(3, "0") : "—";
 	return (
@@ -52,13 +62,21 @@ export function EpisodeCard({
 					{num}
 				</span>
 				{image && (
-					<img
+					<Image
 						src={assetUrl(image)}
 						alt=""
-						loading={eager ? "eager" : "lazy"}
-						decoding="async"
-						fetchPriority={eager ? "high" : "auto"}
-						className="relative h-full w-full object-cover transition-transform duration-500 group-hover/card:scale-105"
+						fill
+						// Largeurs réelles de la carte : 260/300 px en rail, une colonne de
+						// grille sinon. Sans `sizes`, Next sert la variante pleine largeur
+						// d'écran — soit exactement le gaspillage qu'on cherche à supprimer.
+						sizes={width === "rail" ? "(min-width: 640px) 300px, 260px" : "(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"}
+						quality={70}
+						priority={priority}
+						loading={eager || priority ? "eager" : "lazy"}
+						// Téléversements de l'admin : remplaçables au même chemin, donc servis
+						// tels quels pour rester frais immédiatement (cf. lib/images.ts).
+						unoptimized={isEditableAsset(image)}
+						className="object-cover transition-transform duration-500 group-hover/card:scale-105"
 					/>
 				)}
 

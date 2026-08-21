@@ -67,6 +67,10 @@ const PROBES = [
 	"/favoris",
 	"/wiki/hasard",
 	"/api/me",
+	// Optimiseur d'images : une configuration `remotePatterns` ou `qualities`
+	// invalide ne casse aucune page — elle casse SILENCIEUSEMENT toutes les
+	// vignettes. On sonde donc une transformation réelle avant de basculer.
+	`/_next/image?url=${encodeURIComponent("https://bot.dragonballfr.com/assets/ext/db_episodes/1.jpg")}&w=384&q=70`,
 ];
 const PUBLIC_URL = "https://dragonballfr.com/";
 const BOOT_TIMEOUT_MS = 180_000;
@@ -343,6 +347,18 @@ async function publishRelease(version: string, previous: string | null): Promise
 			]);
 		}
 	}
+
+	// Cache d'images PARTAGÉ entre versions. `.next/cache` est volontairement exclu
+	// de la copie ci-dessus (cache de build Turbopack inutile au runtime), mais
+	// `cache/images` est différent : il contient les variantes AVIF/WebP déjà
+	// calculées par l'optimiseur. Le laisser repartir de zéro à chaque mise en
+	// ligne, c'est refaire quelques milliers de transformations sharp sur un VPS
+	// déjà juste en mémoire — et servir les premières visites au ralenti. Les deux
+	// slots pointent le même répertoire : ils servent les mêmes images.
+	const cacheImages = join(RELEASES_ROOT, "image-cache");
+	await mkdir(cacheImages, { recursive: true });
+	await mkdir(join(destSite, ".next", "cache"), { recursive: true });
+	await symlink(cacheImages, join(destSite, ".next", "cache", "images"));
 
 	await Bun.write(join(destSite, "package.json"), Bun.file(join(SITE_DIR, "package.json")));
 	await Bun.write(join(destSite, "next.config.ts"), Bun.file(join(SITE_DIR, "next.config.ts")));

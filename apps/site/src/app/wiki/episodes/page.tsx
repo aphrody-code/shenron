@@ -117,6 +117,7 @@ async function EpisodeRails({ series }: { series: string[] }) {
 							// Premier rail, cartes au-dessus de la ligne de flottaison →
 							// chargement immédiat (pas de flash de vignette vide au fold).
 							eager={rowIdx === 0 && cardIdx < 6}
+							priority={rowIdx === 0 && cardIdx === 0}
 						/>
 					))}
 					{g.total > g.episodes.length && (

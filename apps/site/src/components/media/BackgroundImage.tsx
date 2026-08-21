@@ -4,7 +4,7 @@
  * Stratégie : 100 % natif, zéro lib JS d'animation.
  *   - image plein cadre `next/image fill` (responsive `sizes`, lazy par défaut,
  *     `priority` pour un hero LCP) servie directe depuis bot.dragonballfr.com
- *     (next.config `images.unoptimized` → URL passe-plat) ;
+ *     (optimisée AVIF/WebP, sauf téléversement admin — cf. lib/images.ts) ;
  *   - effet subtil au choix via CSS pur :
  *       • `kenburns`  → zoom/pan lent (classe `.ken-burns` du design system) ;
  *       • `parallax`  → scroll-driven `view-timeline` scopé (`.bg-parallax-*`,
@@ -37,6 +37,7 @@
 
 import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
+import { isEditableAsset } from "@/lib/images";
 
 export type BackgroundVariant = "none" | "kenburns" | "parallax" | "fixed";
 export type BackgroundOverlay = "none" | "bottom" | "full" | "sides" | "top";
@@ -108,6 +109,10 @@ export function BackgroundImage({
 				priority={priority}
 				loading={priority ? "eager" : "lazy"}
 				sizes={sizes}
+				quality={70}
+				// Bannière téléversée depuis l'admin : servie telle quelle pour rester
+				// fraîche dès le remplacement (cf. lib/images.ts).
+				unoptimized={isEditableAsset(src)}
 				className={`object-cover object-center ${motionClass} ${blur ? "scale-110 blur-2xl" : ""}`}
 				style={
 					// `fixed` : on simule le background-attachment via une couche figée
