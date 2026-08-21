@@ -11,7 +11,7 @@ import { PageViewTracker } from "@/components/PageViewTracker";
 import { ConsentGate } from "@/components/ConsentGate";
 import { FloatingAssistant } from "@/components/FloatingAssistant";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
-import { SITE_URL } from "@/lib/config";
+import { ASSET_ORIGIN, SITE_URL } from "@/lib/config";
 import { env } from "@/lib/env";
 import { getSiteTheme } from "@/lib/theme-config";
 import { themeCssVars } from "@/lib/site-theme";
@@ -116,6 +116,17 @@ export default async function RootLayout({
 	return (
 		<html lang="fr" className="dark">
 			<head>
+				{/* Toutes les images, vidéos et cartes de profil du site viennent du bot :
+				    100 requêtes vers cette origine sur une page de liste. Sans
+				    `preconnect`, le navigateur paie DNS + TCP + TLS avant la PREMIÈRE
+				    d'entre elles — un aller-retour complet, avant tout octet d'image.
+				    `crossOrigin` est requis pour que la connexion préouverte serve
+				    aussi les requêtes CORS (vidéos, fetch). */}
+				<link rel="preconnect" href={ASSET_ORIGIN} />
+				<link rel="preconnect" href={ASSET_ORIGIN} crossOrigin="anonymous" />
+				{/* Repli pour les navigateurs qui limitent le nombre de preconnect. */}
+				<link rel="dns-prefetch" href={ASSET_ORIGIN} />
+
 				{/* Initialisation par défaut du Consent Mode v2 de Google avant le chargement des scripts */}
 				<script
 					dangerouslySetInnerHTML={{

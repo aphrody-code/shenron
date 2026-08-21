@@ -38,6 +38,7 @@ import {
 } from "@/db/bot-schema";
 import type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
 import { eraOf, type TimelineItem } from "@/lib/chronology";
+import { orderPlayers } from "@/lib/players";
 
 // Re-export pour back-compat des pages serveur qui importaient assetUrl ici.
 export { assetUrl } from "@/lib/assets";
@@ -332,7 +333,7 @@ function toEpisode(r: typeof botEpisodes.$inferSelect): Episode {
 		video_url: r.videoUrl,
 		mal_id: r.malId,
 		subtitles: r.subtitles ?? null,
-		players: r.players ?? null,
+		players: orderPlayers(r.players),
 		stream_url: r.streamUrl ?? null,
 		frames: r.frames ?? null,
 		scene_preview: r.scenePreview ?? null,
@@ -357,7 +358,7 @@ function toMovie(r: typeof botMovies.$inferSelect): Movie {
 		anilist_id: r.anilistId,
 		video_url: r.videoUrl ?? null,
 		subtitles: r.subtitles ?? null,
-		players: r.players ?? null,
+		players: orderPlayers(r.players),
 		stream_url: r.streamUrl ?? null,
 	};
 }

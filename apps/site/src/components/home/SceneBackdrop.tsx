@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
 import type { HomeScene } from "@/lib/home-scenes";
+import { isEditableAsset } from "@/lib/images";
 
 /**
  * Fond cinématique d'un panneau : vidéo (uniquement quand le panneau est ACTIF — une seule joue à la
@@ -89,6 +90,8 @@ export function SceneBackdrop({
 					fill
 					priority={priority}
 					sizes="100vw"
+					quality={70}
+					unoptimized={isEditableAsset(scene.image)}
 					className={`scene-img object-cover object-[center_22%] ${
 						active ? "scene-img--live" : ""
 					}`}

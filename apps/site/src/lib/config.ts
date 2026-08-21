@@ -47,6 +47,19 @@ export const API_URL = trimSlash(
  */
 export const ASSET_BASE = trimSlash((process.env.NEXT_PUBLIC_SHENRON_ASSETS_URL ?? API_URL).trim());
 
+/**
+ * Origine seule (schéma + hôte) de `ASSET_BASE`, pour les indices de connexion
+ * (`<link rel="preconnect">`). Un preconnect doit porter une ORIGINE, pas une
+ * URL avec chemin — sinon le navigateur l'ignore silencieusement.
+ */
+export const ASSET_ORIGIN = (() => {
+	try {
+		return new URL(ASSET_BASE).origin;
+	} catch {
+		return ASSET_BASE;
+	}
+})();
+
 /** URL publique du site (OG, liens absolus, metadataBase). Sans slash final. */
 export const SITE_URL = trimSlash(
 	(process.env.NEXT_PUBLIC_SITE_URL ?? process.env.BETTER_AUTH_URL ?? SITE_HOST).trim()
