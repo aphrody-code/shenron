@@ -75,10 +75,14 @@ describe("Moderation Persistence", () => {
 		// Trigger onJoin
 		await joinLeave.onJoin([fakeMember] as any);
 
-		// Verify jail role was added (using default/fallback ID since JAIL_ROLE_ID might not be in env)
-		const expectedJailRoleId = process.env.JAIL_ROLE_ID || "1405635615827034194";
+		// Le code de production lit `env.JAIL_ROLE_ID` et ne connaît AUCUN repli
+		// codé en dur : le test posait un « ID par défaut » qui n'existe nulle part
+		// et échouait donc sans rien prouver. La variable est désormais posée par
+		// `tests/setup.ts`, et c'est bien cette valeur qui doit être réappliquée.
+		const expectedJailRoleId = process.env.JAIL_ROLE_ID;
+		expect(expectedJailRoleId).toBeTruthy();
 		const addedRoleIds = rolesAdded.map((r) => (typeof r === "string" ? r : r.id));
-		expect(addedRoleIds).toContain(expectedJailRoleId);
+		expect(addedRoleIds).toContain(expectedJailRoleId!);
 
 		// Clear jail
 		await dbs.db.delete(jails).where(eq(jails.userId, userId));

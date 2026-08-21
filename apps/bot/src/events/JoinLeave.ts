@@ -88,7 +88,15 @@ export class JoinLeaveEvent {
 								}
 							);
 						await this.logs.send(member.client, "sanction", jailEmbed);
+					} else {
+						await this.signalerEvasion(
+							member,
+							activeJail.reason,
+							`rôle ${roleId} introuvable sur la guild`
+						);
 					}
+				} else {
+					await this.signalerEvasion(member, activeJail.reason, "JAIL_ROLE_ID non configuré");
 				}
 			}
 		}
@@ -138,6 +146,32 @@ export class JoinLeaveEvent {
 			},
 			member.client
 		);
+	}
+
+	/**
+	 * Le re-cachot a échoué : la peine court toujours mais le rôle n'a pas pu
+	 * être réappliqué. Sans ce signalement, l'évasion était TOTALEMENT muette —
+	 * ni journal, ni salon de sanction — et le membre repartait blanchi.
+	 */
+	private async signalerEvasion(
+		member: GuildMember,
+		raison: string | null | undefined,
+		cause: string
+	): Promise<void> {
+		console.error(
+			`[JAIL] Évasion non contrée pour ${member.id} (${member.user.username}) : ${cause}`
+		);
+		const embed = this.logs
+			.makeEmbed("⚠️ Évasion de cachot non contrée", 0xf59e0b)
+			.setDescription(
+				`<@${member.id}> est revenu avec une peine toujours en cours, mais le rôle de cachot n'a PAS pu être réappliqué. Sanction à reposer à la main.`
+			)
+			.addFields(
+				{ name: "Cible", value: `${member.user} (${member.id})`, inline: true },
+				{ name: "Cause", value: cause, inline: true },
+				{ name: "Raison de base", value: raison ?? "*(non précisée)*" }
+			);
+		await this.logs.send(member.client, "sanction", embed).catch(() => {});
 	}
 
 	private async assignAutoRole(member: GuildMember): Promise<boolean> {

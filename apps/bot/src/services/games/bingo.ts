@@ -7,6 +7,15 @@
 export const BINGO_MIN = 1;
 export const BINGO_MAX = 100;
 export const BINGO_DEFAULT_TIMEOUT_MS = 60_000;
+/**
+ * Essais avant défaite sur la partie web (`POST /api/games/bingo/play`).
+ *
+ * La valeur vivait en dur des deux côtés — `attempts >= 10` dans `api/server.ts`,
+ * « / 10 » dans l'écran du site — alors que ce module se présente comme la source
+ * de vérité du jeu. La commande Discord, elle, limite par le temps et non par les
+ * essais : elle n'utilise pas cette constante.
+ */
+export const BINGO_MAX_ATTEMPTS = 10;
 
 export type BingoHint = "match" | "higher" | "lower" | "out-of-range";
 

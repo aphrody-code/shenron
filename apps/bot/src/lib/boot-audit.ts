@@ -70,12 +70,21 @@ export async function runBootAudit(client: Client) {
 		}
 	}
 
-	const roleChecks: Array<[string, string | undefined]> = [
-		["JAIL_ROLE_ID", env.JAIL_ROLE_ID],
+	// `gate` = ce que l'absence de la variable désactive silencieusement. Une
+	// variable simplement optionnelle reste ignorée ; celle qui commande un
+	// contrôle de modération doit se signaler, sinon le contrôle disparaît sans
+	// bruit. Vécu : `JAIL_ROLE_ID` n'était pas défini en production, donc un
+	// membre au cachot pouvait quitter le serveur et revenir pour s'en défaire —
+	// aucune trace, ni au démarrage ni au rejoin.
+	const roleChecks: Array<[string, string | undefined, string?]> = [
+		["JAIL_ROLE_ID", env.JAIL_ROLE_ID, "le re-cachot au rejoin et la commande /jail"],
 		["URL_IN_BIO_ROLE_ID", env.URL_IN_BIO_ROLE_ID],
 	];
-	for (const [key, id] of roleChecks) {
-		if (!id) continue;
+	for (const [key, id, gate] of roleChecks) {
+		if (!id) {
+			if (gate) problems.push(`${key} non défini — ${gate} est hors service`);
+			continue;
+		}
 		const role = guild.roles.cache.get(id);
 		if (!role) {
 			problems.push(`${key}=${id} — rôle introuvable`);

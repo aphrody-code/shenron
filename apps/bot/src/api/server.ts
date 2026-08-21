@@ -49,7 +49,13 @@ import {
 	emptyBoard,
 	evaluateBoard,
 } from "~/services/games/morpion";
-import { BINGO_MAX, BINGO_MIN, compareBingoGuess, randomBingoTarget } from "~/services/games/bingo";
+import {
+	BINGO_MAX,
+	BINGO_MAX_ATTEMPTS,
+	BINGO_MIN,
+	compareBingoGuess,
+	randomBingoTarget,
+} from "~/services/games/bingo";
 import {
 	constantTimeEqualStr,
 	packBingoToken,
@@ -3175,7 +3181,7 @@ export class ApiServer {
 								balance,
 							});
 						}
-						if (attempts >= 10) {
+						if (attempts >= BINGO_MAX_ATTEMPTS) {
 							const defaultLoss = await settings.getInt(
 								"zeni.game.loss_penalty",
 								ZENI_GAME_LOSS_PENALTY

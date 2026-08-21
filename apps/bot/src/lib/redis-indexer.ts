@@ -45,8 +45,12 @@ export class RedisIndexerService {
 		this.echecsTus += 1;
 		const maintenant = Date.now();
 		if (maintenant - this.dernierEchec < 60_000) return;
-		const repetitions = this.echecsTus > 1 ? ` (${this.echecsTus} échec(s) depuis le dernier message)` : "";
-		console.error(`[REDIS INDEXER] Erreur type ${type}${repetitions} :`, error || "Échec d'insertion");
+		const repetitions =
+			this.echecsTus > 1 ? ` (${this.echecsTus} échec(s) depuis le dernier message)` : "";
+		console.error(
+			`[REDIS INDEXER] Erreur type ${type}${repetitions} :`,
+			error || "Échec d'insertion"
+		);
 		this.dernierEchec = maintenant;
 		this.echecsTus = 0;
 	}

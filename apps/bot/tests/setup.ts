@@ -14,6 +14,10 @@ Bun.env.DISCORD_TOKEN_ENMA ??= "test-token";
 Bun.env.DISCORD_TOKEN_KAIO ??= "test-token";
 Bun.env.GUILD_ID ??= "1497167233280118896";
 Bun.env.OWNER_ID ??= "11111111111111111";
+// Rôle de cachot : le re-cachot au rejoin est conditionné à cette variable.
+// Sans elle, `JoinLeave.onJoin` ne réapplique rien — c'est d'ailleurs ce qui se
+// passait EN PRODUCTION, où elle n'était pas définie (évasion silencieuse).
+Bun.env.JAIL_ROLE_ID ??= "1405635615827034194";
 Bun.env.DATABASE_PATH = "./data/test.db";
 Bun.env.LOG_LEVEL = "error"; // silence pino pendant les tests
 
