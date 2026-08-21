@@ -1,3 +1,4 @@
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -226,4 +227,10 @@ const nextConfig: NextConfig = {
 	},
 };
 
-export default nextConfig;
+// Analyse de bundle à la demande : `ANALYZE=1 bun --filter @shenron/site build`
+// écrit .next/analyze/{client,nodejs,edge}.html. Hors de ce cas, l'enveloppe est
+// l'identité — aucun coût, aucune dépendance chargée sur un build de production.
+// Le socle JS partagé du site (~237 Kio) se lit là, pas dans le résumé de build.
+export default process.env.ANALYZE === "1"
+	? withBundleAnalyzer({ enabled: true, openAnalyzer: false })(nextConfig)
+	: nextConfig;

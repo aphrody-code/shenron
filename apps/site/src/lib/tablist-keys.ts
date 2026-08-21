@@ -28,7 +28,11 @@ export function onTablistKeyDown(e: KeyboardEvent<HTMLElement>): void {
 	const actif = typeof document === "undefined" ? null : (document.activeElement as HTMLElement);
 	let i = actif ? onglets.indexOf(actif) : -1;
 	// Focus hors du jeu d'onglets (activation à la souris) : on repart du sélectionné.
-	if (i === -1) i = Math.max(0, onglets.findIndex((o) => o.getAttribute("aria-selected") === "true"));
+	if (i === -1)
+		i = Math.max(
+			0,
+			onglets.findIndex((o) => o.getAttribute("aria-selected") === "true")
+		);
 
 	const cible =
 		e.key === "Home"

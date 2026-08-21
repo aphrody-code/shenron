@@ -81,6 +81,7 @@
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
 		"@eslint/js": "^10.0.1",
+		"@next/bundle-analyzer": "catalog:",
 		"@tailwindcss/postcss": "^4",
 		"@types/howler": "^2.2.12",
 		"@types/node": "catalog:",
