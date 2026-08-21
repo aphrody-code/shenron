@@ -102,7 +102,9 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 					<div className="reveal-up" style={{ animationDelay: "0.1s" }}>
 						<h1
 							className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-saiyan text-white mb-4 leading-none break-words"
-							style={{ textShadow: "0 0 20px color-mix(in srgb, var(--color-dbz-ki) 20%, transparent)" }}
+							style={{
+								textShadow: "0 0 20px color-mix(in srgb, var(--color-dbz-ki) 20%, transparent)",
+							}}
 						>
 							{planet.name}
 						</h1>

@@ -145,7 +145,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			return rows.map((r) => [`/wiki/sagas/${r.slug}`, 0.7, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
-			const rows = await db.select({ slug: botArcs.slug }).from(botArcs).where(eq(botArcs.visible, true));
+			const rows = await db
+				.select({ slug: botArcs.slug })
+				.from(botArcs)
+				.where(eq(botArcs.visible, true));
 			return rows.map((r) => [`/wiki/arcs/${r.slug}`, 0.6, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
@@ -199,7 +202,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				.from(posts)
 				.where(publicPostFilter());
 			const out: Array<readonly [string, number, Date]> = rows.map(
-				(p) => [`/actualites/${p.slug}`, 0.8, p.updatedAt ? new Date(p.updatedAt) : new Date()] as const
+				(p) =>
+					[`/actualites/${p.slug}`, 0.8, p.updatedAt ? new Date(p.updatedAt) : new Date()] as const
 			);
 			// Une page de thème n'est référencée que si elle a du contenu.
 			const tags = new Set<string>();
@@ -226,7 +230,12 @@ async function block(
 	try {
 		for (const [path, priority, lastModified] of await fn()) {
 			if (!isPublic(path)) continue;
-			entries.push({ url: `${SITE_URL}${path}`, lastModified, changeFrequency: "weekly", priority });
+			entries.push({
+				url: `${SITE_URL}${path}`,
+				lastModified,
+				changeFrequency: "weekly",
+				priority,
+			});
 		}
 	} catch (error) {
 		console.error("[sitemap] bloc ignoré :", error);

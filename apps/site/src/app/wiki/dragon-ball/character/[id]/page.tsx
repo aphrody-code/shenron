@@ -26,7 +26,10 @@ export async function generateStaticParams() {
 	// 1 323 fiches, et la rubrique « personnages » est encore fermée au public :
 	// les prérendre toutes au build serait payer un cache que personne ne lit.
 	// L'ISR prend le relais à la demande (cf. lib/prerender).
-	return capParams(list.map((c) => ({ id: String(c.id) })), 100);
+	return capParams(
+		list.map((c) => ({ id: String(c.id) })),
+		100
+	);
 }
 
 // Mémoïsé par requête : generateMetadata + le composant partagent un seul fetch.
@@ -281,10 +284,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			<TrackView entityType="character" entityId={character.id} entityName={character.name} />
 			<Breadcrumbs
 				className="mb-4"
-				items={[
-					{ label: "L'Univers", href: "/wiki/personnages" },
-					{ label: character.name },
-				]}
+				items={[{ label: "L'Univers", href: "/wiki/personnages" }, { label: character.name }]}
 			/>
 			<WikiAdminBar
 				table="db_characters"

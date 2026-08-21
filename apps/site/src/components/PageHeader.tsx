@@ -21,7 +21,8 @@ export function PageHeader({
 			<h1
 				className={`text-dbz-yellow ${size === "lg" ? "text-5xl md:text-7xl mb-4" : "text-5xl mb-2"}`}
 				style={{
-					textShadow: "4px 4px 0px color-mix(in srgb, var(--color-dbz-ember) 60%, transparent), 0 0 24px color-mix(in srgb, var(--color-dbz-ki) 30%, transparent)",
+					textShadow:
+						"4px 4px 0px color-mix(in srgb, var(--color-dbz-ember) 60%, transparent), 0 0 24px color-mix(in srgb, var(--color-dbz-ki) 30%, transparent)",
 				}}
 			>
 				{title}

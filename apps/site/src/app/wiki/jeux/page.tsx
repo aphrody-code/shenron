@@ -30,7 +30,8 @@ function excerpt(text: string | null | undefined, max = 180): string {
 
 export default async function JeuxPage() {
 	const data = await dbUniverse.games();
-	if (!data || data.games.length === 0) return <SectionUnavailable title="Jeux vidéo Dragon Ball" />;
+	if (!data || data.games.length === 0)
+		return <SectionUnavailable title="Jeux vidéo Dragon Ball" />;
 	const games = data.games;
 	const ratings = await getRatingSummaries(
 		"game",

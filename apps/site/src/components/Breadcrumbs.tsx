@@ -67,7 +67,10 @@ export function Breadcrumbs({
 										{c.label}
 									</Link>
 								) : (
-									<span className={last ? "text-white/70" : undefined} aria-current={last ? "page" : undefined}>
+									<span
+										className={last ? "text-white/70" : undefined}
+										aria-current={last ? "page" : undefined}
+									>
 										{c.label}
 									</span>
 								)}

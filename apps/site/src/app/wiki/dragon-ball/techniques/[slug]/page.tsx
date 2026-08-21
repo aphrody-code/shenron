@@ -21,7 +21,10 @@ export async function generateStaticParams() {
 	const list = await getShenronTechniques();
 	// 825 fiches pour une rubrique tout juste ouverte : on prérend les plus
 	// susceptibles d'être visitées, l'ISR fait le reste.
-	return capParams(list.map((t) => ({ slug: t.slug })), 300);
+	return capParams(
+		list.map((t) => ({ slug: t.slug })),
+		300
+	);
 }
 
 export async function generateMetadata({

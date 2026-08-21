@@ -503,10 +503,7 @@ export async function setAllWikiVisibility(
 			? []
 			: before.map((r) => ({ id: String(r.id), visible: r.visible !== false }));
 
-	const updated = (await db
-		.update(spec.table)
-		.set({ visible })
-		.returning({ id: pkCol })) as Row[];
+	const updated = (await db.update(spec.table).set({ visible }).returning({ id: pkCol })) as Row[];
 
 	return { updated: updated.length, previous };
 }

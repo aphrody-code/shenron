@@ -13,8 +13,7 @@ export const metadata: Metadata = {
 		"Pose ta question sur l'univers Dragon Ball : l'assistant répond à partir du wiki et du manga, et cite ses sources. Personnages, sagas, techniques, films.",
 	...ogMeta({
 		title: "Assistant Dragon Ball — DBFR",
-		description:
-			"Une question sur Dragon Ball ? L'assistant répond en citant le wiki et le manga.",
+		description: "Une question sur Dragon Ball ? L'assistant répond en citant le wiki et le manga.",
 		type: "website",
 		canonical: "/ask",
 	}),

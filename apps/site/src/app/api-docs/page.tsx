@@ -194,7 +194,8 @@ export default async function ApiDocsPage() {
 				<h1
 					className="text-5xl md:text-7xl text-dbz-yellow mb-4"
 					style={{
-						textShadow: "4px 4px 0px color-mix(in srgb, var(--color-dbz-ember) 60%, transparent), 0 0 24px color-mix(in srgb, var(--color-dbz-ki) 30%, transparent)",
+						textShadow:
+							"4px 4px 0px color-mix(in srgb, var(--color-dbz-ember) 60%, transparent), 0 0 24px color-mix(in srgb, var(--color-dbz-ki) 30%, transparent)",
 					}}
 				>
 					API

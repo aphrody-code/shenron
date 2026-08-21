@@ -312,7 +312,7 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 						<input
 							type="text"
 							aria-label="Rechercher un tome ou un chapitre"
-						placeholder="Rechercher un tome ou chapitre..."
+							placeholder="Rechercher un tome ou chapitre..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="w-full bg-black/60 border border-white/10 rounded-md py-2.5 pl-9 pr-4 text-sm text-white placeholder-white/30 focus:border-dbz-orange focus:ring-1 focus:ring-dbz-orange outline-none transition-all font-display font-medium shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)]"

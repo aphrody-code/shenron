@@ -55,10 +55,7 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<Breadcrumbs
 				className="mb-12"
-				items={[
-					{ label: "Manga", href: "/wiki/manga" },
-					{ label: `Tome ${volume.volume_number}` },
-				]}
+				items={[{ label: "Manga", href: "/wiki/manga" }, { label: `Tome ${volume.volume_number}` }]}
 			/>
 
 			<div className="flex flex-col md:flex-row gap-12 lg:gap-20">

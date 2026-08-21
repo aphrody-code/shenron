@@ -253,7 +253,11 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
 			className="ed-meta mt-16 flex items-center justify-between border-t border-[color:var(--ed-rule)] pt-6"
 		>
 			{page > 1 ? (
-				<Link href={journalHref(page - 1)} rel="prev" className="hover:text-[color:var(--ed-accent)]">
+				<Link
+					href={journalHref(page - 1)}
+					rel="prev"
+					className="hover:text-[color:var(--ed-accent)]"
+				>
 					← Précédent
 				</Link>
 			) : (
@@ -263,7 +267,11 @@ function Pagination({ page, totalPages }: { page: number; totalPages: number }) 
 				Page {page} sur {totalPages}
 			</span>
 			{page < totalPages ? (
-				<Link href={journalHref(page + 1)} rel="next" className="hover:text-[color:var(--ed-accent)]">
+				<Link
+					href={journalHref(page + 1)}
+					rel="next"
+					className="hover:text-[color:var(--ed-accent)]"
+				>
 					Suivant →
 				</Link>
 			) : (

@@ -143,11 +143,28 @@ main:focus {
 	--color-dbz-amber: var(--dbz-amber, #ffd23f); /* ambre (dégradés, texte ghost) */
 
 	/* Gradients réutilisables */
-	--gradient-galactic: linear-gradient(135deg, var(--color-dbz-ember) 0%, var(--color-dbz-amber) 50%, #ff3e00 100%);
+	--gradient-galactic: linear-gradient(
+		135deg,
+		var(--color-dbz-ember) 0%,
+		var(--color-dbz-amber) 50%,
+		#ff3e00 100%
+	);
 	--gradient-nebula:
-		radial-gradient(ellipse 130% 70% at 50% 0%, color-mix(in srgb, var(--color-dbz-ember) 22%, transparent), transparent 62%),
-		radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--color-dbz-ki) 14%, transparent), transparent 55%),
-		radial-gradient(ellipse at bottom left, color-mix(in srgb, var(--color-dbz-amber) 10%, transparent), transparent 50%);
+		radial-gradient(
+			ellipse 130% 70% at 50% 0%,
+			color-mix(in srgb, var(--color-dbz-ember) 22%, transparent),
+			transparent 62%
+		),
+		radial-gradient(
+			ellipse at bottom right,
+			color-mix(in srgb, var(--color-dbz-ki) 14%, transparent),
+			transparent 55%
+		),
+		radial-gradient(
+			ellipse at bottom left,
+			color-mix(in srgb, var(--color-dbz-amber) 10%, transparent),
+			transparent 50%
+		);
 
 	--color-primary: var(--color-dbz-orange);
 	--color-primary-foreground: #ffffff;
@@ -409,8 +426,15 @@ main:focus {
 	}
 	.hud-grid {
 		background-image:
-			linear-gradient(color-mix(in srgb, var(--color-dbz-ember) 7%, transparent) 1px, transparent 1px),
-			linear-gradient(90deg, color-mix(in srgb, var(--color-dbz-ember) 7%, transparent) 1px, transparent 1px);
+			linear-gradient(
+				color-mix(in srgb, var(--color-dbz-ember) 7%, transparent) 1px,
+				transparent 1px
+			),
+			linear-gradient(
+				90deg,
+				color-mix(in srgb, var(--color-dbz-ember) 7%, transparent) 1px,
+				transparent 1px
+			);
 		background-size: 24px 24px;
 	}
 	.hud-frame {
@@ -478,11 +502,17 @@ main:focus {
 
 	/* === Manga FX réutilisés (recolored) === */
 	.halftone {
-		background-image: radial-gradient(color-mix(in srgb, var(--color-dbz-ember) 18%, transparent) 1px, transparent 1.5px);
+		background-image: radial-gradient(
+			color-mix(in srgb, var(--color-dbz-ember) 18%, transparent) 1px,
+			transparent 1.5px
+		);
 		background-size: 4px 4px;
 	}
 	.halftone-orange {
-		background-image: radial-gradient(color-mix(in srgb, var(--color-dbz-ki) 25%, transparent) 1px, transparent 1.6px);
+		background-image: radial-gradient(
+			color-mix(in srgb, var(--color-dbz-ki) 25%, transparent) 1px,
+			transparent 1.6px
+		);
 		background-size: 5px 5px;
 	}
 	/* Screentone neutre (trame benday de gris) — ombrage façon planche manga
@@ -535,7 +565,8 @@ main:focus {
 		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
-		filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-dbz-ember) 50%, transparent)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
+		filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-dbz-ember) 50%, transparent))
+			drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
 		letter-spacing: 0.04em;
 	}
 	@keyframes ki-pulse {
@@ -597,15 +628,31 @@ main:focus {
 	.starfield {
 		background-image:
 			radial-gradient(1px 1px at 25% 12%, rgba(255, 255, 255, 0.9), transparent),
-			radial-gradient(1px 1px at 70% 28%, color-mix(in srgb, var(--color-dbz-ember) 80%, transparent), transparent),
+			radial-gradient(
+				1px 1px at 70% 28%,
+				color-mix(in srgb, var(--color-dbz-ember) 80%, transparent),
+				transparent
+			),
 			radial-gradient(1px 1px at 15% 45%, rgba(255, 255, 255, 0.7), transparent),
-			radial-gradient(2px 2px at 88% 60%, color-mix(in srgb, var(--color-dbz-ki) 90%, transparent), transparent),
+			radial-gradient(
+				2px 2px at 88% 60%,
+				color-mix(in srgb, var(--color-dbz-ki) 90%, transparent),
+				transparent
+			),
 			radial-gradient(1px 1px at 40% 75%, rgba(255, 255, 255, 0.6), transparent),
-			radial-gradient(1px 1px at 60% 92%, color-mix(in srgb, var(--color-dbz-amber) 80%, transparent), transparent),
+			radial-gradient(
+				1px 1px at 60% 92%,
+				color-mix(in srgb, var(--color-dbz-amber) 80%, transparent),
+				transparent
+			),
 			radial-gradient(1px 1px at 92% 18%, rgba(255, 255, 255, 0.5), transparent),
 			radial-gradient(1px 1px at 5% 70%, rgba(217, 33, 33, 0.7), transparent),
 			radial-gradient(1px 1px at 50% 5%, rgba(255, 255, 255, 0.4), transparent),
-			radial-gradient(1px 1px at 33% 33%, color-mix(in srgb, var(--color-dbz-ember) 50%, transparent), transparent);
+			radial-gradient(
+				1px 1px at 33% 33%,
+				color-mix(in srgb, var(--color-dbz-ember) 50%, transparent),
+				transparent
+			);
 		background-size: 600px 600px;
 		background-repeat: repeat;
 	}
@@ -682,7 +729,11 @@ main:focus {
 		background:
 			radial-gradient(40% 50% at 25% 30%, rgba(255, 178, 0, 0.22), transparent 70%),
 			radial-gradient(45% 55% at 78% 65%, rgba(255, 62, 0, 0.16), transparent 70%),
-			radial-gradient(35% 45% at 60% 18%, color-mix(in srgb, var(--color-dbz-ki) 12%, transparent), transparent 70%);
+			radial-gradient(
+				35% 45% at 60% 18%,
+				color-mix(in srgb, var(--color-dbz-ki) 12%, transparent),
+				transparent 70%
+			);
 		filter: blur(60px);
 		animation: aurora-drift 24s ease-in-out infinite;
 		will-change: transform;
