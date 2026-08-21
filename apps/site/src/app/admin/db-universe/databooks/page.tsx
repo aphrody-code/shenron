@@ -5,6 +5,7 @@ import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
 import { listWikiSnake } from "@/lib/wiki-admin";
+import { toMillis } from "@/lib/epoch";
 
 export const dynamic = "force-dynamic";
 
@@ -31,14 +32,14 @@ function pagesCount(pages: unknown): number {
 
 function fmtDate(v: number | null): string {
 	if (!v) return "—";
-	const ms = v >= 1e12 ? v : v * 1000;
+	const ms = toMillis(v);
 	const d = new Date(ms);
 	return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("fr-FR");
 }
 
 function publishedMs(v: number | null): number {
 	if (!v) return 0;
-	return v >= 1e12 ? v : v * 1000;
+	return toMillis(v);
 }
 
 const GROUPS: { key: string; label: string }[] = [

@@ -20,6 +20,7 @@ import {
 } from "@/lib/databook-categories";
 import { ClientGatedWrap } from "@/components/GatedClientLink";
 import type { AccessSnapshot } from "@/lib/wiki-launch";
+import { toMillis } from "@/lib/epoch";
 
 export interface DatabookItem {
 	id: number;
@@ -85,7 +86,7 @@ function matchesCategory(d: DatabookItem, cat: DatabookCategory): boolean {
 
 function formatDate(v: number | null): string {
 	if (!v) return "—";
-	const ms = v >= 1e12 ? v : v * 1000;
+	const ms = toMillis(v);
 	try {
 		return new Date(ms).toLocaleDateString("fr-FR", { year: "numeric", month: "long" });
 	} catch {

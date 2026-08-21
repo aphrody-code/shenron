@@ -11,12 +11,13 @@ import { assetUrl, dbUniverse } from "@/lib/db-universe";
 import { ogMeta } from "@/lib/og";
 import { JsonLd } from "@/components/JsonLd";
 import { parseDatabookId } from "@/lib/databooks-rules";
+import { toMillis, yearOf } from "@/lib/epoch";
 
 export const revalidate = 3600;
 
 function formatDate(v: number | null): string {
 	if (!v) return "—";
-	const ms = v >= 1e12 ? v : v * 1000;
+	const ms = toMillis(v);
 	try {
 		return new Date(ms).toLocaleDateString("fr-FR", {
 			year: "numeric",
@@ -26,6 +27,42 @@ function formatDate(v: number | null): string {
 	} catch {
 		return "—";
 	}
+}
+
+/**
+ * Description de repli, composée à partir des données réelles de la fiche.
+ *
+ * 272 des 318 databooks n'ont pas de description rédigée. Le repli était une
+ * seule phrase gabarit — donc **272 méta-descriptions identiques**, exactement ce
+ * qu'un moteur traite comme du contenu dupliqué. Ici, catégorie, auteur, année et
+ * nombre de planches produisent une phrase différente par ouvrage, à partir de
+ * faits vérifiés plutôt que d'un texte inventé.
+ */
+function descriptionDeRepli(book: {
+	title: string;
+	title_ja: string | null;
+	author: string | null;
+	published_at: number | null;
+	category: string | null;
+	kind: string;
+	pages: { image: string | null }[];
+}): string {
+	const nature =
+		book.kind === "interview"
+			? "Interview"
+			: book.kind === "artbook"
+				? "Artbook"
+				: (book.category ?? "Guide officiel");
+	const bouts: string[] = [`${nature} Dragon Ball : ${book.title}`];
+	if (book.title_ja) bouts.push(book.title_ja);
+	const meta: string[] = [];
+	if (book.author) meta.push(book.author);
+	const annee = yearOf(book.published_at);
+	if (annee !== null) meta.push(String(annee));
+	const planches = book.pages.filter((p) => p.image).length;
+	if (planches > 0) meta.push(`${planches} planche${planches > 1 ? "s" : ""} consultables`);
+	if (meta.length) bouts.push(meta.join(" · "));
+	return `${bouts.join(" — ")}.`;
 }
 
 function plainText(md: string, max = 160): string {
@@ -53,9 +90,7 @@ export async function generateMetadata({
 	const n = parseDatabookId(id);
 	const book = n === null ? null : await dbUniverse.databook(n);
 	if (!book) return { title: "Databook introuvable", robots: { index: false, follow: true } };
-	const description = book.description
-		? plainText(book.description)
-		: `${book.title} — guide officiel Dragon Ball sur DBFR.`;
+	const description = book.description ? plainText(book.description) : descriptionDeRepli(book);
 	const cover = book.cover ? assetUrl(book.cover) : undefined;
 	return {
 		title: `${book.title} — Databooks`,
@@ -99,9 +134,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 		description: book.description ? plainText(book.description, 300) : undefined,
 		author: book.author ? { "@type": "Person", name: book.author } : undefined,
 		datePublished: book.published_at
-			? new Date(book.published_at >= 1e12 ? book.published_at : book.published_at * 1000)
-					.toISOString()
-					.split("T")[0]
+			? new Date(toMillis(book.published_at)).toISOString().split("T")[0]
 			: undefined,
 		// `numberOfPages` n'a de sens que pour un ouvrage réellement paginé.
 		...(isInterview ? {} : { numberOfPages: book.pages.length || undefined }),
