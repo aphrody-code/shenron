@@ -3,8 +3,29 @@ import { getProfileCardUrl } from "@/lib/assets";
 import { getShenronUserResult } from "@/lib/shenron";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+// Le profil d'un membre porte son pseudo : sans ces métadonnées, chaque profil
+// se partageait sous le titre générique du site. Hors index (donnée personnelle),
+// mais l'aperçu de partage reste correct sur Discord.
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+	const { id } = await params;
+	const res = await getShenronUserResult(id);
+	const pseudo = res.status === "ok" ? (res.user.username ?? null) : null;
+	return {
+		title: pseudo ? `Profil de ${pseudo}` : "Profil de membre",
+		description: pseudo
+			? `Niveau, statistiques et carte de ${pseudo} sur Dragon Ball France.`
+			: "Niveau, statistiques et carte d'un membre de Dragon Ball France.",
+		robots: { index: false, follow: true },
+	};
+}
 
 const fmt = (n: number | null | undefined) =>
 	typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("fr-FR") : "0";

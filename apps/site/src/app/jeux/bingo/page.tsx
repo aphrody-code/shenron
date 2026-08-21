@@ -1,5 +1,12 @@
 import { GamePageLayout } from "@/components/GamePageLayout";
 import { BingoGame } from "./BingoGame";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "Bingo du Ki — Jeux",
+	description: "Devine la puissance de combat des guerriers Dragon Ball et marque tes cases.",
+	alternates: { canonical: "/jeux/bingo" },
+};
 
 export const dynamic = "force-dynamic";
 

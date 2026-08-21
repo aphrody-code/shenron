@@ -1,6 +1,14 @@
 import { getCurrentUser } from "@/lib/session";
 import { notFound } from "next/navigation";
 import { API_URL as SHENRON_API } from "@/lib/config";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+	title: "Documentation de l'API",
+	description: "Référence des endpoints publics de l'API Dragon Ball France.",
+	// Écran réservé aux administrateurs (404 pour les autres) : rien à indexer.
+	robots: { index: false, follow: false },
+};
 
 const PUBLIC_ROUTES = [
 	{

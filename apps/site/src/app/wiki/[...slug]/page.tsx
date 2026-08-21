@@ -3,6 +3,42 @@ import { db } from "@/lib/db";
 import { isCurrentUserAdmin } from "@/lib/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+/** Extrait lisible du corps markdown, pour la balise description. */
+function extrait(body: string, max = 160): string {
+	const nu = body
+		.replace(/```[\s\S]*?```/g, " ")
+		.replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+		.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+		.replace(/<[^>]+>/g, " ")
+		.replace(/[#>*_`|-]+/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
+	return nu.length > max ? `${nu.slice(0, max - 1).trimEnd()}…` : nu;
+}
+
+// Chaque page wiki éditoriale portait le titre générique du site : ni résultat
+// de recherche exploitable, ni aperçu de partage distinct sur Discord.
+export async function generateMetadata({
+	params,
+}: {
+	params: Promise<{ slug: string[] }>;
+}): Promise<Metadata> {
+	const { slug } = await params;
+	const page = await db.query.wikiPages.findFirst({
+		where: (p, { eq }) => eq(p.slug, slug[slug.length - 1]!),
+		columns: { title: true, body: true },
+	});
+	if (!page) return { title: "Page introuvable", robots: { index: false, follow: true } };
+	return {
+		title: page.title,
+		// Pas de champ résumé sur `WikiPage` : on dérive un extrait du corps
+		// (markdown débarrassé de sa syntaxe la plus bruyante).
+		description: extrait(page.body) || `${page.title} — article du wiki Dragon Ball France.`,
+		alternates: { canonical: `/wiki/${slug.join("/")}` },
+	};
+}
 
 export default async function WikiPage({ params }: { params: Promise<{ slug: string[] }> }) {
 	const { slug } = await params;
