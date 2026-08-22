@@ -8,7 +8,6 @@
  *
  * Un seul filtre actif à la fois + tri date + recherche.
  */
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowDownUp, BookOpen, Mic, Palette, BookMarked, Search } from "lucide-react";
 import { ViewTransition } from "@/components/ViewTransition";

@@ -229,7 +229,10 @@ export async function chercherDansPlanches(
 			  AND bot.databook_pages_text(d.pages) ILIKE ${motif}
 		),
 		trouvees AS (
-			SELECT c.id, c.title, c.category, c.cover,
+			-- Alias en français : le mapping TypeScript lit titre/categorie.
+			-- Sans eux, SELECT t.* sort title/category et les deux champs
+			-- arrivaient undefined côté client — vu en production.
+			SELECT c.id, c.title AS titre, c.category AS categorie, c.cover,
 			       coalesce((p ->> 'number')::int, ord::int) AS numero,
 			       nullif(btrim(p ->> 'image'), '') AS image,
 			       p ->> 'text' AS texte
@@ -244,7 +247,7 @@ export async function chercherDansPlanches(
 		)
 		SELECT t.*, c.total, c.fiches
 		FROM trouvees t CROSS JOIN compte c
-		ORDER BY t.title, t.numero
+		ORDER BY t.titre, t.numero
 		LIMIT ${limit}
 	`);
 

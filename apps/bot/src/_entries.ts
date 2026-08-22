@@ -26,6 +26,7 @@ import "./commands/utility/Invitations";
 import "./commands/utility/TikTok";
 import "./commands/vocal/Vocal";
 import "./commands/wiki/Ask";
+import "./commands/wiki/Databooks";
 import "./commands/wiki/Wiki";
 import "./events/AuditLog";
 import "./events/AutonomousChat";
