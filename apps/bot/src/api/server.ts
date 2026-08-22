@@ -3416,12 +3416,14 @@ export class ApiServer {
 					POST: admin(async (req) => {
 						const body = (await req.json().catch(() => null)) as {
 							channelId?: string;
+							/** Envoi en message privé : le canal DM est ouvert à la volée. */
+							userId?: string;
 							content?: string;
 							embed?: Record<string, unknown>;
 							persona?: PersonaId;
 						} | null;
-						if (!body?.channelId) {
-							return Response.json({ error: "channelId requis" }, { status: 400 });
+						if (!body?.channelId && !body?.userId) {
+							return Response.json({ error: "channelId ou userId requis" }, { status: 400 });
 						}
 						if (!body.content && !body.embed) {
 							return Response.json({ error: "content ou embed requis" }, { status: 400 });
@@ -3436,18 +3438,36 @@ export class ApiServer {
 							return Response.json({ error: "persona offline" }, { status: 503 });
 						}
 						try {
-							const channel = await client.channels.fetch(body.channelId);
-							if (!channel || !channel.isTextBased() || !("send" in channel)) {
+							// Un identifiant d'utilisateur ne se résout pas en salon : il faut
+							// ouvrir (ou retrouver) le canal privé. On renvoie son id et le nom
+							// du destinataire — écrire à quelqu'un est irréversible, l'appelant
+							// doit pouvoir vérifier à qui il vient de parler.
+							let destinataire: string | null = null;
+							let channel: unknown;
+							if (body.userId) {
+								if (!/^\d{17,20}$/.test(body.userId)) {
+									return Response.json({ error: "userId invalide" }, { status: 400 });
+								}
+								const user = await client.users.fetch(body.userId);
+								destinataire = user.globalName ?? user.username;
+								channel = await user.createDM();
+							} else {
+								channel = await client.channels.fetch(body.channelId!);
+							}
+							const ch = channel as TextChannel | null;
+							if (!ch || !ch.isTextBased?.() || !("send" in (ch as object))) {
 								return Response.json({ error: "salon textuel introuvable" }, { status: 404 });
 							}
-							const sent = await (channel as TextChannel).send({
+							const sent = await ch.send({
 								content: body.content ?? undefined,
 								embeds: body.embed ? [body.embed as APIEmbed] : undefined,
 							});
 							return Response.json({
 								ok: true,
 								messageId: sent.id,
-								url: `https://discord.com/channels/${sent.guildId}/${sent.channelId}/${sent.id}`,
+								channelId: sent.channelId,
+								destinataire,
+								url: `https://discord.com/channels/${sent.guildId ?? "@me"}/${sent.channelId}/${sent.id}`,
 							});
 						} catch (err) {
 							return Response.json(
