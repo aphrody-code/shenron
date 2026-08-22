@@ -6,9 +6,11 @@ import { findEntry, resolveAccess } from "@/lib/wiki-launch";
 import { getMemberRoleIds } from "@/lib/member-roles";
 
 // proxy.ts = « middleware » de Next 16 (renommé middleware.ts → proxy.ts).
-// Deux rôles : (1) canonicalisation du host vers dragonballfr.com ; (2) gating
-// bêta des sections non publiques (wiki hors catégories ouvertes, + tierlists),
-// avec exception admin/owner. Cf. https://nextjs.org/docs/messages/middleware-to-proxy
+// Trois rôles : (1) canonicalisation du host vers dragonballfr.com ; (2) gating
+// de l'espace /admin, qu'un `redirect()` de layout ne peut PAS protéger sous
+// streaming (cf. le bloc dédié plus bas) ; (3) gating bêta des sections non
+// publiques (wiki hors catégories ouvertes, + tierlists), avec exception
+// admin/owner. Cf. https://nextjs.org/docs/messages/middleware-to-proxy
 //
 // Les catégories publiques ne sont PLUS codées en dur : elles viennent de la DB
 // (`wiki-launch-config`, singleton WikiLaunch, cache TTL) → bascule live depuis
@@ -87,6 +89,31 @@ export async function proxy(request: NextRequest) {
 		const n = /^[0-9]+$/.test(raw) ? Number(raw) : 1;
 		const target = new URL(n >= 2 ? `/actualites/page/${n}` : "/actualites", request.url);
 		return NextResponse.redirect(target, 308);
+	}
+
+	// Espace d'administration : arbitré ICI, avant tout rendu.
+	//
+	// `app/admin/layout.tsx` appelle bien `requireAdmin()`, mais sous Next 16 le
+	// layout et ses enfants sont **streamés en parallèle** : le `redirect()` du
+	// layout part dans le flux RSC alors que les pages ont déjà été rendues et
+	// que leur charge utile est déjà émise. Un anonyme recevait donc un 200 avec
+	// les données — mesuré le 2026-08-22 sur la prod : 851 Kio de titres sur
+	// /admin/db-universe/databooks, et 470 Kio contenant 7 032 segments de
+	// japonais transcrit sur /admin/databooks/19.
+	//
+	// C'est la même mécanique que le 308 de `/wiki/dragon-ball`, qui a dû quitter
+	// le composant pour `next.config` : sous streaming, une redirection de layout
+	// n'empêche pas le rendu de ce qu'elle est censée protéger. Seul le proxy
+	// s'exécute avant le rendu.
+	//
+	// `requireAdmin()` reste en place dans le layout — défense en profondeur, et
+	// il couvre les chemins qui n'entrent pas dans le matcher du proxy.
+	if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+		const visitor = await visitorOf(request);
+		if (!visitor.isAdmin) {
+			return NextResponse.redirect(new URL("/", request.url));
+		}
+		return NextResponse.next();
 	}
 
 	// Contrôle d'accès par rubrique : chaque catégorie wiki et chaque section du
