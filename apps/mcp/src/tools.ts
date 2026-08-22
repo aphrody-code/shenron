@@ -72,6 +72,26 @@ const WIKI_GET_CATEGORIES = [
 	"episodes",
 ] as const;
 
+/**
+ * Extrait le texte autour du terme cherché.
+ *
+ * Une planche transcrite fait couramment un millier de caractères ; en rendre
+ * dix d'un coup noierait la réponse pour montrer dix fois une phrase de deux
+ * mots. On rend donc une fenêtre centrée sur l'occurrence — et si le terme n'y
+ * figure pas littéralement (la recherche est trigramme, elle tolère
+ * l'approximation), le début de la planche, qui vaut mieux que rien.
+ */
+const EXTRAIT_LARGEUR = 320;
+
+function extraitAutour(texte: string, terme: string): string {
+	if (texte.length <= EXTRAIT_LARGEUR) return texte;
+	const at = texte.indexOf(terme);
+	if (at < 0) return `${texte.slice(0, EXTRAIT_LARGEUR)}…`;
+	const debut = Math.max(0, at - Math.floor((EXTRAIT_LARGEUR - terme.length) / 2));
+	const fin = Math.min(texte.length, debut + EXTRAIT_LARGEUR);
+	return `${debut > 0 ? "…" : ""}${texte.slice(debut, fin)}${fin < texte.length ? "…" : ""}`;
+}
+
 export function registerAllTools(server: McpServer): void {
 	// ── RAG ────────────────────────────────────────────────────────────────
 	server.registerTool(
@@ -413,7 +433,7 @@ export function registerAllTools(server: McpServer): void {
 		{
 			title: "Recherche dans les databooks Dragon Ball",
 			description:
-				"Recherche plein texte française dans les guides officiels, artbooks et interviews Dragon Ball (titre, titre japonais, auteur, description). Renvoie les fiches correspondantes avec leur couverture et leur nombre de planches. API : dragonballfr.com/api/databooks.",
+				"Recherche parmi les FICHES d'ouvrages Dragon Ball — titre, titre japonais, auteur, description — et renvoie les fiches correspondantes avec leur couverture et leur nombre de planches. Elle ne regarde PAS le texte des planches : pour retrouver une phrase lue sur une planche, utiliser `databooks_planches`. API : dragonballfr.com/api/databooks.",
 			inputSchema: {
 				q: z.string().min(1).max(200).optional().describe("Termes recherchés (plein texte)"),
 				kind: z
@@ -447,6 +467,46 @@ export function registerAllTools(server: McpServer): void {
 					url: `/wiki/databooks/${reste.id}`,
 				}));
 				return jsonResult({ total: r.total ?? items.length, items });
+			} catch (err) {
+				return errorResult(err);
+			}
+		}
+	);
+
+	server.registerTool(
+		"databooks_planches",
+		{
+			title: "Recherche dans le texte des planches",
+			description:
+				"Recherche une expression DANS LA TRANSCRIPTION des planches (japonais, français, chiffres) et renvoie les planches qui la contiennent, avec l'ouvrage, le numéro de planche et un extrait autour du terme. À distinguer de `databooks_search`, qui ne regarde que titre, auteur et description : une phrase lue sur une planche n'y est pas trouvable. API : dragonballfr.com/api/databooks/search.",
+			inputSchema: {
+				q: z.string().min(1).max(200).describe("Expression cherchée dans le texte des planches"),
+				databook: z
+					.number()
+					.int()
+					.min(1)
+					.optional()
+					.describe("Restreindre la recherche à un seul ouvrage"),
+				limit: z.number().int().min(1).max(50).optional().describe("Nombre de planches (défaut 10)"),
+			},
+			annotations: { title: "Recherche dans le texte des planches", ...READ_ANNOTATIONS },
+		},
+		async ({ q, databook, limit }) => {
+			try {
+				const r = (await siteGet("/api/databooks/search", {
+					q,
+					databook,
+					limit: limit ?? 10,
+				})) as { items?: Record<string, unknown>[] };
+				const items = (r.items ?? []).map((p) => {
+					const { texte, ...reste } = p;
+					return {
+						...reste,
+						url: `/wiki/databooks/${reste.databookId}`,
+						extrait: extraitAutour(typeof texte === "string" ? texte : "", q),
+					};
+				});
+				return jsonResult({ q, total: items.length, items });
 			} catch (err) {
 				return errorResult(err);
 			}
