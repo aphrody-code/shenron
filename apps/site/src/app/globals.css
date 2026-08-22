@@ -3093,3 +3093,92 @@ html[data-consent-open] .fab-secondary {
 		visibility: visible;
 	}
 }
+
+/* ── Transcriptions de databooks ─────────────────────────────────────────
+   Le texte des planches est du markdown produit par lecture automatique des
+   scans : beaucoup de titres courts (1 357 planches commencent par un `#`),
+   des listes de crédits, des prix et des tailles de police qui n'ont de sens
+   que les uns par rapport aux autres.
+
+   Échelle volontairement resserrée par rapport à `.wiki-content` : un `#` y
+   fait 1,9 rem, ce qui est juste pour un article mais absurde pour la légende
+   d'une planche, où chaque encart du scan devient un titre. La hiérarchie doit
+   rester lisible sans écraser le reste du lecteur. */
+.prose-transcription > :first-child {
+	margin-top: 0;
+}
+.prose-transcription > :last-child {
+	margin-bottom: 0;
+}
+.prose-transcription p {
+	margin: 0 0 0.85em;
+}
+.prose-transcription :is(h1, h2, h3, h4, h5, h6) {
+	font-weight: 700;
+	line-height: 1.3;
+	color: #fff;
+	margin: 1.2em 0 0.4em;
+}
+.prose-transcription h1 {
+	font-size: 1.15rem;
+	color: var(--color-dbz-orange, #ffb200);
+}
+.prose-transcription h2 {
+	font-size: 1.05rem;
+	color: var(--color-dbz-yellow, #ffd700);
+}
+.prose-transcription :is(h3, h4, h5, h6) {
+	font-size: 0.95rem;
+	color: rgba(255, 255, 255, 0.92);
+}
+.prose-transcription :is(ul, ol) {
+	margin: 0 0 0.85em;
+	padding-left: 1.3em;
+}
+.prose-transcription ul {
+	list-style: disc;
+}
+.prose-transcription ol {
+	list-style: decimal;
+}
+.prose-transcription li {
+	margin: 0.15em 0;
+}
+.prose-transcription strong {
+	color: #fff;
+	font-weight: 700;
+}
+.prose-transcription em {
+	color: rgba(255, 255, 255, 0.75);
+}
+.prose-transcription hr {
+	margin: 1.1em 0;
+	border-color: rgba(255, 255, 255, 0.12);
+}
+.prose-transcription blockquote {
+	margin: 0 0 0.85em;
+	padding-left: 0.8em;
+	border-left: 2px solid var(--color-dbz-orange, #ffb200);
+	color: rgba(255, 255, 255, 0.7);
+}
+.prose-transcription table {
+	width: 100%;
+	margin: 0 0 0.85em;
+	border-collapse: collapse;
+	font-size: 0.9em;
+}
+.prose-transcription :is(th, td) {
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	padding: 0.3em 0.5em;
+	text-align: left;
+}
+.prose-transcription th {
+	background: rgba(255, 255, 255, 0.04);
+	color: #fff;
+}
+/* Le japonais n'a pas d'espaces : sans césure autorisée, une longue ligne
+   déborde de sa colonne au lieu de revenir à la ligne. */
+.prose-transcription {
+	overflow-wrap: anywhere;
+	line-break: normal;
+}

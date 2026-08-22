@@ -147,3 +147,42 @@ CREATE INDEX IF NOT EXISTS tierlist_author_idx
 -- Commentaires d'article : toujours lus par article.
 CREATE INDEX IF NOT EXISTS comment_post_idx
 	ON public."Comment" ("postId", "createdAt" DESC);
+
+-- ============================================================================
+-- Transcriptions de databooks — recherche dans le TEXTE DES PLANCHES.
+--
+-- `db_databooks_fts` n'indexe que les métadonnées (titre, titre japonais,
+-- auteur, description). Le texte transcrit vit dans le jsonb `pages`, et
+-- n'était donc atteignable par AUCUNE recherche : mesuré le 2026-08-22,
+-- « ギュー特戦隊 » — une phrase présente dans une planche — remontait 0 résultat.
+-- Autrement dit, on produit 11 775 planches de japonais que rien ne sait
+-- interroger, et il faut ouvrir la bonne fiche pour la lire.
+--
+-- Trigramme et non `to_tsvector` : le corpus est majoritairement japonais, une
+-- langue sans espaces. `to_tsvector` (quelle que soit la config, `french` comme
+-- `simple`) ne sait pas segmenter le japonais et produit un unique lexème par
+-- séquence contiguë — une recherche sur un mot interne ne peut alors rien
+-- trouver. Les trigrammes, eux, découpent par caractères et gèrent l'UTF-8
+-- multi-octets, donc le japonais comme le français.
+-- ============================================================================
+
+-- Texte concaténé des planches d'une fiche, dans l'ordre de lecture.
+-- `IMMUTABLE` est requis pour servir d'expression d'index ; la fonction ne lit
+-- que son argument. Le `CASE` protège du jsonb scalaire (le piège `sql.json` a
+-- déjà écrit une chaîne là où on attendait un tableau).
+CREATE OR REPLACE FUNCTION bot.databook_pages_text(pages jsonb)
+RETURNS text
+LANGUAGE sql
+IMMUTABLE
+PARALLEL SAFE
+RETURNS NULL ON NULL INPUT
+AS $fn$
+	SELECT coalesce(string_agg(t.p ->> 'text', E'\n' ORDER BY t.ord), '')
+	FROM jsonb_array_elements(
+		CASE WHEN jsonb_typeof(pages) = 'array' THEN pages ELSE '[]'::jsonb END
+	) WITH ORDINALITY AS t(p, ord)
+	WHERE t.p ->> 'text' IS NOT NULL
+$fn$;
+
+CREATE INDEX IF NOT EXISTS db_databooks_pages_text_trgm
+	ON bot.db_databooks USING gin (bot.databook_pages_text(pages) gin_trgm_ops);

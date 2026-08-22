@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ScanText } from "lucide-react";
 import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
@@ -107,7 +107,12 @@ export default async function AdminDatabooksPage() {
 				Guides officiels, artbooks, daizenshuu et interviews. L&apos;édition se fait dans le{" "}
 				<strong className="text-white/70">studio visuel</strong> (aperçu live, upload couverture,
 				markdown) — comme pour les personnages. L&apos;index public triable est sur{" "}
-				<code className="text-dbz-orange/80">/wiki/databooks</code>.
+				<code className="text-dbz-orange/80">/wiki/databooks</code>. Le texte des planches se relit
+				dans le{" "}
+				<Link href="/admin/databooks" className="text-dbz-orange hover:underline">
+					suivi des transcriptions
+				</Link>
+				.
 			</p>
 
 			{items.length > 0 && (
@@ -130,7 +135,11 @@ export default async function AdminDatabooksPage() {
 				</div>
 			)}
 
-			<div className="mb-6 flex justify-end">
+			<div className="mb-6 flex flex-wrap justify-end gap-2">
+				<Link href="/admin/databooks" className="btn btn-ghost h-9 px-3 text-xs">
+					<ScanText className="h-3.5 w-3.5" />
+					Suivi des transcriptions
+				</Link>
 				<DbAddButton table={TABLE} label="Ajouter une entrée" />
 			</div>
 

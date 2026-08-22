@@ -15,6 +15,7 @@ import {
 	Server,
 	Radio,
 	ScrollText,
+	ScanText,
 	BarChart2,
 	Activity,
 	Terminal,
@@ -295,6 +296,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Databooks & interviews",
 		description: "Guides officiels, artbooks et interviews (triables par date)",
 		icon: <BookOpen className="h-4 w-4" />,
+		section: "encyclopedie",
+	},
+	{
+		href: "/admin/databooks",
+		label: "Transcriptions",
+		description: "Suivi, relecture et recherche du texte des planches",
+		icon: <ScanText className="h-4 w-4" />,
 		section: "encyclopedie",
 	},
 	{

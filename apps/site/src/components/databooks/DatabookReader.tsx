@@ -15,6 +15,7 @@
 
 import { type ReactElement, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { TranscriptionTexte } from "./TranscriptionTexte";
 import {
 	BookOpen,
 	ChevronLeft,
@@ -276,7 +277,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 			</p>
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
 				{currentText ? (
-					<p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">{currentText}</p>
+					<TranscriptionTexte texte={currentText} />
 				) : (
 					<p className="text-sm italic text-white/50">Aucune description pour cette page.</p>
 				)}
@@ -484,9 +485,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 											)}
 											{item.text ? (
 												<div className="rounded-md border border-dbz-border/40 bg-black/50 px-4 py-3">
-													<p className="whitespace-pre-wrap text-sm leading-relaxed text-white/85">
-														{item.text}
-													</p>
+													<TranscriptionTexte texte={item.text} />
 												</div>
 											) : null}
 										</div>

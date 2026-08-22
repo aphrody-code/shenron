@@ -31,7 +31,10 @@ describe("resolveHomeConfig", () => {
 		const cfg = resolveHomeConfig({
 			fx: { sfxVolume: 0.4, vfx: { kameCss: true } },
 			hero: { lede: "Avec fx legacy" },
-		}) as Record<string, unknown>;
+			// `HomeConfig` n'a pas d'index signature : le cast direct est refusé par
+			// TS. On passe par `unknown` — c'est justement ce qu'on veut vérifier,
+			// que la clé héritée ne survit PAS au type public.
+		}) as unknown as Record<string, unknown>;
 		expect(cfg.fx).toBeUndefined();
 		expect((cfg.hero as { lede: string }).lede).toBe("Avec fx legacy");
 		expect((cfg.sections as unknown[]).length).toBe(DEFAULT_HOME_CONFIG.sections.length);
