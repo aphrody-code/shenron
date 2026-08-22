@@ -387,6 +387,19 @@ async function publishRelease(version: string, previous: string | null): Promise
 		join(dest, "apps", "bot", "public", "db")
 	);
 
+	// Ressources japonaises (dictionnaire kuromoji + index JMdict, ~25 Mio) :
+	// liées, pas copiées. Elles sont gitignorées, donc absentes d'une version
+	// figée — sans ce lien, l'analyse des transcriptions répondait « 0 anomalie »
+	// en production alors qu'elle en trouve 1 217 en local. Le lien est
+	// conditionnel : un hôte qui n'a pas lancé `ja-preparer.ts` doit pouvoir
+	// déployer le site quand même, l'analyse se contentant de se taire.
+	const jaData = join(SITE_DIR, ".ja-data");
+	if (existsSync(jaData)) {
+		await symlink(jaData, join(destSite, ".ja-data"));
+	} else {
+		log("· .ja-data absent — l'analyse japonaise sera inactive (cf. scripts/ja-preparer.ts)");
+	}
+
 	const size = (await run(["du", "-sh", dest])).stdout.split("\t")[0];
 	log(`✓ version publiée (${size?.trim()})`);
 	return dest;
