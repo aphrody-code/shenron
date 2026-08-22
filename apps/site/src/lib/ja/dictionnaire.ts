@@ -23,18 +23,55 @@
  * rend pour chaque token sa nature, sa lecture (donc le furigana) et sa forme de
  * base. Mesuré : 1 s de chargement, 6 407 phrases par seconde ensuite.
  */
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /**
  * Racine des données préparées — hors dépôt, cf. `scripts/ja-preparer.ts`.
  *
- * Résolu depuis l'emplacement DU MODULE, pas depuis `process.cwd()` : un script
- * lancé à la racine du monorepo (`bun apps/site/scripts/…`) a pour répertoire
- * courant `~/shenron`, et cherchait donc les ressources un cran trop haut. Le
- * dictionnaire ne se chargeait pas, et l'analyse rendait « 0 anomalie » sur
- * 5 912 planches — un faux résultat rassurant, le pire des deux mondes.
+ * Résolue **paresseusement**, et par essais successifs, parce que ce module est
+ * chargé dans deux mondes qui ne s'accordent sur rien :
+ *
+ *  - un script Bun lancé depuis la racine du monorepo (`bun apps/site/scripts/…`)
+ *    a pour répertoire courant `~/shenron` ;
+ *  - le serveur Next a pour répertoire courant `apps/site`.
+ *
+ * Deux pièges déjà rencontrés, chacun ayant cassé un côté en réparant l'autre :
+ * `process.cwd()` seul faisait chercher les ressources un cran trop haut depuis
+ * un script — l'analyse rendait « 0 anomalie sur 5 912 planches », un faux
+ * résultat rassurant. Et `import.meta.dir`, qui corrigeait cela, est une API Bun
+ * : elle vaut `undefined` sous Turbopack, et le build échouait sur un
+ * `join(undefined, …)` au moment de collecter la configuration des routes.
+ *
+ * D'où la résolution à l'appel, jamais à l'évaluation du module.
  */
-export const DOSSIER_DONNEES = join(import.meta.dir, "..", "..", "..", ".ja-data");
+const CANDIDATS = [".ja-data", "apps/site/.ja-data", "../.ja-data"];
+
+let racineResolue: string | null = null;
+
+export function dossierDonnees(): string {
+	if (racineResolue) return racineResolue;
+	const force = process.env.JA_DATA_DIR;
+	if (force) {
+		racineResolue = force;
+		return force;
+	}
+	const base = process.cwd();
+	for (const c of CANDIDATS) {
+		const chemin = join(base, c);
+		// `existsSync` plutôt qu'une vérification asynchrone : la fonction est
+		// appelée depuis des chemins synchrones, et le coût est celui d'un stat.
+		if (existsSync(join(chemin, "jmdict-graphies.txt")) || existsSync(join(chemin, "kuromoji-dict"))) {
+			racineResolue = chemin;
+			return chemin;
+		}
+	}
+	// Rien trouvé : on renvoie le candidat le plus probable, pour que le message
+	// d'erreur nomme un chemin utile plutôt que « undefined ».
+	racineResolue = join(base, CANDIDATS[0]);
+	return racineResolue;
+}
 
 export interface Token {
 	surface: string;
@@ -78,13 +115,13 @@ export async function analyseur(): Promise<Analyseur | null> {
 			const kuromoji = (await import("@sglkc/kuromoji")).default;
 			tokenizer = await new Promise<Analyseur>((res, rej) =>
 				kuromoji
-					.builder({ dicPath: join(DOSSIER_DONNEES, "kuromoji-dict") })
+					.builder({ dicPath: join(dossierDonnees(), "kuromoji-dict") })
 					.build((e: Error | null, t: Analyseur) => (e ? rej(e) : res(t)))
 			);
 			return tokenizer;
 		} catch (e) {
 			console.warn(
-				`[ja] analyseur morphologique indisponible (${DOSSIER_DONNEES}) :`,
+				`[ja] analyseur morphologique indisponible (${dossierDonnees()}) :`,
 				(e as Error).message
 			);
 			return null;
@@ -120,13 +157,16 @@ let graphies: Set<string> | null = null;
  */
 export async function graphiesJmdict(): Promise<Set<string>> {
 	if (graphies) return graphies;
-	const fichier = Bun.file(join(DOSSIER_DONNEES, "jmdict-graphies.txt"));
-	if (!(await fichier.exists())) {
+	// `node:fs` plutôt que `Bun.file` : ce module traverse le bundler de Next,
+	// et s'en tenir aux API Node évite d'y introduire une dépendance au runtime
+	// — c'est exactement ce genre de raccourci qui a fait échouer un build.
+	const chemin = join(dossierDonnees(), "jmdict-graphies.txt");
+	if (!existsSync(chemin)) {
 		console.warn("[ja] JMdict absent — lancer `bun apps/site/scripts/ja-preparer.ts`");
 		graphies = new Set();
 		return graphies;
 	}
-	graphies = new Set((await fichier.text()).split("\n").filter(Boolean));
+	graphies = new Set((await readFile(chemin, "utf8")).split("\n").filter(Boolean));
 	return graphies;
 }
 
@@ -145,7 +185,7 @@ export async function exigerRessources(): Promise<void> {
 	if ((await graphiesJmdict()).size === 0) manquantes.push("index JMdict");
 	if (manquantes.length > 0) {
 		throw new Error(
-			`ressources japonaises absentes (${manquantes.join(", ")}) dans ${DOSSIER_DONNEES}.\n` +
+			`ressources japonaises absentes (${manquantes.join(", ")}) dans ${dossierDonnees()}.\n` +
 				"Lancer : bun apps/site/scripts/ja-preparer.ts"
 		);
 	}
