@@ -10,7 +10,17 @@ connaissance **Dragon Ball vivante et sourcée** de [dragonballfr.com](https://d
    sources** au lieu de répondre de mémoire (le lore est dense et souvent mal restitué
    par les modèles).
 
-2. **Serveur MCP public** `https://mcp.dragonballfr.com/mcp` — Streamable HTTP,
+2. **Skill `dragon-ball-japonais`** — vocabulaire, lexique et traduction du
+   japonais Dragon Ball, adossés au corpus réel : plus de 6 000 planches de
+   databooks japonais transcrites, et le lexique du wiki qui associe chaque
+   graphie japonaise à sa forme française officielle. Elle répond au problème
+   propre à ce domaine : `かめはめ波`, `界王拳`, `ベジータ` ne sont dans **aucun
+   dictionnaire**, si bien qu'un modèle généraliste rend `孫悟空は界王拳を使った`
+   par « Son-gu a utilisé le poing du roi ». Références embarquées : graphies
+   vérifiées avec leur fréquence dans le corpus, jeux de mots de Toriyama,
+   pièges de translittération, chaîne de traitement du dépôt.
+
+3. **Serveur MCP public** `https://mcp.dragonballfr.com/mcp` — Streamable HTTP,
    **stateless, lecture seule, sans authentification**. 14 outils qui proxifient le
    **RAG hybride** (BM25 + embeddings + reranking, passages dédupliqués et scorés) et
    l'API publique : `rag_search`, `rag_ask`, `sources`, `wiki_search`, `wiki_list`,
