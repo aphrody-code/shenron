@@ -3511,8 +3511,15 @@ export class ApiServer {
 					}
 					const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 30));
 					const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
+					// Un canal privé appartient au couple (bot, destinataire) : seul le
+					// persona qui a ouvert le DM peut le relire. Lire les réponses à un
+					// message envoyé par Shenron avec le client du Grand Prêtre renvoyait
+					// un fil vide, sans erreur — d'où le paramètre explicite.
+					const demande = url.searchParams.get("persona") as PersonaId | null;
 					const client =
-						clientMap.get("grandPretre") ?? [...clientMap.values()].find((c) => c.isReady());
+						(demande && PERSONA_IDS.includes(demande) ? clientMap.get(demande) : null) ??
+						clientMap.get("grandPretre") ??
+						[...clientMap.values()].find((c) => c.isReady());
 					if (!client) {
 						return Response.json({ error: "aucun persona en ligne" }, { status: 503 });
 					}
