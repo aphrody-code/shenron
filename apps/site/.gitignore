@@ -45,3 +45,6 @@ next-env.d.ts
 
 # DDL généré par drizzle.config.bot.ts (schéma bot.*) — régénérable, non versionné
 /drizzle-bot/
+
+# Ressources japonaises (dictionnaire kuromoji + index JMdict) — cf. scripts/ja-preparer.ts
+.ja-data/

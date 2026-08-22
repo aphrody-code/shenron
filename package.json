@@ -25,6 +25,7 @@
 			"discord.js": "^14.26.3",
 			"vitest": "^4.0.18",
 			"zod": "^4.4.3",
+			"@sglkc/kuromoji": "^1.1.0",
 			"oxlint": "^1.64.0",
 			"oxfmt": "^0.53.0",
 			"eslint-plugin-oxlint": "^1.64.0",

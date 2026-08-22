@@ -63,6 +63,7 @@
 		"postgres": "^3.4.9",
 		"react": "catalog:",
 		"react-dom": "catalog:",
+		"@sglkc/kuromoji": "catalog:",
 		"react-markdown": "^10.1.0",
 		"rehype-autolink-headings": "^7.1.0",
 		"rehype-raw": "^7.0.0",
