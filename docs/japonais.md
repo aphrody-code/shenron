@@ -33,6 +33,7 @@ graphies. Le script n'en garde que les formes écrites — le JSON d'origine pè
 |---|---|---|
 | `normalisation.ts` | écritures, `normaliserJa`, katakana → hiragana, furigana | aucune |
 | `anomalies.ts` | distance bornée, index du lexique, suggestion | aucune |
+| `traduction.ts` | protection des termes, segments traduisibles | aucune |
 | `lexique.ts` | lexique du domaine depuis `bot.*` | `server-only` |
 | `dictionnaire.ts` | kuromoji + JMdict, chargement paresseux | fichiers |
 | `index.ts` | `anomaliesJaponais`, `avecFurigana`, `motsDeRequete` | `server-only` |
@@ -95,16 +96,49 @@ vocabulaire** et 82 fautes renvoyées au détecteur. Trouvés ainsi : `スカウ
 - La qualité de la lecture automatique est inégale : `ドラゴンボール` lui-même
   est mal lu 95 fois.
 
-## Traduction (non déployée)
+## Traduire
 
-Mesuré avec NLLB-200-distilled-600M via `@huggingface/transformers`, en local :
-la grammaire est correcte, **le vocabulaire du domaine est massacré**.
-`孫悟空は界王拳を使った` devient « Son-gu a utilisé le poing du roi ».
+```bash
+bun apps/site/scripts/ja-traduire.ts --texte "孫悟空は界王拳を使った。"
+bun apps/site/scripts/ja-traduire.ts --databook 19 --planches 12,13 --json out.json
+```
 
-Masquer les termes du lexique avant traduction, puis réinjecter leur forme
-française officielle, corrige l'essentiel : « **Son Goku** a utilisé… »,
-« **Vegeta** est le prince des **Saiyans** ». Le modèle ne traduit plus que ce
-qu'il sait traduire — la phrase autour.
+Modèle local (NLLB-200 distillé, via `@huggingface/transformers` — déjà une
+dépendance du bot, hoistée à la racine), aucun service tiers. ~90 s de chargement puis ~3 s par segment : un traitement par lot, jamais
+une réponse à une requête web. Le script **n'écrit rien en base** — traduire
+automatiquement un corpus lu automatiquement empile deux sources d'erreur.
 
-Chiffres à connaître : 87 s de chargement, ~3 s par phrase. C'est un traitement
-par lot, pas une fonctionnalité de page.
+### Pourquoi protéger le vocabulaire
+
+Mesuré : la grammaire japonaise est correctement rendue, **le vocabulaire de la
+série est massacré**. Deux dérives distinctes :
+
+- les noms propres sont **translittérés au son** — `ベジータ` → « Végitta »,
+  `フリーザ` → « Frézza », `孫悟空` → « Son-gu » ;
+- les techniques écrites en kanji sont **traduites littéralement** — `界王拳` =
+  `界王` (roi des mondes) + `拳` (poing) → « le poing du roi ».
+
+Or la forme française officielle est en base, sur la même ligne que la graphie
+japonaise. `traduction.ts` masque donc chaque terme connu par un marqueur avant
+la traduction et réinjecte la forme officielle ensuite. Le modèle ne traduit
+plus que ce qu'il sait traduire : la phrase autour.
+
+| Source | Sans protection | Avec |
+|---|---|---|
+| `孫悟空は界王拳を使った` | Son-gu a utilisé le poing du roi | **Son Goku** a utilisé… |
+| `ベジータはサイヤ人の王子だ` | Végitta est le prince des Saïyas | **Vegeta** est le prince des **Saiyans** |
+| `ピッコロとクリリンが地球を守る` | Les picolo et les crillins protègent la Terre | **Piccolo** et **Krilin** protègent la Terre |
+
+Deux règles que les tests verrouillent : masquer **du plus long au plus court**
+(sinon `サイヤ` mord sur `サイヤ人`), et **ne jamais réutiliser un marqueur** —
+deux termes derrière le même produiraient une traduction fausse et silencieuse.
+Le compteur `debordement` signale les termes laissés sans protection.
+
+## Agents et skill
+
+Le plugin `plugins/dragon-ball/` expose ce socle à Claude Code :
+
+- skill **`dragon-ball-japonais`** — vocabulaire, lexique, graphies vérifiées ;
+- **`dbfr-ocr`** — transcrit les planches, contrôle la qualité ;
+- **`dbfr-traducteur`** — traduit en protégeant le vocabulaire ;
+- **`dbfr-wiki`** — rédige les fiches à partir du manga et des databooks.
