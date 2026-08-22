@@ -20,7 +20,20 @@ connaissance **Dragon Ball vivante et sourcée** de [dragonballfr.com](https://d
    vérifiées avec leur fréquence dans le corpus, jeux de mots de Toriyama,
    pièges de translittération, chaîne de traitement du dépôt.
 
-3. **Serveur MCP public** `https://mcp.dragonballfr.com/mcp` — Streamable HTTP,
+3. **Trois subagents** (`agents/`), chacun ancré sur les sources plutôt que sur
+   sa mémoire :
+   - **`dbfr-ocr`** — transcrit les planches japonaises en markdown fidèle et
+     contrôle la qualité de l'existant. Ne traduit pas, n'invente pas un glyphe
+     illisible, vérifie les graphies douteuses dans le corpus.
+   - **`dbfr-traducteur`** — traduit le japonais Dragon Ball en protégeant le
+     vocabulaire de la série par le lexique officiel, ce qui évite les deux
+     dérives mesurées : noms propres translittérés au son (« Végitta ») et
+     techniques traduites littéralement (`界王拳` → « le poing du roi »).
+   - **`dbfr-wiki`** — rédige les fiches en s'appuyant sur le manga et les
+     databooks, cite ses sources, distingue canon manga / anime / jeux, et
+     laisse un champ vide plutôt que de l'inventer.
+
+4. **Serveur MCP public** `https://mcp.dragonballfr.com/mcp` — Streamable HTTP,
    **stateless, lecture seule, sans authentification**. 14 outils qui proxifient le
    **RAG hybride** (BM25 + embeddings + reranking, passages dédupliqués et scorés) et
    l'API publique : `rag_search`, `rag_ask`, `sources`, `wiki_search`, `wiki_list`,
