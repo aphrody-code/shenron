@@ -17,7 +17,7 @@
  * Le texte transcrit est du markdown (1 357 planches commencent par un titre
  * `#`) — d'où l'onglet Aperçu, qui montre ce que le lecteur public verra.
  */
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	AlertTriangle,
 	Check,
@@ -27,7 +27,9 @@ import {
 	Loader2,
 	Pencil,
 	Save,
+	Languages,
 	Sparkles,
+	Wand2,
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -42,6 +44,21 @@ export interface PlancheRelecture {
 }
 
 type Filtre = "toutes" | "a-transcrire" | "transcrites" | "suspectes";
+
+/** Une graphie jugée fautive, telle que la rend `/api/databooks/:id/anomalies`. */
+interface AnomalieJa {
+	lu: string;
+	attendu: string;
+	fr: string;
+	kind: string;
+	distance: number;
+}
+
+interface AnomaliesReponse {
+	total: number;
+	planches: Record<number, AnomalieJa[]>;
+	analysePossible: boolean;
+}
 
 const FILTRES: { cle: Filtre; libelle: string }[] = [
 	{ cle: "toutes", libelle: "Toutes" },
@@ -71,6 +88,25 @@ export function TranscriptionRelecteur({
 	const [filtre, setFiltre] = useState<Filtre>(filtreInitial);
 	const [onglet, setOnglet] = useState<"editer" | "apercu">("editer");
 	const [toast, setToast] = useState<string | null>(null);
+
+	/**
+	 * Fautes de lecture japonaises, calculées pour l'ouvrage entier.
+	 *
+	 * Une requête par ouvrage et non par planche : le verdict « c'est une
+	 * faute » se prend en comparant des fréquences, et une planche seule n'en
+	 * fournit aucune. L'analyse charge en outre un dictionnaire morphologique —
+	 * la refaire à chaque changement de page serait absurde.
+	 */
+	const anomaliesJa = useQuery({
+		queryKey: ["databook-anomalies", databookId],
+		queryFn: async (): Promise<AnomaliesReponse> => {
+			const r = await fetch(`/api/databooks/${databookId}/anomalies`, { cache: "no-store" });
+			if (!r.ok) throw new Error("analyse indisponible");
+			return r.json();
+		},
+		staleTime: 5 * 60_000,
+		retry: false,
+	});
 
 	const visibles = useMemo(() => {
 		if (filtre === "toutes") return planches;
@@ -109,6 +145,7 @@ export function TranscriptionRelecteur({
 		setBrouillon(courante?.texte ?? "");
 	}
 
+	const anomaliesPlanche = anomaliesJa.data?.planches?.[numeroCourant] ?? [];
 	const modifie = (courante?.texte ?? "") !== brouillon;
 	const anomalies = diagnostiquerPlanche(brouillon);
 	const nettoyable = aBesoinDeNettoyage(brouillon);
@@ -196,6 +233,12 @@ export function TranscriptionRelecteur({
 		<div className="grid gap-4 lg:grid-cols-[220px_1fr]">
 			{/* ── Index des planches ───────────────────────────────────────────── */}
 			<aside className="dbz-panel flex max-h-[80vh] flex-col p-3">
+				{anomaliesJa.data && anomaliesJa.data.total > 0 && (
+					<p className="mb-2 rounded border border-dbz-blue-light/25 bg-dbz-blue-light/[0.06] px-2 py-1 text-[10px] leading-snug text-dbz-blue-light">
+						{anomaliesJa.data.total} graphie{anomaliesJa.data.total > 1 ? "s" : ""} japonaise
+						{anomaliesJa.data.total > 1 ? "s" : ""} à vérifier dans cet ouvrage
+					</p>
+				)}
 				<div className="mb-2 flex flex-wrap gap-1">
 					{FILTRES.map(({ cle, libelle }) => (
 						<button
@@ -225,20 +268,31 @@ export function TranscriptionRelecteur({
 							const vide = p.texte.trim().length === 0;
 							const alerte = !vide && estSuspecte(p.texte);
 							const active = p.numero === numeroCourant;
+							const aDesFautesJa = (anomaliesJa.data?.planches?.[p.numero]?.length ?? 0) > 0;
 							return (
 								<li key={p.numero}>
 									<button
 										type="button"
 										onClick={() => setNumeroCourant(p.numero)}
 										aria-current={active ? "true" : undefined}
+										data-ja={aDesFautesJa ? "" : undefined}
 										title={
-											vide
-												? `Planche ${p.numero} — à transcrire`
-												: alerte
-													? `Planche ${p.numero} — à vérifier`
-													: `Planche ${p.numero} — transcrite`
+											[
+												vide
+													? `Planche ${p.numero} — à transcrire`
+													: alerte
+														? `Planche ${p.numero} — à vérifier`
+														: `Planche ${p.numero} — transcrite`,
+												aDesFautesJa
+													? `${anomaliesJa.data!.planches[p.numero].length} graphie(s) japonaise(s) douteuse(s)`
+													: null,
+											]
+												.filter(Boolean)
+												.join(" · ")
 										}
 										className={`w-full rounded border py-1 text-center font-mono text-[10px] tabular-nums transition-colors ${
+											aDesFautesJa && !active ? "underline decoration-dbz-blue-light decoration-2 underline-offset-2 " : ""
+										}${
 											active
 												? "border-dbz-orange bg-dbz-orange/20 text-white"
 												: alerte
@@ -401,6 +455,57 @@ export function TranscriptionRelecteur({
 									Alt + ← / → pour naviguer · Ctrl + S pour enregistrer
 								</span>
 							</div>
+
+							{/* Fautes de lecture japonaises : proposées, jamais appliquées seules. */}
+							{anomaliesPlanche.length > 0 && (
+								<div className="mt-2 rounded border border-dbz-blue-light/25 bg-dbz-blue-light/[0.06] p-2">
+									<p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-dbz-blue-light">
+										<Languages className="h-3 w-3" />
+										Lecture japonaise · {anomaliesPlanche.length} graphie
+										{anomaliesPlanche.length > 1 ? "s" : ""} à vérifier
+									</p>
+									<ul className="space-y-1">
+										{anomaliesPlanche.map((a) => {
+											const present = brouillon.includes(a.lu);
+											return (
+												<li
+													key={a.lu}
+													className="flex flex-wrap items-center gap-1.5 text-[11px]"
+												>
+													<code className="font-jp rounded bg-red-500/15 px-1 text-red-200">
+														{a.lu}
+													</code>
+													<span className="text-white/35">→</span>
+													<code className="font-jp rounded bg-green-500/15 px-1 text-green-200">
+														{a.attendu}
+													</code>
+													<span className="text-white/45">{a.fr}</span>
+													<button
+														type="button"
+														disabled={!present}
+														onClick={() =>
+															setBrouillon((t) => t.replaceAll(a.lu, a.attendu))
+														}
+														title={
+															present
+																? `Remplacer « ${a.lu} » par « ${a.attendu} » dans cette planche`
+																: "Graphie absente du texte affiché"
+														}
+														className="ml-auto inline-flex items-center gap-1 rounded border border-dbz-border/60 px-1.5 py-0.5 font-semibold text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange disabled:cursor-not-allowed disabled:opacity-30"
+													>
+														<Wand2 className="h-2.5 w-2.5" />
+														Corriger
+													</button>
+												</li>
+											);
+										})}
+									</ul>
+									<p className="mt-1.5 text-[10px] leading-snug text-white/35">
+										Suggestions issues du croisement dictionnaire japonais + lexique du wiki.
+										Environ 15 % sont fausses — le scan à gauche tranche.
+									</p>
+								</div>
+							)}
 
 							{anomalies.length > 0 && (
 								<ul className="mt-2 space-y-1">

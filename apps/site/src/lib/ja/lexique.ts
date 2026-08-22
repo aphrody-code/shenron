@@ -21,12 +21,12 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { contientJaponais } from "./normalisation";
-import { trierLexique, type TermeLexique } from "./anomalies";
+import { indexerLexique, trierLexique, type IndexLexique, type TermeLexique } from "./anomalies";
 
 /** Un terme d'un seul signe apparie partout et ne prouve rien. */
 const LONGUEUR_MIN = 2;
 
-let cache: { at: number; termes: TermeLexique[] } | null = null;
+let cache: { at: number; termes: TermeLexique[]; index: IndexLexique } | null = null;
 const TTL_MS = 10 * 60_000;
 
 /**
@@ -63,8 +63,17 @@ export async function lexiqueDomaine(): Promise<TermeLexique[]> {
 	}
 
 	const tries = trierLexique(termes);
-	cache = { at: Date.now(), termes: tries };
+	// L'index est bâti ICI, avec le lexique, et pas à chaque analyse : il énumère
+	// toutes les sous-chaînes des 763 termes. Le reconstruire par planche revenait
+	// à le refaire 362 fois pour un seul ouvrage.
+	cache = { at: Date.now(), termes: tries, index: indexerLexique(tries) };
 	return tries;
+}
+
+/** Index d'appartenance du lexique, construit une fois avec lui. */
+export async function indexLexiqueDomaine(): Promise<IndexLexique> {
+	await lexiqueDomaine();
+	return cache!.index;
 }
 
 /** Vide le cache — à appeler après une édition du wiki qui touche `name_ja`. */
