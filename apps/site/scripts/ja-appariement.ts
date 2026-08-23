@@ -41,6 +41,7 @@ import {
 	compterOccurrences,
 	extraireCandidatsXv2,
 	extraireIndexTechniques,
+	graphieEspacee,
 	grouperCandidats,
 	juger,
 	porteeSource,
@@ -151,12 +152,18 @@ if (CHAMPS) {
 			if (v.length >= 2 && corpusNorme.includes(v)) attestes++;
 		}
 		const part = avec.length > 0 ? Math.round((attestes / avec.length) * 100) : 0;
+		// Défaut « un signe, une espace » : compté ici parce que ces valeurs sont
+		// invisibles au corpus, donc comptées comme non attestées sans qu'on sache
+		// pourquoi. Les voir séparément évite de conclure à un trou de source.
+		const defauts = avec.filter((l) => graphieEspacee(String(l.name_ja)));
 		console.log(
 			`  ${libelle.padEnd(12)} ${String(lignes.length).padStart(5)} fiches · ` +
 				`name_ja : ${String(avec.length).padStart(4)} (${String(lignes.length - avec.length).padStart(4)} vides) · ` +
 				`attestés dans les databooks : ${String(attestes).padStart(4)} (${part} %) · ` +
-				`sans description : ${lignes.filter((l) => !l.description).length}`
+				`sans description : ${String(lignes.filter((l) => !l.description).length).padStart(4)} · ` +
+				`écriture défectueuse : ${defauts.length}`
 		);
+		for (const d of defauts) console.log(`      ⚠ ${d.name} : « ${d.name_ja} »`);
 	}
 	await sql.end();
 	process.exit(0);
@@ -170,6 +177,8 @@ interface Proposition {
 	id: number;
 	nom: string;
 	valeurActuelle: string | null;
+	/** La valeur déjà en base porte le défaut « un signe, une espace ». */
+	defautEcriture: boolean;
 	japonais: string | null;
 	niveau: Niveau;
 	motif: string;
@@ -228,6 +237,7 @@ for (const t of techniques) {
 			id: t.id,
 			nom: t.name,
 			valeurActuelle: t.name_ja,
+			defautEcriture: t.name_ja ? graphieEspacee(t.name_ja) : false,
 			japonais: null,
 			niveau: "rejete",
 			motif: graphies.length > 1 ? "plusieurs graphies pour ce nom" : "aucune hypothèse de graphie",
@@ -256,6 +266,7 @@ for (const t of techniques) {
 		id: t.id,
 		nom: t.name,
 		valeurActuelle: t.name_ja,
+		defautEcriture: t.name_ja ? graphieEspacee(t.name_ja) : false,
 		japonais: ja,
 		niveau: verdict.niveau,
 		motif: verdict.motif,
@@ -280,12 +291,24 @@ const surs = props.filter((p) => p.niveau === "sur");
 const aVerifier = props.filter((p) => p.niveau === "a_verifier");
 const rejetes = props.filter((p) => p.niveau === "rejete");
 const nouveaux = surs.filter((p) => !p.valeurActuelle);
-const divergents = surs.filter((p) => p.valeurActuelle && p.valeurActuelle !== p.japonais);
+// Comparaison normalisée : sans elle, une valeur en base écrite « ジ ー ミ ズ »
+// se lirait comme un désaccord de graphie alors que c'est un défaut d'écriture.
+// Les deux se traitent, mais pas de la même façon — l'un s'arbitre, l'autre se répare.
+const divergents = surs.filter(
+	(p) => p.valeurActuelle && normaliserJa(p.valeurActuelle) !== normaliserJa(p.japonais ?? "")
+);
+const defectueux = props.filter((p) => p.defautEcriture);
 
 console.log(`\n${props.length} techniques examinées`);
 console.log(`  sûres ......... ${surs.length}  (dont ${nouveaux.length} à renseigner, ${divergents.length} en désaccord avec la base)`);
 console.log(`  à vérifier .... ${aVerifier.length}`);
 console.log(`  rejetées ...... ${rejetes.length}`);
+if (defectueux.length > 0) {
+	console.log(
+		`  ⚠ ${defectueux.length} valeur(s) déjà en base écrites « un signe, une espace » : ` +
+			defectueux.map((p) => `#${p.id} ${p.valeurActuelle}`).join(", ")
+	);
+}
 for (const portee of ["manga", "ouvrage", "periodique"] as const) {
 	const n = surs.filter((p) => p.portee === portee).length;
 	const quoi = {

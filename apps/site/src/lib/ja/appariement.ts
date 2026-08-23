@@ -126,16 +126,46 @@ export function compterOccurrences(texte: string, graphie: string): number {
 }
 
 /**
+ * La graphie porte-t-elle le défaut d'écriture « un signe, une espace » ?
+ *
+ * Défaut connu du wiki, pas un accident isolé : `ジ ー ミ ズ` au lieu de
+ * `ジーミズ`, `コ リ ー 博士` au lieu de `コリー博士`. Le japonais ne sépare pas
+ * ses signes — une valeur ainsi écrite est **invisible à toute recherche dans
+ * le corpus**, donc impossible à attester, donc silencieusement inutile.
+ * 13 cas relevés dans `bot.db_characters.name_ja` le 2026-08-23 (8 corrigés par
+ * la passe de cohérence, 5 restants dont la fin du mot n'était pas espacée et
+ * que son détecteur laissait passer).
+ *
+ * Le motif exigé est **au moins trois signes isolés d'affilée**, et non « une
+ * espace entre deux signes japonais » : ce dernier critère condamnerait des
+ * valeurs parfaitement légitimes, où l'espace sépare des mots et non des signes
+ * — `ドラゴンボール レジェンズ`, `魔人ブウ 純粋`, ou les titres d'épisodes.
+ * Mesuré : 92 valeurs portent une espace entre deux signes, 5 seulement portent
+ * le défaut.
+ */
+const SIGNES_ISOLES = /(?:[ぁ-ゟ゠-ヿ一-鿿] ){2,}[ぁ-ゟ゠-ヿ一-鿿]/;
+
+export function graphieEspacee(s: string): boolean {
+	return SIGNES_ISOLES.test(s);
+}
+
+/**
  * La graphie est-elle inexploitable telle quelle ?
  *
- * Trois cas, tous vus dans le corpus ou dans les données du jeu : le caractère
- * de remplacement `�` que le modèle de vision laisse sur un signe illisible,
- * une graphie sans le moindre signe japonais, et les graphies d'un seul signe,
- * qui s'apparient partout et ne prouvent rien.
+ * Quatre cas, tous vus dans le corpus, dans les données du jeu ou dans la base :
+ * le caractère de remplacement `�` que le modèle de vision laisse sur un signe
+ * illisible, une graphie sans le moindre signe japonais, les graphies d'un seul
+ * signe — qui s'apparient partout et ne prouvent rien —, et le défaut
+ * « un signe, une espace ».
+ *
+ * Ce dernier ne peut pas venir du jeu, dont les `msg` sont propres. Il est ici
+ * pour que le prochain remplissage ne le réintroduise pas : la garde vaut pour
+ * toute valeur qui traverse ce module, d'où qu'elle vienne.
  */
 export function graphieSuspecte(ja: string): boolean {
 	if (!ja || ja.includes("�")) return true;
 	if (!/[ぁ-ゟ゠-ヿ一-鿿]/.test(ja)) return true;
+	if (graphieEspacee(ja)) return true;
 	return [...ja].length < 2;
 }
 

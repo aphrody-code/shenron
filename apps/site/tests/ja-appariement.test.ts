@@ -15,6 +15,7 @@ import {
 	compterOccurrences,
 	extraireCandidatsXv2,
 	extraireIndexTechniques,
+	graphieEspacee,
 	graphieSuspecte,
 	grouperCandidats,
 	juger,
@@ -87,10 +88,42 @@ describe("compterOccurrences", () => {
 	});
 });
 
+describe("graphieEspacee", () => {
+	test("reconnaît le défaut « un signe, une espace » du wiki", () => {
+		// Cas réels de bot.db_characters.name_ja, relevés le 2026-08-23.
+		expect(graphieEspacee("ジ ー ミ ズ")).toBe(true);
+		expect(graphieEspacee("コ リ ー 博士")).toBe(true);
+		expect(graphieEspacee("店 の 主人")).toBe(true);
+		expect(graphieEspacee("ジ ン グ ル 村 の 村長")).toBe(true);
+		expect(graphieEspacee("フ ラ ッ ペ 博士, Furappe Hakase")).toBe(true);
+	});
+
+	test("laisse passer l'espace qui sépare des mots, pas des signes", () => {
+		// Le critère naïf « une espace entre deux signes japonais » condamnerait
+		// ces valeurs : 92 en base, dont 87 parfaitement légitimes.
+		expect(graphieEspacee("ドラゴンボール レジェンズ")).toBe(false);
+		expect(graphieEspacee("魔人ブウ 純粋")).toBe(false);
+		expect(graphieEspacee("未来 ドクター・ゲロ")).toBe(false);
+		expect(graphieEspacee("熱井 ビータ")).toBe(false);
+		expect(graphieEspacee("ドラゴンボール 超全集 4: 超事典")).toBe(false);
+		expect(graphieEspacee("かめはめ波")).toBe(false);
+		expect(graphieEspacee("ミスター・ポポ")).toBe(false);
+	});
+});
+
 describe("graphieSuspecte", () => {
 	test("rejette le signe de remplacement laissé par la lecture automatique", () => {
 		// Vu tel quel dans le corpus : « Pick up Battle Skill 元気玉（� ».
 		expect(graphieSuspecte("元気�")).toBe(true);
+	});
+
+	test("refuse d'écrire une graphie aux signes séparés", () => {
+		// Sans cette garde, le prochain remplissage réintroduit le défaut à grande
+		// échelle : une telle valeur n'est attestable dans aucun corpus.
+		expect(graphieSuspecte("ジ ー ミ ズ")).toBe(true);
+		expect(juger({ ja: "ジ ー ミ ズ", ambigu: false, occurrences: 12, motCourant: false, dansIndexTechniques: true }).niveau).toBe(
+			"rejete"
+		);
 	});
 
 	test("rejette ce qui n'est pas japonais, et ce qui est trop court", () => {
