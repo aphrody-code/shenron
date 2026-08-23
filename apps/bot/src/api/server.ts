@@ -64,7 +64,7 @@ import {
 	unpackBingoToken,
 } from "~/services/games/tokens";
 import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
-import { eq, and, sql, desc, asc, inArray } from "drizzle-orm";
+import { eq, and, sql, desc, asc, inArray, isNull } from "drizzle-orm";
 import {
 	users,
 	levelRewards,
@@ -76,6 +76,8 @@ import {
 	dbCharacters,
 	dbTransformations,
 	dbPlanets,
+	dmContacts,
+	dmMessages,
 } from "~/db/schema";
 import { COMMAND_CATALOG, resolveMember, runConsoleCommand } from "~/api/command-console";
 import { buildCommandCatalog, execCommand } from "~/api/command-exec";
@@ -3405,6 +3407,208 @@ export class ApiServer {
 							.delete(achievementTriggers)
 							.where(eq(achievementTriggers.code, req.params.code));
 						return Response.json({ ok: true });
+					}),
+				},
+
+				// ── Relais de messages privés (boîte aux lettres de l'agent) ──
+				// Shenron sert de canal entre une personne et l'agent qui opère la
+				// prod : `DirectMessageRelay` enregistre ce qui arrive, ces routes
+				// donnent à l'agent de quoi lire et répondre. Toutes en admin — le
+				// relais donne accès à une conversation privée.
+
+				// Messages reçus et non encore lus, du plus ancien au plus récent.
+				// `?tout=1` rend aussi les messages déjà lus (relecture du fil).
+				// `?userId=` restreint à un correspondant.
+				"/api/dm/inbox": {
+					GET: admin(async (req) => {
+						const dbs = container.resolve(DatabaseService);
+						const url = new URL(req.url);
+						const tout = url.searchParams.get("tout") === "1";
+						const userId = url.searchParams.get("userId");
+						const limite = Math.min(200, Math.max(1, Number(url.searchParams.get("limit") ?? 50)));
+
+						const conditions = [eq(dmMessages.direction, "in")];
+						if (!tout) conditions.push(isNull(dmMessages.readAt));
+						if (userId) conditions.push(eq(dmMessages.userId, userId));
+
+						const lignes = await dbs.db
+							.select({
+								id: dmMessages.id,
+								userId: dmMessages.userId,
+								content: dmMessages.content,
+								createdAt: dmMessages.createdAt,
+								readAt: dmMessages.readAt,
+								username: dmContacts.username,
+								displayName: dmContacts.displayName,
+								allowed: dmContacts.allowed,
+							})
+							.from(dmMessages)
+							.leftJoin(dmContacts, eq(dmContacts.userId, dmMessages.userId))
+							.where(and(...conditions))
+							.orderBy(dmMessages.createdAt)
+							.limit(limite);
+						return Response.json({ messages: lignes, count: lignes.length });
+					}),
+				},
+
+				// Marque des messages comme lus. Séparé de la lecture : consulter sa
+				// boîte ne veut pas dire avoir traité, et un GET ne doit pas muter.
+				"/api/dm/read": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							ids?: number[];
+							userId?: string;
+						} | null;
+						const dbs = container.resolve(DatabaseService);
+						if (Array.isArray(body?.ids) && body.ids.length > 0) {
+							await dbs.db
+								.update(dmMessages)
+								.set({ readAt: new Date() })
+								.where(and(inArray(dmMessages.id, body.ids), isNull(dmMessages.readAt)));
+							return Response.json({ ok: true, marques: body.ids.length });
+						}
+						if (body?.userId) {
+							await dbs.db
+								.update(dmMessages)
+								.set({ readAt: new Date() })
+								.where(
+									and(
+										eq(dmMessages.userId, body.userId),
+										eq(dmMessages.direction, "in"),
+										isNull(dmMessages.readAt)
+									)
+								);
+							return Response.json({ ok: true });
+						}
+						return Response.json({ error: "Fournir `ids` ou `userId`." }, { status: 400 });
+					}),
+				},
+
+				// Répond à un correspondant. Refuse si le contact n'est pas autorisé :
+				// c'est la même liste blanche qu'à la réception, appliquée aux deux
+				// sens — sinon le relais pourrait servir à écrire à n'importe qui.
+				"/api/dm/send": {
+					POST: admin(async (req) => {
+						const body = (await req.json().catch(() => null)) as {
+							userId?: string;
+							content?: string;
+						} | null;
+						const contenu = (body?.content ?? "").trim();
+						if (!body?.userId || !contenu) {
+							return Response.json({ error: "`userId` et `content` requis." }, { status: 400 });
+						}
+						// Discord tronque au-delà de 2000 caractères : mieux vaut refuser
+						// que laisser partir un message amputé sans le dire.
+						if (contenu.length > 2000) {
+							return Response.json(
+								{ error: `Message trop long (${contenu.length} > 2000 caractères).` },
+								{ status: 400 }
+							);
+						}
+
+						const dbs = container.resolve(DatabaseService);
+						const [contact] = await dbs.db
+							.select({ allowed: dmContacts.allowed, username: dmContacts.username })
+							.from(dmContacts)
+							.where(eq(dmContacts.userId, body.userId))
+							.limit(1);
+						if (!contact?.allowed) {
+							return Response.json(
+								{ error: "Correspondant inconnu ou non autorisé — l'ouvrir d'abord." },
+								{ status: 403 }
+							);
+						}
+
+						const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
+						const client = clientMap.get("shenron");
+						if (!client) return Response.json({ error: "Shenron hors ligne." }, { status: 503 });
+
+						try {
+							const user = await client.users.fetch(body.userId);
+							const sent = await user.send(contenu);
+							await dbs.db.insert(dmMessages).values({
+								userId: body.userId,
+								direction: "out",
+								content: contenu,
+								persona: "shenron",
+								messageId: sent.id,
+							});
+							return Response.json({ ok: true, messageId: sent.id, destinataire: contact.username });
+						} catch (e) {
+							// Cause la plus fréquente : le correspondant a fermé ses messages
+							// privés. Le dire explicitement évite de chercher côté bot.
+							return Response.json(
+								{ error: `Envoi impossible : ${(e as Error).message}` },
+								{ status: 502 }
+							);
+						}
+					}),
+				},
+
+				// Correspondants connus, autorisés ou non, avec leur volume d'échange.
+				"/api/dm/contacts": {
+					GET: admin(async () => {
+						const dbs = container.resolve(DatabaseService);
+						const lignes = await dbs.db
+							.select({
+								userId: dmContacts.userId,
+								username: dmContacts.username,
+								displayName: dmContacts.displayName,
+								allowed: dmContacts.allowed,
+								note: dmContacts.note,
+								firstSeenAt: dmContacts.firstSeenAt,
+								lastSeenAt: dmContacts.lastSeenAt,
+							})
+							.from(dmContacts)
+							.orderBy(dmContacts.lastSeenAt);
+						return Response.json({ contacts: lignes });
+					}),
+				},
+
+				// Ouvre ou ferme l'accès d'un correspondant. `POST {allowed, note}`.
+				// Le contact peut ne pas exister encore : on le crée, ce qui permet
+				// d'autoriser quelqu'un AVANT son premier message.
+				"/api/dm/contacts/:userId": {
+					POST: admin(async (req) => {
+						const userId = req.params.userId as string;
+						if (!/^\d{17,20}$/.test(userId)) {
+							return Response.json({ error: "userId Discord invalide." }, { status: 400 });
+						}
+						const body = (await req.json().catch(() => null)) as {
+							allowed?: boolean;
+							note?: string;
+						} | null;
+						const allowed = body?.allowed !== false;
+						const dbs = container.resolve(DatabaseService);
+
+						// Le nom vient de Discord, pas de l'appelant : une liste blanche
+						// dont les libellés sont saisis à la main finit par désigner
+						// quelqu'un d'autre que celui qu'on croit.
+						let username = userId;
+						let displayName: string | null = null;
+						const clientMap = container.resolve<Map<PersonaId, Client>>("ClientMap");
+						const client = clientMap.get("shenron");
+						if (client) {
+							try {
+								const user = await client.users.fetch(userId);
+								username = user.username;
+								displayName = user.globalName ?? null;
+							} catch {
+								return Response.json(
+									{ error: "Utilisateur Discord introuvable." },
+									{ status: 404 }
+								);
+							}
+						}
+
+						await dbs.db
+							.insert(dmContacts)
+							.values({ userId, username, displayName, allowed, note: body?.note ?? null })
+							.onConflictDoUpdate({
+								target: dmContacts.userId,
+								set: { allowed, username, displayName, ...(body?.note ? { note: body.note } : {}) },
+							});
+						return Response.json({ ok: true, userId, username, allowed });
 					}),
 				},
 

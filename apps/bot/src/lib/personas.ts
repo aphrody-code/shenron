@@ -27,13 +27,26 @@ export interface PersonaConfig {
 const I = IntentsBitField.Flags;
 
 export const PERSONAS: Record<PersonaId, PersonaConfig> = {
-	// Shenron : pas d'event member-side, slash commands seulement → REST fetch suffit
+	// Shenron : slash commands (REST fetch suffit) + relais de messages privés.
+	//
+	// `DirectMessages` porte le relais `DirectMessageRelay` : sans lui, l'event
+	// `messageCreate` ne se déclenche jamais en privé et le relais est
+	// silencieusement mort — le mismatch intent↔event habituel. Le partial
+	// `Channel` est déjà accordé à toutes les personas (`partialsFor` défaut),
+	// il est indispensable ici : un salon privé n'est pas en cache au démarrage.
+	//
+	// `MessageContent` n'est PAS requis : Discord livre toujours le contenu des
+	// messages envoyés en privé au bot. Inutile de demander un intent privilégié.
+	//
+	// Effet de bord vérifié : `ShenronAutonomousChat` écoute aussi `messageCreate`,
+	// mais `handleMessage` sort sur `!message.inGuild()` — un privé ne peut donc
+	// pas déclencher de réponse IA autonome.
 	shenron: {
 		id: "shenron",
 		name: "Shenron",
 		token: env.DISCORD_TOKEN_SHENRON,
 		appId: env.APPLICATION_ID_SHENRON,
-		intents: [I.Guilds],
+		intents: [I.Guilds, I.DirectMessages],
 	},
 	// Beerus : ban/kick via REST, GuildModeration pour audit log entries
 	beerus: {

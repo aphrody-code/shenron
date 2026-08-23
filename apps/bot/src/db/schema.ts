@@ -976,6 +976,67 @@ export const dbGameCharactersRelations = relations(dbGameCharacters, ({ one }) =
 	}),
 }));
 
+/**
+ * Relais de messages privés — correspondants autorisés.
+ *
+ * Le bot reçoit des DM de n'importe qui : sans liste blanche, ouvrir le relais
+ * revient à donner à tout Discord un canal vers l'agent qui opère la prod. Un
+ * inconnu est donc enregistré en `allowed = false` — son message est conservé
+ * (on veut savoir qui a écrit) mais il n'est jamais relayé, et il ne reçoit pas
+ * de réponse. L'autorisation est un geste explicite du propriétaire.
+ */
+export const dmContacts = sqliteTable(
+	"dm_contacts",
+	{
+		userId: text("user_id").primaryKey(),
+		username: text("username").notNull(),
+		displayName: text("display_name"),
+		/** Seuls les correspondants autorisés voient leurs messages relayés. */
+		allowed: integer("allowed", { mode: "boolean" }).notNull().default(false),
+		/** Mémo libre du propriétaire : qui est cette personne, à quel titre. */
+		note: text("note"),
+		firstSeenAt: integer("first_seen_at", { mode: "timestamp_ms" })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+		lastSeenAt: integer("last_seen_at", { mode: "timestamp_ms" })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+	},
+	(t) => [index("idx_dm_contacts_allowed").on(t.allowed)]
+);
+
+/**
+ * Relais de messages privés — la conversation elle-même.
+ *
+ * Les deux sens vivent dans la même table pour que l'historique se relise dans
+ * l'ordre : `direction = "in"` vient du correspondant, `"out"` part du bot.
+ * `readAt` marque ce que l'agent a déjà vu — c'est ce qui distingue « arrivé »
+ * de « traité », et évite de re-répondre deux fois au même message.
+ */
+export const dmMessages = sqliteTable(
+	"dm_messages",
+	{
+		id: integer("id").primaryKey({ autoIncrement: true }),
+		userId: text("user_id").notNull(),
+		direction: text("direction", { enum: ["in", "out"] }).notNull(),
+		content: text("content").notNull(),
+		/** Persona émettrice pour un `out` ; celle qui a reçu pour un `in`. */
+		persona: text("persona").notNull().default("shenron"),
+		/** Identifiant Discord du message, pour retrouver l'original. */
+		messageId: text("message_id"),
+		/** Horodatage de lecture par l'agent (`in` seulement). */
+		readAt: integer("read_at", { mode: "timestamp_ms" }),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.notNull()
+			.default(sql`(unixepoch() * 1000)`),
+	},
+	(t) => [
+		index("idx_dm_messages_user").on(t.userId),
+		index("idx_dm_messages_unread").on(t.direction, t.readAt),
+		index("idx_dm_messages_created").on(t.createdAt),
+	]
+);
+
 export const dbNewsRelations = relations(dbNews, ({ one }) => ({
 	source: one(dbSources, {
 		fields: [dbNews.sourceId],

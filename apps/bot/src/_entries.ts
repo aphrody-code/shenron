@@ -31,6 +31,7 @@ import "./commands/wiki/Wiki";
 import "./events/AuditLog";
 import "./events/AutonomousChat";
 import "./events/BioRole";
+import "./events/DirectMessageRelay";
 import "./events/InteractionLog";
 import "./events/JailExpiry";
 import "./events/JoinLeave";
