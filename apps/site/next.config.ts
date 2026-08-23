@@ -35,6 +35,33 @@ const nextConfig: NextConfig = {
 	// normale sans animation (progressive enhancement). Cf. components/ViewTransition.tsx.
 	experimental: {
 		viewTransition: true,
+
+		// Parallélisme de la génération statique — soupape mémoire du build.
+		//
+		// Le build réclame ~10,5 Gio de mémoire anonyme sur une machine de 11 Gio
+		// (cf. `scripts/ops/deploy-site.ts`) : il n'est vivable que parce que le
+		// noyau évacue vers le swap, et il meurt en OOM dès que la marge se réduit
+		// — trois fois en août 2026, une fois le 2026-08-23.
+		//
+		// Ce pic vient d'abord du parallélisme : Next rend les ~850 pages avec
+		// `cpus` workers traitant chacun `staticGenerationMaxConcurrency` pages de
+		// front (4 × 8 = 32 pages en vol par défaut), et chaque page en cours
+		// retient son heap. Diviser le parallélisme réduit le pic, au prix d'un
+		// build plus long.
+		//
+		// Les deux réglages restent au défaut de Next tant qu'ils ne sont pas
+		// mesurés : ils ne s'activent que si l'environnement les fournit, ce qui
+		// donne une soupape actionnable sans changer le comportement à l'aveugle.
+		//
+		//   BUILD_CPUS=2 BUILD_STATIC_CONCURRENCY=4 bash scripts/deploy-site.sh
+		//
+		// `memoryBasedWorkersCount` n'est PAS utilisé : il impose un plancher de
+		// 4 workers (`Math.max(…, 4)` dans le code de Next), donc il ne peut pas
+		// descendre là où on en a besoin.
+		...(process.env.BUILD_CPUS ? { cpus: Number(process.env.BUILD_CPUS) } : {}),
+		...(process.env.BUILD_STATIC_CONCURRENCY
+			? { staticGenerationMaxConcurrency: Number(process.env.BUILD_STATIC_CONCURRENCY) }
+			: {}),
 	},
 
 	// Image optimization Vercel CDN — AVIF prioritaire, WebP fallback.

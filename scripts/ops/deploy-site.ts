@@ -77,6 +77,18 @@ const BOOT_TIMEOUT_MS = 180_000;
 const KEEP_RELEASES = 3;
 /** Pic mesuré du build ≈ 8,1 Gio → on exige un budget RAM+swap au-dessus. */
 const MEMORY_NEED_MIB = 11_264;
+/**
+ * Plancher de mémoire VIVE libre exigé avant de lancer le build.
+ *
+ * Le budget global peut être confortable et le build mourir quand même : ce qui
+ * tue, c'est l'absence de mémoire libre À L'INSTANT T (cf. `order=1` plus bas).
+ * Le 2026-08-23 le garde-fou annonçait 22 799 Mio disponibles et le build a été
+ * tué à 8 Gio — parce que ces 22 Gio étaient à 80 % du swap, que kswapd ne
+ * remplit pas à la vitesse où Turbopack alloue.
+ */
+const MEMORY_RAM_FLOOR_MIB = 2_048;
+/** Au-delà, le contenu des tmpfs pèse assez pour mériter d'être détaillé. */
+const TMPFS_WARN_MIB = 256;
 
 interface DeployState {
 	live: SlotId | null;
@@ -139,20 +151,93 @@ async function writeState(next: Omit<DeployState, "updatedAt">): Promise<void> {
 
 // ── garde-fou mémoire ───────────────────────────────────────────────────────
 
+/**
+ * Occupation des tmpfs, du plus gros au plus petit.
+ *
+ * Un tmpfs, c'est de la RAM : `/tmp` fait 5,7 Gio sur cette machine et tout ce
+ * qu'on y laisse est autant de mémoire en moins pour le build. Ces pages ne
+ * figurent PAS dans `MemAvailable` (elles ne sont pas récupérables) et devront
+ * migrer vers le swap sous pression — elles mangent donc les deux termes du
+ * budget à la fois, sans qu'aucun apparaisse dans un `free -m` lu trop vite.
+ *
+ * Vécu le 2026-08-23 : 1,2 Gio traînaient dans `/tmp` (transcripts d'agents et
+ * un `node_modules` de banc d'essai), le build est mort en OOM ; après ménage,
+ * il est passé. Le garde-fou ne les voyait pas.
+ */
+async function tmpfsUsage(): Promise<Array<{ target: string; usedMib: number }>> {
+	const res = await run(["df", "-B", "1048576", "--output=fstype,target,used"]);
+	if (res.code !== 0) return [];
+	return res.stdout
+		.split("\n")
+		.slice(1)
+		.map((line) => line.trim().split(/\s+/))
+		.filter((cols) => cols[0] === "tmpfs" && cols.length >= 3)
+		.map((cols) => ({ target: cols[1]!, usedMib: Number(cols[2]) }))
+		.filter((entry) => Number.isFinite(entry.usedMib) && entry.usedMib > 0)
+		.sort((a, b) => b.usedMib - a.usedMib);
+}
+
+/**
+ * Le build a-t-il de quoi vivre ?
+ *
+ * Deux conditions, et non plus une seule somme :
+ *
+ *  1. **le budget total** — mémoire disponible + swap, MOINS ce que les tmpfs
+ *     occupent : ces pages devront elles-mêmes trouver de la place en swap, on
+ *     ne peut pas les compter comme de l'espace pour le build ;
+ *  2. **un plancher de RAM libre** — parce qu'un budget composé presque
+ *     entièrement de swap ne protège de rien. C'est la leçon du 2026-08-23 :
+ *     22 799 Mio annoncés, mort à 8 Gio. La somme rassurait, la RAM manquait.
+ *
+ * Le second test est le seul qui décrive vraiment la cause des morts observées.
+ * Il rend le garde-fou plus sévère qu'avant — c'est le but : mieux vaut refuser
+ * de partir que perdre dix minutes de build et finir tué par l'OOM killer.
+ */
 async function checkMemory(allowLow: boolean): Promise<void> {
 	const meminfo = await readFile("/proc/meminfo", "utf8");
 	const field = (name: string) =>
 		Math.round(Number(new RegExp(`^${name}:\\s+(\\d+)`, "m").exec(meminfo)?.[1] ?? 0) / 1024);
-	const budget = field("MemAvailable") + field("SwapFree");
-	log(`mémoire : ${budget} Mio disponibles (RAM + swap), besoin ~${MEMORY_NEED_MIB} Mio`);
-	if (budget >= MEMORY_NEED_MIB) return;
+
+	const ram = field("MemAvailable");
+	const swap = field("SwapFree");
+
+	// On déduit l'occupation RÉELLE des tmpfs, pas `Shmem` : ce dernier ne compte
+	// que leur part encore résidente en RAM. Mesuré le 2026-08-23, `Shmem` valait
+	// 39 Mio quand `/tmp` en contenait 443 — le reste dormait déjà en swap, où il
+	// occupe la place que le build convoite. Le volume qui compte est celui des
+	// fichiers, puisqu'il devra vivre quelque part pendant tout le build.
+	const tmpfs = await tmpfsUsage();
+	const tmpfsTotal = tmpfs.reduce((n, e) => n + e.usedMib, 0);
+	const budget = ram + Math.max(0, swap - tmpfsTotal);
+
+	log(
+		`mémoire : ${budget} Mio utilisables (RAM ${ram} + swap ${swap} − tmpfs ${tmpfsTotal}), ` +
+			`besoin ~${MEMORY_NEED_MIB} Mio`
+	);
+
+	if (tmpfsTotal >= TMPFS_WARN_MIB) {
+		log(
+			`⚠ ${tmpfsTotal} Mio occupés en tmpfs (= en RAM) : ` +
+				tmpfs.map((e) => `${e.target} ${e.usedMib} Mio`).join(", ")
+		);
+		log("  vider ce qui est jetable y rend directement de la mémoire au build.");
+	}
+
+	const manques: string[] = [];
+	if (budget < MEMORY_NEED_MIB) manques.push(`budget ${budget} Mio < ${MEMORY_NEED_MIB} Mio`);
+	if (ram < MEMORY_RAM_FLOOR_MIB) {
+		manques.push(`RAM libre ${ram} Mio < ${MEMORY_RAM_FLOOR_MIB} Mio (le swap ne compense pas)`);
+	}
+	if (manques.length === 0) return;
+
 	if (allowLow) {
-		log("⚠ sous le seuil mais --allow-low-memory demandé — poursuite");
+		log(`⚠ ${manques.join(" ; ")} — mais --allow-low-memory demandé, poursuite`);
 		return;
 	}
 	fail(
-		`mémoire insuffisante pour le build (${budget} Mio < ${MEMORY_NEED_MIB} Mio). ` +
-			`Libérer de la RAM, ajouter du swap, ou forcer avec --allow-low-memory.`
+		`mémoire insuffisante pour le build (${manques.join(" ; ")}). ` +
+			`Libérer de la RAM${tmpfsTotal >= TMPFS_WARN_MIB ? " (à commencer par les tmpfs ci-dessus)" : ""}, ` +
+			`ajouter du swap, ou forcer avec --allow-low-memory.`
 	);
 }
 
@@ -282,6 +367,15 @@ async function buildSite(sha: string): Promise<string> {
 			NEXT_TELEMETRY_DISABLED: "1",
 			NEXT_DEPLOYMENT_ID: sha,
 			NEXT_DIST_DIR: BUILD_DIR_NAME,
+			// Soupape mémoire : `next.config.ts` ne réduit le parallélisme de la
+			// génération statique que si ces variables arrivent jusqu'à lui. Comme
+			// `env` remplace l'environnement, les omettre les rendrait inopérantes
+			// depuis la ligne de commande — le réglage existerait sans jamais
+			// s'appliquer, ce qui est pire que de ne pas l'avoir.
+			...(process.env.BUILD_CPUS ? { BUILD_CPUS: process.env.BUILD_CPUS } : {}),
+			...(process.env.BUILD_STATIC_CONCURRENCY
+				? { BUILD_STATIC_CONCURRENCY: process.env.BUILD_STATIC_CONCURRENCY }
+				: {}),
 		},
 	});
 
