@@ -13,6 +13,7 @@
  * LTR par défaut. Affiche le `number` éditorial (pas seulement l'index).
  */
 
+import type React from "react";
 import { type ReactElement, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TranscriptionTexte } from "./TranscriptionTexte";
@@ -27,7 +28,7 @@ import {
 	ZoomIn,
 } from "lucide-react";
 import { Swiper, SwiperSlide, type SwiperClass } from "swiper/react";
-import { Keyboard, Mousewheel, Virtual, Zoom } from "swiper/modules";
+import { Mousewheel, Virtual, Zoom } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/zoom";
@@ -125,50 +126,21 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		else void el.requestFullscreen?.();
 	}, []);
 
+	// Détection côté client uniquement (`document` absent au rendu serveur).
+	const [fullscreenDispo, setFullscreenDispo] = useState(false);
+	useEffect(() => {
+		setFullscreenDispo(
+			typeof document !== "undefined" &&
+				document.fullscreenEnabled &&
+				typeof containerRef.current?.requestFullscreen === "function"
+		);
+	}, []);
+
 	useEffect(() => {
 		const onChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
 		document.addEventListener("fullscreenchange", onChange);
 		return () => document.removeEventListener("fullscreenchange", onChange);
 	}, []);
-
-	// Navigation clavier des planches.
-	//
-	// Les flèches ne fonctionnaient QUE la visionneuse ouverte : en mode paginé,
-	// tourner les pages au clavier était impossible — il fallait viser les deux
-	// boutons à la souris. Elles pilotent désormais aussi le mode paginé, et
-	// `Début`/`Fin` sautent aux extrémités.
-	useEffect(() => {
-		const actif = lightbox || mode === "paged";
-		if (!actif) return;
-		const onKey = (e: KeyboardEvent) => {
-			const cible = e.target as HTMLElement | null;
-			const tag = cible?.tagName;
-			if (tag === "INPUT" || tag === "TEXTAREA" || cible?.isContentEditable) return;
-			switch (e.key) {
-				case "Escape":
-					if (lightbox) setLightbox(false);
-					return;
-				case "ArrowLeft":
-					e.preventDefault();
-					setCurrent((c) => Math.max(0, c - 1));
-					return;
-				case "ArrowRight":
-					e.preventDefault();
-					setCurrent((c) => Math.min(total - 1, c + 1));
-					return;
-				case "Home":
-					e.preventDefault();
-					setCurrent(0);
-					return;
-				case "End":
-					e.preventDefault();
-					setCurrent(total - 1);
-					return;
-			}
-		};
-		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
-	}, [lightbox, mode, total]);
 
 	// Bloque le scroll body quand lightbox ouverte.
 	useEffect(() => {
@@ -224,6 +196,49 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		return () => el.removeEventListener("scroll", onScroll);
 	}, [mode, virtualizer]);
 
+	// Navigation clavier des planches.
+	//
+	// Une SEULE source de vérité : ce handler, qui passe par `goTo` (donc
+	// `slideTo` en mode paginé). Le module `Keyboard` de Swiper est
+	// volontairement absent : il écoute lui aussi `keydown`, sur `document`,
+	// et faisait AVANCER DEUX FOIS — Swiper glissait d'une planche et émettait
+	// `slideChange` (`setCurrent(index)`), puis ce handler ajoutait +1 par-dessus.
+	// `current` se décalait durablement de la planche affichée, si bien que la
+	// transcription montrée à côté du scan était celle d'une AUTRE page (mesuré
+	// sur /wiki/databooks/305 : compteur « n°3 · 3/20 » sur la planche 2).
+	useEffect(() => {
+		const actif = lightbox || mode === "paged";
+		if (!actif) return;
+		const onKey = (e: KeyboardEvent) => {
+			const cible = e.target as HTMLElement | null;
+			const tag = cible?.tagName;
+			if (tag === "INPUT" || tag === "TEXTAREA" || cible?.isContentEditable) return;
+			switch (e.key) {
+				case "Escape":
+					if (lightbox) setLightbox(false);
+					return;
+				case "ArrowLeft":
+					e.preventDefault();
+					goTo(current - 1);
+					return;
+				case "ArrowRight":
+					e.preventDefault();
+					goTo(current + 1);
+					return;
+				case "Home":
+					e.preventDefault();
+					goTo(0);
+					return;
+				case "End":
+					e.preventDefault();
+					goTo(total - 1);
+					return;
+			}
+		};
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
+	}, [lightbox, mode, total, current, goTo]);
+
 	const goPrevPage = useCallback(() => {
 		goTo(current - 1);
 	}, [current, goTo]);
@@ -241,10 +256,39 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		[items, current]
 	);
 
-	const btn =
-		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-border bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black disabled:cursor-not-allowed disabled:opacity-40";
-	const btnActive =
-		"inline-flex items-center justify-center gap-1.5 rounded-md border border-dbz-orange bg-dbz-bg px-2.5 py-1.5 text-xs font-bold text-dbz-orange transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black";
+	// `min-h-10`/`min-w-10` (40 px) : les commandes du lecteur mesuraient 28 à
+	// 30 px de haut, sous le seuil tactile. Le padding reste serré à partir de
+	// `sm`, où l'on pointe à la souris.
+	// Balayage horizontal dans la visionneuse : sur mobile elle n'offrait que deux
+	// flèches de 44 px posées sur l'image — le geste naturel (faire glisser la
+	// planche) ne faisait rien. Seuil de 48 px, et on ignore les gestes
+	// majoritairement verticaux pour ne pas voler un défilement.
+	const toucheRef = useRef<{ x: number; y: number } | null>(null);
+	const onTouchStart = useCallback((e: React.TouchEvent) => {
+		const t = e.touches[0];
+		toucheRef.current = t ? { x: t.clientX, y: t.clientY } : null;
+	}, []);
+	const onTouchEnd = useCallback(
+		(e: React.TouchEvent) => {
+			const depart = toucheRef.current;
+			toucheRef.current = null;
+			const t = e.changedTouches[0];
+			if (!depart || !t) return;
+			const dx = t.clientX - depart.x;
+			const dy = t.clientY - depart.y;
+			if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy)) return;
+			// `goTo` et non `setCurrent` : il fait suivre le Swiper sous-jacent,
+			// sans quoi refermer la visionneuse laisserait la planche paginée sur
+			// l'ancienne page.
+			goTo(dx < 0 ? current + 1 : current - 1);
+		},
+		[current, goTo]
+	);
+
+	const btnBase =
+		"inline-flex min-h-10 min-w-10 items-center justify-center gap-1.5 rounded-md border bg-dbz-bg px-2.5 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black sm:min-h-0 sm:min-w-0";
+	const btn = `${btnBase} border-dbz-border text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-orange disabled:cursor-not-allowed disabled:opacity-40`;
+	const btnActive = `${btnBase} border-dbz-orange text-dbz-orange`;
 
 	const currentItem = items[current];
 	const currentNum = currentItem?.number ?? current + 1;
@@ -288,55 +332,87 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 	return (
 		<div
 			ref={containerRef}
-			className="flex h-[82vh] min-h-[480px] w-full min-w-0 flex-col overflow-hidden rounded-lg bg-black [&:fullscreen]:h-screen [&:fullscreen]:min-h-screen [&:fullscreen]:rounded-none"
+			// `svh` et non `vh` : sur mobile, `82vh` se calcule barre d'URL RÉTRACTÉE,
+			// donc le bas du lecteur (vignettes, saut de page) passait sous la barre
+			// tant qu'elle était visible. `svh` prend la plus petite hauteur possible
+			// — le lecteur tient toujours entièrement à l'écran.
+			// `contain:inline-size` : le carrousel Swiper déclare une largeur
+			// MIN-CONTENT énorme (une planche par diapositive, côte à côte). Le
+			// conteneur de la fiche, élément flex à marges automatiques, ne peut
+			// alors plus être étiré et prend cette largeur : mesuré sur mobile
+			// 390 px, la page entière passait à 1 200 px et défilait
+			// horizontalement dès le passage en mode paginé. Le confinement coupe
+			// cette remontée — la largeur du lecteur vient du parent, jamais du
+			// contenu.
+			className="flex h-[82svh] min-h-[460px] w-full min-w-0 flex-col overflow-hidden rounded-lg bg-black [contain:inline-size] [&:fullscreen]:h-screen [&:fullscreen]:min-h-screen [&:fullscreen]:rounded-none"
 			data-databook-reader
 		>
 			{/* Barre de contrôles */}
-			<div className="dbz-panel z-10 flex flex-wrap items-center gap-2 border-b border-dbz-border px-3 py-2">
-				<span className="mr-1 min-w-0 max-w-[40ch] truncate text-sm font-bold text-white">
+			{/* Barre de contrôles — une seule ligne sur mobile.
+			    Le titre y était répété alors que le `<h1>` de la fiche est juste
+			    au-dessus : à 390 px, il poussait les commandes sur trois lignes,
+			    soit ~90 px de chrome pris sur la planche. Il ne réapparaît qu'à
+			    partir de `sm`, où la place existe. */}
+			<div className="dbz-panel z-10 flex flex-nowrap items-center gap-1.5 border-b border-dbz-border px-2 py-2 sm:flex-wrap sm:gap-2 sm:px-3">
+				<span className="mr-1 hidden min-w-0 max-w-[40ch] truncate text-sm font-bold text-white sm:block">
 					{title}
 				</span>
-				<span className="ml-auto rounded bg-dbz-bg px-2 py-1 text-xs font-bold tabular-nums text-dbz-orange">
+				<span className="shrink-0 rounded bg-dbz-bg px-2 py-1 text-xs font-bold tabular-nums text-dbz-orange sm:ml-auto">
 					{counter}
 				</span>
 
-				<button
-					type="button"
-					className={mode === "vertical" ? btnActive : btn}
-					onClick={() => setMode("vertical")}
-					aria-pressed={mode === "vertical"}
-					title="Mode vertical (planche + texte)"
-				>
-					<ScrollText size={14} aria-hidden /> Vertical
-				</button>
-				<button
-					type="button"
-					className={mode === "paged" ? btnActive : btn}
-					onClick={() => setMode("paged")}
-					aria-pressed={mode === "paged"}
-					title="Mode paginé"
-				>
-					<BookOpen size={14} aria-hidden /> Paginé
-				</button>
-				<button
-					type="button"
-					className={btn}
-					onClick={() => openLightbox()}
-					disabled={!currentImage}
-					aria-label="Agrandir la planche"
-					title="Agrandir la planche"
-				>
-					<ZoomIn size={14} aria-hidden />
-				</button>
-				<button
-					type="button"
-					className={btn}
-					onClick={toggleFullscreen}
-					aria-label={isFullscreen ? "Quitter le plein écran" : "Activer le plein écran"}
-					title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
-				>
-					{isFullscreen ? <Minimize2 size={14} aria-hidden /> : <Maximize2 size={14} aria-hidden />}
-				</button>
+				<div className="ml-auto flex shrink-0 items-center gap-1.5 sm:ml-0 sm:gap-2">
+					<button
+						type="button"
+						className={mode === "vertical" ? btnActive : btn}
+						onClick={() => setMode("vertical")}
+						aria-pressed={mode === "vertical"}
+						aria-label="Mode vertical (planche + texte)"
+						title="Mode vertical (planche + texte)"
+					>
+						<ScrollText size={16} aria-hidden />
+						<span className="hidden sm:inline">Vertical</span>
+					</button>
+					<button
+						type="button"
+						className={mode === "paged" ? btnActive : btn}
+						onClick={() => setMode("paged")}
+						aria-pressed={mode === "paged"}
+						aria-label="Mode paginé"
+						title="Mode paginé"
+					>
+						<BookOpen size={16} aria-hidden />
+						<span className="hidden sm:inline">Paginé</span>
+					</button>
+					<button
+						type="button"
+						className={btn}
+						onClick={() => openLightbox()}
+						disabled={!currentImage}
+						aria-label="Agrandir la planche"
+						title="Agrandir la planche"
+					>
+						<ZoomIn size={16} aria-hidden />
+					</button>
+					{/* iOS Safari n'implémente pas `requestFullscreen` sur iPhone : le
+					    bouton y restait cliquable et sans effet. On ne l'affiche que
+					    lorsque l'API est réellement disponible. */}
+					{fullscreenDispo && (
+						<button
+							type="button"
+							className={btn}
+							onClick={toggleFullscreen}
+							aria-label={isFullscreen ? "Quitter le plein écran" : "Activer le plein écran"}
+							title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
+						>
+							{isFullscreen ? (
+								<Minimize2 size={16} aria-hidden />
+							) : (
+								<Maximize2 size={16} aria-hidden />
+							)}
+						</button>
+					)}
+				</div>
 			</div>
 
 			{/* Zone de lecture */}
@@ -346,15 +422,14 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 					   à droite — les légendes longues ne réduisent plus l'image. */
 					<div className="flex h-full min-h-0 flex-col lg:flex-row">
 						{/* Zone planche */}
-						<div className="relative min-h-[42%] min-w-0 flex-[1.15] lg:min-h-0 lg:h-full">
+						<div className="relative min-h-[52%] min-w-0 flex-[1.6] lg:h-full lg:min-h-0 lg:flex-[1.15]">
 							<Swiper
 								key="databook-ltr"
 								initialSlide={current}
 								dir="ltr"
-								modules={[Keyboard, Zoom, Virtual, Mousewheel]}
+								modules={[Zoom, Virtual, Mousewheel]}
 								className="h-full w-full"
 								slidesPerView={1}
-								keyboard={{ enabled: true }}
 								mousewheel={{ forceToAxis: true }}
 								zoom={{ maxRatio: 3, toggle: true }}
 								virtual
@@ -421,7 +496,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 						</div>
 
 						{/* Légende — panneau scrollable indépendant (ne compresse plus l'image). */}
-						<div className="min-h-0 max-h-[48%] shrink-0 border-t border-dbz-border bg-black/90 px-4 py-3 sm:px-5 sm:py-4 lg:max-h-none lg:w-[min(420px,38%)] lg:border-t-0 lg:border-l lg:overflow-hidden">
+						<div className="min-h-0 max-h-[38%] shrink-0 border-t border-dbz-border bg-black/90 px-3 py-2.5 sm:max-h-[48%] sm:px-5 sm:py-4 lg:max-h-none lg:w-[min(420px,38%)] lg:overflow-hidden lg:border-l lg:border-t-0">
 							{legendBlock}
 						</div>
 					</div>
@@ -429,7 +504,10 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 					<div
 						ref={scrollParentRef}
 						tabIndex={0}
-						className="h-full w-full overflow-y-auto overflow-x-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dbz-orange"
+						// `overscroll-contain` : sans lui, arriver en bout de liste sur
+						// mobile propageait l'inertie au document et éjectait le lecteur
+						// hors de l'écran en plein milieu d'une lecture.
+						className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-y-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dbz-orange"
 						aria-label={`${title} — lecture verticale`}
 					>
 						<div
@@ -592,8 +670,8 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 					className="fixed inset-0 z-[100] flex flex-col bg-black/95"
 					onClick={() => setLightbox(false)}
 				>
-					<div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
-						<span className="min-w-0 truncate text-sm font-bold text-white">{title}</span>
+					<div className="flex items-center gap-3 border-b border-white/10 px-3 py-3 sm:px-4">
+						<span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{title}</span>
 						<span className="rounded bg-white/10 px-2 py-0.5 text-xs font-bold tabular-nums text-dbz-orange">
 							n°{currentNum}
 						</span>
@@ -610,8 +688,10 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 						</button>
 					</div>
 					<div
-						className="relative flex min-h-0 flex-1 items-center justify-center p-4"
+						className="relative flex min-h-0 flex-1 items-center justify-center p-2 sm:p-4"
 						onClick={(e) => e.stopPropagation()}
+						onTouchStart={onTouchStart}
+						onTouchEnd={onTouchEnd}
 					>
 						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img
