@@ -25,9 +25,13 @@
  */
 import { NextResponse } from "next/server";
 import { hasValidApiToken } from "@/lib/api-token";
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
 import { getDatabook, updateDatabook } from "@/lib/databooks";
 import { parseDatabookId, type DatabookPageInput } from "@/lib/databooks-rules";
 import { recordRevision } from "@/lib/wiki-revisions";
+import { revalidateWikiEntity } from "@/lib/wiki-revalidate";
+import { indexDatabook } from "@/lib/databooks-redis";
 
 export const dynamic = "force-dynamic";
 
@@ -121,36 +125,83 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 	let pages: DatabookPageInput[];
 	let inconnues = 0;
 
+	let doublons = 0;
+
 	if (mode === "replace") {
 		// Reprise complète : l'appelant fournit le tableau entier. On conserve
 		// l'image existante quand il ne la redonne pas — perdre le chemin d'une
 		// planche serait irréversible côté fichiers.
+		//
+		// Une entrée SANS numéro valide est refusée, jamais renumérotée sur sa
+		// position : le repli `i + 1` d'origine lui attribuait le numéro d'une
+		// autre planche, donc `textes.get(numero)` lui collait la transcription de
+		// cette autre planche — et deux entrées finissaient avec le même numéro,
+		// sans que rien ne le signale. En reprise complète, l'appelant est censé
+		// fournir des numéros ; on préfère l'en informer.
 		const parNumero = new Map(avant.pages.map((p) => [p.number, p]));
-		pages = entrees
-			.map((e, i) => {
-				const n = Number(e?.number);
-				const numero = Number.isSafeInteger(n) && n > 0 ? n : i + 1;
-				const ancienne = parNumero.get(numero);
-				const image =
-					typeof e?.image === "string" && e.image.trim()
-						? e.image.trim()
-						: (ancienne?.image ?? null);
-				return { number: numero, image, text: textes.get(numero) ?? null };
-			})
-			.sort((a, b) => a.number - b.number);
+		const construites = new Map<number, DatabookPageInput>();
+		for (const e of entrees) {
+			const n = Number(e?.number);
+			if (!Number.isSafeInteger(n) || n <= 0) continue; // déjà compté dans `ignorees`
+			if (construites.has(n)) doublons++;
+			const ancienne = parNumero.get(n);
+			const image =
+				typeof e?.image === "string" && e.image.trim()
+					? e.image.trim()
+					: (ancienne?.image ?? null);
+			construites.set(n, { number: n, image, text: textes.get(n) ?? null });
+		}
+		if (construites.size === 0) {
+			return NextResponse.json(
+				{ error: "Mode `replace` : aucune page ne porte de numéro valide." },
+				{ status: 400, headers: CORS }
+			);
+		}
+		pages = [...construites.values()].sort((a, b) => a.number - b.number);
 	} else {
-		pages = avant.pages.map((p) => {
-			const t = textes.get(p.number);
-			return t === undefined ? p : { ...p, text: t };
-		});
+		pages = [];
 		const connus = new Set(avant.pages.map((p) => p.number));
 		for (const n of textes.keys()) if (!connus.has(n)) inconnues++;
 	}
 
-	const apres = await updateDatabook(id, {
-		pages,
-		...(corps.description !== undefined ? { description: corps.description } : {}),
-	});
+	if (mode === "merge") {
+		// Fusion **en SQL**, sur les seules planches citées.
+		//
+		// Le chemin précédent relisait la fiche puis réécrivait le tableau `pages`
+		// entier : toute correction enregistrée par un relecteur (`PATCH /pages`,
+		// ciblé et atomique) entre la lecture et l'écriture était perdue — la race
+		// exacte que ce PATCH avait été écrit pour éviter. Ici l'`UPDATE` lit et
+		// réécrit dans la même instruction, donc rien ne peut s'intercaler.
+		//
+		// `'null'::jsonb` distingue « effacer » (text: null) de « absent du lot ».
+		const table = Object.fromEntries([...textes].map(([n, t]) => [String(n), t]));
+		await db.execute(sql`
+			UPDATE bot.db_databooks d
+			SET pages = coalesce((
+				SELECT jsonb_agg(
+					CASE
+						WHEN m.v IS NULL THEN t.p
+						WHEN jsonb_typeof(m.v) = 'null' THEN t.p - 'text'
+						ELSE t.p || jsonb_build_object('text', m.v)
+					END ORDER BY t.ord)
+				FROM jsonb_array_elements(
+					CASE WHEN jsonb_typeof(d.pages) = 'array' THEN d.pages ELSE '[]'::jsonb END
+				) WITH ORDINALITY AS t(p, ord)
+				LEFT JOIN LATERAL (
+					SELECT ${JSON.stringify(table)}::jsonb -> coalesce(t.p ->> 'number', t.ord::text) AS v
+				) m ON true
+			), '[]'::jsonb)
+			WHERE d.id = ${id}
+		`);
+	}
+
+	const apres =
+		mode === "replace" || corps.description !== undefined
+			? await updateDatabook(id, {
+					...(mode === "replace" ? { pages } : {}),
+					...(corps.description !== undefined ? { description: corps.description } : {}),
+				})
+			: await getDatabook(id);
 	if (!apres) {
 		return NextResponse.json({ error: "Fiche introuvable." }, { status: 404, headers: CORS });
 	}
@@ -165,6 +216,16 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 		actor: { id: "api-transcription", name: "Transcription (API)" },
 	});
 
+	// Sans ça, un lot de 2 000 planches déposé par l'API restait invisible du
+	// public jusqu'à une heure : la fiche est en `revalidate = 3600` avec
+	// `generateStaticParams`, donc rien ne la régénère avant expiration. Le
+	// chemin unitaire (`PATCH /pages`) revalidait déjà — pas celui de masse.
+	revalidateWikiEntity("db_databooks", { id });
+	// Même raison côté index Redis (recherche par titre/catégorie).
+	await indexDatabook(apres).catch((e) =>
+		console.error("[api/databooks/transcription] indexation Redis échouée:", e)
+	);
+
 	const transcrites = apres.pages.filter((p) => (p.text ?? "").length > 0).length;
 	return NextResponse.json(
 		{
@@ -172,6 +233,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 			mode,
 			deposees: textes.size,
 			ignorees,
+			// Numéros fournis deux fois dans le même lot (`replace`) : la dernière
+			// occurrence gagne, mais le silence masquerait un export incohérent.
+			doublons,
 			// En `merge`, un numéro absent de la fiche est signalé plutôt qu'inventé :
 			// c'est le symptôme d'un décalage entre le lot exporté et la base.
 			pagesInconnues: inconnues,

@@ -171,8 +171,21 @@ export function extraireSegments(
 	const cible = terme.trim();
 	if (!cible) return [{ texte: texte.slice(0, contexte * 2), correspond: false }];
 
-	const foin = texte.toLocaleLowerCase();
-	const aiguille = cible.toLocaleLowerCase();
+	// Repérage insensible à la casse SANS changer les longueurs : `İ` (U+0130)
+	// devient deux unités en minuscule, et les offsets calculés sur la version
+	// minuscule ne pointaient alors plus les bonnes positions dans le texte
+	// d'origine — surlignage décalé. `toLowerCase()` par caractère préserve la
+	// correspondance d'index quand la conversion s'allonge : on retombe sur le
+	// caractère d'origine dans ce cas.
+	const memeLongueur = (t: string) =>
+		Array.from(t)
+			.map((c) => {
+				const bas = c.toLocaleLowerCase();
+				return bas.length === c.length ? bas : c;
+			})
+			.join("");
+	const foin = memeLongueur(texte);
+	const aiguille = memeLongueur(cible);
 	const positions: number[] = [];
 	let i = foin.indexOf(aiguille);
 	while (i !== -1 && positions.length < max) {

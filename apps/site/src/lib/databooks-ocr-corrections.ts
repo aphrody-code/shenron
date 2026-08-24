@@ -103,18 +103,22 @@ export function corrigerTitresInline(texte: string): { texte: string; correction
 // ---------------------------------------------------------------------------
 
 /**
- * Ａ-Ｚ, ａ-ｚ, ０-９ pleine chasse → forme normale (ASCII).
+ * Ａ-Ｚ, ａ-ｚ pleine chasse → forme normale (ASCII).
  *
- * Décalage de U+FEE0, constant sur ces trois plages (bloc Halfwidth and
- * Fullwidth Forms). Pure normalisation d'encodage : ne touche ni au sens ni à
- * la casse, améliore la recherche (« CONTENTS » ne matchait pas
- * « ＣＯＮＴＥＮＴＳ »). Volontairement restreint aux lettres/chiffres — la
- * ponctuation pleine chasse japonaise (＝、（） …) garde son rôle typographique
- * propre et n'est pas de la même famille que la ponctuation latine.
+ * Décalage de U+FEE0 (bloc Halfwidth and Fullwidth Forms). Pure normalisation
+ * d'encodage sur les LETTRES : ne touche ni au sens ni à la casse, et améliore
+ * la recherche (« CONTENTS » ne matchait pas « ＣＯＮＴＥＮＴＳ »).
+ *
+ * Les **chiffres pleine chasse `０-９` en sont volontairement exclus** (ils y
+ * figuraient jusqu'au 2026-08-24). Dans un texte japonais ils sont la graphie
+ * normale, et les convertir peut changer le sens : sur les 17 planches
+ * concernées du corpus, `１100円(税込)` — où le `１` est un marqueur d'item —
+ * devenait « 1100円 ». Même piège que `１９号` côté noms japonais : la pleine
+ * chasse n'est pas du bruit d'encodage, c'est de la typographie.
  */
 export function normaliserLatinPleineChasse(texte: string): { texte: string; corrections: number } {
 	let n = 0;
-	const sortie = texte.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => {
+	const sortie = texte.replace(/[Ａ-Ｚａ-ｚ]/g, (c) => {
 		n++;
 		return String.fromCharCode(c.charCodeAt(0) - 0xfee0);
 	});

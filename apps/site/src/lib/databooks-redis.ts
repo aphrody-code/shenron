@@ -111,6 +111,11 @@ export async function indexDatabook(fiche: FicheIndexable): Promise<void> {
 			return;
 		}
 		const id = String(fiche.id);
+		// Valeur précédente lue AVANT l'écrasement : sans elle, requalifier une
+		// fiche (« Interview » → « Art Book ») l'ajoutait au nouveau set sans
+		// jamais la retirer de l'ancien. Elle restait donc listée dans les deux
+		// catégories jusqu'à un rebuild complet de l'index.
+		const ancienBrut = await r.get(cleFiche(fiche.id));
 		await r.set(
 			cleFiche(fiche.id),
 			JSON.stringify({
@@ -126,6 +131,17 @@ export async function indexDatabook(fiche: FicheIndexable): Promise<void> {
 				pageCount: Array.isArray(fiche.pages) ? fiche.pages.length : 0,
 			})
 		);
+		if (ancienBrut) {
+			try {
+				const ancien = JSON.parse(ancienBrut) as { kind?: string; category?: string | null };
+				if (ancien.kind && ancien.kind !== fiche.kind) await r.srem(cleGenre(ancien.kind), id);
+				if (ancien.category && ancien.category !== fiche.category) {
+					await r.srem(cleCategorie(ancien.category), id);
+				}
+			} catch {
+				/* entrée d'index illisible : le `sadd` qui suit la remet d'aplomb */
+			}
+		}
 		await r.sadd(CLE_TOUS, id);
 		await r.sadd(cleGenre(fiche.kind), id);
 		if (fiche.category) await r.sadd(cleCategorie(fiche.category), id);

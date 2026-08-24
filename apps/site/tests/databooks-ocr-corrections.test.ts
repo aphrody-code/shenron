@@ -78,10 +78,18 @@ describe("corrigerTitresInline", () => {
 });
 
 describe("normaliserLatinPleineChasse", () => {
-	test("convertit les lettres et chiffres pleine chasse en forme normale", () => {
-		expect(normaliserLatinPleineChasse("第１話").texte).toBe("第1話");
+	test("convertit les lettres pleine chasse en forme normale", () => {
 		expect(normaliserLatinPleineChasse("ＣＯＮＴＥＮＴＳ").texte).toBe("CONTENTS");
-		expect(normaliserLatinPleineChasse("２０１３年").texte).toBe("2013年");
+		expect(normaliserLatinPleineChasse("ＤＲＡＧＯＮ ＢＡＬＬ").texte).toBe("DRAGON BALL");
+	});
+
+	test("laisse les chiffres pleine chasse intacts", () => {
+		// Dans un texte japonais, la pleine chasse est la graphie normale, pas du
+		// bruit d'encodage : `１100円(税込)` (marqueur d'item + prix) devenait
+		// « 1100円 » — un autre prix. Même règle que pour les noms japonais.
+		expect(normaliserLatinPleineChasse("第１話").texte).toBe("第１話");
+		expect(normaliserLatinPleineChasse("２０１３年").texte).toBe("２０１３年");
+		expect(normaliserLatinPleineChasse("１100円(税込)").texte).toBe("１100円(税込)");
 	});
 
 	test("ne touche pas à la ponctuation pleine chasse japonaise", () => {
@@ -95,6 +103,7 @@ describe("normaliserLatinPleineChasse", () => {
 
 	test("est idempotent", () => {
 		const converti = normaliserLatinPleineChasse("第１話 ＣＯＮＴＥＮＴＳ").texte;
+		expect(converti).toBe("第１話 CONTENTS");
 		expect(normaliserLatinPleineChasse(converti).texte).toBe(converti);
 	});
 });
@@ -195,12 +204,14 @@ describe("corrigerFautesDeLecture", () => {
 describe("corrigerTexte — pipeline complet", () => {
 	test("combine plusieurs règles sur un exemple représentatif du corpus", () => {
 		const source =
-			"8年間在籍していた多林寺の服だ。 ## PERSONALITY プロリーが登場する ## ABILITY ２０１３年の話";
+			"8年間在籍していた多林寺の服だ。 ## PERSONALITY プロリーが登場する ## ＡＢＩＬＩＴＹ ２０１３年の話";
 		const { texte, modifie, regles } = corrigerTexte(source);
 		expect(modifie).toBe(true);
 		expect(texte).toContain("\n## PERSONALITY");
+		expect(texte).toContain("## ABILITY");
 		expect(texte).toContain("ブロリー");
-		expect(texte).toContain("2013年");
+		// Les chiffres pleine chasse sont conservés (cf. normaliserLatinPleineChasse).
+		expect(texte).toContain("２０１３年");
 		const parCode = Object.fromEntries(regles.map((r) => [r.code, r.corrections]));
 		expect(parCode["titres-inline"]).toBeGreaterThan(0);
 		expect(parCode["fautes-de-lecture"]).toBeGreaterThan(0);

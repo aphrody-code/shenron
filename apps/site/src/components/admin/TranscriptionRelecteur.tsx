@@ -32,7 +32,7 @@ import {
 	Wand2,
 } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TranscriptionTexte } from "@/components/databooks/TranscriptionTexte";
 import { assetUrl } from "@/lib/assets";
 import { aBesoinDeNettoyage, diagnostiquerPlanche, nettoyerOcr } from "@/lib/databooks-format";
@@ -123,17 +123,25 @@ export function TranscriptionRelecteur({
 		() => plancheInitiale ?? planchesInitiales[0]?.numero ?? 0
 	);
 
-	// Le filtre peut faire disparaître la planche affichée : on retombe alors sur
-	// la première du nouveau sous-ensemble plutôt que de laisser un écran vide.
+	const courante = planches.find((p) => p.numero === numeroCourant) ?? null;
+	const indexVisible = visibles.findIndex((p) => p.numero === numeroCourant);
+
+	// Dernière position connue dans la liste filtrée. Mémorisée pendant le rendu,
+	// donc encore valide au rendu suivant, où la planche a pu sortir du filtre.
+	const dernierIndexVisible = useRef(0);
+	if (indexVisible >= 0) dernierIndexVisible.current = indexVisible;
+
+	// Le filtre peut faire disparaître la planche affichée — c'est le cas normal
+	// après un enregistrement en mode « À transcrire » / « À vérifier ». Retomber
+	// sur `visibles[0]` renvoyait alors au début de l'ouvrage à chaque sauvegarde ;
+	// on reprend à la position qu'occupait la planche, c'est-à-dire la suivante.
 	useEffect(() => {
 		if (visibles.length === 0) return;
 		if (!visibles.some((p) => p.numero === numeroCourant)) {
-			setNumeroCourant(visibles[0].numero);
+			const i = Math.min(dernierIndexVisible.current, visibles.length - 1);
+			setNumeroCourant(visibles[i].numero);
 		}
 	}, [visibles, numeroCourant]);
-
-	const courante = planches.find((p) => p.numero === numeroCourant) ?? null;
-	const indexVisible = visibles.findIndex((p) => p.numero === numeroCourant);
 
 	// Brouillon local : le texte en cours de saisie n'est pas dans `planches`,
 	// qui ne reçoit que ce qui a été effectivement écrit en base.
@@ -187,14 +195,38 @@ export function TranscriptionRelecteur({
 		onError: (e: Error) => setToast(`Erreur : ${e.message}`),
 	});
 
+	/**
+	 * Point de passage unique de toute navigation entre planches.
+	 *
+	 * Changer de planche recharge le brouillon depuis l'état enregistré : sans
+	 * garde-fou, un Alt+← ou un clic dans l'index efface la saisie en cours sans
+	 * rien dire (dix minutes de relecture perdues, badge « Non enregistré » à
+	 * l'écran). `beforeunload` ne couvre que la fermeture de l'onglet.
+	 */
+	const allerVers = useCallback(
+		(numero: number) => {
+			if (numero === numeroCourant) return;
+			if (
+				modifie &&
+				!window.confirm(
+					`La planche n°${numeroCourant} a des modifications non enregistrées. Les abandonner ?`
+				)
+			) {
+				return;
+			}
+			setNumeroCourant(numero);
+		},
+		[modifie, numeroCourant]
+	);
+
 	const aller = useCallback(
 		(delta: -1 | 1) => {
 			if (visibles.length === 0) return;
 			const i = visibles.findIndex((p) => p.numero === numeroCourant);
 			const suivant = visibles[Math.min(visibles.length - 1, Math.max(0, i + delta))];
-			if (suivant) setNumeroCourant(suivant.numero);
+			if (suivant) allerVers(suivant.numero);
 		},
-		[visibles, numeroCourant]
+		[visibles, numeroCourant, allerVers]
 	);
 
 	// Raccourcis : Alt+flèches pour naviguer (les flèches nues doivent rester
@@ -273,7 +305,7 @@ export function TranscriptionRelecteur({
 								<li key={p.numero}>
 									<button
 										type="button"
-										onClick={() => setNumeroCourant(p.numero)}
+										onClick={() => allerVers(p.numero)}
 										aria-current={active ? "true" : undefined}
 										data-ja={aDesFautesJa ? "" : undefined}
 										title={
