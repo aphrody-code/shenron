@@ -59,7 +59,12 @@ export async function Breadcrumbs({
 					{trail.map((c, i) => {
 						const last = i === trail.length - 1;
 						return (
-							<li key={`${c.label}-${i}`} className="flex items-center gap-x-2">
+							// `min-w-0` + `break-words` : un maillon long (titre de databook de
+						// 55 caractères) constitue un élément flex à largeur `max-content`.
+						// Sans ça il déborde la fenêtre au lieu de passer à la ligne — mesuré
+						// sur mobile 390 px : `scrollWidth` 461 px, donc toute la page
+						// défilait horizontalement et la couverture sortait de l'écran.
+						<li key={`${c.label}-${i}`} className="flex min-w-0 items-center gap-x-2">
 								{i > 0 && (
 									<span aria-hidden className="text-white/20">
 										/
@@ -72,13 +77,13 @@ export async function Breadcrumbs({
 										// on demande le slide directionnel inverse des View
 										// Transitions (cf. `nav-back` dans globals.css).
 										transitionTypes={["nav-back"]}
-										className="rounded-sm transition-colors hover:text-dbz-orange"
+										className="min-w-0 break-words rounded-sm transition-colors hover:text-dbz-orange"
 									>
 										{c.label}
 									</Link>
 								) : (
 									<span
-										className={last ? "text-white/70" : undefined}
+										className={`min-w-0 break-words ${last ? "text-white/70" : ""}`}
 										aria-current={last ? "page" : undefined}
 									>
 										{c.label}

@@ -145,8 +145,13 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 		isBasedOn: book.source_url ?? undefined,
 	};
 
+	// `min-w-0` sur le conteneur : c'est un élément flex de `main` (colonne).
+	// Sans lui il garde `min-width: auto`, donc la largeur MIN-CONTENT de ses
+	// enfants — et le lecteur en mode paginé (carrousel Swiper) la fait exploser.
+	// Mesuré sur mobile 390 px : la page passait à 1 200 px de large et défilait
+	// horizontalement dès qu'on basculait en mode paginé.
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<div className="mx-auto min-w-0 max-w-[1200px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24 reveal-up">
 			<JsonLd data={jsonLd as never} />
 			<Breadcrumbs
 				className="mb-4"
@@ -162,8 +167,11 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 				/>
 			</div>
 
-			<div className="flex flex-col gap-12 lg:flex-row lg:gap-20">
-				<div className="w-full lg:w-1/3 xl:w-1/4 shrink-0">
+			<div className="flex flex-col gap-8 sm:gap-12 lg:flex-row lg:gap-20">
+				{/* Couverture : plein cadre sur mobile mais bornée en hauteur, sinon un
+				    scan portrait pousse le titre et la description sous la ligne de
+				    flottaison — deux écrans de défilement avant le moindre texte. */}
+				<div className="w-full shrink-0 lg:w-1/3 xl:w-1/4">
 					<div className="dbz-panel group relative overflow-hidden border-2 border-dbz-orange/30 bg-dbz-card p-4">
 						<div className="absolute inset-0 halftone opacity-20" />
 						{cover ? (
@@ -172,7 +180,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 								<img
 									src={cover}
 									alt={book.title}
-									className="relative z-10 h-auto w-full object-contain drop-shadow-[0_0_15px_rgba(255,178,0,0.3)]"
+									className="relative z-10 mx-auto h-auto max-h-[48vh] w-full object-contain drop-shadow-[0_0_15px_rgba(255,178,0,0.3)] lg:max-h-none"
 								/>
 							</ViewTransition>
 						) : (
@@ -228,12 +236,12 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 						<span className="mb-3 inline-block rounded bg-dbz-orange/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.2em] text-dbz-orange">
 							{isInterview ? "Interview" : "Databook"}
 						</span>
-						<h1 className="font-saiyan text-4xl uppercase leading-none tracking-wider text-white sm:text-5xl md:text-6xl">
+						<h1 className="font-saiyan text-[clamp(1.75rem,7vw,2.25rem)] uppercase leading-none tracking-wider text-white [overflow-wrap:anywhere] sm:text-5xl md:text-6xl">
 							{book.title}
 						</h1>
 						{book.title_ja && (
 							<p
-								className="mt-3 text-xl font-bold tracking-widest text-dbz-yellow/90"
+								className="mt-3 text-lg font-bold tracking-widest text-dbz-yellow/90 [overflow-wrap:anywhere] sm:text-xl"
 								style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
 							>
 								{book.title_ja}
@@ -242,7 +250,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 					</div>
 
 					{book.description?.trim() ? (
-						<div className="dbz-panel prose prose-invert wiki-content max-w-none p-6 sm:p-8">
+						<div className="dbz-panel prose prose-invert wiki-content max-w-none p-4 sm:p-8">
 							<WikiMarkdown body={book.description} />
 						</div>
 					) : !hasPages ? (
@@ -257,12 +265,12 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 			    Hors du layout 2 colonnes pour maximiser la largeur utile et
 			    éviter que le chrome/nav masque le haut des scans. */}
 			{hasPages && (
-				<section className="mt-16 space-y-4" aria-label="Lecteur de pages">
+				<section className="mt-10 min-w-0 space-y-4 sm:mt-16" aria-label="Lecteur de pages">
 					<div className="flex items-end justify-between gap-4 border-b border-dbz-border/50 pb-3">
 						<h2 className="font-saiyan text-2xl uppercase tracking-wider text-dbz-yellow sm:text-3xl">
 							Pages
 						</h2>
-						<span className="text-[11px] font-bold uppercase tracking-widest text-white/50">
+						<span className="hidden text-[11px] font-bold uppercase tracking-widest text-white/50 sm:inline">
 							Planche + description
 						</span>
 					</div>

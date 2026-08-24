@@ -33,8 +33,6 @@ export default async function DatabooksIndexPage() {
 		// Chemin brut : DatabookGrid / WikiImg résolvent via assetUrl (évite
 		// double-préfixe et permet le repli placeholder si cover 404).
 		cover: d.cover,
-		description: d.description,
-		sourceUrl: d.source_url,
 	}));
 
 	const heroImage = items[0]?.cover ? assetUrl(items[0].cover) : SERIES_BANNERS.DB;
@@ -49,8 +47,8 @@ export default async function DatabooksIndexPage() {
 				imageAlt="Databooks Dragon Ball"
 				imagePosition="top"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 py-16 lg:px-10 lg:py-24">
-				<Breadcrumbs className="mb-8" items={[{ label: "Databooks" }]} />
+			<div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
+				<Breadcrumbs className="mb-6 sm:mb-8" items={[{ label: "Databooks" }]} />
 				<DatabookGrid items={items} access={access} />
 			</div>
 		</div>

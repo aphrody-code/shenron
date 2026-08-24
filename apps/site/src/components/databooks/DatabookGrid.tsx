@@ -32,8 +32,6 @@ export interface DatabookItem {
 	publishedAt: number | null;
 	/** Chemin d'asset brut (résolu via WikiImg / assetUrl), pas une URL absolue. */
 	cover: string | null;
-	description: string | null;
-	sourceUrl: string | null;
 }
 
 type FilterTab =
@@ -102,7 +100,10 @@ function norm(s: string): string {
 }
 
 const tabBtn =
-	"inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors";
+	// `min-h-11` (44 px) : les onglets mesuraient 34 px de haut sur mobile, sous
+	// la cible tactile recommandée. `shrink-0` + `snap-start` servent au rail
+	// défilant qui remplace le retour à la ligne sur petit écran.
+	"inline-flex shrink-0 snap-start items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors min-h-11 sm:min-h-0 sm:py-1.5";
 const tabActive = "border-dbz-orange bg-dbz-orange/10 text-white";
 const tabIdle = "border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white";
 
@@ -145,8 +146,16 @@ export function DatabookGrid({
 	return (
 		<div className="space-y-6">
 			{/* Une seule rangée de filtres, tous au même plan (même taille / style). */}
-			<div className="flex flex-wrap items-center gap-3">
-				<div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par catégorie">
+			<div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+				{/* Rail défilant sur mobile : les 11 catégories occupaient 4 lignes
+				    (≈ 160 px) avant même la première couverture. Elles tiennent
+				    maintenant sur une ligne que l'on fait glisser, et reprennent le
+				    retour à la ligne dès `sm`. */}
+				<div
+					className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 scrollbar-thin sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+					role="group"
+					aria-label="Filtrer par catégorie"
+				>
 					{FILTER_TABS.map((t) => {
 						const Icon = t.icon;
 						const active = filter === t.key;
@@ -164,26 +173,33 @@ export function DatabookGrid({
 						);
 					})}
 				</div>
-				<button
-					type="button"
-					onClick={() => setOrder((o) => (o === "desc" ? "asc" : "desc"))}
-					className={`${tabBtn} ${tabIdle}`}
-					title="Inverser le tri par date"
-				>
-					<ArrowDownUp className="h-3.5 w-3.5" />
-					{order === "desc" ? "Plus récent" : "Plus ancien"}
-				</button>
-				<div className="relative ml-auto min-w-[200px] flex-1 sm:max-w-xs">
-					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
-					<input
-						className="w-full rounded-lg border border-dbz-border bg-dbz-bg px-3 py-1.5 pl-8 text-sm text-white focus:border-dbz-orange focus:outline-none"
-						placeholder="Rechercher un guide, un auteur…"
-						value={q}
-						onChange={(e) => setQ(e.target.value)}
-						aria-label="Rechercher un databook ou une interview"
-					/>
+				<div className="flex items-center gap-2 sm:contents">
+					<button
+						type="button"
+						onClick={() => setOrder((o) => (o === "desc" ? "asc" : "desc"))}
+						className={`${tabBtn} ${tabIdle}`}
+						title="Inverser le tri par date"
+					>
+						<ArrowDownUp className="h-3.5 w-3.5" />
+						{order === "desc" ? "Plus récent" : "Plus ancien"}
+					</button>
+					<div className="relative min-w-0 flex-1 sm:ml-auto sm:max-w-xs sm:flex-none">
+						<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+						<input
+							type="search"
+							enterKeyHint="search"
+							className="min-h-11 w-full rounded-lg border border-dbz-border bg-dbz-bg px-3 py-2 pl-8 text-base text-white focus:border-dbz-orange focus:outline-none sm:min-h-0 sm:py-1.5 sm:text-sm"
+							placeholder="Rechercher un guide, un auteur…"
+							value={q}
+							onChange={(e) => setQ(e.target.value)}
+							aria-label="Rechercher un databook ou une interview"
+						/>
+					</div>
 				</div>
-				<p className="w-full text-[11px] uppercase tracking-wider text-dbz-orange/80 sm:w-auto sm:ml-0">
+				<p
+					aria-live="polite"
+					className="text-[11px] uppercase tracking-wider text-dbz-orange/80 sm:ml-0 sm:w-auto"
+				>
 					{filtered.length} / {items.length}
 				</p>
 			</div>
