@@ -14,6 +14,7 @@ import { ChevronDown, Loader2, MessageSquare, Star, Trash2 } from "lucide-react"
 import { useMe } from "@/lib/use-me";
 import { RatingBadge, Stars } from "./Stars";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
+import { PlainField } from "@/components/editor/PlainField";
 
 /** Aligné sur `RATING_TARGET_TYPES` (schema) — union locale pour rester client-safe. */
 export type RatingTargetType = "game" | "episode" | "movie" | "arc";
@@ -400,19 +401,16 @@ export function EntityRating({
 										Commentaire{" "}
 										<span className="normal-case tracking-normal text-white/50">(optionnel)</span>
 									</label>
-									<textarea
+									<PlainField
 										id={`rating-comment-${id}`}
 										value={draftComment}
-										onChange={(e) => setDraftComment(e.target.value.slice(0, COMMENT_MAX))}
-										rows={2}
+										onChange={(v) => setDraftComment(v.slice(0, COMMENT_MAX))}
+										minRows={2}
+										maxRows={6}
 										maxLength={COMMENT_MAX}
 										placeholder="Un avis court…"
-										className="min-h-[56px] w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-[14px] text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-dbz-orange/50"
 									/>
-									<div className="mt-1 flex justify-between text-[11px] text-white/50">
-										<span>
-											{draftComment.length}/{COMMENT_MAX}
-										</span>
+									<div className="mt-1 flex justify-end text-[11px] text-white/50">
 										{state?.mine && (
 											<button
 												type="button"

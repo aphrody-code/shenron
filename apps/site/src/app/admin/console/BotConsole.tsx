@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Hash, RefreshCw, Send } from "lucide-react";
 import { api, ApiError } from "@/lib/admin-api";
+import { PlainField } from "@/components/editor/PlainField";
 
 /**
  * Console bots (admin) : voir les messages récents d'un salon Discord et y
@@ -241,13 +242,13 @@ export function BotConsole() {
 
 			{/* Compositeur */}
 			<form onSubmit={submit} className="space-y-2">
-				<textarea
+				<PlainField
 					value={content}
-					onChange={(e) => setContent(e.target.value)}
+					onChange={setContent}
 					maxLength={2000}
-					rows={3}
+					minRows={3}
+					maxRows={16}
 					placeholder={`Message envoyé par ${PERSONAS.find((p) => p.id === persona)?.name ?? persona}…`}
-					className="w-full resize-y rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-dbz-orange"
 				/>
 				<div className="flex flex-wrap items-center gap-3">
 					<button

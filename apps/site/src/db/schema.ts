@@ -574,3 +574,42 @@ export type Post = typeof posts.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type WikiCategory = typeof wikiCategories.$inferSelect;
 export type WikiPage = typeof wikiPages.$inferSelect;
+
+// --- Brouillons d'édition (autosauvegarde du module d'édition) -------------
+//
+// Filet de sécurité du rédacteur : chaque éditeur du site pousse ici son état
+// courant toutes les quelques secondes, sous une clé logique stable
+// (`post:<id>`, `wiki:<table>:<row>:<colonne>`, `section:<id>`…). Si l'onglet
+// meurt, si la session expire ou si l'enregistrement échoue, la reprise propose
+// le brouillon au lieu de laisser le texte partir en fumée.
+//
+// Schéma `public` = table 100 % site (comme `site_events`) → jamais touchée par
+// la sync bot ↔ SQLite. Un brouillon est **par utilisateur** : deux admins qui
+// éditent la même fiche ne s'écrasent pas l'un l'autre.
+export const editorDrafts = pgTable(
+	"editor_drafts",
+	{
+		id: cuid(),
+		// Clé logique du document édité (stable entre deux sessions).
+		docKey: text("docKey").notNull(),
+		userId: text("userId").notNull(),
+		// "doc" (JSON ProseMirror sérialisé) | "markdown" | "text"
+		format: text("format").notNull().default("markdown"),
+		content: text("content").notNull(),
+		// Libellé lisible pour un futur écran « mes brouillons ».
+		label: text("label"),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+	},
+	(t) => [
+		unique("editor_drafts_doc_user_key").on(t.docKey, t.userId),
+		index("editor_drafts_user_idx").on(t.userId, t.updatedAt),
+	]
+);
+
+export type EditorDraft = typeof editorDrafts.$inferSelect;
+export type EditorDraftInsert = typeof editorDrafts.$inferInsert;

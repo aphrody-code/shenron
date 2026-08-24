@@ -43,6 +43,7 @@ import {
 	type HomeSectionConfig,
 	type PlayCard,
 } from "@/lib/home-scenes";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface LoadResponse {
 	config: HomeConfig;
@@ -392,11 +393,11 @@ function SectionCard({
 					</div>
 					<label className="block text-xs text-zinc-400">
 						Sous-titre
-						<textarea
-							className="input mt-1 w-full"
-							rows={2}
+						<PlainField
 							value={section.subtitle}
-							onChange={(e) => onChange({ subtitle: e.target.value })}
+							onChange={(v) => onChange({ subtitle: v })}
+							minRows={2}
+							maxRows={8}
 						/>
 					</label>
 					{isCustom && (
@@ -583,11 +584,11 @@ export default function HomeEditor() {
 				<div className="grid gap-3 sm:grid-cols-3">
 					<label className="text-xs text-zinc-400 sm:col-span-3">
 						Accroche (lede)
-						<textarea
-							className="input mt-1 w-full"
-							rows={2}
+						<PlainField
 							value={config.hero.lede}
-							onChange={(e) => patchHero({ lede: e.target.value })}
+							onChange={(v) => patchHero({ lede: v })}
+							minRows={2}
+							maxRows={8}
 						/>
 					</label>
 					<label className="text-xs text-zinc-400">

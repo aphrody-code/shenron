@@ -3,6 +3,29 @@
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 Versionnement : date + courte description.
 
+## [Unreleased] — 2026-08-24
+
+### Added
+
+- **Module d'édition unique du site** (`apps/site/src/components/editor/`) : un seul éditeur remplace les **quatre** surfaces de saisie qui coexistaient et divergeaient (Tiptap des articles, CodeMirror des pages wiki, CodeMirror des fiches, `<textarea>` nus). Deux composants exposés : **`ShenronEditor`** (riche) et **`PlainField`** (texte simple).
+  - **Un vocabulaire de blocs unique** (`commands.ts`) exposé identiquement par la barre d'outils, le **menu « / »**, la **barre contextuelle de sélection** et la **feuille d'insertion mobile** : titres, marques, couleur/surlignage, alignement, listes, citations, code, liens, images (taille + placement + légende), galeries, bannières, vidéos, tableaux, encadrés (5 tons), colonnes (2/3), sections repliables, espaces, badge **Ki** et boutons. Presets par usage (`article`, `wiki`, `section`, `comment`, `note`).
+  - **Mobile de plein droit** : barre d'outils **en bas**, décalée en temps réel par `visualViewport` pour rester au contact du clavier virtuel ; feuilles d'insertion et de mise en forme en plein écran, recherche incluse ; cibles tactiles de 44 px ; champs à 16 px (en dessous, iOS zoome à chaque focus).
+  - **Rien ne se perd** : autosauvegarde à deux étages — copie locale immédiate + brouillon serveur anti-rebond (`POST/PUT /api/editor/draft`, table `public.editor_drafts`, un brouillon par utilisateur), `sendBeacon` au déchargement de l'onglet, bandeau de reprise au retour (affiché **seulement** si le brouillon diffère du contenu chargé).
+  - **Trois vues du même document** : édition riche (mise en page réelle de la publication), **source** markdown/HTML (CodeMirror), **aperçu** avec le vrai rendu public (`WikiMarkdown`). Plus : rechercher/remplacer, plein écran, compteurs mots/signes/temps de lecture, poignées de déplacement de blocs, aide aux raccourcis (`Ctrl+/`).
+- **Pont markdown ⇄ ProseMirror** (`components/editor/markdown/`) : le wiki continue de stocker du **markdown + HTML libre** — ce que lisent le rendu public, le RAG, les scripts d'ingest et les commandes Discord. Le HTML écrit à la main est préservé (`htmlContainer` garde balise/classes/style avec son contenu éditable ; `htmlBlock` conserve le reste verbatim). `roundTripReport()` vérifie **avant toute écriture** qu'ouvrir puis réenregistrer ne change pas le rendu. Rejoué sur le corpus réel : **3 543 / 3 544 documents au rendu strictement identique** (le dernier étant une source dont l'imbrication de gras était déjà cassée, que la sérialisation répare), 93,5 % à la source inchangée octet pour octet. Tests : `apps/site/tests/editor-markdown.test.ts`.
+
+### Changed
+
+- **Toutes les surfaces de saisie du site** passent par le module : éditeur d'articles (`/admin/posts`), pages wiki (`/admin/wiki/page/*`), champ markdown des fiches (`MarkdownField` → façade), éditeur générique de tables (`SmartField`), sections CMS, éditeur de home, et **les 20 `<textarea>`** restants (commentaires d'articles, signalements, avis, console bot, webhooks, boutique, déclencheurs, services, messages, chronologie, transcriptions de databooks, assistant wiki, éditeur JSON) → `PlainField` : hauteur automatique, compteur, `Ctrl/⌘ + ⏎` pour envoyer, brouillon local sur les commentaires.
+- **Schéma de rendu des articles** : `lib/tiptap.ts` (supprimé) → `components/editor/schema.ts`. Saisie et rendu serveur partagent désormais littéralement la même liste d'extensions.
+- **Dépendances** (`apps/site`) : ajout de `@tiptap/suggestion`, `@tiptap/extension-text-style`, `@tiptap/extension-drag-handle-react`, `@tiptap/extension-file-handler` et `marked` ; toutes les extensions Tiptap alignées sur `^3.30.3` (une version unique de `@tiptap/core` — deux copies casseraient l'identité des plugins ProseMirror).
+
+### Fixed
+
+- **Sérialisation markdown du gras contenant de l'italique** : traiter chaque fragment isolément produisait `**gras***italique***gras**`, que plus aucun parseur ne relit correctement — cas fréquent, les chapeaux de fiches étant entièrement en gras et citant des titres d'œuvres en italique. Les marques contiguës sont désormais regroupées.
+- **Figure sans légende** : une `<figure class="wiki-img">` sans `<figcaption>` faisait réapparaître son image en double à l'enregistrement.
+- **Styles d'édition du journal absents de `/admin/posts`** : `editorial.css` n'était importé que sous `/actualites`, l'éditeur d'articles écrivait donc dans une mise en page qui n'était pas celle de la publication.
+
 ## [Unreleased] — 2026-06-25
 
 ### Added

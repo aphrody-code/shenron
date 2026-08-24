@@ -99,6 +99,37 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 - **Télémétrie first-party** (`lib/telemetry.ts`) : `track(event, props)` typé → fan-out **Vercel Analytics + GTM dataLayer + `POST /api/telemetry`** (ingest Postgres `site_events`/`user_preferences`, anonymisation hash salé + `anonId` httpOnly). **Opt-in strict** + **Google Consent Mode v2** (`lib/consent.ts`, `ConsentGate`). Reco/perso server-only `lib/recommendations.ts`. GTM = `GTM-KLSS5787` via `@next/third-parties/google` (`layout.tsx`).
 - **SEO (depuis `f6d7792`)** : composant **server** `components/SiteJsonLd.tsx` rendu dans le layout → JSON-LD `Organization` + `WebSite` avec `SearchAction` (sitelinks search box → `/wiki/search?q={search_term_string}`). **Inerte, sans cookie/header → cache CDN préservé.** `ogMeta` (`lib/og.ts`) prend un param `canonical` → `alternates.canonical` + `og:url` ; canonicals **auto-référentes** câblées sur ~30 pages (home + index + détails + page perso inline). **Pas de canonical globale** (pointerait toutes les pages vers la home). `robots.ts` : `/_next/` débloqué (ressources de rendu) ; `/wiki/search` en `noindex, follow` (évite l'indexation de la combinatoire `?q=`).
 
+## Site — module d'édition (`components/editor/`)
+
+**Une seule surface de saisie pour tout le site** (depuis le 2026-08-24) : elle remplace les quatre éditeurs qui coexistaient (Tiptap des articles, CodeMirror des pages wiki, CodeMirror des fiches, `<textarea>` nus). Deux composants exposés :
+
+- **`ShenronEditor`** — éditeur riche. `format="doc"` (JSON ProseMirror, articles) ou `format="markdown"` (wiki, sections CMS, home, fiches). Trois vues : **Édition** (mise en page réelle de la publication), **Source** (markdown + HTML, CodeMirror), **Aperçu** (le vrai rendu public, injecté via `renderPreview`).
+- **`PlainField`** — texte simple (commentaires, signalements, avis, champs d'admin). **À importer directement** (`@/components/editor/PlainField`) hors de `/admin` : le point d'entrée `@/components/editor` tire l'éditeur riche et ses CSS, inutiles dans le paquet d'une page publique.
+
+Architecture :
+
+| Fichier | Rôle |
+|---|---|
+| `schema.ts` | `buildExtensions(preset)` — **client-safe**, partagé par l'éditeur, le rendu serveur des articles (`lib/posts.ts`) et le pont markdown. Presets : `article`, `wiki`, `section`, `comment`, `note` |
+| `commands.ts` | Catalogue **unique** des actions (barre, menu « / », feuille mobile, barre de sélection). Une action ajoutée ici apparaît partout |
+| `nodes/` | Nœuds de mise en page produisant **exactement** le balisage déjà stocké (`wiki-callout`, `wiki-cols`, `details.wiki-section`, `figure.wiki-size-*`, `ki-power`, `wiki-btn`, `wiki-embed`, `wiki-banner`, `wiki-grid`, `wiki-spacer`) + filets `htmlContainer`/`htmlBlock` |
+| `markdown/` | `parseMarkdown` (marked → HTML → schéma Tiptap) et `serializeMarkdown` (document → markdown du wiki). `roundTripReport()` = garde-fou de fidélité |
+| `ui/` | Barres (bureau/mobile), feuilles, dialogues, menu « / », barre d'état, vue source |
+| `hooks/` | Autosauvegarde, upload, clavier virtuel |
+
+### Règles dures du module
+
+1. **Le wiki stocke du markdown, pas du JSON.** C'est ce que lisent `WikiMarkdown`, le RAG, les scripts d'ingest et les commandes Discord. `format="markdown"` sérialise à chaque frappe ; ne jamais basculer une table wiki en JSON ProseMirror.
+2. **Ne jamais perdre le HTML écrit à la main.** Le sanitizer du wiki est volontairement ouvert (cf. mémoire `wiki-design-sanitizer`) : les pages contiennent du HTML libre. `htmlContainer` (conteneur inconnu → balise/classes/style conservés, contenu éditable) et `htmlBlock` (verbatim) sont ce qui rend l'édition riche sûre sur le contenu historique. Toute nouvelle balise supportée doit passer par un nœud dédié **avec sa sérialisation**, sinon elle sera avalée par un filet.
+3. **Le schéma accepte tous les niveaux de titre**, le preset ne restreint que ceux **proposés** dans la barre : une page wiki historique commence souvent par `# Titre`, et un niveau absent du schéma serait aplati en paragraphe au premier enregistrement.
+4. **Fidélité mesurée sur le rendu, pas sur les octets.** `roundTripReport()` compare le HTML produit (un `_italique_` réécrit `*italique*` n'est pas une perte ; un bloc évaporé, si). Avant de toucher au sérialiseur, rejouer le corpus réel (`bot.db_*`, `db_wiki_sections`) : la référence est **3 543/3 544 rendus identiques**.
+5. **Marques contiguës regroupées** à la sérialisation. Traiter chaque fragment isolément produit `**gras***italique***gras**`, illisible pour tout parseur — cas fréquent (chapeaux en gras citant des titres en italique).
+6. **Mobile d'abord** : barre d'outils en bas suivie par `visualViewport` (le clavier virtuel recouvre un `bottom: 0`), cibles 44 px, champs 16 px (en dessous, iOS zoome au focus).
+
+### Autosauvegarde
+
+Table `public.editor_drafts` (migration `0008_editor_drafts.sql`, **appliquée en prod le 2026-08-24**) + route `/api/editor/draft` (GET/PUT/POST/DELETE, session requise). Clé logique par document (`post:<id>`, `wiki:<table>:<ligne>:<colonne>`…), **un brouillon par utilisateur**. Copie locale immédiate en plus (survit à la perte de session et au mode hors ligne).
+
 ## DB & migrations
 
 - **Bot** : `bun:sqlite` via Drizzle. Migrations dans `apps/bot/drizzle/`. Fichier prod : `apps/bot/data/bot.db`.
@@ -127,7 +158,7 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
   - **Lecture** : `apps/site/src/db/bot-schema.ts` (`pgSchema("bot")`) via Drizzle. Public → `shenron.ts`/`db-universe.ts` (server-only) ; admin db-universe → `wiki-admin.ts` (server-only).
   - **Écriture** : route handler `apps/site/src/app/api/wiki-admin/[...path]` (gaté `isCurrentUserAdmin`) → `wiki-admin.ts` → Drizzle Neon. L'éditeur générique + `DbCrud` routent les tables wiki vers `/api/wiki-admin` (`wiki-tables.ts` client-safe : `isWikiTable`/`crudBase`) ; les tables **non-wiki** + `db_news` restent sur le proxy `/api/bot-admin`.
   - **Côté bot** : l'API CRUD `db_*` est **lecture seule** (garde write 409). Seul le **runtime** (user/shop/leaderboard/stats/personas/commands/carte PNG/SSE/RAG) reste sur l'API. Cf. mémoire `site-wiki-reads-neon-direct`.
-- **Tables site (Postgres `public`)** : auth (`ba_*`), métier (`users`, `posts`), **télémétrie `site_events` + `user_preferences`** (migration `apps/site/src/db/migrations/0000_*`, `out` = `src/db/migrations` ; le site utilisait `db:push` historiquement → appliquer la migration à la main). `bot.db_episodes` (Neon) a gagné `frames` (jsonb `EpisodeFrame[]`) + `scene_preview` pour les **scènes d'épisode** (extraction `scripts/{build-episode-scenes,extract-dbz-frames,scrape-dbz-fandom-frames}.ts` → ingest gardé `scripts/ingest-episode-frames.ts`).
+- **Tables site (Postgres `public`)** : auth (`ba_*`), métier (`users`, `posts`), **brouillons d'édition `editor_drafts`** (autosauvegarde du module d'édition), **télémétrie `site_events` + `user_preferences`** (migration `apps/site/src/db/migrations/0000_*`, `out` = `src/db/migrations` ; le site utilisait `db:push` historiquement → appliquer la migration à la main). `bot.db_episodes` (Neon) a gagné `frames` (jsonb `EpisodeFrame[]`) + `scene_preview` pour les **scènes d'épisode** (extraction `scripts/{build-episode-scenes,extract-dbz-frames,scrape-dbz-fandom-frames}.ts` → ingest gardé `scripts/ingest-episode-frames.ts`).
 
 ## Services VPS (références)
 

@@ -2,7 +2,7 @@ import "server-only";
 
 import { renderToHTMLString } from "@tiptap/static-renderer/pm/html-string";
 import { and, eq, isNotNull, lte, type SQL } from "drizzle-orm";
-import { postExtensions } from "@/lib/tiptap";
+import { buildExtensions } from "@/components/editor/schema";
 import { slugify } from "@/lib/slug";
 import { posts, type PostContentDoc } from "@/db/schema";
 
@@ -12,11 +12,19 @@ import { posts, type PostContentDoc } from "@/db/schema";
  * Le HTML public est TOUJOURS régénéré ici depuis le JSON Tiptap, jamais repris
  * du navigateur : le formulaire d'admin envoie le document, pas du balisage. Un
  * client compromis ne peut donc pas injecter de HTML arbitraire dans une page
- * publique — le rendu est borné au schéma d'extensions de `lib/tiptap.ts`.
+ * publique — le rendu est borné au schéma du module d'édition
+ * (`components/editor/schema.ts`), rigoureusement le même qu'à la saisie.
  *
  * `renderToHTMLString` sérialise le JSON ProseMirror sans instancier d'éditeur
  * ni de DOM : utilisable tel quel dans un Server Component / une Server Action.
  */
+
+/**
+ * Schéma de rendu des articles. **Identique** à celui de l'éditeur (même preset)
+ * : une extension présente à la saisie mais absente ici ferait disparaître du
+ * contenu déjà publié.
+ */
+const POST_EXTENSIONS = buildExtensions("article");
 
 /**
  * Condition de visibilité publique d'un article — **règle unique du site**.
@@ -149,7 +157,7 @@ export function renderPostDoc(doc: PostContentDoc | null | undefined): RenderedP
 	let html = "";
 	try {
 		html = renderToHTMLString({
-			extensions: postExtensions,
+			extensions: POST_EXTENSIONS,
 			content: doc as never,
 		});
 	} catch {

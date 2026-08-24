@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/admin-api";
+import { PlainField } from "@/components/editor/PlainField";
 
 const PERSONAS = [
 	{ id: "shenron", label: "Shenron", description: "Persona principal" },
@@ -186,19 +187,17 @@ export function SendDiscordForm() {
 				<p className="text-xs text-white/50 mb-2">
 					Le Markdown Discord est supporté : **gras**, *italique*, &gt;citation, etc.
 				</p>
-				<textarea
+				<PlainField
 					value={content}
-					onChange={(e) => setContent(e.target.value)}
+					onChange={setContent}
 					required
 					maxLength={2000}
-					rows={6}
+					minRows={6}
+					maxRows={20}
 					placeholder="Écrivez votre message ici…"
-					className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-3 font-mono text-sm"
 					disabled={pending}
+					hint="Markdown Discord accepté."
 				/>
-				<p className="text-[10px] text-white/50 mt-1 text-right">
-					{content.length} / 2000 caractères
-				</p>
 			</div>
 
 			{/* Confirmation avant envoi */}

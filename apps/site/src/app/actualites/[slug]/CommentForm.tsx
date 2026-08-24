@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { postCommentAction } from "./actions";
+import { PlainField } from "@/components/editor/PlainField";
 
 export function CommentForm({ slug }: { slug: string }) {
 	const [error, setError] = useState<string | null>(null);
@@ -22,15 +23,20 @@ export function CommentForm({ slug }: { slug: string }) {
 
 	return (
 		<form ref={formRef} action={submit} className="space-y-3">
-			<textarea
+			<PlainField
 				name="body"
+				label="Votre commentaire"
+				hideLabel
 				required
 				maxLength={2000}
-				rows={4}
+				minRows={4}
+				maxRows={14}
 				placeholder="Ton commentaire…"
-				aria-label="Votre commentaire"
-				className="w-full bg-dbz-bg/60 border border-dbz-border focus:border-dbz-orange outline-none rounded-lg p-4 text-white placeholder:text-white/50 transition-colors resize-y"
 				disabled={pending}
+				onSubmit={() => formRef.current?.requestSubmit()}
+				// Un commentaire à moitié écrit survit à un rechargement ou à un
+				// changement de page : c'est du texte qu'on ne réécrit jamais deux fois.
+				draftKey={`comment:${slug}`}
 			/>
 			<div className="flex items-center justify-between gap-3">
 				<div aria-live="polite">

@@ -12,6 +12,7 @@ import { ExternalLink, Loader2, Plus, Sparkles, Wand2 } from "lucide-react";
 import { apiAt } from "@/lib/admin-api";
 import { sectionKeyFromLabel } from "@/lib/wiki-fields";
 import { crudBase } from "@/lib/wiki-tables";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface RagHit {
 	title: string;
@@ -164,11 +165,14 @@ export function WikiAiAssistant({
 						<label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-white/50">
 							Brouillon (markdown, sourcé) — relis/édite avant d&apos;insérer
 						</label>
-						<textarea
-							className="input w-full font-mono text-xs"
-							rows={8}
+						<PlainField
 							value={markdown}
-							onChange={(e) => setMarkdown(e.target.value)}
+							onChange={setMarkdown}
+							minRows={8}
+							maxRows={30}
+							monospace
+							label="Markdown proposé"
+							hideLabel
 						/>
 					</div>
 

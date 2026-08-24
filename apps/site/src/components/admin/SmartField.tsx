@@ -28,6 +28,7 @@ import {
 	isRichTextColumn,
 	uploadSubdir,
 } from "@/lib/wiki-fields";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface Props {
 	table: string;
@@ -126,13 +127,7 @@ export function SmartField({ table, col, value, onChange, original }: Props) {
 		// `buildSubmitBody` ne réécrit jamais ces colonnes → zéro corruption).
 		return (
 			<div className="space-y-1">
-				<textarea
-					className="input min-h-24 cursor-not-allowed font-mono text-xs opacity-60"
-					rows={4}
-					value={value}
-					readOnly
-					spellCheck={false}
-				/>
+				<PlainField value={value} readOnly monospace minRows={4} spellCheck={false} />
 				<p className="text-[10px] text-white/50">
 					Champ JSON structuré — non éditable ici (édité via les scripts/outils dédiés).
 				</p>
@@ -146,12 +141,12 @@ export function SmartField({ table, col, value, onChange, original }: Props) {
 
 	if (isLongTextColumn(col)) {
 		return (
-			<textarea
-				className="input min-h-28 font-mono text-sm"
-				rows={5}
+			<PlainField
 				value={value}
-				onChange={(e) => onChange(e.target.value)}
-				placeholder="Markdown supporté…"
+				onChange={onChange}
+				minRows={5}
+				maxRows={20}
+				placeholder="Texte libre…"
 			/>
 		);
 	}

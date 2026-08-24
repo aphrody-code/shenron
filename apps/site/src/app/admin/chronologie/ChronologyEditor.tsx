@@ -50,6 +50,7 @@ import {
 	type TimelineItem,
 	type ResolvedTimelineItem,
 } from "@/lib/chronology";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface LoadResponse {
 	config: ChronologyConfig;
@@ -939,13 +940,13 @@ function EntryRow({
 					</label>
 					<label className="text-xs text-zinc-400 sm:col-span-2">
 						Note éditoriale (affichée sous l'entrée)
-						<textarea
+						<PlainField
+							className="mt-1"
 							value={noteDraft}
-							onChange={(e) => setNoteDraft(e.target.value)}
-							onBlur={() => onSet({ note: noteDraft.trim() || undefined })}
-							rows={2}
+							onChange={setNoteDraft}
+							minRows={2}
+							maxRows={8}
 							placeholder="Ex. « À regarder après le film 3 », contexte canon/filler…"
-							className="input mt-1 w-full"
 						/>
 					</label>
 					<div className="sm:col-span-2 flex items-center justify-between">

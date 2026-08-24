@@ -15,6 +15,7 @@ import { useEffect, useId, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
 import { REPORT_CATEGORIES, REPORT_MESSAGE_MAX } from "@/lib/report-types";
 import { useMe } from "@/lib/use-me";
+import { PlainField } from "@/components/editor/PlainField";
 
 type Phase = "idle" | "sending" | "done" | "error";
 
@@ -184,17 +185,15 @@ export function ReportButton() {
 										>
 											Décris le problème
 										</label>
-										<textarea
+										<PlainField
 											id={idMessage}
-											className="input min-h-[110px] w-full resize-y text-sm"
-											placeholder="Ex : l'image de Goku ne se charge pas, le lien vers la saga X est cassé, une info est fausse…"
-											maxLength={REPORT_MESSAGE_MAX}
 											value={message}
-											onChange={(e) => setMessage(e.target.value)}
+											onChange={setMessage}
+											minRows={4}
+											maxRows={10}
+											maxLength={REPORT_MESSAGE_MAX}
+											placeholder="Ex : l'image de Goku ne se charge pas, le lien vers la saga X est cassé, une info est fausse…"
 										/>
-										<p className="mt-1 text-right text-[10px] text-white/50">
-											{message.length}/{REPORT_MESSAGE_MAX}
-										</p>
 									</div>
 
 									{err && <p className="text-sm text-dbz-red">{err}</p>}

@@ -36,6 +36,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TranscriptionTexte } from "@/components/databooks/TranscriptionTexte";
 import { assetUrl } from "@/lib/assets";
 import { aBesoinDeNettoyage, diagnostiquerPlanche, nettoyerOcr } from "@/lib/databooks-format";
+import { PlainField } from "@/components/editor/PlainField";
 
 export interface PlancheRelecture {
 	numero: number;
@@ -452,13 +453,16 @@ export function TranscriptionRelecteur({
 						{/* Texte */}
 						<div className="flex min-w-0 flex-col">
 							{onglet === "editer" ? (
-								<textarea
+								<PlainField
+									className="flex-1"
 									value={brouillon}
-									onChange={(e) => setBrouillon(e.target.value)}
+									onChange={setBrouillon}
 									spellCheck={false}
-									aria-label={`Transcription de la planche ${numeroCourant}`}
+									label={`Transcription de la planche ${numeroCourant}`}
+									hideLabel
+									minRows={18}
+									maxRows={60}
 									placeholder="Transcription de la planche (markdown accepté)…"
-									className="input font-jp min-h-[50vh] w-full flex-1 resize-y text-sm leading-relaxed"
 								/>
 							) : (
 								<div className="min-h-[50vh] flex-1 overflow-y-auto rounded border border-dbz-border/50 bg-black/25 p-4">

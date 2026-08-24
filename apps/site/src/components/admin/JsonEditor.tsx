@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlertCircle, Check, Code2 } from "lucide-react";
+import { PlainField } from "@/components/editor/PlainField";
 
 /**
  * Éditeur JSON visuel : textarea monospace avec validation `JSON.parse` live,
@@ -51,12 +52,13 @@ export function JsonEditor({
 
 	return (
 		<div className="flex-1 space-y-2">
-			<textarea
-				className="input w-full font-mono text-xs leading-relaxed"
-				rows={rows}
+			<PlainField
 				value={value}
-				onChange={(e) => onChange(e.target.value)}
+				onChange={onChange}
+				minRows={rows}
+				maxRows={40}
 				placeholder={placeholder}
+				monospace
 				spellCheck={false}
 			/>
 			<div className="flex items-center gap-2 text-xs">

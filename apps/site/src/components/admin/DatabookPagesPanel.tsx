@@ -14,6 +14,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
 import { apiAt } from "@/lib/admin-api";
 import { crudBase } from "@/lib/wiki-tables";
+import { PlainField } from "@/components/editor/PlainField";
 
 export interface DatabookPageDraft {
 	/** Clé React stable (jamais persistée). */
@@ -549,12 +550,12 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 												<label className="mb-1 block text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
 													Texte sous l&apos;image
 												</label>
-												<textarea
-													className="input min-h-[140px] w-full resize-y text-sm leading-relaxed"
-													placeholder="Description, légende, notes… (affiché sous la planche sur la page publique)"
+												<PlainField
 													value={page.text}
-													onChange={(e) => update(i, { text: e.target.value })}
-													rows={6}
+													onChange={(v) => update(i, { text: v })}
+													minRows={6}
+													maxRows={24}
+													placeholder="Description, légende, notes… (affiché sous la planche sur la page publique)"
 												/>
 											</div>
 										</div>

@@ -1,40 +1,21 @@
 "use client";
 
 /**
- * Éditeur de page wiki : markdown + HTML, preview live côté à côté, upload
- * d'images (insère le snippet à la position du curseur) et raccourcis de mise
- * en page (figure flottante, infobox, galerie). Utilisé en création et édition.
+ * Formulaire de page wiki (création et édition).
+ *
+ * Le corps de la page passe désormais par le module d'édition unique
+ * (`components/editor`) : édition riche, vue source markdown/HTML, aperçu avec
+ * le **vrai** rendu public, upload d'images par glisser-déposer, menu « / » et
+ * barre d'outils mobile collée au clavier. Le formulaire, lui, ne connaît que le
+ * markdown : c'est ce que la table stocke, ce que lit le RAG et ce que rendent
+ * les commandes Discord.
  */
+import { useId, useState } from "react";
+
+import { ShenronEditor } from "@/components/editor";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { uploadWikiImage } from "@/app/admin/wiki/_actions";
-import CodeMirror, { oneDark } from "@uiw/react-codemirror";
-import { EditorView } from "@codemirror/view";
-import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
-import { languages } from "@codemirror/language-data";
-import { useId, useRef, useState, useTransition } from "react";
 
 type Category = { id: string; name: string };
-
-type Placement = "inline" | "wiki-float-right" | "wiki-float-left";
-
-// Extensions CodeMirror (constantes : pas de recréation par rendu).
-const CM_EXTENSIONS = [
-	markdown({ base: markdownLanguage, codeLanguages: languages }),
-	EditorView.lineWrapping,
-];
-
-const SNIPPETS: { label: string; insert: string }[] = [
-	{
-		label: "Infobox",
-		insert: '\n<aside class="wiki-infobox">\n\n**Titre**\n\n- Champ : valeur\n\n</aside>\n\n',
-	},
-	{
-		label: "Galerie",
-		insert:
-			'\n<div class="wiki-grid">\n  <img src="URL1" alt="" />\n  <img src="URL2" alt="" />\n</div>\n\n',
-	},
-	{ label: "Saut (clear)", insert: '\n<div class="wiki-clear"></div>\n\n' },
-];
 
 export function WikiEditor({
 	categories,
@@ -58,114 +39,14 @@ export function WikiEditor({
 	const idCategorie = useId();
 	const idOrdre = useId();
 	const [body, setBody] = useState(initial?.body ?? "");
-	const [placement, setPlacement] = useState<Placement>("wiki-float-right");
-	const [uploadErr, setUploadErr] = useState<string | null>(null);
-	const [dragging, setDragging] = useState(false);
-	const [uploading, startUpload] = useTransition();
-	const viewRef = useRef<EditorView | null>(null);
-
-	// Insère du texte à la position du curseur (ou en fin de doc si l'éditeur n'est pas prêt).
-	function insertAtCursor(text: string) {
-		const view = viewRef.current;
-		if (!view) {
-			setBody((b) => b + text);
-			return;
-		}
-		const { from, to } = view.state.selection.main;
-		const caret = from + text.length;
-		view.dispatch({
-			changes: { from, to, insert: text },
-			selection: { anchor: caret },
-		});
-		view.focus();
-	}
-
-	// Entoure la sélection (ex. **gras**) ; insère un placeholder si rien n'est sélectionné.
-	function wrapSelection(before: string, after: string, placeholder = "texte") {
-		const view = viewRef.current;
-		if (!view) return;
-		const { from, to } = view.state.selection.main;
-		const sel = view.state.sliceDoc(from, to) || placeholder;
-		view.dispatch({
-			changes: { from, to, insert: before + sel + after },
-			selection: {
-				anchor: from + before.length,
-				head: from + before.length + sel.length,
-			},
-		});
-		view.focus();
-	}
-
-	// Préfixe chaque ligne de la sélection (titres, listes, citations).
-	function prefixLines(prefix: string) {
-		const view = viewRef.current;
-		if (!view) return;
-		const { from, to } = view.state.selection.main;
-		const lineStart = view.state.doc.lineAt(from).from;
-		const block = view.state.sliceDoc(lineStart, to) || "texte";
-		const prefixed = block
-			.split("\n")
-			.map((l) => prefix + l)
-			.join("\n");
-		view.dispatch({
-			changes: { from: lineStart, to, insert: prefixed },
-			selection: { anchor: lineStart, head: lineStart + prefixed.length },
-		});
-		view.focus();
-	}
-
-	const FORMATS: { label: string; title: string; run: () => void }[] = [
-		{ label: "B", title: "Gras", run: () => wrapSelection("**", "**") },
-		{ label: "I", title: "Italique", run: () => wrapSelection("*", "*") },
-		{ label: "H2", title: "Titre", run: () => prefixLines("## ") },
-		{ label: "H3", title: "Sous-titre", run: () => prefixLines("### ") },
-		{ label: "•", title: "Liste", run: () => prefixLines("- ") },
-		{ label: "”", title: "Citation", run: () => prefixLines("> ") },
-		{
-			label: "🔗",
-			title: "Lien",
-			run: () => wrapSelection("[", "](https://)", "texte du lien"),
-		},
-		{ label: "</>", title: "Code", run: () => wrapSelection("`", "`", "code") },
-	];
-
-	// Upload une image (picker / drag-drop / coller) puis insère le snippet au
-	// curseur selon le placement choisi.
-	function uploadAndInsert(file: File) {
-		if (!file.type.startsWith("image/")) {
-			setUploadErr("Le fichier déposé n'est pas une image.");
-			return;
-		}
-		setUploadErr(null);
-		const fd = new FormData();
-		fd.append("file", file);
-		startUpload(async () => {
-			const res = await uploadWikiImage(fd);
-			if ("error" in res) {
-				setUploadErr(res.error);
-				return;
-			}
-			const snippet =
-				placement === "inline"
-					? `\n\n![](${res.path})\n\n`
-					: `\n<figure class="${placement}">\n  <img src="${res.path}" alt="" />\n  <figcaption>Légende</figcaption>\n</figure>\n\n`;
-			insertAtCursor(snippet);
-		});
-	}
-
-	function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
-		e.target.value = "";
-		if (file) uploadAndInsert(file);
-	}
 
 	return (
 		<form action={action} className="space-y-4">
-			<div className="dbz-panel p-6 space-y-4">
+			<div className="dbz-panel space-y-4 p-6">
 				<div>
 					<label
 						htmlFor={idTitre}
-						className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2"
+						className="mb-2 block text-xs uppercase tracking-widest text-dbz-blue-light"
 					>
 						Titre
 					</label>
@@ -174,15 +55,15 @@ export function WikiEditor({
 						name="title"
 						required
 						defaultValue={initial?.title}
-						className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none font-bold text-white"
+						className="w-full border-2 border-dbz-border bg-dbz-bg p-3 font-bold text-white outline-none focus:border-dbz-orange"
 						placeholder="Ex: Goku Saiyan"
 					/>
 				</div>
-				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+				<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 					<div className="sm:col-span-2">
 						<label
 							htmlFor={idCategorie}
-							className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2"
+							className="mb-2 block text-xs uppercase tracking-widest text-dbz-blue-light"
 						>
 							Catégorie
 						</label>
@@ -191,7 +72,7 @@ export function WikiEditor({
 							name="categoryId"
 							required
 							defaultValue={initial?.categoryId ?? defaultCategoryId ?? ""}
-							className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white"
+							className="w-full border-2 border-dbz-border bg-dbz-bg p-3 text-white outline-none focus:border-dbz-orange"
 						>
 							<option value="">— Sélectionner —</option>
 							{categories.map((c) => (
@@ -204,7 +85,7 @@ export function WikiEditor({
 					<div>
 						<label
 							htmlFor={idOrdre}
-							className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2"
+							className="mb-2 block text-xs uppercase tracking-widest text-dbz-blue-light"
 						>
 							Ordre
 						</label>
@@ -213,142 +94,38 @@ export function WikiEditor({
 							type="number"
 							name="order"
 							defaultValue={initial?.order ?? 0}
-							className="w-full p-3 bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange outline-none text-white"
+							className="w-full border-2 border-dbz-border bg-dbz-bg p-3 text-white outline-none focus:border-dbz-orange"
 						/>
 					</div>
 				</div>
 			</div>
 
-			{/* Barre de formatage markdown */}
-			<div className="dbz-panel p-3 flex flex-wrap items-center gap-1">
-				{FORMATS.map((f) => (
-					<button
-						key={f.label}
-						type="button"
-						title={f.title}
-						onClick={f.run}
-						className="min-w-9 px-2.5 py-1.5 text-sm font-bold text-dbz-blue-light hover:text-dbz-yellow hover:bg-dbz-bg border-2 border-transparent hover:border-dbz-border rounded transition-colors"
-					>
-						{f.label}
-					</button>
-				))}
-			</div>
+			{/* Le module d'édition ne produit pas de champ de formulaire : un champ
+			    caché alimente le FormData de la Server Action. */}
+			<input type="hidden" name="body" value={body} />
 
-			{/* Barre d'outils : upload image + raccourcis de mise en page */}
-			<div className="dbz-panel p-4 flex flex-wrap items-center gap-3">
-				<select
-					value={placement}
-					onChange={(e) => setPlacement(e.target.value as Placement)}
-					className="p-2 text-sm bg-dbz-bg border-2 border-dbz-border outline-none text-white"
-					aria-label="Placement de l'image"
-				>
-					<option value="wiki-float-right">Image → flottante droite</option>
-					<option value="wiki-float-left">Image → flottante gauche</option>
-					<option value="inline">Image → pleine largeur</option>
-				</select>
-				<label className="dbz-button !text-sm cursor-pointer">
-					{uploading ? "ENVOI…" : "+ IMAGE"}
-					<input
-						type="file"
-						accept="image/png,image/jpeg,image/webp,image/gif"
-						className="hidden"
-						onChange={onPickFile}
-						disabled={uploading}
-					/>
-				</label>
-				<span className="text-dbz-border">|</span>
-				{SNIPPETS.map((s) => (
-					<button
-						key={s.label}
-						type="button"
-						onClick={() => insertAtCursor(s.insert)}
-						className="font-saiyan text-xs uppercase tracking-wider text-dbz-blue-light hover:text-dbz-yellow"
-					>
-						+ {s.label}
-					</button>
-				))}
-				{uploadErr && <span className="text-sm text-red-400">⚠ {uploadErr}</span>}
-			</div>
+			<ShenronEditor
+				format="markdown"
+				preset="wiki"
+				value={initial?.body ?? ""}
+				onChangeMarkdown={setBody}
+				uploadSubdir="pages"
+				autosaveKey={`wiki-page:${initial?.title ? initial.title : "nouvelle"}`}
+				autosaveLabel={initial?.title}
+				placeholder="Racontez la page… tapez « / » pour insérer un bloc."
+				minHeight="28rem"
+				maxHeight="70vh"
+				ariaLabel="Contenu de la page wiki"
+				renderPreview={(source) =>
+					source.trim() ? (
+						<WikiMarkdown body={source} />
+					) : (
+						<p className="italic text-gray-600">L&apos;aperçu s&apos;affiche ici…</p>
+					)
+				}
+			/>
 
-			{/* Éditeur + preview côte à côte */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-				{/* Glisser-déposer / coller une image directement dans l'éditeur → upload
-				    + insertion au curseur (en plus du bouton « + IMAGE »). */}
-				<div
-					className="dbz-panel p-4 relative"
-					onDragOver={(e) => {
-						if (Array.from(e.dataTransfer.types).includes("Files")) {
-							e.preventDefault();
-							if (!dragging) setDragging(true);
-						}
-					}}
-					onDragLeave={(e) => {
-						if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
-					}}
-					onDrop={(e) => {
-						// onDragOver preventDefault déjà → on DOIT preventDefault le drop aussi,
-						// sinon un fichier non-image ferait naviguer le navigateur (= perte de
-						// l'article non sauvegardé). On annule toujours puis on filtre.
-						e.preventDefault();
-						setDragging(false);
-						const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"));
-						if (file) uploadAndInsert(file);
-						else if (e.dataTransfer.files.length)
-							setUploadErr("Le fichier déposé n'est pas une image.");
-					}}
-					onPaste={(e) => {
-						const file = Array.from(e.clipboardData.files).find((f) => f.type.startsWith("image/"));
-						if (file) {
-							e.preventDefault();
-							uploadAndInsert(file);
-						}
-					}}
-				>
-					<label className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
-						Contenu (markdown + HTML)
-					</label>
-					{/* CodeMirror ne produit pas de champ form : un input caché alimente FormData. */}
-					<input type="hidden" name="body" value={body} />
-					<CodeMirror
-						value={body}
-						onChange={setBody}
-						onCreateEditor={(view) => {
-							viewRef.current = view;
-						}}
-						extensions={CM_EXTENSIONS}
-						theme={oneDark}
-						height="540px"
-						placeholder="# Goku&#10;&#10;Le légendaire Saiyan élevé sur Terre…"
-						className="border-2 border-dbz-border focus-within:border-dbz-orange text-sm overflow-hidden"
-					/>
-					<p className="text-xs text-gray-500 mt-2">
-						Glisse une image ici ou colle-la · Classes : <code>wiki-float-right</code>,{" "}
-						<code>wiki-float-left</code>, <code>wiki-infobox</code>, <code>wiki-grid</code>,{" "}
-						<code>wiki-clear</code>.
-					</p>
-					{dragging && (
-						<div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-dbz-orange bg-dbz-orange/10 backdrop-blur-sm">
-							<span className="font-saiyan text-xl uppercase tracking-widest text-dbz-orange">
-								Déposez l&apos;image
-							</span>
-						</div>
-					)}
-				</div>
-				<div className="dbz-panel p-4 overflow-auto">
-					<span className="block text-xs uppercase tracking-widest text-dbz-blue-light mb-2">
-						Aperçu
-					</span>
-					<div className="prose prose-invert max-w-none wiki-content">
-						{body.trim() ? (
-							<WikiMarkdown body={body} />
-						) : (
-							<p className="text-gray-600 italic">L'aperçu s'affiche ici…</p>
-						)}
-					</div>
-				</div>
-			</div>
-
-			<button type="submit" className="dbz-button w-full !text-lg mt-2">
+			<button type="submit" className="dbz-button mt-2 w-full !text-lg">
 				{submitLabel}
 			</button>
 		</form>

@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { Play, ChevronDown, Wrench } from "lucide-react";
 import { api } from "@/lib/admin-api";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface ServiceAction {
 	service: string;
@@ -135,12 +136,15 @@ function ActionRow({ action }: { action: ServiceAction }) {
 					<label className="block text-xs text-zinc-400">
 						Paramètres (JSON) — laisser <code>{"{}"}</code> si l'action n'en a pas
 					</label>
-					<textarea
-						className="w-full bg-dbz-bg border border-dbz-border p-2 font-mono text-xs rounded focus:border-dbz-orange outline-none"
-						rows={3}
+					<PlainField
 						value={body}
-						onChange={(e) => setBody(e.target.value)}
-						aria-label="Paramètres JSON"
+						onChange={setBody}
+						minRows={3}
+						maxRows={16}
+						monospace
+						spellCheck={false}
+						label="Paramètres JSON"
+						hideLabel
 					/>
 					<button
 						type="submit"

@@ -17,14 +17,16 @@ import {
 	X,
 } from "lucide-react";
 
-import { RichEditor } from "@/components/editor/RichEditor";
+import type { JSONContent } from "@tiptap/react";
+
+import { ShenronEditor } from "@/components/editor";
+import { PlainField } from "@/components/editor/PlainField";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { assetUrl } from "@/lib/assets";
 import { slugify } from "@/lib/slug";
 import { cn } from "@/lib/utils";
@@ -285,10 +287,20 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 						}}
 					/>
 
-					<RichEditor
-						initialContent={initial.doc}
-						onChange={onDocChange}
-						placeholder="Racontez l'histoire… Glissez une image directement dans le texte, collez une capture, ou utilisez la barre d'outils."
+					<ShenronEditor
+						format="doc"
+						preset="article"
+						// `PostContentDoc` est typé large côté base (jsonb) ; la validité réelle
+						// du document est vérifiée par ProseMirror au montage.
+						value={initial.doc as JSONContent | null}
+						onChangeDoc={(doc) => onDocChange(doc as PostContentDoc)}
+						uploadSubdir="articles"
+						autosaveKey={`post:${initial.id ?? "nouveau"}`}
+						autosaveLabel={draft.title || "Article sans titre"}
+						onSave={() => submit(draft.status)}
+						maxHeight="70vh"
+						ariaLabel="Corps de l'article"
+						placeholder="Racontez l'histoire… tapez « / » pour insérer un bloc, glissez une image directement dans le texte."
 					/>
 				</div>
 
@@ -412,11 +424,12 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 									<Label htmlFor="excerpt">Chapô</Label>
 									<Counter value={draft.excerpt.length} limit={320} />
 								</div>
-								<Textarea
+								<PlainField
 									id="excerpt"
-									rows={4}
+									minRows={4}
+									maxRows={10}
 									value={draft.excerpt}
-									onChange={(e) => set("excerpt", e.target.value)}
+									onChange={(v) => set("excerpt", v)}
 									placeholder="Le paragraphe d'accroche affiché dans les listes et sous le titre."
 								/>
 								<p className="text-[12px] text-white/50">
@@ -466,11 +479,12 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 										limit={SEO_DESC_LIMIT}
 									/>
 								</div>
-								<Textarea
+								<PlainField
 									id="seoDescription"
-									rows={3}
+									minRows={3}
+									maxRows={8}
 									value={draft.seoDescription ?? ""}
-									onChange={(e) => set("seoDescription", e.target.value)}
+									onChange={(v) => set("seoDescription", v)}
 									placeholder="Reprend le chapô si laissé vide"
 								/>
 							</div>

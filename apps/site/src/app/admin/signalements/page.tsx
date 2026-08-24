@@ -16,6 +16,7 @@ import {
 	reportStatusLabel,
 	type ReportRow,
 } from "@/lib/report-types";
+import { PlainField } from "@/components/editor/PlainField";
 
 type ReportsResponse = { ok: true; items: ReportRow[]; counts: Record<string, number> };
 
@@ -210,11 +211,13 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 			{/* Note interne */}
 			<div className="flex items-start gap-2">
 				<MessageSquare className="mt-2 h-3.5 w-3.5 shrink-0 text-white/50" />
-				<textarea
-					className="input min-h-[38px] flex-1 resize-y text-xs"
-					placeholder="Note interne (traitement)…"
+				<PlainField
+					className="flex-1"
 					value={note}
-					onChange={(e) => setNote(e.target.value)}
+					onChange={setNote}
+					minRows={1}
+					maxRows={8}
+					placeholder="Note interne (traitement)…"
 				/>
 				{noteDirty && (
 					<button

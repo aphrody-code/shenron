@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save, RotateCcw, Eye, Power } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/admin-api";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface EventVariable {
 	name: string;
@@ -249,12 +250,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						Utilisez <code className="text-dbz-yellow">{"{nom}"}</code> pour insérer des valeurs
 						dynamiques (voir la liste ci-dessous).
 					</p>
-					<textarea
-						className="w-full bg-dbz-bg border-2 border-dbz-border focus:border-dbz-orange p-3 font-mono text-sm text-white"
-						rows={5}
-						value={template}
-						onChange={(e) => setTemplate(e.target.value)}
-					/>
+					<PlainField value={template} onChange={setTemplate} minRows={5} maxRows={20} monospace />
 				</div>
 
 				{/* Actions */}

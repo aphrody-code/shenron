@@ -19,6 +19,7 @@ import { api } from "@/lib/admin-api";
 import { RoleBadge } from "@/components/admin/RoleSelect";
 import { RolePicker } from "@/components/admin/RolePicker";
 import { cn } from "@/lib/utils";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface ShopItem {
 	key: string;
@@ -420,11 +421,11 @@ function ShopItemEditor({
 					</div>
 					<div className="sm:col-span-2">
 						<label className="block text-xs text-zinc-500">Description (optionnelle)</label>
-						<textarea
-							className="input w-full"
-							rows={2}
+						<PlainField
 							value={draft.description ?? ""}
-							onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+							onChange={(v) => setDraft({ ...draft, description: v })}
+							minRows={2}
+							maxRows={10}
 						/>
 					</div>
 					<div>
@@ -472,11 +473,13 @@ function ShopItemEditor({
 							Données supplémentaires (JSON optionnel)
 							<span className="ml-1 text-zinc-600">— URL d&apos;image, propriétés custom</span>
 						</label>
-						<textarea
-							className="input w-full font-mono text-xs"
-							rows={3}
+						<PlainField
 							value={draft.meta ?? ""}
-							onChange={(e) => setDraft({ ...draft, meta: e.target.value || null })}
+							onChange={(v) => setDraft({ ...draft, meta: v || null })}
+							minRows={3}
+							maxRows={16}
+							monospace
+							spellCheck={false}
 							placeholder='{"image": "https://..."}'
 						/>
 					</div>

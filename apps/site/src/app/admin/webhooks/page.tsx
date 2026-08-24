@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Send, Trash2, Webhook as WebhookIcon, Copy, Check } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "@/lib/admin-api";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface Channel {
 	id: string;
@@ -330,11 +331,11 @@ function ExecuteModal({ webhook, onClose }: { webhook: Webhook; onClose: () => v
 						<label className="mb-1 block text-xs text-zinc-400">
 							Texte du message (max 2 000 caractères)
 						</label>
-						<textarea
-							className="w-full bg-dbz-bg border border-dbz-border rounded px-2 py-1.5 text-sm text-zinc-200 focus:border-dbz-orange outline-none"
-							rows={3}
+						<PlainField
 							value={content}
-							onChange={(e) => setContent(e.target.value)}
+							onChange={setContent}
+							minRows={3}
+							maxRows={18}
 							maxLength={2000}
 							placeholder="Votre message…"
 						/>
@@ -351,13 +352,13 @@ function ExecuteModal({ webhook, onClose }: { webhook: Webhook; onClose: () => v
 							placeholder="Titre de l'encart"
 							maxLength={256}
 						/>
-						<textarea
-							className="w-full bg-dbz-bg border border-dbz-border rounded px-2 py-1.5 text-sm text-zinc-200 focus:border-dbz-orange outline-none"
-							rows={2}
+						<PlainField
 							value={embedDesc}
-							onChange={(e) => setEmbedDesc(e.target.value)}
-							placeholder="Contenu de l'encart"
+							onChange={setEmbedDesc}
+							minRows={2}
+							maxRows={16}
 							maxLength={4096}
+							placeholder="Contenu de l'encart"
 						/>
 						<div className="flex items-center gap-2">
 							<label className="text-xs text-zinc-400">Couleur de la barre</label>

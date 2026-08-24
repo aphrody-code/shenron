@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "@/lib/admin-api";
+import { PlainField } from "@/components/editor/PlainField";
 
 interface AchievementTrigger {
 	code: string;
@@ -506,11 +507,11 @@ function RegexTester() {
 			</div>
 			<div className="mt-2">
 				<label className="mb-1 block text-xs text-zinc-500">Message à tester</label>
-				<textarea
-					className="input w-full"
-					rows={2}
+				<PlainField
 					value={sample}
-					onChange={(e) => setSample(e.target.value)}
+					onChange={setSample}
+					minRows={2}
+					maxRows={8}
 					placeholder="Tapez un message pour tester l'expression…"
 				/>
 			</div>
