@@ -1,6 +1,6 @@
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
-import { dbUniverse, assetUrl } from "@/lib/db-universe";
+import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { SERIES_BANNERS } from "@/lib/db-banners";
 import { DatabookGrid } from "@/components/databooks/DatabookGrid";
@@ -35,17 +35,19 @@ export default async function DatabooksIndexPage() {
 		cover: d.cover,
 	}));
 
-	const heroImage = items[0]?.cover ? assetUrl(items[0].cover) : SERIES_BANNERS.DB;
+	// Bannière fixe plutôt que la couverture du dernier ouvrage entré : une
+	// jaquette portrait étirée sur 1920 px de large sortait floue, et le hero
+	// changeait de visage à chaque nouveau V-Jump ingéré.
+	const heroImage = SERIES_BANNERS.DB!;
 
 	return (
-		<div className="reveal-up">
+		<div>
 			<PageHero
 				eyebrow="Databooks & Interviews"
 				title="Guides & paroles d'auteur"
 				lead="Databooks, artbooks, daizenshuu et interviews officielles — les coulisses de l'univers Dragon Ball, classés par date."
 				image={heroImage}
 				imageAlt="Databooks Dragon Ball"
-				imagePosition="top"
 			/>
 			<div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
 				<Breadcrumbs className="mb-6 sm:mb-8" items={[{ label: "Databooks" }]} />

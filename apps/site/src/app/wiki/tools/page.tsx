@@ -24,7 +24,7 @@ export default async function ToolsPage() {
 	};
 
 	return (
-		<div className="reveal-up">
+		<div>
 			<PageHero
 				eyebrow="Communauté"
 				title="Outils & Modding"

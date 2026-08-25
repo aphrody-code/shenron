@@ -60,7 +60,7 @@ export default async function MangaIndexPage() {
 	const heroImage = heroCover ? assetUrl(heroCover) : SERIES_BANNERS.DB;
 
 	return (
-		<div className="reveal-up">
+		<div>
 			<PageHero
 				eyebrow="Manga"
 				title="Lecteur de scan"

@@ -31,7 +31,7 @@ export default async function TechniquesPage() {
 	);
 
 	return (
-		<div className="reveal-up">
+		<div>
 			<PageHero
 				eyebrow="Encyclopédie"
 				title="Techniques & Capacités"

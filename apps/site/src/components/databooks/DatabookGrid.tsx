@@ -183,13 +183,13 @@ export function DatabookGrid({
 						<ArrowDownUp className="h-3.5 w-3.5" />
 						{order === "desc" ? "Plus récent" : "Plus ancien"}
 					</button>
-					<div className="relative min-w-0 flex-1 sm:ml-auto sm:max-w-xs sm:flex-none">
+					<div className="relative min-w-0 flex-1 sm:ml-auto sm:w-72 sm:flex-none">
 						<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 						<input
 							type="search"
 							enterKeyHint="search"
 							className="min-h-11 w-full rounded-lg border border-dbz-border bg-dbz-bg px-3 py-2 pl-8 text-base text-white focus:border-dbz-orange focus:outline-none sm:min-h-0 sm:py-1.5 sm:text-sm"
-							placeholder="Rechercher un guide, un auteur…"
+							placeholder="Rechercher un guide…"
 							value={q}
 							onChange={(e) => setQ(e.target.value)}
 							aria-label="Rechercher un databook ou une interview"
@@ -198,7 +198,7 @@ export function DatabookGrid({
 				</div>
 				<p
 					aria-live="polite"
-					className="text-[11px] uppercase tracking-wider text-dbz-orange/80 sm:ml-0 sm:w-auto"
+					className="shrink-0 text-[11px] tabular-nums uppercase tracking-wider text-dbz-orange/80 sm:ml-1"
 				>
 					{filtered.length} / {items.length}
 				</p>
@@ -209,7 +209,7 @@ export function DatabookGrid({
 					{q.trim() ? `Aucun résultat pour « ${q.trim()} ».` : "Aucun résultat pour ce filtre."}
 				</p>
 			) : (
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
+				<div className="reveal-grid grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
 					{filtered.map((d) => {
 						const cat = resolveDatabookCategory(d.category);
 						const Icon = CATEGORY_ICONS[cat] ?? BookOpen;
@@ -220,51 +220,59 @@ export function DatabookGrid({
 								href={`/wiki/databooks/${d.id}`}
 								transitionTypes={["nav-forward"]}
 								aria-label={`${cat} : ${d.title}`}
-								className="dbz-panel group ki-card relative cursor-pointer overflow-hidden transition-all duration-300 hover:scale-[1.03] hover:border-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+								className="group block cursor-pointer rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-dbz-bg"
 							>
-								<div className="relative aspect-[2/3] overflow-hidden bg-dbz-bg">
-									<div className="pointer-events-none absolute inset-0 z-10 halftone opacity-10" />
+								{/* Légende SOUS la couverture, comme les affiches de films et
+								    les tomes du manga (`components/stream/PosterCard`). Le
+								    titre était auparavant posé sur le scan, ce qui obligeait à
+								    noircir la moitié basse de chaque jaquette pour rester
+								    lisible : la grille entière paraissait éteinte alors que les
+								    couvertures de V-Jump sont très colorées. */}
+								<div className="ki-card relative aspect-[2/3] overflow-hidden rounded-lg bg-dbz-card shadow-lg ring-1 ring-white/[0.06] transition-all duration-300 group-hover:ring-dbz-orange/60 group-hover:shadow-dbz-orange/20">
 									{d.cover ? (
 										<ViewTransition name={`databook-img-${d.id}`} share="morph">
 											<WikiImg
 												src={d.cover}
 												alt={d.title}
 												sizes="(min-width: 1024px) 240px, (min-width: 640px) 30vw, 45vw"
-												className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+												className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 												loading="lazy"
 											/>
 										</ViewTransition>
 									) : (
-										<div className="absolute inset-0 flex items-center justify-center text-white/20">
-											<Icon className="h-10 w-10" />
+										// Un ouvrage sans scan affichait une icône `text-white/20`
+										// sur fond noir : indiscernable d'une tuile cassée. On
+										// nomme l'absence au lieu de la laisser deviner.
+										<div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-dbz-card to-black text-white/35">
+											<div aria-hidden className="absolute inset-0 halftone opacity-[0.08]" />
+											<Icon className="relative h-9 w-9" />
+											<span className="relative px-2 text-center text-[10px] font-bold uppercase tracking-widest">
+												Sans couverture
+											</span>
 										</div>
 									)}
-									<div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-black/25 to-transparent" />
 									<span aria-hidden className="ki-card__glow" />
 									{/* Un seul badge : la catégorie unifiée */}
-									<span className="absolute left-2 top-2 z-30 max-w-[85%] truncate rounded bg-black/70 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-dbz-orange">
+									<span className="absolute left-1.5 top-1.5 z-30 max-w-[85%] truncate rounded bg-black/75 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-dbz-orange backdrop-blur">
 										{cat}
 									</span>
-									<div className="absolute inset-x-0 bottom-0 z-30 p-2.5">
-										<p className="line-clamp-2 font-display text-sm font-bold leading-tight text-white transition-colors group-hover:text-dbz-orange">
-											{d.title}
+								</div>
+								<div className="mt-2 px-0.5">
+									<p className="line-clamp-2 font-display text-[13px] font-semibold leading-snug text-white/90 transition-colors group-hover:text-dbz-orange">
+										{d.title}
+									</p>
+									{d.titleJa && (
+										<p
+											className="mt-0.5 truncate text-[11px] tracking-wider text-dbz-yellow/70"
+											style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
+										>
+											{d.titleJa}
 										</p>
-										{d.titleJa && (
-											<p
-												className="mt-0.5 line-clamp-1 text-[10px] tracking-wider text-dbz-yellow/70"
-												style={{ fontFamily: '"Noto Sans JP", sans-serif' }}
-											>
-												{d.titleJa}
-											</p>
-										)}
-										<p className="mt-0.5 text-[10px] text-white/50">
-											{formatDate(d.publishedAt)}
-											{d.author ? ` · ${d.author}` : ""}
-										</p>
-										<p className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-dbz-orange/0 transition-colors group-hover:text-dbz-orange">
-											Voir la fiche →
-										</p>
-									</div>
+									)}
+									<p className="mt-0.5 truncate text-[11px] text-white/55">
+										{formatDate(d.publishedAt)}
+										{d.author ? ` · ${d.author}` : ""}
+									</p>
 								</div>
 							</ClientGatedWrap>
 						);

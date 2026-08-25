@@ -36,7 +36,7 @@ export default async function NewsPage({
 	const hasMore = allNews.length === limit * page;
 
 	return (
-		<div className="reveal-up">
+		<div>
 			<PageHero
 				eyebrow="Archives"
 				title="Actualités"

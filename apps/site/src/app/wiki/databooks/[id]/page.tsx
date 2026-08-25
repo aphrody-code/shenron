@@ -151,7 +151,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 	// Mesuré sur mobile 390 px : la page passait à 1 200 px de large et défilait
 	// horizontalement dès qu'on basculait en mode paginé.
 	return (
-		<div className="mx-auto min-w-0 max-w-[1200px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24 reveal-up">
+		<div className="mx-auto min-w-0 max-w-[1200px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
 			<JsonLd data={jsonLd as never} />
 			<Breadcrumbs
 				className="mb-4"

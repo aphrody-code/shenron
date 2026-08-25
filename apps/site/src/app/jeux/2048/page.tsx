@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Page2048() {
 	return (
-		<div className="reveal-up">
+		<div>
 			<PageHero
 				eyebrow="Mini-jeu"
 				title="DBZ 2048: Ki Merge"

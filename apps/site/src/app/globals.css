@@ -822,18 +822,32 @@ main:focus {
  * Respect prefers-reduced-motion → animations désactivées.
  * ========================================================= */
 
+/* ATTENTION — la borne de fin d'un `animation-range` doit rester dans la plage
+ * `entry`, JAMAIS dans `cover`.
+ *
+ * La plage `cover` mesure « hauteur de l'élément + hauteur du viewport » : sur un
+ * élément plus haut que l'écran, `cover 30%` s'étale donc sur des milliers de
+ * pixels de défilement et l'élément reste bloqué à une opacité de quelques
+ * pourcents tant qu'on n'a pas fait défiler tout ça. Vécu sur
+ * `/wiki/databooks` : la grille des 316 ouvrages mesure ~25 000 px, la page
+ * entière s'affichait à ~11 % d'opacité — un voile noir sur tout le contenu, et
+ * d'autant plus sombre que la liste était longue.
+ *
+ * La plage `entry` est bornée par la hauteur du viewport (elle se termine quand
+ * le haut de l'élément atteint le haut de l'écran) : la révélation dure la même
+ * distance de défilement quelle que soit la taille de l'élément. */
 @supports (animation-timeline: view()) {
 	/* Reveal up : élément fade + translateY de 30px → 0 quand il entre dans le viewport */
 	.reveal-up {
 		animation: reveal-up linear both;
 		animation-timeline: view();
-		animation-range: entry 0% cover 30%;
+		animation-range: entry 0% entry 60%;
 	}
 	/* Reveal scale : entrée avec léger zoom */
 	.reveal-scale {
 		animation: reveal-scale linear both;
 		animation-timeline: view();
-		animation-range: entry 0% cover 25%;
+		animation-range: entry 0% entry 55%;
 	}
 	/* Parallax doux pour les hero — translation négative selon scroll page */
 	.scroll-parallax-slow {
@@ -845,7 +859,7 @@ main:focus {
 	.reveal-up-stagger > * {
 		animation: reveal-up linear both;
 		animation-timeline: view();
-		animation-range: entry 0% cover 35%;
+		animation-range: entry 0% entry 70%;
 	}
 
 	/* Progress bar globale en haut, lié au scroll de la page */
@@ -2512,7 +2526,7 @@ main:focus {
 		.reveal-grid > * {
 			animation: grid-pop linear both;
 			animation-timeline: view();
-			animation-range: entry 0% cover 22%;
+			animation-range: entry 0% entry 50%;
 		}
 	}
 }
