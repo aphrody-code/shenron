@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { ogMeta } from "@/lib/og";
 import { getShenronCommands, getShenronPersonas } from "@/lib/shenron";
@@ -47,6 +48,20 @@ export default async function CommandsPage({
 	const query = params.q?.toLowerCase() ?? "";
 
 	const total = Object.values(commands).reduce((s, c) => s + c.length, 0);
+
+	// Les sections qui rendront réellement quelque chose, une fois filtre de
+	// persona et recherche appliqués. Sert à décider de l'état vide, qui manquait.
+	const sections = Object.entries(commands)
+		.filter(([pid]) => !filterPersona || pid === filterPersona)
+		.filter(([, cmds]) =>
+			query
+				? cmds.some(
+						(c) =>
+							c.name.toLowerCase().includes(query) ||
+							c.description.toLowerCase().includes(query)
+					)
+				: cmds.length > 0
+		);
 
 	return (
 		<div className="container mx-auto px-4 py-12 max-w-6xl">
@@ -100,6 +115,36 @@ export default async function CommandsPage({
 
 			{/* Commands grid */}
 			<div className="space-y-12">
+				{sections.length === 0 && (
+					// La page rendait un vide TOTAL — ni liste, ni explication — dans deux
+					// cas : une recherche sans résultat, et le filtre « Grand Prêtre »,
+					// dont le persona n'expose aucune commande (il ne fait que
+					// journaliser). Or c'est précisément là que le bouton « Découvrir »
+					// de /personas envoie le visiteur.
+					<p className="dbz-panel px-6 py-12 text-center text-white/60">
+						{filterPersona && !query ? (
+							<>
+								<span className="font-display font-bold text-white">
+									{PERSONA_LABELS[filterPersona] ?? filterPersona}
+								</span>{" "}
+								n'expose aucune commande : ce persona observe et journalise le serveur (messages,
+								interactions, audit) sans jamais être invoqué.{" "}
+								<Link href="/commands" className="text-dbz-orange underline-offset-2 hover:underline">
+									Voir toutes les commandes
+								</Link>
+								.
+							</>
+						) : (
+							<>
+								Aucune commande ne correspond à cette recherche.{" "}
+								<Link href="/commands" className="text-dbz-orange underline-offset-2 hover:underline">
+									Tout afficher
+								</Link>
+								.
+							</>
+						)}
+					</p>
+				)}
 				{Object.entries(commands)
 					.filter(([pid]) => !filterPersona || pid === filterPersona)
 					.map(([pid, cmds]) => {

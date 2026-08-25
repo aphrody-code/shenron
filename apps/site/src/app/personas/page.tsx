@@ -63,9 +63,17 @@ export default async function PersonasPage() {
 							</div>
 
 							<div className="grid grid-cols-3 gap-2 text-center text-xs border-t-2 border-dbz-border pt-3">
+								{/* Le Grand Prêtre n'expose AUCUNE commande : il ne fait que journaliser
+								    (messages, interactions, audit). Afficher « 0 cmds » donnait à lire
+								    une donnée manquante là où c'est le rôle du persona ; on écrit donc
+								    ce rôle. */}
 								<div>
-									<div className="font-saiyan text-2xl text-dbz-orange">{p.commandCount}</div>
-									<div className="text-gray-500 uppercase">cmds</div>
+									<div className="font-saiyan text-2xl text-dbz-orange">
+										{p.commandCount > 0 ? p.commandCount : "—"}
+									</div>
+									<div className="text-gray-500 uppercase">
+										{p.commandCount > 0 ? "cmds" : "observation"}
+									</div>
 								</div>
 								<div>
 									<div className="font-saiyan text-2xl text-dbz-yellow">{p.wsPing}</div>
