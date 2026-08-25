@@ -114,10 +114,20 @@ export interface FauteNomPropre {
 	 * nominative d'ouvrage, où les noms voisins sont tous justes.
 	 */
 	attesteJuste: number;
+	/**
+	 * Suffixes qui rendent la forme lue légitime, et interdisent alors la
+	 * substitution.
+	 *
+	 * Sert au cas où une graphie fautive est AUSSI un emprunt réel employé
+	 * ailleurs dans le corpus. Une seule entrée en a besoin, et chaque
+	 * suffixe correspond à une occurrence relevée, pas à une précaution
+	 * imaginée.
+	 */
+	interdits?: readonly string[];
 }
 
 /**
- * Les 179 paires retenues, triées par fréquence décroissante.
+ * Les 183 paires retenues, triées par fréquence décroissante.
  *
  * Chaque commentaire porte le comptage réel : occurrences de la forme lue,
  * planches et ouvrages touchés, et attestation de la forme juste dans le même
@@ -165,6 +175,46 @@ export interface FauteNomPropre {
  * propres, et leur cible est solidement attestée par ailleurs.
  */
 export const NOMS_PROPRES_MAL_LUS: FauteNomPropre[] = [
+	// ---------------------------------------------------------------
+	// Les quatre paires que le crible JMdict masquait.
+	//
+	// Le crible dictionnaire s'applique AVANT la lecture des contextes :
+	// ce qu'il écarte ne se voit jamais. C'est le même défaut que le
+	// comptage à zéro, à un autre étage — un filtre en amont qui supprime
+	// des candidats sans laisser de trace.
+	//
+	// Reprise des 52 formes qu'il avait écartées : 35 sont attestées dans
+	// le corpus, et 31 d'entre elles lui donnent raison — `パーツ` y est
+	// toujours « pièces » (オーラのパーツ, 眼球パーツ, ネジなどのパーツ),
+	// `ゼット` toujours le Z de la série, `リーグ` toujours une ligue,
+	// `ピート` toujours le mécanicien de « Dub & Peter 1 ». Deux ont même
+	// une preuve chronologique : `ジャンパ` est une fiche de technique du
+	// Daizenshuu 7, paru en 1996, quand Champa date de 2015 ; `シータ` est
+	// un `ベジータ` amputé, sous le titre latin « VEGETA ».
+	//
+	// Restent ces quatre-là, où le dictionnaire ne protégeait pas un mot
+	// réel mais masquait un nom propre.
+	// ---------------------------------------------------------------
+	// Slug — ク/グ. 52 occurrences sur 19 planches, 12 ouvrages ; スラッグ attesté 123×.
+	// Le seul cas où la forme lue est parfois légitime : le Dragon Ball
+	// Fortune Book (#82 p.65) est un horoscope financier, et y parle de
+	// « slack » — récession, 不況, 底値. Ses trois occurrences sont mises
+	// hors d'atteinte par `interdits`. Les dix-neuf autres planches sont
+	// toutes le super-Namek du film 4 : 超ナメック星人スラック, スラック味
+	// (pour スラッグ一味), et la fiche 【スラック】 du Daizenshuu 7.
+	{ lu: "スラック", correct: "スラッグ", fr: "Slug", confusion: "ク/グ", occurrences: 52, planches: 19, attesteJuste: 123, interdits: ["を楽しく", "による"] },
+	// Super Saiyan God — ト/ド. 16 occurrences sur 11 planches, 10 ouvrages ; ゴッド attesté 311×.
+	// Toutes les occurrences sont 超サイヤ人ゴッド ou ゴッドかめはめ波 :
+	// aucune exception trouvée.
+	{ lu: "ゴット", correct: "ゴッド", fr: "ゴッド", confusion: "ト/ド", occurrences: 16, planches: 11, attesteJuste: 311 },
+	// Ossu — ズ/ス. 10 occurrences sur 7 planches, 7 ouvrages ; オッス attesté 46×.
+	// Le salut de Goku, et le titre du TV special de 2008 : オッス！オラ悟空,
+	// オッス！帰ってきた孫悟空と仲間たち. Jamais « odds » dans le corpus.
+	{ lu: "オッズ", correct: "オッス", fr: "オッス", confusion: "ズ/ス", occurrences: 10, planches: 7, attesteJuste: 46 },
+	// Jeese — シ/ジ. 4 occurrences sur 4 planches, 4 ouvrages ; ジース attesté 47×.
+	// Les quatre sont le membre du commando Ginyu, nommé à côté des siens :
+	// シースとバータ, HG7-21 シース C HG7-22 バータ.
+	{ lu: "シース", correct: "ジース", fr: "Jeese", confusion: "シ/ジ", occurrences: 4, planches: 4, attesteJuste: 47 },
 	// Goku Black — コ/ゴ. 182 occurrences sur 7 planches, 6 ouvrages ; ゴクウブラック attesté 80× dans le même corpus.
 	{ lu: "コクウブラック", correct: "ゴクウブラック", fr: "Goku Black", confusion: "コ/ゴ", occurrences: 182, planches: 7, attesteJuste: 80 },
 	// Puerh — ブ/プ. 19 occurrences sur 15 planches, 12 ouvrages ; プーアル attesté 19× dans le même corpus.
@@ -712,7 +762,12 @@ export function detaillerNomsPropres(texte: string): {
 	while (i < entree.length) {
 		let trouve: FauteNomPropre | undefined;
 		if (frontiere(i > 0 ? entree[i - 1] : undefined)) {
-			trouve = ORDRE.find((f) => entree.startsWith(f.lu, i) && frontiere(entree[i + f.lu.length]));
+			trouve = ORDRE.find(
+				(f) =>
+					entree.startsWith(f.lu, i) &&
+					frontiere(entree[i + f.lu.length]) &&
+					!f.interdits?.some((suffixe) => entree.startsWith(suffixe, i + f.lu.length)),
+			);
 		}
 		if (trouve) {
 			sortie += trouve.correct;

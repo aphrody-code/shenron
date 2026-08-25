@@ -411,9 +411,82 @@ describe("le second balayage, et ce qu'il a fallu refuser", () => {
 	});
 
 	test("la table a bien grossi, et reste coherente", () => {
-		expect(NOMS_PROPRES_MAL_LUS.length).toBe(179);
+		expect(NOMS_PROPRES_MAL_LUS.length).toBe(183);
 		// La propriete qui compte : aucune cible n'est elle-meme une faute.
 		const fautives = new Set(NOMS_PROPRES_MAL_LUS.map((f) => f.lu));
 		for (const f of NOMS_PROPRES_MAL_LUS) expect(fautives.has(f.correct)).toBe(false);
+	});
+});
+
+describe("ce que le crible dictionnaire masquait", () => {
+	test("les quatre noms propres rendus au corpus", () => {
+		const cas: [string, string][] = [
+			["クウラ、ターレス、スラック、ブロリー", "クウラ、ターレス、スラッグ、ブロリー"],
+			["超ナメック星人スラックの率いる魔族軍団", "超ナメック星人スラッグの率いる魔族軍団"],
+			["スラック味\n【スラック】\n・超巨身術", "スラッグ味\n【スラッグ】\n・超巨身術"],
+			["超サイヤ人ゴットSSベジータ(進化)", "超サイヤ人ゴッドSSベジータ(進化)"],
+			["ゴットかめはめ波", "ゴッドかめはめ波"],
+			["オッズ！オラ悟空", "オッス！オラ悟空"],
+			["オッズ！帰ってきた孫悟空と仲間たち", "オッス！帰ってきた孫悟空と仲間たち"],
+			["残るシースとバータの体技", "残るジースとバータの体技"],
+			["HG7-21 シース C HG7-22 バータ", "HG7-21 ジース C HG7-22 バータ"],
+		];
+		for (const [avant, apres] of cas) {
+			expect(detaillerNomsPropres(avant).texte).toBe(apres);
+		}
+	});
+
+	test("l'horoscope financier garde son slack", () => {
+		// #82 p.65, Dragon Ball Fortune Book : le seul endroit du corpus où
+		// スラック est le mot anglais. Les suffixes viennent de ces lignes-là.
+		for (const texte of [
+			"第79回第19回のスラックを楽しく年には2回のスラックを楽しく",
+			"予想される不況が目撃される。スラックによるで底値より下がる。",
+		]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les emprunts que le crible protégeait à raison traversent toujours", () => {
+		// Trente et une des trente-cinq formes reprises lui donnaient raison.
+		for (const texte of [
+			"オーラのパーツと頭髪がより逆立つ程度だ", // pièces, pas Hearts
+			"眼球パーツにエネルギーを集積し",
+			"ネジなどのパーツはそれらしく描きこむ",
+			"DRAGON BALL ゼット",
+			"天才ピートのつくったピーター", // Dub & Peter 1
+			"ダブとピートとそして……",
+			"リーグ戦の結果",
+			"スラックスとシャツ", // le pantalon : la frontière suffit
+			"ヘビー級のパンチ",
+			"ニューズウィーク",
+		]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les deux preuves chronologiques tiennent", () => {
+		// `ジャンパ` est une fiche de technique du Daizenshuu 7 (1996) ; Champa
+		// date de 2015. `シータ` est un ベジータ amputé, sous « VEGETA ».
+		for (const texte of [
+			"エネルギー砲【人】ジャンパ【特】体表にある8つの穴から",
+			"VEGETA\nシータ\nプレイアブル",
+		]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("une seule entrée porte des interdits, et ils sont ancrés", () => {
+		const avecInterdits = NOMS_PROPRES_MAL_LUS.filter((f) => f.interdits && f.interdits.length > 0);
+		expect(avecInterdits.map((f) => f.lu)).toEqual(["スラック"]);
+		for (const f of avecInterdits) {
+			for (const suffixe of f.interdits ?? []) expect(suffixe.length).toBeGreaterThan(1);
+		}
 	});
 });
