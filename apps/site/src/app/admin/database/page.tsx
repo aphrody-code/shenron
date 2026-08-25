@@ -45,6 +45,7 @@ const TABLE_LABELS: Record<string, { label: string; group: string }> = {
 	db_manga_pages: { label: "Planches manga (OCR)", group: "Encyclopédie" },
 	db_databooks: { label: "Databooks & interviews", group: "Encyclopédie" },
 	db_wiki_sections: { label: "Sections wiki", group: "Encyclopédie" },
+	db_character_variants: { label: "Versions par saga", group: "Encyclopédie" },
 	db_tools: { label: "Outils communautaires", group: "Encyclopédie" },
 	db_news: { label: "Actualités", group: "Encyclopédie" },
 	db_sources: { label: "Sources & attributions", group: "Médias" },
