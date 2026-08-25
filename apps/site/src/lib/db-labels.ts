@@ -34,6 +34,7 @@ export const TABLE_LABELS: Record<string, string> = {
 	db_manga_pages: "Planches manga (OCR)",
 	db_databooks: "Databooks & interviews",
 	db_wiki_sections: "Sections wiki",
+	db_character_variants: "Versions par saga",
 	db_tools: "Outils communautaires",
 	db_news: "Actualités",
 	db_sources: "Sources & attributions",

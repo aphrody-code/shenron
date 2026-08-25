@@ -4,14 +4,17 @@ import { db } from "@/lib/db";
 import {
 	botCharacters,
 	botCharacterTechniques,
+	botCharacterVariants,
 	botGames,
 	botMangaVolumes,
 	botMovies,
 	botPlanets,
 	botRaces,
 	botTechniques,
+	botSagas,
 	botTransformations,
 	botWikiSections,
+	type VariantEvidence,
 	type WikiSectionLink,
 	type WikiSource,
 } from "@/db/bot-schema";
@@ -585,6 +588,162 @@ export async function getShenronMovie(id: number): Promise<DBMovie | null> {
 	} catch (e) {
 		console.error("[shenron] getShenronMovie a échoué:", e);
 		return null;
+	}
+}
+
+/**
+ * Une version d'un personnage à une saga (`bot.db_character_variants`), déjà
+ * jointe à sa saga pour l'affichage.
+ */
+export interface CharacterVariant {
+	id: number;
+	slug: string;
+	label: string;
+	displayName: string | null;
+	nameJa: string | null;
+	form: string | null;
+	image: string | null;
+	age: number | null;
+	powerLevel: string | null;
+	ki: string | null;
+	maxKi: string | null;
+	role: string | null;
+	affiliation: string | null;
+	summary: string | null;
+	highlights: string[] | null;
+	firstVolume: number | null;
+	lastVolume: number | null;
+	/** "ocr-manga" (présence mesurée) ou "editorial" (rédigée à la main). */
+	origin: string | null;
+	evidence: VariantEvidence | null;
+	sagaId: number;
+	sagaName: string;
+	sagaSlug: string;
+	sagaSeries: string | null;
+	sagaImage: string | null;
+}
+
+/**
+ * Versions d'un personnage saga par saga, dans l'ordre de la chronologie.
+ *
+ * Tri sur `db_sagas.order_idx` et non sur `sort_order` de la variante : l'ordre
+ * qui compte est celui du récit, et il vit sur la saga. `sort_order` ne sert
+ * qu'à départager deux variantes d'une même saga après une reprise éditoriale.
+ */
+export async function getShenronCharacterVariants(
+	characterId: number
+): Promise<CharacterVariant[]> {
+	try {
+		const rows = await db
+			.select({ v: botCharacterVariants, s: botSagas })
+			.from(botCharacterVariants)
+			.innerJoin(botSagas, eq(botCharacterVariants.sagaId, botSagas.id))
+			.where(and(eq(botCharacterVariants.characterId, characterId), eq(botCharacterVariants.visible, true)))
+			.orderBy(asc(botSagas.series), asc(botSagas.orderIdx), asc(botCharacterVariants.sortOrder));
+		return rows.map(({ v, s }) => ({
+			id: v.id,
+			slug: v.slug,
+			label: v.label,
+			displayName: v.displayName,
+			nameJa: v.nameJa,
+			form: v.form,
+			image: v.image,
+			age: v.age,
+			powerLevel: v.powerLevel,
+			ki: v.ki,
+			maxKi: v.maxKi,
+			role: v.role,
+			affiliation: v.affiliation,
+			summary: v.summary,
+			highlights: v.highlights ?? null,
+			firstVolume: v.firstVolume,
+			lastVolume: v.lastVolume,
+			origin: v.origin,
+			evidence: v.evidence ?? null,
+			sagaId: s.id,
+			sagaName: s.name,
+			sagaSlug: s.slug,
+			sagaSeries: s.series,
+			sagaImage: s.image,
+		}));
+	} catch (e) {
+		console.error("[shenron] getShenronCharacterVariants a échoué:", e);
+		return [];
+	}
+}
+
+/** Personnage relevé dans une saga (lecture inverse des variantes). */
+export interface SagaCharacter {
+	characterId: number;
+	name: string;
+	image: string | null;
+	race: string | null;
+	form: string | null;
+	role: string | null;
+	firstVolume: number | null;
+	lastVolume: number | null;
+	/** Nombre de planches où le nom a été relevé, quand la variante est mesurée. */
+	planches: number | null;
+}
+
+/**
+ * Qui apparaît dans cette saga — la lecture inverse de `getShenronCharacterVariants`.
+ *
+ * Trié par volume de preuve décroissant : sur une saga, les personnages relevés
+ * sur cent planches sont ceux du récit, ceux relevés sur trois sont cités en
+ * passant. Un tri alphabétique mettrait Bacterian avant Goku.
+ */
+export async function getShenronSagaCharacters(sagaId: number): Promise<SagaCharacter[]> {
+	try {
+		const rows = await db
+			.select({ v: botCharacterVariants, c: botCharacters })
+			.from(botCharacterVariants)
+			.innerJoin(botCharacters, eq(botCharacterVariants.characterId, botCharacters.id))
+			.where(
+				and(
+					eq(botCharacterVariants.sagaId, sagaId),
+					eq(botCharacterVariants.visible, true),
+					eq(botCharacters.visible, true)
+				)
+			);
+		const tous = rows
+			.map(({ v, c }) => ({
+				characterId: c.id,
+				name: c.name,
+				image: c.image,
+				race: c.race,
+				form: v.form,
+				role: v.role,
+				firstVolume: v.firstVolume,
+				lastVolume: v.lastVolume,
+				planches: v.evidence?.planches ?? null,
+			}))
+			.sort((a, b) => (b.planches ?? 0) - (a.planches ?? 0) || a.name.localeCompare(b.name, "fr"));
+
+		// La base porte des fiches en double pour plusieurs personnages majeurs
+		// (« Goku » id 1 ET « Son Goku », « Gohan » ET « Son Gohan ») : mesurées
+		// sur les mêmes graphies, elles produisent deux entrées identiques dans
+		// la liste d'une saga. On n'en montre qu'une — celle qui porte le plus de
+		// preuve, l'id le plus petit départageant. Ce n'est PAS un correctif du
+		// doublon en base, seulement le refus de l'afficher deux fois.
+		const vues = new Map<string, SagaCharacter>();
+		for (const p of tous) {
+			const cle = foldName(stripVersionSuffix(p.name).replace(/^son\s+/i, ""));
+			const dejaLa = vues.get(cle);
+			if (
+				!dejaLa ||
+				(p.planches ?? 0) > (dejaLa.planches ?? 0) ||
+				((p.planches ?? 0) === (dejaLa.planches ?? 0) && p.characterId < dejaLa.characterId)
+			) {
+				vues.set(cle, p);
+			}
+		}
+		return [...vues.values()].sort(
+			(a, b) => (b.planches ?? 0) - (a.planches ?? 0) || a.name.localeCompare(b.name, "fr")
+		);
+	} catch (e) {
+		console.error("[shenron] getShenronSagaCharacters a échoué:", e);
+		return [];
 	}
 }
 

@@ -124,6 +124,21 @@ Les 11 778 planches de `bot.db_databooks.pages` portent une transcription produi
 6. **Les scripts de dépôt visent le slot bleu/vert en ligne** (`scripts/_origine-site.ts` lit l'amont nginx). Coder `127.0.0.1:3000` en dur les cassait dès que le trafic passait sur le slot B.
 7. **Le lexique japonais est très inégal** : `name_ja` couvre 96 % des databooks, 59 % des personnages et **2 % des techniques** (17 sur 825). Une graphie absente du lexique n'est donc **pas** une faute. Le critère qui tranche est le rapport de fréquence : une faute de lecture est toujours **moins** attestée que la forme dont elle dérive (`パトル` 444 contre `バトル` 1 884), un mot réel ne l'est pas (`アビリティ` 798 contre `レアリティ` 178). Comparer sur `normaliserJa` : le lexique écrit `ミスター·ポポ` (U+00B7), le corpus `ミスター・ポポ` (U+30FB).
 
+## Wiki — versions de personnage par saga
+
+`bot.db_character_variants` (PG-only, créée par `apps/bot/scripts/add-character-variants.ts`) porte **une ligne par couple (personnage, saga)** — « Goku, saga Namek ». Pas de fiche dupliquée dans `db_characters` : l'identité reste une, la fiche gagne une frise de ses états successifs (`components/wiki/CharacterSagaVariants.tsx`, panneau « Au fil des sagas »), et la page saga gagne sa liste de personnages (`getShenronSagaCharacters`). Une variante ne porte que ce qui **change** d'une saga à l'autre (apparence, forme, puissance, rôle, faits marquants) ; tout champ NULL retombe sur `db_characters` à l'affichage.
+
+L'amorçage est **mesuré, pas écrit** : `apps/site/scripts/variantes-par-saga.ts --mesure` croise l'OCR VF du manga (`bot.db_manga_pages`, 7 830 planches des 42 tomes) avec les bornes de tomes de chaque saga (`db_sagas.manga_volume_start/end`, posées par `--bornes`). Résultat au 2026-08-25 : **83 personnages, 249 variantes**. Chaque ligne garde sa preuve (`evidence` : tomes, planches, graphies cherchées).
+
+### Règles dures
+
+1. **La base ne savait pas qui apparaît où.** `debut_saga_id` est renseigné pour 1 personnage sur 1 323, `db_character_arcs` compte 4 lignes, 36 épisodes sur 826 portent un arc. Toute liste « personnages de la saga X » écrite à la main recopie ce qu'on croit savoir — d'où la mesure.
+2. **Le relevé prouve une citation, pas une apparition.** Un personnage mort est nommé pendant des tomes. L'UI le dit mot pour mot (« Une citation n'est pas une apparition ») ; ne jamais présenter le comptage comme un casting vérifié.
+3. **`origin = 'editorial'` est un verrou.** Le script ne réécrit jamais une variante reprise à la main (`where origin is distinct from 'editorial'`). Corollaire : après avoir resserré les graphies, relancer avec `--reinitialiser --appliquer`, sinon les faux positifs de la passe précédente restent en base.
+4. **Un nom qui est aussi un mot français n'est pas mesurable.** La fiche « Tard » remontait dans 10 sagas (« trois jours plus tard »), « Slump » dans 8 (notes de traduction et bio de l'auteur en fin de tome). Deux listes d'exclusion documentées dans le script (`MOTS_DU_RECIT`, `HORS_DRAGON_BALL`) ; ces personnages se saisissent à la main.
+5. **Série DB seulement.** Les planches `series='DBS'` sont indexées par identifiant interne de chapitre (`ch1315`…), pas par numéro publié : aucun rattachement fiable aux sagas Moro/Granolah/Black Freezer. GT, Daima et les films n'ont pas de manga.
+6. **`db_characters` porte des doublons** (« Goku » id 1 ET « Son Goku », idem Gohan). Les deux reçoivent leurs variantes ; c'est la **lecture** de la page saga qui dédoublonne sur le nom racine. Ne pas confondre ce masquage d'affichage avec un correctif des données.
+
 ## Site — module d'édition (`components/editor/`)
 
 **Une seule surface de saisie pour tout le site** (depuis le 2026-08-24) : elle remplace les quatre éditeurs qui coexistaient (Tiptap des articles, CodeMirror des pages wiki, CodeMirror des fiches, `<textarea>` nus). Deux composants exposés :

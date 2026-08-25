@@ -3,12 +3,17 @@ import { TrackView } from "@/components/TrackView";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiSources } from "@/components/wiki/WikiArticle";
 import { WikiRelatedCharacters } from "@/components/wiki/WikiRelatedCharacters";
+import { CharacterSagaVariants } from "@/components/wiki/CharacterSagaVariants";
 import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { buildWikiContentPanels } from "@/lib/wiki-panels";
 import { TECH_SECTION_KEYS, TRANSFO_SECTION_KEYS } from "@/lib/wiki-article-sections";
-import { getShenronCharacter, getShenronCharacterCards } from "@/lib/shenron";
+import {
+	getShenronCharacter,
+	getShenronCharacterCards,
+	getShenronCharacterVariants,
+} from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -18,6 +23,7 @@ import { cache, type ReactNode } from "react";
 import type { Person, WithContext } from "schema-dts";
 import type { SectionAccent } from "@/lib/wiki-section-accents";
 import { capParams } from "@/lib/prerender";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 export const revalidate = 3600;
 
@@ -84,6 +90,17 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 	const character = await getChar(parseInt(id, 10));
 
 	if (!character) notFound();
+
+	// Versions saga par saga (bot.db_character_variants) — chargées après la
+	// fiche parce qu'elles en dépendent, et lues même quand la liste est vide :
+	// une requête indexée sur (character_id, sort_order) coûte moins qu'un
+	// aller-retour conditionnel de plus dans le rendu.
+	// `access` : la frise est un composant client et ne peut pas lire la
+	// configuration de lancement ; on la résout ici et on la lui passe.
+	const [variants, access] = await Promise.all([
+		getShenronCharacterVariants(character.id),
+		getLaunchConfig().catch(() => null),
+	]);
 
 	const personSchema: WithContext<Person> = {
 		"@context": "https://schema.org",
@@ -237,6 +254,26 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 		"Techniques",
 		"blue"
 	);
+
+	// Placé AVANT « Versions & apparitions » : la frise des sagas parle du même
+	// personnage à des époques différentes, l'autre catégorie parle d'autres
+	// fiches (Xeno, futur, GT). Les inverser ferait lire la seconde comme la
+	// suite de la première.
+	if (variants.length > 0) {
+		panels.push({
+			key: "sagas",
+			label: "Au fil des sagas",
+			accent: "gold",
+			node: (
+				<CharacterSagaVariants
+					variants={variants}
+					characterName={character.name}
+					characterImage={character.image}
+					access={access}
+				/>
+			),
+		});
+	}
 
 	if (character.versions.length > 0) {
 		panels.push({

@@ -61,6 +61,7 @@ const TABLE_OBJECTS: Record<string, AnyTable> = {
 	db_techniques: botSchema.botTechniques,
 	db_character_techniques: botSchema.botCharacterTechniques,
 	db_character_arcs: botSchema.botCharacterArcs,
+	db_character_variants: botSchema.botCharacterVariants,
 	db_sagas: botSchema.botSagas,
 	db_arcs: botSchema.botArcs,
 	db_episodes: botSchema.botEpisodes,
@@ -285,7 +286,11 @@ export async function getWikiRow(table: string, id: string): Promise<Row | null>
  * création depuis le studio doit calculer le prochain id (max+1) elle-même,
  * sinon `null value in column "id"`.
  */
-const DB_AUTOGEN_PK = new Set<string>(["db_wiki_sections", "db_databooks"]);
+const DB_AUTOGEN_PK = new Set<string>([
+	"db_wiki_sections",
+	"db_databooks",
+	"db_character_variants",
+]);
 
 /** Prochain id disponible (max+1) pour une table à pk numérique sans séquence. */
 async function nextPkValue(spec: ResolvedTable, pkKey: string): Promise<number> {

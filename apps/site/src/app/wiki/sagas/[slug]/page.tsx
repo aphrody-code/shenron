@@ -7,6 +7,8 @@ import WikiRagArchives from "@/components/wiki/WikiRagArchives";
 import { AggregateRatingBanner } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { getAggregateSummary, getRatingSummaries } from "@/lib/ratings";
+import { getShenronSagaCharacters } from "@/lib/shenron";
+import { WikiImg } from "@/components/wiki/WikiImg";
 import { ogMeta } from "@/lib/og";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
@@ -61,9 +63,13 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 	const arcs = data.arcs ?? [];
 	const seriesLabel = SERIES_LABELS[saga.series] ?? saga.series;
 	const arcIds = arcs.map((a) => String(a.id));
-	const [sagaAvg, arcRatings] = await Promise.all([
+	// `personnages` : lecture inverse de bot.db_character_variants — qui a été
+	// relevé dans cette saga. Lancé avec les notes, jamais après : les trois
+	// requêtes sont indépendantes de la saga déjà chargée.
+	const [sagaAvg, arcRatings, personnages] = await Promise.all([
 		getAggregateSummary("arc", arcIds),
 		getRatingSummaries("arc", arcIds),
+		getShenronSagaCharacters(saga.id),
 	]);
 
 	const jsonLdData: WithContext<CreativeWork> = {
@@ -79,7 +85,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 	};
 
 	return (
-		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24">
 			<JsonLd data={jsonLdData} />
 			<Breadcrumbs
 				className="mb-12"
@@ -177,6 +183,53 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 										→
 									</span>
 								</div>
+							</GatedWrap>
+						))}
+					</div>
+				</section>
+			)}
+
+			{personnages.length > 0 && (
+				<section className="mb-20">
+					<div className="flex items-center gap-6 mb-6">
+						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
+							Personnages ({personnages.length})
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+					</div>
+					{/* Ce que la liste dit exactement — le relevé porte sur le TEXTE du
+					    manga : un personnage mort peut y être nommé pendant des tomes.
+					    L'annoncer vaut mieux que de laisser lire « qui combat ici ». */}
+					<p className="mb-8 max-w-3xl text-sm text-white/50">
+						Personnages dont le nom est relevé dans les planches du manga couvrant cette saga, du
+						plus cité au moins cité. Une citation n'est pas une apparition.
+					</p>
+					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+						{personnages.map((p) => (
+							<GatedWrap
+								key={p.characterId}
+								href={`/wiki/dragon-ball/character/${p.characterId}`}
+								className="dbz-panel group flex flex-col items-center p-3 transition-transform duration-300 hover:scale-105"
+							>
+								<div className="relative mb-3 aspect-square w-full overflow-hidden rounded-lg border border-dbz-border bg-dbz-bg p-1">
+									<div aria-hidden className="halftone absolute inset-0 opacity-10" />
+									<WikiImg
+										src={p.image}
+										alt={p.name}
+										sizes="(min-width: 1280px) 160px, (min-width: 768px) 22vw, 45vw"
+										loading="lazy"
+										className="relative z-10 h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
+										placeholderClassName="relative z-10 flex h-full w-full items-center justify-center rounded"
+									/>
+								</div>
+								<p className="text-center text-xs font-bold uppercase tracking-wider text-white transition-colors group-hover:text-dbz-orange">
+									{p.name}
+								</p>
+								{p.planches != null && (
+									<p className="mt-1 text-[10px] tabular-nums uppercase tracking-widest text-white/40">
+										{p.planches} planches
+									</p>
+								)}
 							</GatedWrap>
 						))}
 					</div>

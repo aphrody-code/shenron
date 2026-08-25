@@ -194,6 +194,18 @@ export const botSagas = bot.table("db_sagas", {
 	orderIdx: int("order_idx"),
 	description: text("description"),
 	image: text("image"),
+	/**
+	 * Bornes de la saga dans le manga (PG-only, `scripts/add-character-variants.ts`).
+	 * Ce sont elles qui rendent la présence d'un personnage MESURABLE : sans
+	 * plage de tomes, « Goku apparaît-il dans la saga Namek ? » n'a aucune
+	 * réponse dans la base, seulement dans la tête de celui qui la remplit.
+	 * Renseignées pour le manga 42 tomes (`bornes-sagas-manga.ts`) ; NULL pour
+	 * les sagas sans support manga (GT, Daima, films, épisodes spéciaux).
+	 */
+	mangaVolumeStart: int("manga_volume_start"),
+	mangaVolumeEnd: int("manga_volume_end"),
+	mangaChapterStart: int("manga_chapter_start"),
+	mangaChapterEnd: int("manga_chapter_end"),
 	...articleCols,
 	...visibleCol,
 });
@@ -220,6 +232,76 @@ export const botCharacterArcs = bot.table("db_character_arcs", {
 	arcId: int("arc_id").notNull(),
 	note: text("note"),
 	appearanceImage: text("appearance_image"),
+});
+
+/**
+ * Preuve de présence d'un personnage dans une saga, telle que mesurée sur l'OCR
+ * du manga (`scripts/variantes-par-saga.ts`). On stocke le comptage ET son
+ * mode d'obtention : une variante amorcée automatiquement ne doit jamais être
+ * confondue avec une variante écrite par un rédacteur.
+ */
+export type VariantEvidence = {
+	/** Comment la variante a été obtenue ("ocr-manga" pour l'amorçage mesuré). */
+	methode: string;
+	/** Tomes du manga où le nom apparaît, dans la plage de la saga. */
+	tomes: number[];
+	/** Nombre de planches où le nom apparaît (pas d'occurrences de mots). */
+	planches: number;
+	/** Graphies recherchées (nom de la fiche + alias retenus). */
+	graphies: string[];
+	/** Date de la mesure (epoch ms). */
+	mesureAt: number;
+};
+
+/**
+ * **Une version d'un personnage à une saga donnée** — « Goku, saga Namek ».
+ *
+ * Table PG-only. Une ligne par couple (personnage, saga), unique. Elle ne redit
+ * PAS la fiche : elle ne porte que ce qui change d'une saga à l'autre. Tout
+ * champ NULL retombe sur `db_characters` à l'affichage — c'est volontaire :
+ * dupliquer la race ou la planète d'origine dans 15 variantes garantirait
+ * qu'elles divergent un jour.
+ */
+export const botCharacterVariants = bot.table("db_character_variants", {
+	id: int("id").primaryKey(),
+	characterId: int("character_id").notNull(),
+	sagaId: int("saga_id").notNull(),
+	/** Ancre stable dans l'URL de la fiche (ex. `goku-namek`). */
+	slug: text("slug").notNull(),
+	/** Libellé de la pilule dans la frise (ex. « Saga Namek »). */
+	label: text("label").notNull(),
+	/** Nom affiché en tête de la variante (ex. « Son Goku — Saga Namek »). */
+	displayName: text("display_name"),
+	nameJa: text("name_ja"),
+	/** Forme atteinte à cette période (« Super Saiyan », « Ôzaru »…). */
+	form: text("form"),
+	/** Apparence propre à la saga ; NULL → image de la fiche. */
+	image: text("image"),
+	/** Âge du personnage à cette période, quand une source le donne. */
+	age: int("age"),
+	/** Puissance telle qu'une source la chiffre (databook, scouter) — texte. */
+	powerLevel: text("power_level"),
+	ki: text("ki"),
+	maxKi: text("max_ki"),
+	/** Rôle tenu dans la saga (« Protagoniste », « Antagoniste », « Soutien »). */
+	role: text("role"),
+	affiliation: text("affiliation"),
+	/** Ce que devient le personnage pendant la saga (markdown). */
+	summary: text("summary"),
+	/** Faits marquants, un par puce. */
+	highlights: jsonb("highlights").$type<string[]>(),
+	/** Transformations disponibles à cette période (ids `db_transformations`). */
+	transformationIds: jsonb("transformation_ids").$type<number[]>(),
+	/** Techniques employées à cette période (ids `db_techniques`). */
+	techniqueIds: jsonb("technique_ids").$type<number[]>(),
+	/** Premier et dernier tome du manga où le personnage est repéré. */
+	firstVolume: int("first_volume"),
+	lastVolume: int("last_volume"),
+	/** "ocr-manga" (amorçage mesuré) ou "editorial" (écrit à la main). */
+	origin: text("origin"),
+	evidence: jsonb("evidence").$type<VariantEvidence | null>(),
+	sortOrder: int("sort_order").notNull().default(0),
+	visible: boolean("visible").notNull().default(true),
 });
 
 export const botEpisodes = bot.table("db_episodes", {
