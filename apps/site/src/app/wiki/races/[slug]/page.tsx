@@ -196,7 +196,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 
 								<h3 className="text-2xl font-saiyan tracking-widest text-white">
 									<GatedWrap
-										href={`/wiki/dragon-ball/planet/${race.homePlanet.id}`}
+										href={`/wiki/planetes/${race.homePlanet.id}`}
 										className={`hover:${theme.text} transition-colors`}
 									>
 										{race.homePlanet.name}
@@ -226,7 +226,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 							{race.characters.map((char, idx) => (
 								<GatedWrap
 									key={char.id}
-									href={`/wiki/dragon-ball/character/${char.id}`}
+									href={`/wiki/personnages/${char.id}`}
 									className="group dbz-panel overflow-hidden hover:scale-105 hover:border-dbz-orange transition-all duration-300"
 									style={{ animationDelay: `${0.1 + idx * 0.03}s` }}
 								>

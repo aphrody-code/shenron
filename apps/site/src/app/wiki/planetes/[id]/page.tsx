@@ -38,7 +38,7 @@ export async function generateMetadata({
 			description,
 			image: planet.image ? assetUrl(planet.image) : undefined,
 			type: "website",
-			canonical: `/wiki/dragon-ball/planet/${id}`,
+			canonical: `/wiki/planetes/${id}`,
 		}),
 	};
 }
@@ -173,7 +173,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 						{planet.characters.map((char, idx) => (
 							<GatedWrap
 								key={char.id}
-								href={`/wiki/dragon-ball/character/${char.id}`}
+								href={`/wiki/personnages/${char.id}`}
 								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
 								style={{ animationDelay: `${0.5 + idx * 0.05}s` }}
 							>

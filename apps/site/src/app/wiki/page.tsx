@@ -73,7 +73,7 @@ function buildSections(c: Record<string, number>) {
 		{
 			title: "Techniques",
 			desc: `${c.techniques} techniques et capacités spéciales.`,
-			href: "/wiki/dragon-ball/techniques",
+			href: "/wiki/techniques",
 			color: "border-dbz-red text-dbz-red",
 		},
 		{
@@ -229,7 +229,7 @@ export default async function WikiIndex() {
 						{featuredChars.map((char, idx) => (
 							<GatedWrap
 								key={char.id}
-								href={`/wiki/dragon-ball/character/${char.id}`}
+								href={`/wiki/personnages/${char.id}`}
 								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
 								style={{ animationDelay: `${0.15 + idx * 0.04}s` }}
 							>
@@ -385,7 +385,7 @@ export default async function WikiIndex() {
 						{featuredPlanets.map((planet, idx) => (
 							<GatedWrap
 								key={planet.id}
-								href={`/wiki/dragon-ball/planet/${planet.id}`}
+								href={`/wiki/planetes/${planet.id}`}
 								className="group flex flex-col dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
 								style={{ animationDelay: `${0.45 + idx * 0.05}s` }}
 							>

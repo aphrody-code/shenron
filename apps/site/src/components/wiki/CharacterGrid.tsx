@@ -184,7 +184,7 @@ export function CharacterGrid({
 						<ClientGatedWrap
 							access={access}
 							key={c.id}
-							href={`/wiki/dragon-ball/character/${c.id}`}
+							href={`/wiki/personnages/${c.id}`}
 							// `nav-forward` → slide directionnel à l'arrivée sur la fiche
 							// (View Transitions). La fiche tag son "retour" en nav-back.
 							transitionTypes={["nav-forward"]}

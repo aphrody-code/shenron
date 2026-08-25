@@ -197,6 +197,43 @@ const nextConfig: NextConfig = {
 			// désormais canonique sous /actualites/:slug ; les anciens liens (et les
 			// URL déjà indexées ou partagées) sont récupérés en 308 au routing.
 			{ source: "/post/:slug", destination: "/actualites/:slug", permanent: true },
+			// Deux routes rendaient la MÊME fiche de jeu — `/wiki/jeux/:slug` (notes
+			// communautaires, galerie, JSON-LD, fil d'Ariane) et
+			// `/wiki/dragon-ball/games/:slug`, une version plus pauvre issue d'un
+			// premier découpage. Plus aucun lien du site ne menait à la seconde, mais
+			// elle restait générée statiquement et indexable : du contenu dupliqué
+			// pour chacun des 58 jeux. La route a été supprimée, les URL déjà
+			// partagées ou indexées atterrissent sur la fiche canonique.
+			{
+				source: "/wiki/dragon-ball/games/:slug",
+				destination: "/wiki/jeux/:slug",
+				permanent: true,
+			},
+			{ source: "/wiki/dragon-ball/games", destination: "/wiki/jeux", permanent: true },
+			// Même histoire pour le journal : `/wiki/news` doublait `/actualites`
+			// (même titre, même contenu), était déjà passé en `noindex` faute de
+			// mieux et n'avait plus aucun lien entrant.
+			{ source: "/wiki/news", destination: "/actualites", permanent: true },
+			// Rapatriement des fiches sous le segment de leur propre index. Le site
+			// mélangeait deux conventions : l'index en français à la racine
+			// (`/wiki/personnages`, `/wiki/planetes`) et la fiche en anglais sous un
+			// préfixe (`/wiki/dragon-ball/character/12`, `/wiki/dragon-ball/planet/3`),
+			// pendant que les rubriques voisines — races, arcs, sagas, films — vivaient
+			// toutes sous un segment unique. Les techniques cumulaient : leur INDEX
+			// lui-même était sous `/wiki/dragon-ball/`. Tout est désormais sous
+			// `/wiki/<rubrique>[/<clé>]`, et ces 308 récupèrent l'existant.
+			{
+				source: "/wiki/dragon-ball/character/:id",
+				destination: "/wiki/personnages/:id",
+				permanent: true,
+			},
+			{ source: "/wiki/dragon-ball/planet/:id", destination: "/wiki/planetes/:id", permanent: true },
+			{
+				source: "/wiki/dragon-ball/techniques/:slug",
+				destination: "/wiki/techniques/:slug",
+				permanent: true,
+			},
+			{ source: "/wiki/dragon-ball/techniques", destination: "/wiki/techniques", permanent: true },
 		];
 	},
 

@@ -63,14 +63,14 @@ const SOURCES: Array<{
 		href: (r) => `/wiki/arcs/${r.slug}`,
 	},
 	{
-		probe: "/wiki/dragon-ball/techniques/x",
+		probe: "/wiki/techniques/x",
 		query: `SELECT slug FROM bot.db_techniques WHERE visible AND slug IS NOT NULL ORDER BY random() LIMIT 1`,
-		href: (r) => `/wiki/dragon-ball/techniques/${r.slug}`,
+		href: (r) => `/wiki/techniques/${r.slug}`,
 	},
 	{
-		probe: "/wiki/dragon-ball/character/1",
+		probe: "/wiki/personnages/1",
 		query: `SELECT id FROM bot.db_characters WHERE visible ORDER BY random() LIMIT 1`,
-		href: (r) => `/wiki/dragon-ball/character/${r.id}`,
+		href: (r) => `/wiki/personnages/${r.id}`,
 	},
 	{
 		probe: "/wiki/jeux/x",

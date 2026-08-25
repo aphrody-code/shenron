@@ -38,6 +38,7 @@ export interface WithArticle {
 // Base de l'API bot résolue par `@/lib/config` (source unique des URL). PAS
 // dragonballfr.com (le site lui-même) → sinon les appels runtime boucleraient.
 import { API_URL as SHENRON_API_URL } from "@/lib/config";
+import { graphiesDeRace, slugDeRace } from "@/lib/races-alias";
 
 export interface ShenronUser {
 	discordId: string;
@@ -992,33 +993,6 @@ export async function getShenronRaces(): Promise<DBRace[]> {
 	}
 }
 
-export function getRawRaceNamesForSlug(slug: string, name: string): string[] {
-	switch (slug) {
-		case "saiyan":
-			return ["Saiyan"];
-		case "human":
-			return ["Human"];
-		case "namekian":
-			return ["Namekian"];
-		case "frieza-race":
-			return ["Frieza Race"];
-		case "android":
-			return ["Android"];
-		case "majin":
-			return ["Majin"];
-		case "god-of-destruction":
-			return ["God"];
-		case "angel":
-			return ["Angel"];
-		case "kaioshin":
-			return ["Nucleico", "Nucleico benigno"];
-		case "demon":
-			return ["Demon", "Evil"];
-		default:
-			return [name, slug];
-	}
-}
-
 export async function getShenronRace(
 	slug: string
 ): Promise<(DBRace & { characters: DBCharacter[]; homePlanet: DBPlanet | null }) | null> {
@@ -1030,13 +1004,19 @@ export async function getShenronRace(
 			.limit(1);
 		if (!r) return null;
 
-		const rawRaces = getRawRaceNamesForSlug(r.slug, r.name);
+		// Deux temps : la requête ramène les personnages dont la graphie brute est
+		// candidate, puis `slugDeRace` trie — la désambiguïsation Kaïo/Kaïoshin se
+		// joue sur le NOM du personnage (`Nucleico` étiquette les deux races), ce
+		// qu'aucun `where` sur la seule colonne `race` ne peut faire.
+		const rawRaces = graphiesDeRace(r.slug, r.name);
 		const characters = (
 			await db
 				.select()
 				.from(botCharacters)
 				.where(and(inArray(botCharacters.race, rawRaces), eq(botCharacters.visible, true)))
-		).map(mapCharacter);
+		)
+			.filter((c) => slugDeRace(c.race, c.name) === r.slug)
+			.map(mapCharacter);
 
 		let homePlanet: DBPlanet | null = null;
 		if (r.homePlanetId) {

@@ -521,7 +521,7 @@ export function HomeExperience({
 								<ClientGatedWrap
 									key={c.id}
 									access={access}
-									href={`/wiki/dragon-ball/character/${c.id}`}
+									href={`/wiki/personnages/${c.id}`}
 									className="group relative block aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30 transition-colors hover:border-[var(--accent)]"
 								>
 									{c.image && (

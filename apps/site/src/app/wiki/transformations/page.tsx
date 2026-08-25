@@ -80,7 +80,7 @@ export default async function TransformationsPage() {
 						const rep = g.members.find((m) => m.image);
 						const img = g.image ?? rep?.image ?? null;
 						const href = g.members[0]
-							? `/wiki/dragon-ball/character/${g.members[0].id}`
+							? `/wiki/personnages/${g.members[0].id}`
 							: "/wiki/personnages";
 						const avatars = g.members.filter((m) => m.image).slice(0, 4);
 						return (

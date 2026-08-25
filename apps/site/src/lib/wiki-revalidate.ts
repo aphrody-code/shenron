@@ -22,7 +22,7 @@ export const WIKI_LIST_PATHS: Record<string, string[]> = {
 	db_manga_volumes: ["/wiki/manga"],
 	db_manga_chapters: ["/wiki/manga"],
 	db_episodes: ["/wiki/episodes"],
-	db_techniques: ["/wiki/dragon-ball/techniques"],
+	db_techniques: ["/wiki/techniques"],
 	db_races: ["/wiki/races"],
 	db_tools: ["/wiki/tools"],
 };
@@ -52,7 +52,7 @@ export function revalidateWikiEntity(table: string, row?: Record<string, unknown
 		// Les transformations n'ont pas de page propre → elles s'affichent sur la
 		// fiche du personnage.
 		if (table === "db_transformations" && row?.characterId != null) {
-			revalidatePath(`/wiki/dragon-ball/character/${row.characterId}`);
+			revalidatePath(`/wiki/personnages/${row.characterId}`);
 		}
 	} catch {
 		/* best-effort : ne jamais faire échouer l'écriture pour une revalidation */

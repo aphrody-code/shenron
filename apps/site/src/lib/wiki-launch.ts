@@ -72,6 +72,12 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		alwaysOpen: true,
 	},
 	// ── Fermées par défaut, ouvrables une par une depuis /admin/lancement ─────
+	//
+	// Chaque rubrique garde son ANCIEN préfixe `/wiki/dragon-ball/…` en second :
+	// les fiches ont été rapatriées sous le segment de leur index (`/wiki/personnages/12`
+	// et non `/wiki/dragon-ball/character/12`), et le 308 de `next.config` récupère
+	// les URL déjà indexées — mais le proxy passe AVANT ce 308. Sans le préfixe
+	// historique ici, une vieille URL d'une rubrique fermée traverserait le gating.
 	{
 		key: "personnages",
 		label: "Personnages",
@@ -94,8 +100,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 	{
 		key: "techniques",
 		label: "Techniques",
-		href: "/wiki/dragon-ball/techniques",
-		prefixes: ["/wiki/dragon-ball/techniques"],
+		href: "/wiki/techniques",
+		prefixes: ["/wiki/techniques", "/wiki/dragon-ball/techniques"],
 	},
 	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", prefixes: ["/wiki/arcs"] },
 	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", prefixes: ["/wiki/sagas"] },
@@ -250,7 +256,7 @@ export function entryByKey(key: string): LaunchCategory | undefined {
 
 /**
  * Entrée gouvernant un pathname, par match de préfixe **le plus long** : sans ça
- * `/wiki/dragon-ball/techniques` serait capté par une entrée `/wiki` plus courte.
+ * `/wiki/techniques` serait capté par une entrée `/wiki` plus courte.
  */
 export function findEntry(pathname: string): LaunchCategory | undefined {
 	let best: LaunchCategory | undefined;

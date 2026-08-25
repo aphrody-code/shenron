@@ -45,7 +45,7 @@ export const WIKI_CATEGORIES: WikiCategory[] = [
 	{
 		key: "techniques",
 		label: "Techniques",
-		href: "/wiki/dragon-ball/techniques",
+		href: "/wiki/techniques",
 		countKey: "techniques",
 		group: "encyclopedia",
 	},

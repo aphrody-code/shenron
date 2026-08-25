@@ -128,7 +128,7 @@ export async function getFeaturedPlanets(limit = 10): Promise<FeaturedCard[]> {
 			.limit(limit);
 		return rows.map((r) => ({
 			id: r.id,
-			href: `/wiki/dragon-ball/planet/${r.id}`,
+			href: `/wiki/planetes/${r.id}`,
 			title: r.name,
 			subtitle: r.nameJa,
 			image: r.image,

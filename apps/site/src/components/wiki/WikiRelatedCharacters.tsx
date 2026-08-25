@@ -45,7 +45,7 @@ export function WikiRelatedCharacters({
 				{items.map((c) => (
 					<GatedWrap
 						key={c.id}
-						href={`/wiki/dragon-ball/character/${c.id}`}
+						href={`/wiki/personnages/${c.id}`}
 						className="dbz-panel group flex flex-col items-center p-3 transition-transform duration-300 hover:scale-105"
 					>
 						<div className="relative mb-3 aspect-square w-full overflow-hidden rounded-lg border border-dbz-border bg-dbz-bg p-1">

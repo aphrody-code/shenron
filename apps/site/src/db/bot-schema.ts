@@ -588,7 +588,7 @@ export const botAssets = bot.table("db_assets", {
  */
 /** Carte « page wiki affiliée » attachée à une section : lien interne + photo. */
 export type WikiSectionLink = {
-	/** Chemin interne (ex. "/wiki/dragon-ball/character/12"). */
+	/** Chemin interne (ex. "/wiki/personnages/12"). */
 	href: string;
 	/** Libellé affiché (nom de l'entité liée). */
 	label: string;

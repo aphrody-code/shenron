@@ -190,7 +190,7 @@ export function UniverseTabs({
 							<ClientGatedWrap
 								access={access}
 								key={p.id}
-								href={`/wiki/dragon-ball/planet/${p.id}`}
+								href={`/wiki/planetes/${p.id}`}
 								transitionTypes={["nav-forward"]}
 								className="group flex flex-col dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300 ki-card"
 							>

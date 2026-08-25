@@ -261,7 +261,7 @@ export default function CommandPalette({
 							<Item
 								key={`char-${c.id}`}
 								value={`char-${c.id}-${c.name}`}
-								onSelect={() => go(`/wiki/dragon-ball/character/${c.id}`)}
+								onSelect={() => go(`/wiki/personnages/${c.id}`)}
 								image={c.image}
 								title={c.name}
 								subtitle={c.name_ja ?? c.race ?? undefined}
@@ -278,7 +278,7 @@ export default function CommandPalette({
 							<Item
 								key={`planet-${p.id}`}
 								value={`planet-${p.id}-${p.name}`}
-								onSelect={() => go(`/wiki/dragon-ball/planet/${p.id}`)}
+								onSelect={() => go(`/wiki/planetes/${p.id}`)}
 								image={p.image}
 								title={p.name}
 								subtitle={p.name_ja ?? undefined}
@@ -360,7 +360,7 @@ export default function CommandPalette({
 							<Item
 								key={`tech-${t.id}`}
 								value={`tech-${t.id}-${t.name}`}
-								onSelect={() => go(`/wiki/dragon-ball/techniques/${t.slug}`)}
+								onSelect={() => go(`/wiki/techniques/${t.slug}`)}
 								title={t.name}
 								subtitle={t.name_ja ?? t.type ?? undefined}
 								kind="Technique"
@@ -392,7 +392,7 @@ export default function CommandPalette({
 							<Item
 								key={`transfo-${t.id}`}
 								value={`transfo-${t.id}-${t.name}`}
-								onSelect={() => go(`/wiki/dragon-ball/character/${t.character_id}`)}
+								onSelect={() => go(`/wiki/personnages/${t.character_id}`)}
 								image={t.image}
 								title={t.name}
 								kind="Transfo"

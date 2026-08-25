@@ -88,9 +88,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		"/wiki/arcs",
 		"/wiki/jeux",
 		"/wiki/personnages",
+		// L'index des planètes existe et publie 62 fiches, mais il ne figurait pas
+		// dans le sitemap : ses fiches y étaient, sa porte d'entrée non.
+		"/wiki/planetes",
 		"/wiki/races",
 		"/wiki/transformations",
-		"/wiki/dragon-ball/techniques",
+		"/wiki/techniques",
 		"/wiki/databooks",
 	]) {
 		push(p, 0.8);
@@ -164,14 +167,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				.select({ id: botCharacters.id })
 				.from(botCharacters)
 				.where(eq(botCharacters.visible, true));
-			return rows.map((r) => [`/wiki/dragon-ball/character/${r.id}`, 0.6, new Date()] as const);
+			return rows.map((r) => [`/wiki/personnages/${r.id}`, 0.6, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
 			const rows = await db
 				.select({ id: botPlanets.id })
 				.from(botPlanets)
 				.where(eq(botPlanets.visible, true));
-			return rows.map((r) => [`/wiki/dragon-ball/planet/${r.id}`, 0.5, new Date()] as const);
+			return rows.map((r) => [`/wiki/planetes/${r.id}`, 0.5, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
 			const rows = await db
@@ -185,7 +188,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				.select({ slug: botTechniques.slug })
 				.from(botTechniques)
 				.where(eq(botTechniques.visible, true));
-			return rows.map((r) => [`/wiki/dragon-ball/techniques/${r.slug}`, 0.5, new Date()] as const);
+			return rows.map((r) => [`/wiki/techniques/${r.slug}`, 0.5, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
 			// On n'annonce pas une fiche vide. 21 des 318 databooks n'ont ni planche

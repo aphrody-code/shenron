@@ -68,12 +68,12 @@ export async function generateMetadata({
 	return {
 		title: c.nameJa ? `${c.name} (${c.nameJa})` : c.name,
 		description,
-		alternates: { canonical: `/wiki/dragon-ball/character/${id}` },
+		alternates: { canonical: `/wiki/personnages/${id}` },
 		openGraph: {
 			title: `${c.name} — DBFR`,
 			description,
 			type: "article",
-			url: `/wiki/dragon-ball/character/${id}`,
+			url: `/wiki/personnages/${id}`,
 			images: img ? [{ url: img, alt: c.name }] : undefined,
 		},
 		twitter: {
@@ -197,7 +197,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 						)}
 						<div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
 							<GatedWrap
-								href={`/wiki/dragon-ball/techniques/${tech.slug}`}
+								href={`/wiki/techniques/${tech.slug}`}
 								className="text-[10px] font-bold text-dbz-blue-light hover:text-white uppercase tracking-widest transition-colors"
 							>
 								Détails Technique →
@@ -426,7 +426,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
 					{character.originPlanet && (
 						<GatedWrap
-							href={`/wiki/dragon-ball/planet/${character.originPlanet.id}`}
+							href={`/wiki/planetes/${character.originPlanet.id}`}
 							className="dbz-panel p-6 flex items-center gap-6 hover:border-dbz-orange transition-all group reveal-up"
 							style={{ animationDelay: "0.4s" }}
 						>

@@ -381,11 +381,11 @@ export function publicEntityUrl(table: string, row: Record<string, unknown>): st
 	const hasId = id != null && id !== "";
 	switch (table) {
 		case "db_characters":
-			return hasId ? `/wiki/dragon-ball/character/${id}` : null;
+			return hasId ? `/wiki/personnages/${id}` : null;
 		case "db_planets":
-			return hasId ? `/wiki/dragon-ball/planet/${id}` : null;
+			return hasId ? `/wiki/planetes/${id}` : null;
 		case "db_techniques":
-			return slug ? `/wiki/dragon-ball/techniques/${slug}` : null;
+			return slug ? `/wiki/techniques/${slug}` : null;
 		case "db_games":
 			// Public : /wiki/jeux/[slug] (route canonique actuelle).
 			return slug ? `/wiki/jeux/${slug}` : null;

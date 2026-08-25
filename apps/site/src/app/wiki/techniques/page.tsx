@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 	title: "Techniques Dragon Ball",
 	description:
 		"Catalogue des techniques et capacités de l'univers Dragon Ball : Kamehameha, Genkidama, Final Flash et plus.",
-	alternates: { canonical: "/wiki/dragon-ball/techniques" },
+	alternates: { canonical: "/wiki/techniques" },
 };
 
 export default async function TechniquesPage() {
@@ -44,7 +44,7 @@ export default async function TechniquesPage() {
 				<Breadcrumbs items={[{ label: "Techniques" }]} />
 				<div className="flex items-center gap-4 mb-2">
 					<Link
-						href="/wiki/dragon-ball"
+						href="/wiki/personnages"
 						className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest link-underline"
 					>
 						<span>← Encyclopédie</span>
@@ -71,7 +71,7 @@ export default async function TechniquesPage() {
 							{byType[type].map((tech) => (
 								<Link
 									key={tech.id}
-									href={`/wiki/dragon-ball/techniques/${tech.slug}`}
+									href={`/wiki/techniques/${tech.slug}`}
 									className="group dbz-panel p-5 flex gap-4 hover:border-dbz-blue-light transition-all"
 								>
 									{tech.creatorImage ? (

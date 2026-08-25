@@ -1,4 +1,5 @@
-import { getShenronRaces, getShenronCharacterCards, getRawRaceNamesForSlug } from "@/lib/shenron";
+import { getShenronRaces, getShenronCharacterCards } from "@/lib/shenron";
+import { slugDeRace } from "@/lib/races-alias";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
@@ -126,9 +127,13 @@ export default async function RacesPage() {
 					{races.map((race, idx) => {
 						const theme = colorThemes[race.slug] || defaultTheme;
 
-						// Get characters belonging to this race
-						const rawRaces = getRawRaceNamesForSlug(race.slug, race.name);
-						const raceChars = characters.filter((c) => c.race && rawRaces.includes(c.race));
+						// Rattachement par `slugDeRace` et non par égalité de chaîne : la
+						// colonne `race` des personnages est un texte libre issu de
+						// plusieurs imports (`Terrien`, `Human`, `Namek`, `Android`…) qui
+						// ne reprend jamais le nom canonique de la race. Comparer les deux
+						// à l'identique laissait 13 des 18 races sur « Aucun membre
+						// répertorié » alors que la base en peuple 13.
+						const raceChars = characters.filter((c) => slugDeRace(c.race, c.name) === race.slug);
 						const charAvatars = raceChars.filter((c) => !!c.image).slice(0, 4);
 
 						return (

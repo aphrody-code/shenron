@@ -180,7 +180,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 						{g.characters.map((c) => (
 							<GatedWrap
 								key={c.id}
-								href={`/wiki/dragon-ball/character/${c.id}`}
+								href={`/wiki/personnages/${c.id}`}
 								className="group flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-white/[0.04]"
 							>
 								<div className="relative aspect-square w-full overflow-hidden rounded-lg border border-white/10 bg-black">

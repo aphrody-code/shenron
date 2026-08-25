@@ -43,7 +43,7 @@ export async function generateMetadata({
 			title: `${tech.name} — DBFR`,
 			description,
 			image: tech.creatorImage ? assetUrl(tech.creatorImage) : undefined,
-			canonical: `/wiki/dragon-ball/techniques/${slug}`,
+			canonical: `/wiki/techniques/${slug}`,
 		}),
 	};
 }
@@ -64,7 +64,7 @@ export default async function TechniqueDetailPage({
 		name: tech.name,
 		description: tech.description ?? undefined,
 		termCode: String(tech.id),
-		inDefinedTermSet: `${SITE_URL}/wiki/dragon-ball/techniques`,
+		inDefinedTermSet: `${SITE_URL}/wiki/techniques`,
 	};
 
 	return (
@@ -78,7 +78,7 @@ export default async function TechniqueDetailPage({
 			<Breadcrumbs
 				className="mb-12"
 				items={[
-					{ label: "Techniques", href: "/wiki/dragon-ball/techniques" },
+					{ label: "Techniques", href: "/wiki/techniques" },
 					{ label: tech.name },
 				]}
 			/>
@@ -87,7 +87,7 @@ export default async function TechniqueDetailPage({
 				<WikiAdminBar
 					table="db_techniques"
 					id={tech.id}
-					indexHref="/wiki/dragon-ball/techniques"
+					indexHref="/wiki/techniques"
 					label={tech.name}
 				/>
 			</div>
@@ -96,7 +96,7 @@ export default async function TechniqueDetailPage({
 				<header className="flex flex-col sm:flex-row gap-8 items-start">
 					{tech.creatorImage && (
 						<Link
-							href={tech.creatorId ? `/wiki/dragon-ball/character/${tech.creatorId}` : "#"}
+							href={tech.creatorId ? `/wiki/personnages/${tech.creatorId}` : "#"}
 							className="group relative w-40 sm:w-48 shrink-0 aspect-[3/4] rounded-xl overflow-hidden border border-white/10 bg-black"
 						>
 							<Image
@@ -126,7 +126,7 @@ export default async function TechniqueDetailPage({
 							<p className="text-white/70">
 								Créateur / utilisateur :{" "}
 								<Link
-									href={tech.creatorId ? `/wiki/dragon-ball/character/${tech.creatorId}` : "#"}
+									href={tech.creatorId ? `/wiki/personnages/${tech.creatorId}` : "#"}
 									className="text-dbz-orange font-bold hover:text-white transition-colors"
 								>
 									{tech.creatorName}

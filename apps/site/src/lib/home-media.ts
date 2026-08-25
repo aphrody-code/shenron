@@ -89,7 +89,7 @@ export const HOME_DESTINATIONS: readonly HomeDestination[] = [
 	},
 	{
 		id: "techniques",
-		href: "/wiki/dragon-ball/techniques",
+		href: "/wiki/techniques",
 		label: "Techniques",
 		kanji: "技",
 		hint: "Kamehameha, Final Flash…",

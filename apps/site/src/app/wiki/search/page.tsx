@@ -241,7 +241,7 @@ export default async function SearchPage({
 								{results.characters.map((c, idx) => (
 									<Link
 										key={c.id}
-										href={`/wiki/dragon-ball/character/${c.id}`}
+										href={`/wiki/personnages/${c.id}`}
 										className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
 										style={{ animationDelay: `${0.2 + idx * 0.03}s` }}
 									>
@@ -290,7 +290,7 @@ export default async function SearchPage({
 								{results.planets.map((p) => (
 									<Link
 										key={p.id}
-										href={`/wiki/dragon-ball/planet/${p.id}`}
+										href={`/wiki/planetes/${p.id}`}
 										className="group dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
 									>
 										<div className="relative aspect-video bg-dbz-bg overflow-hidden p-3">
@@ -495,7 +495,7 @@ export default async function SearchPage({
 								{results.techniques.map((t) => (
 									<Link
 										key={t.id}
-										href={`/wiki/dragon-ball/techniques/${t.slug}`}
+										href={`/wiki/techniques/${t.slug}`}
 										className="block dbz-panel p-4 hover:bg-white/5 transition-colors group"
 									>
 										<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
@@ -551,7 +551,7 @@ export default async function SearchPage({
 								{results.transformations.map((t) => (
 									<Link
 										key={t.id}
-										href={`/wiki/dragon-ball/character/${t.character_id}`}
+										href={`/wiki/personnages/${t.character_id}`}
 										className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
 									>
 										<div className="relative aspect-[4/3] bg-dbz-bg overflow-hidden">
@@ -714,7 +714,7 @@ export default async function SearchPage({
  * Vide les familles de résultats dont la route de destination est fermée.
  *
  * Le chemin témoin de chaque famille suffit : le gating est par rubrique, donc
- * si `/wiki/dragon-ball/character/1` est fermé, tous les personnages le sont.
+ * si `/wiki/personnages/1` est fermé, tous les personnages le sont.
  * Sans config lisible on ne filtre rien — dégrader vers « aucun résultat » sur
  * un hoquet de la base serait pire que quelques liens qui redirigent.
  */
@@ -724,11 +724,11 @@ function filterGated(r: SearchResults, cfg: AccessSnapshot | null): SearchResult
 	const keep = <T,>(list: T[], probe: string): T[] => (open(probe) ? list : []);
 	return {
 		...r,
-		characters: keep(r.characters, "/wiki/dragon-ball/character/1"),
-		planets: keep(r.planets, "/wiki/dragon-ball/planet/1"),
+		characters: keep(r.characters, "/wiki/personnages/1"),
+		planets: keep(r.planets, "/wiki/planetes/1"),
 		races: keep(r.races, "/wiki/races/x"),
 		transformations: keep(r.transformations, "/wiki/transformations"),
-		techniques: keep(r.techniques, "/wiki/dragon-ball/techniques/x"),
+		techniques: keep(r.techniques, "/wiki/techniques/x"),
 		sagas: keep(r.sagas, "/wiki/sagas/x"),
 		arcs: keep(r.arcs, "/wiki/arcs/x"),
 		movies: keep(r.movies, "/wiki/films/x"),
