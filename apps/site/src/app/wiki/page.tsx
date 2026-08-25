@@ -220,7 +220,7 @@ export default async function WikiIndex() {
 						</div>
 						<GatedWrap
 							href="/wiki/personnages"
-							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
+							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
 						>
 							Voir tous ({c.characters}) →
 						</GatedWrap>
@@ -268,7 +268,7 @@ export default async function WikiIndex() {
 						</div>
 						<Link
 							href="/wiki/films"
-							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
+							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
 						>
 							Voir tous ({movies.length}) →
 						</Link>
@@ -322,7 +322,7 @@ export default async function WikiIndex() {
 						</div>
 						<Link
 							href="/wiki/episodes"
-							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
+							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
 						>
 							{c.episodes} épisodes →
 						</Link>
@@ -376,7 +376,7 @@ export default async function WikiIndex() {
 						</div>
 						<GatedWrap
 							href="/wiki/planetes"
-							className="text-[11px] font-bold text-dbz-orange/70 hover:text-dbz-orange uppercase tracking-widest transition-colors whitespace-nowrap"
+							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
 						>
 							{planets.length} mondes →
 						</GatedWrap>

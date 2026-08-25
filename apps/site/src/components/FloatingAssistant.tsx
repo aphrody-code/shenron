@@ -232,7 +232,11 @@ export function FloatingAssistant() {
 	if (hidden) return null;
 
 	return (
-		<div className="fixed bottom-4 right-4 z-50 flex flex-col items-end sm:bottom-6 sm:right-6">
+		// `fab-secondary` : le bandeau de consentement est désormais pleine largeur
+		// au ras du bas sur mobile — il recouvrait ce bouton, qui ne répondait plus
+		// au doigt. La règle `html[data-consent-open]` l'efface le temps du choix,
+		// et le rétablit dès 768 px où le bandeau redevient une carte à droite.
+		<div className="fab-secondary fixed bottom-4 right-4 z-50 flex flex-col items-end sm:bottom-6 sm:right-6">
 			{/* Fenêtre de Chat */}
 			{isOpen && (
 				<div
