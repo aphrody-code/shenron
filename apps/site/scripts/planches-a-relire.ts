@@ -81,6 +81,8 @@ try {
 		SELECT id, title, pages FROM bot.db_databooks WHERE pages IS NOT NULL ORDER BY id`;
 
 	const file: Planche[] = [];
+	/** Emplacements sans image ni texte — comptés, jamais mis en file. */
+	let fantomes = 0;
 	for (const fiche of lignes) {
 		const pages = Array.isArray(fiche.pages) ? (fiche.pages as Record<string, unknown>[]) : [];
 		for (const p of pages) {
@@ -88,6 +90,14 @@ try {
 			const defaut = classerDefaut(texte);
 			if (!defaut) continue;
 			const image = typeof p.image === "string" ? p.image.split("/").pop()! : "";
+			// Emplacement sans image ET sans texte : il n'y a rien à rouvrir. Ce
+			// sont des trous dans le dépôt (262 au 2026-08-25, dont 228 pour le
+			// seul Daizenshuu 1), déjà filtrés à l'affichage — les compter comme
+			// « à relire » ferait passer un manque de scans pour un défaut d'OCR.
+			if (!image) {
+				fantomes++;
+				continue;
+			}
 			file.push({
 				fiche: fiche.id,
 				titre: fiche.title,
@@ -105,6 +115,9 @@ try {
 			console.log(`${c.padEnd(14)} ${String(n).padStart(6)}`);
 		}
 		console.log(`${"TOTAL".padEnd(14)} ${String(file.length).padStart(6)}`);
+		console.log(
+			`\n(+ ${fantomes} emplacement(s) sans image ni texte : rien à relire, il manque le scan)`
+		);
 	} else {
 		const classe = opt("classe") as Classe | undefined;
 		if (classe && !CLASSES.includes(classe)) {
