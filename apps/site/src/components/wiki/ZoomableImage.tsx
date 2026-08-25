@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
+import { useCallback, useRef, useState, type ImgHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
+import { useFocusTrap } from "@/lib/use-focus-trap";
 
 /**
  * Image de contenu wiki cliquable → ouvre une lightbox plein écran (zoom).
@@ -19,36 +20,38 @@ export function ZoomableImage({
 	...rest
 }: ImgHTMLAttributes<HTMLImageElement>) {
 	const [open, setOpen] = useState(false);
-	const closeBtn = useRef<HTMLButtonElement>(null);
 	const close = useCallback(() => setOpen(false), []);
 
-	useEffect(() => {
-		if (!open) return;
-		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") close();
-		};
-		const prevOverflow = document.body.style.overflow;
-		document.body.style.overflow = "hidden";
-		window.addEventListener("keydown", onKey);
-		closeBtn.current?.focus();
-		return () => {
-			document.body.style.overflow = prevOverflow;
-			window.removeEventListener("keydown", onKey);
-		};
-	}, [open, close]);
+	// Échap, verrou du scroll, piège de focus et restitution du focus au
+	// déclencheur : le même hook que la modale de filtres, plutôt qu'une seconde
+	// implémentation partielle. Elle l'était : Tab sortait de la lightbox pour
+	// parcourir la page cachée dessous, et refermer laissait le focus nulle part.
+	const panelRef = useRef<HTMLDivElement>(null);
+	useFocusTrap(panelRef, open, close);
 
 	const label = typeof alt === "string" && alt ? alt : "Image agrandie";
 
 	return (
 		<>
 			{/* biome-ignore lint/a11y/useAltText: alt forwardé depuis le markdown */}
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: image-bouton (lightbox) */}
+			{/* L'image EST un bouton : sans `role`/`tabIndex`/clavier, l'agrandissement
+			    n'existait qu'à la souris — la tabulation sautait l'image et Entrée ne
+			    faisait rien. */}
 			<img
 				{...rest}
 				src={src}
 				alt={alt ?? ""}
 				loading="lazy"
+				role="button"
+				tabIndex={0}
+				aria-haspopup="dialog"
 				onClick={() => setOpen(true)}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						setOpen(true);
+					}
+				}}
 				className={`wiki-zoomable${className ? ` ${className}` : ""}`}
 			/>
 			{open &&
@@ -57,6 +60,8 @@ export function ZoomableImage({
 					// biome-ignore lint/a11y/noStaticElementInteractions: overlay fermable au clic
 					// biome-ignore lint/a11y/useKeyWithClickEvents: Échap géré globalement (useEffect)
 					<div
+						ref={panelRef}
+						tabIndex={-1}
 						className="wiki-lightbox"
 						role="dialog"
 						aria-modal="true"
@@ -64,7 +69,6 @@ export function ZoomableImage({
 						onClick={close}
 					>
 						<button
-							ref={closeBtn}
 							type="button"
 							className="wiki-lightbox__close"
 							aria-label="Fermer"

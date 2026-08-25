@@ -2,6 +2,13 @@ import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	// Serveur de développement seulement. Sans cette liste, `next dev` répond
+	// **403** à toute requête `/_next/*` portant un en-tête `Origin` — donc à une
+	// partie des chunks demandés par le navigateur : la page se rend mais ne
+	// s'hydrate jamais, et TOUT devient incliquable. C'est un piège coûteux quand
+	// on audite justement des clics morts : le symptôme est identique à un bug
+	// applicatif. Aucune incidence en production (`next start` ignore ce champ).
+	allowedDevOrigins: ["127.0.0.1", "localhost", "51.255.162.6", "dragonballfr.com"],
 	// Protection contre le version skew (self-hosting `next start` solo, sans le
 	// skew-protection Vercel). SHA court injecté par scripts/deploy-site.sh au
 	// build (`NEXT_DEPLOYMENT_ID`). Les assets portent `?dpl=<id>` et les

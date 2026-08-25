@@ -14,7 +14,7 @@
  *
  * Îlot client léger : aucune dépendance lourde, monté en bas de page.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getConsent, setConsent, setConsentFromCmp } from "@/lib/consent";
 
 /**
@@ -60,6 +60,8 @@ function isDoNotTrack(): boolean {
 
 export function ConsentGate() {
 	const [visible, setVisible] = useState(false);
+	/** Le panneau lui-même : sa hauteur mesurée alimente `--consent-h`. */
+	const panelRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		// DNT actif → on respecte le refus implicite, pas de bannière.
@@ -142,15 +144,37 @@ export function ConsentGate() {
 		};
 	}, []);
 
-	// Marque le document tant que le bandeau occupe le bas de l'écran. Sur mobile
-	// il s'étend sur toute la largeur à `bottom-24` et recouvrait les boutons
-	// flottants « Signaler » et « Discord » — quatre calques se disputaient le même
-	// coin. La règle CSS `html[data-consent-open]` (globals.css) efface les FAB
-	// secondaires le temps du choix, qui est de toute façon ponctuel.
+	// Marque le document tant que le bandeau occupe le bas de l'écran, et publie
+	// sa hauteur réelle dans `--consent-h`.
+	//
+	// Deux problèmes se cumulaient sur mobile. (1) Les boutons flottants
+	// « Signaler » et « Discord » vivent dans le même coin — la règle CSS
+	// `html[data-consent-open]` (globals.css) les efface le temps du choix, qui
+	// est ponctuel. (2) Surtout : le bandeau *flottait* à `bottom-24`, au-dessus
+	// du contenu, et interceptait les clics de tout ce qui passait dessous —
+	// mesuré sur `/wiki/databooks` (recherche + les 5 filtres injoignables), sur
+	// le fil d'Ariane et sur la frise de `/wiki/chronologie`. Rien ne signalait
+	// au visiteur que c'était le bandeau qui mangeait ses clics : il voyait un
+	// site cassé. On l'ancre donc en bas (plus de contenu « sous » lui) et on
+	// réserve sa hauteur en bas du document, si bien que le contenu remonte au
+	// lieu d'être recouvert.
 	useEffect(() => {
 		if (!visible) return;
-		document.documentElement.setAttribute("data-consent-open", "");
-		return () => document.documentElement.removeAttribute("data-consent-open");
+		const root = document.documentElement;
+		root.setAttribute("data-consent-open", "");
+		const el = panelRef.current;
+		let ro: ResizeObserver | undefined;
+		if (el) {
+			const publish = () => root.style.setProperty("--consent-h", `${Math.ceil(el.offsetHeight)}px`);
+			publish();
+			ro = new ResizeObserver(publish);
+			ro.observe(el);
+		}
+		return () => {
+			ro?.disconnect();
+			root.removeAttribute("data-consent-open");
+			root.style.removeProperty("--consent-h");
+		};
 	}, [visible]);
 
 	if (!visible) return null;
@@ -166,10 +190,19 @@ export function ConsentGate() {
 
 	return (
 		<div
-			role="dialog"
+			ref={panelRef}
+			// `region` et non `dialog` : le bandeau ne bloque rien, ne piège pas le
+			// focus et le site reste utilisable sans y répondre. Annoncer un
+			// `dialog` non modal fait chercher aux lecteurs d'écran une fermeture
+			// qui n'existe pas.
+			role="region"
 			aria-label="Préférences de confidentialité"
 			aria-live="polite"
-			className="fixed bottom-24 right-4 left-4 md:left-auto md:right-6 md:bottom-24 z-[60] max-w-md mx-auto md:mx-0 reveal-up"
+			// Mobile : ancré au ras du bas, pleine largeur, hauteur réservée par
+			// `--consent-h` (cf. l'effet ci-dessus) → il ne recouvre plus rien.
+			// À partir de `md` il redevient une carte flottante à droite, hors de
+			// la trajectoire des boutons de gauche.
+			className="fixed bottom-0 inset-x-0 z-[60] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:inset-x-auto md:right-6 md:bottom-24 md:p-0 md:max-w-md reveal-up"
 		>
 			<div className="dbz-panel p-5 border-2 border-dbz-orange/40 bg-dbz-card/95 backdrop-blur-sm shadow-2xl">
 				<p className="text-sm font-bold text-white uppercase tracking-widest mb-2 font-display">

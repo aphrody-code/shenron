@@ -70,7 +70,7 @@ export async function SiteNav() {
 				{/* Wordmark — Google Sans Flex bold + accent doré */}
 				<Link
 					href="/"
-					className="group flex items-baseline shrink-0 select-none whitespace-nowrap"
+					className="group flex items-baseline shrink-0 select-none whitespace-nowrap py-3"
 					aria-label="Dragon Ball France — Accueil"
 				>
 					<span className="font-display font-bold text-[19px] tracking-tight text-white leading-none">

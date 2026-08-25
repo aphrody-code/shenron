@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
@@ -15,6 +14,24 @@ import { isPathPublic } from "@/lib/wiki-launch";
  * entités visibles : sans ces deux filtres, le bouton « au hasard » enverrait
  * régulièrement sur /wiki-bientot, ce qui est l'inverse de l'effet recherché.
  */
+/**
+ * Redirection **relative**. Derrière nginx, `request.url` d'un route handler
+ * porte l'origine interne du socket (`http://localhost:3010`) et NON le `Host`
+ * public : `NextResponse.redirect(new URL(path, request.url))` renvoyait donc un
+ * `Location: https://localhost:3010/wiki/...` — lien mort pour le visiteur, et
+ * requête RSC bloquée par CORS quand la navigation vient du routeur client (le
+ * bouton « au hasard » ne faisait alors visiblement RIEN). Un `Location`
+ * relatif est valide (RFC 7231 §7.1.2) et résolu par le client sur l'origine
+ * qu'il a réellement demandée — donc juste quel que soit le proxy en amont.
+ */
+function seeOther(path: string): Response {
+	return new Response(null, {
+		status: 302,
+		// Jamais de cache sur une redirection aléatoire.
+		headers: { location: path, "cache-control": "no-store" },
+	});
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -62,12 +79,12 @@ const SOURCES: Array<{
 	},
 ];
 
-export async function GET(request: Request) {
-	const home = new URL("/wiki/episodes", request.url);
+export async function GET() {
+	const home = "/wiki/episodes";
 	try {
 		const cfg = await getLaunchConfig();
 		const open = SOURCES.filter((s) => isPathPublic(s.probe, cfg));
-		if (open.length === 0) return NextResponse.redirect(home, 302);
+		if (open.length === 0) return seeOther(home);
 
 		// Tirage de la table d'abord, puis de la ligne : `ORDER BY random()` sur une
 		// UNION de toutes les tables coûterait un balayage complet de chacune.
@@ -78,18 +95,11 @@ export async function GET(request: Request) {
 				Record<string, unknown>
 			>;
 			const row = Array.isArray(rows) ? rows[0] : undefined;
-			if (row) {
-				const target = new URL(src.href(row), request.url);
-				// Jamais de cache sur une redirection aléatoire.
-				return NextResponse.redirect(target, {
-					status: 302,
-					headers: { "cache-control": "no-store" },
-				});
-			}
+			if (row) return seeOther(src.href(row));
 		}
-		return NextResponse.redirect(home, 302);
+		return seeOther(home);
 	} catch (err) {
 		console.error("[wiki/hasard]", err);
-		return NextResponse.redirect(home, 302);
+		return seeOther(home);
 	}
 }

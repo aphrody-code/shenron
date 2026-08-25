@@ -35,15 +35,25 @@ export function ClientGatedWrap({ access, href, children, className = "", style,
 	}
 	// Les props propres à `<Link>` (préchargement, transitions de vue) n'ont plus
 	// de sens sur une cible fermée : seul le libellé accessible est repris.
+	//
+	// La pastille n'est pas décorative. Sans elle, la carte fermée ne se
+	// distinguait d'une carte ouverte que par une opacité de 0,7 et un `title`
+	// — que le tactile n'affiche jamais. Le visiteur tapait, il ne se passait
+	// RIEN, et rien n'expliquait pourquoi : le symptôme exact d'une interface
+	// cassée. On dit donc explicitement que la rubrique n'est pas encore ouverte,
+	// et le curseur le confirme au survol.
 	return (
 		<div
-			className={`${className} cursor-default opacity-70`}
+			className={`${className} relative cursor-not-allowed opacity-70`}
 			style={style}
 			aria-label={rest["aria-label"]}
 			title="Cette section ouvrira bientôt"
 			aria-disabled="true"
 		>
 			{children}
+			<span className="pointer-events-none absolute right-1.5 top-1.5 z-40 rounded-full border border-white/20 bg-black/75 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-white/70 backdrop-blur-sm">
+				bientôt
+			</span>
 		</div>
 	);
 }

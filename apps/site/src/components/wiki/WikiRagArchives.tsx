@@ -70,7 +70,7 @@ export default async function WikiRagArchives({
 							{r.url.startsWith("/") ? (
 								<Link
 									href={r.url}
-									className="text-emerald-400 hover:text-white transition-colors uppercase tracking-widest font-bold flex items-center gap-1"
+									className="-my-2 flex min-h-11 items-center gap-1 py-2 font-bold uppercase tracking-widest text-emerald-400 transition-colors hover:text-white"
 								>
 									Consulter{" "}
 									<span className="translate-x-0 group-hover:translate-x-0.5 transition-transform">
@@ -82,7 +82,7 @@ export default async function WikiRagArchives({
 									href={r.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="text-emerald-400 hover:text-white transition-colors uppercase tracking-widest font-bold flex items-center gap-1"
+									className="-my-2 flex min-h-11 items-center gap-1 py-2 font-bold uppercase tracking-widest text-emerald-400 transition-colors hover:text-white"
 								>
 									Consulter{" "}
 									<span className="translate-x-0 group-hover:translate-x-0.5 transition-transform">

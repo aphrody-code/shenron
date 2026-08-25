@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CharacterGrid, type GridCharacter, type CharacterFacets } from "./CharacterGrid";
 import { FilterDropdown } from "./FilterDropdown";
 import { ViewTransition } from "@/components/ViewTransition";
@@ -47,6 +47,33 @@ export function UniverseTabs({
 	const [activeTab, setActiveTab] = useState<string>(initialTab);
 	const [planetStatus, setPlanetStatus] = useState<string[]>([]);
 
+	// L'onglet vit dans l'URL (`?tab=`), pas seulement dans l'état local.
+	// Sans ça, passer sur « Planètes », ouvrir un monde puis revenir en arrière
+	// ramenait sur « Personnages » — le visiteur perdait sa place à chaque
+	// aller-retour — et l'onglet n'était ni partageable ni rechargeable.
+	//
+	// `history.pushState` plutôt que `router.push` : la page est déjà rendue,
+	// tout est côté client, et passer par le routeur déclencherait une requête
+	// RSC pour un simple changement d'onglet. Le `popstate` referme la boucle
+	// pour les boutons Précédent/Suivant du navigateur.
+	const selectTab = useCallback((tab: string) => {
+		setActiveTab(tab);
+		if (typeof window === "undefined") return;
+		const url = new URL(window.location.href);
+		if (tab === "personnages") url.searchParams.delete("tab");
+		else url.searchParams.set("tab", tab);
+		window.history.pushState(null, "", url);
+	}, []);
+
+	useEffect(() => {
+		const onPop = () => {
+			const tab = new URL(window.location.href).searchParams.get("tab");
+			setActiveTab(tab === "planetes" ? "planetes" : "personnages");
+		};
+		window.addEventListener("popstate", onPop);
+		return () => window.removeEventListener("popstate", onPop);
+	}, []);
+
 	const filteredPlanets = useMemo(() => {
 		if (!planetStatus.length) return planets;
 		const set = new Set(planetStatus);
@@ -80,7 +107,7 @@ export function UniverseTabs({
 						aria-selected={activeTab === "personnages"}
 						aria-controls="universe-panel-personnages"
 						tabIndex={activeTab === "personnages" ? 0 : -1}
-						onClick={() => setActiveTab("personnages")}
+						onClick={() => selectTab("personnages")}
 						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 							activeTab === "personnages" ? "text-dbz-orange" : "text-white/60 hover:text-white"
 						}`}
@@ -97,7 +124,7 @@ export function UniverseTabs({
 						aria-selected={activeTab === "planetes"}
 						aria-controls="universe-panel-planetes"
 						tabIndex={activeTab === "planetes" ? 0 : -1}
-						onClick={() => setActiveTab("planetes")}
+						onClick={() => selectTab("planetes")}
 						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
 							activeTab === "planetes" ? "text-dbz-orange" : "text-white/60 hover:text-white"
 						}`}

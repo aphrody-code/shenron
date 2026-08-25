@@ -31,6 +31,7 @@ export function FilterDropdown({
 	const [open, setOpen] = useState(false);
 	const [q, setQ] = useState("");
 	const ref = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
 	const listId = useId();
 
 	useEffect(() => {
@@ -39,7 +40,11 @@ export function FilterDropdown({
 			if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
 		};
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setOpen(false);
+			if (e.key !== "Escape") return;
+			setOpen(false);
+			// Échap sans rendre le focus laissait l'utilisateur au clavier reparti
+			// en haut du document : la tabulation suivante recommençait la page.
+			triggerRef.current?.focus();
 		};
 		document.addEventListener("mousedown", onDoc);
 		document.addEventListener("keydown", onKey);
@@ -61,6 +66,7 @@ export function FilterDropdown({
 	return (
 		<div ref={ref} className="relative">
 			<button
+				ref={triggerRef}
 				type="button"
 				onClick={() => setOpen((o) => !o)}
 				aria-expanded={open}
@@ -95,7 +101,10 @@ export function FilterDropdown({
 					id={listId}
 					role="listbox"
 					aria-multiselectable
-					className={`absolute top-[calc(100%+8px)] z-50 w-64 rounded-xl border border-white/[0.12] bg-[#0c0c0e]/95 backdrop-blur-xl shadow-2xl shadow-black/60 p-2 ${
+					// `max-w-[calc(100vw-2rem)]` : sur un écran de 390 px, un panneau de
+					// 256 px ancré à un bouton proche du bord droit sortait de l'écran,
+					// et la moitié des options devenait injoignable.
+					className={`absolute top-[calc(100%+8px)] z-50 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-white/[0.12] bg-[#0c0c0e]/95 backdrop-blur-xl shadow-2xl shadow-black/60 p-2 ${
 						align === "right" ? "right-0" : "left-0"
 					}`}
 				>

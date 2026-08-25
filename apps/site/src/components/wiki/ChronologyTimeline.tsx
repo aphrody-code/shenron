@@ -220,7 +220,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 					<button
 						type="button"
 						onClick={eras.size === ERA_ORDER.length ? noneEras : allEras}
-						className="ml-auto text-[11px] text-white/50 hover:text-dbz-orange transition-colors"
+						className="ml-auto inline-flex min-h-11 items-center px-1 text-[11px] text-white/50 hover:text-dbz-orange transition-colors"
 					>
 						{eras.size === ERA_ORDER.length ? "Tout décocher" : "Tout cocher"}
 					</button>

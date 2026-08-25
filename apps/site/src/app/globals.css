@@ -3099,12 +3099,28 @@ html[data-consent-open] .fab-secondary {
 	visibility: hidden;
 }
 @media (min-width: 768px) {
-	/* Au-delà de 768 px le bandeau est ancré à droite (`md:left-auto`) : les
+	/* Au-delà de 768 px le bandeau est ancré à droite (`md:right-6`) : les
 	   boutons de gauche ne sont plus masqués. */
 	html[data-consent-open] .fab-secondary {
 		opacity: 1;
 		pointer-events: auto;
 		visibility: visible;
+	}
+}
+
+/* Le bandeau de consentement est ancré au ras du bas sur mobile : on lui rend
+   sa hauteur en bas du document pour que le contenu remonte au lieu de passer
+   dessous. Sans ça, tout ce qu'il recouvrait devenait injoignable au doigt
+   (recherche et filtres de /wiki/databooks, fil d'Ariane, frise de la
+   chronologie) sans qu'aucun signal n'explique pourquoi le clic ne prend pas.
+   `--consent-h` est publié par ConsentGate (ResizeObserver sur le panneau). */
+html[data-consent-open] body {
+	padding-bottom: var(--consent-h, 0px);
+}
+@media (min-width: 768px) {
+	/* Carte flottante à droite : elle ne prend pas la largeur, rien à réserver. */
+	html[data-consent-open] body {
+		padding-bottom: 0;
 	}
 }
 

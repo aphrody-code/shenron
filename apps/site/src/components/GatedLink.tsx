@@ -90,14 +90,19 @@ export async function GatedWrap({
 			</Link>
 		);
 	}
+	// Même raison que dans `ClientGatedWrap` : une carte inerte doit DIRE qu'elle
+	// est inerte, sinon le clic sans effet passe pour un bug.
 	return (
 		<div
-			className={`${className} cursor-default opacity-70`}
+			className={`${className} relative cursor-not-allowed opacity-70`}
 			style={style}
 			title="Cette section ouvrira bientôt"
 			aria-disabled="true"
 		>
 			{children}
+			<span className="pointer-events-none absolute right-1.5 top-1.5 z-40 rounded-full border border-white/20 bg-black/75 px-1.5 py-px text-[9px] font-semibold uppercase tracking-[0.12em] text-white/70 backdrop-blur-sm">
+				bientôt
+			</span>
 		</div>
 	);
 }
