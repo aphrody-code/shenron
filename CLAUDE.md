@@ -109,12 +109,13 @@ Les 11 778 planches de `bot.db_databooks.pages` portent une transcription produi
 | `scripts/corrige-transcriptions-ocr.ts` | Corrections **déterministes** (fautes de lecture validées, titres collés, boucles). `--simulation` d'abord, `--appliquer` ensuite |
 | `scripts/planches-a-relire.ts` | File de relecture `--compte` / `--classe <défaut>` : donne le chemin de l'image et la clé de dépôt |
 | `scripts/depose-transcriptions.ts` | Dépôt JSONL `{"image":"<fiche>-<page>.jpg","text":{"kind":"text","markdown":"…"}}`, mode `merge`, une révision `wiki_revisions` par écriture (réversible) |
+| `scripts/decoupe-planche.ts` | Découpe une planche en tuiles lisibles (chevauchement 4 %, agrandissement ×2) — indispensable pour relire du texte vertical en corps 6 |
 | `scripts/meilleure-source-ocr.ts` | Repêche une meilleure version dans les 43 lots d'origine. **Résultat mesuré : 3 planches** — les passes successives avaient déjà déposé leur meilleur texte |
 
 ### Règles dures
 
 1. **Aucun OCR japonais utilisable sur le VPS.** `aphrody` n'a plus de sous-commande `ocr`, il n'y a pas d'accès à un modèle de vision, et les lots d'origine viennent d'un poste Windows. La seule voie fiable est la **relecture à l'image**, planche par planche.
-2. **Découper avant de lire.** Un scan entier est illisible sur le petit texte vertical ; `sharp` en 2×2 avec upscale ×2 rend lisible même un scan de 1 000 px. Compter ~1 planche dense par 1 à 2 échanges.
+2. **Découper avant de lire.** Un scan entier est illisible sur le petit texte vertical ; `scripts/decoupe-planche.ts` (2×2, agrandissement ×2) rend lisible même un scan de 1 000 px. Compter ~1 planche dense par 1 à 2 échanges.
 3. **Jamais deviné.** Sur un scan basse définition (certaines fiches ne font que 400 px de large), on transcrit les titres lisibles et **on s'arrête** : une transcription plausible mais inventée est pire que l'absence de texte.
 4. **Le lecteur est prévenu.** `components/databooks/TranscriptionTexte.tsx` affiche un bandeau sur toute planche que `classerDefaut` juge mal lue — on ne fait pas passer une hallucination pour une source.
 5. **La boucle ne se détecte pas en SQL.** Le back-reference `(.{4,40}?)\1{2,}` met **plus de 5 minutes** sur les 11 778 planches côté Postgres (mesuré). Le total du back-office (`databooks-transcription.ts`) ne compte donc que les trois signatures peu coûteuses ; la boucle est détectée côté relecteur, en JS.
