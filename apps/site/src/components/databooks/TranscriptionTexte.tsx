@@ -19,6 +19,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
+import { classerDefaut, type Defaut } from "@/lib/databooks-defauts";
 
 /** Hiragana, katakana, idéogrammes CJK, ponctuation japonaise. */
 const CJK = /[　-〿぀-ゟ゠-ヿ㐀-䶿一-鿿＀-ﾟ]/;
@@ -35,13 +36,48 @@ function langue(texte: string): "ja" | undefined {
 	return CJK.test(texte) ? "ja" : undefined;
 }
 
+/**
+ * Défauts qu'on avertit au lecteur. Ce sont ceux où le texte affiché est
+ * **faux**, pas seulement incomplet : signe perdu, alphabet halluciné, faux
+ * chinois, segment répété en boucle. « courte » et « vide » ne sont pas des
+ * erreurs de lecture (une planche peut n'avoir presque rien à lire) — on ne dit
+ * rien plutôt que de crier au loup sur une pleine page d'illustration.
+ */
+const DEFAUTS_AVERTIS: ReadonlySet<Defaut> = new Set<Defaut>([
+	"remplacement",
+	"etranger",
+	"han-sans-kana",
+	"boucle",
+]);
+
+/**
+ * Transcription affichée, précédée d'un avertissement quand la lecture
+ * automatique a visiblement déraillé.
+ *
+ * 2 223 planches sur 11 778 portent une signature mécanique d'échec du modèle
+ * d'OCR (mesure du 2026-08-25). La relecture à l'image les reprend une par une,
+ * mais elle prend des semaines : d'ici là, présenter du cyrillique halluciné ou
+ * une boucle de 40 répétitions comme si c'était la page fait passer une erreur
+ * pour une source. On garde le texte — il reste souvent exact à 90 % et il
+ * alimente la recherche — mais on dit ce qu'il vaut.
+ */
 export function TranscriptionTexte({ texte }: { texte: string }) {
+	const defaut = classerDefaut(texte);
+	const douteux = defaut !== null && DEFAUTS_AVERTIS.has(defaut);
 	return (
-		<div
-			className="prose-transcription text-sm leading-relaxed text-white/85"
-			lang={langue(texte)}
-		>
-			<ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{texte}</ReactMarkdown>
+		<div>
+			{douteux && (
+				<p className="mb-3 rounded border border-dbz-orange/30 bg-dbz-orange/10 px-3 py-2 text-xs text-dbz-orange/90">
+					Transcription automatique en cours de relecture : cette planche contient des passages
+					mal lus.
+				</p>
+			)}
+			<div
+				className="prose-transcription text-sm leading-relaxed text-white/85"
+				lang={langue(texte)}
+			>
+				<ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{texte}</ReactMarkdown>
+			</div>
 		</div>
 	);
 }
