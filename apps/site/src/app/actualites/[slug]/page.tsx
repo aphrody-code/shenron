@@ -245,7 +245,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 										>
 											<div className="ed-meta flex items-center gap-2.5">
 												{comment.author.avatar && (
-													/* eslint-disable-next-line @next/next/no-img-element */
 													<img
 														src={comment.author.avatar}
 														alt=""

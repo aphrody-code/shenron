@@ -17,9 +17,9 @@
  *   public/dbz/{characters,planets,transformations}/*
  *   public/assets-inventory.json  (catalogue installé)
  */
-import { mkdir, writeFile, stat, readdir } from "node:fs/promises";
+import { mkdir, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join, dirname, basename, extname } from "node:path";
+import { join, dirname } from "node:path";
 import {
 	SFX_CATALOG,
 	IMAGE_API,

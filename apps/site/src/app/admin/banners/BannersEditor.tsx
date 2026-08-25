@@ -96,7 +96,6 @@ function BannerRow({
 			<div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start">
 				<div className="relative h-20 w-full shrink-0 overflow-hidden rounded border border-dbz-border bg-black/40 sm:w-36">
 					{preview ? (
-						// eslint-disable-next-line @next/next/no-img-element
 						<img src={preview} alt="" className="h-full w-full object-cover" />
 					) : (
 						<div className="flex h-full items-center justify-center text-white/20">
@@ -361,7 +360,6 @@ export function BannersEditor() {
 											className="group overflow-hidden rounded-lg border border-dbz-border bg-black/30 text-left hover:border-dbz-orange"
 											title={it.name}
 										>
-											{/* eslint-disable-next-line @next/next/no-img-element */}
 											<img
 												src={it.url}
 												alt=""

@@ -84,7 +84,6 @@ export function FavoritesList() {
 						<Link href={f.href} className="flex gap-3">
 							<div className="relative h-24 w-40 shrink-0 overflow-hidden bg-black/40">
 								{f.image ? (
-									// eslint-disable-next-line @next/next/no-img-element
 									<img
 										src={assetUrl(f.image)}
 										alt=""

@@ -425,7 +425,6 @@ function YoutubeField({ value, onChange }: { value: string; onChange: (url: stri
 						className="group relative block h-20 w-36 shrink-0 overflow-hidden rounded-md border border-white/10 bg-black"
 						title="Ouvrir la vidéo"
 					>
-						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img
 							src={thumb}
 							alt=""

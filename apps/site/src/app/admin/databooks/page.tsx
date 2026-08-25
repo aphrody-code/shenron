@@ -110,7 +110,7 @@ export default async function AdminTranscriptionsPage() {
 	parEtat.vide.sort((a, b) => a.titre.localeCompare(b.titre, "fr"));
 
 	const restantes = total.planches - total.transcrites;
-	const suspectes = fiches.filter((f) => f.suspectes > 0).sort((a, b) => b.suspectes - a.suspectes);
+	const fautives = fiches.filter((f) => f.fautives > 0).sort((a, b) => b.fautives - a.fautives);
 
 	return (
 		<div className="mx-auto w-full max-w-6xl">
@@ -155,10 +155,10 @@ export default async function AdminTranscriptionsPage() {
 					accent="vert"
 				/>
 				<Tuile
-					valeur={total.suspectes.toLocaleString("fr-FR")}
+					valeur={total.fautives.toLocaleString("fr-FR")}
 					libelle="Planches à vérifier"
-					detail="Caractères que le modèle n'a pas su lire"
-					accent={total.suspectes > 0 ? "ambre" : "vert"}
+					detail="Signes illisibles, alphabets hallucinés, faux chinois"
+					accent={total.fautives > 0 ? "ambre" : "vert"}
 				/>
 			</div>
 
@@ -180,18 +180,18 @@ export default async function AdminTranscriptionsPage() {
 			<TranscriptionSearch />
 
 			{/* ── Planches à vérifier ──────────────────────────────────────────── */}
-			{suspectes.length > 0 && (
+			{fautives.length > 0 && (
 				<section className="mb-10">
 					<h2 className="mb-3 flex items-center gap-2 border-b-2 border-amber-500/30 pb-2 font-saiyan text-xl uppercase text-amber-300">
 						<AlertTriangle className="h-4 w-4" />
 						À vérifier
 						<span className="font-sans text-xs font-normal normal-case text-white/50">
-							{total.suspectes} planche{total.suspectes > 1 ? "s" : ""} sur {suspectes.length} ouvrage
-							{suspectes.length > 1 ? "s" : ""}
+							{total.fautives} planche{total.fautives > 1 ? "s" : ""} sur {fautives.length} ouvrage
+							{fautives.length > 1 ? "s" : ""}
 						</span>
 					</h2>
 					<div className="flex flex-wrap gap-2">
-						{suspectes.map((f) => (
+						{fautives.map((f) => (
 							<Link
 								key={f.id}
 								href={`/admin/databooks/${f.id}?filtre=suspectes`}
@@ -199,7 +199,7 @@ export default async function AdminTranscriptionsPage() {
 							>
 								<span className="max-w-[26ch] truncate">{f.titre}</span>
 								<span className="rounded bg-amber-500/20 px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums">
-									{f.suspectes}
+									{f.fautives}
 								</span>
 							</Link>
 						))}
@@ -324,12 +324,12 @@ export default async function AdminTranscriptionsPage() {
 													{f.signes > 0 ? signes(f.signes) : "—"}
 												</td>
 												<td className="p-2 text-center">
-													{f.suspectes > 0 ? (
+													{f.fautives > 0 ? (
 														<Link
 															href={`/admin/databooks/${f.id}?filtre=suspectes`}
 															className="inline-block rounded bg-amber-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums text-amber-300 hover:bg-amber-500/25"
 														>
-															{f.suspectes}
+															{f.fautives}
 														</Link>
 													) : (
 														<span className="text-[11px] text-white/25">—</span>

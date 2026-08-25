@@ -479,7 +479,6 @@ export function EntityRating({
 											<div className="mb-1.5 flex items-start justify-between gap-3">
 												<div className="flex min-w-0 items-center gap-2.5">
 													{c.author.avatar ? (
-														// eslint-disable-next-line @next/next/no-img-element
 														<img
 															src={c.author.avatar}
 															alt=""

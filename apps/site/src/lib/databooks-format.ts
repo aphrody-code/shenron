@@ -19,6 +19,12 @@
  *     signale sans jamais corriger.
  */
 
+import {
+	contientAlphabetEtranger,
+	contientBoucle,
+	estHanSansKana,
+} from "./databooks-defauts";
+
 /** Caractère de remplacement U+FFFD : l'OCR a rendu un glyphe qu'il n'a pas su lire. */
 const REMPLACEMENT = "�";
 
@@ -65,7 +71,14 @@ export function aBesoinDeNettoyage(texte: string): boolean {
 	return nettoyerOcr(texte) !== texte;
 }
 
-export type CodeAnomalie = "remplacement" | "tres-court" | "repetition" | "mise-en-forme";
+export type CodeAnomalie =
+	| "remplacement"
+	| "tres-court"
+	| "repetition"
+	| "boucle"
+	| "alphabet-etranger"
+	| "han-sans-kana"
+	| "mise-en-forme";
 
 export interface Anomalie {
 	code: CodeAnomalie;
@@ -129,6 +142,38 @@ export function diagnostiquerPlanche(texte: string | null | undefined): Anomalie
 		out.push({
 			code: "repetition",
 			message: `Ligne répétée au moins 3 fois : « ${repetee.slice(0, 60)}${repetee.length > 60 ? "…" : ""} ».`,
+			reparable: false,
+		});
+	} else if (contientBoucle(t)) {
+		// `ligneRepetee` ne voit que des lignes entières identiques. Le modèle
+		// boucle aussi À L'INTÉRIEUR d'une ligne (« いるかといますいるかといます… »),
+		// ce qui passait sous le radar du relecteur alors que la file de
+		// relecture, elle, le comptait.
+		out.push({
+			code: "boucle",
+			message: "Un même segment est répété en rafale — le modèle a bouclé.",
+			reparable: false,
+		});
+	}
+
+	// Les deux signatures les plus fréquentes du corpus, et les seules que le
+	// diagnostic ignorait : 720 planches portent un alphabet qui n'a rien à
+	// faire là, 154 sont en faux chinois. Sans elles, le back-office annonçait
+	// « à vérifier » sur 116 planches au lieu de 1 911.
+	if (contientAlphabetEtranger(t)) {
+		out.push({
+			code: "alphabet-etranger",
+			message:
+				"Contient du cyrillique, de l'arabe, du thaï ou du coréen — signes hallucinés par le modèle, jamais lus sur la planche.",
+			reparable: false,
+		});
+	}
+
+	if (estHanSansKana(t)) {
+		out.push({
+			code: "han-sans-kana",
+			message:
+				"Idéogrammes sans un seul kana : du chinois inventé plutôt que le japonais de la planche.",
 			reparable: false,
 		});
 	}

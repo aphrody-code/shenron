@@ -12,6 +12,7 @@
  * machine a réinterprété une seconde fois.
  */
 import { describe, expect, test } from "bun:test";
+import { classerDefaut } from "@/lib/databooks-defauts";
 import {
 	aBesoinDeNettoyage,
 	diagnostiquerPlanche,
@@ -118,5 +119,57 @@ describe("extraireSegments", () => {
 
 	test("un terme vide ne surligne rien", () => {
 		expect(extraireSegments("texte", "  ").every((s) => !s.correspond)).toBe(true);
+	});
+});
+
+/**
+ * Cohérence avec `databooks-defauts.ts`. Ces deux modules décidaient chacun de
+ * leur côté de ce qu'est une planche « à vérifier » : le relecteur admin ne
+ * connaissait que le caractère de remplacement (116 planches) alors que la file
+ * de relecture en comptait 1 911. Le diagnostic détaillé doit donc signaler,
+ * au minimum, tout ce que le classement partagé juge fautif.
+ */
+describe("diagnostiquerPlanche ↔ classerDefaut", () => {
+	const dur = (texte: string) =>
+		diagnostiquerPlanche(texte).filter((a) => !a.reparable);
+
+	test("signale l'alphabet halluciné (le cas le plus fréquent du corpus)", () => {
+		const codes = dur("得意技はS・S・デッドリイюンバー。").map((a) => a.code);
+		expect(codes).toContain("alphabet-etranger");
+		expect(classerDefaut("得意技はS・S・デッドリイюンバー。")).toBe("etranger");
+	});
+
+	test("signale le faux chinois", () => {
+		expect(dur("同时也进行了攻击").map((a) => a.code)).toContain("han-sans-kana");
+	});
+
+	test("signale la boucle interne à une ligne, que `ligneRepetee` ne voit pas", () => {
+		const texte = "いるかといますいるかといますいるかといます";
+		expect(dur(texte).map((a) => a.code)).toContain("boucle");
+	});
+
+	test("tout texte jugé fautif par le classement porte au moins une anomalie dure", () => {
+		for (const texte of [
+			"カプセルコー�",
+			"得意技はS・S・デッドリイюンバー。",
+			"同时也进行了攻击",
+			"レベルアップ レベルアップ レベルアップ レベルアップ",
+			"1992",
+		]) {
+			expect(classerDefaut(texte)).not.toBeNull();
+			expect(dur(texte).length).toBeGreaterThan(0);
+		}
+	});
+
+	test("une transcription saine ne déclenche aucune anomalie dure", () => {
+		const texte =
+			"亀仙人に弟子入りした悟空、クリリンが、亀仙流武術の修行を始めた時刻。早朝ということで、クリリンはまだ寝ていた。";
+		expect(classerDefaut(texte)).toBeNull();
+		expect(dur(texte)).toHaveLength(0);
+	});
+
+	test("une page réellement latine n'est pas prise pour une hallucination", () => {
+		const texte = "SHUEISHA 1995 Printed in Japan — ISBN4-08-782752-6 C0979";
+		expect(dur(texte)).toHaveLength(0);
 	});
 });

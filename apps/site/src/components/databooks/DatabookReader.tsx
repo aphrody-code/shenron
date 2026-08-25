@@ -451,7 +451,6 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 													onClick={() => openLightbox(i)}
 													aria-label={`Agrandir la page ${item.number}`}
 												>
-													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
 														src={optimizedSrc(item.imageUrl, 1080)}
 														srcSet={optimizedSrcSet(item.imageUrl, [828, 1080, 1920]) || undefined}
@@ -545,7 +544,6 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 													onClick={() => openLightbox(vi.index)}
 													aria-label={`Agrandir la page ${item.number}`}
 												>
-													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
 														src={optimizedSrc(item.imageUrl, 1080)}
 														srcSet={optimizedSrcSet(item.imageUrl, [828, 1080, 1920]) || undefined}
@@ -594,7 +592,6 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 								aria-current={current === idx ? "true" : undefined}
 							>
 								{item.imageUrl ? (
-									// eslint-disable-next-line @next/next/no-img-element
 									<img
 										// Vignette de 48×64 px : elle chargeait le scan source (jusqu'à
 										// 5 Mio) pour un timbre-poste, jusqu'à 40 fois par fiche.
@@ -693,7 +690,6 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 						onTouchStart={onTouchStart}
 						onTouchEnd={onTouchEnd}
 					>
-						{/* eslint-disable-next-line @next/next/no-img-element */}
 						<img
 							src={currentImage}
 							alt={`${title} — page ${currentNum}`}

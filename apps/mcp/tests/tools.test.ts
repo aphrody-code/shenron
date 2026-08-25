@@ -36,8 +36,31 @@ afterEach(() => {
 describe("catalogue d'outils", () => {
 	const tools = collectTools();
 
-	test("expose exactement 14 outils", () => {
-		expect(tools).toHaveLength(14);
+	// Le catalogue est listé nom par nom, pas compté : un simple `toHaveLength`
+	// disait « 14 attendus, 17 reçus » sans dire lesquels, et il fallait rouvrir
+	// `tools.ts` pour savoir si un outil avait été ajouté ou renommé. Ajouter un
+	// outil doit rester un geste explicite — la liste est ce que voient les
+	// clients MCP (Claude, Grok, Gemini), donc elle se relit comme un contrat.
+	test("expose exactement le catalogue attendu", () => {
+		expect(tools.map((t) => t.name)).toEqual([
+			"rag_search",
+			"rag_ask",
+			"sources",
+			"wiki_search",
+			"wiki_list",
+			"wiki_get",
+			"manga_search",
+			"manga_tomes",
+			"manga_page",
+			"bot_stats",
+			"bot_personas",
+			"bot_leaderboard",
+			"bot_commands",
+			"news",
+			"databooks_search",
+			"databooks_planches",
+			"databooks_get",
+		]);
 	});
 
 	test("noms snake_case, ≤ 64 caractères, uniques", () => {

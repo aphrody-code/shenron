@@ -37,7 +37,6 @@ const WikiMarkdown = dynamic(() =>
 	import("@/components/wiki/WikiMarkdown").then((m) => m.WikiMarkdown)
 );
 import { DEFAULT_PLAY_CARDS, type HomeConfig, type HomeSectionConfig } from "@/lib/home-scenes";
-import { SECTION_ENTER_CUE } from "@/lib/home-media";
 import type { BestOfSagaView } from "@/lib/home-bestof";
 import type { CommunityTopsPayload } from "@/lib/community-tops";
 import { CommunityTops } from "@/components/ratings/CommunityTops";

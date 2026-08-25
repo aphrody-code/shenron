@@ -13,7 +13,6 @@ import {
 	type SectionAccent,
 } from "@/lib/wiki-section-accents";
 import { WikiImg } from "@/components/wiki/WikiImg";
-import Link from "next/link";
 import { GatedWrap } from "@/components/GatedLink";
 
 export function WikiRelatedCharacters({

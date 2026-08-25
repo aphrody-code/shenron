@@ -39,6 +39,22 @@ const HAN = /[一-鿿]/;
 /** Segment de 4 à 40 signes répété au moins trois fois d'affilée. */
 const BOUCLE = /(.{4,40}?)\1{2,}/s;
 
+/**
+ * Détecteurs unitaires — exportés pour que le diagnostic détaillé du relecteur
+ * (`databooks-format.ts`) parle des MÊMES défauts que la file de relecture et
+ * que l'avertissement public. Tant qu'ils vivaient chacun de leur côté, le
+ * back-office annonçait 116 planches à vérifier là où il y en avait 1 911 :
+ * il ne connaissait que le caractère de remplacement.
+ */
+export const contientAlphabetEtranger = (texte: string): boolean => ETRANGER.test(texte);
+/** Idéogrammes sans un seul kana : du chinois inventé sur une page japonaise. */
+export const estHanSansKana = (texte: string): boolean => HAN.test(texte) && !KANA.test(texte);
+/** Le modèle a bouclé : un même segment rendu en rafale. */
+export const contientBoucle = (texte: string): boolean => BOUCLE.test(texte);
+/** Signes que le modèle n'a pas su lire (U+FFFD). */
+export const compteRemplacements = (texte: string): number =>
+	(texte.match(/�/g) ?? []).length;
+
 /** Longueur en dessous de laquelle une planche transcrite est jugée avortée. */
 export const SEUIL_COURT = 15;
 
@@ -46,9 +62,9 @@ export const SEUIL_COURT = 15;
 export function classerDefaut(texte: string): Defaut | null {
 	if (texte === "") return "vide";
 	if (texte.includes("�")) return "remplacement";
-	if (ETRANGER.test(texte)) return "etranger";
-	if (HAN.test(texte) && !KANA.test(texte)) return "han-sans-kana";
-	if (BOUCLE.test(texte)) return "boucle";
+	if (contientAlphabetEtranger(texte)) return "etranger";
+	if (estHanSansKana(texte)) return "han-sans-kana";
+	if (contientBoucle(texte)) return "boucle";
 	if (texte.length < SEUIL_COURT) return "courte";
 	return null;
 }
@@ -78,8 +94,7 @@ export function noteQualite(texte: string): number {
 
 /** Nombre de signes fautifs — sert à trier « le pire d'abord » dans la file. */
 export function gravite(texte: string, defaut: Defaut): number {
-	if (defaut === "remplacement") return (texte.match(/�/g) ?? []).length;
-	if (defaut === "etranger")
-		return (texte.match(/[Ѐ-ӿ؀-ۿ฀-๿가-힯]/g) ?? []).length;
+	if (defaut === "remplacement") return compteRemplacements(texte);
+	if (defaut === "etranger") return (texte.match(/[Ѐ-ӿ؀-ۿ฀-๿가-힯]/g) ?? []).length;
 	return 1;
 }

@@ -240,7 +240,6 @@ function ItemPreview({ item }: { item: ShopItem }) {
 	if (item.preview) {
 		return (
 			<div className="relative aspect-[16/9] overflow-hidden border-b-4 border-dbz-border bg-dbz-bg">
-				{/* eslint-disable-next-line @next/next/no-img-element */}
 				<img
 					src={item.preview}
 					alt={item.name}

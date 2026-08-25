@@ -32,8 +32,15 @@ export interface ProgressionFiche {
 	planches: number;
 	transcrites: number;
 	avecImage: number;
-	/** Planches contenant le caractère de remplacement U+FFFD (OCR en échec). */
-	suspectes: number;
+	/**
+	 * Planches portant une signature mécanique d'échec du modèle : caractère de
+	 * remplacement, alphabet halluciné (cyrillique/arabe/thaï/coréen), ou
+	 * idéogrammes sans un seul kana. Même définition que `classerDefaut`
+	 * (`databooks-defauts.ts`) — au détail près de la BOUCLE, qui demande un
+	 * back-reference que Postgres met plus de 5 minutes à évaluer sur les 11 778
+	 * planches (mesuré) : elle est détectée côté relecteur, pas dans ce total.
+	 */
+	fautives: number;
 	/** Signes de texte transcrit, tous slots confondus. */
 	signes: number;
 	/** Dernier dépôt ou édition connu (via `public.wiki_revisions`). */
@@ -47,7 +54,7 @@ export interface ProgressionGlobale {
 		planches: number;
 		transcrites: number;
 		avecImage: number;
-		suspectes: number;
+		fautives: number;
 		signes: number;
 	};
 	/** Nombre de planches transcrites par jour, du plus ancien au plus récent. */
@@ -73,7 +80,7 @@ export async function progressionTranscription(): Promise<ProgressionGlobale> {
 		planches: number;
 		transcrites: number;
 		avec_image: number;
-		suspectes: number;
+		fautives: number;
 		signes: number;
 		derniere_edition: Date | null;
 	}>(sql`
@@ -90,7 +97,11 @@ export async function progressionTranscription(): Promise<ProgressionGlobale> {
 			), 0)::int AS planches,
 			count(p) FILTER (WHERE nullif(btrim(p ->> 'text'), '') IS NOT NULL)::int  AS transcrites,
 			count(p) FILTER (WHERE nullif(btrim(p ->> 'image'), '') IS NOT NULL)::int AS avec_image,
-			count(p) FILTER (WHERE p ->> 'text' LIKE '%' || U&'\FFFD' || '%')::int     AS suspectes,
+			count(p) FILTER (
+				WHERE p ->> 'text' LIKE '%' || U&'\FFFD' || '%'
+				   OR p ->> 'text' ~ '[Ѐ-ӿ؀-ۿ฀-๿가-힯]'
+				   OR (p ->> 'text' ~ '[一-鿿]' AND p ->> 'text' !~ '[぀-ヿ]')
+			)::int                                                                   AS fautives,
 			coalesce(sum(length(p ->> 'text')), 0)::int                               AS signes,
 			r.derniere_edition
 		FROM bot.db_databooks d
@@ -118,7 +129,7 @@ export async function progressionTranscription(): Promise<ProgressionGlobale> {
 		planches: Number(l.planches),
 		transcrites: Number(l.transcrites),
 		avecImage: Number(l.avec_image),
-		suspectes: Number(l.suspectes),
+		fautives: Number(l.fautives),
 		signes: Number(l.signes),
 		derniereEdition: l.derniere_edition ? new Date(l.derniere_edition) : null,
 	}));
@@ -129,10 +140,10 @@ export async function progressionTranscription(): Promise<ProgressionGlobale> {
 			planches: acc.planches + f.planches,
 			transcrites: acc.transcrites + f.transcrites,
 			avecImage: acc.avecImage + f.avecImage,
-			suspectes: acc.suspectes + f.suspectes,
+			fautives: acc.fautives + f.fautives,
 			signes: acc.signes + f.signes,
 		}),
-		{ fiches: 0, planches: 0, transcrites: 0, avecImage: 0, suspectes: 0, signes: 0 }
+		{ fiches: 0, planches: 0, transcrites: 0, avecImage: 0, fautives: 0, signes: 0 }
 	);
 
 	return { fiches, total, rythme: await rythmeRecent() };

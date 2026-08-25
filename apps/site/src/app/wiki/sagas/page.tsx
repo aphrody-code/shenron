@@ -96,7 +96,6 @@ export default async function SagasPage() {
 										>
 											{s.image && (
 												<div className="relative sm:w-56 md:w-72 shrink-0 aspect-[16/7] sm:aspect-auto overflow-hidden">
-													{/* eslint-disable-next-line @next/next/no-img-element */}
 													<img
 														src={assetUrl(s.image)}
 														alt={s.name}

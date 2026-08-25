@@ -99,6 +99,27 @@ Pas de submodules. Tout est vendoré. Les 5 packages `packages/*` étaient des `
 - **Télémétrie first-party** (`lib/telemetry.ts`) : `track(event, props)` typé → fan-out **Vercel Analytics + GTM dataLayer + `POST /api/telemetry`** (ingest Postgres `site_events`/`user_preferences`, anonymisation hash salé + `anonId` httpOnly). **Opt-in strict** + **Google Consent Mode v2** (`lib/consent.ts`, `ConsentGate`). Reco/perso server-only `lib/recommendations.ts`. GTM = `GTM-KLSS5787` via `@next/third-parties/google` (`layout.tsx`).
 - **SEO (depuis `f6d7792`)** : composant **server** `components/SiteJsonLd.tsx` rendu dans le layout → JSON-LD `Organization` + `WebSite` avec `SearchAction` (sitelinks search box → `/wiki/search?q={search_term_string}`). **Inerte, sans cookie/header → cache CDN préservé.** `ogMeta` (`lib/og.ts`) prend un param `canonical` → `alternates.canonical` + `og:url` ; canonicals **auto-référentes** câblées sur ~30 pages (home + index + détails + page perso inline). **Pas de canonical globale** (pointerait toutes les pages vers la home). `robots.ts` : `/_next/` débloqué (ressources de rendu) ; `/wiki/search` en `noindex, follow` (évite l'indexation de la combinatoire `?q=`).
 
+## Site — transcriptions de databooks
+
+Les 11 778 planches de `bot.db_databooks.pages` portent une transcription produite par un modèle de vision. **Mesuré le 2026-08-25 : 1 911 planches sont fautives** (+ 262 emplacements sans scan, dont 228 pour le seul Daizenshuu 1 qui annonce 233 pages). Le modèle n'a pas « mal lu » : il a **halluciné** — cyrillique/arabe au milieu du japonais (720), boucles jusqu'à la limite de sortie (411), faux chinois (154), sortie coupée en plein caractère UTF-8 (116).
+
+| Outil | Rôle |
+|---|---|
+| `src/lib/databooks-defauts.ts` | **Juge unique** des défauts (`classerDefaut`, `noteQualite`). Module pur, importé par la file, le back-office, l'avertissement public et les tests. Toute nouvelle notion de « planche fautive » passe par là |
+| `scripts/corrige-transcriptions-ocr.ts` | Corrections **déterministes** (fautes de lecture validées, titres collés, boucles). `--simulation` d'abord, `--appliquer` ensuite |
+| `scripts/planches-a-relire.ts` | File de relecture `--compte` / `--classe <défaut>` : donne le chemin de l'image et la clé de dépôt |
+| `scripts/depose-transcriptions.ts` | Dépôt JSONL `{"image":"<fiche>-<page>.jpg","text":{"kind":"text","markdown":"…"}}`, mode `merge`, une révision `wiki_revisions` par écriture (réversible) |
+| `scripts/meilleure-source-ocr.ts` | Repêche une meilleure version dans les 43 lots d'origine. **Résultat mesuré : 3 planches** — les passes successives avaient déjà déposé leur meilleur texte |
+
+### Règles dures
+
+1. **Aucun OCR japonais utilisable sur le VPS.** `aphrody` n'a plus de sous-commande `ocr`, il n'y a pas d'accès à un modèle de vision, et les lots d'origine viennent d'un poste Windows. La seule voie fiable est la **relecture à l'image**, planche par planche.
+2. **Découper avant de lire.** Un scan entier est illisible sur le petit texte vertical ; `sharp` en 2×2 avec upscale ×2 rend lisible même un scan de 1 000 px. Compter ~1 planche dense par 1 à 2 échanges.
+3. **Jamais deviné.** Sur un scan basse définition (certaines fiches ne font que 400 px de large), on transcrit les titres lisibles et **on s'arrête** : une transcription plausible mais inventée est pire que l'absence de texte.
+4. **Le lecteur est prévenu.** `components/databooks/TranscriptionTexte.tsx` affiche un bandeau sur toute planche que `classerDefaut` juge mal lue — on ne fait pas passer une hallucination pour une source.
+5. **La boucle ne se détecte pas en SQL.** Le back-reference `(.{4,40}?)\1{2,}` met **plus de 5 minutes** sur les 11 778 planches côté Postgres (mesuré). Le total du back-office (`databooks-transcription.ts`) ne compte donc que les trois signatures peu coûteuses ; la boucle est détectée côté relecteur, en JS.
+6. **Les scripts de dépôt visent le slot bleu/vert en ligne** (`scripts/_origine-site.ts` lit l'amont nginx). Coder `127.0.0.1:3000` en dur les cassait dès que le trafic passait sur le slot B.
+
 ## Site — module d'édition (`components/editor/`)
 
 **Une seule surface de saisie pour tout le site** (depuis le 2026-08-24) : elle remplace les quatre éditeurs qui coexistaient (Tiptap des articles, CodeMirror des pages wiki, CodeMirror des fiches, `<textarea>` nus). Deux composants exposés :

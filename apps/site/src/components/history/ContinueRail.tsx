@@ -62,7 +62,6 @@ export function ContinueRail({
 						>
 							<div className="relative aspect-video overflow-hidden bg-black/40">
 								{e.image ? (
-									// eslint-disable-next-line @next/next/no-img-element
 									<img
 										src={assetUrl(e.image)}
 										alt=""

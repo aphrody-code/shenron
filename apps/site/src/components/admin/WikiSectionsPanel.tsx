@@ -538,7 +538,6 @@ function WikiSectionLinksEditor({
 							className="group relative flex items-center gap-2 rounded border border-dbz-border bg-dbz-bg/60 p-1.5"
 						>
 							{l.image ? (
-								// eslint-disable-next-line @next/next/no-img-element
 								<img
 									src={l.image}
 									alt=""
@@ -619,7 +618,6 @@ function WikiSectionLinksEditor({
 											className="flex w-full items-center gap-2 rounded p-1 text-left hover:bg-white/5 disabled:opacity-40"
 										>
 											{img ? (
-												// eslint-disable-next-line @next/next/no-img-element
 												<img
 													src={img}
 													alt=""

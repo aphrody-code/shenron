@@ -69,7 +69,6 @@ export default async function WikiTodoPage() {
 											>
 												<span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded border border-dbz-border bg-dbz-bg">
 													{r.image ? (
-														// eslint-disable-next-line @next/next/no-img-element
 														<img
 															src={assetUrl(r.image)}
 															alt=""

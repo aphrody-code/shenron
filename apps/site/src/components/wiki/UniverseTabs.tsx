@@ -3,7 +3,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { CharacterGrid, type GridCharacter, type CharacterFacets } from "./CharacterGrid";
 import { FilterDropdown } from "./FilterDropdown";
 import { ViewTransition } from "@/components/ViewTransition";

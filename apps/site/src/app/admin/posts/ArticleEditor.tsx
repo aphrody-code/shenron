@@ -347,7 +347,6 @@ export function ArticleEditor({ initial, siteUrl }: { initial: ArticleDraft; sit
 						<CardContent className="space-y-3">
 							{draft.cover ? (
 								<div className="group relative overflow-hidden rounded-lg border border-white/10">
-									{/* eslint-disable-next-line @next/next/no-img-element */}
 									<img
 										src={draft.cover}
 										alt=""

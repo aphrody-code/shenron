@@ -13,7 +13,7 @@
  * Écrit un document JSON unique via PUT /api/home-config (gate admin) qui revalide
  * `/`. Repli : sans config en DB, la home reste identique aux défauts du code.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	ChevronDown,
@@ -26,7 +26,6 @@ import {
 	RotateCcw,
 	Save,
 	Trash2,
-	Volume2,
 } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
 import { DragonBallLoader } from "@/components/DragonBall";

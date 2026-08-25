@@ -17,7 +17,6 @@ export function WikiSectionLinks({ links }: { links: WikiSectionLink[] }) {
 					className="group flex items-center gap-3 rounded-lg border border-dbz-border bg-dbz-card/60 p-2 transition-all hover:-translate-y-0.5 hover:border-dbz-orange hover:bg-dbz-card"
 				>
 					{l.image ? (
-						// eslint-disable-next-line @next/next/no-img-element
 						<img
 							src={l.image}
 							alt=""

@@ -69,7 +69,6 @@ export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; titl
 							referrerPolicy="strict-origin-when-cross-origin"
 						/>
 					) : current ? (
-						// eslint-disable-next-line @next/next/no-img-element
 						<img
 							key={current.key}
 							src={current.src}
@@ -106,7 +105,6 @@ export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; titl
 									}`}
 								>
 									{item.thumb ? (
-										// eslint-disable-next-line @next/next/no-img-element
 										<img
 											src={item.thumb}
 											alt=""

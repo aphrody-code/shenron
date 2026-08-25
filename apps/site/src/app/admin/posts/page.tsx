@@ -115,7 +115,6 @@ export default async function AdminPosts({
 								>
 									<div className="relative hidden aspect-[16/10] w-24 shrink-0 overflow-hidden rounded-md bg-black/50 sm:block">
 										{post.cover ? (
-											/* eslint-disable-next-line @next/next/no-img-element */
 											<img
 												src={post.cover}
 												alt=""
