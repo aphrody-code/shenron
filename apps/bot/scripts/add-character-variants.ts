@@ -96,6 +96,11 @@ async function main() {
 				`ALTER TABLE bot."db_character_variants" ADD COLUMN IF NOT EXISTS ${col} bigint`
 			);
 		}
+		// Épisodes dont le TITRE nomme le personnage — le seul enrichissement
+		// éditorial qui se mesure au lieu de s'écrire. `[{ num, title }]`.
+		await sql.unsafe(
+			`ALTER TABLE bot."db_character_variants" ADD COLUMN IF NOT EXISTS key_episodes jsonb`
+		);
 
 		// Bornes manga des sagas — sans elles, aucune mesure de présence possible.
 		for (const col of [

@@ -15,6 +15,7 @@ import {
 	botTransformations,
 	botWikiSections,
 	type VariantEvidence,
+	type VariantKeyEpisode,
 	type WikiSectionLink,
 	type WikiSource,
 } from "@/db/bot-schema";
@@ -615,6 +616,8 @@ export interface CharacterVariant {
 	lastVolume: number | null;
 	firstEpisode: number | null;
 	lastEpisode: number | null;
+	/** Épisodes de la saga dont le titre nomme le personnage. */
+	keyEpisodes: VariantKeyEpisode[] | null;
 	/** Série des épisodes de la saga (« DBZ », « DBGT »…) — la numérotation
 	 *  repart à 1 d'une série à l'autre, l'afficher sans elle induirait en erreur. */
 	episodeSeries: string | null;
@@ -665,6 +668,7 @@ export async function getShenronCharacterVariants(
 			lastVolume: v.lastVolume,
 			firstEpisode: v.firstEpisode,
 			lastEpisode: v.lastEpisode,
+			keyEpisodes: v.keyEpisodes ?? null,
 			episodeSeries: s.episodeSeries,
 			origin: v.origin,
 			evidence: v.evidence ?? null,

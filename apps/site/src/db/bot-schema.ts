@@ -271,6 +271,9 @@ export type VariantEvidence = {
 	mesureAt: number;
 };
 
+/** Épisode dont le TITRE nomme le personnage, dans la plage de la saga. */
+export type VariantKeyEpisode = { id: number; num: number; title: string };
+
 /**
  * **Une version d'un personnage à une saga donnée** — « Goku, saga Namek ».
  *
@@ -318,6 +321,14 @@ export const botCharacterVariants = bot.table("db_character_variants", {
 	/** Premier et dernier épisode dont le synopsis nomme le personnage. */
 	firstEpisode: int("first_episode"),
 	lastEpisode: int("last_episode"),
+	/**
+	 * Épisodes dont le TITRE nomme le personnage — le seul contenu éditorial de
+	 * la variante qui se mesure. Les transformations et les techniques, elles,
+	 * ne se mesurent pas : leurs libellés en base viennent des jeux vidéo
+	 * (« Goku SSJ2 », « Pose de combat G ») et la VF du manga traduit tout —
+	 * « kamehameha » n'apparaît que sur UNE planche des 7 830 de l'OCR.
+	 */
+	keyEpisodes: jsonb("key_episodes").$type<VariantKeyEpisode[]>(),
 	/** Méthode de mesure, ou "editorial" quand la variante est écrite à la main. */
 	origin: text("origin"),
 	evidence: jsonb("evidence").$type<VariantEvidence | null>(),

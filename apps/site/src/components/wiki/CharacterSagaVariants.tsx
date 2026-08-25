@@ -183,6 +183,32 @@ export function CharacterSagaVariants({
 						</div>
 					)}
 
+					{/* Épisodes dont le TITRE nomme le personnage : ni un résumé ni une
+					    interprétation, la liste de ce que la série a mis à son nom
+					    pendant la saga. C'est le seul contenu de la variante qu'on
+					    tienne d'une mesure et pas d'une rédaction. */}
+					{v.keyEpisodes && v.keyEpisodes.length > 0 && (
+						<div>
+							<p className="mb-2 text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
+								Épisodes à son nom
+							</p>
+							<ul className="flex flex-wrap gap-2">
+								{v.keyEpisodes.map((e) => (
+									<li key={e.id}>
+										<ClientGatedWrap
+											access={access}
+											href={`/wiki/episodes/${e.id}`}
+											className="inline-flex items-center gap-2 rounded-lg border border-dbz-border px-3 py-1.5 text-xs text-white/75 transition-colors hover:border-dbz-orange/50 hover:text-white"
+										>
+											<span className="tabular-nums text-dbz-orange/80">#{e.num}</span>
+											{e.title}
+										</ClientGatedWrap>
+									</li>
+								))}
+							</ul>
+						</div>
+					)}
+
 					{v.highlights && v.highlights.length > 0 && (
 						<ul className="space-y-2 text-sm text-white/75">
 							{v.highlights.map((h) => (

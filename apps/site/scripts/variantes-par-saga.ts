@@ -363,19 +363,26 @@ try {
 		  where (manga_volume_start is not null and manga_volume_end is not null)
 		     or (episode_start is not null and episode_end is not null)
 		  order by order_idx nulls last, id`
-	).map(
-		(s): Saga => ({
-			id: s.id,
+	).map((s): Saga => {
+		// `Number(...)` obligatoire : postgres-js rend les `bigint` en CHAÎNES.
+		// Sans conversion, `"9" <= "11"` est comparé lexicographiquement et vaut
+		// faux — la saga du 22e Tenkaichi Budôkai (tomes 9 à 11) ne mesurait rien,
+		// et `"163" <= "35"` valant vrai, la saga Saiyan récupérait des épisodes
+		// de la saga Boo. Bug vu sur « Vegeta, saga Saiyan » à qui la mesure
+		// attribuait l'épisode 268.
+		const nb = (v: number | null): number | null => (v == null ? null : Number(v));
+		return {
+			id: Number(s.id),
 			slug: s.slug,
 			name: s.name,
-			orderIdx: s.order_idx,
-			tomeDebut: s.manga_volume_start,
-			tomeFin: s.manga_volume_end,
+			orderIdx: nb(s.order_idx),
+			tomeDebut: nb(s.manga_volume_start),
+			tomeFin: nb(s.manga_volume_end),
 			epSerie: s.episode_series,
-			epDebut: s.episode_start,
-			epFin: s.episode_end,
-		})
-	);
+			epDebut: nb(s.episode_start),
+			epFin: nb(s.episode_end),
+		};
+	});
 	if (!sagas.length) {
 		console.error("✗ Aucune saga bornée. Lancer d'abord : --bornes --appliquer");
 		process.exit(1);
@@ -419,9 +426,29 @@ try {
 	  from bot.db_episodes
 	  where coalesce(synopsis_fr, synopsis) is not null and number_in_series is not null`;
 	const corpusEpisodes: Texte[] = resumes.map((e) => ({
-		num: e.number_in_series!,
+		num: Number(e.number_in_series!),
 		serie: e.series,
 		...indexer(e.synopsis),
+	}));
+
+	// Titres d'épisode : 122 des 826 nomment un personnage (« Sangoku dans le
+	// grand nord », « Le dernier espoir de Piccolo »). C'est le seul contenu
+	// éditorial de la variante qui se MESURE — les transformations et les
+	// techniques, elles, ne se mesurent pas : leurs libellés en base viennent
+	// des jeux vidéo (« Goku SSJ2 », « Pose de combat G ») et la VF du manga
+	// traduit tout, « kamehameha » n'apparaît que sur UNE planche de l'OCR.
+	const titres = await sql<
+		{ id: number; series: string; number_in_series: number | null; title: string | null }[]
+	>`select id, series, number_in_series, title from bot.db_episodes
+	  where title is not null and number_in_series is not null`;
+	const corpusTitres = titres.map((e) => ({
+		// `id` en plus du numéro : c'est lui qui permet de lier la fiche à
+		// `/wiki/episodes/<id>`. Le numéro seul ne suffit pas, il repart à 1 par série.
+		id: Number(e.id),
+		num: Number(e.number_in_series!),
+		serie: e.series,
+		titre: e.title!,
+		...indexer(e.title),
 	}));
 
 	console.log(
@@ -472,6 +499,8 @@ try {
 		planches: number;
 		episodes: number[];
 		synopsis: number;
+		/** Épisodes dont le titre nomme le personnage. */
+		titres: { id: number; num: number; title: string }[];
 	}
 
 	for (const p of personnages) {
@@ -516,12 +545,25 @@ try {
 			const assezManga = planchesVues >= SEUIL_PLANCHES;
 			const assezAnime = synopsisVus >= SEUIL_SYNOPSIS;
 			if (!assezManga && !assezAnime) continue;
+			// Titres : aucun seuil, un seul suffit — un personnage cité dans le
+			// titre d'un épisode n'y est jamais par hasard.
+			const titresVus =
+				s.epSerie && s.epDebut != null && s.epFin != null
+					? corpusTitres
+							.filter(
+								(t) =>
+									t.serie === s.epSerie && t.num >= s.epDebut! && t.num <= s.epFin! && vu(t)
+							)
+							.map((t) => ({ id: t.id, num: t.num, title: t.titre }))
+							.sort((a, b) => a.num - b.num)
+					: [];
 			preuves.push({
 				saga: s,
 				tomes: assezManga ? tomes : [],
 				planches: assezManga ? planchesVues : 0,
 				episodes: assezAnime ? episodes : [],
 				synopsis: assezAnime ? synopsisVus : 0,
+				titres: titresVus,
 			});
 		}
 		if (!preuves.length) continue;
@@ -576,11 +618,12 @@ try {
 				insert into bot.db_character_variants
 					(character_id, saga_id, slug, label, display_name,
 					 first_volume, last_volume, first_episode, last_episode,
-					 origin, evidence, sort_order)
+					 key_episodes, origin, evidence, sort_order)
 				values (${p.id}, ${v.saga.id}, ${slug}, ${v.saga.name},
 					${`${p.name} — ${v.saga.name}`},
 					${v.tomes[0] ?? null}, ${v.tomes.at(-1) ?? null},
 					${v.episodes[0] ?? null}, ${v.episodes.at(-1) ?? null},
+					${v.titres.length ? sql.json(v.titres) : null},
 					${methode}, ${sql.json(evidence)}, ${v.saga.orderIdx ?? 0})
 				on conflict (character_id, saga_id) do update set
 					first_volume  = excluded.first_volume,
