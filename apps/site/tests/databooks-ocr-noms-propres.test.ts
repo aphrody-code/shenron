@@ -342,3 +342,78 @@ describe("agglutinations tranchées à la main", () => {
 		}
 	});
 });
+
+describe("le second balayage, et ce qu'il a fallu refuser", () => {
+	test("les noms que la premiere table manquait sont corriges", () => {
+		// Les cinq noms les plus attestes du corpus, absents de la v1 pour
+		// quatre causes distinctes documentees dans le module.
+		const cas: [string, string][] = [
+			["昔、悟空に敗れた溺ヤ人・プロリーが引き起こしていた", "昔、悟空に敗れた溺ヤ人・ブロリーが引き起こしていた"],
+			["・ビッコロ", "・ピッコロ"],
+			["チチフルマ", "チチフルマ"], // agglutine : la garde refuse, et c'est voulu
+			["ヤムチャとフルマ", "ヤムチャとブルマ"],
+			["超サイヤ人コッドへと覚醒", "超サイヤ人ゴッドへと覚醒"],
+		];
+		for (const [avant, apres] of cas) {
+			expect(detaillerNomsPropres(avant).texte).toBe(apres);
+		}
+	});
+
+	test("Gale de GT n'est pas transforme en Kale de Super", () => {
+		// Le seuil abaisse a trois kana a fait remonter cette paire. La planche
+		// porte sa propre traduction : « Sheera & Gale ».
+		for (const texte of ["シーラ&ゲール\nSheera & Gale", "用心棒にゲールとシーラ、レックを雇っている"]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("le jeu de Chunsoft n'est pas transforme en guerrier de l'univers 11", () => {
+		// « 風来のシレン » est cite dans les V-Jump de 1996 a 2000 ; Jiren date
+		// de 2017. La fréquence seule aurait valide la paire.
+		for (const texte of ["不思議のダンジョン風来のシレン2", "鬼襲来！シレン城！", "「風来のシレン」「サターンポンバーマン」"]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les autres homonymes hors univers traversent", () => {
+		for (const texte of [
+			"ヒカルの碁", // pas ビカル
+			"進藤ヒカル", // idem
+			"キラン☆と光る", // onomatopee, pas ギラン
+			"ブランドのプラン", // ni ブラン ni プラン ne sont sûrs
+		]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les cas reels du second balayage", () => {
+		const cas: [string, string][] = [
+			["レッド総帥の命令で悟空と闘うフラック", "レッド総帥の命令で悟空と闘うブラック"],
+			["恐るべき超能力使いプルー將軍", "恐るべき超能力使いブルー將軍"],
+			["フルー将軍の日月部隊", "ブルー将軍の日月部隊"],
+			["サマスによって世界をめちゃくちゃにされてしまったトランクス", "ザマスによって世界をめちゃくちゃにされてしまったトランクス"],
+			["聖地ガリンに住むポラの武器", "聖地カリンに住むポラの武器"],
+			["ナメック語でならボルンガを呼び出すときも", "ナメック語でならポルンガを呼び出すときも"],
+			["老界王神がセットソードの封印から解き放たれる", "老界王神がゼットソードの封印から解き放たれる"],
+			["ボンコとバスタはリッチストン欲しさに", "ボンゴとパスタはリッチストン欲しさに"],
+			["んちゃ! ベンギン村より愛をこめて", "んちゃ! ペンギン村より愛をこめて"],
+			["フリーザの兎グウラが三人の部下を率いて", "フリーザの兎クウラが三人の部下を率いて"],
+		];
+		for (const [avant, apres] of cas) {
+			expect(detaillerNomsPropres(avant).texte).toBe(apres);
+		}
+	});
+
+	test("la table a bien grossi, et reste coherente", () => {
+		expect(NOMS_PROPRES_MAL_LUS.length).toBe(179);
+		// La propriete qui compte : aucune cible n'est elle-meme une faute.
+		const fautives = new Set(NOMS_PROPRES_MAL_LUS.map((f) => f.lu));
+		for (const f of NOMS_PROPRES_MAL_LUS) expect(fautives.has(f.correct)).toBe(false);
+	});
+});

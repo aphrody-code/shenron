@@ -117,11 +117,52 @@ export interface FauteNomPropre {
 }
 
 /**
- * Les 86 paires retenues, triées par fréquence décroissante.
+ * Les 179 paires retenues, triées par fréquence décroissante.
  *
  * Chaque commentaire porte le comptage réel : occurrences de la forme lue,
  * planches et ouvrages touchés, et attestation de la forme juste dans le même
  * corpus.
+ *
+ * # Pourquoi la première version en manquait la moitié
+ *
+ * La table a d'abord été bâtie avec 86 paires, et il y manquait `プロリー`,
+ * `ビッコロ`, `フルマ`, `ドラゴンボール` — soit les noms les plus attestés du
+ * corpus. Quatre causes distinctes, toutes mesurées avant d'être corrigées :
+ *
+ *   1. **La frontière du chercheur n'était pas celle du correcteur.** Le
+ *      script de découverte comptait le point médian comme un katakana
+ *      bloquant, alors que le module le tient pour une frontière. Toutes les
+ *      occurrences propres de `プロリー` sont bordées d'un `・` : le comptage
+ *      rendait **zéro**, et la paire était écartée en silence. C'est le seul
+ *      vrai défaut des quatre, et le plus instructif — un filtre de découverte
+ *      plus strict que la règle qu'il alimente ne se voit pas, il fait juste
+ *      disparaître des résultats.
+ *   2. **Le seuil de quatre kana.** `ブルマ` en compte trois : jamais candidate.
+ *      Abaissé à trois, au prix d'une vigilance accrue (c'est lui qui a fait
+ *      remonter `ゲール` et `シレン`, deux faux positifs, cf. plus bas).
+ *   3. **Le périmètre du lexique.** `ドラゴンボール` n'est ni un personnage, ni
+ *      une planète, ni une race, ni une saga, ni une technique : il n'a pas de
+ *      `name_ja`. Les mots katakana des titres japonais (`title_ja` des
+ *      databooks, films, jeux, tomes et épisodes) sont désormais une seconde
+ *      source — 161 graphies de plus.
+ *   4. **La substitution à longueur égale.** `ベジタ` et `ベジータ` n'ont pas la
+ *      même longueur : c'est une voyelle longue omise, pas un dakuten. Hors de
+ *      la classe traitée ici, et laissé tel quel.
+ *
+ * # Ce que le seuil abaissé a fait remonter, et qu'il a fallu refuser
+ *
+ * Trois kana suffisent à tomber sur un nom qui n'a rien à voir. Deux cas ont
+ * été arrêtés par la lecture des contextes, et par elle seule :
+ *
+ *   - `ゲール` → `ケール` (6 occurrences) : c'est **Gale**, garde du corps dans
+ *     « DBGT », pas Kale de « DBS ». La planche porte sa traduction française
+ *     à côté, « Sheera & Gale ».
+ *   - `シレン` → `ジレン` (8 occurrences) : c'est **風来のシレン**, le jeu de
+ *     Chunsoft cité dans les V-Jump de 1996 à 2000 — vingt ans avant que Jiren
+ *     n'existe.
+ *
+ * Ni JMdict ni la fréquence ne pouvaient les attraper : ce sont des noms
+ * propres, et leur cible est solidement attestée par ailleurs.
  */
 export const NOMS_PROPRES_MAL_LUS: FauteNomPropre[] = [
 	// Goku Black — コ/ゴ. 182 occurrences sur 7 planches, 6 ouvrages ; ゴクウブラック attesté 80× dans le même corpus.
@@ -296,6 +337,192 @@ export const NOMS_PROPRES_MAL_LUS: FauteNomPropre[] = [
 	{ lu: "モビカン", correct: "モヒカン", fr: "Mohican", confusion: "ビ/ヒ", occurrences: 1, planches: 1, attesteJuste: 5 },
 	// Rhumush — ジ/シ. 1 occurrence sur 1 planche, 1 ouvrage ; ラムーシ attesté 7× dans le même corpus.
 	{ lu: "ラムージ", correct: "ラムーシ", fr: "Rhumush", confusion: "ジ/シ", occurrences: 1, planches: 1, attesteJuste: 7 },
+	// ペンギン — ベ/ペ. 67 occurrences sur 53 planches, 17 ouvrages ; ペンギン attesté 56× dans le même corpus.
+	{ lu: "ベンギン", correct: "ペンギン", fr: "ペンギン", confusion: "ベ/ペ", occurrences: 67, planches: 53, attesteJuste: 56 },
+	// ドラゴンボールヒーローズ — ス/ズ. 44 occurrences sur 36 planches, 29 ouvrages ; ドラゴンボールヒーローズ attesté 182× dans le même corpus.
+	{ lu: "ドラゴンボールヒーロース", correct: "ドラゴンボールヒーローズ", fr: "ドラゴンボールヒーローズ", confusion: "ス/ズ", occurrences: 44, planches: 36, attesteJuste: 182 },
+	// ゴッド — コ/ゴ. 42 occurrences sur 21 planches, 18 ouvrages ; ゴッド attesté 269× dans le même corpus.
+	{ lu: "コッド", correct: "ゴッド", fr: "ゴッド", confusion: "コ/ゴ", occurrences: 42, planches: 21, attesteJuste: 269 },
+	// Broly (DBZ) — プ/ブ. 25 occurrences sur 9 planches, 7 ouvrages ; ブロリー attesté 1002× dans le même corpus.
+	{ lu: "プロリー", correct: "ブロリー", fr: "Broly (DBZ)", confusion: "プ/ブ", occurrences: 25, planches: 9, attesteJuste: 1002 },
+	// ブルー — フ/ブ. 22 occurrences sur 9 planches, 6 ouvrages ; ブルー attesté 199× dans le même corpus.
+	{ lu: "フルー", correct: "ブルー", fr: "ブルー", confusion: "フ/ブ", occurrences: 22, planches: 9, attesteJuste: 199 },
+	// ドラゴンボール — ポ/ボ. 20 occurrences sur 11 planches, 11 ouvrages ; ドラゴンボール attesté 3855× dans le même corpus.
+	{ lu: "ドラゴンポール", correct: "ドラゴンボール", fr: "ドラゴンボール", confusion: "ポ/ボ", occurrences: 20, planches: 11, attesteJuste: 3855 },
+	// ダーブラ — タ/ダ. 17 occurrences sur 13 planches, 10 ouvrages ; ダーブラ attesté 155× dans le même corpus.
+	{ lu: "ターブラ", correct: "ダーブラ", fr: "ダーブラ", confusion: "タ/ダ", occurrences: 17, planches: 13, attesteJuste: 155 },
+	// ザマス — サ/ザ. 13 occurrences sur 9 planches, 6 ouvrages ; ザマス attesté 95× dans le même corpus.
+	{ lu: "サマス", correct: "ザマス", fr: "ザマス", confusion: "サ/ザ", occurrences: 13, planches: 9, attesteJuste: 95 },
+	// ゼットソード — セ/ゼ. 13 occurrences sur 10 planches, 7 ouvrages ; ゼットソード attesté 37× dans le même corpus.
+	{ lu: "セットソード", correct: "ゼットソード", fr: "ゼットソード", confusion: "セ/ゼ", occurrences: 13, planches: 10, attesteJuste: 37 },
+	// ドラゴンボール — ト/ド. 13 occurrences sur 11 planches, 7 ouvrages ; ドラゴンボール attesté 3855× dans le même corpus.
+	{ lu: "トラゴンボール", correct: "ドラゴンボール", fr: "ドラゴンボール", confusion: "ト/ド", occurrences: 13, planches: 11, attesteJuste: 3855 },
+	// ポルンガ — ボ/ポ. 13 occurrences sur 10 planches, 6 ouvrages ; ポルンガ attesté 97× dans le même corpus.
+	{ lu: "ボルンガ", correct: "ポルンガ", fr: "ポルンガ", confusion: "ボ/ポ", occurrences: 13, planches: 10, attesteJuste: 97 },
+	// グレートサイヤマン — ク/グ. 11 occurrences sur 10 planches, 9 ouvrages ; グレートサイヤマン attesté 168× dans le même corpus.
+	{ lu: "クレートサイヤマン", correct: "グレートサイヤマン", fr: "グレートサイヤマン", confusion: "ク/グ", occurrences: 11, planches: 10, attesteJuste: 168 },
+	// ブラック — フ/ブ. 11 occurrences sur 4 planches, 3 ouvrages ; ブラック attesté 117× dans le même corpus.
+	{ lu: "フラック", correct: "ブラック", fr: "ブラック", confusion: "フ/ブ", occurrences: 11, planches: 4, attesteJuste: 117 },
+	// ゼニー — セ/ゼ. 10 occurrences sur 5 planches, 4 ouvrages ; ゼニー attesté 58× dans le même corpus.
+	{ lu: "セニー", correct: "ゼニー", fr: "ゼニー", confusion: "セ/ゼ", occurrences: 10, planches: 5, attesteJuste: 58 },
+	// Bulma — フ/ブ. 10 occurrences sur 5 planches, 5 ouvrages ; ブルマ attesté 1302× dans le même corpus.
+	{ lu: "フルマ", correct: "ブルマ", fr: "Bulma", confusion: "フ/ブ", occurrences: 10, planches: 5, attesteJuste: 1302 },
+	// ゴールデンフリーザ — コ/ゴ. 9 occurrences sur 4 planches, 3 ouvrages ; ゴールデンフリーザ attesté 65× dans le même corpus.
+	{ lu: "コールデンフリーザ", correct: "ゴールデンフリーザ", fr: "ゴールデンフリーザ", confusion: "コ/ゴ", occurrences: 9, planches: 4, attesteJuste: 65 },
+	// ジャンプ — ブ/プ. 9 occurrences sur 2 planches, 2 ouvrages ; ジャンプ attesté 1804× dans le même corpus.
+	{ lu: "ジャンブ", correct: "ジャンプ", fr: "ジャンプ", confusion: "ブ/プ", occurrences: 9, planches: 2, attesteJuste: 1804 },
+	// スーパードラゴンボールヒーローズ — コ/ゴ. 9 occurrences sur 2 planches, 2 ouvrages ; スーパードラゴンボールヒーローズ attesté 216× dans le même corpus.
+	{ lu: "スーパードラコンボールヒーローズ", correct: "スーパードラゴンボールヒーローズ", fr: "スーパードラゴンボールヒーローズ", confusion: "コ/ゴ", occurrences: 9, planches: 2, attesteJuste: 216 },
+	// ブルー — プ/ブ. 9 occurrences sur 4 planches, 4 ouvrages ; ブルー attesté 199× dans le même corpus.
+	{ lu: "プルー", correct: "ブルー", fr: "ブルー", confusion: "プ/ブ", occurrences: 9, planches: 4, attesteJuste: 199 },
+	// Baby — ペ/ベ. 9 occurrences sur 7 planches, 5 ouvrages ; ベビー attesté 320× dans le même corpus.
+	{ lu: "ペビー", correct: "ベビー", fr: "Baby", confusion: "ペ/ベ", occurrences: 9, planches: 7, attesteJuste: 320 },
+	// スーパードラゴンボールヒーローズ — ス/ズ. 8 occurrences sur 7 planches, 7 ouvrages ; スーパードラゴンボールヒーローズ attesté 216× dans le même corpus.
+	{ lu: "スーパードラゴンボールヒーロース", correct: "スーパードラゴンボールヒーローズ", fr: "スーパードラゴンボールヒーローズ", confusion: "ス/ズ", occurrences: 8, planches: 7, attesteJuste: 216 },
+	// ドラゴンボールヒーローズ — ポ/ボ. 8 occurrences sur 4 planches, 4 ouvrages ; ドラゴンボールヒーローズ attesté 182× dans le même corpus.
+	{ lu: "ドラゴンポールヒーローズ", correct: "ドラゴンボールヒーローズ", fr: "ドラゴンボールヒーローズ", confusion: "ポ/ボ", occurrences: 8, planches: 4, attesteJuste: 182 },
+	// Ghourd — ト/ド. 7 occurrences sur 5 planches, 5 ouvrages ; グルド attesté 59× dans le même corpus.
+	{ lu: "グルト", correct: "グルド", fr: "Ghourd", confusion: "ト/ド", occurrences: 7, planches: 5, attesteJuste: 59 },
+	// ドラゴンボールスーパー — バ/パ. 7 occurrences sur 7 planches, 7 ouvrages ; ドラゴンボールスーパー attesté 21× dans le même corpus.
+	{ lu: "ドラゴンボールスーバー", correct: "ドラゴンボールスーパー", fr: "ドラゴンボールスーパー", confusion: "バ/パ", occurrences: 7, planches: 7, attesteJuste: 21 },
+	// Basil — パ/バ. 7 occurrences sur 2 planches, 2 ouvrages ; バジル attesté 7× dans le même corpus.
+	{ lu: "パジル", correct: "バジル", fr: "Basil", confusion: "パ/バ", occurrences: 7, planches: 2, attesteJuste: 7 },
+	// Beerus — ヒ/ビ. 7 occurrences sur 5 planches, 5 ouvrages ; ビルス attesté 550× dans le même corpus.
+	{ lu: "ヒルス", correct: "ビルス", fr: "Beerus", confusion: "ヒ/ビ", occurrences: 7, planches: 5, attesteJuste: 550 },
+	// Rezun — ス/ズ. 7 occurrences sur 7 planches, 7 ouvrages ; レズン attesté 6× dans le même corpus.
+	{ lu: "レスン", correct: "レズン", fr: "Rezun", confusion: "ス/ズ", occurrences: 7, planches: 7, attesteJuste: 6 },
+	// Karin — ガ/カ. 6 occurrences sur 5 planches, 1 ouvrage ; カリン attesté 355× dans le même corpus.
+	{ lu: "ガリン", correct: "カリン", fr: "Karin", confusion: "ガ/カ", occurrences: 6, planches: 5, attesteJuste: 355 },
+	// ギニュー — キ/ギ. 6 occurrences sur 4 planches, 4 ouvrages ; ギニュー attesté 287× dans le même corpus.
+	{ lu: "キニュー", correct: "ギニュー", fr: "ギニュー", confusion: "キ/ギ", occurrences: 6, planches: 4, attesteJuste: 287 },
+	// Gotenks — コ/ゴ. 6 occurrences sur 2 planches, 2 ouvrages ; ゴテンクス attesté 406× dans le même corpus.
+	{ lu: "コテンクス", correct: "ゴテンクス", fr: "Gotenks", confusion: "コ/ゴ", occurrences: 6, planches: 2, attesteJuste: 406 },
+	// ジャンプ — シ/ジ. 6 occurrences sur 5 planches, 5 ouvrages ; ジャンプ attesté 1804× dans le même corpus.
+	{ lu: "シャンプ", correct: "ジャンプ", fr: "ジャンプ", confusion: "シ/ジ", occurrences: 6, planches: 5, attesteJuste: 1804 },
+	// Butta — パ/バ. 6 occurrences sur 6 planches, 5 ouvrages ; バータ attesté 52× dans le même corpus.
+	{ lu: "パータ", correct: "バータ", fr: "Butta", confusion: "パ/バ", occurrences: 6, planches: 6, attesteJuste: 52 },
+	// ブイジャンプ — フ/ブ. 6 occurrences sur 5 planches, 5 ouvrages ; ブイジャンプ attesté 136× dans le même corpus.
+	{ lu: "フイジャンプ", correct: "ブイジャンプ", fr: "ブイジャンプ", confusion: "フ/ブ", occurrences: 6, planches: 5, attesteJuste: 136 },
+	// ドッカンバトル — ト/ド. 5 occurrences sur 1 planche, 1 ouvrage ; ドッカンバトル attesté 91× dans le même corpus.
+	{ lu: "トッカンバトル", correct: "ドッカンバトル", fr: "ドッカンバトル", confusion: "ト/ド", occurrences: 5, planches: 1, attesteJuste: 91 },
+	// Pasta — バ/パ. 5 occurrences sur 2 planches, 1 ouvrage ; パスタ attesté 15× dans le même corpus.
+	{ lu: "バスタ", correct: "パスタ", fr: "Pasta", confusion: "バ/パ", occurrences: 5, planches: 2, attesteJuste: 15 },
+	// Piccolo — ビ/ピ. 5 occurrences sur 4 planches, 4 ouvrages ; ピッコロ attesté 2327× dans le même corpus.
+	{ lu: "ビッコロ", correct: "ピッコロ", fr: "Piccolo", confusion: "ビ/ピ", occurrences: 5, planches: 4, attesteJuste: 2327 },
+	// レジェンズ — ス/ズ. 5 occurrences sur 5 planches, 5 ouvrages ; レジェンズ attesté 30× dans le même corpus.
+	{ lu: "レジェンス", correct: "レジェンズ", fr: "レジェンズ", confusion: "ス/ズ", occurrences: 5, planches: 5, attesteJuste: 30 },
+	// レッドリボン — ポ/ボ. 5 occurrences sur 2 planches, 2 ouvrages ; レッドリボン attesté 229× dans le même corpus.
+	{ lu: "レッドリポン", correct: "レッドリボン", fr: "レッドリボン", confusion: "ポ/ボ", occurrences: 5, planches: 2, attesteJuste: 229 },
+	// ドッカンバトル — パ/バ. 4 occurrences sur 4 planches, 3 ouvrages ; ドッカンバトル attesté 91× dans le même corpus.
+	{ lu: "ドッカンパトル", correct: "ドッカンバトル", fr: "ドッカンバトル", confusion: "パ/バ", occurrences: 4, planches: 4, attesteJuste: 91 },
+	// ドラゴンボール — ホ/ボ. 4 occurrences sur 4 planches, 4 ouvrages ; ドラゴンボール attesté 3855× dans le même corpus.
+	{ lu: "ドラゴンホール", correct: "ドラゴンボール", fr: "ドラゴンボール", confusion: "ホ/ボ", occurrences: 4, planches: 4, attesteJuste: 3855 },
+	// Nappa — バ/パ. 4 occurrences sur 3 planches, 2 ouvrages ; ナッパ attesté 250× dans le même corpus.
+	{ lu: "ナッバ", correct: "ナッパ", fr: "Nappa", confusion: "バ/パ", occurrences: 4, planches: 3, attesteJuste: 250 },
+	// Neizu — ス/ズ. 4 occurrences sur 4 planches, 4 ouvrages ; ネイズ attesté 11× dans le même corpus.
+	{ lu: "ネイス", correct: "ネイズ", fr: "Neizu", confusion: "ス/ズ", occurrences: 4, planches: 4, attesteJuste: 11 },
+	// パオズ — バ/パ. 4 occurrences sur 3 planches, 3 ouvrages ; パオズ attesté 12× dans le même corpus.
+	{ lu: "バオズ", correct: "パオズ", fr: "パオズ", confusion: "バ/パ", occurrences: 4, planches: 3, attesteJuste: 12 },
+	// Hirudegân — テ/デ. 4 occurrences sur 2 planches, 2 ouvrages ; ヒルデガーン attesté 166× dans le même corpus.
+	{ lu: "ヒルテガーン", correct: "ヒルデガーン", fr: "Hirudegân", confusion: "テ/デ", occurrences: 4, planches: 2, attesteJuste: 166 },
+	// Vegeta (SDBH) — ペ/ベ. 4 occurrences sur 4 planches, 4 ouvrages ; ベジータ attesté 3629× dans le même corpus.
+	{ lu: "ペジータ", correct: "ベジータ", fr: "Vegeta (SDBH)", confusion: "ペ/ベ", occurrences: 4, planches: 4, attesteJuste: 3629 },
+	// レッドリボン — ホ/ボ. 4 occurrences sur 4 planches, 4 ouvrages ; レッドリボン attesté 229× dans le même corpus.
+	{ lu: "レッドリホン", correct: "レッドリボン", fr: "レッドリボン", confusion: "ホ/ボ", occurrences: 4, planches: 4, attesteJuste: 229 },
+	// Oob — フ/ブ. 3 occurrences sur 3 planches, 2 ouvrages ; ウーブ attesté 133× dans le même corpus.
+	{ lu: "ウーフ", correct: "ウーブ", fr: "Oob", confusion: "フ/ブ", occurrences: 3, planches: 3, attesteJuste: 133 },
+	// Gokua — コ/ゴ. 3 occurrences sur 3 planches, 3 ouvrages ; ゴクア attesté 19× dans le même corpus.
+	{ lu: "コクア", correct: "ゴクア", fr: "Gokua", confusion: "コ/ゴ", occurrences: 3, planches: 3, attesteJuste: 19 },
+	// ジャッキー — シ/ジ. 3 occurrences sur 2 planches, 1 ouvrage ; ジャッキー attesté 159× dans le même corpus.
+	{ lu: "シャッキー", correct: "ジャッキー", fr: "ジャッキー", confusion: "シ/ジ", occurrences: 3, planches: 2, attesteJuste: 159 },
+	// ドラゴンボールスーパー — コ/ゴ. 3 occurrences sur 3 planches, 3 ouvrages ; ドラゴンボールスーパー attesté 21× dans le même corpus.
+	{ lu: "ドラコンボールスーパー", correct: "ドラゴンボールスーパー", fr: "ドラゴンボールスーパー", confusion: "コ/ゴ", occurrences: 3, planches: 3, attesteJuste: 21 },
+	// ドラゴンボールヒーローズ — ビ/ヒ. 3 occurrences sur 3 planches, 3 ouvrages ; ドラゴンボールヒーローズ attesté 182× dans le même corpus.
+	{ lu: "ドラゴンボールビーローズ", correct: "ドラゴンボールヒーローズ", fr: "ドラゴンボールヒーローズ", confusion: "ビ/ヒ", occurrences: 3, planches: 3, attesteJuste: 182 },
+	// Baby — ピ/ビ. 3 occurrences sur 2 planches, 2 ouvrages ; ベビー attesté 320× dans le même corpus.
+	{ lu: "ベピー", correct: "ベビー", fr: "Baby", confusion: "ピ/ビ", occurrences: 3, planches: 2, attesteJuste: 320 },
+	// Bongo — コ/ゴ. 3 occurrences sur 3 planches, 2 ouvrages ; ボンゴ attesté 10× dans le même corpus.
+	{ lu: "ボンコ", correct: "ボンゴ", fr: "Bongo", confusion: "コ/ゴ", occurrences: 3, planches: 3, attesteJuste: 10 },
+	// Cooler — グ/ク. 2 occurrences sur 2 planches, 2 ouvrages ; クウラ attesté 212× dans le même corpus.
+	{ lu: "グウラ", correct: "クウラ", fr: "Cooler", confusion: "グ/ク", occurrences: 2, planches: 2, attesteJuste: 212 },
+	// ジャンプ — フ/プ. 2 occurrences sur 2 planches, 2 ouvrages ; ジャンプ attesté 1804× dans le même corpus.
+	{ lu: "ジャンフ", correct: "ジャンプ", fr: "ジャンプ", confusion: "フ/プ", occurrences: 2, planches: 2, attesteJuste: 1804 },
+	// スーパードラゴンボールヒーローズ — バ/パ. 2 occurrences sur 2 planches, 2 ouvrages ; スーパードラゴンボールヒーローズ attesté 216× dans le même corpus.
+	{ lu: "スーバードラゴンボールヒーローズ", correct: "スーパードラゴンボールヒーローズ", fr: "スーパードラゴンボールヒーローズ", confusion: "バ/パ", occurrences: 2, planches: 2, attesteJuste: 216 },
+	// ダーブラ — プ/ブ. 2 occurrences sur 1 planche, 1 ouvrage ; ダーブラ attesté 155× dans le même corpus.
+	{ lu: "ダープラ", correct: "ダーブラ", fr: "ダーブラ", confusion: "プ/ブ", occurrences: 2, planches: 1, attesteJuste: 155 },
+	// ドッカンバトル — ハ/バ. 2 occurrences sur 2 planches, 2 ouvrages ; ドッカンバトル attesté 91× dans le même corpus.
+	{ lu: "ドッカンハトル", correct: "ドッカンバトル", fr: "ドッカンバトル", confusion: "ハ/バ", occurrences: 2, planches: 2, attesteJuste: 91 },
+	// ドラゴンボールスーパー — ポ/ボ. 2 occurrences sur 2 planches, 2 ouvrages ; ドラゴンボールスーパー attesté 21× dans le même corpus.
+	{ lu: "ドラゴンポールスーパー", correct: "ドラゴンボールスーパー", fr: "ドラゴンボールスーパー", confusion: "ポ/ボ", occurrences: 2, planches: 2, attesteJuste: 21 },
+	// Pansie — バ/パ. 2 occurrences sur 2 planches, 1 ouvrage ; パンジ attesté 25× dans le même corpus.
+	{ lu: "バンジ", correct: "パンジ", fr: "Pansie", confusion: "バ/パ", occurrences: 2, planches: 2, attesteJuste: 25 },
+	// Bibidi — ピ/ビ. 2 occurrences sur 1 planche, 1 ouvrage ; ビビディ attesté 62× dans le même corpus.
+	{ lu: "ピビディ", correct: "ビビディ", fr: "Bibidi", confusion: "ピ/ビ", occurrences: 2, planches: 1, attesteJuste: 62 },
+	// Pilaf — ビ/ピ. 2 occurrences sur 1 planche, 1 ouvrage ; ピラフ attesté 380× dans le même corpus.
+	{ lu: "ビラフ", correct: "ピラフ", fr: "Pilaf", confusion: "ビ/ピ", occurrences: 2, planches: 1, attesteJuste: 380 },
+	// ブイジャンプ — ブ/プ. 2 occurrences sur 2 planches, 2 ouvrages ; ブイジャンプ attesté 136× dans le même corpus.
+	{ lu: "ブイジャンブ", correct: "ブイジャンプ", fr: "ブイジャンプ", confusion: "ブ/プ", occurrences: 2, planches: 2, attesteJuste: 136 },
+	// ブイジャンプ — プ/ブ. 2 occurrences sur 2 planches, 2 ouvrages ; ブイジャンプ attesté 136× dans le même corpus.
+	{ lu: "プイジャンプ", correct: "ブイジャンプ", fr: "ブイジャンプ", confusion: "プ/ブ", occurrences: 2, planches: 2, attesteJuste: 136 },
+	// Fin — プ/フ. 2 occurrences sur 2 planches, 2 ouvrages ; フィン attesté 24× dans le même corpus.
+	{ lu: "プィン", correct: "フィン", fr: "Fin", confusion: "プ/フ", occurrences: 2, planches: 2, attesteJuste: 24 },
+	// ブヨン — プ/ブ. 2 occurrences sur 1 planche, 1 ouvrage ; ブヨン attesté 27× dans le même corpus.
+	{ lu: "プヨン", correct: "ブヨン", fr: "ブヨン", confusion: "プ/ブ", occurrences: 2, planches: 1, attesteJuste: 27 },
+	// ヘタッピマンガ — カ/ガ. 2 occurrences sur 2 planches, 1 ouvrage ; ヘタッピマンガ attesté 33× dans le même corpus.
+	{ lu: "ヘタッピマンカ", correct: "ヘタッピマンガ", fr: "ヘタッピマンガ", confusion: "カ/ガ", occurrences: 2, planches: 2, attesteJuste: 33 },
+	// ペンギン — キ/ギ. 2 occurrences sur 1 planche, 1 ouvrage ; ペンギン attesté 56× dans le même corpus.
+	{ lu: "ペンキン", correct: "ペンギン", fr: "ペンギン", confusion: "キ/ギ", occurrences: 2, planches: 1, attesteJuste: 56 },
+	// Bongo — ポ/ボ. 2 occurrences sur 1 planche, 1 ouvrage ; ボンゴ attesté 10× dans le même corpus.
+	{ lu: "ポンゴ", correct: "ボンゴ", fr: "Bongo", confusion: "ポ/ボ", occurrences: 2, planches: 1, attesteJuste: 10 },
+	// Yakon — ゴ/コ. 2 occurrences sur 2 planches, 2 ouvrages ; ヤコン attesté 40× dans le même corpus.
+	{ lu: "ヤゴン", correct: "ヤコン", fr: "Yakon", confusion: "ゴ/コ", occurrences: 2, planches: 2, attesteJuste: 40 },
+	// Yajirobé (futur) — ペ/ベ. 2 occurrences sur 2 planches, 2 ouvrages ; ヤジロベー attesté 143× dans le même corpus.
+	{ lu: "ヤジロペー", correct: "ヤジロベー", fr: "Yajirobé (futur)", confusion: "ペ/ベ", occurrences: 2, planches: 2, attesteJuste: 143 },
+	// Oob — プ/ブ. 1 occurrence sur 1 planche, 1 ouvrage ; ウーブ attesté 133× dans le même corpus.
+	{ lu: "ウープ", correct: "ウーブ", fr: "Oob", confusion: "プ/ブ", occurrences: 1, planches: 1, attesteJuste: 133 },
+	// ゴールデンフリーザ — テ/デ. 1 occurrence sur 1 planche, 1 ouvrage ; ゴールデンフリーザ attesté 65× dans le même corpus.
+	{ lu: "ゴールテンフリーザ", correct: "ゴールデンフリーザ", fr: "ゴールデンフリーザ", confusion: "テ/デ", occurrences: 1, planches: 1, attesteJuste: 65 },
+	// Gogeta (DBZ/GT) — コ/ゴ. 1 occurrence sur 1 planche, 1 ouvrage ; ゴジータ attesté 364× dans le même corpus.
+	{ lu: "コジータ", correct: "ゴジータ", fr: "Gogeta (DBZ/GT)", confusion: "コ/ゴ", occurrences: 1, planches: 1, attesteJuste: 364 },
+	// Gowasu (futur) — コ/ゴ. 1 occurrence sur 1 planche, 1 ouvrage ; ゴワス attesté 14× dans le même corpus.
+	{ lu: "コワス", correct: "ゴワス", fr: "Gowasu (futur)", confusion: "コ/ゴ", occurrences: 1, planches: 1, attesteJuste: 14 },
+	// ザマス — ズ/ス. 1 occurrence sur 1 planche, 1 ouvrage ; ザマス attesté 95× dans le même corpus.
+	{ lu: "ザマズ", correct: "ザマス", fr: "ザマス", confusion: "ズ/ス", occurrences: 1, planches: 1, attesteJuste: 95 },
+	// Tambourine — パ/バ. 1 occurrence sur 1 planche, 1 ouvrage ; タンバリン attesté 85× dans le même corpus.
+	{ lu: "タンパリン", correct: "タンバリン", fr: "Tambourine", confusion: "パ/バ", occurrences: 1, planches: 1, attesteJuste: 85 },
+	// Dende — テ/デ. 1 occurrence sur 1 planche, 1 ouvrage ; デンデ attesté 139× dans le même corpus.
+	{ lu: "テンデ", correct: "デンデ", fr: "Dende", confusion: "テ/デ", occurrences: 1, planches: 1, attesteJuste: 139 },
+	// ドラゴンボールヒーローズ — ホ/ボ. 1 occurrence sur 1 planche, 1 ouvrage ; ドラゴンボールヒーローズ attesté 182× dans le même corpus.
+	{ lu: "ドラゴンホールヒーローズ", correct: "ドラゴンボールヒーローズ", fr: "ドラゴンボールヒーローズ", confusion: "ホ/ボ", occurrences: 1, planches: 1, attesteJuste: 182 },
+	// Bardock — ハ/バ. 1 occurrence sur 1 planche, 1 ouvrage ; バーダック attesté 455× dans le même corpus.
+	{ lu: "ハーダック", correct: "バーダック", fr: "Bardock", confusion: "ハ/バ", occurrences: 1, planches: 1, attesteJuste: 455 },
+	// Bardock — パ/バ. 1 occurrence sur 1 planche, 1 ouvrage ; バーダック attesté 455× dans le même corpus.
+	{ lu: "パーダック", correct: "バーダック", fr: "Bardock", confusion: "パ/バ", occurrences: 1, planches: 1, attesteJuste: 455 },
+	// Bio Broly — プ/ブ. 1 occurrence sur 1 planche, 1 ouvrage ; バイオブロリー attesté 17× dans le même corpus.
+	{ lu: "バイオプロリー", correct: "バイオブロリー", fr: "Bio Broly", confusion: "プ/ブ", occurrences: 1, planches: 1, attesteJuste: 17 },
+	// Babidi — パ/バ. 1 occurrence sur 1 planche, 1 ouvrage ; バビディ attesté 346× dans le même corpus.
+	{ lu: "パビディ", correct: "バビディ", fr: "Babidi", confusion: "パ/バ", occurrences: 1, planches: 1, attesteJuste: 346 },
+	// Videl — ピ/ビ. 1 occurrence sur 1 planche, 1 ouvrage ; ビーデル attesté 347× dans le même corpus.
+	{ lu: "ピーデル", correct: "ビーデル", fr: "Videl", confusion: "ピ/ビ", occurrences: 1, planches: 1, attesteJuste: 347 },
+	// Piano — ビ/ピ. 1 occurrence sur 1 planche, 1 ouvrage ; ピアノ attesté 9× dans le même corpus.
+	{ lu: "ビアノ", correct: "ピアノ", fr: "Piano", confusion: "ビ/ピ", occurrences: 1, planches: 1, attesteJuste: 9 },
+	// ビッグバンミッション — パ/バ. 1 occurrence sur 1 planche, 1 ouvrage ; ビッグバンミッション attesté 10× dans le même corpus.
+	{ lu: "ビッグパンミッション", correct: "ビッグバンミッション", fr: "ビッグバンミッション", confusion: "パ/バ", occurrences: 1, planches: 1, attesteJuste: 10 },
+	// ビッグバンミッション — ピ/ビ. 1 occurrence sur 1 planche, 1 ouvrage ; ビッグバンミッション attesté 10× dans le même corpus.
+	{ lu: "ピッグバンミッション", correct: "ビッグバンミッション", fr: "ビッグバンミッション", confusion: "ピ/ビ", occurrences: 1, planches: 1, attesteJuste: 10 },
+	// Bido — ピ/ビ. 1 occurrence sur 1 planche, 1 ouvrage ; ビドー attesté 13× dans le même corpus.
+	{ lu: "ピドー", correct: "ビドー", fr: "Bido", confusion: "ピ/ビ", occurrences: 1, planches: 1, attesteJuste: 13 },
+	// Beerus — ズ/ス. 1 occurrence sur 1 planche, 1 ouvrage ; ビルス attesté 550× dans le même corpus.
+	{ lu: "ビルズ", correct: "ビルス", fr: "Beerus", confusion: "ズ/ス", occurrences: 1, planches: 1, attesteJuste: 550 },
+	// Beerus — ピ/ビ. 1 occurrence sur 1 planche, 1 ouvrage ; ビルス attesté 550× dans le même corpus.
+	{ lu: "ピルス", correct: "ビルス", fr: "Beerus", confusion: "ピ/ビ", occurrences: 1, planches: 1, attesteJuste: 550 },
+	// ブヨン — フ/ブ. 1 occurrence sur 1 planche, 1 ouvrage ; ブヨン attesté 27× dans le même corpus.
+	{ lu: "フヨン", correct: "ブヨン", fr: "ブヨン", confusion: "フ/ブ", occurrences: 1, planches: 1, attesteJuste: 27 },
+	// Botamo — ポ/ボ. 1 occurrence sur 1 planche, 1 ouvrage ; ボタモ attesté 5× dans le même corpus.
+	{ lu: "ポタモ", correct: "ボタモ", fr: "Botamo", confusion: "ポ/ボ", occurrences: 1, planches: 1, attesteJuste: 5 },
+	// ポルンガ — ホ/ポ. 1 occurrence sur 1 planche, 1 ouvrage ; ポルンガ attesté 97× dans le même corpus.
+	{ lu: "ホルンガ", correct: "ポルンガ", fr: "ポルンガ", confusion: "ホ/ポ", occurrences: 1, planches: 1, attesteJuste: 97 },
 ];
 
 /**
@@ -338,7 +565,7 @@ export interface AgglutinationValidee {
 }
 
 /**
- * Les 17 agglutinations tranchées à la main, sur les 38 mesurées.
+ * Les 17 agglutinations tranchées à la main, sur les 38 mesurées sur les 86 premières paires.
  *
  * Les 21 autres sont refusées, et le refus est aussi documenté que
  * l'acceptation :
