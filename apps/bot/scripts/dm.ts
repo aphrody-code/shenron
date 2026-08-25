@@ -64,10 +64,19 @@ async function api(
 	return data;
 }
 
-const horodatage = (ms: unknown): string =>
-	typeof ms === "number" || typeof ms === "string"
-		? new Date(Number(ms)).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })
-		: "—";
+/**
+ * L'API sérialise ses dates en ISO (`"2026-08-24T01:34:53.000Z"`), pas en
+ * millisecondes : les passer à `Number()` donnait `NaN`, donc « Invalid Date »
+ * sur chaque ligne de la boîte. On accepte les deux formes — un entier reste un
+ * horodatage epoch, le reste est laissé à `Date` qui sait lire l'ISO.
+ */
+const horodatage = (valeur: unknown): string => {
+	if (typeof valeur !== "number" && typeof valeur !== "string") return "—";
+	const date =
+		typeof valeur === "number" || /^\d+$/.test(valeur) ? new Date(Number(valeur)) : new Date(valeur);
+	if (Number.isNaN(date.getTime())) return "—";
+	return date.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+};
 
 interface Contact {
 	userId: string;

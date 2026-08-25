@@ -23,7 +23,9 @@
  * Jeton : $DATABOOKS_API_TOKEN, sinon $SHENRON_ADMIN_TOKEN.
  */
 
-const API = process.env.DATABOOKS_API_BASE ?? "https://dragonballfr.com";
+import { origineSite } from "./_origine-site";
+
+const API = origineSite();
 const JETON = (process.env.DATABOOKS_API_TOKEN ?? process.env.SHENRON_ADMIN_TOKEN ?? "").trim();
 
 type Texte = { kind: "text"; markdown: string } | { kind: "none" };

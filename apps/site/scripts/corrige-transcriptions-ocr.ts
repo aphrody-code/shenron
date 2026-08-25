@@ -44,6 +44,7 @@ import {
 	type RapportRegle,
 } from "../src/lib/databooks-ocr-corrections";
 import { diagnostiquerPlanche } from "../src/lib/databooks-format";
+import { origineSite } from "./_origine-site";
 
 // ---------------------------------------------------------------------------
 // Arguments
@@ -87,7 +88,7 @@ const DATABASE_URL = await lireEnv("DATABASE_URL");
 if (!DATABASE_URL) throw new Error("DATABASE_URL introuvable dans apps/site/.env");
 const sql = postgres(DATABASE_URL, { max: 2 });
 
-const API = process.env.DATABOOKS_API_BASE ?? "http://127.0.0.1:3000";
+const API = origineSite();
 const JETON = ((await lireEnv("DATABOOKS_API_TOKEN")) ?? (await lireEnv("SHENRON_ADMIN_TOKEN")) ?? "").trim();
 
 if (APPLIQUER && JETON.length < 16) {
