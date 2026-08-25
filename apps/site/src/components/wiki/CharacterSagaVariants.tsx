@@ -23,6 +23,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 // fait échouer le rendu (`Module not found: dns/net/tls`). L'instantané d'accès
 // est résolu par la page et descend en props.
 import { ClientGatedWrap } from "@/components/GatedClientLink";
+import { onTablistKeyDown } from "@/lib/tablist-keys";
 import type { AccessSnapshot } from "@/lib/wiki-launch";
 import type { CharacterVariant } from "@/lib/shenron";
 
@@ -89,6 +90,10 @@ export function CharacterSagaVariants({
 				className="-mx-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 scrollbar-thin sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
 				role="tablist"
 				aria-label={`Sagas de ${characterName}`}
+				// Le rôle `tablist` promet les flèches ←/→ et Début/Fin ; sans ce
+				// gestionnaire, la promesse n'était pas tenue et la frise ne se
+				// parcourait qu'onglet par onglet à la tabulation.
+				onKeyDown={onTablistKeyDown}
 			>
 				{variants.map((x, i) => {
 					const on = i === actif;
@@ -98,6 +103,8 @@ export function CharacterSagaVariants({
 							type="button"
 							role="tab"
 							aria-selected={on}
+							// `tabIndex` tournant : le jeu d'onglets = UN arrêt de tabulation.
+							tabIndex={on ? 0 : -1}
 							onClick={() => setActif(i)}
 							className={`inline-flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors sm:min-h-0 sm:py-1.5 ${
 								on

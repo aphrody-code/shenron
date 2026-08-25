@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DragonBall } from "@/components/DragonBall";
+import { FooterFabGuard } from "@/components/FooterFabGuard";
 import { DISCORD_INVITE } from "@/lib/config";
 import { isPathPublic } from "@/lib/wiki-launch";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
@@ -56,6 +57,9 @@ export async function SiteFooter() {
 
 	return (
 		<footer className="relative mt-auto bg-[#070707] border-t border-white/[0.06]">
+			{/* Sentinelle : efface les boutons flottants dès que le pied de page
+			    arrive, sinon ils recouvrent ses liens (cf. FooterFabGuard). */}
+			<FooterFabGuard />
 			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-16 grid gap-10 lg:grid-cols-[1.4fr_3fr]">
 				<div>
 					<Link href="/" className="flex items-baseline select-none mb-5" aria-label="DBFR">

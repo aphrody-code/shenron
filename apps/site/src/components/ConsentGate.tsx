@@ -14,6 +14,7 @@
  *
  * Îlot client léger : aucune dépendance lourde, monté en bas de page.
  */
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { getConsent, setConsent, setConsentFromCmp } from "@/lib/consent";
 
@@ -204,14 +205,27 @@ export function ConsentGate() {
 			// la trajectoire des boutons de gauche.
 			className="fixed bottom-0 inset-x-0 z-[60] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:inset-x-auto md:right-6 md:bottom-24 md:p-0 md:max-w-md reveal-up"
 		>
-			<div className="dbz-panel p-5 border-2 border-dbz-orange/40 bg-dbz-card/95 backdrop-blur-sm shadow-2xl">
-				<p className="text-sm font-bold text-white uppercase tracking-widest mb-2 font-display">
+			{/* Deux mises en forme, un seul contenu. Sur téléphone, la carte
+			    détaillée mesurait près de 200 px : un quart de l'écran hors service
+			    tant que le visiteur n'avait pas tranché (mesuré sur
+			    /wiki/chronologie, huit contrôles injoignables). La version courte
+			    tient sur deux lignes et renvoie au détail pour qui le veut. */}
+			<div className="dbz-panel border-2 border-dbz-orange/40 bg-dbz-card/95 p-3 shadow-2xl backdrop-blur-sm md:p-5">
+				<p className="mb-1 font-display text-sm font-bold uppercase tracking-widest text-white md:mb-2">
 					Mesure d'audience
 				</p>
-				<p className="text-xs text-white/70 leading-relaxed mb-4 font-sans">
-					On utilise une mesure d'audience anonymisée pour améliorer le wiki et te proposer des
-					recommandations pertinentes. Aucune adresse IP brute n'est conservée. Tu peux refuser :
-					l'essentiel du site fonctionne sans.
+				<p className="mb-3 font-sans text-xs leading-relaxed text-white/70 md:mb-4">
+					<span className="md:hidden">
+						Mesure anonymisée, aucune adresse IP conservée.{" "}
+						<Link href="/confidentialite" className="underline underline-offset-2 hover:text-white">
+							En savoir plus
+						</Link>
+					</span>
+					<span className="hidden md:inline">
+						On utilise une mesure d'audience anonymisée pour améliorer le wiki et te proposer des
+						recommandations pertinentes. Aucune adresse IP brute n'est conservée. Tu peux refuser :
+						l'essentiel du site fonctionne sans.
+					</span>
 				</p>
 				<div className="flex gap-3">
 					<button type="button" onClick={accept} className="dbz-button !py-2 !px-4 !text-xs flex-1">

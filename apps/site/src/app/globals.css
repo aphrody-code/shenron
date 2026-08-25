@@ -3108,6 +3108,17 @@ html[data-consent-open] .fab-secondary {
 	}
 }
 
+/* Les boutons flottants sont en `position: fixed` : ils passent au-dessus du
+   pied de page et en recouvraient les liens (« Accueil » sous « Signaler une
+   erreur » sur /wiki/chronologie, mesuré). `FooterFabGuard` pose l'attribut
+   dès que le pied de page approche ; on les efface le temps qu'il est à
+   l'écran — le visiteur y a de toute façon les mêmes entrées, en plus complet. */
+html[data-footer-visible] .fab-secondary {
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
 /* Le bandeau de consentement est ancré au ras du bas sur mobile : on lui rend
    sa hauteur en bas du document pour que le contenu remonte au lieu de passer
    dessous. Sans ça, tout ce qu'il recouvrait devenait injoignable au doigt

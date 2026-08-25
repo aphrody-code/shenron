@@ -202,6 +202,10 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 							<button
 								key={e}
 								type="button"
+								// Sans `aria-pressed`, ces filtres se présentent comme de simples
+								// boutons : rien n'indique à un lecteur d'écran lesquels sont
+								// actifs, alors que c'est toute l'information de la barre.
+								aria-pressed={on}
 								onClick={() => toggleEra(e)}
 								className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-display font-semibold transition-all ${
 									on ? "text-black" : "text-white/60 bg-white/5 hover:bg-white/10"
@@ -368,8 +372,9 @@ function TypeToggle({
 	return (
 		<button
 			type="button"
+			aria-pressed={on}
 			onClick={onClick}
-			className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-display font-semibold transition-colors ${
+			className={`inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 text-[12px] font-display font-semibold transition-colors sm:min-h-0 ${
 				on ? "bg-dbz-orange text-black" : "bg-dbz-bg/40 text-white/50 hover:text-white"
 			}`}
 		>

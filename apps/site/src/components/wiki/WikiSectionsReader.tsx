@@ -63,7 +63,6 @@ export function WikiSectionsReader({
 	const [active, setActive] = useState<string>("all");
 	const [subActive, setSubActive] = useState<string>("all");
 	const contentRef = useRef<HTMLDivElement>(null);
-	const subNavRef = useRef<HTMLElement>(null);
 
 	if (panels.length === 0) return null;
 
@@ -94,11 +93,12 @@ export function WikiSectionsReader({
 	const activeChildren = activeGroup ? groupPanels(activeGroup) : [];
 
 	function scrollToContent() {
+		// Toujours le contenu, jamais la barre : depuis que les deux barres
+		// vivent dans un même conteneur `sticky`, viser la sous-barre revenait à
+		// viser un élément déjà collé en haut — le défilement ne bougeait plus.
+		// `scroll-mt-52` sur le contenu réserve la hauteur de l'ensemble.
 		requestAnimationFrame(() =>
-			(subNavRef.current ?? contentRef.current)?.scrollIntoView({
-				behavior: "smooth",
-				block: "start",
-			})
+			contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
 		);
 	}
 
@@ -124,10 +124,18 @@ export function WikiSectionsReader({
 
 	return (
 		<div className="space-y-6">
-			{/* ── Niveau 1 : catégories principales ── */}
-			<nav
-				aria-label="Catégories de la fiche"
-				className="sticky top-16 z-30 -mx-6 flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/90 px-6 py-4 backdrop-blur-md lg:-mx-10 lg:px-10"
+			{/* Les deux barres sont solidaires dans UN seul conteneur collant.
+			    Auparavant chacune était `sticky` avec son propre `top` codé en dur
+			    (`top-16` puis `top-[7.25rem]`), calculé pour une barre de niveau 1
+			    tenant sur UNE ligne. Dès qu'elle passait à deux ou trois lignes —
+			    c'est-à-dire sur presque toutes les fiches en écran étroit — la barre
+			    des sous-catégories venait se poser PAR-DESSUS les catégories
+			    principales, qui devenaient incliquables. */}
+			<div className="sticky top-16 z-30 -mx-6 lg:-mx-10">
+				{/* ── Niveau 1 : catégories principales ── */}
+				<nav
+					aria-label="Catégories de la fiche"
+					className="flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/90 px-6 py-4 backdrop-blur-md lg:px-10"
 			>
 				<Pill active={active === "all"} onClick={() => selectTop("all")}>
 					{allLabel}
@@ -157,9 +165,8 @@ export function WikiSectionsReader({
 			{/* ── Niveau 2 : sous-catégories (après clic sur un groupe parent) ── */}
 			{activeGroup && activeChildren.length > 0 && (
 				<nav
-					ref={subNavRef}
 					aria-label={`Sous-catégories de ${activeGroup}`}
-					className="sticky top-[7.25rem] z-20 -mx-6 flex flex-wrap items-center gap-2 border-b border-white/5 bg-dbz-card/80 px-6 py-3 backdrop-blur-md lg:-mx-10 lg:px-10"
+					className="flex flex-wrap items-center gap-2 border-b border-white/5 bg-dbz-card/80 px-6 py-3 backdrop-blur-md lg:px-10"
 				>
 					<span className="mr-1 text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">
 						{activeGroup}
@@ -179,8 +186,9 @@ export function WikiSectionsReader({
 					))}
 				</nav>
 			)}
+			</div>
 
-			<div ref={contentRef} className="space-y-12 scroll-mt-40">
+			<div ref={contentRef} className="space-y-12 scroll-mt-52">
 				{items.map((p) => (
 					<div key={p.key} hidden={!visible(p)}>
 						{p.node}
