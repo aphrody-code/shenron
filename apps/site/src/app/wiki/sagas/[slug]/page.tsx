@@ -201,8 +201,9 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 					    manga : un personnage mort peut y être nommé pendant des tomes.
 					    L'annoncer vaut mieux que de laisser lire « qui combat ici ». */}
 					<p className="mb-8 max-w-3xl text-sm text-white/50">
-						Personnages dont le nom est relevé dans les planches du manga couvrant cette saga, du
-						plus cité au moins cité. Une citation n'est pas une apparition.
+						Personnages dont le nom est relevé dans les planches du manga et les résumés
+						d&apos;épisode couvrant cette saga, du plus cité au moins cité. Une citation n&apos;est
+						pas une apparition.
 					</p>
 					<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
 						{personnages.map((p) => (
@@ -225,9 +226,14 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 								<p className="text-center text-xs font-bold uppercase tracking-wider text-white transition-colors group-hover:text-dbz-orange">
 									{p.name}
 								</p>
-								{p.planches != null && (
+								{(p.planches || p.synopsis) && (
 									<p className="mt-1 text-[10px] tabular-nums uppercase tracking-widest text-white/40">
-										{p.planches} planches
+										{[
+											p.planches ? `${p.planches} planches` : null,
+											p.synopsis ? `${p.synopsis} résumés` : null,
+										]
+											.filter(Boolean)
+											.join(" · ")}
 									</p>
 								)}
 							</GatedWrap>

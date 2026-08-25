@@ -62,6 +62,17 @@ export function CharacterSagaVariants({
 				? `tome ${v.firstVolume}`
 				: `tomes ${v.firstVolume} à ${v.lastVolume}`
 			: null;
+	const episodes =
+		v.firstEpisode != null && v.lastEpisode != null
+			? // La série est indispensable : les épisodes 1 à 20 de Daima n'ont rien
+				// à voir avec les épisodes 1 à 20 de Z.
+				`${v.episodeSeries ?? ""} ${
+					v.firstEpisode === v.lastEpisode
+						? `épisode ${v.firstEpisode}`
+						: `épisodes ${v.firstEpisode} à ${v.lastEpisode}`
+				}`.trim()
+			: null;
+	const mesuree = v.origin != null && v.origin !== "editorial";
 
 	return (
 		<section className="space-y-8">
@@ -157,8 +168,12 @@ export function CharacterSagaVariants({
 						    rédaction : elles occupent le bloc tant que le reste n'est pas
 						    écrit, et elles restent vraies après. */}
 						{tomes && <Champ titre="Manga" valeur={tomes} />}
-						{v.evidence?.planches != null && (
+						{episodes && <Champ titre="Série animée" valeur={episodes} />}
+						{!!v.evidence?.planches && (
 							<Champ titre="Planches où le nom paraît" valeur={String(v.evidence.planches)} />
+						)}
+						{!!v.evidence?.synopsis && (
+							<Champ titre="Résumés d'épisode" valeur={String(v.evidence.synopsis)} />
 						)}
 					</div>
 
@@ -182,11 +197,18 @@ export function CharacterSagaVariants({
 					)}
 
 					{/* Provenance — dit ce que la mesure prouve, et ce qu'elle ne prouve pas. */}
-					{v.origin === "ocr-manga" && (
+					{mesuree && (
 						<p className="border-t border-white/10 pt-4 text-xs leading-relaxed text-white/45">
-							Relevé automatique : le nom est <em>cité</em> dans ces planches, ce qui ne dit pas à
-							soi seul quel rôle le personnage tient dans la saga. Forme, puissance et faits
-							marquants restent à écrire.
+							Relevé automatique : le nom est <em>cité</em> dans{" "}
+							{v.origin === "synopsis-episodes"
+								? "ces résumés d'épisode"
+								: v.origin === "ocr-manga"
+									? "ces planches"
+									: "ces planches et ces résumés"}
+							, ce qui ne dit pas à soi seul quel rôle le personnage tient dans la saga.
+							{v.origin === "synopsis-episodes" &&
+								" Cette saga n'a pas de manga : la présence n'est attestée que par l'adaptation animée."}{" "}
+							Forme, puissance et faits marquants restent à écrire.
 						</p>
 					)}
 				</div>

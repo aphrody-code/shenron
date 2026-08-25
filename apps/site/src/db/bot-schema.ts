@@ -206,6 +206,15 @@ export const botSagas = bot.table("db_sagas", {
 	mangaVolumeEnd: int("manga_volume_end"),
 	mangaChapterStart: int("manga_chapter_start"),
 	mangaChapterEnd: int("manga_chapter_end"),
+	/**
+	 * Bornes de la saga dans la série animée — la seconde source mesurable, et
+	 * la SEULE pour les 18 sagas sans manga (GT, Daima, DBS anime, films).
+	 * `episodeSeries` est indispensable : la numérotation repart à 1 dans chaque
+	 * série, DBZ #1 n'a rien à voir avec DBGT #1.
+	 */
+	episodeSeries: text("episode_series"),
+	episodeStart: int("episode_start"),
+	episodeEnd: int("episode_end"),
 	...articleCols,
 	...visibleCol,
 });
@@ -241,12 +250,21 @@ export const botCharacterArcs = bot.table("db_character_arcs", {
  * confondue avec une variante écrite par un rédacteur.
  */
 export type VariantEvidence = {
-	/** Comment la variante a été obtenue ("ocr-manga" pour l'amorçage mesuré). */
+	/**
+	 * Sources ayant fourni la preuve : "ocr-manga" (texte des planches),
+	 * "synopsis-episodes" (résumés de la série animée), ou les deux jointes par
+	 * "+". Ce n'est pas cosmétique : une présence attestée par l'anime seul peut
+	 * être du remplissage absent du manga, et le lecteur doit pouvoir le savoir.
+	 */
 	methode: string;
 	/** Tomes du manga où le nom apparaît, dans la plage de la saga. */
 	tomes: number[];
 	/** Nombre de planches où le nom apparaît (pas d'occurrences de mots). */
 	planches: number;
+	/** Épisodes dont le synopsis nomme le personnage. */
+	episodes?: number[];
+	/** Nombre de synopsis d'épisode où le nom apparaît. */
+	synopsis?: number;
 	/** Graphies recherchées (nom de la fiche + alias retenus). */
 	graphies: string[];
 	/** Date de la mesure (epoch ms). */
@@ -297,7 +315,10 @@ export const botCharacterVariants = bot.table("db_character_variants", {
 	/** Premier et dernier tome du manga où le personnage est repéré. */
 	firstVolume: int("first_volume"),
 	lastVolume: int("last_volume"),
-	/** "ocr-manga" (amorçage mesuré) ou "editorial" (écrit à la main). */
+	/** Premier et dernier épisode dont le synopsis nomme le personnage. */
+	firstEpisode: int("first_episode"),
+	lastEpisode: int("last_episode"),
+	/** Méthode de mesure, ou "editorial" quand la variante est écrite à la main. */
 	origin: text("origin"),
 	evidence: jsonb("evidence").$type<VariantEvidence | null>(),
 	sortOrder: int("sort_order").notNull().default(0),

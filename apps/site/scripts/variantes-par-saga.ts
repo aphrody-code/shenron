@@ -24,11 +24,18 @@
  * amorcée est marquée `origin = 'ocr-manga'` ; une variante retouchée à la main
  * passe à `'editorial'` et n'est plus jamais écrasée par une nouvelle mesure.
  *
- * Il ne couvre que la série **DB** (42 tomes). Les planches `series='DBS'` sont
- * indexées par identifiant interne de chapitre (`ch1315`…), pas par numéro de
- * chapitre publié : les rattacher aux sagas Moro/Granolah/Black Freezer
- * demanderait une correspondance qu'on n'a pas — donc on s'abstient. GT, Daima
- * et les films n'ont pas de manga du tout.
+ ── Deux sources, jamais confondues ─────────────────────────────────────────
+ * 1. **OCR du manga** (`bot.db_manga_pages`, série DB, 42 tomes) : la source de
+ *    référence, c'est le texte de l'œuvre. Les planches `series='DBS'` sont
+ *    indexées par identifiant interne de chapitre (`ch1315`…), pas par numéro
+ *    publié : aucun rattachement fiable aux sagas Moro/Granolah/Black Freezer.
+ * 2. **Synopsis des épisodes** (`bot.db_episodes.synopsis`) : la seule source
+ *    des 18 sagas sans manga (GT, Daima, DBS anime). 636 résumés en français
+ *    qui nomment les personnages en clair.
+ *
+ * `evidence.methode` garde laquelle a parlé. Une présence attestée par l'anime
+ * SEUL peut être du remplissage absent du manga — le distinguer n'est pas un
+ * détail de traçabilité, c'est la différence entre canon et adaptation.
  *
  * Usage :
  *   bun scripts/variantes-par-saga.ts --bornes [--appliquer]   # bornes de tomes des sagas
@@ -92,6 +99,43 @@ const BORNES_MANGA: Record<string, [number, number]> = {
 	cell: [33, 36],
 	"great-saiyaman": [36, 38],
 	buu: [38, 42],
+};
+
+// ── Bornes des sagas dans les séries animées ────────────────────────────────
+// [série, premier épisode, dernier épisode]. La numérotation repart à 1 dans
+// chaque série, d'où la série explicite. Découpage de diffusion Toei, celui que
+// suivent les jaquettes des coffrets et les guides officiels.
+//
+// Absents volontaires : `saga_bardock` et `oav2008` (des OAV, pas des épisodes
+// numérotés), `broly` et `super-hero` (des films), et les sagas manga-only de
+// Super (`moro`, `granolah`, `black-frieza`, `galactic-patrol`) — leur adapter
+// des bornes d'épisodes reviendrait à inventer une diffusion qui n'existe pas.
+const BORNES_EPISODES: Record<string, [string, number, number]> = {
+	pilaf: ["DB", 1, 13],
+	"tournament-21": ["DB", 14, 28],
+	"red-ribbon": ["DB", 29, 68],
+	"uranai-baba": ["DB", 69, 83],
+	"tournament-22b": ["DB", 84, 101],
+	"piccolo-daimao": ["DB", 102, 122],
+	"tournament-23": ["DB", 123, 153],
+	saiyan: ["DBZ", 1, 35],
+	namek: ["DBZ", 36, 74],
+	saga_freezer: ["DBZ", 75, 107],
+	retour_sur_terre: ["DBZ", 108, 117],
+	androids: ["DBZ", 118, 152],
+	cell: ["DBZ", 153, 194],
+	"great-saiyaman": ["DBZ", 195, 219],
+	buu: ["DBZ", 220, 291],
+	"gt-black-star": ["DBGT", 1, 16],
+	"gt-baby": ["DBGT", 17, 40],
+	"gt-super-17": ["DBGT", 41, 47],
+	"gt-shadow-dragons": ["DBGT", 48, 64],
+	god: ["DBS", 1, 14],
+	"golden-frieza": ["DBS", 15, 27],
+	champa: ["DBS", 28, 46],
+	"future-trunks": ["DBS", 47, 76],
+	"tournament-of-power": ["DBS", 77, 131],
+	daima: ["DB_DAIMA", 1, 20],
 };
 
 // ── Graphies : comment un personnage s'écrit dans l'OCR VF ──────────────────
@@ -216,8 +260,13 @@ interface Saga {
 	slug: string;
 	name: string;
 	orderIdx: number | null;
-	debut: number;
-	fin: number;
+	/** Bornes de tomes du manga (null si la saga n'en a pas). */
+	tomeDebut: number | null;
+	tomeFin: number | null;
+	/** Bornes d'épisodes, avec leur série (la numérotation repart à 1). */
+	epSerie: string | null;
+	epDebut: number | null;
+	epFin: number | null;
 }
 
 const sql = postgres(await urlBase(), { max: 2, prepare: false });
@@ -228,20 +277,37 @@ try {
 		const sagas = await sql<{ id: number; slug: string; name: string }[]>`
 			select id, slug, name from bot.db_sagas order by id`;
 		let posees = 0;
+		let posesEpisodes = 0;
 		for (const s of sagas) {
 			const b = BORNES_MANGA[s.slug];
-			if (!b) continue;
-			posees++;
+			const e = BORNES_EPISODES[s.slug];
+			if (!b && !e) continue;
+			if (b) posees++;
+			if (e) posesEpisodes++;
 			if (APPLIQUER) {
-				await sql`update bot.db_sagas
-					set manga_volume_start = ${b[0]}, manga_volume_end = ${b[1]}
-					where id = ${s.id}`;
+				if (b) {
+					await sql`update bot.db_sagas
+						set manga_volume_start = ${b[0]}, manga_volume_end = ${b[1]}
+						where id = ${s.id}`;
+				}
+				if (e) {
+					await sql`update bot.db_sagas
+						set episode_series = ${e[0]}, episode_start = ${e[1]}, episode_end = ${e[2]}
+						where id = ${s.id}`;
+				}
 			}
-			console.log(`${APPLIQUER ? "✓" : "·"} ${s.name.padEnd(36)} tomes ${b[0]}–${b[1]}`);
+			const detail = [
+				b ? `tomes ${b[0]}–${b[1]}` : null,
+				e ? `${e[0]} ${e[1]}–${e[2]}` : null,
+			]
+				.filter(Boolean)
+				.join(" · ");
+			console.log(`${APPLIQUER ? "✓" : "·"} ${s.name.padEnd(36)} ${detail}`);
 		}
-		const sans = sagas.length - posees;
+		const sansRien = sagas.filter((s) => !BORNES_MANGA[s.slug] && !BORNES_EPISODES[s.slug]);
 		console.log(
-			`\n${posees} saga(s) bornée(s), ${sans} sans support manga (GT, Daima, films, DBS anime).`
+			`\n${posees} saga(s) bornée(s) sur le manga, ${posesEpisodes} sur les épisodes, ` +
+				`${sansRien.length} sans aucune source mesurable :\n  ${sansRien.map((s) => s.name).join(", ")}`
 		);
 		if (!APPLIQUER) console.log("Simulation — relancer avec --appliquer pour écrire.");
 		process.exit(0);
@@ -277,7 +343,7 @@ try {
 		process.exit(0);
 	}
 
-	// ── --mesure : présence par saga, mesurée sur l'OCR du manga ────────────
+	// ── --mesure : présence par saga, mesurée sur les sources disponibles ───
 	const sagas = (
 		await sql<
 			{
@@ -287,10 +353,15 @@ try {
 				order_idx: number | null;
 				manga_volume_start: number | null;
 				manga_volume_end: number | null;
+				episode_series: string | null;
+				episode_start: number | null;
+				episode_end: number | null;
 			}[]
-		>`select id, slug, name, order_idx, manga_volume_start, manga_volume_end
+		>`select id, slug, name, order_idx, manga_volume_start, manga_volume_end,
+		         episode_series, episode_start, episode_end
 		  from bot.db_sagas
-		  where manga_volume_start is not null and manga_volume_end is not null
+		  where (manga_volume_start is not null and manga_volume_end is not null)
+		     or (episode_start is not null and episode_end is not null)
 		  order by order_idx nulls last, id`
 	).map(
 		(s): Saga => ({
@@ -298,8 +369,11 @@ try {
 			slug: s.slug,
 			name: s.name,
 			orderIdx: s.order_idx,
-			debut: s.manga_volume_start!,
-			fin: s.manga_volume_end!,
+			tomeDebut: s.manga_volume_start,
+			tomeFin: s.manga_volume_end,
+			epSerie: s.episode_series,
+			epDebut: s.episode_start,
+			epFin: s.episode_end,
 		})
 	);
 	if (!sagas.length) {
@@ -307,33 +381,62 @@ try {
 		process.exit(1);
 	}
 
-	// Les 8 222 planches tiennent en mémoire (≈ 1,8 Mo de texte). On les
-	// tokenise UNE fois : chercher 400 noms sur 8 222 planches par expression
-	// régulière prendrait des minutes, un test d'appartenance à un ensemble
+	// Les deux corpus tiennent en mémoire (≈ 2,3 Mo de texte au total) et sont
+	// tokenisés UNE fois : chercher 400 noms par expression régulière sur
+	// 8 000 textes prendrait des minutes, un test d'appartenance à un ensemble
 	// prend quelques secondes.
-	const planches = await sql<{ tome: string; text: string | null }[]>`
-		select tome, text from bot.db_manga_pages
-		where series = 'DB' and tome like 'vol%' and text is not null`;
-
-	interface PlancheIdx {
-		tome: number;
+	interface Texte {
+		/** Tome du manga, ou numéro d'épisode selon le corpus. */
+		num: number;
+		/** Série de l'épisode (corpus anime uniquement). */
+		serie?: string;
 		mots: Set<string>;
 		/** Texte normalisé, pour les graphies en plusieurs mots. */
 		plat: string;
 	}
-	const index: PlancheIdx[] = [];
+	const indexer = (texte: string | null): Pick<Texte, "mots" | "plat"> => {
+		const plat = normalise(texte ?? "");
+		return { plat, mots: new Set(plat.split(" ")) };
+	};
+
+	const planches = await sql<{ tome: string; text: string | null }[]>`
+		select tome, text from bot.db_manga_pages
+		where series = 'DB' and tome like 'vol%' and text is not null`;
+	const corpusManga: Texte[] = [];
 	for (const p of planches) {
 		const tome = Number.parseInt(p.tome.replace(/\D/g, ""), 10);
 		if (!Number.isFinite(tome)) continue;
-		const plat = normalise(p.text ?? "");
-		index.push({ tome, plat, mots: new Set(plat.split(" ")) });
+		corpusManga.push({ num: tome, ...indexer(p.text) });
 	}
-	console.log(`${index.length} planches OCR indexées (série DB, tomes 1–42).`);
+
+	// `synopsis_fr` d'abord : quand la traduction existe elle est plus proche des
+	// graphies françaises des fiches (« Végéta », « Petit Cœur »). Aujourd'hui
+	// aucune ligne n'en porte, mais le jour où le script de traduction tourne,
+	// la mesure suivra sans qu'on y touche.
+	const resumes = await sql<
+		{ series: string; number_in_series: number | null; synopsis: string | null }[]
+	>`select series, number_in_series, coalesce(synopsis_fr, synopsis) as synopsis
+	  from bot.db_episodes
+	  where coalesce(synopsis_fr, synopsis) is not null and number_in_series is not null`;
+	const corpusEpisodes: Texte[] = resumes.map((e) => ({
+		num: e.number_in_series!,
+		serie: e.series,
+		...indexer(e.synopsis),
+	}));
+
+	console.log(
+		`${corpusManga.length} planches OCR (manga DB) et ${corpusEpisodes.length} synopsis d'épisode indexés.`
+	);
 
 	const filtre = opt("personnage");
+	// `visible` : les fiches en double masquées par `doublons-personnages.ts`
+	// (« Son Goku » quand « Goku » existe déjà) ne doivent pas être remesurées —
+	// leurs variantes ne seraient jamais lues, mais elles fausseraient tous les
+	// comptages de ce script.
 	const personnages = await sql<{ id: number; name: string; image: string | null }[]>`
 		select id, name, image from bot.db_characters
-		${filtre ? sql`where name ilike ${`%${filtre}%`}` : sql``}
+		where visible = true
+		${filtre ? sql`and name ilike ${`%${filtre}%`}` : sql``}
 		order by id`;
 
 	// `--reinitialiser` : efface les variantes AMORCÉES avant de remesurer. Sans
@@ -347,61 +450,122 @@ try {
 		console.log(`${supprimees.length} variante(s) amorcée(s) effacée(s) avant remesure.`);
 	}
 
+	// Seuils. Trois planches pour le manga : en dessous on est dans le bruit
+	// d'OCR (mesuré sur « boo », qui touche 4 planches du tome 1 où il n'a rien
+	// à faire). Deux synopsis pour l'anime : un résumé fait 500 à 1 000 signes
+	// et ne cite qu'une poignée de noms, une seule mention peut être une
+	// annonce d'épisode suivant.
+	const SEUIL_PLANCHES = 3;
+	const SEUIL_SYNOPSIS = 2;
+
 	const mesureAt = Date.now();
 	let ecrites = 0;
 	let personnagesTouches = 0;
 	const apercu: string[] = [];
+	let parManga = 0;
+	let parEpisodes = 0;
+	let parLesDeux = 0;
+
+	interface Preuve {
+		saga: Saga;
+		tomes: number[];
+		planches: number;
+		episodes: number[];
+		synopsis: number;
+	}
 
 	for (const p of personnages) {
 		const formes = graphies(p.name);
 		if (!formes.length) continue;
+		const vu = (t: Texte) =>
+			formes.some((f) => (f.includes(" ") ? t.plat.includes(f) : t.mots.has(f)));
 
-		// Planches où l'une des graphies apparaît, par tome.
+		// Comptage par tome, et par (série, épisode).
 		const parTome = new Map<number, number>();
-		for (const pl of index) {
-			const vu = formes.some((f) => (f.includes(" ") ? pl.plat.includes(f) : pl.mots.has(f)));
-			if (vu) parTome.set(pl.tome, (parTome.get(pl.tome) ?? 0) + 1);
+		for (const t of corpusManga) if (vu(t)) parTome.set(t.num, (parTome.get(t.num) ?? 0) + 1);
+		const parEpisode = new Map<string, number>();
+		for (const t of corpusEpisodes) {
+			if (vu(t)) parEpisode.set(`${t.serie}#${t.num}`, (parEpisode.get(`${t.serie}#${t.num}`) ?? 0) + 1);
 		}
-		if (!parTome.size) continue;
+		if (!parTome.size && !parEpisode.size) continue;
 
-		const variantes: { saga: Saga; tomes: number[]; planches: number }[] = [];
+		const preuves: Preuve[] = [];
 		for (const s of sagas) {
 			const tomes: number[] = [];
-			let n = 0;
-			for (let t = s.debut; t <= s.fin; t++) {
-				const c = parTome.get(t);
-				if (c) {
-					tomes.push(t);
-					n += c;
+			let planchesVues = 0;
+			if (s.tomeDebut != null && s.tomeFin != null) {
+				for (let t = s.tomeDebut; t <= s.tomeFin; t++) {
+					const c = parTome.get(t);
+					if (c) {
+						tomes.push(t);
+						planchesVues += c;
+					}
 				}
 			}
-			// Seuil : trois planches au moins dans la saga. En dessous, on est
-			// dans le bruit d'OCR (un nom mal lu, une couverture, un sommaire) —
-			// mesuré sur « boo », qui touche 4 planches du tome 1 où il n'a
-			// évidemment rien à faire.
-			if (n >= 3) variantes.push({ saga: s, tomes, planches: n });
+			const episodes: number[] = [];
+			let synopsisVus = 0;
+			if (s.epSerie && s.epDebut != null && s.epFin != null) {
+				for (let n = s.epDebut; n <= s.epFin; n++) {
+					const c = parEpisode.get(`${s.epSerie}#${n}`);
+					if (c) {
+						episodes.push(n);
+						synopsisVus += c;
+					}
+				}
+			}
+			const assezManga = planchesVues >= SEUIL_PLANCHES;
+			const assezAnime = synopsisVus >= SEUIL_SYNOPSIS;
+			if (!assezManga && !assezAnime) continue;
+			preuves.push({
+				saga: s,
+				tomes: assezManga ? tomes : [],
+				planches: assezManga ? planchesVues : 0,
+				episodes: assezAnime ? episodes : [],
+				synopsis: assezAnime ? synopsisVus : 0,
+			});
 		}
-		if (!variantes.length) continue;
+		if (!preuves.length) continue;
 		personnagesTouches++;
 
 		if (apercu.length < 25) {
 			apercu.push(
-				`${p.name.padEnd(22)} ${variantes.map((v) => `${v.saga.name.replace(/^Saga /, "")}(${v.planches})`).join(" · ")}`
+				`${p.name.padEnd(22)} ${preuves
+					.map((v) => {
+						const marques = [
+							v.planches ? `${v.planches}p` : null,
+							v.synopsis ? `${v.synopsis}é` : null,
+						]
+							.filter(Boolean)
+							.join("/");
+						return `${v.saga.name.replace(/^Saga /, "")}(${marques})`;
+					})
+					.join(" · ")}`
 			);
 		}
 
+		for (const v of preuves) {
+			if (v.planches && v.synopsis) parLesDeux++;
+			else if (v.planches) parManga++;
+			else parEpisodes++;
+		}
+
 		if (!APPLIQUER) {
-			ecrites += variantes.length;
+			ecrites += preuves.length;
 			continue;
 		}
 
-		for (const v of variantes) {
+		for (const v of preuves) {
 			const slugSaga = v.saga.slug.replace(/_/g, "-");
 			const slug = `${normalise(p.name).replace(/ /g, "-")}-${slugSaga}`;
+			const methode = [v.planches ? "ocr-manga" : null, v.synopsis ? "synopsis-episodes" : null]
+				.filter(Boolean)
+				.join("+");
 			const evidence = {
-				methode: "ocr-manga",
+				methode,
 				tomes: v.tomes,
 				planches: v.planches,
+				episodes: v.episodes,
+				synopsis: v.synopsis,
 				graphies: formes,
 				mesureAt,
 			};
@@ -411,16 +575,21 @@ try {
 			await sql`
 				insert into bot.db_character_variants
 					(character_id, saga_id, slug, label, display_name,
-					 first_volume, last_volume, origin, evidence, sort_order)
+					 first_volume, last_volume, first_episode, last_episode,
+					 origin, evidence, sort_order)
 				values (${p.id}, ${v.saga.id}, ${slug}, ${v.saga.name},
 					${`${p.name} — ${v.saga.name}`},
-					${v.tomes[0]!}, ${v.tomes.at(-1)!}, 'ocr-manga', ${sql.json(evidence)},
-					${v.saga.orderIdx ?? 0})
+					${v.tomes[0] ?? null}, ${v.tomes.at(-1) ?? null},
+					${v.episodes[0] ?? null}, ${v.episodes.at(-1) ?? null},
+					${methode}, ${sql.json(evidence)}, ${v.saga.orderIdx ?? 0})
 				on conflict (character_id, saga_id) do update set
-					first_volume = excluded.first_volume,
-					last_volume  = excluded.last_volume,
-					evidence     = excluded.evidence,
-					sort_order   = excluded.sort_order
+					first_volume  = excluded.first_volume,
+					last_volume   = excluded.last_volume,
+					first_episode = excluded.first_episode,
+					last_episode  = excluded.last_episode,
+					origin        = excluded.origin,
+					evidence      = excluded.evidence,
+					sort_order    = excluded.sort_order
 				where bot.db_character_variants.origin is distinct from 'editorial'`;
 			ecrites++;
 		}
@@ -429,6 +598,9 @@ try {
 	console.log(`\n${apercu.join("\n")}`);
 	console.log(
 		`\n${personnagesTouches} personnage(s) présent(s) dans au moins une saga, ${ecrites} variante(s) ${APPLIQUER ? "écrites" : "à écrire"}.`
+	);
+	console.log(
+		`Preuve : ${parManga} par le manga seul, ${parEpisodes} par les synopsis seuls, ${parLesDeux} par les deux.`
 	);
 	if (!APPLIQUER) console.log("Simulation — relancer avec --appliquer pour écrire.");
 } finally {

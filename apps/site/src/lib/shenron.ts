@@ -613,7 +613,12 @@ export interface CharacterVariant {
 	highlights: string[] | null;
 	firstVolume: number | null;
 	lastVolume: number | null;
-	/** "ocr-manga" (présence mesurée) ou "editorial" (rédigée à la main). */
+	firstEpisode: number | null;
+	lastEpisode: number | null;
+	/** Série des épisodes de la saga (« DBZ », « DBGT »…) — la numérotation
+	 *  repart à 1 d'une série à l'autre, l'afficher sans elle induirait en erreur. */
+	episodeSeries: string | null;
+	/** Méthode de mesure ("ocr-manga", "synopsis-episodes", les deux) ou "editorial". */
 	origin: string | null;
 	evidence: VariantEvidence | null;
 	sagaId: number;
@@ -658,6 +663,9 @@ export async function getShenronCharacterVariants(
 			highlights: v.highlights ?? null,
 			firstVolume: v.firstVolume,
 			lastVolume: v.lastVolume,
+			firstEpisode: v.firstEpisode,
+			lastEpisode: v.lastEpisode,
+			episodeSeries: s.episodeSeries,
 			origin: v.origin,
 			evidence: v.evidence ?? null,
 			sagaId: s.id,
@@ -682,8 +690,12 @@ export interface SagaCharacter {
 	role: string | null;
 	firstVolume: number | null;
 	lastVolume: number | null;
-	/** Nombre de planches où le nom a été relevé, quand la variante est mesurée. */
+	/** Nombre de planches du manga où le nom a été relevé. */
 	planches: number | null;
+	/** Nombre de synopsis d'épisode où le nom a été relevé. */
+	synopsis: number | null;
+	/** Poids de preuve, toutes sources confondues — sert au tri. */
+	poids: number;
 }
 
 /**
@@ -716,9 +728,14 @@ export async function getShenronSagaCharacters(sagaId: number): Promise<SagaChar
 				role: v.role,
 				firstVolume: v.firstVolume,
 				lastVolume: v.lastVolume,
-				planches: v.evidence?.planches ?? null,
+				planches: v.evidence?.planches || null,
+				synopsis: v.evidence?.synopsis || null,
+				// Une saga sans manga (GT, Daima, Super) n'a QUE des synopsis : trier
+				// sur les seules planches y mettrait tout le monde à zéro, donc dans
+				// l'ordre alphabétique — Bébi après Baba.
+				poids: (v.evidence?.planches ?? 0) + (v.evidence?.synopsis ?? 0) * 3,
 			}))
-			.sort((a, b) => (b.planches ?? 0) - (a.planches ?? 0) || a.name.localeCompare(b.name, "fr"));
+			.sort((a, b) => b.poids - a.poids || a.name.localeCompare(b.name, "fr"));
 
 		// La base porte des fiches en double pour plusieurs personnages majeurs
 		// (« Goku » id 1 ET « Son Goku », « Gohan » ET « Son Gohan ») : mesurées
@@ -732,14 +749,14 @@ export async function getShenronSagaCharacters(sagaId: number): Promise<SagaChar
 			const dejaLa = vues.get(cle);
 			if (
 				!dejaLa ||
-				(p.planches ?? 0) > (dejaLa.planches ?? 0) ||
-				((p.planches ?? 0) === (dejaLa.planches ?? 0) && p.characterId < dejaLa.characterId)
+				p.poids > dejaLa.poids ||
+				(p.poids === dejaLa.poids && p.characterId < dejaLa.characterId)
 			) {
 				vues.set(cle, p);
 			}
 		}
 		return [...vues.values()].sort(
-			(a, b) => (b.planches ?? 0) - (a.planches ?? 0) || a.name.localeCompare(b.name, "fr")
+			(a, b) => b.poids - a.poids || a.name.localeCompare(b.name, "fr")
 		);
 	} catch (e) {
 		console.error("[shenron] getShenronSagaCharacters a échoué:", e);

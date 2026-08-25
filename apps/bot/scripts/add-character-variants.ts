@@ -58,6 +58,8 @@ async function main() {
 				technique_ids jsonb,
 				first_volume  bigint,
 				last_volume   bigint,
+				first_episode bigint,
+				last_episode  bigint,
 				origin        text,
 				evidence      jsonb,
 				sort_order    bigint  NOT NULL DEFAULT 0,
@@ -88,17 +90,32 @@ async function main() {
 			ON bot."db_character_variants" (saga_id) WHERE visible
 		`);
 
+		// Colonnes ajoutées après coup : la table existe déjà en production.
+		for (const col of ["first_episode", "last_episode"]) {
+			await sql.unsafe(
+				`ALTER TABLE bot."db_character_variants" ADD COLUMN IF NOT EXISTS ${col} bigint`
+			);
+		}
+
 		// Bornes manga des sagas — sans elles, aucune mesure de présence possible.
 		for (const col of [
 			"manga_volume_start",
 			"manga_volume_end",
 			"manga_chapter_start",
 			"manga_chapter_end",
+			// Bornes d'ÉPISODES : la seconde source mesurable. 18 sagas sur 33 n'ont
+			// aucun support manga (GT, Daima, DBS anime, films) — leur présence se
+			// mesure sur les synopsis de `db_episodes`, qui nomment les personnages
+			// en clair. `episode_series` est indispensable : la numérotation
+			// recommence à 1 dans chaque série (DBZ #1 ≠ DBGT #1).
+			"episode_start",
+			"episode_end",
 		]) {
 			await sql.unsafe(`ALTER TABLE bot."db_sagas" ADD COLUMN IF NOT EXISTS ${col} bigint`);
 		}
+		await sql.unsafe(`ALTER TABLE bot."db_sagas" ADD COLUMN IF NOT EXISTS episode_series text`);
 
-		console.log("✓ bot.db_character_variants (+ index) et bornes manga sur bot.db_sagas");
+		console.log("✓ bot.db_character_variants (+ index) et bornes manga/épisodes sur bot.db_sagas");
 	} finally {
 		await sql.end({ timeout: 5 });
 	}

@@ -128,7 +128,14 @@ Les 11 778 planches de `bot.db_databooks.pages` portent une transcription produi
 
 `bot.db_character_variants` (PG-only, créée par `apps/bot/scripts/add-character-variants.ts`) porte **une ligne par couple (personnage, saga)** — « Goku, saga Namek ». Pas de fiche dupliquée dans `db_characters` : l'identité reste une, la fiche gagne une frise de ses états successifs (`components/wiki/CharacterSagaVariants.tsx`, panneau « Au fil des sagas »), et la page saga gagne sa liste de personnages (`getShenronSagaCharacters`). Une variante ne porte que ce qui **change** d'une saga à l'autre (apparence, forme, puissance, rôle, faits marquants) ; tout champ NULL retombe sur `db_characters` à l'affichage.
 
-L'amorçage est **mesuré, pas écrit** : `apps/site/scripts/variantes-par-saga.ts --mesure` croise l'OCR VF du manga (`bot.db_manga_pages`, 7 830 planches des 42 tomes) avec les bornes de tomes de chaque saga (`db_sagas.manga_volume_start/end`, posées par `--bornes`). Résultat au 2026-08-25 : **83 personnages, 249 variantes**. Chaque ligne garde sa preuve (`evidence` : tomes, planches, graphies cherchées).
+L'amorçage est **mesuré, pas écrit** : `apps/site/scripts/variantes-par-saga.ts --mesure` croise **deux corpus** avec les bornes de chaque saga (`--bornes` les pose en base) :
+
+| Source | Corpus | Bornes sur `db_sagas` | Seuil |
+|---|---|---|---|
+| `ocr-manga` | `bot.db_manga_pages`, 7 830 planches des 42 tomes (série DB) | `manga_volume_start/end` (15 sagas) | ≥ 3 planches |
+| `synopsis-episodes` | `bot.db_episodes.synopsis`, 636 résumés FR | `episode_series` + `episode_start/end` (25 sagas) | ≥ 2 résumés |
+
+Résultat au 2026-08-25 : **122 personnages, 355 variantes** (123 par le manga seul, 140 par les synopsis seuls, 92 par les deux). Chaque ligne garde sa preuve (`evidence` : tomes, planches, épisodes, résumés, graphies cherchées) et sa méthode.
 
 ### Règles dures
 
@@ -136,8 +143,8 @@ L'amorçage est **mesuré, pas écrit** : `apps/site/scripts/variantes-par-saga.
 2. **Le relevé prouve une citation, pas une apparition.** Un personnage mort est nommé pendant des tomes. L'UI le dit mot pour mot (« Une citation n'est pas une apparition ») ; ne jamais présenter le comptage comme un casting vérifié.
 3. **`origin = 'editorial'` est un verrou.** Le script ne réécrit jamais une variante reprise à la main (`where origin is distinct from 'editorial'`). Corollaire : après avoir resserré les graphies, relancer avec `--reinitialiser --appliquer`, sinon les faux positifs de la passe précédente restent en base.
 4. **Un nom qui est aussi un mot français n'est pas mesurable.** La fiche « Tard » remontait dans 10 sagas (« trois jours plus tard »), « Slump » dans 8 (notes de traduction et bio de l'auteur en fin de tome). Deux listes d'exclusion documentées dans le script (`MOTS_DU_RECIT`, `HORS_DRAGON_BALL`) ; ces personnages se saisissent à la main.
-5. **Série DB seulement.** Les planches `series='DBS'` sont indexées par identifiant interne de chapitre (`ch1315`…), pas par numéro publié : aucun rattachement fiable aux sagas Moro/Granolah/Black Freezer. GT, Daima et les films n'ont pas de manga.
-6. **`db_characters` porte des doublons** (« Goku » id 1 ET « Son Goku », idem Gohan). Les deux reçoivent leurs variantes ; c'est la **lecture** de la page saga qui dédoublonne sur le nom racine. Ne pas confondre ce masquage d'affichage avec un correctif des données.
+5. **L'anime n'est pas le manga.** Une variante `synopsis-episodes` seule atteste une présence dans l'adaptation, qui peut être du remplissage : l'UI le dit (« cette saga n'a pas de manga »). 8 sagas n'ont AUCUNE source mesurable — films (Broly, Super Hero), OAV (Bardock, Post-Buu) et manga-only de Super (Moro, Granolah, Black Freezer, Patrouille Galactique) : les planches `series='DBS'` sont indexées par identifiant interne de chapitre (`ch1315`…), pas par numéro publié.
+6. **`db_characters` portait 16 doublons**, masqués le 2026-08-25 par `apps/site/scripts/doublons-personnages.ts` (« Son Goku » quand « Goku » existe, « Chichi »/« Chi-Chi », les huit Kaïo/Kaïo Shin…). Masquage via `visible = false`, **jamais** de suppression — `--demasquer` annule tout. Le juge est le **nom japonais** : identique ⇒ même personne quelles que soient les races saisies (`チチ` pour Chi-Chi/Chichi) ; différent ⇒ homonymes à laisser tranquilles (`マロン` l'ex-petite amie de Krilin ≠ `マーロン` sa fille — le piège classique). Sans nom japonais, deux races renseignées et différentes suffisent à écarter (`Abra` Neko Majin ≠ `Âbra` Démon). Reste **un** arbitrage humain : `11:Krillin` et `706:Krilin` ont chacun un article long et 4 sections — fusionner demande de les lire.
 
 ## Site — module d'édition (`components/editor/`)
 
