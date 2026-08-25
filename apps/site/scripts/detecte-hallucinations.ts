@@ -108,25 +108,53 @@ function zonePeriodique(
 	min: number,
 	max: number,
 ): { motif: string; tours: number; couverture: number } | null {
+	const n = texte.length;
+	if (n < min * 2) return null;
+
 	let meilleur: { motif: string; tours: number; couverture: number } | null = null;
-	for (let p = min; p <= Math.min(max, Math.floor(texte.length / 2)); p++) {
-		for (let debut = 0; debut + p * 2 <= texte.length; debut++) {
-			const motif = texte.slice(debut, debut + p);
-			if (segmentUniforme(motif)) continue;
-			let tours = 1;
-			while (
-				texte.startsWith(motif, debut + tours * p) &&
-				debut + (tours + 1) * p <= texte.length
-			) {
-				tours++;
+
+	// Pour une période p donnée, une plage où `t[i] === t[i + p]` de longueur L
+	// signifie L/p + 1 tours du motif. Un seul parcours par période suffit donc,
+	// au lieu d'essayer chaque position de départ.
+	//
+	// La version naïve — pour chaque début, pour chaque période, un startsWith
+	// en boucle — est quadratique et met plus de sept minutes sur ce corpus.
+	// Elle a expiré en production avant d'être remplacée par celle-ci.
+	for (let p = min; p <= Math.min(max, n >> 1); p++) {
+		let run = 0;
+		for (let i = 0; i + p < n; i++) {
+			if (texte[i] === texte[i + p]) {
+				run++;
+				continue;
 			}
-			if (tours < 2) continue;
+			if (run >= p) {
+				const tours = Math.floor(run / p) + 1;
+				const debut = i - run;
+				const zone = tours * p;
+				if (
+					(!meilleur || tours > meilleur.tours) &&
+					!segmentUniforme(texte.slice(debut, debut + zone))
+				) {
+					meilleur = {
+						motif: texte.slice(debut, debut + p),
+						tours,
+						couverture: zone / n,
+					};
+				}
+			}
+			run = 0;
+		}
+		// La dernière plage se termine avec le texte, jamais sur une rupture.
+		if (run >= p) {
+			const tours = Math.floor(run / p) + 1;
+			const debut = n - p - run;
 			const zone = tours * p;
-			if (segmentUniforme(texte.slice(debut, debut + zone))) continue;
-			if (!meilleur || tours > meilleur.tours) {
-				meilleur = { motif, tours, couverture: zone / texte.length };
+			if (
+				(!meilleur || tours > meilleur.tours) &&
+				!segmentUniforme(texte.slice(debut, debut + zone))
+			) {
+				meilleur = { motif: texte.slice(debut, debut + p), tours, couverture: zone / n };
 			}
-			debut += Math.max(0, zone - p); // ne pas re-parcourir la zone trouvée
 		}
 	}
 	return meilleur;
@@ -518,6 +546,23 @@ const ARBITRAGES: Record<string, string> = {
 		"REFUSÉ — Gale, garde du corps de DBGT ; la planche porte sa traduction « シーラ&ゲール / Sheera & Gale ».",
 	"チャフチャイ→チャプチャイ": "CORRIGÉ le 2026-08-25.",
 	"チャブチャイ→チャプチャイ": "CORRIGÉ le 2026-08-25.",
+
+	// Formes que le crible JMdict écartait comme mots réels, reprises une à une
+	// le 2026-08-25 : sur 52 écartées, 35 attestées, 4 rendues au corpus.
+	"スラック→スラッグ":
+		"CORRIGÉ (52 occ.) — mais MIXTE : #82 p.65, Fortune Book, parle de « slack » " +
+		"au sens de récession (不況, 底値). Deux suffixes protégés dans le module.",
+	"ゴット→ゴッド": "CORRIGÉ (16 occ.) — 超サイヤ人ゴットSSベジータ, ゴットかめはめ波, aucune exception.",
+	"オッズ→オッス": "CORRIGÉ (10 occ.) — オッズ！オラ悟空 ; jamais « odds ».",
+	"シース→ジース": "CORRIGÉ (4 occ.) — membre du commando Ginyu, シースとバータ.",
+	"パーツ→バーツ":
+		"REFUSÉ — 135 occurrences, TOUJOURS « pièces » : オーラのパーツ, 眼球パーツ. " +
+		"Le plus gros faux positif possible du corpus.",
+	"バーツ→ハーツ": "REFUSÉ — ce n'est pas Hearts mais パーツ mal lu : 筋肉バーツ, 顔バーツ付き.",
+	"ピート→ビート":
+		"REFUSÉ — le mécanicien de Dub & Peter 1, manga de Toriyama : 天才ピートのつくったピーター.",
+	"シータ→ジータ": "REFUSÉ — un ベジータ amputé, sous le titre latin VEGETA.",
+	"クルド→グルド": "REFUSÉ — 2 occurrences sur une planche de cartes, contexte non identifiant.",
 };
 
 interface TrouLexique {
@@ -807,9 +852,13 @@ if (!SANS_LEXIQUE && !FAMILLE) {
 		const juges = ordonnes.filter((t) => ARBITRAGES[`${t.fautif}→${t.juste}`]);
 
 		for (const t of neufs.slice(0, 40)) {
+			// Sans nuance ici, ce libellé mentirait : プロリー est une vraie faute
+			// dont toutes les occurrences restantes sont agglutinées, tandis que
+			// ゴニック n'est qu'un morceau de ドラゴニック. Les deux se ressemblent
+			// dans le rapport et se distinguent seulement en lisant la planche.
 			const position =
 				t.nettes === 0
-					? "TOUTES agglutinées — probable sous-chaîne, pas une faute"
+					? "TOUTES agglutinées — sous-chaîne accidentelle, OU nom collé à son voisin : lire la planche"
 					: `${t.nettes} nette(s), ${t.agglutinees} agglutinée(s)`;
 			console.log(
 				`  ${t.fautif} → ${t.juste}   ${t.planches} planche(s), ${t.occurrences} occ., forme juste ${t.rapport}× plus attestée`,
