@@ -58,6 +58,7 @@ export type CodeArtefact =
 	| "marqueur-page"
 	| "ellipse-points"
 	| "ellipse-midot"
+	| "ellipse-nakaguro"
 	| "remplacement-terminal";
 
 const BS = String.fromCharCode(92);
@@ -491,8 +492,8 @@ export function normaliserEllipsesPoints(texte: string): { texte: string; correc
  * médian demi-chasse n'est employé comme séparateur**. Les 4 runs de longueur
  * 1 relevés sont des ellipses tronquées en fin de segment (« そして･･････
  * とうとう･ », #65 p.43), et les composés katakana du corpus utilisent le
- * point médian **pleine chasse** U+30FB, un autre caractère, que cette règle
- * ne voit pas.
+ * point médian **pleine chasse** U+30FB, un autre caractère, traité à part par
+ * `normaliserEllipsesNakaguro` avec un seuil plus strict.
  *
  * Distribution des runs mesurée : 3 points x1 266, 4 x30, 6 x67, 8 x1, plus
  * 2 x3 et 1 x4. Comme pour les points ASCII, 6 et plus donnent une ellipse
@@ -501,6 +502,40 @@ export function normaliserEllipsesPoints(texte: string): { texte: string; correc
 export function normaliserEllipsesMidot(texte: string): { texte: string; corrections: number } {
 	let n = 0;
 	const sortie = texte.replace(/\uff65{2,}/g, (m) => {
+		n++;
+		return m.length >= 6 ? "\u2026\u2026" : "\u2026";
+	});
+	return { texte: sortie, corrections: n };
+}
+
+/**
+ * Point médian **pleine chasse** (U+30FB) répété au moins trois fois, employé
+ * comme ellipse : « 事件が発生・・・！ », « そして・・・！ », « なんとか波・・・」 ».
+ * **333 planches, 532 runs** (528 de trois points, 4 de quatre).
+ *
+ * Même défaut de fond que `normaliserEllipsesMidot` — une ellipse écrite avec
+ * le mauvais caractère — mais le risque est ici d'un tout autre ordre, car ce
+ * caractère-ci **est** le séparateur légitime du japonais : 15 317 occurrences
+ * isolées dans le corpus, sur 4 109 planches (« ミスター・サタン »,
+ * « ドラゴン・ボール »).
+ *
+ * Le seuil de **trois** répétitions n'est donc pas de la prudence de principe,
+ * il est imposé par la mesure. Les 18 runs de longueur exactement 2 ont été
+ * lus un par un : **aucun n'est une ellipse**, ce sont des séparateurs
+ * doublés, et le plus souvent des **puces de liste** —
+ * « ・オーブングランデー・・本編前半・・本編後半・・エピソードに選ぶ » (#53),
+ * « ・パルスト/ブライズ・・登録中 » (#259),
+ * « サヤ人・・宇宙人の・外の世界 » (#12 p.172). Les convertir en ellipse
+ * démolirait une énumération. Ils restent intacts.
+ *
+ * À l'inverse, les 532 runs de trois et plus sont sans ambiguïté : un
+ * séparateur ne se triple jamais. Le contre-exemple le plus retors du corpus
+ * le confirme — « 「黒・魔・導・爆・裂・破」・・・！！ » (#169) mêle les deux
+ * usages dans la même ligne, et seul le run final est touché.
+ */
+export function normaliserEllipsesNakaguro(texte: string): { texte: string; corrections: number } {
+	let n = 0;
+	const sortie = texte.replace(/\u30fb{3,}/g, (m) => {
 		n++;
 		return m.length >= 6 ? "\u2026\u2026" : "\u2026";
 	});
@@ -605,6 +640,7 @@ export function corrigerArtefactsModele(texte: string): ResultatArtefacts {
 	etape("marqueur-page", retirerMarqueursPage);
 	etape("ellipse-points", normaliserEllipsesPoints);
 	etape("ellipse-midot", normaliserEllipsesMidot);
+	etape("ellipse-nakaguro", normaliserEllipsesNakaguro);
 	etape("remplacement-terminal", retirerRemplacementTerminal);
 
 	return { texte: s, rapport, modifie: s !== original };

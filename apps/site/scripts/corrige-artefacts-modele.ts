@@ -177,6 +177,7 @@ const LIBELLES: Record<CodeArtefact, string> = {
 	"marqueur-page": "Marqueur de page halluciné",
 	"ellipse-points": "Points ASCII au contact du japonais",
 	"ellipse-midot": "Point médian demi-chasse répété",
+	"ellipse-nakaguro": "Point médian pleine chasse répété (>=3)",
 	"remplacement-terminal": "Caractère de remplacement orphelin",
 };
 

@@ -12,6 +12,7 @@ import {
 	couperSerialisationJson,
 	decoderEntitesHtml,
 	normaliserEllipsesMidot,
+	normaliserEllipsesNakaguro,
 	normaliserEllipsesPoints,
 	normaliserLatexHallucine,
 	reduireEchappementsRepetes,
@@ -308,10 +309,39 @@ describe("normaliserEllipsesMidot", () => {
 		expect(normaliserEllipsesMidot(source)).toEqual({ texte: source, corrections: 0 });
 	});
 
-	test("ne touche pas au point médian pleine chasse, séparateur légitime", () => {
-		// 16 562 occurrences dans le corpus (« ミスター・サタン »).
+	test("ignore le point médian pleine chasse : c'est une autre règle", () => {
+		// `normaliserEllipsesNakaguro` s'en charge, avec un seuil plus strict.
 		const source = "ミスター・サタン\nなんとか波・・・";
 		expect(normaliserEllipsesMidot(source)).toEqual({ texte: source, corrections: 0 });
+	});
+});
+
+describe("normaliserEllipsesNakaguro", () => {
+	test("convertit un point médian pleine chasse triplé", () => {
+		// #182 : « 悟空たちが力を失う事件が発生・・・！ ».
+		const { texte, corrections } = normaliserEllipsesNakaguro("事件が発生・・・！");
+		expect(corrections).toBe(1);
+		expect(texte).toBe("事件が発生…！");
+	});
+
+	test("ne touche pas au séparateur isolé", () => {
+		// 15 317 occurrences sur 4 109 planches : la population à protéger.
+		const source = "ミスター・サタン と ドラゴン・ボール";
+		expect(normaliserEllipsesNakaguro(source)).toEqual({ texte: source, corrections: 0 });
+	});
+
+	test("ne touche pas au séparateur doublé, qui est une puce de liste", () => {
+		// #12 p.172 et #53 : les 18 runs de longueur 2 du corpus ont été lus un
+		// par un, aucun n'est une ellipse.
+		const source = "サヤ人・・宇宙人の・外の世界" + "\n" + "・オーブングランデー・・本編前半・・本編後半";
+		expect(normaliserEllipsesNakaguro(source)).toEqual({ texte: source, corrections: 0 });
+	});
+
+	test("ne touche qu'à l'ellipse quand les deux usages cohabitent", () => {
+		// #169 : les kanji séparés un à un, puis l'ellipse finale.
+		const { texte, corrections } = normaliserEllipsesNakaguro("「黒・魔・導・爆・裂・破」・・・！！");
+		expect(corrections).toBe(1);
+		expect(texte).toBe("「黒・魔・導・爆・裂・破」…！！");
 	});
 });
 
@@ -372,7 +402,7 @@ describe("corrigerArtefactsModele", () => {
 
 	test("rapporte une entrée par règle, même à zéro correction", () => {
 		const r = corrigerArtefactsModele("孫悟空");
-		expect(r.rapport.length).toBe(12);
+		expect(r.rapport.length).toBe(13);
 		expect(r.rapport.every((x) => x.corrections === 0)).toBe(true);
 	});
 });
