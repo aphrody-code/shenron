@@ -36,7 +36,11 @@
  * commentée AVANT la ligne active).
  */
 import postgres from "postgres";
-import { NOMS_PROPRES_MAL_LUS, detaillerNomsPropres } from "../src/lib/databooks-ocr/noms-propres";
+import {
+	AGGLUTINATIONS_VALIDEES_A_LA_MAIN,
+	NOMS_PROPRES_MAL_LUS,
+	detaillerNomsPropres,
+} from "../src/lib/databooks-ocr/noms-propres";
 import { origineSite } from "./_origine-site";
 
 const args = process.argv.slice(2);
@@ -121,7 +125,15 @@ const modifications: Modification[] = [];
 const ecartesSecurite: { planche: Planche; ratio: number }[] = [];
 const totaux = new Map<string, { correct: string; fr: string; n: number; planches: number; ouvrages: Set<string> }>();
 
-const parGraphie = new Map(NOMS_PROPRES_MAL_LUS.map((f) => [f.lu, f]));
+/**
+ * Libellé à afficher pour une graphie rencontrée : le nom français pour une
+ * paire ordinaire, la planche d'origine pour une chaîne agglutinée — c'est
+ * ce qui permet au relecteur de retrouver le cas qui a été tranché à la main.
+ */
+const LIBELLE = new Map<string, string>([
+	...NOMS_PROPRES_MAL_LUS.map((f) => [f.lu, f.fr] as [string, string]),
+	...AGGLUTINATIONS_VALIDEES_A_LA_MAIN.map((a) => [a.lu, `agglutination ${a.planche} — ${a.note}`] as [string, string]),
+]);
 
 for (const p of planches) {
 	const { texte, corrections, details } = detaillerNomsPropres(p.texte);
@@ -130,7 +142,7 @@ for (const p of planches) {
 	for (const d of details) {
 		const acc = totaux.get(d.lu) ?? {
 			correct: d.correct,
-			fr: parGraphie.get(d.lu)?.fr ?? "?",
+			fr: LIBELLE.get(d.lu) ?? "?",
 			n: 0,
 			planches: 0,
 			ouvrages: new Set<string>(),
@@ -153,7 +165,9 @@ console.log("=".repeat(78));
 console.log("NOMS PROPRES MAL LUS — confusion sourde / sonore");
 console.log("=".repeat(78));
 const totalCorrections = [...totaux.values()].reduce((s, v) => s + v.n, 0);
-console.log(`${totaux.size} graphie(s) distincte(s) rencontrée(s) sur ${NOMS_PROPRES_MAL_LUS.length} en table`);
+console.log(
+	`${totaux.size} graphie(s) distincte(s) rencontrée(s) sur ${NOMS_PROPRES_MAL_LUS.length} paire(s) + ${AGGLUTINATIONS_VALIDEES_A_LA_MAIN.length} agglutination(s) en table`,
+);
 console.log(`${totalCorrections} correction(s) sur ${modifications.length} planche(s) / ${planches.length} examinées\n`);
 
 const tri = [...totaux.entries()].sort((a, b) => b[1].n - a[1].n);

@@ -5,6 +5,7 @@
  */
 import { describe, expect, test } from "bun:test";
 import {
+	AGGLUTINATIONS_VALIDEES_A_LA_MAIN,
 	NOMS_PROPRES_MAL_LUS,
 	corrigerNomsPropres,
 	detaillerNomsPropres,
@@ -240,6 +241,104 @@ describe("corrigerNomsPropres", () => {
 		// chaque paire conserve le nombre de caractères.
 		for (const f of NOMS_PROPRES_MAL_LUS) {
 			expect(f.correct.length).toBe(f.lu.length);
+		}
+	});
+});
+
+describe("agglutinations tranchées à la main", () => {
+	test("chaque chaîne ancrée est corrigée", () => {
+		for (const a of AGGLUTINATIONS_VALIDEES_A_LA_MAIN) {
+			const { texte } = detaillerNomsPropres(a.lu);
+			expect(texte).toBe(a.correct);
+		}
+	});
+
+	test("aucune chaîne ancrée n'est réécrite une seconde fois", () => {
+		for (const a of AGGLUTINATIONS_VALIDEES_A_LA_MAIN) {
+			const { texte, corrections } = detaillerNomsPropres(a.correct);
+			expect(texte).toBe(a.correct);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les cas réels, dans leur phrase d'origine", () => {
+		// Chaque texte est la ligne telle qu'elle figure en base.
+		const cas: [string, string][] = [
+			["### ウバブーアルvsドラキュラマン", "### ウバプーアルvsドラキュラマン"],
+			["伝説の超サイヤンフロリーが再登場!!", "伝説の超サイヤンブロリーが再登場!!"],
+			["764 トランクスフリーサ親子を倒す", "764 トランクスフリーザ親子を倒す"],
+			["バトルタイプパーサーカー\n\nHP 3700", "バトルタイプバーサーカー\n\nHP 3700"],
+			["暗黒帝国のトップメチカフラが動き出す", "暗黒帝国のトップメチカブラが動き出す"],
+			["第6宇宙戦士\nヒット&操リリシャンバ", "第6宇宙戦士\nヒット&操リリシャンパ"],
+			["モビカンモビカンと対戦した選手", "モヒカンモヒカンと対戦した選手"],
+		];
+		for (const [avant, apres] of cas) {
+			expect(detaillerNomsPropres(avant).texte).toBe(apres);
+		}
+	});
+
+	test("la sous-chaîne qui a motivé la garde reste intacte", () => {
+		// `パーボン` est une sous-chaîne de `スーパーボンバーマン` : sept
+		// occurrences du corpus, toutes le jeu de Hudson. C'est le contre-exemple
+		// qui interdit de dégarder `パーサーカー` et consorts.
+		for (const texte of [
+			"スーパーボンバーマン4",
+			"走る爆弾男スーパーボンバーマン5 59",
+			"スーパーボンバーマンばにっくポンバーW／発売元・ハドソン",
+		]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les agglutinations refusées traversent intactes", () => {
+		// Six lectures que rien ne prouve : deux planches hallucinées, une
+		// planche corrompue, un kana qui peut appartenir au mot suivant, et un
+		// `ン` dont on ne sait pas ce qu'il devient.
+		for (const texte of [
+			"このシャネンバクは、超サイMANの骨格に",
+			"ターレースサーボン・アリエーナの超決戦",
+			"スーパー ALL PARK フロリースペichy!!",
+			"恐怖の戦士フロリーカを収集せよ",
+			"ナント! フリーサンも..?!",
+		]) {
+			const { texte: sortie, corrections } = detaillerNomsPropres(texte);
+			expect(sortie).toBe(texte);
+			expect(corrections).toBe(0);
+		}
+	});
+
+	test("les deux corrections partielles ne supposent aucun caractère", () => {
+		// On répare le dakuten, on n'ajoute ni ne retire rien : `フリーザファミリー`
+		// n'existe nulle part dans le corpus, et `カ`/`オ` n'est pas un dakuten.
+		expect(detaillerNomsPropres("フリーサアミリーを引き連れて").texte).toBe("フリーザアミリーを引き連れて");
+		expect(detaillerNomsPropres("HJ7-41 バイカフロリー").texte).toBe("HJ7-41 バイカブロリー");
+		for (const a of AGGLUTINATIONS_VALIDEES_A_LA_MAIN) {
+			expect(a.correct.length).toBe(a.lu.length);
+		}
+	});
+
+	test("une chaîne ancrée répare tous les noms qu'elle porte", () => {
+		// La liste du jeu Famicom écrit chaque nom deux fois de suite ; une
+		// seule substitution doit réparer les deux.
+		const { texte, details } = detaillerNomsPropres("化ブーアルブーアルバトル");
+		expect(texte).toBe("化プーアルプーアルバトル");
+		expect(details).toEqual([
+			{ lu: "化ブーアルブーアル", correct: "化プーアルプーアル", n: 1, agglutine: true },
+		]);
+	});
+
+	test("aucune chaîne ancrée n'est un mot japonais isolé", () => {
+		// Chacune contient au moins un caractère de contexte au-delà du nom :
+		// c'est ce qui remplace la frontière, donc c'est ce qui doit exister.
+		const fautives = NOMS_PROPRES_MAL_LUS.map((f) => f.lu);
+		for (const a of AGGLUTINATIONS_VALIDEES_A_LA_MAIN) {
+			const porte = fautives.some((lu) => a.lu.includes(lu));
+			expect(porte).toBe(true);
+			expect(a.lu.length).toBeGreaterThan(4);
+			expect(a.planche.startsWith("#")).toBe(true);
+			expect(a.note.length).toBeGreaterThan(0);
 		}
 	});
 });

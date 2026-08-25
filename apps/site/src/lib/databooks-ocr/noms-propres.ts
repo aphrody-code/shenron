@@ -298,6 +298,106 @@ export const NOMS_PROPRES_MAL_LUS: FauteNomPropre[] = [
 	{ lu: "ラムージ", correct: "ラムーシ", fr: "Rhumush", confusion: "ジ/シ", occurrences: 1, planches: 1, attesteJuste: 7 },
 ];
 
+/**
+ * Une agglutination : la même faute de dakuten, mais collée à ses voisins.
+ *
+ * La garde de frontière refuse ces occurrences, et c'est délibéré — elle ne
+ * peut pas savoir où le mot commence quand rien ne le sépare du suivant. Le
+ * reliquat qu'elle laisse a donc été mesuré (38 occurrences sur les 86 paires)
+ * puis tranché **à la main**, une par une, avec le contexte sous les yeux.
+ *
+ * Chaque entrée est ancrée sur sa chaîne complète, voisins compris : c'est ce
+ * qui remplace la frontière. `パーサーカー` seul serait dangereux — il est une
+ * sous-chaîne de `スーパーボンバーマン`, où la garde a évité sept régressions ;
+ * `ベジットパーサーカー` ne l'est pas.
+ *
+ * Deux entrées ne corrigent que la part démontrable de leur planche, et
+ * laissent le reste au relecteur — ce module répare des dakuten, il n'insère
+ * ni ne supprime de caractère :
+ *
+ *   - `フリーサアミリー` devient `フリーザアミリー` et non `フリーザファミリー` :
+ *     le `フ` de « ファミリー » a bien été mangé, mais `フリーザファミリー`
+ *     n'apparaît **nulle part** dans le corpus (0 occurrence), donc rien
+ *     n'atteste ce composé et le restituer serait le supposer ;
+ *   - `バイカフロリー` devient `バイカブロリー` : la carte est vraisemblablement
+ *     `バイオブロリー` (19 occurrences ailleurs), mais la confusion `カ`/`オ`
+ *     n'est pas un dakuten et n'a pas de preuve propre.
+ *
+ * Dans les deux cas le nom redevient trouvable par la recherche, ce qui est le
+ * bénéfice réel, sans qu'aucun caractère écrit ne soit supposé.
+ */
+export interface AgglutinationValidee {
+	/** La chaîne agglutinée, telle qu'elle figure dans le corpus. */
+	lu: string;
+	/** Ce qu'elle doit devenir. */
+	correct: string;
+	/** Où elle a été lue — pour que le relecteur retrouve la planche. */
+	planche: string;
+	/** Ce qui prouve la lecture. */
+	note: string;
+}
+
+/**
+ * Les 17 agglutinations tranchées à la main, sur les 38 mesurées.
+ *
+ * Les 21 autres sont refusées, et le refus est aussi documenté que
+ * l'acceptation :
+ *
+ *   - `スーパーボンバーマン` ×7 — `パーボン` y est une sous-chaîne du titre de
+ *     Hudson. La garde générale les avait déjà écartées : c'est la preuve la
+ *     plus nette qu'elle n'est pas décorative.
+ *   - `シャネンバク` ×6 (#33 p.15) — la planche est hallucinée de bout en bout
+ *     (« 超サイMANの骨格にそばせた体 »), et le `ク` final n'a aucune explication.
+ *   - `ターレースサーボン` (#12 p.191) — même cas : « 地獄の獄の獄の獄に », le
+ *     modèle a déraillé, et Turles ne croise jamais Zarbon.
+ *   - `フロリースペichy` (#120 p.4) — planche corrompue plus largement
+ *     (« スペichy » pour « スペシャル »).
+ *   - `フロリーカ` (#102 p.4) — le `カ` qui suit peut appartenir à un mot coupé.
+ *   - `フリーサン` (#116 p.9) — c'est très probablement Freezer, mais rien ne
+ *     dit ce que devient le `ン` : le supprimer serait décider à la place du
+ *     relecteur.
+ */
+export const AGGLUTINATIONS_VALIDEES_A_LA_MAIN: AgglutinationValidee[] = [
+	// Le duo du 22e Tenkaichi. La même planche écrit « ウバとプーアルのコIN »
+	// vingt caractères plus loin : la forme juste est là, à côté de la fautive.
+	{ lu: "ウバブーアル", correct: "ウバプーアル", planche: "#2 p.218", note: "プーアル juste sur la même planche" },
+	// Liste de cartes du jeu Famicom, où chaque nom est écrit deux fois de
+	// suite : « 仙豆せんず仙豆せんずバトル », « 龍ポルンガポルンガバトル ».
+	{ lu: "化ブーアルブーアル", correct: "化プーアルプーアル", planche: "#320 p.26", note: "le motif de la liste répète chaque nom" },
+	// Film 11 : « le Super Saiyan légendaire réapparaît ». La même planche
+	// écrit `バイオブロリー` en toutes lettres deux lignes plus bas.
+	{ lu: "超サイヤンフロリー", correct: "超サイヤンブロリー", planche: "#18 p.138", note: "バイオブロリー juste sur la même planche" },
+	// Carte SDBH HJ7-41. Seul le dakuten est corrigé : voir la docstring.
+	{ lu: "バイカフロリー", correct: "バイカブロリー", planche: "#195 p.15", note: "カ/オ laissé au relecteur" },
+	// Chronologie du Daizenshuu 7 : en 764, Trunks tue Freezer et son père.
+	{ lu: "トランクスフリーサ親子", correct: "トランクスフリーザ親子", planche: "#4 p.30", note: "chronologie de l'an 764" },
+	// Film 12. Seul le dakuten est corrigé : voir la docstring.
+	{ lu: "フリーサアミリー", correct: "フリーザアミリー", planche: "#33 p.40", note: "フ de ファミリー laissé au relecteur" },
+	// Tableaux de statistiques SDBH : « <personnage><type de combat> HP パワー
+	// ガード <technique> ». Le corpus écrit ailleurs `孫悟空バーサーカー` et
+	// `バトルタイプバーサーカー` exactement collés de la même façon — c'est le
+	// format du tableau, pas une lecture douteuse.
+	{ lu: "ベジットパーサーカー", correct: "ベジットバーサーカー", planche: "#169 p.12", note: "tableau de stats SDBH" },
+	{ lu: "バトルタイプパーサーカー", correct: "バトルタイプバーサーカー", planche: "#171 p.4", note: "バトルタイプバーサーカー attesté collé ailleurs" },
+	{ lu: "アンギラパーサーカー", correct: "アンギラバーサーカー", planche: "#245 p.17", note: "tableau de stats SDBH" },
+	{ lu: "トワパーサーカー", correct: "トワバーサーカー", planche: "#194 p.16", note: "tableau de stats SDBH" },
+	{ lu: "ゼノパーサーカー", correct: "ゼノバーサーカー", planche: "#194 p.16", note: "tableau de stats SDBH (ダーブラ:ゼノ)" },
+	{ lu: "ミラパーサーカー", correct: "ミラバーサーカー", planche: "#194 p.16", note: "tableau de stats SDBH" },
+	// Même format, colonne « type de carte » : « 魔神プティン » en HERO, avec
+	// アイシクルイリュージョン pour technique.
+	{ lu: "ブティンヒーロー", correct: "プティンヒーロー", planche: "#174 p.14", note: "tableau de stats SDBH" },
+	// Équipe de l'univers 6 : Hit et Champa. La planche écrit `破壊神シャンパ`
+	// correctement trois lignes plus bas.
+	{ lu: "操リリシャンバ", correct: "操リリシャンパ", planche: "#189 p.15", note: "シャンパ juste sur la même planche" },
+	// « le chef de l'empire des ténèbres Mechikabra entre en action ».
+	{ lu: "トップメチカフラ", correct: "トップメチカブラ", planche: "#178 p.19", note: "暗黒帝国のトップ = Mechikabra" },
+	// Tableau de stats noyé dans un bruit répété (« アリヒイ » ×4) ; la ligne
+	// voisine porte `トクター・リポ`, donc bien une colonne de docteurs.
+	{ lu: "イトクター・ミュー", correct: "イドクター・ミュー", planche: "#234 p.3", note: "tableau de stats, colonne de personnages" },
+	// Légende dupliquée : « ▲Mohican — le concurrent qui a affronté Mohican ».
+	{ lu: "モビカンモビカン", correct: "モヒカンモヒカン", planche: "#18 p.224", note: "légende dupliquée du 21e Tenkaichi" },
+];
+
 /** Le bloc katakana d'Unicode, prolongateur et point médian compris. */
 const KATAKANA = /[゠-ヿｦ-ﾟ]/;
 
@@ -326,16 +426,30 @@ function frontiere(c: string | undefined): boolean {
  */
 const ORDRE: FauteNomPropre[] = [...NOMS_PROPRES_MAL_LUS].sort((a, b) => b.lu.length - a.lu.length);
 
+/** Même précaution pour les chaînes agglutinées, qui peuvent s'emboîter. */
+const ORDRE_AGGLUTINE: AgglutinationValidee[] = [...AGGLUTINATIONS_VALIDEES_A_LA_MAIN].sort(
+	(a, b) => b.lu.length - a.lu.length,
+);
+
 /** Une substitution effectuée, telle qu'un relecteur doit pouvoir la revoir. */
 export interface RemplacementNomPropre {
 	lu: string;
 	correct: string;
 	/** Nombre de fois où cette paire a joué dans le texte. */
 	n: number;
+	/** Vrai si la substitution vient de la table d'agglutinations. */
+	agglutine?: true;
 }
 
 /**
  * Applique la table et rend le détail paire par paire.
+ *
+ * Les agglutinations passent **en premier** : elles portent sur des chaînes
+ * que la garde de frontière refuse, et une fois remplacées elles ne laissent
+ * derrière elles que des graphies justes, sur lesquelles le balayage gardé
+ * n'a plus rien à faire. L'ordre inverse marcherait tout autant, mais celui-ci
+ * se raconte : d'abord ce qu'on a tranché à la main, ensuite ce que la règle
+ * sait faire seule.
  *
  * Balayage caractère par caractère plutôt que `String.replace` : il faut
  * connaître le caractère qui précède ET celui qui suit à chaque candidat, et
@@ -350,15 +464,28 @@ export function detaillerNomsPropres(texte: string): {
 	corrections: number;
 	details: RemplacementNomPropre[];
 } {
-	let sortie = "";
 	let corrections = 0;
 	const comptes = new Map<string, RemplacementNomPropre>();
-	let i = 0;
 
-	while (i < texte.length) {
+	// 1. Les chaînes agglutinées, tranchées à la main. Chacune est ancrée sur
+	//    ses voisins, ce qui remplace la frontière.
+	let entree = texte;
+	for (const a of ORDRE_AGGLUTINE) {
+		if (!entree.includes(a.lu)) continue;
+		const morceaux = entree.split(a.lu);
+		const n = morceaux.length - 1;
+		entree = morceaux.join(a.correct);
+		corrections += n;
+		comptes.set(a.lu, { lu: a.lu, correct: a.correct, n, agglutine: true });
+	}
+
+	// 2. Le balayage gardé, sur mots entiers.
+	let sortie = "";
+	let i = 0;
+	while (i < entree.length) {
 		let trouve: FauteNomPropre | undefined;
-		if (frontiere(i > 0 ? texte[i - 1] : undefined)) {
-			trouve = ORDRE.find((f) => texte.startsWith(f.lu, i) && frontiere(texte[i + f.lu.length]));
+		if (frontiere(i > 0 ? entree[i - 1] : undefined)) {
+			trouve = ORDRE.find((f) => entree.startsWith(f.lu, i) && frontiere(entree[i + f.lu.length]));
 		}
 		if (trouve) {
 			sortie += trouve.correct;
@@ -369,7 +496,7 @@ export function detaillerNomsPropres(texte: string): {
 			else comptes.set(trouve.lu, { lu: trouve.lu, correct: trouve.correct, n: 1 });
 			continue;
 		}
-		sortie += texte[i];
+		sortie += entree[i];
 		i++;
 	}
 
@@ -379,8 +506,9 @@ export function detaillerNomsPropres(texte: string): {
 /**
  * Corrige les noms propres mal lus d'une transcription.
  *
- * Pure et idempotente : aucune forme juste de la table n'est elle-même une
- * forme fautive, donc un second passage ne change rien (figé par un test).
+ * Pure et idempotente : aucune forme juste de l'une ou l'autre table n'est
+ * elle-même une forme fautive, donc un second passage ne change rien (figé par
+ * un test).
  */
 export function corrigerNomsPropres(texte: string): { texte: string; rapport: RapportRegle[] } {
 	const { texte: sortie, corrections } = detaillerNomsPropres(texte);
