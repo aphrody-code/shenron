@@ -139,9 +139,14 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 					    catégories (Emplacement, Histoire, Caractéristiques, Anecdotes)
 					    au lieu d'un pavé unique. Fiche sans aucun texte → appel à
 					    l'écrire, qui vaut mieux que quatre onglets vides. */}
-					{contentPanels.length > 0 ? (
+					{contentPanels.length > 1 ? (
 						<>
 							<WikiSectionsReader panels={contentPanels} />
+							<WikiSources sources={planet.articleSources} />
+						</>
+					) : contentPanels.length === 1 ? (
+						<>
+							{contentPanels[0]!.node}
 							<WikiSources sources={planet.articleSources} />
 						</>
 					) : (

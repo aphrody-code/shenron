@@ -28,6 +28,7 @@ import {
 	Pencil,
 	Save,
 	Languages,
+	ScanText,
 	Sparkles,
 	Wand2,
 } from "lucide-react";
@@ -59,6 +60,27 @@ interface AnomaliesReponse {
 	total: number;
 	planches: Record<number, AnomalieJa[]>;
 	analysePossible: boolean;
+}
+
+/**
+ * Une region lue par le second moteur OCR, telle que la rend
+ * `/api/databooks/:id/relecture-ocr`.
+ */
+interface RegionLue {
+	texte: string;
+	score: number;
+	boite: Array<[number, number]> | null;
+}
+
+interface RelectureReponse {
+	planche: number;
+	regions: RegionLue[];
+	texte?: string;
+	secondes?: number;
+	cache?: boolean;
+	indisponible?: boolean;
+	sansScan?: boolean;
+	detail?: string;
 }
 
 const FILTRES: { cle: Filtre; libelle: string }[] = [
@@ -106,6 +128,39 @@ export function TranscriptionRelecteur({
 			return r.json();
 		},
 		staleTime: 5 * 60_000,
+		retry: false,
+	});
+
+	/**
+	 * Seconde lecture de la planche courante, par un moteur d'une autre famille.
+	 *
+	 * Chargée **à la demande** et non à chaque changement de planche : une
+	 * planche jamais lue coûte quelques secondes de processeur sur la machine
+	 * qui sert aussi le site. Une fois lue elle revient en quelques
+	 * millisecondes, le service la mettant en cache par empreinte du scan.
+	 *
+	 * Ce moteur n'est pas « meilleur » que celui qui a produit la
+	 * transcription : il est utile parce que ses erreurs sont d'une autre
+	 * nature. Son vocabulaire est fermé — 86 hiragana, 94 katakana,
+	 * 15 565 kanji, zéro caractère arabe — donc il ne peut écrire ni les
+	 * intrusions d'alphabet ni une boucle dégénérée. Il ne rend en revanche
+	 * aucune mise en page : ses régions sortent dans l'ordre du détecteur, pas
+	 * dans l'ordre de lecture japonais. C'est un second avis, jamais un
+	 * remplacement de la transcription.
+	 */
+	const [plancheRelue, setPlancheRelue] = useState<number | null>(null);
+	const relecture = useQuery({
+		queryKey: ["databook-relecture-ocr", databookId, plancheRelue],
+		enabled: plancheRelue !== null,
+		queryFn: async (): Promise<RelectureReponse> => {
+			const r = await fetch(
+				`/api/databooks/${databookId}/relecture-ocr?planche=${plancheRelue}`,
+				{ cache: "no-store" }
+			);
+			if (!r.ok) throw new Error("seconde lecture indisponible");
+			return r.json();
+		},
+		staleTime: Infinity,
 		retry: false,
 	});
 
@@ -542,6 +597,110 @@ export function TranscriptionRelecteur({
 									</p>
 								</div>
 							)}
+
+							{/* Seconde lecture : un autre moteur, d'autres erreurs. Jamais un dépôt. */}
+							<div className="mt-2 rounded border border-dbz-border/50 bg-white/[0.02] p-2">
+								<div className="mb-1.5 flex flex-wrap items-center gap-2">
+									<p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white/50">
+										<ScanText className="h-3 w-3" />
+										Seconde lecture
+									</p>
+									{relecture.data?.secondes !== undefined && (
+										<span className="text-[10px] text-white/30">
+											{relecture.data.cache
+												? "en cache"
+												: `lue en ${relecture.data.secondes} s`}
+										</span>
+									)}
+									<button
+										type="button"
+										onClick={() => setPlancheRelue(numeroCourant)}
+										disabled={relecture.isFetching || !courante?.image}
+										title={
+											courante?.image
+												? "Relire ce scan avec un second moteur OCR, dont le vocabulaire fermé ne peut pas produire d'intrusion d'alphabet"
+												: "Aucun scan pour cette planche"
+										}
+										className="ml-auto inline-flex items-center gap-1 rounded border border-dbz-border/60 px-1.5 py-0.5 text-[11px] font-semibold text-white/60 transition-colors hover:border-dbz-orange hover:text-dbz-orange disabled:cursor-not-allowed disabled:opacity-30"
+									>
+										<ScanText className="h-2.5 w-2.5" />
+										{plancheRelue === numeroCourant && relecture.data
+											? "Relire"
+											: "Lire le scan"}
+									</button>
+								</div>
+
+								{relecture.isFetching && plancheRelue === numeroCourant ? (
+									<p className="text-[11px] text-white/40">Lecture du scan…</p>
+								) : plancheRelue !== numeroCourant ? (
+									<p className="text-[10px] leading-snug text-white/35">
+										Un second moteur (détection + CRNN) relit le scan. Son vocabulaire
+										est fermé : il ne peut écrire ni caractère étranger intrus, ni
+										boucle. En revanche il ne restitue pas la mise en page — à lire
+										comme un avis, pas comme un remplacement.
+									</p>
+								) : relecture.data?.sansScan ? (
+									<p className="text-[11px] text-white/40">Aucun scan pour cette planche.</p>
+								) : relecture.data?.indisponible ? (
+									<p className="text-[11px] text-amber-300/70">
+										Service de seconde lecture indisponible.
+										{relecture.data.detail ? ` (${relecture.data.detail})` : ""}
+									</p>
+								) : relecture.error ? (
+									<p className="text-[11px] text-amber-300/70">
+										{(relecture.error as Error).message}
+									</p>
+								) : relecture.data && relecture.data.regions.length === 0 ? (
+									<p className="text-[11px] text-white/40">
+										Aucun texte détecté sur ce scan.
+									</p>
+								) : relecture.data ? (
+									<ul className="max-h-64 space-y-0.5 overflow-y-auto pr-1">
+										{relecture.data.regions.map((r, i) => {
+											const deja = brouillon.includes(r.texte);
+											return (
+												<li
+													key={`${i}-${r.texte}`}
+													className="flex items-start gap-1.5 text-[11px]"
+												>
+													<span
+														className={`mt-[3px] shrink-0 tabular-nums ${
+															r.score >= 0.9
+																? "text-green-300/60"
+																: r.score >= 0.7
+																	? "text-white/35"
+																	: "text-amber-300/60"
+														}`}
+														title="Confiance du moteur sur cette région"
+													>
+														{r.score.toFixed(2)}
+													</span>
+													<code
+														className={`font-jp flex-1 break-all ${
+															deja ? "text-white/30" : "text-white/80"
+														}`}
+														title={deja ? "Déjà présent dans le texte" : undefined}
+													>
+														{r.texte}
+													</code>
+													<button
+														type="button"
+														onClick={() =>
+															setBrouillon((t) =>
+																t.trimEnd() ? `${t.trimEnd()}\n${r.texte}` : r.texte
+															)
+														}
+														title="Ajouter cette région à la fin du texte"
+														className="shrink-0 rounded border border-dbz-border/50 px-1 py-px text-[10px] text-white/40 transition-colors hover:border-dbz-orange hover:text-dbz-orange"
+													>
+														+
+													</button>
+												</li>
+											);
+										})}
+									</ul>
+								) : null}
+							</div>
 
 							{anomalies.length > 0 && (
 								<ul className="mt-2 space-y-1">

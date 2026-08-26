@@ -31,7 +31,7 @@ import { PwsStatSection } from "@/components/wiki/PwsStatSection";
 import { WikiContribute } from "@/components/wiki/WikiContribute";
 import { SECTION_ENTITY_TABLE } from "@/lib/wiki-revalidate";
 import { normalizeWikiSectionGroups, PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
-import { DEFAULT_SECTION_PACKS, PWS_GROUP_PRESETS, PWS_LEGACY_KEY_ALIASES } from "@/lib/wiki-fields";
+import { PWS_GROUP_PRESETS, PWS_LEGACY_KEY_ALIASES } from "@/lib/wiki-fields";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 
 export interface ContentPanel extends ReaderPanel {
@@ -47,30 +47,6 @@ interface RawSection {
 	accent: SectionAccent;
 	group?: string | null;
 	links?: WikiSectionLink[];
-}
-
-/**
- * Complète une fiche avec les catégories attendues de sa rubrique (Emplacement,
- * Histoire, Caractéristiques, Anecdotes pour un lieu…), sans jamais dupliquer
- * ni réordonner ce que l'article ou le studio ont déjà défini : les sections
- * existantes gardent leur place, les manquantes s'ajoutent à la suite.
- *
- * Ne fait rien sur une fiche vide — quatre onglets vides ne valent pas l'appel
- * à écrire le premier article (`WikiFicheVide`), qui prend alors toute la place.
- */
-export function ensureDefaultPack(entityType: string, raw: RawSection[]): RawSection[] {
-	const pack = DEFAULT_SECTION_PACKS[entityType];
-	if (!pack || raw.length === 0) return raw;
-
-	// Comparaison sur la clé ET sur le slug du libellé : un article qui titre
-	// « ## Anecdotes » produit la clé `anecdotes`, mais « ## Le saviez-vous ? »
-	// non — on ne veut pas rater le premier cas et créer un doublon visible.
-	const connus = new Set(raw.flatMap((s) => [s.key, sectionSlug(s.label)]));
-	const manquantes = pack
-		.filter((p) => !connus.has(p.key))
-		.map((p) => ({ key: p.key, label: p.label, body: "", accent: p.accent, group: null }));
-
-	return [...raw, ...manquantes];
 }
 
 /**
@@ -205,8 +181,6 @@ export async function buildWikiContentPanels({
 	// Personnages : toujours le pack PWS complet (sous-catégories power scaling).
 	if (entityType === "character") {
 		raw = ensureFullPwsPack(raw);
-	} else {
-		raw = ensureDefaultPack(entityType, raw);
 	}
 
 	// Clés uniques (garde-fou : deux sections de même slug ne cassent pas React).

@@ -135,9 +135,14 @@ export default async function TechniqueDetailPage({
 				{/* Article éclaté en catégories (Description, Utilisation, Histoire,
 				    Anecdotes) plutôt qu'un pavé unique — même lecture que les fiches
 				    personnage. Sans aucun texte, l'appel à l'écrire prend la place. */}
-				{contentPanels.length > 0 ? (
+				{contentPanels.length > 1 ? (
 					<>
 						<WikiSectionsReader panels={contentPanels} />
+						<WikiSources sources={tech.articleSources} />
+					</>
+				) : contentPanels.length === 1 ? (
+					<>
+						{contentPanels[0]!.node}
 						<WikiSources sources={tech.articleSources} />
 					</>
 				) : (

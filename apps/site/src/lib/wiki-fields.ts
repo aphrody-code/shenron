@@ -224,35 +224,6 @@ export const SECTION_PRESETS: SectionPreset[] = [
 ];
 
 /**
- * Catégories par défaut d'une fiche, PAR TYPE D'ENTITÉ.
- *
- * Les fiches personnage éclatent depuis longtemps leur article en onglets
- * (Histoire, Personnalité, Techniques…) ; les lieux et les techniques
- * affichaient un pavé unique. Ces packs leur donnent la même lecture, avec des
- * rubriques qui ont un sens pour eux — on ne demande pas la « personnalité »
- * d'une planète.
- *
- * Un pack ne s'applique QUE si la fiche a déjà du contenu : sur une fiche vide,
- * quatre onglets vides valent moins qu'un appel à l'écrire (`WikiFicheVide`).
- * Les catégories du pack absentes de l'article s'affichent quand même — c'est
- * ce qui montre au lecteur ce qu'il manque, et lui donne où le déposer.
- */
-export const DEFAULT_SECTION_PACKS: Record<string, SectionPreset[]> = {
-	planet: [
-		{ key: "emplacement", label: "Emplacement", accent: "cyan" },
-		{ key: "histoire", label: "Histoire", accent: "orange" },
-		{ key: "caracteristiques", label: "Caractéristiques", accent: "green" },
-		{ key: "anecdotes", label: "Anecdotes", accent: "gold" },
-	],
-	technique: [
-		{ key: "description", label: "Description", accent: "blue" },
-		{ key: "utilisation", label: "Utilisation", accent: "red" },
-		{ key: "histoire", label: "Histoire", accent: "orange" },
-		{ key: "anecdotes", label: "Anecdotes", accent: "gold" },
-	],
-};
-
-/**
  * Pack PWS (9 sous-catégories) — aligné sur les clés déjà en base
  * (`bot.db_wiki_sections` group_label=PWS, ex. Goku id=1).
  */
