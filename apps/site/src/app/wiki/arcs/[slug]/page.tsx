@@ -1,7 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
@@ -52,7 +52,7 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 			/>
 
 			<div className="mb-6">
-				<WikiAdminBar table="db_arcs" id={arc.id} indexHref="/wiki/sagas" label={arc.name} />
+				<WikiEditBar table="db_arcs" id={arc.id} indexHref="/wiki/sagas" label={arc.name} />
 			</div>
 
 			<header className="mb-16">

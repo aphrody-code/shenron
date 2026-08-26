@@ -5,7 +5,7 @@ import { WikiSources } from "@/components/wiki/WikiArticle";
 import { WikiRelatedCharacters } from "@/components/wiki/WikiRelatedCharacters";
 import { CharacterSagaVariants } from "@/components/wiki/CharacterSagaVariants";
 import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { buildWikiContentPanels } from "@/lib/wiki-panels";
 import { TECH_SECTION_KEYS, TRANSFO_SECTION_KEYS } from "@/lib/wiki-article-sections";
@@ -323,7 +323,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 				className="mb-4"
 				items={[{ label: "L'Univers", href: "/wiki/personnages" }, { label: character.name }]}
 			/>
-			<WikiAdminBar
+			<WikiEditBar
 				table="db_characters"
 				id={character.id}
 				indexHref="/wiki/personnages"

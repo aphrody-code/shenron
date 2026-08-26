@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import {
+	PenLine,
 	LayoutDashboard,
 	Home,
 	RefreshCw,
@@ -375,6 +376,13 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Signalements",
 		description: "Erreurs remontées par les membres depuis le site",
 		icon: <Flag className="h-4 w-4" />,
+		section: "communaute",
+	},
+	{
+		href: "/admin/wiki/contributions",
+		label: "Contributions wiki",
+		description: "Corrections proposées par les membres — à relire et publier",
+		icon: <PenLine className="h-4 w-4" />,
 		section: "communaute",
 	},
 	{

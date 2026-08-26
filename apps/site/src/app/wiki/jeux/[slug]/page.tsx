@@ -1,6 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { GameMediaGallery } from "@/components/wiki/GameMediaGallery";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
@@ -75,7 +75,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 			/>
 
 			<div className="mb-8">
-				<WikiAdminBar table="db_games" id={g.id} indexHref="/wiki/jeux" label={g.title} />
+				<WikiEditBar table="db_games" id={g.id} indexHref="/wiki/jeux" label={g.title} />
 			</div>
 
 			<header className="mb-12 flex flex-col sm:flex-row gap-8 items-start">

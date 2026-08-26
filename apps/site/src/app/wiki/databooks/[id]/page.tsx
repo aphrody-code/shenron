@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { BookOpen, ExternalLink, Mic } from "lucide-react";
 import { DatabookReader } from "@/components/databooks/DatabookReader";
 import { ViewTransition } from "@/components/ViewTransition";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { resolveDatabookCategory } from "@/lib/databook-categories";
 import { assetUrl, dbUniverse } from "@/lib/db-universe";
@@ -159,7 +159,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 			/>
 
 			<div className="mb-10">
-				<WikiAdminBar
+				<WikiEditBar
 					table="db_databooks"
 					id={book.id}
 					indexHref="/wiki/databooks"

@@ -413,17 +413,20 @@ export default async function WikiIndex() {
 				</section>
 			)}
 
-			{/* Contribution banner */}
+			{/* Appel à contribution — renvoyait vers Discord et /about tant qu'il n'y
+			    avait pas de vrai chemin d'édition ; il pointe désormais l'endroit où
+			    l'on corrige réellement une fiche. */}
 			<section className="dbz-panel p-10 bg-dbz-card/30 border-t-4 border-t-dbz-orange relative overflow-hidden">
 				<div className="absolute inset-0 halftone opacity-5 pointer-events-none" />
 				<div className="relative z-10">
 					<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">CONTRIBUTION</h2>
 					<p className="text-gray-300 max-w-3xl mb-8 font-sans">
-						Ces archives s&apos;appuient sur l&apos;API Shenron et sur les ajouts de la communauté.
-						Une erreur, un manque ? Signale-le sur Discord.
+						Ce wiki est écrit sur les tomes du manga et les planches des databooks — et il est loin
+						d&apos;être fini. Chaque fiche porte un bouton «&nbsp;Proposer une correction&nbsp;»&nbsp;:
+						tu modifies le texte, un relecteur publie, la modification garde ton nom.
 					</p>
-					<Link href="/about" className="dbz-button-ghost">
-						EN SAVOIR PLUS
+					<Link href="/wiki/contribuer" className="dbz-button-ghost">
+						CONTRIBUER AU WIKI
 					</Link>
 				</div>
 			</section>

@@ -1,6 +1,6 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { EntityRating, EntityRatingSummary } from "@/components/ratings/EntityRating";
 import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl, type MovieNavItem } from "@/lib/db-universe";
@@ -163,7 +163,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 			</div>
 
 			<div className="mb-6">
-				<WikiAdminBar table="db_movies" id={m.id} indexHref="/wiki/films" label={m.title} />
+				<WikiEditBar table="db_movies" id={m.id} indexHref="/wiki/films" label={m.title} />
 			</div>
 
 			<div className="grid md:grid-cols-[280px_1fr] gap-10">

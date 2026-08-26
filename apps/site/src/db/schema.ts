@@ -613,3 +613,75 @@ export const editorDrafts = pgTable(
 
 export type EditorDraft = typeof editorDrafts.$inferSelect;
 export type EditorDraftInsert = typeof editorDrafts.$inferInsert;
+
+// --- Contributions communautaires au wiki ---
+//
+// Le chaînon qui manquait entre « signaler une erreur » (ticket en texte libre,
+// `site_reports`) et « éditer » (réservé aux admins, `/api/wiki-admin`) : un
+// membre connecté propose une **valeur de remplacement précise** pour un champ
+// d'une fiche ou le corps d'une section, avec ses sources. La proposition ne
+// touche rien tant qu'un modérateur ne l'accepte pas ; acceptée, elle est
+// appliquée et journalisée dans `wiki_revisions` **au nom du contributeur**
+// (c'est ce qui rend le crédit public réel, et le retour arrière possible).
+//
+// Une contribution est toujours réductible à (table, ligne, colonne) : une
+// section n'est qu'une ligne de `db_wiki_sections` dont on édite `body`. Pas de
+// second chemin d'écriture, donc pas de second jeu de bugs.
+export const CONTRIBUTION_STATUSES = [
+	"pending",
+	"accepted",
+	"rejected",
+	/** La valeur en base a changé depuis la proposition → à rebaser, pas à appliquer. */
+	"superseded",
+	/** Retirée par son auteur avant modération. */
+	"withdrawn",
+] as const;
+export type ContributionStatus = (typeof CONTRIBUTION_STATUSES)[number];
+
+export const wikiContributions = pgTable(
+	"wiki_contributions",
+	{
+		id: cuid(),
+		createdAt: timestamp("createdAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+			.notNull()
+			.default(sql`CURRENT_TIMESTAMP`),
+		// Auteur : users.id + copies figées (le pseudo Discord change, le crédit non).
+		authorId: text("authorId"),
+		authorName: text("authorName"),
+		authorDiscordId: text("authorDiscordId"),
+		// Cible : toujours (table wiki, pk figée, colonne mutable).
+		tableName: text("tableName").notNull(),
+		rowId: text("rowId").notNull(),
+		columnName: text("columnName").notNull(),
+		/** Libellé lisible de l'entité au moment de la proposition. */
+		entityLabel: text("entityLabel"),
+		/** URL publique de la fiche — retour en un clic depuis la modération. */
+		entityPath: text("entityPath"),
+		/** Valeur en base au moment de la proposition : sert de base de diff ET de
+		 *  détection de conflit (si elle a bougé, la proposition est `superseded`). */
+		valueBefore: text("valueBefore"),
+		valueAfter: text("valueAfter").notNull(),
+		/** Pourquoi ce changement (facultatif). */
+		comment: text("comment"),
+		/** D'où vient l'information : tome + planche, databook + page. */
+		sources: text("sources"),
+		status: text("status").notNull().default("pending"),
+		reviewerId: text("reviewerId"),
+		reviewerName: text("reviewerName"),
+		reviewNote: text("reviewNote"),
+		reviewedAt: timestamp("reviewedAt", { precision: 3, mode: "date" }),
+		/** `wiki_revisions.id` produite à l'acceptation (pour annuler d'un clic). */
+		revisionId: text("revisionId"),
+	},
+	(t) => [
+		index("wiki_contributions_status_idx").on(t.status, t.createdAt),
+		index("wiki_contributions_entity_idx").on(t.tableName, t.rowId),
+		index("wiki_contributions_author_idx").on(t.authorId, t.createdAt),
+	]
+);
+
+export type WikiContribution = typeof wikiContributions.$inferSelect;
+export type WikiContributionInsert = typeof wikiContributions.$inferInsert;

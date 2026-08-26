@@ -28,7 +28,7 @@ export function uploadSubdir(table: string): string {
 
 /** Colonnes au contenu long → rendu en <textarea> (markdown). */
 export function isLongTextColumn(col: string): boolean {
-	return /desc|synops|^body$|summary|bio|overview|attribution|content/i.test(col);
+	return /desc|synops|^body$|^article$|summary|bio|overview|attribution|content/i.test(col);
 }
 
 /**
@@ -38,7 +38,7 @@ export function isLongTextColumn(col: string): boolean {
  * s'afficherait littéralement → on garde le textarea simple.
  */
 export function isRichTextColumn(table: string, col: string): boolean {
-	return isWikiTable(table) && /^(description|synopsis|body|overview)$/i.test(col);
+	return isWikiTable(table) && /^(description|synopsis|body|overview|article)$/i.test(col);
 }
 
 /** Colonnes booléennes connues → rendu en interrupteur. */

@@ -101,6 +101,10 @@ function diffKeys(before: Row | null, after: Row | null): string[] {
 /**
  * Enregistre une révision. Best-effort : loggue et avale toute erreur pour ne
  * JAMAIS faire échouer l'écriture éditoriale qui l'a déclenchée.
+ *
+ * Renvoie l'id de la révision créée (ou `null` si l'écriture a échoué) — c'est
+ * ce que la modération des contributions garde pour offrir « annuler » en un
+ * clic sur une proposition acceptée.
  */
 export async function recordRevision(input: {
 	table: string;
@@ -109,7 +113,7 @@ export async function recordRevision(input: {
 	before?: Row | null;
 	after?: Row | null;
 	actor?: RevisionActor;
-}): Promise<void> {
+}): Promise<string | null> {
 	try {
 		const before = snapshot(input.table, input.before);
 		const after = snapshot(input.table, input.after);
@@ -121,18 +125,23 @@ export async function recordRevision(input: {
 					? rowIdOf(input.table, input.before)
 					: "");
 		const label = deriveLabel(input.after) ?? deriveLabel(input.before);
-		await db.insert(wikiRevisions).values({
-			tableName: input.table,
-			rowId: String(rowId),
-			action: input.action,
-			label,
-			before,
-			after,
-			editorId: input.actor?.id ?? null,
-			editorName: input.actor?.name ?? null,
-		});
+		const [inserted] = await db
+			.insert(wikiRevisions)
+			.values({
+				tableName: input.table,
+				rowId: String(rowId),
+				action: input.action,
+				label,
+				before,
+				after,
+				editorId: input.actor?.id ?? null,
+				editorName: input.actor?.name ?? null,
+			})
+			.returning({ id: wikiRevisions.id });
+		return inserted?.id ?? null;
 	} catch (err) {
 		console.error("[wiki-revisions] record failed:", err);
+		return null;
 	}
 }
 

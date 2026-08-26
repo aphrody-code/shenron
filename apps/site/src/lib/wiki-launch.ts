@@ -114,6 +114,19 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		prefixes: ["/wiki/jeux", "/wiki/dragon-ball/games"],
 	},
 	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"] },
+	// Page d'accueil de la contribution. `alwaysOpen` à dessein : hors registre,
+	// tout ce qui vit sous /wiki est fermé par défaut (cf. proxy.ts), et une page
+	// qui explique comment participer, réservée aux admins, ne sert personne.
+	// Elle ne divulgue rien : des compteurs et des liens vers des fiches déjà
+	// soumises, elles, au contrôle d'accès de leur rubrique.
+	{
+		key: "contribuer",
+		label: "Contribuer",
+		href: "/wiki/contribuer",
+		prefixes: ["/wiki/contribuer"],
+		alwaysOpen: true,
+		defaultMode: "public",
+	},
 ];
 
 /**

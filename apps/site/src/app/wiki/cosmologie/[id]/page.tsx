@@ -1,7 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { ViewTransition } from "@/components/ViewTransition";
 import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
@@ -75,7 +75,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 				]}
 			/>
 
-			<WikiAdminBar
+			<WikiEditBar
 				table="db_planets"
 				id={planet.id}
 				indexHref="/wiki/cosmologie"

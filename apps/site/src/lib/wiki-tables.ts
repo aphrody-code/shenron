@@ -43,22 +43,25 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"debutSagaId",
 			// jsonb stats : CharacterStatsPanel (exclu SmartField via JSONB_PANEL_COLS).
 			"stats",
+			// Article long-format : édité au script jusqu'au 2026-08-26, désormais
+			// éditable au studio et proposable par la communauté.
+			"article",
 		],
 	},
 	db_planets: {
 		name: "db_planets",
 		pk: "id",
-		mutableColumns: ["name", "nameJa", "nameRomaji", "image", "isDestroyed", "description"],
+		mutableColumns: ["name", "nameJa", "nameRomaji", "image", "isDestroyed", "description", "article"],
 	},
 	db_transformations: {
 		name: "db_transformations",
 		pk: "id",
-		mutableColumns: ["name", "image", "ki", "characterId"],
+		mutableColumns: ["name", "image", "ki", "characterId", "article"],
 	},
 	db_races: {
 		name: "db_races",
 		pk: "id",
-		mutableColumns: ["slug", "name", "nameJa", "homePlanetId", "description"],
+		mutableColumns: ["slug", "name", "nameJa", "homePlanetId", "description", "article"],
 	},
 	db_techniques: {
 		name: "db_techniques",
@@ -73,6 +76,7 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"description",
 			"debutEpisodeId",
 			"debutChapterId",
+			"article",
 		],
 	},
 	db_character_techniques: {
@@ -88,12 +92,12 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_sagas: {
 		name: "db_sagas",
 		pk: "id",
-		mutableColumns: ["slug", "name", "nameJa", "series", "orderIdx", "description", "image"],
+		mutableColumns: ["slug", "name", "nameJa", "series", "orderIdx", "description", "image", "article"],
 	},
 	db_arcs: {
 		name: "db_arcs",
 		pk: "id",
-		mutableColumns: ["sagaId", "slug", "name", "nameJa", "orderIdx", "description"],
+		mutableColumns: ["sagaId", "slug", "name", "nameJa", "orderIdx", "description", "article"],
 	},
 	db_episodes: {
 		name: "db_episodes",

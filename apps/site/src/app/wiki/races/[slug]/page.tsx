@@ -1,7 +1,7 @@
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -128,7 +128,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 			/>
 
 			<div className="mb-6">
-				<WikiAdminBar table="db_races" id={race.id} indexHref="/wiki/races" label={race.name} />
+				<WikiEditBar table="db_races" id={race.id} indexHref="/wiki/races" label={race.name} />
 			</div>
 
 			<div className="space-y-16">

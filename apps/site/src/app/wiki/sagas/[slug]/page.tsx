@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
-import { WikiAdminBar } from "@/components/wiki/WikiAdminBar";
+import { WikiEditBar } from "@/components/wiki/WikiEditBar";
 import WikiRagArchives from "@/components/wiki/WikiRagArchives";
 import { AggregateRatingBanner } from "@/components/ratings/EntityRating";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
@@ -93,7 +93,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 			/>
 
 			<div className="mb-6">
-				<WikiAdminBar table="db_sagas" id={saga.id} indexHref="/wiki/sagas" label={saga.name} />
+				<WikiEditBar table="db_sagas" id={saga.id} indexHref="/wiki/sagas" label={saga.name} />
 			</div>
 
 			<header className="mb-16">

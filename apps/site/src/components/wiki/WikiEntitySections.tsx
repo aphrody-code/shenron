@@ -14,6 +14,7 @@ import { normalizeWikiSectionGroups } from "@/lib/wiki-section-groups";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
+import { WikiContribute } from "@/components/wiki/WikiContribute";
 
 export async function WikiEntitySections({
 	entityType,
@@ -49,6 +50,17 @@ export async function WikiEntitySections({
 					<h2 className="font-saiyan text-2xl text-white">{label}</h2>
 				)}
 				<WikiSectionLinks links={s.links} />
+				{/* Le contenu long du wiki vit ici, pas dans la fiche : sans point
+				    d'entrée par section, « corriger le wiki » resterait théorique. */}
+				<div className="pt-2">
+					<WikiContribute
+						table="db_wiki_sections"
+						rowId={s.id}
+						columns={["body"]}
+						entityLabel={label}
+						compact
+					/>
+				</div>
 			</div>
 		),
 	}));

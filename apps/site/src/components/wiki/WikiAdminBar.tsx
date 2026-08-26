@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * Barre d'actions admin **inline** sur une fiche wiki publique. Îlot client gaté
+ * Actions admin **inline** sur une fiche wiki publique — rendues à l'intérieur
+ * de `WikiEditBar`, aux côtés du chemin de contribution ouvert à tous. Îlot client gaté
  * par `useMe().isAdmin` → invisible au public, et n'introduit aucun cookie/entête
  * dans le rendu SSR de la page (cache CDN/ISR préservé — cf. piège « JAMAIS de
  * session dans le rendu d'une page publique »).
@@ -17,7 +18,7 @@ import { useState } from "react";
 import { apiAt } from "@/lib/admin-api";
 import { useMe } from "@/lib/use-me";
 
-export function WikiAdminBar({
+export function WikiAdminActions({
 	table,
 	id,
 	indexHref,
@@ -85,3 +86,9 @@ export function WikiAdminBar({
 		</div>
 	);
 }
+
+/**
+ * @deprecated Utiliser `WikiEditBar`, qui rend ces actions ET le chemin de
+ * contribution communautaire. Conservé le temps que les pages migrent.
+ */
+export const WikiAdminBar = WikiAdminActions;
