@@ -56,6 +56,12 @@ export interface ContentPanel extends ReaderPanel {
 	/** Slug de section (sert au merge des galeries relationnelles). */
 	key: string;
 	accent: SectionAccent;
+	/**
+	 * `db` = la fiche est pilotée par `db_wiki_sections`, et son `article` n'est
+	 * PAS rendu. La page s'en sert pour ne pas proposer de corriger un article
+	 * que personne ne verra — 266 fiches personnage sont dans ce cas.
+	 */
+	origine: "db" | "article" | "description";
 }
 
 interface RawSection {
@@ -65,6 +71,14 @@ interface RawSection {
 	accent: SectionAccent;
 	group?: string | null;
 	links?: WikiSectionLink[];
+	/**
+	 * D'où vient la section — c'est ce qui décide **où** une correction doit
+	 * être déposée. Une section `db` s'édite ligne à ligne (précis) ; une
+	 * section tirée de l'article s'édite dans l'article (texte entier).
+	 */
+	origine?: "db" | "article" | "description";
+	/** `db_wiki_sections.id` quand l'origine est `db`. */
+	sectionId?: number;
 }
 
 /**
@@ -171,6 +185,8 @@ export async function buildWikiContentPanels({
 				accent: s.accent ?? sectionAccent(s.label),
 				group: s.groupLabel,
 				links: s.links,
+				origine: "db" as const,
+				sectionId: s.id,
 			}))
 		);
 	} else if (article?.trim()) {
@@ -181,6 +197,7 @@ export async function buildWikiContentPanels({
 				body: s.body,
 				accent: s.accent,
 				group: null as string | null,
+				origine: "article" as const,
 			}))
 		);
 	} else if (description?.trim()) {
@@ -190,6 +207,7 @@ export async function buildWikiContentPanels({
 				label: fallbackHeading,
 				body: description.trim(),
 				accent: "orange",
+				origine: "description" as const,
 			},
 		];
 	} else {
@@ -210,11 +228,21 @@ export async function buildWikiContentPanels({
 		seen.add(key);
 		const links = s.links ?? [];
 		const isPws = s.group === PWS_GROUP_NAME;
+		const origine = s.origine ?? "article";
+		// Où déposer une correction de CETTE rubrique. Une section en base
+		// s'édite ligne à ligne ; une rubrique issue de l'article s'édite dans
+		// l'article, qui est le texte réellement rendu.
+		const cible =
+			origine === "db" && s.sectionId != null
+				? { table: "db_wiki_sections", rowId: s.sectionId, column: "body" }
+				: { table: TABLE_PAR_TYPE[entityType], rowId: entityId, column: "article" };
+
 		return {
 			key,
 			label: s.label,
 			accent: s.accent,
 			group: s.group ?? null,
+			origine,
 			node: isPws ? (
 				<div className="space-y-2">
 					<PwsStatSection label={s.label} body={s.body} accent={s.accent} />
@@ -225,13 +253,22 @@ export async function buildWikiContentPanels({
 					{s.body.trim() ? (
 						<WikiArticle article={s.body} heading={s.label} accent={s.accent} />
 					) : (
-						<SectionAEcrire
-							label={s.label}
-							table={TABLE_PAR_TYPE[entityType]}
-							entityId={entityId}
-						/>
+						<SectionAEcrire label={s.label} cible={cible} />
 					)}
 					{links.length > 0 && <WikiSectionLinks links={links} />}
+					{/* Corriger là où l'on lit : le bouton vise la rubrique affichée,
+					    pas un champ générique en haut de fiche. */}
+					{s.body.trim() && cible.table ? (
+						<div className="pt-1">
+							<WikiContribute
+								table={cible.table}
+								rowId={cible.rowId}
+								columns={[cible.column]}
+								entityLabel={s.label}
+								compact
+							/>
+						</div>
+					) : null}
 				</div>
 			),
 		} satisfies ContentPanel;
@@ -241,21 +278,14 @@ export async function buildWikiContentPanels({
 /**
  * Rubrique attendue mais pas encore écrite. Elle affichait un titre nu — ce qui
  * ressemble à un bug plus qu'à un manque. Elle dit maintenant ce qu'elle est et
- * propose de la remplir.
- *
- * La proposition vise l'**article** de la fiche, pas une ligne de section : la
- * section n'existe pas encore en base, et le dépôt de contribution ne sait pas
- * créer de ligne. Le contributeur ajoute donc son `## Titre` dans l'article,
- * qui est précisément ce qui produit la rubrique.
+ * propose de la remplir, en visant l'endroit qui sera réellement rendu.
  */
 function SectionAEcrire({
 	label,
-	table,
-	entityId,
+	cible,
 }: {
 	label: string;
-	table?: string;
-	entityId: number;
+	cible: { table?: string; rowId: number; column: string };
 }) {
 	return (
 		<div className="space-y-3">
@@ -263,11 +293,11 @@ function SectionAEcrire({
 			<p className="text-sm leading-relaxed text-white/45">
 				Cette partie n&apos;est pas encore écrite.
 			</p>
-			{table ? (
+			{cible.table ? (
 				<WikiContribute
-					table={table}
-					rowId={entityId}
-					columns={["article"]}
+					table={cible.table}
+					rowId={cible.rowId}
+					columns={[cible.column]}
 					entityLabel={label}
 					labelBouton={`Écrire « ${label} »`}
 				/>

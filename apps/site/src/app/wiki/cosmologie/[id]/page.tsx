@@ -76,6 +76,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 				]}
 			/>
 			<WikiEditBar
+				sansArticle
 				table="db_planets"
 				id={planet.id}
 				indexHref="/wiki/cosmologie"

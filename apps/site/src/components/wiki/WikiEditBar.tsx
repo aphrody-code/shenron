@@ -34,12 +34,27 @@ export interface WikiEditBarProps {
 	 * de les répéter sur chaque page, la table les connaît déjà.
 	 */
 	champs?: string[];
+	/**
+	 * Retire l'article des champs proposés. À poser sur toute page qui rend ses
+	 * rubriques en panneaux : chacune y porte déjà son propre bouton, visant le
+	 * texte réellement affiché. Sans ça, la barre proposerait de corriger un
+	 * article qui, sur les fiches pilotées par `db_wiki_sections`, n'est même
+	 * pas rendu — la correction serait acceptée sans rien changer à l'écran.
+	 */
+	sansArticle?: boolean;
 }
 
-export function WikiEditBar({ table, id, indexHref, label, champs }: WikiEditBarProps) {
+export function WikiEditBar({
+	table,
+	id,
+	indexHref,
+	label,
+	champs,
+	sansArticle = false,
+}: WikiEditBarProps) {
 	const spec = WIKI_TABLE_SPECS[table];
 	const colonnes = (champs ?? spec?.mutableColumns ?? []).filter(
-		(c) => c in CONTRIBUTABLE_COLUMNS
+		(c) => c in CONTRIBUTABLE_COLUMNS && !(sansArticle && c === "article")
 	);
 
 	return (

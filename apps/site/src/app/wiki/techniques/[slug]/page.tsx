@@ -85,6 +85,7 @@ export default async function TechniqueDetailPage({
 			/>
 			<div className="mb-6">
 				<WikiEditBar
+				sansArticle
 					table="db_techniques"
 					id={tech.id}
 					indexHref="/wiki/techniques"

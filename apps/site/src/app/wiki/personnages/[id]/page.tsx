@@ -324,6 +324,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 				items={[{ label: "L'Univers", href: "/wiki/personnages" }, { label: character.name }]}
 			/>
 			<WikiEditBar
+				sansArticle
 				table="db_characters"
 				id={character.id}
 				indexHref="/wiki/personnages"
