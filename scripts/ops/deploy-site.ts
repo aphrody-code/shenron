@@ -36,8 +36,13 @@ const SITE_DIR = join(REPO, "apps", "site");
 /**
  * Sortie du build, VOLONTAIREMENT distincte du `.next` servi par le slot actif :
  * on ne retire rien sous les pieds du process en service, et on repart d'un
- * répertoire vide donc d'un build à froid (~8,1 Gio contre ~10,5 en incrémental,
- * seuil de l'OOM killer sur ce VPS). Cf. `distDir` dans apps/site/next.config.ts.
+ * répertoire vide donc d'un build à froid (moins gourmand qu'un incrémental).
+ * Cf. `distDir` dans apps/site/next.config.ts.
+ *
+ * ATTENTION aux ordres de grandeur : mesuré le 2026-08-26, un build à froid
+ * consomme ~26 Gio de mémoire anonyme au total, dont un **pic de 19,5 Gio de
+ * swap**. Les chiffres « 8,1 / 10,5 Gio » qui figuraient ici décrivaient la part
+ * RÉSIDENTE et ont fait chercher six OOM du mauvais côté.
  */
 const BUILD_DIR_NAME = ".next-build";
 const BUILD_DIR = join(SITE_DIR, BUILD_DIR_NAME);
@@ -75,8 +80,18 @@ const PROBES = [
 const PUBLIC_URL = "https://dragonballfr.com/";
 const BOOT_TIMEOUT_MS = 180_000;
 const KEEP_RELEASES = 3;
-/** Pic mesuré du build ≈ 8,1 Gio → on exige un budget RAM+swap au-dessus. */
-const MEMORY_NEED_MIB = 11_264;
+/**
+ * Budget RAM+swap exigé avant de lancer le build.
+ *
+ * Mesuré le 2026-08-26 (échantillonnage `free -m` toutes les 15 s pendant un
+ * build complet) : **pic de 19 537 Mio de swap** en plus de la part résidente,
+ * soit ~26 Gio de mémoire anonyme au total. L'ancienne valeur (11 264, calée
+ * sur « ~8,1 Gio », qui n'était que la part résidente) a laissé partir **six
+ * builds condamnés d'affilée** : le garde-fou annonçait 24,6 Gio disponibles et
+ * validait, alors qu'il en fallait 26. Avec la valeur ci-dessous, ces six-là
+ * auraient été refusés avant de brûler 8 minutes chacun.
+ */
+const MEMORY_NEED_MIB = 26_624;
 /**
  * Plancher de mémoire VIVE libre exigé avant de lancer le build.
  *
