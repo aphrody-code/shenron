@@ -229,8 +229,11 @@ export default async function PageContribuer() {
 
 			<p className="mt-14 border-t border-white/8 pt-6 text-xs leading-relaxed text-white/40">
 				Une question, un doute sur une source&nbsp;? Le bouton «&nbsp;Signaler une erreur&nbsp;» en
-				bas de chaque page passe par le même canal, et tout l&apos;historique des modifications est
-				public.
+				bas de chaque page passe par le même canal. Et tout ce qui change ici est public&nbsp;:{" "}
+				<Link href="/wiki/modifications" className="text-white/60 underline underline-offset-2 hover:text-dbz-orange">
+					voir les modifications récentes
+				</Link>
+				.
 			</p>
 		</div>
 	);

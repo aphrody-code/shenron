@@ -119,6 +119,17 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 	// qui explique comment participer, réservée aux admins, ne sert personne.
 	// Elle ne divulgue rien : des compteurs et des liens vers des fiches déjà
 	// soumises, elles, au contrôle d'accès de leur rubrique.
+	// Flux public des modifications : même raison d'être `alwaysOpen` que
+	// « contribuer ». Il ne cite que des fiches visibles (les masquées sont
+	// écartées à la résolution des URL).
+	{
+		key: "modifications",
+		label: "Modifications",
+		href: "/wiki/modifications",
+		prefixes: ["/wiki/modifications"],
+		alwaysOpen: true,
+		defaultMode: "public",
+	},
 	{
 		key: "contribuer",
 		label: "Contribuer",
