@@ -426,7 +426,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 
 					{character.originPlanet && (
 						<GatedWrap
-							href={`/wiki/planetes/${character.originPlanet.id}`}
+							href={`/wiki/cosmologie/${character.originPlanet.id}`}
 							className="dbz-panel p-6 flex items-center gap-6 hover:border-dbz-orange transition-all group reveal-up"
 							style={{ animationDelay: "0.4s" }}
 						>

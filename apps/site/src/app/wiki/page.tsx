@@ -19,13 +19,16 @@ function buildSections(c: Record<string, number>) {
 		{
 			title: "Personnages",
 			desc: `${c.characters} guerriers — Saiyans, Nameks, dieux, androïdes.`,
-			href: "/wiki/personnages?tab=personnages",
+			href: "/wiki/personnages",
 			color: "border-dbz-orange text-dbz-orange",
 		},
 		{
-			title: "Planètes",
-			desc: `${c.planets} mondes à travers les douze univers.`,
-			href: "/wiki/personnages?tab=planetes",
+			title: "Cosmologie",
+			// « mondes » et non « planètes » : la rubrique couvre aussi les dimensions
+			// (l'Autre Monde), les demeures divines (temple du Roi de Tout, Planète
+			// sacrée) et des univers entiers.
+			desc: `${c.planets} mondes, dimensions et demeures divines.`,
+			href: "/wiki/cosmologie",
 			color: "border-dbz-blue-light text-dbz-blue-light",
 		},
 		{
@@ -89,7 +92,7 @@ function buildSections(c: Record<string, number>) {
 // classes Tailwind présentes dans le source, donc bien générées par le JIT).
 const CARD_FX: Record<string, { kanji: string; bar: string }> = {
 	Personnages: { kanji: "戦士", bar: "bg-dbz-orange" },
-	Planètes: { kanji: "惑星", bar: "bg-dbz-blue-light" },
+	Cosmologie: { kanji: "宇宙", bar: "bg-dbz-blue-light" },
 	Sagas: { kanji: "物語", bar: "bg-dbz-red" },
 	Films: { kanji: "映画", bar: "bg-dbz-yellow" },
 	Épisodes: { kanji: "話", bar: "bg-dbz-blue-light" },
@@ -370,12 +373,12 @@ export default async function WikiIndex() {
 					<div className="flex items-center justify-between gap-6 mb-8">
 						<div className="flex items-center gap-6">
 							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest">
-								Planètes
+								Cosmologie
 							</h2>
 							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
 						</div>
 						<GatedWrap
-							href="/wiki/planetes"
+							href="/wiki/cosmologie"
 							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
 						>
 							{planets.length} mondes →
@@ -385,7 +388,7 @@ export default async function WikiIndex() {
 						{featuredPlanets.map((planet, idx) => (
 							<GatedWrap
 								key={planet.id}
-								href={`/wiki/planetes/${planet.id}`}
+								href={`/wiki/cosmologie/${planet.id}`}
 								className="group flex flex-col dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
 								style={{ animationDelay: `${0.45 + idx * 0.05}s` }}
 							>

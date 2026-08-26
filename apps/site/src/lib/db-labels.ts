@@ -20,7 +20,7 @@ export const TABLE_LABELS: Record<string, string> = {
 	fusions: "Fusions actives",
 	action_logs: "Journal des actions",
 	db_characters: "Personnages",
-	db_planets: "Planètes",
+	db_planets: "Cosmologie",
 	db_races: "Races",
 	db_transformations: "Transformations",
 	db_techniques: "Techniques",

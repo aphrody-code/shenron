@@ -98,7 +98,7 @@ export default async function SearchPage({
 		? (
 				[
 					["characters", "Personnages", results.characters.length],
-					["planets", "Planètes", results.planets.length],
+					["planets", "Cosmologie", results.planets.length],
 					["sagas", "Sagas", results.sagas.length],
 					["arcs", "Arcs", results.arcs.length],
 					["movies", "Films", results.movies.length],
@@ -290,7 +290,7 @@ export default async function SearchPage({
 								{results.planets.map((p) => (
 									<Link
 										key={p.id}
-										href={`/wiki/planetes/${p.id}`}
+										href={`/wiki/cosmologie/${p.id}`}
 										className="group dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
 									>
 										<div className="relative aspect-video bg-dbz-bg overflow-hidden p-3">
@@ -725,7 +725,7 @@ function filterGated(r: SearchResults, cfg: AccessSnapshot | null): SearchResult
 	return {
 		...r,
 		characters: keep(r.characters, "/wiki/personnages/1"),
-		planets: keep(r.planets, "/wiki/planetes/1"),
+		planets: keep(r.planets, "/wiki/cosmologie/1"),
 		races: keep(r.races, "/wiki/races/x"),
 		transformations: keep(r.transformations, "/wiki/transformations"),
 		techniques: keep(r.techniques, "/wiki/techniques/x"),

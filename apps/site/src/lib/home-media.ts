@@ -62,8 +62,8 @@ export const HOME_DESTINATIONS: readonly HomeDestination[] = [
 	},
 	{
 		id: "planetes",
-		href: "/wiki/planetes",
-		label: "Planètes",
+		href: "/wiki/cosmologie",
+		label: "Cosmologie",
 		kanji: "星",
 		hint: "Namek, Terre, Yardrat…",
 		era: "namek",

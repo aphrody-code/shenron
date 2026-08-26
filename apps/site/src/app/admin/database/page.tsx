@@ -31,7 +31,7 @@ const TABLE_LABELS: Record<string, { label: string; group: string }> = {
 	action_logs: { label: "Journal des actions", group: "Audit" },
 	// Encyclopédie DB
 	db_characters: { label: "Personnages", group: "Encyclopédie" },
-	db_planets: { label: "Planètes", group: "Encyclopédie" },
+	db_planets: { label: "Cosmologie", group: "Encyclopédie" },
 	db_races: { label: "Races", group: "Encyclopédie" },
 	db_transformations: { label: "Transformations", group: "Encyclopédie" },
 	db_techniques: { label: "Techniques", group: "Encyclopédie" },

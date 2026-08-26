@@ -8,7 +8,7 @@ import { isPathPublic } from "@/lib/wiki-launch";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
- * Nav des sous-entités encyclopédiques du wiki (Personnages, Planètes, Races,
+ * Nav des sous-entités encyclopédiques du wiki (Personnages, Cosmologie, Races,
  * Transformations, Techniques, Arcs) — **uniquement celles absentes de la
  * navbar principale** (SiteNav porte déjà Sagas/Films/Épisodes/Manga/Jeux) pour
  * ne JAMAIS doubler la sidebar. Compteurs réels (jamais codés en dur). Server

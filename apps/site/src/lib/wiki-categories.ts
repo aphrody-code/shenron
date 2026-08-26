@@ -28,9 +28,13 @@ export const WIKI_CATEGORIES: WikiCategory[] = [
 		group: "encyclopedia",
 	},
 	{
+		// La CLÉ reste `planetes` : c'est elle qui est persistée dans
+		// `public."WikiLaunch"` (ordre et droits d'accès de la rubrique). Seul le
+		// vocabulaire affiché change — la table `db_planets` héberge aussi des
+		// dimensions et des demeures divines, que « Planètes » nommait mal.
 		key: "planetes",
-		label: "Planètes",
-		href: "/wiki/personnages?tab=planetes",
+		label: "Cosmologie",
+		href: "/wiki/cosmologie",
 		countKey: "planets",
 		group: "encyclopedia",
 	},

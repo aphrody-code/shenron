@@ -196,7 +196,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 
 								<h3 className="text-2xl font-saiyan tracking-widest text-white">
 									<GatedWrap
-										href={`/wiki/planetes/${race.homePlanet.id}`}
+										href={`/wiki/cosmologie/${race.homePlanet.id}`}
 										className={`hover:${theme.text} transition-colors`}
 									>
 										{race.homePlanet.name}

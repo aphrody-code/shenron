@@ -14,7 +14,7 @@ import { publicEntityUrl } from "@/lib/wiki-fields";
 /** Pages liste publiques par table (revalidées à chaque écriture). */
 export const WIKI_LIST_PATHS: Record<string, string[]> = {
 	db_characters: ["/wiki/personnages"],
-	db_planets: ["/wiki/planetes"],
+	db_planets: ["/wiki/cosmologie"],
 	db_sagas: ["/wiki/sagas"],
 	db_arcs: ["/wiki/sagas"],
 	db_movies: ["/wiki/films"],

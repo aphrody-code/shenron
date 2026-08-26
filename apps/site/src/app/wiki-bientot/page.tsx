@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 // Libellé lisible d'une section à partir de son chemin (plus long préfixe).
 const SECTION_LABELS: Record<string, string> = {
 	"/wiki/personnages": "les personnages",
-	"/wiki/planetes": "les planètes",
+	"/wiki/cosmologie": "les planètes",
 	"/wiki/sagas": "les sagas",
 	"/wiki/races": "les races",
 	"/wiki/transformations": "les transformations",

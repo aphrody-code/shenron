@@ -227,7 +227,22 @@ const nextConfig: NextConfig = {
 				destination: "/wiki/personnages/:id",
 				permanent: true,
 			},
-			{ source: "/wiki/dragon-ball/planet/:id", destination: "/wiki/planetes/:id", permanent: true },
+			// Pointe DIRECTEMENT sur la cosmologie : passer par `/wiki/planetes/:id`
+			// enchaînerait deux 308 pour un même clic.
+			{
+				source: "/wiki/dragon-ball/planet/:id",
+				destination: "/wiki/cosmologie/:id",
+				permanent: true,
+			},
+			// La rubrique « Planètes » est devenue « Cosmologie » : `db_planets`
+			// héberge aussi des dimensions (l'Autre Monde, le Noyau du Monde), des
+			// demeures divines (temple du Roi de Tout, Planète sacrée) et des univers
+			// entiers — une entrée sur huit n'est pas une planète. L'ancien
+			// `/wiki/planetes` n'était de toute façon qu'un `redirect()` de composant
+			// vers `/wiki/personnages?tab=planetes`, qui dégradait en 200 +
+			// `<meta refresh>` sous le layout `/wiki` (piège du streaming).
+			{ source: "/wiki/planetes/:id", destination: "/wiki/cosmologie/:id", permanent: true },
+			{ source: "/wiki/planetes", destination: "/wiki/cosmologie", permanent: true },
 			{
 				source: "/wiki/dragon-ball/techniques/:slug",
 				destination: "/wiki/techniques/:slug",

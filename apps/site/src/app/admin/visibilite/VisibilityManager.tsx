@@ -27,7 +27,7 @@ const TABLES: { name: string; label: string }[] = [
 	{ name: "db_characters", label: "Personnages" },
 	{ name: "db_techniques", label: "Techniques" },
 	{ name: "db_transformations", label: "Transformations" },
-	{ name: "db_planets", label: "Planètes" },
+	{ name: "db_planets", label: "Cosmologie" },
 	{ name: "db_races", label: "Races" },
 	{ name: "db_sagas", label: "Sagas" },
 	{ name: "db_arcs", label: "Arcs" },

@@ -383,7 +383,7 @@ export function publicEntityUrl(table: string, row: Record<string, unknown>): st
 		case "db_characters":
 			return hasId ? `/wiki/personnages/${id}` : null;
 		case "db_planets":
-			return hasId ? `/wiki/planetes/${id}` : null;
+			return hasId ? `/wiki/cosmologie/${id}` : null;
 		case "db_techniques":
 			return slug ? `/wiki/techniques/${slug}` : null;
 		case "db_games":

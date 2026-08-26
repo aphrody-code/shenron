@@ -86,9 +86,11 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 	},
 	{
 		key: "planetes",
-		label: "Planètes",
-		href: "/wiki/planetes",
-		prefixes: ["/wiki/planetes", "/wiki/dragon-ball/planet"],
+		label: "Cosmologie",
+		href: "/wiki/cosmologie",
+		// `/wiki/planetes` reste listé : le proxy s'exécute AVANT les 308 de
+		// `next.config`, une vieille URL doit donc rester gatée comme la rubrique.
+		prefixes: ["/wiki/cosmologie", "/wiki/planetes", "/wiki/dragon-ball/planet"],
 	},
 	{ key: "races", label: "Races", href: "/wiki/races", prefixes: ["/wiki/races"] },
 	{

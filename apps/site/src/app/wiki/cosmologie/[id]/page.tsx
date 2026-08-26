@@ -38,7 +38,7 @@ export async function generateMetadata({
 			description,
 			image: planet.image ? assetUrl(planet.image) : undefined,
 			type: "website",
-			canonical: `/wiki/planetes/${id}`,
+			canonical: `/wiki/cosmologie/${id}`,
 		}),
 	};
 }
@@ -70,7 +70,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 				className="mb-4"
 				items={[
 					{ label: "L'Univers", href: "/wiki/personnages" },
-					{ label: "Planètes", href: "/wiki/personnages?tab=planetes" },
+					{ label: "Cosmologie", href: "/wiki/cosmologie" },
 					{ label: planet.name },
 				]}
 			/>
@@ -78,7 +78,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 			<WikiAdminBar
 				table="db_planets"
 				id={planet.id}
-				indexHref="/wiki/planetes"
+				indexHref="/wiki/cosmologie"
 				label={planet.name}
 			/>
 
@@ -86,7 +86,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 				<div className="w-full lg:w-2/5 xl:w-1/2">
 					<div className="dbz-panel p-8 border-2 border-dbz-blue-light/30 bg-dbz-bg relative overflow-hidden group">
 						<div className="absolute inset-0 starfield opacity-30 group-hover:opacity-40 transition-opacity" />
-						{/* Cible du morph partagé avec la tuile de la grille /wiki/planetes. */}
+						{/* Cible du morph partagé avec la tuile de la grille /wiki/cosmologie. */}
 						<ViewTransition name={`planet-img-${planet.id}`} share="morph">
 							<img
 								src={assetUrl(planet.image)}

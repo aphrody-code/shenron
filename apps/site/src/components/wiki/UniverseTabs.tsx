@@ -2,237 +2,72 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { CharacterGrid, type GridCharacter, type CharacterFacets } from "./CharacterGrid";
-import { FilterDropdown } from "./FilterDropdown";
-import { ViewTransition } from "@/components/ViewTransition";
-import { assetUrl } from "@/lib/assets";
 import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
-import { onTablistKeyDown } from "@/lib/tablist-keys";
 import { ClientGatedWrap } from "@/components/GatedClientLink";
 import type { AccessSnapshot } from "@/lib/wiki-launch";
 
-// Autres entrées encyclopédiques (hors onglets Perso/Planètes) exposées DANS la
-// même barre — Races, Transformations, Techniques, Arcs. On n'y met jamais les
-// catégories "media" (Sagas/Films/Épisodes/Manga/Jeux) déjà dans la navbar
-// (anti-doublon), ni Perso/Planètes (ce sont les onglets juste à côté).
-const OTHER_CATS = ENCYCLOPEDIA_CATEGORIES.filter(
-	(c) => c.key !== "personnages" && c.key !== "planetes"
-);
-
-export type GridPlanet = {
-	id: number;
-	name: string;
-	nameJa: string | null;
-	isDestroyed: boolean;
-	image: string | null;
-};
+/**
+ * Page Personnages : la grille + la barre des autres entrées encyclopédiques
+ * (Cosmologie, Races, Transformations, Techniques, Arcs).
+ *
+ * Ce composant portait auparavant DEUX onglets, Personnages et Planètes, la
+ * seconde grille étant rendue en ligne ici — si bien que la rubrique cosmologie
+ * n'existait qu'en paramètre d'URL (`?tab=planetes`), sans page à elle, et que
+ * `/wiki/planetes` n'était qu'un `redirect()` de composant vers cet onglet.
+ * Elle a désormais son propre index (`/wiki/cosmologie`), comme les races ou
+ * les arcs : il ne reste ici qu'une grille et des liens, donc plus de `tablist`
+ * — un jeu d'onglets à un seul onglet n'en est pas un, et son `role="tab"`
+ * promettait une navigation aux flèches qui ne menait nulle part.
+ *
+ * On n'y met jamais les catégories « media » (Sagas/Films/Épisodes/Manga/Jeux) :
+ * elles sont déjà dans la navbar.
+ */
+const AUTRES_CATEGORIES = ENCYCLOPEDIA_CATEGORIES.filter((c) => c.key !== "personnages");
 
 type Props = {
 	characters: GridCharacter[];
-	planets: GridPlanet[];
-	initialTab?: string;
 	counts?: Record<string, number>;
 	facets?: CharacterFacets;
 };
 
 export function UniverseTabs({
 	characters,
-	planets,
-	initialTab = "personnages",
 	counts = {},
 	facets,
 	access,
 }: Props & { access?: AccessSnapshot | null }) {
-	const [activeTab, setActiveTab] = useState<string>(initialTab);
-	const [planetStatus, setPlanetStatus] = useState<string[]>([]);
-
-	// L'onglet vit dans l'URL (`?tab=`), pas seulement dans l'état local.
-	// Sans ça, passer sur « Planètes », ouvrir un monde puis revenir en arrière
-	// ramenait sur « Personnages » — le visiteur perdait sa place à chaque
-	// aller-retour — et l'onglet n'était ni partageable ni rechargeable.
-	//
-	// `history.pushState` plutôt que `router.push` : la page est déjà rendue,
-	// tout est côté client, et passer par le routeur déclencherait une requête
-	// RSC pour un simple changement d'onglet. Le `popstate` referme la boucle
-	// pour les boutons Précédent/Suivant du navigateur.
-	const selectTab = useCallback((tab: string) => {
-		setActiveTab(tab);
-		if (typeof window === "undefined") return;
-		const url = new URL(window.location.href);
-		if (tab === "personnages") url.searchParams.delete("tab");
-		else url.searchParams.set("tab", tab);
-		window.history.pushState(null, "", url);
-	}, []);
-
-	useEffect(() => {
-		const onPop = () => {
-			const tab = new URL(window.location.href).searchParams.get("tab");
-			setActiveTab(tab === "planetes" ? "planetes" : "personnages");
-		};
-		window.addEventListener("popstate", onPop);
-		return () => window.removeEventListener("popstate", onPop);
-	}, []);
-
-	const filteredPlanets = useMemo(() => {
-		if (!planetStatus.length) return planets;
-		const set = new Set(planetStatus);
-		return planets.filter((p) => set.has(p.isDestroyed ? "destroyed" : "alive"));
-	}, [planets, planetStatus]);
-
-	const planetStatusOptions = useMemo(() => {
-		const destroyed = planets.filter((p) => p.isDestroyed).length;
-		return [
-			{ value: "alive", label: "Existantes", count: planets.length - destroyed },
-			{ value: "destroyed", label: "Détruites", count: destroyed },
-		];
-	}, [planets]);
-
 	return (
 		<div className="space-y-8">
-			{/* Barre unique : onglets Personnages/Planètes (vue inline) + liens vers
-			    les autres entrées encyclopédiques (Races, Transformations, Techniques,
-			    Arcs). Aucune catégorie de la navbar ici → pas de doublon avec la nav. */}
-			<div className="flex items-center overflow-x-auto border-b border-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-				<div
-					role="tablist"
-					aria-label="Univers Dragon Ball"
-					onKeyDown={onTablistKeyDown}
-					className="flex shrink-0"
-				>
-					<button
-						type="button"
-						role="tab"
-						id="universe-tab-personnages"
-						aria-selected={activeTab === "personnages"}
-						aria-controls="universe-panel-personnages"
-						tabIndex={activeTab === "personnages" ? 0 : -1}
-						onClick={() => selectTab("personnages")}
-						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-							activeTab === "personnages" ? "text-dbz-orange" : "text-white/60 hover:text-white"
-						}`}
-					>
-						Personnages ({characters.length})
-						{activeTab === "personnages" && (
-							<span className="absolute bottom-0 inset-x-0 h-[2px] bg-dbz-orange" />
-						)}
-					</button>
-					<button
-						type="button"
-						role="tab"
-						id="universe-tab-planetes"
-						aria-selected={activeTab === "planetes"}
-						aria-controls="universe-panel-planetes"
-						tabIndex={activeTab === "planetes" ? 0 : -1}
-						onClick={() => selectTab("planetes")}
-						className={`px-5 py-3 font-display font-semibold text-sm transition-colors relative whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
-							activeTab === "planetes" ? "text-dbz-orange" : "text-white/60 hover:text-white"
-						}`}
-					>
-						Planètes ({planets.length})
-						{activeTab === "planetes" && (
-							<span className="absolute bottom-0 inset-x-0 h-[2px] bg-dbz-orange" />
-						)}
-					</button>
-				</div>
-
+			<nav
+				aria-label="Entrées de l'encyclopédie"
+				className="flex items-center overflow-x-auto border-b border-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+			>
+				<span className="shrink-0 whitespace-nowrap border-b-2 border-dbz-orange px-5 py-3 font-display text-sm font-semibold text-dbz-orange">
+					Personnages ({characters.length})
+				</span>
 				<span className="mx-2 h-5 w-px shrink-0 bg-white/10" aria-hidden />
-
 				<div className="flex shrink-0 items-center">
-					{OTHER_CATS.map((c) => {
+					{AUTRES_CATEGORIES.map((c) => {
 						const n = counts[c.countKey];
 						return (
 							<ClientGatedWrap
 								access={access}
 								key={c.key}
 								href={c.href}
-								className="px-4 py-3 font-display font-semibold text-sm text-white/55 hover:text-white whitespace-nowrap transition-colors"
+								className="whitespace-nowrap px-4 py-3 font-display text-sm font-semibold text-white/55 transition-colors hover:text-white"
 							>
 								{c.label}
 								{typeof n === "number" && n > 0 && (
-									<span className="ml-1 text-[11px] text-white/50 tabular-nums">{n}</span>
+									<span className="ml-1 text-[11px] tabular-nums text-white/50">{n}</span>
 								)}
 							</ClientGatedWrap>
 						);
 					})}
 				</div>
-			</div>
+			</nav>
 
-			{/* Tab Content */}
-			{activeTab === "personnages" ? (
-				<div
-					role="tabpanel"
-					id="universe-panel-personnages"
-					aria-labelledby="universe-tab-personnages"
-				>
-					<CharacterGrid characters={characters} facets={facets} access={access} />
-				</div>
-			) : (
-				<div
-					role="tabpanel"
-					id="universe-panel-planetes"
-					aria-labelledby="universe-tab-planetes"
-					className="space-y-8"
-				>
-					<div className="flex items-center gap-3">
-						<FilterDropdown
-							label="Statut"
-							options={planetStatusOptions}
-							selected={planetStatus}
-							onChange={setPlanetStatus}
-						/>
-						<p className="scouter-text text-[11px] text-dbz-blue-light whitespace-nowrap sm:ml-auto">
-							{filteredPlanets.length} / {planets.length} mondes
-						</p>
-					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 reveal-grid">
-						{filteredPlanets.map((p) => (
-							<ClientGatedWrap
-								access={access}
-								key={p.id}
-								href={`/wiki/planetes/${p.id}`}
-								transitionTypes={["nav-forward"]}
-								className="group flex flex-col dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300 ki-card"
-							>
-								<div className="relative aspect-video bg-dbz-bg overflow-hidden p-3">
-									<div className="absolute inset-0 starfield opacity-20" />
-									<span aria-hidden className="ki-card__glow ki-card__glow--blue" />
-									{p.image ? (
-										<ViewTransition name={`planet-img-${p.id}`} share="morph">
-											<img
-												src={assetUrl(p.image)}
-												alt={p.name}
-												loading="lazy"
-												className="relative z-10 w-full h-full object-contain opacity-100 group-hover:scale-110 transition-all duration-700 halo-ki"
-											/>
-										</ViewTransition>
-									) : (
-										<div className="relative z-10 flex h-full w-full items-center justify-center">
-											<span className="text-zinc-700 font-saiyan text-2xl">?</span>
-										</div>
-									)}
-									<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-20" />
-									{p.isDestroyed && (
-										<span className="absolute top-2 right-2 z-30 scouter-text text-[8px] text-dbz-red bg-black/60 px-1.5 py-0.5 rounded">
-											DÉTRUITE
-										</span>
-									)}
-									<div className="absolute inset-x-0 bottom-0 p-3 text-center z-30">
-										<p className="font-display font-bold text-sm text-white leading-tight group-hover:text-dbz-blue-light transition-colors truncate">
-											{p.name}
-										</p>
-										{p.nameJa && (
-											<p className="font-jp text-[10px] text-dbz-blue-light/70 mt-0.5 truncate">
-												{p.nameJa}
-											</p>
-										)}
-									</div>
-								</div>
-							</ClientGatedWrap>
-						))}
-					</div>
-				</div>
-			)}
+			<CharacterGrid characters={characters} facets={facets} access={access} />
 		</div>
 	);
 }

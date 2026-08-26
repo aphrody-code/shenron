@@ -65,7 +65,7 @@ interface Section {
 /** Types d'entités liables (table → libellé). */
 const LINKABLE_ENTITIES: { table: string; label: string; nameCol: string; imageCol: string }[] = [
 	{ table: "db_characters", label: "Personnages", nameCol: "name", imageCol: "image" },
-	{ table: "db_planets", label: "Planètes", nameCol: "name", imageCol: "image" },
+	{ table: "db_planets", label: "Cosmologie", nameCol: "name", imageCol: "image" },
 	{ table: "db_techniques", label: "Techniques", nameCol: "name", imageCol: "image" },
 	{ table: "db_transformations", label: "Transformations", nameCol: "name", imageCol: "image" },
 	{ table: "db_races", label: "Races", nameCol: "name", imageCol: "image" },

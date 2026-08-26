@@ -20,7 +20,7 @@ type Asset = {
 
 const BUCKETS: { key: string; label: string }[] = [
 	{ key: "characters", label: "Personnages" },
-	{ key: "planets", label: "Planètes" },
+	{ key: "planets", label: "Cosmologie" },
 	{ key: "transformations", label: "Transformations" },
 	{ key: "anime-posters", label: "Affiches anime" },
 	{ key: "kitsu", label: "Kitsu" },

@@ -483,7 +483,7 @@ export function HomeExperience({
 						{[
 							// href null → tuile non cliquable en bêta (route /wiki fermée) ; le compteur reste.
 							{ k: "characters", label: "Personnages", href: null },
-							{ k: "planets", label: "Planètes", href: null },
+							{ k: "planets", label: "Cosmologie", href: null },
 							{ k: "sagas", label: "Sagas", href: null },
 							{ k: "episodes", label: "Épisodes", href: "/wiki/episodes" },
 							{ k: "movies", label: "Films", href: "/wiki/films" },

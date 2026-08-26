@@ -90,7 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		"/wiki/personnages",
 		// L'index des planètes existe et publie 62 fiches, mais il ne figurait pas
 		// dans le sitemap : ses fiches y étaient, sa porte d'entrée non.
-		"/wiki/planetes",
+		"/wiki/cosmologie",
 		"/wiki/races",
 		"/wiki/transformations",
 		"/wiki/techniques",
@@ -174,7 +174,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				.select({ id: botPlanets.id })
 				.from(botPlanets)
 				.where(eq(botPlanets.visible, true));
-			return rows.map((r) => [`/wiki/planetes/${r.id}`, 0.5, new Date()] as const);
+			return rows.map((r) => [`/wiki/cosmologie/${r.id}`, 0.5, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
 			const rows = await db

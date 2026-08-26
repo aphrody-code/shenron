@@ -278,7 +278,7 @@ export default function CommandPalette({
 							<Item
 								key={`planet-${p.id}`}
 								value={`planet-${p.id}-${p.name}`}
-								onSelect={() => go(`/wiki/planetes/${p.id}`)}
+								onSelect={() => go(`/wiki/cosmologie/${p.id}`)}
 								image={p.image}
 								title={p.name}
 								subtitle={p.name_ja ?? undefined}
