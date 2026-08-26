@@ -47,6 +47,11 @@ export function CosmologyGrid({
 		];
 	}, [places]);
 
+	// `places` arrive DÉJÀ trié par la page (composant serveur). Trier ici serait
+	// un `localeCompare` exécuté au rendu serveur ET à l'hydratation : deux
+	// implémentations d'ICU, donc un ordre potentiellement différent des deux
+	// côtés — la recette exacte du mismatch d'hydratation qui fait abandonner la
+	// branche à React et gèle les clics le temps qu'elle se regénère.
 	const visibles = useMemo(() => {
 		if (!statut.length) return places;
 		const set = new Set(statut);

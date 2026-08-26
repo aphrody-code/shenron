@@ -39,10 +39,16 @@ export const metadata: Metadata = {
 };
 
 export default async function CosmologiePage() {
-	const [places, access] = await Promise.all([
+	const [lieux, access] = await Promise.all([
 		getShenronPlanets(),
 		getLaunchConfig().catch(() => null),
 	]);
+
+	// Tri ICI, côté serveur : la requête rend les lieux dans l'ordre des
+	// identifiants, c'est-à-dire celui des imports successifs — sur 60 vignettes,
+	// chercher « Namek » revenait à balayer toute la grille. Trier dans le
+	// composant client exposerait au mismatch d'hydratation (deux ICU).
+	const places = [...lieux].sort((a, b) => a.name.localeCompare(b.name, "fr"));
 
 	return (
 		<>
