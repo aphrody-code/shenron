@@ -165,6 +165,29 @@ Résultat au 2026-08-25 : **149 personnages, 451 variantes** (164 par le manga s
 7. **L'anime n'est pas le manga.** Une variante `synopsis-episodes` seule atteste une présence dans l'adaptation, qui peut être du remplissage : l'UI le dit (« cette saga n'a pas de manga »). 8 sagas n'ont AUCUNE source mesurable — films (Broly, Super Hero), OAV (Bardock, Post-Buu) et manga-only de Super (Moro, Granolah, Black Freezer, Patrouille Galactique) : les planches `series='DBS'` sont indexées par identifiant interne de chapitre (`ch1315`…), pas par numéro publié.
 8. **`db_characters` portait 16 doublons**, masqués le 2026-08-25 par `apps/site/scripts/doublons-personnages.ts` (« Son Goku » quand « Goku » existe, « Chichi »/« Chi-Chi », les huit Kaïo/Kaïo Shin…). Masquage via `visible = false`, **jamais** de suppression — `--demasquer` annule tout. Le juge est le **nom japonais** : identique ⇒ même personne quelles que soient les races saisies (`チチ` pour Chi-Chi/Chichi) ; différent ⇒ homonymes à laisser tranquilles (`マロン` l'ex-petite amie de Krilin ≠ `マーロン` sa fille — le piège classique). Sans nom japonais, deux races renseignées et différentes suffisent à écarter (`Abra` Neko Majin ≠ `Âbra` Démon). Reste **un** arbitrage humain : `11:Krillin` et `706:Krilin` ont chacun un article long et 4 sections — fusionner demande de les lire.
 
+## Site — contribution communautaire au wiki (depuis le 2026-08-26)
+
+Le wiki n'avait que deux extrêmes : le **signalement** en texte libre (`site_reports`, tout le travail reste au modérateur) et l'**édition directe** (`/api/wiki-admin`, réservée aux admins). Un membre qui repérait une erreur ne pouvait pas la corriger. `public.wiki_contributions` (migration `0009`, **appliquée en prod le 2026-08-26**) porte l'entre-deux : une proposition de **valeur exacte** sur un couple (table, ligne, colonne), relue puis appliquée.
+
+| Fichier | Rôle |
+|---|---|
+| `lib/contributions-shared.ts` | **Client-safe** : `CONTRIBUTABLE_COLUMNS` (la liste étroite des colonnes proposables), bornes de saisie, regex des tournures non sourcées (miroir de `depose-wiki.ts`) |
+| `lib/wiki-contributions.ts` | Server-only : dépôt, liste, acceptation/refus, palmarès. L'acceptation passe par `updateWiki` + `recordRevision` — **un seul chemin d'écriture** |
+| `lib/wiki-chantiers.ts` | Mesure publique des fiches vides par rubrique (SQL brut, `Number()` sur les `count()`) — c'est ce qui donne envie de contribuer, pas l'invitation générale |
+| `components/wiki/WikiEditBar.tsx` | Remplace `WikiAdminBar` sur les 9 fiches détail : un bouton public de contribution + les actions admin. `WikiAdminBar` reste un alias déprécié de `WikiAdminActions` |
+| `components/wiki/WikiContribute.tsx` | Îlot client : modale, sélecteur de champ, garde-fou de tournure. Ne reçoit **pas** le texte de départ en prop |
+| `components/wiki/MesContributions.tsx` | La boucle de retour : le contributeur lit la réponse du relecteur sur `/wiki/contribuer` |
+| `app/admin/wiki/contributions/page.tsx` | Modération : diff par lignes, sources, accepter/refuser (note obligatoire au refus) |
+
+### Règles dures
+
+1. **Le crédit va au contributeur, pas au modérateur.** `recordRevision` est appelée avec `actor = { id: authorId, name: authorName }`. C'est ce qui fait que `/admin/wiki/history` dit la vérité sur qui a écrit le wiki — et que le revert existant annule une contribution sans code supplémentaire.
+2. **`valueBefore` n'est pas décoratif.** Comparée à la valeur en base au moment d'appliquer : si elle a bougé, la contribution passe en `superseded` au lieu d'écraser le travail d'un autre. La comparaison normalise CRLF et blancs de bord, sinon un copier-coller depuis un navigateur passerait pour un conflit.
+3. **La surface proposable est étroite à dessein** : du texte éditorial (`article`, `description`, `synopsis`, `body`, `nameJa`…), jamais une image, une clé étrangère, un `sortOrder` ni un `visible`. Élargir `CONTRIBUTABLE_COLUMNS`, c'est élargir la surface de dégât d'une acceptation trop rapide — le faire colonne par colonne. Un test vérifie que tout champ ouvert est réellement dans les `mutableColumns` d'au moins une table (sinon le bouton échouerait au premier clic).
+4. **Le texte de départ se charge à l'ouverture** (`/api/wiki/contributions/value`), jamais en prop : un article pèse des dizaines de Ko (la charge RSC de chaque fiche doublerait) et une fiche servie en ISR peut être périmée — partir de là fabriquerait un conflit.
+5. **Toute page sous `/wiki` hors registre est fermée** (`proxy.ts` → mode `admin` par défaut). `/wiki/contribuer` a donc son entrée `alwaysOpen` dans `LAUNCH_CATEGORIES` ; l'oublier rendait la page invisible à tout le monde sauf aux admins.
+6. **`article` n'était éditable par personne** avant cette passe — absent de `mutableColumns`, donc ni le studio ni l'API ne l'écrivaient, seulement les scripts. Ajouté sur les 7 tables qui en portent un, et déclaré `isRichTextColumn` pour l'éditeur markdown.
+
 ## Site — module d'édition (`components/editor/`)
 
 **Une seule surface de saisie pour tout le site** (depuis le 2026-08-24) : elle remplace les quatre éditeurs qui coexistaient (Tiptap des articles, CodeMirror des pages wiki, CodeMirror des fiches, `<textarea>` nus). Deux composants exposés :
