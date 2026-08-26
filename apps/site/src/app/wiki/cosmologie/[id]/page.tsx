@@ -1,7 +1,8 @@
-import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { WikiArticle } from "@/components/wiki/WikiArticle";
-import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiEditBar } from "@/components/wiki/WikiEditBar";
+import { WikiFicheVide } from "@/components/wiki/WikiFicheVide";
+import { WikiSectionsReader } from "@/components/wiki/WikiSectionsReader";
+import { WikiSources } from "@/components/wiki/WikiArticle";
+import { buildWikiContentPanels } from "@/lib/wiki-panels";
 import { ViewTransition } from "@/components/ViewTransition";
 import { getShenronPlanet, getShenronPlanets } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
@@ -12,14 +13,11 @@ import { JsonLd } from "@/components/JsonLd";
 import type { Place, WithContext } from "schema-dts";
 import type { Metadata } from "next";
 import { ogMeta } from "@/lib/og";
-
 export const revalidate = 3600;
-
 export async function generateStaticParams() {
 	const list = await getShenronPlanets();
 	return list.map((p) => ({ id: String(p.id) }));
 }
-
 export async function generateMetadata({
 	params,
 }: {
@@ -42,13 +40,17 @@ export async function generateMetadata({
 		}),
 	};
 }
-
 export default async function PlanetPage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 	const planet = await getShenronPlanet(parseInt(id));
-
 	if (!planet) notFound();
-
+	const contentPanels = await buildWikiContentPanels({
+		entityType: "planet",
+		entityId: planet.id,
+		article: planet.article,
+		description: planet.description,
+		fallbackHeading: "Emplacement",
+	});
 	const jsonLdData: WithContext<Place> = {
 		"@context": "https://schema.org",
 		"@type": "Place",
@@ -57,7 +59,6 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 		description: planet.description ?? undefined,
 		additionalType: "https://en.wikipedia.org/wiki/Planet",
 	};
-
 	return (
 		<article
 			data-entity={planet.name}
@@ -74,14 +75,12 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 					{ label: planet.name },
 				]}
 			/>
-
 			<WikiEditBar
 				table="db_planets"
 				id={planet.id}
 				indexHref="/wiki/cosmologie"
 				label={planet.name}
 			/>
-
 			<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 				<div className="w-full lg:w-2/5 xl:w-1/2">
 					<div className="dbz-panel p-8 border-2 border-dbz-blue-light/30 bg-dbz-bg relative overflow-hidden group">
@@ -97,7 +96,6 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 						<div className="absolute inset-0 bg-gradient-to-t from-dbz-blue/40 to-transparent" />
 					</div>
 				</div>
-
 				<div className="flex-1 min-w-0 space-y-8">
 					<div className="reveal-up" style={{ animationDelay: "0.1s" }}>
 						<h1
@@ -137,30 +135,25 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 							)}
 						</div>
 					</div>
-
-					{planet.article ? (
-						<WikiArticle
-							article={planet.article}
-							sources={planet.articleSources}
-							heading="Article"
-							accent="blue"
-						/>
+					{/* Même lecture que les fiches personnage : l'article est éclaté en
+					    catégories (Emplacement, Histoire, Caractéristiques, Anecdotes)
+					    au lieu d'un pavé unique. Fiche sans aucun texte → appel à
+					    l'écrire, qui vaut mieux que quatre onglets vides. */}
+					{contentPanels.length > 0 ? (
+						<>
+							<WikiSectionsReader panels={contentPanels} />
+							<WikiSources sources={planet.articleSources} />
+						</>
 					) : (
-						planet.description && (
-							<div className="dbz-panel p-8 reveal-up" style={{ animationDelay: "0.2s" }}>
-								<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
-								<h3 className="text-dbz-blue-light font-saiyan text-3xl mb-4 uppercase tracking-widest">
-									Archives / Lore
-								</h3>
-								<div className="prose prose-invert max-w-none wiki-content text-justify">
-									<WikiMarkdown body={planet.description} />
-								</div>
-							</div>
-						)
+						<WikiFicheVide
+							table="db_planets"
+							rowId={planet.id}
+							label={planet.name}
+							quoi="ce que le manga et les databooks disent de ce lieu, de ses habitants et de son sort"
+						/>
 					)}
 				</div>
 			</div>
-
 			{planet.characters && planet.characters.length > 0 && (
 				<section className="space-y-8 pt-12 reveal-up" style={{ animationDelay: "0.4s" }}>
 					<div className="flex items-center gap-6">
@@ -196,8 +189,6 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 					</div>
 				</section>
 			)}
-
-			<WikiEntitySections entityType="planet" entityId={planet.id} />
 		</article>
 	);
 }

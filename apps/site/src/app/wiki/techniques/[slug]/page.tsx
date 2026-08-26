@@ -1,7 +1,8 @@
-import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
-import { WikiArticle } from "@/components/wiki/WikiArticle";
-import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiEditBar } from "@/components/wiki/WikiEditBar";
+import { WikiFicheVide } from "@/components/wiki/WikiFicheVide";
+import { WikiSectionsReader } from "@/components/wiki/WikiSectionsReader";
+import { WikiSources } from "@/components/wiki/WikiArticle";
+import { buildWikiContentPanels } from "@/lib/wiki-panels";
 import { getShenronTechnique, getShenronTechniques } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -14,9 +15,7 @@ import type { DefinedTerm, WithContext } from "schema-dts";
 import { SITE_URL } from "@/lib/config";
 import { ogMeta } from "@/lib/og";
 import { capParams } from "@/lib/prerender";
-
 export const revalidate = 3600;
-
 export async function generateStaticParams() {
 	const list = await getShenronTechniques();
 	// 825 fiches pour une rubrique tout juste ouverte : on prérend les plus
@@ -26,7 +25,6 @@ export async function generateStaticParams() {
 		300
 	);
 }
-
 export async function generateMetadata({
 	params,
 }: {
@@ -47,7 +45,6 @@ export async function generateMetadata({
 		}),
 	};
 }
-
 export default async function TechniqueDetailPage({
 	params,
 }: {
@@ -55,9 +52,14 @@ export default async function TechniqueDetailPage({
 }) {
 	const { slug } = await params;
 	const tech = await getShenronTechnique(slug);
-
 	if (!tech) notFound();
-
+	const contentPanels = await buildWikiContentPanels({
+		entityType: "technique",
+		entityId: tech.id,
+		article: tech.article,
+		description: tech.description,
+		fallbackHeading: "Description",
+	});
 	const jsonLdData: WithContext<DefinedTerm> = {
 		"@context": "https://schema.org",
 		"@type": "DefinedTerm",
@@ -66,7 +68,6 @@ export default async function TechniqueDetailPage({
 		termCode: String(tech.id),
 		inDefinedTermSet: `${SITE_URL}/wiki/techniques`,
 	};
-
 	return (
 		<article
 			data-entity={tech.name}
@@ -82,7 +83,6 @@ export default async function TechniqueDetailPage({
 					{ label: tech.name },
 				]}
 			/>
-
 			<div className="mb-6">
 				<WikiEditBar
 					table="db_techniques"
@@ -91,7 +91,6 @@ export default async function TechniqueDetailPage({
 					label={tech.name}
 				/>
 			</div>
-
 			<div className="space-y-12">
 				<header className="flex flex-col sm:flex-row gap-8 items-start">
 					{tech.creatorImage && (
@@ -117,11 +116,9 @@ export default async function TechniqueDetailPage({
 								{tech.type ?? "Capacité"}
 							</p>
 						</div>
-
 						<h1 className="font-saiyan text-4xl lg:text-6xl text-white mb-4 tracking-widest leading-tight">
 							{tech.name}
 						</h1>
-
 						{tech.creatorName && (
 							<p className="text-white/70">
 								Créateur / utilisateur :{" "}
@@ -135,29 +132,22 @@ export default async function TechniqueDetailPage({
 						)}
 					</div>
 				</header>
-
-				{tech.article ? (
-					<WikiArticle
-						article={tech.article}
-						sources={tech.articleSources}
-						heading="Article"
-						accent="blue"
-					/>
+				{/* Article éclaté en catégories (Description, Utilisation, Histoire,
+				    Anecdotes) plutôt qu'un pavé unique — même lecture que les fiches
+				    personnage. Sans aucun texte, l'appel à l'écrire prend la place. */}
+				{contentPanels.length > 0 ? (
+					<>
+						<WikiSectionsReader panels={contentPanels} />
+						<WikiSources sources={tech.articleSources} />
+					</>
 				) : (
-					tech.description && (
-						<section className="dbz-panel p-8 relative overflow-hidden">
-							<div className="absolute top-0 left-0 w-1 h-full bg-dbz-blue-light" />
-							<h2 className="font-saiyan text-2xl text-dbz-blue-light mb-4 uppercase tracking-widest">
-								Description & Effets
-							</h2>
-							<div className="prose prose-invert max-w-none wiki-content">
-								<WikiMarkdown body={tech.description} />
-							</div>
-						</section>
-					)
+					<WikiFicheVide
+						table="db_techniques"
+						rowId={tech.id}
+						label={tech.name}
+						quoi="qui l'emploie, comment elle fonctionne et dans quelle planche elle apparaît"
+					/>
 				)}
-
-				<WikiEntitySections entityType="technique" entityId={tech.id} />
 			</div>
 		</article>
 	);

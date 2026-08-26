@@ -2,6 +2,7 @@ import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiEntitySections } from "@/components/wiki/WikiEntitySections";
 import { WikiEditBar } from "@/components/wiki/WikiEditBar";
+import { WikiFicheVide } from "@/components/wiki/WikiFicheVide";
 import { getShenronRace, getShenronRaces } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import { notFound } from "next/navigation";
@@ -158,6 +159,13 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 									article={race.article}
 									sources={race.articleSources}
 									heading="Article"
+								/>
+							) : !race.description ? (
+								<WikiFicheVide
+									table="db_races"
+									rowId={race.id}
+									label={race.name}
+									quoi="ses traits, son monde d'origine et ce que les sources en établissent"
 								/>
 							) : (
 								race.description && (
