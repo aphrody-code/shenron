@@ -122,6 +122,17 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 	// Flux public des modifications : même raison d'être `alwaysOpen` que
 	// « contribuer ». Il ne cite que des fiches visibles (les masquées sont
 	// écartées à la résolution des URL).
+	// Page de dépôt d'une correction. `alwaysOpen` pour la même raison que les
+	// deux précédentes ; elle ne montre aucun contenu par elle-même (le texte
+	// est chargé par une API qui exige une session).
+	{
+		key: "corriger",
+		label: "Corriger",
+		href: null,
+		prefixes: ["/wiki/corriger"],
+		alwaysOpen: true,
+		defaultMode: "public",
+	},
 	{
 		key: "modifications",
 		label: "Modifications",

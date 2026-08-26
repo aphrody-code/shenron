@@ -28,7 +28,8 @@ import {
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { PwsStatSection } from "@/components/wiki/PwsStatSection";
-import { WikiContribute } from "@/components/wiki/WikiContribute";
+import Link from "next/link";
+import { PenLine } from "lucide-react";
 import { normalizeWikiSectionGroups, PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
 import { PWS_GROUP_PRESETS, PWS_LEGACY_KEY_ALIASES } from "@/lib/wiki-fields";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
@@ -256,17 +257,13 @@ export async function buildWikiContentPanels({
 						<SectionAEcrire label={s.label} cible={cible} />
 					)}
 					{links.length > 0 && <WikiSectionLinks links={links} />}
-					{/* Corriger là où l'on lit : le bouton vise la rubrique affichée,
-					    pas un champ générique en haut de fiche. */}
+					{/* Corriger là où l'on lit — mais par un LIEN, pas un îlot client.
+					    Une modale par rubrique, c'est un composant client par section
+					    sur ~1 300 fiches : trois builds sont morts en OOM dessus. Le
+					    lien est rendu côté serveur et coûte zéro octet de JS. */}
 					{s.body.trim() && cible.table ? (
 						<div className="pt-1">
-							<WikiContribute
-								table={cible.table}
-								rowId={cible.rowId}
-								columns={[cible.column]}
-								entityLabel={s.label}
-								compact
-							/>
+							<LienCorriger cible={cible} />
 						</div>
 					) : null}
 				</div>
@@ -280,6 +277,23 @@ export async function buildWikiContentPanels({
  * ressemble à un bug plus qu'à un manque. Elle dit maintenant ce qu'elle est et
  * propose de la remplir, en visant l'endroit qui sera réellement rendu.
  */
+function LienCorriger({ cible }: { cible: { table?: string; rowId: number; column: string } }) {
+	if (!cible.table) return null;
+	const params = new URLSearchParams({
+		table: cible.table,
+		row: String(cible.rowId),
+		col: cible.column,
+	});
+	return (
+		<Link
+			href={`/wiki/corriger?${params}`}
+			className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/30 transition-colors hover:text-dbz-orange"
+		>
+			<PenLine className="h-3 w-3" /> Corriger cette partie
+		</Link>
+	);
+}
+
 function SectionAEcrire({
 	label,
 	cible,
@@ -294,13 +308,12 @@ function SectionAEcrire({
 				Cette partie n&apos;est pas encore écrite.
 			</p>
 			{cible.table ? (
-				<WikiContribute
-					table={cible.table}
-					rowId={cible.rowId}
-					columns={[cible.column]}
-					entityLabel={label}
-					labelBouton={`Écrire « ${label} »`}
-				/>
+				<Link
+					href={`/wiki/corriger?${new URLSearchParams({ table: cible.table, row: String(cible.rowId), col: cible.column })}`}
+					className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white/65 transition-colors hover:border-dbz-orange/50 hover:text-white"
+				>
+					<PenLine className="h-3.5 w-3.5" /> Écrire «&nbsp;{label}&nbsp;»
+				</Link>
 			) : null}
 		</div>
 	);

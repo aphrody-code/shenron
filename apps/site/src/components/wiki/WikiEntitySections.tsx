@@ -14,7 +14,8 @@ import { normalizeWikiSectionGroups } from "@/lib/wiki-section-groups";
 import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
-import { WikiContribute } from "@/components/wiki/WikiContribute";
+import Link from "next/link";
+import { PenLine } from "lucide-react";
 
 export async function WikiEntitySections({
 	entityType,
@@ -51,15 +52,16 @@ export async function WikiEntitySections({
 				)}
 				<WikiSectionLinks links={s.links} />
 				{/* Le contenu long du wiki vit ici, pas dans la fiche : sans point
-				    d'entrée par section, « corriger le wiki » resterait théorique. */}
+				    d'entrée par section, « corriger le wiki » resterait théorique.
+				    Un LIEN, pas une modale — un îlot client par section coûtait le
+				    build (mort en OOM à la compilation). */}
 				<div className="pt-2">
-					<WikiContribute
-						table="db_wiki_sections"
-						rowId={s.id}
-						columns={["body"]}
-						entityLabel={label}
-						compact
-					/>
+					<Link
+						href={`/wiki/corriger?table=db_wiki_sections&row=${s.id}&col=body`}
+						className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/30 transition-colors hover:text-dbz-orange"
+					>
+						<PenLine className="h-3 w-3" /> Corriger cette partie
+					</Link>
 				</div>
 			</div>
 		),
