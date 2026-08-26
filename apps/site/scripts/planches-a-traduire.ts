@@ -1,0 +1,180 @@
+#!/usr/bin/env bun
+/**
+ * File de TRADUCTION des planches de databook : japonais → français.
+ *
+ *   bun apps/site/scripts/planches-a-traduire.ts --compte
+ *   bun apps/site/scripts/planches-a-traduire.ts --lot 40 --json /tmp/lot-01.json
+ *   bun apps/site/scripts/planches-a-traduire.ts --databook 4 --pages 41-80 --json …
+ *
+ * Ce que le script garantit, et qui n'est pas négociable :
+ *
+ * 1. **Seules les planches saines sortent.** `classerDefaut` (le juge unique du
+ *    corpus) écarte les transcriptions hallucinées : traduire une hallucination
+ *    la blanchit en la rendant lisible, c'est le pire résultat possible.
+ * 2. **Seules les planches japonaises sortent** (au moins un kana) : les pages
+ *    de crédits, ISBN et sommaires latins n'ont rien à traduire.
+ * 3. **Le lexique du domaine voyage avec le lot.** Sans lui, un traducteur rend
+ *    `界王拳` par « le poing du roi » et `ベジータ` par « Végitta » — mesuré.
+ *    Le lot ne porte que les termes RÉELLEMENT présents dans ses planches, pour
+ *    ne pas payer 4 000 entrées de lexique par lot.
+ * 4. **Les lots ne se recouvrent pas.** `--decalage` découpe la file d'un même
+ *    appel, mais la file RÉTRÉCIT à mesure que les traductions se déposent :
+ *    deux agents parallèles finiraient par se marcher dessus. `--pages 41-80`
+ *    borne sur les numéros de planche, qui eux ne bougent pas — c'est la forme
+ *    à employer dès qu'il y a plus d'un traducteur.
+ *
+ * Reprise : une planche déjà traduite (`text_fr` non vide dans le jsonb) ne
+ * ressort jamais. Relancer après une interruption reprend là où on s'est arrêté.
+ */
+import postgres from "postgres";
+import { classerDefaut } from "../src/lib/databooks-defauts";
+import { trierLexique, type TermeLexique } from "../src/lib/ja/anomalies";
+import { contientJaponais } from "../src/lib/ja/normalisation";
+
+const args = process.argv.slice(2);
+const flag = (nom: string) => args.includes(`--${nom}`);
+const opt = (nom: string, def?: string) => {
+	const i = args.indexOf(`--${nom}`);
+	return i >= 0 ? (args[i + 1] ?? def) : def;
+};
+
+const KANA = /[぀-ヿ]/;
+
+async function urlBase(): Promise<string> {
+	const brut = await Bun.file(new URL("../.env", import.meta.url).pathname).text();
+	// Le fichier porte DEUX lignes DATABASE_URL, l'ancienne Neon en commentaire
+	// AVANT la locale : ancrer en début de ligne et prendre la DERNIÈRE.
+	const lignes = brut.split("\n").filter((l) => l.startsWith("DATABASE_URL="));
+	const url = lignes.at(-1)?.slice("DATABASE_URL=".length).replace(/^"|"$/g, "").trim();
+	if (!url) throw new Error("DATABASE_URL introuvable dans apps/site/.env");
+	return url;
+}
+
+const sql = postgres(await urlBase(), { max: 2, prepare: false });
+
+interface PlancheBrute {
+	databook_id: string | number;
+	titre: string;
+	page: number;
+	texte: string;
+	traduite: boolean;
+}
+
+try {
+	const cibleId = Number(opt("databook") ?? 0) || 0;
+	const categorie = opt("categorie");
+
+	const brutes = await sql<PlancheBrute[]>`
+		SELECT d.id AS databook_id,
+		       d.title AS titre,
+		       (e.value->>'number')::int AS page,
+		       coalesce(e.value->>'text', '') AS texte,
+		       coalesce(length(trim(coalesce(e.value->>'text_fr', ''))), 0) > 0 AS traduite
+		FROM bot.db_databooks d, jsonb_array_elements(d.pages) e
+		WHERE (${cibleId} = 0 OR d.id = ${cibleId})
+		  AND (${categorie ?? null}::text IS NULL OR d.category = ${categorie ?? null})
+		ORDER BY d.id, (e.value->>'number')::int
+	`;
+
+	// Le filtrage tient en JS parce que le juge des défauts y vit : le refaire en
+	// SQL, c'est fabriquer un second juge qui divergera du premier (et la boucle
+	// ne se détecte de toute façon pas en SQL en un temps raisonnable).
+	const eligibles = brutes.filter(
+		(p) => !p.traduite && KANA.test(p.texte) && classerDefaut(p.texte) === null,
+	);
+
+	if (flag("compte")) {
+		const par = new Map<string, { titre: string; reste: number; faites: number; signes: number }>();
+		for (const p of brutes) {
+			const cle = String(p.databook_id);
+			const e = par.get(cle) ?? { titre: p.titre, reste: 0, faites: 0, signes: 0 };
+			if (p.traduite) e.faites++;
+			else if (KANA.test(p.texte) && classerDefaut(p.texte) === null) {
+				e.reste++;
+				e.signes += p.texte.length;
+			}
+			par.set(cle, e);
+		}
+		const lignes = [...par.entries()]
+			.filter(([, e]) => e.reste > 0 || e.faites > 0)
+			.sort((a, b) => b[1].reste - a[1].reste);
+		for (const [id, e] of lignes) {
+			console.log(
+				`${id.padStart(4)}  reste ${String(e.reste).padStart(4)}  faites ${String(e.faites).padStart(4)}  ${String(Math.round(e.signes / 1000)).padStart(4)} k signes  ${e.titre}`,
+			);
+		}
+		const reste = lignes.reduce((n, [, e]) => n + e.reste, 0);
+		const faites = lignes.reduce((n, [, e]) => n + e.faites, 0);
+		const signes = lignes.reduce((n, [, e]) => n + e.signes, 0);
+		console.log(`\n${reste} planches à traduire, ${faites} déjà traduites, ${Math.round(signes / 1000)} k signes japonais restants.`);
+		process.exit(0);
+	}
+
+	const plage = opt("pages");
+	let candidates = eligibles;
+	if (plage) {
+		const m = /^(\d+)-(\d+)$/.exec(plage);
+		if (!m) throw new Error(`--pages attend « début-fin » (reçu « ${plage} »)`);
+		const [debut, fin] = [Number(m[1]), Number(m[2])];
+		candidates = eligibles.filter((p) => p.page >= debut && p.page <= fin);
+	}
+	const taille = Number(opt("lot", "40"));
+	const decalage = Number(opt("decalage", "0"));
+	const tranche = candidates.slice(decalage, decalage + taille);
+	if (tranche.length === 0) {
+		console.error("aucune planche à traduire pour ces critères.");
+		process.exit(3);
+	}
+
+	// Lexique du domaine : la base porte, sur la même ligne, la graphie japonaise
+	// et la forme française officielle. C'est elle qui fait autorité, pas l'oreille
+	// du traducteur.
+	const brutLex = await sql<{ ja: string; fr: string; kind: string }[]>`
+		SELECT name_ja AS ja, name AS fr, 'personnage' AS kind FROM bot.db_characters WHERE name_ja IS NOT NULL
+		UNION ALL SELECT name_ja, name, 'planete'        FROM bot.db_planets         WHERE name_ja IS NOT NULL
+		UNION ALL SELECT name_ja, name, 'race'           FROM bot.db_races           WHERE name_ja IS NOT NULL
+		UNION ALL SELECT name_ja, name, 'saga'           FROM bot.db_sagas           WHERE name_ja IS NOT NULL
+		UNION ALL SELECT name_ja, name, 'technique'      FROM bot.db_techniques      WHERE name_ja IS NOT NULL
+	`;
+	const vus = new Set<string>();
+	const termes: TermeLexique[] = [];
+	for (const l of brutLex) {
+		for (const v of String(l.ja).split(/[,、;]/)) {
+			const ja = v.trim().replace(/^[（(]+|[）)]+$/g, "").trim();
+			if (ja.length < 2 || !contientJaponais(ja) || vus.has(ja)) continue;
+			vus.add(ja);
+			termes.push({ ja, fr: String(l.fr ?? "").replace(/\s*\([^)]*\)\s*$/, "").trim(), kind: l.kind });
+		}
+	}
+	const tries = trierLexique(termes);
+	const corpus = tranche.map((p) => p.texte).join("\n");
+	// Ne descend dans le lot que ce que le lot contient : sur 4 000 entrées, une
+	// vingtaine sert, et un lexique qu'on ne relit pas est un lexique ignoré.
+	const utiles = tries.filter((t) => corpus.includes(t.ja));
+
+	const sortie = {
+		planches: tranche.map((p) => ({
+			databookId: Number(p.databook_id),
+			page: p.page,
+			titre: p.titre,
+			texte: p.texte,
+		})),
+		lexique: utiles.map((t) => ({ ja: t.ja, fr: t.fr, kind: t.kind })),
+		reste: candidates.length,
+	};
+
+	const chemin = opt("json");
+	if (chemin) {
+		await Bun.write(chemin, JSON.stringify(sortie, null, "\t"));
+		const signes = tranche.reduce((n, p) => n + p.texte.length, 0);
+		console.log(`${tranche.length} planches (${signes} signes) + ${utiles.length} termes de lexique → ${chemin}`);
+		console.log(`(${candidates.length} planches éligibles pour ces critères, ${eligibles.length} sur tout l'ouvrage)`);
+	} else {
+		console.log(JSON.stringify(sortie, null, "\t"));
+	}
+} catch (e) {
+	console.error(`✗ ${(e as Error).message}`);
+	process.exitCode = 1;
+} finally {
+	await sql.end();
+}
