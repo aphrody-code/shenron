@@ -29,10 +29,28 @@ import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { PwsStatSection } from "@/components/wiki/PwsStatSection";
 import { WikiContribute } from "@/components/wiki/WikiContribute";
-import { SECTION_ENTITY_TABLE } from "@/lib/wiki-revalidate";
 import { normalizeWikiSectionGroups, PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
 import { PWS_GROUP_PRESETS, PWS_LEGACY_KEY_ALIASES } from "@/lib/wiki-fields";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
+
+/**
+ * Type d'entité → table wiki. Recopié ici plutôt qu'importé de
+ * `wiki-revalidate` : ce module-là tire `next/cache` ET tout `wiki-admin`
+ * (Drizzle, specs de toutes les tables), et l'importer depuis un module de
+ * rendu utilisé par ~1 400 pages statiques a suffi à faire mourir le build en
+ * OOM pendant la compilation. Six lignes de duplication valent mieux qu'une
+ * dépendance qui traverse les couches.
+ */
+const TABLE_PAR_TYPE: Record<string, string> = {
+	character: "db_characters",
+	planet: "db_planets",
+	saga: "db_sagas",
+	arc: "db_arcs",
+	race: "db_races",
+	technique: "db_techniques",
+	game: "db_games",
+	movie: "db_movies",
+};
 
 export interface ContentPanel extends ReaderPanel {
 	/** Slug de section (sert au merge des galeries relationnelles). */
@@ -209,7 +227,7 @@ export async function buildWikiContentPanels({
 					) : (
 						<SectionAEcrire
 							label={s.label}
-							table={SECTION_ENTITY_TABLE[entityType]}
+							table={TABLE_PAR_TYPE[entityType]}
 							entityId={entityId}
 						/>
 					)}
