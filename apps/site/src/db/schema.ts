@@ -341,6 +341,22 @@ export const homeConfig = pgTable("HomeConfig", {
 
 export type HomeConfigRow = typeof homeConfig.$inferSelect;
 
+/**
+ * Droit de contribution par périmètre (wiki / databooks) — singleton `default`.
+ * Même forme que les autres tables de configuration : tout tient dans le jsonb,
+ * donc ajouter un périmètre ou un mode ne demande aucune migration.
+ */
+export const contributionRights = pgTable("ContributionRights", {
+	id: text("id").primaryKey(),
+	data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+	updatedBy: text("updatedBy"),
+	updatedAt: timestamp("updatedAt", { precision: 3, mode: "date" })
+		.notNull()
+		.default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type ContributionRightsRow = typeof contributionRights.$inferSelect;
+
 // Thème de design global — document JSON unique (singleton `default`).
 // Édité depuis /admin/design, injecté en :root par le layout. Cf. lib/site-theme.ts.
 export const siteTheme = pgTable("SiteTheme", {

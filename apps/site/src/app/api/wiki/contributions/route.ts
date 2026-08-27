@@ -12,7 +12,7 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser, isCurrentUserAdmin } from "@/lib/session";
 import {
 	CONTRIBUTION_COMMENT_MAX,
 	CONTRIBUTION_MAX,
@@ -24,6 +24,7 @@ import {
 	listContributions,
 	withdrawContribution,
 } from "@/lib/wiki-contributions";
+import { canContribute, scopeOf } from "@/lib/contribution-rights";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -75,6 +76,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 		parsed = bodySchema.parse(await req.json());
 	} catch {
 		return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
+	}
+
+	// Droit de contribution du périmètre visé (wiki / databooks), réglé depuis
+	// l'admin. Vérifié ICI et pas seulement dans l'interface : le bouton peut
+	// être masqué côté client, la route reste appelable directement.
+	const autorise = await canContribute(scopeOf(parsed.table), {
+		isAdmin: await isCurrentUserAdmin().catch(() => false),
+		authenticated: true,
+		discordId: session.user.discordId ?? session.discordId ?? null,
+	});
+	if (!autorise) {
+		return NextResponse.json({ ok: false, error: "not_allowed" }, { status: 403 });
 	}
 
 	try {

@@ -17,6 +17,7 @@ import { Check, ExternalLink, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PlainField } from "@/components/editor/PlainField";
+import { ContributionRightsPanel } from "@/components/admin/ContributionRightsPanel";
 import {
 	CONTRIBUTABLE_COLUMNS,
 	CONTRIBUTION_STATUS_LABELS,
@@ -136,6 +137,21 @@ export default function PageContributions() {
 					.
 				</p>
 			</header>
+
+			{/* Qui a le droit de proposer. Réglé ici, à côté de la file d'attente
+			    qu'il alimente : c'est en voyant passer les propositions qu'on décide
+			    de resserrer ou d'ouvrir. */}
+			<details className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+				<summary className="cursor-pointer list-none px-5 py-3.5 font-display text-[14px] font-semibold text-white/85 transition-colors hover:text-white">
+					Qui peut contribuer&nbsp;?
+					<span className="ml-2 text-[12px] font-normal text-white/40">
+						rôles et membres autorisés, par périmètre
+					</span>
+				</summary>
+				<div className="border-t border-white/[0.08] p-5">
+					<ContributionRightsPanel />
+				</div>
+			</details>
 
 			<nav className="flex flex-wrap gap-2">
 				{ONGLETS.map((o) => {

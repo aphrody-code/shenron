@@ -95,6 +95,30 @@ export function WikiContribute({
 		return () => document.removeEventListener("keydown", onKey);
 	}, [open, phase]);
 
+	// Droit de contribution du périmètre (wiki / databooks), réglé depuis
+	// l'admin. Chargé à l'ouverture, jamais au rendu de la fiche : la réponse
+	// dépend de la session et des rôles Discord, deux choses qui feraient
+	// basculer la page en `private, no-store`. `null` = pas encore connu.
+	const [autorise, setAutorise] = useState<boolean | null>(null);
+	useEffect(() => {
+		if (!open) return;
+		let annule = false;
+		fetch(`/api/wiki/contributions/rights?table=${encodeURIComponent(table)}`, {
+			credentials: "same-origin",
+		})
+			.then((r) => r.json())
+			.then((d) => {
+				if (!annule) setAutorise(d?.ok ? !!d.allowed : true);
+			})
+			// En cas d'échec on n'empêche pas d'essayer : la route de dépôt
+			// tranchera, et refuser sur une erreur réseau serait pire que laisser
+			// un formulaire s'ouvrir pour rien.
+			.catch(() => !annule && setAutorise(true));
+		return () => {
+			annule = true;
+		};
+	}, [open, table]);
+
 	// Charge le texte courant à l'ouverture. `annule` évite d'écrire dans un
 	// composant démonté si l'utilisateur referme avant la fin de la requête.
 	useEffect(() => {
@@ -260,7 +284,25 @@ export function WikiContribute({
 							</p>
 							<SignInDiscord>Se connecter avec Discord</SignInDiscord>
 						</div>
-					) : phase === "loading" ? (
+					) : autorise === false ? (
+						<div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+							<p className="max-w-sm text-sm leading-relaxed text-white/60">
+								Les corrections de cette partie du wiki sont réservées à une équipe de
+								relecture pour le moment.
+							</p>
+							<p className="max-w-sm text-[12px] leading-relaxed text-white/40">
+								Vous pouvez toujours signaler une erreur : le bouton en bas de page transmet
+								votre remarque aux modérateurs.
+							</p>
+							<button
+								type="button"
+								onClick={() => setOpen(false)}
+								className="mt-1 rounded-lg border border-white/15 px-4 py-2 text-xs font-semibold text-white/75 transition-colors hover:border-dbz-orange/50 hover:text-white"
+							>
+								Fermer
+							</button>
+						</div>
+					) : phase === "loading" || autorise === null ? (
 						<div className="flex items-center justify-center gap-2 px-6 py-16 text-sm text-white/45">
 							<Loader2 className="h-4 w-4 animate-spin" /> Chargement du texte actuel…
 						</div>
