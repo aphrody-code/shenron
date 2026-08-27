@@ -362,8 +362,29 @@ async function buildSite(sha: string): Promise<string> {
 	// Build à froid : on jette la sortie précédente AVANT de lancer Next.
 	await rm(BUILD_DIR, { recursive: true, force: true });
 	const startedAt = Date.now();
-	log(`build (Bun, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}`);
-	const res = await run([bunBin, nextBin, "build"], {
+
+	// Le build est PRIORITÉ BASSE (`nice`) et rendu quasi invisible au disque
+	// (`ionice` best-effort au niveau le plus bas).
+	//
+	// Mesuré le 2026-08-27 pendant un déploiement : `next build` occupait 199 %
+	// de CPU et ses quatre workers de génération statique ~90 % chacun, soit
+	// 5,7 cœurs sur 6. Le process qui SERT le site se retrouvait à se battre
+	// pour le cœur restant, et le site paraissait « bugué » pendant les sept
+	// minutes du build — alors qu'il répondait, simplement en retard.
+	//
+	// `nice` ne ralentit pas le build tant que la machine a du mou : le noyau ne
+	// déclasse un processus que lorsqu'il y a concurrence. C'est exactement le
+	// cas voulu — le build prend tout ce qui est libre, et rend la main dès
+	// qu'une requête arrive.
+	const prefixePriorite = existsSync("/usr/bin/nice")
+		? ["/usr/bin/nice", "-n", "15", ...(existsSync("/usr/bin/ionice") ? ["/usr/bin/ionice", "-c", "2", "-n", "7"] : [])]
+		: [];
+	log(
+		`build (Bun, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}${
+			prefixePriorite.length ? " · priorité basse" : ""
+		}`
+	);
+	const res = await run([...prefixePriorite, bunBin, nextBin, "build"], {
 		cwd: SITE_DIR,
 		env: {
 			// `env` REMPLACE l'environnement : tout ce qui n'est pas listé ici
