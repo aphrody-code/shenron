@@ -127,3 +127,7 @@ services/**/.venv/
 /ai/
 /storage/
 /target/
+# Miroir de crawl brut (bxc-asset-harvest.ts --mirror-only) : matière première des
+# assets retenus dans public/dbz/bxc. Aucun code ni aucune page ne le sert, et il
+# était exposé publiquement par nginx. Archivé hors dépôt le 2026-08-27.
+/apps/site/public/bxc-mirror/
