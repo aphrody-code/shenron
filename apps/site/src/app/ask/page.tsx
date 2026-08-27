@@ -197,6 +197,19 @@ export default function AskPage() {
 		setSearchMode("");
 	}, [persona, chatTheme.welcome]);
 
+	// Question passée en URL (`/ask?q=…`) — c'est la sortie « poser la question »
+	// de la palette ⌘K. Envoyée une seule fois, après le message d'accueil : sans
+	// ce relais la question saisie dans la recherche était perdue à la
+	// navigation, et l'utilisateur devait la retaper.
+	const questionUrlEnvoyee = useRef(false);
+	useEffect(() => {
+		if (questionUrlEnvoyee.current) return;
+		const q = new URLSearchParams(window.location.search).get("q")?.trim();
+		if (!q) return;
+		questionUrlEnvoyee.current = true;
+		setInput(q);
+	}, []);
+
 	// Scroll automatique
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

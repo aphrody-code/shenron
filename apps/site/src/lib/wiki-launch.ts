@@ -26,6 +26,15 @@ export interface AccessRule {
 	roleIds: string[];
 }
 
+/**
+ * Famille de navigation. Sert au méga-menu de `SiteNav` : 13 rubriques
+ * publiques alignées à plat dans une barre étaient illisibles (4 en ligne et 9
+ * noyées dans un menu « Plus »). Le groupe vit ICI, avec le reste du registre,
+ * pour qu'ouvrir une rubrique la fasse apparaître au bon endroit sans toucher
+ * à la nav.
+ */
+export type NavGroup = "recit" | "personnages" | "univers" | "oeuvres" | "communaute";
+
 export interface LaunchCategory {
 	key: string;
 	label: string;
@@ -39,6 +48,10 @@ export interface LaunchCategory {
 	scope?: "wiki" | "site";
 	/** Accès appliqué tant que rien n'est enregistré en base. */
 	defaultMode?: AccessMode;
+	/** Famille de navigation (méga-menu). Absent = pas proposé dans le menu. */
+	group?: NavGroup;
+	/** Phrase courte affichée sous le libellé dans le méga-menu. */
+	blurb?: string;
 }
 
 export const LAUNCH_CATEGORIES: LaunchCategory[] = [
@@ -49,6 +62,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		href: "/wiki/episodes",
 		prefixes: ["/wiki/episodes"],
 		alwaysOpen: true,
+		group: "oeuvres",
+		blurb: "826 épisodes, de Dragon Ball à Daima",
 	},
 	{
 		key: "films",
@@ -56,6 +71,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		href: "/wiki/films",
 		prefixes: ["/wiki/films"],
 		alwaysOpen: true,
+		group: "oeuvres",
+		blurb: "Longs métrages et OAV",
 	},
 	{
 		key: "chronologie",
@@ -63,6 +80,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		href: "/wiki/chronologie",
 		prefixes: ["/wiki/chronologie"],
 		alwaysOpen: true,
+		group: "recit",
+		blurb: "La frise complète de l'univers",
 	},
 	{
 		key: "manga",
@@ -70,6 +89,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		href: "/wiki/manga",
 		prefixes: ["/wiki/manga"],
 		alwaysOpen: true,
+		group: "oeuvres",
+		blurb: "Les planches, tome par tome",
 	},
 	// ── Fermées par défaut, ouvrables une par une depuis /admin/lancement ─────
 	//
@@ -83,6 +104,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		label: "Personnages",
 		href: "/wiki/personnages",
 		prefixes: ["/wiki/personnages", "/wiki/dragon-ball/character"],
+		group: "personnages",
+		blurb: "1 300 fiches, du Saiyan au Kaïō",
 	},
 	{
 		key: "planetes",
@@ -91,29 +114,37 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		// `/wiki/planetes` reste listé : le proxy s'exécute AVANT les 308 de
 		// `next.config`, une vieille URL doit donc rester gatée comme la rubrique.
 		prefixes: ["/wiki/cosmologie", "/wiki/planetes", "/wiki/dragon-ball/planet"],
+		group: "univers",
+		blurb: "Planètes, dimensions et au-delà",
 	},
-	{ key: "races", label: "Races", href: "/wiki/races", prefixes: ["/wiki/races"] },
+	{ key: "races", label: "Races", href: "/wiki/races", prefixes: ["/wiki/races"], group: "personnages", blurb: "Peuples et espèces de l'univers" },
 	{
 		key: "transformations",
 		label: "Transformations",
 		href: "/wiki/transformations",
 		prefixes: ["/wiki/transformations"],
+		group: "personnages",
+		blurb: "États et métamorphoses",
 	},
 	{
 		key: "techniques",
 		label: "Techniques",
 		href: "/wiki/techniques",
 		prefixes: ["/wiki/techniques", "/wiki/dragon-ball/techniques"],
+		group: "personnages",
+		blurb: "Attaques, sorts et déplacements",
 	},
-	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", prefixes: ["/wiki/arcs"] },
-	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", prefixes: ["/wiki/sagas"] },
+	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", prefixes: ["/wiki/arcs"], group: "recit", blurb: "Le découpage fin des sagas" },
+	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", prefixes: ["/wiki/sagas"], group: "recit", blurb: "Les grands arcs du récit" },
 	{
 		key: "jeux",
 		label: "Jeux",
 		href: "/wiki/jeux",
 		prefixes: ["/wiki/jeux", "/wiki/dragon-ball/games"],
+		group: "oeuvres",
+		blurb: "Adaptations vidéoludiques",
 	},
-	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"] },
+	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"], group: "oeuvres", blurb: "Daizenshuu, guides et artbooks" },
 	// Page d'accueil de la contribution. `alwaysOpen` à dessein : hors registre,
 	// tout ce qui vit sous /wiki est fermé par défaut (cf. proxy.ts), et une page
 	// qui explique comment participer, réservée aux admins, ne sert personne.
@@ -140,6 +171,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		prefixes: ["/wiki/modifications"],
 		alwaysOpen: true,
 		defaultMode: "public",
+		group: "communaute",
+		blurb: "Le flux des changements du wiki",
 	},
 	{
 		key: "contribuer",
@@ -148,6 +181,8 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		prefixes: ["/wiki/contribuer"],
 		alwaysOpen: true,
 		defaultMode: "public",
+		group: "communaute",
+		blurb: "Proposer une correction",
 	},
 ];
 

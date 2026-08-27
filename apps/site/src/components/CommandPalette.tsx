@@ -164,21 +164,11 @@ export default function CommandPalette({
 					signal: ctrl.signal,
 				});
 				if (!res.ok) throw new Error(String(res.status));
-				const raw = (await res.json()) as SearchResults;
-				// Bêta partielle : seules les fiches Films, Épisodes et Manga (tomes +
-				// chapitres) ont une page publique. Les autres catégories (personnages,
-				// lieux, sagas, jeux, techniques, races, transformations, arcs) ciblent
-				// des routes /wiki/* bloquées par le middleware → on ne les propose pas
-				// pour ne pas renvoyer l'utilisateur vers l'accueil. Réouverture post-bêta
-				// = retirer ce filtre (le rendu de chaque groupe est déjà en place).
-				setResults({
-					...EMPTY,
-					q: raw.q,
-					movies: raw.movies,
-					episodes: raw.episodes,
-					mangaVolumes: raw.mangaVolumes,
-					mangaChapters: raw.mangaChapters,
-				});
+				// Aucun filtrage ici : `/api/search` ne renvoie déjà que les catégories
+				// dont la route détail est publique (il lit la même config d'accès que
+				// le proxy). La liste en dur qui vivait ici — héritée de la bêta, 4
+				// catégories sur 12 — restait fausse à chaque ouverture de rubrique.
+				setResults((await res.json()) as SearchResults);
 			} catch (e) {
 				if ((e as Error).name !== "AbortError") setResults(EMPTY);
 			} finally {
@@ -232,7 +222,7 @@ export default function CommandPalette({
 				<Command.Input
 					value={query}
 					onValueChange={setQuery}
-					placeholder="Un épisode, un film, un tome…"
+					placeholder="Un personnage, une saga, une technique, un épisode…"
 					className="h-14 w-full bg-transparent text-white placeholder:text-white/50 font-display text-base outline-none"
 				/>
 				{loading && (
@@ -455,8 +445,29 @@ export default function CommandPalette({
 					</Command.Group>
 				)}
 
-				{/* « Voir tous les résultats » retiré en bêta : /wiki/search est bloqué
-				    par le middleware (aucune page de recherche agrégée publique). */}
+				{/* Sortie vers la recherche complète : la palette plafonne chaque
+				    groupe, la page ne plafonne pas. Rendu dès qu'un terme est saisi,
+				    y compris sans résultat — c'est là qu'on a le plus besoin d'aller
+				    voir plus large. */}
+				{term.length >= 2 && (
+					<Command.Group heading="Aller plus loin">
+						<Item
+							value={`tous-${term}`}
+							onSelect={() => go(`/wiki/search?q=${encodeURIComponent(term)}`)}
+							title={`Voir tous les résultats pour « ${term} »`}
+							kind="Recherche"
+							accent="orange"
+						/>
+						<Item
+							value={`ask-${term}`}
+							onSelect={() => go(`/ask?q=${encodeURIComponent(term)}`)}
+							title={`Poser la question à l'assistant`}
+							subtitle="Réponse rédigée et sourcée sur le wiki"
+							kind="Assistant"
+							accent="purple"
+						/>
+					</Command.Group>
+				)}
 			</Command.List>
 		</Command.Dialog>
 	);

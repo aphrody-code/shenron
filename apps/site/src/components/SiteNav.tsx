@@ -5,7 +5,13 @@ import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
 import { NavMore } from "@/components/NavMore";
-import { LAUNCH_CATEGORIES, orderedEntries, resolveAccess } from "@/lib/wiki-launch";
+import { NavMega, type MegaItem } from "@/components/NavMega";
+import {
+	LAUNCH_CATEGORIES,
+	orderedEntries,
+	resolveAccess,
+	type NavGroup,
+} from "@/lib/wiki-launch";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
@@ -25,11 +31,18 @@ const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
 /**
- * Nombre max de liens wiki affichés en ligne dans la barre desktop
- * (hors Accueil / News). Au-delà → menu « Plus ».
- * 4 = spine bêta (Épisodes, Films, Chronologie, Manga) sans débordement.
+ * Familles du méga-menu, dans l'ordre de la barre. Le libellé est celui que
+ * lit le visiteur ; la clé est celle que porte chaque rubrique du registre.
+ *
+ * Une famille vide (aucune rubrique publique) ne s'affiche pas — la barre suit
+ * donc l'ouverture progressive du wiki sans intervention.
  */
-const MAX_INLINE_WIKI = 4;
+const FAMILLES: Array<{ group: NavGroup; label: string }> = [
+	{ group: "recit", label: "Récit" },
+	{ group: "personnages", label: "Personnages" },
+	{ group: "univers", label: "Univers" },
+	{ group: "oeuvres", label: "Œuvres" },
+];
 
 const linkClass =
 	"relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
@@ -53,8 +66,22 @@ export async function SiteNav() {
 		.filter((c) => c.href && !isPublic(c.key))
 		.map((c) => ({ href: c.href as string, label: c.label }));
 
-	const inlineWiki = wikiOpen.slice(0, MAX_INLINE_WIKI);
-	const moreWiki = wikiOpen.slice(MAX_INLINE_WIKI);
+	// Rubriques publiques regroupées par famille. `blurb` vient du registre :
+	// un libellé seul ne dit pas ce qu'on trouve derrière « Arcs » ou « Races ».
+	const parFamille = new Map<NavGroup, MegaItem[]>();
+	for (const c of ordered) {
+		if (!c.href || !c.group || !isPublic(c.key)) continue;
+		const liste = parFamille.get(c.group) ?? [];
+		liste.push({ href: c.href, label: c.label, blurb: c.blurb });
+		parFamille.set(c.group, liste);
+	}
+	const familles = FAMILLES.map((f) => ({ ...f, items: parFamille.get(f.group) ?? [] })).filter(
+		(f) => f.items.length > 0
+	);
+	// Rubriques publiques sans famille (contribuer, modifications…) → menu « Plus ».
+	const moreWiki = wikiOpen.filter(
+		(l) => !ordered.some((c) => c.href === l.href && c.group && isPublic(c.key))
+	);
 
 	// Mobile : tous les liens publics (pas de contrainte largeur).
 	const mobilePublic = [...STATIC_PUBLIC_HEAD, ...wikiOpen, ...STATIC_PUBLIC_TAIL];
@@ -101,10 +128,8 @@ export async function SiteNav() {
 							{l.label}
 						</Link>
 					))}
-					{inlineWiki.map((l) => (
-						<Link key={l.href} href={l.href} className={linkClass}>
-							{l.label}
-						</Link>
+					{familles.map((f) => (
+						<NavMega key={f.group} label={f.label} items={f.items} linkClass={linkClass} />
 					))}
 					{moreWiki.length > 0 && <NavMore links={moreWiki} label="Plus" hint="Autres sections" />}
 					{STATIC_PUBLIC_TAIL.map((l) => (

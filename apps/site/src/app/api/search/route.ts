@@ -9,6 +9,8 @@
  * + ranking exact > préfixe > similarité) → résultats tolérants aux fautes.
  */
 import { dbUniverse, type SearchResults } from "@/lib/db-universe";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
+import { isPathPublic } from "@/lib/wiki-launch";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -30,13 +32,52 @@ const empty = (q: string): SearchResults => ({
 	mangaChapters: [],
 });
 
+/**
+ * Une catégorie de résultats n'est proposée que si sa route détail est
+ * réellement publique. Le filtrage vit ICI, côté serveur, et non dans la
+ * palette : celle-ci portait une liste en dur héritée de la bêta (4 catégories
+ * sur 12), qui restait fausse dès qu'une rubrique était ouverte ou refermée
+ * depuis /admin/lancement. Une URL témoin par catégorie suffit — `isPathPublic`
+ * résout par préfixe, exactement comme le proxy.
+ */
+const TEMOINS: Record<Exclude<keyof SearchResults, "q">, string> = {
+	characters: "/wiki/personnages/1",
+	planets: "/wiki/cosmologie/1",
+	sagas: "/wiki/sagas/x",
+	movies: "/wiki/films/x",
+	games: "/wiki/jeux/x",
+	episodes: "/wiki/episodes/1",
+	techniques: "/wiki/techniques/x",
+	races: "/wiki/races/x",
+	transformations: "/wiki/personnages/1",
+	arcs: "/wiki/arcs/x",
+	mangaVolumes: "/wiki/manga/volume/1",
+	mangaChapters: "/wiki/manga/1",
+};
+
+function filtrerSurAcces(r: SearchResults, cfg: Parameters<typeof isPathPublic>[1]): SearchResults {
+	const out = empty(r.q);
+	for (const [cle, temoin] of Object.entries(TEMOINS) as Array<
+		[Exclude<keyof SearchResults, "q">, string]
+	>) {
+		if (isPathPublic(temoin, cfg)) {
+			// @ts-expect-error — clé homogène des deux côtés, TS ne relie pas la paire.
+			out[cle] = r[cle];
+		}
+	}
+	return out;
+}
+
 export async function GET(req: NextRequest) {
 	// Cap la longueur de `q` : une requête très longue multiplie inutilement le
 	// coût pg_trgm (ILIKE + similarité trigramme) ; ~100 chars couvrent tout.
 	const q = (req.nextUrl.searchParams.get("q") ?? "").trim().slice(0, 100);
 	if (q.length < 2) return NextResponse.json(empty(q));
-	const results = (await dbUniverse.search(q)) ?? empty(q);
-	return NextResponse.json(results, {
+	const [results, cfg] = await Promise.all([
+		dbUniverse.search(q).catch(() => null),
+		getLaunchConfig(),
+	]);
+	return NextResponse.json(filtrerSurAcces(results ?? empty(q), cfg), {
 		headers: {
 			"cache-control": "public, max-age=30, stale-while-revalidate=120",
 		},
