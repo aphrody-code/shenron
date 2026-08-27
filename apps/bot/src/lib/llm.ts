@@ -1,7 +1,7 @@
 /**
  * llm.ts — Réponses conversationnelles grondées sur le RAG, via NOTRE serveur LLM local.
  *
- * Modèle capable servi en LOCAL (llama.cpp, Qwen2.5-3B, port :5008 — cf. shenron-llm.service).
+ * Modèle servi en LOCAL sur :5008 (llama.cpp). Absent par défaut : repli gracieux si injoignable.
  * Aucune API externe : tout tourne sur notre machine. Le RAG fournit les FAITS ; le modèle
  * RÉFORMULE dans la voix du persona, comme une vraie conversation — il ne recopie jamais les chunks.
  *

@@ -119,3 +119,11 @@ apps/bot/data/llm/xv2_pretrain.jsonl
 .next-build
 .next-dev
 services/**/.venv/
+
+# Doc générée (scripts/docs/unify-markdown.ts) — concaténation des *.md
+/KNOWLEDGE_BASE.md
+# Runtime de l'autopilot d'agent + datasets de crawl
+/var/
+/ai/
+/storage/
+/target/

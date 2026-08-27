@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 /**
- * bxc-crawl-massive.ts — Script complet de crawl massif, d'indexation RAG
- * et d'entraînement du LLM local (DBZ) basé sur les liens du Google Doc.
+ * bxc-crawl-massive.ts — Script complet de crawl massif et d'indexation RAG
+ * basé sur les liens du Google Doc.
  *
- * Usage : bun scripts/bxc-crawl-massive.ts [--train-epochs <N>]
+ * Usage : bun scripts/bxc-crawl-massive.ts
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
@@ -15,18 +15,11 @@ const DOC_LINKS_PATH = join(ROOT, "data/doc-links.json");
 const RAG_RAW_DIR = join(ROOT, "apps/bot/data/rag/raw/google-doc");
 const SHARD_PATH = "/tmp/shard-google-doc.json";
 const DB_PROD = join(ROOT, "apps/bot/data/bot.db");
-const DB_TMP = "/tmp/dbz-train.db";
 const BXC_DIR = process.env.BXC_DIR ?? join(os.homedir(), "bxc");
 const BXC_BIN = join(BXC_DIR, "bin/bxc");
 
 // Config
 const CONCURRENCY = 6;
-const args = process.argv.slice(2);
-let trainEpochs = 1;
-const epochsIdx = args.indexOf("--train-epochs");
-if (epochsIdx !== -1 && args[epochsIdx + 1]) {
-	trainEpochs = parseInt(args[epochsIdx + 1], 10);
-}
 
 // Ensure bxc exists
 const onPath = Bun.which("bxc") != null;
@@ -128,7 +121,7 @@ async function main() {
 	const shardDocs: any[] = [];
 	const queue = [...filteredUrls];
 
-	console.log(`\n[1/7] Lancement du crawl en parallèle (concurrence = ${CONCURRENCY})...`);
+	console.log(`\n[1/4] Lancement du crawl en parallèle (concurrence = ${CONCURRENCY})...`);
 
 	async function worker() {
 		while (queue.length > 0) {
@@ -164,13 +157,13 @@ async function main() {
 	const workers = Array.from({ length: CONCURRENCY }, () => worker());
 	await Promise.all(workers);
 
-	console.log(`\n[2/7] Écriture du shard de crawl : ${shardDocs.length} documents collectés.`);
+	console.log(`\n[2/4] Écriture du shard de crawl : ${shardDocs.length} documents collectés.`);
 	writeFileSync(SHARD_PATH, JSON.stringify({ docs: shardDocs }, null, 2), "utf-8");
 
-	console.log("\n[3/7] Fusion des documents dans corpus.json...");
+	console.log("\n[3/4] Fusion des documents dans corpus.json...");
 	await runCmd(["bun", "apps/bot/scripts/merge-corpus-shards.ts", SHARD_PATH]);
 
-	console.log("\n[4/7] Reconstruction de la base RAG SQLite (FTS5 + embeddings denses)...");
+	console.log("\n[4/4] Reconstruction de la base RAG SQLite (FTS5 + embeddings denses)...");
 	// On copie d'abord la DB de prod dans /tmp pour faire le build RAG via VACUUM INTO propre
 	if (existsSync(DB_PROD)) {
 		console.log(`[RAG] Copie propre de la base de prod vers /tmp/rag.db via VACUUM INTO...`);
@@ -199,63 +192,7 @@ async function main() {
 		console.log("✓ Base RAG mise à jour en production.");
 	}
 
-	console.log("\n[5/7] Export du nouveau dataset SFT enrichi pour le LLM...");
-	if (existsSync(DB_TMP)) {
-		try {
-			const { unlinkSync } = await import("node:fs");
-			unlinkSync(DB_TMP);
-		} catch {}
-	}
-	{
-		const { Database } = await import("bun:sqlite");
-		const db = new Database(DB_PROD);
-		db.run(`VACUUM INTO '${DB_TMP}'`);
-		db.close();
-	}
-	process.env.DBZ_DB = DB_TMP;
-	await runCmd(["bun", "apps/bot/data/llm/corpus_export.ts"]);
-
-	console.log(`\n[6/7] Entraînement SFT du modèle local pour ${trainEpochs} époques...`);
-	await runCmd([
-		"apps/bot/data/llm/.venv/bin/python",
-		"apps/bot/data/llm/dbz_llm.py",
-		"sft",
-		"--epochs",
-		String(trainEpochs),
-	]);
-
-	console.log("\n[7/7] Redémarrage du serveur LLM local pour charger les nouveaux poids...");
-	// Chercher le PID existant du serveur LLM
-	try {
-		const lsof = Bun.spawn(["lsof", "-t", "-i:5009"]);
-		const pidText = await new Response(lsof.stdout).text();
-		const pid = pidText.trim();
-		if (pid) {
-			console.log(`[SERVE] Arrêt du serveur LLM existant (PID: ${pid})...`);
-			Bun.spawn(["kill", "-9", pid]);
-			await new Promise((r) => setTimeout(r, 2000));
-		}
-	} catch {
-		// lsof non installé ou pas de processus
-	}
-
-	console.log("[SERVE] Lancement du serveur LLM en arrière-plan sur le port 5009...");
-	const serveProc = Bun.spawn(
-		[
-			"apps/bot/data/llm/.venv/bin/python",
-			"apps/bot/data/llm/dbz_llm.py",
-			"serve",
-			"--port",
-			"5009",
-		],
-		{
-			stdout: "inherit",
-			stderr: "inherit",
-		}
-	);
-	console.log(`[SERVE] Serveur LLM démarré (PID: ${serveProc.pid}).`);
-
-	console.log("\n=== PIPELINE DE CRAWL ET D'ENTRAÎNEMENT TERMINÉ AVEC SUCCÈS ===");
+	console.log("\n=== PIPELINE DE CRAWL TERMINÉ AVEC SUCCÈS ===");
 }
 
 main().catch((err) => {

@@ -24,7 +24,6 @@ const IGNORE_PATTERNS = [
 	".bun-cache",
 	"apps/bot/data/rag",
 	"docs/archive",
-	"apps/bot/data/llm",
 ];
 
 async function main() {

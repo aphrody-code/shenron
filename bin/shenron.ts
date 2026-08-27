@@ -176,7 +176,7 @@ async function runCron(sub: string, timerName?: string) {
 	const services = [
 		"shenron.service",
 		"shenron-embed.service",
-		"shenron-llm.service",
+		
 		"shenron-rag-refresh.service",
 	];
 

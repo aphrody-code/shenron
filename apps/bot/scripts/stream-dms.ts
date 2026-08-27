@@ -1,6 +1,6 @@
 /**
  * stream-dms.ts — Stream (poll REST) les DM de contributeurs et capture leurs
- * messages comme feedback d'entraînement de l'IA (data/llm/dm-feedback.jsonl).
+ * messages comme feedback d'entraînement de l'IA (data/dm-feedback.jsonl).
  *
  * Poll REST uniquement (GET /channels/{dm}/messages) → AUCUNE connexion gateway,
  * donc aucune collision de token avec la prod. Émet chaque nouveau message des
@@ -23,8 +23,8 @@ const USERS = process.argv.slice(2).length
 	? process.argv.slice(2)
 	: ["1323725494184841256", "281114294152724491"];
 const POLL_MS = Number(process.env.DM_POLL_MS ?? 15000);
-const FEEDBACK = new URL("../data/llm/dm-feedback.jsonl", import.meta.url).pathname;
-const STATE = new URL("../data/llm/.dm-stream-state.json", import.meta.url).pathname;
+const FEEDBACK = new URL("../data/dm-feedback.jsonl", import.meta.url).pathname;
+const STATE = new URL("../data/.dm-stream-state.json", import.meta.url).pathname;
 
 const api = (path: string, init?: RequestInit) =>
 	fetch(`https://discord.com/api/v10${path}`, {

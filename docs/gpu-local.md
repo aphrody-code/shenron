@@ -5,7 +5,7 @@ d'inférence sont concernées : **LLM conversationnel**, **RAG** (embeddings + r
 Sur le VPS elles tournent toutes en CPU ; sur une machine GPU on les sert sur CUDA — réponses quasi
 instantanées et OCR du batch de planches en minutes au lieu d'heures.
 
-> Référence croisée : [`llm-maison.md`](llm-maison.md) (LLM conversationnel), [`rag-enrichment.md`](rag-enrichment.md)
+> Référence croisée : [`rag-enrichment.md`](rag-enrichment.md)
 > (pipeline RAG hybride), [`ocr-manga.md`](ocr-manga.md) (transcription manga).
 
 ## Machine de référence

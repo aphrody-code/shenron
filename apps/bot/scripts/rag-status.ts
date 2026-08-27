@@ -9,7 +9,7 @@
  * 4. Calcule la taille moyenne des chunks.
  * 5. Teste la connectivité avec le serveur d'embeddings sidecar.
  * 6. Compte les lignes des tables structurées principales (personnages, techniques, planètes).
- * 7. Donne l'état du dataset SFT (dbz-sft.jsonl).
+
  *
  * Usage : bun apps/bot/scripts/rag-status.ts
  */
@@ -22,8 +22,6 @@ import * as sqliteVec from "sqlite-vec";
 const ROOT = new URL("../../../", import.meta.url).pathname;
 const DB_PROD = join(ROOT, "apps/bot/data/bot.db");
 const DB_TMP = "/tmp/rag.db";
-const SFT_PATH = join(ROOT, "apps/bot/data/llm/dbz-sft.jsonl");
-const SFT_DRYRUN_PATH = join(ROOT, "apps/bot/data/llm/dbz-sft-dryrun.jsonl");
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 
 function formatBytes(bytes: number): string {
@@ -166,34 +164,6 @@ function analyzeDb(dbPath: string, label: string) {
 	}
 }
 
-function analyzeSftDataset(path: string, label: string) {
-	if (!existsSync(path)) {
-		console.log(`❌ Dataset SFT ${label} non trouvé à : ${path}`);
-		return;
-	}
-
-	const fileStats = statSync(path);
-	const content = readFileSync(path, "utf-8");
-	const lines = content.split("\n").filter((l) => l.trim().length > 0);
-
-	console.log(`📂 Fichier : ${path}`);
-	console.log(`   Taille : ${formatBytes(fileStats.size)}`);
-	console.log(`   Nombre d'exemples SFT : ${lines.length}`);
-
-	if (lines.length > 0) {
-		try {
-			const first = JSON.parse(lines[0]);
-			console.log(`   Exemple de structure :`);
-			console.log(`     - Persona   : ${first.persona}`);
-			console.log(`     - Langue    : ${first.lang}`);
-			console.log(`     - Sources   : ${JSON.stringify(first.source_urls)}`);
-			console.log(`     - Question  : ${first.instruction.substring(0, 80)}...`);
-			console.log(`     - Réponse   : ${first.output.substring(0, 80)}...`);
-		} catch (err) {
-			console.log(`   ⚠️ Erreur de parsing JSON sur la première ligne : ${err}`);
-		}
-	}
-}
 
 async function main() {
 	printHeader("Sidecar d'embeddings");
@@ -212,12 +182,6 @@ async function main() {
 		printHeader("Base de données temporaire de build (/tmp/rag.db)");
 		analyzeDb(DB_TMP, "temporaire (build)");
 	}
-
-	printHeader("Dataset d'instruction SFT");
-	console.log("--- PRODUCTION DATASET ---");
-	analyzeSftDataset(SFT_PATH, "Production");
-	console.log("\n--- DRYRUN DATASET ---");
-	analyzeSftDataset(SFT_DRYRUN_PATH, "Dryrun");
 
 	console.log(`\n================================================================================`);
 	console.log(`⭐ Diagnostic terminé le ${new Date().toISOString()}`);
