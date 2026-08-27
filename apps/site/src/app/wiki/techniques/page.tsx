@@ -2,6 +2,7 @@ import { getShenronTechniques } from "@/lib/shenron";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { TechniqueGrid } from "@/components/wiki/TechniqueGrid";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TechniquesPage() {
-	const techniques = await getShenronTechniques();
+	const [techniques, access] = await Promise.all([getShenronTechniques(), getLaunchConfig()]);
 
 	// Charge allégée : on n'envoie au client que ce que la carte affiche, et la
 	// description tronquée à ce qui tient dans deux lignes. La page rendait les
@@ -63,7 +64,7 @@ export default async function TechniquesPage() {
 					personnage qui pratique la technique dans le jeu — c'est une illustration, pas une
 					attribution.
 				</p>
-				<TechniqueGrid techniques={cartes} libelles={LIBELLES_TYPE} />
+				<TechniqueGrid techniques={cartes} libelles={LIBELLES_TYPE} access={access} />
 			</div>
 		</div>
 	);

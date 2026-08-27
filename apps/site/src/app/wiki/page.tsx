@@ -8,6 +8,8 @@ import { PosterCard } from "@/components/stream/PosterCard";
 import { EpisodeCard } from "@/components/stream/EpisodeCard";
 import { CharacterPosterCard } from "@/components/wiki/CharacterPosterCard";
 import { WIKI_CATEGORIES } from "@/lib/wiki-categories";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
+import { isPathPublic } from "@/lib/wiki-launch";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -37,11 +39,12 @@ const nf = new Intl.NumberFormat("fr-FR");
  * volume, pas par un code couleur que personne n'apprend.
  */
 export default async function WikiIndex() {
-	const [characters, movies, episodesData, counts] = await Promise.all([
+	const [characters, movies, episodesData, counts, access] = await Promise.all([
 		getShenronCharacterCards(),
 		getShenronMovies(),
 		dbUniverse.episodes("DBZ", 12, 0),
 		dbUniverse.counts(),
+		getLaunchConfig(),
 	]);
 
 	const c = (counts ?? {}) as Record<string, number>;
@@ -51,6 +54,11 @@ export default async function WikiIndex() {
 
 	// Rubriques dans l'ordre du registre partagé — la même liste que la barre de
 	// navigation, donc jamais de rubrique visible d'un côté et absente de l'autre.
+	// `seeAllHref` d'un rail est un lien comme un autre : il doit disparaître si
+	// la rubrique est fermée, sinon le sommaire promet une page qui répond 307.
+	// On résout le gating ici (`isPathPublic`), la page étant déjà serveur.
+	const ouvert = (href: string) => isPathPublic(href, access);
+
 	const rubriques = WIKI_CATEGORIES.map((cat) => ({
 		...cat,
 		count: c[cat.countKey] ?? 0,
@@ -75,7 +83,7 @@ export default async function WikiIndex() {
 				<Rubriques titre="Les supports" items={supports} />
 
 				{vedettes.length > 0 && (
-					<StreamRow title="Personnages" count={c.characters} seeAllHref="/wiki/personnages">
+					<StreamRow title="Personnages" count={c.characters} seeAllHref={ouvert("/wiki/personnages") ? "/wiki/personnages" : undefined}>
 						{vedettes.map((ch) => (
 							<CharacterPosterCard
 								key={ch.id}
@@ -89,7 +97,7 @@ export default async function WikiIndex() {
 				)}
 
 				{films.length > 0 && (
-					<StreamRow title="Films" count={c.movies} seeAllHref="/wiki/films">
+					<StreamRow title="Films" count={c.movies} seeAllHref={ouvert("/wiki/films") ? "/wiki/films" : undefined}>
 						{films.map((m) => (
 							<PosterCard
 								key={m.id}
@@ -103,7 +111,7 @@ export default async function WikiIndex() {
 				)}
 
 				{episodes.length > 0 && (
-					<StreamRow title="Épisodes" count={c.episodes} seeAllHref="/wiki/episodes">
+					<StreamRow title="Épisodes" count={c.episodes} seeAllHref={ouvert("/wiki/episodes") ? "/wiki/episodes" : undefined}>
 						{episodes.map((ep) => (
 							<EpisodeCard
 								key={ep.id}

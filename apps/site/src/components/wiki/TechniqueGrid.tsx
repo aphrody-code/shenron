@@ -14,10 +14,11 @@
  * pour masquer des lignes serait plus lent que de les masquer sur place.
  */
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Pagination } from "@/components/ui/Pagination";
+import { ClientGatedWrap } from "@/components/GatedClientLink";
 import { assetUrl } from "@/lib/assets";
+import type { AccessSnapshot } from "@/lib/wiki-launch";
 
 export type TechniqueCard = {
 	id: number;
@@ -34,10 +35,17 @@ const PAR_PAGE = 60;
 export function TechniqueGrid({
 	techniques,
 	libelles,
+	access,
 }: {
 	techniques: TechniqueCard[];
 	/** type brut → libellé français (le registre vit côté serveur). */
 	libelles: Record<string, string>;
+	/**
+	 * Instantané de la configuration de lancement, résolu côté serveur. Sans lui
+	 * la grille émettrait des liens vers des fiches qu'un anonyme ne peut pas
+	 * ouvrir — le mur de 307 que `GatedLink` existe pour éviter.
+	 */
+	access: AccessSnapshot;
 }) {
 	const [type, setType] = useState<string>("tous");
 	const [page, setPage] = useState(1);
@@ -104,7 +112,8 @@ export function TechniqueGrid({
 
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 				{visibles.map((tech) => (
-					<Link
+					<ClientGatedWrap
+						access={access}
 						key={tech.id}
 						href={`/wiki/techniques/${tech.slug}`}
 						className="group flex gap-4 rounded-xl border border-white/[0.08] p-4 transition-colors hover:border-dbz-orange/50 hover:bg-white/[0.02]"
@@ -135,7 +144,7 @@ export function TechniqueGrid({
 								</p>
 							)}
 						</div>
-					</Link>
+					</ClientGatedWrap>
 				))}
 			</div>
 

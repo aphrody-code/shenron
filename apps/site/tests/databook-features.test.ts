@@ -127,20 +127,25 @@ describe("source features shipped", () => {
 		expect(src).toContain("Agrandir");
 	});
 
-	test("fiche databook : WikiAdminBar", async () => {
+	// `WikiAdminBar` n'est plus qu'un alias déprécié : les 9 fiches détail
+	// portent `WikiEditBar`, qui ajoute le bouton public « Proposer une
+	// correction » à côté des actions d'administration. Le test vérifie donc
+	// qu'UNE barre d'édition est câblée sur la bonne table, sans exiger le nom
+	// d'hier.
+	test("fiche databook : barre d'édition câblée", async () => {
 		const src = await Bun.file(
 			new URL("../src/app/wiki/databooks/[id]/page.tsx", import.meta.url)
 		).text();
-		expect(src).toContain("WikiAdminBar");
+		expect(src).toMatch(/Wiki(Edit|Admin)Bar/);
 		expect(src).toContain('table="db_databooks"');
 	});
 
-	test("fiche jeu : galerie + WikiAdminBar", async () => {
+	test("fiche jeu : galerie + barre d'édition", async () => {
 		const src = await Bun.file(
 			new URL("../src/app/wiki/jeux/[slug]/page.tsx", import.meta.url)
 		).text();
 		expect(src).toContain("GameMediaGallery");
-		expect(src).toContain("WikiAdminBar");
+		expect(src).toMatch(/Wiki(Edit|Admin)Bar/);
 		expect(src).toContain("g.media");
 	});
 

@@ -62,6 +62,21 @@ afterAll(() => {
 	(globalThis as { document?: unknown }).document = documentOrigine;
 });
 
+/**
+ * Retire commentaires de bloc, de ligne et commentaires JSX avant d'y chercher
+ * un attribut. Sans ça, un fichier qui EXPLIQUE pourquoi il n'a plus de
+ * `role="tab"` était compté comme s'il en portait un — c'est exactement ce qui
+ * arrivait à `UniverseTabs.tsx`, dont l'en-tête raconte le retrait du jeu
+ * d'onglets. Un test qui accuse la documentation d'un correctif finit par
+ * pousser à effacer la documentation.
+ */
+function sansCommentaires(src: string): string {
+	return src
+		.replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+		.replace(/\/\*[\s\S]*?\*\//g, "")
+		.replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
 describe("onTablistKeyDown", () => {
 	test("→ passe à l'onglet suivant et l'active", () => {
 		onTablistKeyDown(evenement("ArrowRight"));
@@ -132,7 +147,7 @@ describe("câblage des jeux d'onglets", () => {
 		const racine = new URL("../src/", import.meta.url).pathname;
 		const orphelins: string[] = [];
 		for await (const rel of new Glob("**/*.tsx").scan({ cwd: racine })) {
-			const src = await Bun.file(`${racine}${rel}`).text();
+			const src = sansCommentaires(await Bun.file(`${racine}${rel}`).text());
 			if (src.includes('role="tab"') && !src.includes('role="tablist"')) orphelins.push(rel);
 		}
 		expect(orphelins).toEqual([]);

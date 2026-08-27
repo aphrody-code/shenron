@@ -293,7 +293,24 @@ describe(`no-404 — site (${BASE})`, () => {
 		const results = await mapLimit(urls, CONCURRENCY, check);
 
 		const notFound = results.filter((r) => !r.ok404);
-		const serverErr = results.filter((r) => r.ok404 && !r.ok5xx);
+		// Un 503 sur `/api/` n'est pas une panne : le vhost limite le débit de ce
+		// préfixe (`limit_req` dans `deploy/nginx/dragonballfr.com.conf`), et ce
+		// test tire ~700 URL en une dizaine de secondes — il déclenche donc sa
+		// propre limite et s'accuse lui-même. Vérifié à la main au moment d'écrire
+		// ce commentaire : les quatre routes incriminées répondent 401 ou 403,
+		// c'est-à-dire exactement ce qu'elles doivent répondre à un anonyme.
+		// Les 5xx qui comptent (500, 502, 504) restent des échecs.
+		// `r.url` est parfois un chemin relatif (les URL énumérées le sont), donc
+		// pas parsable par `new URL()` sans base.
+		const limiteDebit = (r: Check) =>
+			r.status === 503 && r.url.replace(BASE, "").startsWith("/api/");
+		const brides = results.filter(limiteDebit);
+		const serverErr = results.filter((r) => r.ok404 && !r.ok5xx && !limiteDebit(r));
+		if (brides.length) {
+			console.warn(
+				`${brides.length} route(s) /api/ bridées par le rate-limit nginx pendant ce test (503) — ignorées.`
+			);
+		}
 
 		// Rapport lisible en cas d'échec.
 		const fmt = (rs: Check[]) =>
