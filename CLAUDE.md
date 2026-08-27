@@ -124,6 +124,26 @@ Les 11 778 planches de `bot.db_databooks.pages` portent une transcription produi
 6. **Les scripts de dépôt visent le slot bleu/vert en ligne** (`scripts/_origine-site.ts` lit l'amont nginx). Coder `127.0.0.1:3000` en dur les cassait dès que le trafic passait sur le slot B.
 7. **Le lexique japonais est très inégal** : `name_ja` couvre 96 % des databooks, 59 % des personnages et **2 % des techniques** (17 sur 825). Une graphie absente du lexique n'est donc **pas** une faute. Le critère qui tranche est le rapport de fréquence : une faute de lecture est toujours **moins** attestée que la forme dont elle dérive (`パトル` 444 contre `バトル` 1 884), un mot réel ne l'est pas (`アビリティ` 798 contre `レアリティ` 178). Comparer sur `normaliserJa` : le lexique écrit `ミスター·ポポ` (U+00B7), le corpus `ミスター・ポポ` (U+30FB).
 
+## Databooks — traduction japonais → français (depuis le 2026-08-26)
+
+Les 11 778 planches portent une transcription japonaise ; **aucune n'avait de traduction**. La colonne n'existe pas : la traduction s'écrit dans le jsonb de la planche, à côté de sa source (`text_fr`, `text_fr_by`, `text_fr_at`), et le japonais n'est jamais touché — on peut donc rejouer, comparer, ou écarter une traduction sans rien perdre.
+
+| Outil | Rôle |
+|---|---|
+| `apps/site/scripts/planches-a-traduire.ts` | La file. `--compte`, `--databook <id> --pages 41-80 --lot 25 --json <f>`, `--retraduire` pour reprendre une planche mal rendue. Ne sortent que les planches **saines** (`classerDefaut === null`) et **japonaises** (au moins un kana) ; le lexique du domaine réduit aux termes du lot voyage avec lui |
+| `apps/site/scripts/depose-traductions.ts` | Le dépôt. Simulation par défaut, `--appliquer`, une révision `wiki_revisions` **par ouvrage et par dépôt** (pas par planche : 10 000 révisions d'une ligne noieraient l'historique du wiki) |
+
+### Règles dures
+
+1. **Ne jamais traduire une planche fautive.** Traduire une hallucination la *blanchit* : le lecteur reçoit un texte lisible, en français, qui ne dit rien de la source. C'est le pire résultat que puisse produire cette chaîne, devant l'absence de traduction.
+2. **Le lexique de la base fait autorité, et il s'apparie sur une graphie repliée.** Cherché à l'identique, il rate : la base écrit `ターレス` (Tullece), l'OCR a lu `タレス` — un allongement mangé, `includes` échoue, le terme sort du lot, et le traducteur, laissé sans forme officielle, rend « Tarles ». Même mécanique pour `ダーブラ`, qui n'existe en base qu'enrobé (`未来のダーブラ`, `ダーブラ：ゼノ`) et ressortait « Dâburâ ». On replie donc (sans `ー`, sans point médian, sans qualificatif) et on remonte au traducteur **les deux graphies** : celle de la base et celle que porte sa planche.
+3. **Le défaut propre à la traduction machine est le comblement, pas le contretens.** Mesuré sur un échantillon de 16 planches relues en regard de leur source : 4 fautes, dont la plus grave est un trou d'OCR rempli par du canon connu d'ailleurs (`魔人プウにGUIDにさせ…` rendu « se fait réduire en biscuit puis piétiner par Majin Boo », l'anecdote du biscuit étant reprise de la notice de Dâbra, quelques lignes plus haut sur la même planche). Le modèle *sait* la série : c'est précisément ce qui lui permet de fabriquer une phrase plausible là où la source est du bruit. Le contrôle en regard de la source n'est donc pas une option de confort.
+4. **`classerDefaut` juge aussi le français produit**, sauf « courte » : une planche qui ne porte qu'un titre rend légitimement dix signes. C'est le rapport de longueur qui juge une sortie tronquée. Le dépôt refuse en plus > 15 % de japonais résiduel — pas 0 %, une bonne traduction garde souvent la graphie d'origine en regard (« Kaïō-ken (界王拳) »).
+5. **Borner les lots sur les NUMÉROS de planche, jamais sur un décalage.** La file des éligibles rétrécit à mesure que les dépôts avancent : `--decalage` se décale sous les pieds des agents parallèles, `--pages 41-80` non.
+6. **Rien n'affiche `text_fr` côté public** à ce jour, et c'est volontaire tant que le corpus traduit n'est pas relu : `text_fr_by` distingue `machine:sonnet` d'une relecture humaine, et c'est ce champ qui devra gouverner l'affichage (ou l'avertissement) le jour où la page databook montrera le français.
+
+**État au 2026-08-27** : 207 planches traduites sur 9 563 traduisibles (~2 %), 302 k signes français, sur les ouvrages 4, 19, 3, 6, 9, 2, 18. Les agents ont écarté d'eux-mêmes ~30 % de leurs lots — transcriptions trop dégradées pour être rendues honnêtement, ce qui est le comportement attendu et non un échec.
+
 ## Wiki — rédaction sur sources (manga + databooks)
 
 Depuis le 2026-08-26, le contenu éditorial se rédige **exclusivement** sur les deux corpus hébergés en propre : les tomes du manga (`bot.db_manga_pages`, OCR français, séries `DB` tomes `vol1`…`vol42` et `DBS` indexée par identifiant de chapitre) et les planches transcrites des databooks (`bot.db_databooks.pages`, japonais). **Fandom est banni**, y compris indirectement : le contenu déjà en base n'est pas une source (227 personnages, 61 planètes, 22 sagas portent des `article_sources` qui le citent), il se remplace, il ne se prolonge pas.
