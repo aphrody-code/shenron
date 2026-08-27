@@ -9,6 +9,7 @@
 "use client";
 
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 import { useCallback, useEffect, useId, useState } from "react";
 import { ChevronDown, Loader2, MessageSquare, Star, Trash2 } from "lucide-react";
 import { useMe } from "@/lib/use-me";
@@ -478,15 +479,7 @@ export function EntityRating({
 										>
 											<div className="mb-1.5 flex items-start justify-between gap-3">
 												<div className="flex min-w-0 items-center gap-2.5">
-													{c.author.avatar ? (
-														<img
-															src={c.author.avatar}
-															alt=""
-															className="h-7 w-7 shrink-0 rounded-full object-cover"
-														/>
-													) : (
-														<div className="h-7 w-7 shrink-0 rounded-full bg-white/10" />
-													)}
+													<Avatar src={c.author.avatar} size={28} />
 													<div className="min-w-0">
 														<p className="truncate font-display text-[13px] font-semibold text-white">
 															{c.author.username}

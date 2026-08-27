@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 import { SignInDiscord } from "@/components/SignInDiscord";
 import { SignOut } from "@/components/SignOut";
 import { useMe } from "@/lib/use-me";
@@ -33,15 +34,11 @@ export function NavAuth() {
 						href="/profil/me"
 						className="flex items-center gap-2.5 pl-1 pr-3.5 py-1 rounded-full hover:bg-white/[0.06] transition-colors group"
 					>
-						{me.avatar && (
-							<img
-								src={me.avatar}
-								alt=""
-								width={28}
-								height={28}
-								className="w-7 h-7 rounded-full ring-1 ring-white/15 group-hover:ring-dbz-orange transition"
-							/>
-						)}
+						<Avatar
+							src={me.avatar}
+							size={28}
+							className="ring-1 ring-white/15 transition group-hover:ring-dbz-orange"
+						/>
 						<span className="font-display text-[13px] font-medium tracking-wide text-white max-w-[120px] truncate">
 							{me.username ?? "Mon profil"}
 						</span>

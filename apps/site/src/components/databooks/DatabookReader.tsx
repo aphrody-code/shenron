@@ -169,7 +169,10 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 		getScrollElement: () => scrollParentRef.current,
 		estimateSize: () =>
 			typeof window === "undefined" ? 1100 : Math.round(window.innerHeight * 0.95),
-		overscan: 2,
+		// 4 planches de marge (contre 2) : c'est ce qui rend le défilement
+		// continu sur un scan de 1 à 2 Mo — le temps qu'une planche arrive à
+		// l'écran, son image a déjà commencé à charger.
+		overscan: 4,
 	});
 
 	const goTo = useCallback(
@@ -503,10 +506,23 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 					<div
 						ref={scrollParentRef}
 						tabIndex={0}
-						// `overscroll-contain` : sans lui, arriver en bout de liste sur
-						// mobile propageait l'inertie au document et éjectait le lecteur
-						// hors de l'écran en plein milieu d'une lecture.
-						className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-y-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dbz-orange"
+						// `overscroll-y-auto` et non `contain` : arrivé en bout de lecteur,
+						// la molette doit rendre la main au document. Avec `contain`, le
+						// lecteur avalait le geste et la page restait bloquée — on ne
+						// pouvait plus descendre vers la suite de la fiche sans sortir la
+						// souris de la zone. Le risque d'origine (l'inertie mobile qui
+						// éjectait le lecteur en pleine lecture) est traité autrement : les
+						// planches s'accrochent au défilement, donc le mouvement s'arrête
+						// franchement sur une page au lieu de filer.
+						//
+						// `snap-y snap-proximity` : le « vrai effet de page » — le
+						// défilement s'arrête franchement sur une planche au lieu de
+						// s'immobiliser entre deux images. `proximity` et non `mandatory` :
+						// la liste est virtualisée (éléments montés/démontés en cours de
+						// route, hauteurs mesurées après coup), et une accroche
+						// obligatoire se bat avec ces remesures — elle produit des sauts au
+						// moment où une planche entre dans la fenêtre.
+						className="h-full w-full snap-y snap-proximity overflow-y-auto overflow-x-hidden overscroll-y-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dbz-orange"
 						aria-label={`${title} — lecture verticale`}
 					>
 						<div
@@ -531,28 +547,40 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 											width: "100%",
 											transform: `translateY(${vi.start}px)`,
 										}}
-										className="border-b border-white/5 px-2 py-4 sm:px-4 sm:py-6"
+										className="snap-start snap-always border-b border-white/5 px-2 py-4 sm:px-4 sm:py-6"
 									>
-										<div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
+										<div className="group/planche mx-auto flex w-full max-w-3xl flex-col gap-3">
 											<span className="text-[10px] font-bold uppercase tracking-[0.2em] text-dbz-orange/70">
 												Page {item.number}
 											</span>
 											{item.imageUrl ? (
 												<button
 													type="button"
-													className="group cursor-zoom-in border-0 bg-transparent p-0 text-left"
+													className="group relative cursor-zoom-in border-0 bg-transparent p-0 text-left focus-visible:outline-none"
 													onClick={() => openLightbox(vi.index)}
-													aria-label={`Agrandir la page ${item.number}`}
+													aria-label={`Ouvrir la page ${item.number} en plein écran`}
 												>
 													<img
 														src={optimizedSrc(item.imageUrl, 1080)}
 														srcSet={optimizedSrcSet(item.imageUrl, [828, 1080, 1920]) || undefined}
 														sizes="(min-width: 768px) 768px, 100vw"
 														alt={`${title} — page ${item.number}`}
-														loading={Math.abs(vi.index - current) <= 1 ? "eager" : "lazy"}
+														// Trois planches de part et d'autre chargées d'avance :
+														// avec une seule, tourner la page laissait un rectangle
+														// vide le temps du téléchargement d'un scan de 1 à 2 Mo.
+														loading={Math.abs(vi.index - current) <= 3 ? "eager" : "lazy"}
+														// `high` sur la planche courante : le navigateur la sert
+														// avant les voisines préchargées.
+														fetchPriority={vi.index === current ? "high" : "auto"}
+														decoding="async"
 														draggable={false}
-														className="h-auto w-full rounded-sm bg-black object-contain shadow-[0_0_24px_rgba(0,0,0,0.45)] transition-opacity group-hover:opacity-95"
+														className="h-auto w-full rounded-sm bg-black object-contain shadow-[0_0_24px_rgba(0,0,0,0.45)] transition-[transform,box-shadow] duration-300 ease-out will-change-transform group-hover:scale-[1.015] group-hover:shadow-[0_0_60px_rgba(0,0,0,0.75)] group-focus-visible:scale-[1.015] motion-reduce:transform-none motion-reduce:transition-none"
 													/>
+													{/* Appel au plein écran, révélé au survol de la planche. */}
+													<span className="pointer-events-none absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-black/70 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white/80 opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+														<ZoomIn size={12} aria-hidden />
+														Plein écran
+													</span>
 												</button>
 											) : (
 												<div className="flex min-h-[120px] items-center justify-center rounded border border-dashed border-white/10 bg-black/40 text-sm text-white/50">

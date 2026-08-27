@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar";
 import { useEffect, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
 import { SignOut } from "@/components/SignOut";
@@ -110,15 +111,7 @@ export function MobileNav({ links, adminLinks = [] }: Props) {
 									onClick={() => setOpen(false)}
 									className="flex items-center gap-3 bg-white/[0.06] rounded-full p-1 pr-4"
 								>
-									{me.avatar && (
-										<img
-											src={me.avatar}
-											alt=""
-											width={36}
-											height={36}
-											className="w-9 h-9 rounded-full"
-										/>
-									)}
+									<Avatar src={me.avatar} size={36} />
 									<span className="text-white text-sm font-medium">
 										{me.username ?? "Mon profil"}
 									</span>

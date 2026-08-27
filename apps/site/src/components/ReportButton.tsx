@@ -102,7 +102,7 @@ export function ReportButton() {
 				// disputaient le bas de l'écran sur toutes les pages. Le libellé
 				// n'apparaît qu'au survol ; l'intitulé reste accessible par
 				// `aria-label` et par le `title`.
-				className="group fab-secondary fixed bottom-20 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/12 bg-[rgba(10,10,10,0.8)] p-2.5 text-white/55 shadow-lg backdrop-blur-md transition-all hover:border-dbz-orange/50 hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-24 md:left-6"
+				className="group fab-secondary fixed bottom-4 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/12 bg-[rgba(10,10,10,0.8)] p-2.5 text-white/55 shadow-lg backdrop-blur-md transition-all hover:border-dbz-orange/50 hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-6 md:left-6"
 				title="Signaler une erreur"
 			>
 				<Flag className="h-4 w-4" />

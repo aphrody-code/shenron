@@ -23,6 +23,7 @@
 // /admin/home. Sans config en DB, `getHomeConfig()` renvoie les défauts et la
 // home est strictement identique à la version historique en dur.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Avatar } from "@/components/Avatar";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
@@ -379,20 +380,11 @@ export function HomeExperience({
 											>
 												{m.rank}
 											</span>
-											{m.avatarUrl ? (
-												<img
-													src={m.avatarUrl}
-													alt=""
-													width={36}
-													height={36}
-													loading="lazy"
-													className="h-9 w-9 shrink-0 rounded-full border border-white/15 object-cover"
-												/>
-											) : (
-												<span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-bold text-white/60">
-													{(m.username ?? "?").charAt(0).toUpperCase()}
-												</span>
-											)}
+											<Avatar
+												src={m.avatarUrl}
+												size={36}
+												className="border border-white/15"
+											/>
 											<span className="min-w-0 flex-1">
 												<span className="block truncate text-[13px] font-bold leading-tight text-white">
 													{m.username ?? "Guerrier anonyme"}
@@ -437,13 +429,10 @@ export function HomeExperience({
 												title={`${u.username} · ${u.status}`}
 											>
 												<span className="relative">
-													<img
+													<Avatar
 														src={u.avatarUrl}
-														alt=""
-														width={40}
-														height={40}
-														loading="lazy"
-														className="h-10 w-10 rounded-full border border-white/15 object-cover"
+														size={40}
+														className="border border-white/15"
 													/>
 													<span
 														className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-black ${

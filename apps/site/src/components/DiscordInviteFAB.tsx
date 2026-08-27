@@ -23,7 +23,10 @@ export function DiscordInviteFAB() {
 	const inviteUrl = DISCORD_INVITE;
 
 	return (
-		<div className="fab-secondary fixed bottom-4 left-4 md:bottom-6 md:left-6 z-50">
+		/* Empilé AU-DESSUS du bouton « Signaler une erreur », qui occupe désormais
+		   le coin bas gauche : deux pastilles à la même position se recouvraient,
+		   et c'est l'invitation Discord (z-50) qui masquait le signalement (z-40). */
+		<div className="fab-secondary fixed bottom-[4.5rem] left-4 z-50 md:bottom-[5.5rem] md:left-6">
 			<div className="relative inline-block">
 				<button
 					type="button"
