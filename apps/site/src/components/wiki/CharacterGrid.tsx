@@ -16,7 +16,6 @@ export type GridCharacter = {
 	name: string;
 	nameJa: string | null;
 	race: string | null;
-	ki: string | null;
 	image: string | null;
 	/** Portrait XV2 — repli d'image quand `image` 404 (cf. WikiImg). */
 	portraitXv2?: string | null;

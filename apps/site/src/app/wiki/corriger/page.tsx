@@ -17,6 +17,7 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import { WikiContribute } from "@/components/wiki/WikiContribute";
 import { CONTRIBUTABLE_COLUMNS } from "@/lib/contributions-shared";
+import { champPlanche, estCiblePlanche, numeroDePlanche } from "@/lib/databook-pages-shared";
 import { WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
 export const dynamic = "force-dynamic";
@@ -42,8 +43,15 @@ export default async function PageCorriger({
 	const retour = lire("retour");
 
 	const spec = WIKI_TABLE_SPECS[table];
-	const champ = CONTRIBUTABLE_COLUMNS[col];
-	const valide = Boolean(spec && champ && row && spec.mutableColumns.includes(col));
+	// `pages#42` : la transcription d'UNE planche de databook. Ce n'est pas une
+	// colonne de la table, donc ni `CONTRIBUTABLE_COLUMNS` ni `mutableColumns`
+	// ne peuvent la valider — c'est `estCiblePlanche` qui fait foi, exactement
+	// comme dans le circuit de dépôt.
+	const planche = estCiblePlanche(table, col) ? numeroDePlanche(col) : null;
+	const champ = planche !== null ? champPlanche(planche) : CONTRIBUTABLE_COLUMNS[col];
+	const valide = Boolean(
+		row && champ && (planche !== null || (spec && spec.mutableColumns.includes(col)))
+	);
 
 	return (
 		<div className="mx-auto w-full max-w-3xl px-6 py-12 lg:px-10 lg:py-20">

@@ -36,6 +36,12 @@ import { getWikiRow, updateWiki } from "@/lib/wiki-admin";
 import { recordRevision, type RevisionActor } from "@/lib/wiki-revisions";
 import { revalidateWikiEntity, revalidateSectionParent } from "@/lib/wiki-revalidate";
 import { isContributableColumn, CONTRIBUTION_MAX } from "@/lib/contributions-shared";
+import {
+	ecrireTranscription,
+	estCiblePlanche,
+	lireTranscription,
+	numeroDePlanche,
+} from "@/lib/databook-pages";
 import { WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
 export interface ContributionView {
@@ -84,6 +90,11 @@ function toView(r: WikiContribution): ContributionView {
 
 /** Une cible est valide si la table est wiki, la colonne mutable ET ouverte. */
 export function targetIsValid(table: string, column: string): boolean {
+	// Cas particulier : `pages#42` désigne la transcription d'UNE planche de
+	// databook. Ce n'est pas une colonne de la table (le jsonb `pages` l'est),
+	// donc `mutableColumns` ne peut pas trancher — c'est `estCiblePlanche` qui
+	// valide la forme, et le module dédié qui fera l'écriture ciblée.
+	if (estCiblePlanche(table, column)) return true;
 	const spec = WIKI_TABLE_SPECS[table];
 	if (!spec) return false;
 	if (!spec.mutableColumns.includes(column)) return false;
@@ -92,6 +103,8 @@ export function targetIsValid(table: string, column: string): boolean {
 
 /** Valeur courante d'une colonne, normalisée en chaîne (ou null). */
 async function currentValue(table: string, rowId: string, column: string): Promise<string | null> {
+	const planche = estCiblePlanche(table, column) ? numeroDePlanche(column) : null;
+	if (planche !== null) return await lireTranscription(rowId, planche);
 	const row = await getWikiRow(table, rowId);
 	if (!row) return null;
 	const v = (row as Record<string, unknown>)[column];
@@ -249,8 +262,12 @@ export async function acceptContribution(
 	const before = await getWikiRow(row.tableName, row.rowId);
 	if (!before) throw new ContributionError("Fiche supprimée depuis.", "not_found", 404);
 
-	const actuel = (before as Record<string, unknown>)[row.columnName];
-	const actuelStr = actuel == null ? null : String(actuel);
+	// Valeur en base AU MOMENT D'APPLIQUER. Passe par `currentValue` et non par
+	// la ligne lue plus haut : une cible `pages#42` n'est pas une clé de la
+	// ligne, `before["pages#42"]` vaudrait toujours `undefined` — et toute
+	// contribution sur une planche serait classée « obsolète » sans avoir jamais
+	// été comparée à quoi que ce soit.
+	const actuelStr = await currentValue(row.tableName, row.rowId, row.columnName);
 	if (!sameText(actuelStr, row.valueBefore)) {
 		await db
 			.update(wikiContributions)
@@ -270,7 +287,21 @@ export async function acceptContribution(
 		);
 	}
 
-	const after = await updateWiki(row.tableName, row.rowId, { [row.columnName]: row.valueAfter });
+	// Écriture. Une planche de databook passe par `jsonb_set` ciblé (le tableau
+	// `pages` n'est PAS réécrit en entier — deux corrections sur le même ouvrage
+	// ne peuvent donc pas s'écraser l'une l'autre) ; tout le reste passe par le
+	// chemin d'écriture normal du wiki.
+	const planche = estCiblePlanche(row.tableName, row.columnName)
+		? numeroDePlanche(row.columnName)
+		: null;
+	let after: Record<string, unknown>;
+	if (planche !== null) {
+		const ok = await ecrireTranscription(row.rowId, planche, row.valueAfter);
+		if (!ok) throw new ContributionError("Planche introuvable dans cet ouvrage.", "not_found", 404);
+		after = { [row.columnName]: row.valueAfter };
+	} else {
+		after = await updateWiki(row.tableName, row.rowId, { [row.columnName]: row.valueAfter });
+	}
 
 	// Le crédit va au contributeur : c'est lui qui a écrit le texte. Le
 	// modérateur reste identifié sur la contribution (`reviewerName`).

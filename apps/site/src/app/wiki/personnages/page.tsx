@@ -44,7 +44,8 @@ export default async function PersonnagesPage() {
 						name: c.name,
 						nameJa: c.nameJa,
 						race: c.race,
-						ki: c.ki,
+						// `ki` retiré de la charge : déclaré dans le type de la grille mais
+						// jamais rendu — 1 307 valeurs qui traversaient le réseau pour rien.
 						image: c.image,
 						portraitXv2: c.portraitXv2,
 					}))}

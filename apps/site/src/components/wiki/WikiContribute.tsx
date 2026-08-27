@@ -25,6 +25,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
 import { PlainField } from "@/components/editor/PlainField";
+import { champPlanche, numeroDePlanche } from "@/lib/databook-pages-shared";
 import {
 	CONTRIBUTION_COMMENT_MAX,
 	CONTRIBUTION_MAX,
@@ -84,7 +85,11 @@ export function WikiContribute({
 	const [phase, setPhase] = useState<Phase>("idle");
 	const [err, setErr] = useState<string | null>(null);
 
-	const champ = CONTRIBUTABLE_COLUMNS[column];
+	// `pages#42` n'est pas une colonne du registre : c'est la transcription
+	// d'une planche de databook. Sans ce cas, la modale ouverte depuis une
+	// planche n'avait ni libellé ni consigne.
+	const planche = numeroDePlanche(column);
+	const champ = planche !== null ? champPlanche(planche) : CONTRIBUTABLE_COLUMNS[column];
 
 	useEffect(() => {
 		if (!open) return;

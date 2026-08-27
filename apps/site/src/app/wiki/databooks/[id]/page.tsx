@@ -276,7 +276,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 					</div>
 					{/* On passe les pages brutes (slots vides filtrés dans le reader)
 					    pour conserver les numéros éditoriaux exacts. */}
-					<DatabookReader pages={book.pages} title={book.title} />
+					<DatabookReader pages={book.pages} title={book.title} bookId={book.id} />
 				</section>
 			)}
 		</div>

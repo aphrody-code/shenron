@@ -1,0 +1,97 @@
+// SPDX-License-Identifier: Apache-2.0
+
+/**
+ * Transcriptions de planches de databook — lecture et écriture **ciblées**.
+ *
+ * Les 11 778 planches vivent dans un unique `jsonb` par ouvrage
+ * (`bot.db_databooks.pages`), un tableau d'objets `{ number, image, text }`.
+ * Le modèle de contribution du wiki vise un couple (table, ligne, colonne) : il
+ * ne savait donc pas désigner UNE planche. Résultat, les **1 911 planches dont
+ * `classerDefaut` dit qu'elles sont hallucinées** étaient signalées au lecteur
+ * par un bandeau… sans qu'il puisse rien y faire. Ce module ouvre cette porte.
+ *
+ * La colonne prend la forme `pages#<numéro>` — le numéro ÉDITORIAL affiché sur
+ * la planche, pas son index dans le tableau (les deux diffèrent dès qu'un
+ * ouvrage saute une page).
+ *
+ * **L'écriture est chirurgicale** (`jsonb_set` sur le seul élément visé) et non
+ * une réécriture du tableau entier. Ce n'est pas un détail de style : la
+ * réécriture globale pratiquée par `scripts/depose-traductions.ts` écrase
+ * silencieusement les planches qu'un autre dépôt vient d'écrire sur le même
+ * ouvrage. Une correction communautaire, par définition concurrente, ne peut
+ * pas se permettre ça.
+ */
+import "server-only";
+import { sql } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { numeroDePlanche } from "@/lib/databook-pages-shared";
+
+// Les fonctions PURES du ciblage vivent dans le module partagé : la modale de
+// contribution en a besoin côté client, et une règle écrite deux fois finit
+// toujours par diverger.
+export {
+	PREFIXE_PLANCHE,
+	champPlanche,
+	estCiblePlanche,
+	numeroDePlanche,
+} from "@/lib/databook-pages-shared";
+
+/**
+ * Index (0-based) de la planche portant ce numéro éditorial, `-1` si absente.
+ *
+ * Le repli sur la position est volontaire : quelques ouvrages n'ont pas de
+ * `number` sur toutes leurs planches, et sans lui la correction serait
+ * impossible précisément là où les transcriptions sont les plus abîmées.
+ */
+export async function indexDePlanche(bookId: string, numero: number): Promise<number> {
+	const [r] = (await db.execute(sql`
+		select coalesce(
+			(
+				select (ord - 1)::int
+				from bot.db_databooks d,
+					 lateral jsonb_array_elements(d.pages) with ordinality as t(p, ord)
+				where d.id = ${bookId}::bigint
+				  and (t.p->>'number')::int = ${numero}
+				limit 1
+			),
+			case
+				when ${numero} <= (select jsonb_array_length(pages) from bot.db_databooks where id = ${bookId}::bigint)
+				then ${numero} - 1
+				else -1
+			end
+		) as idx
+	`)) as unknown as Array<{ idx: number }>;
+	return Number(r?.idx ?? -1);
+}
+
+/** Transcription courante d'une planche (`null` si la planche n'existe pas). */
+export async function lireTranscription(bookId: string, numero: number): Promise<string | null> {
+	const idx = await indexDePlanche(bookId, numero);
+	if (idx < 0) return null;
+	const [r] = (await db.execute(sql`
+		select pages->${idx}->>'text' as texte
+		from bot.db_databooks
+		where id = ${bookId}::bigint
+	`)) as unknown as Array<{ texte: string | null }>;
+	return r?.texte ?? null;
+}
+
+/**
+ * Écrit la transcription d'UNE planche. Renvoie `false` si la planche n'existe
+ * pas — jamais un faux succès, sinon le relecteur croirait avoir publié.
+ */
+export async function ecrireTranscription(
+	bookId: string,
+	numero: number,
+	texte: string
+): Promise<boolean> {
+	const idx = await indexDePlanche(bookId, numero);
+	if (idx < 0) return false;
+	const res = (await db.execute(sql`
+		update bot.db_databooks
+		set pages = jsonb_set(pages, ${`{${idx},text}`}::text[], to_jsonb(${texte}::text), true)
+		where id = ${bookId}::bigint
+		returning id
+	`)) as unknown as Array<{ id: unknown }>;
+	return res.length > 0;
+}

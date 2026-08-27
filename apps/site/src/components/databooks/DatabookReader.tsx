@@ -48,6 +48,8 @@ export type DatabookReaderPage = {
 export type DatabookReaderProps = {
 	pages: DatabookReaderPage[];
 	title: string;
+	/** Ouvrage — sert à construire le lien de correction d'une planche. */
+	bookId?: number | string | null;
 };
 
 type ViewMode = "paged" | "vertical";
@@ -86,7 +88,7 @@ function resolvePages(pages: DatabookReaderPage[]): ResolvedPage[] {
 	return out;
 }
 
-export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElement {
+export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): ReactElement {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const swiperRef = useRef<SwiperClass | null>(null);
 	const lightboxRef = useRef<HTMLDivElement>(null);
@@ -324,7 +326,7 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 			</p>
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
 				{currentText ? (
-					<TranscriptionTexte texte={currentText} />
+					<TranscriptionTexte texte={currentText} bookId={bookId} page={currentNum} />
 				) : (
 					<p className="text-sm italic text-white/50">Aucune description pour cette page.</p>
 				)}
@@ -589,7 +591,11 @@ export function DatabookReader({ pages, title }: DatabookReaderProps): ReactElem
 											)}
 											{item.text ? (
 												<div className="rounded-md border border-dbz-border/40 bg-black/50 px-4 py-3">
-													<TranscriptionTexte texte={item.text} />
+													<TranscriptionTexte
+														texte={item.text}
+														bookId={bookId}
+														page={item.number}
+													/>
 												</div>
 											) : null}
 										</div>

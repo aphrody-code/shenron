@@ -61,15 +61,44 @@ const DEFAUTS_AVERTIS: ReadonlySet<Defaut> = new Set<Defaut>([
  * pour une source. On garde le texte — il reste souvent exact à 90 % et il
  * alimente la recherche — mais on dit ce qu'il vaut.
  */
-export function TranscriptionTexte({ texte }: { texte: string }) {
+export function TranscriptionTexte({
+	texte,
+	bookId,
+	page,
+}: {
+	texte: string;
+	/** Ouvrage et numéro de planche — sans eux, pas de lien de correction. */
+	bookId?: number | string | null;
+	page?: number | null;
+}) {
 	const defaut = classerDefaut(texte);
 	const douteux = defaut !== null && DEFAUTS_AVERTIS.has(defaut);
+	// Le lien de correction vise la planche, via la cible `pages#<numéro>` que
+	// comprend le circuit de contribution. Il est rendu côté serveur (un simple
+	// `<a>`, aucun composant client sur une page qui en porte déjà des
+	// centaines) et l'accès est arbitré à l'arrivée, pas ici.
+	const lienCorrection =
+		bookId != null && page != null
+			? `/wiki/corriger?table=db_databooks&row=${encodeURIComponent(String(bookId))}&col=${encodeURIComponent(`pages#${page}`)}`
+			: null;
 	return (
 		<div>
 			{douteux && (
 				<p className="mb-3 rounded border border-dbz-orange/30 bg-dbz-orange/10 px-3 py-2 text-xs text-dbz-orange/90">
 					Transcription automatique en cours de relecture : cette planche contient des passages
 					mal lus.
+					{lienCorrection && (
+						<>
+							{" "}
+							<a
+								href={lienCorrection}
+								className="font-semibold underline decoration-dbz-orange/40 underline-offset-2 hover:decoration-current"
+							>
+								Corriger cette planche
+							</a>
+							.
+						</>
+					)}
 				</p>
 			)}
 			<div
@@ -78,6 +107,15 @@ export function TranscriptionTexte({ texte }: { texte: string }) {
 			>
 				<ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{texte}</ReactMarkdown>
 			</div>
+			{/* Sur une planche saine, l'invitation reste discrète : elle ne doit pas
+			    donner à croire que le texte est douteux alors qu'il ne l'est pas. */}
+			{lienCorrection && !douteux && (
+				<p className="mt-3 text-[11px] text-white/30">
+					<a href={lienCorrection} className="hover:text-white/60 hover:underline">
+						Une erreur dans cette transcription ?
+					</a>
+				</p>
+			)}
 		</div>
 	);
 }
