@@ -306,11 +306,24 @@ async function loadCommunityTops(): Promise<CommunityTopsPayload> {
 }
 
 /**
- * Charge tous les boards Top 3 (cache 60 s — partagé home / classements / badges).
+ * Charge tous les boards Top 3 — partagé home / classements / badges.
+ *
+ * **5 minutes et non 1.** Le `revalidate` d'un `unstable_cache` remonte au
+ * niveau de la ROUTE, exactement comme celui d'un `fetch` : ces 60 secondes
+ * plafonnaient à elles seules la revalidation de la page d'accueil, quels que
+ * soient les 900 secondes qu'elle déclare. Un top 3 communautaire bouge quand
+ * quelqu'un vote ; à l'échelle de trafic du site, une minute de fraîcheur était
+ * un réglage sans objet payé par une régénération de page toutes les minutes.
+ *
+ * Le tag `community-tops` est posé mais **n'est appelé par aucun
+ * `revalidateTag`** à ce jour : la seule fraîcheur est donc l'expiration. Le
+ * jour où un vote devra se voir immédiatement, c'est le tag qu'il faudra
+ * invalider — pas ce délai qu'il faudra raccourcir.
+ *
  * Ne throw jamais.
  */
 export const getCommunityTops = unstable_cache(loadCommunityTops, ["community-tops-v2"], {
-	revalidate: 60,
+	revalidate: 300,
 	tags: ["community-tops"],
 });
 
