@@ -434,7 +434,24 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 							if (!v || doublonPws(label)) continue;
 							cases.push({ label, value: v, accent: "text-dbz-blue-light" });
 						}
-						if (cases.length === 0) return null;
+						// Aucune mesure : on affiche quand même l'invitation à en ajouter.
+						// Faire disparaître le point d'entrée avec les données, c'est le
+						// retirer exactement là où la contribution serait la plus utile —
+						// et c'est le cas de la plupart des fiches, dont celle de Goku.
+						if (cases.length === 0) {
+							return (
+								<p className="text-[13px] text-white/35">
+									Aucune mesure renseignée.{" "}
+									<Link
+										href={`/wiki/corriger?table=db_characters&row=${character.id}&col=stats`}
+										className="text-white/55 underline underline-offset-2 transition-colors hover:text-dbz-orange"
+									>
+										En ajouter
+									</Link>
+									.
+								</p>
+							);
+						}
 						return (
 							<dl
 								// Cases compactes en ligne, et non une grille de panneaux : ce
