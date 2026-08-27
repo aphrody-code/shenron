@@ -19,6 +19,7 @@ import { assetUrl } from "@/lib/assets";
 import { DragonBallLoader } from "@/components/DragonBall";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
+import { track } from "@/lib/telemetry";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 // Miroir client de la forme renvoyée par `/api/search` (= `SearchResults` de
@@ -168,7 +169,14 @@ export default function CommandPalette({
 				// dont la route détail est publique (il lit la même config d'accès que
 				// le proxy). La liste en dur qui vivait ici — héritée de la bêta, 4
 				// catégories sur 12 — restait fausse à chaque ouverture de rubrique.
-				setResults((await res.json()) as SearchResults);
+				const recus = (await res.json()) as SearchResults;
+				setResults(recus);
+				// Ce que les gens cherchent est le signal le plus utile du site :
+				// une recherche sans résultat désigne un contenu qui manque, une
+				// recherche fréquente désigne un contenu à mettre en avant. Le
+				// type `search` était déclaré depuis le début et n'était émis
+				// nulle part.
+				track("search", { query: term, resultCount: count(recus) });
 			} catch (e) {
 				if ((e as Error).name !== "AbortError") setResults(EMPTY);
 			} finally {

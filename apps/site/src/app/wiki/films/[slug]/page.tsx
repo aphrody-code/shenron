@@ -79,7 +79,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 
 	const player =
 		m.players && m.players.length > 0 ? (
-			<VideoLecteurs players={m.players} />
+			<VideoLecteurs players={m.players} entityType="movie" entityId={m.id} />
 		) : m.video_url ? (
 			<VideoPlayer
 				src={m.video_url}

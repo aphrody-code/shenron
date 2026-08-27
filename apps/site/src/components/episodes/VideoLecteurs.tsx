@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@/lib/telemetry";
 
 export interface Lecteur {
 	name: string;
@@ -29,7 +30,16 @@ function cleanName(name: string): string {
  * langue. VF par défaut (audience FR). Sans tag de langue (data legacy), on
  * retombe sur une liste plate « Lecteur N ».
  */
-export function VideoLecteurs({ players }: { players: Lecteur[] }) {
+export function VideoLecteurs({
+	players,
+	entityType,
+	entityId,
+}: {
+	players: Lecteur[];
+	/** Entité regardée — sans elle, aucun événement de lecture n'est émis. */
+	entityType?: "episode" | "movie";
+	entityId?: string | number;
+}) {
 	// Langues réellement présentes, ordonnées VF puis VOSTFR.
 	const langs = useMemo(() => {
 		const present = new Set(players.map((p) => p.lang).filter(Boolean) as string[]);
@@ -48,6 +58,30 @@ export function VideoLecteurs({ players }: { players: Lecteur[] }) {
 	);
 
 	const current = list[active] ?? list[0];
+
+	/**
+	 * Ouverture d'un lecteur. C'est LE signal de valeur du site — savoir ce qui
+	 * est réellement regardé, dans quelle langue et sur quel hébergeur — et le
+	 * type `play_open` était déclaré depuis le début sans être émis une seule
+	 * fois. L'hébergeur compte : c'est ce qui permet de repérer un lecteur mort
+	 * autrement qu'en attendant un signalement (7 hébergeurs sur 8 sont déjà
+	 * tombés, cf. la purge des lecteurs morts).
+	 */
+	const dejaEmis = useRef<string | null>(null);
+	useEffect(() => {
+		if (!entityType || entityId == null || !current) return;
+		const cle = `${entityId}:${current.embedUrl}`;
+		if (dejaEmis.current === cle) return;
+		dejaEmis.current = cle;
+		track("play_open", {
+			entityType,
+			entityId,
+			lang: current.lang ?? undefined,
+			// `provider` (« vidmoly », « mail.ru ») plutôt que le nom d'affichage :
+			// c'est l'hébergeur qui tombe, pas le libellé.
+			player: current.provider || current.name || undefined,
+		});
+	}, [entityType, entityId, current]);
 	if (!current) return null;
 
 	const selectLang = (l: string) => {

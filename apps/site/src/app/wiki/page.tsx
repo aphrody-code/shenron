@@ -7,6 +7,7 @@ import { StreamRow } from "@/components/stream/StreamRow";
 import { PosterCard } from "@/components/stream/PosterCard";
 import { EpisodeCard } from "@/components/stream/EpisodeCard";
 import { CharacterPosterCard } from "@/components/wiki/CharacterPosterCard";
+import { RepriseLecture } from "@/components/wiki/RepriseLecture";
 import { WIKI_CATEGORIES } from "@/lib/wiki-categories";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 import { isPathPublic } from "@/lib/wiki-launch";
@@ -79,6 +80,9 @@ export default async function WikiIndex() {
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-14 lg:py-20 space-y-16">
+				{/* Avant les rubriques : quelqu'un qui revient cherche d'abord où il
+				    s'était arrêté. L'îlot ne rend rien s'il n'a rien à proposer. */}
+				<RepriseLecture />
 				<Rubriques titre="L'univers" items={encyclopedie} />
 				<Rubriques titre="Les supports" items={supports} />
 

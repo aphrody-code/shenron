@@ -131,7 +131,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 	// flux de test (mux.dev) ou des tokens HLS périmés (IP-bound, ~12 h).
 	const player =
 		ep.players && ep.players.length > 0 ? (
-			<VideoLecteurs players={ep.players} />
+			<VideoLecteurs players={ep.players} entityType="episode" entityId={ep.id} />
 		) : ep.video_url ? (
 			<VideoPlayer
 				src={ep.video_url}
