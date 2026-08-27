@@ -17,6 +17,17 @@
  *    `界王拳` par « le poing du roi » et `ベジータ` par « Végitta » — mesuré.
  *    Le lot ne porte que les termes RÉELLEMENT présents dans ses planches, pour
  *    ne pas payer 4 000 entrées de lexique par lot.
+ *
+ *    L'appariement de ces termes est **tolérant**, et il a fallu une passe ratée
+ *    pour le comprendre : cherchée à l'identique, la graphie de la base ne
+ *    retrouve pas celle de la planche. La base écrit `ターレス` (Tullece), l'OCR
+ *    a lu `タレス` — l'allongement manque, `includes` échoue, le terme sort du
+ *    lexique du lot, et le traducteur, laissé sans forme officielle, rend
+ *    « Tarles » à l'oreille. Même mécanique pour `ダーブラ`, qui n'existe en base
+ *    qu'enrobé (`未来のダーブラ`, `ダーブラ：ゼノ`) et ressortait « Dâburâ ».
+ *    On apparie donc sur une forme repliée (sans allongement, sans point médian,
+ *    sans qualificatif de désambiguïsation) et on remonte au traducteur LES DEUX
+ *    graphies : celle de la base et celle que porte réellement sa planche.
  * 4. **Les lots ne se recouvrent pas.** `--decalage` découpe la file d'un même
  *    appel, mais la file RÉTRÉCIT à mesure que les traductions se déposent :
  *    deux agents parallèles finiraient par se marcher dessus. `--pages 41-80`
@@ -25,11 +36,13 @@
  *
  * Reprise : une planche déjà traduite (`text_fr` non vide dans le jsonb) ne
  * ressort jamais. Relancer après une interruption reprend là où on s'est arrêté.
+ * `--retraduire` lève ce filtre, pour reprendre une planche dont le contrôle a
+ * montré qu'elle avait été mal rendue.
  */
 import postgres from "postgres";
 import { classerDefaut } from "../src/lib/databooks-defauts";
 import { trierLexique, type TermeLexique } from "../src/lib/ja/anomalies";
-import { contientJaponais } from "../src/lib/ja/normalisation";
+import { contientJaponais, normaliserJa } from "../src/lib/ja/normalisation";
 
 const args = process.argv.slice(2);
 const flag = (nom: string) => args.includes(`--${nom}`);
@@ -39,6 +52,35 @@ const opt = (nom: string, def?: string) => {
 };
 
 const KANA = /[぀-ヿ]/;
+
+/**
+ * Forme repliée servant d'index d'appariement entre la graphie de la base et
+ * celle de la planche. Elle efface ce que l'OCR mange ou ajoute le plus souvent :
+ * le signe d'allongement `ー` (« ターレス » lu « タレス ») et les points médians
+ * (les trois existent et se mélangent dans les sources).
+ *
+ * Repli délibérément agressif : il ne SUBSTITUE rien, il propose une entrée de
+ * lexique au traducteur, qui garde l'arbitrage. Une collision (deux termes
+ * distincts pliés pareil) coûte une ligne de lexique en trop, jamais une
+ * traduction fausse.
+ */
+const replier = (s: string) => normaliserJa(s).replace(/ー/g, "");
+
+/**
+ * Noyau d'une graphie de base : `未来のダーブラ` et `ダーブラ：ゼノ` désignent le
+ * même nom, que la planche écrit nu. Sans ce dépouillement, le terme n'entre
+ * jamais dans le lexique d'un lot.
+ */
+function noyaux(ja: string): string[] {
+	const formes = new Set([ja]);
+	const nu = ja
+		.replace(/^(未来の|少年|幼少期の)/, "")
+		.replace(/[：:][ゼ][ノ]$/, "")
+		.replace(/[（(][^）)]*[）)]$/, "")
+		.trim();
+	if (nu.length >= 2) formes.add(nu);
+	return [...formes];
+}
 
 async function urlBase(): Promise<string> {
 	const brut = await Bun.file(new URL("../.env", import.meta.url).pathname).text();
@@ -79,8 +121,9 @@ try {
 	// Le filtrage tient en JS parce que le juge des défauts y vit : le refaire en
 	// SQL, c'est fabriquer un second juge qui divergera du premier (et la boucle
 	// ne se détecte de toute façon pas en SQL en un temps raisonnable).
+	const retraduire = flag("retraduire");
 	const eligibles = brutes.filter(
-		(p) => !p.traduite && KANA.test(p.texte) && classerDefaut(p.texte) === null,
+		(p) => (retraduire || !p.traduite) && KANA.test(p.texte) && classerDefaut(p.texte) === null,
 	);
 
 	if (flag("compte")) {
@@ -148,9 +191,32 @@ try {
 	}
 	const tries = trierLexique(termes);
 	const corpus = tranche.map((p) => p.texte).join("\n");
+	const corpusReplie = replier(corpus);
+
 	// Ne descend dans le lot que ce que le lot contient : sur 4 000 entrées, une
 	// vingtaine sert, et un lexique qu'on ne relit pas est un lexique ignoré.
-	const utiles = tries.filter((t) => corpus.includes(t.ja));
+	const utiles: { ja: string; fr: string; kind: string; dansLaPlanche?: string }[] = [];
+	const retenus = new Set<string>();
+	for (const t of tries) {
+		if (retenus.has(t.fr)) continue;
+		for (const forme of noyaux(t.ja)) {
+			if (forme.length < 2) continue;
+			if (corpus.includes(forme)) {
+				utiles.push({ ja: t.ja, fr: t.fr, kind: t.kind });
+				retenus.add(t.fr);
+				break;
+			}
+			// Appariement replié : la planche porte une graphie que l'OCR a rabotée.
+			// On remonte la graphie RÉELLE de la planche, sans quoi le traducteur
+			// chercherait dans son texte un terme qui ne s'y trouve pas.
+			const cible = replier(forme);
+			if (cible.length < 2 || !corpusReplie.includes(cible)) continue;
+			const trouve = new RegExp(`${[...cible].map((c) => `${c}ー?`).join("[・･·]?")}`).exec(corpus);
+			utiles.push({ ja: t.ja, fr: t.fr, kind: t.kind, dansLaPlanche: trouve?.[0] ?? undefined });
+			retenus.add(t.fr);
+			break;
+		}
+	}
 
 	const sortie = {
 		planches: tranche.map((p) => ({
@@ -159,7 +225,7 @@ try {
 			titre: p.titre,
 			texte: p.texte,
 		})),
-		lexique: utiles.map((t) => ({ ja: t.ja, fr: t.fr, kind: t.kind })),
+		lexique: utiles,
 		reste: candidates.length,
 	};
 
