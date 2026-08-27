@@ -687,6 +687,75 @@ export async function getShenronCharacterVariants(
 	}
 }
 
+/** Version d'un personnage, réduite à ce qu'affiche une carte de grille. */
+export interface VariantCard {
+	id: number;
+	characterId: number;
+	/** Nom du personnage, sans le suffixe de saga. */
+	name: string;
+	/** Libellé de la saga — affiché entre parenthèses derrière le nom. */
+	saga: string;
+	sagaId: number;
+	slug: string;
+	/** Image PROPRE à la version, `null` si elle hérite de celle du personnage. */
+	image: string | null;
+	/** Image du personnage, servant de repli. */
+	characterImage: string | null;
+	race: string | null;
+	form: string | null;
+}
+
+/**
+ * Toutes les versions par saga, pour la grille globale des personnages.
+ *
+ * Volontairement réduite aux champs d'une carte : la fiche détail a déjà
+ * `getShenronCharacterVariants`, qui rend tout. Envoyer les 451 variantes
+ * complètes dans la charge d'un index en doublerait le poids pour des données
+ * que la grille n'affiche pas.
+ *
+ * L'image de la version prime, celle du personnage sert de repli : une variante
+ * n'a pas forcément son illustration propre (au 2026-08-27, aucune ne
+ * l'avait), et une carte vide serait pire que la même image répétée.
+ */
+export async function getShenronVariantCards(): Promise<VariantCard[]> {
+	try {
+		const rows = await db
+			.select({
+				id: botCharacterVariants.id,
+				characterId: botCharacterVariants.characterId,
+				slug: botCharacterVariants.slug,
+				label: botCharacterVariants.label,
+				form: botCharacterVariants.form,
+				image: botCharacterVariants.image,
+				sagaId: botSagas.id,
+				sagaName: botSagas.name,
+				name: botCharacters.name,
+				race: botCharacters.race,
+				characterImage: botCharacters.image,
+			})
+			.from(botCharacterVariants)
+			.innerJoin(botSagas, eq(botCharacterVariants.sagaId, botSagas.id))
+			.innerJoin(botCharacters, eq(botCharacterVariants.characterId, botCharacters.id))
+			.where(and(eq(botCharacterVariants.visible, true), eq(botCharacters.visible, true)))
+			.orderBy(asc(botCharacters.name), asc(botSagas.series), asc(botSagas.orderIdx));
+		return rows.map((r) => ({
+			id: r.id,
+			characterId: r.characterId,
+			name: r.name,
+			saga: r.sagaName,
+			sagaId: r.sagaId,
+			slug: r.slug,
+			image: r.image,
+			characterImage: r.characterImage,
+			race: r.race,
+			form: r.form,
+		}));
+	} catch (e) {
+		console.error("[shenron] getShenronVariantCards a échoué:", e);
+		return [];
+	}
+}
+
 /** Personnage relevé dans une saga (lecture inverse des variantes). */
 export interface SagaCharacter {
 	characterId: number;

@@ -89,7 +89,16 @@ export function WikiContribute({
 	// d'une planche de databook. Sans ce cas, la modale ouverte depuis une
 	// planche n'avait ni libellé ni consigne.
 	const planche = numeroDePlanche(column);
-	const champ = planche !== null ? champPlanche(planche) : CONTRIBUTABLE_COLUMNS[column];
+	const champ =
+		planche !== null
+			? champPlanche(planche)
+			: column === "stats"
+				? {
+						label: "Statistiques",
+						hint: "Une mesure par ligne, sous la forme « Intitulé : valeur ». Les intitulés sont libres — « Ki », mais aussi « Santé », « Portée » ou « Groupe sanguin ». Une ligne retirée retire la mesure.",
+						long: true,
+					}
+				: CONTRIBUTABLE_COLUMNS[column];
 
 	useEffect(() => {
 		if (!open) return;

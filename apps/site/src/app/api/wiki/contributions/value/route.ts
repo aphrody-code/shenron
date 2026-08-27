@@ -17,6 +17,7 @@ import { getCurrentUser } from "@/lib/session";
 import { getWikiRow } from "@/lib/wiki-admin";
 import { targetIsValid } from "@/lib/wiki-contributions";
 import { estCiblePlanche, lireTranscription, numeroDePlanche } from "@/lib/databook-pages";
+import { estCibleStats, formatStats } from "@/lib/stats-personnage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +54,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
 	const row = await getWikiRow(table, rowId).catch(() => null);
 	if (!row) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
+
+	// Statistiques : un jsonb rendu en texte, une mesure par ligne.
+	if (estCibleStats(table, column)) {
+		return NextResponse.json({ ok: true, value: formatStats((row as Record<string, unknown>).stats) });
+	}
 
 	const v = (row as Record<string, unknown>)[column];
 	return NextResponse.json({ ok: true, value: v == null ? "" : String(v) });

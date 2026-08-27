@@ -42,6 +42,7 @@ import {
 	lireTranscription,
 	numeroDePlanche,
 } from "@/lib/databook-pages";
+import { estCibleStats, formatStats, fusionnerStats, parseStats } from "@/lib/stats-personnage";
 import { WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
 export interface ContributionView {
@@ -95,6 +96,12 @@ export function targetIsValid(table: string, column: string): boolean {
 	// donc `mutableColumns` ne peut pas trancher — c'est `estCiblePlanche` qui
 	// valide la forme, et le module dédié qui fera l'écriture ciblée.
 	if (estCiblePlanche(table, column)) return true;
+	// La zone de statistiques d'un personnage : un jsonb libre, proposé et relu
+	// sous forme de texte (« Ki : 8 000 » par ligne). Elle n'est pas dans
+	// `CONTRIBUTABLE_COLUMNS`, qui ne décrit que des colonnes de TEXTE — et
+	// c'est bien la liberté de cette zone qu'on ouvre : rien n'oblige à parler
+	// de ki, une fiche peut porter « Santé » ou « Portée ».
+	if (estCibleStats(table, column)) return true;
 	const spec = WIKI_TABLE_SPECS[table];
 	if (!spec) return false;
 	if (!spec.mutableColumns.includes(column)) return false;
@@ -106,6 +113,11 @@ async function currentValue(table: string, rowId: string, column: string): Promi
 	const planche = estCiblePlanche(table, column) ? numeroDePlanche(column) : null;
 	if (planche !== null) return await lireTranscription(rowId, planche);
 	const row = await getWikiRow(table, rowId);
+	// Les statistiques voyagent en texte dans les deux sens : c'est ce que le
+	// contributeur écrit, et ce que le relecteur compare en diff.
+	if (row && estCibleStats(table, column)) {
+		return formatStats((row as Record<string, unknown>).stats);
+	}
 	if (!row) return null;
 	const v = (row as Record<string, unknown>)[column];
 	return v == null ? null : String(v);
@@ -295,7 +307,15 @@ export async function acceptContribution(
 		? numeroDePlanche(row.columnName)
 		: null;
 	let after: Record<string, unknown>;
-	if (planche !== null) {
+	if (estCibleStats(row.tableName, row.columnName)) {
+		// Retour au jsonb, en conservant les accents de couleur déjà posés : le
+		// contributeur corrige une mesure, il ne repeint pas la fiche.
+		const stats = fusionnerStats(
+			parseStats(row.valueAfter),
+			(before as Record<string, unknown>).stats
+		);
+		after = await updateWiki(row.tableName, row.rowId, { stats });
+	} else if (planche !== null) {
 		const ok = await ecrireTranscription(row.rowId, planche, row.valueAfter);
 		if (!ok) throw new ContributionError("Planche introuvable dans cet ouvrage.", "not_found", 404);
 		after = { [row.columnName]: row.valueAfter };

@@ -1,7 +1,7 @@
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 // SPDX-License-Identifier: Apache-2.0
 
-import { getShenronCharacterCards } from "@/lib/shenron";
+import { getShenronCharacterCards, getShenronVariantCards } from "@/lib/shenron";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { UniverseTabs } from "@/components/wiki/UniverseTabs";
@@ -21,11 +21,12 @@ export default async function PersonnagesPage() {
 	// `access` : instantané de la configuration de lancement, résolu ICI (serveur)
 	// et passé aux grilles client, qui ne peuvent pas le lire elles-mêmes. Sans lui,
 	// chaque vignette liait une fiche fermée → 307 vers `/wiki-bientot`.
-	const [characters, counts, facets, access] = await Promise.all([
+	const [characters, counts, facets, access, variants] = await Promise.all([
 		getShenronCharacterCards(),
 		dbUniverse.counts(),
 		dbUniverse.characterFacets(),
 		getLaunchConfig().catch(() => null),
+		getShenronVariantCards(),
 	]);
 
 	return (
@@ -49,6 +50,7 @@ export default async function PersonnagesPage() {
 						image: c.image,
 						portraitXv2: c.portraitXv2,
 					}))}
+					variants={variants}
 					counts={counts ?? {}}
 					facets={facets ?? undefined}
 				/>

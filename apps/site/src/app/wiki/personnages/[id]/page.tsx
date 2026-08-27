@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { JsonLd } from "@/components/JsonLd";
 import { TrackView } from "@/components/TrackView";
 import { ViewTransition } from "@/components/ViewTransition";
@@ -450,6 +451,16 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 										<dd className={`mt-0.5 font-scouter text-[15px] ${c.accent}`}>{c.value}</dd>
 									</div>
 								))}
+								{/* Corriger là où l'on lit. Ces mesures sont un champ LIBRE :
+								    un contributeur peut corriger une valeur, en ajouter une,
+								    ou remplacer « Ki » par « Santé » — c'est un simple lien
+								    rendu côté serveur, pas un îlot client de plus. */}
+								<Link
+									href={`/wiki/corriger?table=db_characters&row=${character.id}&col=stats`}
+									className="ml-auto self-center text-[11px] text-white/30 transition-colors hover:text-dbz-orange"
+								>
+									Modifier ces mesures
+								</Link>
 							</dl>
 						);
 					})()}

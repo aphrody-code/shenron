@@ -27,6 +27,28 @@ export type GridCharacter = {
  * filtrage cumulatif client. Optionnel : la grille dégrade en filtre Race seul
  * si la DB n'a pas répondu.
  */
+/**
+ * Version d'un personnage rattachée à une saga, affichée comme une carte à
+ * part entière — « Goku (Saga Namek) ».
+ *
+ * Ces 451 versions n'existaient que dans l'onglet « Au fil des sagas » d'une
+ * fiche : pour les voir il fallait déjà savoir de qui l'on parle. Dans la
+ * grille, elles deviennent parcourables et filtrables comme le reste, et
+ * chacune peut porter sa propre illustration.
+ */
+export type GridVariant = {
+	id: number;
+	characterId: number;
+	name: string;
+	saga: string;
+	sagaId: number;
+	/** Illustration propre à la version ; `null` = celle du personnage. */
+	image: string | null;
+	characterImage: string | null;
+	race: string | null;
+	form: string | null;
+};
+
 export type CharacterFacets = {
 	techniqueOptions: FacetOption[];
 	arcOptions: FacetOption[];
@@ -45,14 +67,33 @@ function norm(s: string): string {
 
 export function CharacterGrid({
 	characters,
+	variants = [],
 	facets,
 	access,
 }: {
 	characters: GridCharacter[];
+	/** Versions par saga. Vide = la bascule d'affichage ne s'affiche pas. */
+	variants?: GridVariant[];
 	facets?: CharacterFacets;
 	/** Instantané de la configuration de lancement, résolu côté serveur. */
 	access?: AccessSnapshot | null;
 }) {
+	// « fiches » = une carte par personnage (défaut) ; « versions » = une carte
+	// par couple personnage × saga. Le choix est dans l'URL (`?vue=versions`)
+	// pour qu'une liste de versions se partage.
+	const [vue, setVue] = useState<"fiches" | "versions">("fiches");
+	useEffect(() => {
+		if (new URLSearchParams(window.location.search).get("vue") === "versions") {
+			setVue("versions");
+		}
+	}, []);
+	useEffect(() => {
+		const url = new URL(window.location.href);
+		if (vue === "versions") url.searchParams.set("vue", "versions");
+		else url.searchParams.delete("vue");
+		window.history.replaceState(null, "", url.toString());
+	}, [vue]);
+
 	const [query, setQuery] = useState("");
 	const [races, setRaces] = useState<string[]>([]);
 	const [techniques, setTechniques] = useState<string[]>([]);
@@ -99,6 +140,36 @@ export function CharacterGrid({
 		});
 	}, [characters, query, races, techniques, arcs, charTechniques, charArcs]);
 
+	/**
+	 * Versions filtrées — mêmes règles que les fiches, appliquées au personnage
+	 * PARENT (race, techniques, arcs lui appartiennent), plus la saga dans la
+	 * recherche : taper « namek » doit remonter les versions de la saga Namek
+	 * autant que les Nameks.
+	 */
+	const versionsFiltrees = useMemo(() => {
+		if (vue !== "versions") return [];
+		const q = norm(query);
+		const raceSet = races.length ? new Set(races) : null;
+		const techSet = techniques.length ? new Set(techniques) : null;
+		const arcSet = arcs.length ? new Set(arcs) : null;
+		return variants.filter((v) => {
+			if (raceSet && (!v.race || !raceSet.has(v.race))) return false;
+			if (techSet) {
+				const ct = charTechniques[String(v.characterId)];
+				if (!ct || !ct.some((t) => techSet.has(t))) return false;
+			}
+			if (arcSet) {
+				const ca = charArcs[String(v.characterId)];
+				if (!ca || !ca.some((a) => arcSet.has(a))) return false;
+			}
+			if (!q) return true;
+			return norm(v.name).includes(q) || norm(v.saga).includes(q);
+		});
+	}, [variants, vue, query, races, techniques, arcs, charTechniques, charArcs]);
+
+	/** Liste réellement paginée et rendue, selon la vue choisie. */
+	const liste = vue === "versions" ? versionsFiltrees : filtered;
+
 	// Pagination bornée : 120 cartes à l'écran, jamais plus. L'ancien « Voir
 	// plus » cumulait les paliers (720 cartes dans le DOM après six clics) sans
 	// dire où l'on en était ni permettre d'y revenir.
@@ -114,12 +185,16 @@ export function CharacterGrid({
 	// d'une liste qui vient d'en perdre 6 affiche un vide inexplicable.
 	useEffect(() => {
 		setPage(1);
-	}, [query, races, techniques, arcs]);
-	const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+	}, [query, races, techniques, arcs, vue]);
+	const pages = Math.max(1, Math.ceil(liste.length / PAGE));
 	const pageSure = Math.min(page, pages);
 	const visible = useMemo(
 		() => filtered.slice((pageSure - 1) * PAGE, pageSure * PAGE),
 		[filtered, pageSure]
+	);
+	const versionsVisibles = useMemo(
+		() => versionsFiltrees.slice((pageSure - 1) * PAGE, pageSure * PAGE),
+		[versionsFiltrees, pageSure]
 	);
 
 	const activeCount = races.length + techniques.length + arcs.length;
@@ -182,16 +257,82 @@ export function CharacterGrid({
 						Réinitialiser
 					</button>
 				)}
+				{variants.length > 0 && (
+					<div
+						role="group"
+						aria-label="Affichage"
+						className="inline-flex h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1"
+					>
+						{(["fiches", "versions"] as const).map((v) => (
+							<button
+								key={v}
+								type="button"
+								onClick={() => setVue(v)}
+								aria-pressed={vue === v}
+								className={`h-9 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange ${
+									vue === v
+										? "bg-dbz-orange text-black"
+										: "text-white/65 hover:text-white"
+								}`}
+							>
+								{v === "fiches" ? "Fiches" : "Versions"}
+							</button>
+						))}
+					</div>
+				)}
 				<p className="scouter-text text-[11px] text-dbz-orange whitespace-nowrap sm:ml-auto">
-					{filtered.length} / {characters.length} personnages
+					{vue === "versions"
+						? `${versionsFiltrees.length} / ${variants.length} versions`
+						: `${filtered.length} / ${characters.length} personnages`}
 				</p>
 			</div>
 
 			{/* Grille */}
-			{filtered.length === 0 ? (
+			{liste.length === 0 ? (
 				<p className="py-20 text-center text-white/50 font-sans">
-					Aucun personnage ne correspond {query ? `à « ${query} »` : "à ces filtres"}.
+					{vue === "versions" ? "Aucune version ne correspond" : "Aucun personnage ne correspond"}{" "}
+					{query ? `à « ${query} »` : "à ces filtres"}.
 				</p>
+			) : vue === "versions" ? (
+				<div className="reveal-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 md:gap-4 lg:grid-cols-6">
+					{versionsVisibles.map((v) => (
+						<ClientGatedWrap
+							access={access}
+							key={v.id}
+							// La version renvoie vers la fiche du personnage, à l'ancre de
+							// sa saga : c'est là que vivent son résumé, ses faits marquants
+							// et ses preuves. Une page par version dupliquerait la fiche
+							// pour n'en changer que quelques champs.
+							href={`/wiki/personnages/${v.characterId}#saga-${v.sagaId}`}
+							className="group dbz-panel ki-card overflow-hidden transition-all duration-300 hover:scale-105"
+						>
+							<div className="relative aspect-[3/4] overflow-hidden bg-dbz-bg">
+								<div className="absolute inset-0 halftone z-10 opacity-10" />
+								<WikiImg
+									src={v.image ?? v.characterImage}
+									alt={v.name}
+									sizes="(min-width: 1280px) 200px, (min-width: 768px) 22vw, 45vw"
+									className="absolute inset-0 h-full w-full object-cover object-top transition-all duration-700 group-hover:scale-110"
+								/>
+								<div className="absolute inset-0 z-20 bg-gradient-to-t from-black via-black/20 to-transparent" />
+								<span aria-hidden className="ki-card__glow" />
+								<div className="absolute inset-x-0 bottom-0 z-30 p-2">
+									<p className="truncate font-display text-[11px] font-bold leading-tight text-white transition-colors group-hover:text-dbz-orange">
+										{v.name}
+									</p>
+									{/* La saga entre parenthèses, sur sa propre ligne : accolée
+									    au nom elle serait tronquée avant d'être lue. */}
+									<p className="truncate text-[10px] leading-tight text-white/55">
+										({v.saga})
+									</p>
+									{v.form && (
+										<p className="scouter-text truncate text-[8px] text-dbz-orange/80">{v.form}</p>
+									)}
+								</div>
+							</div>
+						</ClientGatedWrap>
+					))}
+				</div>
 			) : (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 reveal-grid">
 					{visible.map((c) => (
@@ -241,9 +382,9 @@ export function CharacterGrid({
 			<Pagination
 				page={pageSure}
 				parPage={PAGE}
-				total={filtered.length}
+				total={liste.length}
 				onPageChange={setPage}
-				unite="personnages"
+				unite={vue === "versions" ? "versions" : "personnages"}
 				className="pt-2"
 			/>
 			<CharacterFilterModal

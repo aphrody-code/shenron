@@ -15,7 +15,7 @@
  * pendant trois tomes. Le bandeau de provenance le dit mot pour mot plutôt que
  * de laisser la frise se faire passer pour une biographie vérifiée.
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { WikiMarkdown } from "@/components/wiki/WikiMarkdown";
 // `ClientGatedWrap` et NON `GatedWrap` : ce dernier lit la configuration de
@@ -55,6 +55,29 @@ export function CharacterSagaVariants({
 	access?: AccessSnapshot | null;
 }) {
 	const [actif, setActif] = useState(0);
+
+	/**
+	 * Ouverture sur une version précise via `#saga-<id>`.
+	 *
+	 * La grille des personnages lie désormais chaque version (« Goku (Saga
+	 * Namek) ») vers cette fiche. Sans ce relais, le lien retombait sur la
+	 * première version de la liste : les versions sont un jeu d'onglets client,
+	 * pas des ancres — le navigateur n'avait rien à viser.
+	 */
+	const ancre = useRef<HTMLElement | null>(null);
+	useEffect(() => {
+		const m = /^#saga-(\d+)$/.exec(window.location.hash);
+		if (!m) return;
+		const cible = Number(m[1]);
+		const i = variants.findIndex((x) => x.sagaId === cible);
+		if (i < 0) return;
+		setActif(i);
+		// Le défilement attend la peinture : viser un élément qui n'a pas encore
+		// sa hauteur définitive amène à côté.
+		requestAnimationFrame(() =>
+			ancre.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+		);
+	}, [variants]);
 	if (!variants.length) return null;
 	const v = variants[Math.min(actif, variants.length - 1)]!;
 	const tomes =
@@ -76,7 +99,7 @@ export function CharacterSagaVariants({
 	const mesuree = v.origin != null && v.origin !== "editorial";
 
 	return (
-		<section className="space-y-8">
+		<section className="space-y-8" ref={ancre}>
 			<p className="max-w-3xl text-sm text-white/50">
 				{characterName} au fil des sagas : ce qui change d'une époque à l'autre — apparence, forme
 				atteinte, rôle. {variants.length} saga{variants.length > 1 ? "s" : ""} référencée

@@ -18,6 +18,7 @@ import type { Metadata } from "next";
 import { WikiContribute } from "@/components/wiki/WikiContribute";
 import { CONTRIBUTABLE_COLUMNS } from "@/lib/contributions-shared";
 import { champPlanche, estCiblePlanche, numeroDePlanche } from "@/lib/databook-pages-shared";
+import { estCibleStats } from "@/lib/stats-personnage";
 import { WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 
 export const dynamic = "force-dynamic";
@@ -48,9 +49,19 @@ export default async function PageCorriger({
 	// ne peuvent la valider — c'est `estCiblePlanche` qui fait foi, exactement
 	// comme dans le circuit de dépôt.
 	const planche = estCiblePlanche(table, col) ? numeroDePlanche(col) : null;
-	const champ = planche !== null ? champPlanche(planche) : CONTRIBUTABLE_COLUMNS[col];
+	const stats = estCibleStats(table, col);
+	const champ =
+		planche !== null
+			? champPlanche(planche)
+			: stats
+				? {
+						label: "Statistiques",
+						hint: "Une mesure par ligne, sous la forme « Intitulé : valeur ». Les intitulés sont libres : rien n'oblige à parler de ki.",
+						long: true,
+					}
+				: CONTRIBUTABLE_COLUMNS[col];
 	const valide = Boolean(
-		row && champ && (planche !== null || (spec && spec.mutableColumns.includes(col)))
+		row && champ && (planche !== null || stats || (spec && spec.mutableColumns.includes(col)))
 	);
 
 	return (
