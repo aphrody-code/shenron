@@ -72,7 +72,9 @@ export default async function TechniquesPage() {
 					<p className="mt-5 max-w-2xl text-[13px] leading-relaxed text-white/45">
 						Le classement par type reprend les catégories de compétence des jeux{" "}
 						<em>Dragon Ball Xenoverse</em>, d'où proviennent la plupart de ces entrées. Il
-						ne correspond pas à un découpage du manga ou des databooks.
+						ne correspond pas à un découpage du manga ou des databooks. Les vignettes
+						montrent un personnage qui pratique la technique dans le jeu — c'est une
+						illustration, pas une attribution.
 					</p>
 				</div>
 
@@ -95,18 +97,20 @@ export default async function TechniquesPage() {
 									href={`/wiki/techniques/${tech.slug}`}
 									className="group dbz-panel p-5 flex gap-4 hover:border-dbz-blue-light transition-all"
 								>
-									{/* Pas de vignette de repli : 814 techniques sur 825 n'ont pas
-									    de créateur identifié, donc pas d'image. Un carré « KI » vide
-									    répété sur toute la grille n'informe de rien et double la
-									    hauteur de lecture — la carte est typographique par défaut. */}
-									{tech.creatorImage && (
+									{/* Illustration : d'abord celle de la technique (portrait du
+									    pratiquant, catalogue Xenoverse 2 — 594 fiches sur 825), à
+									    défaut le portrait du créateur quand un databook l'établit
+									    (11 fiches). Aucun carré de repli : une vignette vide répétée
+									    sur toute la grille n'informe de rien et double la hauteur de
+									    lecture. */}
+									{(tech.image ?? tech.creatorImage) && (
 										<div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
 											<Image
-												src={assetUrl(tech.creatorImage)}
-												alt={tech.creatorName ?? tech.name}
+												src={assetUrl((tech.image ?? tech.creatorImage) as string)}
+												alt=""
 												fill
 												sizes="64px"
-												className="object-cover object-top group-hover:scale-110 transition-transform duration-500"
+												className="object-cover object-top transition-transform duration-500 group-hover:scale-110"
 											/>
 										</div>
 									)}

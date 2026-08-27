@@ -174,6 +174,13 @@ export const botTechniques = bot.table("db_techniques", {
 	type: text("type"),
 	creatorId: int("creator_id"),
 	description: text("description"),
+	/**
+	 * Illustration. Peuplée depuis le catalogue Xenoverse 2 : le portrait d'un
+	 * personnage qui pratique la technique DANS LE JEU (594 des 825 fiches).
+	 * Ce n'est pas une attribution — `creator_id` reste ce qu'une phrase de
+	 * databook a établi, et rien d'autre.
+	 */
+	image: text("image"),
 	debutEpisodeId: int("debut_episode_id"),
 	debutChapterId: int("debut_chapter_id"),
 	...articleCols,

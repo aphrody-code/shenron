@@ -42,7 +42,10 @@ function Pill({
 	children: ReactNode;
 }) {
 	const base =
-		"px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] border rounded-sm transition-all duration-200 whitespace-nowrap";
+		// Onglets agrandis : 11 px en capitales espacées de 0,18 em se lisaient
+		// lettre à lettre. 13 px, un tracking resserré et une cible de 40 px de
+		// haut — c'est un élément de navigation, pas une étiquette.
+		"px-4 py-2.5 text-[13px] font-semibold uppercase tracking-[0.06em] border rounded-lg transition-colors duration-200 whitespace-nowrap";
 	const cls = active
 		? sectionAccentStyle(normalizeSectionAccent(accent)).pillActive
 		: "border-white/15 bg-white/[0.02] text-white/55 hover:text-white hover:border-dbz-orange/60";
@@ -135,7 +138,11 @@ export function WikiSectionsReader({
 				{/* ── Niveau 1 : catégories principales ── */}
 				<nav
 					aria-label="Catégories de la fiche"
-					className="flex flex-wrap gap-2 border-b border-white/10 bg-dbz-bg/90 px-6 py-4 backdrop-blur-md lg:px-10"
+					// Fond translucide et non `bg-dbz-bg/90` : posé sur le dégradé de la
+					// page, un aplat à 90 % dessinait un rectangle plus clair derrière
+					// les onglets — une seconde surface qui doublait celle du contenu
+					// juste dessous. Le flou seul suffit à décoller la barre.
+					className="flex flex-wrap gap-2 border-b border-white/10 bg-black/40 px-6 py-3 backdrop-blur-xl lg:px-10"
 			>
 				<Pill active={active === "all"} onClick={() => selectTop("all")}>
 					{allLabel}
@@ -166,9 +173,9 @@ export function WikiSectionsReader({
 			{activeGroup && activeChildren.length > 0 && (
 				<nav
 					aria-label={`Sous-catégories de ${activeGroup}`}
-					className="flex flex-wrap items-center gap-2 border-b border-white/5 bg-dbz-card/80 px-6 py-3 backdrop-blur-md lg:px-10"
+					className="flex flex-wrap items-center gap-2 border-b border-white/5 bg-black/30 px-6 py-2.5 backdrop-blur-xl lg:px-10"
 				>
-					<span className="mr-1 text-[9px] font-bold uppercase tracking-[0.22em] text-white/50">
+					<span className="mr-1 font-scouter text-[11px] uppercase tracking-[0.14em] text-white/50">
 						{activeGroup}
 					</span>
 					<Pill active={subActive === "all"} onClick={() => selectSub("all")}>

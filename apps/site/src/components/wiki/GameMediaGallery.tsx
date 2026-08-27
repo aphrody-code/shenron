@@ -1,12 +1,23 @@
 "use client";
 
 /**
- * Galerie médias style Steam pour les fiches jeu :
- *  - preview principale (image ou iframe YouTube)
- *  - bande de vignettes cliquables
+ * Galerie médias des fiches jeu.
+ *
+ * **Scindée en deux sections** — « Vidéos » puis « Images » — au lieu d'un bloc
+ * unique où une bande-annonce et une capture d'écran se disputaient la même
+ * vignette : on ne savait pas ce qu'on allait ouvrir, et la section s'étirait
+ * sur toute la hauteur de la fiche. Séparées, chacune respire et se parcourt
+ * pour ce qu'elle est.
+ *
+ * **Défilement automatique** sur les images : la galerie avance seule toutes
+ * les 5 s pour montrer ce que la fiche contient. Elle s'arrête dès qu'on
+ * interagit (survol, focus, clic sur une vignette), quand l'onglet passe en
+ * arrière-plan, et n'existe pas du tout si le visiteur a demandé moins
+ * d'animations. Une vidéo ne défile jamais toute seule — on n'interrompt pas
+ * une lecture en cours.
  */
-import { Film, ImageIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Film, ImageIcon, Pause, Play } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { assetUrl } from "@/lib/assets";
 import { youtubeEmbedUrl, youtubeThumbUrl } from "@/lib/youtube";
 
@@ -43,18 +54,103 @@ export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; titl
 		[media]
 	);
 
-	const [active, setActive] = useState(0);
-	const current = items[Math.min(active, Math.max(0, items.length - 1))];
+	const videos = useMemo(() => items.filter((i) => i.kind === "youtube"), [items]);
+	const images = useMemo(() => items.filter((i) => i.kind === "image"), [items]);
 
 	if (items.length === 0) return null;
 
 	return (
-		<section className="mb-12" aria-label={`Médias — ${title}`}>
-			<h2 className="mb-4 border-b border-white/10 pb-2 font-display text-[20px] font-bold text-white">
-				Médias
-			</h2>
+		<div className="mb-12 space-y-10">
+			{videos.length > 0 && (
+				<Galerie titre="Vidéos" items={videos} title={title} autoplay={false} />
+			)}
+			{images.length > 0 && (
+				<Galerie titre="Images" items={images} title={title} autoplay={images.length > 1} />
+			)}
+		</div>
+	);
+}
 
-			<div className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/40">
+type ItemResolu = GalleryMedia & { kind: "image" | "youtube"; src: string; thumb: string | null; key: string };
+
+const DELAI_AUTO_MS = 5000;
+
+function Galerie({
+	titre,
+	items,
+	title,
+	autoplay,
+}: {
+	titre: string;
+	items: ItemResolu[];
+	title: string;
+	autoplay: boolean;
+}) {
+	const [active, setActive] = useState(0);
+	// `null` tant qu'on n'a pas interrogé les préférences système : on ne lance
+	// rien avant de savoir si l'animation est la bienvenue.
+	const [enMarche, setEnMarche] = useState<boolean | null>(null);
+	const suspendu = useRef(false);
+	const current = items[Math.min(active, Math.max(0, items.length - 1))];
+
+	useEffect(() => {
+		if (!autoplay) return;
+		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+		const appliquer = () => setEnMarche(!mq.matches);
+		appliquer();
+		mq.addEventListener("change", appliquer);
+		return () => mq.removeEventListener("change", appliquer);
+	}, [autoplay]);
+
+	useEffect(() => {
+		if (!autoplay || enMarche !== true) return;
+		const id = setInterval(() => {
+			// L'onglet en arrière-plan continuerait d'avancer pour personne, et
+			// laisserait le visiteur revenir sur une image qu'il n'a pas choisie.
+			if (suspendu.current || document.hidden) return;
+			setActive((i) => (i + 1) % items.length);
+		}, DELAI_AUTO_MS);
+		return () => clearInterval(id);
+	}, [autoplay, enMarche, items.length]);
+
+	const choisir = useCallback((i: number) => {
+		setActive(i);
+		// Un clic est une intention : on rend la main, on ne reprend pas la main
+		// trois secondes plus tard sur une autre image.
+		setEnMarche(false);
+	}, []);
+
+	if (!current) return null;
+
+	return (
+		<section aria-label={`${titre} — ${title}`}>
+			<div className="mb-4 flex items-center justify-between gap-4 border-b border-white/10 pb-2">
+				<h2 className="font-display text-[20px] font-bold text-white">
+					{titre}
+					<span className="ml-2 font-mono text-[13px] font-normal text-white/45">
+						{items.length}
+					</span>
+				</h2>
+				{autoplay && enMarche !== null && (
+					<button
+						type="button"
+						onClick={() => setEnMarche((v) => !v)}
+						aria-label={enMarche ? "Arrêter le défilement" : "Reprendre le défilement"}
+						className="inline-flex items-center gap-1.5 rounded-full border border-white/12 px-3 py-1.5 text-[11px] font-semibold text-white/60 transition-colors hover:border-dbz-orange/50 hover:text-white"
+					>
+						{enMarche ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+						{enMarche ? "Pause" : "Lecture"}
+					</button>
+				)}
+			</div>
+
+			<div
+				className="overflow-hidden rounded-xl border border-white/[0.08] bg-black/40"
+				onPointerEnter={() => (suspendu.current = true)}
+				onPointerLeave={() => (suspendu.current = false)}
+				onFocusCapture={() => (suspendu.current = true)}
+				onBlurCapture={() => (suspendu.current = false)}
+			>
 				{/* Preview principale */}
 				<div className="relative aspect-video w-full bg-black">
 					{current?.kind === "youtube" ? (
@@ -68,14 +164,16 @@ export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; titl
 							loading="lazy"
 							referrerPolicy="strict-origin-when-cross-origin"
 						/>
-					) : current ? (
+					) : (
 						<img
 							key={current.key}
 							src={current.src}
-							alt={current.caption || `${title} — screenshot`}
-							className="absolute inset-0 h-full w-full object-contain"
+							alt={current.caption || `${title} — capture`}
+							// `animate-[fadeIn]` : sans fondu, le passage automatique d'une
+							// image à l'autre est un à-coup sec au milieu de la lecture.
+							className="absolute inset-0 h-full w-full animate-[fade-in_400ms_ease-out] object-contain"
 						/>
-					) : null}
+					)}
 				</div>
 
 				{current?.caption && (
@@ -93,7 +191,7 @@ export function GameMediaGallery({ media, title }: { media: GalleryMedia[]; titl
 								<button
 									key={item.key}
 									type="button"
-									onClick={() => setActive(i)}
+									onClick={() => choisir(i)}
 									aria-label={
 										item.caption || (item.kind === "youtube" ? `Vidéo ${i + 1}` : `Image ${i + 1}`)
 									}

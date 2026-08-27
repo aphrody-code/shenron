@@ -94,21 +94,41 @@ export default async function TechniqueDetailPage({
 			</div>
 			<div className="space-y-12">
 				<header className="flex flex-col sm:flex-row gap-8 items-start">
-					{tech.creatorImage && (
+					{/* Le portrait du créateur mène à sa fiche ; l'illustration Xenoverse,
+					    elle, ne mène nulle part — elle montre un pratiquant, elle ne
+					    désigne pas l'auteur de la technique. La légende le dit. */}
+					{tech.creatorImage ? (
 						<Link
 							href={tech.creatorId ? `/wiki/personnages/${tech.creatorId}` : "#"}
-							className="group relative w-40 sm:w-48 shrink-0 aspect-[3/4] rounded-xl overflow-hidden border border-white/10 bg-black"
+							className="group relative aspect-[3/4] w-40 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black sm:w-48"
 						>
 							<Image
 								src={assetUrl(tech.creatorImage)}
 								alt={tech.creatorName ?? tech.name}
 								fill
 								sizes="192px"
-								className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+								className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
 								priority
 							/>
 						</Link>
-					)}
+					) : tech.image ? (
+						<figure className="w-40 shrink-0 sm:w-48">
+							<div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black">
+								<Image
+									src={assetUrl(tech.image)}
+									alt=""
+									fill
+									sizes="192px"
+									className="object-cover object-top"
+									priority
+								/>
+							</div>
+							<figcaption className="mt-2 text-[11px] leading-snug text-white/40">
+								Un personnage qui pratique cette technique dans{" "}
+								<em>Dragon Ball Xenoverse 2</em>.
+							</figcaption>
+						</figure>
+					) : null}
 					<div className="min-w-0">
 						<div className="flex items-center gap-4 mb-4">
 							<span className="scouter-text text-xl text-dbz-blue-light">TECH_ID: {tech.id}</span>

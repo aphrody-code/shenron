@@ -177,6 +177,8 @@ export interface DBTechnique extends WithArticle {
 	creatorId: number | null;
 	creatorName: string | null;
 	creatorImage: string | null;
+	/** Illustration de la technique (portrait XV2 d'un pratiquant). */
+	image: string | null;
 }
 
 export interface DBGame {
@@ -874,6 +876,7 @@ export async function getShenronCharacter(id: number): Promise<CharacterWithRela
 				creatorId: r.t.creatorId,
 				creatorName: null,
 				creatorImage: null,
+				image: r.t.image ?? null,
 				article: r.t.article ?? null,
 				articleSources: r.t.articleSources ?? null,
 			} satisfies DBTechnique,
@@ -909,6 +912,9 @@ export async function getShenronTechniques(): Promise<DBTechnique[]> {
 			creatorId: r.t.creatorId,
 			creatorName: r.name ?? null,
 			creatorImage: r.image ?? null,
+			// Illustration propre à la technique (portrait XV2). Distincte du
+			// portrait du créateur, qui n'existe que sur 11 fiches.
+			image: r.t.image ?? null,
 			article: r.t.article ?? null,
 			articleSources: r.t.articleSources ?? null,
 		}));
@@ -936,6 +942,9 @@ export async function getShenronTechnique(slug: string): Promise<DBTechnique | n
 			creatorId: r.t.creatorId,
 			creatorName: r.name ?? null,
 			creatorImage: r.image ?? null,
+			// Illustration propre à la technique (portrait XV2). Distincte du
+			// portrait du créateur, qui n'existe que sur 11 fiches.
+			image: r.t.image ?? null,
 			article: r.t.article ?? null,
 			articleSources: r.t.articleSources ?? null,
 		};

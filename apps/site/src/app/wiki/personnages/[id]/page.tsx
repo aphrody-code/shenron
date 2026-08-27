@@ -390,40 +390,44 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 						</div>
 					</div>
 
-					{(character.ki || character.maxKi || (character.stats && character.stats.length > 0)) && (
-						<div
-							className="grid grid-cols-1 sm:grid-cols-2 gap-6 reveal-up"
-							style={{ animationDelay: "0.3s" }}
-						>
-							{character.ki && (
-								<div className="dbz-panel p-6 border-l-4 border-l-dbz-orange">
-									<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-2">
-										KI Actuel
-									</p>
-									<p className="scouter-text text-4xl text-dbz-orange">{character.ki}</p>
-								</div>
-							)}
-							{character.maxKi && (
-								<div className="dbz-panel p-6 border-l-4 border-l-dbz-red">
-									<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-2">
-										KI Maximum
-									</p>
-									<p className="scouter-text text-4xl text-dbz-red">{character.maxKi}</p>
-								</div>
-							)}
-							{character.stats?.map((s) => (
-								<div
-									key={`${s.label}-${s.value}`}
-									className="dbz-panel p-6 border-l-4 border-l-dbz-blue-light"
-								>
-									<p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.3em] mb-2">
-										{s.label || "Stat"}
-									</p>
-									<p className="scouter-text text-3xl text-dbz-blue-light">{s.value || "—"}</p>
-								</div>
-							))}
-						</div>
-					)}
+					{(() => {
+						// Les valeurs qui ne disent rien ne méritent pas une case. Sur les
+						// fiches importées, `ki` vaut très souvent « ? », « ??? » ou « — » :
+						// on affichait alors trois panneaux de 100 px de haut pour un point
+						// d'interrogation, en tête de fiche, avant le moindre texte.
+						const utile = (v?: string | null) => {
+							const t = (v ?? "").trim();
+							return t && !/^[?？\-—–.\s]+$/.test(t) ? t : null;
+						};
+						const cases: Array<{ label: string; value: string; accent: string }> = [];
+						const ki = utile(character.ki);
+						if (ki) cases.push({ label: "Ki", value: ki, accent: "text-dbz-orange" });
+						const maxKi = utile(character.maxKi);
+						if (maxKi) cases.push({ label: "Ki maximum", value: maxKi, accent: "text-dbz-red" });
+						for (const st of character.stats ?? []) {
+							const v = utile(st.value);
+							if (v) cases.push({ label: st.label || "Stat", value: v, accent: "text-dbz-blue-light" });
+						}
+						if (cases.length === 0) return null;
+						return (
+							<dl
+								// Cases compactes en ligne, et non une grille de panneaux : ce
+								// sont des métadonnées, pas des sections. Elles se lisent d'un
+								// balayage et laissent la place au contenu.
+								className="reveal-up flex flex-wrap gap-x-8 gap-y-4 rounded-xl border border-white/[0.08] px-5 py-4"
+								style={{ animationDelay: "0.3s" }}
+							>
+								{cases.map((c) => (
+									<div key={`${c.label}-${c.value}`} className="min-w-0">
+										<dt className="font-scouter text-[10px] uppercase tracking-[0.16em] text-white/45">
+											{c.label}
+										</dt>
+										<dd className={`mt-0.5 font-scouter text-[15px] ${c.accent}`}>{c.value}</dd>
+									</div>
+								))}
+							</dl>
+						);
+					})()}
 
 					{character.originPlanet && (
 						<GatedWrap
