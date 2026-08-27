@@ -75,7 +75,7 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@obsolete @privileged
 
-ReadWritePaths=/home/ubuntu/shenron/apps/bot/.bun-cache /home/ubuntu/shenron/apps/bot/data /home/ubuntu/shenron/apps/bot/dist /home/ubuntu/shenron/node_modules /home/ubuntu/shenron/apps/site/public/wiki /home/ubuntu/shenron/apps/bot/assets/subtitles -/home/ubuntu/.gemini
+ReadWritePaths=/home/ubuntu/shenron/apps/bot/.bun-cache /home/ubuntu/shenron/apps/bot/data -/home/ubuntu/shenron/apps/bot/dist /home/ubuntu/shenron/node_modules /home/ubuntu/shenron/apps/site/public/wiki /home/ubuntu/shenron/apps/bot/assets/subtitles -/home/ubuntu/.gemini
 
 StandardOutput=journal
 StandardError=journal
