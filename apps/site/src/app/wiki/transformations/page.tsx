@@ -27,7 +27,18 @@ function norm(s: string): string {
 }
 
 type Member = { id: number; name: string; image: string | null };
-type Group = { name: string; image: string | null; ki: string | null; members: Member[] };
+type Group = {
+	name: string;
+	image: string | null;
+	ki: string | null;
+	members: Member[];
+	/**
+	 * Identifiant de la transformation qui porte un article, s'il y en a une.
+	 * La carte mène alors à SA fiche plutôt qu'à celle du premier personnage —
+	 * 23 articles rédigés n'étaient lisibles nulle part.
+	 */
+	ficheId: number | null;
+};
 
 export default async function TransformationsPage() {
 	const [data, characters] = await Promise.all([
@@ -46,11 +57,14 @@ export default async function TransformationsPage() {
 		const char = charById.get(t.character_id);
 		let g = groups.get(key);
 		if (!g) {
-			g = { name: t.name, image: t.image, ki: t.ki, members: [] };
+			g = { name: t.name, image: t.image, ki: t.ki, members: [], ficheId: null };
 			groups.set(key, g);
 		}
 		if (!g.image && t.image) g.image = t.image;
 		if (!g.ki && t.ki) g.ki = t.ki;
+		// Le seuil est le même que celui de `generateStaticParams` de la fiche :
+		// pointer une page qui n'a pas été générée donnerait un 404.
+		if (!g.ficheId && t.a_article) g.ficheId = t.id;
 		if (char && !g.members.some((m) => m.id === char.id))
 			g.members.push({ id: char.id, name: char.name, image: char.image });
 	}
@@ -76,9 +90,11 @@ export default async function TransformationsPage() {
 						// Image représentative : image de la transfo, sinon portrait du 1er membre.
 						const rep = g.members.find((m) => m.image);
 						const img = g.image ?? rep?.image ?? null;
-						const href = g.members[0]
-							? `/wiki/personnages/${g.members[0].id}`
-							: "/wiki/personnages";
+						const href = g.ficheId
+							? `/wiki/transformations/${g.ficheId}`
+							: g.members[0]
+								? `/wiki/personnages/${g.members[0].id}`
+								: "/wiki/personnages";
 						const avatars = g.members.filter((m) => m.image).slice(0, 4);
 						return (
 							<Link

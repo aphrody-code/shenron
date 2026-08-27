@@ -155,6 +155,13 @@ export type Transformation = {
 	image: string | null;
 	ki: string | null;
 	character_id: number;
+	/**
+	 * Présence d'un article rédigé — pas son contenu. L'index n'affiche pas le
+	 * texte, il a seulement besoin de savoir si la forme a une fiche vers
+	 * laquelle pointer ; embarquer 23 articles de 2 à 3 Ko dans la charge d'un
+	 * index serait payer le texte deux fois.
+	 */
+	a_article?: boolean;
 };
 
 export type MangaVolume = {
@@ -414,6 +421,9 @@ function toTransformation(r: typeof botTransformations.$inferSelect): Transforma
 		image: r.image,
 		ki: r.ki,
 		character_id: r.characterId ?? 0,
+		// Même seuil que le `generateStaticParams` de la fiche : sous 50
+		// caractères, aucune page n'est générée et le lien serait un 404.
+		a_article: !!r.article && r.article.trim().length > 50,
 	};
 }
 

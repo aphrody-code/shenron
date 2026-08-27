@@ -15,8 +15,9 @@ import {
 	botRaces,
 	botTechniques,
 	botDatabooks,
+	botTransformations,
 } from "@/db/bot-schema";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { publicPostFilter } from "@/lib/posts";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 import { isPathPublic, type AccessSnapshot } from "@/lib/wiki-launch";
@@ -189,6 +190,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 				.from(botTechniques)
 				.where(eq(botTechniques.visible, true));
 			return rows.map((r) => [`/wiki/techniques/${r.slug}`, 0.5, new Date()] as const);
+		}),
+		block(entries, isPublic, async () => {
+			// Seules les transformations qui ont un ARTICLE ont une page : c'est le
+			// même filtre que `generateStaticParams`, sinon on annoncerait à un
+			// moteur 58 URL qui n'existent pas. L'index les listait toutes sans
+			// qu'aucune n'ait de fiche — 23 articles rédigés restaient invisibles.
+			const rows = await db
+				.select({ id: botTransformations.id })
+				.from(botTransformations)
+				.where(
+					and(
+						eq(botTransformations.visible, true),
+						sql`length(trim(coalesce(${botTransformations.article}, ''))) > 50`
+					)
+				);
+			return rows.map((r) => [`/wiki/transformations/${r.id}`, 0.5, new Date()] as const);
 		}),
 		block(entries, isPublic, async () => {
 			// On n'annonce pas une fiche vide. 21 des 318 databooks n'ont ni planche

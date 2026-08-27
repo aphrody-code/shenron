@@ -1089,6 +1089,97 @@ export async function getShenronRaces(): Promise<DBRace[]> {
 	}
 }
 
+/** Transformation avec son article, son personnage porteur et ses sœurs. */
+export interface DBTransformationDetail {
+	id: number;
+	name: string;
+	image: string | null;
+	ki: string | null;
+	article: string | null;
+	articleSources: unknown;
+	character: { id: number; name: string; image: string | null } | null;
+	/** Autres transformations du même personnage, pour naviguer entre les formes. */
+	voisines: Array<{ id: number; name: string; image: string | null; aArticle: boolean }>;
+}
+
+/**
+ * Transformations qui MÉRITENT une page : celles qui portent un article.
+ *
+ * 23 des 81 en ont un — « Super Saiyan » fait 3 175 caractères — et aucun
+ * n'était lisible nulle part : l'index regroupe par nom et renvoie vers la
+ * fiche du personnage, sans jamais afficher le texte. Générer les 81 pages
+ * produirait en revanche 58 pages quasi vides, c'est-à-dire du contenu mince
+ * annoncé à un moteur de recherche.
+ */
+export async function getTransformationsAvecArticle(): Promise<Array<{ id: number }>> {
+	try {
+		return await db
+			.select({ id: botTransformations.id })
+			.from(botTransformations)
+			.where(
+				and(
+					eq(botTransformations.visible, true),
+					sql`length(trim(coalesce(${botTransformations.article}, ''))) > 50`
+				)
+			);
+	} catch (e) {
+		console.error("[shenron] getTransformationsAvecArticle a échoué:", e);
+		return [];
+	}
+}
+
+export async function getShenronTransformation(
+	id: number
+): Promise<DBTransformationDetail | null> {
+	try {
+		const [row] = await db
+			.select({ t: botTransformations, c: botCharacters })
+			.from(botTransformations)
+			.leftJoin(botCharacters, eq(botTransformations.characterId, botCharacters.id))
+			.where(and(eq(botTransformations.id, id), eq(botTransformations.visible, true)))
+			.limit(1);
+		if (!row) return null;
+
+		const voisines = row.t.characterId
+			? await db
+					.select({
+						id: botTransformations.id,
+						name: botTransformations.name,
+						image: botTransformations.image,
+						article: botTransformations.article,
+					})
+					.from(botTransformations)
+					.where(
+						and(
+							eq(botTransformations.characterId, row.t.characterId),
+							eq(botTransformations.visible, true),
+							ne(botTransformations.id, id)
+						)
+					)
+			: [];
+
+		return {
+			id: row.t.id,
+			name: row.t.name,
+			image: row.t.image,
+			ki: row.t.ki,
+			article: row.t.article ?? null,
+			articleSources: row.t.articleSources ?? null,
+			character: row.c ? { id: row.c.id, name: row.c.name, image: row.c.image } : null,
+			voisines: voisines.map((v) => ({
+				id: v.id,
+				name: v.name,
+				image: v.image,
+				// Une forme sans article n'a pas de page : le lien serait un 404.
+				aArticle: !!v.article && v.article.trim().length > 50,
+			})),
+		};
+	} catch (e) {
+		console.error("[shenron] getShenronTransformation a échoué:", e);
+		return null;
+	}
+}
+
 export async function getShenronRace(
 	slug: string
 ): Promise<(DBRace & { characters: DBCharacter[]; homePlanet: DBPlanet | null }) | null> {
