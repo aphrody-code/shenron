@@ -3,7 +3,6 @@ import { slugDeRace } from "@/lib/races-alias";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
-import { SAGAS_HERO } from "@/lib/db-banners";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
 
@@ -117,8 +116,6 @@ export default async function RacesPage() {
 				eyebrow="Encyclopédie"
 				title="Races & Peuples"
 				lead={`${races.length} races répertoriées dans l'univers Dragon Ball. Découvrez leurs planètes d'origine, leurs particularités et leurs principaux représentants.`}
-				image={SAGAS_HERO}
-				imageAlt="Races Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">

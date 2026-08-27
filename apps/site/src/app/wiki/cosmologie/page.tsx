@@ -56,8 +56,6 @@ export default async function CosmologiePage() {
 				eyebrow="Encyclopédie"
 				title="Cosmologie"
 				lead={`${places.length} lieux répertoriés — planètes, dimensions et demeures divines de l'univers Dragon Ball.`}
-				image={PLANETS_HERO}
-				imageAlt="Cosmologie Dragon Ball"
 			/>
 			<div className="reveal-up mx-auto max-w-[1400px] px-6 py-12 lg:px-10 lg:py-16">
 				<Breadcrumbs className="mb-8" items={[{ label: "Cosmologie" }]} />

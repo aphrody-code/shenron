@@ -6,7 +6,6 @@ import { getShenronCharacterCards } from "@/lib/shenron";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { WikiCategoryNav } from "@/components/wiki/WikiCategoryNav";
-import { CHARACTERS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -66,8 +65,6 @@ export default async function TransformationsPage() {
 				eyebrow="Encyclopédie"
 				title="Transformations"
 				lead={`${list.length} transformations répertoriées — Super Saiyan, formes divines, Ultra Instinct… et les guerriers qui les maîtrisent.`}
-				image={CHARACTERS_HERO}
-				imageAlt="Transformations Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">

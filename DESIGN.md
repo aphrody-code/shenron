@@ -357,6 +357,49 @@ erreur, 0 avertissement**. C'est ce contrôle qui a signalé les pastilles de
 rubrique en texte blanc sur vert, violet, rose et rouge (3,3 à 4,0:1, sous le
 seuil AA de 4,5) — passées en texte noir.
 
+## Analyse du support officiel
+
+Mesurée le 2026-08-27 sur nos propres scans (`bot.db_databooks`, 12 047
+planches) — 400 planches tirées au sort, la balance des blancs corrigée page
+par page avant toute mesure. Sans cette correction la teinte dominante
+« mesurée » est le 40-50° : c'est le jaune du **papier scanné**, pas une
+décision graphique. Trois chiffres tiennent le reste.
+
+| Corpus | Encre (part de la surface) | Saturation moyenne de l'encre | Familles dominantes |
+|:--|--:|--:|:--|
+| Artbooks (Daizenshuu 1, Illustration Book, Toriyama World) | **16,6 %** | 0,58 | jaune-or 39 %, orange 21 %, bleu 8 %, rouge 7 % |
+| Guides (Chōzenshū 3-4, Daizenshuu 2, 6, 7) | **12,9 %** | 0,59 | rouge 16 %, bleu 11 %, violet 10 %, chaudes 33 % |
+
+1. **La couleur est rare et forte.** 83 à 87 % de chaque page est du fond
+   clair ; le peu de couleur qui reste est très saturé. Le contraire du
+   dégradé tiède posé partout — c'est la règle « un seul accent par bloc »,
+   vérifiée sur le support plutôt que postulée.
+2. **Deux registres chromatiques distincts.** L'or et l'orange appartiennent
+   aux *illustrations* (le gi, les auras, les cheveux). Le **rouge** est
+   l'accent de la *mise en page* : titres de rubrique, filets, pastilles,
+   bandes-annonces. Notre or d'interface vient donc du registre illustration,
+   ce qui est un choix — pas l'accent éditorial officiel.
+3. **Une seule encre d'accent par page.** Les pages intérieures des guides
+   sont en bichromie (noir + une encre), y compris pour les photos.
+
+Trois motifs de mise en page reviennent d'un ouvrage à l'autre, relevés sur les
+planches :
+
+- **Le fil de tête** — une ligne fine tout en haut : l'ouvrage à gauche,
+  l'édition à droite. Un fil d'Ariane et une source, en une ligne.
+- **La pastille numérotée** — un chiffre en rond plein qui ouvre chaque entrée
+  d'une liste ou d'un sommaire (le « ④ » orange de la couverture *World
+  Guide*, les ❶…❼ blancs sur rouge de l'obi du volume 5). C'est la signature
+  de numérotation de la collection.
+- **Le triple niveau de titre serré** — sur-titre minuscule, titre en
+  grotesque très gras, sous-titre en **serif capitales** (`WORLD GUIDE` sous
+  `DRAGON BALL 大全集`). Le contraste sans/serif de ce document n'est pas une
+  importation de la presse occidentale : il est déjà sur la couverture.
+
+Ce qui ne se transpose pas : le fond. Le support officiel est clair, le site
+est sombre — cette identité-là vient des vitrines actuelles des ayants droit
+(`fr.dragon-ball-official.com`, Bandai Namco) et reste notre base.
+
 ## Sources
 
 | Référence | Apport |
@@ -365,3 +408,4 @@ seuil AA de 4,5) — passées en texte noir.
 | Toei Animation, Bandai Namco | Cartes de catalogue, bannières de héros |
 | `design.google` | Rythme vertical, hiérarchie par le poids |
 | `dragonball.fandom.com` | Densité encyclopédique — à ne PAS copier |
+| `bot.db_databooks` (12 047 planches) | Mesure directe du support officiel — cf. section précédente |

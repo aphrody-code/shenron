@@ -6,7 +6,6 @@ import { GatedLink } from "@/components/GatedLink";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { WikiCategoryNav } from "@/components/wiki/WikiCategoryNav";
-import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -50,8 +49,6 @@ export default async function ArcsPage() {
 				eyebrow="Encyclopédie"
 				title="Arcs Narratifs"
 				lead={`${arcs.length} arcs à travers ${sagas.length} sagas — la trame complète de Dragon Ball, arc par arc.`}
-				image={SAGAS_HERO}
-				imageAlt="Arcs Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">

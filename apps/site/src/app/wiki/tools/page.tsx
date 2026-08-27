@@ -1,6 +1,5 @@
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
-import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
@@ -28,8 +27,6 @@ export default async function ToolsPage() {
 			<PageHero
 				eyebrow="Communauté"
 				title="Outils & Modding"
-				image={SAGAS_HERO}
-				imageAlt="Modding Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">

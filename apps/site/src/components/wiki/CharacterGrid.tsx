@@ -136,7 +136,7 @@ export function CharacterGrid({
 						type="search"
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
-						placeholder="Rechercher un guerrier…"
+						placeholder="Rechercher un personnage…"
 						aria-label="Rechercher un personnage"
 						className="w-full h-11 pl-11 pr-4 rounded-full bg-white/[0.05] border border-white/[0.1] text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-dbz-orange/60 focus:bg-white/[0.07] transition-colors"
 					/>
@@ -169,14 +169,14 @@ export function CharacterGrid({
 					</button>
 				)}
 				<p className="scouter-text text-[11px] text-dbz-orange whitespace-nowrap sm:ml-auto">
-					{filtered.length} / {characters.length} guerriers
+					{filtered.length} / {characters.length} personnages
 				</p>
 			</div>
 
 			{/* Grille */}
 			{filtered.length === 0 ? (
 				<p className="py-20 text-center text-white/50 font-sans">
-					Aucun guerrier ne correspond {query ? `à « ${query} »` : "à ces filtres"}.
+					Aucun personnage ne correspond {query ? `à « ${query} »` : "à ces filtres"}.
 				</p>
 			) : (
 				<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4 reveal-grid">
@@ -231,7 +231,7 @@ export function CharacterGrid({
 						onClick={() => setLimit((l) => l + PAGE)}
 						className="px-6 h-11 rounded-full bg-white/[0.06] border border-white/[0.12] text-sm font-display font-semibold text-white/80 hover:text-white hover:border-dbz-orange/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange transition-colors"
 					>
-						Voir plus ({filtered.length - limit} guerriers restants)
+						Voir plus ({filtered.length - limit} personnages restants)
 					</button>
 				</div>
 			)}

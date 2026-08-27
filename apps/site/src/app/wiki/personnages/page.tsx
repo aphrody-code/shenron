@@ -5,7 +5,6 @@ import { getShenronCharacterCards } from "@/lib/shenron";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { UniverseTabs } from "@/components/wiki/UniverseTabs";
-import { CHARACTERS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
@@ -34,9 +33,7 @@ export default async function PersonnagesPage() {
 			<PageHero
 				eyebrow="Encyclopédie"
 				title="Personnages"
-				lead={`${characters.length} guerriers répertoriés à travers tout l'univers Dragon Ball.`}
-				image={CHARACTERS_HERO}
-				imageAlt="Personnages Dragon Ball"
+				lead={`${characters.length} fiches, des héros du récit aux figures d'un seul chapitre.`}
 			/>
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-16 reveal-up">
 				<Breadcrumbs className="mb-8" items={[{ label: "Personnages" }]} />

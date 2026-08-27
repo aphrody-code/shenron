@@ -97,10 +97,18 @@ export function ReportButton() {
 					setErr(null);
 				}}
 				aria-label="Signaler une erreur"
-				className="fab-secondary fixed bottom-20 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-dbz-orange/40 bg-[rgba(10,10,10,0.85)] px-4 py-2.5 text-[13px] font-display font-semibold text-dbz-orange shadow-lg backdrop-blur-md transition-all hover:bg-dbz-orange hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-24 md:left-6"
+				// Pastille discrète, plus la barre orange à libellé : trois éléments
+				// flottants (signalement, invitation Discord, assistant) se
+				// disputaient le bas de l'écran sur toutes les pages. Le libellé
+				// n'apparaît qu'au survol ; l'intitulé reste accessible par
+				// `aria-label` et par le `title`.
+				className="group fab-secondary fixed bottom-20 left-4 z-40 inline-flex items-center gap-2 rounded-full border border-white/12 bg-[rgba(10,10,10,0.8)] p-2.5 text-white/55 shadow-lg backdrop-blur-md transition-all hover:border-dbz-orange/50 hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-24 md:left-6"
+				title="Signaler une erreur"
 			>
 				<Flag className="h-4 w-4" />
-				<span className="hidden sm:inline">Signaler une erreur</span>
+				<span className="max-w-0 overflow-hidden whitespace-nowrap text-[13px] font-display font-semibold opacity-0 transition-all duration-200 group-hover:max-w-[10rem] group-hover:pr-1 group-hover:opacity-100 group-focus-visible:max-w-[10rem] group-focus-visible:opacity-100">
+					Signaler une erreur
+				</span>
 			</button>
 
 			{open && (

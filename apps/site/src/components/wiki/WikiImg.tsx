@@ -54,7 +54,11 @@ export function WikiImg({
 	const [dead, setDead] = useState(false);
 
 	if (dead || chain.length === 0) {
-		const initial = (alt || "?").trim().charAt(0).toUpperCase() || "?";
+		// Repli : un cercle en filet, pas une initiale. L'initiale géante en
+		// orange à 30 % d'opacité, sous le dégradé noir de la carte, ne se
+		// distinguait pas d'un rectangle vide — sur une grille de 1 300
+		// personnages dont beaucoup n'ont pas d'illustration, la page paraissait
+		// cassée. Un repère neutre dit « pas d'image » sans prétendre informer.
 		return (
 			<div
 				className={
@@ -64,8 +68,18 @@ export function WikiImg({
 				aria-label={alt}
 				role="img"
 			>
-				<div className="absolute inset-0 halftone opacity-10" />
-				<span className="font-saiyan text-5xl text-dbz-orange/30 select-none">{initial}</span>
+				<div className="absolute inset-0 halftone opacity-[0.06]" />
+				<svg
+					viewBox="0 0 24 24"
+					className="h-7 w-7 text-white/15"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="1.25"
+					aria-hidden
+				>
+					<circle cx="12" cy="12" r="9" />
+					<path d="M4.5 17.5 9 12l3.5 3.5L15.5 13l4 4.5" />
+				</svg>
 			</div>
 		);
 	}

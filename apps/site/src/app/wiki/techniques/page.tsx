@@ -4,10 +4,26 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Image from "next/image";
 import { PageHero } from "@/components/PageHero";
-import { SAGAS_HERO } from "@/lib/db-banners";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
+
+/**
+ * Libellés des types de technique. Les valeurs en base (`super`, `ultimate`,
+ * `evasive`, `awoken`) sont les **slots de compétence de Xenoverse 2**, pas des
+ * catégories de l'œuvre : les afficher brutes donnait des titres de section
+ * « AWOKEN » en capitales sur un wiki francophone. On les traduit, et la note
+ * de provenance dit d'où vient ce classement plutôt que de le faire passer pour
+ * canonique.
+ */
+const LIBELLES_TYPE: Record<string, string> = {
+	super: "Attaques spéciales",
+	ultimate: "Attaques ultimes",
+	evasive: "Esquives et déplacements",
+	awoken: "Éveils et transformations",
+	Autre: "Non classées",
+};
+const libelleType = (t: string) => LIBELLES_TYPE[t] ?? LIBELLES_TYPE[t.toLowerCase()] ?? t;
 
 export const metadata: Metadata = {
 	title: "Techniques Dragon Ball",
@@ -36,30 +52,35 @@ export default async function TechniquesPage() {
 				eyebrow="Encyclopédie"
 				title="Techniques & Capacités"
 				lead={`${techniques.length} techniques répertoriées — Kamehameha, Genkidama, Final Flash et les attaques les plus dévastatrices de l'univers Dragon Ball.`}
-				image={SAGAS_HERO}
-				imageAlt="Techniques Dragon Ball"
 			/>
 
 			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
 				<Breadcrumbs items={[{ label: "Techniques" }]} />
-				<div className="flex items-center gap-4 mb-2">
-					<Link
-						href="/wiki/personnages"
-						className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest link-underline"
-					>
-						<span>← Encyclopédie</span>
-					</Link>
-					<div className="h-px flex-1 bg-dbz-border" />
-					<span className="scouter-text text-dbz-orange text-xs">
-						{techniques.length} TECHNIQUES
-					</span>
+				<div>
+					<div className="flex items-center gap-4">
+						<Link
+							href="/wiki/personnages"
+							className="inline-flex items-center gap-2 text-dbz-orange hover:text-white transition-colors font-bold uppercase text-xs tracking-widest link-underline"
+						>
+							<span>← Encyclopédie</span>
+						</Link>
+						<div className="h-px flex-1 bg-dbz-border" />
+						<span className="scouter-text text-dbz-orange text-xs">
+							{techniques.length} TECHNIQUES
+						</span>
+					</div>
+					<p className="mt-5 max-w-2xl text-[13px] leading-relaxed text-white/45">
+						Le classement par type reprend les catégories de compétence des jeux{" "}
+						<em>Dragon Ball Xenoverse</em>, d'où proviennent la plupart de ces entrées. Il
+						ne correspond pas à un découpage du manga ou des databooks.
+					</p>
 				</div>
 
 				{typeOrder.map((type) => (
 					<section key={type} className="reveal-up">
 						<div className="flex items-center gap-6 mb-8">
-							<h2 className="font-saiyan text-3xl text-dbz-blue-light uppercase tracking-widest">
-								{type}
+							<h2 className="font-display text-[26px] font-semibold tracking-tight text-white">
+								{libelleType(type)}
 							</h2>
 							<div className="h-px flex-1 bg-gradient-to-r from-dbz-blue-light/40 to-transparent" />
 							<span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
@@ -74,7 +95,11 @@ export default async function TechniquesPage() {
 									href={`/wiki/techniques/${tech.slug}`}
 									className="group dbz-panel p-5 flex gap-4 hover:border-dbz-blue-light transition-all"
 								>
-									{tech.creatorImage ? (
+									{/* Pas de vignette de repli : 814 techniques sur 825 n'ont pas
+									    de créateur identifié, donc pas d'image. Un carré « KI » vide
+									    répété sur toute la grille n'informe de rien et double la
+									    hauteur de lecture — la carte est typographique par défaut. */}
+									{tech.creatorImage && (
 										<div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black">
 											<Image
 												src={assetUrl(tech.creatorImage)}
@@ -83,10 +108,6 @@ export default async function TechniquesPage() {
 												sizes="64px"
 												className="object-cover object-top group-hover:scale-110 transition-transform duration-500"
 											/>
-										</div>
-									) : (
-										<div className="h-16 w-16 shrink-0 flex items-center justify-center bg-dbz-bg border border-dbz-border rounded-lg">
-											<span className="text-dbz-blue-light/30 font-saiyan text-xs">KI</span>
 										</div>
 									)}
 									<div className="min-w-0 flex-1">
