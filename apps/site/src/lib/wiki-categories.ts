@@ -6,10 +6,13 @@
  * `UniverseTabs` (client, page Univers) pour éviter la divergence des listes.
  * `countKey` mappe sur `dbUniverse.counts()`.
  *
- * `group` : `"media"` = déjà présent dans la **navbar principale** (SiteNav :
- * Sagas, Films, Épisodes, Manga, Jeux) → on ne le re-liste PAS dans la nav du
- * wiki (sinon doublon avec la sidebar). `"encyclopedia"` = sous-entités SANS
- * entrée propre dans la navbar → ce sont les seules qu'on surface dans l'Univers.
+ * `group` : `"media"` = les SUPPORTS, en lien direct dans la barre principale
+ * (films, épisodes, chronologie, manga, databooks, jeux) → on ne les re-liste
+ * pas dans la nav du wiki, ce serait un doublon. `"encyclopedia"` = les notions
+ * de la fiction, regroupées dans l'unique déroulant « Univers » de la barre et
+ * surfacées ici. Ce découpage est le même que celui de `NavGroup`
+ * (`lib/wiki-launch.ts`) : deux listes qui divergent, c'est une rubrique qui
+ * disparaît des deux côtés.
  */
 export type WikiCategory = {
 	key: string;
@@ -54,7 +57,12 @@ export const WIKI_CATEGORIES: WikiCategory[] = [
 		group: "encyclopedia",
 	},
 	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", countKey: "arcs", group: "encyclopedia" },
-	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", countKey: "sagas", group: "media" },
+	// Sagas en `encyclopedia` : la barre principale ne porte plus qu'un seul
+	// déroulant, « Univers », qui regroupe les notions de la fiction — les liens
+	// directs de la barre sont réservés aux SUPPORTS (films, épisodes,
+	// chronologie, manga, databooks, jeux). Laisser les sagas en `media` les
+	// faisait disparaître des deux côtés à la fois.
+	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", countKey: "sagas", group: "encyclopedia" },
 	{ key: "films", label: "Films", href: "/wiki/films", countKey: "movies", group: "media" },
 	{
 		key: "episodes",

@@ -1,435 +1,174 @@
 import Link from "next/link";
 import { GatedWrap } from "@/components/GatedLink";
-import {
-	getShenronCharacterCards,
-	getShenronMovies,
-	getShenronPlanets,
-	getShenronRaces,
-	getShenronTechniques,
-} from "@/lib/shenron";
-import { dbUniverse, assetUrl } from "@/lib/db-universe";
-import Image from "next/image";
+import { getShenronCharacterCards, getShenronMovies } from "@/lib/shenron";
+import { dbUniverse } from "@/lib/db-universe";
+import { PageHero } from "@/components/PageHero";
+import { StreamRow } from "@/components/stream/StreamRow";
+import { PosterCard } from "@/components/stream/PosterCard";
+import { EpisodeCard } from "@/components/stream/EpisodeCard";
+import { CharacterPosterCard } from "@/components/wiki/CharacterPosterCard";
+import { WIKI_CATEGORIES } from "@/lib/wiki-categories";
+import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
-// Sections du hub — descriptions dérivées des comptes RÉELS de la DB (Neon),
-// plus aucun nombre codé en dur (la DB grossit, les libellés suivent).
-function buildSections(c: Record<string, number>) {
-	return [
-		{
-			title: "Personnages",
-			desc: `${c.characters} guerriers — Saiyans, Nameks, dieux, androïdes.`,
-			href: "/wiki/personnages",
-			color: "border-dbz-orange text-dbz-orange",
-		},
-		{
-			title: "Cosmologie",
-			// « mondes » et non « planètes » : la rubrique couvre aussi les dimensions
-			// (l'Autre Monde), les demeures divines (temple du Roi de Tout, Planète
-			// sacrée) et des univers entiers.
-			desc: `${c.planets} mondes, dimensions et demeures divines.`,
-			href: "/wiki/cosmologie",
-			color: "border-dbz-blue-light text-dbz-blue-light",
-		},
-		{
-			title: "Sagas",
-			desc: `${c.sagas} sagas de Dragon Ball à Daima, arc par arc.`,
-			href: "/wiki/sagas",
-			color: "border-dbz-red text-dbz-red",
-		},
-		{
-			title: "Films",
-			desc: `${c.movies} long-métrages avec posters et trailers.`,
-			href: "/wiki/films",
-			color: "border-dbz-yellow text-dbz-yellow",
-		},
-		{
-			title: "Épisodes",
-			desc: `${c.episodes} épisodes avec vignettes, toutes séries.`,
-			href: "/wiki/episodes",
-			color: "border-dbz-blue-light text-dbz-blue-light",
-		},
-		{
-			title: "Manga",
-			desc: `${c.mangaVolumes} volumes et ${c.mangaChapters} chapitres (DB & Super).`,
-			href: "/wiki/manga",
-			color: "border-white text-white",
-		},
-		{
-			title: "Jeux Vidéo",
-			desc: `${c.games} titres officiels avec jaquettes.`,
-			href: "/wiki/jeux",
-			color: "border-green-400 text-green-400",
-		},
-		{
-			title: "Races",
-			desc: `${c.races} races avec personnages représentants.`,
-			href: "/wiki/races",
-			color: "border-purple-400 text-purple-400",
-		},
-		{
-			title: "Transformations",
-			desc: `${c.transformations} transformations — Super Saiyan, formes divines, Ultra Instinct.`,
-			href: "/wiki/transformations",
-			color: "border-dbz-orange text-dbz-orange",
-		},
-		{
-			title: "Techniques",
-			desc: `${c.techniques} techniques et capacités spéciales.`,
-			href: "/wiki/techniques",
-			color: "border-dbz-red text-dbz-red",
-		},
-		{
-			title: "Arcs",
-			desc: `${c.arcs} arcs narratifs regroupés par saga.`,
-			href: "/wiki/arcs",
-			color: "border-dbz-yellow text-dbz-yellow",
-		},
-	];
-}
-
-// Kanji filigrane + couleur de barre d'encre par catégorie (clés littérales →
-// classes Tailwind présentes dans le source, donc bien générées par le JIT).
-const CARD_FX: Record<string, { kanji: string; bar: string }> = {
-	Personnages: { kanji: "戦士", bar: "bg-dbz-orange" },
-	Cosmologie: { kanji: "宇宙", bar: "bg-dbz-blue-light" },
-	Sagas: { kanji: "物語", bar: "bg-dbz-red" },
-	Films: { kanji: "映画", bar: "bg-dbz-yellow" },
-	Épisodes: { kanji: "話", bar: "bg-dbz-blue-light" },
-	Manga: { kanji: "漫画", bar: "bg-white" },
-	"Jeux Vidéo": { kanji: "遊戯", bar: "bg-green-400" },
-	Races: { kanji: "種族", bar: "bg-purple-400" },
-	Transformations: { kanji: "変身", bar: "bg-dbz-orange" },
-	Techniques: { kanji: "技", bar: "bg-dbz-red" },
-	Arcs: { kanji: "編", bar: "bg-dbz-yellow" },
+export const metadata: Metadata = {
+	title: "L'univers Dragon Ball",
+	description:
+		"Le sommaire de l'encyclopédie : personnages, sagas, planètes, races, techniques, films, épisodes, manga et databooks.",
+	alternates: { canonical: "/wiki" },
 };
 
+const nf = new Intl.NumberFormat("fr-FR");
+
+/**
+ * Sommaire de l'encyclopédie.
+ *
+ * Réécrit avec les composants du site (`PageHero`, `StreamRow`, `PosterCard`,
+ * `EpisodeCard`) au lieu du balisage recopié à la main : la page réimplémentait
+ * une carte affiche, une carte épisode et une carte portrait déjà écrites
+ * ailleurs, chacune avec ses propres tailles et ses propres replis d'image.
+ *
+ * Elle portait aussi **onze couleurs de rubrique** (orange, bleu, rouge, jaune,
+ * blanc, vert, violet…), un titre en dégradé sur trois teintes et un kanji en
+ * filigrane par carte. Sur le support officiel, la couleur occupe 13 à 17 % de
+ * la page et sert un seul accent (cf. DESIGN.md, « Analyse du support
+ * officiel ») : les rubriques se distinguent maintenant par leur nom et leur
+ * volume, pas par un code couleur que personne n'apprend.
+ */
 export default async function WikiIndex() {
-	const [characters, movies, planets, races, techniques, episodesData, counts] = await Promise.all([
+	const [characters, movies, episodesData, counts] = await Promise.all([
 		getShenronCharacterCards(),
 		getShenronMovies(),
-		getShenronPlanets(),
-		getShenronRaces(),
-		getShenronTechniques(),
-		dbUniverse.episodes("DBZ", 6, 0),
+		dbUniverse.episodes("DBZ", 12, 0),
 		dbUniverse.counts(),
 	]);
 
-	const c = counts ?? {
-		characters: characters.length,
-		planets: planets.length,
-		sagas: 0,
-		arcs: 0,
-		movies: movies.length,
-		episodes: 0,
-		games: 0,
-		races: races.length,
-		techniques: techniques.length,
-		transformations: 0,
-		mangaVolumes: 0,
-		mangaChapters: 0,
-		news: 0,
-		tools: 0,
-	};
-	const SECTIONS = buildSections(c);
+	const c = (counts ?? {}) as Record<string, number>;
+	const total = Object.entries(c)
+		.filter(([k]) => k !== "news" && k !== "tools")
+		.reduce((n, [, v]) => n + (v ?? 0), 0);
 
-	const featuredChars = characters.slice(0, 8);
-	const featuredMovies = movies.slice(0, 6);
-	const featuredPlanets = planets.slice(0, 4);
-	const featuredEpisodes = episodesData?.episodes.slice(0, 6) ?? [];
+	// Rubriques dans l'ordre du registre partagé — la même liste que la barre de
+	// navigation, donc jamais de rubrique visible d'un côté et absente de l'autre.
+	const rubriques = WIKI_CATEGORIES.map((cat) => ({
+		...cat,
+		count: c[cat.countKey] ?? 0,
+	}));
+	const encyclopedie = rubriques.filter((r) => r.group === "encyclopedia");
+	const supports = rubriques.filter((r) => r.group === "media");
+
+	const vedettes = characters.filter((ch) => ch.image).slice(0, 18);
+	const films = movies.slice(0, 18);
+	const episodes = episodesData?.episodes.slice(0, 12) ?? [];
 
 	return (
-		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up space-y-24">
-			<header className="mb-4 relative">
-				<div className="absolute inset-0 bg-radial-gradient from-dbz-orange/5 via-transparent to-transparent -z-10 blur-xl h-64 w-64 -top-20 -left-20 pointer-events-none" />
-				<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
-					Base de données DBFR
-				</p>
-				<h1 className="text-5xl md:text-7xl font-saiyan bg-gradient-to-r from-dbz-orange via-yellow-400 to-dbz-red bg-clip-text text-transparent mb-6 tracking-widest leading-none drop-shadow-[0_0_30px_rgba(255,178,0,0.15)]">
-					ARCHIVES SHENRON
-				</h1>
-				<p className="text-lg text-gray-400 max-w-3xl leading-relaxed font-sans">
-					{characters.length} personnages &middot; {planets.length} planètes &middot;{" "}
-					{movies.length} films &middot; {techniques.length} techniques &middot; {races.length}{" "}
-					races &middot; {c.episodes} épisodes. Tout l&apos;univers Dragon Ball en français.
-				</p>
-			</header>
+		<div>
+			<PageHero
+				eyebrow="Encyclopédie"
+				title="L'univers Dragon Ball"
+				lead={`${nf.format(total)} entrées écrites sur les tomes du manga et les planches des databooks — personnages, mondes, récits et supports.`}
+			/>
 
-			{/* Navigation sections */}
-			<section>
-				<div className="flex items-center gap-6 mb-10">
-					<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">Catégories</h2>
-					<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
-				</div>
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-					{SECTIONS.map((s, idx) => {
-						const fx = CARD_FX[s.title] ?? { kanji: "", bar: "bg-dbz-orange" };
-						const textColor =
-							s.color.split(" ").find((c) => c.startsWith("text-")) ?? "text-dbz-orange";
-						return (
-							// Le hub annonçait ses rubriques quelle que soit la configuration de
-							// lancement : une rubrique refermée y restait une carte cliquable
-							// menant à un 307. `GatedWrap` conserve la carte et son compteur, et
-							// ne retire que la navigation.
-							<GatedWrap
-								key={s.title}
-								href={s.href}
-								className="cat-card group p-6 reveal-up"
-								style={{ animationDelay: `${0.05 + idx * 0.04}s` }}
-							>
-								{/* Barre d'encre accent (gouttière de case) */}
-								<span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${fx.bar}`} />
-								{/* Trame screentone façon planche */}
-								<span
-									aria-hidden
-									className="absolute inset-0 screentone opacity-50 pointer-events-none"
-								/>
-								{/* Kanji filigrane */}
-								{fx.kanji && (
-									<span aria-hidden className="cat-card__kanji font-jp">
-										{fx.kanji}
-									</span>
-								)}
-								<div className="relative z-10">
-									<div className="flex items-center justify-between gap-2">
-										<h2
-											className={`text-xl font-saiyan uppercase tracking-widest ${textColor} group-hover:translate-x-1 transition-transform`}
-										>
-											{s.title}
-										</h2>
-										<span
-											className={`${textColor} text-lg opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all`}
-										>
-											→
-										</span>
-									</div>
-									<p className="text-gray-400 text-xs font-sans leading-relaxed mt-2">{s.desc}</p>
-								</div>
-							</GatedWrap>
-						);
-					})}
-				</div>
-			</section>
+			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-14 lg:py-20 space-y-16">
+				<Rubriques titre="L'univers" items={encyclopedie} />
+				<Rubriques titre="Les supports" items={supports} />
 
-			{/* Featured characters */}
-			{featuredChars.length > 0 && (
-				<section className="reveal-up" style={{ animationDelay: "0.1s" }}>
-					<div className="flex items-center justify-between gap-6 mb-8">
-						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-orange uppercase tracking-widest">
-								Guerriers
-							</h2>
-							<div className="h-px w-24 bg-gradient-to-r from-dbz-orange/50 to-transparent" />
-						</div>
-						<GatedWrap
-							href="/wiki/personnages"
-							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
-						>
-							Voir tous ({c.characters}) →
-						</GatedWrap>
-					</div>
-					<div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-4">
-						{featuredChars.map((char, idx) => (
-							<GatedWrap
-								key={char.id}
-								href={`/wiki/personnages/${char.id}`}
-								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
-								style={{ animationDelay: `${0.15 + idx * 0.04}s` }}
-							>
-								<div className="relative aspect-[3/4] bg-dbz-bg overflow-hidden">
-									<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-									<Image
-										src={assetUrl(char.image)}
-										alt={char.name}
-										fill
-										sizes="(max-width: 768px) 25vw, 12vw"
-										className="object-cover object-top opacity-100 group-hover:scale-110 transition-all duration-700"
-										loading="lazy"
-									/>
-									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/10 to-transparent z-20" />
-									<div className="absolute inset-x-0 bottom-0 p-2 z-30">
-										<p className="font-display font-bold text-[10px] text-white leading-tight group-hover:text-dbz-orange transition-colors truncate">
-											{char.name}
-										</p>
-									</div>
-								</div>
-							</GatedWrap>
+				{vedettes.length > 0 && (
+					<StreamRow title="Personnages" count={c.characters} seeAllHref="/wiki/personnages">
+						{vedettes.map((ch) => (
+							<CharacterPosterCard
+								key={ch.id}
+								href={`/wiki/personnages/${ch.id}`}
+								name={ch.name}
+								race={ch.race}
+								image={ch.image}
+							/>
 						))}
-					</div>
-				</section>
-			)}
+					</StreamRow>
+				)}
 
-			{/* Featured films */}
-			{featuredMovies.length > 0 && (
-				<section className="reveal-up" style={{ animationDelay: "0.2s" }}>
-					<div className="flex items-center justify-between gap-6 mb-8">
-						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-yellow uppercase tracking-widest">
-								Films
-							</h2>
-							<div className="h-px w-24 bg-gradient-to-r from-dbz-yellow/50 to-transparent" />
-						</div>
-						<Link
-							href="/wiki/films"
-							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
-						>
-							Voir tous ({movies.length}) →
-						</Link>
-					</div>
-					<div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-4">
-						{featuredMovies.map((movie, idx) => (
-							<Link
-								key={movie.id}
-								href={`/wiki/films/${movie.slug}`}
-								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
-								style={{ animationDelay: `${0.25 + idx * 0.04}s` }}
-							>
-								<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
-									<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-									{movie.poster ? (
-										<Image
-											src={assetUrl(movie.poster)}
-											alt={movie.title}
-											fill
-											sizes="(max-width: 768px) 33vw, 16vw"
-											className="object-cover opacity-100 group-hover:scale-110 transition-all duration-700"
-											loading="lazy"
-										/>
-									) : (
-										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-2xl">?</span>
-										</div>
-									)}
-									<div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-20" />
-									<div className="absolute inset-x-0 bottom-0 p-2 z-30">
-										<p className="font-display font-bold text-[10px] text-white leading-tight group-hover:text-dbz-yellow transition-colors line-clamp-2">
-											{movie.title}
-										</p>
-									</div>
-								</div>
-							</Link>
+				{films.length > 0 && (
+					<StreamRow title="Films" count={c.movies} seeAllHref="/wiki/films">
+						{films.map((m) => (
+							<PosterCard
+								key={m.id}
+								href={`/wiki/films/${m.slug}`}
+								title={m.title}
+								poster={m.poster}
+								badge="Film"
+							/>
 						))}
-					</div>
-				</section>
-			)}
+					</StreamRow>
+				)}
 
-			{/* Featured episodes */}
-			{featuredEpisodes.length > 0 && (
-				<section className="reveal-up" style={{ animationDelay: "0.3s" }}>
-					<div className="flex items-center justify-between gap-6 mb-8">
-						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest">
-								Épisodes
-							</h2>
-							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
-						</div>
-						<Link
-							href="/wiki/episodes"
-							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
-						>
-							{c.episodes} épisodes →
-						</Link>
-					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
-						{featuredEpisodes.map((ep, idx) => (
-							<Link
+				{episodes.length > 0 && (
+					<StreamRow title="Épisodes" count={c.episodes} seeAllHref="/wiki/episodes">
+						{episodes.map((ep) => (
+							<EpisodeCard
 								key={ep.id}
 								href={`/wiki/episodes/${ep.id}`}
-								className="group dbz-panel overflow-hidden hover:scale-105 transition-all duration-300"
-								style={{ animationDelay: `${0.35 + idx * 0.04}s` }}
-							>
-								<div className="relative aspect-video bg-dbz-bg overflow-hidden">
-									{ep.image ? (
-										<img
-											src={assetUrl(ep.image)}
-											alt={ep.title}
-											className="w-full h-full object-cover opacity-100 group-hover:scale-110 transition-all duration-700"
-											loading="lazy"
-										/>
-									) : (
-										<div className="flex h-full w-full items-center justify-center bg-zinc-900">
-											<span className="text-zinc-700 font-saiyan text-xl">EP</span>
-										</div>
-									)}
-									<div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-									<div className="absolute inset-x-0 bottom-0 p-2">
-										<p className="scouter-text text-[9px] text-dbz-orange mb-0.5">
-											#{String(ep.number_in_series).padStart(3, "0")}
-										</p>
-										<p className="font-display font-bold text-[10px] text-white leading-tight group-hover:text-dbz-blue-light transition-colors line-clamp-2">
-											{ep.title}
-										</p>
-									</div>
-								</div>
-							</Link>
+								number={ep.number_in_series}
+								title={ep.title}
+								image={ep.image}
+							/>
 						))}
-					</div>
-				</section>
-			)}
+					</StreamRow>
+				)}
 
-			{/* Planets */}
-			{featuredPlanets.length > 0 && (
-				<section className="reveal-up" style={{ animationDelay: "0.4s" }}>
-					<div className="flex items-center justify-between gap-6 mb-8">
-						<div className="flex items-center gap-6">
-							<h2 className="font-saiyan text-3xl md:text-4xl text-dbz-blue-light uppercase tracking-widest">
-								Cosmologie
-							</h2>
-							<div className="h-px w-24 bg-gradient-to-r from-dbz-blue-light/50 to-transparent" />
-						</div>
-						<GatedWrap
-							href="/wiki/cosmologie"
-							className="-my-2 inline-flex min-h-11 items-center py-2 text-[11px] font-bold uppercase tracking-widest text-dbz-orange/70 transition-colors hover:text-dbz-orange whitespace-nowrap"
-						>
-							{planets.length} mondes →
-						</GatedWrap>
-					</div>
-					<div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
-						{featuredPlanets.map((planet, idx) => (
-							<GatedWrap
-								key={planet.id}
-								href={`/wiki/cosmologie/${planet.id}`}
-								className="group flex flex-col dbz-panel overflow-hidden hover:scale-[1.02] transition-all duration-300"
-								style={{ animationDelay: `${0.45 + idx * 0.05}s` }}
-							>
-								<div className="relative aspect-video bg-dbz-bg overflow-hidden p-3">
-									<div className="absolute inset-0 starfield opacity-20" />
-									<img
-										src={assetUrl(planet.image)}
-										alt={planet.name}
-										className="w-full h-full object-contain relative z-10 opacity-100 group-hover:scale-110 transition-all duration-700 halo-ki"
-										loading="lazy"
-									/>
-									<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent z-20" />
-									<div className="absolute inset-x-0 bottom-0 p-3 text-center z-30">
-										<p className="font-display font-bold text-sm text-white leading-tight group-hover:text-dbz-blue-light transition-colors">
-											{planet.name}
-										</p>
-									</div>
-								</div>
-							</GatedWrap>
-						))}
-					</div>
-				</section>
-			)}
-
-			{/* Appel à contribution — renvoyait vers Discord et /about tant qu'il n'y
-			    avait pas de vrai chemin d'édition ; il pointe désormais l'endroit où
-			    l'on corrige réellement une fiche. */}
-			<section className="dbz-panel p-10 bg-dbz-card/30 border-t-4 border-t-dbz-orange relative overflow-hidden">
-				<div className="absolute inset-0 halftone opacity-5 pointer-events-none" />
-				<div className="relative z-10">
-					<h2 className="font-saiyan text-3xl text-white mb-4 tracking-widest">CONTRIBUTION</h2>
-					<p className="text-gray-300 max-w-3xl mb-8 font-sans">
-						Ce wiki est écrit sur les tomes du manga et les planches des databooks — et il est loin
-						d&apos;être fini. Chaque fiche porte un bouton «&nbsp;Proposer une correction&nbsp;»&nbsp;:
-						tu modifies le texte, un relecteur publie, la modification garde ton nom.
+				<section className="rounded-xl border border-white/[0.08] p-8 lg:p-10">
+					<h2 className="font-serif text-[26px] font-semibold tracking-tight text-white">
+						Ce wiki n'est pas fini
+					</h2>
+					<p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-white/60">
+						Il est écrit sur les tomes du manga et les planches des databooks, jamais recopié
+						d'ailleurs. Chaque fiche porte un bouton «&nbsp;Proposer une correction&nbsp;» : vous
+						modifiez le texte, un relecteur publie, la modification garde votre nom.
 					</p>
-					<Link href="/wiki/contribuer" className="dbz-button-ghost">
-						CONTRIBUER AU WIKI
+					<Link
+						href="/wiki/contribuer"
+						className="mt-6 inline-flex h-11 items-center rounded-full border border-white/15 px-6 font-display text-[14px] font-semibold text-white transition-colors hover:border-dbz-orange/60 hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+					>
+						Contribuer au wiki
 					</Link>
-				</div>
-			</section>
+				</section>
+			</div>
 		</div>
+	);
+}
+
+/** Grille de rubriques : nom, volume mesuré, rien d'autre. */
+function Rubriques({
+	titre,
+	items,
+}: {
+	titre: string;
+	items: Array<{ key: string; label: string; href: string; count: number }>;
+}) {
+	if (items.length === 0) return null;
+	return (
+		<section>
+			<h2 className="mb-5 font-scouter text-[11px] uppercase tracking-[0.18em] text-white/45">
+				{titre}
+			</h2>
+			<div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-white/[0.08] sm:grid-cols-3 lg:grid-cols-4">
+				{items.map((r) => (
+					<GatedWrap
+						key={r.key}
+						href={r.href}
+						className="group flex items-baseline justify-between gap-3 bg-dbz-bg px-5 py-4 transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dbz-orange/60"
+					>
+						<span className="font-display text-[15px] font-semibold text-white/90 transition-colors group-hover:text-dbz-orange">
+							{r.label}
+						</span>
+						{r.count > 0 && (
+							<span className="font-scouter text-[11px] tabular-nums text-white/40">
+								{nf.format(r.count)}
+							</span>
+						)}
+					</GatedWrap>
+				))}
+			</div>
+		</section>
 	);
 }

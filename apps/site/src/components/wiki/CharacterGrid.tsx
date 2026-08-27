@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
+import { Pagination } from "@/components/ui/Pagination";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import { CharacterFilterModal, type FacetOption } from "@/components/wiki/CharacterFilterModal";
@@ -99,14 +100,28 @@ export function CharacterGrid({
 		});
 	}, [characters, query, races, techniques, arcs, charTechniques, charArcs]);
 
-	// Rendu progressif : on n'affiche pas 1000+ cartes d'un coup. « Voir plus »
-	// par paliers (le filtre/la recherche réinitialisent la pagination).
+	// Pagination bornée : 120 cartes à l'écran, jamais plus. L'ancien « Voir
+	// plus » cumulait les paliers (720 cartes dans le DOM après six clics) sans
+	// dire où l'on en était ni permettre d'y revenir.
 	const PAGE = 120;
-	const [limit, setLimit] = useState(PAGE);
+	const [page, setPage] = useState(1);
+	// Position initiale reprise de l'URL (`?p=3`) — un lien partagé retombe sur
+	// la bonne page. Lu au montage seulement : la page reste statique côté serveur.
 	useEffect(() => {
-		setLimit(PAGE);
+		const p = Number(new URLSearchParams(window.location.search).get("p"));
+		if (Number.isFinite(p) && p > 1) setPage(Math.floor(p));
+	}, []);
+	// Tout changement de filtre ramène à la première page : rester en page 7
+	// d'une liste qui vient d'en perdre 6 affiche un vide inexplicable.
+	useEffect(() => {
+		setPage(1);
 	}, [query, races, techniques, arcs]);
-	const visible = useMemo(() => filtered.slice(0, limit), [filtered, limit]);
+	const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+	const pageSure = Math.min(page, pages);
+	const visible = useMemo(
+		() => filtered.slice((pageSure - 1) * PAGE, pageSure * PAGE),
+		[filtered, pageSure]
+	);
 
 	const activeCount = races.length + techniques.length + arcs.length;
 	const resetFilters = () => {
@@ -224,18 +239,14 @@ export function CharacterGrid({
 				</div>
 			)}
 
-			{filtered.length > limit && (
-				<div className="flex justify-center pt-2">
-					<button
-						type="button"
-						onClick={() => setLimit((l) => l + PAGE)}
-						className="px-6 h-11 rounded-full bg-white/[0.06] border border-white/[0.12] text-sm font-display font-semibold text-white/80 hover:text-white hover:border-dbz-orange/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange transition-colors"
-					>
-						Voir plus ({filtered.length - limit} personnages restants)
-					</button>
-				</div>
-			)}
-
+			<Pagination
+				page={pageSure}
+				parPage={PAGE}
+				total={filtered.length}
+				onPageChange={setPage}
+				unite="personnages"
+				className="pt-2"
+			/>
 			<CharacterFilterModal
 				open={modalOpen}
 				onClose={() => setModalOpen(false)}

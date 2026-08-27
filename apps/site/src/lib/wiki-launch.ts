@@ -27,13 +27,22 @@ export interface AccessRule {
 }
 
 /**
- * Famille de navigation. Sert au méga-menu de `SiteNav` : 13 rubriques
- * publiques alignées à plat dans une barre étaient illisibles (4 en ligne et 9
- * noyées dans un menu « Plus »). Le groupe vit ICI, avec le reste du registre,
- * pour qu'ouvrir une rubrique la fasse apparaître au bon endroit sans toucher
- * à la nav.
+ * Place d'une rubrique dans la navigation :
+ *
+ *  - `univers`   → **l'encyclopédie**, dans l'unique menu déroulant de la barre
+ *                  (personnages, races, transformations, techniques,
+ *                  cosmologie, sagas, arcs). Ce sont les notions de la fiction.
+ *  - `oeuvres`   → **les supports**, en lien direct dans la barre (films,
+ *                  épisodes, chronologie, manga, databooks, jeux). On y accède
+ *                  d'un clic : ce sont les portes d'entrée du site.
+ *  - `communaute`→ hors barre principale (contribuer, modifications) → « Plus ».
+ *
+ * Un premier découpage en quatre familles (Récit / Personnages / Univers /
+ * Œuvres) se recoupait : une saga est à la fois du récit et une œuvre, un
+ * personnage est de l'univers. Deux registres non ambigus valent mieux que
+ * quatre qui se chevauchent.
  */
-export type NavGroup = "recit" | "personnages" | "univers" | "oeuvres" | "communaute";
+export type NavGroup = "univers" | "oeuvres" | "communaute";
 
 export interface LaunchCategory {
 	key: string;
@@ -80,7 +89,7 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		href: "/wiki/chronologie",
 		prefixes: ["/wiki/chronologie"],
 		alwaysOpen: true,
-		group: "recit",
+		group: "oeuvres",
 		blurb: "La frise complète de l'univers",
 	},
 	{
@@ -104,7 +113,7 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		label: "Personnages",
 		href: "/wiki/personnages",
 		prefixes: ["/wiki/personnages", "/wiki/dragon-ball/character"],
-		group: "personnages",
+		group: "univers",
 		blurb: "1 300 fiches, du Saiyan au Kaïō",
 	},
 	{
@@ -117,13 +126,13 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		group: "univers",
 		blurb: "Planètes, dimensions et au-delà",
 	},
-	{ key: "races", label: "Races", href: "/wiki/races", prefixes: ["/wiki/races"], group: "personnages", blurb: "Peuples et espèces de l'univers" },
+	{ key: "races", label: "Races", href: "/wiki/races", prefixes: ["/wiki/races"], group: "univers", blurb: "Peuples et espèces de l'univers" },
 	{
 		key: "transformations",
 		label: "Transformations",
 		href: "/wiki/transformations",
 		prefixes: ["/wiki/transformations"],
-		group: "personnages",
+		group: "univers",
 		blurb: "États et métamorphoses",
 	},
 	{
@@ -131,11 +140,11 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		label: "Techniques",
 		href: "/wiki/techniques",
 		prefixes: ["/wiki/techniques", "/wiki/dragon-ball/techniques"],
-		group: "personnages",
+		group: "univers",
 		blurb: "Attaques, sorts et déplacements",
 	},
-	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", prefixes: ["/wiki/arcs"], group: "recit", blurb: "Le découpage fin des sagas" },
-	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", prefixes: ["/wiki/sagas"], group: "recit", blurb: "Les grands arcs du récit" },
+	{ key: "arcs", label: "Arcs", href: "/wiki/arcs", prefixes: ["/wiki/arcs"], group: "univers", blurb: "Le découpage fin des sagas" },
+	{ key: "sagas", label: "Sagas", href: "/wiki/sagas", prefixes: ["/wiki/sagas"], group: "univers", blurb: "Les grands arcs du récit" },
 	{
 		key: "jeux",
 		label: "Jeux",

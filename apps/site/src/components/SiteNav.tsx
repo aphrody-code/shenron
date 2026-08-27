@@ -31,18 +31,19 @@ const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
 /**
- * Familles du méga-menu, dans l'ordre de la barre. Le libellé est celui que
- * lit le visiteur ; la clé est celle que porte chaque rubrique du registre.
- *
- * Une famille vide (aucune rubrique publique) ne s'affiche pas — la barre suit
- * donc l'ouverture progressive du wiki sans intervention.
+ * Ordre des œuvres dans la barre. Elles sont en lien DIRECT (pas de menu) :
+ * ce sont les portes d'entrée du site, et les enfermer dans un déroulant
+ * ajoutait un clic pour rien. L'ordre suit la lecture d'une série — ce qu'on
+ * regarde, puis ce qu'on lit, puis ce qui documente.
  */
-const FAMILLES: Array<{ group: NavGroup; label: string }> = [
-	{ group: "recit", label: "Récit" },
-	{ group: "personnages", label: "Personnages" },
-	{ group: "univers", label: "Univers" },
-	{ group: "oeuvres", label: "Œuvres" },
-];
+const ORDRE_OEUVRES = [
+	"films",
+	"episodes",
+	"chronologie",
+	"manga",
+	"databooks",
+	"jeux",
+] as const;
 
 const linkClass =
 	"relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
@@ -59,32 +60,47 @@ export async function SiteNav() {
 	const ordered = orderedEntries(cfg.order, LAUNCH_CATEGORIES);
 	const isPublic = (key: string) => resolveAccess(key, cfg).mode === "public";
 
-	const wikiOpen = ordered
-		.filter((c) => c.href && isPublic(c.key))
-		.map((c) => ({ href: c.href as string, label: c.label }));
 	const wikiClosed = ordered
 		.filter((c) => c.href && !isPublic(c.key))
 		.map((c) => ({ href: c.href as string, label: c.label }));
 
-	// Rubriques publiques regroupées par famille. `blurb` vient du registre :
+	const publiques = ordered.filter((c) => c.href && isPublic(c.key));
+	const dansGroupe = (g: NavGroup) => publiques.filter((c) => c.group === g);
+
+	// Un seul déroulant : « Univers », l'encyclopédie. `blurb` vient du registre —
 	// un libellé seul ne dit pas ce qu'on trouve derrière « Arcs » ou « Races ».
-	const parFamille = new Map<NavGroup, MegaItem[]>();
-	for (const c of ordered) {
-		if (!c.href || !c.group || !isPublic(c.key)) continue;
-		const liste = parFamille.get(c.group) ?? [];
-		liste.push({ href: c.href, label: c.label, blurb: c.blurb });
-		parFamille.set(c.group, liste);
-	}
-	const familles = FAMILLES.map((f) => ({ ...f, items: parFamille.get(f.group) ?? [] })).filter(
-		(f) => f.items.length > 0
-	);
-	// Rubriques publiques sans famille (contribuer, modifications…) → menu « Plus ».
-	const moreWiki = wikiOpen.filter(
-		(l) => !ordered.some((c) => c.href === l.href && c.group && isPublic(c.key))
-	);
+	const univers: MegaItem[] = dansGroupe("univers").map((c) => ({
+		href: c.href as string,
+		label: c.label,
+		blurb: c.blurb,
+	}));
+
+	// Œuvres en liens directs, dans l'ordre éditorial et non celui de la base.
+	const parCle = new Map(publiques.map((c) => [c.key, c]));
+	const oeuvres = ORDRE_OEUVRES.map((k) => parCle.get(k))
+		.filter((c): c is NonNullable<typeof c> => !!c)
+		.map((c) => ({ href: c.href as string, label: c.label }));
+
+	// Tout le reste (contribuer, modifications…) → menu « Plus ». Une rubrique
+	// n'apparaît qu'à UN seul endroit de la barre : le doublon vient toujours
+	// d'une liste qui repart de toutes les publiques sans retirer ce qui est
+	// déjà placé ailleurs dans la barre.
+	const placees = new Set<string>([
+		...dansGroupe("univers").map((c) => c.key),
+		...ORDRE_OEUVRES,
+	]);
+	const moreWiki = publiques
+		.filter((c) => !placees.has(c.key))
+		.map((c) => ({ href: c.href as string, label: c.label }));
 
 	// Mobile : tous les liens publics (pas de contrainte largeur).
-	const mobilePublic = [...STATIC_PUBLIC_HEAD, ...wikiOpen, ...STATIC_PUBLIC_TAIL];
+	const mobilePublic = [
+		...STATIC_PUBLIC_HEAD,
+		...univers.map((i) => ({ href: i.href, label: i.label })),
+		...oeuvres,
+		...moreWiki,
+		...STATIC_PUBLIC_TAIL,
+	];
 	const adminOnly = [...wikiClosed, ...STATIC_ADMIN];
 
 	return (
@@ -128,8 +144,11 @@ export async function SiteNav() {
 							{l.label}
 						</Link>
 					))}
-					{familles.map((f) => (
-						<NavMega key={f.group} label={f.label} items={f.items} linkClass={linkClass} />
+					<NavMega label="Univers" items={univers} linkClass={linkClass} />
+					{oeuvres.map((l) => (
+						<Link key={l.href} href={l.href} className={linkClass}>
+							{l.label}
+						</Link>
 					))}
 					{moreWiki.length > 0 && <NavMore links={moreWiki} label="Plus" hint="Autres sections" />}
 					{STATIC_PUBLIC_TAIL.map((l) => (
