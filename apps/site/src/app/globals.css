@@ -1628,7 +1628,14 @@ main:focus {
 
 .home-deck {
 	position: relative;
-	--accent: #ffb200;
+	/* Accent PAR DÉFAUT de l'accueil, repris du thème du site (éditable depuis
+	   /admin/design) au lieu d'un or écrit en dur : la home restait dorée
+	   pendant que le reste de l'interface passait au bleu, et les deux se
+	   voyaient dans la même barre de navigation.
+	   Les scènes, elles, surchargent `--accent` avec la teinte de LEUR ère
+	   (or pour les origines, rouge saiyan, vert namek, magenta majin…) — c'est
+	   un choix éditorial assumé, pas une incohérence, et il est préservé. */
+	--accent: var(--color-dbz-orange, #ffb200);
 }
 
 .home-section {
@@ -1910,7 +1917,14 @@ main:focus {
 	white-space: nowrap;
 }
 .home-wordmark span {
-	background: linear-gradient(180deg, #fff 30%, #ffe6a8 70%, var(--accent));
+	/* Palier intermédiaire dérivé de l'accent (et non un beige fixe) : sur un
+	   accent froid, le dégradé passait par un jaune qui n'appartenait à rien. */
+	background: linear-gradient(
+		180deg,
+		#fff 30%,
+		color-mix(in oklab, var(--accent) 45%, #fff) 70%,
+		var(--accent)
+	);
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;

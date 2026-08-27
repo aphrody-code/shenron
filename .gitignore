@@ -135,3 +135,8 @@ services/**/.venv/
 # retenus, jamais servies. Archivées hors dépôt le 2026-08-27.
 /apps/site/public/dbz/harvest/
 /apps/site/public/bxc-raw/
+
+# Lot de moissonnage du 2026-08-27 : encore alimenté par le crawler bxc au moment
+# du commit (1 400+ fichiers et croissant). Non rattaché en base, gardé hors du
+# dépôt tant qu'il bouge — cf. son README.
+apps/bot/assets/dbz/officiel-2026-08-27/
