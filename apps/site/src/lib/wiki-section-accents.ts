@@ -53,7 +53,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-red",
 		line: "from-dbz-red/50",
 		dot: "bg-dbz-red",
-		pillActive: "bg-dbz-red text-white border-dbz-red shadow-[0_0_18px_rgba(220,38,38,0.3)]",
+		pillActive: "bg-dbz-red text-black border-dbz-red shadow-[0_0_18px_rgba(220,38,38,0.3)]",
 		relatedHover: "group-hover:text-dbz-red",
 	},
 	green: {
@@ -61,7 +61,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-green",
 		line: "from-dbz-green/50",
 		dot: "bg-dbz-green",
-		pillActive: "bg-dbz-green text-white border-dbz-green shadow-[0_0_18px_rgba(22,163,74,0.35)]",
+		pillActive: "bg-dbz-green text-black border-dbz-green shadow-[0_0_18px_rgba(22,163,74,0.35)]",
 		relatedHover: "group-hover:text-dbz-green",
 	},
 	purple: {
@@ -70,7 +70,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		line: "from-dbz-purple/50",
 		dot: "bg-dbz-purple",
 		pillActive:
-			"bg-dbz-purple text-white border-dbz-purple shadow-[0_0_18px_rgba(168,85,247,0.35)]",
+			"bg-dbz-purple text-black border-dbz-purple shadow-[0_0_18px_rgba(168,85,247,0.35)]",
 		relatedHover: "group-hover:text-dbz-purple",
 	},
 	gold: {
@@ -94,7 +94,7 @@ export const SECTION_ACCENT_STYLES: Record<SectionAccent, SectionAccentStyle> = 
 		bar: "bg-dbz-pink",
 		line: "from-dbz-pink/50",
 		dot: "bg-dbz-pink",
-		pillActive: "bg-dbz-pink text-white border-dbz-pink shadow-[0_0_18px_rgba(236,72,153,0.35)]",
+		pillActive: "bg-dbz-pink text-black border-dbz-pink shadow-[0_0_18px_rgba(236,72,153,0.35)]",
 		relatedHover: "group-hover:text-dbz-pink",
 	},
 };

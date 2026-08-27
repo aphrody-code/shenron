@@ -1,319 +1,367 @@
-# DESIGN.md — Système graphique DBFR
-
-Calibré sur l'analyse de l'identité Dragon Ball historique + officielle :
-`fr.dragon-ball-official.com`, `www.toei-animation.com/catalog/dragon-ball/`,
-`en.bandainamcoent.eu/dragon-ball`, dessins originaux Akira Toriyama (1984+).
-
+---
+version: alpha
+name: DBFR
+description: >-
+  Système graphique de dragonballfr.com — encyclopédie Dragon Ball francophone.
+  Nuit profonde, or signature, et un contraste serif/sans qui fait lire une
+  fiche comme un article plutôt que comme un formulaire.
+colors:
+  bg: "#0a0a0a"
+  surface: "#141410"
+  border: "#2a2a26"
+  primary: "#ffb200"
+  primary-pressed: "#d99700"
+  on-primary: "#0a0a0a"
+  on-bg: "#ffffff"
+  on-bg-muted: "#cdcdcd"
+  ember: "#ff6b1a"
+  ki: "#4ba8ff"
+  amber: "#ffd23f"
+  critical: "#ff0000"
+  namek: "#16a34a"
+  transformation: "#a855f7"
+  saiyan: "#ffea00"
+  affiliation: "#22d3ee"
+  curiosite: "#ec4899"
+typography:
+  display-hero:
+    fontFamily: Newsreader
+    fontSize: 3.5rem
+    fontWeight: 600
+    lineHeight: 1.05
+    letterSpacing: -0.02em
+  h1:
+    fontFamily: Newsreader
+    fontSize: 2.1rem
+    fontWeight: 600
+    lineHeight: 1.18
+    letterSpacing: -0.02em
+  h2:
+    fontFamily: Newsreader
+    fontSize: 1.6rem
+    fontWeight: 600
+    lineHeight: 1.18
+    letterSpacing: -0.02em
+  h3:
+    fontFamily: Google Sans Flex
+    fontSize: 1.16rem
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: -0.01em
+  body-lg:
+    fontFamily: Google Sans Flex
+    fontSize: 1.06rem
+    fontWeight: 400
+    lineHeight: 1.75
+  body-md:
+    fontFamily: Google Sans Flex
+    fontSize: 0.9375rem
+    fontWeight: 400
+    lineHeight: 1.6
+  quote:
+    fontFamily: Newsreader
+    fontSize: 1.16rem
+    fontWeight: 400
+    lineHeight: 1.6
+  label-caps:
+    fontFamily: Google Sans Flex
+    fontSize: 0.82rem
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: 0.08em
+  meta-mono:
+    fontFamily: JetBrains Mono
+    fontSize: 0.78rem
+    fontWeight: 500
+    lineHeight: 1.4
+    letterSpacing: 0.07em
+  jp:
+    fontFamily: Noto Sans JP
+    fontSize: 0.9375rem
+    fontWeight: 400
+    lineHeight: 1.7
+rounded:
+  sm: 4px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  full: 9999px
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+  xl: 40px
+  section: 96px
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.full}"
+    padding: 28px
+    height: 48px
+  button-primary-hover:
+    backgroundColor: "#ffffff"
+    textColor: "{colors.on-primary}"
+  button-secondary:
+    backgroundColor: "{colors.bg}"
+    textColor: "{colors.on-bg}"
+    typography: "{typography.label-caps}"
+    rounded: "{rounded.full}"
+    height: 48px
+  card:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-bg}"
+    rounded: "{rounded.lg}"
+    padding: 20px
+  badge:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.full}"
+    padding: 8px
+  eyebrow:
+    textColor: "{colors.primary}"
+    typography: "{typography.meta-mono}"
+  article-body:
+    backgroundColor: "{colors.bg}"
+    textColor: "{colors.on-bg-muted}"
+    typography: "{typography.body-lg}"
+    width: 72ch
+  table-header:
+    backgroundColor: "{colors.bg}"
+    textColor: "{colors.on-bg-muted}"
+    typography: "{typography.meta-mono}"
+  button-primary-pressed:
+    backgroundColor: "{colors.primary-pressed}"
+    textColor: "{colors.on-primary}"
+  divider:
+    backgroundColor: "{colors.border}"
+    height: 1px
+  badge-critical:
+    backgroundColor: "{colors.critical}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.sm}"
+  hero-aura:
+    backgroundColor: "{colors.ember}"
+  ki-gauge:
+    backgroundColor: "{colors.ki}"
+    textColor: "{colors.on-primary}"
+  ki-gauge-peak:
+    backgroundColor: "{colors.amber}"
+    textColor: "{colors.on-primary}"
+  pill-rubrique-histoire:
+    backgroundColor: "{colors.namek}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.full}"
+  pill-rubrique-transformations:
+    backgroundColor: "{colors.transformation}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.full}"
+  pill-rubrique-anecdotes:
+    backgroundColor: "{colors.saiyan}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.full}"
+  pill-rubrique-affiliations:
+    backgroundColor: "{colors.affiliation}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.full}"
+  pill-rubrique-curiosites:
+    backgroundColor: "{colors.curiosite}"
+    textColor: "{colors.on-primary}"
+    typography: "{typography.meta-mono}"
+    rounded: "{rounded.full}"
 ---
 
-## 1. Identité visuelle — pilier Toriyama × DB Official
+# DESIGN.md — DBFR
 
-Le style Dragon Ball est **chromatiquement chaud, contrasté, énergétique**.
-Pas de pastel, pas de gradients subtils — couleurs primaires saturées, blanc
-pur, noir profond. La signature : **orange ↔ bleu nuit ↔ jaune doré**.
+## Overview
 
-| Élément                  | Référence                         | Codes                                      |
-| ------------------------ | --------------------------------- | ------------------------------------------ |
-| Gi de Goku               | DBZ anime, manga couleur          | `#FF6B1A` orange chaud                     |
-| Ceinture / sky-blue Goku | Toriyama color guide              | `#1976D2` bleu franc                       |
-| Étoile de Dragon Ball    | Site DB Official, logos officiels | `#FFB200` doré orangé                      |
-| Logo "DRAGON BALL" rouge | Anime opening, jaquettes Bandai   | `#E20613` rouge pur                        |
-| Kanji 神龍 (Shenron)     | Manga vol. 17, anime intro        | `#C8A02E` doré ancien                      |
-| Aura Super Saiyan        | DBZ cellsaga, anime FX            | `#FFD23F` jaune électrique                 |
-| Ki sphere                | Kamehameha, Genkidama             | bleu clair → blanc `#9BD9FF → #FFFFFF`     |
-| Outline manga            | trait Toriyama universel          | `#0A0A0A` noir profond, jamais `#000` 100% |
+Deux héritages tenus ensemble. Le premier est **Dragon Ball** tel que ses
+ayants droit le montrent aujourd'hui (`fr.dragon-ball-official.com`, Toei,
+Bandai Namco) : nuit profonde, or saturé, rouge d'alerte, jamais de pastel ni
+de synthwave. Le second est la **presse encyclopédique** : ce site est d'abord
+un lieu où l'on lit 4 000 signes sur une planète fictive, et cela impose une
+mesure, un rythme vertical et un contraste typographique.
 
-**Notre palette site** (`apps/site/src/app/globals.css`) :
+D'où le parti pris central : **serif pour la voix, sans pour l'information,
+mono pour la mesure**. Les titres sont en Newsreader, le corps en Google Sans
+Flex, les métadonnées et les compteurs en JetBrains Mono. Un lecteur distingue
+le registre d'un bloc avant même de l'avoir lu.
 
-```css
---color-dbz-bg: #0a0a0a; /* noir profond DB officiel */
---color-dbz-card: #141410; /* surface chaude warm-tinted */
---color-dbz-border: #2a2a26; /* hairline subtle */
---color-dbz-orange: #ffb200; /* doré signature Site Officiel JP/FR */
---color-dbz-orange-dark: #d99700; /* press state */
---color-dbz-blue: #1e244d; /* deep navy lisible */
---color-dbz-blue-light: #cdcdcd; /* gris clair DB officiel */
---color-dbz-yellow: #ffb200; /* alias accent doré */
---color-dbz-red: #ff0000; /* rouge logo DB officiel */
-```
+Le fond noir n'est pas un thème sombre appliqué après coup : c'est la surface
+d'origine. Toute couleur posée dessus est une décision, pas une décoration.
 
-**Règle d'or** : un seul accent dominant par bloc. Le doré est notre couleur
-de hiérarchie principale, le rouge réservé aux états critiques (sanctions,
-DMCA, erreurs). Le bleu est un secondaire calme (gris clair `#cdcdcd`).
+## Colors
 
----
+L'or `#ffb200` est la **seule** couleur de hiérarchie. Il désigne ce sur quoi
+on peut agir ou ce qui prime — jamais un ornement. Un bloc ne porte qu'un seul
+accent dominant.
 
-## 2. Typographie — système 3 polices
+- **bg (#0a0a0a)** — noir profond, jamais `#000` : le noir absolu écrase les
+  ombres et fait vibrer le texte blanc sur écran OLED.
+- **surface (#141410)** — élévation chaude, légèrement tirée vers l'olive.
+  C'est ce qui distingue une carte du fond sans recourir à une ombre.
+- **border (#2a2a26)** — filet. Sur les surfaces de contenu, on lui préfère
+  `rgba(255,255,255,0.08)`, encore plus discret.
+- **primary (#ffb200)** — or signature. Liens, CTA, eyebrow, état actif.
+- **critical (#ff0000)** — réservé aux états critiques : sanctions, retrait
+  DMCA, erreur. Jamais décoratif.
+- **ember / ki / amber** — accents d'énergie (halos, dégradés de héros, aura).
+  Ils vivent dans les fonds et les FX, jamais dans du texte de corps.
+- **namek, transformation, saiyan, affiliation, curiosite** — codage
+  sémantique des rubriques de fiche. Un lecteur apprend la correspondance en
+  parcourant deux fiches ; la changer par page la détruit.
 
-| Tier     | Police                                                                | Usage                               | Rationale                                                                                                                                                                                          |
-| -------- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Display  | **Oswald** (Google Fonts)                                             | titres, nav, CTAs, labels           | police signature `fr.dragon-ball-official.com` — condensée, gras, lisible en uppercase                                                                                                             |
-| Body     | **Google Sans Flex** (Google Fonts variable, v20 TTF servie en local) | paragraphes, listes, descriptions   | police corps officielle Google, variable axes wght+wdth+ital, publiée sur fonts.google.com/specimen/Google+Sans+Flex (chargée en `localFont` car next/font/google registry ne la liste pas encore) |
-| Japonais | **Noto Sans JP** (Google Fonts)                                       | 漢字, romaji, attaques (Kamehameha) | police officielle DB Site, support katakana + kanji complet                                                                                                                                        |
+Le texte de corps est à `rgba(255,255,255,0.82)` et non blanc pur : sur fond
+noir, le blanc plein produit un halo qui fatigue au bout d'un paragraphe.
 
-**Hiérarchie de tailles** (calibrée sur `design.google` × DB Official) :
+Ces valeurs sont surchargeables au runtime (`/admin/design` injecte les
+`--dbz-*`). Un `text-dbz-orange` peut donc sortir bleu en production : lire
+les variables servies avant de conclure à un bug de couleur.
 
-```
-H1 hero    : 56-72px / 700 / tracking -0.01em / leading 1.05
-H1 page    : 40-56px / 700 / tracking -0.01em / leading 1.05
-H2 section : 24-28px / 700 / leading 1.2
-H3 card    : 17-20px / 700 / leading 1.3
-Body large : 17px    / 400 / leading 1.6
-Body       : 15px    / 400 / leading 1.6
-Caption    : 12-13px / 500 / tracking 0.08em / uppercase pour labels
-Micro-label: 11-12px / 600 / tracking 0.16-0.18em / uppercase / couleur accent
-```
+## Typography
 
-**À éviter** : titres en `font-saiyan` jagged (police héritée fan-art) sur du
-contenu éditorial — réserver aux héros visuels. La règle moderne 2026 :
-Oswald gras propre > effet chrome jagged.
+Trois familles, trois rôles, aucun recouvrement.
 
-**Tracking pour les labels micro** : `0.16em-0.18em` est la signature DB
-Official (vu en analyse `style-tree.json` sur leur nav et tagline).
+| Rôle | Famille | Où |
+|:--|:--|:--|
+| Voix | **Newsreader** (serif variable, opsz + wght, italique vrai) | h1, h2, citations, chapeaux |
+| Information | **Google Sans Flex** (variable, wght 1→1000) | corps, h3, h4, UI, boutons |
+| Mesure | **JetBrains Mono** | métadonnées, compteurs, code, libellés HUD |
+| Japonais | **Noto Sans JP** | 孫悟空, noms natifs, titres d'ouvrages |
 
----
+- Les titres sont en **600, pas 700**. Le contraste serif/sans porte déjà la
+  hiérarchie ; un gras plein par-dessus alourdit sans rien distinguer.
+- `letter-spacing: -0.02em` sur les serifs de titre, `-0.015em` sur les titres
+  globaux. Une serif de labeur composée large paraît molle en grande taille.
+- **h4 est un label**, pas un titre : 0.82rem, capitales, `0.08em` de
+  tracking, gris. Empiler quatre tailles de la même police ne se lit pas ;
+  alterner les registres se lit d'un coup d'œil.
+- **Mesure bornée à 72ch** sur les blocs de texte (`p`, `li`, `blockquote`,
+  titres) — jamais sur le conteneur, qui porte aussi des figures pleine
+  largeur, des grilles et des tableaux qu'un `max-width` global écraserait.
+- Chiffres en `tabular-nums` dès qu'ils s'empilent (classements, compteurs,
+  numéros de tome).
+- Le japonais ne se met jamais en gras synthétique : Noto Sans JP porte ses
+  propres graisses, l'émulation détruit les traits.
 
-## 3. Composition & layout
+Polices écartées : `SaiyanSans` et `DBSScouter` (fan-art) ne sont plus
+chargées. Leurs tokens `font-saiyan` / `font-scouter` restent, remappés
+respectivement sur Google Sans Flex et JetBrains Mono — le registre « HUD »
+vient du tracking et des capitales, pas d'une police à glyphes aliens.
 
-### Container
+## Layout
 
-- Max-width principal : **1280px** (analyse `design.google` = 1440px max, on adapte)
-- Max-width article : **920px**
-- Padding latéral : `px-6 lg:px-10` (24px mobile, 40px desktop)
-- Vertical rhythm : `py-16 lg:py-24` sections, `mb-12` titres → corps
+- Container principal **1280px**, article **920px**, mesure de texte **72ch**.
+- Padding latéral `24px` mobile / `40px` desktop.
+- Rythme vertical : `96px` entre sections, `24px` d'un titre à son corps.
+- Grilles de cartes : 1 / 2 / 3 / 4 colonnes selon la densité, carte idéale
+  320–380px. Portraits de personnage en 3:4, affiches de film en 2:3.
+- **Mobile d'abord** : la mise en page se décide à 375px, le desktop est
+  l'amélioration. Cibles tactiles 44px, champs de saisie à 16px minimum —
+  en dessous, iOS zoome au focus.
+- Asymétrie sur les héros : titre et chapeau à gauche, visuel à droite. Le
+  centrage par défaut est un aveu d'absence de hiérarchie.
 
-### Grille
+## Elevation & Depth
 
-- Listes cartes : `grid-cols-{1|sm:2|lg:3|lg:4}` selon densité (cards 320-380px idéale)
-- Personnages : portrait 3:4 (équivalent affiche cinéma)
-- Films/posters : 2:3 (standard MAL/AniList/Kitsu)
+La profondeur vient de la **surface et du filet**, pas de l'ombre portée.
 
-### Espacement
+- Une carte se distingue par `surface` + `1px` de filet, et s'illumine au
+  survol par un changement de **couleur de bordure** vers l'or.
+- Aucune ombre supérieure à `0 12px 48px` et jamais au-delà de 15 % d'opacité.
+- Les seuls halos autorisés sont les auras de ki (`ember`, `ki`, `amber`) en
+  `color-mix`, sur des blocs de héros — pas sur du contenu de lecture.
+- Barre de navigation : `rgba(10,10,10,0.82)` + `backdrop-blur`. C'est le seul
+  usage de flou du site.
 
-- Card padding intérieur : `p-5` (20px) — `p-8` (32px) pour cards prioritaires
-- Gap entre items : `gap-3` (12px) compact, `gap-5` (20px) confortable, `gap-px` (1px)
-  - bg neutre pour grille bordée style "newspaper" (`UniverseGrid`)
-- Border-radius : **0.75rem (12px)** standard, `rounded-2xl` (16px) pour hero
-  cards, `rounded-full` pour CTAs/pills
-- Hairline : `border-white/[0.06]` sur dark, jamais pleine ligne `border-white/20`
-  (trop dur)
+## Shapes
 
-### Hiérarchie visuelle
+- `4px` pour les jetons et le code inline, `8px` pour les champs, `12px` pour
+  les cartes, `16px` pour les cartes de héros.
+- `9999px` réservé aux CTA et aux pastilles — jamais sur un grand conteneur.
+- Les tableaux n'ont **pas de grille** : seuls des filets horizontaux. Une
+  bordure sur les quatre côtés de chaque cellule fabrique un damier qui
+  concurrence les données.
 
-- **Eyebrow label** : micro-label uppercase orange `text-dbz-orange` au-dessus
-  de chaque H1 → ancre la section dans une catégorie ("Univers Dragon Ball",
-  "Cinéma", "Anime"…)
-- **Numérotation** : pour les listes ordonnées (sagas, arcs), index gros et
-  orange aligné à gauche, padding `tabular-nums`
-- **Asymétrie** : sur les heros, titre + lead à gauche, illustration à droite
-  (orbite Dragon Balls). Pas de centrage par défaut.
+## Components
 
----
+- **button-primary** — pastille or, texte noir, capitales espacées. Au survol
+  le fond passe au blanc : l'inversion est plus lisible qu'un assombrissement.
+- **button-secondary** — filet seul, bordure qui vire à l'or au survol.
+- **card** — surface + filet, `20px` de padding (`32px` pour un héros). Pas
+  d'ombre.
+- **badge** — mono, capitales, fond de surface. Sert aux plateformes, races,
+  supports.
+- **eyebrow** — micro-label mono or au-dessus d'un h1, qui ancre la page dans
+  sa rubrique (« Univers Dragon Ball », « Cinéma »).
+- **article-body** (`.wiki-content`) — le composant qui porte le wiki : h1/h2
+  en serif, h2 souligné d'un filet de section, liens soulignés en trait fin
+  décalé de `0.18em`, citation en serif italique sur un filet gris.
+- **table-header** — mono, capitales, gris, sans fond.
 
-## 4. Motifs & iconographie
+Les liens de corps sont **soulignés en permanence** : la couleur seule ne
+distingue rien pour un daltonien (WCAG 1.4.1). Le filet est fin et décalé sous
+la ligne de base pour ne pas hacher les jambages.
 
-### Symboles canon Dragon Ball à exploiter
-
-- ★ **Étoiles de Dragon Ball** (1 à 7) — héro visuel, animation orbite
-- 神龍 **Kanji Shenron** — accent décoratif vertical (kata-vert utility)
-- 八 **Symbole Saiyan / Bardock crest** — pour les badges race
-- ☼ **Aura solaire SS** — radial gradient orange + jaune en arrière-plan
-- ⚡ **Genkidama** — sphère bleue avec halo
-
-### Motifs DOM réutilisables
-
-Définis dans `globals.css` (`@layer utilities`) :
-
-- `.speed-lines` — repeating-conic-gradient radial, masque circulaire (manga FX)
-- `.halftone` — pointillés tramés style impression manga
-- `.starfield` + `.starfield-anim` — étoiles drift cosmique
-- `.sunburst` — rayons solaires SS aura
-- `.dbz-panel` — surface dark + border doré + box-shadow subtil
-- `.dbz-button` — gradient orange→jaune→rouge + lift hover
-- `.title-jagged` — gradient text effect pour titres hero (à utiliser avec parcimonie)
-- `.ki-pulse` — animation pulse 2.4s pour micro-labels accent
-
-### Ne pas inventer
-
-Ne pas créer de "Dragon Ball Cyber-punk", "DB Vaporwave", "DB Glassmorphism
-violet". L'univers est **chaud, manga, énergique**. Pas de cool tones, pas de
-neon synthwave. Si on veut du moderne 2026 → **clean editorial Google × énergie
-DB**, pas mode crypto.
-
----
-
-## 5. Animations & FX
-
-**Bibliothèque animations (2026)** : `motion` (motion.dev) — fork lean de
-framer-motion par Matt Perry, **9 KB gz** (vs 60 KB framer-motion).
-Import : `import { motion } from "motion/react"`. API identique à framer.
-
-**WebGPU** : intégration native via `<canvas>` + WGSL shaders sans wrapper
-React-three-fiber. KiCanvas (`apps/site/src/components/site/KiCanvas.tsx`)
-est un composant client dynamic-imported (jamais dans le critical path).
-
-**Préférer toujours d'abord** :
-
-1. View Transitions API native (Chrome 111+, Safari 18+) → `next/transitions`
-2. CSS `@scroll-timeline` + `@view-timeline` (Chrome 115+) → animations
-   scroll-linked sans JS
-3. CSS keyframes + `prefers-reduced-motion`
-4. SVG SMIL natif pour micro-anims
-5. En dernier recours : `motion/react`
-
-**Réservées aux moments-clés**, pas saupoudrées partout.
-
-| Élément                        | Animation                                        | Durée       | Easing             |
-| ------------------------------ | ------------------------------------------------ | ----------- | ------------------ |
-| Hero text reveal               | `motion.h1 initial scale=0.9 → 1`                | 700ms       | spring bounce 0.35 |
-| CTA hover                      | `transform: translateY(-1px)` + box-shadow boost | 250ms       | ease-out           |
-| Card hover                     | `border-color` + `bg-white/[0.07]`               | 300ms       | ease               |
-| Image hover (CharactersTeaser) | `scale-105` + `opacity 90→100`                   | 500ms       | ease               |
-| Drawer mobile                  | `top-16 inset-0` slide + backdrop-blur           | 200ms       | linear             |
-| Scroll indicator               | `scale-y 1→1.4 opacity 0.3→1`                    | 2s loop     | ease-in-out        |
-| Aura `.ki-pulse`               | `scale 1→1.04 opacity 0.85→1`                    | 2.4s loop   | ease-in-out        |
-| `.starfield-anim`              | `background-position` drift 600px                | 240s linear | infinite           |
-
-**Bannir** : parallax scroll, animations chargement infinies (= placeholder),
-flips 3D, glitch FX. Notre DB est moderne 2026, pas Flash 2008.
-
----
-
-## 6. Composants signature
-
-### Home cinématique (`apps/site/src/components/home/`)
-
-Page d'accueil full-page **scroll-snap** : chaque ère Dragon Ball est une scène
-plein écran avec fond animé tiré des meilleures scènes du manga/anime.
-
-- Navigation **molette / clavier (↑↓, Page, Home/End) / tactile** entre scènes.
-- Langage visuel : **sombre cinématique**, accent or DB `#ffb200`, fonds en
-  **ken-burns** (pan/zoom lent) avec **color grade par ère** (saga = teinte),
-  **grain** photographique léger et **aura ki** radiale en overlay.
-- Typo : titres **Google Sans Flex en poids lourds** (display 800-900) pour
-  l'impact cinéma, sous-titres JP discrets.
-- **État live du bot** affiché en temps réel (`useLiveBotState` → personas
-  online / stats). Composants : `HomeExperience.tsx`, `SceneBackdrop.tsx`.
-
-### Header (`SiteNav.tsx`)
-
-- Sticky top-0, hauteur 64px
-- Surface : `rgba(10,10,10,0.82) + backdrop-blur-xl + backdrop-saturate-150`
-- Hairline doré : `border-b border-[rgba(255,178,0,0.18)]`
-- Wordmark "DB**FR**" : Oswald 700 24px, tracking `0.06em`, "FR" en doré
-  signature DB Official
-- Nav : Oswald 14px 600 uppercase, tracking `0.10em`, hover → doré
-- Mobile : hamburger morphing croix + drawer fullscreen fond noir 97% opacité
-
-### Footer (`SiteFooter.tsx`)
-
-- Surface `#070707` (légèrement plus dark que le bg pour ancrage)
-- 3 colonnes : Explorer / Communauté / Légal
-- Copyright très petit (12px text-white/45) — mention complète ayants droit
-  - lien `/credits`
-
-### Cards
-
-- Surface : `bg-white/[0.04] border border-white/[0.06] rounded-xl`
-- Hover : `border-dbz-orange/60` (le doré illumine au survol)
-- Padding : `p-5` standard, `p-8` pour hero/CTA cards
-- Pas de drop-shadow lourde — préférer border-color shifts
-
-### Boutons CTA
-
-- Pill arrondie : `rounded-full h-12 px-7`
-- Primaire : `bg-dbz-orange hover:bg-white text-black font-bold tracking-[0.10em] uppercase`
-- Secondaire : `border border-white/20 hover:border-dbz-orange text-white`
-- Pas de gradient bouton (réservé aux héros titres avec `.title-jagged`)
-
-### Badges
-
-- Pill compact : `text-[11px] font-display font-semibold tracking-[0.10em] uppercase`
-- Couleurs : `bg-dbz-orange/15 text-dbz-orange` pour platforms/races
-
-### Image attribution
-
-Toutes les images servies via `/db/*` exposent des headers HTTP :
-`X-DB-Attribution: © Toei Animation`, `X-DB-License: FAIR-USE-EDITORIAL`,
-`X-DB-Source: toei-animation`, `X-DB-Served-Variant: avif|webp`. Le composant
-front peut lire ces headers pour afficher tooltip de crédit au hover.
-
----
-
-## 7. Format & optimisation
-
-- **AVIF** prioritaire (-60% vs JPG) → fallback WebP → fallback original
-- Content-Negotiation côté bot (`/db/*` lit `Accept:` header)
-- Cache `public, max-age=31536000, immutable` + `Vary: Accept`
-- Vercel CDN respecte le immutable → edge cache global 1 an
-- Next/Image config (`next.config.ts`) :
-  `formats: ['image/avif', 'image/webp']`
-- `loading="lazy"` par défaut sauf hero (priority)
-- Toujours `sizes` correct pour responsive (économie bandwidth massive)
-
----
-
-## 8. Règles dures (do / don't)
+## Do's and Don'ts
 
 ### À faire
 
-- **Hierarchy first** : un titre énorme, un lead court, des CTAs visibles
-- **Espace négatif généreux** : `py-16 lg:py-24` minimum entre sections
-- **Cohérence palette** : si tu poses du doré, c'est `--color-dbz-orange` —
-  pas `text-yellow-300`, pas `#FFD700`
-- **Bilingue FR/JP discret** : titre français principal + nom japonais en
-  sous-titre `font-jp text-dbz-orange/80`
-- **Mention source visible** sur chaque page de contenu (fiche perso, film,
-  jeu) : "Source : MyAnimeList via Jikan API" en bas, 12px gris
-- **Mobile-first** : tester sur 375px d'abord, desktop est l'amélioration
+- Une hiérarchie par page : un titre, un chapeau court, une action visible.
+- Poser l'or via `--color-dbz-orange`, jamais `text-yellow-300` ni `#FFD700`.
+- Afficher le nom japonais en sous-titre discret quand la fiche en porte un.
+- Citer la source sur toute page de contenu — c'est la règle éditoriale du
+  wiki, et elle a une conséquence graphique : prévoir la place du crédit.
+- Animer par `transform` et `opacity` uniquement, et respecter
+  `prefers-reduced-motion`.
+- Préférer, dans l'ordre : View Transitions natives, CSS scroll-timeline,
+  keyframes CSS, puis seulement `motion/react`.
 
 ### À éviter
 
-- ❌ Lettre initiale dans rond coloré comme avatar fallback (interdit, voir
-  commit `fix(site): zéro placeholder`)
-- ❌ "???" ou "Aucun résultat" comme valeur par défaut
-- ❌ `placeholder="blur"` dataURL pré-générés (ralentit le build, pas notre style)
-- ❌ Couleurs Discord (`#5865F2`) sur le site grand public — Dragon Ball
-  prime
-- ❌ Polices fan-art (`SaiyanSans` jagged) sur paragraphes corps
-- ❌ Emoji décoratifs (⚔📖💎🏆) — supprimés du landing en commit dédié
-- ❌ Phrases hallucinations tech (« 6 dieux 1 process », « Architecture mono-process »)
-- ❌ Mention du bot Discord en premier sur la home → DB doit primer
+- L'initiale dans un rond coloré comme avatar de repli, « ??? » ou « Aucun
+  résultat » comme valeur par défaut : on masque le champ vide, on ne le
+  meuble pas.
+- Les emoji décoratifs dans l'interface et les titres.
+- Le bleu Discord `#5865F2` sur les pages grand public.
+- Les polices fan-art sur du texte de corps.
+- Le parallax, les flips 3D, les effets glitch, les chargements infinis.
+- Une ombre portée pour signifier l'élévation là où un filet suffit.
+- Inventer une déclinaison (« DB vaporwave », « DB glassmorphism ») : l'univers
+  est chaud, manga, énergique.
 
----
+## Implémentation
 
-## 9. Sources d'inspiration (analyses live)
+| Élément | Fichier |
+|:--|:--|
+| Tokens de palette et de police | `apps/site/src/app/globals.css` (`@theme inline`) |
+| Chargement des polices | `apps/site/src/app/layout.tsx` (`next/font`) |
+| Corps du wiki | `.wiki-content` dans `globals.css` |
+| Surcharge de thème au runtime | `/admin/design` → `lib/site-theme.ts` |
+| Module d'édition | `apps/site/src/components/editor/` |
+| Accents de rubrique | `apps/site/src/lib/wiki-section-accents.ts` |
 
-Captures dans `reference/db-recon/`. Analyse exécutée le 2026-05-16 :
+Ce fichier suit la spécification [DESIGN.md](https://github.com/google-labs-code/design.md)
+(front matter de tokens + prose de justification). Il se vérifie par
+`bunx @google/design.md lint DESIGN.md` — le linter contrôle les références de
+tokens et le contraste WCAG de chaque composant, et l'état attendu est **0
+erreur, 0 avertissement**. C'est ce contrôle qui a signalé les pastilles de
+rubrique en texte blanc sur vert, violet, rose et rouge (3,3 à 4,0:1, sous le
+seuil AA de 4,5) — passées en texte noir.
 
-| Site                                          | Apport pour notre design                                               |
-| --------------------------------------------- | ---------------------------------------------------------------------- |
-| `fr.dragon-ball-official.com`                 | Police **Oswald**, palette noir/jaune/rouge, structure éditoriale      |
-| `www.toei-animation.com/catalog/dragon-ball/` | Layout catalog cards grille, hover gold                                |
-| `en.bandainamcoent.eu/dragon-ball`            | Hero gaming banners full-width, CTAs orange grands                     |
-| `design.google`                               | Typographie editorial Roboto Flex, espacement vertical, max-width 1440 |
-| `dragonball.fandom.com`                       | Densité info encyclopédique (à NE PAS copier — trop chargé)            |
+## Sources
 
----
-
-## 10. Implémentation actuelle
-
-| Composant        | Fichier                                                      | Statut                            |
-| ---------------- | ------------------------------------------------------------ | --------------------------------- |
-| Palette + tokens | `apps/site/src/app/globals.css`                              | ✅ DB Official                    |
-| Polices          | `apps/site/src/app/layout.tsx`                               | ✅ Roboto Flex + Oswald + Noto JP |
-| Header           | `apps/site/src/components/SiteNav.tsx`                       | ✅ 2026 sticky glass              |
-| Mobile nav       | `apps/site/src/components/MobileNav.tsx`                     | ✅ drawer fullscreen              |
-| Footer           | `apps/site/src/components/SiteFooter.tsx`                    | ✅ 3 cols + copyright             |
-| Hero landing     | `apps/site/src/components/landing/LandingHero.tsx`           | ✅ DB-first copy                  |
-| Univers grid     | `apps/site/src/components/landing/UniverseGrid.tsx`          | ✅ 6 piliers DB                   |
-| Cards persos     | `apps/site/src/components/landing/CharactersTeaser.tsx`      | ✅ filtrées sans placeholder      |
-| Pages wiki       | `apps/site/src/app/wiki/{sagas,films,jeux,episodes,search}/` | ✅ 5 listes + 3 détails           |
-| Pages légales    | `apps/site/src/app/{credits,licence}/page.tsx`               | ✅ DMCA contact + licences        |
-| Image pipeline   | `apps/bot/scripts/optimize-assets.sh` + Content-Negotiation  | ✅ AVIF/WebP/original             |
-
----
-
-**Référence finale** : ce document est la source de vérité du design system.
-Toute nouvelle page Next.js doit s'y conformer. Avant d'ajouter une couleur,
-une police, un composant — vérifier qu'il s'aligne sur ces principes.
+| Référence | Apport |
+|:--|:--|
+| `fr.dragon-ball-official.com` | Palette noir / or / rouge, structure éditoriale |
+| Toei Animation, Bandai Namco | Cartes de catalogue, bannières de héros |
+| `design.google` | Rythme vertical, hiérarchie par le poids |
+| `dragonball.fandom.com` | Densité encyclopédique — à ne PAS copier |
