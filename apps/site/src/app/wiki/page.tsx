@@ -151,6 +151,9 @@ function Rubriques({
 			<h2 className="mb-5 font-scouter text-[11px] uppercase tracking-[0.18em] text-white/45">
 				{titre}
 			</h2>
+			{/* `gap-px` sur un fond clair dessine les filets de séparation. Les
+			    cellules manquantes de la dernière ligne doivent donc être comblées :
+			    sans elles, la grille laissait deux rectangles gris flottants. */}
 			<div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-white/[0.08] sm:grid-cols-3 lg:grid-cols-4">
 				{items.map((r) => (
 					<GatedWrap
@@ -167,6 +170,9 @@ function Rubriques({
 							</span>
 						)}
 					</GatedWrap>
+				))}
+				{Array.from({ length: (4 - (items.length % 4)) % 4 }).map((_, i) => (
+					<span key={`vide-${i}`} aria-hidden className="hidden bg-dbz-bg lg:block" />
 				))}
 			</div>
 		</section>

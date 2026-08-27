@@ -31,7 +31,11 @@ export function StreamRow({
 					)}
 					{title}
 					{count != null && (
-						<span className="font-mono text-[13px] font-normal text-white/55">{count}</span>
+						// Séparateur de milliers : « 1307 » à côté d'un tableau qui affiche
+						// « 1 307 » donne l'impression de deux chiffres différents.
+						<span className="font-mono text-[13px] font-normal tabular-nums text-white/55">
+							{new Intl.NumberFormat("fr-FR").format(count)}
+						</span>
 					)}
 				</h2>
 				{seeAllHref && (

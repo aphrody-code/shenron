@@ -46,7 +46,7 @@ const ORDRE_OEUVRES = [
 ] as const;
 
 const linkClass =
-	"relative font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
+	"relative whitespace-nowrap font-display font-medium text-[14px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-2.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 xl:px-3";
 
 export async function SiteNav() {
 	const cfg = await getLaunchConfig();
@@ -109,7 +109,7 @@ export async function SiteNav() {
 		<header className="sticky top-0 z-50 w-full" style={{ viewTransitionName: "site-header" }}>
 			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
 
-			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 h-16 flex items-center gap-8">
+			<div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6 lg:px-10 xl:gap-6">
 				{/* Wordmark — Google Sans Flex bold + accent doré */}
 				<Link
 					href="/"
@@ -135,15 +135,20 @@ export async function SiteNav() {
 				</Link>
 
 				{/* Nav desktop — spine compacte + overflow « Plus » + admin Sections */}
+				{/* `justify-start` et non `justify-center` : une nav centrée qui ne
+				    tient pas dans l'espace disponible déborde des DEUX côtés, et ses
+				    premiers liens passaient sous le wordmark. Alignée à gauche, elle
+				    ne peut déborder que du côté où il reste de la place. */}
+				{/* Pas d'`overflow-hidden` : le panneau du méga-menu est en position
+				    absolue à l'intérieur de cette nav, il serait rogné. */}
 				<nav
-					className="hidden lg:flex items-center gap-1 flex-1 justify-center min-w-0"
+					className="hidden min-w-0 flex-1 items-center justify-start gap-0.5 lg:flex"
 					aria-label="Navigation principale"
 				>
-					{STATIC_PUBLIC_HEAD.map((l) => (
-						<Link key={l.href} href={l.href} className={linkClass}>
-							{l.label}
-						</Link>
-					))}
+					{/* Pas de lien « Accueil » ici : le wordmark à gauche pointe déjà
+					    la racine, et c'est la convention que tout visiteur connaît. Il
+					    reste dans le menu mobile, où il n'y a pas de wordmark cliquable
+					    aussi évident. */}
 					<NavMega label="Univers" items={univers} linkClass={linkClass} />
 					{oeuvres.map((l) => (
 						<Link key={l.href} href={l.href} className={linkClass}>
