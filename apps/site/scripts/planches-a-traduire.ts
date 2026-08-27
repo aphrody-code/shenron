@@ -46,8 +46,9 @@
  */
 import postgres from "postgres";
 import { classerDefaut } from "../src/lib/databooks-defauts";
+import { intraduisible, noyaux, replier } from "../src/lib/databooks-traduction";
 import { trierLexique, type TermeLexique } from "../src/lib/ja/anomalies";
-import { contientJaponais, normaliserJa } from "../src/lib/ja/normalisation";
+import { contientJaponais } from "../src/lib/ja/normalisation";
 
 const args = process.argv.slice(2);
 const flag = (nom: string) => args.includes(`--${nom}`);
@@ -57,89 +58,6 @@ const opt = (nom: string, def?: string) => {
 };
 
 const KANA = /[぀-ヿ]/;
-
-/**
- * Sinogrammes simplifiés qui n'existent pas en japonais : la sortie a dérivé
- * vers du chinois. Le juge du corpus ne voit que le cas total (idéogrammes sans
- * un seul kana) ; ici la planche garde ses kana autour, et passe donc au travers.
- */
-const SIMPLIFIES = /[个陆这说见门东车马鸟贝长风飞龙业习乡书买卖]/;
-
-/**
- * Bruit latin greffé en plein mot japonais : « のability », « じolation », « がindo ».
- *
- * MINUSCULES seulement, et c'est le fruit d'une mesure : en majuscules, ce sont
- * des sigles parfaitement légitimes, omniprésents dans les V-Jump et les guides
- * de jeux — « 年WJNo », « ISBNコ », « 王OCG », « Switch版 », « をGET ». Les
- * compter écartait 3 468 planches au lieu de 1 682 : un quart du corpus jeté
- * pour cause de filtre trop gourmand.
- */
-const LATIN_COLLE = /[぀-ヿ一-鿿][a-z]{3,}|[a-z]{3,}[぀-ヿ一-鿿]/;
-
-/**
- * Boucle NON consécutive : le même bloc revient trois fois dans la planche sans
- * se suivre. `BOUCLE` du juge du corpus exige la répétition d'affilée (`\1{2,}`)
- * et rate ce cas, fréquent sur les tableaux (« ADVENTURE HISTORY ») où le modèle
- * reprend un paragraphe entier après une insertion.
- */
-function boucleDispersee(texte: string): boolean {
-	for (let i = 0; i + 30 <= texte.length; i += 15) {
-		const bloc = texte.slice(i, i + 30);
-		if (!/[぀-ヿ一-鿿]/.test(bloc)) continue;
-		let n = 0;
-		let j = 0;
-		while ((j = texte.indexOf(bloc, j)) !== -1) {
-			n++;
-			j += 30;
-		}
-		if (n >= 3) return true;
-	}
-	return false;
-}
-
-/**
- * Signature d'échec qui rend une planche intraduisible, ou `null`.
- *
- * Délibérément SÉPARÉ de `classerDefaut` : ce dernier gouverne l'avertissement
- * public sur la page databook et les comptes du back-office. L'y fusionner
- * poserait un bandeau « planche mal lue » sur 2 131 fiches de plus, ce qui est
- * un autre débat — celui de ce qu'on montre au lecteur, pas de ce qu'on traduit.
- */
-export function intraduisible(texte: string): string | null {
-	if (SIMPLIFIES.test(texte)) return "chinois-simplifie";
-	if (LATIN_COLLE.test(texte)) return "latin-colle";
-	if (boucleDispersee(texte)) return "boucle-dispersee";
-	return null;
-}
-
-/**
- * Forme repliée servant d'index d'appariement entre la graphie de la base et
- * celle de la planche. Elle efface ce que l'OCR mange ou ajoute le plus souvent :
- * le signe d'allongement `ー` (« ターレス » lu « タレス ») et les points médians
- * (les trois existent et se mélangent dans les sources).
- *
- * Repli délibérément agressif : il ne SUBSTITUE rien, il propose une entrée de
- * lexique au traducteur, qui garde l'arbitrage. Une collision (deux termes
- * distincts pliés pareil) coûte une ligne de lexique en trop, jamais une
- * traduction fausse.
- */
-const replier = (s: string) => normaliserJa(s).replace(/ー/g, "");
-
-/**
- * Noyau d'une graphie de base : `未来のダーブラ` et `ダーブラ：ゼノ` désignent le
- * même nom, que la planche écrit nu. Sans ce dépouillement, le terme n'entre
- * jamais dans le lexique d'un lot.
- */
-function noyaux(ja: string): string[] {
-	const formes = new Set([ja]);
-	const nu = ja
-		.replace(/^(未来の|少年|幼少期の)/, "")
-		.replace(/[：:][ゼ][ノ]$/, "")
-		.replace(/[（(][^）)]*[）)]$/, "")
-		.trim();
-	if (nu.length >= 2) formes.add(nu);
-	return [...formes];
-}
 
 async function urlBase(): Promise<string> {
 	const brut = await Bun.file(new URL("../.env", import.meta.url).pathname).text();

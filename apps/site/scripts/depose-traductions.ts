@@ -26,8 +26,7 @@
  * Une ligne refusée n'interrompt pas le dépôt : elle est comptée et listée.
  */
 import postgres from "postgres";
-import { classerDefaut } from "../src/lib/databooks-defauts";
-import { proportionJaponais } from "../src/lib/ja/normalisation";
+import { refus } from "../src/lib/databooks-traduction";
 
 const args = process.argv.slice(2);
 const flag = (nom: string) => args.includes(`--${nom}`);
@@ -44,13 +43,6 @@ if (!fichier) {
 
 const APPLIQUER = flag("appliquer");
 const PAR = opt("par", "machine:sonnet")!;
-/**
- * Part de japonais tolérée dans la sortie française. Zéro serait faux : une
- * bonne traduction de databook garde souvent la graphie d'origine en regard
- * (« Kaïō-ken (界王拳) »). Au-delà, le modèle a recopié au lieu de traduire.
- */
-const PART_JA_MAX = 0.15;
-
 async function urlBase(): Promise<string> {
 	const brut = await Bun.file(new URL("../.env", import.meta.url).pathname).text();
 	const lignes = brut.split("\n").filter((l) => l.startsWith("DATABASE_URL="));
@@ -66,22 +58,6 @@ const idRevision = () =>
 	Array.from({ length: 24 }, () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]).join("");
 
 interface Ligne { databookId: number; page: number; fr: string }
-
-/** Pourquoi une traduction est refusée, ou `null` si elle passe. */
-export function refus(fr: string, ja: string): string | null {
-	const texte = fr.trim();
-	if (!texte) return "vide";
-	const part = proportionJaponais(texte);
-	if (part > PART_JA_MAX) return `${Math.round(part * 100)} % de japonais résiduel (non traduit)`;
-	const defaut = classerDefaut(texte);
-	// « courte » est un verdict de transcription, pas de traduction : une planche
-	// qui ne porte qu'un titre rend légitimement dix signes de français. C'est le
-	// rapport de longueur, plus bas, qui juge une sortie tronquée.
-	if (defaut && defaut !== "courte") return `défaut ${defaut}`;
-	if (texte.length > ja.length * 3.5) return `${texte.length} signes pour ${ja.length} en japonais (glose)`;
-	if (texte.length * 6 < ja.length) return `${texte.length} signes pour ${ja.length} en japonais (tronqué)`;
-	return null;
-}
 
 try {
 	const contenu = await Bun.file(fichier).text();
