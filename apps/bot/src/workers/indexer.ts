@@ -74,7 +74,11 @@ type WorkerMessage =
 
 declare var self: Worker;
 
+/** Fenêtre de rétention de l'index des messages (30 j). Cf. la note dans INDEX_MESSAGES. */
+const MESSAGE_TTL_SECONDS = 30 * 24 * 60 * 60;
+
 // ── Chargement de la table d'alias pour la canonicalisation (PLAN A3) ───────
+
 const ALIAS_MAP_PATH = new URL("../../data/rag/alias-map.json", import.meta.url).pathname;
 let aliasMap: Record<string, { canonical: string; type: string; id: string }> = {};
 let aliasRegex: RegExp | null = null;
@@ -282,6 +286,13 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 						createdAt: msg.createdAt,
 					})
 				);
+				// Sans TTL, cet index grossit sans borne (1,1 M de clés / 436 Mo mesurés le
+				// 2026-08-27) alors que rien ne le relit : les analytics de lore et de sentiment
+				// sont agrégées ici même par hincrby, et `dbz:channel:*:messages` est borné par
+				// ltrim. Redis n'a pas de `maxmemory` — la saturation ferait tomber le bot, pas
+				// Redis. On garde donc une fenêtre glissante, reconstructible par
+				// `scripts/index-discord-full.ts` (idempotent).
+				promises.push(r().expire(`dbz:message:${msg.id}`, MESSAGE_TTL_SECONDS));
 				promises.push(r().rpush(`dbz:channel:${msg.channelId}:messages`, msg.id));
 				promises.push(r().ltrim(`dbz:channel:${msg.channelId}:messages`, -1000, -1));
 

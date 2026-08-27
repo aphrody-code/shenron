@@ -184,6 +184,8 @@ async function indexMessages(msgs: any[]): Promise<void> {
 				createdAt: m.timestamp ?? "",
 			})
 		);
+		// Même fenêtre glissante que le worker (cf. MESSAGE_TTL_SECONDS dans workers/indexer.ts).
+		p.push(redis.expire(`dbz:message:${m.id}`, 30 * 24 * 60 * 60));
 		if (m.author?.id) {
 			p.push(
 				redis.hset(`dbz:user:${m.author.id}`, {
