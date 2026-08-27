@@ -66,7 +66,10 @@ export function SagaBestOf({
 		if (!active || sagas.length <= 1) return;
 		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 		const id = setInterval(() => {
-			if (!touchedRef.current) setSel((i) => (i + 1) % sagas.length);
+			// Même raison que la rotation des scènes : un onglet caché n'a pas
+			// besoin qu'on fasse défiler sa vitrine.
+			if (document.hidden || touchedRef.current) return;
+			setSel((i) => (i + 1) % sagas.length);
 		}, 9000);
 		return () => clearInterval(id);
 	}, [active, sagas.length]);

@@ -82,6 +82,11 @@ function labelForEvent(type: string, data: unknown): string {
 	}
 }
 
+/** Sondage sans flux temps réel : c'est la seule source de fraîcheur. */
+const PERIODE_SANS_FLUX = 25_000;
+/** Avec flux : simple filet de rattrapage, le SSE fait le travail. */
+const PERIODE_AVEC_FLUX = 90_000;
+
 export function useLiveBotState(initial: {
 	stats: BotStats;
 	personas: PersonaLive[];
@@ -98,6 +103,8 @@ export function useLiveBotState(initial: {
 	const [events, setEvents] = useState<LiveEvent[]>([]);
 	const [refreshedAt, setRefreshedAt] = useState(0);
 	const evKey = useRef(0);
+	/** Réarme le sondage à une nouvelle cadence, sans le redémarrer entièrement. */
+	const cadenceRef = useRef<((ms: number) => void) | null>(null);
 
 	// ── Poll stats + personas ───────────────────────────────────────────────
 	useEffect(() => {
@@ -137,7 +144,22 @@ export function useLiveBotState(initial: {
 			}
 		}
 
-		const id = setInterval(pull, 25_000);
+		// Cadence adaptée à ce que le flux temps réel apporte déjà.
+		//
+		// Le SSE pousse les changements dès qu'ils surviennent : continuer à
+		// tirer quatre requêtes toutes les 25 s par-dessus, c'est 576 requêtes
+		// par heure et par onglet ouvert vers l'API du bot, pour redemander ce
+		// qu'on vient de recevoir. Le sondage garde alors un rôle de filet — il
+		// rattrape ce qu'un événement manqué aurait laissé passer — mais à une
+		// cadence de filet.
+		let id: ReturnType<typeof setInterval> | null = null;
+		const armer = (ms: number) => {
+			if (id) clearInterval(id);
+			id = setInterval(pull, ms);
+		};
+		cadenceRef.current = armer;
+		armer(PERIODE_SANS_FLUX);
+
 		const onVis = () => {
 			if (!document.hidden) pull();
 		};
@@ -146,10 +168,16 @@ export function useLiveBotState(initial: {
 		return () => {
 			alive = false;
 			ac.abort();
-			clearInterval(id);
+			if (id) clearInterval(id);
+			cadenceRef.current = null;
 			document.removeEventListener("visibilitychange", onVis);
 		};
 	}, []);
+
+	// Le flux se connecte et se coupe au fil de la navigation : la cadence suit.
+	useEffect(() => {
+		cadenceRef.current?.(connected ? PERIODE_AVEC_FLUX : PERIODE_SANS_FLUX);
+	}, [connected]);
 
 	// ── SSE temps réel (a2a/events public) ──────────────────────────────────
 	useEffect(() => {

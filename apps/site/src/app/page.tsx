@@ -23,7 +23,20 @@ import { publicPostFilter } from "@/lib/posts";
 import { ogMeta } from "@/lib/og";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
-export const revalidate = 120;
+/**
+ * 15 minutes, et non 2.
+ *
+ * Ce que le rendu serveur fournit ici, ce sont des **compteurs** (personnages,
+ * épisodes, films, chapitres) et une sélection éditoriale — des choses qui
+ * bougent quelques fois par mois. Tout ce qui est réellement vivant (personas
+ * en ligne, classement, présence) est repris côté client par `useLiveBotState`
+ * dès l'hydratation, et remplace la valeur rendue.
+ *
+ * Revalider toutes les 2 minutes faisait donc rejouer sept requêtes de
+ * comptage 720 fois par jour pour réécrire les mêmes nombres — et exposait la
+ * page d'accueil à tout hoquet de la base, sept fois plus souvent.
+ */
+export const revalidate = 900;
 
 export const metadata: Metadata = {
 	title: {

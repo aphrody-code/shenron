@@ -67,13 +67,18 @@ function norm(s: string): string {
 
 export function CharacterGrid({
 	characters,
-	variants = [],
+	nbVariants = 0,
 	facets,
 	access,
 }: {
 	characters: GridCharacter[];
-	/** Versions par saga. Vide = la bascule d'affichage ne s'affiche pas. */
-	variants?: GridVariant[];
+	/**
+	 * Nombre de versions par saga existantes. Sert uniquement à savoir s'il faut
+	 * proposer la bascule — les versions elles-mêmes sont chargées à la demande
+	 * (`/api/wiki/variants`), parce qu'elles pesaient 110 Ko dans la charge de
+	 * chaque visiteur pour une vue que peu ouvrent.
+	 */
+	nbVariants?: number;
 	facets?: CharacterFacets;
 	/** Instantané de la configuration de lancement, résolu côté serveur. */
 	access?: AccessSnapshot | null;
@@ -82,6 +87,18 @@ export function CharacterGrid({
 	// par couple personnage × saga. Le choix est dans l'URL (`?vue=versions`)
 	// pour qu'une liste de versions se partage.
 	const [vue, setVue] = useState<"fiches" | "versions">("fiches");
+	// Chargées au premier passage en mode « Versions », puis gardées.
+	const [variants, setVariants] = useState<GridVariant[]>([]);
+	const [chargementVersions, setChargementVersions] = useState(false);
+	useEffect(() => {
+		if (vue !== "versions" || variants.length > 0 || chargementVersions) return;
+		setChargementVersions(true);
+		fetch("/api/wiki/variants")
+			.then((r) => r.json())
+			.then((d) => setVariants(Array.isArray(d?.variants) ? d.variants : []))
+			.catch(() => setVariants([]))
+			.finally(() => setChargementVersions(false));
+	}, [vue, variants.length, chargementVersions]);
 	useEffect(() => {
 		if (new URLSearchParams(window.location.search).get("vue") === "versions") {
 			setVue("versions");
@@ -257,7 +274,7 @@ export function CharacterGrid({
 						Réinitialiser
 					</button>
 				)}
-				{variants.length > 0 && (
+				{nbVariants > 0 && (
 					<div
 						role="group"
 						aria-label="Affichage"
@@ -282,13 +299,15 @@ export function CharacterGrid({
 				)}
 				<p className="scouter-text text-[11px] text-dbz-orange whitespace-nowrap sm:ml-auto">
 					{vue === "versions"
-						? `${versionsFiltrees.length} / ${variants.length} versions`
+						? `${versionsFiltrees.length} / ${nbVariants} versions`
 						: `${filtered.length} / ${characters.length} personnages`}
 				</p>
 			</div>
 
 			{/* Grille */}
-			{liste.length === 0 ? (
+			{vue === "versions" && chargementVersions && variants.length === 0 ? (
+				<p className="py-20 text-center text-sm text-white/45">Chargement des versions…</p>
+			) : liste.length === 0 ? (
 				<p className="py-20 text-center text-white/50 font-sans">
 					{vue === "versions" ? "Aucune version ne correspond" : "Aucun personnage ne correspond"}{" "}
 					{query ? `à « ${query} »` : "à ces filtres"}.

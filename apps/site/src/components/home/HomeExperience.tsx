@@ -324,7 +324,14 @@ export function HomeExperience({
 	const [heroIdx, setHeroIdx] = useState(0);
 	useEffect(() => {
 		if (active !== 0 || reduceRef.current || heroScenes.length <= 1) return;
-		const id = setInterval(() => setHeroIdx((i) => (i + 1) % heroScenes.length), 6200);
+		// L'onglet caché ne tourne pas : chaque changement de scène décode une
+		// image plein écran et relance une animation de fond. Le faire pour un
+		// onglet que personne ne regarde coûte de la batterie et du réseau, et
+		// ramène le visiteur sur une scène qu'il n'a pas choisie.
+		const id = setInterval(() => {
+			if (document.hidden) return;
+			setHeroIdx((i) => (i + 1) % heroScenes.length);
+		}, 6200);
 		return () => clearInterval(id);
 	}, [active, heroScenes.length]);
 	// Borne l'index héro si le pool a rétréci après édition.

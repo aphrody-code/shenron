@@ -2,12 +2,7 @@
 
 "use client";
 
-import {
-	CharacterGrid,
-	type CharacterFacets,
-	type GridCharacter,
-	type GridVariant,
-} from "./CharacterGrid";
+import { CharacterGrid, type CharacterFacets, type GridCharacter } from "./CharacterGrid";
 import { ENCYCLOPEDIA_CATEGORIES } from "@/lib/wiki-categories";
 import { ClientGatedWrap } from "@/components/GatedClientLink";
 import type { AccessSnapshot } from "@/lib/wiki-launch";
@@ -32,15 +27,15 @@ const AUTRES_CATEGORIES = ENCYCLOPEDIA_CATEGORIES.filter((c) => c.key !== "perso
 
 type Props = {
 	characters: GridCharacter[];
-	/** Versions par saga — transmises telles quelles à la grille. */
-	variants?: GridVariant[];
+	/** Nombre de versions par saga (les données sont chargées à la demande). */
+	nbVariants?: number;
 	counts?: Record<string, number>;
 	facets?: CharacterFacets;
 };
 
 export function UniverseTabs({
 	characters,
-	variants = [],
+	nbVariants = 0,
 	counts = {},
 	facets,
 	access,
@@ -77,7 +72,7 @@ export function UniverseTabs({
 
 			<CharacterGrid
 				characters={characters}
-				variants={variants}
+				nbVariants={nbVariants}
 				facets={facets}
 				access={access}
 			/>

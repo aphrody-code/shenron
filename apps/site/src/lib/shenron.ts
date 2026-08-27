@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq, like, ne, sql, inArray } from "drizzle-orm";
+import { and, asc, eq, like, ne, sql, inArray, count } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
 	botCharacters,
@@ -753,6 +753,23 @@ export async function getShenronVariantCards(): Promise<VariantCard[]> {
 	} catch (e) {
 		console.error("[shenron] getShenronVariantCards a échoué:", e);
 		return [];
+	}
+}
+
+/**
+ * Nombre de versions par saga. Sert à décider si la bascule « Versions » a un
+ * sens — la page n'a pas besoin des 451 lignes pour afficher un bouton.
+ */
+export async function countVariantCards(): Promise<number> {
+	try {
+		const [r] = await db
+			.select({ n: count() })
+			.from(botCharacterVariants)
+			.where(eq(botCharacterVariants.visible, true));
+		return Number(r?.n ?? 0);
+	} catch (e) {
+		console.error("[shenron] countVariantCards a échoué:", e);
+		return 0;
 	}
 }
 

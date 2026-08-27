@@ -1,7 +1,7 @@
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 // SPDX-License-Identifier: Apache-2.0
 
-import { getShenronCharacterCards, getShenronVariantCards } from "@/lib/shenron";
+import { countVariantCards, getShenronCharacterCards } from "@/lib/shenron";
 import { dbUniverse } from "@/lib/db-universe";
 import { PageHero } from "@/components/PageHero";
 import { UniverseTabs } from "@/components/wiki/UniverseTabs";
@@ -26,7 +26,7 @@ export default async function PersonnagesPage() {
 		dbUniverse.counts(),
 		dbUniverse.characterFacets(),
 		getLaunchConfig().catch(() => null),
-		getShenronVariantCards(),
+		countVariantCards(),
 	]);
 
 	return (
@@ -50,7 +50,7 @@ export default async function PersonnagesPage() {
 						image: c.image,
 						portraitXv2: c.portraitXv2,
 					}))}
-					variants={variants}
+					nbVariants={variants}
 					counts={counts ?? {}}
 					facets={facets ?? undefined}
 				/>
