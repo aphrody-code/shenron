@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Noto_Sans_JP } from "next/font/google";
+import { Noto_Sans_JP, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import dynamic from "next/dynamic";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
@@ -39,6 +39,28 @@ const sansFlex = localFont({
 	// ajustées (`size-adjust` auto sur Arial) → zéro layout shift au swap.
 	fallback: ["system-ui", "arial"],
 	adjustFontFallback: "Arial",
+});
+
+// Newsreader — serif éditoriale variable (axe opsz + wght, italique vrai).
+// Police d'affichage du wiki : le contraste serif/sans est ce qui fait passer
+// une fiche d'un « bloc de texte » à un article. Preload (elle porte les H1/H2
+// au-dessus de la ligne de flottaison), fallback métrique sur Times.
+const newsreader = Newsreader({
+	variable: "--font-serif-src",
+	subsets: ["latin", "latin-ext"],
+	display: "swap",
+	style: ["normal", "italic"],
+	adjustFontFallback: true,
+});
+
+// JetBrains Mono — métadonnées, chiffres, code, libellés HUD (`font-scouter`).
+// Chargée en 400/500 seulement : elle ne sert jamais à du corps de texte.
+const jetbrainsMono = JetBrains_Mono({
+	variable: "--font-mono-src",
+	subsets: ["latin"],
+	weight: ["400", "500"],
+	display: "swap",
+	preload: false,
 });
 
 // Noto Sans JP — corps japonais (noms natifs 孫悟空…). Pas de preload : chargé
@@ -162,7 +184,7 @@ export default async function RootLayout({
 				/>
 			)}
 			<body
-				className={`${sansFlex.variable} ${notoJP.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
+				className={`${sansFlex.variable} ${newsreader.variable} ${jetbrainsMono.variable} ${notoJP.variable} antialiased min-h-screen relative flex flex-col font-sans bg-dbz-bg text-white`}
 			>
 				{/* GTM noscript — fallback sans JS, juste après l'ouverture de <body>. */}
 				<noscript>

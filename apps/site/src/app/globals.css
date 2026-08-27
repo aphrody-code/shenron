@@ -99,17 +99,22 @@ main:focus {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--font-sans: var(--font-sans);
-	/* Display = Google Sans Flex aussi (hiérarchie par le poids, façon Google). */
-	--font-display: var(--font-sans);
+	/* Display = Newsreader (serif éditoriale). Le contraste serif/sans est ce qui
+     distingue un article d'un formulaire : les titres portent la voix, le corps
+     reste en Google Sans Flex pour la densité d'information. */
+	--font-display: var(--font-serif-src), Georgia, "Times New Roman", serif;
+	--font-serif: var(--font-serif-src), Georgia, "Times New Roman", serif;
+	--font-mono: var(--font-mono-src), ui-monospace, "SF Mono", monospace;
 	--font-jp: var(--font-jp);
 	/* `font-saiyan` remappé sur Google Sans Flex : les ~89 titres de hero du wiki
      deviennent lisibles sans toucher chaque composant (SaiyanSans n'est plus
      chargée — cf. layout.tsx). */
 	--font-saiyan: var(--font-sans);
-	/* `font-scouter` remappé sur Google Sans Flex : DBSScouter rend des glyphes
-     « scouter » aliens illisibles (labels HUD, eyebrows, sidebar admin). Le
-     rendu lisible est piloté par le tracking large + uppercase, pas la police. */
-	--font-scouter: var(--font-sans);
+	/* `font-scouter` remappé sur JetBrains Mono : DBSScouter rend des glyphes
+     « scouter » aliens illisibles (labels HUD, eyebrows, sidebar admin). Une
+     mono à chasse fixe donne le même registre « instrument de mesure » en
+     restant lisible, et aligne les chiffres des compteurs. */
+	--font-scouter: var(--font-mono-src), ui-monospace, "SF Mono", monospace;
 
 	/* === Palette fusion design.google × Xenoverse 2 ===
         Couches éditoriales sobres (Google) + accents énergie DBZ (Bandai).
@@ -249,9 +254,11 @@ main:focus {
 	h4,
 	h5,
 	h6 {
-		/* Titres en Google Sans Flex (lisible) plutôt que SaiyanSans. La police DBZ
-       reste dispo via l'utilitaire `.font-saiyan` pour les accents de marque. */
-		@apply font-display font-bold tracking-tight;
+		/* Titres en Newsreader (serif éditoriale). 600 et non 700 : le contraste
+       serif/sans porte déjà la hiérarchie, un gras plein alourdit la page.
+       SaiyanSans reste dispo via `.font-saiyan` pour les accents de marque. */
+		@apply font-display font-semibold;
+		letter-spacing: -0.015em;
 		color: #f0f0ff;
 	}
 	::selection {
@@ -969,9 +976,17 @@ main:focus {
    corps de texte ici (titres, listes, liens, tableaux…) pour que les fiches ne
    paraissent pas « vides » et que le texte respire. */
 .wiki-content {
-	color: rgba(255, 255, 255, 0.86);
-	font-size: 1.02rem;
+	color: rgba(255, 255, 255, 0.82);
+	font-size: 1.06rem;
 	line-height: 1.75;
+	text-wrap: pretty;
+}
+/* Mesure : au-delà de ~72 caractères l'œil perd la ligne au retour chariot.
+   Bornée sur les BLOCS DE TEXTE, jamais sur le conteneur : `.wiki-content`
+   porte aussi des figures pleine largeur, des grilles et des tableaux, qu'un
+   max-width global écraserait. */
+.wiki-content :is(p, li, blockquote, h1, h2, h3, h4) {
+	max-width: 72ch;
 }
 .wiki-content > :first-child {
 	margin-top: 0;
@@ -979,26 +994,43 @@ main:focus {
 .wiki-content p {
 	margin: 0 0 1.1em;
 }
-.wiki-content :is(h1, h2, h3, h4) {
-	font-family: var(--font-display, inherit);
-	font-weight: 800;
+/* Hiérarchie : h1/h2 en serif (la voix de l'article), h3/h4 en sans (le
+   repérage). Deux registres suffisent — empiler quatre tailles de la même
+   police ne se lit pas, alterner les familles se lit d'un coup d'œil. */
+.wiki-content :is(h1, h2) {
+	font-family: var(--font-serif-src), Georgia, serif;
+	font-weight: 600;
+	letter-spacing: -0.02em;
 	color: #fff;
-	line-height: 1.2;
-	margin: 1.7em 0 0.6em;
+	line-height: 1.18;
+	text-wrap: balance;
+	margin: 2em 0 0.5em;
+}
+.wiki-content :is(h3, h4) {
+	font-family: var(--font-sans, inherit);
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: rgba(255, 255, 255, 0.94);
+	line-height: 1.3;
+	margin: 1.9em 0 0.5em;
 }
 .wiki-content h1 {
-	font-size: 1.9rem;
+	font-size: 2.1rem;
 }
 .wiki-content h2 {
-	font-size: 1.55rem;
+	font-size: 1.6rem;
+	/* Filet de section : sépare sans encadrer (aucune boîte, aucun fond). */
+	padding-bottom: 0.35em;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .wiki-content h3 {
-	font-size: 1.28rem;
-	color: var(--color-dbz-orange, #ffb200);
+	font-size: 1.16rem;
 }
 .wiki-content h4 {
-	font-size: 1.1rem;
-	color: var(--color-dbz-orange, #ffb200);
+	font-size: 0.82rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: rgba(255, 255, 255, 0.55);
 }
 /* Les titres sont emballés dans une ancre (#slug) par rehype-autolink → elle
    doit hériter de la couleur du titre, pas de la couleur de lien. */
@@ -1006,12 +1038,19 @@ main:focus {
 	color: inherit;
 	text-decoration: none;
 }
+/* Lien de corps : souligné en permanence (la couleur seule ne suffit pas pour
+   un daltonien, cf. WCAG 1.4.1), mais en filet fin décalé sous la ligne de
+   base — le texte reste lisible là où un `underline` plein le hachait. */
 .wiki-content a {
 	color: var(--color-dbz-orange, #ffb200);
-	text-decoration: none;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.18em;
+	text-decoration-color: color-mix(in srgb, var(--color-dbz-orange, #ffb200) 40%, transparent);
+	transition: text-decoration-color 150ms ease;
 }
 .wiki-content a:hover {
-	text-decoration: underline;
+	text-decoration-color: currentColor;
 }
 .wiki-content strong {
 	color: #fff;
@@ -1032,23 +1071,27 @@ main:focus {
 	margin: 0.3em 0;
 }
 .wiki-content blockquote {
-	margin: 1.2em 0;
-	padding: 0.4em 0 0.4em 1em;
-	border-left: 3px solid var(--color-dbz-orange, #ffb200);
+	margin: 1.6em 0;
+	padding: 0.1em 0 0.1em 1.2em;
+	border-left: 2px solid rgba(255, 255, 255, 0.14);
 	color: rgba(255, 255, 255, 0.72);
+	font-family: var(--font-serif-src), Georgia, serif;
 	font-style: italic;
+	font-size: 1.1em;
+	line-height: 1.6;
 }
 .wiki-content hr {
 	border: 0;
-	border-top: 1px solid var(--color-dbz-border, #2a3a5a);
-	margin: 1.7em 0;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	margin: 2.4em 0;
 }
 .wiki-content code {
 	background: rgba(255, 255, 255, 0.06);
-	color: var(--color-dbz-orange, #ffb200);
-	padding: 0.1em 0.4em;
+	color: rgba(255, 255, 255, 0.9);
+	padding: 0.12em 0.4em;
 	border-radius: 4px;
-	font-size: 0.9em;
+	font-family: var(--font-mono-src), ui-monospace, monospace;
+	font-size: 0.86em;
 }
 .wiki-content table {
 	width: 100%;
@@ -1056,14 +1099,27 @@ main:focus {
 	margin: 1.3em 0;
 	font-size: 0.95em;
 }
+/* Tableau sans grille : seules les lignes horizontales portent la lecture.
+   Une bordure sur les quatre côtés de chaque cellule fabrique un damier qui
+   concurrence les données. */
 .wiki-content :is(th, td) {
-	border: 1px solid var(--color-dbz-border, #2a3a5a);
-	padding: 0.5em 0.7em;
+	border: 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+	padding: 0.6em 0.9em 0.6em 0;
 	text-align: left;
+	vertical-align: top;
 }
 .wiki-content th {
-	background: rgba(255, 178, 0, 0.08);
-	color: var(--color-dbz-orange, #ffb200);
+	background: none;
+	color: rgba(255, 255, 255, 0.55);
+	font-size: 0.78rem;
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	border-bottom-color: rgba(255, 255, 255, 0.16);
+}
+.wiki-content tr:last-child :is(th, td) {
+	border-bottom: 0;
 }
 /* Variante « lore » pleine largeur (fiche perso) : un cran plus grand. */
 .wiki-lore {
