@@ -110,21 +110,29 @@ export async function SiteNav() {
 			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
 
 			<div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6 lg:px-10 xl:gap-6">
-				{/* Wordmark — Google Sans Flex bold + accent doré */}
+				{/* Wordmark — même structure que le titre de l'accueil : le nom de
+				    l'œuvre en sans très gras, le pays en SERIF capitales espacées.
+				    C'est la composition des couvertures Daizenshuu (grotesque + serif
+				    capitales), et elle règle au passage un défaut de l'ancien
+				    wordmark : « Dragon Ball » et « France » y avaient exactement le
+				    même poids et la même taille, si bien qu'on lisait trois mots de
+				    même rang au lieu d'un nom suivi de sa déclinaison. */}
 				<Link
 					href="/"
-					className="group flex items-baseline shrink-0 select-none whitespace-nowrap py-3"
+					className="group flex shrink-0 select-none items-center gap-2.5 whitespace-nowrap py-3"
 					aria-label="Dragon Ball France — Accueil"
 				>
-					<span className="font-display font-bold text-[19px] tracking-tight text-white leading-none">
-						Dragon&nbsp;Ball&nbsp;
-					</span>
-					<span className="font-display font-bold text-[19px] tracking-tight text-dbz-orange leading-none transition-colors group-hover:text-white">
-						France
+					<span className="flex flex-col leading-none">
+						<span className="font-display text-[18px] font-bold tracking-[-0.02em] text-white">
+							Dragon&nbsp;Ball
+						</span>
+						<span className="mt-[3px] font-serif text-[10px] font-semibold uppercase tracking-[0.32em] text-dbz-orange transition-colors group-hover:text-white">
+							France
+						</span>
 					</span>
 					<span
 						aria-hidden
-						className="ml-2 inline-flex h-[19px] w-[22px] shrink-0 items-center justify-center self-center"
+						className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center"
 					>
 						<DragonBall
 							stars={4}
