@@ -175,6 +175,8 @@ Depuis le 2026-08-26, le contenu éditorial se rédige **exclusivement** sur les
 
 `bot.db_character_variants` (PG-only, créée par `apps/bot/scripts/add-character-variants.ts`) porte **une ligne par couple (personnage, saga)** — « Goku, saga Namek ». Pas de fiche dupliquée dans `db_characters` : l'identité reste une, la fiche gagne une frise de ses états successifs (`components/wiki/CharacterSagaVariants.tsx`, panneau « Au fil des sagas »), et la page saga gagne sa liste de personnages (`getShenronSagaCharacters`). Une variante ne porte que ce qui **change** d'une saga à l'autre (apparence, forme, puissance, rôle, faits marquants) ; tout champ NULL retombe sur `db_characters` à l'affichage.
 
+**Illustration par version (depuis le 2026-08-27).** `image` sur la variante prime sur celle du personnage ; **16 des 451** en portent une, tirée du lot officiel `assets/dbz/officiel-2026-08-27/` quand le nom du personnage ET celui de la saga figurent tous deux dans le titre du showcase (« Son Gohan de l'Arc Saiyan »). Pourquoi si peu : les titres du lot sont des traductions automatiques du japonais, très inégales (« d' Training de Goku », « ! ») — tout appariement plus souple produirait des illustrations fausses, et une version illustrée par la mauvaise saga est **pire** qu'une version qui hérite de l'image du personnage, parce qu'elle a l'air juste. Les 435 autres héritent, ce que `WikiImg` gère. Attention : ce lot est **gitignoré** (il vit sur le disque du bot) ; s'il disparaît, ces 16 retombent sur le repli.
+
 L'amorçage est **mesuré, pas écrit** : `apps/site/scripts/variantes-par-saga.ts --mesure` croise **deux corpus** avec les bornes de chaque saga (`--bornes` les pose en base) :
 
 | Source | Corpus | Bornes sur `db_sagas` | Seuil |

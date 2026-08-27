@@ -126,7 +126,10 @@ export default async function TransformationPage({
 
 			{t.article && t.article.trim() ? (
 				<div className="mt-12">
-					<WikiArticle article={t.article} heading={t.name} accent="orange" />
+					{/* « Description » et non le nom de la forme : celui-ci est déjà le
+					    h1 de la page, deux lignes plus haut. Le répéter en tête du bloc
+					    donne le même titre deux fois à l'écran. */}
+					<WikiArticle article={t.article} heading="Description" accent="orange" />
 				</div>
 			) : (
 				<p className="mt-12 text-sm italic text-white/45">
