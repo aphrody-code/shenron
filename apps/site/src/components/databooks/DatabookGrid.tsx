@@ -8,7 +8,8 @@
  *
  * Un seul filtre actif à la fois + tri date + recherche.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Pagination } from "@/components/ui/Pagination";
 import { ArrowDownUp, BookOpen, Mic, Palette, BookMarked, Search } from "lucide-react";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
@@ -143,6 +144,18 @@ export function DatabookGrid({
 			});
 	}, [items, activeTab, q, order]);
 
+	// Pagination : les 318 ouvrages étaient rendus d'un coup, couverture
+	// comprise — 726 Ko de HTML pour une grille dont on voit vingt cases.
+	const PAR_PAGE = 40;
+	const [page, setPage] = useState(1);
+	useEffect(() => setPage(1), [filter, q, order]);
+	const pages = Math.max(1, Math.ceil(filtered.length / PAR_PAGE));
+	const pageSure = Math.min(page, pages);
+	const visibles = useMemo(
+		() => filtered.slice((pageSure - 1) * PAR_PAGE, pageSure * PAR_PAGE),
+		[filtered, pageSure]
+	);
+
 	return (
 		<div className="space-y-6">
 			{/* Une seule rangée de filtres, tous au même plan (même taille / style). */}
@@ -210,7 +223,7 @@ export function DatabookGrid({
 				</p>
 			) : (
 				<div className="reveal-grid grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 xl:grid-cols-5">
-					{filtered.map((d) => {
+					{visibles.map((d) => {
 						const cat = resolveDatabookCategory(d.category);
 						const Icon = CATEGORY_ICONS[cat] ?? BookOpen;
 						return (
@@ -279,6 +292,15 @@ export function DatabookGrid({
 					})}
 				</div>
 			)}
+
+			<Pagination
+				page={pageSure}
+				parPage={PAR_PAGE}
+				total={filtered.length}
+				onPageChange={setPage}
+				unite="ouvrages"
+				className="pt-6"
+			/>
 		</div>
 	);
 }
