@@ -20,6 +20,25 @@ Elles servent de **réserve** : quand une fiche porte une capture d'écran de je
 ou un scan médiocre, on remplace à la main depuis le studio
 (`/admin` → la fiche → champ image), et on prend celle d'ici.
 
+## État vérifié le 2026-08-27 (fin de moissonnage)
+
+Le crawl s'est **terminé de lui-même à 15:48**. Le dossier est stable : **2 513 fichiers, 327 Mo**.
+
+Un tri par taille a été tenté puis abandonné, faute d'objet : mesuré au plus grand
+côté, **2 513 fichiers sur 2 516 sont exploitables** (3 seulement écartés, 0 Mo
+gagné). Le lot n'a donc pas de déchet à retirer.
+
+**Piège du tri, à ne pas refaire** : un premier passage jugeait sur la LARGEUR
+et écartait tout ce qui fait moins de 400 px. Il aurait supprimé trois des
+images déjà utilisées en base — des artworks en **portrait** (199 × 500,
+306 × 500, 392 × 518), parfaitement utilisables. Le critère juste est le plus
+grand côté, jamais la largeur seule.
+
+**16 images de ce lot sont référencées** par `bot.db_character_variants.image`
+(les versions par saga). Vérifié : toutes présentes. Supprimer ce dossier ferait
+donc retomber ces 16 versions sur le repli de `WikiImg` — pas d'image cassée,
+mais la perte de l'illustration d'époque.
+
 **Limite de résolution, à connaître avant de s'en servir** : ces images
 plafonnent à 770 px et font typiquement 518 px. Leur valeur est la légitimité
 de la source, pas la définition — elles ne remplacent pas un scan haute
