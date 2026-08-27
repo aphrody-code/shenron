@@ -1,1 +1,0 @@
-2026-06-07T00:34:35+00:00 - Tick 3 - Relancer rag-eval.ts → comparer à la baseline A0. Cibles : **Recall@5 ≥ 0.9**, **MRR ≥ 0.8** sur le gold set.
