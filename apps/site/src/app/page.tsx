@@ -17,6 +17,7 @@ import {
 	botCharacters,
 	botPlanets,
 	botMangaChapters,
+	botDatabooks,
 } from "@/db/bot-schema";
 import { sql } from "drizzle-orm";
 import { publicPostFilter } from "@/lib/posts";
@@ -66,13 +67,14 @@ function getLatestPosts() {
 
 async function getWikiCounts() {
 	try {
-		const [sagas, episodes, movies, characters, planets, chapters] = await Promise.all([
+		const [sagas, episodes, movies, characters, planets, chapters, databooks] = await Promise.all([
 			db.select({ count: sql<number>`count(*)::int` }).from(botSagas),
 			db.select({ count: sql<number>`count(*)::int` }).from(botEpisodes),
 			db.select({ count: sql<number>`count(*)::int` }).from(botMovies),
 			db.select({ count: sql<number>`count(*)::int` }).from(botCharacters),
 			db.select({ count: sql<number>`count(*)::int` }).from(botPlanets),
 			db.select({ count: sql<number>`count(*)::int` }).from(botMangaChapters),
+			db.select({ count: sql<number>`count(*)::int` }).from(botDatabooks),
 		]);
 		return {
 			sagas: sagas[0]?.count ?? 0,
@@ -81,6 +83,7 @@ async function getWikiCounts() {
 			characters: characters[0]?.count ?? 0,
 			planets: planets[0]?.count ?? 0,
 			chapters: chapters[0]?.count ?? 0,
+			databooks: databooks[0]?.count ?? 0,
 		};
 	} catch (e) {
 		console.error("Failed to fetch wiki counts:", e);
@@ -91,6 +94,7 @@ async function getWikiCounts() {
 			characters: 0,
 			planets: 0,
 			chapters: 0,
+			databooks: 0,
 		};
 	}
 }

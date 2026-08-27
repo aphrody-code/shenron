@@ -61,6 +61,7 @@ export interface WikiCounts {
 	characters: number;
 	planets: number;
 	chapters: number;
+	databooks: number;
 }
 export interface HomePost {
 	id: string;
@@ -477,13 +478,20 @@ export function HomeExperience({
 				return (
 					<div className="home-grid-stats">
 						{[
-							// href null → tuile non cliquable en bêta (route /wiki fermée) ; le compteur reste.
-							{ k: "characters", label: "Personnages", href: null },
-							{ k: "planets", label: "Cosmologie", href: null },
-							{ k: "sagas", label: "Sagas", href: null },
+							// Toutes les tuiles mènent à leur rubrique. Les trois premières
+							// portaient `href: null` — un reste de la bêta, quand ces routes
+							// répondaient 307 : elles affichaient un compteur qu'on ne pouvait
+							// pas suivre. Le wiki est ouvert depuis, et `ClientGatedWrap`
+							// arbitre au cas où une rubrique serait refermée.
+							{ k: "characters", label: "Personnages", href: "/wiki/personnages" },
+							{ k: "planets", label: "Cosmologie", href: "/wiki/cosmologie" },
+							{ k: "sagas", label: "Sagas", href: "/wiki/sagas" },
 							{ k: "episodes", label: "Épisodes", href: "/wiki/episodes" },
 							{ k: "movies", label: "Films", href: "/wiki/films" },
 							{ k: "chapters", label: "Chapitres", href: "/wiki/manga" },
+							// Les databooks manquaient à l'appel : 318 ouvrages et 11 778
+							// planches transcrites, la matière la plus rare du site.
+							{ k: "databooks", label: "Databooks", href: "/wiki/databooks" },
 						].map((t) => {
 							const inner = (
 								<>

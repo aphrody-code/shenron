@@ -1916,30 +1916,32 @@ main:focus {
 .home-wordmark span {
 	white-space: nowrap;
 }
+/* Titre en APLAT blanc, plus en dégradé.
+   Relevé sur les couvertures officielles (cf. DESIGN.md, « Ce que montre une
+   illustration de Toriyama ») : le support ne contient aucun dégradé, le
+   modelé s'y fait par un second ton de la même couleur. Un titre fondu du
+   blanc vers l'accent, posé sur une photo elle-même dégradée, perd en plus sa
+   lisibilité dans sa moitié basse — précisément là où le mot se termine. */
 .home-wordmark span {
-	/* Palier intermédiaire dérivé de l'accent (et non un beige fixe) : sur un
-	   accent froid, le dégradé passait par un jaune qui n'appartenait à rien. */
-	background: linear-gradient(
-		180deg,
-		#fff 30%,
-		color-mix(in oklab, var(--accent) 45%, #fff) 70%,
-		var(--accent)
-	);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.6));
+	color: #fff;
+	/* L'ombre portée reste : c'est elle qui détache le titre du fond
+	   photographique, et elle ne colore rien. */
+	filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.75));
 }
+/* « France » en SERIF capitales espacées — la structure exacte des couvertures
+   Daizenshuu : titre en grotesque ultra-gras, sous-titre en serif capitales
+   (« DRAGON BALL 大全集 » puis « WORLD GUIDE »). Le contraste de familles fait
+   le travail que faisait le dégradé, sans rien sacrifier à la lisibilité. */
 .home-wordmark em {
+	font-family: var(--font-serif-src), Georgia, serif;
 	font-style: normal;
-	font-weight: 800;
-	letter-spacing: 0.02em;
-	font-size: 0.42em;
+	font-weight: 600;
+	letter-spacing: 0.16em;
+	font-size: 0.3em;
 	color: var(--accent);
 	-webkit-text-stroke: 0;
-	text-shadow: 0 0 26px color-mix(in oklab, var(--accent) 55%, transparent);
-	margin-top: 0.15em;
-	padding-left: 0.1em;
+	margin-top: 0.4em;
+	padding-left: 0.12em;
 }
 .home-lede {
 	margin-top: 1.6rem;

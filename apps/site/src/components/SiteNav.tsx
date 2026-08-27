@@ -150,11 +150,32 @@ export async function SiteNav() {
 					    reste dans le menu mobile, où il n'y a pas de wordmark cliquable
 					    aussi évident. */}
 					<NavMega label="Univers" items={univers} linkClass={linkClass} />
-					{oeuvres.map((l) => (
-						<Link key={l.href} href={l.href} className={linkClass}>
-							{l.label}
-						</Link>
-					))}
+
+					{/* Les six supports en lien direct — à partir de 1280 px SEULEMENT.
+					    En dessous, ils ne tenaient pas : mesuré à 1024 px, « Databooks »,
+					    « Jeux » et « Plus » passaient SOUS le bouton de recherche, texte
+					    par-dessus texte. Une barre qui déborde n'est pas un détail
+					    esthétique, elle rend ses derniers liens illisibles et
+					    incliquables. */}
+					<span className="hidden items-center gap-0.5 xl:flex">
+						{oeuvres.map((l) => (
+							<Link key={l.href} href={l.href} className={linkClass}>
+								{l.label}
+							</Link>
+						))}
+					</span>
+
+					{/* Sous 1280 px, les mêmes supports passent dans un déroulant. Ce
+					    n'est pas un doublon de contenu : les deux formes s'excluent au
+					    pixel près, seule celle qui tient est rendue. */}
+					<span className="flex items-center xl:hidden">
+						<NavMega
+							label="Œuvres"
+							items={oeuvres.map((l) => ({ href: l.href, label: l.label }))}
+							linkClass={linkClass}
+						/>
+					</span>
+
 					{moreWiki.length > 0 && <NavMore links={moreWiki} label="Plus" hint="Autres sections" />}
 					{STATIC_PUBLIC_TAIL.map((l) => (
 						<Link key={l.href} href={l.href} className={linkClass}>
