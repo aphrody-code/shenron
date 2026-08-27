@@ -19,6 +19,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { GatedWrap } from "@/components/GatedLink";
+import { PWS_GROUP_PRESETS } from "@/lib/wiki-fields";
+import { sectionSlug } from "@/lib/wiki-article-sections";
 import { cache, type ReactNode } from "react";
 import type { Person, WithContext } from "schema-dts";
 import type { SectionAccent } from "@/lib/wiki-section-accents";
@@ -399,6 +401,27 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 							const t = (v ?? "").trim();
 							return t && !/^[?？\-—–.\s]+$/.test(t) ? t : null;
 						};
+						/**
+						 * Une stat qui porte le nom d'une rubrique PWS est un DOUBLON :
+						 * la fiche affichait « Vitesse : Super-lumineuse » en case, et
+						 * juste en dessous les onglets « Vitesse de Combat » et « Vitesse
+						 * de Déplacement » du groupe Powerscaling. Deux endroits pour la
+						 * même notion, dont un qui n'a pas de place pour la nuancer.
+						 * La rubrique PWS gagne : elle est éditable, sourçable et ouverte
+						 * à la contribution, là où la case ne tient qu'un mot.
+						 */
+						const rubriquesPws = new Set(
+							PWS_GROUP_PRESETS.flatMap((p) => [sectionSlug(p.label), p.key])
+						);
+						const doublonPws = (label: string) => {
+							const slug = sectionSlug(label);
+							if (rubriquesPws.has(slug)) return true;
+							// « Vitesse » ↔ « Vitesse de Combat » : la case porte le terme
+							// générique, la rubrique le précise. Le préfixe suffit à les
+							// rapprocher, et l'inverse est vrai aussi.
+							return [...rubriquesPws].some((r) => r.startsWith(slug) || slug.startsWith(r));
+						};
+
 						const cases: Array<{ label: string; value: string; accent: string }> = [];
 						const ki = utile(character.ki);
 						if (ki) cases.push({ label: "Ki", value: ki, accent: "text-dbz-orange" });
@@ -406,7 +429,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 						if (maxKi) cases.push({ label: "Ki maximum", value: maxKi, accent: "text-dbz-red" });
 						for (const st of character.stats ?? []) {
 							const v = utile(st.value);
-							if (v) cases.push({ label: st.label || "Stat", value: v, accent: "text-dbz-blue-light" });
+							const label = st.label || "Stat";
+							if (!v || doublonPws(label)) continue;
+							cases.push({ label, value: v, accent: "text-dbz-blue-light" });
 						}
 						if (cases.length === 0) return null;
 						return (
