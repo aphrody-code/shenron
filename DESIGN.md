@@ -404,6 +404,35 @@ planches :
   `DRAGON BALL 大全集`). Le contraste sans/serif de ce document n'est pas une
   importation de la presse occidentale : il est déjà sur la couverture.
 
+### Ce que montre une illustration de Toriyama
+
+Relevé sur les planches de l'*Illustration Book* et du Daizenshuu 1 (nos scans,
+`bot.db_databooks`) plutôt que sur une galerie en ligne — les deux références
+d'artwork envoyées le 2026-08-27 sont des galeries sans texte, et X comme
+Instagram exigent une session : rien à en tirer d'exploitable.
+
+- **Fond blanc, sujets détourés.** Pas de décor. L'ombre au sol est un lavis
+  bleu très pâle sous les pieds, jamais une ombre portée dure. Corollaire pour
+  nous : un portrait recadré en `object-cover` sur fond noir trahit le support
+  ; un détourage sur fond clair lui est fidèle.
+- **Aplats saturés, aucun dégradé.** Le modelé se fait par un **second ton plus
+  foncé de la même couleur** (les hachures sur les épaulettes de Piccolo), pas
+  par un fondu. C'est l'argument le plus direct contre l'empilement de
+  dégradés dans l'interface : le support n'en contient aucun.
+- **Contour noir d'épaisseur variable** — épais sur la silhouette extérieure,
+  fin à l'intérieur. C'est lui qui porte le relief. Transposé : une bordure
+  peut être plus franche sur l'élément actif que sur les autres, au lieu du
+  1 px uniforme partout.
+- **Composition pyramidale** : le héros au centre en bas, l'antagoniste en
+  grand derrière, les secondaires de part et d'autre. L'échelle dit la
+  hiérarchie narrative — elle n'est jamais décorative.
+- **Le logo est dessiné, pas composé** : lettres à contour épais remplies en
+  alternance rouge/bleu, légèrement irrégulières. Ne jamais essayer de le
+  reproduire avec une police.
+- **La référence est en corps 6, en bas.** « 87-16 1987年 WJ49号 » dans l'angle,
+  et le numéro de page en gras dans l'autre. Même discipline que le *Daijiten* :
+  la source accompagne l'image, sans jamais lui disputer la place.
+
 Les pages de dictionnaire, elles, sont en **noir et blanc intégral** : la
 densité et les repères font tout le travail, sans une seule couleur. Sur une
 page de définitions, la couleur n'apporte rien qu'un filet ne fasse mieux.
