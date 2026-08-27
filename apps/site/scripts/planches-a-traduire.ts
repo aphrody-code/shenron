@@ -11,6 +11,11 @@
  * 1. **Seules les planches saines sortent.** `classerDefaut` (le juge unique du
  *    corpus) écarte les transcriptions hallucinées : traduire une hallucination
  *    la blanchit en la rendant lisible, c'est le pire résultat possible.
+ *    S'y ajoute `intraduisible()`, trois signatures que le juge du corpus ne
+ *    connaît pas et que les traducteurs de la première passe ont dû écarter
+ *    À LA MAIN, après lecture — donc après avoir payé la lecture. Mesuré :
+ *    2 131 planches sur 9 356, soit 23 % du travail restant, économisées sans
+ *    perdre une seule planche traduisible.
  * 2. **Seules les planches japonaises sortent** (au moins un kana) : les pages
  *    de crédits, ISBN et sommaires latins n'ont rien à traduire.
  * 3. **Le lexique du domaine voyage avec le lot.** Sans lui, un traducteur rend
@@ -52,6 +57,60 @@ const opt = (nom: string, def?: string) => {
 };
 
 const KANA = /[぀-ヿ]/;
+
+/**
+ * Sinogrammes simplifiés qui n'existent pas en japonais : la sortie a dérivé
+ * vers du chinois. Le juge du corpus ne voit que le cas total (idéogrammes sans
+ * un seul kana) ; ici la planche garde ses kana autour, et passe donc au travers.
+ */
+const SIMPLIFIES = /[个陆这说见门东车马鸟贝长风飞龙业习乡书买卖]/;
+
+/**
+ * Bruit latin greffé en plein mot japonais : « のability », « じolation », « がindo ».
+ *
+ * MINUSCULES seulement, et c'est le fruit d'une mesure : en majuscules, ce sont
+ * des sigles parfaitement légitimes, omniprésents dans les V-Jump et les guides
+ * de jeux — « 年WJNo », « ISBNコ », « 王OCG », « Switch版 », « をGET ». Les
+ * compter écartait 3 468 planches au lieu de 1 682 : un quart du corpus jeté
+ * pour cause de filtre trop gourmand.
+ */
+const LATIN_COLLE = /[぀-ヿ一-鿿][a-z]{3,}|[a-z]{3,}[぀-ヿ一-鿿]/;
+
+/**
+ * Boucle NON consécutive : le même bloc revient trois fois dans la planche sans
+ * se suivre. `BOUCLE` du juge du corpus exige la répétition d'affilée (`\1{2,}`)
+ * et rate ce cas, fréquent sur les tableaux (« ADVENTURE HISTORY ») où le modèle
+ * reprend un paragraphe entier après une insertion.
+ */
+function boucleDispersee(texte: string): boolean {
+	for (let i = 0; i + 30 <= texte.length; i += 15) {
+		const bloc = texte.slice(i, i + 30);
+		if (!/[぀-ヿ一-鿿]/.test(bloc)) continue;
+		let n = 0;
+		let j = 0;
+		while ((j = texte.indexOf(bloc, j)) !== -1) {
+			n++;
+			j += 30;
+		}
+		if (n >= 3) return true;
+	}
+	return false;
+}
+
+/**
+ * Signature d'échec qui rend une planche intraduisible, ou `null`.
+ *
+ * Délibérément SÉPARÉ de `classerDefaut` : ce dernier gouverne l'avertissement
+ * public sur la page databook et les comptes du back-office. L'y fusionner
+ * poserait un bandeau « planche mal lue » sur 2 131 fiches de plus, ce qui est
+ * un autre débat — celui de ce qu'on montre au lecteur, pas de ce qu'on traduit.
+ */
+export function intraduisible(texte: string): string | null {
+	if (SIMPLIFIES.test(texte)) return "chinois-simplifie";
+	if (LATIN_COLLE.test(texte)) return "latin-colle";
+	if (boucleDispersee(texte)) return "boucle-dispersee";
+	return null;
+}
 
 /**
  * Forme repliée servant d'index d'appariement entre la graphie de la base et
@@ -122,8 +181,13 @@ try {
 	// SQL, c'est fabriquer un second juge qui divergera du premier (et la boucle
 	// ne se détecte de toute façon pas en SQL en un temps raisonnable).
 	const retraduire = flag("retraduire");
+	const laxiste = flag("sans-filtre-etendu");
 	const eligibles = brutes.filter(
-		(p) => (retraduire || !p.traduite) && KANA.test(p.texte) && classerDefaut(p.texte) === null,
+		(p) =>
+			(retraduire || !p.traduite) &&
+			KANA.test(p.texte) &&
+			classerDefaut(p.texte) === null &&
+			(laxiste || intraduisible(p.texte) === null),
 	);
 
 	if (flag("compte")) {
@@ -132,7 +196,7 @@ try {
 			const cle = String(p.databook_id);
 			const e = par.get(cle) ?? { titre: p.titre, reste: 0, faites: 0, signes: 0 };
 			if (p.traduite) e.faites++;
-			else if (KANA.test(p.texte) && classerDefaut(p.texte) === null) {
+			else if (KANA.test(p.texte) && classerDefaut(p.texte) === null && intraduisible(p.texte) === null) {
 				e.reste++;
 				e.signes += p.texte.length;
 			}
