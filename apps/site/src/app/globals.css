@@ -146,21 +146,33 @@ main:focus {
 	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
 	   déclarés en tokens — avec leur valeur historique en défaut, donc rendu
 	   inchangé — pour que /admin/design les pilote comme le reste. */
-	--color-dbz-ember: var(--dbz-ember, #ff6b1a); /* orange braise (halos, sunburst) */
+	/* `ember` = la braise des halos, des ombres portées et de la surbrillance
+	   (29 usages). Son défaut suit désormais l'ACCENT du thème au lieu d'un
+	   orange écrit en dur : sur un thème bleu, tous ces halos restaient orange
+	   et l'interface portait deux familles de couleur à la fois. Poser
+	   `--dbz-ember` dans le thème rétablit une braise indépendante. */
+	--color-dbz-ember: var(--dbz-ember, var(--color-dbz-orange));
 	--color-dbz-ki: var(--dbz-ki, #4ba8ff); /* bleu ki (LED, glows, planètes) */
 	--color-dbz-amber: var(--dbz-amber, #ffd23f); /* ambre (dégradés, texte ghost) */
 
-	/* Gradients réutilisables */
+	/* Gradients réutilisables.
+	   `galactic` dérive de la couleur d'accent du thème, et non plus d'un
+	   orange/ambre écrit en dur : le thème est éditable au runtime
+	   (/admin/design), et un bouton resté orange à côté d'une interface bleue
+	   n'est pas une variante, c'est une incohérence. Les bornes sont calculées
+	   par `color-mix` pour garder le relief du dégradé quel que soit l'accent. */
 	--gradient-galactic: linear-gradient(
 		135deg,
-		var(--color-dbz-ember) 0%,
-		var(--color-dbz-amber) 50%,
-		#ff3e00 100%
+		color-mix(in srgb, var(--color-dbz-orange) 88%, #000) 0%,
+		var(--color-dbz-orange) 50%,
+		color-mix(in srgb, var(--color-dbz-orange) 78%, #000) 100%
 	);
+	/* Nappe de fond : suit aussi l'accent, sinon le halo haut de page reste
+	   orange sur un site bleu. */
 	--gradient-nebula:
 		radial-gradient(
 			ellipse 130% 70% at 50% 0%,
-			color-mix(in srgb, var(--color-dbz-ember) 22%, transparent),
+			color-mix(in srgb, var(--color-dbz-orange) 18%, transparent),
 			transparent 62%
 		),
 		radial-gradient(

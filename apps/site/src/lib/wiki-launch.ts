@@ -439,8 +439,10 @@ export type AccessSnapshot = {
  * `proxy.ts`), ailleurs la page est publique (accueil, à propos, crédits…).
  */
 export function isPathPublic(pathname: string, cfg: AccessSnapshot): boolean {
+	// `/wiki` exactement = le sommaire, public (cf. `proxy.ts`, même règle).
+	if (pathname === "/wiki") return true;
 	const entry = findEntry(pathname);
-	if (!entry) return !(pathname === "/wiki" || pathname.startsWith("/wiki/"));
+	if (!entry) return !pathname.startsWith("/wiki/");
 	return resolveAccess(entry.key, cfg).mode === "public";
 }
 

@@ -65,7 +65,9 @@ describe("isPathPublic", () => {
 		// Politique identique à celle du proxy : un segment /wiki inconnu est
 		// fermé, une page hors wiki est publique.
 		expect(isPathPublic("/wiki/segment-inconnu", EMPTY)).toBe(false);
-		expect(isPathPublic("/wiki", EMPTY)).toBe(false);
+		// `/wiki` exactement fait exception : c'est le sommaire (cf. le describe
+		// « sommaire /wiki » plus bas).
+		expect(isPathPublic("/wiki", EMPTY)).toBe(true);
 		expect(isPathPublic("/credits", EMPTY)).toBe(true);
 		expect(isPathPublic("/", EMPTY)).toBe(true);
 	});
@@ -97,5 +99,27 @@ describe("publicEntries", () => {
 		const keys = publicEntries(EMPTY).map((e) => e.key);
 		for (const k of ALWAYS_OPEN_KEYS) expect(keys).toContain(k);
 		expect(keys).not.toContain("personnages");
+	});
+});
+
+describe("sommaire /wiki", () => {
+	const ferme = { openKeys: [], access: {} };
+
+	test("le sommaire est public même quand toutes les rubriques sont fermées", () => {
+		// Il ne montre que des liens vers des rubriques gardées chacune par la
+		// sienne : le fermer renvoyait tout le monde vers le teaser.
+		expect(isPathPublic("/wiki", ferme)).toBe(true);
+	});
+
+	test("mais il n'ouvre PAS ses enfants", () => {
+		// Le piège d'une entrée de registre avec le préfixe `/wiki` : elle
+		// capterait `/wiki/n-importe-quoi` par `startsWith`.
+		expect(isPathPublic("/wiki/personnages", ferme)).toBe(false);
+		expect(isPathPublic("/wiki/segment-inconnu", ferme)).toBe(false);
+	});
+
+	test("hors /wiki, une page sans entrée reste publique", () => {
+		expect(isPathPublic("/credits", ferme)).toBe(true);
+		expect(isPathPublic("/wikipedia-like", ferme)).toBe(true);
 	});
 });

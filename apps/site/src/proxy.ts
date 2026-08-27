@@ -121,7 +121,14 @@ export async function proxy(request: NextRequest) {
 	// /admin/lancement. Le code des pages reste intact — seul l'accès est arbitré
 	// ici. Le staff traverse tout.
 	const entry = findEntry(pathname);
-	const isWiki = pathname === "/wiki" || pathname.startsWith("/wiki/");
+	// `/wiki` EXACTEMENT — le sommaire de l'encyclopédie — est public. Il n'a pas
+	// d'entrée au registre (une entrée de préfixe `/wiki` ouvrirait aussi tous
+	// ses enfants, y compris les rubriques fermées), et retombait donc sur la
+	// règle « hors registre sous /wiki ⇒ fermé » : la page d'accueil du wiki
+	// renvoyait tout le monde sur le teaser « En préparation », alors qu'elle ne
+	// fait que lister des rubriques dont chacune est déjà gardée par la sienne.
+	if (pathname === "/wiki") return NextResponse.next();
+	const isWiki = pathname.startsWith("/wiki/");
 
 	// Hors registre : sous /wiki (segment inconnu ou futur) on ferme par défaut,
 	// partout ailleurs la page est publique (accueil, à propos, crédits…).
