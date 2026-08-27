@@ -35,6 +35,7 @@ import "swiper/css/zoom";
 import "swiper/css/virtual";
 
 import { assetUrl } from "@/lib/assets";
+import { useReglages } from "@/lib/use-capacites";
 import { useFocusTrap } from "@/lib/use-focus-trap";
 import { optimizedSrc, optimizedSrcSet } from "@/lib/images";
 
@@ -165,16 +166,19 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 
 	/* ------------------------------ Vertical ------------------------------ */
 
+	const { prechargement } = useReglages();
 	const scrollParentRef = useRef<HTMLDivElement>(null);
 	const virtualizer = useVirtualizer({
 		count: total,
 		getScrollElement: () => scrollParentRef.current,
 		estimateSize: () =>
 			typeof window === "undefined" ? 1100 : Math.round(window.innerHeight * 0.95),
-		// 4 planches de marge (contre 2) : c'est ce qui rend le défilement
-		// continu sur un scan de 1 à 2 Mo — le temps qu'une planche arrive à
-		// l'écran, son image a déjà commencé à charger.
-		overscan: 4,
+		// Marge de préchargement réglée sur les capacités : 4 planches rendent le
+		// défilement continu sur un scan de 1 à 2 Mo, mais les précharger sur un
+		// mobile en 2G dépense des données pour des pages qu'on ne verra
+		// peut-être jamais. `prechargement` vaut 1 sur réseau lent, 6 sur une
+		// machine confortable.
+		overscan: Math.max(2, prechargement),
 	});
 
 	const goTo = useCallback(

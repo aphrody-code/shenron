@@ -18,6 +18,7 @@
  */
 import { Film, ImageIcon, Pause, Play } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useReglages } from "@/lib/use-capacites";
 import { assetUrl } from "@/lib/assets";
 import { youtubeEmbedUrl, youtubeThumbUrl } from "@/lib/youtube";
 
@@ -93,14 +94,15 @@ function Galerie({
 	const suspendu = useRef(false);
 	const current = items[Math.min(active, Math.max(0, items.length - 1))];
 
+	// `lectureAuto` porte à la fois le choix de l'utilisateur
+	// (`prefers-reduced-motion`) et l'état de sa machine et de sa connexion :
+	// faire défiler des images toutes les 5 s sur un mobile en 2G dépense des
+	// données pour un carrousel que personne n'a demandé.
+	const { lectureAuto } = useReglages();
 	useEffect(() => {
 		if (!autoplay) return;
-		const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-		const appliquer = () => setEnMarche(!mq.matches);
-		appliquer();
-		mq.addEventListener("change", appliquer);
-		return () => mq.removeEventListener("change", appliquer);
-	}, [autoplay]);
+		setEnMarche(lectureAuto);
+	}, [autoplay, lectureAuto]);
 
 	useEffect(() => {
 		if (!autoplay || enMarche !== true) return;
