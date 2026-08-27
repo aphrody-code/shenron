@@ -391,10 +391,22 @@ planches :
   d'une liste ou d'un sommaire (le « ④ » orange de la couverture *World
   Guide*, les ❶…❼ blancs sur rouge de l'obi du volume 5). C'est la signature
   de numérotation de la collection.
+- **La référence en fin d'entrée** — chaque définition du *Daijiten*
+  (Daizenshuu 7) se termine par sa source entre parenthèses et en petit :
+  「(大全集3・P122)」. Un dictionnaire de 313 pages cite au paragraphe, pas en
+  bibliographie de fin. C'est le rendu que doit viser la règle « citer ses
+  sources » du wiki.
+- **Le marqueur de rubrique** — un tag court dans un cadre (【特】 pour les
+  caractéristiques) ouvre un segment à l'intérieur d'une entrée. Nos h4 en
+  petites capitales grises jouent ce rôle.
 - **Le triple niveau de titre serré** — sur-titre minuscule, titre en
   grotesque très gras, sous-titre en **serif capitales** (`WORLD GUIDE` sous
   `DRAGON BALL 大全集`). Le contraste sans/serif de ce document n'est pas une
   importation de la presse occidentale : il est déjà sur la couverture.
+
+Les pages de dictionnaire, elles, sont en **noir et blanc intégral** : la
+densité et les repères font tout le travail, sans une seule couleur. Sur une
+page de définitions, la couleur n'apporte rien qu'un filet ne fasse mieux.
 
 Ce qui ne se transpose pas : le fond. Le support officiel est clair, le site
 est sombre — cette identité-là vient des vitrines actuelles des ayants droit

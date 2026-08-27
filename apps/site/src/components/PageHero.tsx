@@ -103,7 +103,7 @@ export function PageHero({
 									// blanc. Les capitales dorées d'un hero sur photo servent à
 									// tenir la lisibilité par-dessus l'image ; sans image elles
 									// ne font que crier.
-									"font-display font-semibold text-[42px] md:text-[56px] leading-[1.05] tracking-[-0.02em] text-white mb-4 text-balance"
+									"font-serif font-semibold text-[42px] md:text-[56px] leading-[1.05] tracking-[-0.02em] text-white mb-4 text-balance"
 						}
 					>
 						{title}

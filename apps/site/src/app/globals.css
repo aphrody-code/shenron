@@ -99,10 +99,13 @@ main:focus {
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);
 	--font-sans: var(--font-sans);
-	/* Display = Newsreader (serif éditoriale). Le contraste serif/sans est ce qui
-     distingue un article d'un formulaire : les titres portent la voix, le corps
-     reste en Google Sans Flex pour la densité d'information. */
-	--font-display: var(--font-serif-src), Georgia, "Times New Roman", serif;
+	/* `font-display` reste le SANS. Il porte 286 usages, dont la nav, les
+     boutons et les libellés de carte : y brancher la serif l'a fait déborder
+     sur toute l'interface — une barre de navigation en serif se lit moins vite
+     et ne ressemble à rien. La serif s'applique explicitement, via
+     `font-serif`, là où il y a une voix éditoriale : h1/h2 de page et de
+     contenu wiki. */
+	--font-display: var(--font-sans);
 	--font-serif: var(--font-serif-src), Georgia, "Times New Roman", serif;
 	--font-mono: var(--font-mono-src), ui-monospace, "SF Mono", monospace;
 	--font-jp: var(--font-jp);
@@ -254,12 +257,19 @@ main:focus {
 	h4,
 	h5,
 	h6 {
-		/* Titres en Newsreader (serif éditoriale). 600 et non 700 : le contraste
-       serif/sans porte déjà la hiérarchie, un gras plein alourdit la page.
-       SaiyanSans reste dispo via `.font-saiyan` pour les accents de marque. */
+		/* h1/h2 en Newsreader (serif éditoriale), h3→h6 en sans : deux registres
+       suffisent, et les niveaux profonds servent surtout à structurer de
+       l'interface. 600 et non 700 — le contraste serif/sans porte déjà la
+       hiérarchie, un gras plein alourdit la page. SaiyanSans reste dispo via
+       `.font-saiyan` pour les accents de marque. */
 		@apply font-display font-semibold;
 		letter-spacing: -0.015em;
 		color: #f0f0ff;
+	}
+	h1,
+	h2 {
+		@apply font-serif;
+		letter-spacing: -0.02em;
 	}
 	::selection {
 		background: color-mix(in srgb, var(--color-dbz-ember) 40%, transparent);
