@@ -458,13 +458,14 @@ export async function getShenronShop(): Promise<ShenronShopItem[]> {
 
 export async function getShenronLeaderboard(
 	limit = 100,
-	enrich = true
+	enrich = true,
+	revalidateSec = 60
 ): Promise<LeaderboardEntry[]> {
 	try {
 		const res = await fetch(
 			`${SHENRON_API_URL}/api/public/leaderboard?limit=${limit}${enrich ? "&enrich=1" : ""}`,
 			{
-				next: { revalidate: 60 },
+				next: { revalidate: revalidateSec },
 			}
 		);
 		if (!res.ok) return [];
@@ -480,10 +481,10 @@ export async function getShenronLeaderboard(
  * Présence live du serveur (compteur en ligne + échantillon de membres) pour le
  * widget « connectés » de la home. Dégradation gracieuse en `{0,0,[]}`.
  */
-export async function getShenronPresence(): Promise<ShenronPresence> {
+export async function getShenronPresence(revalidateSec = 30): Promise<ShenronPresence> {
 	try {
 		const res = await fetch(`${SHENRON_API_URL}/api/public/presence`, {
-			next: { revalidate: 30 },
+			next: { revalidate: revalidateSec },
 		});
 		if (!res.ok) return { total: 0, online: 0, members: [] };
 		const d = await res.json();
@@ -1203,7 +1204,17 @@ export interface ShenronStats {
 	inventoryItems: number;
 }
 
-export async function getShenronStats(): Promise<ShenronStats> {
+/**
+ * Statistiques du bot.
+ *
+ * `revalidateSec` est un PARAMÈTRE parce que la fraîcheur utile dépend de la
+ * page : sur `/stats` elle est le sujet, sur l'accueil elle est remplacée par
+ * le suivi temps réel dès l'hydratation. Et en Next, le `revalidate` le plus
+ * court d'une route l'emporte sur tous les autres — un `fetch` à 30 s ici
+ * annulait silencieusement le `revalidate = 900` déclaré par la page d'accueil,
+ * qui continuait donc à se régénérer toutes les 30 secondes.
+ */
+export async function getShenronStats(revalidateSec = 30): Promise<ShenronStats> {
 	const fallback: ShenronStats = {
 		users: 0,
 		totalXp: 0,
@@ -1214,7 +1225,7 @@ export async function getShenronStats(): Promise<ShenronStats> {
 	};
 	try {
 		const res = await fetch(`${SHENRON_API_URL}/api/public/stats`, {
-			next: { revalidate: 30 },
+			next: { revalidate: revalidateSec },
 		});
 		if (!res.ok) return fallback;
 		return { ...fallback, ...(await res.json()) };
@@ -1223,10 +1234,10 @@ export async function getShenronStats(): Promise<ShenronStats> {
 	}
 }
 
-export async function getShenronPersonas(): Promise<PersonaInfo[]> {
+export async function getShenronPersonas(revalidateSec = 30): Promise<PersonaInfo[]> {
 	try {
 		const res = await fetch(`${SHENRON_API_URL}/api/public/personas`, {
-			next: { revalidate: 30 },
+			next: { revalidate: revalidateSec },
 		});
 		if (!res.ok) return [];
 		const data = await res.json();

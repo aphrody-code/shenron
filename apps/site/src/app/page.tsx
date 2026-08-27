@@ -148,15 +148,17 @@ export default async function Home() {
 		access,
 	] = await Promise.all([
 		getLatestPosts().catch(() => [] as Awaited<ReturnType<typeof getLatestPosts>>),
-		getShenronPersonas().catch(() => []),
-		getShenronStats(),
+		getShenronPersonas(900).catch(() => []),
+		// 15 min : ces valeurs ne servent qu'à peupler le premier rendu, le suivi
+		// temps réel les remplace dès l'hydratation.
+		getShenronStats(900),
 		getWikiCounts(),
 		getFeaturedCharacters(),
 		getSagas(),
 		getSagaBestOf(),
 		getCommunityTops(),
-		getShenronLeaderboard(12, true).catch(() => []),
-		getShenronPresence().catch(() => ({ total: 0, online: 0, members: [] })),
+		getShenronLeaderboard(12, true, 900).catch(() => []),
+		getShenronPresence(900).catch(() => ({ total: 0, online: 0, members: [] })),
 		getHomeConfig(),
 		// Instantané de la configuration de lancement : le deck est un composant
 		// client et ne peut pas le lire. Sans lui, l'accueil publie des liens vers
