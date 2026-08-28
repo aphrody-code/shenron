@@ -68,7 +68,7 @@ export default async function SagasPage() {
 				image={await pageHero("sagas")}
 				imageAlt="Bannière officielle Dragon Ball"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				<Breadcrumbs className="mb-10" items={[{ label: "Sagas & arcs" }]} />
 				{bySeries.map((g) => (
 					<section key={g.key} className="mb-16">

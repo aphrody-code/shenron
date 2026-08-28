@@ -75,7 +75,7 @@ export default async function PersonnagesPage() {
 				title="Personnages"
 				lead={`${characters.length} fiches, des héros du récit aux figures d'un seul chapitre.`}
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-16 reveal-up">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-16 reveal-up">
 				<Breadcrumbs className="mb-8" items={[{ label: "Personnages" }]} />
 				<UniverseTabs
 					access={access}

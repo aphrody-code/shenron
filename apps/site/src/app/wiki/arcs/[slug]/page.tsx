@@ -59,7 +59,7 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 		ficheVide && episodes.length === 0 && !!saga && (sagaVolumes.length > 0 || sagaEpisodes.length > 0);
 
 	return (
-		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<div className="w-full mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<Breadcrumbs
 				className="mb-12"
 				items={[
@@ -202,7 +202,7 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 									<Link
 										key={v.id}
 										href={`/wiki/manga/volume/${v.id}`}
-										className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3.5 py-1.5 text-[13px] font-display font-semibold text-white/80 transition-colors hover:border-dbz-orange/60 hover:text-white"
+										className="inline-flex min-h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] px-4 py-2.5 text-[13px] font-display font-semibold text-white/80 transition-colors hover:border-dbz-orange/60 hover:text-white"
 									>
 										Tome {v.volume_number}
 									</Link>
@@ -222,7 +222,7 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 										key={ep.id}
 										href={`/wiki/episodes/${ep.id}`}
 										title={ep.title}
-										className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-[13px] font-display font-semibold text-white/70 transition-colors hover:border-dbz-orange/60 hover:text-white"
+										className="inline-flex min-h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] px-4 py-2.5 text-[13px] font-display font-semibold text-white/70 transition-colors hover:border-dbz-orange/60 hover:text-white"
 									>
 										#{ep.number_in_series}
 									</Link>

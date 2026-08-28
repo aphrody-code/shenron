@@ -32,7 +32,11 @@ export function DiscordInviteFAB() {
 					type="button"
 					onClick={handleDismiss}
 					aria-label="Fermer"
-					className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-dbz-bg border border-dbz-border hover:border-fuchsia-400 text-white/70 hover:text-white flex items-center justify-center text-xs leading-none transition-colors z-10"
+					// Le carré visible reste petit (24 px, pour ne pas manger la pastille),
+					// mais la ZONE TACTILE fait 44 px via un pseudo-élément : c'était le
+					// plus petit contrôle du site, et fermer une pastille flottante au
+					// pouce relevait de la chance.
+					className="cible-44 absolute -top-2 -right-2 w-6 h-6 rounded-full bg-dbz-bg border border-dbz-border hover:border-fuchsia-400 text-white/70 hover:text-white flex items-center justify-center text-xs leading-none transition-colors z-10"
 				>
 					×
 				</button>

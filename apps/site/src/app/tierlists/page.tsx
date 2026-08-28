@@ -25,7 +25,7 @@ export default async function TierlistsPage() {
 	);
 
 	return (
-		<div className="container mx-auto max-w-5xl px-4 py-12">
+		<div className="container w-full mx-auto max-w-5xl px-4 py-12">
 			<PageHeader
 				title="TIERLISTS"
 				subtitle="Classe l'univers Dragon Ball — créées et partagées par la communauté"

@@ -41,7 +41,8 @@ export function MobileNav({ links, adminLinks = [] }: Props) {
 				aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
 				aria-expanded={open}
 				onClick={() => setOpen((v) => !v)}
-				className="w-10 h-10 rounded-full hover:bg-white/[0.08] grid place-items-center text-white transition-colors"
+				// 44 px : cible tactile minimale, et c'est LE bouton du menu mobile.
+				className="w-11 h-11 rounded-full hover:bg-white/[0.08] grid place-items-center text-white transition-colors"
 			>
 				<span className="relative block w-5 h-[2px] bg-current">
 					<span

@@ -67,7 +67,7 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
 	};
 
 	return (
-		<div className="mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
+		<div className="w-full mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
 			<JsonLd data={jsonLdData} />
 			<Breadcrumbs
 				className="mb-4"

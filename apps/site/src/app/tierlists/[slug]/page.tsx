@@ -44,7 +44,7 @@ export default async function TierlistPage({ params }: { params: Promise<{ slug:
 	const totalItems = tl.tiers.reduce((n, t) => n + t.items.length, 0);
 
 	return (
-		<div className="container mx-auto max-w-4xl px-4 py-12">
+		<div className="container w-full mx-auto max-w-4xl px-4 py-12">
 			<PageHeader
 				title={tl.title}
 				subtitle={

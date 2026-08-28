@@ -44,7 +44,10 @@ export function UniverseTabs({
 		<div className="space-y-8">
 			<nav
 				aria-label="Entrées de l'encyclopédie"
-				className="flex items-center overflow-x-auto border-b border-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				// `min-w-0` : sans lui, l'enfant `shrink-0` (707 px de contenu) imposait sa
+				// largeur au conteneur malgré `overflow-x-auto`, et c'est toute la page
+				// qui s'étirait à 948 px dans un viewport de 390.
+				className="flex min-w-0 items-center overflow-x-auto border-b border-white/[0.08] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 			>
 				<span className="shrink-0 whitespace-nowrap border-b-2 border-dbz-orange px-5 py-3 font-display text-sm font-semibold text-dbz-orange">
 					Personnages ({characters.length})

@@ -29,7 +29,7 @@ export default async function ToolsPage() {
 				title="Outils & Modding"
 			/>
 
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
 				{Object.entries(categories).map(([key, label]) => {
 					const catTools = tools.filter((t) => t.category === key);
 					if (catTools.length === 0) return null;

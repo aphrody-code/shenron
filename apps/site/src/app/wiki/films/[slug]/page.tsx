@@ -128,7 +128,7 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 	};
 
 	return (
-		<div className="mx-auto max-w-[1180px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<div className="w-full mx-auto max-w-[1180px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<JsonLd data={jsonLdData} />
 			<TrackHistory
 				kind="movie"

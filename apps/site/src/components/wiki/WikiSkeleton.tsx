@@ -79,7 +79,7 @@ export function IndexSkeleton({
 	return (
 		<div>
 			<HeroSkeleton />
-			<div className="mx-auto max-w-[1400px] space-y-8 px-6 py-14 lg:px-10 lg:py-20">
+			<div className="w-full mx-auto max-w-[1400px] space-y-8 px-6 py-14 lg:px-10 lg:py-20">
 				<ToolbarSkeleton />
 				{children ?? <GridSkeleton />}
 			</div>

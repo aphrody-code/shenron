@@ -115,7 +115,7 @@ export default async function SearchPage({
 	const totalResults = summary.reduce((acc, [, , n]) => acc + n, 0);
 
 	return (
-		<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+		<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 			<header className="mb-16">
 				<p className="font-display font-semibold text-[12px] tracking-[0.2em] uppercase text-dbz-orange mb-4">
 					Système de Détection

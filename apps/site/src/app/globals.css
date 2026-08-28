@@ -287,6 +287,89 @@ main:focus {
 		background: color-mix(in srgb, var(--color-dbz-ember) 40%, transparent);
 		color: #fff;
 	}
+
+	/* ── Mobile d'abord : aucun enfant de <main> plus large que l'écran ─────
+	   `#contenu` est un conteneur flex en colonne. Un enfant direct qui porte
+	   `mx-auto` (donc des marges horizontales `auto`) **perd le `stretch`** :
+	   d'après la spec flexbox, une marge auto dans l'axe transverse annule
+	   l'étirement, et la boîte est alors dimensionnée en `fit-content` — c'est-
+	   à-dire aussi large que le veut son contenu le plus large.
+
+	   Sur un écran de bureau, `max-w-[1400px]` masque le problème. Sur mobile,
+	   non : mesuré le 2026-08-28 en viewport 390 px, `/wiki/personnages` rendait
+	   sa page à **948 px** et la fiche `/wiki/personnages/1` à **1200 px**, soit
+	   trois fois l'écran. Le document ne défilait pas horizontalement (une
+	   couche parente clippait), donc aucun contrôle « scrollWidth » ne le
+	   voyait — seule la mesure des boîtes le montre.
+
+	   Le correctif de fond est `w-full` à côté de `mx-auto`, appliqué aux 44
+	   conteneurs de page concernés. Cette règle est la ceinture : elle borne
+	   tout enfant direct de `<main>`, pour que le prochain gabarit écrit sans
+	   `w-full` ne réintroduise pas le défaut en silence. */
+	#contenu > * {
+		max-width: 100%;
+	}
+
+	/* ── Mobile d'abord : aucun champ de saisie sous 16 px ──────────────────
+	   iOS Safari ZOOME la page quand on met le focus sur un champ dont la
+	   police fait moins de 16 px — et il ne dézoome pas ensuite. L'utilisateur
+	   se retrouve avec une page agrandie, décalée, qu'il doit repincer à la
+	   main. C'est le défaut mobile le plus courant, et il ne se voit pas sur
+	   un écran de bureau.
+
+	   Mesuré le 2026-08-28 sur le site en ligne (viewport 390 px, UA iPhone) :
+	   4 champs à 13-14 px sur `/wiki/manga` et `/wiki/chronologie`. Dans le
+	   source, 71 fichiers portent un `<input>`, `<textarea>` ou `<select>` et
+	   **aucun** n'appliquait la règle — le module d'édition la documentait
+	   sans l'imposer.
+
+	   Une règle globale plutôt que 71 corrections : c'est la seule forme qui
+	   protège AUSSI le prochain champ écrit. Elle ne s'applique qu'en dessous
+	   de 768 px, donc les densités choisies pour le bureau (barres d'admin,
+	   filtres compacts) restent intactes. `!important` parce que les utilitaires
+	   Tailwind (`text-sm`, `text-xs`) ont une spécificité égale et gagneraient à
+	   l'ordre de cascade. */
+	@media (max-width: 767px) {
+		input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+				[type="color"]
+			),
+		textarea,
+		select {
+			font-size: 16px !important;
+		}
+	}
+}
+
+
+
+/* ── .cible-44 — élargir la ZONE tactile sans grossir le dessin ────────────
+   Certains contrôles doivent rester petits à l'œil : la croix qui ferme une
+   pastille flottante, une puce de filtre dans une rangée dense. Les faire
+   grandir déséquilibrerait la composition ; les laisser à 24 px les rend
+   inatteignables au pouce.
+
+   Le pseudo-élément étend la surface cliquable à 44 px, centrée sur le
+   contrôle, sans occuper de place dans le flux.
+
+   DANS `@layer components`, pas hors couche : `position: relative` doit pouvoir
+   être écrasé par un utilitaire Tailwind. Le premier usage (la croix du FAB
+   Discord) porte déjà `absolute` — une règle hors couche l'aurait emporté sur
+   l'utilitaire et déplacé le bouton. */
+@layer components {
+	.cible-44 {
+		position: relative;
+	}
+	.cible-44::after {
+		content: "";
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: max(100%, 44px);
+		height: max(100%, 44px);
+		transform: translate(-50%, -50%);
+		/* Ne peint rien, n'intercepte que le toucher. */
+		background: transparent;
+	}
 }
 
 @layer components {

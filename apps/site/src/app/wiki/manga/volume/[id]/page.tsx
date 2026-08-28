@@ -89,7 +89,7 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 	return (
 		<>
 			<JsonLd data={jsonLd} />
-			<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
+			<div className="w-full mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
 				<Breadcrumbs
 					className="mb-12"
 					items={[

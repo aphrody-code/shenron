@@ -54,7 +54,9 @@ export function CommandMenu({ variant = "bar" }: { variant?: "bar" | "icon" } = 
 							// rendue que dans un conteneur `hidden lg:flex`, donc AUCUNE
 							// recherche n'existait sous 1024 px — ni bouton, ni champ, et le
 							// raccourci ⌘K ne veut rien dire sans clavier.
-							"grid h-10 w-10 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+							// 44 px : la cible tactile minimale. En dessous, le doigt rate — et ce
+							// bouton est sur TOUTES les pages. L'icône, elle, ne bouge pas.
+							"grid h-11 w-11 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 						: "group inline-flex items-center gap-2.5 h-9 pl-3 pr-2.5 rounded-full bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 hover:border-dbz-orange/40 text-white/55 hover:text-white/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 				}
 			>

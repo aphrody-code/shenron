@@ -94,7 +94,7 @@ const TECH = [
 
 export default function CreditsPage() {
 	return (
-		<div className="mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
+		<div className="w-full mx-auto max-w-[920px] px-6 lg:px-10 py-16 lg:py-24">
 			<header className="mb-12">
 				<p className="font-display font-semibold text-[12px] tracking-[0.18em] uppercase text-dbz-orange mb-4">
 					Mentions légales

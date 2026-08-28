@@ -64,7 +64,7 @@ export default async function PlanetPage({ params }: { params: Promise<{ id: str
 			data-entity={planet.name}
 			data-source-id="db_planets"
 			data-lang="fr"
-			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
+			className="w-full mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
 		>
 			<JsonLd data={jsonLdData} />
 			<Breadcrumbs

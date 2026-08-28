@@ -11,7 +11,7 @@ export default async function VisibilitePage() {
 	// Le layout /admin gate déjà, mais on re-garde par défense en profondeur.
 	await requireAdmin();
 	return (
-		<div className="mx-auto max-w-[1100px] px-4 py-8 lg:px-8">
+		<div className="w-full mx-auto max-w-[1100px] px-4 py-8 lg:px-8">
 			<AdminHeader
 				title="Visibilité"
 				subtitle="Afficher / masquer chaque entité du wiki sur le site public"

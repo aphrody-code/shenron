@@ -57,7 +57,7 @@ export default async function TransformationPage({
 	if (!t) notFound();
 
 	return (
-		<article className="mx-auto max-w-[1100px] px-6 py-10 lg:px-10 lg:py-14">
+		<article className="w-full mx-auto max-w-[1100px] px-6 py-10 lg:px-10 lg:py-14">
 			<TrackView
 				entityType="technique"
 				entityId={t.id}

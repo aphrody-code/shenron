@@ -47,7 +47,7 @@ export default async function JeuxPage() {
 				image={GAMES_HERO}
 				imageAlt="Jeux Dragon Ball"
 			/>
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				<Breadcrumbs className="mb-8" items={[{ label: "Jeux vidéo" }]} />
 				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
 					{games.map((g) => (

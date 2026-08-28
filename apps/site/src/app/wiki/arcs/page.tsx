@@ -51,7 +51,7 @@ export default async function ArcsPage() {
 				lead={`${arcs.length} arcs à travers ${sagas.length} sagas — la trame complète de Dragon Ball, arc par arc.`}
 			/>
 
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">
 				<Breadcrumbs className="mb-8" items={[{ label: "Arcs narratifs" }]} />
 				<WikiCategoryNav active="arcs" className="mb-12" />
 

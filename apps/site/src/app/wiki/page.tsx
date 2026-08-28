@@ -79,7 +79,7 @@ export default async function WikiIndex() {
 				lead={`${nf.format(total)} entrées écrites sur les tomes du manga et les planches des databooks — personnages, mondes, récits et supports.`}
 			/>
 
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-14 lg:py-20 space-y-16">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-14 lg:py-20 space-y-16">
 				{/* Avant les rubriques : quelqu'un qui revient cherche d'abord où il
 				    s'était arrêté. L'îlot ne rend rien s'il n'a rien à proposer. */}
 				<RepriseLecture />

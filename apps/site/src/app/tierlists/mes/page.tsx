@@ -17,7 +17,7 @@ export default async function MesTierlistsPage() {
 	const lists = me.user ? await listTierlistsByAuthor(me.user.id, 50).catch(() => []) : [];
 
 	return (
-		<div className="container mx-auto max-w-5xl px-4 py-12">
+		<div className="container w-full mx-auto max-w-5xl px-4 py-12">
 			<PageHeader title="MES TIERLISTS" subtitle="Gère et supprime tes classements" />
 			<div className="mb-8 flex justify-center gap-4">
 				<Link

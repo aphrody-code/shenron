@@ -54,7 +54,7 @@ export default async function WikiPage({ params }: { params: Promise<{ slug: str
 	const isAdmin = await isCurrentUserAdmin();
 
 	return (
-		<div className="mx-auto max-w-[900px] px-6 lg:px-10 py-16 lg:py-24">
+		<div className="w-full mx-auto max-w-[900px] px-6 lg:px-10 py-16 lg:py-24">
 			<nav className="flex gap-2 text-xs text-gray-500 mb-8 uppercase tracking-widest">
 				<Link href="/wiki">WIKI</Link>
 				<span>/</span>

@@ -130,7 +130,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 			<JsonLd data={articleSchema} />
 			<ReadingProgress />
 
-			<div className="mx-auto max-w-[1180px] px-6 py-12 lg:px-10 lg:py-16">
+			<div className="w-full mx-auto max-w-[1180px] px-6 py-12 lg:px-10 lg:py-16">
 				<Breadcrumbs
 					className="ed-no-print mb-10"
 					items={[

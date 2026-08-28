@@ -81,7 +81,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
 	});
 
 	return (
-		<div className="mx-auto max-w-[1180px] px-6 py-14 lg:px-10 lg:py-20">
+		<div className="w-full mx-auto max-w-[1180px] px-6 py-14 lg:px-10 lg:py-20">
 			<Breadcrumbs
 				className="mb-8"
 				items={[{ label: "Le Journal", href: "/actualites" }, { label }]}

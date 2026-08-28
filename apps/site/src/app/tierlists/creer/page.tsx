@@ -29,7 +29,7 @@ export default async function CreerTierlistPage({
 	// Étape 1 — choix du template (pool d'images).
 	if (!tpl) {
 		return (
-			<div className="container mx-auto max-w-3xl px-4 py-12">
+			<div className="container w-full mx-auto max-w-3xl px-4 py-12">
 				<PageHeader title="CRÉER UNE TIERLIST" subtitle="Choisis un thème pour commencer" />
 				<div className="grid gap-4 sm:grid-cols-2">
 					{TIERLIST_TEMPLATES.map((t) => (
@@ -56,7 +56,7 @@ export default async function CreerTierlistPage({
 	const allowEmpty = tpl.source === "none";
 
 	return (
-		<div className="container mx-auto max-w-4xl px-4 py-12">
+		<div className="container w-full mx-auto max-w-4xl px-4 py-12">
 			<PageHeader title="TON CLASSEMENT" subtitle={tpl.title} size="md" />
 			{pool.length === 0 && !allowEmpty ? (
 				<div className="dbz-panel p-8 text-center text-white/60">

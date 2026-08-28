@@ -49,7 +49,7 @@ export default async function DatabooksIndexPage() {
 				image={heroImage}
 				imageAlt="Databooks Dragon Ball"
 			/>
-			<div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
+			<div className="w-full mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
 				<Breadcrumbs className="mb-6 sm:mb-8" items={[{ label: "Databooks" }]} />
 				<DatabookGrid items={items} access={access} />
 			</div>

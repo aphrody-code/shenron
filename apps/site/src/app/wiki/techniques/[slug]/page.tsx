@@ -74,7 +74,7 @@ export default async function TechniqueDetailPage({
 			data-entity={tech.name}
 			data-source-id="db_techniques"
 			data-lang="fr"
-			className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up"
+			className="w-full mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up"
 		>
 			<JsonLd data={jsonLdData} />
 			<Breadcrumbs

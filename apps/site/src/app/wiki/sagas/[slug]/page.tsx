@@ -85,7 +85,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 	};
 
 	return (
-		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24">
+		<div className="w-full mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24">
 			<JsonLd data={jsonLdData} />
 			<Breadcrumbs
 				className="mb-12"
@@ -271,7 +271,7 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 								key={ep.id}
 								href={`/wiki/episodes/${ep.id}`}
 								title={ep.title}
-								className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-[13px] font-display font-semibold text-white/70 transition-colors hover:border-dbz-orange/60 hover:text-white"
+								className="inline-flex min-h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] px-4 py-2.5 text-[13px] font-display font-semibold text-white/70 transition-colors hover:border-dbz-orange/60 hover:text-white"
 							>
 								#{ep.number_in_series}
 							</Link>

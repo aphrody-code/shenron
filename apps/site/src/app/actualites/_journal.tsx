@@ -63,7 +63,7 @@ export async function JournalIndex({ page }: { page: number }) {
 	const topTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
 
 	return (
-		<div className="mx-auto max-w-[1180px] px-6 py-14 lg:px-10 lg:py-20">
+		<div className="w-full mx-auto max-w-[1180px] px-6 py-14 lg:px-10 lg:py-20">
 			<Breadcrumbs
 				className="mb-8"
 				items={[

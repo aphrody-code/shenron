@@ -230,7 +230,7 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 				<div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-dbz-bg to-transparent" />
 			</div>
 
-			<div className="relative z-10 mx-auto max-w-[1180px] px-6 lg:px-10 pt-10 pb-20">
+			<div className="relative z-10 w-full mx-auto max-w-[1180px] px-6 lg:px-10 pt-10 pb-20">
 				{/* Fil d'Ariane : remplace l'ancien lien « ← <série> » isolé (qui ne
 				    disait ni où l'on se trouve dans l'arborescence, ni comment remonter
 				    plus haut) et porte en même temps le balisage `BreadcrumbList`. */}

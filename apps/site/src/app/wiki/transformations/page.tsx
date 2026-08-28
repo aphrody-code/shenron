@@ -81,7 +81,7 @@ export default async function TransformationsPage() {
 				lead={`${list.length} transformations répertoriées — Super Saiyan, formes divines, Ultra Instinct… et les guerriers qui les maîtrisent.`}
 			/>
 
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-12 lg:py-20">
 				<Breadcrumbs className="mb-8" items={[{ label: "Transformations" }]} />
 				<WikiCategoryNav active="transformations" className="mb-12" />
 

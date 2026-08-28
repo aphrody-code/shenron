@@ -7,7 +7,7 @@ import { HeroSkeleton } from "@/components/wiki/WikiSkeleton";
  */
 export default function Loading() {
 	return (
-		<div className="mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
+		<div className="w-full mx-auto max-w-[1400px] px-6 py-10 lg:px-10">
 			<HeroSkeleton />
 			<div className="mt-10 flex flex-col gap-8 lg:flex-row lg:gap-20">
 				<div className="w-full shrink-0 lg:w-1/3 xl:w-1/4">

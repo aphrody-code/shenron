@@ -60,7 +60,7 @@ export async function SiteFooter() {
 			{/* Sentinelle : efface les boutons flottants dès que le pied de page
 			    arrive, sinon ils recouvrent ses liens (cf. FooterFabGuard). */}
 			<FooterFabGuard />
-			<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-16 grid gap-10 lg:grid-cols-[1.4fr_3fr]">
+			<div className="w-full mx-auto max-w-[1440px] px-6 lg:px-10 py-16 grid gap-10 lg:grid-cols-[1.4fr_3fr]">
 				<div>
 					<Link href="/" className="flex items-baseline select-none mb-5" aria-label="DBFR">
 						<span className="font-display font-bold text-[28px] tracking-[0.06em] text-white leading-none">
@@ -110,7 +110,7 @@ export async function SiteFooter() {
 			</div>
 
 			<div className="border-t border-white/[0.06]">
-				<div className="mx-auto max-w-[1440px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/50">
+				<div className="w-full mx-auto max-w-[1440px] px-6 lg:px-10 py-6 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/50">
 					<p className="leading-relaxed max-w-3xl">
 						© {new Date().getFullYear()} DBFR — site communautaire de fans. Dragon Ball, Dragon Ball
 						Z, Dragon Ball Super, Dragon Ball Daima et tous les personnages associés sont © Bird

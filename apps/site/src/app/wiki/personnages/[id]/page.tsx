@@ -316,7 +316,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ id: 
 			data-entity={character.name}
 			data-source-id="db_characters"
 			data-lang="fr"
-			className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
+			className="w-full mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 space-y-12 reveal-up"
 		>
 			<JsonLd data={personSchema} />
 			<TrackView entityType="character" entityId={character.id} entityName={character.name} />

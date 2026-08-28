@@ -12,7 +12,7 @@ export const metadata = {
 
 export default function AboutPage() {
 	return (
-		<div className="mx-auto max-w-[1000px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
+		<div className="w-full mx-auto max-w-[1000px] px-6 lg:px-10 py-16 lg:py-24 space-y-20">
 			{/* En-tête */}
 			<header className="text-center max-w-3xl mx-auto space-y-6">
 				<p className="font-display font-semibold text-[12px] tracking-[0.2em] uppercase text-dbz-orange">

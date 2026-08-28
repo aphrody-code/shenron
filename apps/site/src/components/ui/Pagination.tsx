@@ -92,7 +92,9 @@ export function Pagination({
 	if (total === 0) return null;
 
 	const btn =
-		"grid h-10 min-w-10 place-items-center rounded-lg px-2 font-display text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 disabled:cursor-not-allowed disabled:opacity-35";
+		// h-11/min-w-11 = 44 px : sous cette taille, viser le « 3 » d'une
+	// pagination au pouce fait atterrir sur le « 2 ».
+	"grid h-11 min-w-11 place-items-center rounded-lg px-2 font-display text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 disabled:cursor-not-allowed disabled:opacity-35";
 
 	return (
 		<div className={`flex flex-col items-center gap-3 ${className}`}>

@@ -130,7 +130,7 @@ export default async function RaceDetailPage({ params }: { params: Promise<{ slu
 	const theme = colorThemes[slug] || defaultTheme;
 
 	return (
-		<div className="mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up min-h-screen bg-black">
+		<div className="w-full mx-auto max-w-[1200px] px-6 lg:px-10 py-16 lg:py-24 reveal-up min-h-screen bg-black">
 			<Breadcrumbs
 				className="mb-12"
 				items={[{ label: "Races & peuples", href: "/wiki/races" }, { label: race.name }]}

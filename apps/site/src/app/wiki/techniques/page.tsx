@@ -41,7 +41,7 @@ export default async function TechniquesPage() {
 				lead={`${techniques.length} techniques répertoriées — Kamehameha, Genkidama, Final Flash et les attaques les plus dévastatrices de l'univers Dragon Ball.`}
 			/>
 
-			<div className="mx-auto max-w-[1400px] space-y-10 px-6 py-14 lg:px-10 lg:py-20">
+			<div className="w-full mx-auto max-w-[1400px] space-y-10 px-6 py-14 lg:px-10 lg:py-20">
 				<Breadcrumbs items={[{ label: "Techniques" }]} />
 				<p className="max-w-2xl text-[13px] leading-relaxed text-white/45">
 					Le classement par type reprend les catégories de compétence des jeux{" "}

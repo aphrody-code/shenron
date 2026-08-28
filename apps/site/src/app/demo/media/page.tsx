@@ -37,7 +37,7 @@ export default function MediaDemoPage() {
 				</p>
 			</HeroBackground>
 
-			<div className="mx-auto max-w-[1100px] space-y-20 px-6 py-16">
+			<div className="w-full mx-auto max-w-[1100px] space-y-20 px-6 py-16">
 				{/* A — AnimatedMedia */}
 				<section className="reveal-up space-y-4">
 					<h2 className="font-display text-2xl font-bold">

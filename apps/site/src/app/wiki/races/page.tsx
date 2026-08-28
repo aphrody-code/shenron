@@ -118,7 +118,7 @@ export default async function RacesPage() {
 				lead={`${races.length} races répertoriées dans l'univers Dragon Ball. Découvrez leurs planètes d'origine, leurs particularités et leurs principaux représentants.`}
 			/>
 
-			<div className="mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
+			<div className="w-full mx-auto max-w-[1400px] px-6 lg:px-10 py-16 lg:py-24">
 				<Breadcrumbs className="mb-10" items={[{ label: "Races & peuples" }]} />
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 					{races.map((race, idx) => {
