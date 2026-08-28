@@ -99,16 +99,25 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 	if (!apres) return NextResponse.json({ error: "Fiche introuvable." }, { status: 404 });
 
 	await indexDatabook(apres);
-	await recordRevision({
-		table: "db_databooks",
-		id: String(id),
-		action: "update",
-		before: avant as unknown as Record<string, unknown>,
-		after: apres as unknown as Record<string, unknown>,
-		actor: admin
-			? { id: me?.user?.id ?? "admin", name: me?.user?.username ?? "Admin" }
-			: { id: "api-transcription", name: "Transcription (API)" },
-	});
+	// La planche visée est journalisée sous `pages#<n>`, et non la fiche entière :
+	// `snapshot()` écarte les valeurs objets, donc passer `avant`/`apres` bruts
+	// faisait disparaître le tableau `pages` et ne laissait que des métadonnées
+	// identiques — une révision vide, impossible à annuler.
+	const cle = `pages#${numero}`;
+	const texteAvant = avant.pages.find((p) => p.number === numero)?.text ?? null;
+	const texteApres = apres.pages.find((p) => p.number === numero)?.text ?? null;
+	if (texteAvant !== texteApres) {
+		await recordRevision({
+			table: "db_databooks",
+			id: String(id),
+			action: "update",
+			before: { ...(avant as unknown as Record<string, unknown>), [cle]: texteAvant },
+			after: { ...(apres as unknown as Record<string, unknown>), [cle]: texteApres },
+			actor: admin
+				? { id: me?.user?.id ?? "admin", name: me?.user?.username ?? "Admin" }
+				: { id: "api-transcription", name: "Transcription (API)" },
+		});
+	}
 	revalidateWikiEntity("db_databooks", { id });
 
 	const transcrites = apres.pages.filter((p) => (p.text ?? "").length > 0).length;

@@ -207,14 +207,46 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 	}
 
 	// Trace réversible : une transcription automatique reste une proposition.
-	await recordRevision({
-		table: "db_databooks",
-		id: String(id),
-		action: "update",
-		before: avant as unknown as Record<string, unknown>,
-		after: apres as unknown as Record<string, unknown>,
-		actor: { id: "api-transcription", name: "Transcription (API)" },
-	});
+	//
+	// On journalise les PLANCHES DÉPOSÉES, sous la clé `pages#<n>` — pas la fiche
+	// entière. Passer `avant`/`apres` bruts ne marchait pas : `snapshot()` écarte
+	// les valeurs objets, donc le tableau `pages` disparaissait et il ne restait
+	// que des métadonnées inchangées. Mesuré le 2026-08-28 : les 2 359 révisions
+	// de transcription de databook avaient `before = after`, et le revert de
+	// /admin/wiki/history ne pouvait donc annuler aucun dépôt.
+	//
+	// La forme `pages#<n>` est celle que `estCiblePlanche` reconnaît déjà, côté
+	// contribution communautaire comme côté revert : un seul vocabulaire pour
+	// désigner une planche.
+	const avantParNumero = new Map(avant.pages.map((p) => [p.number, p.text ?? null]));
+	const apresParNumero = new Map(apres.pages.map((p) => [p.number, p.text ?? null]));
+	const numerosTouches =
+		mode === "replace"
+			? [...new Set([...avantParNumero.keys(), ...apresParNumero.keys()])]
+			: [...textes.keys()];
+	const avantPlanches: Record<string, unknown> = {};
+	const apresPlanches: Record<string, unknown> = {};
+	for (const n of numerosTouches.sort((a, b) => a - b)) {
+		const a = avantParNumero.get(n) ?? null;
+		const b = apresParNumero.get(n) ?? null;
+		if (a === b) continue; // rien n'a bougé sur cette planche : hors du journal
+		avantPlanches[`pages#${n}`] = a;
+		apresPlanches[`pages#${n}`] = b;
+	}
+	// Une requête qui n'a rien changé ne mérite pas d'entrée d'historique : c'est
+	// ce qui remplissait le journal de révisions vides.
+	const aChange =
+		Object.keys(apresPlanches).length > 0 || corps.description !== undefined;
+	if (aChange) {
+		await recordRevision({
+			table: "db_databooks",
+			id: String(id),
+			action: "update",
+			before: { ...(avant as unknown as Record<string, unknown>), ...avantPlanches },
+			after: { ...(apres as unknown as Record<string, unknown>), ...apresPlanches },
+			actor: { id: "api-transcription", name: "Transcription (API)" },
+		});
+	}
 
 	// Sans ça, un lot de 2 000 planches déposé par l'API restait invisible du
 	// public jusqu'à une heure : la fiche est en `revalidate = 3600` avec

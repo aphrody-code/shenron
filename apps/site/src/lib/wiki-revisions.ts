@@ -17,6 +17,8 @@ import "server-only";
 import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { wikiRevisions, type WikiRevision } from "@/db/schema";
+import { estCiblePlanche, numeroDePlanche } from "@/lib/databook-pages-shared";
+import { ecrireTranscription } from "@/lib/databook-pages";
 import { WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 import {
 	deleteWiki,
@@ -55,6 +57,26 @@ function deriveLabel(row: Row | null | undefined): string | null {
 /**
  * Réduit une ligne aux colonnes mutables (surface éditable) et retire les blobs
  * jsonb objets (non édités ici, ex. `frames`) → snapshot léger et diffable.
+ *
+ * ── Exception : les cibles de planche `pages#<n>` ──────────────────────────
+ *
+ * Le filtre « pas dans `mutableColumns` » et le filtre « pas un objet »
+ * reposaient sur une hypothèse qui a cessé d'être vraie : qu'aucun jsonb ne
+ * s'édite par ici. Les transcriptions de databooks (`bot.db_databooks.pages`)
+ * et la correction communautaire des planches écrivent pourtant sous une clé
+ * `pages#42`, qui n'est pas une colonne — donc éliminée en silence.
+ *
+ * Conséquence mesurée le 2026-08-28 : **les 2 359 révisions de transcription de
+ * databook ont `before = after`**. Le journal disait « modifié » sans dire quoi,
+ * et surtout le revert de `/admin/wiki/history` ne pouvait RIEN annuler — il
+ * réécrivait des métadonnées identiques en laissant le texte fautif en place.
+ * Une correction de planche était donc irréversible, ce qui est exactement
+ * l'inverse de ce que promet le versionnement.
+ *
+ * On préserve donc ces clés, et seulement quand leur valeur est une chaîne (ou
+ * `null`) : c'est le texte de LA planche visée, pas le tableau `pages` entier —
+ * en journaliser 313 à chaque dépôt noierait l'historique et pèserait des
+ * centaines de Ko par révision.
  */
 function snapshot(table: string, row: Row | null | undefined): Row | null {
 	if (!row) return null;
@@ -68,6 +90,13 @@ function snapshot(table: string, row: Row | null | undefined): Row | null {
 		const v = row[c];
 		if (v !== null && typeof v === "object") continue; // ignore jsonb objets lourds
 		out[c] = v;
+	}
+	// Les cibles de planche ne sont pas des colonnes : elles ne peuvent pas
+	// passer par `cols`, il faut les rattraper sur la ligne d'origine.
+	for (const [k, v] of Object.entries(row)) {
+		if (k in out) continue;
+		if (!estCiblePlanche(table, k)) continue;
+		if (v === null || typeof v === "string") out[k] = v;
 	}
 	return out;
 }
@@ -337,8 +366,28 @@ export async function revertRevision(
 		if (current) await deleteWiki(table, rowId);
 		mode = "delete";
 	} else if (current) {
-		// La ligne existe → restaure les colonnes mutables du snapshot `before`.
-		resultRow = await updateWiki(table, rowId, before);
+		// Cibles de planche : elles ne sont PAS des colonnes, `updateWiki` ne sait
+		// pas les écrire. Elles passent par le même chemin chirurgical que le
+		// dépôt (`jsonb_set` sur la seule planche visée) — jamais par une
+		// réécriture du tableau `pages`, qui écraserait les dépôts concurrents.
+		const planches = Object.entries(before).filter(([k]) => estCiblePlanche(table, k));
+		for (const [cle, valeur] of planches) {
+			const numero = numeroDePlanche(cle);
+			if (numero === null) continue;
+			// `null` = la planche n'avait pas de texte avant : on rétablit le vide,
+			// sinon annuler un premier dépôt laisserait le texte en place.
+			await ecrireTranscription(rowId, numero, typeof valeur === "string" ? valeur : "");
+		}
+		// Le reste du snapshot (colonnes réelles) suit le chemin normal. S'il ne
+		// contient QUE des cibles de planche, on n'appelle pas `updateWiki` : il
+		// n'aurait rien à écrire et rejetterait la clé inconnue.
+		const colonnes = Object.fromEntries(
+			Object.entries(before).filter(([k]) => !estCiblePlanche(table, k))
+		);
+		resultRow =
+			Object.keys(colonnes).length > 0
+				? await updateWiki(table, rowId, colonnes)
+				: ((await getWikiRow(table, rowId).catch(() => null)) ?? current);
 		mode = "restore";
 	} else {
 		// La ligne avait été supprimée → ré-insertion. Pour une pk simple (les
