@@ -64,7 +64,7 @@ export function QuickLook({
 						</a>
 						<a
 							href={watchHref}
-							className="inline-flex items-center gap-1.5 rounded-lg bg-white/12 px-4 py-2.5 font-display text-[13px] font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
+							className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-white/12 px-4 py-2.5 font-display text-[13px] font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
 						>
 							Fiche complète
 							<ArrowUpRight className="h-4 w-4" />

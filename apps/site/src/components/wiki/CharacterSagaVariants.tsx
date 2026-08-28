@@ -228,7 +228,7 @@ export function CharacterSagaVariants({
 										<ClientGatedWrap
 											access={access}
 											href={`/wiki/episodes/${e.id}`}
-											className="inline-flex items-center gap-2 rounded-lg border border-dbz-border px-3 py-1.5 text-xs text-white/75 transition-colors hover:border-dbz-orange/50 hover:text-white"
+											className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-dbz-border px-3 py-1.5 text-xs text-white/75 transition-colors hover:border-dbz-orange/50 hover:text-white"
 										>
 											<span className="tabular-nums text-dbz-orange/80">#{e.num}</span>
 											{e.title}

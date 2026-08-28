@@ -45,7 +45,9 @@ function Pill({
 		// Onglets agrandis : 11 px en capitales espacées de 0,18 em se lisaient
 		// lettre à lettre. 13 px, un tracking resserré et une cible de 40 px de
 		// haut — c'est un élément de navigation, pas une étiquette.
-		"px-4 py-2.5 text-[13px] font-semibold uppercase tracking-[0.06em] border rounded-lg transition-colors duration-200 whitespace-nowrap";
+		// `min-h-11` = 44 px : ce sont les onglets de rubrique de chaque fiche —
+		// le contrôle le plus utilisé du wiki, et il tenait dans 42 px.
+		"inline-flex min-h-11 items-center px-4 py-2.5 text-[13px] font-semibold uppercase tracking-[0.06em] border rounded-lg transition-colors duration-200 whitespace-nowrap";
 	const cls = active
 		? sectionAccentStyle(normalizeSectionAccent(accent)).pillActive
 		: "border-white/15 bg-white/[0.02] text-white/55 hover:text-white hover:border-dbz-orange/60";

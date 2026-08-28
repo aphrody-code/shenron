@@ -268,7 +268,7 @@ export function CommunityTops({
 							aria-selected={selected}
 							tabIndex={selected ? 0 : -1}
 							onClick={() => setActive(b.def.id)}
-							className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
+							className={`inline-flex min-h-11 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
 								selected
 									? "border-dbz-orange bg-dbz-orange/10 text-white"
 									: "border-dbz-border text-white/60 hover:border-dbz-orange/40 hover:text-white"
