@@ -233,7 +233,7 @@ export function WikiContribute({
 		<button
 			type="button"
 			onClick={() => setOpen(true)}
-			className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white/65 transition-colors hover:border-dbz-orange/50 hover:text-white"
+			className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white/65 transition-colors hover:border-dbz-orange/50 hover:text-white"
 		>
 			<PenLine className="h-3.5 w-3.5" />
 			{labelBouton ?? "Proposer une correction"}

@@ -56,7 +56,7 @@ export function TierlistLike({ tierlistId }: { tierlistId: string }) {
 			onClick={toggle}
 			disabled={busy}
 			aria-pressed={liked}
-			className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition-colors disabled:opacity-60 ${
+			className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 py-2 text-sm font-bold transition-colors disabled:opacity-60 ${
 				liked
 					? "border-rose-500/60 bg-rose-500/15 text-rose-300"
 					: "border-white/15 text-white/75 hover:border-rose-500/40 hover:text-rose-300"
