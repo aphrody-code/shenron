@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { GatedWrap } from "@/components/GatedLink";
 import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 
 export const revalidate = 3600;
 
@@ -25,10 +26,17 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const race = await getShenronRace(slug);
 	if (!race) return { title: "Race Dragon Ball" };
+	// Cf. `@/lib/og` : sans `ogMeta`, la fiche n'émettait aucun `og:image`.
+	// `db_races` ne porte pas d'illustration — on laisse `image` vide, ce qui
+	// fait pointer explicitement la carte de marque au lieu de rien.
 	return {
 		title: `${race.name} — Race Dragon Ball`,
 		description: race.description ?? `Détails de la race ${race.name}.`,
-		alternates: { canonical: `/wiki/races/${slug}` },
+		...ogMeta({
+			title: `${race.name} — Race Dragon Ball`,
+			description: race.description ?? `Détails de la race ${race.name}.`,
+			canonical: `/wiki/races/${slug}`,
+		}),
 	};
 }
 

@@ -39,6 +39,7 @@ import {
 import type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
 import { eraOf, type TimelineItem } from "@/lib/chronology";
 import { orderPlayers } from "@/lib/players";
+import type { SignauxRichesse } from "@/lib/character-richesse";
 
 // Re-export pour back-compat des pages serveur qui importaient assetUrl ici.
 export { assetUrl } from "@/lib/assets";
@@ -754,6 +755,103 @@ export const dbUniverse = {
 			};
 		}),
 
+	/**
+	 * Signaux de richesse par personnage, pour le classement de la grille
+	 * (`@/lib/character-richesse`). Une seule requête agrégée — mesurée à 120 ms
+	 * sur les 1 307 fiches, contre quatre allers-retours si on comptait chaque
+	 * table séparément.
+	 *
+	 * On rend les signaux BRUTS, pas la note : les pondérations vivent dans un
+	 * module pur et testable, et se règlent sans réécrire ce SQL.
+	 *
+	 * `count(*)::int` partout : sans le cast, postgres-js rendrait des CHAÎNES et
+	 * `"9" > "12"` classerait la grille à l'envers.
+	 */
+	characterRichesse: () =>
+		safe(async () => {
+			const rows = await db.execute<{
+				id: number;
+				len_article: number;
+				len_description: number;
+				len_sections: number;
+				nb_sections: number;
+				nb_variantes: number;
+				nb_transformations: number;
+				nb_techniques: number;
+				a_nom_ja: boolean;
+				a_race: boolean;
+				a_ki: boolean;
+				a_planete: boolean;
+				image_propre: boolean;
+				a_debut_episode: boolean;
+				a_debut_chapitre: boolean;
+			}>(sql`
+				with sec as (
+					select entity_id::bigint as id,
+					       count(*)::int as n,
+					       coalesce(sum(length(coalesce(body, ''))), 0)::int as len
+					from bot.db_wiki_sections
+					where entity_type = 'character'
+					group by 1
+				),
+				varn as (
+					select character_id as id, count(*)::int as n
+					from bot.db_character_variants group by 1
+				),
+				trf as (
+					select character_id as id, count(*)::int as n
+					from bot.db_transformations where character_id is not null group by 1
+				),
+				tec as (
+					select character_id as id, count(*)::int as n
+					from bot.db_character_techniques group by 1
+				)
+				select
+					c.id,
+					length(coalesce(c.article, ''))::int      as len_article,
+					length(coalesce(c.description, ''))::int  as len_description,
+					coalesce(sec.len, 0)                      as len_sections,
+					coalesce(sec.n, 0)                        as nb_sections,
+					coalesce(varn.n, 0)                       as nb_variantes,
+					coalesce(trf.n, 0)                        as nb_transformations,
+					coalesce(tec.n, 0)                        as nb_techniques,
+					coalesce(c.name_ja, '') <> ''             as a_nom_ja,
+					coalesce(c.race, '') <> ''                as a_race,
+					coalesce(c.ki, '') <> ''                  as a_ki,
+					c.origin_planet_id is not null            as a_planete,
+					(coalesce(c.image, '') <> ''
+					   and c.image not like 'assets/wiki/characters/c%') as image_propre,
+					c.debut_episode_id is not null            as a_debut_episode,
+					c.debut_chapter_id is not null            as a_debut_chapitre
+				from bot.db_characters c
+				left join sec  on sec.id  = c.id
+				left join varn on varn.id = c.id
+				left join trf  on trf.id  = c.id
+				left join tec  on tec.id  = c.id
+				where coalesce(c.visible, true)`);
+
+			const par = new Map<number, SignauxRichesse>();
+			for (const r of rows) {
+				par.set(Number(r.id), {
+					longueurArticle: Number(r.len_article),
+					longueurDescription: Number(r.len_description),
+					longueurSections: Number(r.len_sections),
+					nbSections: Number(r.nb_sections),
+					nbVariantes: Number(r.nb_variantes),
+					nbTransformations: Number(r.nb_transformations),
+					nbTechniques: Number(r.nb_techniques),
+					aNomJa: r.a_nom_ja,
+					aRace: r.a_race,
+					aKi: r.a_ki,
+					aPlaneteOrigine: r.a_planete,
+					imagePropre: r.image_propre,
+					aDebutEpisode: r.a_debut_episode,
+					aDebutChapitre: r.a_debut_chapitre,
+				});
+			}
+			return par;
+		}),
+
 	saga: (slug: string) =>
 		safe(async () => {
 			const [s] = await db
@@ -769,9 +867,59 @@ export const dbUniverse = {
 					.where(and(eq(botArcs.sagaId, s.id), eq(botArcs.visible, true)))
 					.orderBy(asc(botArcs.orderIdx))
 			).map(toArc);
-			return { ...toSaga(s), arcs };
+
+			// Épisodes de la saga, DÉRIVÉS de ses bornes — `db_episodes.arc_id` est
+			// nul sur 790 lignes sur 826, la relation n'existe pas en base. Une saga
+			// sans borne (8 sur 33 : films, OAV, arcs manga-only de Super) rend une
+			// liste vide, et la page n'affiche alors rien : mieux qu'un rattachement
+			// approximatif.
+			//
+			// `Number()` à la lecture : postgres-js rend les `bigint` en chaînes.
+			const debut = s.episodeStart === null ? null : Number(s.episodeStart);
+			const fin = s.episodeEnd === null ? null : Number(s.episodeEnd);
+			const episodes =
+				s.episodeSeries && debut !== null && fin !== null
+					? ((await db
+							.select({
+								id: botEpisodes.id,
+								number_in_series: botEpisodes.numberInSeries,
+								title: botEpisodes.title,
+								image: botEpisodes.image,
+							})
+							.from(botEpisodes)
+							.where(
+								and(
+									eq(botEpisodes.series, s.episodeSeries),
+									eq(botEpisodes.visible, true),
+									sql`${botEpisodes.numberInSeries} between ${debut} and ${fin}`
+								)
+							)
+							.orderBy(asc(botEpisodes.numberInSeries))) as EpisodeNavItem[])
+					: [];
+
+			return {
+				...toSaga(s),
+				arcs,
+				episodes,
+				/** La série d'épisodes réellement bornée — pas forcément `series`. */
+				episodeSeries: s.episodeSeries ?? null,
+			};
 		}),
 
+	/**
+	 * Un arc, ses épisodes, et ce que la SAGA parente permet de mesurer.
+	 *
+	 * 45 des 65 arcs n'ont ni article ni description, et 790 épisodes sur 826
+	 * n'ont pas d'`arc_id` : la page d'arc n'avait donc rien à montrer. La saga
+	 * parente, elle, porte ses bornes (`manga_volume_start/end`,
+	 * `episode_start/end`), posées par `variantes-par-saga.ts --bornes`.
+	 *
+	 * On rend donc les deux, SÉPARÉMENT — jamais fusionnés : `episodes` est le
+	 * rattachement explicite (il fait foi), `sagaEpisodes` et `sagaVolumes` sont
+	 * le périmètre de la saga, qui déborde l'arc et doit se dire comme tel à
+	 * l'écran. Les confondre présenterait des épisodes d'un autre arc comme
+	 * appartenant à celui-ci.
+	 */
 	arc: (slug: string) =>
 		safe(async () => {
 			const [a] = await db
@@ -780,14 +928,134 @@ export const dbUniverse = {
 				.where(and(eq(botArcs.slug, slug), eq(botArcs.visible, true)))
 				.limit(1);
 			if (!a) return null;
-			const episodes = (
-				await db
+			const [episodes, sagaRow] = await Promise.all([
+				db
 					.select()
 					.from(botEpisodes)
 					.where(and(eq(botEpisodes.arcId, a.id), eq(botEpisodes.visible, true)))
 					.orderBy(asc(botEpisodes.numberInSeries))
-			).map(toEpisode);
-			return { arc: toArc(a), episodes };
+					.then((rows) => rows.map(toEpisode)),
+				a.sagaId
+					? db
+							.select()
+							.from(botSagas)
+							.where(and(eq(botSagas.id, a.sagaId), eq(botSagas.visible, true)))
+							.limit(1)
+							.then((r) => r[0] ?? null)
+					: Promise.resolve(null),
+			]);
+			if (!sagaRow) return { arc: toArc(a), episodes, saga: null, sagaEpisodes: [], sagaVolumes: [] };
+
+			// `Number()` sur TOUTE borne lue en base : postgres-js rend les `bigint`
+			// en CHAÎNES, et `"163" <= "35"` est vrai lexicographiquement. C'est le
+			// bug qui avait fabriqué ~100 fausses variantes de saga.
+			const num = (v: unknown): number | null =>
+				v === null || v === undefined ? null : Number(v);
+			const epDeb = num(sagaRow.episodeStart);
+			const epFin = num(sagaRow.episodeEnd);
+			const volDeb = num(sagaRow.mangaVolumeStart);
+			const volFin = num(sagaRow.mangaVolumeEnd);
+
+			const [sagaEpisodes, sagaVolumes] = await Promise.all([
+				sagaRow.episodeSeries && epDeb !== null && epFin !== null
+					? db
+							.select({
+								id: botEpisodes.id,
+								number_in_series: botEpisodes.numberInSeries,
+								title: botEpisodes.title,
+								image: botEpisodes.image,
+							})
+							.from(botEpisodes)
+							.where(
+								and(
+									eq(botEpisodes.series, sagaRow.episodeSeries),
+									eq(botEpisodes.visible, true),
+									sql`${botEpisodes.numberInSeries} between ${epDeb} and ${epFin}`
+								)
+							)
+							.orderBy(asc(botEpisodes.numberInSeries))
+					: Promise.resolve([] as EpisodeNavItem[]),
+				volDeb !== null && volFin !== null
+					? db
+							.select({
+								id: botMangaVolumes.id,
+								volume_number: botMangaVolumes.volumeNumber,
+								title: botMangaVolumes.title,
+								cover: botMangaVolumes.cover,
+							})
+							.from(botMangaVolumes)
+							.where(
+								and(
+									eq(botMangaVolumes.series, "DB"),
+									eq(botMangaVolumes.visible, true),
+									sql`${botMangaVolumes.volumeNumber} between ${volDeb} and ${volFin}`
+								)
+							)
+							.orderBy(asc(botMangaVolumes.volumeNumber))
+					: Promise.resolve([]),
+			]);
+
+			return {
+				arc: toArc(a),
+				episodes,
+				saga: toSaga(sagaRow),
+				sagaEpisodes: sagaEpisodes as EpisodeNavItem[],
+				sagaVolumes,
+			};
+		}),
+
+	/**
+	 * La saga d'un épisode, DÉRIVÉE des bornes — rien n'est écrit en base.
+	 *
+	 * `db_episodes.arc_id` est nul sur 790 épisodes sur 826, et la base ne porte
+	 * aucun `saga_id` sur l'épisode. Les bornes de saga, elles, existent
+	 * (`episode_series` + `episode_start`/`episode_end`, posées par
+	 * `variantes-par-saga.ts --bornes`) et couvrent **659 épisodes sur 826**.
+	 *
+	 * Pourquoi dériver plutôt qu'écrire une colonne : les bornes sont la source,
+	 * une colonne en serait la copie, et une copie se désynchronise au premier
+	 * ajustement. L'`arc_id`, lui, n'est de toute façon pas dérivable — 20 sagas
+	 * sur 29 portent plusieurs arcs.
+	 *
+	 * `Number()` sur les bornes : postgres-js rend les `bigint` en CHAÎNES, et
+	 * `"163" <= "35"` est vrai lexicographiquement. Ici la comparaison se fait en
+	 * SQL sur des colonnes typées, donc le piège ne mord pas — mais la borne
+	 * remonte quand même en chaîne côté TypeScript, d'où le cast à la lecture.
+	 */
+	episodeSaga: (series: string, numberInSeries: number) =>
+		safe(async () => {
+			const [s] = await db
+				.select({
+					id: botSagas.id,
+					slug: botSagas.slug,
+					name: botSagas.name,
+					series: botSagas.series,
+					image: botSagas.image,
+					start: botSagas.episodeStart,
+					end: botSagas.episodeEnd,
+				})
+				.from(botSagas)
+				.where(
+					and(
+						eq(botSagas.visible, true),
+						eq(botSagas.episodeSeries, series),
+						sql`${numberInSeries} between ${botSagas.episodeStart} and ${botSagas.episodeEnd}`
+					)
+				)
+				// Une borne plus étroite est plus précise : si deux sagas se
+				// chevauchent en base, on prend celle qui couvre le moins d'épisodes.
+				.orderBy(asc(sql`${botSagas.episodeEnd} - ${botSagas.episodeStart}`))
+				.limit(1);
+			if (!s) return null;
+			return {
+				id: s.id,
+				slug: s.slug,
+				name: s.name,
+				series: s.series,
+				image: s.image,
+				episode_start: Number(s.start),
+				episode_end: Number(s.end),
+			};
 		}),
 
 	episode: (id: number) =>
@@ -1229,11 +1497,38 @@ export const dbUniverse = {
 		}),
 
 	// Chapitres manga LISIBLES (pages renseignées) → index du lecteur de scan.
+	/**
+	 * Chapitres lisibles — SANS leur tableau de planches complet.
+	 *
+	 * `select()` rendait la colonne `pages` entière : **12 362 chemins `.webp`**
+	 * sérialisés dans la charge RSC de `/wiki/manga`, une page qui affiche 24
+	 * couvertures et 62 liens. À elle seule cette colonne pesait ~600 Ko des
+	 * 744 Ko de la page.
+	 *
+	 * Les appelants n'en ont jamais eu besoin en entier : la grille teste
+	 * « ce chapitre est-il lisible » et précharge les **3 premières** planches au
+	 * survol ; les deux `generateStaticParams` ne lisent que des identifiants. On
+	 * découpe donc côté Postgres (`jsonb_path_query_array` sur les index 0 à 2) et
+	 * on rend le total à part.
+	 */
 	readableMangaChapters: (series?: string) =>
 		safe(async () => ({
 			chapters: (
 				await db
-					.select()
+					.select({
+						id: botMangaChapters.id,
+						series: botMangaChapters.series,
+						chapterNumber: botMangaChapters.chapterNumber,
+						title: botMangaChapters.title,
+						volumeId: botMangaChapters.volumeId,
+						cover: botMangaChapters.cover,
+						pages: sql<
+							string[] | null
+						>`jsonb_path_query_array(${botMangaChapters.pages}, '$[0 to 2]')`.as("pages"),
+						pageCount: sql<number>`coalesce(jsonb_array_length(${botMangaChapters.pages}), 0)::int`.as(
+							"page_count"
+						),
+					})
 					.from(botMangaChapters)
 					.where(
 						series
@@ -1245,7 +1540,18 @@ export const dbUniverse = {
 							: and(isNotNull(botMangaChapters.pages), eq(botMangaChapters.visible, true))
 					)
 					.orderBy(asc(botMangaChapters.series), asc(botMangaChapters.chapterNumber))
-			).map(toMangaChapter),
+			).map((c) => ({
+				id: c.id,
+				series: c.series,
+				chapter_number: c.chapterNumber ?? 0,
+				title: c.title,
+				volume_id: c.volumeId,
+				cover: c.cover,
+				/** Aperçu : les 3 premières planches, pour le préchargement au survol. */
+				pages: Array.isArray(c.pages) ? c.pages : [],
+				/** Nombre RÉEL de planches — `pages.length` ne vaut plus que 3 au plus. */
+				page_count: Number(c.pageCount ?? 0),
+			})),
 		})),
 
 	// Un chapitre + ses pages + chapitres adjacents (nav lecteur).

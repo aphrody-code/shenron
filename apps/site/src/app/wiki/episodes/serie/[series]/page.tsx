@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 import { assetUrl } from "@/lib/assets";
 import { bannerForSeries } from "@/lib/db-banners";
 import { eraOf, ERA_ACCENT } from "@/lib/chronology";
@@ -39,11 +40,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
 	const { series } = await params;
 	const label = SERIES_LABELS[series] ?? series;
+	const description =
+		"Index complet des épisodes avec vignettes, titres FR/JP, date de diffusion et synopsis. Regarde en VF et VOSTFR.";
+	// Cf. `@/lib/og` : un `alternates` seul laissait la page sans `og:image`.
 	return {
 		title: `${label} — Épisodes`,
-		description:
-			"Index complet des épisodes avec vignettes, titres FR/JP, date de diffusion et synopsis. Regarde en VF et VOSTFR.",
-		alternates: { canonical: `/wiki/episodes/serie/${series}` },
+		description,
+		...ogMeta({
+			title: `${label} — Épisodes`,
+			description,
+			type: "website",
+			canonical: `/wiki/episodes/serie/${series}`,
+		}),
 	};
 }
 

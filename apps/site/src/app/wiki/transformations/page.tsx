@@ -87,9 +87,17 @@ export default async function TransformationsPage() {
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
 					{list.map((g, idx) => {
-						// Image représentative : image de la transfo, sinon portrait du 1er membre.
-						const rep = g.members.find((m) => m.image);
-						const img = g.image ?? rep?.image ?? null;
+						// Image de la transformation, et RIEN d'autre.
+						//
+						// Ce repli allait chercher le portrait du premier personnage
+						// concerné. Tant que les 81 formes portaient une image il ne se
+						// déclenchait jamais ; le retrait des sept fan-arts l'a réveillé,
+						// et il aurait affiché Gogeta en forme de base sous le titre
+						// « Gogeta SSJ ». Une illustration qui montre la mauvaise forme a
+						// l'air juste — c'est exactement ce qui la rend pire qu'une case
+						// vide. La vignette de repli (l'éclair) dit qu'il manque une
+						// illustration ; elle ne prétend rien.
+						const img = g.image ?? null;
 						const href = g.ficheId
 							? `/wiki/transformations/${g.ficheId}`
 							: g.members[0]

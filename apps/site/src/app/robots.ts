@@ -7,12 +7,19 @@ export default function robots(): MetadataRoute.Robots {
 			{
 				userAgent: "*",
 				allow: "/",
-				// /admin + /api (privés) ; /tierlists + /profil (non publics en bêta).
-				// NE PAS blanket-disallow /wiki : casserait les sections publiques
-				// episodes/films/manga ; le reste de /wiki est déjà 307 via le middleware.
-				// TODO(réouverture) : reposer `noindex, follow` sur /wiki/search via meta
-				// robots (pas une directive robots.txt) une fois la recherche rouverte.
-				disallow: ["/admin/", "/api/", "/tierlists/", "/profil/"],
+				// /admin + /api : privés. /profil : pages de compte, sans intérêt
+				// d'index et parfois nominatives.
+				//
+				// NE PAS blanket-disallow /wiki : tout le wiki est public depuis le
+				// 2026-08-27, et une directive robots.txt le retirerait entièrement de
+				// l'index. Les pages à ne pas indexer le disent elles-mêmes en meta
+				// robots (`/wiki/search`, `/wiki/corriger`) — une meta laisse Google
+				// LIRE la page pour en suivre les liens, un `Disallow` l'en empêche.
+				//
+				// `/tierlists/` a été retiré de cette liste : la page répond 200 en
+				// public depuis la fin de la bêta, la garder ici l'excluait de l'index
+				// sans raison.
+				disallow: ["/admin/", "/api/", "/profil/"],
 			},
 			// Robots publicitaires Google. Ils n'indexent RIEN : ils explorent la page
 			// pour en déduire le ciblage contextuel (Mediapartners-Google = AdSense) ou

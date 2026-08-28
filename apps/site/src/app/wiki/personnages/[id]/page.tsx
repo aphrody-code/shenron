@@ -17,6 +17,7 @@ import {
 } from "@/lib/shenron";
 import { assetUrl } from "@/lib/db-universe";
 import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { GatedWrap } from "@/components/GatedLink";
@@ -68,23 +69,20 @@ export async function generateMetadata({
 	const description = c.description
 		? plainText(c.description)
 		: `${c.name} — fiche personnage Dragon Ball : race, techniques, transformations et lore sur DBFR.`;
+	// `ogMeta` plutôt que l'objet écrit à la main : `images: undefined` ne fait
+	// PAS retomber sur l'image héritée du layout — déclarer `openGraph` remplace
+	// l'objet entier, image comprise (mesuré en prod, cf. `@/lib/og`). Une fiche
+	// sans illustration ne servait donc aucun `og:image`. Le helper pointe la
+	// carte de marque explicitement dans ce cas.
 	return {
 		title: c.nameJa ? `${c.name} (${c.nameJa})` : c.name,
 		description,
-		alternates: { canonical: `/wiki/personnages/${id}` },
-		openGraph: {
+		...ogMeta({
 			title: `${c.name} — DBFR`,
 			description,
-			type: "article",
-			url: `/wiki/personnages/${id}`,
-			images: img ? [{ url: img, alt: c.name }] : undefined,
-		},
-		twitter: {
-			card: "summary_large_image",
-			title: `${c.name} — DBFR`,
-			description,
-			images: img ? [img] : undefined,
-		},
+			image: img ?? null,
+			canonical: `/wiki/personnages/${id}`,
+		}),
 	};
 }
 

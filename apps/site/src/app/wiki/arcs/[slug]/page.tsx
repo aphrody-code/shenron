@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { ogMeta } from "@/lib/og";
 
 export const revalidate = 3600;
 
@@ -27,10 +28,20 @@ export async function generateMetadata({
 	const { slug } = await params;
 	const data = await dbUniverse.arc(slug);
 	if (!data) return { title: "Arc" };
+	// `ogMeta` plutôt qu'un `alternates` seul : déclarer `openGraph` sur une page
+	// REMPLACE l'objet hérité du layout, image comprise. Sans ce passage, la
+	// fiche d'arc ne servait AUCUN `og:image` — un partage Discord tombait sur
+	// une carte nue. Un arc n'a pas d'illustration propre : on prend celle de sa
+	// saga, qui est bien la scène dont l'arc fait partie.
 	return {
 		title: `${data.arc.name} — Arc Dragon Ball`,
 		description: data.arc.description ?? `Détails de l'arc ${data.arc.name}.`,
-		alternates: { canonical: `/wiki/arcs/${slug}` },
+		...ogMeta({
+			title: `${data.arc.name} — Arc Dragon Ball`,
+			description: data.arc.description ?? `Détails de l'arc ${data.arc.name}.`,
+			image: data.saga?.image ? assetUrl(data.saga.image) : null,
+			canonical: `/wiki/arcs/${slug}`,
+		}),
 	};
 }
 
@@ -38,7 +49,14 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 	const { slug } = await params;
 	const data = await dbUniverse.arc(slug);
 	if (!data) notFound();
-	const { arc, episodes } = data;
+	const { arc, episodes, saga, sagaEpisodes, sagaVolumes } = data;
+	// La fiche est vide quand ni article, ni description, ni rubrique DB ne
+	// disent quoi que ce soit — 45 arcs sur 65 sont dans ce cas. L'encart
+	// mesuré ne s'affiche QUE là : sur un arc rédigé, il ferait doublon avec
+	// le texte, qui est plus précis que des bornes de saga.
+	const ficheVide = !arc.article && !arc.description;
+	const perimetreMesurable =
+		ficheVide && episodes.length === 0 && !!saga && (sagaVolumes.length > 0 || sagaEpisodes.length > 0);
 
 	return (
 		<div className="mx-auto max-w-[1120px] px-6 lg:px-10 py-16 lg:py-24 reveal-up">
@@ -140,6 +158,78 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 							</Link>
 						))}
 					</div>
+				</section>
+			)}
+
+			{/*
+			  Périmètre MESURÉ, quand la fiche n'a rien à dire.
+
+			  Ce ne sont PAS les bornes de l'arc : la base ne les connaît pas
+			  (`db_arcs` ne porte aucune borne, et 790 épisodes sur 826 n'ont pas
+			  d'`arc_id`). Ce sont celles de la SAGA parente, qui contient l'arc et
+			  déborde de lui. On l'écrit tel quel plutôt que de laisser croire à un
+			  découpage qu'on n'a pas — c'est la différence entre orienter le lecteur
+			  et lui mentir.
+			*/}
+			{perimetreMesurable && saga && (
+				<section className="mb-20">
+					<div className="mb-6 flex items-center gap-6">
+						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
+							Où le lire, où le voir
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+					</div>
+					<p className="mb-8 max-w-2xl text-[13px] leading-relaxed text-white/45">
+						Cet arc n&apos;a pas encore de texte. Faute d&apos;un découpage propre en
+						base, voici le périmètre de la saga{" "}
+						<Link
+							href={`/wiki/sagas/${saga.slug}`}
+							className="font-semibold text-dbz-orange hover:text-white transition-colors"
+						>
+							{saga.name}
+						</Link>
+						, dont il fait partie — il la déborde donc en largeur, et ne la
+						remplace pas.
+					</p>
+
+					{sagaVolumes.length > 0 && (
+						<div className="mb-10">
+							<p className="mb-4 font-display text-[11px] font-bold uppercase tracking-[0.25em] text-white/50">
+								Tomes du manga ({sagaVolumes.length})
+							</p>
+							<div className="flex flex-wrap gap-2">
+								{sagaVolumes.map((v) => (
+									<Link
+										key={v.id}
+										href={`/wiki/manga/volume/${v.id}`}
+										className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3.5 py-1.5 text-[13px] font-display font-semibold text-white/80 transition-colors hover:border-dbz-orange/60 hover:text-white"
+									>
+										Tome {v.volume_number}
+									</Link>
+								))}
+							</div>
+						</div>
+					)}
+
+					{sagaEpisodes.length > 0 && (
+						<div>
+							<p className="mb-4 font-display text-[11px] font-bold uppercase tracking-[0.25em] text-white/50">
+								Épisodes ({sagaEpisodes.length})
+							</p>
+							<div className="flex flex-wrap gap-2">
+								{sagaEpisodes.map((ep) => (
+									<Link
+										key={ep.id}
+										href={`/wiki/episodes/${ep.id}`}
+										title={ep.title}
+										className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-[13px] font-display font-semibold text-white/70 transition-colors hover:border-dbz-orange/60 hover:text-white"
+									>
+										#{ep.number_in_series}
+									</Link>
+								))}
+							</div>
+						</div>
+					)}
 				</section>
 			)}
 

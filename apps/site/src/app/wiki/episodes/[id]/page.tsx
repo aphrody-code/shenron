@@ -120,7 +120,14 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 	const ep = await dbUniverse.episode(parseInt(id));
 	if (!ep) notFound();
 
-	const nav = await dbUniverse.episodeNav(ep.series, ep.number_in_series);
+	const [nav, saga] = await Promise.all([
+		dbUniverse.episodeNav(ep.series, ep.number_in_series),
+		// Saga DÉRIVÉE des bornes (`db_sagas.episode_start/end`) : `arc_id` est nul
+		// sur 790 épisodes sur 826, la base ne sait donc pas répondre directement.
+		// Retourne null pour les 167 épisodes hors de toute borne — dans ce cas la
+		// fiche ne dit rien plutôt que de rattacher au hasard.
+		dbUniverse.episodeSaga(ep.series, ep.number_in_series),
+	]);
 
 	const youtubeId = getYoutubeId(ep.video_url);
 	const seriesLabel = SERIES_LABELS[ep.series] ?? ep.series;
@@ -240,6 +247,9 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 					items={[
 						{ label: "Épisodes", href: "/wiki/episodes" },
 						{ label: seriesLabel, href: `/wiki/episodes/serie/${ep.series}` },
+						// La saga s'intercale quand les bornes la donnent : c'est le seul
+						// chemin qui relie un épisode au récit dont il fait partie.
+						...(saga ? [{ label: saga.name, href: `/wiki/sagas/${saga.slug}` }] : []),
 						{ label: `Épisode ${ep.number_in_series}` },
 					]}
 				/>

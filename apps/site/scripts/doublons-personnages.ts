@@ -28,6 +28,27 @@
  * choisir et le signale : fusionner du contenu écrit demande une lecture, pas
  * un score.
  *
+ * ── Deux passes, dans cet ordre ─────────────────────────────────────────────
+ * 1. **Graphie latine** : rapproche « Krillin » de « Krilin », « Chi-Chi » de
+ *    « Chichi ». C'est la passe historique.
+ * 2. **Nom japonais** : rapproche ce que la graphie latine ne peut PAS voir —
+ *    « Zarbon »/« Zabon » (ザーボン), « Beerus »/« Bills » (ビルス),
+ *    « Cell »/« Celula » (セル), « Master Roshi »/« Kamé Sennin » (亀仙人).
+ *    Dix groupes de ce type survivaient à la passe du 2026-08-25, dont un
+ *    (« Celula ») arrivait 9e au classement de la grille des personnages.
+ *
+ * Cette seconde passe est plus sûre que la première, pas moins : le nom japonais
+ * est déjà le juge décisif du script, et deux fiches qui portent la MÊME graphie
+ * japonaise sont la même personne. Elle ne s'applique qu'aux fiches qui en
+ * portent un (59 % du corpus) — l'absence de nom japonais n'y est pas un indice.
+ *
+ * Ce qu'elle ne fait PAS : déplacer les liens `db_character_techniques` de la
+ * fiche masquée vers la fiche gardée. « Celula » en porte 32, mais cette table
+ * est un import de movesets de jeu et rien ne distingue automatiquement un lien
+ * légitime d'un artefact (cf. CLAUDE.md) : les transférer ajouterait des
+ * associations de jeu à une fiche canon, sans révision et sans retour arrière.
+ * Le script les COMPTE et le dit.
+ *
  * Usage :
  *   bun scripts/doublons-personnages.ts              # inventaire (n'écrit rien)
  *   bun scripts/doublons-personnages.ts --appliquer  # masque les fiches pauvres
@@ -246,13 +267,138 @@ try {
 		}
 	}
 
+	// ── Passe 2 : regroupement par NOM JAPONAIS ────────────────────────────
+	//
+	// La passe latine ne peut pas voir « Zarbon »/« Zabon » ni « Cell »/« Celula ».
+	// Le nom japonais, lui, est identique — et c'est déjà le juge que le script
+	// applique pour trancher. On rejoue donc la même mécanique sur cette clé, en
+	// gardant les deux mêmes garde-fous : les fiches à parenthèse sont des
+	// VERSIONS (« Cell (futur) », « Broly (Xeno) ») et restent hors jeu, et deux
+	// fiches substantielles ne se départagent pas au score.
+	/**
+	 * Le champ `name_ja` n'est PAS toujours un nom japonais.
+	 *
+	 * Mesuré ici : `db_characters#303` (Captain Strong) et `#539` (Goose) portent
+	 * tous deux « Kōji Totani » — le nom du **comédien de doublage**, échappé
+	 * d'une infobox. En latin, donc invisible pour un juge qui fait confiance au
+	 * champ. Sans ce filtre, la passe fusionnait deux personnages distincts.
+	 *
+	 * On exige donc au moins un kana ou un kanji : c'est ce qui distingue une
+	 * graphie japonaise d'une fuite d'infobox latine.
+	 */
+	const estJaponais = (k: string) => /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff]/.test(k);
+
+	/**
+	 * Proximité des graphies latines, sur une distance de Levenshtein normalisée.
+	 *
+	 * Sert de garde-fou au SECOND faux positif mesuré : `#721 Koitsukai` et
+	 * `#935 Panzia` portent tous deux コイツカイ — la graphie de Panzia est
+	 * fausse en base, et ce sont deux guerriers de l'Univers 9 bien distincts.
+	 *
+	 * Deux fiches qui portent la même graphie japonaise ET des noms latins
+	 * proches sont une variante de translittération (Zarbon/Zabon,
+	 * Jeice/Jeese) : on masque. Même graphie mais noms éloignés — ce peut être
+	 * une traduction légitime (« Grand Kaïo » / « Dai Kaiô ») comme une erreur de
+	 * saisie : on ne tranche pas, on liste. Le coût d'une erreur n'est pas
+	 * symétrique — masquer une vraie fiche la retire du site.
+	 */
+	const proches = (a: string, b: string): boolean => {
+		// Un suffixe numérique explicite désigne une AUTRE entrée, pas une autre
+		// graphie : « Barman » et « Barman 2 » (tous deux バーテンダー) sont deux
+		// figurants distincts que le tenancier de bar générique confond. Même
+		// famille que « Kaïo de l'Est » / « Kaïo de l'Ouest », mais que la clé
+		// latine, elle, sait déjà séparer.
+		const nu = (n: string) => n.trim().replace(/\s+\d+$/, "");
+		if (nu(a) !== a || nu(b) !== b) {
+			if (cle(nu(a)) === cle(nu(b))) return false;
+		}
+		const x = cle(a);
+		const y = cle(b);
+		if (!x || !y) return false;
+		if (x === y || x.includes(y) || y.includes(x)) return true;
+		const d: number[][] = Array.from({ length: x.length + 1 }, (_, i) =>
+			Array.from({ length: y.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+		);
+		for (let i = 1; i <= x.length; i++) {
+			for (let j = 1; j <= y.length; j++) {
+				d[i]![j] = Math.min(
+					d[i - 1]![j]! + 1,
+					d[i]![j - 1]! + 1,
+					d[i - 1]![j - 1]! + (x[i - 1] === y[j - 1] ? 0 : 1)
+				);
+			}
+		}
+		return d[x.length]![y.length]! / Math.max(x.length, y.length) <= 0.34;
+	};
+
+	const groupesJa = new Map<string, Fiche[]>();
+	for (const f of fiches) {
+		if (/[()]/.test(f.name)) continue;
+		const k = ja(f);
+		if (!k || !estJaponais(k)) continue;
+		groupesJa.set(k, [...(groupesJa.get(k) ?? []), f]);
+	}
+
+	let arbitragesJa = 0;
+	let masqueesJa = 0;
+	const liensOrphelins: string[] = [];
+	for (const [k, groupe] of [...groupesJa].sort()) {
+		if (groupe.length < 2) continue;
+		// Déjà traité par la passe latine : même clé latine pour toutes les fiches
+		// du groupe ⇒ ne pas recompter.
+		if (new Set(groupe.map((f) => cle(f.name))).size === 1) continue;
+		const classes = [...groupe].sort((a, b) => score(b) - score(a) || a.id - b.id);
+		const substantielles = classes.filter((f) => f.aArticle || f.sections > 0);
+		if (substantielles.length > 1) {
+			ambigus.push(
+				`${k} (ja) → ${classes.map((f) => `${f.id}:${f.name}(${score(f)})`).join(" vs ")}`
+			);
+			continue;
+		}
+		const gardee = classes[0]!;
+		const candidates = classes.slice(1).filter((f) => f.visible);
+		if (candidates.length === 0) continue;
+		// Même graphie japonaise mais noms latins éloignés : à vérifier, pas à masquer.
+		const eloignees = candidates.filter((f) => !proches(gardee.name, f.name));
+		if (eloignees.length) {
+			ambigus.push(
+				`${k} (ja, noms latins éloignés) → ${[gardee, ...eloignees]
+					.map((f) => `${f.id}:${f.name}`)
+					.join(" vs ")}`
+			);
+		}
+		const perdantes = candidates.filter((f) => proches(gardee.name, f.name));
+		if (perdantes.length === 0) continue;
+		arbitragesJa++;
+		console.log(
+			`${k.padEnd(14)} [ja] garde ${gardee.id}:${gardee.name} (${score(gardee)}) ` +
+				`· masque ${perdantes.map((f) => `${f.id}:${f.name}(${score(f)})`).join(", ")}`
+		);
+		for (const f of perdantes) {
+			if (f.techniques > 0) {
+				liensOrphelins.push(`${f.id}:${f.name} → ${f.techniques} lien(s) db_character_techniques`);
+			}
+			if (APPLIQUER) await sql`update bot.db_characters set visible = false where id = ${f.id}`;
+			masqueesJa++;
+		}
+	}
+
+	if (liensOrphelins.length) {
+		console.log(
+			`\nFiches masquées qui portaient des liens de technique (NON transférés, cf. en-tête) :`
+		);
+		for (const l of liensOrphelins) console.log(`  ${l}`);
+	}
+
 	if (ambigus.length) {
 		console.log(`\n${ambigus.length} groupe(s) à trancher à la main (contenu des deux côtés) :`);
 		for (const a of ambigus) console.log(`  ${a}`);
 	}
 	console.log(
-		`\n${arbitrages} groupe(s) de doublons, ${masquees} fiche(s) ${APPLIQUER ? "masquée(s)" : "à masquer"}` +
-			`, ${ecartes} homonyme(s) écarté(s) par le nom japonais ou la race.`
+		`\n${arbitrages} groupe(s) par graphie latine (${masquees} fiche(s)), ` +
+			`${arbitragesJa} groupe(s) par nom japonais (${masqueesJa} fiche(s)) ` +
+			`${APPLIQUER ? "masquée(s)" : "à masquer"}, ` +
+			`${ecartes} homonyme(s) écarté(s) par le nom japonais ou la race.`
 	);
 	if (!APPLIQUER) console.log("Simulation — relancer avec --appliquer pour écrire.");
 } finally {

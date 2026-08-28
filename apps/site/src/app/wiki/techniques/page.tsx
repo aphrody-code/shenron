@@ -3,25 +3,11 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { TechniqueGrid } from "@/components/wiki/TechniqueGrid";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
+import { LIBELLES_TYPE } from "@/lib/techniques-types";
 import type { Metadata } from "next";
 
 export const revalidate = 3600;
 
-/**
- * Libellés des types de technique. Les valeurs en base (`super`, `ultimate`,
- * `evasive`, `awoken`) sont les **slots de compétence de Xenoverse 2**, pas des
- * catégories de l'œuvre : les afficher brutes donnait des titres de section
- * « AWOKEN » en capitales sur un wiki francophone. On les traduit, et la note
- * de provenance dit d'où vient ce classement plutôt que de le faire passer pour
- * canonique.
- */
-const LIBELLES_TYPE: Record<string, string> = {
-	super: "Attaques spéciales",
-	ultimate: "Attaques ultimes",
-	evasive: "Esquives et déplacements",
-	awoken: "Éveils et transformations",
-	Autre: "Non classées",
-};
 
 export const metadata: Metadata = {
 	title: "Techniques Dragon Ball",

@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { NOTE_PROVENANCE, estTypeDeJeu, libelleType } from "@/lib/techniques-types";
 import { JsonLd } from "@/components/JsonLd";
 import type { DefinedTerm, WithContext } from "schema-dts";
 import { SITE_URL } from "@/lib/config";
@@ -134,7 +135,7 @@ export default async function TechniqueDetailPage({
 							<span className="scouter-text text-xl text-dbz-blue-light">TECH_ID: {tech.id}</span>
 							<div className="h-px w-12 bg-dbz-border" />
 							<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-white/50">
-								{tech.type ?? "Capacité"}
+								{libelleType(tech.type)}
 							</p>
 						</div>
 						<h1 className="font-saiyan text-4xl lg:text-6xl text-white mb-4 tracking-widest leading-tight">
@@ -149,6 +150,17 @@ export default async function TechniqueDetailPage({
 								>
 									{tech.creatorName}
 								</Link>
+							</p>
+						)}
+						{/* La provenance se dit à l'écran, pas dans un `title` : ce
+						    classement vient des slots de compétence d'un jeu, et le
+						    lecteur qui voit « Attaques ultimes » sous une technique du
+						    manga doit savoir d'où sort l'étiquette. Même phrase que
+						    l'index — deux formulations feraient croire à deux réserves
+						    de force différente. */}
+						{estTypeDeJeu(tech.type) && (
+							<p className="mt-3 max-w-xl text-[11px] leading-relaxed text-white/40">
+								{NOTE_PROVENANCE}
 							</p>
 						)}
 					</div>

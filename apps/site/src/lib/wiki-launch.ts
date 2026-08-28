@@ -154,6 +154,21 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		blurb: "Adaptations vidéoludiques",
 	},
 	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"], group: "oeuvres", blurb: "Daizenshuu, guides et artbooks" },
+	// Outils communautaires (43 dépôts GitHub : modding, shaders, API). La page
+	// existait depuis longtemps et n'était visible de PERSONNE : sans entrée ici,
+	// le proxy applique le mode `admin` à tout ce qui vit sous /wiki, et
+	// `/wiki/tools` répondait un 307 vers /wiki-bientot pour le public.
+	// `alwaysOpen` : la page ne montre que des liens externes déjà publics, elle
+	// ne divulgue aucun contenu du wiki.
+	{
+		key: "tools",
+		label: "Outils",
+		href: "/wiki/tools",
+		prefixes: ["/wiki/tools"],
+		alwaysOpen: true,
+		group: "communaute",
+		blurb: "Modding, shaders et API de la communauté",
+	},
 	// Page d'accueil de la contribution. `alwaysOpen` à dessein : hors registre,
 	// tout ce qui vit sous /wiki est fermé par défaut (cf. proxy.ts), et une page
 	// qui explique comment participer, réservée aux admins, ne sert personne.

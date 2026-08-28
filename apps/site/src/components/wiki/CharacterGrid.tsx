@@ -8,6 +8,7 @@ import { WikiImg } from "@/components/wiki/WikiImg";
 import { CharacterFilterModal, type FacetOption } from "@/components/wiki/CharacterFilterModal";
 import { ClientGatedWrap } from "@/components/GatedClientLink";
 import type { AccessSnapshot } from "@/lib/wiki-launch";
+import { comparerRichesse } from "@/lib/character-richesse";
 
 // Grille personnages filtrable (client). Importe `@/lib/assets` (client-safe),
 // JAMAIS db-universe/shenron (server-only → `postgres` fuiterait dans le bundle).
@@ -19,6 +20,12 @@ export type GridCharacter = {
 	image: string | null;
 	/** Portrait XV2 — repli d'image quand `image` 404 (cf. WikiImg). */
 	portraitXv2?: string | null;
+	/**
+	 * Note de richesse mesurée (`@/lib/character-richesse`), calculée côté
+	 * serveur. Sert au tri par défaut et à la jauge de la carte ; absente, la
+	 * grille retombe sur l'ordre alphabétique.
+	 */
+	richesse?: number;
 };
 
 /**
@@ -116,6 +123,14 @@ export function CharacterGrid({
 	const [techniques, setTechniques] = useState<string[]>([]);
 	const [arcs, setArcs] = useState<string[]>([]);
 	const [modalOpen, setModalOpen] = useState(false);
+	/**
+	 * Ordre d'affichage. Par défaut « les mieux documentés », parce que c'est la
+	 * seule vue qui a du sens à l'atterrissage : l'alphabétique met Abo, Abra et
+	 * Adjudant Black avant Goku, et l'ordre de la base met les fiches vides
+	 * devant. Le tri se fait ici (client) sur une note déjà calculée côté serveur
+	 * — pas de nouvelle requête au changement.
+	 */
+	const [tri, setTri] = useState<"richesse" | "alpha">("richesse");
 
 	const techniqueOptions = facets?.techniqueOptions ?? [];
 	const arcOptions = facets?.arcOptions ?? [];
@@ -184,8 +199,34 @@ export function CharacterGrid({
 		});
 	}, [variants, vue, query, races, techniques, arcs, charTechniques, charArcs]);
 
+	/** Fiches filtrées PUIS classées. */
+	const fichesTriees = useMemo(
+		() =>
+			tri === "alpha"
+				? [...filtered].sort((a, b) => a.name.localeCompare(b.name, "fr"))
+				: [...filtered].sort(comparerRichesse),
+		[filtered, tri]
+	);
+
+	/**
+	 * Versions classées par la richesse de leur personnage PARENT, puis par saga.
+	 * Une version ne porte pas de note propre : elle n'a ni article ni rubriques,
+	 * seulement ce qui change d'une saga à l'autre. La classer par son parent
+	 * remonte les versions de Goku avant celles d'un figurant, ce qui est bien la
+	 * question posée.
+	 */
+	const versionsTriees = useMemo(() => {
+		if (vue !== "versions") return versionsFiltrees;
+		const note = new Map(characters.map((c) => [c.id, c.richesse ?? 0]));
+		return [...versionsFiltrees].sort((a, b) => {
+			if (tri === "alpha") return a.name.localeCompare(b.name, "fr");
+			const d = (note.get(b.characterId) ?? 0) - (note.get(a.characterId) ?? 0);
+			return d !== 0 ? d : a.name.localeCompare(b.name, "fr");
+		});
+	}, [versionsFiltrees, characters, tri, vue]);
+
 	/** Liste réellement paginée et rendue, selon la vue choisie. */
-	const liste = vue === "versions" ? versionsFiltrees : filtered;
+	const liste = vue === "versions" ? versionsTriees : fichesTriees;
 
 	// Pagination bornée : 120 cartes à l'écran, jamais plus. L'ancien « Voir
 	// plus » cumulait les paliers (720 cartes dans le DOM après six clics) sans
@@ -202,16 +243,16 @@ export function CharacterGrid({
 	// d'une liste qui vient d'en perdre 6 affiche un vide inexplicable.
 	useEffect(() => {
 		setPage(1);
-	}, [query, races, techniques, arcs, vue]);
+	}, [query, races, techniques, arcs, vue, tri]);
 	const pages = Math.max(1, Math.ceil(liste.length / PAGE));
 	const pageSure = Math.min(page, pages);
 	const visible = useMemo(
-		() => filtered.slice((pageSure - 1) * PAGE, pageSure * PAGE),
-		[filtered, pageSure]
+		() => fichesTriees.slice((pageSure - 1) * PAGE, pageSure * PAGE),
+		[fichesTriees, pageSure]
 	);
 	const versionsVisibles = useMemo(
-		() => versionsFiltrees.slice((pageSure - 1) * PAGE, pageSure * PAGE),
-		[versionsFiltrees, pageSure]
+		() => versionsTriees.slice((pageSure - 1) * PAGE, pageSure * PAGE),
+		[versionsTriees, pageSure]
 	);
 
 	const activeCount = races.length + techniques.length + arcs.length;
@@ -274,6 +315,36 @@ export function CharacterGrid({
 						Réinitialiser
 					</button>
 				)}
+				{/* Ordre d'affichage. Deux options seulement : le tri par richesse
+				    répond à « montre-moi ce que le wiki connaît », l'alphabétique à
+				    « je cherche un nom précis ». En ajouter d'autres (par race, par
+				    ki) ferait doublon avec les filtres, qui répondent déjà mieux. */}
+				<div
+					role="group"
+					aria-label="Trier les personnages"
+					className="inline-flex h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1"
+				>
+					{(
+						[
+							["richesse", "Les mieux documentés"],
+							["alpha", "A → Z"],
+						] as const
+					).map(([valeur, libelle]) => (
+						<button
+							key={valeur}
+							type="button"
+							onClick={() => setTri(valeur)}
+							aria-pressed={tri === valeur}
+							className={`h-9 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange ${
+								tri === valeur
+									? "bg-dbz-orange text-black"
+									: "text-white/70 hover:text-white"
+							}`}
+						>
+							{libelle}
+						</button>
+					))}
+				</div>
 				{nbVariants > 0 && (
 					<div
 						role="group"

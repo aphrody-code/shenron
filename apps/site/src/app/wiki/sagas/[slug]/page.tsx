@@ -242,6 +242,44 @@ export default async function SagaPage({ params }: { params: Promise<{ slug: str
 				</section>
 			)}
 
+			{/*
+			  Épisodes de la saga — MESURÉS sur ses bornes, pas lus dans une colonne.
+
+			  `db_episodes.arc_id` est nul sur 790 des 826 épisodes, et rien ne relie
+			  un épisode à une saga en base. Les bornes `episode_start`/`episode_end`,
+			  elles, existent sur 25 sagas et couvrent 659 épisodes. Les 8 sagas sans
+			  borne (films, OAV, arcs manga-only de Super) n'affichent donc rien —
+			  c'est voulu : une liste approximative se lirait comme un relevé.
+			*/}
+			{saga.episodes.length > 0 && (
+				<section className="mb-16">
+					<div className="mb-8 flex items-center gap-6">
+						<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
+							Épisodes ({saga.episodes.length})
+						</h2>
+						<div className="h-px flex-1 bg-gradient-to-r from-white/20 to-transparent" />
+					</div>
+					<p className="mb-6 max-w-2xl text-[13px] leading-relaxed text-white/45">
+						Relevé sur les bornes de la saga ({seriesLabel} #{saga.episodes[0]!.number_in_series}
+						{" à "}
+						{saga.episodes.at(-1)!.number_in_series}). L&apos;anime n&apos;est pas le manga :
+						certains de ces épisodes sont du remplissage.
+					</p>
+					<div className="flex flex-wrap gap-2">
+						{saga.episodes.map((ep) => (
+							<Link
+								key={ep.id}
+								href={`/wiki/episodes/${ep.id}`}
+								title={ep.title}
+								className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-[13px] font-display font-semibold text-white/70 transition-colors hover:border-dbz-orange/60 hover:text-white"
+							>
+								#{ep.number_in_series}
+							</Link>
+						))}
+					</div>
+				</section>
+			)}
+
 			<section className="dbz-panel p-10 border-t-4 border-t-dbz-orange bg-dbz-card/30">
 				<h2 className="font-saiyan text-3xl text-white mb-6 tracking-widest">EXPLORATION</h2>
 				<div className="flex flex-wrap gap-4">
