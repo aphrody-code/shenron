@@ -72,7 +72,7 @@ export function FavoriteButton({
 			aria-label={on ? `Retirer « ${title} » des favoris` : `Ajouter « ${title} » aux favoris`}
 			className={
 				className ||
-				`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 ${
+				`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 ${
 					on
 						? "border-dbz-orange/60 text-dbz-orange"
 						: "border-white/15 text-white/70 hover:border-dbz-orange/50 hover:text-dbz-orange"

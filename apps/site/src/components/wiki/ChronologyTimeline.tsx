@@ -207,7 +207,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 								// actifs, alors que c'est toute l'information de la barre.
 								aria-pressed={on}
 								onClick={() => toggleEra(e)}
-								className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-display font-semibold transition-all ${
+								className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12px] font-display font-semibold transition-all ${
 									on ? "text-black" : "text-white/60 bg-white/5 hover:bg-white/10"
 								}`}
 								style={on ? { backgroundColor: ERA_ACCENT[e] } : undefined}
@@ -350,7 +350,7 @@ function ExportBtn({
 		<button
 			type="button"
 			onClick={onClick}
-			className="inline-flex items-center gap-1 rounded-md border border-dbz-border bg-dbz-bg/40 px-2 py-1 text-[11px] font-mono text-white/70 hover:text-white hover:border-dbz-orange/50 transition-colors"
+			className="inline-flex min-h-11 items-center gap-1 rounded-md border border-dbz-border bg-dbz-bg/40 px-3 py-1 text-[11px] font-mono text-white/70 hover:text-white hover:border-dbz-orange/50 transition-colors"
 		>
 			{icon ?? <Download className="h-3 w-3" />}
 			{label}

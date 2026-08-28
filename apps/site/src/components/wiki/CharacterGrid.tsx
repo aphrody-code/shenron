@@ -266,7 +266,7 @@ export function CharacterGrid({
 		<div className="space-y-8">
 			{/* Toolbar : recherche + bouton « Filtrer » (ouvre la modale Race /
 			    Techniques / Arcs, cumulatif) + compteur live. */}
-			<div className="flex flex-col sm:flex-row sm:items-center gap-3">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
 				<div className="relative flex-1 max-w-md">
 					<svg
 						className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50"
@@ -322,7 +322,12 @@ export function CharacterGrid({
 				<div
 					role="group"
 					aria-label="Trier les personnages"
-					className="inline-flex h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1"
+					// Sur mobile la bascule prend toute la largeur et 52 px de haut : ses
+					// segments atteignent alors les 44 px de cible tactile (ils étaient à
+					// 36), et deux bascules côte à côte tiennent sur une seule rangée au
+					// lieu d'empiler deux blocs pleine largeur. Au-delà de 640 px, on
+					// revient à la pastille compacte d'origine.
+					className="inline-flex h-13 w-full items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1 sm:h-11 sm:w-auto"
 				>
 					{(
 						[
@@ -335,7 +340,7 @@ export function CharacterGrid({
 							type="button"
 							onClick={() => setTri(valeur)}
 							aria-pressed={tri === valeur}
-							className={`h-9 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange ${
+							className={`h-11 flex-1 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange sm:h-9 sm:flex-none ${
 								tri === valeur
 									? "bg-dbz-orange text-black"
 									: "text-white/70 hover:text-white"
@@ -349,7 +354,12 @@ export function CharacterGrid({
 					<div
 						role="group"
 						aria-label="Affichage"
-						className="inline-flex h-11 items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1"
+						// Sur mobile la bascule prend toute la largeur et 52 px de haut : ses
+					// segments atteignent alors les 44 px de cible tactile (ils étaient à
+					// 36), et deux bascules côte à côte tiennent sur une seule rangée au
+					// lieu d'empiler deux blocs pleine largeur. Au-delà de 640 px, on
+					// revient à la pastille compacte d'origine.
+					className="inline-flex h-13 w-full items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1 sm:h-11 sm:w-auto"
 					>
 						{(["fiches", "versions"] as const).map((v) => (
 							<button
@@ -357,7 +367,7 @@ export function CharacterGrid({
 								type="button"
 								onClick={() => setVue(v)}
 								aria-pressed={vue === v}
-								className={`h-9 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange ${
+								className={`h-11 flex-1 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange sm:h-9 sm:flex-none ${
 									vue === v
 										? "bg-dbz-orange text-black"
 										: "text-white/65 hover:text-white"

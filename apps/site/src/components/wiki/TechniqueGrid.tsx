@@ -74,7 +74,9 @@ export function TechniqueGrid({
 	);
 
 	const pill =
-		"rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
+		// `min-h-11` = 44 px : ces puces filtrent tout le catalogue, et `py-2`
+		// seul les laissait à 38 px.
+		"inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60";
 
 	return (
 		<div className="space-y-8">

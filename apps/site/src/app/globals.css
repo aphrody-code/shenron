@@ -61,6 +61,11 @@ html {
 	left: 0.5rem;
 	z-index: 200;
 	transform: translateY(-160%);
+	/* 44 px : c'est le tout premier élément atteignable au clavier, et la
+	   première cible d'un lecteur qui saute la navigation. */
+	min-height: 44px;
+	display: inline-flex;
+	align-items: center;
 	padding: 0.65rem 1.1rem;
 	border-radius: 0.5rem;
 	border: 1px solid var(--dbz-orange, #ffb200);
@@ -435,7 +440,10 @@ main:focus {
 
 	/* === Bouton signature gradient violet→cyan === */
 	.dbz-button {
-		@apply font-sans font-bold uppercase tracking-widest text-white px-6 py-3 inline-flex items-center justify-center transition-all relative overflow-hidden;
+		/* `min-h-11` = 44 px : le bouton de base fait 48 px, mais plusieurs points
+		   d'appel le resserrent (`!py-2.5`, `!py-2`) et retombaient à 34-40 px.
+		   Un plancher ici les rattrape tous, sans toucher aux surcharges. */
+		@apply font-sans font-bold uppercase tracking-widest text-white px-6 py-3 min-h-11 inline-flex items-center justify-center transition-all relative overflow-hidden;
 		background: var(--gradient-galactic);
 		background-size: 200% 200%;
 		background-position: 0% 50%;
