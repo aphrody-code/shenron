@@ -91,10 +91,14 @@ export function Pagination({
 
 	if (total === 0) return null;
 
+	// h-11/min-w-11 = 44 px : sous cette taille, viser le « 3 » d'une pagination
+	// au pouce fait atterrir sur le « 2 ». `px-1.5` et non `px-2` : à 320 px
+	// (iPhone SE), sept boutons de 44 px plus les chevrons débordaient de 20 px
+	// — mesuré, et c'est la rangée entière qui sortait à gauche parce qu'elle
+	// est centrée. La marge horizontale ne coûte rien puisque `min-w-11` tient
+	// déjà la cible tactile.
 	const btn =
-		// h-11/min-w-11 = 44 px : sous cette taille, viser le « 3 » d'une
-	// pagination au pouce fait atterrir sur le « 2 ».
-	"grid h-11 min-w-11 place-items-center rounded-lg px-2 font-display text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 disabled:cursor-not-allowed disabled:opacity-35";
+		"grid h-11 min-w-11 place-items-center rounded-lg px-1.5 font-display text-[14px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 disabled:cursor-not-allowed disabled:opacity-35";
 
 	return (
 		<div className={`flex flex-col items-center gap-3 ${className}`}>
@@ -103,7 +107,14 @@ export function Pagination({
 			</p>
 
 			{pages > 1 && (
-				<nav aria-label="Pagination" className="flex items-center gap-1">
+				<nav
+					aria-label="Pagination"
+					// `flex-wrap` + `justify-center` : la ceinture. Même resserrée, une
+					// pagination à beaucoup de pages finira par ne plus tenir sur un
+					// écran étroit — mieux vaut qu'elle passe à la ligne que de pousser
+					// toute la page hors du viewport.
+					className="flex max-w-full flex-wrap items-center justify-center gap-1"
+				>
 					<button
 						type="button"
 						onClick={() => aller(page - 1)}
@@ -119,7 +130,7 @@ export function Pagination({
 							<span
 								key={`gap-${i}`}
 								aria-hidden
-								className="grid h-10 w-6 place-items-center text-white/30"
+								className="grid h-11 w-5 place-items-center text-white/30"
 							>
 								…
 							</span>

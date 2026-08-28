@@ -53,11 +53,16 @@ export default async function ToolsPage() {
 										className="dbz-panel p-6 hover:border-dbz-orange transition-all group flex flex-col justify-between"
 									>
 										<div>
-											<div className="flex justify-between items-start mb-4">
-												<h3 className="text-xl font-bold text-white group-hover:text-dbz-orange transition-colors">
+											<div className="mb-4 flex items-start justify-between gap-3">
+												{/* `min-w-0` + `break-words` : un nom de dépôt sans espace
+												    (« DragonBallXenoverse2-ModTools ») imposait sa largeur à
+												    la carte, et le badge d'étoiles sortait de l'écran à
+												    320 px. `shrink-0` sur le badge pour qu'il ne se fasse
+												    pas écraser en retour. */}
+												<h3 className="min-w-0 break-words text-xl font-bold text-white transition-colors group-hover:text-dbz-orange">
 													{tool.name.split("/")[1] || tool.name}
 												</h3>
-												<span className="scouter-text text-xs text-dbz-orange">
+												<span className="scouter-text shrink-0 text-xs text-dbz-orange">
 													⭐ {tool.stars}
 												</span>
 											</div>

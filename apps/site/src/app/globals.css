@@ -1781,7 +1781,9 @@ main:focus {
 	transform: translateY(-50%);
 	display: flex;
 	flex-direction: column;
-	gap: 0.65rem;
+	/* Réduit de 0.65rem : les points font désormais 44 px de haut (cible
+	   tactile), le rail garde donc sa hauteur d'ensemble. */
+	gap: 0.1rem;
 	z-index: 40;
 	mix-blend-mode: difference;
 }
@@ -1793,6 +1795,11 @@ main:focus {
 	border: none;
 	cursor: pointer;
 	color: rgba(255, 255, 255, 0.55);
+	/* 44 px de hauteur tactile : ces points pilotent TOUTE la navigation de la
+	   home, et ils mesuraient 31 px. Le dessin ne change pas — c'est le rembourrage
+	   vertical qui porte la cible, et `gap` sur `.home-dots` est réduit d'autant
+	   pour que le rail garde sa hauteur. */
+	min-height: 44px;
 	padding: 0.15rem 0;
 	flex-direction: row-reverse;
 }
@@ -2043,6 +2050,8 @@ main:focus {
 	display: inline-flex;
 	align-items: center;
 	gap: 0.5rem;
+	/* 44 px : l'appel à l'action principal de la home était à 42. */
+	min-height: 44px;
 	padding: 0.85rem 1.7rem;
 	border-radius: 2px;
 	font-family: var(--font-display);
@@ -3052,8 +3061,10 @@ main:focus {
 	gap: 0.5rem;
 }
 .bestof__arrow {
-	width: 2.4rem;
-	height: 2.4rem;
+	/* 2.75rem = 44 px : cible tactile minimale. Ces flèches font défiler le
+	   sélecteur de sagas au doigt, et 38 px les rendait capricieuses. */
+	width: 2.75rem;
+	height: 2.75rem;
 	display: grid;
 	place-items: center;
 	border-radius: 50%;
