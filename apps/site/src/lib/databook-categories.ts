@@ -10,7 +10,7 @@ export const DATABOOK_CATEGORIES = [
 	"Databook",
 	"Interview",
 	"Art Book",
-	"Guidebook",
+	"Saikyō Jump",
 	"V-Jump",
 	"Weekly Shonen Jump",
 	"Light Novel",
@@ -26,13 +26,16 @@ export const DATABOOK_TYPE_CATEGORIES = [
 	"Databook",
 	"Interview",
 	"Art Book",
-	"Guidebook",
+	"Saikyō Jump",
 ] as const satisfies readonly DatabookCategory[];
 
 export type DatabookKind = "databook" | "interview" | "artbook" | "guidebook";
 
 export function resolveDatabookCategory(c: string | null | undefined): DatabookCategory {
 	const t = (c ?? "").trim();
+	// Alias historique : la catégorie s'appelait « Guidebook » avant d'être
+	// renommée en « Saikyō Jump » (elle ne contient que ce magazine).
+	if (t === "Guidebook") return "Saikyō Jump";
 	if ((DATABOOK_CATEGORIES as readonly string[]).includes(t)) {
 		return t as DatabookCategory;
 	}
@@ -49,7 +52,7 @@ export function kindFromCategory(c: string | null | undefined): DatabookKind {
 			return "interview";
 		case "Art Book":
 			return "artbook";
-		case "Guidebook":
+		case "Saikyō Jump":
 			return "guidebook";
 		default:
 			return "databook";
@@ -68,7 +71,7 @@ export function databookTypeLabel(
 	const k = (kind ?? "").toLowerCase();
 	if (k === "interview") return "Interview";
 	if (k === "artbook" || k === "art_book" || k === "art-book") return "Art Book";
-	if (k === "guidebook" || k === "guide_book" || k === "guide-book") return "Guidebook";
+	if (k === "guidebook" || k === "guide_book" || k === "guide-book") return "Saikyō Jump";
 	if (cat === "Databook") return "Databook";
 	// Catégorie éditoriale → l'ouvrage est un databook par défaut
 	return cat === "Autre" ? "Databook" : cat;

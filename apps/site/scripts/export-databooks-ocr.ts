@@ -17,6 +17,8 @@
  *   bun scripts/export-databooks-ocr.ts --sortie ~/ocr --taille 400
  *   bun scripts/export-databooks-ocr.ts --sortie ~/ocr --lot 3        # un seul lot
  *   bun scripts/export-databooks-ocr.ts --sortie ~/ocr --plan         # ne fait qu'estimer
+ *   bun scripts/export-databooks-ocr.ts --sortie ~/ocr --databook 323,324
+ *   bun scripts/export-databooks-ocr.ts --sortie ~/ocr --categorie "Saikyō Jump"
  */
 import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -39,6 +41,12 @@ const QUALITE = Number(opt("qualite", "82"));
 const TOUT = flag("tout");
 const PLAN = flag("plan");
 const FORCE = flag("force");
+/** Restreint l'export à certains ouvrages (`--databook 323,324`) ou à une catégorie. */
+const DATABOOKS = (opt("databook") ?? "")
+	.split(",")
+	.map((v) => Number(v.trim()))
+	.filter((v) => Number.isFinite(v) && v > 0);
+const CATEGORIE = opt("categorie") ?? null;
 const CONCURRENCE = 6;
 
 /** Racine physique des planches (servies par nginx sous /wiki/databooks/). */
@@ -66,6 +74,8 @@ const rows = await sql<
 >`select id, title, kind, category, pages
   from bot.db_databooks
   where visible and pages is not null
+    ${DATABOOKS.length ? sql`and id in ${sql(DATABOOKS)}` : sql``}
+    ${CATEGORIE ? sql`and category = ${CATEGORIE}` : sql``}
   order by id`;
 
 const planches: Planche[] = [];

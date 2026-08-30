@@ -480,7 +480,7 @@ export const botDatabooks = bot.table("db_databooks", {
 	description: text("description"),
 	sourceUrl: text("source_url"),
 	/**
-	 * Catégorie unifiée (Databook, Interview, Art Book, Guidebook,
+	 * Catégorie unifiée (Databook, Interview, Art Book, Saikyō Jump,
 	 * V-Jump, Weekly Shonen Jump, Light Novel, Jump Anime Comics,
 	 * Pamphlet & Fair, Autre). Voir `DATABOOK_CATEGORIES`.
 	 */

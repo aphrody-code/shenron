@@ -46,14 +46,14 @@ const GROUPS: { key: string; label: string }[] = [
 	{ key: "databook", label: "Databooks" },
 	{ key: "interview", label: "Interviews" },
 	{ key: "artbook", label: "Art Books" },
-	{ key: "guidebook", label: "Guidebooks" },
+	{ key: "guidebook", label: "Saikyō Jump" },
 ];
 
 function resolveKind(d: Databook): string {
 	const cat = (d.category ?? "").trim();
 	if (cat === "Interview") return "interview";
 	if (cat === "Art Book") return "artbook";
-	if (cat === "Guidebook") return "guidebook";
+	if (cat === "Saikyō Jump" || cat === "Guidebook") return "guidebook";
 	if (cat === "Databook") return "databook";
 	const k = (d.kind ?? "").toLowerCase();
 	if (k === "interview" || k === "artbook" || k === "guidebook" || k === "databook") return k;
@@ -66,7 +66,7 @@ function categoryBadge(d: Databook): string {
 	const k = resolveKind(d);
 	if (k === "interview") return "Interview";
 	if (k === "artbook") return "Art Book";
-	if (k === "guidebook") return "Guidebook";
+	if (k === "guidebook") return "Saikyō Jump";
 	return "Databook";
 }
 

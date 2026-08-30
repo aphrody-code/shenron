@@ -4,7 +4,7 @@
  * Grille des databooks & interviews.
  *
  * Filtres **unifiés** (même style de boutons) — un seul plan de catégories :
- *   Tout · Databook · Interview · Art Book · Guidebook · V-Jump · …
+ *   Tout · Databook · Interview · Art Book · Saikyō Jump · V-Jump · …
  *
  * Un seul filtre actif à la fois + tri date + recherche.
  */
@@ -50,7 +50,7 @@ const CATEGORY_ICONS: Partial<
 	Databook: BookOpen,
 	Interview: Mic,
 	"Art Book": Palette,
-	Guidebook: BookMarked,
+	"Saikyō Jump": BookMarked,
 };
 
 const FILTER_TABS: FilterTab[] = [
@@ -78,7 +78,7 @@ function matchesCategory(d: DatabookItem, cat: DatabookCategory): boolean {
 	const kind = (d.kind ?? "").toLowerCase();
 	if (cat === "Interview" && kind === "interview") return true;
 	if (cat === "Art Book" && (kind === "artbook" || kind === "art_book")) return true;
-	if (cat === "Guidebook" && (kind === "guidebook" || kind === "guide_book")) return true;
+	if (cat === "Saikyō Jump" && (kind === "guidebook" || kind === "guide_book")) return true;
 	return false;
 }
 

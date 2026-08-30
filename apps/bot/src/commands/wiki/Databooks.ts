@@ -37,7 +37,7 @@ import {
 const COULEURS: Record<string, number> = {
 	Databook: 0xf59e0b,
 	"Art Book": 0xa855f7,
-	Guidebook: 0x38bdf8,
+	"Saikyō Jump": 0x38bdf8,
 	Interview: 0x22c55e,
 };
 

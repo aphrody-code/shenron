@@ -17,7 +17,7 @@ describe("databook categories", () => {
 			"Databook",
 			"Interview",
 			"Art Book",
-			"Guidebook",
+			"Saikyō Jump",
 			"V-Jump",
 			"Weekly Shonen Jump",
 			"Light Novel",
@@ -49,7 +49,7 @@ describe("databook categories", () => {
 	test("kindFromCategory dérive la colonne technique", () => {
 		expect(kindFromCategory("Interview")).toBe("interview");
 		expect(kindFromCategory("Art Book")).toBe("artbook");
-		expect(kindFromCategory("Guidebook")).toBe("guidebook");
+		expect(kindFromCategory("Saikyō Jump")).toBe("guidebook");
 		expect(kindFromCategory("Databook")).toBe("databook");
 		expect(kindFromCategory("V-Jump")).toBe("databook");
 		expect(kindFromCategory("Autre")).toBe("databook");
@@ -160,7 +160,7 @@ describe("source features shipped", () => {
 		expect(src).not.toContain('mode: "kind"');
 		// Types d'ouvrage dans les icônes de filtre
 		expect(src).toContain('"Art Book"');
-		expect(src).toContain("Guidebook");
+		expect(src).toContain("Saikyō Jump");
 		expect(src).toContain('mode: "category"');
 	});
 });
