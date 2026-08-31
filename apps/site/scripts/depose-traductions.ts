@@ -15,7 +15,14 @@
  *
  * **Simulation par défaut** (`--appliquer` pour écrire), une révision
  * `public.wiki_revisions` par ouvrage et par dépôt — pas par planche : 10 000
- * révisions d'une ligne noieraient l'historique du wiki.
+ * révisions d'une ligne noieraient l'historique du wiki. La révision cible ses
+ * planches en `traduction#<n>`, la seule convention que le retour arrière de
+ * `/admin/wiki/history` sache lire (cf. `databook-pages-shared.ts`).
+ *
+ * Ce script écrit DIRECTEMENT en base, sans passer par l'API : il ne purge donc
+ * aucun cache ISR. Sans conséquence tant que rien n'affiche `text_fr` côté
+ * public — c'est volontaire — mais le jour où la page databook montrera le
+ * français, il faudra revalidater la fiche après dépôt.
  *
  * Garde-fous, tous mesurés sur des sorties de modèle réelles :
  *   - une traduction qui contient encore des kana n'est pas une traduction ;

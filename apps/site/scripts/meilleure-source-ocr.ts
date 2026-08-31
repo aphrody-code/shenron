@@ -124,9 +124,14 @@ try {
 		SELECT id, pages FROM bot.db_databooks WHERE pages IS NOT NULL ORDER BY id`;
 	for (const fiche of fiches) {
 		const pages = Array.isArray(fiche.pages) ? (fiche.pages as Record<string, unknown>[]) : [];
-		for (const p of pages) {
-			const page = Number(p.number ?? 0);
-			const k = `${fiche.id}-${page}`;
+		for (const [i, p] of pages.entries()) {
+			// Même repli que `export-databooks-ocr.ts`, qui nomme les fichiers d'un
+			// lot `<fiche>-<numero || index+1>`. Sans lui, les planches sans
+			// `number` recevaient la clé `<fiche>-0`, que le lot n'écrit jamais :
+			// une meilleure transcription retrouvée pour elles n'était jamais
+			// proposée, en silence.
+			const page = Number(p.number ?? 0) || i + 1;
+			const k = `${Number(fiche.id)}-${page}`;
 			const candidat = candidats.get(k);
 			if (!candidat) continue;
 			const actuel = typeof p.text === "string" ? p.text : "";
