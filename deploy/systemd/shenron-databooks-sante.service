@@ -1,0 +1,19 @@
+[Unit]
+Description=Controle d integrite du corpus databooks (images, numeros, traductions, revisions)
+After=postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/shenron
+ExecStart=/home/ubuntu/.bun/bin/bun apps/site/scripts/databooks.ts sante
+TimeoutStartSec=600
+Nice=15
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=shenron-databooks-sante
+
+[Install]
+WantedBy=multi-user.target

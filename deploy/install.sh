@@ -52,9 +52,9 @@ sudo cp "$TEMP_DIR"/*.service "$TEMP_DIR"/*.timer /etc/systemd/system/
 rm -rf "$TEMP_DIR"
 sudo systemctl daemon-reload
 
-echo "▶ activation service + timers (sqlite-backup 03:00, pg-backup 03:30, neon-sync /30min, neon-pull /15min, drive-sync daily, watchdog /5min)"
-sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-mcp.service filebrowser.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer shenron-watchdog.timer
-sudo systemctl enable --now shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer shenron-watchdog.timer >/dev/null 2>&1 || true
+echo "▶ activation service + timers (sqlite-backup 03:00, pg-backup 03:30, neon-sync /30min, neon-pull /15min, drive-sync daily, watchdog /5min, databooks-sante 05:00)"
+sudo systemctl enable shenron.service shenron-site.service shenron-embed.service shenron-mcp.service filebrowser.service shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer shenron-watchdog.timer shenron-databooks-sante.timer
+sudo systemctl enable --now shenron-backup.timer shenron-pg-backup.timer shenron-neon-sync.timer shenron-neon-pull.timer shenron-drive-sync.timer shenron-watchdog.timer shenron-databooks-sante.timer >/dev/null 2>&1 || true
 # Sidecar embeddings RAG (charge le modèle ; 1er boot télécharge ~120 Mo).
 sudo systemctl enable --now shenron-embed.service >/dev/null 2>&1 || true
 # Serveur MCP public (mcp.dragonballfr.com) — proxy lecture seule RAG + API
@@ -68,7 +68,7 @@ sudo systemctl enable --now filebrowser.service >/dev/null 2>&1 || true
 # fronté par nginx (deploy/nginx/dragonballfr.com.conf). Nécessite un build
 # préalable : bun --filter @shenron/site build (cf. scripts/deploy-site.sh).
 sudo systemctl enable --now shenron-site.service >/dev/null 2>&1 || true
-# guild-sync : réconciliation lourde (scan Discord + reparse 24h). Disponible
+# databooks-sante : contrôle en lecture seule du corpus databooks (images\n# manquantes, numéros en double, traductions posées sur une planche fautive,\n# révisions non annulables). ~1 s, activé par défaut. Journal :\n#   journalctl -u shenron-databooks-sante -n 40\n# guild-sync : réconciliation lourde (scan Discord + reparse 24h). Disponible
 # mais laissée désactivée par défaut. Pour l'activer :
 #   sudo systemctl enable --now shenron-guild-sync.timer
 # wiki-crawl : scrape planches manga (bxc headless) -> Neon, 1×/jour 04:30.
