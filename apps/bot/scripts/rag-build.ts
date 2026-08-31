@@ -30,6 +30,11 @@ const CORPUS = new URL("../data/rag/corpus.json", import.meta.url).pathname;
 // Corpus optionnel : transcriptions OCR des planches manga (cf. ingest-manga-rag.ts).
 const MANGA_CORPUS = new URL("../data/rag/corpus-manga.json", import.meta.url).pathname;
 const XV2_CORPUS = new URL("../data/rag/corpus-xv2.json", import.meta.url).pathname;
+// Corpus optionnel : transcriptions des planches de databooks, japonais + les
+// traductions déjà déposées (cf. ingest-databooks-rag.ts). PG-only à la source :
+// la table `db_databooks` n'existe pas dans ce SQLite, d'où le passage par un
+// fichier plutôt que par une requête ici.
+const DATABOOKS_CORPUS = new URL("../data/rag/corpus-databooks.json", import.meta.url).pathname;
 const ALIAS_MAP_PATH = new URL("../data/rag/alias-map.json", import.meta.url).pathname;
 
 if (!existsSync(DBP)) {
@@ -492,6 +497,33 @@ if (existsSync(CORPUS)) {
 	}
 } else {
 	console.warn("⚠ corpus.json introuvable. Skip de la section corpus scrapé.");
+}
+
+// ── Planches de databooks (corpus japonais en propre) ──────────────────────
+// Kind dédié (`databook`) plutôt que `source` : ces passages sont du japonais
+// brut de databook officiel, pas un article rédigé — les distinguer permet de
+// les filtrer et de les citer comme ce qu'ils sont. Chaque doc porte déjà sa
+// langue (le japonais et sa traduction cohabitent), on ne la redevine pas.
+if (existsSync(DATABOOKS_CORPUS)) {
+	console.log("-> Ingestion des transcriptions de databooks…");
+	try {
+		const { docs } = JSON.parse(readFileSync(DATABOOKS_CORPUS, "utf-8")) as {
+			docs: { id: string; name: string; url: string; markdown: string; lang: string }[];
+		};
+		const avant = n;
+		for (const d of docs) {
+			for (const chunk of chunkDocument(d.markdown, 1400, 0.15)) {
+				add("databook", d.name, d.url, chunk.content, d.lang || "ja", "databooks");
+			}
+		}
+		console.log(`✓ Databooks : ${docs.length} docs → ${n - avant} chunks.`);
+	} catch (err) {
+		console.error("✗ Échec de lecture/traitement de corpus-databooks.json :", err);
+	}
+} else {
+	console.warn(
+		"⚠ corpus-databooks.json introuvable. Lancez `bun apps/bot/scripts/ingest-databooks-rag.ts`."
+	);
 }
 
 db.run("COMMIT");

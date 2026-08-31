@@ -5,6 +5,8 @@ import "server-only";
  *
  * Postgres reste la référence. Redis sert ici de cache consultable :
  *   - `dbfr:databook:<id>` (hash) — la fiche complète, sérialisée ;
+ *   - `dbfr:databook:<id>:textes` (hash) — les transcriptions, une planche par
+ *     champ (`<n>` pour le japonais, `<n>:fr` pour la traduction déposée) ;
  *   - `dbfr:databooks:kind:<kind>` (set) — les identifiants par genre ;
  *   - `dbfr:databooks:category:<slug>` (set) — les identifiants par catégorie ;
  *   - `dbfr:databooks:all` (set) — tous les identifiants publiés.
@@ -17,6 +19,8 @@ import "server-only";
  * est un bonus de lecture, pas un chemin critique. Un `throw` ici ferait échouer
  * une écriture Postgres pourtant réussie.
  */
+
+import { transcriptionsDe } from "@/lib/databooks-index-shared";
 
 /** Base 4 : 0/1/3 sont prises par le bot (indexeur, files, mémoire LLM). */
 const DB_INDEX = 4;
@@ -41,6 +45,8 @@ interface ClientRedis {
 	sadd(key: string, member: string): Promise<unknown>;
 	srem(key: string, member: string): Promise<unknown>;
 	scard(key: string): Promise<number>;
+	/** Commande brute : les opérations de hash ne sont pas toutes exposées. */
+	send(command: string, args: string[]): Promise<unknown>;
 }
 
 let client: ClientRedis | null = null;
@@ -97,6 +103,58 @@ interface FicheIndexable {
 }
 
 const cleFiche = (id: number) => `${PREFIXE}:${id}`;
+const cleTextes = (id: number) => `${PREFIXE}:${id}:textes`;
+
+/**
+ * Écrit le hash des transcriptions d'un ouvrage.
+ *
+ * `DEL` puis `HSET` : sans le `DEL`, une planche retirée de l'ouvrage resterait
+ * lisible dans l'index pour toujours. La fenêtre où le hash est vide n'est pas
+ * un problème — la lecture retombe sur Postgres dès qu'un champ demandé manque.
+ * Les champs partent par lots : un `HSET` de 600 arguments est refusé par
+ * certains proxys, et rien n'oblige à tout envoyer d'un coup.
+ */
+async function ecrisTranscriptions(r: ClientRedis, id: number, champs: string[]): Promise<void> {
+	const cle = cleTextes(id);
+	await r.del(cle);
+	if (champs.length === 0) return;
+	const LOT = 200; // 100 planches par appel (champ + valeur)
+	for (let i = 0; i < champs.length; i += LOT) {
+		await r.send("HSET", [cle, ...champs.slice(i, i + LOT)]);
+	}
+}
+
+/**
+ * Transcriptions indexées pour les planches demandées.
+ *
+ * Rend `null` — et non un objet partiel — dès qu'UNE planche demandée manque à
+ * l'index : un lot incomplet ferait croire à l'appelant que la planche n'a pas
+ * de transcription, alors qu'elle en a une en base. L'appelant retombe alors sur
+ * Postgres pour le lot entier.
+ */
+export async function readIndexedTextes(
+	id: number,
+	numeros: number[],
+	langue: "ja" | "fr" = "ja",
+): Promise<Record<string, string> | null> {
+	if (numeros.length === 0) return {};
+	const r = await redis();
+	if (!r) return null;
+	try {
+		const champs = numeros.map((n) => (langue === "fr" ? `${n}:fr` : String(n)));
+		const brut = (await r.send("HMGET", [cleTextes(id), ...champs])) as (string | null)[] | null;
+		if (!Array.isArray(brut) || brut.length !== champs.length) return null;
+		const textes: Record<string, string> = {};
+		for (let i = 0; i < brut.length; i++) {
+			const v = brut[i];
+			if (v == null) return null;
+			if (v.trim()) textes[String(numeros[i])] = v;
+		}
+		return textes;
+	} catch {
+		return null;
+	}
+}
 const cleGenre = (kind: string) => `${PREFIXE}s:kind:${kind}`;
 const cleCategorie = (cat: string) => `${PREFIXE}s:category:${cat}`;
 const CLE_TOUS = `${PREFIXE}s:all`;
@@ -116,6 +174,8 @@ export async function indexDatabook(fiche: FicheIndexable): Promise<void> {
 		// jamais la retirer de l'ancien. Elle restait donc listée dans les deux
 		// catégories jusqu'à un rebuild complet de l'index.
 		const ancienBrut = await r.get(cleFiche(fiche.id));
+		const pages = Array.isArray(fiche.pages) ? fiche.pages : [];
+		const { champs, transcrites, traduites, fautives } = transcriptionsDe(pages);
 		await r.set(
 			cleFiche(fiche.id),
 			JSON.stringify({
@@ -128,9 +188,13 @@ export async function indexDatabook(fiche: FicheIndexable): Promise<void> {
 				cover: fiche.cover,
 				description: fiche.description,
 				category: fiche.category,
-				pageCount: Array.isArray(fiche.pages) ? fiche.pages.length : 0,
+				pageCount: pages.length,
+				transcrites,
+				traduites,
+				fautives,
 			})
 		);
+		await ecrisTranscriptions(r, fiche.id, champs);
 		if (ancienBrut) {
 			try {
 				const ancien = JSON.parse(ancienBrut) as { kind?: string; category?: string | null };
@@ -157,6 +221,7 @@ export async function forgetDatabook(id: number): Promise<void> {
 	try {
 		const brut = await r.get(cleFiche(id));
 		await r.del(cleFiche(id));
+		await r.del(cleTextes(id));
 		await r.srem(CLE_TOUS, String(id));
 		if (brut) {
 			const f = JSON.parse(brut) as { kind?: string; category?: string | null };

@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 /**
- * Reconstruit l'index Redis des databooks depuis Postgres.
+ * Reconstruit l'index Redis des databooks depuis Postgres — fiches ET
+ * transcriptions des planches (`dbfr:databook:<id>:textes`).
  *
  * L'index (`lib/databooks-redis.ts`) est tenu à jour à chaque écriture passant
  * par l'API. Ce script sert au premier remplissage et à la réparation après une
@@ -12,6 +13,7 @@
  */
 import postgres from "postgres";
 import { RedisClient } from "bun";
+import { transcriptionsDe } from "../src/lib/databooks-index-shared";
 
 const DB_INDEX = 4;
 const PREFIXE = "dbfr:databook";
@@ -66,8 +68,11 @@ const rows = await sql<
   from bot.db_databooks where visible order by id`;
 
 let indexees = 0;
+let planches = 0;
 for (const r of rows) {
 	const id = Number(r.id);
+	const pages = Array.isArray(r.pages) ? r.pages : [];
+	const etat = transcriptionsDe(pages);
 	await redis.set(
 		`${PREFIXE}:${id}`,
 		JSON.stringify({
@@ -80,9 +85,20 @@ for (const r of rows) {
 			cover: r.cover,
 			description: r.description,
 			category: r.category,
-			pageCount: Array.isArray(r.pages) ? r.pages.length : 0,
+			pageCount: pages.length,
+			transcrites: etat.transcrites,
+			traduites: etat.traduites,
+			fautives: etat.fautives,
 		})
 	);
+	// Les transcriptions, une planche par champ : c'est ce qui permet à la fiche
+	// publique de servir un lot de planches sans rapatrier la colonne `pages`
+	// entière depuis Postgres (8 Mo pour 370 ouvrages).
+	await redis.del(`${PREFIXE}:${id}:textes`);
+	for (let i = 0; i < etat.champs.length; i += 200) {
+		await redis.send("HSET", [`${PREFIXE}:${id}:textes`, ...etat.champs.slice(i, i + 200)]);
+	}
+	planches += etat.transcrites;
 	await redis.sadd(`${PREFIXE}s:all`, String(id));
 	await redis.sadd(`${PREFIXE}s:kind:${r.kind}`, String(id));
 	if (r.category) await redis.sadd(`${PREFIXE}s:category:${r.category}`, String(id));
@@ -91,7 +107,8 @@ for (const r of rows) {
 
 const total = await redis.scard(`${PREFIXE}s:all`);
 console.log(
-	`✓ ${indexees} fiche(s) indexée(s) — ${total} au total dans l'index (Redis db${DB_INDEX})`
+	`✓ ${indexees} fiche(s) et ${planches} transcription(s) indexées — ${total} fiches au total ` +
+		`dans l'index (Redis db${DB_INDEX})`
 );
 await sql.end();
 process.exit(0);

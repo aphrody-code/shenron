@@ -18,6 +18,7 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { parseDatabookId } from "@/lib/databooks-rules";
+import { readIndexedTextes } from "@/lib/databooks-redis";
 
 export const runtime = "nodejs";
 
@@ -38,11 +39,19 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 	].slice(0, MAX_PAGES);
 	if (demandees.length === 0) return NextResponse.json({ textes: {} });
 
+	// L'index Redis d'abord : il porte les mêmes transcriptions, tenues à jour à
+	// chaque dépôt. Il rend `null` — jamais un lot partiel — dès qu'une planche
+	// demandée lui manque, auquel cas on redescend en base pour le lot entier.
+	const indexees = await readIndexedTextes(id, demandees);
+	if (indexees) return reponse(indexees);
+
 	// Un seul aller-retour, et le filtrage se fait côté Postgres : rapatrier la
 	// colonne `pages` entière pour en extraire trois planches referait, côté
 	// serveur, exactement la dépense qu'on cherche à supprimer côté client.
 	const lignes = (await db.execute(sql`
-		select (e->>'number')::int as numero, e->>'text' as texte
+		select (e->>'number')::int as numero,
+		       case when jsonb_typeof(e->'text') = 'object' then e->'text'->>'markdown'
+		            else e->>'text' end as texte
 		from bot.db_databooks d, jsonb_array_elements(d.pages) e
 		where d.id = ${id}::bigint
 		  and (e->>'number')::int in (${sql.join(
@@ -56,6 +65,10 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
 		if (l.texte && l.texte.trim()) textes[String(l.numero)] = l.texte;
 	}
 
+	return reponse(textes);
+}
+
+function reponse(textes: Record<string, string>) {
 	return NextResponse.json(
 		{ textes },
 		{
