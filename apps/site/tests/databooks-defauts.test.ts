@@ -43,6 +43,16 @@ describe("classerDefaut", () => {
 		expect(classerDefaut(`${tableau}\nいるかといますいるかといますいるかといます`)).toBe("boucle");
 	});
 
+	it("ne prend pas une file d'un meme signe pour une boucle", () => {
+		// Notation en etoiles d'une fiche, cases d'un bulletin-reponse, points de
+		// conduite d'un sommaire : de la mise en page. Mesure : aucune des 285
+		// planches signalees du corpus ne l'est par cette seule signature.
+		expect(classerDefaut("戦闘力 ★★★★★★★★★★★★ 最高クラスの強さ")).toBeNull();
+		expect(classerDefaut("おなまえ　　　　　　　　　　　　ごじゅうしょ")).toBeNull();
+		// …mais une file assez longue reste une sortie emballee.
+		expect(classerDefaut(`前書き${"あ".repeat(60)}`)).toBe("boucle");
+	});
+
 	it("distingue une planche muette d'une planche à peine lisible", () => {
 		expect(classerDefaut("")).toBe("vide");
 		expect(classerDefaut("1992")).toBe("courte");

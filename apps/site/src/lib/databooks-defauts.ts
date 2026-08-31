@@ -36,8 +36,17 @@ export type Defaut =
 const ETRANGER = /[Ѐ-ӿ؀-ۿ฀-๿가-힯]/;
 const KANA = /[぀-ヿ]/;
 const HAN = /[一-鿿]/;
-/** Segment de 4 à 40 signes répété au moins trois fois d'affilée. */
-const BOUCLE = /(.{4,40}?)\1{2,}/s;
+/**
+ * Segment de 4 à 40 signes répété au moins trois fois d'affilée — le segment
+ * devant compter au moins DEUX signes distincts. Une file d'un même caractère
+ * (`★★★★★★`, une notation en étoiles ; `　　　　　　`, les cases d'un
+ * bulletin-réponse) est une mise en page, pas une boucle : mesuré sur les
+ * 11 285 planches transcrites, AUCUNE des 285 signalées ne l'est par cette
+ * seule signature, alors qu'elle frappe les magazines à répétition.
+ */
+const BOUCLE = /(.{4,40}?)\1{2,}/gs;
+/** Filet : une file d'un même signe assez longue reste une sortie emballée. */
+const BOUCLE_MONOSIGNE = /(.)\1{39,}/s;
 
 /**
  * Détecteurs unitaires — exportés pour que le diagnostic détaillé du relecteur
@@ -59,8 +68,20 @@ export const estHanSansKana = (texte: string): boolean => HAN.test(texte) && !KA
 const SEPARATEUR_TABLEAU = /^[ \t]*\|?[ \t]*:?-{2,}:?[ \t]*(\|[ \t]*:?-{2,}:?[ \t]*)+\|?[ \t]*$/gm;
 
 /** Le modèle a bouclé : un même segment rendu en rafale. */
-export const contientBoucle = (texte: string): boolean =>
-	BOUCLE.test(texte.replace(SEPARATEUR_TABLEAU, ""));
+export const contientBoucle = (texte: string): boolean => {
+	const sansTableau = texte.replace(SEPARATEUR_TABLEAU, "");
+	if (BOUCLE_MONOSIGNE.test(sansTableau)) return true;
+	BOUCLE.lastIndex = 0;
+	for (let m = BOUCLE.exec(sansTableau); m; m = BOUCLE.exec(sansTableau)) {
+		// Un motif fait d'un seul signe répété est une mise en page, pas une
+		// boucle — on continue de chercher au lieu de conclure.
+		if (!/^(.)\1*$/s.test(m[1])) {
+			BOUCLE.lastIndex = 0;
+			return true;
+		}
+	}
+	return false;
+};
 /** Signes que le modèle n'a pas su lire (U+FFFD). */
 export const compteRemplacements = (texte: string): number =>
 	(texte.match(/�/g) ?? []).length;
