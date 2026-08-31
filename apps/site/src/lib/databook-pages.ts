@@ -68,8 +68,14 @@ export async function indexDePlanche(bookId: string, numero: number): Promise<nu
 export async function lireTranscription(bookId: string, numero: number): Promise<string | null> {
 	const idx = await indexDePlanche(bookId, numero);
 	if (idx < 0) return null;
+	// `::int` OBLIGATOIRE sur l'index. Sans lui, le paramètre est lié en TEXTE
+	// et `pages->$1` devient l'opérateur « clé d'objet », pas « élément de
+	// tableau » : sur un tableau, il rend NULL, toujours. Cette lecture-là
+	// renvoyait donc systématiquement `null` pour une planche pourtant
+	// transcrite — le formulaire de correction publique s'ouvrait vide, et la
+	// comparaison anti-conflit de l'acceptation ne comparait rien.
 	const [r] = (await db.execute(sql`
-		select pages->${idx}->>'text' as texte
+		select pages->${idx}::int->>'text' as texte
 		from bot.db_databooks
 		where id = ${bookId}::bigint
 	`)) as unknown as Array<{ texte: string | null }>;

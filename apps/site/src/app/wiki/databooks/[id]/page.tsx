@@ -141,7 +141,10 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 			? new Date(toMillis(book.published_at)).toISOString().split("T")[0]
 			: undefined,
 		// `numberOfPages` n'a de sens que pour un ouvrage réellement paginé.
-		...(isInterview ? {} : { numberOfPages: book.pages.length || undefined }),
+		// Les planches RÉELLEMENT présentes, pas les emplacements : un ouvrage
+		// peut porter des slots créés au studio avant numérisation, et annoncer
+		// à Google plus de pages que la fiche n'en montre.
+		...(isInterview ? {} : { numberOfPages: filledPages.length || undefined }),
 		isBasedOn: book.source_url ?? undefined,
 	};
 
@@ -151,7 +154,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 	// Mesuré sur mobile 390 px : la page passait à 1 200 px de large et défilait
 	// horizontalement dès qu'on basculait en mode paginé.
 	return (
-		<div className="mx-auto min-w-0 max-w-[1200px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
+		<div className="w-full mx-auto min-w-0 max-w-[1200px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
 			<JsonLd data={jsonLd as never} />
 			<Breadcrumbs
 				className="mb-4"

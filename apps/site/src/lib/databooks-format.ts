@@ -23,13 +23,18 @@ import {
 	contientAlphabetEtranger,
 	contientBoucle,
 	estHanSansKana,
+	SEUIL_COURT,
 } from "./databooks-defauts";
 
 /** Caractère de remplacement U+FFFD : l'OCR a rendu un glyphe qu'il n'a pas su lire. */
 const REMPLACEMENT = "�";
 
-/** En deçà, une planche « transcrite » ne dit rien d'exploitable. */
-const LONGUEUR_SUSPECTE = 15;
+/**
+ * En deçà, une planche « transcrite » ne dit rien d'exploitable. La valeur
+ * vient du juge commun : la redéfinir ici laissait les deux diverger en
+ * silence, et l'admin ne signalait plus ce que le lecteur public voit.
+ */
+const LONGUEUR_SUSPECTE = SEUIL_COURT;
 
 /**
  * Nettoie le bruit d'export d'une transcription, sans jamais toucher au sens.

@@ -96,6 +96,7 @@ try {
 		const index = new Map(pages.map((p, i) => [Number(p.number), i]));
 		const avant: Record<string, unknown> = {};
 		const apres: Record<string, unknown> = {};
+		const aEcrire: { page: number; fr: string }[] = [];
 		let touchees = 0;
 
 		for (const ligne of miennes) {
@@ -114,7 +115,7 @@ try {
 			}
 			avant[String(ligne.page)] = pages[i]!.text_fr ?? null;
 			apres[String(ligne.page)] = ligne.fr.trim();
-			pages[i] = { ...pages[i], text_fr: ligne.fr.trim(), text_fr_by: PAR, text_fr_at: Date.now() };
+			aEcrire.push({ page: ligne.page, fr: ligne.fr.trim() });
 			touchees++;
 			deposees++;
 		}
@@ -124,7 +125,30 @@ try {
 		if (!APPLIQUER) continue;
 
 		await sql.begin(async (tx) => {
-			await tx`UPDATE bot.db_databooks SET pages = ${jsonb(pages)} WHERE id = ${Number(ouvrage.id)}`;
+			// **Écriture ciblée, jamais globale.** Le chemin précédent relisait
+			// `pages` en tête de script puis réécrivait le tableau ENTIER : toute
+			// planche corrigée entre-temps par un autre dépôt — une correction
+			// communautaire acceptée, une passe de `corrige-transcriptions-ocr`
+			// — était écrasée en silence, sans erreur ni trace. On verrouille la
+			// ligne, on relit l'ordre RÉEL des planches, et on ne touche que les
+			// clés de traduction des planches visées.
+			const [courant] = await tx<{ pages: { number?: number | string }[] | null }[]>`
+				SELECT pages FROM bot.db_databooks WHERE id = ${Number(ouvrage.id)} FOR UPDATE`;
+			const positions = new Map(
+				(courant?.pages ?? []).map((p, k) => [Number(p.number), k] as const),
+			);
+			for (const { page, fr } of aEcrire) {
+				const k = positions.get(page);
+				if (k === undefined) continue;
+				await tx`
+					UPDATE bot.db_databooks
+					SET pages = jsonb_set(
+						pages, ${`{${k}}`}::text[],
+						pages->${k}::int || ${jsonb({ text_fr: fr, text_fr_by: PAR, text_fr_at: Date.now() })},
+						true)
+					WHERE id = ${Number(ouvrage.id)}
+					  and jsonb_typeof(pages->${k}::int) = 'object'`;
+			}
 			await tx`INSERT INTO public.wiki_revisions ${tx({
 				id: idRevision(),
 				tableName: "db_databooks",

@@ -99,7 +99,10 @@ try {
 				continue;
 			}
 			file.push({
-				fiche: fiche.id,
+				// `Number()` obligatoire : postgres-js rend les bigint en CHAÎNES.
+				// Sans lui, `--fiche 142` comparait `"142" === 142` et ne rendait
+				// JAMAIS rien — un relecteur en concluait « rien à relire ici ».
+				fiche: Number(fiche.id),
 				titre: fiche.title,
 				page: Number(p.number ?? 0),
 				image,

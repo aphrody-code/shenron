@@ -25,6 +25,7 @@ export const WIKI_LIST_PATHS: Record<string, string[]> = {
 	db_techniques: ["/wiki/techniques"],
 	db_races: ["/wiki/races"],
 	db_tools: ["/wiki/tools"],
+	db_databooks: ["/wiki/databooks"],
 };
 
 /** entity_type d'une section → table wiki de l'entité parente (revalidation). */

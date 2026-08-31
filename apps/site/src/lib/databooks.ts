@@ -18,6 +18,7 @@ import "server-only";
  */
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { revalidateWikiEntity } from "@/lib/wiki-revalidate";
 import { botDatabooks } from "@/db/bot-schema";
 import { forgetDatabook, indexDatabook } from "@/lib/databooks-redis";
 import { toSeconds } from "@/lib/epoch";
@@ -171,6 +172,11 @@ export async function createDatabook(w: DatabookWrite): Promise<DatabookRecord> 
 		.returning();
 	const rec = toRecord(row as Row);
 	await indexDatabook(rec);
+	// L'index Redis ne suffit pas : les pages publiques sont statiques
+	// (`revalidate = 3600`). Sans cette purge, un ouvrage créé par un outil
+	// externe reste absent de la grille pendant une heure — le défaut que les
+	// routes `pages` et `transcription` corrigent déjà de leur côté.
+	revalidateWikiEntity("db_databooks", { id: rec.id });
 	return rec;
 }
 
@@ -186,6 +192,7 @@ export async function updateDatabook(id: number, w: DatabookWrite): Promise<Data
 	if (!row) return null;
 	const rec = toRecord(row as Row);
 	await indexDatabook(rec);
+	revalidateWikiEntity("db_databooks", { id: rec.id });
 	return rec;
 }
 
@@ -197,5 +204,8 @@ export async function deleteDatabook(id: number): Promise<boolean> {
 		.returning({ id: botDatabooks.id });
 	if (rows.length === 0) return false;
 	await forgetDatabook(id);
+	// Sans purge, la fiche d'un ouvrage SUPPRIMÉ continue d'être servie —
+	// couverture, description et planches comprises — jusqu'à une heure.
+	revalidateWikiEntity("db_databooks", { id });
 	return true;
 }
