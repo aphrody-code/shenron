@@ -17,8 +17,14 @@ import "server-only";
 import { and, count, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { wikiRevisions, type WikiRevision } from "@/db/schema";
-import { estCiblePlanche, numeroDePlanche } from "@/lib/databook-pages-shared";
-import { ecrireTranscription } from "@/lib/databook-pages";
+import {
+	estCibleJsonbPlanche,
+	estCiblePlanche,
+	estCibleTraduction,
+	numeroDePlanche,
+	numeroDeTraduction,
+} from "@/lib/databook-pages-shared";
+import { ecrireTraduction, ecrireTranscription } from "@/lib/databook-pages";
 import { WIKI_TABLE_SPECS } from "@/lib/wiki-tables";
 import {
 	deleteWiki,
@@ -91,11 +97,12 @@ function snapshot(table: string, row: Row | null | undefined): Row | null {
 		if (v !== null && typeof v === "object") continue; // ignore jsonb objets lourds
 		out[c] = v;
 	}
-	// Les cibles de planche ne sont pas des colonnes : elles ne peuvent pas
-	// passer par `cols`, il faut les rattraper sur la ligne d'origine.
+	// Les cibles de planche (transcription comme traduction) ne sont pas des
+	// colonnes : elles ne peuvent pas passer par `cols`, il faut les rattraper
+	// sur la ligne d'origine.
 	for (const [k, v] of Object.entries(row)) {
 		if (k in out) continue;
-		if (!estCiblePlanche(table, k)) continue;
+		if (!estCibleJsonbPlanche(table, k)) continue;
 		if (v === null || typeof v === "string") out[k] = v;
 	}
 	return out;
@@ -378,11 +385,19 @@ export async function revertRevision(
 			// sinon annuler un premier dépôt laisserait le texte en place.
 			await ecrireTranscription(rowId, numero, typeof valeur === "string" ? valeur : "");
 		}
+		// Même chemin pour la traduction française, à ceci près qu'on l'EFFACE
+		// quand il n'y en avait pas : y remettre une chaîne vide ferait passer
+		// la planche pour traduite, et elle ne ressortirait plus dans la file.
+		for (const [cle, valeur] of Object.entries(before)) {
+			const numero = numeroDeTraduction(cle);
+			if (numero === null || !estCibleTraduction(table, cle)) continue;
+			await ecrireTraduction(rowId, numero, typeof valeur === "string" ? valeur : null);
+		}
 		// Le reste du snapshot (colonnes réelles) suit le chemin normal. S'il ne
 		// contient QUE des cibles de planche, on n'appelle pas `updateWiki` : il
 		// n'aurait rien à écrire et rejetterait la clé inconnue.
 		const colonnes = Object.fromEntries(
-			Object.entries(before).filter(([k]) => !estCiblePlanche(table, k))
+			Object.entries(before).filter(([k]) => !estCibleJsonbPlanche(table, k))
 		);
 		resultRow =
 			Object.keys(colonnes).length > 0

@@ -101,3 +101,59 @@ export async function ecrireTranscription(
 	`)) as unknown as Array<{ id: unknown }>;
 	return res.length > 0;
 }
+
+/**
+ * Lit la traduction française d'UNE planche (`null` si elle n'en a pas).
+ */
+export async function lireTraduction(bookId: string, numero: number): Promise<string | null> {
+	const idx = await indexDePlanche(bookId, numero);
+	if (idx < 0) return null;
+	const [r] = (await db.execute(sql`
+		select pages->${idx}::int->>'text_fr' as texte
+		from bot.db_databooks
+		where id = ${bookId}::bigint
+	`)) as unknown as Array<{ texte: string | null }>;
+	return r?.texte ?? null;
+}
+
+/**
+ * Écrit — ou retire — la traduction française d'UNE planche.
+ *
+ * `texte === null` retire les trois clés de traduction d'un coup : rétablir un
+ * `text_fr` vide au lieu de l'effacer laisserait la planche pour traduite, et
+ * elle ne ressortirait plus jamais dans la file de `planches-a-traduire.ts`.
+ * Le japonais, lui, n'est jamais touché.
+ */
+export async function ecrireTraduction(
+	bookId: string,
+	numero: number,
+	texte: string | null,
+	par = "machine:sonnet"
+): Promise<boolean> {
+	const idx = await indexDePlanche(bookId, numero);
+	if (idx < 0) return false;
+	const chemin = `{${idx}}`;
+	const res = (await db.execute(
+		texte === null
+			? sql`
+				update bot.db_databooks
+				set pages = jsonb_set(
+					pages, ${chemin}::text[],
+					(pages->${idx}::int) - 'text_fr' - 'text_fr_by' - 'text_fr_at', true)
+				where id = ${bookId}::bigint
+				  and jsonb_typeof(pages->${idx}::int) = 'object'
+				returning id`
+			: sql`
+				update bot.db_databooks
+				set pages = jsonb_set(
+					pages, ${chemin}::text[],
+					(pages->${idx}::int) || jsonb_build_object(
+						'text_fr', ${texte}::text,
+						'text_fr_by', ${par}::text,
+						'text_fr_at', ${Date.now()}::bigint), true)
+				where id = ${bookId}::bigint
+				  and jsonb_typeof(pages->${idx}::int) = 'object'
+				returning id`
+	)) as unknown as Array<{ id: unknown }>;
+	return res.length > 0;
+}

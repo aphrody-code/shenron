@@ -5,8 +5,15 @@
  * communautaire. Une erreur ici laisse passer une cible qui n'existe pas — ou,
  * pire, en refuse une valide et referme la porte sans le dire.
  */
-import { describe, expect, test } from "bun:test";
-import { estCiblePlanche, numeroDePlanche, PREFIXE_PLANCHE } from "@/lib/databook-pages-shared";
+import { describe, expect, it, test } from "bun:test";
+import {
+	estCibleJsonbPlanche,
+	estCiblePlanche,
+	estCibleTraduction,
+	numeroDePlanche,
+	numeroDeTraduction,
+	PREFIXE_PLANCHE,
+} from "@/lib/databook-pages-shared";
 
 describe("numeroDePlanche", () => {
 	test("lit le numéro d'une cible bien formée", () => {
@@ -37,5 +44,33 @@ describe("estCiblePlanche", () => {
 	test("une colonne ordinaire de databook n'est pas une planche", () => {
 		expect(estCiblePlanche("db_databooks", "description")).toBe(false);
 		expect(estCiblePlanche("db_databooks", "pages")).toBe(false);
+	});
+});
+
+describe("cible de traduction", () => {
+	// Sans cette convention, `depose-traductions.ts` écrivait ses révisions sous
+	// une forme maison que le retour arrière ne savait pas lire : le bouton
+	// « Annuler » de /admin/wiki/history échouait sur TOUTE traduction.
+	it("reconnaît `traduction#<n>` et en extrait le numéro", () => {
+		expect(numeroDeTraduction("traduction#42")).toBe(42);
+		expect(estCibleTraduction("db_databooks", "traduction#1")).toBe(true);
+	});
+
+	it("refuse les formes approchantes plutôt que de deviner", () => {
+		expect(numeroDeTraduction("traduction#")).toBeNull();
+		expect(numeroDeTraduction("traduction# 4 ")).toBeNull();
+		expect(numeroDeTraduction("traduction#0")).toBeNull();
+		expect(numeroDeTraduction("traduction#-1")).toBeNull();
+		expect(numeroDeTraduction("pages#42")).toBeNull();
+		expect(estCibleTraduction("db_characters", "traduction#1")).toBe(false);
+	});
+
+	it("ne confond jamais transcription et traduction", () => {
+		expect(estCiblePlanche("db_databooks", "traduction#42")).toBe(false);
+		expect(estCibleTraduction("db_databooks", "pages#42")).toBe(false);
+		// …mais le revert doit écarter les DEUX de la liste des colonnes.
+		expect(estCibleJsonbPlanche("db_databooks", "pages#42")).toBe(true);
+		expect(estCibleJsonbPlanche("db_databooks", "traduction#42")).toBe(true);
+		expect(estCibleJsonbPlanche("db_databooks", "description")).toBe(false);
 	});
 });

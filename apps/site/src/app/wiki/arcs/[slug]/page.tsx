@@ -7,6 +7,7 @@ import { CommunityRankBadge } from "@/components/ratings/CommunityRankBadge";
 import { dbUniverse, assetUrl } from "@/lib/db-universe";
 import Link from "next/link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { GatedLink } from "@/components/GatedLink";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ogMeta } from "@/lib/og";
@@ -182,12 +183,15 @@ export default async function ArcPage({ params }: { params: Promise<{ slug: stri
 					<p className="mb-8 max-w-2xl text-[13px] leading-relaxed text-white/45">
 						Cet arc n&apos;a pas encore de texte. Faute d&apos;un découpage propre en
 						base, voici le périmètre de la saga{" "}
-						<Link
+						{/* `GatedLink` et non `Link` : si la rubrique Sagas est refermée
+						    depuis /admin/lancement, ce lien enverrait le visiteur sur une
+						    page qui le renvoie aussitôt vers /wiki-bientot. */}
+						<GatedLink
 							href={`/wiki/sagas/${saga.slug}`}
 							className="font-semibold text-dbz-orange hover:text-white transition-colors"
 						>
 							{saga.name}
-						</Link>
+						</GatedLink>
 						, dont il fait partie — il la déborde donc en largeur, et ne la
 						remplace pas.
 					</p>

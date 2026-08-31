@@ -113,8 +113,13 @@ try {
 				refusees++;
 				continue;
 			}
-			avant[String(ligne.page)] = pages[i]!.text_fr ?? null;
-			apres[String(ligne.page)] = ligne.fr.trim();
+			// Convention `traduction#<n>` — la seule que le retour arrière de
+			// `/admin/wiki/history` sache lire. Sous la forme maison d'avant
+			// (`{ text_fr: { "41": … } }`), le revert cherchait une colonne
+			// `text_fr`, n'en trouvait aucune de mutable, et échouait toujours :
+			// une mauvaise traduction était indéboulonnable.
+			avant[`traduction#${ligne.page}`] = pages[i]!.text_fr ?? null;
+			apres[`traduction#${ligne.page}`] = ligne.fr.trim();
 			aEcrire.push({ page: ligne.page, fr: ligne.fr.trim() });
 			touchees++;
 			deposees++;
@@ -155,8 +160,8 @@ try {
 				rowId: String(ouvrage.id),
 				action: "update",
 				label: `${ouvrage.title} — traduction FR de ${touchees} planches`,
-				before: jsonb({ text_fr: avant }),
-				after: jsonb({ text_fr: apres }),
+				before: jsonb(avant),
+				after: jsonb(apres),
 				editorId: "agent",
 				editorName: `Traduction ja→fr (${PAR})`,
 			})}`;

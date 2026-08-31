@@ -42,3 +42,33 @@ export function champPlanche(numero: number): { label: string; hint: string; lon
 		long: true,
 	};
 }
+
+/**
+ * Préfixe de la TRADUCTION française d'une planche (`traduction#42`).
+ *
+ * Sans lui, `scripts/depose-traductions.ts` enregistrait ses révisions sous une
+ * forme maison (`{ text_fr: { "41": … } }`) que le retour arrière de
+ * `/admin/wiki/history` ne savait pas lire : il la prenait pour un jeu de
+ * colonnes, n'en trouvait aucune de mutable, et le bouton « Annuler » échouait
+ * à tous les coups. Une mauvaise traduction était donc indéboulonnable.
+ */
+export const PREFIXE_TRADUCTION = "traduction#";
+
+/** `traduction#42` → 42. `null` si ce n'est pas une cible de traduction. */
+export function numeroDeTraduction(column: string): number | null {
+	if (!column.startsWith(PREFIXE_TRADUCTION)) return null;
+	const brut = column.slice(PREFIXE_TRADUCTION.length);
+	if (!/^\d+$/.test(brut)) return null;
+	const n = Number(brut);
+	return n > 0 ? n : null;
+}
+
+/** Cette cible désigne-t-elle la traduction française d'une planche ? */
+export function estCibleTraduction(table: string, column: string): boolean {
+	return table === "db_databooks" && numeroDeTraduction(column) !== null;
+}
+
+/** Cible d'un jsonb de planche (transcription OU traduction), pas une colonne. */
+export function estCibleJsonbPlanche(table: string, column: string): boolean {
+	return estCiblePlanche(table, column) || estCibleTraduction(table, column);
+}
