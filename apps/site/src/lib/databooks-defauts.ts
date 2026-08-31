@@ -49,8 +49,18 @@ const BOUCLE = /(.{4,40}?)\1{2,}/s;
 export const contientAlphabetEtranger = (texte: string): boolean => ETRANGER.test(texte);
 /** Idéogrammes sans un seul kana : du chinois inventé sur une page japonaise. */
 export const estHanSansKana = (texte: string): boolean => HAN.test(texte) && !KANA.test(texte);
+/**
+ * Séparateur de tableau markdown (`|---|---|---|`) : c'est une répétition
+ * LÉGITIME, et la seule que produise une transcription correcte. Sans ce
+ * retrait, toute planche portant un tableau de trois colonnes ou plus est
+ * déclarée « bouclée » — mesuré sur les catalogues de cartes du Saikyō Jump,
+ * où 5 planches sur 30 tombaient à tort.
+ */
+const SEPARATEUR_TABLEAU = /^[ \t]*\|?[ \t]*:?-{2,}:?[ \t]*(\|[ \t]*:?-{2,}:?[ \t]*)+\|?[ \t]*$/gm;
+
 /** Le modèle a bouclé : un même segment rendu en rafale. */
-export const contientBoucle = (texte: string): boolean => BOUCLE.test(texte);
+export const contientBoucle = (texte: string): boolean =>
+	BOUCLE.test(texte.replace(SEPARATEUR_TABLEAU, ""));
 /** Signes que le modèle n'a pas su lire (U+FFFD). */
 export const compteRemplacements = (texte: string): number =>
 	(texte.match(/�/g) ?? []).length;

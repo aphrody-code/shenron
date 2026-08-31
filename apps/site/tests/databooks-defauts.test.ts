@@ -29,6 +29,20 @@ describe("classerDefaut", () => {
 		expect(classerDefaut("いるかといますいるかといますいるかといます")).toBe("boucle");
 	});
 
+	it("ne prend pas un tableau markdown pour une boucle", () => {
+		// Mesuré sur les catalogues de cartes du Saikyō Jump : le séparateur
+		// `|---|---|---|` est la seule répétition qu'une bonne transcription
+		// produit, et il faisait tomber 5 planches sur 30.
+		const tableau = [
+			"| カードNo. | カード名 | カードNo. | カード名 |",
+			"|---|---|---|---|",
+			"| UM9-048 | 時の界王神 | UM9-SEC3 | 暗黒王メチカブラ |",
+		].join("\n");
+		expect(classerDefaut(tableau)).toBeNull();
+		// …sans pour autant aveugler le détecteur sur le reste de la planche.
+		expect(classerDefaut(`${tableau}\nいるかといますいるかといますいるかといます`)).toBe("boucle");
+	});
+
 	it("distingue une planche muette d'une planche à peine lisible", () => {
 		expect(classerDefaut("")).toBe("vide");
 		expect(classerDefaut("1992")).toBe("courte");
