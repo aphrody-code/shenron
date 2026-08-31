@@ -66,8 +66,9 @@ function usage(message?: string): never {
   verifie <resultats.jsonl…>
         Passe le juge de qualité sur un lot AVANT dépôt.
 
-  depose <lot-ou-jsonl…> [--simulation]
-        Vérifie puis dépose (jeton résolu tout seul depuis apps/site/.env).`);
+  depose <lot-ou-jsonl…> [--simulation] [--force]
+        Vérifie puis dépose (jeton résolu tout seul depuis apps/site/.env).
+        Refuse un lot majoritairement fautif, sauf --force.`);
 	process.exit(2);
 }
 
@@ -532,6 +533,20 @@ async function cmdDepose(): Promise<void> {
 				Object.keys(reste).length ? `, ${JSON.stringify(reste)}` : ""
 			}`,
 		);
+		// Garde-fou : un lot majoritairement fautif n'est pas un lot difficile,
+		// c'est un passage de modèle qui a déraillé. Le déposer remplit le
+		// corpus d'hallucinations qu'il faudra ensuite relire une à une — le
+		// travail le plus cher de toute la chaîne. On demande une décision
+		// explicite plutôt que de la prendre à la place du relecteur.
+		const fautives = Object.values(reste).reduce((a, b) => a + b, 0);
+		if (v.lignes > 0 && fautives * 2 > v.lignes && !flag("force")) {
+			console.error(
+				`refus : ${fautives} planche(s) fautive(s) sur ${v.lignes} — relis le lot, ou force avec --force`,
+			);
+			process.exitCode = 1;
+			continue;
+		}
+
 		const argv = [
 			join(import.meta.dir, "depose-transcriptions.ts"),
 			jsonl,
