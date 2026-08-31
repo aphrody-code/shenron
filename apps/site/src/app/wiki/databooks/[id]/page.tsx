@@ -123,6 +123,20 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 	);
 	const hasPages = filledPages.length > 0;
 
+	// Charge initiale du lecteur. Mesuré le 2026-08-31 avant ce découpage :
+	// `/wiki/databooks/4` (Daizenshuu 7, 313 planches) pesait 459 Ko, dont
+	// 412 Ko de charge RSC — l'essentiel étant 281 197 signes de japonais que
+	// le visiteur ne verra jamais, puisqu'il lit une planche à la fois. On
+	// n'envoie que les premières ; `aDuTexte` dit au lecteur qu'une
+	// transcription existe pour les autres, sans la transporter.
+	const TEXTES_EMBARQUES = 4;
+	const pagesDuLecteur = book.pages.map((p, i) => ({
+		number: p.number,
+		image: p.image,
+		text: i < TEXTES_EMBARQUES ? p.text : null,
+		aDuTexte: Boolean(p.text && p.text.trim()),
+	}));
+
 	// Balisage de la fiche. Les 318 databooks n'avaient AUCUN JSON-LD alors que
 	// tous les autres types du wiki en ont un : ni type d'entité, ni auteur, ni
 	// date pour les moteurs. Une interview est un `Article`, un artbook ou un
@@ -277,9 +291,11 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 							Planche + description
 						</span>
 					</div>
-					{/* On passe les pages brutes (slots vides filtrés dans le reader)
-					    pour conserver les numéros éditoriaux exacts. */}
-					<DatabookReader pages={book.pages} title={book.title} bookId={book.id} />
+					{/* Les numéros éditoriaux exacts sont conservés (les slots vides
+					    sont filtrés dans le reader), mais la transcription n'est
+					    embarquée que pour les premières planches : le reste arrive
+					    de `/api/databooks/:id/textes` au fil de la lecture. */}
+					<DatabookReader pages={pagesDuLecteur} title={book.title} bookId={book.id} />
 				</section>
 			)}
 		</div>

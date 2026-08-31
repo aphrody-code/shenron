@@ -43,7 +43,16 @@ export type DatabookReaderPage = {
 	/** Numéro affiché (auto 1…N, modifiable côté admin). */
 	number?: number | null;
 	image?: string | null;
+	/**
+	 * Transcription — présente pour les premières planches seulement.
+	 * Au-delà, la fiche envoie `text: null` et `aDuTexte: true`, et le lecteur
+	 * demande le texte à `/api/databooks/:id/textes` au fil du défilement :
+	 * embarquer les 313 transcriptions d'un Daizenshuu pesait 412 Ko de charge
+	 * RSC pour une planche lue.
+	 */
 	text?: string | null;
+	/** La planche PORTE une transcription, même si elle n'est pas encore chargée. */
+	aDuTexte?: boolean;
 };
 
 export type DatabookReaderProps = {
@@ -60,6 +69,8 @@ type ResolvedPage = {
 	number: number;
 	imageUrl: string | null;
 	text: string | null;
+	/** Une transcription existe côté serveur, chargée ou non. */
+	aDuTexte: boolean;
 };
 
 const SHOW_STRIP_MAX = 40;
@@ -79,14 +90,79 @@ function resolvePages(pages: DatabookReaderPage[]): ResolvedPage[] {
 		const p = pages[i];
 		const img = typeof p.image === "string" && p.image.trim() ? p.image.trim() : null;
 		const text = typeof p.text === "string" && p.text.trim() ? p.text.trim() : null;
-		if (!img && !text) continue;
+		const aDuTexte = p.aDuTexte === true || text !== null;
+		// Une planche sans image ET sans transcription est un emplacement vide
+		// réservé côté studio : elle ne se montre pas au public.
+		if (!img && !aDuTexte) continue;
 		out.push({
 			number: pageNumber(p, i + 1),
 			imageUrl: img ? assetUrl(img) : null,
 			text,
+			aDuTexte,
 		});
 	}
 	return out;
+}
+
+/** Combien de planches autour de la courante on charge d'avance. */
+const FENETRE_TEXTE = 6;
+
+/**
+ * Transcriptions chargées à la demande.
+ *
+ * La fiche n'embarque que les premières ; celles qu'on approche sont demandées
+ * par fenêtres à `/api/databooks/:id/textes`. Une planche déjà connue n'est
+ * jamais redemandée, et un échec réseau laisse simplement la planche sans
+ * texte — jamais d'erreur jetée à la figure d'un lecteur qui feuillette.
+ */
+function useTextesPlanches(
+	bookId: number | string | null | undefined,
+	items: ResolvedPage[],
+	current: number,
+): Map<number, string> {
+	const [charges, setCharges] = useState<Map<number, string>>(() => new Map());
+	// Les numéros déjà demandés (succès ou échec) : sans cette mémoire, une
+	// planche sans transcription serait redemandée à chaque défilement.
+	const demandes = useRef<Set<number>>(new Set());
+
+	const manquants = useMemo(() => {
+		if (bookId == null) return [];
+		const de = Math.max(0, current - FENETRE_TEXTE);
+		const a = Math.min(items.length, current + FENETRE_TEXTE + 1);
+		const out: number[] = [];
+		for (let i = de; i < a; i++) {
+			const it = items[i];
+			if (!it || !it.aDuTexte || it.text !== null) continue;
+			if (charges.has(it.number) || demandes.current.has(it.number)) continue;
+			out.push(it.number);
+		}
+		return out;
+	}, [bookId, items, current, charges]);
+
+	useEffect(() => {
+		if (manquants.length === 0) return;
+		for (const n of manquants) demandes.current.add(n);
+		const stop = new AbortController();
+		fetch(`/api/databooks/${bookId}/textes?pages=${manquants.join(",")}`, {
+			signal: stop.signal,
+		})
+			.then((r) => (r.ok ? r.json() : { textes: {} }))
+			.then((d: { textes?: Record<string, string> }) => {
+				const recus = Object.entries(d.textes ?? {});
+				if (recus.length === 0) return;
+				setCharges((prec) => {
+					const suiv = new Map(prec);
+					for (const [n, t] of recus) suiv.set(Number(n), t);
+					return suiv;
+				});
+			})
+			.catch(() => {
+				/* hors ligne ou navigation : la planche reste sans texte */
+			});
+		return () => stop.abort();
+	}, [manquants, bookId]);
+
+	return charges;
 }
 
 export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): ReactElement {
@@ -103,6 +179,14 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 	const [current, setCurrent] = useState(0);
 	/** Lightbox plein écran sur la planche courante (indépendant du mode). */
 	const [lightbox, setLightbox] = useState(false);
+
+	const textesCharges = useTextesPlanches(bookId, items, current);
+	/** Le texte d'une planche : celui de la fiche, sinon celui chargé après coup. */
+	const texteDe = useCallback(
+		(p: ResolvedPage | undefined): string | null =>
+			p ? (p.text ?? textesCharges.get(p.number) ?? null) : null,
+		[textesCharges],
+	);
 	useFocusTrap(lightboxRef, lightbox, () => setLightbox(false));
 
 	// Clamp l'index si le nombre de pages change (édition live / revalidation).
@@ -302,7 +386,7 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 	const currentItem = items[current];
 	const currentNum = currentItem?.number ?? current + 1;
 	const counter = total ? `n°${currentNum} · ${Math.min(current + 1, total)}/${total}` : "0 / 0";
-	const currentText = currentItem?.text ?? null;
+	const currentText = texteDe(currentItem);
 	const currentImage = currentItem?.imageUrl ?? null;
 
 	if (total === 0) {
@@ -331,6 +415,10 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
 				{currentText ? (
 					<TranscriptionTexte texte={currentText} bookId={bookId} page={currentNum} />
+				) : currentItem?.aDuTexte ? (
+					// La planche PORTE une transcription : dire « aucune description »
+					// pendant qu'elle arrive ferait croire à une lacune du corpus.
+					<p className="text-sm italic text-white/50">Chargement de la transcription…</p>
 				) : (
 					<p className="text-sm italic text-white/50">Aucune description pour cette page.</p>
 				)}
@@ -593,10 +681,10 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 													Pas d&apos;image pour cette page
 												</div>
 											)}
-											{item.text ? (
+											{texteDe(item) ? (
 												<div className="rounded-md border border-dbz-border/40 bg-black/50 px-4 py-3">
 													<TranscriptionTexte
-														texte={item.text}
+														texte={texteDe(item) as string}
 														bookId={bookId}
 														page={item.number}
 													/>

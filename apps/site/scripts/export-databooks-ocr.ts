@@ -25,6 +25,7 @@ import { existsSync } from "node:fs";
 import { join, basename } from "node:path";
 import postgres from "postgres";
 import sharp from "sharp";
+import { urlBase } from "./_databooks-base";
 
 const args = process.argv.slice(2);
 const opt = (nom: string, defaut?: string) => {
@@ -52,12 +53,7 @@ const CONCURRENCE = 6;
 /** Racine physique des planches (servies par nginx sous /wiki/databooks/). */
 const RACINE_IMAGES = join(import.meta.dir, "..", "public", "wiki", "databooks");
 
-const url = process.env.DATABASE_URL;
-if (!url) {
-	console.error("✗ DATABASE_URL requis.");
-	process.exit(1);
-}
-const sql = postgres(url, { max: 2 });
+const sql = postgres(await urlBase(), { max: 2 });
 
 interface Planche {
 	databookId: number;
@@ -190,6 +186,16 @@ for (let lot = 1; lot <= lots; lot++) {
 			(a.databookId as number) - (b.databookId as number) || (a.page as number) - (b.page as number)
 	);
 
+	// Un manifeste VIDE est pire que pas de manifeste : la reprise ne teste que
+	// son existence, donc un run cassé (mauvais `RACINE_IMAGES`, disque non
+	// monté) sème des lots vides que tous les lancements suivants sautent en
+	// annonçant « déjà présent ». On ne l'écrit que s'il y a quelque chose
+	// dedans, et on le dit.
+	if (entrees.length === 0) {
+		console.log(`  ✗ lot ${lot}/${lots} : aucune image copiée, manifeste non écrit`);
+		continue;
+	}
+
 	await writeFile(
 		manifestePath,
 		JSON.stringify(
@@ -224,4 +230,13 @@ console.log(
 	`\n✓ ${ecrites} planche(s) exportée(s)${manquantes ? ` · ${manquantes} manquante(s)` : ""}`
 );
 await sql.end();
+// Sortir 0 quoi qu'il arrive faisait avancer une automatisation « export → OCR
+// → dépôt » sur des lots vides, sans le moindre signal. Un export qui n'a rien
+// écrit alors qu'il avait du travail est un échec, et il doit le dire.
+if (ecrites === 0 && aFaire.length > 0) {
+	console.error(
+		`✗ aucune planche exportée sur ${aFaire.length} à faire — vérifier RACINE_IMAGES (${RACINE_IMAGES})`
+	);
+	process.exit(1);
+}
 process.exit(0);

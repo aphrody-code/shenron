@@ -48,7 +48,9 @@ async function urlBase(): Promise<string> {
 	const texte = await Bun.file(join(import.meta.dir, "..", ".env"))
 		.text()
 		.catch(() => "");
-	const ligne = texte.split("\n").find((l) => l.startsWith("DATABASE_URL="));
+	// La DERNIÈRE ligne active gagne : `apps/site/.env` garde l'URL Neon
+	// d'avant la migration, plus haut dans le fichier.
+	const ligne = texte.split("\n").filter((l) => l.startsWith("DATABASE_URL=")).pop();
 	const valeur = ligne?.slice("DATABASE_URL=".length).trim().replace(/^["']|["']$/g, "");
 	if (!valeur) {
 		console.error("✗ DATABASE_URL introuvable (environnement ou apps/site/.env).");
