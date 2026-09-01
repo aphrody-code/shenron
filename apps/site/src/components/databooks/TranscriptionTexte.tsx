@@ -65,14 +65,25 @@ export function TranscriptionTexte({
 	texte,
 	bookId,
 	page,
+	verifiee = false,
 }: {
 	texte: string;
 	/** Ouvrage et numéro de planche — sans eux, pas de lien de correction. */
 	bookId?: number | string | null;
 	page?: number | null;
+	/**
+	 * Planche acquittée à la main par un relecteur : plus d'avertissement.
+	 *
+	 * Les signatures sont mécaniques et se trompent sur les planches maigres —
+	 * une couverture de V Jump qui ne porte que « 3月号 » et « COVER » lève deux
+	 * défauts pour une transcription exacte. Sans ce drapeau, le bandeau
+	 * « passages mal lus » y restait à demeure, et il finissait par ne plus rien
+	 * vouloir dire là où il est justifié.
+	 */
+	verifiee?: boolean;
 }) {
 	const defaut = classerDefaut(texte);
-	const douteux = defaut !== null && DEFAUTS_AVERTIS.has(defaut);
+	const douteux = !verifiee && defaut !== null && DEFAUTS_AVERTIS.has(defaut);
 	// Le lien de correction vise la planche, via la cible `pages#<numéro>` que
 	// comprend le circuit de contribution. Il est rendu côté serveur (un simple
 	// `<a>`, aucun composant client sur une page qui en porte déjà des

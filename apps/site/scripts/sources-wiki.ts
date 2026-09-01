@@ -7,7 +7,7 @@
  * Ni Fandom, ni le RAG (qui mélange les deux avec du Fandom), ni la mémoire du
  * modèle : ce script est le seul robinet. Ce qu'il ne rend pas ne s'écrit pas.
  *
- * Les planches de databook que `classerDefaut` juge mal lues sont ÉCARTÉES par
+ * Les planches de databook que `defautDePlanche` juge mal lues sont ÉCARTÉES par
  * défaut : ~19 % du corpus est une hallucination du modèle de vision, la citer
  * reviendrait à sourcer une invention. `--avec-fautives` les montre, marquées.
  *
@@ -25,7 +25,7 @@
  */
 import { join } from "node:path";
 import postgres from "postgres";
-import { classerDefaut, type Defaut } from "../src/lib/databooks-defauts";
+import { defautDePlanche, type Defaut } from "../src/lib/databooks-defauts";
 
 const args = process.argv.slice(2);
 const opt = (nom: string, defaut?: string) => {
@@ -111,7 +111,7 @@ try {
 			for (const p of pages) {
 				const texte = typeof p.text === "string" ? p.text : "";
 				if (!texte.toLowerCase().includes(terme.toLowerCase())) continue;
-				const defaut = classerDefaut(texte);
+				const defaut = defautDePlanche(p, texte);
 				if (defaut && !avecFautives) continue;
 				res.push({
 					source: `${f.title} — planche ${p.number}`,
@@ -140,7 +140,7 @@ try {
 		const p = pages.find((x) => Number(x.number) === page);
 		if (!p) throw new Error(`planche ${page} absente de « ${f.title} »`);
 		const texte = typeof p.text === "string" ? p.text : "";
-		const defaut = classerDefaut(texte);
+		const defaut = defautDePlanche(p, texte);
 		const image = typeof p.image === "string" ? p.image.split("/").pop() : null;
 		if (JSON_OUT) sortie({ fiche, titre: f.title, page, defaut, image, texte });
 		else {

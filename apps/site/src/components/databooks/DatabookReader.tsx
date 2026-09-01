@@ -53,6 +53,8 @@ export type DatabookReaderPage = {
 	text?: string | null;
 	/** La planche PORTE une transcription, même si elle n'est pas encore chargée. */
 	aDuTexte?: boolean;
+	/** Transcription relue à l'image : pas d'avertissement de lecture douteuse. */
+	verifiee?: boolean;
 };
 
 export type DatabookReaderProps = {
@@ -71,6 +73,8 @@ type ResolvedPage = {
 	text: string | null;
 	/** Une transcription existe côté serveur, chargée ou non. */
 	aDuTexte: boolean;
+	/** Transcription acquittée à la main (drapeau porté par la fiche). */
+	verifiee: boolean;
 };
 
 const SHOW_STRIP_MAX = 40;
@@ -99,6 +103,7 @@ function resolvePages(pages: DatabookReaderPage[]): ResolvedPage[] {
 			imageUrl: img ? assetUrl(img) : null,
 			text,
 			aDuTexte,
+			verifiee: p.verifiee === true,
 		});
 	}
 	return out;
@@ -414,7 +419,12 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 			</p>
 			<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 scrollbar-thin">
 				{currentText ? (
-					<TranscriptionTexte texte={currentText} bookId={bookId} page={currentNum} />
+					<TranscriptionTexte
+						texte={currentText}
+						bookId={bookId}
+						page={currentNum}
+						verifiee={currentItem?.verifiee}
+					/>
 				) : currentItem?.aDuTexte ? (
 					// La planche PORTE une transcription : dire « aucune description »
 					// pendant qu'elle arrive ferait croire à une lacune du corpus.
@@ -687,6 +697,7 @@ export function DatabookReader({ pages, title, bookId }: DatabookReaderProps): R
 														texte={texteDe(item) as string}
 														bookId={bookId}
 														page={item.number}
+														verifiee={item.verifiee}
 													/>
 												</div>
 											) : null}

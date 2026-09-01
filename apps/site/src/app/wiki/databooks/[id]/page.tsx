@@ -135,6 +135,9 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 		image: p.image,
 		text: i < TEXTES_EMBARQUES ? p.text : null,
 		aDuTexte: Boolean(p.text && p.text.trim()),
+		// Booléen, donc négligeable dans la charge RSC — contrairement aux
+		// transcriptions, qu'on ne transporte plus qu'à la demande.
+		verifiee: p.verifiee === true,
 	}));
 
 	// Balisage de la fiche. Les 318 databooks n'avaient AUCUN JSON-LD alors que

@@ -39,6 +39,9 @@ export interface ProgressionFiche {
 	 * (`databooks-defauts.ts`) — au détail près de la BOUCLE, qui demande un
 	 * back-reference que Postgres met plus de 5 minutes à évaluer sur les 11 778
 	 * planches (mesuré) : elle est détectée côté relecteur, pas dans ce total.
+	 *
+	 * Les planches acquittées à la main (`verifiee`) en sont exclues : le juge
+	 * est mécanique, le relecteur qui a comparé le texte au scan tranche.
 	 */
 	fautives: number;
 	/** Signes de texte transcrit, tous slots confondus. */
@@ -98,9 +101,10 @@ export async function progressionTranscription(): Promise<ProgressionGlobale> {
 			count(p) FILTER (WHERE nullif(btrim(p ->> 'text'), '') IS NOT NULL)::int  AS transcrites,
 			count(p) FILTER (WHERE nullif(btrim(p ->> 'image'), '') IS NOT NULL)::int AS avec_image,
 			count(p) FILTER (
-				WHERE p ->> 'text' LIKE '%' || U&'\FFFD' || '%'
+				WHERE coalesce(p ->> 'verifiee', 'false') <> 'true' AND (
+				      p ->> 'text' LIKE '%' || U&'\FFFD' || '%'
 				   OR p ->> 'text' ~ '[Ѐ-ӿ؀-ۿ฀-๿가-힯]'
-				   OR (p ->> 'text' ~ '[一-鿿]' AND p ->> 'text' !~ '[぀-ヿ]')
+				   OR (p ->> 'text' ~ '[一-鿿]' AND p ->> 'text' !~ '[぀-ヿ]'))
 			)::int                                                                   AS fautives,
 			coalesce(sum(length(p ->> 'text')), 0)::int                               AS signes,
 			r.derniere_edition

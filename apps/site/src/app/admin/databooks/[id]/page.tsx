@@ -44,6 +44,7 @@ export default async function RelecturePage({
 		numero: p.number,
 		image: p.image,
 		texte: p.text ?? "",
+		verifiee: p.verifiee === true,
 	}));
 	const transcrites = planches.filter((p) => p.texte.trim().length > 0).length;
 

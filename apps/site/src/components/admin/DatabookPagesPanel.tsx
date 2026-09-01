@@ -23,6 +23,13 @@ export interface DatabookPageDraft {
 	number: string;
 	image: string;
 	text: string;
+	/**
+	 * Drapeau « relue à l'image » posé par le relecteur (`TranscriptionRelecteur`).
+	 * Le panel ne l'édite pas, il le TRANSPORTE : cet écran renvoie le tableau
+	 * `pages` entier, donc toute clé qu'il ne relit pas est effacée au premier
+	 * enregistrement — la planche acquittée redeviendrait « à vérifier ».
+	 */
+	verifiee: boolean;
 }
 
 let keySeq = 0;
@@ -51,6 +58,7 @@ function normalizePages(raw: unknown): DatabookPageDraft[] {
 			number: String(parseNumber(p.number, i + 1)),
 			image: typeof p.image === "string" ? p.image : "",
 			text: typeof p.text === "string" ? p.text : "",
+			verifiee: p.verifiee === true,
 		}));
 }
 
@@ -65,7 +73,7 @@ function nextAutoNumber(pages: DatabookPageDraft[]): number {
 }
 
 function emptyPage(number: number): DatabookPageDraft {
-	return { _key: newKey(), number: String(number), image: "", text: "" };
+	return { _key: newKey(), number: String(number), image: "", text: "", verifiee: false };
 }
 
 /** Snapshot comparable (sans _key) pour dirty detection. */
@@ -75,6 +83,7 @@ function snapshot(pages: DatabookPageDraft[]): string {
 			number: parseNumber(p.number, 0),
 			image: p.image.trim(),
 			text: p.text.trim(),
+			verifiee: p.verifiee,
 		}))
 	);
 }
@@ -156,13 +165,14 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 	const save = useMutation({
 		mutationFn: async () => {
 			const cleaned = pages.map((p, i) => {
-				const out: { number: number; image?: string; text?: string } = {
+				const out: { number: number; image?: string; text?: string; verifiee?: true } = {
 					number: parseNumber(p.number, i + 1),
 				};
 				const img = p.image.trim();
 				const txt = p.text.trim();
 				if (img) out.image = img;
 				if (txt) out.text = txt;
+				if (p.verifiee) out.verifiee = true;
 				return out;
 			});
 			return client.put(`/db_databooks/${encodeURIComponent(databookId)}`, {

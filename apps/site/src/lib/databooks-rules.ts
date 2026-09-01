@@ -1,3 +1,5 @@
+import { CLE_VERIFIEE } from "./databooks-defauts";
+
 /**
  * Databooks — règles pures, sans dépendance serveur.
  *
@@ -12,6 +14,12 @@ export interface DatabookPageInput {
 	number: number;
 	image: string | null;
 	text: string | null;
+	/**
+	 * Transcription acquittée à la main : les signatures de défaut se taisent.
+	 * Cf. `estPlancheVerifiee` — sans ce drapeau, une planche dont la lecture
+	 * est courte mais exacte reste éternellement « à vérifier ».
+	 */
+	verifiee: boolean;
 }
 
 /**
@@ -33,6 +41,7 @@ export function normalizePages(raw: unknown): DatabookPageInput[] {
 			number: Number.isFinite(n) && n > 0 ? Math.trunc(n) : i + 1,
 			image: typeof o.image === "string" && o.image.trim() ? o.image.trim() : null,
 			text: typeof o.text === "string" && o.text.trim() ? o.text.trim() : null,
+			verifiee: o[CLE_VERIFIEE] === true,
 		});
 	}
 	return out;

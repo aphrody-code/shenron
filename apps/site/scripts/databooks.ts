@@ -36,7 +36,7 @@ import {
 	texteDePlanche,
 	traductionDePlanche,
 } from "./_databooks-base";
-import { classerDefaut, type Defaut } from "../src/lib/databooks-defauts";
+import { classerDefaut, defautDePlanche, type Defaut } from "../src/lib/databooks-defauts";
 
 const args = process.argv.slice(2);
 const commande = args[0] ?? "";
@@ -94,7 +94,7 @@ function mesure(o: Ouvrage): EtatOuvrage {
 		const t = texteDePlanche(p).trim();
 		if (t) {
 			transcrites++;
-			if (classerDefaut(t) !== null) fautives++;
+			if (defautDePlanche(p, t) !== null) fautives++;
 		}
 		if (traductionDePlanche(p).trim()) traduites++;
 		if (!imagePresente(p)) imagesManquantes++;
@@ -261,7 +261,7 @@ async function cmdSante(): Promise<void> {
 				// Traduire une planche hallucinée la blanchit : le lecteur reçoit
 				// un français lisible qui ne dit rien de la source. C'est le pire
 				// résultat que la chaîne puisse produire.
-				if (fr && texte && classerDefaut(texte) !== null) {
+				if (fr && texte && defautDePlanche(p, texte) !== null) {
 					note("traduction posée sur une planche fautive", "grave", `${ref} p${p.number}`);
 				}
 				if (fr && !texte) {

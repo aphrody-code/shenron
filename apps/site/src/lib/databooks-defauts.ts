@@ -129,3 +129,41 @@ export function gravite(texte: string, defaut: Defaut): number {
 	if (defaut === "etranger") return (texte.match(/[Ѐ-ӿ؀-ۿ฀-๿가-힯]/g) ?? []).length;
 	return 1;
 }
+
+/**
+ * Clé du drapeau « relue à l'image, le texte est bon » posée sur la planche.
+ *
+ * Les signatures ci-dessus sont mécaniques, donc elles se trompent : une
+ * couverture de V Jump ne porte que « 3月号 » et « COVER » — neuf signes, des
+ * idéogrammes sans un seul kana. Deux défauts levés (« courte »,
+ * « han-sans-kana ») sur une transcription pourtant EXACTE, que le relecteur
+ * n'avait aucun moyen d'acquitter : la planche restait à jamais dans la file
+ * « À vérifier » et le lecteur public gardait son bandeau d'avertissement.
+ *
+ * Le drapeau ne modifie ni le texte ni le juge : il dit qu'un humain a comparé
+ * la transcription au scan. Il est donc porté par la planche (`verifiee`,
+ * `verifiee_par`, `verifiee_le` dans le jsonb), à côté de sa source, et se
+ * retire aussi facilement qu'il se pose.
+ */
+export const CLE_VERIFIEE = "verifiee";
+
+/** Cette planche a-t-elle été acquittée à la main par un relecteur ? */
+export function estPlancheVerifiee(planche: unknown): boolean {
+	if (!planche || typeof planche !== "object") return false;
+	return (planche as Record<string, unknown>)[CLE_VERIFIEE] === true;
+}
+
+/**
+ * Défaut d'une planche, drapeau de relecture compris.
+ *
+ * À préférer à `classerDefaut` partout où l'on dispose de l'objet planche :
+ * une planche acquittée est saine, quoi qu'en disent les signatures — c'est
+ * tout l'objet du drapeau. Une planche VIDE reste vide : acquitter un texte
+ * absent n'en crée pas un, et la file « à transcrire » doit continuer de la
+ * voir.
+ */
+export function defautDePlanche(planche: unknown, texte: string): Defaut | null {
+	const defaut = classerDefaut(texte);
+	if (defaut === "vide") return defaut;
+	return estPlancheVerifiee(planche) ? null : defaut;
+}

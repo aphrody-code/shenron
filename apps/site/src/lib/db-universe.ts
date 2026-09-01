@@ -39,6 +39,7 @@ import {
 import type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
 import { eraOf, type TimelineItem } from "@/lib/chronology";
 import { orderPlayers } from "@/lib/players";
+import { CLE_VERIFIEE } from "@/lib/databooks-defauts";
 import type { SignauxRichesse } from "@/lib/character-richesse";
 
 // Re-export pour back-compat des pages serveur qui importaient assetUrl ici.
@@ -445,6 +446,8 @@ export type DatabookPage = {
 	number: number;
 	image: string | null;
 	text: string | null;
+	/** Transcription acquittée à la main par un relecteur (cf. `CLE_VERIFIEE`). */
+	verifiee: boolean;
 };
 
 export type Databook = {
@@ -478,6 +481,7 @@ function toDatabookPages(raw: unknown): DatabookPage[] {
 			number: n,
 			image: typeof o.image === "string" ? o.image : null,
 			text: typeof o.text === "string" ? o.text : null,
+			verifiee: o[CLE_VERIFIEE] === true,
 		});
 	}
 	return out;

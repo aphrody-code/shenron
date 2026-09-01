@@ -22,7 +22,7 @@ describe("normalizePages", () => {
 
 	test("les entrées non exploitables sont écartées", () => {
 		expect(normalizePages([null, "x", 3, { number: 1, image: "a.jpg", text: null }])).toEqual([
-			{ number: 1, image: "a.jpg", text: null },
+			{ number: 1, image: "a.jpg", text: null, verifiee: false },
 		]);
 	});
 
@@ -33,7 +33,15 @@ describe("normalizePages", () => {
 
 	test("les chaînes vides deviennent null (pas de page fantôme au rendu)", () => {
 		const [p] = normalizePages([{ number: 1, image: "   ", text: "" }]);
-		expect(p).toEqual({ number: 1, image: null, text: null });
+		expect(p).toEqual({ number: 1, image: null, text: null, verifiee: false });
+	});
+
+	test("le drapeau de relecture manuelle est relu tel quel", () => {
+		// Sans lui, une planche acquittée (« vérifier quand même ») redeviendrait
+		// « à vérifier » au premier enregistrement du studio, qui renvoie le
+		// tableau `pages` entier.
+		const [p] = normalizePages([{ number: 1, image: "a.jpg", text: "3月号", verifiee: true }]);
+		expect(p!.verifiee).toBe(true);
 	});
 
 	test("un numéro décimal est tronqué", () => {

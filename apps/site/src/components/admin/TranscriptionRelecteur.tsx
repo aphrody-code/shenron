@@ -20,6 +20,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
 	AlertTriangle,
+	BadgeCheck,
 	Check,
 	ChevronLeft,
 	ChevronRight,
@@ -43,6 +44,8 @@ export interface PlancheRelecture {
 	numero: number;
 	image: string | null;
 	texte: string;
+	/** Acquittée à la main : les signatures de défaut se taisent pour elle. */
+	verifiee: boolean;
 }
 
 type Filtre = "toutes" | "a-transcrire" | "transcrites" | "suspectes";
@@ -90,8 +93,19 @@ const FILTRES: { cle: Filtre; libelle: string }[] = [
 	{ cle: "suspectes", libelle: "À vérifier" },
 ];
 
-function estSuspecte(texte: string): boolean {
-	return diagnostiquerPlanche(texte).some((a) => !a.reparable);
+/**
+ * Planche à vérifier : un défaut irréparable, ET pas encore acquittée.
+ *
+ * Les signatures sont mécaniques, donc faillibles — une couverture de V Jump
+ * ne porte que « 3月号 » et « COVER », ce qui lève deux défauts (« 9 caractères
+ * seulement », « idéogrammes sans un seul kana ») sur une transcription
+ * pourtant exacte. Sans acquittement, ces planches-là restaient dans la file à
+ * perpétuité et le relecteur n'avait aucun moyen de dire « j'ai regardé, c'est
+ * bon ».
+ */
+function estSuspecte(planche: { texte: string; verifiee: boolean }): boolean {
+	if (planche.verifiee) return false;
+	return diagnostiquerPlanche(planche.texte).some((a) => !a.reparable);
 }
 
 export function TranscriptionRelecteur({
@@ -171,7 +185,7 @@ export function TranscriptionRelecteur({
 				? p.texte.trim().length > 0
 				: filtre === "a-transcrire"
 					? p.texte.trim().length === 0
-					: estSuspecte(p.texte)
+					: estSuspecte(p)
 		);
 	}, [planches, filtre]);
 
@@ -252,6 +266,39 @@ export function TranscriptionRelecteur({
 	});
 
 	/**
+	 * Acquittement d'une planche : « j'ai comparé au scan, le texte est bon ».
+	 *
+	 * Il n'écrit PAS le texte — c'est le même endroit dans le jsonb, mais deux
+	 * gestes différents : acquitter une planche pendant qu'on a un brouillon en
+	 * cours déposerait une transcription non relue sous couvert de validation.
+	 * Le bouton est donc désactivé tant que la saisie n'est pas enregistrée.
+	 */
+	const acquitter = useMutation({
+		mutationFn: async (verifiee: boolean) => {
+			const r = await fetch(`/api/databooks/${databookId}/pages`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ number: numeroCourant, verifiee }),
+			});
+			if (!r.ok) {
+				throw new Error((await r.json().catch(() => null))?.error ?? "Écriture impossible.");
+			}
+			return (await r.json()) as { number: number; verifiee: boolean };
+		},
+		onSuccess: (rep) => {
+			setPlanches((arr) =>
+				arr.map((p) => (p.numero === rep.number ? { ...p, verifiee: rep.verifiee } : p))
+			);
+			setToast(
+				rep.verifiee
+					? `Planche n°${rep.number} marquée vérifiée — plus d'avertissement au lecteur.`
+					: `Acquittement retiré sur la planche n°${rep.number}.`
+			);
+		},
+		onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+	});
+
+	/**
 	 * Point de passage unique de toute navigation entre planches.
 	 *
 	 * Changer de planche recharge le brouillon depuis l'état enregistré : sans
@@ -312,7 +359,7 @@ export function TranscriptionRelecteur({
 		toutes: planches.length,
 		"a-transcrire": planches.length - transcrites,
 		transcrites,
-		suspectes: planches.filter((p) => estSuspecte(p.texte)).length,
+		suspectes: planches.filter((p) => estSuspecte(p)).length,
 	};
 
 	const imageUrl = courante?.image ? assetUrl(courante.image) : null;
@@ -354,7 +401,7 @@ export function TranscriptionRelecteur({
 					<ol className="-mr-1 grid grid-cols-4 gap-1 overflow-y-auto pr-1">
 						{visibles.map((p) => {
 							const vide = p.texte.trim().length === 0;
-							const alerte = !vide && estSuspecte(p.texte);
+							const alerte = !vide && estSuspecte(p);
 							const active = p.numero === numeroCourant;
 							const aDesFautesJa = (anomaliesJa.data?.planches?.[p.numero]?.length ?? 0) > 0;
 							return (
@@ -701,6 +748,53 @@ export function TranscriptionRelecteur({
 									</ul>
 								) : null}
 							</div>
+
+							{/* Acquittement : le juge est mécanique, l'œil tranche. */}
+							{(anomalies.some((a) => !a.reparable) || courante?.verifiee) && (
+								<div
+									className={`mt-2 flex flex-wrap items-center gap-2 rounded border px-2 py-1.5 text-[11px] ${
+										courante?.verifiee
+											? "border-green-500/30 bg-green-500/[0.06] text-green-200/90"
+											: "border-white/10 bg-white/[0.03] text-white/55"
+									}`}
+								>
+									{courante?.verifiee ? (
+										<>
+											<BadgeCheck className="h-3.5 w-3.5 shrink-0" />
+											<span>
+												Planche vérifiée à la main : les avertissements ci-dessous sont
+												ignorés, et le lecteur public n&apos;en voit aucun.
+											</span>
+										</>
+									) : (
+										<span>
+											Les signaux ci-dessous sont mécaniques : une couverture qui ne porte
+											que « 3月号 » et « COVER » les déclenche alors que sa transcription
+											est exacte.
+										</span>
+									)}
+									<button
+										type="button"
+										disabled={acquitter.isPending || modifie}
+										onClick={() => acquitter.mutate(!courante?.verifiee)}
+										title={
+											modifie
+												? "Enregistrez la transcription avant de la déclarer vérifiée."
+												: courante?.verifiee
+													? "Retirer l'acquittement : la planche repasse « à vérifier »."
+													: "Déclarer cette transcription conforme au scan malgré les signaux automatiques."
+										}
+										className="ml-auto inline-flex items-center gap-1 rounded border border-dbz-border/60 px-2 py-0.5 font-semibold text-white/70 transition-colors hover:border-dbz-orange hover:text-dbz-orange disabled:cursor-not-allowed disabled:opacity-30"
+									>
+										{acquitter.isPending ? (
+											<Loader2 className="h-3 w-3 animate-spin" />
+										) : (
+											<BadgeCheck className="h-3 w-3" />
+										)}
+										{courante?.verifiee ? "Retirer la vérification" : "Vérifier quand même"}
+									</button>
+								</div>
+							)}
 
 							{anomalies.length > 0 && (
 								<ul className="mt-2 space-y-1">

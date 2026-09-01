@@ -7,7 +7,7 @@
  * aurait produit un index reconstruit différent de l'index tenu à jour, sans
  * que rien ne le signale. Une seule définition, donc, et elle est testable.
  */
-import { classerDefaut } from "./databooks-defauts";
+import { defautDePlanche } from "./databooks-defauts";
 
 /**
  * Le corpus porte DEUX formes de transcription, héritées de deux passes de
@@ -48,7 +48,7 @@ export function transcriptionsDe(pages: unknown[]): TranscriptionsPlanche {
 			transcrites++;
 			// Le compte de fautives voyage avec la fiche : le back-office et la
 			// sonde de santé le lisent sans avoir à rejuger 11 928 planches.
-			if (classerDefaut(ja) !== null) fautives++;
+			if (defautDePlanche(o, ja) !== null) fautives++;
 		}
 		// La planche est indexée MÊME sans transcription (valeur vide) : sans ça,
 		// une planche muette manquerait au hash, la lecture la croirait absente

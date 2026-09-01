@@ -77,6 +77,8 @@ interface PlancheBrute {
 	page: number;
 	texte: string;
 	traduite: boolean;
+	/** Planche acquittée à la main : les signatures de défaut ne la retiennent plus. */
+	verifiee: boolean;
 }
 
 try {
@@ -88,7 +90,8 @@ try {
 		       d.title AS titre,
 		       (e.value->>'number')::int AS page,
 		       coalesce(e.value->>'text', '') AS texte,
-		       coalesce(length(trim(coalesce(e.value->>'text_fr', ''))), 0) > 0 AS traduite
+		       coalesce(length(trim(coalesce(e.value->>'text_fr', ''))), 0) > 0 AS traduite,
+		       coalesce(e.value->>'verifiee', 'false') = 'true' AS verifiee
 		FROM bot.db_databooks d, jsonb_array_elements(d.pages) e
 		WHERE (${cibleId} = 0 OR d.id = ${cibleId})
 		  AND (${categorie ?? null}::text IS NULL OR d.category = ${categorie ?? null})
@@ -104,7 +107,10 @@ try {
 		(p) =>
 			(retraduire || !p.traduite) &&
 			KANA.test(p.texte) &&
-			classerDefaut(p.texte) === null &&
+			// Une planche relue à l'image est saine par décision humaine : la
+			// garder hors du lot reviendrait à faire confiance au détecteur
+			// contre le relecteur qui vient de comparer texte et scan.
+			(p.verifiee || classerDefaut(p.texte) === null) &&
 			(laxiste || intraduisible(p.texte) === null),
 	);
 
@@ -114,7 +120,11 @@ try {
 			const cle = String(p.databook_id);
 			const e = par.get(cle) ?? { titre: p.titre, reste: 0, faites: 0, signes: 0 };
 			if (p.traduite) e.faites++;
-			else if (KANA.test(p.texte) && classerDefaut(p.texte) === null && intraduisible(p.texte) === null) {
+			else if (
+				KANA.test(p.texte) &&
+				(p.verifiee || classerDefaut(p.texte) === null) &&
+				intraduisible(p.texte) === null
+			) {
 				e.reste++;
 				e.signes += p.texte.length;
 			}

@@ -31,7 +31,7 @@
 import { join } from "node:path";
 import postgres from "postgres";
 import {
-	classerDefaut,
+	defautDePlanche,
 	gravite,
 	type Defaut,
 } from "../src/lib/databooks-defauts";
@@ -87,7 +87,11 @@ try {
 		const pages = Array.isArray(fiche.pages) ? (fiche.pages as Record<string, unknown>[]) : [];
 		for (const p of pages) {
 			const texte = typeof p.text === "string" ? p.text : "";
-			const defaut = classerDefaut(texte);
+			// Le drapeau posé par le relecteur (« vérifier quand même ») sort la
+			// planche de la file : les signatures se trompent sur les planches
+			// maigres, et une file qui redonne éternellement les mêmes planches
+			// déjà regardées finit par ne plus être ouverte.
+			const defaut = defautDePlanche(p, texte);
 			if (!defaut) continue;
 			const image = typeof p.image === "string" ? p.image.split("/").pop()! : "";
 			// Emplacement sans image ET sans texte : il n'y a rien à rouvrir. Ce

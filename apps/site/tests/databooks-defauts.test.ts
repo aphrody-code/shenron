@@ -1,5 +1,11 @@
-import { describe, expect, it } from "bun:test";
-import { classerDefaut, gravite, noteQualite } from "@/lib/databooks-defauts";
+import { describe, expect, it, test } from "bun:test";
+import {
+	classerDefaut,
+	defautDePlanche,
+	estPlancheVerifiee,
+	gravite,
+	noteQualite,
+} from "@/lib/databooks-defauts";
 
 /**
  * Le classement des défauts décide de deux choses visibles : ce que la file de
@@ -81,5 +87,34 @@ describe("gravite", () => {
 	it("compte les signes fautifs pour trier le pire d'abord", () => {
 		expect(gravite("あ�い�う�", "remplacement")).toBe(3);
 		expect(gravite("デッドリイюンバーとспособ", "etranger")).toBeGreaterThan(1);
+	});
+});
+
+describe("acquittement manuel", () => {
+	// Le cas réel qui a motivé le drapeau : la couverture du V Jump de mars 1995
+	// ne porte que « 3月号 » et « COVER ». Neuf signes, des idéogrammes sans un
+	// seul kana — deux défauts levés sur une transcription pourtant exacte.
+	const couverture = "3月号\nCOVER";
+
+	test("sans drapeau, la couverture reste jugée fautive", () => {
+		expect(classerDefaut(couverture)).not.toBeNull();
+		expect(defautDePlanche({ text: couverture }, couverture)).not.toBeNull();
+	});
+
+	test("le drapeau fait taire les signatures mécaniques", () => {
+		expect(defautDePlanche({ text: couverture, verifiee: true }, couverture)).toBeNull();
+		expect(estPlancheVerifiee({ verifiee: true })).toBe(true);
+	});
+
+	test("acquitter une planche VIDE n'invente pas de transcription", () => {
+		// Sinon elle sortirait de la file « à transcrire » sans avoir de texte.
+		expect(defautDePlanche({ verifiee: true }, "")).toBe("vide");
+	});
+
+	test("seul `true` acquitte (une clé parasite ne suffit pas)", () => {
+		for (const v of ["true", 1, null, undefined, {}]) {
+			expect(estPlancheVerifiee({ verifiee: v })).toBe(false);
+		}
+		expect(estPlancheVerifiee(null)).toBe(false);
 	});
 });

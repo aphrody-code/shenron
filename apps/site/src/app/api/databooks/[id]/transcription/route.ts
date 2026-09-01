@@ -149,7 +149,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 				typeof e?.image === "string" && e.image.trim()
 					? e.image.trim()
 					: (ancienne?.image ?? null);
-			construites.set(n, { number: n, image, text: textes.get(n) ?? null });
+			// L'acquittement de relecture (« vérifier quand même ») survit à une
+			// reprise complète : il dit qu'un humain a comparé cette planche à son
+			// scan, ce qu'un nouveau dépôt automatique ne remet pas en cause.
+			construites.set(n, {
+				number: n,
+				image,
+				text: textes.get(n) ?? null,
+				verifiee: ancienne?.verifiee === true,
+			});
 		}
 		if (construites.size === 0) {
 			return NextResponse.json(

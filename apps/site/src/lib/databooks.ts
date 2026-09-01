@@ -23,6 +23,7 @@ import { botDatabooks } from "@/db/bot-schema";
 import { forgetDatabook, indexDatabook } from "@/lib/databooks-redis";
 import { toSeconds } from "@/lib/epoch";
 import { normalizePages, type DatabookPageInput } from "@/lib/databooks-rules";
+import { CLE_VERIFIEE } from "@/lib/databooks-defauts";
 
 /** Fiche telle que servie par l'API. */
 export interface DatabookRecord {
@@ -159,7 +160,14 @@ function toColumns(w: DatabookWrite): Record<string, unknown> {
 	if (w.source_url !== undefined) c.sourceUrl = w.source_url;
 	if (w.category !== undefined) c.category = w.category;
 	if (w.visible !== undefined) c.visible = w.visible;
-	if (w.pages !== undefined) c.pages = normalizePages(w.pages);
+	// La clé du drapeau n'est écrite que quand elle vaut `true` : poser
+	// `verifiee: false` sur 11 778 planches gonflerait le jsonb sans rien dire
+	// de plus que son absence.
+	if (w.pages !== undefined) {
+		c.pages = normalizePages(w.pages).map(({ verifiee, ...p }) =>
+			verifiee ? { ...p, [CLE_VERIFIEE]: true } : p
+		);
+	}
 	return c;
 }
 

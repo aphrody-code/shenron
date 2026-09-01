@@ -13,7 +13,7 @@
  * fiche par ouvrage est ajoutée en tête pour que la recherche trouve aussi
  * l'ouvrage lui-même (titre, titre japonais, auteur, description).
  *
- * **Règle dure du corpus** : une planche que `classerDefaut` juge fautive n'est
+ * **Règle dure du corpus** : une planche que `defautDePlanche` juge fautive n'est
  * PAS indexée. Indexer une hallucination du modèle de vision reviendrait à la
  * faire ressortir comme une source — exactement ce que l'avertissement public
  * de `TranscriptionTexte.tsx` cherche à éviter, en pire (le RAG, lui, ne montre
@@ -30,7 +30,7 @@
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 import postgres from "postgres";
-import { classerDefaut } from "../../site/src/lib/databooks-defauts";
+import { defautDePlanche } from "../../site/src/lib/databooks-defauts";
 
 const ROOT = new URL("..", import.meta.url).pathname; // apps/bot/
 const OUT = join(ROOT, "data/rag/corpus-databooks.json");
@@ -143,7 +143,7 @@ for (const o of ouvrages) {
 		const ja = texteDePlanche(p.text).trim();
 		if (ja) {
 			planches++;
-			if (classerDefaut(ja) !== null) {
+			if (defautDePlanche(p, ja) !== null) {
 				ecartees++;
 			} else {
 				docs.push({
@@ -160,7 +160,7 @@ for (const o of ouvrages) {
 		// La traduction n'est déposée que sur une planche saine (cf. la règle
 		// « ne jamais traduire une planche fautive ») : on n'a pas à la rejuger,
 		// mais on ne la garde pas si sa source vient d'être écartée.
-		if (fr && ja && classerDefaut(ja) === null) {
+		if (fr && ja && defautDePlanche(p, ja) === null) {
 			traduites++;
 			docs.push({
 				id: `databook-${id}-p${numero}-fr`,
