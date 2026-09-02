@@ -20,6 +20,7 @@
  *
  *   bun apps/bot/scripts/forum-anime.ts plan
  *   bun apps/bot/scripts/forum-anime.ts applique [--limite N] [--seulement <motif>] [--categorie <id>]
+ *   bun apps/bot/scripts/forum-anime.ts rafraichit [--seulement <motif>]
  *   bun apps/bot/scripts/forum-anime.ts etat
  *
  * Jeton : `DISCORD_TOKEN_GRAND_PRETRE` (administrateur de la guilde).
@@ -613,6 +614,55 @@ async function appliquer(): Promise<void> {
 	console.log(`[forum] terminé : ${faits} fils publiés dans ${salon.name}`);
 }
 
+/**
+ * Réécrit les fils déjà publiés au lieu d'en créer de nouveaux.
+ *
+ * La base bouge (dates de diffusion, titres japonais et synopsis comblés depuis
+ * Wikipédia le 2026-09-02, lecteurs rafraîchis) : un forum qui est une VUE de la
+ * base doit pouvoir se remettre à jour. Supprimer puis republier ferait perdre
+ * les abonnements, les réactions et les liens partagés — on ÉDITE.
+ */
+async function rafraichir(): Promise<void> {
+	const plan = await lirePlan();
+	const api = clientDiscord(await jetonDiscord("GRAND_PRETRE"));
+	const categorie = option("categorie") ?? CATEGORIE_DEFAUT;
+	const motif = option("seulement");
+
+	const salon = await forum(api, categorie);
+	const dejaLa = await filsExistants(api, salon.id);
+	const cibles = plan.fils
+		.filter((f) => (motif ? f.nom.toLowerCase().includes(motif.toLowerCase()) : true))
+		.map((f) => ({ plan: f, discord: dejaLa.get(f.nom) }))
+		.filter((c): c is { plan: FilPlan; discord: FilExistant } => Boolean(c.discord));
+	console.log(`[forum] ${cibles.length} fils à rafraîchir`);
+
+	let edites = 0;
+	let ajoutes = 0;
+	await enParallele(cibles, 2, async ({ plan: fil, discord }) => {
+		// Le message d'ouverture d'un post de forum porte l'identifiant du fil.
+		await api(`/channels/${discord.id}/messages/${discord.id}`, { methode: "PATCH", corps: fil.premier });
+		edites++;
+
+		// Discord rend du plus récent au plus ancien ; la suite se lit dans l'autre sens.
+		const messages = await api<readonly { id: string; author?: { id?: string } }[]>(
+			`/channels/${discord.id}/messages?limit=100`,
+		);
+		const notres = messages.filter((m) => m.id !== discord.id).toReversed();
+		for (const [i, message] of fil.suite.entries()) {
+			const existant = notres[i];
+			if (existant) {
+				await api(`/channels/${discord.id}/messages/${existant.id}`, { methode: "PATCH", corps: message });
+				edites++;
+			} else {
+				await api(`/channels/${discord.id}/messages`, { methode: "POST", corps: message });
+				ajoutes++;
+			}
+		}
+		process.stdout.write(`\r[forum] ${edites} messages réécrits, ${ajoutes} ajoutés          `);
+	});
+	process.stdout.write("\n");
+}
+
 async function etat(): Promise<void> {
 	const plan = await lirePlan();
 	const messages = plan.fils.reduce((s, f) => s + 1 + f.suite.length, 0);
@@ -656,10 +706,13 @@ switch (args[0] ?? "plan") {
 	case "applique":
 		await appliquer();
 		break;
+	case "rafraichit":
+		await rafraichir();
+		break;
 	case "etat":
 		await etat();
 		break;
 	default:
-		console.error(`Commande inconnue « ${args[0]} » — attendu : plan | applique | etat`);
+		console.error(`Commande inconnue « ${args[0]} » — attendu : plan | applique | rafraichit | etat`);
 		process.exit(1);
 }
