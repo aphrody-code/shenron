@@ -109,6 +109,15 @@ const nextConfig: NextConfig = {
 			// servies sur les anciennes URL.
 			{ protocol: "https", hostname: "bot.dragonballfr.com", pathname: "/db/**" },
 			{ protocol: "https", hostname: "bot.dragonballfr.com", pathname: "/assets/**" },
+			// Planches « Full Color » : l'URL est stable ici, mais répond un 302 vers
+			// le CDN Discord, dont la signature ne vit que 24 h. C'est justement ce
+			// que l'optimiseur doit viser — il suit la redirection et met en cache
+			// les OCTETS, qui eux ne changent pas.
+			{
+				protocol: "https",
+				hostname: "bot.dragonballfr.com",
+				pathname: "/api/public/manga/couleur/**",
+			},
 			{ protocol: "https", hostname: "bot.rpbey.fr", pathname: "/db/**" },
 			{ protocol: "https", hostname: "bot.rpbey.fr", pathname: "/assets/**" },
 			{

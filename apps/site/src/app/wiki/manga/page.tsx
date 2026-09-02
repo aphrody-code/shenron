@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { SERIES_BANNERS } from "@/lib/db-banners";
 import { MangaVolumeGrid } from "@/components/manga/MangaVolumeGrid";
 import { MangaInfoSection } from "@/components/manga/MangaInfoSection";
+import { SERIE_COULEUR } from "@/lib/manga-editions";
 import { MangaDialogueSearch } from "@/components/manga/MangaDialogueSearch";
 import type { Metadata } from "next";
 
@@ -44,15 +45,29 @@ export default async function MangaIndexPage() {
 			cover: v.cover,
 		}));
 
-	const readableChapters = (readableData?.chapters ?? []).map((ch) => ({
-		id: ch.id,
-		chapter_number: ch.chapter_number,
-		title: ch.title,
-		series: ch.series,
-		cover: ch.cover,
-		pages: ch.pages,
-		volume_id: ch.volume_id,
-	}));
+	const allChapters = readableData?.chapters ?? [];
+
+	// L'édition couleur compte 520 chapitres. Les sérialiser un par un dans la
+	// grille ajoutait ~470 Ko à cette page (charge RSC + DOM dupliqués) pour un
+	// contenu qu'on navigue de toute façon par tome — c'est exactement le défaut
+	// déjà corrigé sur /wiki/techniques et /wiki/databooks. On ne transmet donc
+	// que les TOMES concernés et le total ; le détail vit sur la fiche du tome.
+	const colorChapters = allChapters.filter((ch) => ch.series === SERIE_COULEUR);
+	const colorVolumeIds = [
+		...new Set(colorChapters.map((ch) => ch.volume_id).filter((v): v is number => v != null)),
+	];
+
+	const readableChapters = allChapters
+		.filter((ch) => ch.series !== SERIE_COULEUR)
+		.map((ch) => ({
+			id: ch.id,
+			chapter_number: ch.chapter_number,
+			title: ch.title,
+			series: ch.series,
+			cover: ch.cover,
+			pages: ch.pages,
+			volume_id: ch.volume_id,
+		}));
 
 	// Hero = vraie couverture de tome (l'œuvre elle-même) plutôt qu'un bandeau
 	// événementiel générique ; repli sur la bannière d'ère si aucun tome.
@@ -79,6 +94,8 @@ export default async function MangaIndexPage() {
 					dbVolumes={dbVolumes}
 					dbsVolumes={dbsVolumes}
 					readableChapters={readableChapters}
+					colorVolumeIds={colorVolumeIds}
+					colorChapterCount={colorChapters.length}
 				/>
 
 				<MangaInfoSection />

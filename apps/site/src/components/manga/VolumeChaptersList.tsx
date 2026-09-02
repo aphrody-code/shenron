@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Palette, BookOpen } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
+import { editionDe, LIBELLE_EDITION, type Edition } from "@/lib/manga-editions";
 
 interface Chapter {
 	id: number;
@@ -20,6 +21,7 @@ interface VolumeChaptersListProps {
 
 export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 	const [readChapterIds, setReadChapterIds] = useState<number[]>([]);
+	const [edition, setEdition] = useState<Edition | null>(null);
 
 	useEffect(() => {
 		try {
@@ -33,10 +35,28 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 		} catch (e) {
 			console.error("Failed to load read chapters", e);
 		}
+		// L'édition demandée est lue depuis l'URL au montage, et NON via
+		// `useSearchParams` : ce hook bascule la page en rendu dynamique et lui
+		// ferait perdre son cache CDN, pour un simple onglet par défaut.
+		try {
+			const demandee = new URLSearchParams(window.location.search).get("edition");
+			if (demandee === "couleur" || demandee === "nb") setEdition(demandee);
+		} catch {
+			// Pas d'URL exploitable : on garde le choix par défaut.
+		}
 	}, []);
 
-	// Calculer la progression
-	const readableChapters = chapters.filter((ch) => ch.pages && ch.pages.length > 0);
+	const tousLisibles = chapters.filter((ch) => ch.pages && ch.pages.length > 0);
+	const parEdition: Record<Edition, typeof tousLisibles> = {
+		nb: tousLisibles.filter((ch) => editionDe(ch) === "nb"),
+		couleur: tousLisibles.filter((ch) => editionDe(ch) === "couleur"),
+	};
+	const editionsPresentes = (["nb", "couleur"] as const).filter((e) => parEdition[e].length > 0);
+	// Une édition demandée mais absente de ce tome ne doit pas vider la page.
+	const editionActive: Edition =
+		edition && parEdition[edition].length > 0 ? edition : (editionsPresentes[0] ?? "nb");
+
+	const readableChapters = editionsPresentes.length ? parEdition[editionActive] : tousLisibles;
 	const readReadableChapters = readableChapters.filter((ch) => readChapterIds.includes(ch.id));
 	const progressPercent =
 		readableChapters.length > 0
@@ -45,6 +65,41 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 
 	return (
 		<div className="space-y-6">
+			{/* Sélecteur d'édition : n'apparaît que si le tome existe dans les deux. */}
+			{editionsPresentes.length > 1 && (
+				<div
+					className="flex flex-wrap gap-2"
+					role="group"
+					aria-label="Choisir l'édition à lire"
+				>
+					{editionsPresentes.map((e) => {
+						const actif = e === editionActive;
+						const Icone = e === "couleur" ? Palette : BookOpen;
+						return (
+							<button
+								key={e}
+								type="button"
+								onClick={() => setEdition(e)}
+								aria-pressed={actif}
+								className={`inline-flex h-11 items-center gap-2 rounded px-4 font-display text-sm font-semibold tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 ${
+									actif
+										? e === "couleur"
+											? "bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black"
+											: "bg-dbz-orange text-black"
+										: "border border-white/10 bg-black/40 text-white/70 hover:text-white"
+								}`}
+							>
+								<Icone className="h-4 w-4" aria-hidden="true" />
+								{LIBELLE_EDITION[e]}
+								<span className="font-mono text-[10px] opacity-70 tabular-nums">
+									{parEdition[e].length}
+								</span>
+							</button>
+						);
+					})}
+				</div>
+			)}
+
 			{/* Barre de progression style Scouter */}
 			{readableChapters.length > 0 && (
 				<div className="dbz-panel p-4 bg-black/40 border border-white/5 space-y-2">

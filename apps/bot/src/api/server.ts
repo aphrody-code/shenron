@@ -26,6 +26,7 @@ import {
 import { getDiscordSession } from "./oauth-session";
 import { discordFetch, DiscordRESTError } from "~/lib/discord-rest";
 import { userAvatar, defaultAvatar, guildIcon } from "~/lib/discord-cdn";
+import { urlNueDe, urlSignee } from "~/lib/scans-couleur";
 import {
 	createChannelWebhook,
 	deleteWebhook,
@@ -2218,6 +2219,39 @@ export class ApiServer {
 							return { q: raw, results: [], error: "index_unavailable" };
 						}
 					}),
+
+				// --- Manga « Full Color » : redirection vers le CDN Discord ---
+				//
+				// Les planches couleur sont des pièces jointes du forum scan-db, et une
+				// URL `cdn.discordapp.com` n'est servie que **signée**, pour 24 h
+				// (mesuré : signée → 200, dénudée → 404). Une page ISR ne peut donc pas
+				// pointer le CDN en dur — son HTML survivrait à la signature.
+				//
+				// Cette route est l'indirection stable : le site pointe ici pour
+				// toujours, et nous rendons un `302` vers une signature fraîche à chaque
+				// requête. Les 3,2 Go d'images ne transitent jamais par le VPS.
+				//
+				// `cache-control` court et `private` : c'est la REDIRECTION qui ne doit
+				// pas être mise en cache au-delà de la validité de sa cible, l'image
+				// elle-même étant mise en cache par le CDN de Discord.
+				"/api/public/manga/couleur/:salonId/:pieceJointeId/:fichier": async (req) => {
+					const cors = publicCorsHeaders(req);
+					if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+					const nue = await urlNueDe({
+						salonId: String(req.params.salonId),
+						pieceJointeId: String(req.params.pieceJointeId),
+						fichier: String(req.params.fichier),
+					});
+					if (!nue) return new Response("Planche couleur inconnue", { status: 404, headers: cors });
+					const signee = await urlSignee(nue);
+					if (!signee) {
+						return new Response("Signature indisponible", { status: 502, headers: cors });
+					}
+					return new Response(null, {
+						status: 302,
+						headers: { ...cors, Location: signee, "cache-control": "private, max-age=300" },
+					});
+				},
 
 				// --- Manga : transcriptions OCR des planches (durable, bilingue FR+JP) ---
 				// Liste des tomes transcrits + compteurs. ?series=DB|DBS pour filtrer.

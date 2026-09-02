@@ -6,9 +6,7 @@ import Image from "next/image";
 import { BookOpen, Library, Layers, Search, Award, Lock, Trophy, Palette } from "lucide-react";
 import { assetUrl } from "@/lib/assets";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
-
-/** Un chapitre est « couleur » (édition Full Color) si son titre le signale. */
-const isColorChapter = (title?: string | null) => /full\s*color|couleur/i.test(title ?? "");
+import { estChapitreCouleur } from "@/lib/manga-editions";
 
 export interface Volume {
 	id: number;
@@ -46,6 +44,18 @@ interface MangaVolumeGridProps {
 	dbVolumes: Volume[];
 	dbsVolumes: Volume[];
 	readableChapters: Chapter[];
+	/**
+	 * Les tomes dont l'édition couleur est lisible, et le nombre de chapitres
+	 * couleur au total.
+	 *
+	 * L'édition couleur est présentée PAR TOME et non chapitre par chapitre :
+	 * elle en compte 520, et les sérialiser tous dans cette grille ajoutait
+	 * ~470 Ko à la page d'index (charge RSC + DOM, le défaut déjà corrigé sur
+	 * `/wiki/techniques` et `/wiki/databooks`). Le détail des chapitres vit sur
+	 * la fiche du tome, qui est de toute façon le bon niveau de navigation.
+	 */
+	colorVolumeIds?: number[];
+	colorChapterCount?: number;
 }
 
 const ACHIEVEMENTS: Achievement[] = [
@@ -87,9 +97,75 @@ const ACHIEVEMENTS: Achievement[] = [
 	},
 ];
 
+
+/** Entête de section « Édition Couleur », partagé par les onglets. */
+function ColorSectionHeader({ count }: { count: number }) {
+	return (
+		<>
+			<div className="flex items-center gap-3">
+				<Palette className="w-5 h-5 text-fuchsia-400" aria-hidden="true" />
+				<h3 className="font-saiyan text-2xl text-white tracking-widest">Édition Couleur</h3>
+				<span className="text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
+					Full Color
+				</span>
+				<div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/40 to-transparent" />
+			</div>
+			<p className="text-xs text-white/50 max-w-2xl font-display">
+				L&apos;œuvre originale d&apos;Akira Toriyama en couleur
+				{count > 0 ? ` — ${count} chapitres` : ""}. Ouvre un tome pour choisir entre l&apos;édition
+				noir &amp; blanc et l&apos;édition couleur.
+			</p>
+		</>
+	);
+}
+
+/** Grille des tomes disponibles en couleur. */
+function ColorVolumeGrid({ volumes }: { volumes: Volume[] }) {
+	return (
+		<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+			{volumes.map((vol, idx) => (
+				<Link
+					key={vol.id}
+					href={`/wiki/manga/volume/${vol.id}?edition=couleur`}
+					className="group dbz-panel overflow-hidden hover:scale-105 hover:border-fuchsia-400 transition-all duration-300"
+					style={{ animationDelay: `${idx * 0.02}s` }}
+				>
+					<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
+						<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
+						{vol.cover ? (
+							<Image
+								src={assetUrl(vol.cover)}
+								alt={vol.title ?? `Tome ${vol.volumeNumber}`}
+								fill
+								sizes="(max-width: 768px) 50vw, 16vw"
+								className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+							/>
+						) : (
+							<div className="grid h-full w-full place-items-center bg-zinc-900 border border-white/5">
+								<span className="font-saiyan text-5xl text-white/20 select-none">
+									{vol.volumeNumber}
+								</span>
+							</div>
+						)}
+						<div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent z-20" />
+						<span className="absolute top-2 left-2 z-30 text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
+							Couleur
+						</span>
+						<div className="absolute inset-x-0 bottom-0 p-4 z-30">
+							<p className="font-display font-bold text-white text-sm group-hover:text-fuchsia-300 transition-colors">
+								Tome {vol.volumeNumber}
+							</p>
+						</div>
+					</div>
+				</Link>
+			))}
+		</div>
+	);
+}
+
 /** Carte d'un chapitre lisible (onglet Scans). Met en avant les éditions couleur. */
 function MangaChapterCard({ chapter, idx }: { chapter: Chapter; idx: number }) {
-	const color = isColorChapter(chapter.title);
+	const color = estChapitreCouleur(chapter);
 	const prefetch = () => {
 		chapter.pages?.slice(0, 3).forEach((page) => {
 			const img = new window.Image();
@@ -143,7 +219,13 @@ function MangaChapterCard({ chapter, idx }: { chapter: Chapter; idx: number }) {
 	);
 }
 
-export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: MangaVolumeGridProps) {
+export function MangaVolumeGrid({
+	dbVolumes,
+	dbsVolumes,
+	readableChapters,
+	colorVolumeIds = [],
+	colorChapterCount = 0,
+}: MangaVolumeGridProps) {
 	const [tab, setTab] = useState<"dbs" | "db" | "scans" | "achievements">("dbs");
 	const [lastRead, setLastRead] = useState<LastReadChapter | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -189,9 +271,15 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 		return ch.title?.toLowerCase().includes(q) || ch.chapter_number.toString().includes(q);
 	});
 
-	const colorChapters = filteredChapters.filter((ch) => isColorChapter(ch.title));
-	const bwChapters = filteredChapters.filter((ch) => !isColorChapter(ch.title));
-	// L'onglet « Dragon Ball » présente l'œuvre originale : édition couleur (DB).
+	const colorChapters = filteredChapters.filter((ch) => estChapitreCouleur(ch));
+	const bwChapters = filteredChapters.filter((ch) => !estChapitreCouleur(ch));
+	// L'onglet « Dragon Ball » présente l'œuvre originale : édition couleur, que
+	// le chapitre soit rangé sous DB (chapitres couleur historiques) ou sous la
+	// série dédiée DBFC (les 520 chapitres du forum scan-db).
+	const colorIds = new Set(colorVolumeIds);
+	const colorVolumes = filteredDb.filter((vol) => colorIds.has(vol.id));
+	// Chapitres couleur encore rangés sous DB (édition historique, hors DBFC) :
+	// eux restent affichés à l'unité, ils ne sont qu'une poignée.
 	const dbColorChapters = colorChapters.filter((ch) => ch.series === "DB");
 
 	// Métriques de succès
@@ -381,26 +469,18 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					aria-labelledby="manga-tab-db"
 					className="space-y-12 reveal-up"
 				>
-					{/* Dragon Ball original — édition couleur (contenu propre, self-hosté). */}
-					{dbColorChapters.length > 0 && (
+					{/* Dragon Ball original — édition couleur, présentée par tome. */}
+					{(colorVolumes.length > 0 || dbColorChapters.length > 0) && (
 						<div className="space-y-5">
-							<div className="flex items-center gap-3">
-								<Palette className="w-5 h-5 text-fuchsia-400" aria-hidden="true" />
-								<h3 className="font-saiyan text-2xl text-white tracking-widest">Édition Couleur</h3>
-								<span className="text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
-									Full Color
-								</span>
-								<div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/40 to-transparent" />
-							</div>
-							<p className="text-xs text-white/50 max-w-2xl font-display">
-								L&apos;œuvre originale d&apos;Akira Toriyama en couleur, téléchargée et lue
-								directement sur DBFR.
-							</p>
-							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-								{dbColorChapters.map((chapter, idx) => (
-									<MangaChapterCard key={chapter.id} chapter={chapter} idx={idx} />
-								))}
-							</div>
+							<ColorSectionHeader count={colorChapterCount} />
+							{colorVolumes.length > 0 && <ColorVolumeGrid volumes={colorVolumes} />}
+							{dbColorChapters.length > 0 && (
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+									{dbColorChapters.map((chapter, idx) => (
+										<MangaChapterCard key={chapter.id} chapter={chapter} idx={idx} />
+									))}
+								</div>
+							)}
 						</div>
 					)}
 
@@ -461,26 +541,18 @@ export function MangaVolumeGrid({ dbVolumes, dbsVolumes, readableChapters }: Man
 					aria-labelledby="manga-tab-scans"
 					className="space-y-12 reveal-up"
 				>
-					{/* Édition couleur (Full Color) mise en avant. */}
-					{colorChapters.length > 0 && (
+					{/* Édition couleur (Full Color) mise en avant, par tome. */}
+					{(colorVolumes.length > 0 || colorChapters.length > 0) && (
 						<div className="space-y-5">
-							<div className="flex items-center gap-3">
-								<Palette className="w-5 h-5 text-fuchsia-400" aria-hidden="true" />
-								<h3 className="font-saiyan text-2xl text-white tracking-widest">Édition Couleur</h3>
-								<span className="text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
-									Full Color
-								</span>
-								<div className="h-px flex-1 bg-gradient-to-r from-fuchsia-500/40 to-transparent" />
-							</div>
-							<p className="text-xs text-white/50 max-w-2xl font-display">
-								Dragon Ball en couleur, téléchargé et lu directement sur DBFR — aucune redirection
-								vers un site externe.
-							</p>
-							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-								{colorChapters.map((chapter, idx) => (
-									<MangaChapterCard key={chapter.id} chapter={chapter} idx={idx} />
-								))}
-							</div>
+							<ColorSectionHeader count={colorChapterCount} />
+							{colorVolumes.length > 0 && <ColorVolumeGrid volumes={colorVolumes} />}
+							{colorChapters.length > 0 && (
+								<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+									{colorChapters.map((chapter, idx) => (
+										<MangaChapterCard key={chapter.id} chapter={chapter} idx={idx} />
+									))}
+								</div>
+							)}
 						</div>
 					)}
 

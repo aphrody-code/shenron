@@ -143,3 +143,9 @@ apps/bot/assets/dbz/officiel-2026-08-27/
 # …sauf sa documentation : c'est elle qui dit ce que contient ce lot, d'où il
 # vient et pourquoi rien n'a été rattaché en base.
 !apps/bot/assets/dbz/officiel-2026-08-27/README.md
+
+# Vidange des scans du forum Discord (images lourdes, hors dépôt)
+apps/bot/data/scans-forum/
+# Allowlist des fils du forum, régénérée par ingest-scans-couleur.ts (données, pas du code).
+apps/bot/data/scans-couleur-salons.json
+apps/bot/data/forum-anime/
