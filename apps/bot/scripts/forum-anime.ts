@@ -32,6 +32,7 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { SQL } from "bun";
+import { construireMenusEpisodes, MAX_EPISODES_PAR_MESSAGE, type MenuEpisodes } from "../src/lib/episode-menus";
 import { clientDiscord, enParallele, jetonDiscord } from "./lib/discord-rest";
 
 // ── Constantes de publication ───────────────────────────────────────────────
@@ -141,9 +142,63 @@ interface Embed {
 	readonly footer?: { readonly text: string };
 }
 
+/** Une rangée de composants Discord : un menu déroulant par rangée. */
+interface RangeeComposants {
+	readonly type: 1;
+	readonly components: readonly {
+		readonly type: 3;
+		readonly custom_id: string;
+		readonly placeholder: string;
+		readonly options: readonly { label: string; value: string; description?: string }[];
+	}[];
+}
+
 interface MessagePlan {
 	readonly content?: string;
 	readonly embeds?: readonly Embed[];
+	readonly components?: readonly RangeeComposants[];
+}
+
+/** Une rangée par menu — Discord n'accepte qu'un menu déroulant par rangée. */
+function rangees(menus: readonly MenuEpisodes[]): RangeeComposants[] {
+	return menus.map((menu) => ({
+		type: 1,
+		components: [
+			{ type: 3, custom_id: menu.customId, placeholder: menu.placeholder, options: [...menu.options] },
+		],
+	}));
+}
+
+/**
+ * Les menus d'un lot d'épisodes, répartis en messages.
+ *
+ * Un message porte cinq rangées, soit 125 épisodes : au-delà (Kai en compte
+ * 97, la saga Boo 72, mais un futur lot peut dépasser), on ouvre un message de
+ * plus plutôt que de perdre les épisodes en trop en silence.
+ */
+function messagesMenus(cle: string, episodes: readonly LigneEpisode[]): MessagePlan[] {
+	const messages: MessagePlan[] = [];
+	for (let i = 0; i < episodes.length; i += MAX_EPISODES_PAR_MESSAGE) {
+		const tranche = episodes.slice(i, i + MAX_EPISODES_PAR_MESSAGE);
+		const menus = construireMenusEpisodes(`${cle}-${i / MAX_EPISODES_PAR_MESSAGE}`, tranche.map((ep) => ({
+			id: ep.id,
+			numero: ep.number_in_series,
+			titre: ep.title,
+			// La ligne d'appoint dit ce qui décide du clic : les langues disponibles.
+			description: liensLecteurs(ep.players).length > 0
+				? languesPresentes([ep]).join(" · ")
+				: "aucun lecteur",
+		})));
+		if (menus.length === 0) continue;
+		messages.push({
+			content:
+				i === 0
+					? "**▶️ Choisis un épisode** — le bot te répond en privé avec son résumé et ses lecteurs."
+					: undefined,
+			components: rangees(menus),
+		});
+	}
+	return messages;
 }
 
 interface FilPlan {
@@ -408,7 +463,7 @@ function filSaga(saga: LigneSaga, episodes: readonly LigneEpisode[]): FilPlan {
 			.filter((t) => (TAGS_FORUM as readonly string[]).includes(t))
 			.slice(0, LIMITES.tagsParFil),
 		premier,
-		suite: messagesEpisodes(episodes, couleur),
+		suite: [...messagesEpisodes(episodes, couleur), ...messagesMenus(`saga-${saga.id}`, episodes)],
 	};
 }
 
@@ -441,7 +496,7 @@ function filSerie(serie: string, titre: string, episodes: readonly LigneEpisode[
 			.filter((t) => (TAGS_FORUM as readonly string[]).includes(t))
 			.slice(0, LIMITES.tagsParFil),
 		premier,
-		suite: messagesEpisodes(episodes, couleur),
+		suite: [...messagesEpisodes(episodes, couleur), ...messagesMenus(`serie-${serie}`, episodes)],
 	};
 }
 
@@ -918,7 +973,12 @@ async function doctor(): Promise<void> {
 				if ((embed.description?.length ?? 0) > LIMITES.descriptionEmbed)
 					griefs.push(`${ou} : description de ${embed.description?.length}`);
 			}
-			if (!message.content && (message.embeds?.length ?? 0) === 0) griefs.push(`${ou} : message vide`);
+			if ((message.components?.length ?? 0) > 5) griefs.push(`${ou} : ${message.components?.length} rangées`);
+			for (const rangee of message.components ?? [])
+				for (const composant of rangee.components)
+					if (composant.options.length > 25) griefs.push(`${ou} : menu de ${composant.options.length} options`);
+			if (!message.content && (message.embeds?.length ?? 0) === 0 && (message.components?.length ?? 0) === 0)
+				griefs.push(`${ou} : message vide`);
 		}
 	}
 

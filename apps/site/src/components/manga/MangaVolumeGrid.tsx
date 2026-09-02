@@ -277,7 +277,13 @@ export function MangaVolumeGrid({
 	// le chapitre soit rangé sous DB (chapitres couleur historiques) ou sous la
 	// série dédiée DBFC (les 520 chapitres du forum scan-db).
 	const colorIds = new Set(colorVolumeIds);
-	const colorVolumes = filteredDb.filter((vol) => colorIds.has(vol.id));
+	// Sur `dbVolumes`, pas sur `filteredDb` : ce dernier ne garde que les tomes
+	// ayant un chapitre N&B lisible (`scanVolumeIds`), or les 520 chapitres
+	// couleur sont exclus de `readableChapters` pour ne pas alourdir la page. Un
+	// tome disponible UNIQUEMENT en couleur disparaissait donc de la grille —
+	// mesuré en ligne le 2026-09-02 : l'entête « Édition Couleur » s'affichait
+	// au-dessus d'une grille vide. La recherche, elle, s'applique toujours.
+	const colorVolumes = dbVolumes.filter((vol) => colorIds.has(vol.id) && matchesQuery(vol));
 	// Chapitres couleur encore rangés sous DB (édition historique, hors DBFC) :
 	// eux restent affichés à l'unité, ils ne sont qu'une poignée.
 	const dbColorChapters = colorChapters.filter((ch) => ch.series === "DB");

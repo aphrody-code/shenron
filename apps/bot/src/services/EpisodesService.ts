@@ -88,7 +88,7 @@ export function urlBaseSite(): string | null {
 		const brut = readFileSync(chemin, "utf8");
 		const lignes = brut
 			.split("\n")
-			.filter((l) => /^DATABASE_URL=/.test(l))
+			.filter((l) => l.startsWith("DATABASE_URL="))
 			.map((l) => l.slice("DATABASE_URL=".length).trim().replace(/^["']|["']$/g, ""));
 		return lignes.at(-1) ?? null;
 	} catch {
