@@ -148,15 +148,16 @@ type EpisodeRow = {
 	title: string;
 	series: string;
 	numberInSeries: number | null;
-	players: Player[];
+	players: Player[] | null;
 };
-type MovieRow = { id: number; title: string; players: Player[] };
+type MovieRow = { id: number; title: string; players: Player[] | null };
 
 async function processEpisodes() {
 	const rows = (await sql`
 		SELECT id, title, series, number_in_series AS "numberInSeries", players
 		FROM bot.db_episodes
-		WHERE players IS NOT NULL AND jsonb_array_length(players) > 0
+		-- Les fiches VIDES sont justement celles qui ont tout perdu : les exclure
+		-- (ce que faisait « jsonb_array_length > 0 ») les condamnait à le rester.
 		ORDER BY players_checked_at ASC NULLS FIRST
 		LIMIT ${LIMIT}
 	`) as unknown as EpisodeRow[];
@@ -173,7 +174,6 @@ async function processMovies() {
 	const rows = (await sql`
 		SELECT id, title, players
 		FROM bot.db_movies
-		WHERE players IS NOT NULL AND jsonb_array_length(players) > 0
 		ORDER BY players_checked_at ASC NULLS FIRST
 		LIMIT ${LIMIT}
 	`) as unknown as MovieRow[];
@@ -189,17 +189,20 @@ async function processRow(
 	table: "db_episodes" | "db_movies",
 	id: number,
 	title: string,
-	players: Player[],
+	players: Player[] | null,
 	fetchFresh: () => Promise<Player[]>
 ) {
-	const deadFlags = await withConcurrency(players, 10, checkOne);
-	const alive = players.filter((_, i) => !deadFlags[i]);
-	const anyDead = alive.length !== players.length;
+	const actuels = players ?? [];
+	const deadFlags = await withConcurrency(actuels, 10, checkOne);
+	const alive = actuels.filter((_, i) => !deadFlags[i]);
+	// Une fiche sans aucun lecteur vivant est traitée comme une fiche à réparer,
+	// pas comme une fiche saine : c'est le seul moyen qu'elle en retrouve.
+	const anyDead = alive.length !== actuels.length || alive.length === 0;
 
-	let finalPlayers = players;
+	let finalPlayers = actuels;
 	if (anyDead) {
 		console.log(
-			`  ⚠ #${id} ${title.slice(0, 40)} : ${players.length - alive.length} mort(s) → re-scrape live...`
+			`  ⚠ #${id} ${title.slice(0, 40)} : ${actuels.length - alive.length} mort(s) sur ${actuels.length} → re-scrape live...`
 		);
 		const fresh = await fetchFresh();
 		let freshAlive: Player[] = [];
@@ -208,14 +211,14 @@ async function processRow(
 			freshAlive = fresh.filter((_, i) => !freshDead[i]);
 		}
 		finalPlayers = dedupe([...alive, ...freshAlive]);
-		const delta = finalPlayers.length - players.length;
+		const delta = finalPlayers.length - actuels.length;
 		console.log(
-			`    → ${players.length} → ${finalPlayers.length} lecteur(s) (${freshAlive.length} candidat(s) frais vivant(s), ${delta >= 0 ? "+" : ""}${delta})`
+			`    → ${actuels.length} → ${finalPlayers.length} lecteur(s) (${freshAlive.length} candidat(s) frais vivant(s), ${delta >= 0 ? "+" : ""}${delta})`
 		);
 	}
 
 	if (!DRY_RUN) {
-		const changed = finalPlayers.length !== players.length || anyDead;
+		const changed = finalPlayers.length !== actuels.length || anyDead;
 		if (changed) {
 			await sql`
 				UPDATE bot.${sql(table)}
