@@ -56,8 +56,10 @@ type Player = { name: string; provider: string; embedUrl: string; lang?: "vf" | 
 // comme streamhide/voe/streamtape.
 const BLANKET_DEAD = new Set(["streamhide", "voe", "streamtape", "filemoon"]);
 
-// Providers jamais vus en échec dans les échantillons → on ne les fetch même
-// pas (gain de temps), gardés tels quels.
+// Providers fiables : exemptés des SIGNATURES de contenu (heuristiques), mais
+// PAS du statut HTTP — 56 lecteurs vidmoly rendaient un 404 franc le
+// 2026-09-02, invisibles tant que « jamais vu en échec » valait « jamais
+// vérifié ».
 const TRUSTED = new Set(["vidmoly"]);
 
 // Signatures de page "contenu mort" observées en conditions réelles pour les
@@ -72,7 +74,7 @@ const DEAD_SIGNATURES = [
 	/this domain name may be for sale/i,
 ];
 
-async function isDead(url: string): Promise<boolean> {
+async function isDead(url: string, statutSeulement = false): Promise<boolean> {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
@@ -85,6 +87,7 @@ async function isDead(url: string): Promise<boolean> {
 			},
 		});
 		if (res.status === 404 || res.status === 410) return true;
+		if (statutSeulement) return false;
 		const body = await res.text();
 		return DEAD_SIGNATURES.some((re) => re.test(body.slice(0, 4000)));
 	} catch {
@@ -126,14 +129,12 @@ async function prunePlayers(
 			droppedBlanket++;
 			continue;
 		}
-		if (TRUSTED.has(p.provider)) {
-			kept.push(p);
-			continue;
-		}
 		toCheck.push(p);
 	}
 
-	const deadFlags = await withConcurrency(toCheck, 15, (p) => isDead(p.embedUrl));
+	const deadFlags = await withConcurrency(toCheck, 15, (p) =>
+		isDead(p.embedUrl, TRUSTED.has(p.provider))
+	);
 	let droppedChecked = 0;
 	toCheck.forEach((p, i) => {
 		if (deadFlags[i]) droppedChecked++;

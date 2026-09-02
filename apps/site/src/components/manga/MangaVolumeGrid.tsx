@@ -226,7 +226,12 @@ export function MangaVolumeGrid({
 	colorVolumeIds = [],
 	colorChapterCount = 0,
 }: MangaVolumeGridProps) {
-	const [tab, setTab] = useState<"dbs" | "db" | "scans" | "achievements">("dbs");
+	// Onglet d'ouverture = « Dragon Ball », l'œuvre originale — et le seul qui
+	// porte l'édition couleur. Mesuré en ligne le 2026-09-02 : l'onglet par
+	// défaut était « Super », donc les 520 chapitres couleur n'étaient ni dans le
+	// HTML rendu (invisibles pour les moteurs) ni à l'écran avant un clic, ce qui
+	// a fait conclure à tort que la grille couleur était vide.
+	const [tab, setTab] = useState<"dbs" | "db" | "scans" | "achievements">("db");
 	const [lastRead, setLastRead] = useState<LastReadChapter | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [readChapterIds, setReadChapterIds] = useState<number[]>([]);

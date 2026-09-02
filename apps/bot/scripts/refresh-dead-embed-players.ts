@@ -44,6 +44,7 @@ type Player = { name: string; provider: string; embedUrl: string; lang?: "vf" | 
 // Identique à prune-dead-embed-players.ts (dupliqué volontairement, cf. ce
 // fichier pour le détail des cas rencontrés en conditions réelles).
 const BLANKET_DEAD = new Set(["streamhide", "voe", "streamtape", "filemoon"]);
+// Providers fiables : exemptés des SIGNATURES de contenu, pas du statut HTTP.
 const TRUSTED = new Set(["vidmoly"]);
 const DEAD_SIGNATURES = [
 	/404 not found/i,
@@ -54,7 +55,11 @@ const DEAD_SIGNATURES = [
 	/this domain name may be for sale/i,
 ];
 
-async function isDead(url: string): Promise<boolean> {
+// `statutSeulement` : pour un provider de confiance, on ne juge QUE sur le
+// statut HTTP. Les signatures de contenu sont des heuristiques, et les faire
+// jouer sur un hébergeur fiable risquerait de purger un lecteur vivant ; un
+// 404 franc, lui, ne s'interprète pas.
+async function isDead(url: string, statutSeulement = false): Promise<boolean> {
 	const controller = new AbortController();
 	const timeout = setTimeout(() => controller.abort(), 8000);
 	try {
@@ -67,6 +72,7 @@ async function isDead(url: string): Promise<boolean> {
 			},
 		});
 		if (res.status === 404 || res.status === 410) return true;
+		if (statutSeulement) return false;
 		const body = await res.text();
 		return DEAD_SIGNATURES.some((re) => re.test(body.slice(0, 4000)));
 	} catch {
@@ -94,11 +100,15 @@ async function withConcurrency<T, R>(
 	return results;
 }
 
-/** true si `p` est mort (bloqué sandbox ou fetch-check négatif) ; jamais vrai pour TRUSTED. */
+/**
+ * true si `p` est mort. Un provider TRUSTED n'est PAS exempté du check : mesuré
+ * le 2026-09-02, 56 lecteurs vidmoly rendaient un 404 franc et personne ne les
+ * voyait, parce que « jamais vu en échec » avait été codé en « ne jamais
+ * vérifier ». Il est seulement exempté des signatures de contenu.
+ */
 async function checkOne(p: Player): Promise<boolean> {
-	if (TRUSTED.has(p.provider)) return false;
 	if (BLANKET_DEAD.has(p.provider)) return true;
-	return isDead(p.embedUrl);
+	return isDead(p.embedUrl, TRUSTED.has(p.provider));
 }
 
 /** Lance le re-scrape live côté bxc (sous-process, navigateur headless). */
