@@ -74,6 +74,18 @@ const LIMITES = {
 	titreEmbed: 256,
 	descriptionEmbed: 4096,
 	tagsParFil: 5,
+	/**
+	 * Taille sérialisée des `components` d'un même message, en octets.
+	 *
+	 * Ce plafond n'est PAS documenté et Discord ne le refuse pas proprement :
+	 * il répond **HTTP 500**, ce qui fait chercher une panne de son côté. Mesuré
+	 * par bissection le 2026-09-02 sur le fil Kai — 12 281 octets passent,
+	 * 12 403 échouent, et 100 options aux libellés courts (3 486 octets)
+	 * passent alors que 91 options aux libellés longs échouent : ce qui borne
+	 * est bien la TAILLE, pas le nombre d'options ni le nombre de rangées.
+	 * La frontière tombe sur 12 288 = 12 Kio ; on garde une marge.
+	 */
+	octetsComposants: 11_500,
 } as const;
 
 /** Priorité des hébergeurs : mesurée, pas supposée (cf. mémoire link-rot 2026-08). */
@@ -190,13 +202,28 @@ function messagesMenus(cle: string, episodes: readonly LigneEpisode[]): MessageP
 				: "aucun lecteur",
 		})));
 		if (menus.length === 0) continue;
-		messages.push({
-			content:
-				i === 0
-					? "**▶️ Choisis un épisode** — le bot te répond en privé avec son résumé et ses lecteurs."
-					: undefined,
-			components: rangees(menus),
-		});
+		// Cinq rangées tiennent dans un message, mais pas forcément dans le
+		// plafond d'octets : les titres d'épisodes japonais sont longs, et Kai
+		// dépassait à la quatrième rangée. On remplit donc au poids.
+		let lot: RangeeComposants[] = [];
+		const poser = () => {
+			if (lot.length === 0) return;
+			messages.push({
+				content:
+					messages.length === 0
+						? "**▶️ Choisis un épisode** — le bot te répond en privé avec son résumé et ses lecteurs."
+						: undefined,
+				components: lot,
+			});
+			lot = [];
+		};
+		for (const rangee of rangees(menus)) {
+			const candidat = [...lot, rangee];
+			if (lot.length > 0 && JSON.stringify(candidat).length > LIMITES.octetsComposants) poser();
+			lot.push(rangee);
+			if (lot.length >= 5) poser();
+		}
+		poser();
 	}
 	return messages;
 }
@@ -974,6 +1001,9 @@ async function doctor(): Promise<void> {
 					griefs.push(`${ou} : description de ${embed.description?.length}`);
 			}
 			if ((message.components?.length ?? 0) > 5) griefs.push(`${ou} : ${message.components?.length} rangées`);
+			const octets = message.components ? JSON.stringify(message.components).length : 0;
+			if (octets > LIMITES.octetsComposants)
+				griefs.push(`${ou} : ${octets} octets de composants (plafond ${LIMITES.octetsComposants}, Discord rend 500)`);
 			for (const rangee of message.components ?? [])
 				for (const composant of rangee.components)
 					if (composant.options.length > 25) griefs.push(`${ou} : menu de ${composant.options.length} options`);
