@@ -20,7 +20,9 @@
  *
  *   bun apps/bot/scripts/forum-anime.ts plan
  *   bun apps/bot/scripts/forum-anime.ts applique [--limite N] [--seulement <motif>] [--categorie <id>]
+ *   bun apps/bot/scripts/forum-anime.ts doctor
  *   bun apps/bot/scripts/forum-anime.ts rafraichit [--seulement <motif>]
+ *   bun apps/bot/scripts/forum-anime.ts annonce [--salon <id>] [--plafond 10]
  *   bun apps/bot/scripts/forum-anime.ts etat
  *
  * Jeton : `DISCORD_TOKEN_GRAND_PRETRE` (administrateur de la guilde).
@@ -46,6 +48,32 @@ const SITE = "https://dragonballfr.com";
 const ASSETS = "https://bot.dragonballfr.com";
 const RACINE = new URL("../data/forum-anime", import.meta.url).pathname;
 const CHEMIN_PLAN = join(RACINE, "plan.json");
+/**
+ * Le registre `clé du plan → identifiant de fil`.
+ *
+ * Retrouver un fil par son NOM casse au premier renommage — et un nom se fait
+ * renommer (parti pris repris de `@aphrody/wonderbot`, qui l'a vécu). Le nom
+ * reste un repli pour les fils créés avant ce registre.
+ */
+const CHEMIN_REGISTRE = join(RACINE, "fils.json");
+/** Le journal des épisodes déjà annoncés — des identifiants, pas une date. */
+const CHEMIN_VUS = join(RACINE, "annonces-vues.json");
+
+/**
+ * Les plafonds que Discord applique, et qu'on vérifie AVANT de publier : une
+ * requête refusée au milieu d'un fil laisse un fil à moitié rempli, qu'il faut
+ * ensuite réparer à la main.
+ */
+const LIMITES = {
+	nomFil: 100,
+	contenu: 2000,
+	embedsParMessage: 10,
+	/** Somme de tous les textes des embeds d'un même message. */
+	texteEmbeds: 6000,
+	titreEmbed: 256,
+	descriptionEmbed: 4096,
+	tagsParFil: 5,
+} as const;
 
 /** Priorité des hébergeurs : mesurée, pas supposée (cf. mémoire link-rot 2026-08). */
 const RANG_PROVIDER: Readonly<Record<string, number>> = { vidmoly: 0, yourupload: 1, mailru: 2 };
@@ -158,6 +186,8 @@ const TAGS_FORUM = [
 	"Films",
 	"OAV & TV specials",
 	"Chronologie",
+	"VF",
+	"VOSTFR",
 ] as const;
 
 function asset(chemin: string | null | undefined): string | undefined {
@@ -214,6 +244,53 @@ function detailLecteurs(players: readonly Lecteur[] | null | undefined): string 
 	return lignes.join("\n");
 }
 
+/**
+ * Les langues RÉELLEMENT présentes dans un lot d'épisodes.
+ *
+ * Poser « VF » sur un fil qui n'a que du VOSTFR ferait mentir le filtre du
+ * forum, qui est la première chose qu'un membre utilise.
+ */
+function languesPresentes(episodes: readonly { readonly players: readonly Lecteur[] | null }[]): string[] {
+	const vues = new Set<string>();
+	for (const ep of episodes)
+		for (const p of ep.players ?? []) {
+			if (!p.embedUrl) continue;
+			if (p.lang === "vf") vues.add("VF");
+			if (p.lang === "vostfr") vues.add("VOSTFR");
+		}
+	return ["VF", "VOSTFR"].filter((l) => vues.has(l));
+}
+
+/**
+ * Les manques d'un lot, dits au lecteur plutôt que tus.
+ *
+ * Un trou se cherche ENTRE le premier et le dernier épisode connus : une saison
+ * qui s'arrête à l'épisode 12 n'a pas de trou, elle est en cours de diffusion
+ * (règle reprise de `wonderbot/src/lacunes.ts`). Un épisode sans lecteur n'est
+ * pas un échec du forum : c'est une information.
+ */
+function lacunes(episodes: readonly LigneEpisode[]): string | null {
+	if (episodes.length === 0) return null;
+	const numeros = episodes.map((e) => Number(e.number_in_series)).filter(Number.isFinite);
+	const debut = Math.min(...numeros);
+	const fin = Math.max(...numeros);
+	const presents = new Set(numeros);
+	const trous: number[] = [];
+	for (let n = debut; n <= fin; n++) if (!presents.has(n)) trous.push(n);
+
+	const sansLecteur = episodes.filter((e) => liensLecteurs(e.players).length === 0).length;
+	const sansVf = episodes.filter(
+		(e) => (e.players ?? []).every((p) => p.lang !== "vf" || !p.embedUrl),
+	).length;
+
+	const dits = [
+		trous.length > 0 ? `${trous.length} épisode(s) absent(s) de la base : ${trous.slice(0, 12).join(", ")}` : null,
+		sansLecteur > 0 ? `${sansLecteur} sans aucun lecteur` : null,
+		sansVf > 0 && sansVf !== episodes.length ? `${sansVf} sans lecteur VF` : null,
+	].filter((x): x is string => x !== null);
+	return dits.length > 0 ? `⚠️ ${dits.join(" · ")}` : null;
+}
+
 /** Découpe une liste de lignes en messages qui tiennent dans les 2 000 signes. */
 function enMessages(lignes: readonly string[], entete?: string): MessagePlan[] {
 	const messages: MessagePlan[] = [];
@@ -266,11 +343,32 @@ function embedEpisode(ep: LigneEpisode, couleur: number): Embed {
 	};
 }
 
-/** Les embeds d'épisodes, par paquets de 10 (limite Discord par message). */
+/**
+ * Les embeds d'épisodes, groupés par message.
+ *
+ * Deux plafonds, pas un : Discord accepte dix embeds par message, MAIS aussi
+ * 6 000 signes pour l'ensemble de leurs textes. Ne compter que les embeds
+ * suffisait tant que les synopsis manquaient ; depuis qu'ils sont comblés, dix
+ * embeds pèsent jusqu'à 5 400 signes — la marge se refermait. On coupe donc sur
+ * celui des deux qui vient en premier.
+ */
 function messagesEpisodes(episodes: readonly LigneEpisode[], couleur: number): MessagePlan[] {
+	const BUDGET = 5000;
 	const messages: MessagePlan[] = [];
-	for (let i = 0; i < episodes.length; i += 10)
-		messages.push({ embeds: episodes.slice(i, i + 10).map((ep) => embedEpisode(ep, couleur)) });
+	let lot: Embed[] = [];
+	let signes = 0;
+	for (const ep of episodes) {
+		const embed = embedEpisode(ep, couleur);
+		const taille = (embed.title?.length ?? 0) + (embed.description?.length ?? 0) + (embed.footer?.text.length ?? 0);
+		if (lot.length > 0 && (lot.length >= LIMITES.embedsParMessage || signes + taille > BUDGET)) {
+			messages.push({ embeds: lot });
+			lot = [];
+			signes = 0;
+		}
+		lot.push(embed);
+		signes += taille;
+	}
+	if (lot.length > 0) messages.push({ embeds: lot });
 	return messages;
 }
 
@@ -287,6 +385,7 @@ function filSaga(saga: LigneSaga, episodes: readonly LigneEpisode[]): FilPlan {
 		episodes[0]?.air_date ? `**Diffusion** — ${date(episodes[0].air_date)} → ${date(episodes.at(-1)?.air_date)}` : null,
 		saga.name_ja ? `**Titre japonais** — ${saga.name_ja}` : null,
 		saga.slug ? `🔎 [Fiche de la saga](${SITE}/wiki/sagas/${saga.slug})` : null,
+		lacunes(episodes),
 	].filter((x): x is string => x !== null);
 
 	const premier: MessagePlan = {
@@ -305,7 +404,9 @@ function filSaga(saga: LigneSaga, episodes: readonly LigneEpisode[]): FilPlan {
 	return {
 		cle: `saga:${saga.id}`,
 		nom: coupe(`${tag} — ${saga.name}${episodes.length > 0 ? ` (ép. ${episodes[0]?.number_in_series}-${episodes.at(-1)?.number_in_series})` : ""}`, 95),
-		tags: [tag, "Saga"].filter((t) => (TAGS_FORUM as readonly string[]).includes(t)),
+		tags: [tag, ...languesPresentes(episodes)]
+			.filter((t) => (TAGS_FORUM as readonly string[]).includes(t))
+			.slice(0, LIMITES.tagsParFil),
 		premier,
 		suite: messagesEpisodes(episodes, couleur),
 	};
@@ -324,6 +425,7 @@ function filSerie(serie: string, titre: string, episodes: readonly LigneEpisode[
 						? `**Diffusion** — ${date(episodes[0].air_date)} → ${date(episodes.at(-1)?.air_date)}`
 						: null,
 					`🔎 [Tous les épisodes](${SITE}/wiki/episodes/serie/${serie.toLowerCase()})`,
+					lacunes(episodes),
 				]
 					.filter(Boolean)
 					.join("\n"),
@@ -335,7 +437,9 @@ function filSerie(serie: string, titre: string, episodes: readonly LigneEpisode[
 	return {
 		cle: `serie:${serie}`,
 		nom: coupe(titre, 95),
-		tags: [tag],
+		tags: [tag, ...languesPresentes(episodes)]
+			.filter((t) => (TAGS_FORUM as readonly string[]).includes(t))
+			.slice(0, LIMITES.tagsParFil),
 		premier,
 		suite: messagesEpisodes(episodes, couleur),
 	};
@@ -358,9 +462,9 @@ function filFilm(film: LigneFilm): FilPlan {
 	return {
 		cle: `film:${film.id}`,
 		nom: coupe(`${estOav ? "OAV" : "Film"}${anneeTexte ? ` ${anneeTexte}` : ""} — ${film.title}`, 95),
-		tags: [estOav ? "OAV & TV specials" : "Films", ere(film.series).tag].filter(
-			(t, i, l) => (TAGS_FORUM as readonly string[]).includes(t) && l.indexOf(t) === i,
-		),
+		tags: [estOav ? "OAV & TV specials" : "Films", ere(film.series).tag, ...languesPresentes([film])]
+			.filter((t, i, l) => (TAGS_FORUM as readonly string[]).includes(t) && l.indexOf(t) === i)
+			.slice(0, LIMITES.tagsParFil),
 		premier: {
 			embeds: [
 				{
@@ -552,11 +656,20 @@ async function forum(api: Appel, categorie: string): Promise<SalonForum> {
 	});
 }
 
+interface FilsPublies {
+	readonly parNom: ReadonlyMap<string, FilExistant>;
+	readonly parId: ReadonlyMap<string, FilExistant>;
+}
+
 /** Tous les fils du forum, actifs et archivés — la base de l'idempotence. */
-async function filsExistants(api: Appel, forumId: string): Promise<Map<string, FilExistant>> {
+async function filsExistants(api: Appel, forumId: string): Promise<FilsPublies> {
 	const parNom = new Map<string, FilExistant>();
+	const parId = new Map<string, FilExistant>();
 	const actifs = await api<{ threads: FilExistant[] }>(`/guilds/${GUILDE}/threads/active`);
-	for (const f of actifs.threads.filter((t) => t.parent_id === forumId)) parNom.set(f.name, f);
+	for (const f of actifs.threads.filter((t) => t.parent_id === forumId)) {
+		parNom.set(f.name, f);
+		parId.set(f.id, f);
+	}
 	let avant: string | undefined;
 	for (;;) {
 		const q = new URLSearchParams({ limit: "100" });
@@ -564,12 +677,46 @@ async function filsExistants(api: Appel, forumId: string): Promise<Map<string, F
 		const page = await api<{ threads: FilExistant[]; has_more: boolean }>(
 			`/channels/${forumId}/threads/archived/public?${q}`,
 		);
-		for (const f of page.threads) parNom.set(f.name, f);
+		for (const f of page.threads) {
+			parNom.set(f.name, f);
+			parId.set(f.id, f);
+		}
 		const ts = page.threads.at(-1)?.thread_metadata?.archive_timestamp;
 		if (!page.has_more || !ts) break;
 		avant = ts;
 	}
-	return parNom;
+	return { parNom, parId };
+}
+
+/**
+ * Le registre `clé → identifiant de fil`, et la résolution qui va avec.
+ *
+ * L'identifiant fait foi ; le nom n'est qu'un repli, pour les fils créés avant
+ * l'existence du registre. Un fil supprimé à la main sort du registre de
+ * lui-même : il n'est plus trouvé, donc il est recréé.
+ */
+async function lireRegistre(): Promise<Record<string, string>> {
+	const fichier = Bun.file(CHEMIN_REGISTRE);
+	if (!(await fichier.exists())) return {};
+	return (await fichier.json()) as Record<string, string>;
+}
+
+async function ecrireRegistre(registre: Record<string, string>): Promise<void> {
+	await mkdir(RACINE, { recursive: true });
+	await Bun.write(CHEMIN_REGISTRE, `${JSON.stringify(registre, null, "\t")}\n`);
+}
+
+function resoudreFil(
+	registre: Readonly<Record<string, string>>,
+	publies: FilsPublies,
+	fil: FilPlan,
+): FilExistant | undefined {
+	const parRegistre = registre[fil.cle];
+	if (parRegistre) {
+		const trouve = publies.parId.get(parRegistre);
+		if (trouve) return trouve;
+	}
+	return publies.parNom.get(fil.nom);
 }
 
 async function appliquer(): Promise<void> {
@@ -583,12 +730,15 @@ async function appliquer(): Promise<void> {
 	const idTag = new Map((salon.available_tags ?? []).map((t) => [t.name, t.id]));
 	console.log(`[forum] ${salon.name} (${salon.id}) · ${idTag.size} tags`);
 
-	const dejaLa = await filsExistants(api, salon.id);
+	const publies = await filsExistants(api, salon.id);
+	const registre = await lireRegistre();
 	const aFaire = plan.fils
 		.filter((f) => (motif ? f.nom.toLowerCase().includes(motif.toLowerCase()) : true))
-		.filter((f) => !dejaLa.has(f.nom))
+		.filter((f) => !resoudreFil(registre, publies, f))
 		.slice(0, Number.isFinite(limite) ? limite : undefined);
-	console.log(`[forum] ${plan.fils.length} fils au plan · ${dejaLa.size} déjà publiés · ${aFaire.length} à créer`);
+	console.log(
+		`[forum] ${plan.fils.length} fils au plan · ${publies.parNom.size} déjà publiés · ${aFaire.length} à créer`,
+	);
 
 	let faits = 0;
 	// Concurrence basse : Discord limite fortement la création de fils, et un
@@ -603,6 +753,7 @@ async function appliquer(): Promise<void> {
 				message: fil.premier,
 			},
 		});
+		registre[fil.cle] = cree.id;
 		// Les messages d'un fil sont ordonnés : ils partent en série, jamais en parallèle.
 		for (const message of fil.suite) {
 			await api(`/channels/${cree.id}/messages`, { methode: "POST", corps: message });
@@ -611,6 +762,7 @@ async function appliquer(): Promise<void> {
 		process.stdout.write(`\r[forum] fils publiés : ${faits}/${aFaire.length} — ${coupe(fil.nom, 40)}          `);
 	});
 	process.stdout.write("\n");
+	await ecrireRegistre(registre);
 	console.log(`[forum] terminé : ${faits} fils publiés dans ${salon.name}`);
 }
 
@@ -629,16 +781,20 @@ async function rafraichir(): Promise<void> {
 	const motif = option("seulement");
 
 	const salon = await forum(api, categorie);
-	const dejaLa = await filsExistants(api, salon.id);
+	const publies = await filsExistants(api, salon.id);
+	const registre = await lireRegistre();
 	const cibles = plan.fils
 		.filter((f) => (motif ? f.nom.toLowerCase().includes(motif.toLowerCase()) : true))
-		.map((f) => ({ plan: f, discord: dejaLa.get(f.nom) }))
+		.map((f) => ({ plan: f, discord: resoudreFil(registre, publies, f) }))
 		.filter((c): c is { plan: FilPlan; discord: FilExistant } => Boolean(c.discord));
 	console.log(`[forum] ${cibles.length} fils à rafraîchir`);
 
 	let edites = 0;
 	let ajoutes = 0;
 	await enParallele(cibles, 2, async ({ plan: fil, discord }) => {
+		registre[fil.cle] = discord.id;
+		// Le nom vient du plan : la base a pu gagner des épisodes, donc des bornes.
+		if (discord.name !== fil.nom) await api(`/channels/${discord.id}`, { methode: "PATCH", corps: { name: fil.nom } });
 		// Le message d'ouverture d'un post de forum porte l'identifiant du fil.
 		await api(`/channels/${discord.id}/messages/${discord.id}`, { methode: "PATCH", corps: fil.premier });
 		edites++;
@@ -661,6 +817,125 @@ async function rafraichir(): Promise<void> {
 		process.stdout.write(`\r[forum] ${edites} messages réécrits, ${ajoutes} ajoutés          `);
 	});
 	process.stdout.write("\n");
+	await ecrireRegistre(registre);
+}
+
+/**
+ * Vérifie le plan contre les plafonds de Discord — sans réseau, sans jeton.
+ *
+ * Une requête refusée en plein fil laisse un fil à moitié rempli, qu'il faut
+ * ensuite réparer à la main : la vérification a donc lieu AVANT la publication,
+ * et elle porte sur ce qui sera réellement envoyé (`wonderbot` appelle ça son
+ * `doctor`, pour la même raison).
+ */
+/**
+ * Annonce les nouveautés du catalogue dans un salon.
+ *
+ * ── LE PREMIER PASSAGE N'ANNONCE RIEN ──────────────────────────────────────
+ * À la première exécution, les 826 épisodes sont « nouveaux » : les publier
+ * déverserait huit cents messages pour dire ce que personne n'attendait. Le
+ * premier passage amorce donc le journal en silence, et la première annonce
+ * portera sur ce qui paraît APRÈS.
+ *
+ * ── LE JOURNAL PORTE DES IDENTIFIANTS, PAS UNE DATE ────────────────────────
+ * Un épisode ancien peut entrer tard dans la base (rattrapage, lecteur retrouvé,
+ * chronologie comblée) : un curseur temporel le manquerait. Le journal est
+ * élagué à chaque passage sur ce que le catalogue contient encore, il ne
+ * grossit donc pas indéfiniment. (Parti pris repris de `wonderbot/annonces.ts`.)
+ */
+async function annoncer(): Promise<void> {
+	const plan = await lirePlan();
+	const salonAnnonces = option("salon");
+	const PLAFOND = Number(option("plafond") ?? 10);
+
+	const identifiants = plan.fils.flatMap((f) =>
+		[f.premier, ...f.suite].flatMap((m) => (m.embeds ?? []).map((e) => e.url).filter((u): u is string => Boolean(u))),
+	);
+	const catalogue = new Set(identifiants);
+
+	const fichier = Bun.file(CHEMIN_VUS);
+	const amorcage = !(await fichier.exists());
+	const vus: ReadonlySet<string> = amorcage ? new Set() : new Set((await fichier.json()) as string[]);
+	const nouveaux = identifiants.filter((u, i, l) => !vus.has(u) && l.indexOf(u) === i);
+
+	// Élagage : le journal ne retient que ce que le catalogue porte encore.
+	await mkdir(RACINE, { recursive: true });
+	await Bun.write(CHEMIN_VUS, `${JSON.stringify([...catalogue], null, "\t")}\n`);
+
+	if (amorcage) {
+		console.log(`[annonce] amorçage : ${catalogue.size} entrées mémorisées, rien n'est publié.`);
+		return;
+	}
+	if (nouveaux.length === 0) {
+		console.log("[annonce] rien de neuf.");
+		return;
+	}
+	const aPublier = nouveaux.slice(0, PLAFOND);
+	const omis = nouveaux.length - aPublier.length;
+	console.log(`[annonce] ${nouveaux.length} nouveauté(s)${omis > 0 ? ` (${omis} au-delà du plafond)` : ""}`);
+	for (const url of aPublier) console.log(`  · ${url}`);
+	if (!salonAnnonces) {
+		console.log("[annonce] aucun --salon donné : rien n'a été publié.");
+		return;
+	}
+	const api = clientDiscord(await jetonDiscord("GRAND_PRETRE"));
+	const lignes = aPublier.map((u) => `• ${u}`).join("\n");
+	await api(`/channels/${salonAnnonces}/messages`, {
+		methode: "POST",
+		corps: {
+			content: `**Nouveautés du catalogue** — ${nouveaux.length} entrée(s)${omis > 0 ? ` (${omis} non listées)` : ""}\n${lignes}`,
+		},
+	});
+	console.log(`[annonce] publié dans ${salonAnnonces}.`);
+}
+
+async function doctor(): Promise<void> {
+	const plan = await lirePlan();
+	const griefs: string[] = [];
+
+	const tailleMessage = (m: MessagePlan): number =>
+		(m.embeds ?? []).reduce(
+			(t, e) => t + (e.title?.length ?? 0) + (e.description?.length ?? 0) + (e.footer?.text.length ?? 0),
+			0,
+		);
+
+	for (const fil of plan.fils) {
+		if (fil.nom.length > LIMITES.nomFil) griefs.push(`${fil.cle} : nom de ${fil.nom.length} signes`);
+		if (fil.tags.length > LIMITES.tagsParFil) griefs.push(`${fil.cle} : ${fil.tags.length} étiquettes`);
+		for (const tag of fil.tags)
+			if (!(TAGS_FORUM as readonly string[]).includes(tag)) griefs.push(`${fil.cle} : étiquette inconnue « ${tag} »`);
+
+		for (const [i, message] of [fil.premier, ...fil.suite].entries()) {
+			const ou = `${fil.cle} msg ${i}`;
+			if ((message.content?.length ?? 0) > LIMITES.contenu)
+				griefs.push(`${ou} : ${message.content?.length} signes de texte`);
+			if ((message.embeds?.length ?? 0) > LIMITES.embedsParMessage)
+				griefs.push(`${ou} : ${message.embeds?.length} embeds`);
+			if (tailleMessage(message) > LIMITES.texteEmbeds)
+				griefs.push(`${ou} : ${tailleMessage(message)} signes d'embeds (plafond ${LIMITES.texteEmbeds})`);
+			for (const embed of message.embeds ?? []) {
+				if ((embed.title?.length ?? 0) > LIMITES.titreEmbed) griefs.push(`${ou} : titre de ${embed.title?.length}`);
+				if ((embed.description?.length ?? 0) > LIMITES.descriptionEmbed)
+					griefs.push(`${ou} : description de ${embed.description?.length}`);
+			}
+			if (!message.content && (message.embeds?.length ?? 0) === 0) griefs.push(`${ou} : message vide`);
+		}
+	}
+
+	const pire = plan.fils
+		.flatMap((f) => [f.premier, ...f.suite].map((m) => ({ cle: f.cle, taille: tailleMessage(m) })))
+		.toSorted((a, b) => b.taille - a.taille)[0];
+	console.log(
+		`[doctor] ${plan.fils.length} fils · message d'embeds le plus lourd : ${pire?.taille ?? 0} signes ` +
+			`(${pire?.cle ?? "—"}), plafond ${LIMITES.texteEmbeds}`,
+	);
+	if (griefs.length === 0) {
+		console.log("[doctor] ✓ le plan tient dans les limites de Discord.");
+		return;
+	}
+	for (const grief of griefs.slice(0, 30)) console.log(`  ✗ ${grief}`);
+	console.log(`[doctor] ${griefs.length} problème(s).`);
+	process.exit(1);
 }
 
 async function etat(): Promise<void> {
@@ -683,9 +958,13 @@ async function etat(): Promise<void> {
 		console.log("Forum non créé sur Discord.");
 		return;
 	}
-	const dejaLa = await filsExistants(api, salon.id);
-	const manquants = plan.fils.filter((f) => !dejaLa.has(f.nom));
-	console.log(`Sur Discord : ${dejaLa.size} fils · manquants : ${manquants.length}`);
+	const publies = await filsExistants(api, salon.id);
+	const registre = await lireRegistre();
+	const manquants = plan.fils.filter((f) => !resoudreFil(registre, publies, f));
+	console.log(
+		`Sur Discord : ${publies.parNom.size} fils · manquants : ${manquants.length} · registre : ${Object.keys(registre).length} clés`,
+	);
+	for (const f of manquants.slice(0, 5)) console.log(`  manque : ${f.nom}`);
 }
 
 // ── Entrée ──────────────────────────────────────────────────────────────────
@@ -709,10 +988,16 @@ switch (args[0] ?? "plan") {
 	case "rafraichit":
 		await rafraichir();
 		break;
+	case "doctor":
+		await doctor();
+		break;
+	case "annonce":
+		await annoncer();
+		break;
 	case "etat":
 		await etat();
 		break;
 	default:
-		console.error(`Commande inconnue « ${args[0]} » — attendu : plan | applique | rafraichit | etat`);
+		console.error(`Commande inconnue « ${args[0]} » — attendu : plan | doctor | applique | rafraichit | annonce | etat`);
 		process.exit(1);
 }

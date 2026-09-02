@@ -27,6 +27,7 @@ import "./commands/utility/TikTok";
 import "./commands/vocal/Vocal";
 import "./commands/wiki/Ask";
 import "./commands/wiki/Databooks";
+import "./commands/wiki/ForumEpisodes";
 import "./commands/wiki/Wiki";
 import "./events/AuditLog";
 import "./events/AutonomousChat";
