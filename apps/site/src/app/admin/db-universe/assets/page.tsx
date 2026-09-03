@@ -106,7 +106,7 @@ export default async function AdminAssetsPage({
 					{ valeur: `${(stats.octets / 1024 / 1024).toFixed(0)} Mo`, etiquette: "poids total" },
 					{
 						valeur: String(stats.orphelins),
-						etiquette: "sans entité liée",
+						etiquette: "non rattachés",
 						lien: lien({}, { vue: "orphelins" }),
 					},
 					{
@@ -204,7 +204,7 @@ export default async function AdminAssetsPage({
 				<p className="text-sm text-dbz-orange/90 mb-4">
 					Vue restreinte :{" "}
 					{vue === "orphelins"
-						? "médias rattachés à aucune entité du wiki"
+						? "médias rattachés à aucune fiche. Ce n'est pas une anomalie en soi : des buckets entiers (toei, dbofficial, shueisha…) sont des bannières et des visuels d'actualité, qui n'illustrent aucune fiche par nature. Les buckets de fiches, eux, sont rattachés à 100 %"
 						: `médias dont le sha256 est partagé par au moins deux lignes — les ${total} lignes affichées forment ${stats.doublonsEnTrop} doublons réels, chaque groupe étant montré en entier`}
 					{" · "}
 					<Link href={lien(sp, { vue: "", page: "" })} className="underline hover:text-white">
