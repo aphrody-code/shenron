@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { EpisodeAdminEditor } from "./EpisodeAdminEditor";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
+import { OffreLegale } from "@/components/episodes/OffreLegale";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 import { KenBurns } from "@/components/KenBurns";
 import { AnimatedMedia } from "@/components/media/AnimatedMedia";
@@ -325,6 +326,13 @@ export default async function EpisodeDetailPage({ params }: { params: Promise<{ 
 						)}
 					</div>
 				)}
+
+				{/* === Offre légale (ADN…) ===
+				    Placée juste sous le player : c'est la même question (« où je
+				    regarde ? »), et le visiteur ne doit pas avoir à la chercher. */}
+				<div className="reveal-up mb-12">
+					<OffreLegale offres={ep.availability} />
+				</div>
 
 				{/* === Aperçu animé de scène (montage MP4 / frame marquante) ===
 				    Affiché en complément du player s'il existe un montage ou des

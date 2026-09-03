@@ -36,7 +36,7 @@ import {
 	botTools,
 	botTransformations,
 } from "@/db/bot-schema";
-import type { EpisodeFrame, WikiSource } from "@/db/bot-schema";
+import type { Availability, EpisodeFrame, WikiSource } from "@/db/bot-schema";
 import { eraOf, type TimelineItem } from "@/lib/chronology";
 import { orderPlayers } from "@/lib/players";
 import { CLE_VERIFIEE } from "@/lib/databooks-defauts";
@@ -79,6 +79,8 @@ export type Episode = {
 	mal_id: number | null;
 	subtitles: { lang: string; label: string; src: string }[] | null;
 	players: { name: string; provider: string; embedUrl: string; lang?: "vf" | "vostfr" }[] | null;
+	/** Offres légales relevées (ADN…) — lien sortant, distinct de `players`. */
+	availability: Availability[] | null;
 	stream_url: string | null;
 	// Scènes d'épisode : frames extraites + montage MP4 preview animé.
 	frames: EpisodeFrame[] | null;
@@ -117,6 +119,8 @@ export type Movie = {
 	video_url: string | null;
 	subtitles: { lang: string; label: string; src: string }[] | null;
 	players: { name: string; provider: string; embedUrl: string; lang?: "vf" | "vostfr" }[] | null;
+	/** Offres légales relevées (ADN…) — lien sortant, distinct de `players`. */
+	availability: Availability[] | null;
 	stream_url: string | null;
 };
 
@@ -343,6 +347,7 @@ function toEpisode(r: typeof botEpisodes.$inferSelect): Episode {
 		mal_id: r.malId,
 		subtitles: r.subtitles ?? null,
 		players: orderPlayers(r.players),
+		availability: normaliseOffres(r.availability),
 		stream_url: r.streamUrl ?? null,
 		frames: r.frames ?? null,
 		scene_preview: r.scenePreview ?? null,
@@ -368,8 +373,41 @@ function toMovie(r: typeof botMovies.$inferSelect): Movie {
 		video_url: r.videoUrl ?? null,
 		subtitles: r.subtitles ?? null,
 		players: orderPlayers(r.players),
+		availability: normaliseOffres(r.availability),
 		stream_url: r.streamUrl ?? null,
 	};
+}
+
+/**
+ * Défend le rendu contre une colonne `availability` mal formée.
+ *
+ * Le jsonb a déjà été un scalaire double-encodé par le passé (piège `sql.json`,
+ * cf. CLAUDE.md) : on ne suppose ni le tableau, ni la forme des entrées. Une
+ * offre sans URL ou indisponible est écartée — la page ne doit jamais afficher
+ * un bouton « Regarder » qui ne mène nulle part.
+ */
+function normaliseOffres(raw: unknown): Availability[] | null {
+	if (!Array.isArray(raw)) return null;
+	const out: Availability[] = [];
+	for (const item of raw) {
+		if (!item || typeof item !== "object") continue;
+		const o = item as Record<string, unknown>;
+		if (typeof o.url !== "string" || !o.url) continue;
+		if (o.available === false) continue;
+		const langs = Array.isArray(o.langs)
+			? (o.langs.filter((l) => l === "vf" || l === "vostfr") as ("vf" | "vostfr")[])
+			: [];
+		out.push({
+			provider: typeof o.provider === "string" ? o.provider : "",
+			label: typeof o.label === "string" && o.label ? o.label : "Officiel",
+			url: o.url,
+			embedUrl: typeof o.embedUrl === "string" ? o.embedUrl : null,
+			langs,
+			available: true,
+			checkedAt: typeof o.checkedAt === "number" ? o.checkedAt : 0,
+		});
+	}
+	return out.length ? out : null;
 }
 
 function normalizeGameMedia(raw: unknown): GameMedia[] {
