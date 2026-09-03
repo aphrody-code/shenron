@@ -7,6 +7,8 @@ import {
 	listAssetBuckets,
 	listAssetLicences,
 	listAssets,
+	TRIS_ASSETS,
+	type TriAssets,
 } from "@/lib/wiki-admin";
 import Link from "next/link";
 
@@ -54,6 +56,7 @@ type Params = {
 	q?: string;
 	licence?: string;
 	vue?: string;
+	tri?: string;
 	page?: string;
 };
 
@@ -80,9 +83,10 @@ export default async function AdminAssetsPage({
 		| "orphelins"
 		| "doublons";
 	const page = Math.max(1, Number(sp.page) || 1);
+	const tri = (TRIS_ASSETS.some((t) => t.cle === sp.tri) ? sp.tri : "naturel") as TriAssets;
 
 	const [{ lignes, total }, buckets, licences, stats] = await Promise.all([
-		listAssets({ bucket, recherche, licence, vue, page, parPage: PAR_PAGE }),
+		listAssets({ bucket, recherche, licence, vue, tri, page, parPage: PAR_PAGE }),
 		listAssetBuckets(),
 		listAssetLicences(),
 		getAssetStats(),
@@ -162,10 +166,22 @@ export default async function AdminAssetsPage({
 						</option>
 					))}
 				</select>
+				<select
+					name="tri"
+					defaultValue={tri}
+					className="bg-dbz-bg border-2 border-dbz-border px-3 py-2 text-white focus:border-dbz-orange outline-none"
+					aria-label="Ordre de tri"
+				>
+					{TRIS_ASSETS.map((t) => (
+						<option key={t.cle} value={t.cle}>
+							{t.libelle}
+						</option>
+					))}
+				</select>
 				<button type="submit" className="dbz-button-ghost !text-xs cible-44">
 					Filtrer
 				</button>
-				{recherche || licence || vue !== "tous" || bucket ? (
+				{recherche || licence || vue !== "tous" || bucket || tri !== "naturel" ? (
 					<Link href="/admin/db-universe/assets" className="text-xs text-white/50 hover:text-white cible-44">
 						Réinitialiser
 					</Link>
