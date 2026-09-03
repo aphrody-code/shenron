@@ -255,6 +255,49 @@ function extraitMetadonnees(html: string): Partial<Ouvrage>[] {
 	});
 }
 
+/**
+ * Seconde mise en page du site : une table où les couvertures occupent une rangée
+ * et leurs métadonnées la rangée SUIVANTE, colonne par colonne
+ * (« [1993-08-20] 04 <titre><br>ISBN 962-585-004-X »).
+ * Les deux éditions hongkongaises l'emploient ; les lire au seul motif
+ * `<div align=left>` y perdait 6 ISBN.
+ */
+function extraitMetadonneesTable(html: string): Map<string, Partial<Ouvrage>> {
+	const trouve = new Map<string, Partial<Ouvrage>>();
+	const rangees = [...html.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map((m) => m[1] as string);
+
+	for (let i = 0; i < rangees.length - 1; i++) {
+		const cellules = (r: string) =>
+			[...r.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((m) => m[1] as string);
+		const liens = cellules(rangees[i] as string);
+		const dids = liens.map((c) => /gain_1\.php\?did=([\d-]+)/.exec(c)?.[1] ?? null);
+		if (!dids.some(Boolean)) continue;
+
+		const metas = cellules(rangees[i + 1] as string);
+		if (metas.length !== liens.length) continue;
+
+		for (const [colonne, did] of dids.entries()) {
+			if (!did) continue;
+			const texte = lignesDe(metas[colonne] as string);
+			if (!texte.length) continue;
+
+			const entete = texte[0] ?? "";
+			const date = /\[(\d{4})-(\d{2})-(\d{2})\]/.exec(entete);
+			// Un « ISBN ? » signale une référence que le site lui-même ne connaît pas :
+			// l'absence se conserve telle quelle, on ne la comble pas.
+			const isbn = /ISBN\s+([\dX-]{8,})/i.exec(texte.join(" "))?.[1];
+			const titre = entete.replace(/^\[[\d-]+\]\s*/, "").trim();
+
+			const partiel: Partial<Ouvrage> = { lignes: texte };
+			if (titre) partiel.titre_tome = titre;
+			if (isbn) partiel.isbn = isbn;
+			if (date) partiel.premiere_edition = `${date[1]}/${date[2]}/${date[3]}`;
+			trouve.set(did, partiel);
+		}
+	}
+	return trouve;
+}
+
 /** La fiche d'un tome : ses planches, par leur nom de fichier (jamais leur contenu). */
 function extraitPlanches(html: string): { dossier?: string; fichiers: string[] } {
 	const fichiers: string[] = [];
@@ -290,6 +333,17 @@ async function relevePage(slug: string, titre: string): Promise<Collection> {
 			`  ${ouvrages.length} tomes${metas.length ? ` (${metas.length} blocs meta ignorés : appariement incertain)` : ""}`
 		);
 	}
+
+	// Complément, jamais écrasement : ce que la première passe a lu fait foi.
+	const parTable = extraitMetadonneesTable(html);
+	let complements = 0;
+	for (const ouvrage of ouvrages) {
+		const extra = parTable.get(ouvrage.did);
+		if (!extra || ouvrage.isbn) continue;
+		Object.assign(ouvrage, extra);
+		complements++;
+	}
+	if (complements) console.log(`  + ${complements} tome(s) complété(s) depuis la mise en page tableau`);
 
 	return { slug, titre, titre_site: titreDe(html), url, ouvrages };
 }
