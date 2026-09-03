@@ -149,3 +149,6 @@ apps/bot/data/scans-forum/
 # Allowlist des fils du forum, régénérée par ingest-scans-couleur.ts (données, pas du code).
 apps/bot/data/scans-couleur-salons.json
 apps/bot/data/forum-anime/
+
+# Relevés de catalogues externes (bibliographie, régénérable par scripts/crawl-*.ts)
+apps/bot/data/catalogues/

@@ -27,9 +27,9 @@ import {
 	ilike,
 	inArray,
 	isNull,
-	like,
 	max,
 	or,
+	sql,
 	type SQL,
 } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -811,10 +811,108 @@ export async function listSourcesWithLicense(): Promise<Row[]> {
 	return rows.map((r) => toSnakeRow(r as Row));
 }
 
-/** Assets filtrés par préfixe de chemin (bucket), id desc, snake_case. */
-export async function listAssetsByBucket(bucket: string, limit = 60): Promise<Row[]> {
+/**
+ * Galerie des médias — mesures et filtres.
+ *
+ * Les « buckets » sont le premier segment du chemin (`characters/…`, `toei/…`).
+ * Ils sont **mesurés en base**, jamais listés en dur : une liste écrite à la main
+ * rend invisibles les médias d'un bucket qu'on a oublié d'y inscrire — c'était le
+ * cas des 4 images uploadées sous `./assets/wiki/assets/`, introuvables dans
+ * l'interface alors qu'elles existaient en base.
+ */
+export type AssetBucket = { bucket: string; total: number };
+
+export async function listAssetBuckets(): Promise<AssetBucket[]> {
 	const t = botSchema.botAssets;
-	const rows = (await db
+	const segment = sql<string>`split_part(${t.path}, '/', 1)`;
+	const rows = await db
+		.select({ bucket: segment, total: count() })
+		.from(t)
+		.groupBy(segment)
+		.orderBy(desc(count()));
+	return rows.map((r) => ({ bucket: r.bucket, total: Number(r.total) }));
+}
+
+/** Ce que la galerie annonce en tête : de quoi juger l'état du corpus d'un coup d'œil. */
+export type AssetStats = {
+	total: number;
+	octets: number;
+	orphelins: number;
+	/** Fichiers EN TROP (un groupe de 2 en compte 1), à ne pas confondre avec les
+	 *  lignes que la vue « doublons » affiche : elle montre les groupes entiers. */
+	doublonsEnTrop: number;
+};
+
+export async function getAssetStats(): Promise<AssetStats> {
+	const t = botSchema.botAssets;
+	const [global] = await db
+		.select({
+			total: count(),
+			octets: sql<string>`coalesce(sum(${t.bytes}), 0)`,
+			orphelins: sql<string>`count(*) filter (where ${t.entityType} is null)`,
+		})
+		.from(t);
+	// Un sha256 partagé = le même fichier stocké deux fois : 64 groupes mesurés le 2026-09-03.
+	const [dup] = await db
+		.select({ enTrop: sql<string>`coalesce(sum(n) - count(*), 0)` })
+		.from(
+			db
+				.select({ n: count().as("n") })
+				.from(t)
+				.where(sql`${t.sha256} is not null`)
+				.groupBy(t.sha256)
+				.having(sql`count(*) > 1`)
+				.as("groupes")
+		);
+	return {
+		total: Number(global?.total ?? 0),
+		octets: Number(global?.octets ?? 0),
+		orphelins: Number(global?.orphelins ?? 0),
+		doublonsEnTrop: Number(dup?.enTrop ?? 0),
+	};
+}
+
+export type AssetFiltres = {
+	bucket?: string;
+	recherche?: string;
+	licence?: string;
+	/** `orphelins` : sans entité rattachée. `doublons` : sha256 partagé avec une autre ligne. */
+	vue?: "tous" | "orphelins" | "doublons";
+	page?: number;
+	parPage?: number;
+};
+
+/** Une page de la galerie + le total réel correspondant aux filtres (pour la pagination). */
+export async function listAssets(
+	filtres: AssetFiltres = {}
+): Promise<{ lignes: Row[]; total: number }> {
+	const t = botSchema.botAssets;
+	const parPage = Math.min(200, Math.max(1, filtres.parPage ?? 60));
+	const page = Math.max(1, filtres.page ?? 1);
+
+	const conditions: SQL[] = [];
+	if (filtres.bucket) conditions.push(sql`split_part(${t.path}, '/', 1) = ${filtres.bucket}`);
+	if (filtres.licence) conditions.push(eq(t.licenseKey, filtres.licence));
+	if (filtres.vue === "orphelins") conditions.push(isNull(t.entityType));
+	if (filtres.vue === "doublons")
+		conditions.push(
+			sql`${t.sha256} is not null and ${t.sha256} in (
+				select sha256 from bot.db_assets where sha256 is not null group by 1 having count(*) > 1
+			)`
+		);
+	if (filtres.recherche?.trim()) {
+		const motif = `%${filtres.recherche.trim()}%`;
+		const ou = or(
+			ilike(t.path, motif),
+			ilike(t.role, motif),
+			ilike(t.attribution, motif),
+			ilike(t.sourceId, motif)
+		);
+		if (ou) conditions.push(ou);
+	}
+	const filtre = conditions.length ? and(...conditions) : undefined;
+
+	const lignes = (await db
 		.select({
 			id: t.id,
 			path: t.path,
@@ -822,10 +920,32 @@ export async function listAssetsByBucket(bucket: string, limit = 60): Promise<Ro
 			attribution: t.attribution,
 			licenseKey: t.licenseKey,
 			role: t.role,
+			bytes: t.bytes,
+			mimeType: t.mimeType,
+			entityType: t.entityType,
+			entityId: t.entityId,
+			sha256: t.sha256,
 		})
 		.from(t)
-		.where(like(t.path, `${bucket}%`))
+		.where(filtre)
 		.orderBy(desc(t.id))
-		.limit(limit)) as Row[];
-	return rows.map(toSnakeRow);
+		.limit(parPage)
+		.offset((page - 1) * parPage)) as Row[];
+
+	const [{ total } = { total: 0 }] = await db.select({ total: count() }).from(t).where(filtre);
+
+	return { lignes: lignes.map(toSnakeRow), total: Number(total) };
+}
+
+/** Les licences réellement présentes, pour ne proposer que des filtres qui rendent quelque chose. */
+export async function listAssetLicences(): Promise<{ licence: string; total: number }[]> {
+	const t = botSchema.botAssets;
+	const rows = await db
+		.select({ licence: t.licenseKey, total: count() })
+		.from(t)
+		.groupBy(t.licenseKey)
+		.orderBy(desc(count()));
+	return rows
+		.filter((r) => r.licence)
+		.map((r) => ({ licence: r.licence as string, total: Number(r.total) }));
 }
