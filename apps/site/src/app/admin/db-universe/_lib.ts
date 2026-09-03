@@ -30,6 +30,23 @@ export async function adminFetch<T>(path: string): Promise<T | null> {
 	}
 }
 
+/**
+ * URL publique d'un média de `bot.db_assets`.
+ *
+ * Deux racines cohabitent derrière ces chemins, et les confondre rend un 404 sur un
+ * fichier pourtant présent : le miroir DB vit dans `public/db/` du bot (servi par
+ * `/db/`), tandis que les médias uploadés depuis le studio sont enregistrés
+ * « ./assets/wiki/… » et vivent dans `apps/site/public/wiki/` (servi par `/assets/`).
+ * Mesuré le 2026-09-03 : 4 uploads étaient invisibles dans la galerie pour ce seul
+ * motif — le chemin en base n'est jamais un chemin de disque.
+ *
+ * L'encodage ne touche QUE les caractères non-ASCII (36 fichiers portent un nom
+ * japonais) : ré-encoder tout casserait les chemins déjà percent-encodés en base,
+ * où « %20 » deviendrait « %2520 ».
+ */
 export function assetCdnUrl(path: string): string {
-	return `${API}/db/${path.replace(/^\//, "")}`;
+	const propre = path.replace(/^\.?\//, "");
+	const encode = (s: string) => s.replace(/[^\x00-\x7F]/g, (c) => encodeURIComponent(c));
+	if (propre.startsWith("assets/wiki/")) return `${API}/${encode(propre)}`;
+	return `${API}/db/${encode(propre)}`;
 }
