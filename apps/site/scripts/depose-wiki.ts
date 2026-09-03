@@ -43,7 +43,7 @@ const flag = (nom: string) => args.includes(`--${nom}`);
 
 const TABLES = new Set([
 	"db_characters", "db_planets", "db_techniques", "db_transformations",
-	"db_races", "db_sagas", "db_episodes", "db_movies", "db_games", "db_databooks",
+	"db_races", "db_sagas", "db_arcs", "db_episodes", "db_movies", "db_games", "db_databooks",
 ]);
 const TYPES: Record<string, string> = {
 	character: "db_characters", planet: "db_planets", technique: "db_techniques",
