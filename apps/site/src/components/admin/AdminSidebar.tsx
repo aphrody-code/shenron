@@ -200,13 +200,6 @@ const ADMIN_LINKS: AdminLink[] = [
 		section: "systeme",
 	},
 	{
-		href: "/admin/commands",
-		label: "Commandes Discord",
-		description: "Liste et gestion des commandes",
-		icon: <Terminal className="h-4 w-4" />,
-		section: "systeme",
-	},
-	{
 		href: "/admin/triggers",
 		label: "Déclencheurs",
 		description: "Réponses automatiques aux messages",
@@ -466,10 +459,15 @@ const ADMIN_LINKS: AdminLink[] = [
 		icon: <Crown className="h-4 w-4" />,
 		section: "moderation",
 	},
+	// Une seule entrée pour une seule page. « Permissions commandes » (Modération)
+	// et « Commandes Discord » (Système) menaient à deux écrans distincts qui
+	// pilotaient la MÊME table `command_permissions` ; le premier était cassé.
+	// Le libellé de Modération est conservé — c'est celui qu'on cherche — et il
+	// pointe désormais la page qui fonctionne.
 	{
-		href: "/admin/command-perms",
+		href: "/admin/commands",
 		label: "Permissions commandes",
-		description: "Qui peut utiliser quoi",
+		description: "Qui peut utiliser quelle commande du bot",
 		icon: <Key className="h-4 w-4" />,
 		section: "moderation",
 	},
