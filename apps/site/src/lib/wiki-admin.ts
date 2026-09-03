@@ -922,6 +922,8 @@ export async function listAssets(
 			role: t.role,
 			bytes: t.bytes,
 			mimeType: t.mimeType,
+			width: t.width,
+			height: t.height,
 			entityType: t.entityType,
 			entityId: t.entityId,
 			sha256: t.sha256,
@@ -948,4 +950,44 @@ export async function listAssetLicences(): Promise<{ licence: string; total: num
 	return rows
 		.filter((r) => r.licence)
 		.map((r) => ({ licence: r.licence as string, total: Number(r.total) }));
+}
+
+/**
+ * Recherche d'entités pour RATTACHER un média à une fiche depuis la galerie.
+ *
+ * On ne charge jamais la liste entière côté client : `db_characters` compte 1 307
+ * lignes, et embarquer leurs noms dans la charge RSC de la page d'admin coûterait
+ * plus cher que la galerie elle-même (le wiki a déjà payé cette leçon avec les
+ * 12 362 chemins de `/wiki/manga`). On interroge à la frappe, 20 résultats maxi.
+ */
+const ENTITES_RATTACHABLES: Record<string, { table: string; colonne: "name" | "title" }> = {
+	character: { table: "db_characters", colonne: "name" },
+	planet: { table: "db_planets", colonne: "name" },
+	saga: { table: "db_sagas", colonne: "name" },
+	transformation: { table: "db_transformations", colonne: "name" },
+	technique: { table: "db_techniques", colonne: "name" },
+	race: { table: "db_races", colonne: "name" },
+	movie: { table: "db_movies", colonne: "title" },
+	episode: { table: "db_episodes", colonne: "title" },
+	game: { table: "db_games", colonne: "title" },
+	databook: { table: "db_databooks", colonne: "title" },
+};
+
+export const TYPES_RATTACHABLES = Object.keys(ENTITES_RATTACHABLES);
+
+export async function chercheEntites(
+	type: string,
+	recherche: string
+): Promise<{ id: number; nom: string }[]> {
+	const spec = ENTITES_RATTACHABLES[type];
+	if (!spec) return [];
+	const motif = `%${recherche.trim()}%`;
+	const rows = (await db.execute(
+		sql`select id, ${sql.raw(spec.colonne)} as nom from bot.${sql.raw(spec.table)}
+		    where ${sql.raw(spec.colonne)} ilike ${motif} and visible
+		    order by length(${sql.raw(spec.colonne)}) asc, id asc limit 20`
+	)) as unknown as { id: number | string; nom: string }[];
+	// postgres-js rend les bigint en CHAÎNES : sans Number(), l'id repart en texte
+	// dans le PATCH et la colonne entity_id (bigint) refuse l'écriture.
+	return rows.map((r) => ({ id: Number(r.id), nom: r.nom }));
 }

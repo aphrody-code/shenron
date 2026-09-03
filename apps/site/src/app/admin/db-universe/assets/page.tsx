@@ -1,13 +1,13 @@
 import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
-import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
+import { DbAddButton } from "@/components/admin/DbCrud";
+import { GalerieMedias } from "@/components/admin/GalerieMedias";
 import {
 	getAssetStats,
 	listAssetBuckets,
 	listAssetLicences,
 	listAssets,
 } from "@/lib/wiki-admin";
-import Image from "next/image";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -42,17 +42,12 @@ type Asset = {
 	role: string | null;
 	bytes: number | null;
 	mime_type: string | null;
+	width: number | null;
+	height: number | null;
 	entity_type: string | null;
 	entity_id: number | null;
 	sha256: string | null;
 };
-
-const poids = (octets: number | null) =>
-	octets == null
-		? null
-		: octets >= 1024 * 1024
-			? `${(octets / 1024 / 1024).toFixed(1)} Mo`
-			: `${Math.round(octets / 1024)} Ko`;
 
 type Params = {
 	bucket?: string;
@@ -224,67 +219,22 @@ export default async function AdminAssetsPage({
 					<p className="text-white/50 text-sm">Aucun fichier ne correspond à ces filtres.</p>
 				</div>
 			) : (
-				<div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-					{assets.map((a) => (
-						<figure key={a.id} className="group flex flex-col">
-							<a
-								href={assetCdnUrl(a.path)}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="block"
-								title={a.path}
-							>
-								{/* `contain` et non `cover` : une galerie d'archive ne rogne pas ses pièces. */}
-								<div className="relative aspect-square bg-dbz-bg border-2 border-dbz-border group-hover:border-dbz-orange transition-colors overflow-hidden">
-									<Image
-										src={assetCdnUrl(a.path)}
-										alt={a.role ?? a.path}
-										fill
-										sizes="(max-width: 768px) 50vw, 16vw"
-										className="object-contain"
-										unoptimized
-									/>
-								</div>
-							</a>
-							<figcaption className="mt-1.5 space-y-1">
-								<div className="flex items-center justify-between gap-1">
-									<span className="text-[10px] text-white/55 font-mono truncate" title={a.path}>
-										#{a.id}
-										{a.role ? ` · ${a.role}` : ""}
-									</span>
-									<DbRowActions table={TABLE} id={a.id} />
-								</div>
-								<div className="flex flex-wrap gap-1">
-									{a.entity_type ? (
-										<span className="text-[9px] px-1 py-0.5 border border-dbz-blue-light/40 text-white/60">
-											{a.entity_type} #{a.entity_id}
-										</span>
-									) : (
-										<span
-											className="text-[9px] px-1 py-0.5 border border-dbz-orange/40 text-dbz-orange/80"
-											title="Ce média n'est rattaché à aucune fiche"
-										>
-											orphelin
-										</span>
-									)}
-									{poids(a.bytes) ? (
-										<span className="text-[9px] px-1 py-0.5 border border-white/15 text-white/45">
-											{poids(a.bytes)}
-										</span>
-									) : null}
-									{a.license_key ? (
-										<span
-											className="text-[9px] px-1 py-0.5 border border-white/15 text-white/45 truncate max-w-full"
-											title={a.attribution ?? undefined}
-										>
-											{a.license_key}
-										</span>
-									) : null}
-								</div>
-							</figcaption>
-						</figure>
-					))}
-				</div>
+				<GalerieMedias
+					bucket={bucket}
+					medias={assets.map((a) => ({
+						id: a.id,
+						chemin: a.path,
+						url: assetCdnUrl(a.path),
+						role: a.role,
+						licence: a.license_key,
+						attribution: a.attribution,
+						octets: a.bytes,
+						largeur: a.width,
+						hauteur: a.height,
+						typeEntite: a.entity_type,
+						idEntite: a.entity_id,
+					}))}
+				/>
 			)}
 
 			{pages > 1 ? (
