@@ -33,10 +33,16 @@ const hasBin = await Bun.file(BXC_BIN).exists();
 
 const SITE_ROOT = join(import.meta.dir, "..");
 const PUBLIC = join(SITE_ROOT, "public");
-const OUT_AUDIO = join(PUBLIC, "sfx", "bxc");
-const OUT_IMG = join(PUBLIC, "dbz", "bxc");
-const OUT_SPRITES = join(PUBLIC, "sprites", "bxc");
-const OUT_MIRROR = join(PUBLIC, "bxc-mirror");
+// La moisson n'écrit plus dans `public/` : elle y avait déposé 411 fichiers
+// et 86 Mo — dont dix-neuf SVG appartenant à des tiers (wordmarks Wikipédia,
+// icône Toei) — que le site rediffusait sur son propre domaine sans qu'aucune
+// ligne de code ni de base n'y renvoie. Le dépôt reste hors du dossier servi ;
+// ce qui doit être publié passe par une étape de tri explicite.
+const MOISSON = join(process.env.HOME ?? SITE_ROOT, "shenron-media-masters", "bxc-harvest");
+const OUT_AUDIO = join(MOISSON, "audio");
+const OUT_IMG = join(MOISSON, "images");
+const OUT_SPRITES = join(MOISSON, "sprites");
+const OUT_MIRROR = join(MOISSON, "miroir");
 // Inventaire et journal hors de `public/` : ils nommaient les sources
 // moissonnées et les chemins internes, en lecture libre sur le domaine.
 const INVENTAIRES = join(SITE_ROOT, "scripts", "inventaires");
@@ -749,7 +755,7 @@ async function downloadOne(hit: AssetHit): Promise<DlRec> {
 	const dest = destPath(hit.url, kind);
 	const rec: DlRec = {
 		url: hit.url,
-		path: dest.replace(PUBLIC + "/", "public/"),
+		path: dest.replace(MOISSON + "/", ""),
 		kind,
 		fromPage: hit.fromPage,
 		via: hit.via,
@@ -813,7 +819,7 @@ async function harvestSource(src: (typeof SOURCES)[0]): Promise<AssetHit[]> {
 			log(`  [scrape] ${mdHits.length} media URLs from markdown (${scrape.stdout.length} chars)`);
 			hits.push(...mdHits);
 			// persist markdown for audit
-			const mdDir = join(PUBLIC, "bxc-raw", src.id);
+			const mdDir = join(MOISSON, "brut", src.id);
 			mkdirSync(mdDir, { recursive: true });
 			writeFileSync(join(mdDir, "page.md"), scrape.stdout);
 		} else {
@@ -827,7 +833,7 @@ async function harvestSource(src: (typeof SOURCES)[0]): Promise<AssetHit[]> {
 			const rHits = extractFromReconJson(recon.stdout, src.url);
 			log(`  [recon] ${rHits.length} assets`);
 			hits.push(...rHits);
-			const mdDir = join(PUBLIC, "bxc-raw", src.id);
+			const mdDir = join(MOISSON, "brut", src.id);
 			mkdirSync(mdDir, { recursive: true });
 			writeFileSync(join(mdDir, "recon.json"), recon.stdout.slice(recon.stdout.indexOf("{")));
 		} else {
@@ -1011,7 +1017,7 @@ async function main() {
 		const name = basename(r.path);
 		const dest = join(PUBLIC, "sfx", name);
 		if (!existsSync(dest)) {
-			const src = join(PUBLIC, r.path.replace(/^public\//, ""));
+			const src = join(MOISSON, r.path);
 			if (existsSync(src)) {
 				writeFileSync(dest, readFileSync(src));
 				log(`  → promoted sfx/${name}`);
