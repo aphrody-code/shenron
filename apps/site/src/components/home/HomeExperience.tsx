@@ -777,8 +777,19 @@ export function HomeExperience({
 			{/* Le nuage vole au-dessus de tout le deck, pas d'une seule section : il
 			    suit le défilement et reste cliquable d'un bout à l'autre. */}
 			<KintoUnVolant />
-			{/* Navigation latérale — points HUD scouter */}
+			{/* Navigation latérale — points HUD scouter.
+			    Le compteur de panneaux vit DANS le rail, en tête. Posé en `fixed` à
+			    `calc(50% - 9.5rem)`, il supposait un rail de CINQ points : un point
+			    mesure 45,4 px de pas, donc dès SIX sections — et l'ordre des
+			    panneaux s'édite depuis /admin/home — la demi-hauteur du rail
+			    (45,4 n ÷ 2) dépasse les 124 px qui le séparaient du centre, et le
+			    compteur retombait sur le premier point. Dans le flux, il le suit. */}
 			<nav className="home-dots" aria-label="Sections de la page">
+				<span className="home-counter" aria-hidden>
+					<span className="home-counter__cur">{pad(active + 1)}</span>
+					<span className="home-counter__sep">/</span>
+					<span>{pad(sections.length)}</span>
+				</span>
 				{sections.map((s, i) => (
 					<button
 						key={s.id}
@@ -793,13 +804,6 @@ export function HomeExperience({
 					</button>
 				))}
 			</nav>
-
-			{/* Compteur de panneaux */}
-			<div className="home-counter" aria-hidden>
-				<span className="home-counter__cur">{pad(active + 1)}</span>
-				<span className="home-counter__sep">/</span>
-				<span>{pad(sections.length)}</span>
-			</div>
 
 			{/* ── HÉRO ─────────────────────────────────────────────────────────── */}
 			<section ref={setRef(0)} id="hero" className="home-section home-hero" aria-label="Accueil">

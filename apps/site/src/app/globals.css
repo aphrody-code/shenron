@@ -2111,6 +2111,13 @@ main:focus {
 	   (or pour les origines, rouge saiyan, vert namek, magenta majin…) — c'est
 	   un choix éditorial assumé, pas une incohérence, et il est préservé. */
 	--accent: var(--color-dbz-orange, #e78220);
+	/* Gouttière RÉSERVÉE au rail de navigation : son retrait au bord
+	   (`clamp(0.75rem, 2vw, 2rem)`) plus sa largeur, compteur compris (51 px
+	   mesurés), plus un blanc. Les panneaux vont jusqu'à `78rem` de large et
+	   remplissaient toute la colonne : mesuré à 1024 px, la colonne s'arrêtait à
+	   952 px et le rail commençait à 953 — un pixel. Le rail ne se dispute plus
+	   la place, la section la lui laisse. */
+	--home-rail: calc(clamp(0.75rem, 2vw, 2rem) + 4.25rem);
 }
 
 .home-section {
@@ -2126,6 +2133,7 @@ main:focus {
 	overflow: hidden;
 	isolation: isolate;
 	padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 7vw, 8rem) clamp(3rem, 7vh, 5rem);
+	padding-right: max(clamp(1.25rem, 7vw, 8rem), var(--home-rail));
 }
 
 /* ── Fond de scène (couches) ─────────────────────────────────────────────── */
@@ -2178,6 +2186,13 @@ main:focus {
 	transform: translateY(-50%);
 	display: flex;
 	flex-direction: column;
+	/* Calés à DROITE, pas étirés. En `stretch` (le défaut), chaque point prenait
+	   la largeur du plus long libellé — 143 px mesurés à toutes les largeurs,
+	   libellés pourtant invisibles (`opacity: 0`). Le rail happait donc les clics
+	   sur une bande de 143 px de large au milieu de la page. En `flex-end`,
+	   chaque point ne capte plus que sa propre boîte et les pastilles restent
+	   alignées (le `row-reverse` les tient contre le bord droit). */
+	align-items: flex-end;
 	/* Réduit de 0.65rem : les points font désormais 44 px de haut (cible
 	   tactile), le rail garde donc sa hauteur d'ensemble. */
 	gap: 0.1rem;
@@ -2187,6 +2202,8 @@ main:focus {
 .home-dot {
 	display: flex;
 	align-items: center;
+	/* Repère du libellé, qui est sorti du flux (cf. `.home-dot__label`). */
+	position: relative;
 	gap: 0.6rem;
 	background: none;
 	border: none;
@@ -2197,6 +2214,11 @@ main:focus {
 	   vertical qui porte la cible, et `gap` sur `.home-dots` est réduit d'autant
 	   pour que le rail garde sa hauteur. */
 	min-height: 44px;
+	/* … et 44 px de LARGE. Le libellé sorti du flux, il ne restait que la
+	   pastille de 26,4 px : la hauteur tactile était bonne, la largeur non.
+	   `row-reverse` garde la pastille contre le bord droit, le rembourrage
+	   s'ajoute à sa gauche. */
+	min-width: 44px;
 	padding: 0.15rem 0;
 	flex-direction: row-reverse;
 }
@@ -2212,7 +2234,22 @@ main:focus {
 	transition: all 0.35s ease;
 	font-family: var(--font-jp), var(--font-sans);
 }
+/* Le libellé sort du FLUX et ne prend plus le pointeur. Il n'est visible qu'au
+   survol ou sur le point actif, mais il occupait la boîte du bouton en
+   permanence : le rail mesurait 143 px de large au lieu de 26, et un texte à
+   `opacity: 0` capte les clics tout comme un texte visible. Mesuré, page
+   défilée sur le panneau « Best of » à 1024 × 768 : le lien « Film · 1986 — La
+   Légende de Sangoku » était recouvert aux NEUF points de test par
+   `span.home-dot__label «Le panthéon»`, et la vignette voisine par le kanji.
+   La colonne des panneaux va jusqu'à 952 px à cette largeur quand le rail
+   commençait à 860 — 92 px de contenu happés, 79 à 1280 px, 71 à 1440.
+   En `absolute` + `pointer-events: none`, le rendu ne bouge pas (le libellé se
+   posait déjà à gauche de la pastille, `row-reverse`) et la boîte cliquable du
+   point retombe sur la pastille seule. */
 .home-dot__label {
+	position: absolute;
+	right: calc(100% + 0.6rem);
+	pointer-events: none;
 	font-size: 0.62rem;
 	text-transform: uppercase;
 	letter-spacing: 0.22em;
@@ -2247,20 +2284,26 @@ main:focus {
      à 6 % de la largeur et occupe la moitié de la hauteur du héros.
 
    La colonne de droite est la seule bande verticale que rien d'autre n'occupe —
-   c'est déjà là que vit la navigation de la page. */
+   c'est déjà là que vit la navigation de la page.
+
+   Il y est désormais POSÉ DANS LE FLUX, en tête du rail (cf. `HomeExperience`),
+   et non plus en `fixed` à `calc(50% - 9.5rem)` : cette troisième position
+   supposait cinq points. Le pas d'un point vaut 45,4 px mesurés ; la demi-hauteur
+   du rail est donc 45,4 n ÷ 2, et elle franchit les 124 px qui séparaient le bas
+   du compteur du centre dès n = 6. Or le nombre de sections s'édite depuis
+   /admin/home. Dans le flux, le compteur suit le rail quoi qu'il arrive. */
 .home-counter {
-	position: fixed;
-	right: clamp(0.75rem, 2vw, 2rem);
-	top: calc(50% - 9.5rem);
-	z-index: 40;
 	font-size: 0.8rem;
 	font-family: var(--font-display);
 	font-weight: 800;
 	display: flex;
 	align-items: baseline;
 	gap: 0.25rem;
+	margin-bottom: 0.55rem;
 	color: rgba(255, 255, 255, 0.4);
-	mix-blend-mode: difference;
+	/* Décoratif (`aria-hidden`) : il ne prend pas les clics destinés au point
+	   qu'il surplombe. */
+	pointer-events: none;
 }
 .home-counter__cur {
 	font-size: 1.15rem;
@@ -2268,6 +2311,41 @@ main:focus {
 }
 .home-counter__sep {
 	opacity: 0.5;
+}
+
+/* ── Rail compact : sous 900 px il n'y a pas de colonne libre à droite ──────
+   Mesuré bandeau ouvert, page d'entrée, `getBoundingClientRect()` :
+
+     390 × 844 — rail {x 235 → 378} contre lede {x 27 → 363} : 128 × 77 px de
+       recouvrement, plus 12 × 42 sur le titre et 40 × 11 sur « Commencer le
+       voyage » ;
+     360 × 800 — 130 × 76 sur le lede, 40 × 42 sur le titre, 68 × 11 sur l'appel
+       à l'action ;
+     768 × 1024 — 53 × 51 sur le lede.
+
+   Deux causes qui s'additionnent : le rail est centré verticalement, et il fait
+   143 px de large parce que le LIBELLÉ reste dans le flux (il n'est qu'en
+   `opacity: 0`) alors que la colonne de texte occupe 86 % de la largeur.
+
+   Au doigt il n'y a pas de survol : le libellé ne s'affiche que sur le point
+   actif, et c'est justement lui qui tombait sur le titre. On le sort donc du
+   flux sous 900 px — le rail retombe à sa cible tactile de 44 px — et la section
+   lui RÉSERVE sa gouttière au lieu de la lui disputer. Coût mesuré à 390 px :
+   la colonne passe de 335 à 299 px, le titre (224 px) y tient toujours.
+   900 px est le seuil déjà retenu pour le Kinto-Un et l'onomatopée ; au-delà, la
+   colonne du héros s'arrête à 671 px quand le rail commence à 740. */
+@media (max-width: 900px) {
+	.home-dot__label {
+		display: none;
+	}
+	.home-dots {
+		right: 0.35rem;
+	}
+	/* Rail collé au bord : la gouttière retombe à 4rem, mesurée pour laisser
+	   7 px entre la colonne et le rail à 360 comme à 900 px. */
+	.home-deck {
+		--home-rail: 4rem;
+	}
 }
 
 /* ── Typo & blocs partagés ───────────────────────────────────────────────── */
