@@ -63,6 +63,9 @@ bash deploy/install.sh --nginx          # propage units + vhosts (en `ubuntu`, j
 
 psql "$(grep '^DATABASE_URL=' apps/site/.env | tail -1 | cut -d= -f2-)"   # DB site + wiki
 journalctl -u shenron -f
+
+bun apps/site/scripts/genere-kinto-un.ts --rendu   # SVG du Kinto-Un + PNG de contrôle (géométrie : apps/site/src/lib/kinto-un.ts)
+bun apps/site/scripts/genere-icones.ts             # favicons site + bot + logo du bot, depuis l'icône carrée
 ```
 
 Écritures de données : `apps/site/scripts/depose-wiki.ts` (fiches), `depose-transcriptions.ts` / `depose-traductions.ts` (databooks), `sources-wiki.ts` (lire les sources). Tous en simulation par défaut, `--appliquer` pour écrire.
@@ -80,6 +83,6 @@ journalctl -u shenron -f
 ## Agents, skills, hooks
 
 - Subagent `intent-auditor` — à lancer après tout edit de `personas.ts` (mismatch intent ↔ event silencieux).
-- Skills : `dragon-ball` (API/RAG/wiki), `dragon-ball-japonais` (lexique et graphies), `persona-*`, `bot-smoke-test`.
+- Skills : `dragon-ball` (API/RAG/wiki), `dragon-ball-japonais` (lexique et graphies), `toriyama-svg` (dessin vectoriel mesuré, favicons, animation), `persona-*`, `bot-smoke-test`.
 - Plugin `dragon-ball` (`plugins/dragon-ball/`) + marketplace `shenron` à la racine.
 - Hooks : `gen:entries` auto, avertissement sur `personas.ts`, édition de `.env` bloquée.
