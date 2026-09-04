@@ -127,3 +127,10 @@ export const OeilBarre = (p: ProprietesIcone) => <Glyphe nom="oeilBarre" {...p} 
 export const Diese = (p: ProprietesIcone) => <Glyphe nom="diese" {...p} />;
 export const Tendance = (p: ProprietesIcone) => <Glyphe nom="tendance" {...p} />;
 export const Activite = (p: ProprietesIcone) => <Glyphe nom="activite" {...p} />;
+
+/* Barre de navigation mobile — Material 3 fait porter l'état sélectionné par un
+   glyphe PLEIN et le repos par un glyphe au trait ; d'où le doublet `Maison` /
+   `MaisonPleine`, de silhouette identique. */
+export const Maison = (p: ProprietesIcone) => <Glyphe nom="maison" {...p} />;
+export const MaisonPleine = (p: ProprietesIcone) => <Glyphe nom="maisonPleine" {...p} />;
+export const Ellipse = (p: ProprietesIcone) => <Glyphe nom="ellipse" {...p} />;

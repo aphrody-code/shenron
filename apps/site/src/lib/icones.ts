@@ -740,6 +740,56 @@ export const GEOMETRIES = {
 		titre: "Activité",
 		traits: ["M 2.5 12 L 7.5 12 L 10 5 L 14 19 L 16.5 12 L 21.5 12"],
 	},
+
+	/**
+	 * Maison : pignon à deux pentes et corps rectangulaire, pour la première
+	 * destination de la barre de navigation mobile. Le faîte est un coude MITRÉ
+	 * comme le reste du jeu — c'est ce qui la distingue du toit arrondi de
+	 * `Home` chez lucide, et ça se voit à 24 px.
+	 *
+	 * Le pignon déborde du corps de 1,5 unité de chaque côté (avant-toit) : sans
+	 * ce débord, le triangle se pose sur le rectangle et les deux se lisent
+	 * comme une seule forme fermée.
+	 */
+	maison: {
+		titre: "Accueil",
+		traits: [
+			"M 2 11.5 L 12 3 L 22 11.5",
+			"M 4.5 9.6 L 4.5 20.5 L 19.5 20.5 L 19.5 9.6",
+		],
+	},
+
+	/**
+	 * Maison PLEINE — l'état actif de la barre de navigation. Material 3 fait
+	 * porter l'état sélectionné par un glyphe rempli, le repos par un glyphe au
+	 * trait ; la silhouette est identique à `maison`, elle est seulement encrée.
+	 */
+	maisonPleine: {
+		titre: "Accueil",
+		aplats: ["M 12 2.6 L 1.4 11.6 L 3 13.5 L 4 12.65 L 4 21.5 L 20 21.5 L 20 12.65 L 21 13.5 L 22.6 11.6 Z"],
+	},
+
+	/**
+	 * Trois points en ligne : le « plus d'options » des barres natives. Les
+	 * points sont des LOSANGES, la construction du jeu pour tout point — un
+	 * cercle se lirait comme une bulle, et le losange garde ses quatre arêtes
+	 * quand le disque devient une tache.
+	 *
+	 * **Diagonale portée de 3,2 à 5,2 unités au contrôle.** À 3,2, chaque point
+	 * mesurait 3,2/24 × 16 = 2,1 px sur la planche à 16 px, et le rendu ne
+	 * laissait qu'un pixel gris par point : trois grains, pas trois points. À
+	 * 5,2 il en reste 3,5 px, soit un losange plein cerné d'un pixel de
+	 * transition — le glyphe se lit.
+	 */
+	ellipse: {
+		titre: "Plus d'options",
+		aplats: [
+			"M 4.8 9.4 L 7.4 12 L 4.8 14.6 L 2.2 12 Z",
+			"M 12 9.4 L 14.6 12 L 12 14.6 L 9.4 12 Z",
+			"M 19.2 9.4 L 21.8 12 L 19.2 14.6 L 16.6 12 Z",
+		],
+	},
+
 } as const satisfies Record<string, GeometrieIcone>;
 
 export type NomIcone = keyof typeof GEOMETRIES;
