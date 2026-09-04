@@ -24,7 +24,7 @@
 // home est strictement identique à la version historique en dur.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
-import { KintoUn } from "@/components/KintoUn";
+import { KintoUnVolant } from "@/components/home/KintoUnVolant";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
@@ -767,6 +767,9 @@ export function HomeExperience({
 
 	return (
 		<div ref={deckRef} className="home-deck" style={{ ["--accent" as string]: activeAccent }}>
+			{/* Le nuage vole au-dessus de tout le deck, pas d'une seule section : il
+			    suit le défilement et reste cliquable d'un bout à l'autre. */}
+			<KintoUnVolant />
 			{/* Navigation latérale — points HUD scouter */}
 			<nav className="home-dots" aria-label="Sections de la page">
 				{sections.map((s, i) => (
@@ -819,9 +822,6 @@ export function HomeExperience({
 				    l'échelle du héros. */}
 				<span className="home-onomatopee onomatopee" aria-hidden>
 					ゴゴゴ
-				</span>
-				<span className="home-nuage" aria-hidden>
-					<KintoUn hauteur={92} decorative />
 				</span>
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">

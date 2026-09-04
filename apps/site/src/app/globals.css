@@ -2239,46 +2239,150 @@ main:focus {
 	pointer-events: none;
 }
 
-/* Le Kinto-Un traverse le champ, très lentement et très en retrait : à 0,2
-   d'opacité il se lit comme une trame, pas comme une illustration qui
-   concurrencerait le titre. Traversée de 34 s — plus rapide, l'œil le suit et
-   décroche du texte. */
-.home-nuage {
-	position: absolute;
-	left: -18%;
-	/* Sous le bloc de texte, pas à sa hauteur. Placé plus haut, il entrait dans le
-	   wordmark par la gauche et mangeait la première lettre — un fond animé qui
-	   croise un titre le rend illisible une seconde sur deux. */
-	bottom: clamp(5rem, 16vh, 9rem);
-	z-index: 0;
-	opacity: 0.16;
+/* === Kinto-Un volant ===
+   Il suit le défilement au lieu de traverser en boucle, et il est cliquable.
+   Trois couches, une transformation chacune : la coque porte la position
+   (pilotée en JS par des propriétés custom), la prise porte l'inclinaison de
+   survol, le nuage porte la figure. Les empiler sur un seul nœud ferait que la
+   dernière écrase les autres. */
+.kt-volant {
+	position: fixed;
+	left: 0;
+	top: 42vh;
+	z-index: 2;
 	pointer-events: none;
-	animation: nuage-traverse 34s linear infinite;
+	transform: translate3d(var(--kt-x, -12vw), var(--kt-y, 0), 0)
+		rotate(var(--kt-inclinaison, 0deg));
+	will-change: transform;
 }
-@keyframes nuage-traverse {
-	from {
-		transform: translate3d(0, 0, 0);
+.kt-volant__prise {
+	display: block;
+	padding: 0;
+	border: 0;
+	background: none;
+	/* Seul le nuage capte le pointeur : la couche est plein écran, la rendre
+	   cliquable partout bloquerait le contenu en dessous. */
+	pointer-events: auto;
+	cursor: pointer;
+	opacity: 0.34;
+	transition:
+		opacity 0.3s ease,
+		transform 0.3s ease;
+}
+.kt-volant[data-survol] .kt-volant__prise {
+	opacity: 0.85;
+	transform: translateY(-6px) rotate(-4deg) scale(1.06);
+}
+.kt-volant__prise:focus-visible {
+	outline: 2px solid var(--color-dbz-orange);
+	outline-offset: 6px;
+}
+
+/* Traits de vitesse : révélés au survol, ils partent derrière le nuage. */
+.kt-volant__vitesse {
+	position: absolute;
+	right: 100%;
+	top: 50%;
+	width: 5rem;
+	height: 2.6rem;
+	transform: translateY(-50%);
+	opacity: 0;
+	transition: opacity 0.25s ease;
+	background:
+		linear-gradient(90deg, transparent, var(--color-kinto-lumiere)) no-repeat 0 20% / 100% 2px,
+		linear-gradient(90deg, transparent, var(--color-kinto-lumiere)) no-repeat 0 55% / 74% 2px,
+		linear-gradient(90deg, transparent, var(--color-kinto-lumiere)) no-repeat 0 85% / 88% 2px;
+}
+.kt-volant[data-survol] .kt-volant__vitesse {
+	opacity: 0.7;
+}
+
+/* Les quatre figures du clic. Chacune revient à l'identique à la fin, sinon le
+   nuage reste de travers une fois l'animation retirée. */
+.kt-volant__nuage {
+	display: block;
+}
+.kt-volant__nuage[data-figure="boucle"] {
+	animation: kt-boucle 1.5s cubic-bezier(0.5, 0, 0.5, 1);
+}
+.kt-volant__nuage[data-figure="vrille"] {
+	animation: kt-vrille 1.1s ease-in-out;
+}
+.kt-volant__nuage[data-figure="trombe"] {
+	animation: kt-trombe 1.3s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.kt-volant__nuage[data-figure="rebond"] {
+	animation: kt-rebond 1.2s cubic-bezier(0.28, 0.84, 0.42, 1);
+}
+@keyframes kt-boucle {
+	0% {
+		transform: translate(0, 0) rotate(0deg);
 	}
 	50% {
-		transform: translate3d(60vw, -1.6rem, 0);
+		transform: translate(5rem, -5rem) rotate(180deg);
 	}
-	to {
-		transform: translate3d(130vw, 0, 0);
+	100% {
+		transform: translate(0, 0) rotate(360deg);
 	}
 }
-/* En dessous de 900 px, la colonne de texte occupe toute la largeur : il n'y a
-   plus de marge où faire passer un décor sans croiser le contenu. Les deux
-   marqueurs de planche disparaissent donc au lieu d'être seulement atténués. */
+@keyframes kt-vrille {
+	0%,
+	100% {
+		transform: rotateY(0deg) scale(1);
+	}
+	50% {
+		transform: rotateY(540deg) scale(0.86);
+	}
+}
+@keyframes kt-trombe {
+	0% {
+		transform: translateX(0) scaleX(1);
+	}
+	18% {
+		transform: translateX(-2.2rem) scaleX(0.86);
+	}
+	52% {
+		transform: translateX(9rem) scaleX(1.3);
+	}
+	100% {
+		transform: translateX(0) scaleX(1);
+	}
+}
+@keyframes kt-rebond {
+	0%,
+	100% {
+		transform: translateY(0) scale(1, 1);
+	}
+	28% {
+		transform: translateY(-4.5rem) scale(0.92, 1.1);
+	}
+	58% {
+		transform: translateY(0) scale(1.16, 0.82);
+	}
+	78% {
+		transform: translateY(-1.4rem) scale(0.97, 1.04);
+	}
+}
+
+/* Sous 900 px la colonne de texte occupe tout l'écran : un nuage qui la survole
+   passerait sur le contenu à chaque défilement. */
 @media (max-width: 900px) {
 	.home-onomatopee,
-	.home-nuage {
+	.kt-volant {
 		display: none;
 	}
 }
+/* Mouvement réduit : le nuage reste, posé et immobile, et le clic ne fait plus
+   de figure. Il garde sa fonction de repère, il perd son agitation. */
 @media (prefers-reduced-motion: reduce) {
-	.home-nuage {
-		animation: none;
+	.kt-volant {
+		position: absolute;
+		top: 30vh;
+		transform: none;
 		left: 6%;
+	}
+	.kt-volant__nuage[data-figure] {
+		animation: none;
 	}
 }
 .home-hero__content {

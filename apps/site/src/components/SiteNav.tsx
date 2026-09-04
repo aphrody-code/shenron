@@ -133,27 +133,19 @@ export async function SiteNav() {
 					className="group flex shrink-0 select-none items-center gap-2.5 whitespace-nowrap py-3"
 					aria-label="Dragon Ball France — Accueil"
 				>
-					<span className="flex flex-col leading-none">
-						<span
-							className="wordmark-manga text-[19px]"
-							data-texte="Dragon Ball"
-						>
-							Dragon&nbsp;Ball
-						</span>
-						<span className="wordmark-manga-sous mt-[4px] text-[10px] tracking-[0.34em] transition-colors group-hover:text-white">
-							France
-						</span>
-					</span>
-					{/* Le Kinto-un, repère de marque (même dessin que les favicons) :
-					    au survol il s'envole d'un cran vers la droite, comme il part. */}
+					{/* Le nuage EST le logo : plus de mot-symbole écrit à côté. Le nom du
+					    site reste porté par l'`aria-label` du lien et par le titre de la
+					    page — un lecteur d'écran entend « Dragon Ball France », il ne perd
+					    rien. Au survol le nuage part d'un cran vers la droite, comme il
+					    s'envole. */}
 					<span
 						aria-hidden
-						className="inline-flex h-[22px] w-[41px] shrink-0 items-center justify-center"
+						className="inline-flex h-[38px] w-[68px] shrink-0 items-center justify-center"
 					>
 						<KintoUn
-							hauteur={22}
+							hauteur={38}
 							decorative
-							className="drop-shadow-[0_0_6px_rgba(248,235,126,0.35)] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5"
+							className="drop-shadow-[0_0_10px_rgba(248,235,126,0.35)] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5"
 						/>
 					</span>
 				</Link>
