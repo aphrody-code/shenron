@@ -5,7 +5,7 @@
  * Même langage visuel que AdminNavLinks, sans le badge admin / cadenas.
  */
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronBas } from "@/components/icones";
 import { useEffect, useRef, useState } from "react";
 
 export type NavLink = { href: string; label: string };
@@ -51,7 +51,7 @@ export function NavMore({
 				className="inline-flex items-center gap-1 font-display font-medium text-[15px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 			>
 				<span>{label}</span>
-				<ChevronDown
+				<ChevronBas
 					className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`}
 					aria-hidden
 				/>

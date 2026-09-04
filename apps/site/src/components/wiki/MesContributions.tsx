@@ -13,7 +13,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Chargement } from "@/components/icones";
 import {
 	CONTRIBUTABLE_COLUMNS,
 	CONTRIBUTION_STATUS_LABELS,
@@ -60,7 +60,7 @@ export function MesContributions() {
 			<h2 className="font-saiyan text-2xl uppercase text-white">Mes propositions</h2>
 			{lignes === null ? (
 				<p className="mt-4 flex items-center gap-2 text-sm text-white/40">
-					<Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+					<Chargement className="h-4 w-4 animate-spin" /> Chargement…
 				</p>
 			) : lignes.length === 0 ? (
 				<p className="mt-4 text-sm leading-relaxed text-white/50">

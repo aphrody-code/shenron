@@ -17,7 +17,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { X } from "lucide-react";
+import { Croix } from "@/components/icones";
 import { useFocusTrap } from "@/lib/use-focus-trap";
 
 export function Modal({ children }: { children: React.ReactNode }) {
@@ -62,7 +62,7 @@ export function Modal({ children }: { children: React.ReactNode }) {
 							aria-label="Fermer"
 							className="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-black/60 text-white backdrop-blur transition-colors hover:border-dbz-orange hover:bg-dbz-orange hover:text-black"
 						>
-							<X className="h-5 w-5" />
+							<Croix className="h-5 w-5" />
 						</button>
 						{children}
 					</motion.div>

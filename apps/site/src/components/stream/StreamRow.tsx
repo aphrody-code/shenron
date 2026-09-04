@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronDroite } from "@/components/icones";
 import { StreamRail } from "./StreamRail";
 
 /**
@@ -44,7 +44,7 @@ export function StreamRow({
 						className="group/see -my-2 inline-flex min-h-11 shrink-0 items-center gap-0.5 py-2 text-[12px] font-display font-semibold uppercase tracking-wider text-white/60 transition-colors hover:text-dbz-orange"
 					>
 						{seeAllLabel}
-						<ChevronRight className="h-4 w-4 transition-transform group-hover/see:translate-x-0.5" />
+						<ChevronDroite className="h-4 w-4 transition-transform group-hover/see:translate-x-0.5" />
 					</Link>
 				)}
 			</div>

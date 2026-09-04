@@ -10,7 +10,7 @@
  */
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
+import { Croix } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { forgetHistory, readHistory, HISTORY_EVENT, type HistoryEntry } from "@/lib/history";
 
@@ -87,7 +87,7 @@ export function ContinueRail({
 							aria-label={`Retirer « ${e.title} » de l'historique`}
 							className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-black/70 text-white/70 opacity-0 transition-opacity hover:text-white focus-visible:opacity-100 group-hover:opacity-100 md:opacity-0"
 						>
-							<X className="h-3.5 w-3.5" aria-hidden />
+							<Croix className="h-3.5 w-3.5" aria-hidden />
 						</button>
 					</li>
 				))}

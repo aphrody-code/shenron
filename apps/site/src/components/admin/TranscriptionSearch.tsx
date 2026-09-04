@@ -13,7 +13,7 @@
  * le texte brut de la planche, jamais du HTML pré-surligné.
  */
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, Search, X } from "lucide-react";
+import { Chargement, Croix, Recherche } from "@/components/icones";
 import Link from "next/link";
 import { useState } from "react";
 import { extraireSegments } from "@/lib/databooks-format";
@@ -69,7 +69,7 @@ export function TranscriptionSearch() {
 
 			<div className="flex flex-wrap gap-2">
 				<div className="relative min-w-[220px] flex-1">
-					<Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/30" />
+					<Recherche className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/30" />
 					<input
 						type="search"
 						value={terme}
@@ -95,7 +95,7 @@ export function TranscriptionSearch() {
 							className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-white/40 hover:text-white"
 							aria-label="Effacer la recherche"
 						>
-							<X className="h-3.5 w-3.5" />
+							<Croix className="h-3.5 w-3.5" />
 						</button>
 					)}
 				</div>
@@ -105,7 +105,7 @@ export function TranscriptionSearch() {
 					disabled={recherche.isPending || !terme.trim()}
 					onClick={lancer}
 				>
-					{recherche.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+					{recherche.isPending ? <Chargement className="h-4 w-4 animate-spin" /> : <Recherche className="h-4 w-4" />}
 					Chercher
 				</button>
 			</div>

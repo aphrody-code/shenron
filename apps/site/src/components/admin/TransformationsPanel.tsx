@@ -5,7 +5,7 @@
  * depuis le studio du perso plutôt que via la table globale + picker de perso.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Loader2, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Chargement, Corbeille, Croix, Etincelle, LienExterne, Plus } from "@/components/icones";
 import Link from "next/link";
 import { useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
@@ -70,9 +70,9 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 	return (
 		<div className="dbz-panel space-y-4 p-5">
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-				<Sparkles className="h-3.5 w-3.5" /> Transformations
+				<Etincelle className="h-3.5 w-3.5" /> Transformations
 				<span className="text-white/50">({rows.length})</span>
-				{(list.isFetching || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/50" />}
+				{(list.isFetching || busy) && <Chargement className="h-3 w-3 animate-spin text-white/50" />}
 			</div>
 
 			<p className="text-xs text-white/50">
@@ -101,7 +101,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 									/>
 								) : (
 									<div className="flex h-full w-full items-center justify-center text-white/20">
-										<Sparkles className="h-4 w-4" />
+										<Etincelle className="h-4 w-4" />
 									</div>
 								)}
 							</div>
@@ -114,7 +114,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 								className="btn btn-ghost shrink-0 px-2 py-1 text-xs"
 								title="Éditer en détail"
 							>
-								<ExternalLink className="h-3.5 w-3.5" />
+								<LienExterne className="h-3.5 w-3.5" />
 							</Link>
 							<button
 								type="button"
@@ -123,7 +123,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 								onClick={() => remove.mutate(t.id)}
 								className="shrink-0 text-red-400 hover:text-red-300 disabled:opacity-50"
 							>
-								<Trash2 className="h-3.5 w-3.5" />
+								<Corbeille className="h-3.5 w-3.5" />
 							</button>
 						</div>
 					))}
@@ -187,7 +187,7 @@ export function TransformationsPanel({ characterId }: { characterId: string }) {
 							}}
 							className="btn btn-ghost"
 						>
-							<X className="h-4 w-4" />
+							<Croix className="h-4 w-4" />
 						</button>
 					</div>
 				</div>

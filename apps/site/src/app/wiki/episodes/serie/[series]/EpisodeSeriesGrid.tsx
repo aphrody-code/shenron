@@ -13,7 +13,7 @@
  * serveur), donc filtrer ne coûte aucun aller-retour et fonctionne hors ligne.
  */
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Recherche } from "@/components/icones";
 import { EpisodeCard } from "@/components/stream/EpisodeCard";
 
 export interface SeriesEpisode {
@@ -67,7 +67,7 @@ export function EpisodeSeriesGrid({ episodes }: { episodes: SeriesEpisode[] }) {
 		<div className="space-y-6">
 			<div className="flex flex-wrap items-center gap-3">
 				<div className="relative min-w-[220px] flex-1 max-w-md">
-					<Search
+					<Recherche
 						className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
 						aria-hidden
 					/>
