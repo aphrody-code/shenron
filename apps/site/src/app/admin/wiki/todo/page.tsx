@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, ImageOff, FileText, ClipboardList, CheckCircle2 } from "lucide-react";
+import {
+	CocheCercle,
+	Document,
+	FlecheGauche,
+	IllustrationAbsente,
+	Presse,
+} from "@/components/icones";
 import { listIncompleteContent } from "@/lib/wiki-admin";
 import { assetUrl } from "@/lib/db-universe";
 import { TABLE_LABELS } from "@/lib/db-labels";
@@ -23,12 +29,12 @@ export default async function WikiTodoPage() {
 		<div className="mx-auto w-full max-w-5xl space-y-6">
 			<div className="flex items-center gap-3">
 				<Link href="/admin/wiki" className="btn btn-ghost">
-					<ArrowLeft className="h-4 w-4" />
+					<FlecheGauche className="h-4 w-4" />
 					<span className="sr-only">Retour au wiki</span>
 				</Link>
 				<div className="flex-1">
 					<h1 className="flex items-center gap-2 font-saiyan text-3xl uppercase text-dbz-orange">
-						<ClipboardList className="h-6 w-6" />
+						<Presse className="h-6 w-6" />
 						Fiches à compléter
 					</h1>
 					<p className="mt-1 text-sm text-white/50">
@@ -40,7 +46,7 @@ export default async function WikiTodoPage() {
 
 			{total === 0 ? (
 				<div className="card py-16 text-center">
-					<CheckCircle2 className="mx-auto mb-3 h-10 w-10 text-green-400" />
+					<CocheCercle className="mx-auto mb-3 h-10 w-10 text-green-400" />
 					<p className="font-saiyan text-2xl uppercase text-white">Tout est complet</p>
 					<p className="mt-1 text-sm text-white/50">
 						Chaque fiche suivie possède une image et un texte. Beau travail.
@@ -76,7 +82,7 @@ export default async function WikiTodoPage() {
 															loading="lazy"
 														/>
 													) : (
-														<ImageOff className="h-4 w-4 text-white/25" />
+														<IllustrationAbsente className="h-4 w-4 text-white/25" />
 													)}
 												</span>
 												<span className="min-w-0 flex-1">
@@ -86,13 +92,13 @@ export default async function WikiTodoPage() {
 												<span className="flex shrink-0 gap-1.5">
 													{r.missingImage && (
 														<span className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-[10px] text-white/55">
-															<ImageOff className="h-3 w-3" />
+															<IllustrationAbsente className="h-3 w-3" />
 															image
 														</span>
 													)}
 													{r.missingDesc && (
 														<span className="inline-flex items-center gap-1 rounded border border-dbz-border px-1.5 py-0.5 text-[10px] text-white/55">
-															<FileText className="h-3 w-3" />
+															<Document className="h-3 w-3" />
 															texte
 														</span>
 													)}

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Lecture } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { isEditableAsset } from "@/lib/images";
 
@@ -107,7 +107,7 @@ export function EpisodeCard({
 				{/* Bouton play au survol/focus */}
 				<div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 group-focus-visible/card:opacity-100">
 					<span className="grid h-12 w-12 place-items-center rounded-full bg-dbz-orange text-black shadow-lg">
-						<Play className="h-5 w-5 translate-x-[1px] fill-current" />
+						<Lecture className="h-5 w-5 translate-x-[1px] fill-current" />
 					</span>
 				</div>
 

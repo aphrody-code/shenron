@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
+import { Crayon, FlecheGauche, LienExterne } from "@/components/icones";
 import { AdminHeader } from "../../db-universe/_Header";
 import {
 	TranscriptionRelecteur,
@@ -60,7 +60,7 @@ export default async function RelecturePage({
 				right={
 					<div className="flex flex-wrap items-center gap-2">
 						<Link href="/admin/databooks" className="btn btn-ghost h-9 px-3 text-xs">
-							<ArrowLeft className="h-3.5 w-3.5" />
+							<FlecheGauche className="h-3.5 w-3.5" />
 							Suivi
 						</Link>
 						<Link
@@ -68,7 +68,7 @@ export default async function RelecturePage({
 							className="btn btn-ghost h-9 px-3 text-xs"
 							title="Métadonnées, couverture, description, gestion des slots"
 						>
-							<Pencil className="h-3.5 w-3.5" />
+							<Crayon className="h-3.5 w-3.5" />
 							Studio
 						</Link>
 						<a
@@ -77,7 +77,7 @@ export default async function RelecturePage({
 							rel="noopener noreferrer"
 							className="btn btn-ghost h-9 px-3 text-xs"
 						>
-							<ExternalLink className="h-3.5 w-3.5" />
+							<LienExterne className="h-3.5 w-3.5" />
 							Public
 						</a>
 					</div>

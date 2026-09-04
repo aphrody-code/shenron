@@ -15,7 +15,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
-import { ImageIcon, Library, RotateCcw, Save } from "lucide-react";
+import { Bibliotheque, Enregistrer, Illustration, Reinitialiser } from "@/components/icones";
 import { DragonBallLoader } from "@/components/DragonBall";
 import { ImageField } from "@/components/admin/ImageField";
 import { assetUrl } from "@/lib/assets";
@@ -99,7 +99,7 @@ function BannerRow({
 						<img src={preview} alt="" className="h-full w-full object-cover" />
 					) : (
 						<div className="flex h-full items-center justify-center text-white/20">
-							<ImageIcon className="h-6 w-6" />
+							<Illustration className="h-6 w-6" />
 						</div>
 					)}
 				</div>
@@ -116,7 +116,7 @@ function BannerRow({
 									onClick={onOpenLibrary}
 									className="btn btn-ghost h-7 px-2 text-xs"
 								>
-									<Library className="h-3.5 w-3.5" />
+									<Bibliotheque className="h-3.5 w-3.5" />
 									Galerie
 								</button>
 							)}
@@ -134,7 +134,7 @@ function BannerRow({
 							onClick={() => onChange(defaultValue)}
 							className="inline-flex items-center gap-1 text-[11px] text-white/50 hover:text-dbz-orange"
 						>
-							<RotateCcw className="h-3 w-3" />
+							<Reinitialiser className="h-3 w-3" />
 							Revenir au défaut
 						</button>
 					)}
@@ -245,7 +245,7 @@ export function BannersEditor() {
 				</div>
 				<div className="flex flex-wrap gap-2">
 					<button type="button" onClick={resetAll} className="btn btn-ghost">
-						<RotateCcw className="h-4 w-4" />
+						<Reinitialiser className="h-4 w-4" />
 						Tout réinitialiser
 					</button>
 					<button
@@ -254,7 +254,7 @@ export function BannersEditor() {
 						disabled={save.isPending}
 						className="btn btn-primary"
 					>
-						<Save className="h-4 w-4" />
+						<Enregistrer className="h-4 w-4" />
 						{save.isPending ? "Enregistrement…" : "Enregistrer"}
 					</button>
 				</div>
@@ -324,7 +324,7 @@ export function BannersEditor() {
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>
-					<Save className="h-4 w-4" />
+					<Enregistrer className="h-4 w-4" />
 					{save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>

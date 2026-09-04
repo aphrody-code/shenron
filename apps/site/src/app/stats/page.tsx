@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Eye, Users, TrendingUp, Sparkles } from "lucide-react";
+import { Etincelle, Groupe, Oeil, Tendance } from "@/components/icones";
 import { PageHeader } from "@/components/PageHeader";
 import { getShenronStats } from "@/lib/shenron";
 import { getPublicActivitySafe, prettyPath } from "@/lib/analytics";
@@ -85,17 +85,17 @@ export default async function StatsPage() {
 			</p>
 			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 				<AudienceTile
-					icon={<Users className="h-5 w-5" />}
+					icon={<Groupe className="h-5 w-5" />}
 					value={nf.format(activity.visitorsThisMonth)}
 					label="Visiteurs ce mois"
 				/>
 				<AudienceTile
-					icon={<Eye className="h-5 w-5" />}
+					icon={<Oeil className="h-5 w-5" />}
 					value={nf.format(activity.pageviewsThisMonth)}
 					label="Pages vues ce mois"
 				/>
 				<AudienceTile
-					icon={<TrendingUp className="h-5 w-5" />}
+					icon={<Tendance className="h-5 w-5" />}
 					value={nf.format(activity.visitorsAllTime)}
 					label="Visiteurs au total"
 				/>
@@ -105,7 +105,7 @@ export default async function StatsPage() {
 			{activity.popularPages.length > 0 && (
 				<section className="mt-10">
 					<h3 className="font-saiyan text-xl text-dbz-yellow uppercase mb-4 flex items-center gap-2">
-						<Sparkles className="h-5 w-5 text-dbz-orange" />
+						<Etincelle className="h-5 w-5 text-dbz-orange" />
 						Pages les plus explorées
 					</h3>
 					<ol className="space-y-2">

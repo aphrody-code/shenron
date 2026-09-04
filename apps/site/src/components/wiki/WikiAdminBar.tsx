@@ -12,7 +12,7 @@
  *   - « Masquer » → bascule `visible = false` (POST /api/wiki-admin/:table?as=visibility)
  *     puis redirige vers l'index, car la fiche masquée renvoie 404 en lecture publique.
  */
-import { EyeOff, Pencil, Shield } from "lucide-react";
+import { Bouclier, Crayon, OeilBarre } from "@/components/icones";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { apiAt } from "@/lib/admin-api";
@@ -60,13 +60,13 @@ export function WikiAdminActions({
 	return (
 		<div className="flex flex-wrap items-center gap-2 rounded-lg border border-dbz-orange/30 bg-dbz-orange/[0.06] px-3 py-2 text-xs">
 			<span className="flex items-center gap-1.5 font-bold uppercase tracking-widest text-dbz-orange/80">
-				<Shield className="h-3.5 w-3.5" /> Admin
+				<Bouclier className="h-3.5 w-3.5" /> Admin
 			</span>
 			<a
 				href={studioHref}
 				className="inline-flex items-center gap-1.5 rounded border border-white/15 bg-white/[0.03] px-3 py-1.5 font-semibold text-white/80 transition-colors hover:border-dbz-orange/60 hover:text-white"
 			>
-				<Pencil className="h-3.5 w-3.5" /> Modifier &amp; sections
+				<Crayon className="h-3.5 w-3.5" /> Modifier &amp; sections
 			</a>
 			<button
 				type="button"
@@ -74,7 +74,7 @@ export function WikiAdminActions({
 				disabled={busy}
 				className="inline-flex items-center gap-1.5 rounded border border-white/15 bg-white/[0.03] px-3 py-1.5 font-semibold text-white/80 transition-colors hover:border-dbz-red/60 hover:text-dbz-red disabled:opacity-50"
 			>
-				<EyeOff className="h-3.5 w-3.5" /> {busy ? "Masquage…" : "Masquer"}
+				<OeilBarre className="h-3.5 w-3.5" /> {busy ? "Masquage…" : "Masquer"}
 			</button>
 			<a
 				href="/admin/visibilite"

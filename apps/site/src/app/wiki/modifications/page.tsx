@@ -13,7 +13,7 @@
  * pas son propos. Aucun cookie lu → le cache CDN reste utilisable.
  */
 import Link from "next/link";
-import { History } from "lucide-react";
+import { Historique } from "@/components/icones";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { listeModifications } from "@/lib/wiki-modifications";
@@ -67,12 +67,12 @@ export default async function PageModifications() {
 
 			<header className="max-w-2xl">
 				<h1 className="flex items-center gap-3 font-saiyan text-4xl uppercase text-white">
-					<History className="h-7 w-7 text-dbz-orange" />
+					<Historique className="h-7 w-7 text-dbz-orange" />
 					Ce qui vient de changer
 				</h1>
 				<p className="mt-4 text-base leading-relaxed text-white/60">
-					Chaque modification du wiki est enregistrée, attribuée et réversible. Voici les
-					dernières — y compris celles proposées par des membres et publiées après relecture.
+					Chaque modification du wiki est enregistrée, attribuée et réversible. Voici les dernières
+					— y compris celles proposées par des membres et publiées après relecture.
 				</p>
 				<Link
 					href="/wiki/contribuer"

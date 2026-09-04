@@ -11,7 +11,7 @@
  * pendant le rendu produirait une divergence d'hydratation.
  */
 import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { Coeur } from "@/components/icones";
 import { toast } from "@/lib/toast";
 import { useMe } from "@/lib/use-me";
 import {
@@ -79,7 +79,7 @@ export function FavoriteButton({
 				}`
 			}
 		>
-			<Heart className="h-4 w-4" aria-hidden fill={on ? "currentColor" : "none"} />
+			<Coeur className="h-4 w-4" aria-hidden fill={on ? "currentColor" : "none"} />
 			{on ? "En favori" : "Favori"}
 		</button>
 	);

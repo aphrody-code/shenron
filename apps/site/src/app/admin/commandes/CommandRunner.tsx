@@ -7,7 +7,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState, useTransition } from "react";
-import { AlertTriangle, ChevronRight, Loader2, Search, Terminal } from "lucide-react";
+import { Alerte, Chargement, ChevronDroite, Recherche, Terminal } from "@/components/icones";
 import { api } from "@/lib/admin-api";
 
 interface OptionSpec {
@@ -135,7 +135,7 @@ export function CommandRunner() {
 			{/* Liste des commandes */}
 			<div className="dbz-panel flex max-h-[70vh] flex-col p-3">
 				<div className="relative mb-2">
-					<Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+					<Recherche className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 					<input
 						className="w-full rounded border border-dbz-border bg-dbz-bg px-3 py-1.5 pl-8 text-sm text-white focus:border-dbz-orange focus:outline-none"
 						placeholder={`Rechercher parmi ${commands.length} commandes…`}
@@ -146,7 +146,7 @@ export function CommandRunner() {
 				<div className="min-h-0 flex-1 overflow-y-auto pr-1">
 					{catalog.isLoading ? (
 						<p className="p-3 text-xs text-white/50">
-							<Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Chargement du catalogue…
+							<Chargement className="mr-1 inline h-3 w-3 animate-spin" /> Chargement du catalogue…
 						</p>
 					) : catalog.isError ? (
 						<p className="p-3 text-xs text-red-400">Catalogue indisponible (bot hors-ligne ?).</p>
@@ -167,7 +167,7 @@ export function CommandRunner() {
 												: "text-white/70 hover:bg-white/5"
 										}`}
 									>
-										<ChevronRight className="h-3 w-3 shrink-0 text-white/50" />
+										<ChevronDroite className="h-3 w-3 shrink-0 text-white/50" />
 										<span className="font-mono text-[13px]">/{c.invocation}</span>
 									</button>
 								))}
@@ -196,7 +196,7 @@ export function CommandRunner() {
 
 						{interactive && (
 							<div className="flex items-start gap-2 rounded border border-dbz-yellow/40 bg-dbz-yellow/5 p-2.5 text-xs text-dbz-yellow/90">
-								<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+								<Alerte className="mt-0.5 h-4 w-4 shrink-0" />
 								Commande interactive (menus/boutons/canvas) : seule la première réponse est capturée
 								hors Discord ; la partie interactive ne s&apos;exécute pas.
 							</div>
@@ -224,7 +224,7 @@ export function CommandRunner() {
 							className="dbz-button gap-2 disabled:opacity-50"
 						>
 							{pending ? (
-								<Loader2 className="h-4 w-4 animate-spin" />
+								<Chargement className="h-4 w-4 animate-spin" />
 							) : (
 								<Terminal className="h-4 w-4" />
 							)}

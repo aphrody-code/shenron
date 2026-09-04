@@ -29,7 +29,7 @@ import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { PwsStatSection } from "@/components/wiki/PwsStatSection";
 import Link from "next/link";
-import { PenLine } from "lucide-react";
+import { Crayon } from "@/components/icones";
 import { normalizeWikiSectionGroups, PWS_GROUP_NAME } from "@/lib/wiki-section-groups";
 import { PWS_GROUP_PRESETS, PWS_LEGACY_KEY_ALIASES } from "@/lib/wiki-fields";
 import type { ReaderPanel } from "@/components/wiki/WikiSectionsReader";
@@ -289,7 +289,7 @@ function LienCorriger({ cible }: { cible: { table?: string; rowId: number; colum
 			href={`/wiki/corriger?${params}`}
 			className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/30 transition-colors hover:text-dbz-orange"
 		>
-			<PenLine className="h-3 w-3" /> Corriger cette partie
+			<Crayon className="h-3 w-3" /> Corriger cette partie
 		</Link>
 	);
 }
@@ -312,7 +312,7 @@ function SectionAEcrire({
 					href={`/wiki/corriger?${new URLSearchParams({ table: cible.table, row: String(cible.rowId), col: cible.column })}`}
 					className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white/65 transition-colors hover:border-dbz-orange/50 hover:text-white"
 				>
-					<PenLine className="h-3.5 w-3.5" /> Écrire «&nbsp;{label}&nbsp;»
+					<Crayon className="h-3.5 w-3.5" /> Écrire «&nbsp;{label}&nbsp;»
 				</Link>
 			) : null}
 		</div>

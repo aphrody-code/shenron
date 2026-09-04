@@ -8,14 +8,14 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	AlertTriangle,
-	ArrowLeft,
-	CheckCircle,
-	ExternalLink,
-	Eye,
-	History,
-	Save,
-} from "lucide-react";
+	Alerte,
+	CocheCercle,
+	Enregistrer,
+	FlecheGauche,
+	Historique,
+	LienExterne,
+	Oeil,
+} from "@/components/icones";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RelationsPanel } from "@/components/admin/RelationsPanel";
@@ -157,9 +157,9 @@ export function WikiStudio({ table, id }: Props) {
 					}`}
 				>
 					{toast.type === "success" ? (
-						<CheckCircle className="h-4 w-4 shrink-0" />
+						<CocheCercle className="h-4 w-4 shrink-0" />
 					) : (
-						<AlertTriangle className="h-4 w-4 shrink-0" />
+						<Alerte className="h-4 w-4 shrink-0" />
 					)}
 					{toast.msg}
 				</div>
@@ -176,7 +176,7 @@ export function WikiStudio({ table, id }: Props) {
 					}
 					className="btn btn-ghost"
 				>
-					<ArrowLeft className="h-4 w-4" />
+					<FlecheGauche className="h-4 w-4" />
 					<span className="sr-only">Retour à la liste</span>
 				</button>
 				<div className="min-w-0 flex-1">
@@ -190,7 +190,7 @@ export function WikiStudio({ table, id }: Props) {
 				</div>
 				{publicUrl && (
 					<a href={publicUrl} target="_blank" rel="noreferrer" className="btn btn-ghost">
-						<ExternalLink className="h-3.5 w-3.5" />
+						<LienExterne className="h-3.5 w-3.5" />
 						Page publique
 					</a>
 				)}
@@ -200,7 +200,7 @@ export function WikiStudio({ table, id }: Props) {
 					disabled={save.isPending || notReady}
 					className="btn btn-primary"
 				>
-					<Save className="h-4 w-4" />
+					<Enregistrer className="h-4 w-4" />
 					{save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>
@@ -237,7 +237,7 @@ export function WikiStudio({ table, id }: Props) {
 							disabled={save.isPending || notReady}
 							className="btn btn-primary w-full"
 						>
-							<Save className="h-4 w-4" />
+							<Enregistrer className="h-4 w-4" />
 							{save.isPending ? "Enregistrement…" : "Enregistrer"}
 						</button>
 					</form>
@@ -246,7 +246,7 @@ export function WikiStudio({ table, id }: Props) {
 					<div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
 						<div className="dbz-panel p-6">
 							<div className="mb-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-								<Eye className="h-3.5 w-3.5" /> Aperçu live
+								<Oeil className="h-3.5 w-3.5" /> Aperçu live
 							</div>
 							<WikiEntityPreview table={table} draft={draft} />
 						</div>
@@ -282,7 +282,7 @@ export function WikiStudio({ table, id }: Props) {
 						{mode === "edit" && (
 							<details className="dbz-panel p-5">
 								<summary className="flex cursor-pointer items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-									<History className="h-3.5 w-3.5" /> Historique des révisions
+									<Historique className="h-3.5 w-3.5" /> Historique des révisions
 								</summary>
 								<div className="mt-4">
 									<WikiHistory table={table} rowId={id} compact />

@@ -13,7 +13,7 @@
  * et la page fonctionne sans avoir à ouvrir une modale par-dessus la lecture.
  */
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { FlecheGauche } from "@/components/icones";
 import type { Metadata } from "next";
 import { WikiContribute } from "@/components/wiki/WikiContribute";
 import { CONTRIBUTABLE_COLUMNS } from "@/lib/contributions-shared";
@@ -70,12 +70,10 @@ export default async function PageCorriger({
 				href={retour && retour.startsWith("/") ? retour : "/wiki/contribuer"}
 				className="inline-flex items-center gap-2 text-xs font-semibold text-white/45 transition-colors hover:text-white"
 			>
-				<ArrowLeft className="h-3.5 w-3.5" /> Revenir
+				<FlecheGauche className="h-3.5 w-3.5" /> Revenir
 			</Link>
 
-			<h1 className="mt-6 font-saiyan text-3xl uppercase text-white">
-				Proposer une correction
-			</h1>
+			<h1 className="mt-6 font-saiyan text-3xl uppercase text-white">Proposer une correction</h1>
 
 			{!valide ? (
 				<p className="mt-4 rounded-lg border border-dbz-red/30 bg-dbz-red/[0.07] px-4 py-3 text-sm text-dbz-red">
@@ -85,8 +83,8 @@ export default async function PageCorriger({
 			) : (
 				<>
 					<p className="mt-3 max-w-xl text-sm leading-relaxed text-white/55">
-						{champ!.hint} Rien n&apos;est publié tant qu&apos;un relecteur n&apos;a pas validé —
-						et si ta proposition est retenue, la modification portera ton nom.
+						{champ!.hint} Rien n&apos;est publié tant qu&apos;un relecteur n&apos;a pas validé — et
+						si ta proposition est retenue, la modification portera ton nom.
 					</p>
 					<div className="mt-8">
 						<WikiContribute table={table} rowId={row} columns={[col]} />

@@ -4,20 +4,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserSelect } from "@/components/admin/UserSelect";
 import { RoleSelect } from "@/components/admin/RoleSelect";
 import {
-	Coins,
-	TrendingUp,
-	Users,
-	Gift,
-	Trophy,
-	History,
-	Send,
-	Edit,
-	RefreshCw,
-	Loader2,
-	AlertTriangle,
-	CheckCircle2,
-	X,
-} from "lucide-react";
+	Alerte,
+	Cadeau,
+	Chargement,
+	CocheCercle,
+	Crayon,
+	Croix,
+	Envoyer,
+	Groupe,
+	Historique,
+	Piece,
+	Rafraichir,
+	Tendance,
+	Trophee,
+} from "@/components/icones";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
 import { fmtNum } from "@/lib/admin-format";
@@ -78,7 +78,7 @@ function ConfirmDialog({
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
 			<div className="card w-full max-w-sm space-y-4 border border-amber-500/40">
 				<div className="flex items-start gap-3">
-					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+					<Alerte className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
 					<div>
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
@@ -89,7 +89,7 @@ function ConfirmDialog({
 						className="ml-auto btn btn-ghost px-1 py-1"
 						aria-label="Fermer"
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 				<div className="flex justify-end gap-2">
@@ -189,7 +189,7 @@ export default function AdminEconomyPage() {
 			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
-					<Coins className="h-5 w-5 text-amber-400" />
+					<Piece className="h-5 w-5 text-amber-400" />
 					<h2 className="text-lg font-semibold">Économie</h2>
 					<button
 						type="button"
@@ -197,7 +197,7 @@ export default function AdminEconomyPage() {
 						className="btn btn-ghost ml-auto px-2"
 						title="Rafraîchir les données"
 					>
-						<RefreshCw className="h-3 w-3" />
+						<Rafraichir className="h-3 w-3" />
 					</button>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
@@ -209,7 +209,7 @@ export default function AdminEconomyPage() {
 			{/* Feedback */}
 			{successMsg && (
 				<div className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
-					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					<CocheCercle className="h-4 w-4 shrink-0" />
 					{successMsg}
 				</div>
 			)}
@@ -217,7 +217,7 @@ export default function AdminEconomyPage() {
 			{/* Salon des récompenses zeni */}
 			<div className="card">
 				<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					<Gift className="h-4 w-4" />
+					<Cadeau className="h-4 w-4" />
 					Salon des notifications de récompense
 				</h3>
 				<p className="mb-3 text-xs text-zinc-500">
@@ -228,7 +228,7 @@ export default function AdminEconomyPage() {
 				<div className="flex items-center gap-2">
 					{channels.isLoading ? (
 						<div className="flex items-center gap-2 text-zinc-500 text-sm">
-							<Loader2 className="h-4 w-4 animate-spin" />
+							<Chargement className="h-4 w-4 animate-spin" />
 							Chargement des salons…
 						</div>
 					) : (
@@ -260,39 +260,39 @@ export default function AdminEconomyPage() {
 			{/* Stats globales */}
 			{stats.isLoading ? (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement des statistiques…
 				</div>
 			) : stats.isError ? (
 				<div className="flex items-center gap-2 text-sm text-red-400">
-					<AlertTriangle className="h-4 w-4" />
+					<Alerte className="h-4 w-4" />
 					Impossible de charger les statistiques. Réessayez.
 				</div>
 			) : (
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 					<StatCard
-						icon={Coins}
+						icon={Piece}
 						label="Zénis en circulation"
 						value={fmtNum(stats.data?.zeni.total)}
 						sub={`Maximum détenu : ${fmtNum(stats.data?.zeni.max)} z`}
 						color="text-amber-400"
 					/>
 					<StatCard
-						icon={Users}
+						icon={Groupe}
 						label="Membres enregistrés"
 						value={fmtNum(stats.data?.zeni.users)}
 						sub={`${stats.data?.zeni.rich ?? 0} riches · ${stats.data?.zeni.zero ?? 0} à zéro`}
 						color="text-blue-400"
 					/>
 					<StatCard
-						icon={TrendingUp}
+						icon={Tendance}
 						label="Solde moyen"
 						value={fmtNum(Math.round(stats.data?.zeni.avg ?? 0))}
 						sub="Moyenne par membre actif"
 						color="text-emerald-400"
 					/>
 					<StatCard
-						icon={Trophy}
+						icon={Trophee}
 						label="Objets en inventaire"
 						value={fmtNum(stats.data?.inventoryItems)}
 						sub={`${stats.data?.fusions ?? 0} fusions · ${stats.data?.shopItemsActive ?? 0} articles actifs`}
@@ -304,18 +304,18 @@ export default function AdminEconomyPage() {
 			{/* Top zenis */}
 			<div className="card">
 				<h3 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					<Trophy className="h-4 w-4" />
+					<Trophee className="h-4 w-4" />
 					Top 20 membres les plus riches
 				</h3>
 				{top.isLoading && (
 					<div className="flex items-center gap-2 text-zinc-500 text-sm">
-						<Loader2 className="h-4 w-4 animate-spin" />
+						<Chargement className="h-4 w-4 animate-spin" />
 						Chargement…
 					</div>
 				)}
 				{top.isError && (
 					<div className="flex items-center gap-2 text-sm text-red-400">
-						<AlertTriangle className="h-4 w-4" />
+						<Alerte className="h-4 w-4" />
 						Impossible de charger le classement. Réessayez.
 					</div>
 				)}
@@ -353,7 +353,7 @@ export default function AdminEconomyPage() {
 			{/* Distribution de masse */}
 			<div className="card">
 				<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					<Send className="h-4 w-4" />
+					<Envoyer className="h-4 w-4" />
 					Distribution de zénis
 				</h3>
 				<p className="mb-3 text-xs text-zinc-500">
@@ -364,7 +364,7 @@ export default function AdminEconomyPage() {
 				<BulkGiveForm onSubmit={(body) => give.mutate(body)} pending={give.isPending} />
 				{give.isError && (
 					<p className="mt-2 flex items-center gap-1 text-xs text-red-400">
-						<AlertTriangle className="h-3 w-3" />
+						<Alerte className="h-3 w-3" />
 						{give.error instanceof Error ? give.error.message : String(give.error)}
 					</p>
 				)}
@@ -373,7 +373,7 @@ export default function AdminEconomyPage() {
 			{/* Transactions récentes */}
 			<div className="card">
 				<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-					<History className="h-4 w-4" />
+					<Historique className="h-4 w-4" />
 					Historique des transactions
 				</h3>
 				<p className="mb-3 text-xs text-zinc-500">
@@ -382,7 +382,7 @@ export default function AdminEconomyPage() {
 				</p>
 				{txs.isLoading && (
 					<div className="flex items-center gap-2 text-zinc-500 text-sm">
-						<Loader2 className="h-4 w-4 animate-spin" />
+						<Chargement className="h-4 w-4 animate-spin" />
 						Chargement…
 					</div>
 				)}
@@ -469,7 +469,7 @@ function EditBalanceButton({
 				className="btn btn-ghost px-1 py-0 text-xs"
 				title="Modifier le solde de ce membre"
 			>
-				<Edit className="h-3 w-3" />
+				<Crayon className="h-3 w-3" />
 			</button>
 		);
 	}
@@ -506,7 +506,7 @@ function EditBalanceButton({
 					className="btn btn-primary px-1 py-0 text-xs"
 					title="Valider"
 				>
-					<CheckCircle2 className="h-3 w-3" />
+					<CocheCercle className="h-3 w-3" />
 				</button>
 				<button
 					type="button"
@@ -514,7 +514,7 @@ function EditBalanceButton({
 					className="btn btn-ghost px-1 py-0 text-xs"
 					title="Annuler"
 				>
-					<X className="h-3 w-3" />
+					<Croix className="h-3 w-3" />
 				</button>
 			</div>
 		</>
@@ -625,7 +625,7 @@ function BulkGiveForm({
 							disabled={pending || !amount}
 							className="btn btn-primary w-full"
 						>
-							<Send className="h-3 w-3" />
+							<Envoyer className="h-3 w-3" />
 							{pending ? "Distribution en cours…" : "Distribuer les zénis"}
 						</button>
 					</div>

@@ -3,7 +3,16 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { BookOpen, Library, Layers, Search, Award, Lock, Trophy, Palette } from "lucide-react";
+import {
+	Bibliotheque,
+	Cadenas,
+	Couches,
+	Livre,
+	Palette,
+	Recherche,
+	Recompense,
+	Trophee,
+} from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
 import { estChapitreCouleur } from "@/lib/manga-editions";
@@ -99,7 +108,6 @@ const ACHIEVEMENTS: Achievement[] = [
 	},
 ];
 
-
 /** Entête de section « Édition Couleur », partagé par les onglets. */
 function ColorSectionHeader({ count }: { count: number }) {
 	return (
@@ -173,7 +181,7 @@ function MangaChapterCard({ chapter, idx }: { chapter: Chapter; idx: number }) {
 					/>
 				) : (
 					<div className="grid h-full w-full place-items-center">
-						<BookOpen className="w-10 h-10 text-dbz-orange/20" aria-hidden="true" />
+						<Livre className="w-10 h-10 text-dbz-orange/20" aria-hidden="true" />
 					</div>
 				)}
 				{color && (
@@ -295,7 +303,7 @@ export function MangaVolumeGrid({
 				<div className="reveal-up dbz-panel p-5 bg-gradient-to-r from-dbz-orange/10 via-dbz-orange/5 to-transparent border border-dbz-orange/30 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_0_20px_rgba(255,178,0,0.05)]">
 					<div className="flex items-center gap-4">
 						<div className="p-3 bg-dbz-orange/10 rounded-full text-dbz-orange border border-dbz-orange/30 animate-pulse">
-							<BookOpen className="w-5 h-5" />
+							<Livre className="w-5 h-5" />
 						</div>
 						<div className="space-y-1 text-center sm:text-left">
 							<span className="scouter-text text-xs text-dbz-orange block tracking-wider font-mono">
@@ -337,7 +345,7 @@ export function MangaVolumeGrid({
 						onClick={() => setTab("dbs")}
 						className={tab === "dbs" ? tabBtnActive : tabBtn}
 					>
-						<Layers className="w-4 h-4" />
+						<Couches className="w-4 h-4" />
 						Dragon Ball Super ({filteredDbs.length})
 					</button>
 					<button
@@ -350,7 +358,7 @@ export function MangaVolumeGrid({
 						onClick={() => setTab("db")}
 						className={tab === "db" ? tabBtnActive : tabBtn}
 					>
-						<Library className="w-4 h-4" />
+						<Bibliotheque className="w-4 h-4" />
 						Dragon Ball ({filteredDb.length + dbColorChapters.length})
 					</button>
 					<button
@@ -363,7 +371,7 @@ export function MangaVolumeGrid({
 						onClick={() => setTab("scans")}
 						className={tab === "scans" ? tabBtnActive : tabBtn}
 					>
-						<BookOpen className="w-4 h-4" />
+						<Livre className="w-4 h-4" />
 						Scans ({filteredChapters.length})
 					</button>
 					<button
@@ -376,7 +384,7 @@ export function MangaVolumeGrid({
 						onClick={() => setTab("achievements")}
 						className={tab === "achievements" ? tabBtnActive : tabBtn}
 					>
-						<Award className="w-4 h-4" />
+						<Recompense className="w-4 h-4" />
 						Succès ({unlockedCount}/{ACHIEVEMENTS.length})
 					</button>
 				</div>
@@ -384,7 +392,7 @@ export function MangaVolumeGrid({
 				{tab !== "achievements" && (
 					<div className="relative w-full lg:w-72 flex-shrink-0">
 						<span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-dbz-orange/50">
-							<Search className="w-4 h-4" />
+							<Recherche className="w-4 h-4" />
 						</span>
 						<input
 							type="text"
@@ -562,7 +570,11 @@ export function MangaVolumeGrid({
 													: "bg-zinc-900 text-zinc-600 border-zinc-800"
 											}`}
 										>
-											{isUnlocked ? <Trophy className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
+											{isUnlocked ? (
+												<Trophee className="w-6 h-6" />
+											) : (
+												<Cadenas className="w-6 h-6" />
+											)}
 										</div>
 										<div className="space-y-1 flex-1">
 											<div className="flex justify-between items-start gap-2">

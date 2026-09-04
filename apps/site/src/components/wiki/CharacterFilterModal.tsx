@@ -9,7 +9,7 @@
 // scroll du body verrouillé. Zéro dépendance Radix (thème DBZ maison).
 import { useId, useMemo, useRef, useState } from "react";
 import { useFocusTrap } from "@/lib/use-focus-trap";
-import { SlidersHorizontal, X } from "lucide-react";
+import { Croix, Curseurs } from "@/components/icones";
 
 export type FacetOption = { value: string; label: string; count?: number };
 
@@ -166,7 +166,7 @@ export function CharacterFilterModal({
 			>
 				{/* En-tête */}
 				<div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
-					<SlidersHorizontal className="h-4 w-4 text-dbz-orange" />
+					<Curseurs className="h-4 w-4 text-dbz-orange" />
 					<h2 id={titleId} className="font-saiyan text-lg uppercase tracking-widest text-white">
 						Filtrer les personnages
 					</h2>
@@ -187,7 +187,7 @@ export function CharacterFilterModal({
 							activeCount > 0 ? "" : "ml-auto"
 						}`}
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 

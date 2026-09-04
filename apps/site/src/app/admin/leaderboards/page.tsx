@@ -4,21 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { Trophy, Loader2, AlertTriangle, Mic, MessageSquare, Flame, Coins } from "lucide-react";
+import { Alerte, Bulle, Chargement, Flamme, Micro, Piece, Trophee } from "@/components/icones";
 import { api } from "@/lib/admin-api";
 import { formatDuration } from "@/lib/admin-format";
 
 const METRICS = [
-	{ key: "xp", label: "XP", color: "text-fuchsia-300", icon: Trophy },
-	{ key: "zeni", label: "Zénis", color: "text-yellow-300", icon: Coins },
-	{ key: "voice", label: "Temps vocal", color: "text-cyan-300", icon: Mic },
+	{ key: "xp", label: "XP", color: "text-fuchsia-300", icon: Trophee },
+	{ key: "zeni", label: "Zénis", color: "text-yellow-300", icon: Piece },
+	{ key: "voice", label: "Temps vocal", color: "text-cyan-300", icon: Micro },
 	{
 		key: "messages",
 		label: "Messages",
 		color: "text-violet-300",
-		icon: MessageSquare,
+		icon: Bulle,
 	},
-	{ key: "streak", label: "Streak quête", color: "text-pink-300", icon: Flame },
+	{ key: "streak", label: "Streak quête", color: "text-pink-300", icon: Flamme },
 ] as const;
 
 type Metric = (typeof METRICS)[number]["key"];
@@ -69,7 +69,7 @@ function LeaderboardInner() {
 		<div className="w-full max-w-5xl mx-auto space-y-4">
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-3 mb-1">
-					<Trophy className="h-6 w-6 text-dbz-orange" />
+					<Trophee className="h-6 w-6 text-dbz-orange" />
 					<h1 className="font-saiyan text-2xl text-dbz-orange tracking-widest">CLASSEMENTS</h1>
 				</div>
 				<p className="text-sm text-white/60">
@@ -101,7 +101,7 @@ function LeaderboardInner() {
 			{/* État chargement */}
 			{isLoading && (
 				<div className="dbz-panel p-8 flex items-center justify-center gap-3 text-white/50">
-					<Loader2 className="h-5 w-5 animate-spin" />
+					<Chargement className="h-5 w-5 animate-spin" />
 					<span>Chargement du classement…</span>
 				</div>
 			)}
@@ -109,7 +109,7 @@ function LeaderboardInner() {
 			{/* État erreur */}
 			{isError && (
 				<div className="dbz-panel p-6 flex items-center gap-3 text-red-400 border-red-500/40">
-					<AlertTriangle className="h-5 w-5 shrink-0" />
+					<Alerte className="h-5 w-5 shrink-0" />
 					<div>
 						<p className="font-semibold">Impossible de charger le classement.</p>
 						<p className="text-xs text-white/50 mt-0.5">
@@ -190,7 +190,7 @@ export default function LeaderboardsPage() {
 		<Suspense
 			fallback={
 				<div className="flex items-center justify-center gap-3 p-12 text-white/50">
-					<Loader2 className="h-5 w-5 animate-spin" />
+					<Chargement className="h-5 w-5 animate-spin" />
 					<span>Chargement…</span>
 				</div>
 			}

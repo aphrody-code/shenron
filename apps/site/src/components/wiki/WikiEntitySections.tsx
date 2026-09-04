@@ -15,7 +15,7 @@ import { WikiArticle } from "@/components/wiki/WikiArticle";
 import { WikiSectionLinks } from "@/components/wiki/WikiSectionLinks";
 import { WikiSectionsReader, type ReaderPanel } from "@/components/wiki/WikiSectionsReader";
 import Link from "next/link";
-import { PenLine } from "lucide-react";
+import { Crayon } from "@/components/icones";
 
 export async function WikiEntitySections({
 	entityType,
@@ -60,7 +60,7 @@ export async function WikiEntitySections({
 						href={`/wiki/corriger?table=db_wiki_sections&row=${s.id}&col=body`}
 						className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/30 transition-colors hover:text-dbz-orange"
 					>
-						<PenLine className="h-3 w-3" /> Corriger cette partie
+						<Crayon className="h-3 w-3" /> Corriger cette partie
 					</Link>
 				</div>
 			</div>

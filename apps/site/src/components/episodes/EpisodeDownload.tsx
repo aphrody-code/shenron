@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Lock } from "lucide-react";
+import { Cadenas, Telecharger } from "@/components/icones";
 import { useMe } from "@/lib/use-me";
 
 interface EpisodeDownloadProps {
@@ -39,7 +39,7 @@ export function EpisodeDownload({
 			title={loggedOut ? "Connexion Discord requise pour télécharger" : `Télécharger : ${title}`}
 			aria-label={loggedOut ? "Connexion requise pour télécharger" : "Télécharger"}
 		>
-			{loggedOut ? <Lock className="w-5 h-5" /> : <Download className="w-5 h-5" />}
+			{loggedOut ? <Cadenas className="w-5 h-5" /> : <Telecharger className="w-5 h-5" />}
 		</a>
 	);
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Lock, ArrowRight } from "lucide-react";
+import { Cadenas, FlecheDroite } from "@/components/icones";
 import { effectiveOpenKeys, LAUNCH_CATEGORIES } from "@/lib/wiki-launch";
 import { getOpenCategoryKeys } from "@/lib/wiki-launch-config";
 
@@ -75,7 +75,7 @@ export default async function WikiComingSoonPage({
 				<div className="screentone pointer-events-none absolute inset-0 opacity-40" />
 				<div className="relative z-10">
 					<span className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-dbz-orange/40 bg-dbz-orange/10">
-						<Lock className="h-7 w-7 text-dbz-orange" />
+						<Cadenas className="h-7 w-7 text-dbz-orange" />
 					</span>
 					<p className="mb-3 font-scouter text-[11px] uppercase tracking-[0.35em] text-dbz-orange">
 						Bêta · accès progressif
@@ -108,7 +108,7 @@ export default async function WikiComingSoonPage({
 					<div className="flex flex-wrap items-center justify-center gap-3">
 						<Link href="/" className="dbz-button inline-flex items-center gap-2">
 							Retour à l'accueil
-							<ArrowRight className="h-4 w-4" />
+							<FlecheDroite className="h-4 w-4" />
 						</Link>
 						<Link href="/wiki/chronologie" className="dbz-button-ghost">
 							Voir la chronologie

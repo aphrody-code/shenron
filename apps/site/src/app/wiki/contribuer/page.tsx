@@ -14,7 +14,7 @@
  * que découvert au moment d'un refus.
  */
 import Link from "next/link";
-import { BookOpen, PenLine, ShieldCheck, Sparkles } from "lucide-react";
+import { BouclierCoche, Crayon, Etincelle, Livre } from "@/components/icones";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { MesContributions } from "@/components/wiki/MesContributions";
@@ -34,19 +34,19 @@ export const metadata: Metadata = ogMeta({
 
 const ETAPES = [
 	{
-		icon: PenLine,
+		icon: Crayon,
 		titre: "Ouvre la fiche et clique sur « Proposer une correction »",
 		texte:
 			"Le bouton est sous le titre de chaque fiche, et sous chaque section. Le texte actuel s'ouvre dans une zone d'édition : tu modifies ce qui cloche, rien d'autre.",
 	},
 	{
-		icon: BookOpen,
+		icon: Livre,
 		titre: "Indique d'où vient l'information",
 		texte:
 			"Un tome et une planche, un databook et une page. Une correction sourcée est relue en quelques minutes ; sans source, il faut la vérifier avant, ce qui prend des jours.",
 	},
 	{
-		icon: ShieldCheck,
+		icon: BouclierCoche,
 		titre: "Un relecteur publie — sous ton nom",
 		texte:
 			"Rien n'est modifié tant qu'une proposition n'est pas acceptée. Une fois publiée, la modification apparaît dans l'historique du wiki avec ton pseudo, et reste annulable.",
@@ -156,7 +156,10 @@ export default async function PageContribuer() {
 						</p>
 						<div className="mt-6 space-y-4">
 							{chantiers.map((c) => (
-								<div key={c.table} className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
+								<div
+									key={c.table}
+									className="rounded-xl border border-white/10 bg-white/[0.02] p-5"
+								>
 									<div className="flex flex-wrap items-baseline justify-between gap-2">
 										<h3 className="text-sm font-bold text-white">{c.rubrique}</h3>
 										<p className="text-xs text-white/45">
@@ -196,7 +199,7 @@ export default async function PageContribuer() {
 			{/* --- Les contributeurs --- */}
 			<section className="mt-14">
 				<h2 className="flex items-center gap-2 font-saiyan text-2xl uppercase text-white">
-					<Sparkles className="h-5 w-5 text-dbz-orange" /> Celles et ceux qui écrivent
+					<Etincelle className="h-5 w-5 text-dbz-orange" /> Celles et ceux qui écrivent
 				</h2>
 				{contributeurs.length === 0 ? (
 					<p className="mt-4 text-sm leading-relaxed text-white/50">
@@ -230,7 +233,10 @@ export default async function PageContribuer() {
 			<p className="mt-14 border-t border-white/8 pt-6 text-xs leading-relaxed text-white/40">
 				Une question, un doute sur une source&nbsp;? Le bouton «&nbsp;Signaler une erreur&nbsp;» en
 				bas de chaque page passe par le même canal. Et tout ce qui change ici est public&nbsp;:{" "}
-				<Link href="/wiki/modifications" className="text-white/60 underline underline-offset-2 hover:text-dbz-orange">
+				<Link
+					href="/wiki/modifications"
+					className="text-white/60 underline underline-offset-2 hover:text-dbz-orange"
+				>
 					voir les modifications récentes
 				</Link>
 				.

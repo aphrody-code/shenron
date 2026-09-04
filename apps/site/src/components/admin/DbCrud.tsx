@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Edit, Trash2, Plus, X, Save, AlertTriangle, Pencil } from "lucide-react";
+import { Alerte, Corbeille, Crayon, Croix, Enregistrer, Plus } from "@/components/icones";
 import { SmartField } from "@/components/admin/SmartField";
 import { api, apiAt } from "@/lib/admin-api";
 import { colLabel } from "@/lib/db-labels";
@@ -195,7 +195,7 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 					title="Modifier (studio visuel)"
 					className="inline-flex items-center justify-center w-7 h-7 rounded border border-dbz-border text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-orange transition-colors"
 				>
-					<Pencil className="h-3.5 w-3.5" />
+					<Crayon className="h-3.5 w-3.5" />
 				</Link>
 			) : (
 				<button
@@ -204,7 +204,7 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 					title="Modifier"
 					className="inline-flex items-center justify-center w-7 h-7 rounded border border-dbz-border text-dbz-blue-light hover:border-dbz-orange hover:text-dbz-orange transition-colors"
 				>
-					<Edit className="h-3.5 w-3.5" />
+					<Crayon className="h-3.5 w-3.5" />
 				</button>
 			)}
 			<button
@@ -213,7 +213,7 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 				title="Supprimer"
 				className="inline-flex items-center justify-center w-7 h-7 rounded border border-dbz-border text-red-400 hover:border-red-500/60 hover:bg-red-500/10 transition-colors"
 			>
-				<Trash2 className="h-3.5 w-3.5" />
+				<Corbeille className="h-3.5 w-3.5" />
 			</button>
 
 			{editing && !studio && (
@@ -235,7 +235,7 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 				<div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 p-4 backdrop-blur">
 					<div className="dbz-panel w-full max-w-md p-6">
 						<div className="mb-4 flex items-center gap-3">
-							<AlertTriangle className="h-6 w-6 text-red-400 shrink-0" />
+							<Alerte className="h-6 w-6 text-red-400 shrink-0" />
 							<h3 className="font-saiyan text-lg uppercase text-red-400">
 								Supprimer cette entrée ?
 							</h3>
@@ -262,7 +262,7 @@ export function DbRowActions({ table, id }: { table: string; id: string | number
 								disabled={remove.isPending}
 								className="btn btn-danger"
 							>
-								<Trash2 className="h-3.5 w-3.5" />
+								<Corbeille className="h-3.5 w-3.5" />
 								{remove.isPending ? "Suppression…" : "Oui, supprimer"}
 							</button>
 						</div>
@@ -324,7 +324,7 @@ function FieldModal({
 						className="btn btn-ghost px-2"
 						aria-label="Fermer"
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 
@@ -360,7 +360,7 @@ function FieldModal({
 						disabled={saving || loading}
 						className="btn btn-primary"
 					>
-						<Save className="h-3 w-3" />
+						<Enregistrer className="h-3 w-3" />
 						{saving ? "Enregistrement…" : "Enregistrer"}
 					</button>
 				</div>

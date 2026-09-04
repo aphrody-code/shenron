@@ -8,7 +8,7 @@
  * CDN/ISR. Présenté en menu déroulant compact pour ne pas déborder la barre.
  */
 import Link from "next/link";
-import { ChevronDown, Lock } from "lucide-react";
+import { Cadenas, ChevronBas } from "@/components/icones";
 import { useEffect, useRef, useState } from "react";
 import { useMe } from "@/lib/use-me";
 
@@ -47,9 +47,9 @@ export function AdminNavLinks({ links }: { links: NavLink[] }) {
 				title="Sections masquées au public (visibles en tant qu'admin)"
 				className="inline-flex items-center gap-1.5 font-display font-medium text-[15px] tracking-normal text-dbz-orange/85 hover:text-dbz-orange transition-colors px-3.5 py-2 rounded-md border border-dbz-orange/25 hover:border-dbz-orange/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 			>
-				<Lock className="h-3.5 w-3.5" />
+				<Cadenas className="h-3.5 w-3.5" />
 				<span>Sections</span>
-				<ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
+				<ChevronBas className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
 			</button>
 
 			{open && (

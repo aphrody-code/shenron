@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Play, Info } from "lucide-react";
+import { Info, Lecture } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { BackgroundImage } from "@/components/media/BackgroundImage";
 
@@ -119,7 +119,7 @@ export function Billboard({
 									href={primaryHref}
 									className="inline-flex items-center gap-2 rounded-lg bg-dbz-orange px-6 py-3 font-display text-[15px] font-bold text-black shadow-lg transition-colors hover:bg-dbz-orange-dark"
 								>
-									<Play className="h-5 w-5 fill-current" />
+									<Lecture className="h-5 w-5 fill-current" />
 									{primaryLabel}
 								</a>
 							) : (
@@ -127,7 +127,7 @@ export function Billboard({
 									href={primaryHref}
 									className="inline-flex items-center gap-2 rounded-lg bg-dbz-orange px-6 py-3 font-display text-[15px] font-bold text-black shadow-lg transition-colors hover:bg-dbz-orange-dark"
 								>
-									<Play className="h-5 w-5 fill-current" />
+									<Lecture className="h-5 w-5 fill-current" />
 									{primaryLabel}
 								</Link>
 							)}

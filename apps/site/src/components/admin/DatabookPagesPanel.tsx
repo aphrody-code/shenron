@@ -9,7 +9,15 @@
  * SmartField / buildSubmitBody).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Hash, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import {
+	Chargement,
+	ChevronBas,
+	ChevronHaut,
+	Corbeille,
+	Diese,
+	Enregistrer,
+	Plus,
+} from "@/components/icones";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
 import { apiAt } from "@/lib/admin-api";
@@ -272,7 +280,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 	if (row.isLoading) {
 		return (
 			<div className="dbz-panel flex items-center gap-2 p-5 text-sm text-white/50">
-				<Loader2 className="h-4 w-4 animate-spin" /> Chargement des pages…
+				<Chargement className="h-4 w-4 animate-spin" /> Chargement des pages…
 			</div>
 		);
 	}
@@ -400,7 +408,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 					onClick={renumberFrom}
 					title="Remet les numéros en séquence à partir du départ choisi"
 				>
-					<Hash className="h-3.5 w-3.5" />
+					<Diese className="h-3.5 w-3.5" />
 					Renuméroter
 				</button>
 
@@ -411,9 +419,9 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 					onClick={() => save.mutate()}
 				>
 					{save.isPending ? (
-						<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						<Chargement className="h-3.5 w-3.5 animate-spin" />
 					) : (
-						<Save className="h-3.5 w-3.5" />
+						<Enregistrer className="h-3.5 w-3.5" />
 					)}
 					Enregistrer les pages
 				</button>
@@ -520,7 +528,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 													title="Monter (change l'ordre de lecture, pas le n°)"
 													aria-label={`Monter la page ${displayN}`}
 												>
-													<ChevronUp className="h-3.5 w-3.5" />
+													<ChevronHaut className="h-3.5 w-3.5" />
 												</button>
 												<button
 													type="button"
@@ -530,7 +538,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 													title="Descendre (change l'ordre de lecture, pas le n°)"
 													aria-label={`Descendre la page ${displayN}`}
 												>
-													<ChevronDown className="h-3.5 w-3.5" />
+													<ChevronBas className="h-3.5 w-3.5" />
 												</button>
 												<button
 													type="button"
@@ -539,7 +547,7 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 													title="Supprimer ce slot"
 													aria-label={`Supprimer la page ${displayN}`}
 												>
-													<Trash2 className="h-3.5 w-3.5" />
+													<Corbeille className="h-3.5 w-3.5" />
 												</button>
 											</div>
 										</div>
@@ -595,9 +603,9 @@ export function DatabookPagesPanel({ databookId }: { databookId: string }) {
 					onClick={() => save.mutate()}
 				>
 					{save.isPending ? (
-						<Loader2 className="h-4 w-4 animate-spin" />
+						<Chargement className="h-4 w-4 animate-spin" />
 					) : (
-						<Save className="h-4 w-4" />
+						<Enregistrer className="h-4 w-4" />
 					)}
 					{dirty ? "Enregistrer les pages" : "À jour"}
 				</button>

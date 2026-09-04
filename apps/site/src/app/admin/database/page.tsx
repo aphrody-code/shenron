@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Database as DbIcon, Lock, Pencil } from "lucide-react";
+import { Base, Cadenas, Crayon } from "@/components/icones";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/admin-api";
 
@@ -144,14 +144,14 @@ export default function DatabasePage() {
 								>
 									<div className="mb-2 flex items-center justify-between">
 										<div className="flex items-center gap-2">
-											<DbIcon className="h-4 w-4 text-dbz-orange/70 group-hover:text-dbz-orange transition-colors" />
+											<Base className="h-4 w-4 text-dbz-orange/70 group-hover:text-dbz-orange transition-colors" />
 											<span className="font-saiyan text-sm uppercase tracking-wider text-white group-hover:text-dbz-orange transition-colors">
 												{label}
 											</span>
 										</div>
 										{t.readonly && (
 											<span title="Lecture seule" className="inline-flex">
-												<Lock className="h-3 w-3 text-white/50" />
+												<Cadenas className="h-3 w-3 text-white/50" />
 											</span>
 										)}
 									</div>
@@ -162,7 +162,7 @@ export default function DatabasePage() {
 										</span>
 										{!t.readonly && t.mutableColumns.length > 0 && (
 											<span className="badge badge-success">
-												<Pencil className="h-2.5 w-2.5" />
+												<Crayon className="h-2.5 w-2.5" />
 												{t.mutableColumns.length} champ
 												{t.mutableColumns.length > 1 ? "s" : ""} modifiable
 												{t.mutableColumns.length > 1 ? "s" : ""}

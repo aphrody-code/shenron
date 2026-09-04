@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { FileText, Pencil, Plus, Star } from "lucide-react";
+import { Crayon, Document, Etoile, Plus } from "@/components/icones";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -83,7 +83,7 @@ export default async function AdminPosts({
 
 			{posts.length === 0 ? (
 				<div className="grid place-items-center gap-3 rounded-xl border border-dashed border-white/15 px-6 py-16 text-center">
-					<FileText className="size-8 text-white/25" />
+					<Document className="size-8 text-white/25" />
 					<p className="text-[15px] font-medium text-white">
 						{filter === "all" ? "Aucun article pour l'instant" : "Aucun article dans ce statut"}
 					</p>
@@ -123,7 +123,7 @@ export default async function AdminPosts({
 											/>
 										) : (
 											<span className="grid size-full place-items-center text-white/20">
-												<FileText className="size-4" />
+												<Document className="size-4" />
 											</span>
 										)}
 									</div>
@@ -131,7 +131,7 @@ export default async function AdminPosts({
 									<div className="min-w-0 flex-1">
 										<p className="flex items-center gap-2 truncate text-[15px] font-semibold text-white">
 											{post.featured && (
-												<Star className="size-3.5 shrink-0 fill-amber-400 text-amber-400" />
+												<Etoile className="size-3.5 shrink-0 fill-amber-400 text-amber-400" />
 											)}
 											{post.title}
 										</p>
@@ -153,7 +153,7 @@ export default async function AdminPosts({
 
 									<StatusPill status={status} />
 
-									<Pencil className="size-4 shrink-0 text-white/25 transition-colors group-hover:text-white/70" />
+									<Crayon className="size-4 shrink-0 text-white/25 transition-colors group-hover:text-white/70" />
 								</Link>
 							</li>
 						);

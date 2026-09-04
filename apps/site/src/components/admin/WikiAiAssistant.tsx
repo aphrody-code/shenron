@@ -8,7 +8,7 @@
  */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ExternalLink, Loader2, Plus, Sparkles, Wand2 } from "lucide-react";
+import { Baguette, Chargement, Etincelle, LienExterne, Plus } from "@/components/icones";
 import { apiAt } from "@/lib/admin-api";
 import { sectionKeyFromLabel } from "@/lib/wiki-fields";
 import { crudBase } from "@/lib/wiki-tables";
@@ -86,7 +86,7 @@ export function WikiAiAssistant({
 	return (
 		<div className="dbz-panel space-y-4 p-5">
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-				<Sparkles className="h-3.5 w-3.5" /> Assistant sources (RAG)
+				<Etincelle className="h-3.5 w-3.5" /> Assistant sources (RAG)
 			</div>
 			<p className="text-xs text-white/50">
 				Donne une instruction : l&apos;assistant récupère des <strong>passages sourcés</strong> de
@@ -106,7 +106,7 @@ export function WikiAiAssistant({
 						}}
 						className="inline-flex items-center gap-1 rounded border border-dbz-border bg-dbz-card/60 px-2 py-1 text-xs text-white/80 hover:border-dbz-orange hover:text-white"
 					>
-						<Wand2 className="h-3 w-3" /> {p.label}
+						<Baguette className="h-3 w-3" /> {p.label}
 					</button>
 				))}
 			</div>
@@ -130,7 +130,7 @@ export function WikiAiAssistant({
 					disabled={search.isPending || !query.trim()}
 					className="btn btn-ghost shrink-0"
 				>
-					{search.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Chercher"}
+					{search.isPending ? <Chargement className="h-4 w-4 animate-spin" /> : "Chercher"}
 				</button>
 			</div>
 
@@ -152,7 +152,7 @@ export function WikiAiAssistant({
 											rel="noreferrer"
 											className="shrink-0 text-dbz-blue-light hover:text-dbz-orange"
 										>
-											<ExternalLink className="h-3 w-3" />
+											<LienExterne className="h-3 w-3" />
 										</a>
 									)}
 								</div>
@@ -190,7 +190,7 @@ export function WikiAiAssistant({
 							className="btn btn-primary"
 						>
 							{insert.isPending ? (
-								<Loader2 className="h-4 w-4 animate-spin" />
+								<Chargement className="h-4 w-4 animate-spin" />
 							) : (
 								<Plus className="h-4 w-4" />
 							)}

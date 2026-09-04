@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { FileSearch, Loader2, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Alerte, Chargement, ChevronDroite, ChevronGauche, LoupeDoc } from "@/components/icones";
 import { api } from "@/lib/admin-api";
 import { formatRelative } from "@/lib/admin-format";
 
@@ -123,7 +123,7 @@ export default function AuditPage() {
 				<div className="flex items-center justify-between gap-3 flex-wrap">
 					<div>
 						<div className="flex items-center gap-2">
-							<FileSearch className="h-5 w-5 text-brand-400" />
+							<LoupeDoc className="h-5 w-5 text-brand-400" />
 							<h2 className="text-lg font-semibold">Journal d&apos;audit</h2>
 						</div>
 						<p className="mt-1 text-sm text-zinc-400">
@@ -157,7 +157,7 @@ export default function AuditPage() {
 			{/* Chargement */}
 			{isLoading && (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement du journal…
 				</div>
 			)}
@@ -165,7 +165,7 @@ export default function AuditPage() {
 			{/* Erreur */}
 			{isError && (
 				<div className="flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
-					<AlertTriangle className="h-4 w-4 shrink-0" />
+					<Alerte className="h-4 w-4 shrink-0" />
 					<div>
 						<p className="font-semibold">Impossible de charger le journal.</p>
 						{source === "discord" && (
@@ -318,7 +318,7 @@ export default function AuditPage() {
 							disabled={page === 0}
 							className="btn btn-ghost"
 						>
-							<ChevronLeft className="h-4 w-4" />
+							<ChevronGauche className="h-4 w-4" />
 							Précédent
 						</button>
 						<span className="text-sm text-zinc-400">
@@ -334,7 +334,7 @@ export default function AuditPage() {
 							className="btn btn-ghost"
 						>
 							Suivant
-							<ChevronRight className="h-4 w-4" />
+							<ChevronDroite className="h-4 w-4" />
 						</button>
 					</div>
 				</>
