@@ -92,11 +92,10 @@ export async function SiteNav() {
 		// `view-transition-name` → la nav reste fixe pendant les slides
 		// directionnels (point d'ancrage spatial). CSS dans globals.css.
 		<header className="sticky top-0 z-50 w-full" style={{ viewTransitionName: "site-header" }}>
-			{/* Bord inférieur : 2 px de blanc cassé, pas une hairline orange. C'est le
-			    bord de la première case de la planche — la barre cesse d'être une
-			    surface flottante pour devenir le haut de la page. L'ombre portée
-			    nette, sans flou, donne le poids de l'encre. */}
-			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.86)] backdrop-blur-xl backdrop-saturate-150 border-b-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] shadow-[0_3px_0_rgba(0,0,0,0.55)]" />
+			{/* Séparation très discrète : la bordure blanche de 2 px créait une barre
+			    qui coupait le contenu juste sous le header. Le token de bordure garde
+			    l'ancrage de la navigation sans introduire une surface claire. */}
+			<div className="absolute inset-0 -z-10 border-b border-dbz-border/80 bg-[rgba(10,10,10,0.86)] shadow-[0_2px_0_rgba(0,0,0,0.42)] backdrop-blur-xl backdrop-saturate-150" />
 
 			{/* Réserve d'encoche : en plein écran (PWA, mode immersif iOS), une barre
 			    `sticky top-0` passe SOUS la barre d'état et le logo se retrouve à

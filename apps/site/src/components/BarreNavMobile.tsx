@@ -204,7 +204,7 @@ export function BarreNavMobile() {
 				role="dialog"
 				aria-modal="true"
 				aria-label="Autres rubriques"
-				className="barre-nav-feuille fixed inset-x-0 bottom-0 z-[61] max-h-[75dvh] overflow-y-auto overscroll-contain border-t-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] bg-[rgba(10,10,10,0.98)] lg:hidden"
+				className="barre-nav-feuille fixed inset-x-0 bottom-0 z-[61] max-h-[75dvh] overflow-y-auto overscroll-contain border-t border-dbz-border bg-[rgba(24,24,20,0.98)] lg:hidden"
 			>
 				{/* Poignée de feuille : le repère qui dit « ceci se ferme ». */}
 				<div className="flex items-center justify-between px-5 pt-3 pb-1">
@@ -267,7 +267,7 @@ export function BarreNavMobile() {
 
 			<nav
 				aria-label="Navigation principale"
-				className="barre-nav fixed inset-x-0 bottom-0 z-[55] border-t-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] bg-[rgba(10,10,10,0.94)] backdrop-blur-xl backdrop-saturate-150 lg:hidden"
+				className="barre-nav fixed inset-x-0 bottom-0 z-[55] border-t border-dbz-border bg-[rgba(24,24,20,0.96)] backdrop-blur-xl backdrop-saturate-150 lg:hidden"
 			>
 				{/* 480 px = 5 × 96 dp, `design_bottom_navigation_item_max_width`. Sans ce
 				    plafond, un item mesurait 128 px de large sur une tablette de 768 :
@@ -294,12 +294,12 @@ export function BarreNavMobile() {
 									>
 										<Glyphe
 											size={24}
-											className={on ? "text-[var(--color-logo-jaune)]" : "text-white/70"}
+									className={on ? "text-[var(--color-logo-jaune)]" : "text-white/80"}
 										/>
 									</span>
 									<span
 										className={`text-[12px] leading-none tracking-[0.01em] ${
-											on ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/70"
+										on ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/80"
 										}`}
 									>
 										{d.label}
@@ -326,12 +326,12 @@ export function BarreNavMobile() {
 							>
 								<Ellipse
 									size={24}
-									className={feuille ? "text-[var(--color-logo-jaune)]" : "text-white/70"}
+									className={feuille ? "text-[var(--color-logo-jaune)]" : "text-white/80"}
 								/>
 							</span>
 							<span
 								className={`text-[12px] leading-none tracking-[0.01em] ${
-									feuille ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/70"
+									feuille ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/80"
 								}`}
 							>
 								Plus

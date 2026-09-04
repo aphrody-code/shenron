@@ -241,6 +241,7 @@ export function HomeExperience({
 
 	const refs = useRef<(HTMLElement | null)[]>([]);
 	const deckRef = useRef<HTMLDivElement>(null);
+	const scrollFrame = useRef<number | null>(null);
 	const [active, setActive] = useState(0);
 	// Mobile (≤640px) : plafonne le contenu du Panthéon pour tenir dans 100svh (le
 	// deck hijacke le scroll → le bas d'un panneau trop haut serait inatteignable).
@@ -250,6 +251,8 @@ export function HomeExperience({
 	useEffect(() => {
 		reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	}, []);
+
+	useEffect(() => () => void (scrollFrame.current && cancelAnimationFrame(scrollFrame.current)), []);
 
 	// Suit la largeur (≤640px) pour réduire le contenu du Panthéon sur mobile.
 	useEffect(() => {
@@ -270,10 +273,27 @@ export function HomeExperience({
 			const idx = Math.max(0, Math.min(sections.length - 1, i));
 			const el = refs.current[idx];
 			if (!el) return;
-			el.scrollIntoView({
-				behavior: reduceRef.current ? "auto" : "smooth",
-				block: "start",
-			});
+			if (scrollFrame.current) cancelAnimationFrame(scrollFrame.current);
+			if (reduceRef.current) {
+				el.scrollIntoView({ behavior: "auto", block: "start" });
+			} else {
+				const depart = window.scrollY;
+				const arrivee = Math.max(0, el.getBoundingClientRect().top + window.scrollY);
+				const distance = arrivee - depart;
+				// Une durée qui suit la distance évite l'effet d'un saut brusque vers
+				// le panneau voisin comme celui d'un long glissement vers un panneau
+				// éloigné. La décélération laisse le lecteur arriver naturellement.
+				const duree = Math.min(820, Math.max(360, Math.abs(distance) * 0.32));
+				const debut = performance.now();
+				const animer = (maintenant: number) => {
+					const progres = Math.min(1, (maintenant - debut) / duree);
+					const inertie = 1 - (1 - progres) ** 4;
+					window.scrollTo({ top: depart + distance * inertie, behavior: "instant" as ScrollBehavior });
+					if (progres < 1) scrollFrame.current = requestAnimationFrame(animer);
+					else scrollFrame.current = null;
+				};
+				scrollFrame.current = requestAnimationFrame(animer);
+			}
 			setActive(idx);
 		},
 		[sections.length]
@@ -890,7 +910,6 @@ export function HomeExperience({
 					onClick={() => goTo(1)}
 					aria-label="Section suivante"
 				>
-					<span>Défiler</span>
 					<span className="home-scroll-hint__arrow" />
 				</button>
 			</section>

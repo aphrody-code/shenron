@@ -10,6 +10,7 @@ import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BarreNavMobile } from "@/components/BarreNavMobile";
+import { PageTransition } from "@/components/PageTransition";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { ConsentGate } from "@/components/ConsentGate";
@@ -232,7 +233,7 @@ export default async function RootLayout({
 				<PageViewTracker />
 				<SiteNav />
 				<main id="contenu" tabIndex={-1} className="relative z-10 flex-1 w-full flex flex-col">
-					{children}
+					<PageTransition>{children}</PageTransition>
 				</main>
 				<SiteFooter />
 				{/* Barre de navigation basse — sous 1024 px seulement, là où la nav de

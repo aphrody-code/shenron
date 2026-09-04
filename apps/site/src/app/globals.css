@@ -4,38 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* === Animations de transition de page (View Transitions API) === */
-@view-transition {
-	navigation: auto;
-}
-
-/* Animations fluides lors de la navigation */
-::view-transition-old(root) {
-	animation: 180ms cubic-bezier(0.4, 0, 0.2, 1) both fade-out;
-}
-::view-transition-new(root) {
-	animation: 240ms cubic-bezier(0.4, 0, 0.2, 1) both fade-in;
-}
-
-@keyframes fade-out {
-	from {
-		opacity: 1;
-	}
-	to {
-		opacity: 0;
-	}
-}
-@keyframes fade-in {
-	from {
-		opacity: 0;
-		transform: translateY(4px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
-
 html {
 	/* Défilement doux — mais JAMAIS imposé : `scroll-behavior: smooth` non gardé
 	   déclenche des nausées chez les personnes sensibles au mouvement, et rend le
@@ -2523,7 +2491,12 @@ main:focus {
 	   Sans elle, il glisse à plat sur la vidéo comme un autocollant. */
 	transform: translate3d(var(--kt-x, -12vw), var(--kt-y, 0), 0)
 		rotate(var(--kt-inclinaison, 0deg)) scale(var(--kt-echelle, 1));
-	will-change: transform;
+	will-change: transform, opacity;
+	transition: opacity 180ms ease-out;
+}
+.kt-volant[data-hors-hero] {
+	opacity: 0;
+	pointer-events: none;
 }
 .kt-volant__prise {
 	display: block;
@@ -2859,17 +2832,14 @@ main:focus {
 	bottom: clamp(1.2rem, 4vh, 2.4rem);
 	transform: translateX(-50%);
 	display: flex;
-	flex-direction: column;
 	align-items: center;
-	gap: 0.5rem;
+	justify-content: center;
+	width: 2.75rem;
+	min-height: 2.75rem;
 	background: none;
 	border: none;
 	cursor: pointer;
 	z-index: 3;
-	color: rgba(255, 255, 255, 0.6);
-	font-size: 0.62rem;
-	letter-spacing: 0.28em;
-	text-transform: uppercase;
 }
 .home-scroll-hint__arrow {
 	width: 1px;
@@ -3352,30 +3322,35 @@ main:focus {
 	}
 }
 
-/* --- Slides directionnels (nav-forward = on entre, nav-back = on revient) --- */
-::view-transition-old(.nav-forward) {
-	--vt-slide: -56px;
-	animation:
-		150ms ease-in both vt-fade reverse,
-		400ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide reverse;
-}
-::view-transition-new(.nav-forward) {
-	--vt-slide: 56px;
-	animation:
-		220ms ease-out 130ms both vt-fade,
-		420ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide;
-}
-::view-transition-old(.nav-back) {
-	--vt-slide: 56px;
-	animation:
-		150ms ease-in both vt-fade reverse,
-		400ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide reverse;
-}
-::view-transition-new(.nav-back) {
-	--vt-slide: -56px;
-	animation:
-		220ms ease-out 130ms both vt-fade,
-		420ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide;
+/* --- Slides directionnels (bureau seulement) ---
+   Les transitions automatiques du document étaient en concurrence avec les
+   types React. Seules les navigations explicitement marquées animent désormais
+   leur contenu, et jamais le header. */
+@media (min-width: 1024px) {
+	::view-transition-old(.nav-forward) {
+		--vt-slide: -56px;
+		animation:
+			150ms ease-in both vt-fade reverse,
+			400ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide reverse;
+	}
+	::view-transition-new(.nav-forward) {
+		--vt-slide: 56px;
+		animation:
+			220ms ease-out 130ms both vt-fade,
+			420ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide;
+	}
+	::view-transition-old(.nav-back) {
+		--vt-slide: 56px;
+		animation:
+			150ms ease-in both vt-fade reverse,
+			400ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide reverse;
+	}
+	::view-transition-new(.nav-back) {
+		--vt-slide: -56px;
+		animation:
+			220ms ease-out 130ms both vt-fade,
+			420ms cubic-bezier(0.4, 0, 0.2, 1) both vt-slide;
+	}
 }
 @keyframes vt-slide {
 	from {
@@ -3406,6 +3381,11 @@ main:focus {
 }
 ::view-transition-new(site-header) {
 	animation: none;
+}
+
+/* Le calque de transition ne doit pas absorber les clics du contenu vivant. */
+::view-transition {
+	pointer-events: none;
 }
 
 /* --- Reduced motion : swap instantané (comportement par défaut du navigateur) */

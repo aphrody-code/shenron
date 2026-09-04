@@ -34,6 +34,7 @@ export function KintoUnVolant() {
 	const coque = useRef<HTMLDivElement>(null);
 	const [figure, setFigure] = useState<Figure | null>(null);
 	const [survol, setSurvol] = useState(false);
+	const [horsHero, setHorsHero] = useState(false);
 	const suivant = useRef(0);
 	const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -49,6 +50,13 @@ export function KintoUnVolant() {
 		const mesurer = () => {
 			const h = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
 			cible = Math.min(1, Math.max(0, window.scrollY / h));
+			// Le Kinto-Un est le décor du premier écran. Dès que le lecteur commence
+			// à explorer le contenu, il se retire plutôt que de le suivre et de
+			// traverser les panneaux suivants.
+			setHorsHero((etaitHorsHero) => {
+				const estHorsHero = window.scrollY > 48;
+				return etaitHorsHero === estHorsHero ? etaitHorsHero : estHorsHero;
+			});
 			if (!cadre) cadre = requestAnimationFrame(peindre);
 		};
 		const peindre = () => {
@@ -113,10 +121,17 @@ export function KintoUnVolant() {
 	useEffect(() => () => void (minuteur.current && clearTimeout(minuteur.current)), []);
 
 	return (
-		<div ref={coque} className="kt-volant" data-survol={survol || undefined}>
+		<div
+			ref={coque}
+			className="kt-volant"
+			data-survol={survol || undefined}
+			data-hors-hero={horsHero || undefined}
+			aria-hidden={horsHero || undefined}
+		>
 			<button
 				type="button"
 				className="kt-volant__prise"
+				tabIndex={horsHero ? -1 : undefined}
 				onClick={jouer}
 				onPointerEnter={() => setSurvol(true)}
 				onPointerLeave={() => setSurvol(false)}
