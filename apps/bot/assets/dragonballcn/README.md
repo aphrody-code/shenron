@@ -89,6 +89,47 @@ Shueisha, que ce site redistribue sans licence.
 Référencer est permis, et c'est ce que fait ce miroir. Reproduire le corps de
 l'œuvre à travers un refus explicite, non.
 
+## Le jour où une autorisation arrive
+
+[`telecharge-planches-dragonballcn.ts`](../../scripts/telecharge-planches-dragonballcn.ts)
+est écrit et prêt, mais **verrouillé** : il refuse de télécharger tant qu'aucune
+autorisation n'est déposée dans `~/.aphrody/autorisation-dragonballcn.json` (0600),
+et sort alors en **77** — la convention « accès refusé, ne pas relancer ».
+
+Le fichier n'EST pas l'autorisation, il la consigne. Cinq champs, tous obligatoires :
+`accordee_par`, `contact`, `reference_courriel`, `date`, `portee` (plus `expire_le`,
+facultatif — une autorisation périmée arrête la campagne). Ils sont affichés au
+démarrage : la campagne reste auditable.
+
+**À relancer le jour du courriel, avant toute chose :**
+
+```bash
+bun apps/bot/scripts/telecharge-planches-dragonballcn.ts --verifier-acces
+```
+
+Quatre URL, quatre codes, aucun téléchargement, aucune autorisation requise.
+Mesure du 2026-09-04 — dossier distant résolu
+(`0.Dragon_Ball-buyao_daolian_ya/1.jp_original/01`) :
+
+| Réponse | Ressource                   |
+| ------- | --------------------------- |
+| `200`   | couverture de catalogue     |
+| `403`   | fiche de lecture            |
+| `403`   | planche pleine résolution   |
+| `403`   | miniature de planche        |
+
+**Un accord par courriel ne suffira donc pas seul** : le refus est technique autant
+qu'éditorial. Il faut demander dans le même fil soit la mise en liste blanche de
+notre agent (`dragonballfr.com-archive/1.0`) ou de l'IP du VPS, soit l'envoi direct
+des fichiers. Le script ne maquille pas son empreinte pour franchir un 403 : après
+5 refus consécutifs il s'arrête et le dit.
+
+Une fois ouvert, il rapatrie sous `assets/dragonballcn/planches/<collection>/<did>/NNN.webp`
+(numérotation de l'inventaire, donc les doubles pages gardent leur rang), avec trois
+freins indépendants — jitter 900–2500 ms, 300 requêtes / 15 min, 5 000 / 24 h —, un
+garde-fou disque à 2 Go et un journal reprenable en 0600 : une planche déjà
+rapatriée n'est jamais redemandée.
+
 ## Licence
 
 `FAIR-USE-EDITORIAL`, comme les autres buckets bibliographiques de la base

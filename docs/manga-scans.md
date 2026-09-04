@@ -55,6 +55,16 @@ les fiches de lecture `403`. Le dossier qui les porte s'appelle
 (directive UE 2019/790, art. 4). C'est un refus explicite, pas un obstacle
 technique — le miroir s'y tient : l'index, oui ; l'œuvre, non.
 
+Le script de rapatriement existe pourtant : `telecharge-planches-dragonballcn.ts`,
+**verrouillé** tant qu'aucune autorisation n'est consignée dans
+`~/.aphrody/autorisation-dragonballcn.json` (sortie **77** sinon). Son mode
+`--verifier-acces` sonde quatre URL sans rien télécharger — c'est le test à relancer
+le jour où le courriel arrive. Mesure du 2026-09-04 : couverture `200`, fiche `403`,
+planche `403`, miniature `403`. Autrement dit **l'accord éditorial ne suffira pas
+seul**, il faudra demander dans le même fil la mise en liste blanche de l'agent ou
+de l'IP, ou l'envoi direct des fichiers. Le script ne maquille jamais son empreinte
+pour franchir un 403 : cinq refus consécutifs et il s'arrête.
+
 ## Scripts d'ingestion (`apps/bot/scripts/`)
 
 Tous prennent `DATABASE_URL` (Neon) et ont un **garde-fou disque** (stop sous un
