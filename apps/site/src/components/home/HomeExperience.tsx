@@ -25,6 +25,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import { DragonBall } from "@/components/DragonBall";
+import {
+	MotManga,
+	LETTRES_DRAGON_AVANT_BOULE,
+	LETTRES_DRAGON_APRES_BOULE,
+	LETTRES_BALL,
+} from "@/components/MotManga";
 import { KintoUnVolant } from "@/components/home/KintoUnVolant";
 import Link from "next/link";
 import Image from "next/image";
@@ -826,7 +832,6 @@ export function HomeExperience({
 				</span>
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">
-						<span className="home-kicker__jp">ドラゴンボール</span>
 						<span className="home-kicker__live">
 							<span className={`home-live-dot ${live.onlineCount > 0 ? "is-on" : ""}`} />
 							{live.onlineCount}/6 gardiens en ligne
@@ -835,26 +840,30 @@ export function HomeExperience({
 					{/* Deux mots, deux aplats : c'est la signature du logo de couverture
 					    (« DRAGON » jaune, « BALL » rouge), et elle ne survit pas à un
 					    span unique — un dégradé à coupure franche se décalerait à
-					    chaque changement de largeur. Chaque mot porte son propre
+					    chaque changement de largeur. Chaque LETTRE porte son propre
 					    `data-texte`, dont les deux cernes sont des copies. */}
 					<h1 className="home-wordmark">
 						<span className="home-wordmark__ligne">
 							{/* Le O de DRAGON porte la boule, exactement comme sur la
-							    couverture : l'étoile y est inscrite dans la contre-forme du
-							    O, mesurée à 45 px pour une capitale de 152. La lettre reste
-							    dans le flux pour les lecteurs d'écran, elle est seulement
-							    masquée à l'œil. */}
-							<span className="wordmark-manga" data-texte="Dragon">
-								{"Drag"}
+							    couverture : la lettre reste dans le flux pour les lecteurs
+							    d'écran, elle est seulement masquée à l'œil. */}
+							<span className="wordmark-manga">
+								<MotManga lettres={LETTRES_DRAGON_AVANT_BOULE} />
 								<span className="wordmark-boule" aria-hidden>
 									<DragonBall stars={1} size={64} />
 								</span>
 								<span className="sr-only">o</span>
-								{"n"}
+								<MotManga lettres={LETTRES_DRAGON_APRES_BOULE} />
 							</span>
-							<span className="wordmark-manga wordmark-manga--rouge" data-texte="Ball">
-								Ball
+							<span className="wordmark-manga wordmark-manga--rouge">
+								<MotManga lettres={LETTRES_BALL} />
 							</span>
+						</span>
+						{/* Le furigana passe SOUS le titre, où la couverture le pose —
+						    la structure du bandeau est titre / ドラゴンボールスーパー /
+						    ★ ligne de sous-titre, dans cet ordre. */}
+						<span className="home-wordmark__furigana" aria-hidden>
+							ドラゴンボール
 						</span>
 						<em>France</em>
 					</h1>

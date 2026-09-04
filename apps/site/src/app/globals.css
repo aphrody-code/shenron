@@ -771,60 +771,105 @@ main:focus {
 
 	/* === Wordmark de couverture ===
 	   Le logo des tankōbon, transposé d'après une mesure et non d'après le
-	   souvenir. Ce qui est relevé sur `db_manga_volumes/124.jpg` :
+	   souvenir. Ce qui est relevé sur `db_manga_volumes/124.jpg`, sur le D
+	   (x 27→99, sommet y 67, ligne de base y 223) :
 
-	   - capitale de 152 px pour une couverture de 764 px de large — le titre
-	     occupe 20 % de la hauteur utile, il ne se joue pas en petit ;
-	   - fût vertical de 32 à 45 px pour ces 152 px de capitale, soit un ratio
-	     de 0,30 quand une Black du commerce plafonne à 0,20 ;
-	   - inclinaison de 12,3°, relevée sur le bord gauche du D (x = 28 à
-	     y = 80, x = 58 à y = 218) : c'est elle qui fait lire « Dragon Ball »
-	     plutôt qu'« une capitale grasse » ;
-	   - deux APLATS, jamais un dégradé : jaune pour le premier mot, rouge pour
-	     le second, cernés de noir pur.
+	   | Grandeur | Mesure | En proportion |
+	   |---|---|---|
+	   | Capitale | 156 px | 20 % de la largeur de page |
+	   | Largeur du D | 73 px | **0,468 capitale** — la lettre est CONDENSÉE |
+	   | Fût vertical, l'aplat seul | 18 px (gauche), 15 (droite) | **0,247 de la largeur de la lettre** |
+	   | Inclinaison | 12,3° | bord gauche du D, x 28 à y 80 → x 58 à y 218 |
+	   | Couleurs | deux APLATS | jaune puis rouge, cernés de noir pur — jamais un dégradé |
 
-	   La police du logo n'est pas libre de droits, et Google Sans Flex n'a pas
-	   d'axe de largeur — sa condensation vient donc de la graisse maximale
-	   (`wght` monte à 1000), d'un crénage négatif et d'une compression
-	   horizontale de 7 %. C'est une transposition, pas un calque. */
+	   **Un relevé de fût corrigé, et ce qu'il change.** Une lecture précédente
+	   donnait « fût de 32 à 45 px, soit 0,30 de la capitale, quand une Black du
+	   commerce plafonne à 0,20 », et en concluait qu'il fallait la graisse
+	   MAXIMALE. Elle mesurait le trait AVEC ses deux cernes d'encre (≈ 6 px de
+	   chaque côté) : l'aplat seul fait 18 px, soit 0,115 capitale. Le logo n'est
+	   pas une Black, c'est une **demi-grasse très condensée**.
+
+	   D'où le réglage, choisi par mesure et non au jugé : un banc a rendu la
+	   lettre D à 42 couples (wght 400→1000 × scaleX 0,45→0,93), mesuré sur
+	   chacun la largeur/capitale et le fût/largeur, et comparé aux deux cibles
+	   ci-dessus.
+
+	   | Réglage | largeur/capitale | fût/largeur | écart aux cibles |
+	   |---|---|---|---|
+	   | **wght 600 · scaleX 0,55** | **0,469** (cible 0,468) | **0,239** (cible 0,247) | **3 %** |
+	   | wght 700 · scaleX 0,55 | 0,483 | 0,290 | 21 % |
+	   | wght 1000 · scaleX 0,93 (l'ancien) | 0,903 | 0,423 | **164 %** — le pire des 42 |
+
+	   L'ancien réglage rendait donc une lettre deux fois trop large et 1,7 fois
+	   trop grasse : massive là où le support est élancé.
+
+	   La police du logo n'est pas libre de droits et Google Sans Flex n'a pas
+	   d'axe de largeur : la condensation vient du `scaleX`, la graisse de
+	   l'axe `wght`. C'est une transposition, pas un calque. */
 	.wordmark-manga {
 		position: relative;
 		display: inline-block;
 		font-family: var(--font-sans);
-		font-weight: 1000;
-		font-variation-settings: "wght" 1000;
+		font-weight: 600;
+		font-variation-settings: "wght" 600;
 		text-transform: uppercase;
 		letter-spacing: -0.045em;
-		transform: scaleX(0.93) skewX(-12.3deg);
-		transform-origin: left center;
+		/* La compression et l'oblique sont portées par la LIGNE, pas par le mot :
+		   `transform` ne reflowe pas, donc un `scaleX(.55)` posé sur chaque mot
+		   laissait chacun occuper sa largeur NON comprimée dans le flux — 45 % de
+		   blanc s'ouvrait entre « DRAGON » et « BALL », et le second sortait de la
+		   colonne. Cf. `.home-wordmark__ligne`. */
 		color: var(--color-logo-jaune);
-		filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6));
+		/* PAS de `filter` ici : il ouvrirait un contexte d'empilement par MOT, et
+		   les cernes en z négatif de « BALL » viendraient alors se peindre
+		   par-dessus le remplissage de « DRAGON ». L'ombre d'encre est portée une
+		   fois pour toute la ligne (`.home-wordmark__ligne`). */
 	}
 	/* Le second mot du logo est rouge — c'est la moitié de la signature. */
 	.wordmark-manga--rouge {
 		color: var(--color-logo-rouge);
 	}
+	/* La VALLÉE de capitales.
+	   Le logo n'est pas une ligne de capitales de même corps : mesurée colonne
+	   par colonne sur la couverture (ligne de base commune à y = 219), la
+	   capitale descend de 152 px sur le D à 101 px sur le N, touche son point
+	   bas sur la boule (Ø 89), puis remonte jusqu'à 121 px sur le dernier L.
+	   Chaque lettre porte donc son échelle, dans `--e` (cf. `MotManga.tsx`).
+
+	   Les cernes sont en `calc(… / var(--e))` : dans l'enfant, `1em` vaut déjà
+	   `em du mot × e`, la division rend donc une épaisseur CONSTANTE d'une
+	   lettre à l'autre — c'est ce que fait l'encre sur le papier, où le contour
+	   ne maigrit pas quand la lettre rapetisse. */
+	.wordmark-lettre {
+		position: relative;
+		display: inline-block;
+		font-size: calc(1em * var(--e, 1));
+		vertical-align: baseline;
+	}
 	/* Deux cernes, deux COPIES du texte tracées dessous : `-webkit-text-stroke`
 	   posé sur l'élément lui-même déborderait sur le remplissage et mangerait
-	   l'aplat. Le noir est le cerne de la couverture ; le clair au-dessous
+	   l'aplat. Le noir est le cerne de la couverture, relevé à 6-7 px pour une
+	   capitale de 152 (le trait est centré sur le contour : 0,06em en pose 0,03
+	   à l'extérieur, soit 6,4 px à cette capitale). Le clair au-dessous
 	   n'existe pas sur le papier mais est indispensable ici, car un cerne noir
-	   posé sur un fond noir ne détache rien. */
-	.wordmark-manga::before,
-	.wordmark-manga::after {
+	   posé sur un fond noir ne détache rien — il est ramené à 0,11em, la valeur
+	   précédente (0,15) empâtait les contre-formes du R et du A. */
+	.wordmark-lettre::before,
+	.wordmark-lettre::after {
 		content: attr(data-texte);
 		position: absolute;
 		inset: 0;
 		paint-order: stroke fill;
 	}
-	.wordmark-manga::before {
+	.wordmark-lettre::before {
 		z-index: -1;
 		color: #000;
-		-webkit-text-stroke: 0.06em #000;
+		-webkit-text-stroke: calc(0.06em / var(--e, 1)) #000;
 	}
-	.wordmark-manga::after {
+	.wordmark-lettre::after {
 		z-index: -2;
 		color: var(--color-os);
-		-webkit-text-stroke: 0.15em var(--color-os);
+		-webkit-text-stroke: calc(0.11em / var(--e, 1)) var(--color-os);
 	}
 	/* La boule prend la place du O de DRAGON, comme sur la couverture — où le O
 	   n'est pas une lettre décorée mais un disque à part entière, avec l'étoile
@@ -842,13 +887,28 @@ main:focus {
 	.icone-ombre {
 		filter: drop-shadow(1px 1px 0 var(--color-encre));
 	}
+	/* Ø 89 px pour une capitale de 156, soit 0,571 de capitale — et la capitale de
+	   Google Sans Flex vaut ~0,72em, d'où 0,411em. La boule ne pose pas sur la
+	   ligne de base : son bas s'arrête 10 px au-dessus (0,064 capitale).
+	   La contre-transformation n'est pas un détail : le mot porte
+	   `scaleX(.55) skewX(-12.3deg)`, et sans son inverse EXACT — appliqué dans
+	   l'ordre inverse, `skewX` puis `scaleX` — la sphère sortirait en ellipse
+	   penchée. Sur la couverture, l'étoile est parfaitement carrée (46 × 46) :
+	   l'inclinaison du titre ne la touche pas.
+	   Et les marges restent à ZÉRO. La boule occupe `width` dans le flux, que la
+	   compression du mot réduit à `width × 0,55` — la contre-transformation lui
+	   rend sa rondeur mais pas sa place, si bien qu'elle déborde d'elle-même de
+	   0,092em de chaque côté. Or c'est exactement le chevauchement du support
+	   (18 px sur le G, 22 px sur le N pour un Ø de 89, soit 0,20 et 0,25 du
+	   diamètre). La marge négative essayée d'abord comptait ce mordant deux
+	   fois. */
 	.wordmark-boule {
 		display: inline-block;
-		width: 0.66em;
-		height: 0.66em;
-		vertical-align: -0.03em;
-		margin: 0 0.01em;
-		transform: skewX(12.3deg) scaleX(1.0753);
+		width: 0.411em;
+		height: 0.411em;
+		vertical-align: 0.046em;
+		margin: 0;
+		transform: skewX(12.3deg) scaleX(1.8182);
 	}
 	.wordmark-boule svg {
 		width: 100%;
@@ -2066,6 +2126,11 @@ main:focus {
 .home-section {
 	position: relative;
 	min-height: 100svh;
+	/* La barre de navigation est `sticky top-0` et haute de 4rem : elle POUSSE la
+	   première section vers le bas au lieu de flotter par-dessus. Un héros de
+	   100svh dépassait donc de 4rem sous le pli, et sa légende de scène
+	   (bas droite) était coupée en deux au premier écran. */
+	--home-section-nav: 4rem;
 	display: flex;
 	align-items: center;
 	overflow: hidden;
@@ -2180,11 +2245,25 @@ main:focus {
 	box-shadow: 0 0 16px color-mix(in oklab, var(--accent) 60%, transparent);
 }
 
+/* Le compteur de panneaux rejoint le RAIL DE POINTS, au-dessus de lui, à
+   droite. Deux positions ont été essayées et écartées, chacune pour une
+   collision mesurée :
+
+   - coin bas gauche (l'origine) : il tombait sous le bouton « Signaler une
+     erreur » (`fixed bottom-4 left-4`, 44 px) et la pastille Discord empilée
+     au-dessus ; le « 0 » de « 05 » disparaissait derrière, à toutes les
+     largeurs et pas seulement sur mobile ;
+   - milieu gauche : il se posait alors en plein sur le D du titre, qui commence
+     à 6 % de la largeur et occupe la moitié de la hauteur du héros.
+
+   La colonne de droite est la seule bande verticale que rien d'autre n'occupe —
+   c'est déjà là que vit la navigation de la page. */
 .home-counter {
 	position: fixed;
-	left: clamp(0.9rem, 2.5vw, 2.4rem);
-	bottom: clamp(0.9rem, 4vh, 2.4rem);
+	right: clamp(0.75rem, 2vw, 2rem);
+	top: calc(50% - 9.5rem);
 	z-index: 40;
+	font-size: 0.8rem;
 	font-family: var(--font-display);
 	font-weight: 800;
 	display: flex;
@@ -2194,7 +2273,7 @@ main:focus {
 	mix-blend-mode: difference;
 }
 .home-counter__cur {
-	font-size: 1.5rem;
+	font-size: 1.15rem;
 	color: #fff;
 }
 .home-counter__sep {
@@ -2209,12 +2288,21 @@ main:focus {
 	flex-wrap: wrap;
 	margin-bottom: 1.4rem;
 }
-.home-kicker__jp {
+/* Le furigana du bandeau : ドラゴンボールスーパー, posé SOUS le titre, très
+   espacé, dans l'encre du support — pas dans l'accent de scène, qui vire au
+   lavande sur le panneau Beerus et n'existe sur aucune couverture. */
+/* Hauteur MESURÉE sur la couverture : ドラゴンボールスーパー occupe y 228→261,
+   soit 34 px pour une capitale de 156 — **0,218 capitale** — et barre 68 % de la
+   largeur du titre. Rendu à 0,13em, il ne faisait que 0,166 capitale et 51 % :
+   0,17em rend les deux d'un coup, l'espacement des katakana suivant le corps. */
+.home-wordmark__furigana {
 	font-family: var(--font-jp), var(--font-sans);
 	letter-spacing: 0.45em;
-	font-size: 0.8rem;
-	color: var(--accent);
-	text-transform: uppercase;
+	font-size: 0.17em;
+	color: var(--color-os);
+	margin-top: 0.34em;
+	padding-left: 0.02em;
+	text-shadow: 0 0.06em 0.2em rgba(0, 0, 0, 0.85);
 }
 .home-kicker__live,
 .home-live-pill {
@@ -2351,7 +2439,11 @@ main:focus {
 .kt-volant {
 	position: fixed;
 	left: 0;
-	top: 42vh;
+	/* Départ HAUT de colonne : la trajectoire descend ensuite de 0 à 60vh avec
+	   le défilement (`--kt-y`, cf. `KintoUnVolant`). Le 42vh d'origine plaçait le
+	   point de départ à mi-hauteur, si bien que la fin de course sortait par le
+	   bas de la fenêtre ; 14vh le faisait démarrer sur la pastille du héros. */
+	top: 9vh;
 	z-index: 2;
 	pointer-events: none;
 	/* L'échelle est le troisième terme de la trajectoire : le nuage entre par la
@@ -2500,11 +2592,16 @@ main:focus {
 		position: absolute;
 		top: 30vh;
 		transform: none;
-		left: 6%;
+		/* Sur le bord, comme en mouvement : `6%` le posait dans la colonne de
+		   texte, où il chevauchait le lede du héros. */
+		left: -2%;
 	}
 	.kt-volant__nuage[data-figure] {
 		animation: none;
 	}
+}
+.home-hero {
+	min-height: calc(100svh - var(--home-section-nav));
 }
 .home-hero__content {
 	position: relative;
@@ -2518,7 +2615,11 @@ main:focus {
 	/* Sur la couverture, la capitale du titre fait 20 % de la hauteur utile et
 	   le mot barre 75 % de la largeur. Le titre du héros visait 5,9 % à
 	   1440 px : à cette taille, c'est un intertitre, pas un logo. */
-	font-size: clamp(2.8rem, 9.2vw, 8.4rem);
+	/* La compression est passée de 0,93 à 0,55 (cf. `.wordmark-manga`) : à corps
+	   égal, le bloc rétrécit de 41 % et le titre ne barrait plus que 41 % de sa
+	   colonne, contre 71 % de la page sur la couverture. Le corps est donc relevé
+	   d'autant — c'est la même mesure qui donne les deux nombres. */
+	font-size: clamp(4.5rem, 19vw, 17rem);
 	max-width: 100%;
 	text-transform: uppercase;
 	margin: 0;
@@ -2528,10 +2629,27 @@ main:focus {
 .home-wordmark__ligne {
 	display: flex;
 	align-items: baseline;
-	/* L'espace inter-mots du logo, et 0.14em de garde à droite : l'oblique
-	   pousse le haut du dernier L d'environ 0,16 em hors de la boîte. */
-	gap: 0.16em;
+	/* L'espace inter-mots MESURÉ : sur la couverture, l'aplat du N s'arrête à
+	   x = 380 et celui du B commence à x = 390 — 10 px pour une capitale de 156,
+	   soit 0,064 capitale. Les deux mots se touchent presque, leurs cernes
+	   d'encre se rejoignent ; le 0,16em d'origine laissait un blanc de la largeur
+	   d'une lettre, qu'on ne trouve sur aucun tome.
+	   La valeur CSS n'est pas 0,064 capitale pour autant : le gap est posé AVANT
+	   la compression de la ligne (× 0,55) et le `letter-spacing: -.045em` du mot
+	   s'applique encore après sa dernière lettre. Rendu mesuré à 0,05em : −2 px,
+	   les deux mots se chevauchaient. 0,126em rend les 12 px attendus à cette
+	   capitale.
+	   0,14em de garde à droite : l'oblique pousse le haut du dernier L hors de
+	   la boîte. */
+	gap: 0.126em;
 	padding-right: 0.14em;
+	/* Compression et oblique du logo, portées ICI et pas sur chaque mot (voir
+	   `.wordmark-manga`). La ligne garde en revanche sa largeur non comprimée
+	   dans le flux : c'est sans effet, rien ne la suit sur sa droite, et le
+	   `transform-origin: left` cale le visuel sur la marge de la colonne. */
+	transform: scaleX(0.55) skewX(-12.3deg);
+	transform-origin: left center;
+	width: max-content;
 }
 .home-wordmark > span {
 	white-space: nowrap;
@@ -2545,9 +2663,17 @@ main:focus {
 /* Le titre du héros porte le wordmark de couverture (`.wordmark-manga`). Il
    garde en plus un halo noir large : sur un fond photographique, le liseré clair
    du logo ne suffit pas à détacher les lettres. */
-.home-wordmark > span {
-	filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6))
-		drop-shadow(0 6px 30px rgba(0, 0, 0, 0.75));
+/* Une seule ombre, NETTE et décalée d'un pixel d'encre. Le second
+   `drop-shadow(0 6px 30px …)` ajoutait un halo flou de 30 px : la couverture
+   n'en porte aucun, et sur le fond photographique du héros c'est le cerne clair
+   qui détache les lettres, pas le flou. */
+/* Le filtre est porté par la LIGNE, pas par chaque mot : il crée un contexte
+   d'empilement unique où les deux cernes (z -1 et -2) de TOUTES les lettres se
+   rangent sous TOUS les remplissages. Posé mot par mot, le halo clair de
+   « BALL » venait manger le N de « DRAGON » — là où la couverture, elle, fait
+   se rejoindre leurs cernes d'encre. */
+.home-wordmark__ligne {
+	filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6));
 }
 /* « France » en SERIF capitales espacées — la structure exacte des couvertures
    Daizenshuu : titre en grotesque ultra-gras, sous-titre en serif capitales
@@ -2558,8 +2684,16 @@ main:focus {
 	font-style: normal;
 	font-weight: 800;
 	text-transform: uppercase;
-	letter-spacing: 0.3em;
-	font-size: 0.26em;
+	/* Le pendant de « ★第6宇宙の戦士たち », la ligne de titre secondaire du
+	   support : 27 px de haut pour une capitale de 156 (**0,173 capitale**), et
+	   48 % de la largeur du titre. Rendu à 0,26em, « FRANCE » pesait 0,275
+	   capitale — plus gros que le sous-titre japonais alors qu'il vient après
+	   lui, et le bloc de titre y gagnait une troisième ligne de même rang.
+	   Le corps baisse donc à 0,164em, et l'interlettrage monte à 0,58em pour
+	   retrouver la largeur mesurée : c'est une ligne ESPACÉE, pas une ligne
+	   grasse. */
+	letter-spacing: 0.58em;
+	font-size: 0.164em;
 	/* Le rouge du logo, pas l'accent de section : sur les couvertures, la ligne
 	   sous le titre est de la même encre que le titre — c'est le rouge de
 	   « ★第6宇宙の戦士たち », mesuré à #c4102a. Ici on garde le rouge PLEIN du
@@ -2567,8 +2701,8 @@ main:focus {
 	color: var(--color-logo-rouge);
 	text-shadow: 0 0.06em 0.2em rgba(0, 0, 0, 0.85);
 	-webkit-text-stroke: 0;
-	margin-top: 0.5em;
-	padding-left: 0.14em;
+	margin-top: 0.3em;
+	padding-left: 0.02em;
 }
 .home-lede {
 	margin-top: 1.6rem;
@@ -2671,13 +2805,12 @@ main:focus {
 	animation: drift-float 2s ease-in-out infinite;
 }
 
-/* Mobile : les décorations d'angle du héro (caption bas-droite, compteur
-   bas-gauche — toutes deux aria-hidden) chevauchent les FAB fixes (Assistant
-   bas-droite, Discord bas-gauche). On les masque sous 640px : purement
-   décoratives, l'info reste ailleurs (points de nav + panneaux). */
+/* Mobile : la légende de scène (bas droite, aria-hidden) chevauche le FAB de
+   l'Assistant. On la masque sous 640px : purement décorative, l'info reste
+   ailleurs (points de nav + panneaux). Le compteur, lui, est passé à
+   mi-hauteur à gauche et ne croise plus aucun FAB — il peut rester. */
 @media (max-width: 640px) {
-	.home-hero__caption,
-	.home-counter {
+	.home-hero__caption {
 		display: none;
 	}
 }
@@ -3306,8 +3439,11 @@ main:focus {
 		/* Surcharge fine : zoom + pan + très légère bascule de teinte cinéma. */
 		animation: scene-ken 30s ease-in-out infinite alternate;
 	}
-	.home-hero .home-wordmark span {
-		/* Lueur dorée qui pulse lentement sur le wordmark (filter only → GPU). */
+	.home-hero .home-wordmark__ligne {
+		/* Lueur dorée qui pulse lentement sur le wordmark (filter only → GPU).
+		   Ciblée sur la LIGNE : `… .home-wordmark span` attrapait chaque lettre,
+		   chaque cerne et la boule, et remplaçait leur ombre d'encre nette par le
+		   halo flou de l'animation. */
 		animation: wordmark-glow 7s ease-in-out infinite;
 	}
 }
@@ -3321,19 +3457,22 @@ main:focus {
 		filter: saturate(1.08) brightness(1.04);
 	}
 }
+/* L'ombre au repos est celle du wordmark — nette, décalée d'un pixel d'encre.
+   Le halo de ki reste un EFFET, il ne prétend pas venir du support : il ne fait
+   que respirer au milieu du cycle. */
 @keyframes wordmark-glow {
 	0%,
 	100% {
-		filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.6));
+		filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6));
 	}
 	50% {
-		filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.6))
-			drop-shadow(0 0 24px color-mix(in oklab, var(--accent, #e78220) 45%, transparent));
+		filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6))
+			drop-shadow(0 0 24px color-mix(in oklab, var(--accent, #e78220) 40%, transparent));
 	}
 }
 @media (prefers-reduced-motion: reduce) {
 	.scene-img--live,
-	.home-hero .home-wordmark span {
+	.home-hero .home-wordmark__ligne {
 		animation: none !important;
 	}
 	.ki-card:hover .ki-card__glow {
@@ -3871,6 +4010,18 @@ html[data-consent-open] .fab-secondary {
    erreur » sur /wiki/chronologie, mesuré). `FooterFabGuard` pose l'attribut
    dès que le pied de page approche ; on les efface le temps qu'il est à
    l'écran — le visiteur y a de toute façon les mêmes entrées, en plus complet. */
+/* Sur l'ACCUEIL, la pastille flottante « Rejoindre le Discord » est retirée :
+   le héros porte déjà, au même coin bas gauche, un appel à l'action « Rejoindre
+   le serveur » qui mène au même endroit. Les deux se recouvraient — la pastille
+   est en `fixed`, le bouton dans le flux, et le titre passé à sa taille de
+   couverture a fini de les faire coïncider. Deux invitations au même serveur au
+   même pixel, dont l'une masque l'autre : c'est une de trop.
+   `:has()` plutôt qu'un drapeau passé au layout : le FAB est monté dans le
+   layout racine, il ne sait pas quelle page il habille. */
+body:has(.home-hero) .fab-discord {
+	display: none;
+}
+
 html[data-footer-visible] .fab-secondary {
 	opacity: 0;
 	pointer-events: none;

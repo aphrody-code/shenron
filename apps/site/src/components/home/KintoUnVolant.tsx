@@ -22,6 +22,13 @@ const DUREE: Record<Figure, number> = { boucle: 1500, vrille: 1100, trombe: 1300
  * Le nuage suit le défilement plutôt que de traverser en boucle : le visiteur
  * qui descend a l'impression que le nuage l'accompagne, ce qu'une traversée
  * automatique ne donne jamais puisqu'elle ignore ce qu'il fait.
+ *
+ * Il reste sur le BORD GAUCHE et n'entre jamais dans le champ. La version
+ * précédente le faisait traverser tout l'écran (`-12vw` → `106vw`) : à
+ * mi-défilement il se posait au milieu de la page, par-dessus le titre puis
+ * par-dessus les grilles de contenu, en gros et à pleine opacité — c'est le
+ * moment exact où il gênait le plus. Le voir passer au bord suffit à le lire
+ * comme un objet en vol ; le voir couvrir le texte n'ajoute rien.
  */
 export function KintoUnVolant() {
 	const coque = useRef<HTMLDivElement>(null);
@@ -49,18 +56,31 @@ export function KintoUnVolant() {
 			// Lissage : le nuage rattrape la position de défilement au lieu de s'y
 			// coller. Sans ce retard il paraît vissé à la page, pas en vol.
 			courant += (cible - courant) * 0.12;
-			// Trajectoire : traversée de gauche à droite sur toute la page, avec une
-			// houle verticale qui donne le plané.
-			el.style.setProperty("--kt-x", `${-12 + courant * 118}vw`);
-			el.style.setProperty("--kt-y", `${Math.sin(courant * Math.PI * 2.4) * 9}vh`);
-			el.style.setProperty("--kt-inclinaison", `${Math.cos(courant * Math.PI * 2.4) * 5}deg`);
-			// Profondeur : le nuage entre loin derrière la scène (0,66 × et à peine
-			// visible), passe au premier plan au tiers du parcours (1,18 ×, opaque)
-			// puis s'éloigne à nouveau. C'est cette variation, et non la seule
-			// translation, qui le fait appartenir à l'image plutôt que la survoler
-			// — une taille constante lit comme un calque posé sur la vidéo.
+			// Trajectoire : le nuage MONTE ET DESCEND le long du bord gauche, il ne
+			// traverse pas. Le défilement pilote la hauteur (de 14vh à 74vh, soit
+			// la colonne utile sous la barre de navigation), et l'axe horizontal ne
+			// sert plus qu'à une petite houle d'avant en arrière — assez pour que
+			// le vol ne soit pas un rail, jamais assez pour entrer dans le champ.
+			//
+			// L'amplitude en X est bornée à [-10vw, -4vw] : le nuage mord toujours
+			// le bord, une bonne part hors cadre. C'est ce qui le fait lire comme un
+			// objet qui passe, et non comme une vignette collée dans un coin — et
+			// à 1440 px cela le contient sous x = 93, quand la pastille « gardiens
+			// en ligne » du héros commence à x = 101. La borne haute était à -1vw :
+			// le nuage entrait alors de 137 px et passait sous la pastille.
+			const houle = Math.sin(courant * Math.PI * 3);
+			el.style.setProperty("--kt-x", `${-7 + houle * 3}vw`);
+			el.style.setProperty("--kt-y", `${courant * 60}vh`);
+			el.style.setProperty("--kt-inclinaison", `${Math.cos(courant * Math.PI * 3) * 6}deg`);
+			// Profondeur : le nuage plane loin au départ (0,72 ×, à peine visible)
+			// et s'approche au milieu du parcours (1,06 ×, franc). C'est cette
+			// variation, et non la seule translation, qui le fait appartenir à
+			// l'image plutôt que la survoler — une taille constante lit comme un
+			// calque posé sur la vidéo. L'échelle maximale descend de 1,18 à 1,06 :
+			// contre le bord, un nuage plus gros déborde de la fenêtre au lieu de
+			// la longer.
 			const profondeur = Math.sin(courant * Math.PI); // 0 aux bords, 1 au milieu
-			el.style.setProperty("--kt-echelle", `${(0.66 + profondeur * 0.52).toFixed(3)}`);
+			el.style.setProperty("--kt-echelle", `${(0.72 + profondeur * 0.34).toFixed(3)}`);
 			el.style.setProperty("--kt-opacite", `${(0.45 + profondeur * 0.5).toFixed(3)}`);
 			if (Math.abs(cible - courant) > 0.0005) cadre = requestAnimationFrame(peindre);
 		};
