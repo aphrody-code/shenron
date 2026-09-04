@@ -48,3 +48,4 @@ next-env.d.ts
 
 # Ressources japonaises (dictionnaire kuromoji + index JMdict) — cf. scripts/ja-preparer.ts
 .ja-data/
+scripts/inventaires/*.log

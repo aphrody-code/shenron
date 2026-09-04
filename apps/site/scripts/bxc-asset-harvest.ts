@@ -37,8 +37,11 @@ const OUT_AUDIO = join(PUBLIC, "sfx", "bxc");
 const OUT_IMG = join(PUBLIC, "dbz", "bxc");
 const OUT_SPRITES = join(PUBLIC, "sprites", "bxc");
 const OUT_MIRROR = join(PUBLIC, "bxc-mirror");
-const INV = join(PUBLIC, "bxc-asset-inventory.json");
-const LOG = join(PUBLIC, "bxc-asset-harvest.log");
+// Inventaire et journal hors de `public/` : ils nommaient les sources
+// moissonnées et les chemins internes, en lecture libre sur le domaine.
+const INVENTAIRES = join(SITE_ROOT, "scripts", "inventaires");
+const INV = join(INVENTAIRES, "bxc-asset-inventory.json");
+const LOG = join(INVENTAIRES, "bxc-asset-harvest.log");
 
 // CLI
 const argv = process.argv.slice(2);
