@@ -24,6 +24,7 @@
 // home est strictement identique à la version historique en dur.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { KintoUn } from "@/components/KintoUn";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
@@ -811,6 +812,17 @@ export function HomeExperience({
 						);
 					})}
 				</div>
+				{/* Deux marqueurs de planche, purement graphiques et donc masqués aux
+				    lecteurs d'écran : l'onomatopée du grondement, et le Kinto-Un qui
+				    traverse le champ. Le nuage n'est pas un ornement de plus — c'est
+				    l'asset de marque de la barre et des favicons, on le retrouve ici à
+				    l'échelle du héros. */}
+				<span className="home-onomatopee onomatopee" aria-hidden>
+					ゴゴゴ
+				</span>
+				<span className="home-nuage" aria-hidden>
+					<KintoUn hauteur={116} decorative />
+				</span>
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">
 						<span className="home-kicker__jp">ドラゴンボール</span>

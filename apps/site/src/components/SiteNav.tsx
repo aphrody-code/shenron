@@ -45,8 +45,15 @@ const ORDRE_OEUVRES = [
 	"jeux",
 ] as const;
 
+/**
+ * Lien de la barre. Le survol pose un TRAIT D'ENCRE sous le libellé plutôt que
+ * de changer sa seule couleur : c'est le geste d'un lettrage de planche, et il
+ * survit au daltonisme là où un simple virage vers l'or ne dit rien. Le trait
+ * pousse depuis la gauche, jamais depuis le centre — un trait qui s'ouvre en
+ * deux se lit comme une animation d'interface, pas comme un coup de feutre.
+ */
 const linkClass =
-	"relative whitespace-nowrap font-display font-medium text-[14px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-2.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 xl:px-3";
+	"group/lien relative whitespace-nowrap font-display font-medium text-[14px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-2.5 py-2 rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 xl:px-3 after:absolute after:left-2.5 after:right-2.5 after:bottom-1 after:h-[2px] after:origin-left after:scale-x-0 after:bg-[var(--color-os)] after:transition-transform after:duration-200 hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-reduce:after:transition-none xl:after:left-3 xl:after:right-3";
 
 export async function SiteNav() {
 	const cfg = await getLaunchConfig();
@@ -107,7 +114,11 @@ export async function SiteNav() {
 		// `view-transition-name` → la nav reste fixe pendant les slides
 		// directionnels (point d'ancrage spatial). CSS dans globals.css.
 		<header className="sticky top-0 z-50 w-full" style={{ viewTransitionName: "site-header" }}>
-			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
+			{/* Bord inférieur : 2 px de blanc cassé, pas une hairline orange. C'est le
+			    bord de la première case de la planche — la barre cesse d'être une
+			    surface flottante pour devenir le haut de la page. L'ombre portée
+			    nette, sans flou, donne le poids de l'encre. */}
+			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.86)] backdrop-blur-xl backdrop-saturate-150 border-b-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] shadow-[0_3px_0_rgba(0,0,0,0.55)]" />
 
 			<div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6 lg:px-10 xl:gap-6">
 				{/* Wordmark — même structure que le titre de l'accueil : le nom de

@@ -147,6 +147,18 @@ main:focus {
 	--color-dbz-cyan: var(--dbz-cyan, #22d3ee); /* relations / affiliations */
 	--color-dbz-pink: var(--dbz-pink, #ec4899); /* divers / curiosités */
 
+	/* === Encre de planche ===
+	   Le Kinto-Un a introduit dans le site une matière que la charte n'avait pas :
+	   des APLATS cernés d'encre, là où tout le reste était dégradé et halo. Ces
+	   quatre tokens la rendent disponible partout — un cadre de case, une bulle,
+	   une onomatopée. `os` est le blanc du papier vu en négatif : sur un fond noir,
+	   c'est le TRAIT qui devient clair, sinon une planche sombre n'a plus de trait
+	   du tout. Pilotables depuis /admin/design comme le reste. */
+	--color-encre: var(--dbz-encre, #12110d);
+	--color-os: var(--dbz-os, #efe9d8);
+	--color-kinto-lumiere: var(--dbz-kinto-lumiere, #fcf03a);
+	--color-kinto-ombre: var(--dbz-kinto-ombre, #e4be05);
+
 	/* Accents « énergie » d'origine, antérieurs au recalibrage sur la charte
 	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
 	   déclarés en tokens — avec leur valeur historique en défaut, donc rendu
@@ -245,6 +257,10 @@ main:focus {
 	--color-dbz-gold: var(--dbz-gold, #ffea00);
 	--color-dbz-cyan: var(--dbz-cyan, #22d3ee);
 	--color-dbz-pink: var(--dbz-pink, #ec4899);
+	--color-encre: var(--dbz-encre, #12110d);
+	--color-os: var(--dbz-os, #efe9d8);
+	--color-kinto-lumiere: var(--dbz-kinto-lumiere, #fcf03a);
+	--color-kinto-ombre: var(--dbz-kinto-ombre, #e4be05);
 }
 
 @layer base {
@@ -688,6 +704,163 @@ main:focus {
 		filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-dbz-ember) 50%, transparent))
 			drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
 		letter-spacing: 0.04em;
+	}
+
+	/* === Planche ===
+	   Transposer une planche de manga sur un site sombre demande une inversion,
+	   sinon on obtient une parodie : sur le papier, le TRAIT est noir et le fond
+	   blanc ; ici le fond est noir, c'est donc le trait qui doit être clair. D'où
+	   `--color-os`, le blanc du papier vu en négatif.
+
+	   Trois règles tenues partout, et c'est de là que vient l'effet planche :
+	   angles VIFS (une case n'a pas de coins arrondis), trait d'épaisseur
+	   CONSTANTE (2 px, comme un feutre), et une gouttière noire franche entre les
+	   cases. Le reste — trame, inclinaison, ombre décalée — n'est que du parfum. */
+	.case {
+		position: relative;
+		border: 2px solid color-mix(in srgb, var(--color-os) 80%, transparent);
+		border-radius: 0;
+		background: color-mix(in srgb, var(--color-dbz-bg) 92%, #000);
+		/* L'ombre décalée sans flou est le poids de l'encre sur le papier ; une
+		   ombre floue rendrait la case flottante, exactement ce qu'on fuit. */
+		box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+		transition:
+			border-color 0.25s ease,
+			box-shadow 0.25s ease,
+			transform 0.25s ease;
+	}
+	/* Trame benday sur la case elle-même : elle donne la matière imprimée sans
+	   toucher au contenu, et disparaît en `print`. */
+	.case::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background-image: radial-gradient(rgba(255, 255, 255, 0.045) 0.9px, transparent 1.1px);
+		background-size: 3px 3px;
+	}
+	.case:hover,
+	.case:focus-visible {
+		border-color: var(--color-dbz-orange);
+		box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+	}
+	/* Une planche n'est jamais parfaitement droite. Deux dixièmes de degré
+	   suffisent : au-delà on lit un défaut de gabarit, pas un geste. */
+	.case--penchee-g {
+		transform: rotate(-0.35deg);
+	}
+	.case--penchee-d {
+		transform: rotate(0.35deg);
+	}
+	.case--vedette {
+		border-width: 3px;
+		box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.6);
+	}
+
+	/* Gouttière : l'espace noir entre les cases. C'est lui qui fait la planche —
+	   des cases jointives donnent une grille de tableur. */
+	.planche {
+		display: grid;
+		gap: clamp(0.6rem, 1.4vw, 1.05rem);
+		background: #000;
+	}
+
+	/* Bulle de dialogue. Le corps est une ellipse pleine cernée d'encre, la queue
+	   un triangle posé au bord. Réservée à une VOIX (citation, réplique, appel à
+	   l'action) : une bulle sur un contenu qui ne parle pas casse la lecture. */
+	.bulle {
+		position: relative;
+		display: inline-block;
+		padding: 0.75rem 1.35rem;
+		border: 2px solid var(--color-encre);
+		border-radius: 52% 48% 55% 45% / 62% 58% 42% 38%;
+		background: var(--color-os);
+		color: var(--color-encre);
+		font-weight: 600;
+		line-height: 1.35;
+	}
+	.bulle::after {
+		content: "";
+		position: absolute;
+		left: 2.1rem;
+		bottom: -0.85rem;
+		width: 0;
+		height: 0;
+		border-left: 0.55rem solid transparent;
+		border-right: 0.95rem solid transparent;
+		border-top: 0.95rem solid var(--color-os);
+		filter: drop-shadow(0 2px 0 var(--color-encre));
+	}
+	.bulle--cri {
+		border-radius: 0;
+		clip-path: polygon(
+			0% 18%, 8% 6%, 22% 14%, 34% 0%, 48% 12%, 62% 2%, 74% 14%, 90% 6%, 100% 20%,
+			94% 40%, 100% 58%, 92% 76%, 100% 92%, 84% 88%, 70% 100%, 56% 88%, 42% 98%,
+			28% 86%, 14% 96%, 4% 78%, 10% 58%, 0% 38%
+		);
+		border: none;
+		padding: 1.1rem 1.6rem;
+	}
+	.bulle--cri::after {
+		display: none;
+	}
+
+	/* Onomatopée : le mot dessiné. Contour d'encre par `text-stroke`, remplissage
+	   clair, légère bascule — c'est une IMAGE, donc toujours `aria-hidden`, sinon
+	   un lecteur d'écran énonce « gogogo ». */
+	.onomatopee {
+		font-family: var(--font-jp);
+		font-weight: 900;
+		line-height: 0.9;
+		color: var(--color-os);
+		-webkit-text-stroke: 3px var(--color-encre);
+		paint-order: stroke fill;
+		letter-spacing: 0.06em;
+		transform: rotate(-4deg) skewX(-6deg);
+		text-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+		user-select: none;
+	}
+	.onomatopee--or {
+		color: var(--color-kinto-lumiere);
+	}
+
+	/* Filet d'encre : un trait qui n'est pas parfaitement régulier. La double
+	   couche (masse + accroche décalée) suffit à donner la main ; un dégradé seul
+	   redonne une règle. */
+	.trait-encre {
+		height: 3px;
+		border: 0;
+		background:
+			linear-gradient(90deg, transparent 0%, var(--color-os) 6%, var(--color-os) 94%, transparent 100%),
+			linear-gradient(90deg, transparent 12%, rgba(255, 255, 255, 0.35) 30%, transparent 46%);
+		opacity: 0.75;
+	}
+
+	/* Coin corné : le pli de page. Purement décoratif, il signale « feuille » en
+	   un seul triangle, sans image. */
+	.coin-corne::after {
+		content: "";
+		position: absolute;
+		right: 0;
+		bottom: 0;
+		width: 1.15rem;
+		height: 1.15rem;
+		background: linear-gradient(
+			135deg,
+			transparent 0 50%,
+			color-mix(in srgb, var(--color-os) 22%, transparent) 50% 100%
+		);
+		border-left: 2px solid color-mix(in srgb, var(--color-os) 55%, transparent);
+		border-top: 2px solid color-mix(in srgb, var(--color-os) 55%, transparent);
+		pointer-events: none;
+	}
+
+	/* Un mouvement réduit ne doit pas figer une planche penchée — l'inclinaison
+	   est statique, elle reste. Ce sont les translations au survol qu'on coupe. */
+	@media (prefers-reduced-motion: reduce) {
+		.case {
+			transition: none;
+		}
 	}
 	@keyframes ki-pulse {
 		0%,
@@ -1995,6 +2168,57 @@ main:focus {
 	}
 }
 
+/* Onomatopée du héros : le grondement, posé derrière le titre en haut à droite.
+   Elle est décorative (`aria-hidden` côté markup) et disparaît sous 900 px, où
+   la place manque et où elle passerait derrière le texte. */
+.home-onomatopee {
+	position: absolute;
+	top: clamp(4.5rem, 12vh, 8rem);
+	right: clamp(1rem, 5vw, 5rem);
+	z-index: 1;
+	font-size: clamp(3rem, 9vw, 7.5rem);
+	opacity: 0.16;
+	pointer-events: none;
+}
+
+/* Le Kinto-Un traverse le champ, très lentement et très en retrait : à 0,2
+   d'opacité il se lit comme une trame, pas comme une illustration qui
+   concurrencerait le titre. Traversée de 34 s — plus rapide, l'œil le suit et
+   décroche du texte. */
+.home-nuage {
+	position: absolute;
+	left: -18%;
+	top: clamp(9rem, 26vh, 15rem);
+	z-index: 1;
+	opacity: 0.2;
+	pointer-events: none;
+	animation: nuage-traverse 34s linear infinite;
+}
+@keyframes nuage-traverse {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	50% {
+		transform: translate3d(60vw, -1.6rem, 0);
+	}
+	to {
+		transform: translate3d(130vw, 0, 0);
+	}
+}
+@media (max-width: 900px) {
+	.home-onomatopee {
+		display: none;
+	}
+	.home-nuage {
+		opacity: 0.13;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.home-nuage {
+		animation: none;
+		left: 6%;
+	}
+}
 .home-hero__content {
 	position: relative;
 	max-width: min(54rem, 92vw);
@@ -2195,21 +2419,27 @@ main:focus {
 }
 
 /* Wiki — tuiles de comptage */
+/* Gouttière, pas filet. Un `gap` de 1 px sur fond clair dessinait un tableau ;
+   une gouttière noire de 8 px sépare des cases. C'est la même grille, lue
+   autrement. */
 .home-grid-stats {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap: 1px;
-	background: rgba(255, 255, 255, 0.08);
-	border: 1px solid rgba(255, 255, 255, 0.08);
+	gap: clamp(0.4rem, 1vw, 0.55rem);
+	background: #000;
+	border: 0;
 }
 @media (min-width: 760px) {
 	.home-grid-stats {
 		grid-template-columns: repeat(3, 1fr);
 	}
 }
+/* Les tuiles de compteurs forment une bande de cases : gouttière noire entre
+   elles (le `gap` de `.home-grid-stats`), liseré d'encre autour de chacune. */
 .home-stat-tile {
-	background: rgba(10, 10, 10, 0.55);
-	backdrop-filter: blur(4px);
+	background: color-mix(in srgb, var(--color-dbz-bg) 90%, #000);
+	border: 2px solid color-mix(in srgb, var(--color-os) 55%, transparent);
+	border-radius: 0;
 	padding: clamp(1.1rem, 3vw, 2rem);
 	display: flex;
 	flex-direction: column;
@@ -2230,6 +2460,7 @@ main:focus {
 }
 .home-stat-tile:hover {
 	background: rgba(20, 20, 16, 0.8);
+	border-color: color-mix(in srgb, var(--color-os) 85%, transparent);
 }
 .home-stat-tile:hover::after {
 	transform: scaleX(1);
@@ -2270,9 +2501,10 @@ main:focus {
 	position: relative;
 	padding: 1.4rem 1.1rem;
 	overflow: hidden;
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	background: rgba(10, 10, 10, 0.5);
-	backdrop-filter: blur(6px);
+	border: 2px solid color-mix(in srgb, var(--color-os) 72%, transparent);
+	border-radius: 0;
+	background: color-mix(in srgb, var(--color-dbz-bg) 92%, #000);
+	box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
@@ -2283,7 +2515,8 @@ main:focus {
 }
 .home-guardian:hover {
 	border-color: var(--accent);
-	transform: translateY(-3px);
+	box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.55);
+	transform: translate(-2px, -3px);
 }
 .home-guardian__kanji {
 	position: absolute;
@@ -2425,24 +2658,31 @@ main:focus {
 	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 	gap: 1rem;
 }
+/* Case de planche. Le liseré blanc cassé de 2 px et l'angle vif remplacent la
+   hairline arrondie : c'est le cadre qui fait lire une carte comme une case, pas
+   la texture qu'on met dedans. Le flou d'arrière-plan saute — une case est
+   imprimée, elle ne laisse rien transparaître. */
 .home-card {
 	position: relative;
 	overflow: hidden;
 	padding: 1.6rem 1.4rem;
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	background: rgba(10, 10, 10, 0.5);
-	backdrop-filter: blur(6px);
+	border: 2px solid color-mix(in srgb, var(--color-os) 78%, transparent);
+	border-radius: 0;
+	background: color-mix(in srgb, var(--color-dbz-bg) 92%, #000);
+	box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
 	min-height: 11rem;
 	transition:
 		border-color 0.3s ease,
+		box-shadow 0.3s ease,
 		transform 0.3s ease;
 }
 .home-card:hover {
 	border-color: var(--accent);
-	transform: translateY(-3px);
+	box-shadow: 7px 7px 0 rgba(0, 0, 0, 0.6);
+	transform: translate(-2px, -3px);
 }
 .home-card__kanji {
 	position: absolute;
