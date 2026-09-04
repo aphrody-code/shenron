@@ -29,8 +29,25 @@ les planches sont téléchargées sur le VPS et servies depuis `bot.dragonballfr
 
 Total : **~12 700 planches self-hostées**. Le manga JP (VO) n'est pas disponible
 proprement depuis le VPS (MangaDex n'héberge pas le raw JP de DB ; les agrégateurs
-de raws JP sont des SPA JS). Sources JP candidates notées : `comic.dragonballcn.com`
-(kanzenban), `jmanga.nyc`.
+de raws JP sont des SPA JS). Source JP candidate restante : `jmanga.nyc`.
+
+### comic.dragonballcn.com — bibliographie, pas planches
+
+`comic.dragonballcn.com` (鳥山明漫画資料館) a été **miroité pour ce qu'il sert** :
+476 ouvrages sur 12 collections (les 42 tomes japonais, la kanzenban, la Full
+Color, les éditions chinoises, les anime comics, Arale, les databooks), leurs
+métadonnées d'éditeur — 87 ISBN, dates de première édition, prix, magazine — et
+leurs **341 couvertures**, rangées sous `apps/bot/assets/dragonballcn/`
+(cf. son [README](../apps/bot/assets/dragonballcn/README.md)). Les 12 pages de
+catalogue sont archivées sous `apps/bot/data/catalogues/pages/`.
+
+Ses **39 017 planches sont recensées mais pas reproduites**. Mesuré le 2026-09-04
+à client honnête : les couvertures répondent `200`, les planches `403`, leurs
+miniatures `403`, et les fiches de lecture `403`. Le dossier qui les porte
+s'appelle `0.Dragon_Ball-buyao_daolian_ya` (不要盗链呀, « ne hotlinkez pas ») et le
+`robots.txt` du site porte `use=reference` sous réservation expresse de droits
+(directive UE 2019/790, art. 4). C'est un refus explicite, pas un obstacle
+technique — le miroir s'y tient.
 
 ## Scripts d'ingestion (`apps/bot/scripts/`)
 
@@ -49,6 +66,11 @@ seuil de Go libres) + conversion WebP (`sharp`).
   **Referer par hôte** (anti-hotlink). ⚠️ **Ne PAS envoyer de Referer `mangadex.org`**
   (mangadex renvoie du HTML/bloque) ; mangadex marche sans Referer mais bloque le
   VPS de façon intermittente → ses chapitres ont été retirés.
+- **`crawl-dragonballcn.ts`** / **`volumetrie-dragonballcn.ts`** / **`assets-dragonballcn.ts`**
+  — le trio comic.dragonballcn.com : relevé du catalogue, inventaire de pagination
+  (via `bxc-mcp`, seul client que les fiches servent), puis constitution du miroir
+  rangé sous `assets/dragonballcn/` (couvertures WebP + `index.json`). Aucune
+  planche : cf. la section ci-dessus.
 - **`clean-fullcolor-promos.ts`** — retire par **OCR** (tesseract fra+eng) les
   planches non-contenu : pubs « SUSHISCAN.FR » (texte « lisez … chapitres »), pages
   de crédits staff, pages blanches. Garde-fou : abort si > 18 % d'un tome retiré.
