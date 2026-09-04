@@ -527,12 +527,18 @@ export function ButtonDialog({
 /* Couleur                                                                    */
 /* -------------------------------------------------------------------------- */
 
+/* Or, orange, rouge et vert sont relevés sur la couverture de tankōbon
+   (docs/couverture-analyse-visuelle.md) : ce sont les encres du support, pas
+   des nuances choisies. Le rouge est la version éclaircie du rouge du titre —
+   l'aplat exact (#de0b36) tombe à 3,97:1 sur le fond du site, et ceci colore
+   du TEXTE. Le bleu de case n'entre pas dans cette liste pour la même raison :
+   à 3,05:1, il n'est lisible qu'en aplat de décor. */
 const PALETTE = [
-	{ value: "#ffb200", label: "Or Saiyan" },
-	{ value: "#ff6b1a", label: "Orange kamé" },
-	{ value: "#e02424", label: "Rouge" },
+	{ value: "#fefd03", label: "Or Saiyan" },
+	{ value: "#e78220", label: "Orange kamé" },
+	{ value: "#f10c3b", label: "Rouge" },
 	{ value: "#4cc2ff", label: "Bleu ki" },
-	{ value: "#22c55e", label: "Vert namek" },
+	{ value: "#2e9b41", label: "Vert namek" },
 	{ value: "#a855f7", label: "Violet" },
 	{ value: "#f472b6", label: "Rose" },
 	{ value: "#ffffff", label: "Blanc" },
@@ -548,7 +554,7 @@ export function ColorDialog({
 	open: boolean;
 	onClose: () => void;
 }) {
-	const [custom, setCustom] = useState("#ffb200");
+	const [custom, setCustom] = useState("#e78220");
 
 	return (
 		<EditorPanel

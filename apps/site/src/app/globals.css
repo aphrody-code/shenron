@@ -68,7 +68,7 @@ html {
 	align-items: center;
 	padding: 0.65rem 1.1rem;
 	border-radius: 0.5rem;
-	border: 1px solid var(--dbz-orange, #ffb200);
+	border: 1px solid var(--dbz-orange, #e78220);
 	background: #0a0a0a;
 	color: #fff;
 	font-size: 0.8125rem;
@@ -95,7 +95,7 @@ main:focus {
    invisible sur une bonne partie de l'interface. `:focus-visible` (et non
    `:focus`) → aucun anneau au clic souris. */
 :focus-visible {
-	outline: 2px solid var(--dbz-orange, #ffb200);
+	outline: 2px solid var(--dbz-orange, #e78220);
 	outline-offset: 2px;
 	border-radius: 2px;
 }
@@ -135,15 +135,24 @@ main:focus {
 	--color-dbz-bg: var(--dbz-bg, #0a0a0a); /* noir profond DB officiel */
 	--color-dbz-card: var(--dbz-card, #141410); /* surface élevée chaude */
 	--color-dbz-border: var(--dbz-border, #2a2a26); /* hairline subtil */
-	--color-dbz-orange: var(--dbz-orange, #ffb200); /* jaune doré signature DB officiel */
-	--color-dbz-orange-dark: var(--dbz-orange-dark, #d99700); /* press state */
+	/* Recalibrés sur la couverture de tankōbon (cf. docs/couverture-analyse-visuelle.md) :
+	   l'accent est l'ORANGE DU GI DE GOKU, #e78220, mesuré à 27,4 % de sa zone —
+	   pas le doré du site marchand officiel. Contraste 7,18:1 sur le fond noir,
+	   contre 10,96:1 pour l'ancien : on perd de la marge, on reste au-dessus de
+	   AA partout. */
+	--color-dbz-orange: var(--dbz-orange, #e78220); /* orange du gi, mesuré */
+	--color-dbz-orange-dark: var(--dbz-orange-dark, #c46f1b); /* press state : −15 % de valeur, le rapport de l'ancien couple */
 	--color-dbz-blue: var(--dbz-blue, #1e244d); /* deep navy lisible */
 	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd); /* gris clair DB officiel */
-	--color-dbz-yellow: var(--dbz-yellow, #ffb200); /* alias accent doré */
-	--color-dbz-red: var(--dbz-red, #ff0000); /* rouge pur DB officiel */
-	--color-dbz-green: var(--dbz-green, #16a34a); /* namek / nature */
+	--color-dbz-yellow: var(--dbz-yellow, #fefd03); /* jaune du titre de couverture, comme `gold` */
+	/* Rouge du titre de couverture (#de0b36, teinte 347,8°) éclairci de 4 % de
+	   luminance : le token porte 53 usages dont des messages d'erreur en petit
+	   texte, et l'aplat exact tombe à 3,97:1 sur le fond noir. Ici 4,58:1, donc
+	   AA. L'aplat de couverture reste disponible en `--color-logo-rouge`. */
+	--color-dbz-red: var(--dbz-red, #f10c3b);
+	--color-dbz-green: var(--dbz-green, #2e9b41); /* corps de Shenron, mesuré (29,4 % de sa zone) */
 	--color-dbz-purple: var(--dbz-purple, #a855f7); /* transformations / énergie */
-	--color-dbz-gold: var(--dbz-gold, #ffea00); /* saiyan / anecdotes */
+	--color-dbz-gold: var(--dbz-gold, #fefd03); /* jaune du titre de couverture, mesuré */
 	--color-dbz-cyan: var(--dbz-cyan, #22d3ee); /* relations / affiliations */
 	--color-dbz-pink: var(--dbz-pink, #ec4899); /* divers / curiosités */
 
@@ -154,7 +163,7 @@ main:focus {
 	   une onomatopée. `os` est le blanc du papier vu en négatif : sur un fond noir,
 	   c'est le TRAIT qui devient clair, sinon une planche sombre n'a plus de trait
 	   du tout. Pilotables depuis /admin/design comme le reste. */
-	--color-encre: var(--dbz-encre, #12110d);
+	--color-encre: var(--dbz-encre, #131b08);
 	--color-os: var(--dbz-os, #efe9d8);
 	--color-kinto-lumiere: var(--dbz-kinto-lumiere, #fcf03a);
 	--color-kinto-ombre: var(--dbz-kinto-ombre, #e4be05);
@@ -173,6 +182,21 @@ main:focus {
 	--color-logo-jaune: var(--dbz-logo-jaune, #fefd03);
 	--color-logo-rouge: var(--dbz-logo-rouge, #de0b36);
 	--color-logo-titre2: var(--dbz-logo-titre2, #c4102a);
+
+	/* === Aplats de l'illustration de couverture ===
+	   La matière du support, en dessous du bandeau du titre : ce sont des aplats
+	   d'ILLUSTRATION, bons pour une case, un décor, un dessin vectoriel — jamais
+	   pour une surface de page, où ils écraseraient le texte (le bleu de ciel
+	   plafonne à 3,05:1). Chaque valeur est la dominante k-means de sa zone,
+	   avec son ton d'ombre relevé au 2ᵉ décile de luminance : en passant à
+	   l'ombre le manga garde la saturation et fait tourner la teinte de quatre
+	   degrés, il ne désature pas comme un cel d'anime. */
+	--color-case-ciel: var(--dbz-case-ciel, #3f5aa7);
+	--color-gi-clair: var(--dbz-gi-clair, #f48f20);
+	--color-gi-ombre: var(--dbz-gi-ombre, #dc7f2b);
+	--color-ecaille-claire: var(--dbz-ecaille-claire, #42b147);
+	--color-ecaille-ombre: var(--dbz-ecaille-ombre, #298942);
+	--color-peau: var(--dbz-peau, #f7dbad);
 
 	/* Accents « énergie » d'origine, antérieurs au recalibrage sur la charte
 	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
@@ -238,9 +262,9 @@ main:focus {
 	--color-brand-400: #ff7300;
 	--color-brand-500: #e55a00;
 	--color-brand-600: #c24100;
-	--color-saiyan: #ffea00;
-	--color-namek: #16a34a;
-	--color-power: #dc2626;
+	--color-saiyan: #fefd03; /* jaune du titre de couverture */
+	--color-namek: #2e9b41; /* vert de Shenron */
+	--color-power: #f10c3b; /* rouge du titre, relevé pour AA */
 
 	--radius-sm: calc(var(--radius) * 0.6);
 	--radius-md: calc(var(--radius) * 0.8);
@@ -261,21 +285,27 @@ main:focus {
 	--color-dbz-bg: var(--dbz-bg, #0a0a0a);
 	--color-dbz-card: var(--dbz-card, #141410);
 	--color-dbz-border: var(--dbz-border, #2a2a26);
-	--color-dbz-orange: var(--dbz-orange, #ffb200);
-	--color-dbz-orange-dark: var(--dbz-orange-dark, #d99700);
+	--color-dbz-orange: var(--dbz-orange, #e78220);
+	--color-dbz-orange-dark: var(--dbz-orange-dark, #c46f1b);
 	--color-dbz-blue: var(--dbz-blue, #1e244d);
 	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd);
-	--color-dbz-yellow: var(--dbz-yellow, #ffb200);
-	--color-dbz-red: var(--dbz-red, #ff0000);
-	--color-dbz-green: var(--dbz-green, #16a34a);
+	--color-dbz-yellow: var(--dbz-yellow, #fefd03);
+	--color-dbz-red: var(--dbz-red, #f10c3b);
+	--color-dbz-green: var(--dbz-green, #2e9b41);
 	--color-dbz-purple: var(--dbz-purple, #a855f7);
-	--color-dbz-gold: var(--dbz-gold, #ffea00);
+	--color-dbz-gold: var(--dbz-gold, #fefd03);
 	--color-dbz-cyan: var(--dbz-cyan, #22d3ee);
 	--color-dbz-pink: var(--dbz-pink, #ec4899);
-	--color-encre: var(--dbz-encre, #12110d);
+	--color-encre: var(--dbz-encre, #131b08);
 	--color-os: var(--dbz-os, #efe9d8);
 	--color-kinto-lumiere: var(--dbz-kinto-lumiere, #fcf03a);
 	--color-kinto-ombre: var(--dbz-kinto-ombre, #e4be05);
+	--color-case-ciel: var(--dbz-case-ciel, #3f5aa7);
+	--color-gi-clair: var(--dbz-gi-clair, #f48f20);
+	--color-gi-ombre: var(--dbz-gi-ombre, #dc7f2b);
+	--color-ecaille-claire: var(--dbz-ecaille-claire, #42b147);
+	--color-ecaille-ombre: var(--dbz-ecaille-ombre, #298942);
+	--color-peau: var(--dbz-peau, #f7dbad);
 }
 
 @layer base {
@@ -1409,11 +1439,11 @@ main:focus {
    un daltonien, cf. WCAG 1.4.1), mais en filet fin décalé sous la ligne de
    base — le texte reste lisible là où un `underline` plein le hachait. */
 .wiki-content a {
-	color: var(--color-dbz-orange, #ffb200);
+	color: var(--color-dbz-orange, #e78220);
 	text-decoration: underline;
 	text-decoration-thickness: 1px;
 	text-underline-offset: 0.18em;
-	text-decoration-color: color-mix(in srgb, var(--color-dbz-orange, #ffb200) 40%, transparent);
+	text-decoration-color: color-mix(in srgb, var(--color-dbz-orange, #e78220) 40%, transparent);
 	transition: text-decoration-color 150ms ease;
 }
 .wiki-content a:hover {
@@ -1555,7 +1585,7 @@ main:focus {
 .ki-power-val {
 	font-family: var(--font-scouter, inherit);
 	font-weight: 700;
-	color: var(--color-dbz-orange, #ffb200);
+	color: var(--color-dbz-orange, #e78220);
 }
 /* Section repliable « par arc » (sous-catégorie) : panneau natif <details>, replié
    par défaut → page de personnage compacte et triée par arc. */
@@ -1574,7 +1604,7 @@ main:focus {
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	color: var(--color-dbz-orange, #ffb200);
+	color: var(--color-dbz-orange, #e78220);
 	user-select: none;
 }
 .wiki-content .wiki-section > summary::-webkit-details-marker {
@@ -1710,7 +1740,7 @@ main:focus {
 	margin: 0.25rem 0.35rem 0.25rem 0;
 	padding: 0.55rem 1.2rem;
 	border-radius: 0.4rem;
-	background: var(--color-dbz-orange, #ffb200);
+	background: var(--color-dbz-orange, #e78220);
 	color: #1a1206;
 	font-weight: 700;
 	text-decoration: none;
@@ -1835,7 +1865,7 @@ main:focus {
 	height: auto;
 	object-fit: contain;
 	border-radius: 0.5rem;
-	border: 1px solid color-mix(in oklab, var(--color-dbz-orange, #ffb200) 45%, transparent);
+	border: 1px solid color-mix(in oklab, var(--color-dbz-orange, #e78220) 45%, transparent);
 	box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7);
 }
 .wiki-lightbox__close {
@@ -1860,7 +1890,7 @@ main:focus {
 }
 .wiki-lightbox__close:hover {
 	background: rgba(255, 255, 255, 0.16);
-	border-color: var(--color-dbz-orange, #ffb200);
+	border-color: var(--color-dbz-orange, #e78220);
 }
 .wiki-lightbox__cap {
 	max-width: 60ch;
@@ -1980,7 +2010,7 @@ main:focus {
 	   Les scènes, elles, surchargent `--accent` avec la teinte de LEUR ère
 	   (or pour les origines, rouge saiyan, vert namek, magenta majin…) — c'est
 	   un choix éditorial assumé, pas une incohérence, et il est préservé. */
-	--accent: var(--color-dbz-orange, #ffb200);
+	--accent: var(--color-dbz-orange, #e78220);
 }
 
 .home-section {
@@ -3248,7 +3278,7 @@ main:focus {
 	}
 	50% {
 		filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.6))
-			drop-shadow(0 0 24px color-mix(in oklab, var(--accent, #ffb200) 45%, transparent));
+			drop-shadow(0 0 24px color-mix(in oklab, var(--accent, #e78220) 45%, transparent));
 	}
 }
 @media (prefers-reduced-motion: reduce) {
@@ -3279,7 +3309,8 @@ main:focus {
 	transform-origin: 0 50%;
 	transform: scaleX(0);
 	opacity: 0;
-	background: linear-gradient(90deg, #f5bf41 0%, #ffb200 45%, #e94c1a 100%);
+	/* Les trois encres du titre de couverture, dans l'ordre du logo. */
+	background: linear-gradient(90deg, #fefd03 0%, #e78220 45%, #de0b36 100%);
 	box-shadow:
 		0 0 10px rgba(245, 191, 65, 0.6),
 		0 0 4px rgba(233, 76, 26, 0.7);
@@ -3839,7 +3870,7 @@ html[data-consent-open] body {
 }
 .prose-transcription h1 {
 	font-size: 1.15rem;
-	color: var(--color-dbz-orange, #ffb200);
+	color: var(--color-dbz-orange, #e78220);
 }
 .prose-transcription h2 {
 	font-size: 1.05rem;
@@ -3876,7 +3907,7 @@ html[data-consent-open] body {
 .prose-transcription blockquote {
 	margin: 0 0 0.85em;
 	padding-left: 0.8em;
-	border-left: 2px solid var(--color-dbz-orange, #ffb200);
+	border-left: 2px solid var(--color-dbz-orange, #e78220);
 	color: rgba(255, 255, 255, 0.7);
 }
 .prose-transcription table {

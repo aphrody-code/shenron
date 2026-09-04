@@ -64,12 +64,16 @@ export const DEFAULT_SITE_THEME: SiteTheme = {
 		bg: "#0a0a0a",
 		card: "#141410",
 		border: "#2a2a26",
-		orange: "#ffb200",
-		orangeDark: "#d99700",
+		// Palette relevée sur la couverture de tankōbon — cf.
+		// docs/couverture-analyse-visuelle.md. `orange` est l'orange du gi de
+		// Goku, `yellow` le jaune du titre, `red` le rouge du titre éclairci de
+		// 4 % pour tenir AA sur le fond noir.
+		orange: "#e78220",
+		orangeDark: "#c46f1b",
 		blue: "#1e244d",
 		blueLight: "#cdcdcd",
-		yellow: "#ffb200",
-		red: "#ff0000",
+		yellow: "#fefd03",
+		red: "#f10c3b",
 		ember: "#ff6b1a",
 		ki: "#4ba8ff",
 		amber: "#ffd23f",

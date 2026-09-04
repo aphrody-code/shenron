@@ -98,7 +98,7 @@ export const metadata: Metadata = {
 		],
 		apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
 		shortcut: "/favicon.ico",
-		other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#ffb200" }],
+		other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#e78220" }],
 	},
 	openGraph: {
 		type: "website",

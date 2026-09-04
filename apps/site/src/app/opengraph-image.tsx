@@ -67,7 +67,7 @@ export default function OpengraphImage() {
 					fontSize: 28,
 					letterSpacing: 8,
 					textTransform: "uppercase",
-					color: "#ffb200",
+					color: "#e78220",
 					fontWeight: 700,
 					marginBottom: 22,
 				}}
