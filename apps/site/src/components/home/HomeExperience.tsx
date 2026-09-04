@@ -859,12 +859,6 @@ export function HomeExperience({
 								<MotManga lettres={LETTRES_BALL} />
 							</span>
 						</span>
-						{/* Le furigana passe SOUS le titre, où la couverture le pose —
-						    la structure du bandeau est titre / ドラゴンボールスーパー /
-						    ★ ligne de sous-titre, dans cet ordre. */}
-						<span className="home-wordmark__furigana" aria-hidden>
-							ドラゴンボール
-						</span>
 						<em>France</em>
 					</h1>
 					<p className="home-lede">{config.hero.lede}</p>

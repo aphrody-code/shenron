@@ -846,30 +846,22 @@ main:focus {
 		font-size: calc(1em * var(--e, 1));
 		vertical-align: baseline;
 	}
-	/* Deux cernes, deux COPIES du texte tracées dessous : `-webkit-text-stroke`
-	   posé sur l'élément lui-même déborderait sur le remplissage et mangerait
-	   l'aplat. Le noir est le cerne de la couverture, relevé à 6-7 px pour une
-	   capitale de 152 (le trait est centré sur le contour : 0,06em en pose 0,03
-	   à l'extérieur, soit 6,4 px à cette capitale). Le clair au-dessous
-	   n'existe pas sur le papier mais est indispensable ici, car un cerne noir
-	   posé sur un fond noir ne détache rien — il est ramené à 0,11em, la valeur
-	   précédente (0,15) empâtait les contre-formes du R et du A. */
-	.wordmark-lettre::before,
-	.wordmark-lettre::after {
+	/* UN SEUL cerne, noir, tracé dessous en COPIE du glyphe :
+	   `-webkit-text-stroke` posé sur l'élément lui-même déborderait sur le
+	   remplissage et mangerait l'aplat. Il est relevé à 6-7 px pour une capitale
+	   de 156 sur la couverture ; le trait étant centré sur le contour, 0,06em en
+	   pose 0,03 à l'extérieur, soit 6,4 px à cette capitale.
+	   Le second cerne, clair, est retiré : il n'existe sur aucun tome — le blanc
+	   qu'on croit y voir est le papier. Sur le fond sombre du site c'est l'ombre
+	   portée de la ligne qui détache les lettres. */
+	.wordmark-lettre::before {
 		content: attr(data-texte);
 		position: absolute;
 		inset: 0;
 		paint-order: stroke fill;
-	}
-	.wordmark-lettre::before {
 		z-index: -1;
 		color: #000;
 		-webkit-text-stroke: calc(0.06em / var(--e, 1)) #000;
-	}
-	.wordmark-lettre::after {
-		z-index: -2;
-		color: var(--color-os);
-		-webkit-text-stroke: calc(0.11em / var(--e, 1)) var(--color-os);
 	}
 	/* La boule prend la place du O de DRAGON, comme sur la couverture — où le O
 	   n'est pas une lettre décorée mais un disque à part entière, avec l'étoile
@@ -895,20 +887,18 @@ main:focus {
 	   l'ordre inverse, `skewX` puis `scaleX` — la sphère sortirait en ellipse
 	   penchée. Sur la couverture, l'étoile est parfaitement carrée (46 × 46) :
 	   l'inclinaison du titre ne la touche pas.
-	   Et les marges restent à ZÉRO. La boule occupe `width` dans le flux, que la
-	   compression du mot réduit à `width × 0,55` — la contre-transformation lui
-	   rend sa rondeur mais pas sa place, si bien qu'elle déborde d'elle-même de
-	   0,092em de chaque côté. Or c'est exactement le chevauchement du support
-	   (18 px sur le G, 22 px sur le N pour un Ø de 89, soit 0,20 et 0,25 du
-	   diamètre). La marge négative essayée d'abord comptait ce mordant deux
-	   fois. */
+	   Le MORDANT est mesuré : la boule occupe x 249→338 sur la couverture, quand
+	   l'aplat du G finit à 267 et celui du N commence à 316 — elle mord de 18 px
+	   sur le G et de 22 px sur le N, soit 0,20 et 0,25 de son diamètre. À une
+	   compression de 0,93, son débordement naturel hors du flux ne vaut que
+	   0,014em de chaque côté ; la marge négative apporte le reste. */
 	.wordmark-boule {
 		display: inline-block;
 		width: 0.411em;
 		height: 0.411em;
 		vertical-align: 0.046em;
-		margin: 0;
-		transform: skewX(12.3deg) scaleX(1.8182);
+		margin: 0 -0.078em;
+		transform: skewX(12.3deg) scaleX(1.0753);
 	}
 	.wordmark-boule svg {
 		width: 100%;
@@ -2288,22 +2278,6 @@ main:focus {
 	flex-wrap: wrap;
 	margin-bottom: 1.4rem;
 }
-/* Le furigana du bandeau : ドラゴンボールスーパー, posé SOUS le titre, très
-   espacé, dans l'encre du support — pas dans l'accent de scène, qui vire au
-   lavande sur le panneau Beerus et n'existe sur aucune couverture. */
-/* Hauteur MESURÉE sur la couverture : ドラゴンボールスーパー occupe y 228→261,
-   soit 34 px pour une capitale de 156 — **0,218 capitale** — et barre 68 % de la
-   largeur du titre. Rendu à 0,13em, il ne faisait que 0,166 capitale et 51 % :
-   0,17em rend les deux d'un coup, l'espacement des katakana suivant le corps. */
-.home-wordmark__furigana {
-	font-family: var(--font-jp), var(--font-sans);
-	letter-spacing: 0.45em;
-	font-size: 0.17em;
-	color: var(--color-os);
-	margin-top: 0.34em;
-	padding-left: 0.02em;
-	text-shadow: 0 0.06em 0.2em rgba(0, 0, 0, 0.85);
-}
 .home-kicker__live,
 .home-live-pill {
 	display: inline-flex;
@@ -2444,7 +2418,14 @@ main:focus {
 	   point de départ à mi-hauteur, si bien que la fin de course sortait par le
 	   bas de la fenêtre ; 14vh le faisait démarrer sur la pastille du héros. */
 	top: 9vh;
-	z-index: 2;
+	/* SOUS le contenu, pas au-dessus. Le confiner à la marge gauche ne suffit
+	   pas : la marge du héros vaut `clamp(1.25rem, 7vw, 8rem)` et fond à 20 px
+	   sur les fenêtres étroites, tandis que le nuage garde 5,5rem de large et
+	   grossit encore de 6 % au milieu de sa course. À z-index 2 il finissait par
+	   passer sur le titre. Le contenu du héros et les panneaux montent à 3 et 2,
+	   le nuage descend à 0 : quoi qu'il arrive à la géométrie, il passe DERRIÈRE.
+	   Il reste au-dessus du fond de scène, qui est à -1. */
+	z-index: 0;
 	pointer-events: none;
 	/* L'échelle est le troisième terme de la trajectoire : le nuage entre par la
 	   gauche loin derrière la scène et passe au premier plan en la traversant.
@@ -2605,6 +2586,8 @@ main:focus {
 }
 .home-hero__content {
 	position: relative;
+	/* Au-dessus du Kinto-Un (z 0) : rien de décoratif ne passe sur le titre. */
+	z-index: 3;
 	max-width: min(54rem, 92vw);
 }
 .home-wordmark {
@@ -2615,11 +2598,11 @@ main:focus {
 	/* Sur la couverture, la capitale du titre fait 20 % de la hauteur utile et
 	   le mot barre 75 % de la largeur. Le titre du héros visait 5,9 % à
 	   1440 px : à cette taille, c'est un intertitre, pas un logo. */
-	/* La compression est passée de 0,93 à 0,55 (cf. `.wordmark-manga`) : à corps
-	   égal, le bloc rétrécit de 41 % et le titre ne barrait plus que 41 % de sa
-	   colonne, contre 71 % de la page sur la couverture. Le corps est donc relevé
-	   d'autant — c'est la même mesure qui donne les deux nombres. */
-	font-size: clamp(4.5rem, 19vw, 17rem);
+	/* Corps calé sur la LARGEUR occupée, pas sur la hauteur : à compression 0,93,
+	   11,2vw rend le même bloc de 643 px que 19vw en rendait à 0,55 — soit 74 %
+	   de la colonne du héros, quand le titre barre 71 % de la page sur la
+	   couverture. */
+	font-size: clamp(3.2rem, 11.2vw, 10rem);
 	max-width: 100%;
 	text-transform: uppercase;
 	margin: 0;
@@ -2635,19 +2618,18 @@ main:focus {
 	   d'encre se rejoignent ; le 0,16em d'origine laissait un blanc de la largeur
 	   d'une lettre, qu'on ne trouve sur aucun tome.
 	   La valeur CSS n'est pas 0,064 capitale pour autant : le gap est posé AVANT
-	   la compression de la ligne (× 0,55) et le `letter-spacing: -.045em` du mot
-	   s'applique encore après sa dernière lettre. Rendu mesuré à 0,05em : −2 px,
-	   les deux mots se chevauchaient. 0,126em rend les 12 px attendus à cette
-	   capitale.
+	   la compression de la ligne (× 0,93) et le `letter-spacing: -.045em` du mot
+	   s'applique encore après sa dernière lettre — il faut donc compenser ce
+	   dernier en plus de l'écart voulu.
 	   0,14em de garde à droite : l'oblique pousse le haut du dernier L hors de
 	   la boîte. */
-	gap: 0.126em;
+	gap: 0.094em;
 	padding-right: 0.14em;
 	/* Compression et oblique du logo, portées ICI et pas sur chaque mot (voir
 	   `.wordmark-manga`). La ligne garde en revanche sa largeur non comprimée
 	   dans le flux : c'est sans effet, rien ne la suit sur sa droite, et le
 	   `transform-origin: left` cale le visuel sur la marge de la colonne. */
-	transform: scaleX(0.55) skewX(-12.3deg);
+	transform: scaleX(0.93) skewX(-12.3deg);
 	transform-origin: left center;
 	width: max-content;
 }
@@ -2818,6 +2800,9 @@ main:focus {
 /* ── Panneaux contenu ────────────────────────────────────────────────────── */
 .home-panel {
 	position: relative;
+	/* Même raison que `.home-hero__content` : le nuage suit le défilement sur
+	   toute la page, il traverse donc aussi les panneaux de contenu. */
+	z-index: 2;
 	width: 100%;
 	max-width: 78rem;
 }
