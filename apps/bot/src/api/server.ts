@@ -1087,6 +1087,8 @@ export class ApiServer {
 				"/apple-touch-icon.png": staticFile("public/apple-touch-icon.png", "image/png"),
 				"/icon-192.png": staticFile("public/icon-192.png", "image/png"),
 				"/icon-512.png": staticFile("public/icon-512.png", "image/png"),
+				"/icon-maskable-512.png": staticFile("public/icon-maskable-512.png", "image/png"),
+				"/mstile-150.png": staticFile("public/mstile-150.png", "image/png"),
 				"/manifest.webmanifest": staticFile(
 					"public/manifest.webmanifest",
 					"application/manifest+json"
