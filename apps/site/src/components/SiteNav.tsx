@@ -2,7 +2,6 @@ import Link from "next/link";
 import { KintoUn } from "@/components/KintoUn";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
-import { MobileNav } from "@/components/MobileNav";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
 import { NavMore } from "@/components/NavMore";
 import { NavMega, type MegaItem } from "@/components/NavMega";
@@ -120,6 +119,14 @@ export async function SiteNav() {
 			    nette, sans flou, donne le poids de l'encre. */}
 			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.86)] backdrop-blur-xl backdrop-saturate-150 border-b-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] shadow-[0_3px_0_rgba(0,0,0,0.55)]" />
 
+			{/* Réserve d'encoche : en plein écran (PWA, mode immersif iOS), une barre
+			    `sticky top-0` passe SOUS la barre d'état et le logo se retrouve à
+			    moitié caché. `env(safe-area-inset-top)` vaut 0 partout ailleurs, la
+			    règle est donc sans effet sur un navigateur de bureau. */}
+			<div className="h-[env(safe-area-inset-top)]" />
+
+			{/* 64 px : c'est `m3_comp_app_bar_small_container_height` = 64 dp, la
+			    hauteur de la « small top app bar » de Material 3. */}
 			<div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6 lg:px-10 xl:gap-6">
 				{/* Wordmark — même structure que le titre de l'accueil : le nom de
 				    l'œuvre en sans très gras, le pays en SERIF capitales espacées.
@@ -208,13 +215,18 @@ export async function SiteNav() {
 					<NavAuth />
 				</div>
 
-				{/* Recherche mobile : rendue HORS du conteneur `hidden lg:flex`
-				    ci-dessus, sinon elle disparaît sous 1024 px — c'est-à-dire pour
+				{/* Sous 1024 px, la barre du haut ne porte plus QUE la recherche et le
+				    compte : la navigation est descendue dans `<BarreNavMobile />`, au
+				    pouce. Le menu hamburger a donc disparu — deux systèmes de
+				    navigation sur le même écran, l'un en haut hors de portée et
+				    l'autre en bas, c'était une hésitation et non un choix.
+				    Ces deux contrôles restent rendus HORS du conteneur `hidden lg:flex`
+				    ci-dessus, sinon ils disparaissent sous 1024 px, c'est-à-dire pour
 				    l'essentiel du trafic. */}
-				<div className="ml-auto flex items-center lg:hidden">
+				<div className="ml-auto flex items-center gap-1 lg:hidden">
 					<CommandMenu variant="icon" />
+					<NavAuth variant="compact" />
 				</div>
-				<MobileNav links={mobilePublic} adminLinks={adminOnly} />
 			</div>
 		</header>
 	);

@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Noto_Sans_JP, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+// Conséquences de la barre de navigation basse (réserve sous le contenu,
+// remontée des pastilles flottantes et du bandeau de consentement).
+import "@/styles/barre-nav.css";
 import dynamic from "next/dynamic";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { BarreNavMobile } from "@/components/BarreNavMobile";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { ConsentGate } from "@/components/ConsentGate";
@@ -229,6 +233,12 @@ export default async function RootLayout({
 					{children}
 				</main>
 				<SiteFooter />
+				{/* Barre de navigation basse — sous 1024 px seulement, là où la nav de
+				    la barre du haut se replie. Elle est montée APRÈS le pied de page :
+				    l'ordre du DOM est aussi l'ordre de tabulation, et une navigation
+				    de premier rang qui s'insère avant le pied ferait relire tout le
+				    pied avant d'y arriver. */}
+				<BarreNavMobile />
 				<DiscordInviteFAB />
 				<ReportButton />
 				<FloatingAssistant />

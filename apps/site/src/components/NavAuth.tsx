@@ -7,15 +7,46 @@ import { SignOut } from "@/components/SignOut";
 import { useMe } from "@/lib/use-me";
 
 /**
- * Zone identité de la nav desktop (îlot client). Hydrate l'état d'auth via
+ * Zone identité de la barre du haut (îlot client). Hydrate l'état d'auth via
  * `/api/me` côté client → le layout + les pages restent statiques/ISR cacheables.
+ *
+ * `variant="compact"` : sur mobile, la barre du haut ne porte plus que la
+ * recherche et le compte — la navigation est descendue dans la barre basse. Il
+ * n'y reste donc que l'AVATAR : le pseudo n'y tiendrait pas sous 360 px, et le
+ * bouton de déconnexion vit désormais dans la feuille « Plus », pas dans une
+ * barre où il jouxterait le lien du profil au pixel près.
  */
-export function NavAuth() {
+export function NavAuth({ variant = "full" }: { variant?: "full" | "compact" }) {
 	const me = useMe();
+	const compact = variant === "compact";
 
 	// Placeholder de même gabarit tant que /api/me n'a pas répondu (anti-CLS).
 	if (me === undefined) {
-		return <div className="h-9 w-[120px]" aria-hidden />;
+		return <div className={compact ? "h-11 w-11" : "h-9 w-[120px]"} aria-hidden />;
+	}
+
+	if (compact) {
+		// 44 px de cible : au-dessus des 24 px exigés par WCAG 2.2 (2.5.8, AA),
+		// sous les 48 dp de Material 3 — c'est la taille des autres commandes de
+		// cette barre, et l'uniformité prime ici sur les 4 px manquants.
+		return me.authenticated ? (
+			<Link
+				href="/profil/me"
+				aria-label={me.username ? `Profil de ${me.username}` : "Mon profil"}
+				className="grid h-11 w-11 place-items-center rounded-full transition-colors hover:bg-white/[0.08] focus-visible:outline-2 focus-visible:outline-[var(--color-logo-jaune)]"
+			>
+				<Avatar src={me.avatar} size={28} className="ring-1 ring-white/15" />
+			</Link>
+		) : (
+			<SignInDiscord
+				aria-label="Se connecter avec Discord"
+				className="grid h-11 w-11 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white focus-visible:outline-2 focus-visible:outline-[var(--color-logo-jaune)]"
+			>
+				<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden>
+					<path d="M12 2.6a5.2 5.2 0 0 0-5.2 5.2A5.2 5.2 0 0 0 12 13a5.2 5.2 0 0 0 5.2-5.2A5.2 5.2 0 0 0 12 2.6Zm0 12.2c-4.3 0-8 2.2-8 5v1.6h16v-1.6c0-2.8-3.7-5-8-5Z" />
+				</svg>
+			</SignInDiscord>
+		);
 	}
 
 	return (
