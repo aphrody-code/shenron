@@ -158,6 +158,12 @@ main:focus {
 	--color-os: var(--dbz-os, #efe9d8);
 	--color-kinto-lumiere: var(--dbz-kinto-lumiere, #fcf03a);
 	--color-kinto-ombre: var(--dbz-kinto-ombre, #e4be05);
+	/* Bleu du logo « DRAGON BALL », relevé sur les couvertures des tankōbon 2, 4
+	   et 5 : un dégradé vertical du bleu profond au cyan clair. La teinte est
+	   constante d'un tome à l'autre (191–202°), c'est elle la signature. */
+	--color-logo-haut: var(--dbz-logo-haut, #176285);
+	--color-logo-milieu: var(--dbz-logo-milieu, #1f9ec8);
+	--color-logo-bas: var(--dbz-logo-bas, #52c5ef);
 
 	/* Accents « énergie » d'origine, antérieurs au recalibrage sur la charte
 	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
@@ -704,6 +710,58 @@ main:focus {
 		filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-dbz-ember) 50%, transparent))
 			drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8));
 		letter-spacing: 0.04em;
+	}
+
+	/* === Wordmark de couverture ===
+	   Le logo des tankōbon : capitales très grasses, serrées, portant un dégradé
+	   vertical du bleu profond au cyan clair, cernées d'un liseré clair et posées
+	   sur une ombre nette. Les trois couleurs sont mesurées (cf. tokens
+	   `--color-logo-*`), pas choisies.
+
+	   La police du logo n'est pas libre de droits, et Google Sans Flex n'a pas
+	   d'axe de largeur — sa condensation vient donc de la graisse maximale
+	   (`wght` monte à 1000), d'un crénage négatif et d'une compression
+	   horizontale de 8 %. C'est une transposition, pas un calque. */
+	.wordmark-manga {
+		position: relative;
+		display: inline-block;
+		font-family: var(--font-sans);
+		font-weight: 1000;
+		font-variation-settings: "wght" 1000;
+		text-transform: uppercase;
+		letter-spacing: -0.045em;
+		transform: scaleX(0.93);
+		transform-origin: left center;
+		background: linear-gradient(
+			180deg,
+			var(--color-logo-haut) 0%,
+			var(--color-logo-milieu) 54%,
+			var(--color-logo-bas) 100%
+		);
+		background-clip: text;
+		-webkit-background-clip: text;
+		color: transparent;
+		filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6));
+	}
+	/* Le liseré est une COPIE du texte tracée dessous : `-webkit-text-stroke`
+	   posé sur l'élément lui-même serait rogné par le `background-clip: text`
+	   qui porte le dégradé, et on perdrait soit le contour soit la couleur. */
+	.wordmark-manga::before {
+		content: attr(data-texte);
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		color: var(--color-os);
+		-webkit-text-stroke: 0.12em var(--color-os);
+		paint-order: stroke fill;
+	}
+	/* Le sous-titre des couvertures (ドラゴンボール) est dans le MÊME bleu que le
+	   logo, jamais dans une couleur d'accent : c'est une seule signature en deux
+	   lignes. */
+	.wordmark-manga-sous {
+		color: var(--color-logo-bas);
+		text-transform: uppercase;
+		font-weight: 700;
 	}
 
 	/* === Planche ===
@@ -2248,26 +2306,30 @@ main:focus {
    modelé s'y fait par un second ton de la même couleur. Un titre fondu du
    blanc vers l'accent, posé sur une photo elle-même dégradée, perd en plus sa
    lisibilité dans sa moitié basse — précisément là où le mot se termine. */
+/* Le titre du héros porte le wordmark de couverture (`.wordmark-manga`). Il
+   garde en plus un halo noir large : sur un fond photographique, le liseré clair
+   du logo ne suffit pas à détacher les lettres. */
 .home-wordmark span {
-	color: #fff;
-	/* L'ombre portée reste : c'est elle qui détache le titre du fond
-	   photographique, et elle ne colore rien. */
-	filter: drop-shadow(0 6px 30px rgba(0, 0, 0, 0.75));
+	filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6))
+		drop-shadow(0 6px 30px rgba(0, 0, 0, 0.75));
 }
 /* « France » en SERIF capitales espacées — la structure exacte des couvertures
    Daizenshuu : titre en grotesque ultra-gras, sous-titre en serif capitales
    (« DRAGON BALL 大全集 » puis « WORLD GUIDE »). Le contraste de familles fait
    le travail que faisait le dégradé, sans rien sacrifier à la lisibilité. */
 .home-wordmark em {
-	font-family: var(--font-serif-src), Georgia, serif;
+	font-family: var(--font-sans);
 	font-style: normal;
-	font-weight: 600;
-	letter-spacing: 0.16em;
-	font-size: 0.3em;
-	color: var(--accent);
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.3em;
+	font-size: 0.26em;
+	/* Le bleu du logo, pas l'accent de section : sur les couvertures, la ligne
+	   sous le titre est de la même encre que le titre. */
+	color: var(--color-logo-bas);
 	-webkit-text-stroke: 0;
-	margin-top: 0.4em;
-	padding-left: 0.12em;
+	margin-top: 0.5em;
+	padding-left: 0.14em;
 }
 .home-lede {
 	margin-top: 1.6rem;

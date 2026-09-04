@@ -22,10 +22,15 @@ const site = new URL("../public/", import.meta.url).pathname;
 const bot = new URL("../../bot/public/", import.meta.url).pathname;
 const logoBot = new URL("../../bot/assets/logo.webp", import.meta.url).pathname;
 
-/** L'icône « any » garde ses coins arrondis et sa pastille : transparente autour. */
-const transparente = Buffer.from(svgIcone());
+/**
+ * Favicon d'onglet : AUCUNE pastille. Une pastille sombre posait un carré noir
+ * dans la barre d'onglets des navigateurs en thème clair — le fond du site n'a
+ * rien à faire dans l'onglet du navigateur. Ce qui porte le contraste sur fond
+ * blanc, c'est le trait d'encre du nuage, pas un aplat derrière lui.
+ */
+const transparente = Buffer.from(svgIcone({ pastille: null, echelle: 1.12 }));
 /** Sous 64 px les volutes ne sont plus que du bruit : icône nue. */
-const sansVolutes = Buffer.from(svgIcone({ volutes: false }));
+const sansVolutes = Buffer.from(svgIcone({ pastille: null, echelle: 1.12, volutes: false }));
 /** Les formats qui interdisent l'alpha reçoivent une pastille à coins carrés. */
 const pleine = Buffer.from(svgIcone({ coins: 0 }));
 /** Maskable : pastille pleine, nuage dans les 80 % centraux. */

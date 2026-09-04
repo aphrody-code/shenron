@@ -832,7 +832,9 @@ export function HomeExperience({
 						</span>
 					</p>
 					<h1 className="home-wordmark">
-						<span>Dragon&nbsp;Ball</span>
+						<span className="wordmark-manga" data-texte="Dragon Ball">
+							Dragon&nbsp;Ball
+						</span>
 						<em>France</em>
 					</h1>
 					<p className="home-lede">{config.hero.lede}</p>

@@ -134,10 +134,13 @@ export async function SiteNav() {
 					aria-label="Dragon Ball France — Accueil"
 				>
 					<span className="flex flex-col leading-none">
-						<span className="font-display text-[18px] font-bold tracking-[-0.02em] text-white">
+						<span
+							className="wordmark-manga text-[19px]"
+							data-texte="Dragon Ball"
+						>
 							Dragon&nbsp;Ball
 						</span>
-						<span className="mt-[3px] font-serif text-[10px] font-semibold uppercase tracking-[0.32em] text-dbz-orange transition-colors group-hover:text-white">
+						<span className="wordmark-manga-sous mt-[4px] text-[10px] tracking-[0.34em] transition-colors group-hover:text-white">
 							France
 						</span>
 					</span>
