@@ -91,6 +91,13 @@ type Ouvrage = {
 	prix?: string;
 	editeur?: string;
 	planches?: number | null;
+	/** Posés par `enrichit-divers-dragonballcn.ts` depuis les pages d'index. */
+	rubrique?: string;
+	rubrique_icone?: string | null;
+	date_affichee?: string | null;
+	parution?: string | null;
+	numerisation?: string | null;
+	fil_forum?: string | null;
 };
 type Collection = { slug: string; titre: string; titre_site: string | null; url: string; ouvrages: Ouvrage[] };
 
@@ -165,7 +172,15 @@ const manifeste = {
 		"Couvertures d'édition et données bibliographiques uniquement. Les planches ne sont pas " +
 		"reproduites : le site les sert en 403 délibéré (dossier 不要盗链呀) et son robots.txt " +
 		"porte use=reference sous réservation expresse de droits (directive UE 2019/790, art. 4).",
-	totaux: { collections: 0, ouvrages: 0, couvertures: 0, planches_recensees: 0, avec_isbn: 0 },
+	totaux: {
+		collections: 0,
+		ouvrages: 0,
+		couvertures: 0,
+		planches_recensees: 0,
+		avec_isbn: 0,
+		avec_date: 0,
+		avec_pagination: 0,
+	},
 	collections: [] as unknown[],
 };
 
@@ -186,12 +201,20 @@ for (const collection of collections) {
 			did: ouvrage.did,
 			url_fiche: ouvrage.url,
 			titre: ouvrage.titre_tome || ouvrage.libelle || null,
-			premiere_edition: ouvrage.premiere_edition ?? null,
+			rubrique: ouvrage.rubrique ?? null,
+			// `premiere_edition` vient du bloc éditeur ; `parution` de la liste d'index.
+			premiere_edition: ouvrage.premiere_edition ?? ouvrage.parution ?? null,
+			numerisation: ouvrage.numerisation ?? null,
+			date_affichee: ouvrage.date_affichee ?? null,
 			isbn: ouvrage.isbn ?? null,
 			editeur: ouvrage.editeur ?? null,
 			magazine: ouvrage.magazine ?? null,
 			prix: ouvrage.prix ?? null,
+			fil_forum: ouvrage.fil_forum ?? null,
 			planches_recensees: planches,
+			// Une fiche que le site n'a pas rendue au bout de cinq passes est déclarée
+			// muette, pas comptée à zéro : l'absence de mesure n'est pas une mesure.
+			pagination: planches ? "relevee" : "fiche muette",
 			couverture: null,
 		};
 
@@ -242,6 +265,8 @@ for (const collection of collections) {
 		manifeste.totaux.ouvrages++;
 		if (fiche.couverture) manifeste.totaux.couvertures++;
 		if (ouvrage.isbn) manifeste.totaux.avec_isbn++;
+		if (fiche.premiere_edition) manifeste.totaux.avec_date++;
+		if (planches) manifeste.totaux.avec_pagination++;
 		manifeste.totaux.planches_recensees += planches ?? 0;
 	}
 
@@ -278,7 +303,8 @@ console.log(
 );
 console.log(
 	`  Manifeste : ${manifeste.totaux.collections} collections · ${manifeste.totaux.ouvrages} ouvrages · ` +
-		`${manifeste.totaux.couvertures} couvertures · ${manifeste.totaux.avec_isbn} ISBN · ` +
+		`${manifeste.totaux.couvertures} couvertures · ${manifeste.totaux.avec_date} datés · ` +
+		`${manifeste.totaux.avec_isbn} ISBN · ${manifeste.totaux.avec_pagination} paginés · ` +
 		`${manifeste.totaux.planches_recensees} planches recensées (non reproduites).`,
 );
 if (SIMULATION) console.log("  (simulation — relancer sans --simulation)");
