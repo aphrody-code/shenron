@@ -40,8 +40,12 @@ const nextConfig: NextConfig = {
 	// View Transitions API (React `<ViewTransition>`) — morph d'élément partagé
 	// grille→fiche, slides directionnels. Sans support navigateur, navigation
 	// normale sans animation (progressive enhancement). Cf. components/ViewTransition.tsx.
+	//
+	// Plus de drapeau `experimental.viewTransition` depuis Next 16.4-canary : la
+	// clé a disparu de `ExperimentalConfig` (le type-check la refuse) parce que
+	// la fonctionnalité est stabilisée — l'App Router de Next 16 tourne sur la
+	// canary de React, qui expose `<ViewTransition>` sans rien à activer.
 	experimental: {
-		viewTransition: true,
 
 		// Parallélisme de la génération statique — soupape mémoire du build.
 		//
