@@ -138,7 +138,10 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 							{volume.title_ja && (
 								<div className="flex justify-between">
 									<span className="text-white/50">Titre Original :</span>
-									<span className="text-white font-bold font-mono">{volume.title_ja}</span>
+									{/* `font-jp` et non `font-mono` : JetBrains Mono est chargée en
+									    sous-ensemble LATIN, elle n'a aucun glyphe japonais et rendait
+									    « ドラゴンボール超 1 » en huit tofus sur la page de tome. */}
+									<span className="font-jp font-bold text-white">{volume.title_ja}</span>
 								</div>
 							)}
 							{volume.published_at && (
