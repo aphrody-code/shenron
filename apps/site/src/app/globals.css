@@ -2131,14 +2131,26 @@ main:focus {
 	display: flex;
 	align-items: center;
 	overflow: hidden;
-	isolation: isolate;
+	/* PAS d'`isolation: isolate` ici. Elle enfermait les z-index de la section
+	   dans son propre contexte d'empilement : le Kinto-Un, qui vit un cran plus
+	   haut dans le deck, ne pouvait alors être QUE devant la section entière
+	   (z 2 : il passait sur le titre) ou derrière elle en bloc (z 0 : caché
+	   sous le fond de scène, invisible et injoignable à toutes les largeurs —
+	   `elementFromPoint` rendait le conteneur du fond aux trois points de test,
+	   à 1024, 1280, 1440 et 1920 px). Le « sous le contenu mais sur le fond »
+	   qu'on veut lui donner n'existe simplement pas tant que la section isole.
+	   Elle n'était là que pour retenir le fond de scène, posé à z -1 ; il passe
+	   à z 0 et le débordement caché suffit à le contenir. */
 	padding: clamp(4.5rem, 9vh, 7rem) clamp(1.25rem, 7vw, 8rem) clamp(3rem, 7vh, 5rem);
 	padding-right: max(clamp(1.25rem, 7vw, 8rem), var(--home-rail));
 }
 
 /* ── Fond de scène (couches) ─────────────────────────────────────────────── */
 .scene-backdrop {
-	z-index: -1;
+	/* z 0 et non -1 : la section n'isole plus (cf. `.home-section`), un z négatif
+	   remonterait donc jusqu'au contexte racine et disparaîtrait sous le fond de
+	   page. Le `overflow: hidden` de la section le maintient dans ses bornes. */
+	z-index: 0;
 	transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .scene-img {
@@ -2496,14 +2508,15 @@ main:focus {
 	   point de départ à mi-hauteur, si bien que la fin de course sortait par le
 	   bas de la fenêtre ; 14vh le faisait démarrer sur la pastille du héros. */
 	top: 9vh;
-	/* SOUS le contenu, pas au-dessus. Le confiner à la marge gauche ne suffit
-	   pas : la marge du héros vaut `clamp(1.25rem, 7vw, 8rem)` et fond à 20 px
-	   sur les fenêtres étroites, tandis que le nuage garde 5,5rem de large et
-	   grossit encore de 6 % au milieu de sa course. À z-index 2 il finissait par
-	   passer sur le titre. Le contenu du héros et les panneaux montent à 3 et 2,
-	   le nuage descend à 0 : quoi qu'il arrive à la géométrie, il passe DERRIÈRE.
-	   Il reste au-dessus du fond de scène, qui est à -1. */
-	z-index: 0;
+	/* SOUS le contenu, AU-DESSUS du fond de scène. Les deux tiennent ensemble
+	   depuis que `.home-section` n'isole plus : le fond de scène est à 0, le
+	   nuage à 1, les panneaux à 2 et le contenu du héros à 3, tous dans le même
+	   contexte d'empilement. Descendre le nuage à 0, comme on l'avait fait pour
+	   qu'il cesse de passer sur le titre, le rangeait derrière la SECTION toute
+	   entière : mesuré, son bouton était recouvert aux trois points de test par
+	   le conteneur du fond à 1024, 1280, 1440 et 1920 px, et le nuage ne se
+	   voyait nulle part — un bouton focalisable au clavier que rien n'affiche. */
+	z-index: 1;
 	pointer-events: none;
 	/* L'échelle est le troisième terme de la trajectoire : le nuage entre par la
 	   gauche loin derrière la scène et passe au premier plan en la traversant.
