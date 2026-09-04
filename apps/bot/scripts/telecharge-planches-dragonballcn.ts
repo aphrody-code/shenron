@@ -34,16 +34,16 @@ const RACINE = "https://comic.dragonballcn.com";
 
 const AGENT = "dragonballfr.com-archive/1.0 (rapatriement autorise; +https://dragonballfr.com)";
 
-const DELAI_MIN = Number(opt("delai-min", "900"));
-const DELAI_MAX = Number(opt("delai-max", "2500"));
-const BUDGET_FENETRE = Number(opt("budget-fenetre", "300"));
+const DELAI_MIN = 900;
+const DELAI_MAX = 2500;
+const BUDGET_FENETRE = 300;
 const FENETRE_MS = 15 * 60 * 1000;
-const BUDGET_JOUR = Number(opt("budget-jour", "5000"));
+const BUDGET_JOUR = 5000;
 const JOUR_MS = 24 * 60 * 60 * 1000;
-const REFUS_MAX = Number(opt("refus-max", "5"));
-const DISQUE_MIN = Number(opt("disque-min-go", "2")) * 2 ** 30;
+const REFUS_MAX = 5;
+const DISQUE_MIN = 2 * 2 ** 30;
 
-const DUREE_MCP_MS = Number(opt("duree-fiche-ms", "180000"));
+const DUREE_MCP_MS = 180_000;
 
 type Planche = { n: number; fichier: string; poids: string | null; ajoutee: string | null };
 type Ouvrage = { did: string; url: string; libelle?: string; titre_tome?: string };
