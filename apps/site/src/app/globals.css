@@ -4068,6 +4068,69 @@ html[data-consent-open] .fab-secondary {
 	}
 }
 
+/* L'ACCUEIL pose trois calques de plus dans les coins que le bandeau occupe.
+   Mesuré bandeau ouvert (`getBoundingClientRect()` + `elementFromPoint()`) :
+
+   - 360 × 800 et 390 × 844 : le bouton « Défiler » (60 × 61) est recouvert aux
+     CINQ points de test par la rangée « Accepter / Refuser » du bandeau
+     pleine largeur — il ne prend plus un seul clic ;
+   - 768 → 1920 : la carte flottante (448 × 208, ancrée `md:right-6 md:bottom-24`)
+     coupe la légende de scène du héros sur 21, 13 puis 23 px de haut ;
+   - 1024 × 768 : elle mange 140 × 33 px du rail de points — le point
+     « L'univers » est mort aux cinq points de test ; 1280 × 620 : 143 × 107 px,
+     TROIS points sur cinq recouverts, deux d'entre eux entièrement.
+
+   « Défiler » et la légende sont décoratifs et redondants (la page défile
+   normalement depuis qu'elle ne détourne plus la molette, et le titre de scène
+   revient dans les panneaux) : on les efface le temps du choix, exactement comme
+   les boutons flottants juste au-dessus. Le rail, lui, EST la navigation de la
+   page : il se replie dans la bande restée libre. */
+html[data-consent-open] .home-scroll-hint,
+html[data-consent-open] .home-hero__caption {
+	opacity: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+/* Le héros centre son contenu dans la hauteur de la fenêtre, sans savoir que le
+   bas de l'écran est pris. Depuis que le bandeau est remonté au-dessus de la
+   barre de navigation basse, il occupe 249 px sur un écran de 800 : mesuré à
+   360 × 800, l'appel à l'action « Rejoindre le serveur » (y 567 → 618) tombe
+   ENTIÈREMENT sous le bandeau (y 551 → 720) — recouvert aux neuf points de
+   test ; sept sur neuf à 390 × 844. On réserve la bande occupée dans le
+   rembourrage du héros : le bloc remonte le temps du choix au lieu d'attendre
+   qu'on défile. Mesure après correctif : le contenu s'arrête à 493 px, 58 px
+   au-dessus du bandeau. */
+@media (max-width: 767px) {
+	html[data-consent-open] .home-hero {
+		padding-bottom: calc(
+			clamp(3rem, 7vh, 5rem) + var(--consent-h, 0px) + var(--barre-nav-total, 0px)
+		);
+	}
+}
+/* La carte n'entre dans le rail que si la fenêtre est plus courte que la somme
+   des deux : son sommet est à `h - 304` px (96 px de fond + 208 de carte) et le
+   bas du rail à `h ÷ 2 + 113`, donc elles se croisent sous h = 834 px. Au-delà
+   la mesure ne montre aucun croisement (1440 × 900, 1920 × 1080) et le rail ne
+   bouge pas. 860 px laisse la marge d'une carte qui s'allongerait d'une ligne. */
+@media (min-width: 768px) and (max-height: 860px) {
+	/* 1280 × 620 : la bande libre entre la barre et la carte ne fait que 252 px,
+	   le rail complet en réclame 264. Le compteur (36,8 px avec sa marge) est le
+	   seul élément décoratif du rail : il s'efface, les cinq points tiennent. */
+	html[data-consent-open] .home-counter {
+		display: none;
+	}
+	html[data-consent-open] .home-dots {
+		top: 4rem;
+		bottom: calc(var(--consent-h, 13rem) + 7rem);
+		transform: none;
+		justify-content: center;
+		/* `safe` : si la bande restante devient plus courte que le rail, il
+		   s'aligne en haut au lieu de déborder des deux côtés — la barre de
+		   navigation le mangerait par le haut. */
+		justify-content: safe center;
+	}
+}
+
 /* Les boutons flottants sont en `position: fixed` : ils passent au-dessus du
    pied de page et en recouvraient les liens (« Accueil » sous « Signaler une
    erreur » sur /wiki/chronologie, mesuré). `FooterFabGuard` pose l'attribut
