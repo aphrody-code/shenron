@@ -136,6 +136,8 @@ type Journal = {
 	/** did → rangs de planches déjà rapatriées. */
 	acquis: Record<string, number[]>;
 	horodatages: number[];
+	/** Ouvrages dont la fiche n'a pas rendu son dossier distant. */
+	muettes?: string[];
 };
 
 // ------------------------------------------------------------------ autorisation
@@ -393,6 +395,52 @@ async function verifieAcces(collections: Collection[], inventaire: Record<string
 
 // ------------------------------------------------------------------ campagne
 
+/**
+ * Ce script dépend de trois outils et de deux fichiers. Les découvrir au bout de
+ * quarante minutes de campagne, sur une exception de `sharp` ou un `curl: not
+ * found`, coûte la campagne. On les vérifie donc AVANT de demander quoi que ce
+ * soit au site, et chaque manque nomme sa réparation.
+ */
+async function verifiePrealables(sonde: boolean) {
+	const manques: string[] = [];
+
+	if (!Bun.which("curl"))
+		manques.push("`curl` absent du PATH — c'est le client HTTP du script (apt install curl).");
+
+	// `bxc-mcp` n'est requis que pour résoudre le dossier distant depuis la fiche.
+	if (!(await Bun.file(BINAIRE_MCP).exists()))
+		manques.push(
+			`\`${BINAIRE_MCP}\` absent — le binaire MCP résout le dossier distant. ` +
+				"Le reconstruire depuis bxc : `bun run build:mcp`, puis l'installer dans ~/.local/bin.",
+		);
+
+	try {
+		await sharp({ create: { width: 1, height: 1, channels: 3, background: "#000" } })
+			.webp()
+			.toBuffer();
+	} catch (erreur) {
+		manques.push(`\`sharp\` inutilisable (${(erreur as Error).message}) — \`bun install\` à la racine.`);
+	}
+
+	if (!(await Bun.file(CATALOGUE).exists()))
+		manques.push(`\`${CATALOGUE}\` absent — lancer d'abord \`crawl-dragonballcn.ts\`.`);
+	if (!(await Bun.file(INVENTAIRE).exists()))
+		manques.push(`\`${INVENTAIRE}\` absent — lancer d'abord \`volumetrie-dragonballcn.ts\`.`);
+
+	if (!manques.length) return;
+	console.error(`✗ ${manques.length} prérequis manquant(s) :`);
+	for (const manque of manques) console.error(`  · ${manque}`);
+	// En simulation on prévient sans bloquer : la liste des tâches se calcule quand
+	// même dès que les deux fichiers de données sont là.
+	if (!sonde && (await Bun.file(CATALOGUE).exists()) && (await Bun.file(INVENTAIRE).exists())) {
+		console.error("  (simulation : on continue, mais `--oui` échouerait en l'état)\n");
+		return;
+	}
+	process.exit(1);
+}
+
+await verifiePrealables(VERIFIER || EXECUTE);
+
 const catalogue = (await Bun.file(CATALOGUE).json()) as { collections: Collection[] };
 const inventaire = (await Bun.file(INVENTAIRE).json()) as Record<string, Planche[]>;
 const collections = catalogue.collections.filter((c) => !COLLECTION || c.slug === COLLECTION);
@@ -443,12 +491,17 @@ if (!EXECUTE) {
 let rapatriees = 0;
 let refusConsecutifs = 0;
 let n = 0;
+const muettes: string[] = [];
+const illisibles: string[] = [];
 
 boucle: for (const tache of taches) {
 	if (LIMITE && n >= LIMITE) break;
 
 	const dossier = journal.dossiers[tache.ouvrage.did] ?? (await resoutDossier(tache.ouvrage.url));
 	if (!dossier) {
+		// Sauté, mais pas oublié : le récapitulatif final les nomme, et une relance
+		// les reprend sans avoir à redemander les ouvrages déjà rapatriés.
+		muettes.push(tache.ouvrage.did);
 		console.warn(`  ⚠ ${tache.ouvrage.did} — fiche muette, dossier distant introuvable. Passé.`);
 		continue;
 	}
@@ -491,7 +544,16 @@ boucle: for (const tache of taches) {
 		}
 		refusConsecutifs = 0;
 
-		const webp = new Uint8Array(await sharp(corps).webp({ quality: QUALITE }).toBuffer());
+		// Un fichier que `sharp` ne sait pas décoder ne doit pas emporter la campagne :
+		// on le consigne et on passe, l'octet reçu n'étant pas forcément une image valide.
+		let webp: Uint8Array;
+		try {
+			webp = new Uint8Array(await sharp(corps).webp({ quality: QUALITE }).toBuffer());
+		} catch (erreur) {
+			illisibles.push(`${tache.ouvrage.did}/${planche.n}`);
+			console.warn(`  ✗ ${tache.ouvrage.did}/${planche.n} — illisible : ${(erreur as Error).message}`);
+			continue;
+		}
 		await Bun.write(join(cible, `${String(planche.n).padStart(3, "0")}.webp`), webp);
 		acquis.add(planche.n);
 		rapatriees++;
@@ -525,5 +587,11 @@ boucle: for (const tache of taches) {
 }
 
 journal.horodatages = gouverneur.trace;
+journal.muettes = muettes;
 await ecritJournal(journal);
+
 console.log(`\n✔ ${rapatriees} planche(s) rapatriée(s) · journal : ${JOURNAL}`);
+if (muettes.length)
+	console.log(`  ⚠ ${muettes.length} fiche(s) muette(s), non rapatriées : ${muettes.join(", ")}`);
+if (illisibles.length)
+	console.log(`  ⚠ ${illisibles.length} réponse(s) illisible(s) : ${illisibles.join(", ")}`);
