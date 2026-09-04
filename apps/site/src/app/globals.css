@@ -164,6 +164,15 @@ main:focus {
 	--color-logo-haut: var(--dbz-logo-haut, #176285);
 	--color-logo-milieu: var(--dbz-logo-milieu, #1f9ec8);
 	--color-logo-bas: var(--dbz-logo-bas, #52c5ef);
+	/* Jaune et rouge du logo de couverture, mesurés au pixel sur le tankōbon
+	   `db_manga_volumes/124.jpg` (764 × 1200) : « DRAGON » est un APLAT #fefd03
+	   (12 170 px de la teinte dominante, aucun dégradé), « BALL » un aplat
+	   #de0b36, la ligne de titre secondaire un rouge plus sourd #c4102a. Le
+	   cerne est du noir pur. C'est la seule palette du logo — le bleu au-dessus
+	   est celui des tankōbon de la première série, il ne se mélange pas. */
+	--color-logo-jaune: var(--dbz-logo-jaune, #fefd03);
+	--color-logo-rouge: var(--dbz-logo-rouge, #de0b36);
+	--color-logo-titre2: var(--dbz-logo-titre2, #c4102a);
 
 	/* Accents « énergie » d'origine, antérieurs au recalibrage sur la charte
 	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
@@ -713,15 +722,23 @@ main:focus {
 	}
 
 	/* === Wordmark de couverture ===
-	   Le logo des tankōbon : capitales très grasses, serrées, portant un dégradé
-	   vertical du bleu profond au cyan clair, cernées d'un liseré clair et posées
-	   sur une ombre nette. Les trois couleurs sont mesurées (cf. tokens
-	   `--color-logo-*`), pas choisies.
+	   Le logo des tankōbon, transposé d'après une mesure et non d'après le
+	   souvenir. Ce qui est relevé sur `db_manga_volumes/124.jpg` :
+
+	   - capitale de 152 px pour une couverture de 764 px de large — le titre
+	     occupe 20 % de la hauteur utile, il ne se joue pas en petit ;
+	   - fût vertical de 32 à 45 px pour ces 152 px de capitale, soit un ratio
+	     de 0,30 quand une Black du commerce plafonne à 0,20 ;
+	   - inclinaison de 12,3°, relevée sur le bord gauche du D (x = 28 à
+	     y = 80, x = 58 à y = 218) : c'est elle qui fait lire « Dragon Ball »
+	     plutôt qu'« une capitale grasse » ;
+	   - deux APLATS, jamais un dégradé : jaune pour le premier mot, rouge pour
+	     le second, cernés de noir pur.
 
 	   La police du logo n'est pas libre de droits, et Google Sans Flex n'a pas
 	   d'axe de largeur — sa condensation vient donc de la graisse maximale
 	   (`wght` monte à 1000), d'un crénage négatif et d'une compression
-	   horizontale de 8 %. C'est une transposition, pas un calque. */
+	   horizontale de 7 %. C'est une transposition, pas un calque. */
 	.wordmark-manga {
 		position: relative;
 		display: inline-block;
@@ -730,30 +747,36 @@ main:focus {
 		font-variation-settings: "wght" 1000;
 		text-transform: uppercase;
 		letter-spacing: -0.045em;
-		transform: scaleX(0.93);
+		transform: scaleX(0.93) skewX(-12.3deg);
 		transform-origin: left center;
-		background: linear-gradient(
-			180deg,
-			var(--color-logo-haut) 0%,
-			var(--color-logo-milieu) 54%,
-			var(--color-logo-bas) 100%
-		);
-		background-clip: text;
-		-webkit-background-clip: text;
-		color: transparent;
+		color: var(--color-logo-jaune);
 		filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6));
 	}
-	/* Le liseré est une COPIE du texte tracée dessous : `-webkit-text-stroke`
-	   posé sur l'élément lui-même serait rogné par le `background-clip: text`
-	   qui porte le dégradé, et on perdrait soit le contour soit la couleur. */
-	.wordmark-manga::before {
+	/* Le second mot du logo est rouge — c'est la moitié de la signature. */
+	.wordmark-manga--rouge {
+		color: var(--color-logo-rouge);
+	}
+	/* Deux cernes, deux COPIES du texte tracées dessous : `-webkit-text-stroke`
+	   posé sur l'élément lui-même déborderait sur le remplissage et mangerait
+	   l'aplat. Le noir est le cerne de la couverture ; le clair au-dessous
+	   n'existe pas sur le papier mais est indispensable ici, car un cerne noir
+	   posé sur un fond noir ne détache rien. */
+	.wordmark-manga::before,
+	.wordmark-manga::after {
 		content: attr(data-texte);
 		position: absolute;
 		inset: 0;
-		z-index: -1;
-		color: var(--color-os);
-		-webkit-text-stroke: 0.12em var(--color-os);
 		paint-order: stroke fill;
+	}
+	.wordmark-manga::before {
+		z-index: -1;
+		color: #000;
+		-webkit-text-stroke: 0.06em #000;
+	}
+	.wordmark-manga::after {
+		z-index: -2;
+		color: var(--color-os);
+		-webkit-text-stroke: 0.15em var(--color-os);
 	}
 	/* Le sous-titre des couvertures (ドラゴンボール) est dans le MÊME bleu que le
 	   logo, jamais dans une couleur d'accent : c'est une seule signature en deux
@@ -2251,8 +2274,11 @@ main:focus {
 	top: 42vh;
 	z-index: 2;
 	pointer-events: none;
+	/* L'échelle est le troisième terme de la trajectoire : le nuage entre par la
+	   gauche loin derrière la scène et passe au premier plan en la traversant.
+	   Sans elle, il glisse à plat sur la vidéo comme un autocollant. */
 	transform: translate3d(var(--kt-x, -12vw), var(--kt-y, 0), 0)
-		rotate(var(--kt-inclinaison, 0deg));
+		rotate(var(--kt-inclinaison, 0deg)) scale(var(--kt-echelle, 1));
 	will-change: transform;
 }
 .kt-volant__prise {
@@ -2264,10 +2290,20 @@ main:focus {
 	   cliquable partout bloquerait le contenu en dessous. */
 	pointer-events: auto;
 	cursor: pointer;
-	opacity: 0.34;
+	/* Opacité pilotée par la profondeur (voir `KintoUnVolant`) : au loin il se
+	   fond dans le fond, au premier plan il est franc. Un nuage à 34 % partout
+	   ne lisait pas comme un objet de la scène mais comme une tache. */
+	opacity: var(--kt-opacite, 0.85);
 	transition:
 		opacity 0.3s ease,
 		transform 0.3s ease;
+}
+/* Taille fluide plutôt que les 120 px rendus par le composant : un objet de
+   premier plan doit suivre la taille de l'image derrière lui, sinon il rétrécit
+   visuellement à mesure que l'écran grandit. */
+.kt-volant__nuage svg {
+	height: clamp(5.5rem, 10.5vw, 13rem);
+	width: auto;
 }
 .kt-volant[data-survol] .kt-volant__prise {
 	opacity: 0.85;
@@ -2301,6 +2337,11 @@ main:focus {
    nuage reste de travers une fois l'animation retirée. */
 .kt-volant__nuage {
 	display: block;
+	/* Deux ombres pour poser le nuage DANS la vidéo : une ombre portée sombre qui
+	   lui donne du poids, et le halo chaud de sa propre lumière — c'est ce couple
+	   qui l'empêche de flotter en découpe au-dessus de l'image. */
+	filter: drop-shadow(0 0.55rem 1.3rem rgba(0, 0, 0, 0.55))
+		drop-shadow(0 0 1.4rem rgba(248, 235, 126, 0.3));
 }
 .kt-volant__nuage[data-figure="boucle"] {
 	animation: kt-boucle 1.5s cubic-bezier(0.5, 0, 0.5, 1);
@@ -2392,16 +2433,27 @@ main:focus {
 .home-wordmark {
 	font-family: var(--font-display);
 	font-weight: 900;
-	line-height: 0.86;
+	line-height: 0.82;
 	letter-spacing: -0.03em;
-	font-size: clamp(2.5rem, 8.2vw, 7.5rem);
+	/* Sur la couverture, la capitale du titre fait 20 % de la hauteur utile et
+	   le mot barre 75 % de la largeur. Le titre du héros visait 5,9 % à
+	   1440 px : à cette taille, c'est un intertitre, pas un logo. */
+	font-size: clamp(2.8rem, 9.2vw, 8.4rem);
 	max-width: 100%;
 	text-transform: uppercase;
 	margin: 0;
 	display: flex;
 	flex-direction: column;
 }
-.home-wordmark span {
+.home-wordmark__ligne {
+	display: flex;
+	align-items: baseline;
+	/* L'espace inter-mots du logo, et 0.14em de garde à droite : l'oblique
+	   pousse le haut du dernier L d'environ 0,16 em hors de la boîte. */
+	gap: 0.16em;
+	padding-right: 0.14em;
+}
+.home-wordmark > span {
 	white-space: nowrap;
 }
 /* Titre en APLAT blanc, plus en dégradé.
@@ -2413,7 +2465,7 @@ main:focus {
 /* Le titre du héros porte le wordmark de couverture (`.wordmark-manga`). Il
    garde en plus un halo noir large : sur un fond photographique, le liseré clair
    du logo ne suffit pas à détacher les lettres. */
-.home-wordmark span {
+.home-wordmark > span {
 	filter: drop-shadow(0.035em 0.05em 0 rgba(0, 0, 0, 0.6))
 		drop-shadow(0 6px 30px rgba(0, 0, 0, 0.75));
 }
@@ -2428,9 +2480,12 @@ main:focus {
 	text-transform: uppercase;
 	letter-spacing: 0.3em;
 	font-size: 0.26em;
-	/* Le bleu du logo, pas l'accent de section : sur les couvertures, la ligne
-	   sous le titre est de la même encre que le titre. */
-	color: var(--color-logo-bas);
+	/* Le rouge du logo, pas l'accent de section : sur les couvertures, la ligne
+	   sous le titre est de la même encre que le titre — c'est le rouge de
+	   « ★第6宇宙の戦士たち », mesuré à #c4102a. Ici on garde le rouge PLEIN du
+	   mot BALL : le rouge sourd du papier tombe à 2,4:1 sur un fond noir. */
+	color: var(--color-logo-rouge);
+	text-shadow: 0 0.06em 0.2em rgba(0, 0, 0, 0.85);
 	-webkit-text-stroke: 0;
 	margin-top: 0.5em;
 	padding-left: 0.14em;
@@ -2562,19 +2617,35 @@ main:focus {
 	font-size: 0.72rem;
 	letter-spacing: 0.3em;
 	text-transform: uppercase;
-	color: var(--accent);
+	/* Le jaune du logo plutôt que l'accent : c'est le rappel qui relie chaque
+	   en-tête de section au titre du héros. */
+	color: var(--color-logo-jaune);
 	display: block;
 	margin-bottom: 0.9rem;
 }
+/* Les titres de section reprennent la mécanique du logo — graisse maximale,
+   crénage négatif, légère compression, oblique de 12,3° — mais en blanc d'os
+   cerné de noir : deux mots jaune et rouge par section feraient six logos sur
+   une page qui n'en porte qu'un. */
 .home-title {
 	font-family: var(--font-display);
-	font-weight: 850;
-	font-size: clamp(2rem, 5.5vw, 4rem);
-	line-height: 0.98;
-	letter-spacing: -0.02em;
-	color: #fff;
+	font-weight: 1000;
+	font-variation-settings: "wght" 1000;
+	font-size: clamp(2.2rem, 6.2vw, 4.6rem);
+	line-height: 0.94;
+	letter-spacing: -0.035em;
+	text-transform: uppercase;
+	color: var(--color-os);
 	margin: 0;
-	text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+	/* `inline-block` : sans lui, l'oblique ne s'applique pas à un h2 de niveau
+	   bloc qui occupe toute la largeur du panneau. */
+	display: inline-block;
+	transform: scaleX(0.96) skewX(-12.3deg);
+	transform-origin: left center;
+	padding-right: 0.1em;
+	text-shadow:
+		0.03em 0.04em 0 rgba(0, 0, 0, 0.9),
+		0 4px 30px rgba(0, 0, 0, 0.5);
 }
 .home-sub {
 	margin-top: 1rem;

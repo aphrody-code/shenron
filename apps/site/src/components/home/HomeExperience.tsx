@@ -831,9 +831,19 @@ export function HomeExperience({
 							{live.onlineCount}/6 gardiens en ligne
 						</span>
 					</p>
+					{/* Deux mots, deux aplats : c'est la signature du logo de couverture
+					    (« DRAGON » jaune, « BALL » rouge), et elle ne survit pas à un
+					    span unique — un dégradé à coupure franche se décalerait à
+					    chaque changement de largeur. Chaque mot porte son propre
+					    `data-texte`, dont les deux cernes sont des copies. */}
 					<h1 className="home-wordmark">
-						<span className="wordmark-manga" data-texte="Dragon Ball">
-							Dragon&nbsp;Ball
+						<span className="home-wordmark__ligne">
+							<span className="wordmark-manga" data-texte="Dragon">
+								Dragon
+							</span>
+							<span className="wordmark-manga wordmark-manga--rouge" data-texte="Ball">
+								Ball
+							</span>
 						</span>
 						<em>France</em>
 					</h1>
