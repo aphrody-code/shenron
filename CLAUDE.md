@@ -36,8 +36,9 @@ Tout tourne sur **un seul VPS** (`51.255.162.6`, Ubuntu 26.04) : bot, site, Post
 6. **`*.md` à la racine** : seuls `README`, `CLAUDE`, `GEMINI`, `DEPLOY`, `DESIGN`, `CHANGELOG`, `SECURITY`, `PROMPT` et `docs/**`. Jamais de note ou de rapport d'agent.
 7. **Commits** : une ligne française, `feat|fix|chore|refactor|docs|ops(scope):`, sans emoji.
 8. **Après tout ajout de commande/event/guard** : `bun run gen:entries` (un hook le fait sur `apps/bot/src/{commands,events,guards}/`).
-9. **Le wiki s'écrit en Postgres, pas en SQLite** (`src/db/wiki-write-guard.ts` bloque) — le reverse-sync écraserait l'écriture.
-10. **`rag:build` jamais au premier plan ni en live** (~2 h, DDL `DROP` qui gèle les handlers HTTP).
+9. **La palette du site vit en base, pas dans le CSS** : la ligne `default` de `public."SiteTheme"` surcharge les `--dbz-*` à chaque rendu. La lire avant toute conclusion sur une couleur, l'écrire par `jsonb_set` ciblé.
+10. **Le wiki s'écrit en Postgres, pas en SQLite** (`src/db/wiki-write-guard.ts` bloque) — le reverse-sync écraserait l'écriture.
+11. **`rag:build` jamais au premier plan ni en live** (~2 h, DDL `DROP` qui gèle les handlers HTTP).
 
 ## Architecture
 
@@ -77,6 +78,7 @@ bun apps/site/scripts/genere-icones.ts             # favicons site + bot + logo 
 | Pièges mesurés (build OOM, jsonb, cache, mobile, Bash cwd…) | [`docs/pieges.md`](docs/pieges.md) — **à lire avant tout diagnostic** |
 | Services, timers, DB, migrations, RAG, API | [`docs/infra-vps.md`](docs/infra-vps.md) |
 | Doctrine wiki : sources, variantes, contributions, éditeur | [`docs/wiki-editorial.md`](docs/wiki-editorial.md) |
+| Charte visuelle mesurée sur la couverture de tankōbon (palette, typo, trait) | [`docs/couverture-analyse-visuelle.md`](docs/couverture-analyse-visuelle.md) |
 | Databooks : transcription, traduction, juges de défaut | [`docs/databooks-doctrine.md`](docs/databooks-doctrine.md), [`docs/databooks-transcription.md`](docs/databooks-transcription.md) |
 | Déploiement détaillé | [`DEPLOY.md`](DEPLOY.md) · vision agent [`GEMINI.md`](GEMINI.md) · releases [`CHANGELOG.md`](CHANGELOG.md) |
 
