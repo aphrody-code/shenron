@@ -2188,9 +2188,12 @@ main:focus {
 .home-nuage {
 	position: absolute;
 	left: -18%;
-	top: clamp(9rem, 26vh, 15rem);
-	z-index: 1;
-	opacity: 0.2;
+	/* Sous le bloc de texte, pas à sa hauteur. Placé plus haut, il entrait dans le
+	   wordmark par la gauche et mangeait la première lettre — un fond animé qui
+	   croise un titre le rend illisible une seconde sur deux. */
+	bottom: clamp(5rem, 16vh, 9rem);
+	z-index: 0;
+	opacity: 0.16;
 	pointer-events: none;
 	animation: nuage-traverse 34s linear infinite;
 }
@@ -2205,12 +2208,13 @@ main:focus {
 		transform: translate3d(130vw, 0, 0);
 	}
 }
+/* En dessous de 900 px, la colonne de texte occupe toute la largeur : il n'y a
+   plus de marge où faire passer un décor sans croiser le contenu. Les deux
+   marqueurs de planche disparaissent donc au lieu d'être seulement atténués. */
 @media (max-width: 900px) {
-	.home-onomatopee {
-		display: none;
-	}
+	.home-onomatopee,
 	.home-nuage {
-		opacity: 0.13;
+		display: none;
 	}
 }
 @media (prefers-reduced-motion: reduce) {

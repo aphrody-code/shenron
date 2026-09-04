@@ -821,7 +821,7 @@ export function HomeExperience({
 					ゴゴゴ
 				</span>
 				<span className="home-nuage" aria-hidden>
-					<KintoUn hauteur={116} decorative />
+					<KintoUn hauteur={92} decorative />
 				</span>
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">
