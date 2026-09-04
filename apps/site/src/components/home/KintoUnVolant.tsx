@@ -54,6 +54,14 @@ export function KintoUnVolant() {
 			el.style.setProperty("--kt-x", `${-12 + courant * 118}vw`);
 			el.style.setProperty("--kt-y", `${Math.sin(courant * Math.PI * 2.4) * 9}vh`);
 			el.style.setProperty("--kt-inclinaison", `${Math.cos(courant * Math.PI * 2.4) * 5}deg`);
+			// Profondeur : le nuage entre loin derrière la scène (0,66 × et à peine
+			// visible), passe au premier plan au tiers du parcours (1,18 ×, opaque)
+			// puis s'éloigne à nouveau. C'est cette variation, et non la seule
+			// translation, qui le fait appartenir à l'image plutôt que la survoler
+			// — une taille constante lit comme un calque posé sur la vidéo.
+			const profondeur = Math.sin(courant * Math.PI); // 0 aux bords, 1 au milieu
+			el.style.setProperty("--kt-echelle", `${(0.66 + profondeur * 0.52).toFixed(3)}`);
+			el.style.setProperty("--kt-opacite", `${(0.45 + profondeur * 0.5).toFixed(3)}`);
 			if (Math.abs(cible - courant) > 0.0005) cadre = requestAnimationFrame(peindre);
 		};
 
