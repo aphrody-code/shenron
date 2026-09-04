@@ -7,6 +7,8 @@ import { BookOpen, Library, Layers, Search, Award, Lock, Trophy, Palette } from 
 import { assetUrl } from "@/lib/assets";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
 import { estChapitreCouleur } from "@/lib/manga-editions";
+import { VignetteTome } from "@/components/manga/VignetteTome";
+import { Etoile } from "@/components/MotifsCouverture";
 
 export interface Volume {
 	id: number;
@@ -104,7 +106,10 @@ function ColorSectionHeader({ count }: { count: number }) {
 		<>
 			<div className="flex items-center gap-3">
 				<Palette className="w-5 h-5 text-fuchsia-400" aria-hidden="true" />
-				<h3 className="font-saiyan text-2xl text-white tracking-widest">Édition Couleur</h3>
+				<h3 className="font-saiyan text-2xl text-white tracking-widest">
+					<Etoile taille={14} className="mr-2 align-baseline text-[var(--color-logo-rouge)]" />
+					Édition Couleur
+				</h3>
 				<span className="text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
 					Full Color
 				</span>
@@ -124,40 +129,13 @@ function ColorVolumeGrid({ volumes }: { volumes: Volume[] }) {
 	return (
 		<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
 			{volumes.map((vol, idx) => (
-				<Link
+				<VignetteTome
 					key={vol.id}
+					volume={vol}
 					href={`/wiki/manga/volume/${vol.id}?edition=couleur`}
-					className="group dbz-panel overflow-hidden hover:scale-105 hover:border-fuchsia-400 transition-all duration-300"
-					style={{ animationDelay: `${idx * 0.02}s` }}
-				>
-					<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
-						<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-						{vol.cover ? (
-							<Image
-								src={assetUrl(vol.cover)}
-								alt={vol.title ?? `Tome ${vol.volumeNumber}`}
-								fill
-								sizes="(max-width: 768px) 50vw, 16vw"
-								className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-							/>
-						) : (
-							<div className="grid h-full w-full place-items-center bg-zinc-900 border border-white/5">
-								<span className="font-saiyan text-5xl text-white/20 select-none">
-									{vol.volumeNumber}
-								</span>
-							</div>
-						)}
-						<div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent z-20" />
-						<span className="absolute top-2 left-2 z-30 text-[9px] px-2 py-0.5 rounded bg-gradient-to-r from-fuchsia-500 to-amber-400 text-black font-mono font-black uppercase tracking-wider">
-							Couleur
-						</span>
-						<div className="absolute inset-x-0 bottom-0 p-4 z-30">
-							<p className="font-display font-bold text-white text-sm group-hover:text-fuchsia-300 transition-colors">
-								Tome {vol.volumeNumber}
-							</p>
-						</div>
-					</div>
-				</Link>
+					idx={idx}
+					couleur
+				/>
 			))}
 		</div>
 	);
@@ -429,41 +407,13 @@ export function MangaVolumeGrid({
 					className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 reveal-up"
 				>
 					{filteredDbs.map((vol, idx) => (
-						<Link
+						<VignetteTome
 							key={vol.id}
+							volume={vol}
 							href={`/wiki/manga/volume/${vol.id}`}
-							className="group dbz-panel overflow-hidden hover:scale-105 hover:border-dbz-orange transition-all duration-300"
-							style={{ animationDelay: `${idx * 0.02}s` }}
-						>
-							<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
-								<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-								{vol.cover ? (
-									<Image
-										src={assetUrl(vol.cover)}
-										alt={vol.title ?? `Tome ${vol.volumeNumber}`}
-										fill
-										sizes="(max-width: 768px) 50vw, 16vw"
-										className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-										priority={idx < 6}
-									/>
-								) : (
-									<div className="grid h-full w-full place-items-center bg-zinc-900 border border-white/5">
-										<span className="font-saiyan text-5xl text-white/20 select-none">
-											{vol.volumeNumber}
-										</span>
-									</div>
-								)}
-								<div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent z-20" />
-								<div className="absolute inset-x-0 bottom-0 p-4 z-30">
-									<span className="scouter-text text-xs text-dbz-orange block mb-1">
-										Tome {vol.volumeNumber}
-									</span>
-									<p className="font-display font-bold text-sm text-white group-hover:text-dbz-orange transition-colors line-clamp-1">
-										{vol.title ?? `Tome ${vol.volumeNumber}`}
-									</p>
-								</div>
-							</div>
-						</Link>
+							idx={idx}
+							priority={idx < 6}
+						/>
 					))}
 					{filteredDbs.length === 0 && (
 						<div className="col-span-full py-16 text-center text-white/50 italic">
@@ -498,41 +448,13 @@ export function MangaVolumeGrid({
 					{filteredDb.length > 0 && (
 						<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
 							{filteredDb.map((vol, idx) => (
-								<Link
+								<VignetteTome
 									key={vol.id}
+									volume={vol}
 									href={`/wiki/manga/volume/${vol.id}`}
-									className="group dbz-panel overflow-hidden hover:scale-105 hover:border-dbz-orange transition-all duration-300"
-									style={{ animationDelay: `${idx * 0.01}s` }}
-								>
-									<div className="relative aspect-[2/3] bg-dbz-bg overflow-hidden">
-										<div className="absolute inset-0 halftone opacity-10 z-10 pointer-events-none" />
-										{vol.cover ? (
-											<Image
-												src={assetUrl(vol.cover)}
-												alt={vol.title ?? `Tome ${vol.volumeNumber}`}
-												fill
-												sizes="(max-width: 768px) 50vw, 16vw"
-												className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-												priority={idx < 6}
-											/>
-										) : (
-											<div className="grid h-full w-full place-items-center bg-zinc-900 border border-white/5">
-												<span className="font-saiyan text-5xl text-white/20 select-none">
-													{vol.volumeNumber}
-												</span>
-											</div>
-										)}
-										<div className="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-transparent z-20" />
-										<div className="absolute inset-x-0 bottom-0 p-4 z-30">
-											<span className="scouter-text text-xs text-dbz-orange block mb-1">
-												Tome {vol.volumeNumber}
-											</span>
-											<p className="font-display font-bold text-sm text-white group-hover:text-dbz-orange transition-colors line-clamp-1">
-												{vol.title ?? `Tome ${vol.volumeNumber}`}
-											</p>
-										</div>
-									</div>
-								</Link>
+									idx={idx}
+									priority={idx < 6}
+								/>
 							))}
 						</div>
 					)}

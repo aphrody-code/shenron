@@ -46,7 +46,7 @@ qu'on reste dans cet ordre de grandeur.
 | Vert de Shenron | `#2E9B41` | 29,4 % | corps du dragon |
 | Bleu de la case | `#3F5AA7` | 10,3 % de l'illustration | ciel derrière les personnages |
 | Peau | `#F7DBAD` | 15,0 % | visage et bras |
-| Jaune pâle des nuages | `#F2DBA1` | 21,8 % du fond de case | volutes du décor |
+| ~~Jaune pâle des nuages~~ **ventre du dragon** | `#F2DBA1` | 21,8 % du fond de case | **relevé corrigé** : le k-means avait attrapé le ventre de Shenron, qui traverse la zone. Les volutes sont lavande sur bleu, cf. « Les volutes de nuage » plus bas |
 | Encre | `#131B08` | 12,6 % de l'illustration | contours ; ombre profonde à `#0A0507` |
 | Lumière | `#DFDFCE` | — | ton du 9ᵉ décile de luminance |
 | Papier | `#FEFDFD` | 70,6 % de la marge | blanc du support |
@@ -83,6 +83,13 @@ les tomes 125 à 127, le jaune reste dans `#FAE50F`–`#FAF118` et le rouge dans
 | `--dbz-encre: #131b08` (était `#12110d`) | encre des contours ; l'écart tient au vert de l'illustration, il est conservé tel quel |
 | `border: 2px` des cases, conservé | 0,61 % de la largeur du sujet = 1,95 px sur une carte de 320 px |
 | Ratio 3/2 des vignettes de tome, conservé | 1,571 mesuré, constant sur quatre tomes |
+| `<CadreCase>` : encre 0,37 %, liseré jaune 1,77 %, coins vifs | anneaux du cadre de case, 2 px et 12 px sur une boîte de 679 px ; le masque jaune se referme à 90° sur 1 px, aucun rayon |
+| `<PastilleTome>` : Ø libre, cerne 5,75 %, chiffre à 0,50 du diamètre | disque de numéro, Ø 113 px, cerne 6,5 px, chiffre 24 × 56 px |
+| Dégradé radial de la pastille, **conservé comme dégradé** | seul élément de la couverture qui n'est pas un aplat : cinq couronnes mesurées, `#FCF5AA` au centre → `#ED5102` au bord, concentriques au disque à 1 px près |
+| Anneau clair ajouté autour de la pastille hors image | même raison que le double cerne des titres : le cerne d'encre disparaît sur le fond noir du site |
+| `<Etoile>` : r/R = 0,45 | étoile de la ligne de titre secondaire, R = 11,05 px par deux lectures concordantes ; le pentagramme régulier donnerait 0,382 |
+| `<BancNuages>` sur `--color-case-ciel` | les volutes pâles du fond de case sont toujours posées sur le bleu `#3760B2` — seules, elles flotteraient |
+| Tuile de nuages 240 × 128, corde 46, trait 4 px | lobe mesuré 46 × 22 (flèche/corde 0,48), trait 3 px de médiane sur 826 segments |
 
 ## Le piège : les défauts CSS ne décidaient plus rien
 
@@ -103,6 +110,77 @@ sont des couleurs d'effet, elles ne prétendent pas venir du support.
 
 Corollaire pour toute reprise du design : **lire la ligne `SiteTheme` avant de
 conclure quoi que ce soit d'une valeur trouvée dans `globals.css`.**
+
+## Les quatre éléments de décor
+
+Relevés le 2026-09-04 sur la même image, pour en tirer des motifs réutilisables
+(`src/lib/couverture.ts`, `src/components/MotifsCouverture.tsx`). Le logo, le
+kanji 超, le mot SUPER et les personnages sont hors de ce relevé : ce sont des
+marques et des dessins, pas des éléments de charte.
+
+### Le cadre de case
+
+| Grandeur | Mesure | En proportion |
+|---|---|---|
+| Boîte extérieure | x 38 → 716, y 355 → 1036 | 679 × 682, **ratio 1,004 — la case est carrée** |
+| Boîte intérieure (l'image) | x 50 → 704, y 367 → 1024 | 655 × 658 |
+| Liseré jaune | 12 px sur les quatre côtés | **1,77 %** de la largeur du cadre |
+| Trait d'encre, extérieur et intérieur | 2 px de médiane (n = 200 balayages par bord) | **0,37 %** |
+| Coins | vifs | le masque jaune se referme à 90° sur 1 px, aucun rayon |
+| Jaune du cadre | `#FFF007` | à deux points du jaune du titre (`#FEFD03`) : même encre |
+
+Le cadre est donc une suite de trois couronnes, pas un tracé — d'où un
+`box-shadow` plutôt qu'un SVG dans le composant.
+
+### Les volutes de nuage
+
+| Grandeur | Mesure | Comment |
+|---|---|---|
+| Aplat du nuage | `#CFCFE7` | trois zones de fond de case, érodées de 2 px |
+| Trait du nuage | `#4141A1` | cœur des 30 % les plus sombres du masque de trait |
+| Ciel | `#3760B2` | zone pure, écart-type 7 |
+| Épaisseur du trait | 3 px de médiane, 5 au 3ᵉ quartile (n = 826) | **9 % de la corde du lobe** — une encre très grasse |
+| Lobe | corde 46 px, flèche 22 px | **0,48** : le lobe est plus qu'un demi-cercle, il est pincé |
+| Spirale | Ø 27 à 40 px | **0,7 × la corde** : la volute remplit presque son lobe |
+| Tours de spirale | ≈ 1,25 | départ au creux, fin en coupe ronde, l'œil reste ouvert |
+
+**Correction d'un relevé précédent.** Le `#F2DBA1` de la ligne « jaune pâle des
+nuages » n'est pas le nuage : c'est le ventre du dragon, que le k-means a
+attrapé dans la même zone. Les volutes du fond sont lavande sur bleu, jamais
+jaunes — le contrôle de vraisemblance du cycle de dessin l'a rattrapé, et la
+planche côte à côte l'a confirmé.
+
+**Correction d'un second relevé, par le rendu.** La première lecture donnait un
+lobe de 80 × 28 (flèche/corde 0,35) ; dessinée, elle produisait une arcade
+plate qui ne ressemblait à rien. C'était l'enveloppe de deux lobes fondus. Le
+lobe réel, isolé entre deux creux (x 534 crête, x 557 creux), mesure 46 de
+corde — et c'est le côte-à-côte, pas le nombre, qui a tranché.
+
+### La pastille de numéro de tome
+
+| Grandeur | Mesure | En proportion |
+|---|---|---|
+| Disque | centre (687, 1124), Ø 113 px | **14,8 %** de la largeur de page |
+| Cerne d'encre | 6,5 px (médiane sur 60 rayons) | **5,75 %** du diamètre |
+| Dégradé | radial, concentrique au disque à 1 px près | `#FCF5AA` (r 0,05) → `#FEF01D` (0,27) → `#FBB502` (0,48) → `#F17102` (0,69) → `#ED5102` (0,80) |
+| Chiffre | 24 × 56 px | hauteur **0,496 du diamètre**, fût 12 px = 0,21 de la hauteur |
+| Centre du chiffre | x 682,5 pour un disque à 687 | décalé de 4,5 px : centrage optique du « 1 », pas géométrique |
+
+C'est le **seul dégradé de la couverture** ; tout le reste est en aplats francs.
+Il est donc conservé tel quel, et non aplati « pour rester cohérent ».
+
+### L'étoile de la ligne de titre
+
+| Grandeur | Mesure | Comment |
+|---|---|---|
+| Boîte | 21 × 20 px | x 32 → 52, y 309 → 328 |
+| Rayon extérieur | **11,05 px** | hauteur / 1,809 = 11,06 et largeur / 1,902 = 11,04 — deux lectures concordantes |
+| Rayon intérieur | **0,45 R** | par l'aire (163 px) et par la position du sommet rentrant ; le pentagramme régulier donne 0,382 |
+| Rouge | `#BA151C`, cœur `#AD0F15` | teinte **357,5°**, distincte du rouge du logo (347,8°) |
+| Contour | aucun | aplat plein, pas de cerne d'encre |
+
+L'étoile est franchement grasse : c'est ce qui la garde lisible en puce de
+liste à 10 px, taille à laquelle un pentagramme régulier se réduit à une tache.
 
 ## Ce qui n'est PAS repris de la couverture, et pourquoi
 

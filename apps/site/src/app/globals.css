@@ -197,6 +197,15 @@ main:focus {
 	--color-ecaille-claire: var(--dbz-ecaille-claire, #42b147);
 	--color-ecaille-ombre: var(--dbz-ecaille-ombre, #298942);
 	--color-peau: var(--dbz-peau, #f7dbad);
+	/* Les volutes du fond de case sont LAVANDE sur bleu, pas jaune pâle : le
+	   premier k-means avait attrapé le ventre du dragon qui traverse la zone.
+	   Le vermillon est le dernier arrêt du dégradé de la pastille de tome, et
+	   le rouge de l'étoile est à 357,5° — dix degrés plus froid que le rouge du
+	   titre (347,8°), ce ne sont pas les mêmes encres sur le support. */
+	--color-nuage-fond: var(--dbz-nuage-fond, #cfcfe7);
+	--color-nuage-trait: var(--dbz-nuage-trait, #4141a1);
+	--color-pastille-bord: var(--dbz-pastille-bord, #ed5102);
+	--color-etoile-rouge: var(--dbz-etoile-rouge, #ba151c);
 
 	/* Accents « énergie » d'origine, antérieurs au recalibrage sur la charte
 	   officielle. Ils survivent dans les effets (sunburst, LED, halos, dégradés) :
@@ -306,6 +315,15 @@ main:focus {
 	--color-ecaille-claire: var(--dbz-ecaille-claire, #42b147);
 	--color-ecaille-ombre: var(--dbz-ecaille-ombre, #298942);
 	--color-peau: var(--dbz-peau, #f7dbad);
+	/* Les volutes du fond de case sont LAVANDE sur bleu, pas jaune pâle : le
+	   premier k-means avait attrapé le ventre du dragon qui traverse la zone.
+	   Le vermillon est le dernier arrêt du dégradé de la pastille de tome, et
+	   le rouge de l'étoile est à 357,5° — dix degrés plus froid que le rouge du
+	   titre (347,8°), ce ne sont pas les mêmes encres sur le support. */
+	--color-nuage-fond: var(--dbz-nuage-fond, #cfcfe7);
+	--color-nuage-trait: var(--dbz-nuage-trait, #4141a1);
+	--color-pastille-bord: var(--dbz-pastille-bord, #ed5102);
+	--color-etoile-rouge: var(--dbz-etoile-rouge, #ba151c);
 }
 
 @layer base {
@@ -807,6 +825,38 @@ main:focus {
 		z-index: -2;
 		color: var(--color-os);
 		-webkit-text-stroke: 0.15em var(--color-os);
+	}
+	/* La boule prend la place du O de DRAGON, comme sur la couverture — où le O
+	   n'est pas une lettre décorée mais un disque à part entière, avec l'étoile
+	   inscrite dedans (45 px d'étoile pour un O de 99, soit 0,45 ; le O lui-même
+	   fait 0,65 de la hauteur de capitale, d'où le 0,66 em).
+
+	   Le contre-transformation n'est pas un détail : le titre porte
+	   `scaleX(.93) skewX(-12.3deg)`, et sans son inverse exact — appliqué dans
+	   l'ordre inverse, `skewX` puis `scaleX` — la sphère sortirait en ellipse
+	   penchée. Sur la couverture l'étoile est parfaitement carrée (45 × 45),
+	   l'inclinaison du titre ne la touche pas. */
+	/* Ombre d'encre des icônes : nette, sans flou, décalée d'un pixel — le poids
+	   de l'encre sur le papier. Un `box-shadow` flou ferait flotter le glyphe,
+	   c'est exactement ce dont on sort. */
+	.icone-ombre {
+		filter: drop-shadow(1px 1px 0 var(--color-encre));
+	}
+	.wordmark-boule {
+		display: inline-block;
+		width: 0.66em;
+		height: 0.66em;
+		vertical-align: -0.03em;
+		margin: 0 0.01em;
+		transform: skewX(12.3deg) scaleX(1.0753);
+	}
+	.wordmark-boule svg {
+		width: 100%;
+		height: 100%;
+		display: block;
+		/* La même ombre nette que le titre : la boule appartient au logo, elle ne
+		   flotte pas au-dessus. */
+		filter: drop-shadow(0.02em 0.03em 0 rgba(0, 0, 0, 0.75));
 	}
 	/* Le sous-titre des couvertures (ドラゴンボール) est dans le MÊME bleu que le
 	   logo, jamais dans une couleur d'accent : c'est une seule signature en deux

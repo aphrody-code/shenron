@@ -24,6 +24,7 @@
 // home est strictement identique à la version historique en dur.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { DragonBall } from "@/components/DragonBall";
 import { KintoUnVolant } from "@/components/home/KintoUnVolant";
 import Link from "next/link";
 import Image from "next/image";
@@ -838,8 +839,18 @@ export function HomeExperience({
 					    `data-texte`, dont les deux cernes sont des copies. */}
 					<h1 className="home-wordmark">
 						<span className="home-wordmark__ligne">
+							{/* Le O de DRAGON porte la boule, exactement comme sur la
+							    couverture : l'étoile y est inscrite dans la contre-forme du
+							    O, mesurée à 45 px pour une capitale de 152. La lettre reste
+							    dans le flux pour les lecteurs d'écran, elle est seulement
+							    masquée à l'œil. */}
 							<span className="wordmark-manga" data-texte="Dragon">
-								Dragon
+								{"Drag"}
+								<span className="wordmark-boule" aria-hidden>
+									<DragonBall stars={1} size={64} />
+								</span>
+								<span className="sr-only">o</span>
+								{"n"}
 							</span>
 							<span className="wordmark-manga wordmark-manga--rouge" data-texte="Ball">
 								Ball
