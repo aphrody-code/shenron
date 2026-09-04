@@ -20,6 +20,88 @@ interface DiscordMember {
 
 const PROFILE_THEMES = ["default", "goku", "vegeta", "kaio", "ssj", "blue", "rose", "ultra"];
 
+/**
+ * Les PNG de marque, servis depuis `apps/bot/assets/marque/` (le bot n'expose en
+ * statique que ce qui vit sous `assets/`). Ils sont RÉGÉNÉRÉS depuis la géométrie
+ * du Kinto-Un par `bun apps/site/scripts/genere-icones.ts` — ne pas les retoucher
+ * à la main, la prochaine génération écraserait la retouche.
+ */
+const MARQUE = [
+	{
+		fichier: "avatar-1024-transparent.png",
+		nom: "Avatar (transparent)",
+		usage: "Avatar de bot ou de serveur. Discord rogne en cercle : sans fond, c'est la silhouette du nuage qui devient l'avatar.",
+		sombre: true,
+	},
+	{
+		fichier: "avatar-1024-fond-sombre.png",
+		nom: "Avatar (disque plein)",
+		usage: "Même dessin sur pastille sombre, si un disque net est préféré.",
+		sombre: true,
+	},
+	{ fichier: "banniere-960x540.png", nom: "Bannière", usage: "Bannière de serveur Discord, 960 × 540.", sombre: false },
+	{ fichier: "kinto-un-2048.png", nom: "Illustration 2048", usage: "Le nuage seul, transparent, pour tout usage large.", sombre: true },
+	{ fichier: "kinto-un-1024.png", nom: "Illustration 1024", usage: "La même, plus légère.", sombre: true },
+	{ fichier: "emoji-128.png", nom: "Émoji 128", usage: "Émoji personnalisé. Rendu sans les volutes : à 32 px dans un fil, elles ne sont plus que du bruit.", sombre: true },
+] as const;
+
+/** Galerie de marque : aperçu, poids réel et téléchargement direct. */
+function GalerieMarque() {
+	return (
+		<div className="card">
+			<div className="flex items-center gap-2">
+				<ImageIcon className="h-5 w-5 text-brand-400" />
+				<h2 className="text-lg font-semibold">Galerie de marque</h2>
+			</div>
+			<p className="mt-1 text-sm text-zinc-400">
+				Le Kinto-Un décliné en PNG, prêt à téléverser. Régénérés depuis le SVG par{" "}
+				<code>bun apps/site/scripts/genere-icones.ts</code>.
+			</p>
+			<div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+				{MARQUE.map((m) => (
+					<figure key={m.fichier} className="rounded-lg border border-zinc-800 p-3">
+						{/* Le damier ne sert pas de décor : il rend la transparence visible,
+						    sans quoi un PNG à fond transparent et un PNG à fond sombre sont
+						    indiscernables sur un dashboard sombre. */}
+						<div
+							className="flex h-32 items-center justify-center rounded"
+							style={
+								m.sombre
+									? {
+											backgroundImage:
+												"linear-gradient(45deg,#26262b 25%,transparent 25%),linear-gradient(-45deg,#26262b 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#26262b 75%),linear-gradient(-45deg,transparent 75%,#26262b 75%)",
+											backgroundSize: "16px 16px",
+											backgroundPosition: "0 0,0 8px,8px -8px,-8px 0",
+										}
+									: { background: "#18181b" }
+							}
+						>
+							<img
+								src={`/assets/marque/${m.fichier}`}
+								alt={m.nom}
+								loading="lazy"
+								className="max-h-28 max-w-full object-contain"
+							/>
+						</div>
+						<figcaption className="mt-2 space-y-1">
+							<div className="text-sm font-semibold text-zinc-200">{m.nom}</div>
+							<p className="text-xs leading-relaxed text-zinc-500">{m.usage}</p>
+							<a
+								href={`/assets/marque/${m.fichier}`}
+								download
+								className="btn btn-ghost mt-1 inline-flex items-center gap-1.5 text-xs"
+							>
+								<Download className="h-3.5 w-3.5" />
+								{m.fichier}
+							</a>
+						</figcaption>
+					</figure>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export function CanvasPage() {
 	const list = useQuery({
 		queryKey: ["canvas", "list"],
@@ -66,6 +148,8 @@ export function CanvasPage() {
 				.map((c) => (
 					<CanvasPreview key={c.id} def={c} members={members.data?.members ?? []} />
 				))}
+
+			<GalerieMarque />
 		</div>
 	);
 }

@@ -16,7 +16,7 @@
  * Usage : bun scripts/genere-icones.ts
  */
 import sharp from "sharp";
-import { KINTO_UN_COULEURS, svgIcone } from "../src/lib/kinto-un";
+import { KINTO_UN_COULEURS, svgIcone, svgIllustration } from "../src/lib/kinto-un";
 
 const site = new URL("../public/", import.meta.url).pathname;
 const bot = new URL("../../bot/public/", import.meta.url).pathname;
@@ -88,3 +88,47 @@ for (const [nom, contenu] of Object.entries(fichiers)) console.log(`  ${nom.padE
 const logo = await sharp(transparente, { density: 144 }).resize(1024, 1024).webp({ quality: 92 }).toBuffer();
 await Bun.write(logoBot, logo);
 console.log(`${logoBot} — ${logo.length} o`);
+
+/**
+ * PNG de marque, à téléverser ailleurs (Discord, réseaux, presse). Ils vivent en
+ * deux endroits parce qu'ils servent deux publics : `apps/site/public/dbz/marque/`
+ * pour les liens publics, `apps/bot/assets/marque/` pour la galerie du dashboard
+ * (le bot ne sert en statique que ce qui vit sous `assets/`).
+ */
+const marque = new URL("../public/dbz/marque/", import.meta.url).pathname;
+const marqueBot = new URL("../../bot/assets/marque/", import.meta.url).pathname;
+const ill = Buffer.from(svgIllustration());
+const carreNu = Buffer.from(svgIcone({ pastille: null, echelle: 1.12 }));
+const carrePlein = Buffer.from(svgIcone({ coins: 0.18 }));
+const rendre = (buf: Buffer, w: number, h: number) =>
+	sharp(buf, { density: 300 }).resize(w, h, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } });
+
+const banniereNuage = await rendre(ill, 760, 428).png().toBuffer();
+const pngMarque: Record<string, Buffer> = {
+	"kinto-un-2048.png": await rendre(ill, 2048, 1154).png().toBuffer(),
+	"kinto-un-1024.png": await rendre(ill, 1024, 577).png().toBuffer(),
+	"avatar-1024-transparent.png": await rendre(carreNu, 1024, 1024).png().toBuffer(),
+	"avatar-1024-fond-sombre.png": await rendre(carrePlein, 1024, 1024)
+		.flatten({ background: KINTO_UN_COULEURS.pastille })
+		.png()
+		.toBuffer(),
+	"banniere-960x540.png": await sharp({
+		create: { width: 960, height: 540, channels: 4, background: KINTO_UN_COULEURS.pastille },
+	})
+		.composite([{ input: banniereNuage, left: 100, top: 56 }])
+		.png()
+		.toBuffer(),
+	// Émoji : les volutes deviennent du bruit une fois réduites à 32 px dans un fil.
+	"emoji-128.png": await rendre(
+		Buffer.from(svgIcone({ pastille: null, echelle: 1.12, volutes: false })),
+		128,
+		128,
+	)
+		.png({ compressionLevel: 9 })
+		.toBuffer(),
+};
+for (const dossier of [marque, marqueBot]) {
+	await Bun.$`mkdir -p ${dossier}`.quiet();
+	for (const [nom, contenu] of Object.entries(pngMarque)) await Bun.write(dossier + nom, contenu);
+	console.log(`${dossier} — ${Object.keys(pngMarque).length} PNG de marque`);
+}
