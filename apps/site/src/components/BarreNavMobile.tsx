@@ -154,7 +154,7 @@ export function BarreNavMobile() {
 			// Piège de focus : la feuille est `aria-modal`, le Tab ne doit pas en
 			// sortir vers le contenu qu'elle recouvre.
 			const cibles = panneau.current.querySelectorAll<HTMLElement>(
-				'a[href], button:not([disabled])'
+				"a[href], button:not([disabled])"
 			);
 			if (cibles.length === 0) return;
 			const premier = cibles[0];
@@ -180,86 +180,99 @@ export function BarreNavMobile() {
 	return (
 		<>
 			{feuille && (
-				<>
-					{/* Voile : un bouton, pas un div — il est cliquable, donc il doit
-					    être atteignable au clavier et annoncé comme une commande. */}
+				/* Voile : un bouton, pas un div — il est cliquable, donc il doit être
+				   atteignable au clavier et annoncé comme une commande. Lui seul est
+				   monté à la demande : il n'a pas d'identité à préserver. */
+				<button
+					type="button"
+					aria-label="Fermer le menu"
+					onClick={fermer}
+					className="barre-nav-voile fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm lg:hidden"
+				/>
+			)}
+			{/* Le panneau, lui, reste TOUJOURS monté et se cache par `hidden`.
+			    Monté à la demande, l'`aria-controls` du bouton « Plus » pointait vers
+			    un identifiant absent du document tant que la feuille était fermée —
+			    mesuré : `getElementById` rendait `null`. Une relation ARIA qui ne se
+			    résout pas est une relation cassée, et c'est l'état par défaut qui
+			    comptait. `hidden` retire en prime les liens de l'ordre de tabulation
+			    sans qu'on ait à s'en occuper. */}
+			<div
+				ref={panneau}
+				id={idFeuille}
+				hidden={!feuille}
+				role="dialog"
+				aria-modal="true"
+				aria-label="Autres rubriques"
+				className="barre-nav-feuille fixed inset-x-0 bottom-0 z-[61] max-h-[75dvh] overflow-y-auto overscroll-contain border-t-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] bg-[rgba(10,10,10,0.98)] lg:hidden"
+			>
+				{/* Poignée de feuille : le repère qui dit « ceci se ferme ». */}
+				<div className="flex items-center justify-between px-5 pt-3 pb-1">
+					<span className="font-display text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--color-logo-jaune)]">
+						Autres rubriques
+					</span>
 					<button
 						type="button"
-						aria-label="Fermer le menu"
 						onClick={fermer}
-						className="barre-nav-voile fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm lg:hidden"
-					/>
-					<div
-						ref={panneau}
-						id={idFeuille}
-						role="dialog"
-						aria-modal="true"
-						aria-label="Autres rubriques"
-						className="barre-nav-feuille fixed inset-x-0 bottom-0 z-[61] max-h-[75dvh] overflow-y-auto overscroll-contain border-t-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] bg-[rgba(10,10,10,0.98)] lg:hidden"
+						aria-label="Fermer"
+						className="grid h-11 w-11 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white"
 					>
-						{/* Poignée de feuille : le repère qui dit « ceci se ferme ». */}
-						<div className="flex items-center justify-between px-5 pt-3 pb-1">
-							<span className="font-display text-[11px] font-bold uppercase tracking-[0.22em] text-[var(--color-logo-jaune)]">
-								Autres rubriques
-							</span>
-							<button
-								type="button"
-								onClick={fermer}
-								aria-label="Fermer"
-								className="grid h-11 w-11 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-							>
-								<Croix size={20} />
-							</button>
-						</div>
-						<nav aria-label="Autres rubriques" className="flex flex-col px-3 pb-4">
-							{AUTRES.map((l) => (
-								<Link
-									key={l.href}
-									href={l.href}
-									// 56 px de haut : au-dessus des 48 dp de cible tactile M3,
-									// et le sous-titre a besoin de la place.
-									className="flex min-h-14 flex-col justify-center rounded-xl px-4 py-2 transition-colors hover:bg-white/[0.07] focus-visible:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-logo-jaune)]"
-								>
-									<span className="font-display text-[15px] font-bold text-white">{l.label}</span>
-									<span className="text-[12px] text-white/45">{l.note}</span>
-								</Link>
-							))}
-						</nav>
-						{/* Compte — ce que portait le menu hamburger avant sa suppression.
+						<Croix size={20} />
+					</button>
+				</div>
+				<nav aria-label="Autres rubriques" className="flex flex-col px-3 pb-4">
+					{AUTRES.map((l) => (
+						<Link
+							key={l.href}
+							href={l.href}
+							// 56 px de haut : au-dessus des 48 dp de cible tactile M3,
+							// et le sous-titre a besoin de la place.
+							className="flex min-h-14 flex-col justify-center rounded-xl px-4 py-2 transition-colors hover:bg-white/[0.07] focus-visible:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-logo-jaune)]"
+						>
+							<span className="font-display text-[15px] font-bold text-white">{l.label}</span>
+							<span className="text-[12px] text-white/45">{l.note}</span>
+						</Link>
+					))}
+				</nav>
+				{/* Compte — ce que portait le menu hamburger avant sa suppression.
 						    Le tableau de bord et la déconnexion n'ont pas d'autre porte
 						    d'entrée sur mobile, ils descendent donc ici plutôt que de
 						    disparaître avec lui. Les rubriques wiki encore fermées au
 						    public, elles, restent atteignables par le tableau de bord :
 						    leur liste se calcule côté serveur depuis la configuration de
 						    lancement, que cet îlot client n'a pas. */}
-						{me?.authenticated && (
-							<div className="flex flex-col gap-2 border-t border-white/10 px-4 pt-4 pb-2">
-								{me.isAdmin && (
-									<Link
-										href="/admin/dashboard"
-										className="flex min-h-12 items-center justify-center rounded-full border border-[var(--color-logo-jaune)]/45 font-display text-[13px] font-semibold tracking-[0.1em] text-[var(--color-logo-jaune)] transition-colors hover:bg-[var(--color-logo-jaune)]/10"
-									>
-										Tableau de bord
-									</Link>
-								)}
-								<SignOut className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white disabled:opacity-50">
-									Déconnexion
-								</SignOut>
-							</div>
+				{me?.authenticated && (
+					<div className="flex flex-col gap-2 border-t border-white/10 px-4 pt-4 pb-2">
+						{me.isAdmin && (
+							<Link
+								href="/admin/dashboard"
+								className="flex min-h-12 items-center justify-center rounded-full border border-[var(--color-logo-jaune)]/45 font-display text-[13px] font-semibold tracking-[0.1em] text-[var(--color-logo-jaune)] transition-colors hover:bg-[var(--color-logo-jaune)]/10"
+							>
+								Tableau de bord
+							</Link>
 						)}
-						{/* La feuille s'arrête AU-DESSUS de la barre, elle ne la recouvre
-						    pas : la barre reste le repère de position pendant qu'on
-						    parcourt la liste. */}
-						<div className="h-[calc(80px+env(safe-area-inset-bottom))]" />
+						<SignOut className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white disabled:opacity-50">
+							Déconnexion
+						</SignOut>
 					</div>
-				</>
-			)}
+				)}
+				{/* La feuille RECOUVRE la barre, comme toute « modal bottom sheet »
+						    d'Android : elle est `aria-modal`, la navigation dessous est
+						    inerte le temps qu'elle est ouverte, et l'y laisser visible
+						    ferait croire qu'on peut encore la toucher. Seule la réserve
+						    d'encoche subsiste, pour que la dernière entrée ne tombe pas
+						    sous la barre gestuelle. */}
+				<div className="h-[env(safe-area-inset-bottom)]" />
+			</div>
 
 			<nav
 				aria-label="Navigation principale"
 				className="barre-nav fixed inset-x-0 bottom-0 z-[55] border-t-2 border-[color-mix(in_srgb,var(--color-os)_62%,transparent)] bg-[rgba(10,10,10,0.94)] backdrop-blur-xl backdrop-saturate-150 lg:hidden"
 			>
-				<ul className="mx-auto flex max-w-[640px] items-stretch">
+				{/* 480 px = 5 × 96 dp, `design_bottom_navigation_item_max_width`. Sans ce
+				    plafond, un item mesurait 128 px de large sur une tablette de 768 :
+				    l'icône et son libellé flottaient au centre d'une case vide. */}
+				<ul className="mx-auto flex max-w-[480px] items-stretch">
 					{DESTINATIONS.map((d) => {
 						const on = actif === d.href;
 						const Glyphe = on && d.IconeActive ? d.IconeActive : d.Icone;
@@ -286,9 +299,7 @@ export function BarreNavMobile() {
 									</span>
 									<span
 										className={`text-[12px] leading-none tracking-[0.01em] ${
-											on
-												? "font-bold text-[var(--color-logo-jaune)]"
-												: "font-medium text-white/70"
+											on ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/70"
 										}`}
 									>
 										{d.label}
@@ -320,9 +331,7 @@ export function BarreNavMobile() {
 							</span>
 							<span
 								className={`text-[12px] leading-none tracking-[0.01em] ${
-									feuille
-										? "font-bold text-[var(--color-logo-jaune)]"
-										: "font-medium text-white/70"
+									feuille ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/70"
 								}`}
 							>
 								Plus

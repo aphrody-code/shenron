@@ -92,3 +92,19 @@
 		opacity: 1;
 	}
 }
+
+/* Cumul avec la réserve du bandeau de consentement.
+   `globals.css` pose `html[data-consent-open] body { padding-bottom: var(--consent-h) }`
+   pour que le contenu remonte au-dessus du bandeau. Cette règle est PLUS
+   SPÉCIFIQUE que le `body { padding-bottom }` ci-dessus : tant que le bandeau
+   est ouvert, elle l'écrasait purement et simplement, et la réserve des 80 px
+   de la barre disparaissait — mesuré à 390 px, le rembourrage tombait de 169 px
+   à la seule hauteur du bandeau. Les deux réserves doivent s'ADDITIONNER : le
+   bandeau se pose au-dessus de la barre, il ne la remplace pas.
+   Cette feuille étant importée après `globals.css`, la spécificité égale suffit
+   à trancher — inutile d'un `!important`. */
+@media (max-width: 1023px) {
+	html[data-consent-open] body {
+		padding-bottom: calc(var(--consent-h, 0px) + var(--barre-nav-total));
+	}
+}

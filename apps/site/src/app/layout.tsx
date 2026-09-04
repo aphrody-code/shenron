@@ -123,7 +123,9 @@ export const metadata: Metadata = {
 		// Tuile Windows : pas de browserconfig.xml, les deux meta suffisent.
 		"msapplication-TileColor": "#0a0a0a",
 		"msapplication-TileImage": "/mstile-150.png",
-		...(env.NEXT_PUBLIC_ADSENSE_CLIENT ? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT } : {}),
+		...(env.NEXT_PUBLIC_ADSENSE_CLIENT
+			? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT }
+			: {}),
 	},
 };
 

@@ -5,12 +5,7 @@ import { NavAuth } from "@/components/NavAuth";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
 import { NavMore } from "@/components/NavMore";
 import { NavMega, type MegaItem } from "@/components/NavMega";
-import {
-	LAUNCH_CATEGORIES,
-	orderedEntries,
-	resolveAccess,
-	type NavGroup,
-} from "@/lib/wiki-launch";
+import { LAUNCH_CATEGORIES, orderedEntries, resolveAccess, type NavGroup } from "@/lib/wiki-launch";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
@@ -25,7 +20,6 @@ import { getLaunchConfig } from "@/lib/wiki-launch-config";
  * Contrôle public : /admin/lancement (« Catégories du site »).
  */
 
-const STATIC_PUBLIC_HEAD = [{ href: "/", label: "Accueil" }];
 const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
@@ -35,14 +29,7 @@ const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
  * ajoutait un clic pour rien. L'ordre suit la lecture d'une série — ce qu'on
  * regarde, puis ce qu'on lit, puis ce qui documente.
  */
-const ORDRE_OEUVRES = [
-	"films",
-	"episodes",
-	"chronologie",
-	"manga",
-	"databooks",
-	"jeux",
-] as const;
+const ORDRE_OEUVRES = ["films", "episodes", "chronologie", "manga", "databooks", "jeux"] as const;
 
 /**
  * Lien de la barre. Le survol pose un TRAIT D'ENCRE sous le libellé plutôt que
@@ -91,22 +78,14 @@ export async function SiteNav() {
 	// n'apparaît qu'à UN seul endroit de la barre : le doublon vient toujours
 	// d'une liste qui repart de toutes les publiques sans retirer ce qui est
 	// déjà placé ailleurs dans la barre.
-	const placees = new Set<string>([
-		...dansGroupe("univers").map((c) => c.key),
-		...ORDRE_OEUVRES,
-	]);
+	const placees = new Set<string>([...dansGroupe("univers").map((c) => c.key), ...ORDRE_OEUVRES]);
 	const moreWiki = publiques
 		.filter((c) => !placees.has(c.key))
 		.map((c) => ({ href: c.href as string, label: c.label }));
 
-	// Mobile : tous les liens publics (pas de contrainte largeur).
-	const mobilePublic = [
-		...STATIC_PUBLIC_HEAD,
-		...univers.map((i) => ({ href: i.href, label: i.label })),
-		...oeuvres,
-		...moreWiki,
-		...STATIC_PUBLIC_TAIL,
-	];
+	// La liste mobile complète a disparu avec le menu hamburger : sous 1024 px,
+	// la navigation est portée par `<BarreNavMobile />`, qui tient ses quatre
+	// destinations de l'audience mesurée et le reste dans sa feuille « Plus ».
 	const adminOnly = [...wikiClosed, ...STATIC_ADMIN];
 
 	return (
