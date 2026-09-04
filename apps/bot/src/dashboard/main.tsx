@@ -11,6 +11,7 @@ function injectIcons() {
 		["icon", "/favicon-16.png", "image/png"],
 		["icon", "/favicon-96.png", "image/png"],
 		["apple-touch-icon", "/apple-touch-icon.png"],
+		["icon", "/favicon.ico"],
 		["manifest", "/manifest.webmanifest"],
 	];
 	for (const [rel, href, type] of links) {

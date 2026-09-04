@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { DragonBallLoader } from "@/components/DragonBall";
+import { KintoUnLoader } from "@/components/KintoUn";
 
 type Status = "idle" | "loading" | "done";
 
@@ -78,7 +78,7 @@ export function NavigationProgress() {
 			<span className="nav-progress__bar" />
 			{status === "loading" && (
 				<span className="nav-progress__orb">
-					<DragonBallLoader size={18} stars={4} />
+					<KintoUnLoader size={14} decorative />
 				</span>
 			)}
 		</div>

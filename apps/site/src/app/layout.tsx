@@ -98,6 +98,7 @@ export const metadata: Metadata = {
 		],
 		apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
 		shortcut: "/favicon.ico",
+		other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#ffb200" }],
 	},
 	openGraph: {
 		type: "website",
@@ -114,9 +115,12 @@ export const metadata: Metadata = {
 	verification: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 		? { google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
 		: undefined,
-	other: env.NEXT_PUBLIC_ADSENSE_CLIENT
-		? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT }
-		: undefined,
+	other: {
+		// Tuile Windows : pas de browserconfig.xml, les deux meta suffisent.
+		"msapplication-TileColor": "#0a0a0a",
+		"msapplication-TileImage": "/mstile-150.png",
+		...(env.NEXT_PUBLIC_ADSENSE_CLIENT ? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT } : {}),
+	},
 };
 
 export const viewport = {

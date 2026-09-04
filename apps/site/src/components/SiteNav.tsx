@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DragonBall } from "@/components/DragonBall";
+import { KintoUn } from "@/components/KintoUn";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
 import { MobileNav } from "@/components/MobileNav";
@@ -130,14 +130,16 @@ export async function SiteNav() {
 							France
 						</span>
 					</span>
+					{/* Le Kinto-un, repère de marque (même dessin que les favicons) :
+					    au survol il s'envole d'un cran vers la droite, comme il part. */}
 					<span
 						aria-hidden
-						className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center"
+						className="inline-flex h-[22px] w-[41px] shrink-0 items-center justify-center"
 					>
-						<DragonBall
-							stars={4}
-							size={22}
-							className="drop-shadow-[0_0_6px_rgba(245,191,65,0.35)] transition-transform duration-300 group-hover:rotate-12"
+						<KintoUn
+							hauteur={22}
+							decorative
+							className="drop-shadow-[0_0_6px_rgba(248,235,126,0.35)] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5"
 						/>
 					</span>
 				</Link>
