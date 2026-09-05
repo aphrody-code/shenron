@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Play, ArrowUpRight } from "lucide-react";
+import { FlecheCoin, Lecture } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 
 /**
@@ -59,7 +59,7 @@ export function QuickLook({
 							href={watchHref}
 							className="inline-flex items-center gap-2 rounded-lg bg-dbz-orange px-5 py-2.5 font-display text-[14px] font-bold text-black shadow-lg transition-colors hover:bg-dbz-orange-dark"
 						>
-							<Play className="h-4 w-4 fill-current" />
+							<Lecture className="h-4 w-4 fill-current" />
 							{watchLabel}
 						</a>
 						<a
@@ -67,7 +67,7 @@ export function QuickLook({
 							className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-white/12 px-4 py-2.5 font-display text-[13px] font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
 						>
 							Fiche complète
-							<ArrowUpRight className="h-4 w-4" />
+							<FlecheCoin className="h-4 w-4" />
 						</a>
 					</div>
 				</div>

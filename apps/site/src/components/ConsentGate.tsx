@@ -203,7 +203,7 @@ export function ConsentGate() {
 			// `--consent-h` (cf. l'effet ci-dessus) → il ne recouvre plus rien.
 			// À partir de `md` il redevient une carte flottante à droite, hors de
 			// la trajectoire des boutons de gauche.
-			className="fixed bottom-0 inset-x-0 z-[60] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:inset-x-auto md:right-6 md:bottom-24 md:p-0 md:max-w-md reveal-up"
+			className="consent-gate fixed bottom-0 inset-x-0 z-[60] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:inset-x-auto md:right-6 md:bottom-24 md:p-0 md:max-w-md reveal-up"
 		>
 			{/* Deux mises en forme, un seul contenu. Sur téléphone, la carte
 			    détaillée mesurait près de 200 px : un quart de l'écran hors service

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Coeur } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { useMe } from "@/lib/use-me";
 import {
@@ -52,7 +52,7 @@ export function FavoritesList() {
 	if (items.length === 0) {
 		return (
 			<div className="rounded-xl border border-white/[0.08] bg-dbz-card/50 px-6 py-16 text-center">
-				<Heart className="mx-auto h-8 w-8 text-white/50" aria-hidden />
+				<Coeur className="mx-auto h-8 w-8 text-white/50" aria-hidden />
 				<p className="mt-4 text-white/70">Aucun favori pour l&apos;instant.</p>
 				<p className="mt-2 text-[14px] text-white/50">
 					Le cœur présent sur les fiches d&apos;épisode, de film et de chapitre les range ici.
@@ -118,7 +118,7 @@ export function FavoritesList() {
 							aria-label={`Retirer « ${f.title} » des favoris`}
 							className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full text-dbz-orange transition-colors hover:bg-white/[0.08]"
 						>
-							<Heart className="h-4 w-4" aria-hidden fill="currentColor" />
+							<Coeur className="h-4 w-4" aria-hidden fill="currentColor" />
 						</button>
 					</li>
 				))}

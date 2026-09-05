@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Hash, RefreshCw, Send } from "lucide-react";
+import { Diese, Envoyer, Rafraichir } from "@/components/icones";
 import { api, ApiError } from "@/lib/admin-api";
 import { PlainField } from "@/components/editor/PlainField";
 
@@ -158,7 +158,7 @@ export function BotConsole() {
 			<div className="rounded-xl border border-white/10 bg-black/40">
 				<div className="flex items-center justify-between border-b border-white/10 px-4 py-2">
 					<span className="flex items-center gap-2 text-sm font-bold text-white/80">
-						<Hash className="h-4 w-4 text-white/50" />
+						<Diese className="h-4 w-4 text-white/50" />
 						{messagesQ.data?.channelName ?? (channelId ? "Salon" : "Aucun salon sélectionné")}
 					</span>
 					<button
@@ -167,7 +167,7 @@ export function BotConsole() {
 						disabled={!channelId}
 						className="flex items-center gap-1 rounded-md border border-white/15 px-2 py-1 text-[12px] text-white/60 hover:border-white/40 disabled:opacity-40"
 					>
-						<RefreshCw className={`h-3.5 w-3.5 ${messagesQ.isFetching ? "animate-spin" : ""}`} />
+						<Rafraichir className={`h-3.5 w-3.5 ${messagesQ.isFetching ? "animate-spin" : ""}`} />
 						Rafraîchir
 					</button>
 				</div>
@@ -256,7 +256,7 @@ export function BotConsole() {
 						disabled={sendM.isPending || !channelId}
 						className="flex items-center gap-2 rounded-lg bg-dbz-orange px-5 py-2.5 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
 					>
-						<Send className="h-4 w-4" />
+						<Envoyer className="h-4 w-4" />
 						{sendM.isPending ? "Envoi…" : "Envoyer"}
 					</button>
 					<span className="text-[12px] text-white/50">{content.length}/2000</span>

@@ -10,7 +10,7 @@
  * sont réservés à une équipe de relecture.
  */
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Save, X } from "lucide-react";
+import { Chargement, Croix, Enregistrer, Plus } from "@/components/icones";
 import { RoleSelect, RoleBadge } from "@/components/admin/RoleSelect";
 import { UserSelect } from "@/components/admin/UserSelect";
 import {
@@ -72,7 +72,7 @@ export function ContributionRightsPanel() {
 	if (chargement) {
 		return (
 			<div className="flex items-center gap-2 text-sm text-white/50">
-				<Loader2 className="h-4 w-4 animate-spin" /> Chargement des droits…
+				<Chargement className="h-4 w-4 animate-spin" /> Chargement des droits…
 			</div>
 		);
 	}
@@ -97,7 +97,7 @@ export function ContributionRightsPanel() {
 					disabled={envoi}
 					className="inline-flex h-10 items-center gap-2 rounded-lg bg-dbz-orange px-4 font-display text-sm font-semibold text-black transition-colors hover:bg-white disabled:opacity-60"
 				>
-					{envoi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+					{envoi ? <Chargement className="h-4 w-4 animate-spin" /> : <Enregistrer className="h-4 w-4" />}
 					Enregistrer
 				</button>
 				{message && <span className="text-sm text-white/60">{message}</span>}
@@ -182,7 +182,7 @@ function BlocScope({
 										aria-label="Retirer ce rôle"
 										className="grid h-5 w-5 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
 									>
-										<X className="h-3 w-3" />
+										<Croix className="h-3 w-3" />
 									</button>
 								</span>
 							))}
@@ -223,7 +223,7 @@ function BlocScope({
 										aria-label="Retirer ce membre"
 										className="grid h-5 w-5 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
 									>
-										<X className="h-3 w-3" />
+										<Croix className="h-3 w-3" />
 									</button>
 								</span>
 							))}

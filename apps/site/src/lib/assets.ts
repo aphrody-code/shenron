@@ -16,6 +16,16 @@ import { ASSET_BASE } from "@/lib/config";
 export function assetUrl(path: string | null | undefined): string {
 	if (!path) return "";
 	if (path.startsWith("http")) return path;
+	// Un chemin qui commence par « / » (et non « ./ ») est DÉJÀ une URL de ce
+	// site — `/wiki/taopaipai.poster.webp`, servi par `public/`. Le préfixer de
+	// l'hôte du bot produisait `https://bot.dragonballfr.com/wiki/…`, hors des
+	// `remotePatterns` de `next.config.ts` (qui n'ouvrent que `/db/**` et
+	// `/assets/**`) : `next/image` lève à la construction du src, et c'est la
+	// PAGE ENTIÈRE qui tombe sur sa frontière d'erreur. L'accueil ne le montrait
+	// qu'un tirage sur deux, les clips de fond étant piochés au hasard.
+	// Vérifié en base avant d'ouvrir ce cas : aucune des 16 colonnes d'image du
+	// schéma `bot` ne contient de valeur commençant par « / ».
+	if (path.startsWith("/")) return path;
 	const clean = path.replace(/^\.?\/*/, "");
 	// Tous les assets — y compris `assets/wiki/*` uploadés à l'admin — sont servis
 	// par le bot. NE PAS réécrire `assets/wiki/` → `/wiki/` (même origine) : le

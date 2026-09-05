@@ -43,13 +43,23 @@ const flag = (nom: string) => args.includes(`--${nom}`);
 
 const TABLES = new Set([
 	"db_characters", "db_planets", "db_techniques", "db_transformations",
-	"db_races", "db_sagas", "db_episodes", "db_movies", "db_games", "db_databooks",
+	"db_races", "db_sagas", "db_arcs", "db_episodes", "db_movies", "db_games", "db_databooks",
 ]);
 const TYPES: Record<string, string> = {
 	character: "db_characters", planet: "db_planets", technique: "db_techniques",
 	transformation: "db_transformations", race: "db_races", saga: "db_sagas",
 	episode: "db_episodes", movie: "db_movies", game: "db_games",
 };
+/**
+ * Colonne qui porte le libellé humain de la fiche. Les tables issues des médias
+ * (épisodes, films, jeux, databooks) disent `title` là où le wiki dit `name` :
+ * lire `name` en dur faisait échouer le dépôt sur ces quatre tables.
+ */
+const LIBELLE: Record<string, string> = {
+	db_episodes: "title", db_movies: "title", db_games: "title", db_databooks: "title",
+};
+const libelle = (table: string) => LIBELLE[table] ?? "name";
+
 /** Tournures qui trahissent une fiche écrite de mémoire plutôt que sourcée. */
 const INTERDITS = /\b(probablement|sans doute|vraisemblablement|on suppose|il semblerait|inconnue?\s*$)/i;
 
@@ -111,7 +121,7 @@ try {
 
 		const texte = await lireTexte();
 		const sources = await lireSources();
-		const [avant] = await sql.unsafe(`SELECT name, ${colonne} AS valeur FROM bot.${table} WHERE id = $1`, [id]) as unknown as { name: string; valeur: unknown }[];
+		const [avant] = await sql.unsafe(`SELECT ${libelle(table)} AS name, ${colonne} AS valeur FROM bot.${table} WHERE id = $1`, [id]) as unknown as { name: string; valeur: unknown }[];
 		if (!avant) throw new Error(`${table}#${id} introuvable`);
 
 		console.log(`${table}#${id} « ${avant.name} » → ${colonne}`);
@@ -147,7 +157,7 @@ try {
 		if (!Number.isFinite(id)) throw new Error("--id manquant");
 
 		const texte = await lireTexte();
-		const [cible] = await sql.unsafe(`SELECT name FROM bot.${TYPES[type]} WHERE id = $1`, [id]) as unknown as { name: string }[];
+		const [cible] = await sql.unsafe(`SELECT ${libelle(TYPES[type]!)} AS name FROM bot.${TYPES[type]} WHERE id = $1`, [id]) as unknown as { name: string }[];
 		if (!cible) throw new Error(`${TYPES[type]}#${id} introuvable`);
 
 		const [existante] = await sql<{ id: number; body: string; sort_order: number }[]>`

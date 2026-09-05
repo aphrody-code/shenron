@@ -2,17 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	ArrowDown,
-	ArrowUp,
-	Crown,
+	Alerte,
+	Chargement,
+	CocheCercle,
+	Corbeille,
+	Couronne,
+	Croix,
+	Enregistrer,
+	FlecheBas,
+	FlecheHaut,
 	Plus,
-	Save,
-	Trash2,
-	AlertTriangle,
-	Loader2,
-	CheckCircle2,
-	X,
-} from "lucide-react";
+} from "@/components/icones";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/admin-api";
 import { RoleSelect, RoleBadge } from "@/components/admin/RoleSelect";
@@ -84,7 +84,7 @@ export default function HierarchyPage() {
 			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
-					<Crown className="h-5 w-5 text-brand-400" />
+					<Couronne className="h-5 w-5 text-brand-400" />
 					<h2 className="text-lg font-semibold">Hiérarchie du staff</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
@@ -103,22 +103,22 @@ export default function HierarchyPage() {
 						disabled={!dirty || save.isPending}
 						onClick={() => save.mutate(draft)}
 					>
-						<Save className="h-3 w-3" />
+						<Enregistrer className="h-3 w-3" />
 						{save.isPending ? "Enregistrement…" : "Enregistrer la hiérarchie"}
 					</button>
 					{dirty && (
 						<button type="button" className="btn btn-ghost text-zinc-400" onClick={reset}>
-							<X className="h-3 w-3" /> Annuler les modifications
+							<Croix className="h-3 w-3" /> Annuler les modifications
 						</button>
 					)}
 					{save.isSuccess && !dirty && (
 						<span className="flex items-center gap-1 text-xs text-emerald-400">
-							<CheckCircle2 className="h-3 w-3" /> Hiérarchie enregistrée
+							<CocheCercle className="h-3 w-3" /> Hiérarchie enregistrée
 						</span>
 					)}
 					{save.isError && (
 						<span className="flex items-center gap-1 text-xs text-red-400">
-							<AlertTriangle className="inline h-3 w-3" /> {(save.error as Error)?.message}
+							<Alerte className="inline h-3 w-3" /> {(save.error as Error)?.message}
 						</span>
 					)}
 				</div>
@@ -127,7 +127,7 @@ export default function HierarchyPage() {
 			{/* Chargement */}
 			{hierarchy.isLoading && (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement de la hiérarchie…
 				</div>
 			)}
@@ -135,7 +135,7 @@ export default function HierarchyPage() {
 			{/* Erreur */}
 			{hierarchy.isError && (
 				<div className="flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
-					<AlertTriangle className="h-4 w-4 shrink-0" />
+					<Alerte className="h-4 w-4 shrink-0" />
 					Impossible de charger la hiérarchie. Réessayez.
 				</div>
 			)}
@@ -220,7 +220,7 @@ function LevelCard({
 						onClick={() => onMove(-1)}
 						title="Monter ce niveau"
 					>
-						<ArrowUp className="h-3 w-3" />
+						<FlecheHaut className="h-3 w-3" />
 					</button>
 					<button
 						type="button"
@@ -229,7 +229,7 @@ function LevelCard({
 						onClick={() => onMove(1)}
 						title="Descendre ce niveau"
 					>
-						<ArrowDown className="h-3 w-3" />
+						<FlecheBas className="h-3 w-3" />
 					</button>
 					<button
 						type="button"
@@ -237,7 +237,7 @@ function LevelCard({
 						onClick={onRemove}
 						title="Supprimer ce niveau"
 					>
-						<Trash2 className="h-3 w-3" />
+						<Corbeille className="h-3 w-3" />
 					</button>
 				</div>
 			</div>
@@ -262,7 +262,7 @@ function LevelCard({
 							className="ml-1 text-red-400 hover:text-red-300"
 							title="Retirer ce rôle du niveau"
 						>
-							<X className="h-3 w-3" />
+							<Croix className="h-3 w-3" />
 						</button>
 					</span>
 				))}

@@ -24,6 +24,14 @@
 // home est strictement identique à la version historique en dur.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { DragonBall } from "@/components/DragonBall";
+import {
+	MotManga,
+	LETTRES_DRAGON_AVANT_BOULE,
+	LETTRES_DRAGON_APRES_BOULE,
+	LETTRES_BALL,
+} from "@/components/MotManga";
+import { KintoUnVolant } from "@/components/home/KintoUnVolant";
 import Link from "next/link";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
@@ -233,6 +241,7 @@ export function HomeExperience({
 
 	const refs = useRef<(HTMLElement | null)[]>([]);
 	const deckRef = useRef<HTMLDivElement>(null);
+	const scrollFrame = useRef<number | null>(null);
 	const [active, setActive] = useState(0);
 	// Mobile (≤640px) : plafonne le contenu du Panthéon pour tenir dans 100svh (le
 	// deck hijacke le scroll → le bas d'un panneau trop haut serait inatteignable).
@@ -242,6 +251,8 @@ export function HomeExperience({
 	useEffect(() => {
 		reduceRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 	}, []);
+
+	useEffect(() => () => void (scrollFrame.current && cancelAnimationFrame(scrollFrame.current)), []);
 
 	// Suit la largeur (≤640px) pour réduire le contenu du Panthéon sur mobile.
 	useEffect(() => {
@@ -262,10 +273,27 @@ export function HomeExperience({
 			const idx = Math.max(0, Math.min(sections.length - 1, i));
 			const el = refs.current[idx];
 			if (!el) return;
-			el.scrollIntoView({
-				behavior: reduceRef.current ? "auto" : "smooth",
-				block: "start",
-			});
+			if (scrollFrame.current) cancelAnimationFrame(scrollFrame.current);
+			if (reduceRef.current) {
+				el.scrollIntoView({ behavior: "auto", block: "start" });
+			} else {
+				const depart = window.scrollY;
+				const arrivee = Math.max(0, el.getBoundingClientRect().top + window.scrollY);
+				const distance = arrivee - depart;
+				// Une durée qui suit la distance évite l'effet d'un saut brusque vers
+				// le panneau voisin comme celui d'un long glissement vers un panneau
+				// éloigné. La décélération laisse le lecteur arriver naturellement.
+				const duree = Math.min(820, Math.max(360, Math.abs(distance) * 0.32));
+				const debut = performance.now();
+				const animer = (maintenant: number) => {
+					const progres = Math.min(1, (maintenant - debut) / duree);
+					const inertie = 1 - (1 - progres) ** 4;
+					window.scrollTo({ top: depart + distance * inertie, behavior: "instant" as ScrollBehavior });
+					if (progres < 1) scrollFrame.current = requestAnimationFrame(animer);
+					else scrollFrame.current = null;
+				};
+				scrollFrame.current = requestAnimationFrame(animer);
+			}
 			setActive(idx);
 		},
 		[sections.length]
@@ -766,8 +794,22 @@ export function HomeExperience({
 
 	return (
 		<div ref={deckRef} className="home-deck" style={{ ["--accent" as string]: activeAccent }}>
-			{/* Navigation latérale — points HUD scouter */}
+			{/* Le nuage vole au-dessus de tout le deck, pas d'une seule section : il
+			    suit le défilement et reste cliquable d'un bout à l'autre. */}
+			<KintoUnVolant />
+			{/* Navigation latérale — points HUD scouter.
+			    Le compteur de panneaux vit DANS le rail, en tête. Posé en `fixed` à
+			    `calc(50% - 9.5rem)`, il supposait un rail de CINQ points : un point
+			    mesure 45,4 px de pas, donc dès SIX sections — et l'ordre des
+			    panneaux s'édite depuis /admin/home — la demi-hauteur du rail
+			    (45,4 n ÷ 2) dépasse les 124 px qui le séparaient du centre, et le
+			    compteur retombait sur le premier point. Dans le flux, il le suit. */}
 			<nav className="home-dots" aria-label="Sections de la page">
+				<span className="home-counter" aria-hidden>
+					<span className="home-counter__cur">{pad(active + 1)}</span>
+					<span className="home-counter__sep">/</span>
+					<span>{pad(sections.length)}</span>
+				</span>
 				{sections.map((s, i) => (
 					<button
 						key={s.id}
@@ -782,13 +824,6 @@ export function HomeExperience({
 					</button>
 				))}
 			</nav>
-
-			{/* Compteur de panneaux */}
-			<div className="home-counter" aria-hidden>
-				<span className="home-counter__cur">{pad(active + 1)}</span>
-				<span className="home-counter__sep">/</span>
-				<span>{pad(sections.length)}</span>
-			</div>
 
 			{/* ── HÉRO ─────────────────────────────────────────────────────────── */}
 			<section ref={setRef(0)} id="hero" className="home-section home-hero" aria-label="Accueil">
@@ -811,16 +846,43 @@ export function HomeExperience({
 						);
 					})}
 				</div>
+				{/* Deux marqueurs de planche, purement graphiques et donc masqués aux
+				    lecteurs d'écran : l'onomatopée du grondement, et le Kinto-Un qui
+				    traverse le champ. Le nuage n'est pas un ornement de plus — c'est
+				    l'asset de marque de la barre et des favicons, on le retrouve ici à
+				    l'échelle du héros. */}
+				<span className="home-onomatopee onomatopee" aria-hidden>
+					ゴゴゴ
+				</span>
 				<div className="home-hero__content reveal-up">
 					<p className="home-kicker">
-						<span className="home-kicker__jp">ドラゴンボール</span>
 						<span className="home-kicker__live">
 							<span className={`home-live-dot ${live.onlineCount > 0 ? "is-on" : ""}`} />
 							{live.onlineCount}/6 gardiens en ligne
 						</span>
 					</p>
+					{/* Deux mots, deux aplats : c'est la signature du logo de couverture
+					    (« DRAGON » jaune, « BALL » rouge), et elle ne survit pas à un
+					    span unique — un dégradé à coupure franche se décalerait à
+					    chaque changement de largeur. Chaque LETTRE porte son propre
+					    `data-texte`, dont les deux cernes sont des copies. */}
 					<h1 className="home-wordmark">
-						<span>Dragon&nbsp;Ball</span>
+						<span className="home-wordmark__ligne">
+							{/* Le O de DRAGON porte la boule, exactement comme sur la
+							    couverture : la lettre reste dans le flux pour les lecteurs
+							    d'écran, elle est seulement masquée à l'œil. */}
+							<span className="wordmark-manga">
+								<MotManga lettres={LETTRES_DRAGON_AVANT_BOULE} />
+								<span className="wordmark-boule" aria-hidden>
+									<DragonBall stars={1} size={64} />
+								</span>
+								<span className="sr-only">o</span>
+								<MotManga lettres={LETTRES_DRAGON_APRES_BOULE} />
+							</span>
+							<span className="wordmark-manga wordmark-manga--rouge">
+								<MotManga lettres={LETTRES_BALL} />
+							</span>
+						</span>
 						<em>France</em>
 					</h1>
 					<p className="home-lede">{config.hero.lede}</p>
@@ -848,7 +910,6 @@ export function HomeExperience({
 					onClick={() => goTo(1)}
 					aria-label="Section suivante"
 				>
-					<span>Défiler</span>
 					<span className="home-scroll-hint__arrow" />
 				</button>
 			</section>

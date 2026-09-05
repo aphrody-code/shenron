@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, ScanText } from "lucide-react";
+import { LienExterne, Scan } from "@/components/icones";
 import { assetCdnUrl } from "../_lib";
 import { AdminHeader } from "../_Header";
 import { DbAddButton, DbRowActions } from "@/components/admin/DbCrud";
@@ -137,7 +137,7 @@ export default async function AdminDatabooksPage() {
 
 			<div className="mb-6 flex flex-wrap justify-end gap-2">
 				<Link href="/admin/databooks" className="btn btn-ghost h-9 px-3 text-xs">
-					<ScanText className="h-3.5 w-3.5" />
+					<Scan className="h-3.5 w-3.5" />
 					Suivi des transcriptions
 				</Link>
 				<DbAddButton table={TABLE} label="Ajouter une entrée" />
@@ -249,7 +249,7 @@ export default async function AdminDatabooksPage() {
 															className="inline-flex items-center gap-0.5 text-[10px] text-white/50 hover:text-dbz-orange"
 															title="Page publique"
 														>
-															<ExternalLink className="h-2.5 w-2.5" />
+															<LienExterne className="h-2.5 w-2.5" />
 															Public
 														</a>
 													</div>

@@ -6,7 +6,7 @@
  * (jamais d'id brut), via la table de jointure (`/api/wiki-admin/<join>`).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link2, Loader2, X } from "lucide-react";
+import { Chargement, Croix, Lien } from "@/components/icones";
 import { useState } from "react";
 import { apiAt } from "@/lib/admin-api";
 import { entityRelations, type RelationSpec } from "@/lib/wiki-fields";
@@ -19,7 +19,7 @@ export function RelationsPanel({ table, entityId }: { table: string; entityId: s
 	return (
 		<div className="dbz-panel space-y-5 p-5">
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-				<Link2 className="h-3.5 w-3.5" /> Relations
+				<Lien className="h-3.5 w-3.5" /> Relations
 			</div>
 			{specs.map((spec) => (
 				<RelationEditor key={spec.joinTable + spec.selfCol} spec={spec} entityId={entityId} />
@@ -87,7 +87,9 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 					{spec.label}
 				</h4>
 				<span className="text-xs text-white/50">({ids.length})</span>
-				{(related.isLoading || busy) && <Loader2 className="h-3 w-3 animate-spin text-white/50" />}
+				{(related.isLoading || busy) && (
+					<Chargement className="h-3 w-3 animate-spin text-white/50" />
+				)}
 			</div>
 
 			{related.isError ? (
@@ -110,7 +112,7 @@ function RelationEditor({ spec, entityId }: { spec: RelationSpec; entityId: stri
 								onClick={() => remove.mutate(id)}
 								className="text-red-400 hover:text-red-300 disabled:opacity-50"
 							>
-								<X className="h-3 w-3" />
+								<Croix className="h-3 w-3" />
 							</button>
 						</span>
 					))}

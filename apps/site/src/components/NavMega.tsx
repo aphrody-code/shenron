@@ -13,7 +13,7 @@
  * réel côté serveur : rien à maintenir ici quand une rubrique s'ouvre.
  */
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronBas } from "@/components/icones";
 import { useEffect, useId, useRef, useState } from "react";
 
 export type MegaItem = {
@@ -83,7 +83,7 @@ export function NavMega({
 				className={`${linkClass} inline-flex items-center gap-1 ${open ? "text-dbz-orange" : ""}`}
 			>
 				<span>{label}</span>
-				<ChevronDown
+				<ChevronBas
 					className={`h-3.5 w-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
 					aria-hidden
 				/>

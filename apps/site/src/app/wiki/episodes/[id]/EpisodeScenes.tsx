@@ -9,7 +9,9 @@
  * navigateur (`encodeFramesToGif` → Blob → download).
  *
  * Server-only safe : ce composant n'importe QUE `@/lib/assets` (client-safe)
- * et `@/components/media/encodeGif` (browser-only). Il ne touche jamais
+ * et `@/components/media/encodeGif` (browser-only, chargé PARESSEUSEMENT au clic
+ * sur « Exporter » : `modern-gif` pèse 87 Ko et était sinon embarqué en
+ * <script async> sur les 826 pages d'épisode prérendues). Il ne touche jamais
  * `db-universe`/`shenron` → `postgres` ne fuite pas dans le bundle client.
  * Le type `SceneFrame` est dupliqué localement (contrat partagé, identique à
  * `EpisodeFrame` du bot) pour ne pas importer le module server-only
@@ -18,7 +20,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { assetUrl } from "@/lib/assets";
-import { encodeFramesToGif } from "@/components/media/encodeGif";
 
 /**
  * Réplique client-safe de `EpisodeFrame` (cf. `@/db/bot-schema`, source de
@@ -135,6 +136,7 @@ export function EpisodeScenes({
 					loadFrameCanvas(assetUrl(renderable[i].imagePath), width, height)
 				)
 			);
+			const { encodeFramesToGif } = await import("@/components/media/encodeGif");
 			const blob = await encodeFramesToGif({
 				width,
 				height,

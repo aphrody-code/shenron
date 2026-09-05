@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Palette, BookOpen } from "lucide-react";
+import { Coche, Livre, Palette } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { editionDe, LIBELLE_EDITION, type Edition } from "@/lib/manga-editions";
+import { Etoile } from "@/components/MotifsCouverture";
 
 interface Chapter {
 	id: number;
@@ -67,14 +68,10 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 		<div className="space-y-6">
 			{/* Sélecteur d'édition : n'apparaît que si le tome existe dans les deux. */}
 			{editionsPresentes.length > 1 && (
-				<div
-					className="flex flex-wrap gap-2"
-					role="group"
-					aria-label="Choisir l'édition à lire"
-				>
+				<div className="flex flex-wrap gap-2" role="group" aria-label="Choisir l'édition à lire">
 					{editionsPresentes.map((e) => {
 						const actif = e === editionActive;
-						const Icone = e === "couleur" ? Palette : BookOpen;
+						const Icone = e === "couleur" ? Palette : Livre;
 						return (
 							<button
 								key={e}
@@ -147,10 +144,12 @@ export function VolumeChaptersList({ chapters }: VolumeChaptersListProps) {
 									#{ch.chapter_number}
 								</span>
 								<p className="font-display font-bold text-white group-hover:text-dbz-orange transition-colors flex items-center gap-2">
+									{/* Puce d'étoile : la ligne de titre du support s'ouvre ainsi. */}
+									<Etoile taille={10} className="text-[var(--color-logo-rouge)]" />
 									{ch.title || `Chapitre ${ch.chapter_number}`}
 									{isRead && (
 										<span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-											<Check className="w-2.5 h-2.5" /> Lu
+											<Coche className="w-2.5 h-2.5" /> Lu
 										</span>
 									)}
 								</p>

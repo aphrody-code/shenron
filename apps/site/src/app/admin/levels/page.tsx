@@ -3,20 +3,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserSelect } from "@/components/admin/UserSelect";
 import {
-	Trophy,
-	TrendingUp,
+	Alerte,
+	Bulle,
+	Chargement,
+	CocheCercle,
+	Corbeille,
+	Croix,
+	Enregistrer,
+	Flamme,
+	Micro,
+	Piece,
 	Plus,
-	Trash2,
-	Save,
-	Mic,
-	MessageSquare,
-	Coins,
-	Flame,
-	Loader2,
-	AlertTriangle,
-	CheckCircle2,
-	X,
-} from "lucide-react";
+	Tendance,
+	Trophee,
+} from "@/components/icones";
 import { type FormEvent, useState } from "react";
 import { api } from "@/lib/admin-api";
 import { formatDuration } from "@/lib/admin-format";
@@ -96,7 +96,7 @@ function ConfirmDialog({
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
 			<div className="card w-full max-w-sm space-y-4 border border-red-500/40">
 				<div className="flex items-start gap-3">
-					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+					<Alerte className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
 					<div>
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
@@ -107,7 +107,7 @@ function ConfirmDialog({
 						className="ml-auto btn btn-ghost px-1 py-1"
 						aria-label="Fermer"
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 				<div className="flex justify-end gap-2">
@@ -150,7 +150,7 @@ export default function LevelsPage() {
 			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
-					<Trophy className="h-5 w-5 text-brand-400" />
+					<Trophee className="h-5 w-5 text-brand-400" />
 					<h2 className="text-lg font-semibold">Niveaux et XP</h2>
 				</div>
 				<p className="mt-1 text-sm text-zinc-400">
@@ -163,7 +163,7 @@ export default function LevelsPage() {
 
 			{config.isError && (
 				<div className="flex items-center gap-3 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-400">
-					<AlertTriangle className="h-4 w-4 shrink-0" />
+					<Alerte className="h-4 w-4 shrink-0" />
 					Impossible de charger la configuration. Le bot est-il en ligne ?
 				</div>
 			)}
@@ -200,7 +200,7 @@ function XpRatesCard({
 	if (loading)
 		return (
 			<div className="flex items-center gap-2 rounded-lg border border-zinc-800 p-4 text-zinc-500">
-				<Loader2 className="h-4 w-4 animate-spin" />
+				<Chargement className="h-4 w-4 animate-spin" />
 				Chargement de la configuration…
 			</div>
 		);
@@ -210,37 +210,37 @@ function XpRatesCard({
 		{
 			key: "xp.message.min",
 			label: "XP minimum par message",
-			icon: <MessageSquare className="h-4 w-4" />,
+			icon: <Bulle className="h-4 w-4" />,
 			tooltip: "Quantité minimale d'XP gagnée à chaque message envoyé.",
 		},
 		{
 			key: "xp.message.max",
 			label: "XP maximum par message",
-			icon: <MessageSquare className="h-4 w-4" />,
+			icon: <Bulle className="h-4 w-4" />,
 			tooltip: "Quantité maximale d'XP gagnée à chaque message envoyé.",
 		},
 		{
 			key: "xp.message.cooldown_ms",
 			label: "Délai entre messages (ms)",
-			icon: <MessageSquare className="h-4 w-4" />,
+			icon: <Bulle className="h-4 w-4" />,
 			tooltip: "Temps d'attente en millisecondes entre deux gains d'XP par message.",
 		},
 		{
 			key: "xp.voice.per_minute",
 			label: "XP par minute en vocal",
-			icon: <Mic className="h-4 w-4" />,
+			icon: <Micro className="h-4 w-4" />,
 			tooltip: "XP gagnée toutes les minutes passées dans un salon vocal.",
 		},
 		{
 			key: "zeni.daily_quest",
 			label: "Récompense quête quotidienne",
-			icon: <Flame className="h-4 w-4" />,
+			icon: <Flamme className="h-4 w-4" />,
 			tooltip: "Zénis obtenus en complétant la quête quotidienne.",
 		},
 		{
 			key: "zeni.per_level",
 			label: "Bonus zénis par montée de niveau",
-			icon: <Coins className="h-4 w-4" />,
+			icon: <Piece className="h-4 w-4" />,
 			tooltip: "Zénis offerts à chaque fois qu'un joueur monte de niveau.",
 		},
 	];
@@ -335,7 +335,7 @@ function ThresholdCurveCard() {
 	return (
 		<div className="card">
 			<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-				<TrendingUp className="h-4 w-4" />
+				<Tendance className="h-4 w-4" />
 				Courbe de niveaux — paliers XP éditables
 			</h3>
 			<p className="mb-3 text-xs text-zinc-500">
@@ -346,7 +346,7 @@ function ThresholdCurveCard() {
 
 			{query.isLoading ? (
 				<div className="flex items-center gap-2 text-sm text-zinc-500">
-					<Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+					<Chargement className="h-4 w-4 animate-spin" /> Chargement…
 				</div>
 			) : (
 				<div className="space-y-2">
@@ -382,7 +382,7 @@ function ThresholdCurveCard() {
 										title="Supprimer ce palier"
 										className="w-8 rounded p-1 text-red-400 hover:text-red-300"
 									>
-										<Trash2 className="h-4 w-4" />
+										<Corbeille className="h-4 w-4" />
 									</button>
 								</div>
 							);
@@ -401,7 +401,7 @@ function ThresholdCurveCard() {
 							onClick={() => save.mutate(current)}
 							className="inline-flex items-center gap-1 rounded bg-brand-600 px-3 py-1 text-xs font-bold text-white hover:bg-brand-500 disabled:opacity-40"
 						>
-							<Save className="h-3.5 w-3.5" />
+							<Enregistrer className="h-3.5 w-3.5" />
 							{save.isPending ? "Enregistrement…" : "Enregistrer la courbe"}
 						</button>
 						{dirty && !save.isPending && (
@@ -443,7 +443,7 @@ function ThresholdsCard({
 	return (
 		<div className="card">
 			<h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-zinc-400">
-				<TrendingUp className="h-4 w-4" />
+				<Tendance className="h-4 w-4" />
 				Paliers DBZ — répartition des joueurs
 			</h3>
 			<p className="mb-3 text-xs text-zinc-500">
@@ -455,7 +455,7 @@ function ThresholdsCard({
 			</p>
 			{loading && (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement de la distribution…
 				</div>
 			)}
@@ -559,7 +559,7 @@ function RewardsCard({ rewards, loading }: { rewards: LevelReward[]; loading: bo
 
 			{successMsg && (
 				<div className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
-					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					<CocheCercle className="h-4 w-4 shrink-0" />
 					{successMsg}
 				</div>
 			)}
@@ -579,7 +579,7 @@ function RewardsCard({ rewards, loading }: { rewards: LevelReward[]; loading: bo
 
 			{loading ? (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement des récompenses…
 				</div>
 			) : rewards.length === 0 ? (
@@ -619,7 +619,7 @@ function RewardsCard({ rewards, loading }: { rewards: LevelReward[]; loading: bo
 												className="btn btn-ghost px-2"
 												title="Modifier cette récompense"
 											>
-												<Save className="h-3 w-3" />
+												<Enregistrer className="h-3 w-3" />
 											</button>
 											<button
 												type="button"
@@ -627,7 +627,7 @@ function RewardsCard({ rewards, loading }: { rewards: LevelReward[]; loading: bo
 												className="btn btn-ghost px-2 text-red-400"
 												title="Supprimer cette récompense"
 											>
-												<Trash2 className="h-3 w-3" />
+												<Corbeille className="h-3 w-3" />
 											</button>
 										</div>
 									</td>
@@ -740,7 +740,7 @@ function RewardForm({
 					Annuler
 				</button>
 				<button type="submit" disabled={pending} className="btn btn-primary">
-					<Save className="h-3 w-3" />
+					<Enregistrer className="h-3 w-3" />
 					{pending ? "Enregistrement…" : "Enregistrer la récompense"}
 				</button>
 			</div>
@@ -806,7 +806,7 @@ function RaceRewardsCard({ rewards, loading }: { rewards: RaceReward[]; loading:
 
 			{successMsg && (
 				<div className="mb-3 flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
-					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					<CocheCercle className="h-4 w-4 shrink-0" />
 					{successMsg}
 				</div>
 			)}
@@ -877,7 +877,7 @@ function RaceRewardsCard({ rewards, loading }: { rewards: RaceReward[]; loading:
 
 			{loading ? (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement des paliers…
 				</div>
 			) : grouped.length === 0 ? (
@@ -914,7 +914,7 @@ function RaceRewardsCard({ rewards, loading }: { rewards: RaceReward[]; loading:
 														className="btn btn-ghost px-2 text-red-400"
 														title="Supprimer ce palier"
 													>
-														<Trash2 className="h-3 w-3" />
+														<Corbeille className="h-3 w-3" />
 													</button>
 												</td>
 											</tr>
@@ -994,13 +994,13 @@ function TopsCard() {
 
 			{top.isLoading && (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement du classement…
 				</div>
 			)}
 			{top.isError && (
 				<div className="flex items-center gap-2 text-sm text-red-400">
-					<AlertTriangle className="h-4 w-4" />
+					<Alerte className="h-4 w-4" />
 					Impossible de charger le classement. Réessayez.
 				</div>
 			)}
@@ -1132,7 +1132,7 @@ function ManualActionsCard() {
 				disabled={!userId || !amount || mutation.isPending}
 				className="btn btn-primary"
 			>
-				<Save className="h-3 w-3" />
+				<Enregistrer className="h-3 w-3" />
 				{mutation.isPending ? "Application en cours…" : "Appliquer la modification"}
 			</button>
 			{lastResult && (
@@ -1144,9 +1144,9 @@ function ManualActionsCard() {
 					}`}
 				>
 					{lastResult.ok ? (
-						<CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+						<CocheCercle className="mt-0.5 h-4 w-4 shrink-0" />
 					) : (
-						<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+						<Alerte className="mt-0.5 h-4 w-4 shrink-0" />
 					)}
 					{lastResult.msg}
 				</div>

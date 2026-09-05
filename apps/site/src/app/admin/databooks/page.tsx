@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, BookOpen, CheckCircle2, ExternalLink } from "lucide-react";
+import { Alerte, CocheCercle, FlecheCoin, LienExterne, Livre } from "@/components/icones";
 import { AdminHeader } from "../db-universe/_Header";
 import { assetCdnUrl } from "../db-universe/_lib";
 import { TranscriptionSearch } from "@/components/admin/TranscriptionSearch";
@@ -98,13 +98,18 @@ function Tuile({
 export default async function AdminTranscriptionsPage() {
 	const { fiches, total, rythme } = await progressionTranscription();
 
-	const parEtat = { "en-cours": [] as ProgressionFiche[], termine: [] as ProgressionFiche[], vide: [] as ProgressionFiche[] };
+	const parEtat = {
+		"en-cours": [] as ProgressionFiche[],
+		termine: [] as ProgressionFiche[],
+		vide: [] as ProgressionFiche[],
+	};
 	for (const f of fiches) parEtat[etatDe(f)].push(f);
 
 	// En cours : le plus avancé d'abord — on finit ce qui est presque fini avant
 	// d'ouvrir un nouvel ouvrage.
 	parEtat["en-cours"].sort(
-		(a, b) => pct(b.transcrites, b.planches) - pct(a.transcrites, a.planches) || b.planches - a.planches
+		(a, b) =>
+			pct(b.transcrites, b.planches) - pct(a.transcrites, a.planches) || b.planches - a.planches
 	);
 	parEtat.termine.sort((a, b) => b.planches - a.planches);
 	parEtat.vide.sort((a, b) => a.titre.localeCompare(b.titre, "fr"));
@@ -118,11 +123,8 @@ export default async function AdminTranscriptionsPage() {
 				title="Transcriptions"
 				subtitle={`${total.transcrites.toLocaleString("fr-FR")} / ${total.planches.toLocaleString("fr-FR")} planches · ${pct(total.transcrites, total.planches)} %`}
 				right={
-					<Link
-						href="/admin/db-universe/databooks"
-						className="btn btn-ghost h-9 px-3 text-xs"
-					>
-						<BookOpen className="h-3.5 w-3.5" />
+					<Link href="/admin/db-universe/databooks" className="btn btn-ghost h-9 px-3 text-xs">
+						<Livre className="h-3.5 w-3.5" />
 						Fiches & métadonnées
 					</Link>
 				}
@@ -132,7 +134,11 @@ export default async function AdminTranscriptionsPage() {
 				Le texte des planches est produit par lecture automatique des scans, puis relu ici. Chaque
 				écriture passe par <code className="text-dbz-orange/80">public.wiki_revisions</code> — une
 				transcription reste une <strong className="text-white/70">proposition réversible</strong>,
-				consultable depuis <Link href="/admin/wiki/history" className="text-dbz-orange hover:underline">l&apos;historique wiki</Link>.
+				consultable depuis{" "}
+				<Link href="/admin/wiki/history" className="text-dbz-orange hover:underline">
+					l&apos;historique wiki
+				</Link>
+				.
 			</p>
 
 			{/* ── Synthèse ─────────────────────────────────────────────────────── */}
@@ -183,7 +189,7 @@ export default async function AdminTranscriptionsPage() {
 			{fautives.length > 0 && (
 				<section className="mb-10">
 					<h2 className="mb-3 flex items-center gap-2 border-b-2 border-amber-500/30 pb-2 font-saiyan text-xl uppercase text-amber-300">
-						<AlertTriangle className="h-4 w-4" />
+						<Alerte className="h-4 w-4" />
 						À vérifier
 						<span className="font-sans text-xs font-normal normal-case text-white/50">
 							{total.fautives} planche{total.fautives > 1 ? "s" : ""} sur {fautives.length} ouvrage
@@ -218,7 +224,7 @@ export default async function AdminTranscriptionsPage() {
 				liste.length === 0 ? null : (
 					<section key={cle} className="mb-10">
 						<h2 className="mb-3 flex items-center gap-2 border-b-2 border-dbz-yellow/30 pb-2 font-saiyan text-xl uppercase text-dbz-yellow">
-							{cle === "termine" && <CheckCircle2 className="h-4 w-4 text-green-400" />}
+							{cle === "termine" && <CocheCercle className="h-4 w-4 text-green-400" />}
 							{libelle}
 							<span className="font-sans text-xs font-normal normal-case text-white/50">
 								{liste.length}
@@ -346,7 +352,7 @@ export default async function AdminTranscriptionsPage() {
 																className="inline-flex items-center gap-1 rounded border border-dbz-border/60 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-dbz-blue-light transition-colors hover:border-dbz-orange hover:text-dbz-orange"
 															>
 																Relire
-																<ArrowUpRight className="h-3 w-3" />
+																<FlecheCoin className="h-3 w-3" />
 															</Link>
 														)}
 														<a
@@ -356,7 +362,7 @@ export default async function AdminTranscriptionsPage() {
 															className="rounded border border-dbz-border/60 p-1 text-white/50 transition-colors hover:border-dbz-orange hover:text-dbz-orange"
 															title="Page publique"
 														>
-															<ExternalLink className="h-3 w-3" />
+															<LienExterne className="h-3 w-3" />
 														</a>
 													</div>
 												</td>

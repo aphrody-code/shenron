@@ -15,7 +15,7 @@
  * Écrit :
  *   public/sfx/* (+ inventory)
  *   public/dbz/{characters,planets,transformations}/*
- *   public/assets-inventory.json  (catalogue installé)
+ *   scripts/inventaires/assets-inventory.json  (catalogue installé)
  */
 import { mkdir, writeFile, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
@@ -31,7 +31,9 @@ const ROOT = join(import.meta.dir, "..");
 const PUBLIC = join(ROOT, "public");
 const SFX_DIR = join(PUBLIC, "sfx");
 const DBZ_DIR = join(PUBLIC, "dbz");
-const INVENTORY_PATH = join(PUBLIC, "assets-inventory.json");
+// Hors de `public/` : un catalogue d'ingestion n'a rien à faire sur le
+// domaine public — il expose les URL sources et les chemins internes.
+const INVENTORY_PATH = join(ROOT, "scripts", "inventaires", "assets-inventory.json");
 
 const args = new Set(process.argv.slice(2));
 const FORCE = args.has("--force");

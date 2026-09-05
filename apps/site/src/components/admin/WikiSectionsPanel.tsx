@@ -13,19 +13,19 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	ChevronDown,
-	ChevronUp,
-	Eye,
-	EyeOff,
-	Layers,
-	Link2,
-	Loader2,
+	Chargement,
+	ChevronBas,
+	ChevronHaut,
+	Corbeille,
+	Couches,
+	Croix,
+	Enregistrer,
+	Lien,
+	Oeil,
+	OeilBarre,
 	Plus,
-	Save,
-	Search,
-	Trash2,
-	X,
-} from "lucide-react";
+	Recherche,
+} from "@/components/icones";
 import { useMemo, useState } from "react";
 import { MarkdownField } from "@/components/admin/MarkdownField";
 import { apiAt } from "@/lib/admin-api";
@@ -165,10 +165,10 @@ export function WikiSectionsPanel({
 	return (
 		<div className="dbz-panel space-y-4 p-5">
 			<div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-				<Layers className="h-3.5 w-3.5" /> Sections de contenu
+				<Couches className="h-3.5 w-3.5" /> Sections de contenu
 				<span className="text-white/50">({sections.length})</span>
 				{(query.isFetching || reorder.isPending || add.isPending) && (
-					<Loader2 className="h-3 w-3 animate-spin text-white/50" />
+					<Chargement className="h-3 w-3 animate-spin text-white/50" />
 				)}
 			</div>
 
@@ -321,14 +321,14 @@ function SectionRow({
 				>
 					{section.groupLabel?.trim() && (
 						<span className="mr-2 inline-flex items-center gap-1 rounded bg-dbz-blue-light/15 px-1.5 py-0.5 align-middle text-[9px] font-bold uppercase tracking-wider text-dbz-blue-light">
-							<Layers className="h-2.5 w-2.5" />
+							<Couches className="h-2.5 w-2.5" />
 							{section.groupLabel}
 						</span>
 					)}
 					{section.label}
 					{(section.links?.length ?? 0) > 0 && (
 						<span className="ml-2 inline-flex items-center gap-0.5 align-middle text-[10px] text-white/50">
-							<Link2 className="h-3 w-3" />
+							<Lien className="h-3 w-3" />
 							{section.links?.length}
 						</span>
 					)}
@@ -346,7 +346,7 @@ function SectionRow({
 						onClick={onMoveUp}
 						className="rounded p-1 hover:text-white disabled:opacity-25"
 					>
-						<ChevronUp className="h-3.5 w-3.5" />
+						<ChevronHaut className="h-3.5 w-3.5" />
 					</button>
 					<button
 						type="button"
@@ -355,7 +355,7 @@ function SectionRow({
 						onClick={onMoveDown}
 						className="rounded p-1 hover:text-white disabled:opacity-25"
 					>
-						<ChevronDown className="h-3.5 w-3.5" />
+						<ChevronBas className="h-3.5 w-3.5" />
 					</button>
 					<button
 						type="button"
@@ -363,7 +363,11 @@ function SectionRow({
 						onClick={() => toggleVisible.mutate()}
 						className="rounded p-1 hover:text-white"
 					>
-						{section.visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+						{section.visible ? (
+							<Oeil className="h-3.5 w-3.5" />
+						) : (
+							<OeilBarre className="h-3.5 w-3.5" />
+						)}
 					</button>
 					<button
 						type="button"
@@ -373,7 +377,7 @@ function SectionRow({
 						}}
 						className="rounded p-1 text-red-400 hover:text-red-300"
 					>
-						<Trash2 className="h-3.5 w-3.5" />
+						<Corbeille className="h-3.5 w-3.5" />
 					</button>
 					<button
 						type="button"
@@ -381,7 +385,7 @@ function SectionRow({
 						className="rounded p-1 hover:text-white"
 						title={open ? "Replier" : "Éditer"}
 					>
-						{open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+						{open ? <ChevronHaut className="h-4 w-4" /> : <ChevronBas className="h-4 w-4" />}
 					</button>
 				</div>
 			</div>
@@ -454,7 +458,7 @@ function SectionRow({
 							disabled={save.isPending || !dirty}
 							className="btn btn-primary"
 						>
-							<Save className="h-4 w-4" />
+							<Enregistrer className="h-4 w-4" />
 							{save.isPending ? "Enregistrement…" : "Enregistrer la section"}
 						</button>
 						{save.isError && (
@@ -522,7 +526,7 @@ function WikiSectionLinksEditor({
 	return (
 		<div className="rounded border border-dbz-border bg-dbz-card/30 p-3">
 			<div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-dbz-blue-light">
-				<Link2 className="h-3.5 w-3.5" /> Pages wiki liées
+				<Lien className="h-3.5 w-3.5" /> Pages wiki liées
 				<span className="text-white/50">({links.length})</span>
 			</div>
 			<p className="mb-2 text-[11px] text-white/50">
@@ -554,7 +558,7 @@ function WikiSectionLinksEditor({
 								onClick={() => onChange(links.filter((_, j) => j !== i))}
 								className="rounded p-1 text-red-400 opacity-70 hover:opacity-100"
 							>
-								<X className="h-3.5 w-3.5" />
+								<Croix className="h-3.5 w-3.5" />
 							</button>
 						</div>
 					))}
@@ -579,7 +583,7 @@ function WikiSectionLinksEditor({
 							))}
 						</select>
 						<div className="relative flex-1">
-							<Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/50" />
+							<Recherche className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/50" />
 							<input
 								className="input pl-7 text-xs"
 								placeholder="Rechercher une fiche…"
@@ -598,7 +602,7 @@ function WikiSectionLinksEditor({
 					</div>
 					{list.isLoading ? (
 						<p className="py-3 text-center text-xs text-white/50">
-							<Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Chargement…
+							<Chargement className="mr-1 inline h-3 w-3 animate-spin" /> Chargement…
 						</p>
 					) : (
 						<div className="max-h-56 space-y-1 overflow-y-auto">

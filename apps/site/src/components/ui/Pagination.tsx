@@ -15,7 +15,7 @@
  * toujours visibles, une fenêtre glissante autour de la page courante, des
  * ellipses ailleurs — jamais 12 boutons sur mobile.
  */
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDroite, ChevronGauche } from "@/components/icones";
 import { useCallback, useEffect, useMemo } from "react";
 
 const nf = new Intl.NumberFormat("fr-FR");
@@ -122,7 +122,7 @@ export function Pagination({
 						aria-label="Page précédente"
 						className={`${btn} text-white/70 hover:bg-white/[0.06] hover:text-white`}
 					>
-						<ChevronLeft className="h-4 w-4" />
+						<ChevronGauche className="h-4 w-4" />
 					</button>
 
 					{numeros.map((n, i) =>
@@ -159,7 +159,7 @@ export function Pagination({
 						aria-label="Page suivante"
 						className={`${btn} text-white/70 hover:bg-white/[0.06] hover:text-white`}
 					>
-						<ChevronRight className="h-4 w-4" />
+						<ChevronDroite className="h-4 w-4" />
 					</button>
 				</nav>
 			)}

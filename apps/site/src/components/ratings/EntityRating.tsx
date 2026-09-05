@@ -11,7 +11,7 @@
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { useCallback, useEffect, useId, useState } from "react";
-import { ChevronDown, Loader2, MessageSquare, Star, Trash2 } from "lucide-react";
+import { Bulle, Chargement, ChevronBas, Corbeille, Etoile } from "@/components/icones";
 import { useMe } from "@/lib/use-me";
 import { RatingBadge, Stars } from "./Stars";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
@@ -152,7 +152,7 @@ export function EntityRatingSummary({
 					</span>
 				</>
 			)}
-			<ChevronDown className="h-3.5 w-3.5 text-white/50 group-hover:text-dbz-orange" aria-hidden />
+			<ChevronBas className="h-3.5 w-3.5 text-white/50 group-hover:text-dbz-orange" aria-hidden />
 		</a>
 	);
 }
@@ -316,7 +316,7 @@ export function EntityRating({
 						onClick={() => setTab("rate")}
 						className={`${tabBtn} ${tab === "rate" ? tabActive : tabIdle}`}
 					>
-						<Star className="h-3.5 w-3.5 text-dbz-orange" aria-hidden />
+						<Etoile className="h-3.5 w-3.5 text-dbz-orange" aria-hidden />
 						Noter
 					</button>
 					<button
@@ -329,7 +329,7 @@ export function EntityRating({
 						onClick={() => setTab("reviews")}
 						className={`${tabBtn} ${tab === "reviews" ? tabActive : tabIdle}`}
 					>
-						<MessageSquare className="h-3.5 w-3.5" aria-hidden />
+						<Bulle className="h-3.5 w-3.5" aria-hidden />
 						Avis
 						{reviewCount > 0 && (
 							<span className="rounded bg-white/10 px-1.5 text-[11px] tabular-nums text-dbz-orange">
@@ -434,7 +434,7 @@ export function EntityRating({
 									>
 										{saving ? (
 											<>
-												<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+												<Chargement className="mr-2 h-3.5 w-3.5 animate-spin" />
 												Envoi…
 											</>
 										) : state?.mine ? (
@@ -501,9 +501,9 @@ export function EntityRating({
 														className="rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/5 hover:text-red-400 disabled:opacity-40"
 													>
 														{deletingId === c.id ? (
-															<Loader2 className="h-4 w-4 animate-spin" />
+															<Chargement className="h-4 w-4 animate-spin" />
 														) : (
-															<Trash2 className="h-4 w-4" />
+															<Corbeille className="h-4 w-4" />
 														)}
 													</button>
 												)}

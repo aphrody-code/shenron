@@ -12,7 +12,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X } from "lucide-react";
+import { Croix, Recherche } from "@/components/icones";
 import { api } from "@/lib/admin-api";
 
 interface Member {
@@ -140,14 +140,14 @@ export function UserSelect({
 								className="btn btn-ghost px-1 text-red-400"
 								title="Retirer"
 							>
-								<X className="h-3 w-3" />
+								<Croix className="h-3 w-3" />
 							</button>
 						</>
 					)}
 				</div>
 			) : (
 				<div className="flex items-center gap-2 rounded-lg border border-dbz-border bg-dbz-bg/60 px-2">
-					<Search className="h-4 w-4 shrink-0 text-white/50" />
+					<Recherche className="h-4 w-4 shrink-0 text-white/50" />
 					<input
 						className="w-full bg-transparent py-1.5 text-sm outline-none placeholder:text-white/50"
 						value={q}

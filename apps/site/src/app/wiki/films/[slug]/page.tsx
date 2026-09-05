@@ -16,6 +16,7 @@ import type { Metadata } from "next";
 import { stripSourceTags } from "@/lib/media";
 import { VideoPlayer } from "@/components/episodes/VideoPlayer";
 import { VideoLecteurs } from "@/components/episodes/VideoLecteurs";
+import { OffreLegale } from "@/components/episodes/OffreLegale";
 import { EpisodeDownload } from "@/components/episodes/EpisodeDownload";
 import { JsonLd } from "@/components/JsonLd";
 import { AdUnit } from "@/components/ads/AdUnit";
@@ -271,6 +272,9 @@ export default async function FilmPage({ params }: { params: Promise<{ slug: str
 							</p>
 						</div>
 					)}
+
+					{/* Offre légale (ADN…) — sous le player, comme sur la fiche épisode. */}
+					<OffreLegale offres={m.availability} />
 
 					{synopsis && (
 						<section className="dbz-panel p-8 relative overflow-hidden">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Trophy, Zap, MessageSquare } from "lucide-react";
+import { Bulle, Eclair, Tendance, Trophee } from "@/components/icones";
 import { api } from "@/lib/admin-api";
 import { fmtNum } from "@/lib/admin-format";
 
@@ -28,22 +28,22 @@ export default function StatsPage() {
 		<div className="space-y-4">
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<MiniStat
-					icon={<MessageSquare className="h-4 w-4" />}
+					icon={<Bulle className="h-4 w-4" />}
 					title="Total joueurs"
 					value={fmtNum(totals.data?.stats.totalUsers)}
 				/>
 				<MiniStat
-					icon={<TrendingUp className="h-4 w-4" />}
+					icon={<Tendance className="h-4 w-4" />}
 					title="Joueurs actifs"
 					value={fmtNum(totals.data?.stats.totalActiveUsers)}
 				/>
 				<MiniStat
-					icon={<Trophy className="h-4 w-4" />}
+					icon={<Trophee className="h-4 w-4" />}
 					title="Top XP"
 					value={fmtNum(top.data?.users[0]?.xp)}
 				/>
 				<MiniStat
-					icon={<Zap className="h-4 w-4" />}
+					icon={<Eclair className="h-4 w-4" />}
 					title="Total commandes"
 					value={fmtNum(totals.data?.stats.totalCommands)}
 				/>

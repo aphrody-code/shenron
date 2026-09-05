@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import type { Book as BookSchema, WithContext } from "schema-dts";
 import { JsonLd } from "@/components/JsonLd";
 import { VolumeChaptersList } from "@/components/manga/VolumeChaptersList";
+import { BancNuages, CadreCase, Etoile, PastilleTome } from "@/components/MotifsCouverture";
 
 /** Libellé de série pour le balisage `BookSeries` (clé DB → nom lisible). */
 const SERIES_LABEL: Record<string, string> = {
@@ -100,20 +101,31 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 
 				<div className="flex flex-col md:flex-row gap-12 lg:gap-20">
 					<div className="w-full md:w-1/3 lg:w-1/4">
-						<div className="dbz-panel p-4 border-2 border-dbz-orange/30 bg-dbz-card relative overflow-hidden group">
-							<div className="absolute inset-0 halftone opacity-20" />
-							{volume.cover ? (
-								<img
-									src={assetUrl(volume.cover)}
-									alt={`Volume ${volume.volume_number}`}
-									className="w-full h-auto object-contain relative z-10 drop-shadow-[0_0_15px_rgba(255,178,0,0.3)]"
-								/>
-							) : (
-								<div className="aspect-[2/3] flex items-center justify-center bg-zinc-900">
-									<span className="text-zinc-700 font-saiyan text-6xl">{volume.volume_number}</span>
-								</div>
-							)}
-						</div>
+						{/* Cadre de case mesuré sur le support : encre, liseré jaune, encre,
+						    coins vifs — et la pastille de numéro à sa place de tankōbon. */}
+						<CadreCase largeur={300} className="group bg-dbz-card">
+							<div className="relative overflow-hidden">
+								<div className="absolute inset-0 halftone z-20 opacity-20" />
+								{volume.cover ? (
+									<img
+										src={assetUrl(volume.cover)}
+										alt={`Volume ${volume.volume_number}`}
+										className="relative z-10 h-auto w-full object-contain"
+									/>
+								) : (
+									<div className="flex aspect-[2/3] items-center justify-center bg-zinc-900">
+										<span className="font-saiyan text-6xl text-zinc-700">
+											{volume.volume_number}
+										</span>
+									</div>
+								)}
+							</div>
+							<PastilleTome
+								numero={volume.volume_number}
+								taille={56}
+								className="absolute right-3 bottom-3 z-30"
+							/>
+						</CadreCase>
 
 						{/* Métadonnées du Tome */}
 						<div className="mt-8 space-y-4 border-t border-white/10 pt-6 font-display text-xs">
@@ -126,7 +138,10 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 							{volume.title_ja && (
 								<div className="flex justify-between">
 									<span className="text-white/50">Titre Original :</span>
-									<span className="text-white font-bold font-mono">{volume.title_ja}</span>
+									{/* `font-jp` et non `font-mono` : JetBrains Mono est chargée en
+									    sous-ensemble LATIN, elle n'a aucun glyphe japonais et rendait
+									    « ドラゴンボール超 1 » en huit tofus sur la page de tome. */}
+									<span className="font-jp font-bold text-white">{volume.title_ja}</span>
 								</div>
 							)}
 							{volume.published_at && (
@@ -151,7 +166,9 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 
 					<div className="flex-1 space-y-10">
 						<header>
-							<p className="font-display font-semibold text-[12px] tracking-[0.3em] uppercase text-dbz-orange mb-4">
+							{/* L'étoile ouvre la ligne de titre secondaire, comme sur la couverture. */}
+							<p className="font-display mb-4 inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.3em] text-dbz-orange uppercase">
+								<Etoile taille={11} className="text-[var(--color-logo-rouge)]" />
 								{volume.series === "DB" ? "Dragon Ball" : "Dragon Ball Super"} · Volume{" "}
 								{volume.volume_number}
 							</p>
@@ -162,6 +179,8 @@ export default async function MangaVolumePage({ params }: { params: Promise<{ id
 						</header>
 
 						<section className="space-y-6">
+							{/* Banc de volutes du fond de case, en frise de séparation. */}
+							<BancNuages hauteur={64} opacite={0.85} className="rounded-sm" retourne />
 							<div className="flex items-center gap-6">
 								<h2 className="font-saiyan text-3xl text-white uppercase tracking-widest">
 									Sommaire des Chapitres

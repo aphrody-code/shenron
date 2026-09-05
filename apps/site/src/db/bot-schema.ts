@@ -343,6 +343,33 @@ export const botCharacterVariants = bot.table("db_character_variants", {
 	visible: boolean("visible").notNull().default(true),
 });
 
+/**
+ * « Où regarder légalement, et dans quelle langue » — une entrée par offre.
+ *
+ * À NE PAS confondre avec `players` : `players` porte des lecteurs tiers
+ * incrustés en iframe, `availability` porte un lien SORTANT vers l'offre d'un
+ * ayant droit. Les deux ne se substituent pas et ne se fusionnent pas.
+ *
+ * Alimentée par `sync-availability-adn.ts`. `langs` est MESURÉ à chaque
+ * relevé (l'API ADN rend les pistes réellement proposées) — une VF retirée du
+ * catalogue disparaît donc d'elle-même au run suivant.
+ */
+export type Availability = {
+	/** Fournisseur licencié (`adn`, …). */
+	provider: string;
+	/** Libellé affiché (« ADN »). */
+	label: string;
+	/** Page officielle de l'épisode / du film. */
+	url: string;
+	/** Lecteur officiel incrustable, quand le fournisseur en expose un. */
+	embedUrl: string | null;
+	/** Pistes proposées. `vostfr` = audio japonais d'origine sous-titré FR. */
+	langs: ("vf" | "vostfr")[];
+	available: boolean;
+	/** Date du relevé (epoch secondes) — dit au lecteur si l'info est fraîche. */
+	checkedAt: number;
+};
+
 export const botEpisodes = bot.table("db_episodes", {
 	id: int("id").primaryKey(),
 	series: text("series").notNull(),
@@ -370,6 +397,8 @@ export const botEpisodes = bot.table("db_episodes", {
 		jsonb("players").$type<
 			{ name: string; provider: string; embedUrl: string; lang?: "vf" | "vostfr" }[]
 		>(),
+	/** Offres légales relevées (cf. type `Availability`). */
+	availability: jsonb("availability").$type<Availability[]>(),
 	// Flux résolu (HLS/mp4) + headers requis (Referer), pour le proxy HLS du
 	// site qui le relaie à notre player hls.js. Rafraîchi par resolve-streams.ts
 	// (tokens ~12 h). Colonnes Neon-only.
@@ -407,6 +436,8 @@ export const botMovies = bot.table("db_movies", {
 		jsonb("players").$type<
 			{ name: string; provider: string; embedUrl: string; lang?: "vf" | "vostfr" }[]
 		>(),
+	/** Offres légales relevées (cf. type `Availability`). */
+	availability: jsonb("availability").$type<Availability[]>(),
 	streamUrl: text("stream_url"),
 	streamHeaders: jsonb("stream_headers").$type<Record<string, string>>(),
 	streamProvider: text("stream_provider"),

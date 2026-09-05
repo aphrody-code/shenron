@@ -9,7 +9,7 @@
  *
  * Masqué sur le back-office (/admin) : l'équipe n'a pas à se signaler à elle-même.
  */
-import { CheckCircle2, Flag, Loader2, X } from "lucide-react";
+import { Chargement, CocheCercle, Croix, Drapeau } from "@/components/icones";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
@@ -103,12 +103,12 @@ export function ReportButton() {
 				// n'apparaît qu'au survol ; l'intitulé reste accessible par
 				// `aria-label` et par le `title`.
 				// `min-h-11 min-w-11` : 44 px de cible tactile. En `p-2.5` seul, le bouton
-			// replié tombait à 46×42 — le doigt le rate une fois sur trois au coin de
-			// l'écran, là où la prise est la moins sûre.
-			className="group fab-secondary fixed bottom-4 left-4 z-40 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-[rgba(10,10,10,0.8)] p-2.5 text-white/55 shadow-lg backdrop-blur-md transition-all hover:border-dbz-orange/50 hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-6 md:left-6"
+				// replié tombait à 46×42 — le doigt le rate une fois sur trois au coin de
+				// l'écran, là où la prise est la moins sûre.
+				className="group fab-secondary fixed bottom-4 left-4 z-40 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-[rgba(10,10,10,0.8)] p-2.5 text-white/55 shadow-lg backdrop-blur-md transition-all hover:border-dbz-orange/50 hover:text-dbz-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 md:bottom-6 md:left-6"
 				title="Signaler une erreur"
 			>
-				<Flag className="h-4 w-4" />
+				<Drapeau className="h-4 w-4" />
 				<span className="max-w-0 overflow-hidden whitespace-nowrap text-[13px] font-display font-semibold opacity-0 transition-all duration-200 group-hover:max-w-[10rem] group-hover:pr-1 group-hover:opacity-100 group-focus-visible:max-w-[10rem] group-focus-visible:opacity-100">
 					Signaler une erreur
 				</span>
@@ -128,7 +128,7 @@ export function ReportButton() {
 						{/* En-tête */}
 						<div className="flex items-center justify-between border-b border-white/10 px-5 py-3.5">
 							<h2 className="flex items-center gap-2 font-saiyan text-lg uppercase tracking-widest text-dbz-orange">
-								<Flag className="h-4 w-4" /> Signaler une erreur
+								<Drapeau className="h-4 w-4" /> Signaler une erreur
 							</h2>
 							<button
 								type="button"
@@ -136,14 +136,14 @@ export function ReportButton() {
 								aria-label="Fermer"
 								className="rounded-full p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
 							>
-								<X className="h-4 w-4" />
+								<Croix className="h-4 w-4" />
 							</button>
 						</div>
 
 						<div className="space-y-4 p-5">
 							{phase === "done" ? (
 								<div className="flex flex-col items-center gap-3 py-6 text-center">
-									<CheckCircle2 className="h-10 w-10 text-green-400" />
+									<CocheCercle className="h-10 w-10 text-green-400" />
 									<p className="font-display text-base font-semibold text-white">
 										Merci, c&apos;est envoyé !
 									</p>
@@ -217,7 +217,7 @@ export function ReportButton() {
 									>
 										{phase === "sending" ? (
 											<>
-												<Loader2 className="h-4 w-4 animate-spin" /> Envoi…
+												<Chargement className="h-4 w-4 animate-spin" /> Envoi…
 											</>
 										) : (
 											"Envoyer le signalement"

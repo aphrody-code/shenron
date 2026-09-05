@@ -6,35 +6,35 @@
  */
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Crown, Medal, Star, Trophy } from "lucide-react";
+import { Couronne, Etoile, Recompense, Trophee } from "@/components/icones";
 import { WikiImg } from "@/components/wiki/WikiImg";
 import type { CommunityTopBoard, CommunityTopsPayload } from "@/lib/community-tops";
 import { onTablistKeyDown } from "@/lib/tablist-keys";
 
 const RANK_META: Record<
 	1 | 2 | 3,
-	{ label: string; medal: string; ring: string; height: string; Icon: typeof Crown }
+	{ label: string; medal: string; ring: string; height: string; Icon: typeof Couronne }
 > = {
 	1: {
 		label: "1er",
 		medal: "text-amber-300",
 		ring: "border-amber-400/60 shadow-[0_0_28px_rgba(251,191,36,0.25)]",
 		height: "pt-2 sm:pt-0",
-		Icon: Crown,
+		Icon: Couronne,
 	},
 	2: {
 		label: "2e",
 		medal: "text-slate-200",
 		ring: "border-slate-300/40",
 		height: "pt-6 sm:pt-8",
-		Icon: Medal,
+		Icon: Recompense,
 	},
 	3: {
 		label: "3e",
 		medal: "text-orange-400",
 		ring: "border-orange-400/40",
 		height: "pt-8 sm:pt-12",
-		Icon: Medal,
+		Icon: Recompense,
 	},
 };
 
@@ -104,7 +104,7 @@ function PodiumCard({ board, rank }: { board: CommunityTopBoard; rank: 1 | 2 | 3
 						/>
 					) : (
 						<div className="absolute inset-0 flex items-center justify-center text-white/15">
-							<Trophy className="h-10 w-10" />
+							<Trophee className="h-10 w-10" />
 						</div>
 					)}
 					<div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
@@ -115,7 +115,7 @@ function PodiumCard({ board, rank }: { board: CommunityTopBoard; rank: 1 | 2 | 3
 						{meta.label}
 					</span>
 					<span className="absolute right-2 top-2 inline-flex items-center gap-0.5 rounded-md bg-black/75 px-1.5 py-0.5 text-[11px] font-bold text-dbz-orange">
-						<Star className="h-3 w-3 fill-current" aria-hidden />
+						<Etoile className="h-3 w-3 fill-current" aria-hidden />
 						{entry.average.toFixed(1)}
 					</span>
 				</div>

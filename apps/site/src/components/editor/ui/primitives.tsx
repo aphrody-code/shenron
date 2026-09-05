@@ -14,7 +14,7 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { Croix } from "@/components/icones";
 
 import { useFocusTrap } from "@/lib/use-focus-trap";
 import { cn } from "@/lib/utils";
@@ -153,7 +153,7 @@ export function EditorPanel({
 						aria-label="Fermer"
 						className="grid size-9 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
 					>
-						<X className="size-4" />
+						<Croix className="size-4" />
 					</button>
 				</div>
 				<div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>

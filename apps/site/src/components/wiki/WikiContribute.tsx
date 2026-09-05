@@ -20,7 +20,7 @@
  * via `@/components/editor` : le point d'entrée du module tirerait l'éditeur
  * riche et ses CSS dans le paquet d'une page publique.
  */
-import { CheckCircle2, Loader2, PenLine, X } from "lucide-react";
+import { Chargement, CocheCercle, Crayon, Croix } from "@/components/icones";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { SignInDiscord } from "@/components/SignInDiscord";
@@ -227,7 +227,7 @@ export function WikiContribute({
 			className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/35 transition-colors hover:text-dbz-orange"
 			title={`Proposer une correction — ${champ.label}`}
 		>
-			<PenLine className="h-3 w-3" /> Corriger
+			<Crayon className="h-3 w-3" /> Corriger
 		</button>
 	) : (
 		<button
@@ -235,7 +235,7 @@ export function WikiContribute({
 			onClick={() => setOpen(true)}
 			className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/12 bg-white/[0.03] px-3.5 py-2 text-xs font-semibold text-white/65 transition-colors hover:border-dbz-orange/50 hover:text-white"
 		>
-			<PenLine className="h-3.5 w-3.5" />
+			<Crayon className="h-3.5 w-3.5" />
 			{labelBouton ?? "Proposer une correction"}
 		</button>
 	);
@@ -270,13 +270,13 @@ export function WikiContribute({
 							className="shrink-0 rounded p-1 text-white/40 transition-colors hover:text-white disabled:opacity-40"
 							aria-label="Fermer"
 						>
-							<X className="h-4 w-4" />
+							<Croix className="h-4 w-4" />
 						</button>
 					</header>
 
 					{phase === "done" ? (
 						<div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-							<CheckCircle2 className="h-9 w-9 text-emerald-400" />
+							<CocheCercle className="h-9 w-9 text-emerald-400" />
 							<p className="text-sm font-semibold text-white">Proposition envoyée.</p>
 							<p className="max-w-sm text-xs leading-relaxed text-white/50">
 								Elle passe en relecture. Si elle est retenue, la modification portera{" "}
@@ -301,12 +301,12 @@ export function WikiContribute({
 					) : autorise === false ? (
 						<div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
 							<p className="max-w-sm text-sm leading-relaxed text-white/60">
-								Les corrections de cette partie du wiki sont réservées à une équipe de
-								relecture pour le moment.
+								Les corrections de cette partie du wiki sont réservées à une équipe de relecture
+								pour le moment.
 							</p>
 							<p className="max-w-sm text-[12px] leading-relaxed text-white/40">
-								Vous pouvez toujours signaler une erreur : le bouton en bas de page transmet
-								votre remarque aux modérateurs.
+								Vous pouvez toujours signaler une erreur : le bouton en bas de page transmet votre
+								remarque aux modérateurs.
 							</p>
 							<button
 								type="button"
@@ -318,7 +318,7 @@ export function WikiContribute({
 						</div>
 					) : phase === "loading" || autorise === null ? (
 						<div className="flex items-center justify-center gap-2 px-6 py-16 text-sm text-white/45">
-							<Loader2 className="h-4 w-4 animate-spin" /> Chargement du texte actuel…
+							<Chargement className="h-4 w-4 animate-spin" /> Chargement du texte actuel…
 						</div>
 					) : (
 						<>
@@ -424,7 +424,7 @@ export function WikiContribute({
 									>
 										{phase === "sending" ? (
 											<>
-												<Loader2 className="h-3.5 w-3.5 animate-spin" /> Envoi…
+												<Chargement className="h-3.5 w-3.5 animate-spin" /> Envoi…
 											</>
 										) : (
 											"Envoyer la proposition"

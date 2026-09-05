@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { Curseurs } from "@/components/icones";
 import { Pagination } from "@/components/ui/Pagination";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiImg } from "@/components/wiki/WikiImg";
@@ -298,7 +298,7 @@ export function CharacterGrid({
 							: "border-white/[0.12] bg-white/[0.05] text-white/80 hover:border-dbz-orange/60 hover:text-white"
 					}`}
 				>
-					<SlidersHorizontal className="h-4 w-4" />
+					<Curseurs className="h-4 w-4" />
 					Filtrer
 					{activeCount > 0 && (
 						<span className="grid h-5 min-w-5 place-items-center rounded-full bg-dbz-orange px-1.5 text-[11px] font-bold text-black">
@@ -341,9 +341,7 @@ export function CharacterGrid({
 							onClick={() => setTri(valeur)}
 							aria-pressed={tri === valeur}
 							className={`h-11 flex-1 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange sm:h-9 sm:flex-none ${
-								tri === valeur
-									? "bg-dbz-orange text-black"
-									: "text-white/70 hover:text-white"
+								tri === valeur ? "bg-dbz-orange text-black" : "text-white/70 hover:text-white"
 							}`}
 						>
 							{libelle}
@@ -355,11 +353,11 @@ export function CharacterGrid({
 						role="group"
 						aria-label="Affichage"
 						// Sur mobile la bascule prend toute la largeur et 52 px de haut : ses
-					// segments atteignent alors les 44 px de cible tactile (ils étaient à
-					// 36), et deux bascules côte à côte tiennent sur une seule rangée au
-					// lieu d'empiler deux blocs pleine largeur. Au-delà de 640 px, on
-					// revient à la pastille compacte d'origine.
-					className="inline-flex h-13 w-full items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1 sm:h-11 sm:w-auto"
+						// segments atteignent alors les 44 px de cible tactile (ils étaient à
+						// 36), et deux bascules côte à côte tiennent sur une seule rangée au
+						// lieu d'empiler deux blocs pleine largeur. Au-delà de 640 px, on
+						// revient à la pastille compacte d'origine.
+						className="inline-flex h-13 w-full items-center rounded-full border border-white/[0.12] bg-white/[0.04] p-1 sm:h-11 sm:w-auto"
 					>
 						{(["fiches", "versions"] as const).map((v) => (
 							<button
@@ -368,9 +366,7 @@ export function CharacterGrid({
 								onClick={() => setVue(v)}
 								aria-pressed={vue === v}
 								className={`h-11 flex-1 rounded-full px-3.5 text-[13px] font-display font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange sm:h-9 sm:flex-none ${
-									vue === v
-										? "bg-dbz-orange text-black"
-										: "text-white/65 hover:text-white"
+									vue === v ? "bg-dbz-orange text-black" : "text-white/65 hover:text-white"
 								}`}
 							>
 								{v === "fiches" ? "Fiches" : "Versions"}
@@ -422,9 +418,7 @@ export function CharacterGrid({
 									</p>
 									{/* La saga entre parenthèses, sur sa propre ligne : accolée
 									    au nom elle serait tronquée avant d'être lue. */}
-									<p className="truncate text-[10px] leading-tight text-white/55">
-										({v.saga})
-									</p>
+									<p className="truncate text-[10px] leading-tight text-white/55">({v.saga})</p>
 									{v.form && (
 										<p className="scouter-text truncate text-[8px] text-dbz-orange/80">{v.form}</p>
 									)}

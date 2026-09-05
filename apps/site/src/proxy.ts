@@ -128,6 +128,19 @@ export async function proxy(request: NextRequest) {
 	// renvoyait tout le monde sur le teaser « En préparation », alors qu'elle ne
 	// fait que lister des rubriques dont chacune est déjà gardée par la sienne.
 	if (pathname === "/wiki") return NextResponse.next();
+	// Un FICHIER sous /wiki/ n'est pas une rubrique : c'est un asset de
+	// `public/wiki/` (poster de scène, vignette de personnage, planche de
+	// databook). La règle « hors registre sous /wiki ⇒ fermé » l'attrapait, et
+	// `dragonballfr.com/wiki/taopaipai.poster.webp` répondait 307 vers le teaser
+	// en PRODUCTION — mesuré, pas supposé. En cascade, `next/image` échouait à
+	// charger le poster et le héros de l'accueil tombait sur sa frontière
+	// d'erreur un tirage sur deux (les clips de fond sont pioches au hasard).
+	//
+	// L'extension est le bon discriminant : aucune rubrique du registre n'en
+	// porte, et le dernier segment d'une page wiki est un slug (`/wiki/manga`,
+	// `/wiki/personnages/son-goku`). Les points d'un slug — il n'y en a pas —
+	// seraient de toute façon rattrapés par le registre, qui passe avant.
+	if (/\.[a-z0-9]{2,5}$/i.test(pathname)) return NextResponse.next();
 	const isWiki = pathname.startsWith("/wiki/");
 
 	// Hors registre : sous /wiki (segment inconnu ou futur) on ferme par défaut,

@@ -9,7 +9,16 @@
  * mode ne demande aucune migration SQL.
  */
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, Check, Loader2, Lock, Plus, Users, X } from "lucide-react";
+import {
+	Cadenas,
+	Chargement,
+	Coche,
+	Croix,
+	FlecheBas,
+	FlecheHaut,
+	Groupe,
+	Plus,
+} from "@/components/icones";
 import {
 	ALL_ENTRIES,
 	ALWAYS_OPEN_KEYS,
@@ -164,7 +173,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 					disabled={saving}
 					className="dbz-button gap-2 disabled:opacity-50"
 				>
-					{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+					{saving ? <Chargement className="h-4 w-4 animate-spin" /> : <Coche className="h-4 w-4" />}
 					Enregistrer
 				</button>
 			</div>
@@ -185,7 +194,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 										className="rounded p-0.5 text-white/50 hover:text-white disabled:opacity-20"
 										aria-label={`Monter ${entry.label}`}
 									>
-										<ArrowUp className="h-3.5 w-3.5" />
+										<FlecheHaut className="h-3.5 w-3.5" />
 									</button>
 									<button
 										type="button"
@@ -194,14 +203,14 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 										className="rounded p-0.5 text-white/50 hover:text-white disabled:opacity-20"
 										aria-label={`Descendre ${entry.label}`}
 									>
-										<ArrowDown className="h-3.5 w-3.5" />
+										<FlecheBas className="h-3.5 w-3.5" />
 									</button>
 								</div>
 
 								<div className="min-w-0 flex-1">
 									<p className="flex items-center gap-1.5 font-saiyan text-sm text-white">
 										{entry.label}
-										{locked && <Lock className="h-3 w-3 text-white/50" />}
+										{locked && <Cadenas className="h-3 w-3 text-white/50" />}
 										<span className="rounded bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/50">
 											{entry.scope === "site" ? "site" : "wiki"}
 										</span>
@@ -232,7 +241,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 							{rule.mode === "roles" && (
 								<div className="space-y-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5">
 									<p className="flex items-center gap-1.5 text-[11px] text-amber-200/80">
-										<Users className="h-3 w-3" />
+										<Groupe className="h-3 w-3" />
 										Rôles autorisés — un seul suffit pour accéder
 									</p>
 									<div className="flex flex-wrap gap-1.5">
@@ -248,7 +257,7 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 													className="text-white/50 hover:text-red-400"
 													aria-label="Retirer ce rôle"
 												>
-													<X className="h-3 w-3" />
+													<Croix className="h-3 w-3" />
 												</button>
 											</span>
 										))}
@@ -276,8 +285,8 @@ export function LaunchManager({ initial }: { initial: LaunchConfigDto }) {
 
 			{msg && <p className={`text-sm ${msg.ok ? "text-green-400" : "text-red-400"}`}>{msg.text}</p>}
 			<p className="text-xs text-white/50">
-				Les rubriques avec <Lock className="inline h-3 w-3" /> (Épisodes, Films, Chronologie, Manga)
-				sont en ligne depuis la bêta et restent publiques.
+				Les rubriques avec <Cadenas className="inline h-3 w-3" /> (Épisodes, Films, Chronologie,
+				Manga) sont en ligne depuis la bêta et restent publiques.
 			</p>
 		</div>
 	);

@@ -1087,6 +1087,8 @@ export class ApiServer {
 				"/apple-touch-icon.png": staticFile("public/apple-touch-icon.png", "image/png"),
 				"/icon-192.png": staticFile("public/icon-192.png", "image/png"),
 				"/icon-512.png": staticFile("public/icon-512.png", "image/png"),
+				"/icon-maskable-512.png": staticFile("public/icon-maskable-512.png", "image/png"),
+				"/mstile-150.png": staticFile("public/mstile-150.png", "image/png"),
 				"/manifest.webmanifest": staticFile(
 					"public/manifest.webmanifest",
 					"application/manifest+json"
@@ -5550,14 +5552,38 @@ export class ApiServer {
 					if (req.method === "OPTIONS") {
 						return new Response(null, { status: 204, headers: publicCorsHeaders(req) });
 					}
-					const relPath = url.pathname.slice("/db/".length);
-					if (relPath.includes("..") || relPath.startsWith("/")) {
+					// Deux ingests ont peuplé `public/db/`, avec DEUX conventions de nommage
+					// incompatibles, et il faut servir les deux (mesuré le 2026-09-03) :
+					//   · `dbofficial/` : 36 fichiers au nom japonais réel (« 310-サムネイル.jpg »).
+					//     Le client encode toujours l'URL → sans décodage, 404 sur 12 médias.
+					//   · `fandom-fr-proper/` : 58 fichiers dont le nom porte LITTÉRALEMENT
+					//     des « % » (« Pan_%28Artwork%29.png ») — l'ingest a enregistré la
+					//     forme déjà encodée comme nom de fichier. Les décoder donne « ( »
+					//     et ne trouve plus rien.
+					// On essaie donc le chemin décodé, puis on retombe sur le chemin brut.
+					// Décoder sans ce repli répare 16 médias et en casse 15 : mesuré aussi.
+					const cheminBrut = url.pathname.slice("/db/".length);
+					let cheminDecode = cheminBrut;
+					try {
+						cheminDecode = decodeURIComponent(cheminBrut);
+					} catch {
+						// Séquence d'échappement invalide : on s'en tient au brut.
+					}
+					// Contrôle de traversée sur les DEUX formes : le tester avant décodage
+					// laisserait passer un « %2e%2e » qui redeviendrait « .. » juste après.
+					const refuse = (c: string) =>
+						!c || c.includes("..") || c.startsWith("/") || c.includes("\0");
+					if (refuse(cheminBrut) || refuse(cheminDecode)) {
 						return new Response("Forbidden", { status: 403 });
 					}
+					const racineDb = `${process.cwd()}/public/db`;
+					const relPath = (await Bun.file(`${racineDb}/${cheminDecode}`).exists())
+						? cheminDecode
+						: cheminBrut;
 					// Content-Negotiation : si client supporte AVIF/WebP et qu'on a
 					// la variante pré-générée, on la sert (10-60% plus léger).
 					const accept = req.headers.get("accept") ?? "";
-					const baseDir = `${process.cwd()}/public/db`;
+					const baseDir = racineDb;
 					const ext = relPath.replace(/^.*\./, "").toLowerCase();
 					const negotiable = ext === "png" || ext === "jpg" || ext === "jpeg";
 					let servedPath = relPath;

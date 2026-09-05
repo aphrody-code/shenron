@@ -2,18 +2,18 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	RefreshCw,
-	Download,
-	Plus,
-	Save,
-	Trash2,
-	X,
-	Power,
-	PowerOff,
+	Alimentation,
+	AlimentationCoupee,
+	Chargement,
+	Corbeille,
+	Croix,
+	Enregistrer,
+	Illustration,
 	Palette,
-	Loader2,
-	Image as ImageIcon,
-} from "lucide-react";
+	Plus,
+	Rafraichir,
+	Telecharger,
+} from "@/components/icones";
 import { type FormEvent, type ReactNode, useMemo, useState } from "react";
 import { Sketch } from "@uiw/react-color";
 import { api, proxyAsset } from "@/lib/admin-api";
@@ -308,7 +308,7 @@ function ThemesSection({ sampleUserId }: { sampleUserId: string }) {
 
 			{themes.isLoading && (
 				<div className="flex items-center gap-2 text-white/50 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" /> Chargement des thèmes…
+					<Chargement className="h-4 w-4 animate-spin" /> Chargement des thèmes…
 				</div>
 			)}
 			{themes.isError && (
@@ -624,7 +624,7 @@ function ThemeEditor({
 							onClick={onClose}
 							className="ml-auto dbz-button-ghost !px-2 !py-1"
 						>
-							<X className="h-4 w-4" />
+							<Croix className="h-4 w-4" />
 						</button>
 					</div>
 
@@ -685,11 +685,11 @@ function ThemeEditor({
 							>
 								{draft.enabled ? (
 									<>
-										<Power className="h-3 w-3" /> Actif
+										<Alimentation className="h-3 w-3" /> Actif
 									</>
 								) : (
 									<>
-										<PowerOff className="h-3 w-3" /> Masqué
+										<AlimentationCoupee className="h-3 w-3" /> Masqué
 									</>
 								)}
 							</button>
@@ -740,7 +740,7 @@ function ThemeEditor({
 									onClick={() => setPicker(true)}
 									className="dbz-button-ghost !text-xs !py-1 !px-3 shrink-0 flex items-center gap-1.5"
 								>
-									<ImageIcon className="h-3 w-3" /> Parcourir
+									<Illustration className="h-3 w-3" /> Parcourir
 								</button>
 								{draft.bgFile && (
 									<button
@@ -749,7 +749,7 @@ function ThemeEditor({
 										className="dbz-button-ghost !text-xs !py-1 !px-2 shrink-0 !text-red-400"
 										title="Retirer le fond"
 									>
-										<X className="h-3 w-3" />
+										<Croix className="h-3 w-3" />
 									</button>
 								)}
 							</div>
@@ -797,7 +797,7 @@ function ThemeEditor({
 									onClick={() => setBust((b) => b + 1)}
 									className="dbz-button-ghost !text-[10px] !py-0.5 !px-2 flex items-center gap-1"
 								>
-									<RefreshCw className="h-3 w-3" /> Rafraîchir
+									<Rafraichir className="h-3 w-3" /> Rafraîchir
 								</button>
 							</div>
 							<img
@@ -823,7 +823,7 @@ function ThemeEditor({
 							disabled={save.isPending}
 							className="dbz-button !text-xs !py-1.5 !px-4 flex items-center gap-1.5"
 						>
-							<Save className="h-3 w-3" />
+							<Enregistrer className="h-3 w-3" />
 							{save.isPending ? "Enregistrement…" : isCreate ? "Créer le thème" : "Enregistrer"}
 						</button>
 						<button
@@ -847,7 +847,7 @@ function ThemeEditor({
 								disabled={del.isPending}
 								className="ml-auto dbz-button-ghost !text-xs !py-1.5 !px-3 flex items-center gap-1.5 !text-red-400"
 							>
-								<Trash2 className="h-3 w-3" /> Supprimer
+								<Corbeille className="h-3 w-3" /> Supprimer
 							</button>
 						)}
 					</div>
@@ -891,7 +891,7 @@ function AssetGrid({ dir, onPick }: { dir: string; onPick?: (path: string) => vo
 	if (assets.isLoading)
 		return (
 			<div className="flex items-center gap-2 text-white/50 text-sm">
-				<Loader2 className="h-4 w-4 animate-spin" /> Chargement des images…
+				<Chargement className="h-4 w-4 animate-spin" /> Chargement des images…
 			</div>
 		);
 	if (assets.isError)
@@ -991,7 +991,7 @@ function AssetPickerModal({
 						className="ml-auto dbz-button-ghost !px-2 !py-1"
 						aria-label="Fermer"
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 				<AssetGallery
@@ -1172,7 +1172,7 @@ function CanvasPreview({ def, members }: { def: CanvasDef; members: DiscordMembe
 						onClick={() => setBust(bust + 1)}
 						className="dbz-button !text-xs !py-1.5 !px-3 flex items-center gap-1.5"
 					>
-						<RefreshCw className="h-3 w-3" />
+						<Rafraichir className="h-3 w-3" />
 						Regénérer
 					</button>
 					{isValid && (
@@ -1181,7 +1181,7 @@ function CanvasPreview({ def, members }: { def: CanvasDef; members: DiscordMembe
 							download={`${def.id}.png`}
 							className="dbz-button-ghost !text-xs !py-1.5 !px-3 flex items-center gap-1.5"
 						>
-							<Download className="h-3 w-3" />
+							<Telecharger className="h-3 w-3" />
 							Télécharger
 						</a>
 					)}

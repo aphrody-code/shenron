@@ -7,7 +7,7 @@
  * Chaque article montre un aperçu de ce qu'on obtient (fond de carte, couleur…).
  */
 import { useCallback, useEffect, useState } from "react";
-import { Check, Coins, Loader2, Lock, ShoppingCart } from "lucide-react";
+import { Cadenas, Chargement, Coche, Piece, Sac } from "@/components/icones";
 
 interface ShopItem {
 	key: string;
@@ -122,16 +122,16 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 			<div className="dbz-panel flex flex-wrap items-center justify-between gap-3 p-4">
 				{loggedIn === false ? (
 					<p className="flex items-center gap-2 text-sm text-white/70">
-						<Lock className="h-4 w-4 text-dbz-orange" />
+						<Cadenas className="h-4 w-4 text-dbz-orange" />
 						Connecte-toi avec Discord pour acheter et équiper directement sur le site.
 					</p>
 				) : loggedIn === null ? (
 					<p className="flex items-center gap-2 text-sm text-white/50">
-						<Loader2 className="h-4 w-4 animate-spin" /> Chargement de ton solde…
+						<Chargement className="h-4 w-4 animate-spin" /> Chargement de ton solde…
 					</p>
 				) : (
 					<p className="flex items-center gap-2 text-sm text-white/80">
-						<Coins className="h-5 w-5 text-dbz-yellow" />
+						<Piece className="h-5 w-5 text-dbz-yellow" />
 						<span className="font-saiyan text-2xl text-dbz-yellow">
 							{(state?.balance ?? 0).toLocaleString("fr-FR")}
 						</span>
@@ -186,7 +186,7 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 												</div>
 											) : isEquipped ? (
 												<div className="flex items-center justify-center gap-1 rounded border-2 border-green-500/50 bg-green-500/10 p-2 text-sm font-bold text-green-400">
-													<Check className="h-4 w-4" /> Équipé
+													<Coche className="h-4 w-4" /> Équipé
 												</div>
 											) : isOwned ? (
 												<button
@@ -195,7 +195,7 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 													onClick={() => equip(it)}
 													className="dbz-button w-full justify-center disabled:opacity-50"
 												>
-													{isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Équiper"}
+													{isBusy ? <Chargement className="h-4 w-4 animate-spin" /> : "Équiper"}
 												</button>
 											) : (
 												<button
@@ -205,10 +205,10 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 													className="dbz-button w-full justify-center gap-1 disabled:cursor-not-allowed disabled:opacity-40"
 												>
 													{isBusy ? (
-														<Loader2 className="h-4 w-4 animate-spin" />
+														<Chargement className="h-4 w-4 animate-spin" />
 													) : (
 														<>
-															<ShoppingCart className="h-4 w-4" />
+															<Sac className="h-4 w-4" />
 															{canAfford ? "Acheter" : "Solde insuffisant"}
 														</>
 													)}

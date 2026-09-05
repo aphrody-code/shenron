@@ -11,7 +11,7 @@
  */
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff, Search, Loader2 } from "lucide-react";
+import { Chargement, Oeil, OeilBarre, Recherche } from "@/components/icones";
 import { apiAt } from "@/lib/admin-api";
 import { assetUrl } from "@/lib/assets";
 
@@ -120,7 +120,7 @@ export function VisibilityManager() {
 			{/* Barre d'actions : recherche + compteurs + bascule de masse */}
 			<div className="dbz-panel flex flex-wrap items-center gap-3 p-4">
 				<div className="relative min-w-[200px] flex-1">
-					<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+					<Recherche className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 					<input
 						type="search"
 						value={q}
@@ -131,10 +131,10 @@ export function VisibilityManager() {
 				</div>
 				<div className="flex items-center gap-3 text-[13px]">
 					<span className="inline-flex items-center gap-1.5 text-namek">
-						<Eye className="h-4 w-4" /> {visibleCount}
+						<Oeil className="h-4 w-4" /> {visibleCount}
 					</span>
 					<span className="inline-flex items-center gap-1.5 text-white/50">
-						<EyeOff className="h-4 w-4" /> {hiddenCount}
+						<OeilBarre className="h-4 w-4" /> {hiddenCount}
 					</span>
 				</div>
 				<div className="flex gap-2">
@@ -145,9 +145,9 @@ export function VisibilityManager() {
 						className="inline-flex items-center gap-1.5 rounded-lg border border-namek/40 bg-namek/10 px-3 py-1.5 text-[12px] font-semibold text-namek transition-colors hover:bg-namek/20 disabled:opacity-40"
 					>
 						{busyBulk ? (
-							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							<Chargement className="h-3.5 w-3.5 animate-spin" />
 						) : (
-							<Eye className="h-3.5 w-3.5" />
+							<Oeil className="h-3.5 w-3.5" />
 						)}
 						Tout afficher
 					</button>
@@ -158,9 +158,9 @@ export function VisibilityManager() {
 						className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/70 transition-colors hover:bg-white/10 disabled:opacity-40"
 					>
 						{busyBulk ? (
-							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							<Chargement className="h-3.5 w-3.5 animate-spin" />
 						) : (
-							<EyeOff className="h-3.5 w-3.5" />
+							<OeilBarre className="h-3.5 w-3.5" />
 						)}
 						Tout masquer
 					</button>
@@ -170,7 +170,7 @@ export function VisibilityManager() {
 			{/* Grille d'entités */}
 			{list.isLoading ? (
 				<div className="dbz-panel flex items-center justify-center gap-2 py-16 text-white/50">
-					<Loader2 className="h-5 w-5 animate-spin" /> Chargement…
+					<Chargement className="h-5 w-5 animate-spin" /> Chargement…
 				</div>
 			) : list.isError ? (
 				<p className="dbz-panel py-12 text-center text-red-400">Erreur de chargement. Réessaie.</p>
@@ -217,7 +217,7 @@ function VisibilityCard({ row, onToggle }: { row: VisibilityRow; onToggle: () =>
 					/>
 				) : (
 					<span className="flex h-full w-full items-center justify-center text-white/20">
-						<EyeOff className="h-4 w-4" />
+						<OeilBarre className="h-4 w-4" />
 					</span>
 				)}
 			</div>
@@ -234,7 +234,7 @@ function VisibilityCard({ row, onToggle }: { row: VisibilityRow; onToggle: () =>
 						: "bg-white/5 text-white/50 group-hover:bg-white/10"
 				}`}
 			>
-				{visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+				{visible ? <Oeil className="h-4 w-4" /> : <OeilBarre className="h-4 w-4" />}
 			</span>
 		</button>
 	);

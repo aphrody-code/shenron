@@ -13,7 +13,7 @@
  * que recevra la personne qui a pris le temps de lire une planche.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, ExternalLink, Loader2, X } from "lucide-react";
+import { Chargement, Coche, Croix, LienExterne } from "@/components/icones";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { PlainField } from "@/components/editor/PlainField";
@@ -177,7 +177,7 @@ export default function PageContributions() {
 
 			{isLoading ? (
 				<p className="flex items-center gap-2 text-sm text-white/40">
-					<Loader2 className="h-4 w-4 animate-spin" /> Chargement…
+					<Chargement className="h-4 w-4 animate-spin" /> Chargement…
 				</p>
 			) : !data?.rows.length ? (
 				<p className="rounded-xl border border-white/8 bg-white/[0.02] px-5 py-10 text-center text-sm text-white/40">
@@ -249,7 +249,7 @@ function CarteContribution({
 						rel="noreferrer"
 						className="inline-flex items-center gap-1 text-xs text-white/45 transition-colors hover:text-dbz-orange"
 					>
-						<ExternalLink className="h-3 w-3" /> Voir la fiche
+						<LienExterne className="h-3 w-3" /> Voir la fiche
 					</a>
 				) : null}
 			</div>
@@ -326,7 +326,7 @@ function CarteContribution({
 							onClick={() => onModerer("accept", note)}
 							className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-40"
 						>
-							<Check className="h-3.5 w-3.5" /> Accepter et publier
+							<Coche className="h-3.5 w-3.5" /> Accepter et publier
 						</button>
 						<button
 							type="button"
@@ -335,7 +335,7 @@ function CarteContribution({
 							onClick={() => onModerer("reject", note)}
 							className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-4 py-2 text-xs font-semibold text-white/70 transition-colors hover:border-dbz-red/50 hover:text-dbz-red disabled:opacity-40"
 						>
-							<X className="h-3.5 w-3.5" /> Refuser
+							<Croix className="h-3.5 w-3.5" /> Refuser
 						</button>
 						{erreur ? <span className="text-xs text-dbz-red">{erreur}</span> : null}
 					</div>

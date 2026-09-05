@@ -10,7 +10,7 @@
  */
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Palette, RotateCcw, Save } from "lucide-react";
+import { Enregistrer, Palette, Reinitialiser } from "@/components/icones";
 import { DragonBallLoader } from "@/components/DragonBall";
 import {
 	DEFAULT_SITE_THEME,
@@ -146,7 +146,7 @@ export default function DesignEditor() {
 					}}
 					className="btn btn-ghost text-amber-300"
 				>
-					<RotateCcw className="mr-1 h-4 w-4" /> Défauts
+					<Reinitialiser className="mr-1 h-4 w-4" /> Défauts
 				</button>
 				<button
 					type="button"
@@ -154,7 +154,8 @@ export default function DesignEditor() {
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>
-					<Save className="mr-1 h-4 w-4" /> {save.isPending ? "Enregistrement…" : "Enregistrer"}
+					<Enregistrer className="mr-1 h-4 w-4" />{" "}
+					{save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>
 
@@ -230,7 +231,8 @@ export default function DesignEditor() {
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>
-					<Save className="mr-1 h-4 w-4" /> {save.isPending ? "Enregistrement…" : "Enregistrer"}
+					<Enregistrer className="mr-1 h-4 w-4" />{" "}
+					{save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>
 		</div>

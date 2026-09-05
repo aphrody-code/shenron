@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Save, RotateCcw, Eye, Power } from "lucide-react";
+import { Alimentation, Enregistrer, Oeil, Reinitialiser } from "@/components/icones";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/admin-api";
 import { PlainField } from "@/components/editor/PlainField";
@@ -213,7 +213,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						onClick={() => setEnabled(!enabled)}
 						className={`dbz-button !text-xs !py-1 !px-3 shrink-0 flex items-center gap-1.5 ${!enabled ? "opacity-50" : ""}`}
 					>
-						<Power className="h-3 w-3" />
+						<Alimentation className="h-3 w-3" />
 						{enabled ? "Activé" : "Désactivé"}
 					</button>
 				</div>
@@ -261,7 +261,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						disabled={save.isPending}
 						className="dbz-button flex items-center gap-1.5 disabled:opacity-40"
 					>
-						<Save className="h-3 w-3" />
+						<Enregistrer className="h-3 w-3" />
 						{save.isPending ? "Enregistrement…" : "Enregistrer"}
 					</button>
 					{entry.isCustom && (
@@ -278,7 +278,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 							disabled={reset.isPending}
 							className="dbz-button-ghost flex items-center gap-1.5"
 						>
-							<RotateCcw className="h-3 w-3" />
+							<Reinitialiser className="h-3 w-3" />
 							Remettre par défaut
 						</button>
 					)}
@@ -297,7 +297,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 			{entry.variables.length > 0 && (
 				<div className="dbz-panel p-5 space-y-4">
 					<div className="flex items-center gap-2">
-						<Eye className="h-4 w-4 text-dbz-blue-light" />
+						<Oeil className="h-4 w-4 text-dbz-blue-light" />
 						<h3 className="font-saiyan text-dbz-blue-light text-base uppercase">
 							Prévisualiser le message
 						</h3>
@@ -327,7 +327,7 @@ function EventEditor({ entry }: { entry: EventEntry }) {
 						disabled={preview.isPending}
 						className="dbz-button flex items-center gap-1.5 disabled:opacity-40"
 					>
-						<Eye className="h-3 w-3" />
+						<Oeil className="h-3 w-3" />
 						{preview.isPending ? "Rendu en cours…" : "Générer l'aperçu"}
 					</button>
 					{previewResult && (

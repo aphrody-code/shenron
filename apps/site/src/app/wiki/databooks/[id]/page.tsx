@@ -1,7 +1,7 @@
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BookOpen, ExternalLink, Mic } from "lucide-react";
+import { LienExterne, Livre, Micro } from "@/components/icones";
 import { DatabookReader } from "@/components/databooks/DatabookReader";
 import { ViewTransition } from "@/components/ViewTransition";
 import { WikiEditBar } from "@/components/wiki/WikiEditBar";
@@ -206,9 +206,9 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 						) : (
 							<div className="relative z-10 flex aspect-[2/3] items-center justify-center bg-zinc-900">
 								{isInterview ? (
-									<Mic className="h-16 w-16 text-white/20" />
+									<Micro className="h-16 w-16 text-white/20" />
 								) : (
-									<BookOpen className="h-16 w-16 text-white/20" />
+									<Livre className="h-16 w-16 text-white/20" />
 								)}
 							</div>
 						)}
@@ -244,7 +244,7 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 								rel="noopener noreferrer"
 								className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-dbz-orange/40 bg-dbz-orange/10 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-dbz-orange transition-colors hover:bg-dbz-orange/20"
 							>
-								<ExternalLink className="h-3.5 w-3.5" />
+								<LienExterne className="h-3.5 w-3.5" />
 								Source officielle
 							</a>
 						)}

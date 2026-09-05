@@ -7,7 +7,7 @@
  * suppression. Lecture/écriture via /api/admin/reports (Postgres site).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Flag, Loader2, MessageSquare, Trash2 } from "lucide-react";
+import { Bulle, Chargement, Corbeille, Drapeau } from "@/components/icones";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -81,7 +81,7 @@ export default function SignalementsPage() {
 		<div className="space-y-6">
 			<div className="dbz-panel px-6 py-5">
 				<h1 className="flex items-center gap-3 font-saiyan text-3xl leading-tight text-dbz-yellow">
-					<Flag className="h-7 w-7 text-dbz-orange" />
+					<Drapeau className="h-7 w-7 text-dbz-orange" />
 					Signalements
 				</h1>
 				<p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60">
@@ -113,7 +113,7 @@ export default function SignalementsPage() {
 						</span>
 					</button>
 				))}
-				{q.isFetching && <Loader2 className="h-4 w-4 animate-spin self-center text-white/50" />}
+				{q.isFetching && <Chargement className="h-4 w-4 animate-spin self-center text-white/50" />}
 			</div>
 
 			{q.isError && (
@@ -124,7 +124,7 @@ export default function SignalementsPage() {
 
 			{items.length === 0 && !q.isLoading ? (
 				<div className="dbz-panel py-16 text-center">
-					<Flag className="mx-auto mb-3 h-8 w-8 text-white/20" />
+					<Drapeau className="mx-auto mb-3 h-8 w-8 text-white/20" />
 					<p className="font-saiyan uppercase tracking-widest text-white/50">
 						Aucun signalement {filter !== "all" ? reportStatusLabel(filter).toLowerCase() : ""}
 					</p>
@@ -210,7 +210,7 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 
 			{/* Note interne */}
 			<div className="flex items-start gap-2">
-				<MessageSquare className="mt-2 h-3.5 w-3.5 shrink-0 text-white/50" />
+				<Bulle className="mt-2 h-3.5 w-3.5 shrink-0 text-white/50" />
 				<PlainField
 					className="flex-1"
 					value={note}
@@ -256,7 +256,7 @@ function ReportCard({ report, onChanged }: { report: ReportRow; onChanged: () =>
 					}}
 					className="ml-auto inline-flex items-center gap-1 rounded border border-white/15 px-2.5 py-1 text-xs text-red-400 transition-colors hover:border-dbz-red hover:text-red-300 disabled:opacity-40"
 				>
-					<Trash2 className="h-3.5 w-3.5" /> Supprimer
+					<Corbeille className="h-3.5 w-3.5" /> Supprimer
 				</button>
 			</div>
 		</div>

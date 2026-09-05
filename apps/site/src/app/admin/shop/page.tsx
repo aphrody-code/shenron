@@ -2,18 +2,18 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	Alerte,
+	Alimentation,
+	AlimentationCoupee,
+	Chargement,
+	CocheCercle,
+	Corbeille,
+	Croix,
+	Enregistrer,
 	Plus,
-	Save,
-	ShoppingBag,
-	Trash2,
-	X,
-	Search,
-	Power,
-	PowerOff,
-	AlertTriangle,
-	CheckCircle2,
-	Loader2,
-} from "lucide-react";
+	Recherche,
+	Sac,
+} from "@/components/icones";
 import { type FormEvent, useMemo, useState } from "react";
 import { api } from "@/lib/admin-api";
 import { RoleBadge } from "@/components/admin/RoleSelect";
@@ -59,7 +59,7 @@ function ConfirmDialog({
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
 			<div className="card w-full max-w-sm space-y-4 border border-red-500/40">
 				<div className="flex items-start gap-3">
-					<AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+					<Alerte className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
 					<div>
 						<h3 className="font-semibold text-white">{title}</h3>
 						<p className="mt-1 text-sm text-zinc-400">{message}</p>
@@ -70,7 +70,7 @@ function ConfirmDialog({
 						className="ml-auto btn btn-ghost px-1 py-1"
 						aria-label="Fermer"
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 				<div className="flex justify-end gap-2">
@@ -162,7 +162,7 @@ export default function ShopPage() {
 			{/* En-tête */}
 			<div className="card">
 				<div className="flex items-center gap-2">
-					<ShoppingBag className="h-5 w-5 text-brand-400" />
+					<Sac className="h-5 w-5 text-brand-400" />
 					<h2 className="text-lg font-semibold">Boutique</h2>
 					<span className="ml-2 text-xs text-zinc-500">
 						{stats.total} article{stats.total !== 1 ? "s" : ""} · {stats.enabled} actif
@@ -182,7 +182,7 @@ export default function ShopPage() {
 				</p>
 				<div className="mt-3 grid gap-2 sm:grid-cols-3">
 					<div className="relative">
-						<Search className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500" />
+						<Recherche className="pointer-events-none absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 text-zinc-500" />
 						<input
 							className="input w-full pl-8"
 							placeholder="Rechercher par nom ou identifiant"
@@ -211,7 +211,7 @@ export default function ShopPage() {
 			{/* Feedback */}
 			{successMsg && (
 				<div className="flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
-					<CheckCircle2 className="h-4 w-4 shrink-0" />
+					<CocheCercle className="h-4 w-4 shrink-0" />
 					{successMsg}
 				</div>
 			)}
@@ -219,7 +219,7 @@ export default function ShopPage() {
 			{/* Chargement */}
 			{items.isLoading && (
 				<div className="flex items-center gap-2 text-zinc-500 text-sm">
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 					Chargement des articles…
 				</div>
 			)}
@@ -265,7 +265,7 @@ export default function ShopPage() {
 								title="Supprimer cet article"
 								onClick={() => setConfirmDelete(item)}
 							>
-								<Trash2 className="h-3 w-3" />
+								<Corbeille className="h-3 w-3" />
 							</button>
 						</div>
 					</div>
@@ -374,7 +374,7 @@ function ShopItemEditor({
 						className="ml-auto btn btn-ghost px-2"
 						aria-label="Fermer"
 					>
-						<X className="h-3 w-3" />
+						<Croix className="h-3 w-3" />
 					</button>
 				</div>
 				{error && (
@@ -447,11 +447,11 @@ function ShopItemEditor({
 						>
 							{draft.enabled ? (
 								<>
-									<Power className="h-3 w-3" /> Visible (actif)
+									<Alimentation className="h-3 w-3" /> Visible (actif)
 								</>
 							) : (
 								<>
-									<PowerOff className="h-3 w-3" /> Masqué (inactif)
+									<AlimentationCoupee className="h-3 w-3" /> Masqué (inactif)
 								</>
 							)}
 						</button>
@@ -486,7 +486,7 @@ function ShopItemEditor({
 				</div>
 				<div className="flex items-center gap-2 border-t border-zinc-800 pt-3">
 					<button type="submit" className="btn btn-primary" disabled={save.isPending}>
-						<Save className="h-3 w-3" />
+						<Enregistrer className="h-3 w-3" />
 						{save.isPending
 							? "Enregistrement…"
 							: isCreate

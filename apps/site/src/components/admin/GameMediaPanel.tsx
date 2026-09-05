@@ -6,7 +6,16 @@
  * Save dédiée (jsonb exclu de SmartField / buildSubmitBody).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Film, ImageIcon, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import {
+	Chargement,
+	ChevronBas,
+	ChevronHaut,
+	Corbeille,
+	Enregistrer,
+	Film,
+	Illustration,
+	Plus,
+} from "@/components/icones";
 import { useEffect, useMemo, useState } from "react";
 import { ImageField } from "@/components/admin/ImageField";
 import { apiAt } from "@/lib/admin-api";
@@ -183,7 +192,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 	if (row.isLoading) {
 		return (
 			<div className="dbz-panel flex items-center gap-2 p-5 text-sm text-white/50">
-				<Loader2 className="h-4 w-4 animate-spin" /> Chargement de la galerie…
+				<Chargement className="h-4 w-4 animate-spin" /> Chargement de la galerie…
 			</div>
 		);
 	}
@@ -231,7 +240,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 						className="btn btn-ghost h-8 gap-1 px-2 text-xs"
 						onClick={() => setItems((arr) => [...arr, emptyItem("image")])}
 					>
-						<ImageIcon className="h-3.5 w-3.5" /> Image
+						<Illustration className="h-3.5 w-3.5" /> Image
 					</button>
 					<button
 						type="button"
@@ -247,9 +256,9 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 						onClick={() => save.mutate()}
 					>
 						{save.isPending ? (
-							<Loader2 className="h-3.5 w-3.5 animate-spin" />
+							<Chargement className="h-3.5 w-3.5 animate-spin" />
 						) : (
-							<Save className="h-3.5 w-3.5" />
+							<Enregistrer className="h-3.5 w-3.5" />
 						)}
 						Enregistrer
 					</button>
@@ -293,7 +302,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 												}`}
 											>
 												{t === "image" ? (
-													<ImageIcon className="h-3 w-3" />
+													<Illustration className="h-3 w-3" />
 												) : (
 													<Film className="h-3 w-3" />
 												)}
@@ -310,7 +319,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 										onClick={() => move(i, -1)}
 										aria-label="Monter"
 									>
-										<ChevronUp className="h-3.5 w-3.5" />
+										<ChevronHaut className="h-3.5 w-3.5" />
 									</button>
 									<button
 										type="button"
@@ -319,7 +328,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 										onClick={() => move(i, 1)}
 										aria-label="Descendre"
 									>
-										<ChevronDown className="h-3.5 w-3.5" />
+										<ChevronBas className="h-3.5 w-3.5" />
 									</button>
 									<button
 										type="button"
@@ -327,7 +336,7 @@ export function GameMediaPanel({ gameId }: { gameId: string }) {
 										onClick={() => remove(i)}
 										aria-label="Supprimer"
 									>
-										<Trash2 className="h-3.5 w-3.5" />
+										<Corbeille className="h-3.5 w-3.5" />
 									</button>
 								</div>
 							</div>

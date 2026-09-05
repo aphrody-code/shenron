@@ -1,17 +1,11 @@
 import Link from "next/link";
-import { DragonBall } from "@/components/DragonBall";
+import { KintoUn } from "@/components/KintoUn";
 import { CommandMenu } from "@/components/CommandMenu";
 import { NavAuth } from "@/components/NavAuth";
-import { MobileNav } from "@/components/MobileNav";
 import { AdminNavLinks } from "@/components/AdminNavLinks";
 import { NavMore } from "@/components/NavMore";
 import { NavMega, type MegaItem } from "@/components/NavMega";
-import {
-	LAUNCH_CATEGORIES,
-	orderedEntries,
-	resolveAccess,
-	type NavGroup,
-} from "@/lib/wiki-launch";
+import { LAUNCH_CATEGORIES, orderedEntries, resolveAccess, type NavGroup } from "@/lib/wiki-launch";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 /**
@@ -26,7 +20,6 @@ import { getLaunchConfig } from "@/lib/wiki-launch-config";
  * Contrôle public : /admin/lancement (« Catégories du site »).
  */
 
-const STATIC_PUBLIC_HEAD = [{ href: "/", label: "Accueil" }];
 const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
@@ -36,17 +29,17 @@ const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
  * ajoutait un clic pour rien. L'ordre suit la lecture d'une série — ce qu'on
  * regarde, puis ce qu'on lit, puis ce qui documente.
  */
-const ORDRE_OEUVRES = [
-	"films",
-	"episodes",
-	"chronologie",
-	"manga",
-	"databooks",
-	"jeux",
-] as const;
+const ORDRE_OEUVRES = ["films", "episodes", "chronologie", "manga", "databooks", "jeux"] as const;
 
+/**
+ * Lien de la barre. Le survol pose un TRAIT D'ENCRE sous le libellé plutôt que
+ * de changer sa seule couleur : c'est le geste d'un lettrage de planche, et il
+ * survit au daltonisme là où un simple virage vers l'or ne dit rien. Le trait
+ * pousse depuis la gauche, jamais depuis le centre — un trait qui s'ouvre en
+ * deux se lit comme une animation d'interface, pas comme un coup de feutre.
+ */
 const linkClass =
-	"relative whitespace-nowrap font-display font-medium text-[14px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-2.5 py-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 xl:px-3";
+	"group/lien relative whitespace-nowrap font-display font-medium text-[14px] tracking-normal text-white/72 hover:text-dbz-orange transition-colors px-2.5 py-2 rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60 xl:px-3 after:absolute after:left-2.5 after:right-2.5 after:bottom-1 after:h-[2px] after:origin-left after:scale-x-0 after:bg-[var(--color-os)] after:transition-transform after:duration-200 hover:after:scale-x-100 focus-visible:after:scale-x-100 motion-reduce:after:transition-none xl:after:left-3 xl:after:right-3";
 
 export async function SiteNav() {
 	const cfg = await getLaunchConfig();
@@ -85,30 +78,33 @@ export async function SiteNav() {
 	// n'apparaît qu'à UN seul endroit de la barre : le doublon vient toujours
 	// d'une liste qui repart de toutes les publiques sans retirer ce qui est
 	// déjà placé ailleurs dans la barre.
-	const placees = new Set<string>([
-		...dansGroupe("univers").map((c) => c.key),
-		...ORDRE_OEUVRES,
-	]);
+	const placees = new Set<string>([...dansGroupe("univers").map((c) => c.key), ...ORDRE_OEUVRES]);
 	const moreWiki = publiques
 		.filter((c) => !placees.has(c.key))
 		.map((c) => ({ href: c.href as string, label: c.label }));
 
-	// Mobile : tous les liens publics (pas de contrainte largeur).
-	const mobilePublic = [
-		...STATIC_PUBLIC_HEAD,
-		...univers.map((i) => ({ href: i.href, label: i.label })),
-		...oeuvres,
-		...moreWiki,
-		...STATIC_PUBLIC_TAIL,
-	];
+	// La liste mobile complète a disparu avec le menu hamburger : sous 1024 px,
+	// la navigation est portée par `<BarreNavMobile />`, qui tient ses quatre
+	// destinations de l'audience mesurée et le reste dans sa feuille « Plus ».
 	const adminOnly = [...wikiClosed, ...STATIC_ADMIN];
 
 	return (
 		// `view-transition-name` → la nav reste fixe pendant les slides
 		// directionnels (point d'ancrage spatial). CSS dans globals.css.
 		<header className="sticky top-0 z-50 w-full" style={{ viewTransitionName: "site-header" }}>
-			<div className="absolute inset-0 -z-10 bg-[rgba(10,10,10,0.82)] backdrop-blur-xl backdrop-saturate-150 border-b border-[rgba(255,178,0,0.18)]" />
+			{/* Séparation très discrète : la bordure blanche de 2 px créait une barre
+			    qui coupait le contenu juste sous le header. Le token de bordure garde
+			    l'ancrage de la navigation sans introduire une surface claire. */}
+			<div className="absolute inset-0 -z-10 border-b border-dbz-border/80 bg-[rgba(10,10,10,0.86)] shadow-[0_2px_0_rgba(0,0,0,0.42)] backdrop-blur-xl backdrop-saturate-150" />
 
+			{/* Réserve d'encoche : en plein écran (PWA, mode immersif iOS), une barre
+			    `sticky top-0` passe SOUS la barre d'état et le logo se retrouve à
+			    moitié caché. `env(safe-area-inset-top)` vaut 0 partout ailleurs, la
+			    règle est donc sans effet sur un navigateur de bureau. */}
+			<div className="h-[env(safe-area-inset-top)]" />
+
+			{/* 64 px : c'est `m3_comp_app_bar_small_container_height` = 64 dp, la
+			    hauteur de la « small top app bar » de Material 3. */}
 			<div className="mx-auto flex h-16 max-w-[1440px] items-center gap-4 px-6 lg:px-10 xl:gap-6">
 				{/* Wordmark — même structure que le titre de l'accueil : le nom de
 				    l'œuvre en sans très gras, le pays en SERIF capitales espacées.
@@ -122,22 +118,19 @@ export async function SiteNav() {
 					className="group flex shrink-0 select-none items-center gap-2.5 whitespace-nowrap py-3"
 					aria-label="Dragon Ball France — Accueil"
 				>
-					<span className="flex flex-col leading-none">
-						<span className="font-display text-[18px] font-bold tracking-[-0.02em] text-white">
-							Dragon&nbsp;Ball
-						</span>
-						<span className="mt-[3px] font-serif text-[10px] font-semibold uppercase tracking-[0.32em] text-dbz-orange transition-colors group-hover:text-white">
-							France
-						</span>
-					</span>
+					{/* Le nuage EST le logo : plus de mot-symbole écrit à côté. Le nom du
+					    site reste porté par l'`aria-label` du lien et par le titre de la
+					    page — un lecteur d'écran entend « Dragon Ball France », il ne perd
+					    rien. Au survol le nuage part d'un cran vers la droite, comme il
+					    s'envole. */}
 					<span
 						aria-hidden
-						className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center"
+						className="inline-flex h-[38px] w-[68px] shrink-0 items-center justify-center"
 					>
-						<DragonBall
-							stars={4}
-							size={22}
-							className="drop-shadow-[0_0_6px_rgba(245,191,65,0.35)] transition-transform duration-300 group-hover:rotate-12"
+						<KintoUn
+							hauteur={38}
+							decorative
+							className="drop-shadow-[0_0_10px_rgba(248,235,126,0.35)] transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5"
 						/>
 					</span>
 				</Link>
@@ -200,13 +193,18 @@ export async function SiteNav() {
 					<NavAuth />
 				</div>
 
-				{/* Recherche mobile : rendue HORS du conteneur `hidden lg:flex`
-				    ci-dessus, sinon elle disparaît sous 1024 px — c'est-à-dire pour
+				{/* Sous 1024 px, la barre du haut ne porte plus QUE la recherche et le
+				    compte : la navigation est descendue dans `<BarreNavMobile />`, au
+				    pouce. Le menu hamburger a donc disparu — deux systèmes de
+				    navigation sur le même écran, l'un en haut hors de portée et
+				    l'autre en bas, c'était une hésitation et non un choix.
+				    Ces deux contrôles restent rendus HORS du conteneur `hidden lg:flex`
+				    ci-dessus, sinon ils disparaissent sous 1024 px, c'est-à-dire pour
 				    l'essentiel du trafic. */}
-				<div className="ml-auto flex items-center lg:hidden">
+				<div className="ml-auto flex items-center gap-1 lg:hidden">
 					<CommandMenu variant="icon" />
+					<NavAuth variant="compact" />
 				</div>
-				<MobileNav links={mobilePublic} adminLinks={adminOnly} />
 			</div>
 		</header>
 	);

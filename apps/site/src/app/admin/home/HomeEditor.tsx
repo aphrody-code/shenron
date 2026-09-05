@@ -16,17 +16,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-	ChevronDown,
-	ChevronUp,
-	Eye,
-	EyeOff,
-	ExternalLink,
+	ChevronBas,
+	ChevronHaut,
+	Corbeille,
+	Enregistrer,
 	Film,
+	LienExterne,
+	Oeil,
+	OeilBarre,
 	Plus,
-	RotateCcw,
-	Save,
-	Trash2,
-} from "lucide-react";
+	Reinitialiser,
+} from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { DragonBallLoader } from "@/components/DragonBall";
 import { MarkdownField } from "@/components/admin/MarkdownField";
@@ -259,7 +259,7 @@ function CardsEditor({
 								className="btn btn-ghost px-1 text-red-400"
 								title="Supprimer"
 							>
-								<Trash2 className="h-3 w-3" />
+								<Corbeille className="h-3 w-3" />
 							</button>
 						</div>
 					</div>
@@ -301,7 +301,7 @@ function SectionCard({
 						className="text-zinc-500 hover:text-dbz-orange disabled:opacity-30"
 						title="Monter"
 					>
-						<ChevronUp className="h-4 w-4" />
+						<ChevronHaut className="h-4 w-4" />
 					</button>
 					<button
 						type="button"
@@ -310,7 +310,7 @@ function SectionCard({
 						className="text-zinc-500 hover:text-dbz-orange disabled:opacity-30"
 						title="Descendre"
 					>
-						<ChevronDown className="h-4 w-4" />
+						<ChevronBas className="h-4 w-4" />
 					</button>
 				</div>
 				<button
@@ -333,7 +333,7 @@ function SectionCard({
 					className={`btn btn-ghost px-2 ${section.enabled ? "text-emerald-400" : "text-zinc-500"}`}
 					title={section.enabled ? "Section visible" : "Section masquée"}
 				>
-					{section.enabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+					{section.enabled ? <Oeil className="h-4 w-4" /> : <OeilBarre className="h-4 w-4" />}
 				</button>
 				{isCustom && (
 					<button
@@ -342,11 +342,11 @@ function SectionCard({
 						className="btn btn-ghost px-2 text-red-400"
 						title="Supprimer cette section"
 					>
-						<Trash2 className="h-4 w-4" />
+						<Corbeille className="h-4 w-4" />
 					</button>
 				)}
 				<button type="button" onClick={() => setOpen((v) => !v)} className="btn btn-ghost px-2">
-					<ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+					<ChevronBas className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
 				</button>
 			</div>
 
@@ -554,7 +554,7 @@ export default function HomeEditor() {
 					</p>
 				</div>
 				<a href="/" target="_blank" rel="noreferrer" className="btn btn-ghost" title="Voir la home">
-					<ExternalLink className="mr-1 h-4 w-4" /> Voir
+					<LienExterne className="mr-1 h-4 w-4" /> Voir
 				</a>
 				<button
 					type="button"
@@ -565,7 +565,7 @@ export default function HomeEditor() {
 					}}
 					className="btn btn-ghost text-amber-300"
 				>
-					<RotateCcw className="mr-1 h-4 w-4" /> Défauts
+					<Reinitialiser className="mr-1 h-4 w-4" /> Défauts
 				</button>
 				<button
 					type="button"
@@ -573,7 +573,8 @@ export default function HomeEditor() {
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>
-					<Save className="mr-1 h-4 w-4" /> {save.isPending ? "Enregistrement…" : "Enregistrer"}
+					<Enregistrer className="mr-1 h-4 w-4" />{" "}
+					{save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>
 
@@ -718,7 +719,7 @@ export default function HomeEditor() {
 										disabled={i === 0}
 										className="text-zinc-500 hover:text-dbz-orange disabled:opacity-30"
 									>
-										<ChevronUp className="h-4 w-4" />
+										<ChevronHaut className="h-4 w-4" />
 									</button>
 									<button
 										type="button"
@@ -726,7 +727,7 @@ export default function HomeEditor() {
 										disabled={i === heroScenes.length - 1}
 										className="text-zinc-500 hover:text-dbz-orange disabled:opacity-30"
 									>
-										<ChevronDown className="h-4 w-4" />
+										<ChevronBas className="h-4 w-4" />
 									</button>
 									<button
 										type="button"
@@ -734,7 +735,7 @@ export default function HomeEditor() {
 										className="btn btn-ghost px-1 text-red-400"
 										title="Supprimer"
 									>
-										<Trash2 className="h-3 w-3" />
+										<Corbeille className="h-3 w-3" />
 									</button>
 								</div>
 								<SceneBackground
@@ -783,7 +784,8 @@ export default function HomeEditor() {
 					disabled={save.isPending}
 					className="btn btn-primary"
 				>
-					<Save className="mr-1 h-4 w-4" /> {save.isPending ? "Enregistrement…" : "Enregistrer"}
+					<Enregistrer className="mr-1 h-4 w-4" />{" "}
+					{save.isPending ? "Enregistrement…" : "Enregistrer"}
 				</button>
 			</div>
 		</div>

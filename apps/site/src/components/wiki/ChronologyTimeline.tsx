@@ -11,7 +11,16 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Film, Tv, BookOpen, Play, Search, Copy, Check, Download } from "lucide-react";
+import {
+	Coche,
+	Copie,
+	Film,
+	Lecture,
+	Livre,
+	Recherche,
+	Telecharger,
+	Tv,
+} from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import Image from "next/image";
 import { isEditableAsset } from "@/lib/images";
@@ -247,7 +256,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 						/>
 						{totalManga > 0 && (
 							<TypeToggle
-								icon={<BookOpen className="h-3.5 w-3.5" />}
+								icon={<Livre className="h-3.5 w-3.5" />}
 								label={`Manga ${totalManga}`}
 								on={showManga}
 								onClick={() => setShowManga((v) => !v)}
@@ -256,7 +265,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 					</div>
 
 					<div className="relative flex-1 min-w-[180px]">
-						<Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+						<Recherche className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
 						<input
 							type="search"
 							value={q}
@@ -296,7 +305,7 @@ export function ChronologyTimeline({ items }: { items: ResolvedTimelineItem[] })
 					<ExportBtn label="Markdown" onClick={() => doExport("md")} />
 					<ExportBtn
 						label={copied ? "Copié !" : "Copier"}
-						icon={copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+						icon={copied ? <Coche className="h-3 w-3" /> : <Copie className="h-3 w-3" />}
 						onClick={doCopy}
 					/>
 				</div>
@@ -352,7 +361,7 @@ function ExportBtn({
 			onClick={onClick}
 			className="inline-flex min-h-11 items-center gap-1 rounded-md border border-dbz-border bg-dbz-bg/40 px-3 py-1 text-[11px] font-mono text-white/70 hover:text-white hover:border-dbz-orange/50 transition-colors"
 		>
-			{icon ?? <Download className="h-3 w-3" />}
+			{icon ?? <Telecharger className="h-3 w-3" />}
 			{label}
 		</button>
 	);
@@ -464,7 +473,7 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 							</span>
 						)}
 						<span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-							<Play className="h-4 w-4 fill-current text-dbz-orange" />
+							<Lecture className="h-4 w-4 fill-current text-dbz-orange" />
 						</span>
 					</div>
 				) : isMovie || isManga ? (
@@ -473,7 +482,7 @@ function Row({ it, grouped }: { it: ResolvedTimelineItem; grouped: boolean }) {
 							isManga ? "bg-pink-500/15 text-pink-300" : "bg-dbz-orange/15 text-dbz-orange"
 						}`}
 					>
-						{isManga ? <BookOpen className="h-4 w-4" /> : <Film className="h-4 w-4" />}
+						{isManga ? <Livre className="h-4 w-4" /> : <Film className="h-4 w-4" />}
 					</span>
 				) : (
 					<span

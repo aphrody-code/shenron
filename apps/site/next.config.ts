@@ -40,8 +40,12 @@ const nextConfig: NextConfig = {
 	// View Transitions API (React `<ViewTransition>`) — morph d'élément partagé
 	// grille→fiche, slides directionnels. Sans support navigateur, navigation
 	// normale sans animation (progressive enhancement). Cf. components/ViewTransition.tsx.
+	//
+	// Plus de drapeau `experimental.viewTransition` depuis Next 16.4-canary : la
+	// clé a disparu de `ExperimentalConfig` (le type-check la refuse) parce que
+	// la fonctionnalité est stabilisée — l'App Router de Next 16 tourne sur la
+	// canary de React, qui expose `<ViewTransition>` sans rien à activer.
 	experimental: {
-		viewTransition: true,
 
 		// Parallélisme de la génération statique — soupape mémoire du build.
 		//
@@ -206,6 +210,16 @@ const nextConfig: NextConfig = {
 			// désormais canonique sous /actualites/:slug ; les anciens liens (et les
 			// URL déjà indexées ou partagées) sont récupérés en 308 au routing.
 			{ source: "/post/:slug", destination: "/actualites/:slug", permanent: true },
+			// `/admin/command-perms` était un DOUBLON mort de `/admin/commands` : il
+			// lisait `{ rows: [...] }` là où l'API du bot répond `{ rules: [...] }`,
+			// donc `data.rows.length` levait un TypeError et la page rendait un 500 à
+			// chaque ouverture depuis la sidebar. Son modèle (`command`/`scope`/`allow`)
+			// ne correspondait à rien en base — la table `command_permissions` porte
+			// `name` + `enabled` + trois listes d'IDs — et ses écritures partaient donc
+			// aussi en 400. `/admin/commands` implémente déjà ce vrai modèle (sélecteurs
+			// de rôles, commandes groupées) : la page fautive est supprimée et l'URL
+			// déjà mise en favori atterrit sur celle qui fonctionne.
+			{ source: "/admin/command-perms", destination: "/admin/commands", permanent: true },
 			// Deux routes rendaient la MÊME fiche de jeu — `/wiki/jeux/:slug` (notes
 			// communautaires, galerie, JSON-LD, fil d'Ariane) et
 			// `/wiki/dragon-ball/games/:slug`, une version plus pauvre issue d'un

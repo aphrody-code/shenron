@@ -339,39 +339,13 @@ export const botAdmin = {
 			body: JSON.stringify(params ?? {}),
 		}),
 
-	commandPerms: {
-		list: () =>
-			botAdmin.fetch<{
-				rows: Array<{
-					command: string;
-					scope: string;
-					roleId?: string | null;
-					userId?: string | null;
-					allow: boolean;
-				}>;
-			}>("/api/bot/commands/permissions", { revalidate: 60 }),
-		upsert: (body: {
-			command: string;
-			scope: string;
-			roleId?: string | null;
-			userId?: string | null;
-			allow: boolean;
-		}) =>
-			botAdmin.fetch("/api/bot/commands/permissions", {
-				method: "POST",
-				body: JSON.stringify(body),
-			}),
-		remove: (body: {
-			command: string;
-			scope: string;
-			roleId?: string | null;
-			userId?: string | null;
-		}) =>
-			botAdmin.fetch("/api/bot/commands/permissions/delete", {
-				method: "POST",
-				body: JSON.stringify(body),
-			}),
-	},
+	// NB : pas de client `commandPerms` ici. Il en a existé un, typé
+	// `{ rows: [{ command, scope, allow }] }` — une forme que l'API n'a jamais
+	// renvoyée (elle répond `{ rules: [{ name, enabled, allowedRoles, deniedRoles,
+	// deniedUsers }] }`). Le paramètre de type de `fetch()` n'est qu'une assertion :
+	// il a fait passer la fiction au type-check, et la page ne cassait qu'à
+	// l'exécution. Les permissions se pilotent depuis `/admin/commands`, côté
+	// client, via le proxy `/api/bot-admin` — un seul appelant, une seule forme.
 
 	economyGiveBulk: (body: {
 		mode: "user" | "role" | "all";

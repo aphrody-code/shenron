@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Noto_Sans_JP, Newsreader, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+// Conséquences de la barre de navigation basse (réserve sous le contenu,
+// remontée des pastilles flottantes et du bandeau de consentement).
+import "@/styles/barre-nav.css";
 import dynamic from "next/dynamic";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
+import { BarreNavMobile } from "@/components/BarreNavMobile";
+import { PageTransition } from "@/components/PageTransition";
 import { NavigationProgress } from "@/components/NavigationProgress";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { ConsentGate } from "@/components/ConsentGate";
@@ -98,6 +103,7 @@ export const metadata: Metadata = {
 		],
 		apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
 		shortcut: "/favicon.ico",
+		other: [{ rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#e78220" }],
 	},
 	openGraph: {
 		type: "website",
@@ -114,9 +120,14 @@ export const metadata: Metadata = {
 	verification: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 		? { google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
 		: undefined,
-	other: env.NEXT_PUBLIC_ADSENSE_CLIENT
-		? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT }
-		: undefined,
+	other: {
+		// Tuile Windows : pas de browserconfig.xml, les deux meta suffisent.
+		"msapplication-TileColor": "#0a0a0a",
+		"msapplication-TileImage": "/mstile-150.png",
+		...(env.NEXT_PUBLIC_ADSENSE_CLIENT
+			? { "google-adsense-account": env.NEXT_PUBLIC_ADSENSE_CLIENT }
+			: {}),
+	},
 };
 
 export const viewport = {
@@ -222,9 +233,15 @@ export default async function RootLayout({
 				<PageViewTracker />
 				<SiteNav />
 				<main id="contenu" tabIndex={-1} className="relative z-10 flex-1 w-full flex flex-col">
-					{children}
+					<PageTransition>{children}</PageTransition>
 				</main>
 				<SiteFooter />
+				{/* Barre de navigation basse — sous 1024 px seulement, là où la nav de
+				    la barre du haut se replie. Elle est montée APRÈS le pied de page :
+				    l'ordre du DOM est aussi l'ordre de tabulation, et une navigation
+				    de premier rang qui s'insère avant le pied ferait relire tout le
+				    pied avant d'y arriver. */}
+				<BarreNavMobile />
 				<DiscordInviteFAB />
 				<ReportButton />
 				<FloatingAssistant />

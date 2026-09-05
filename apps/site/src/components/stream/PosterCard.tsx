@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Lecture } from "@/components/icones";
 import { assetUrl } from "@/lib/assets";
 import { isEditableAsset } from "@/lib/images";
 
@@ -83,7 +83,7 @@ export function PosterCard({
 				{/* Overlay de survol/focus : dégradé + bouton play */}
 				<div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover/card:opacity-100 group-focus-visible/card:opacity-100">
 					<span className="grid h-11 w-11 place-items-center rounded-full bg-dbz-orange text-black shadow-lg">
-						<Play className="h-5 w-5 translate-x-[1px] fill-current" />
+						<Lecture className="h-5 w-5 translate-x-[1px] fill-current" />
 					</span>
 				</div>
 			</div>

@@ -11,7 +11,7 @@
  */
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, RefreshCw, Shield, X } from "lucide-react";
+import { Bouclier, Chargement, Croix, Plus, Rafraichir } from "@/components/icones";
 import { api } from "@/lib/admin-api";
 import { RoleBadge, RoleSelect } from "@/components/admin/RoleSelect";
 
@@ -93,7 +93,7 @@ export function TicketAccessPanel() {
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div>
 					<h2 className="flex items-center gap-2 font-saiyan text-lg text-dbz-orange">
-						<Shield className="h-4 w-4" />
+						<Bouclier className="h-4 w-4" />
 						Accès staff par type de ticket
 					</h2>
 					<p className="text-[11px] text-white/50">
@@ -109,9 +109,9 @@ export function TicketAccessPanel() {
 					title="Rejoue la configuration sur les tickets déjà ouverts"
 				>
 					{syncOpen.isPending ? (
-						<Loader2 className="h-3.5 w-3.5 animate-spin" />
+						<Chargement className="h-3.5 w-3.5 animate-spin" />
 					) : (
-						<RefreshCw className="h-3.5 w-3.5" />
+						<Rafraichir className="h-3.5 w-3.5" />
 					)}
 					Appliquer aux tickets ouverts
 				</button>
@@ -146,7 +146,7 @@ export function TicketAccessPanel() {
 												className="text-white/50 hover:text-red-400"
 												aria-label="Retirer ce rôle"
 											>
-												<X className="h-3 w-3" />
+												<Croix className="h-3 w-3" />
 											</button>
 										</span>
 									))}

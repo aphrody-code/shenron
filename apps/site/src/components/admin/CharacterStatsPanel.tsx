@@ -7,7 +7,7 @@
  * supporté par SmartField / buildSubmitBody).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { Chargement, ChevronBas, ChevronHaut, Corbeille, Enregistrer, Plus } from "@/components/icones";
 import { useEffect, useState } from "react";
 import { apiAt } from "@/lib/admin-api";
 import { crudBase } from "@/lib/wiki-tables";
@@ -97,7 +97,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 	if (row.isLoading) {
 		return (
 			<div className="dbz-panel flex items-center gap-2 p-5 text-sm text-white/50">
-				<Loader2 className="h-4 w-4 animate-spin" /> Chargement des stats…
+				<Chargement className="h-4 w-4 animate-spin" /> Chargement des stats…
 			</div>
 		);
 	}
@@ -178,7 +178,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 									className="btn btn-ghost px-2"
 									title="Monter"
 								>
-									<ChevronUp className="h-3.5 w-3.5" />
+									<ChevronHaut className="h-3.5 w-3.5" />
 								</button>
 								<button
 									type="button"
@@ -187,7 +187,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 									className="btn btn-ghost px-2"
 									title="Descendre"
 								>
-									<ChevronDown className="h-3.5 w-3.5" />
+									<ChevronBas className="h-3.5 w-3.5" />
 								</button>
 								<button
 									type="button"
@@ -195,7 +195,7 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 									className="btn btn-ghost px-2 text-red-400"
 									title="Supprimer"
 								>
-									<Trash2 className="h-3.5 w-3.5" />
+									<Corbeille className="h-3.5 w-3.5" />
 								</button>
 							</div>
 						</li>
@@ -210,9 +210,9 @@ export function CharacterStatsPanel({ characterId }: { characterId: string }) {
 				className="btn btn-primary w-full"
 			>
 				{save.isPending ? (
-					<Loader2 className="h-4 w-4 animate-spin" />
+					<Chargement className="h-4 w-4 animate-spin" />
 				) : (
-					<Save className="h-4 w-4" />
+					<Enregistrer className="h-4 w-4" />
 				)}
 				{save.isPending ? "Enregistrement…" : "Enregistrer les stats"}
 			</button>

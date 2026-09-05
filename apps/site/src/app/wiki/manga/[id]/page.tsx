@@ -7,7 +7,7 @@ import { TrackHistory } from "@/components/history/TrackHistory";
 import { ShareButton } from "@/components/ShareButton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import Link from "next/link";
-import { Palette, BookOpen } from "lucide-react";
+import { Livre, Palette } from "@/components/icones";
 import { estChapitreCouleur, SERIE_COULEUR } from "@/lib/manga-editions";
 
 import type { Metadata } from "next";
@@ -116,7 +116,7 @@ export default async function MangaReaderPage({ params }: { params: Promise<{ id
 						}`}
 					>
 						{couleur ? (
-							<BookOpen className="h-4 w-4" aria-hidden="true" />
+							<Livre className="h-4 w-4" aria-hidden="true" />
 						) : (
 							<Palette className="h-4 w-4" aria-hidden="true" />
 						)}

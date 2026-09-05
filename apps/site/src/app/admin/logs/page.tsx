@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Terminal, RefreshCw } from "lucide-react";
+import { Rafraichir, Terminal } from "@/components/icones";
 import { useState } from "react";
 import { api } from "@/lib/admin-api";
 
@@ -65,7 +65,7 @@ export default function LogsPage() {
 					disabled={isFetching}
 					className="dbz-button !text-xs !px-3 !py-1.5 ml-auto"
 				>
-					<RefreshCw className={`h-3 w-3 inline-block mr-1 ${isFetching ? "animate-spin" : ""}`} />
+					<Rafraichir className={`h-3 w-3 inline-block mr-1 ${isFetching ? "animate-spin" : ""}`} />
 					{isFetching ? "Actualisation…" : "Actualiser"}
 				</button>
 				{data && (

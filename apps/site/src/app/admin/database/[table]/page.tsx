@@ -2,16 +2,16 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-	ArrowLeft,
-	Save,
-	Trash2,
-	Edit,
-	X,
-	AlertTriangle,
-	CheckCircle,
+	Alerte,
+	CocheCercle,
+	Corbeille,
+	Crayon,
+	Croix,
+	Enregistrer,
+	FlecheGauche,
 	Plus,
-	Search,
-} from "lucide-react";
+	Recherche,
+} from "@/components/icones";
 import { useState, type ReactNode, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { SmartField } from "@/components/admin/SmartField";
@@ -156,9 +156,9 @@ export default function TablePage() {
 					}`}
 				>
 					{toast.type === "success" ? (
-						<CheckCircle className="h-4 w-4 shrink-0" />
+						<CocheCercle className="h-4 w-4 shrink-0" />
 					) : (
-						<AlertTriangle className="h-4 w-4 shrink-0" />
+						<Alerte className="h-4 w-4 shrink-0" />
 					)}
 					{toast.msg}
 				</div>
@@ -171,7 +171,7 @@ export default function TablePage() {
 					onClick={() => router.push("/admin/database")}
 					className="btn btn-ghost"
 				>
-					<ArrowLeft className="h-4 w-4" />
+					<FlecheGauche className="h-4 w-4" />
 					<span className="sr-only">Retour</span>
 				</button>
 				<div className="flex-1 min-w-0">
@@ -197,7 +197,7 @@ export default function TablePage() {
 					["name", "title", "slug", "nameJa", "titleJa"].includes(c)
 				) && (
 					<div className="relative max-w-sm">
-						<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+						<Recherche className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
 						<input
 							className="input pl-9"
 							placeholder={`Rechercher dans ${humanLabel.toLowerCase()}…`}
@@ -263,7 +263,7 @@ export default function TablePage() {
 													className="btn btn-ghost px-2 h-7 text-xs"
 													title="Modifier"
 												>
-													<Edit className="h-3 w-3" />
+													<Crayon className="h-3 w-3" />
 												</button>
 												<button
 													type="button"
@@ -271,7 +271,7 @@ export default function TablePage() {
 													className="btn btn-ghost px-2 h-7 text-xs text-red-400 hover:border-red-500/50 hover:bg-red-500/10"
 													title="Supprimer"
 												>
-													<Trash2 className="h-3 w-3" />
+													<Corbeille className="h-3 w-3" />
 												</button>
 											</div>
 										)}
@@ -436,7 +436,7 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 						className="btn btn-ghost px-2"
 						aria-label="Fermer"
 					>
-						<X className="h-4 w-4" />
+						<Croix className="h-4 w-4" />
 					</button>
 				</div>
 
@@ -463,7 +463,7 @@ function EditModal({ row, spec, onClose, onSave, saving, mode }: EditProps) {
 						Annuler
 					</button>
 					<button type="button" onClick={submit} disabled={saving} className="btn btn-primary">
-						<Save className="h-3 w-3" />
+						<Enregistrer className="h-3 w-3" />
 						{saving ? "Enregistrement…" : "Enregistrer les modifications"}
 					</button>
 				</div>
@@ -485,7 +485,7 @@ function DeleteModal({ rowId, tableName, onClose, onConfirm, deleting }: DeleteP
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur">
 			<div className="dbz-panel w-full max-w-md p-6">
 				<div className="mb-4 flex items-center gap-3">
-					<AlertTriangle className="h-6 w-6 text-red-400 shrink-0" />
+					<Alerte className="h-6 w-6 text-red-400 shrink-0" />
 					<h3 className="font-saiyan text-lg uppercase text-red-400">Supprimer cette entrée ?</h3>
 				</div>
 				<p className="text-sm text-white/70 mb-1">
@@ -499,7 +499,7 @@ function DeleteModal({ rowId, tableName, onClose, onConfirm, deleting }: DeleteP
 						Annuler
 					</button>
 					<button type="button" onClick={onConfirm} disabled={deleting} className="btn btn-danger">
-						<Trash2 className="h-3.5 w-3.5" />
+						<Corbeille className="h-3.5 w-3.5" />
 						{deleting ? "Suppression…" : "Oui, supprimer définitivement"}
 					</button>
 				</div>

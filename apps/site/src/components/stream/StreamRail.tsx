@@ -13,7 +13,7 @@
  * ne sont qu'un confort souris. `scrollBy` d'environ 85 % de la largeur visible.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDroite, ChevronGauche } from "@/components/icones";
 
 export function StreamRail({
 	children,
@@ -81,7 +81,7 @@ export function StreamRail({
 						: "pointer-events-none opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover/rail:pointer-events-auto group-hover/rail:opacity-100"
 				}`}
 			>
-				<ChevronLeft className="h-6 w-6" />
+				<ChevronGauche className="h-6 w-6" />
 			</button>
 			{/* Flèche droite */}
 			<button
@@ -95,7 +95,7 @@ export function StreamRail({
 						: "pointer-events-none opacity-0 focus-visible:pointer-events-auto focus-visible:opacity-100 group-hover/rail:pointer-events-auto group-hover/rail:opacity-100"
 				}`}
 			>
-				<ChevronRight className="h-6 w-6" />
+				<ChevronDroite className="h-6 w-6" />
 			</button>
 
 			<div

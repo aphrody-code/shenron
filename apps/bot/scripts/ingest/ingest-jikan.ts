@@ -11,17 +11,28 @@ import { eq, and } from "drizzle-orm";
 const SLEEP = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // MAL IDs (anime) :
-// 223 = Dragon Ball (153 ep), 813 = DBZ (291), 33092 = DBZ Kai Final Chapters,
-// 9617 = Dragon Ball Z Kai (97 ep), 12189 = DB Movie Battle of Gods,
-// 30694 = DB Super (131), 53112 = DB Super Hero, 54900 = DB Daima
+// 223 = Dragon Ball (153 ep), 813 = DBZ (291), 22777 = DBZ Kai Final Chapters,
+// 6033 = Dragon Ball Z Kai (97 ep), 12189 = DB Movie Battle of Gods,
+// 30694 = DB Super (131), 53112 = DB Super Hero, 56894 = DB Daima
+//
+// QUATRE DE CES IDENTIFIANTS ÉTAIENT FAUX, et l'un a mis de fausses données en
+// base (mesuré et corrigé le 2026-09-04, vérifié via AniList `Media(idMal:)`) :
+//   54900 → **WIND BREAKER**, pas DAIMA. Nos épisodes 1 à 13 de DAIMA ont porté
+//           pendant des mois les titres japonais, les rōmaji et les dates de
+//           diffusion de cette autre série (`サクラとフウリン`, avril-juin 2024).
+//           Réparé par `apps/site/scripts/corrige-episodes-daima.ts`.
+//    9617 → le film **K-On!**, pas Dragon Ball Z Kai.
+//   12095 et 33092 → HTTP 404, donc silencieusement sans effet.
+// Un identifiant numérique ne se relit pas : le contrôle qui les a démasqués est
+// de demander son TITRE à la source avant de lui faire écrire quoi que ce soit.
 const ANIME_SERIES: { malId: number; series: string }[] = [
 	{ malId: 223, series: "DB" },
 	{ malId: 813, series: "DBZ" },
-	{ malId: 9617, series: "DBZ_KAI" },
-	{ malId: 33092, series: "DBZ_KAI_FINAL" },
-	{ malId: 12095, series: "DBGT" }, // Dragon Ball GT (64 ep + Goku Jr Special)
+	{ malId: 6033, series: "DBZ_KAI" },
+	{ malId: 22777, series: "DBZ_KAI_FINAL" },
+	{ malId: 225, series: "DBGT" }, // Dragon Ball GT (64 ep + Goku Jr Special)
 	{ malId: 30694, series: "DBS" },
-	{ malId: 54900, series: "DB_DAIMA" },
+	{ malId: 56894, series: "DB_DAIMA" },
 ];
 
 // MAL IDs (movies)

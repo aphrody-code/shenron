@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Sparkles, Users, Award, Shield, MessageSquare, BookOpen } from "lucide-react";
+import { Bouclier, Bulle, Etincelle, Groupe, Livre, Recompense } from "@/components/icones";
 import { DISCORD_INVITE } from "@/lib/config";
 
 export const metadata = {
@@ -32,7 +32,7 @@ export default function AboutPage() {
 				<div className="dbz-panel p-6 bg-dbz-card/30 border border-white/5 flex flex-col justify-between group hover:border-dbz-orange/30 transition-all duration-300">
 					<div className="space-y-4">
 						<div className="w-12 h-12 rounded-xl bg-dbz-orange/10 flex items-center justify-center text-dbz-orange">
-							<BookOpen className="w-6 h-6" />
+							<Livre className="w-6 h-6" />
 						</div>
 						<h2 className="text-xl font-display font-bold text-white group-hover:text-dbz-orange transition-colors">
 							Archives de Shenron
@@ -53,7 +53,7 @@ export default function AboutPage() {
 				<div className="dbz-panel p-6 bg-dbz-card/30 border border-white/5 flex flex-col justify-between group hover:border-dbz-orange/30 transition-all duration-300">
 					<div className="space-y-4">
 						<div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
-							<Sparkles className="w-6 h-6" />
+							<Etincelle className="w-6 h-6" />
 						</div>
 						<h2 className="text-xl font-display font-bold text-white group-hover:text-purple-400 transition-colors">
 							Écosystème Divin
@@ -74,7 +74,7 @@ export default function AboutPage() {
 				<div className="dbz-panel p-6 bg-dbz-card/30 border border-white/5 flex flex-col justify-between group hover:border-dbz-orange/30 transition-all duration-300">
 					<div className="space-y-4">
 						<div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-							<Users className="w-6 h-6" />
+							<Groupe className="w-6 h-6" />
 						</div>
 						<h2 className="text-xl font-display font-bold text-white group-hover:text-cyan-400 transition-colors">
 							La Communauté
@@ -101,7 +101,7 @@ export default function AboutPage() {
 				<div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
 					<div className="space-y-6">
 						<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-dbz-orange/20 bg-dbz-orange/10 text-dbz-orange text-xs font-display font-semibold uppercase tracking-wider">
-							<Award className="w-3.5 h-3.5" />
+							<Recompense className="w-3.5 h-3.5" />
 							Notre Philosophie
 						</div>
 						<h2 className="text-3xl font-display font-bold text-white">
@@ -122,7 +122,7 @@ export default function AboutPage() {
 					<div className="space-y-4">
 						<div className="flex gap-4 items-start p-4 rounded-xl bg-black/30 border border-white/5">
 							<div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
-								<Shield className="w-4 h-4" />
+								<Bouclier className="w-4 h-4" />
 							</div>
 							<div>
 								<h4 className="text-sm font-display font-bold text-white">Rigueur Canonique</h4>
@@ -134,7 +134,7 @@ export default function AboutPage() {
 						</div>
 						<div className="flex gap-4 items-start p-4 rounded-xl bg-black/30 border border-white/5">
 							<div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400 shrink-0 mt-0.5">
-								<MessageSquare className="w-4 h-4" />
+								<Bulle className="w-4 h-4" />
 							</div>
 							<div>
 								<h4 className="text-sm font-display font-bold text-white">Entraide & Partage</h4>
@@ -146,7 +146,7 @@ export default function AboutPage() {
 						</div>
 						<div className="flex gap-4 items-start p-4 rounded-xl bg-black/30 border border-white/5">
 							<div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 shrink-0 mt-0.5">
-								<Award className="w-4 h-4" />
+								<Recompense className="w-4 h-4" />
 							</div>
 							<div>
 								<h4 className="text-sm font-display font-bold text-white">

@@ -39,7 +39,7 @@ export default async function TierlistOG({ params }: { params: Promise<{ slug: s
 					fontSize: 26,
 					letterSpacing: 8,
 					textTransform: "uppercase",
-					color: "#ffb200",
+					color: "#e78220",
 					fontWeight: 700,
 				}}
 			>
