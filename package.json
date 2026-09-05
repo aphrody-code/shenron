@@ -69,7 +69,7 @@
 	},
 	"dependencies": {
 		"sharp": "^0.35.4",
-		"vercel": "^59.11.2"
+		"vercel": "^59.11.7"
 	},
 	"devDependencies": {
 		"oxfmt": "^0.66.0",
