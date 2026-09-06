@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	assertMangaManifest,
+	coverageAuditedMangaResult,
 	identifyMangaAsset,
 	type MangaOcrManifest,
 	type MangaOcrVisualReview,
@@ -131,6 +132,15 @@ describe("manifestes et sorties OCR", () => {
 				],
 				notes: "",
 			},
+			coverageAudit: {
+				schemaVersion: 1,
+				pageId: "DB:vol1:3",
+				verdict: "confirm",
+				issues: [],
+				notes: "",
+			},
+			coverageModel: "gpt-5.6-luna",
+			coverageReasoning: "low",
 		});
 		const parsed = parseMangaResults(`${line}\n`, manifest());
 		expect(parsed.pages).toHaveLength(1);
@@ -183,6 +193,60 @@ describe("manifestes et sorties OCR", () => {
 		expect(() => reviewedMangaResult("image.jpg", "DB:vol1:3", review)).toThrow(
 			"complète",
 		);
+	});
+
+	test("neutralise une première revue qui a omis un SFX", () => {
+		const review: MangaOcrVisualReview = {
+			schemaVersion: 1,
+			pageId: "DB:vol1:3",
+			decision: "accept",
+			regions: [
+				{ order: 1, kind: "sfx", text: "CRAAK", confidence: "high" },
+			],
+			notes: "",
+		};
+		const primary = reviewedMangaResult(
+			"DB-vol1-0003.jpg",
+			"DB:vol1:3",
+			review,
+		);
+		const result = coverageAuditedMangaResult(primary, "DB:vol1:3", {
+			schemaVersion: 1,
+			pageId: "DB:vol1:3",
+			verdict: "needs_human",
+			issues: [
+				{
+					kind: "omitted_region",
+					detail: "grands glyphes japonais à droite",
+					confidence: "high",
+				},
+			],
+			notes: "",
+		});
+		expect(result.text).toEqual({ kind: "none" });
+		const parsed = parseMangaResults(`${JSON.stringify(result)}\n`, manifest());
+		expect(parsed.pages).toEqual([]);
+		expect(parsed.invalid[0]).toContain("deux lectures");
+	});
+
+	test("refuse une acceptation Luna sans second audit", () => {
+		const review: MangaOcrVisualReview = {
+			schemaVersion: 1,
+			pageId: "DB:vol1:3",
+			decision: "accept",
+			regions: [
+				{ order: 1, kind: "dialogue", text: "Bonjour", confidence: "high" },
+			],
+			notes: "",
+		};
+		const result = reviewedMangaResult(
+			"DB-vol1-0003.jpg",
+			"DB:vol1:3",
+			review,
+		);
+		const parsed = parseMangaResults(`${JSON.stringify(result)}\n`, manifest());
+		expect(parsed.pages).toEqual([]);
+		expect(parsed.invalid[0]).toContain("deux lectures");
 	});
 
 	test("refuse un résultat PP-OCR non arbitré au dépôt", () => {

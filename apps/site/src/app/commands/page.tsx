@@ -16,7 +16,10 @@ export const metadata: Metadata = {
 	}),
 };
 
-export const revalidate = 3600;
+// Le catalogue est servi par l'API publique du bot : une courte revalidation
+// évite que le site affiche des commandes supprimées ou nouvellement ajoutées
+// pendant une heure.
+export const revalidate = 300;
 
 const PERSONA_LABELS: Record<string, string> = {
 	shenron: "Shenron",
@@ -68,8 +71,11 @@ export default async function CommandsPage({
 			<PageHeader
 				title="COMMANDES"
 				className="mb-10"
-				subtitle={`${total} slash commands réparties entre 6 personas`}
+				subtitle={`${total} commandes slash · catalogue live du bot · ${personas.length} personas`}
 			/>
+			<p className="mx-auto -mt-6 mb-8 max-w-xl text-center text-xs text-white/40">
+				Cette liste est synchronisée automatiquement avec les commandes réellement enregistrées par Shenron.
+			</p>
 
 			{/* Persona filter pills */}
 			<div className="flex flex-wrap gap-2 mb-8 justify-center">

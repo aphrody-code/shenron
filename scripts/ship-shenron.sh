@@ -5,6 +5,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+export PATH="$HOME/.bun/bin:$PATH"
 
 DEPLOY=1
 for arg in "$@"; do

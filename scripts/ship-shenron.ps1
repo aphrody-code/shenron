@@ -15,6 +15,6 @@ git diff --cached --quiet
 if ($LASTEXITCODE -ne 0) { git commit -m 'chore(ops): synchronise et déploie Shenron' }
 git push origin main
 if (-not $NoDeploy) {
-  ssh $SshHost 'cd shenron && bash scripts/deploy-shenron.sh --pull && bun apps/site/scripts/apply-bot-indexes.ts && bash scripts/deploy-mcp.sh && bash scripts/deploy-site.sh --pull && bash scripts/healthcheck.sh'
+  ssh $SshHost 'export PATH="$HOME/.bun/bin:$PATH"; cd shenron && bash scripts/deploy-shenron.sh --pull && bun apps/site/scripts/apply-bot-indexes.ts && bash scripts/deploy-mcp.sh && bash scripts/deploy-site.sh --pull && bash scripts/healthcheck.sh'
   if ($LASTEXITCODE -ne 0) { throw "La livraison distante sur $SshHost a échoué." }
 }

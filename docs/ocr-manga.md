@@ -22,9 +22,10 @@ quel. Il faut une étape de **détection des bulles + ordre de lecture** en amon
 
 ## Recommandation
 
-- **Production** : PP-OCRv5 propose les régions et leur géométrie, puis
-  `gpt-5.6-luna` en raisonnement `low` relit l'image réellement jointe. La revue
-  sépare dialogue, cartouche, SFX, filigrane et numéro de page.
+- **Production** : PP-OCRv5 propose les régions et leur géométrie, puis deux
+  sessions indépendantes `gpt-5.6-luna` en raisonnement `low` relisent l'image
+  réellement jointe. La première transcrit ; la seconde audite exclusivement
+  l'exhaustivité, les caractères, le type et l'ordre des régions.
 - **Politique de refus** : si un seul caractère éditorial reste incertain, la
   planche devient `needs_human`. Un JSONL PP-OCR seul n'est jamais déposable.
 
@@ -44,7 +45,8 @@ assets/manga/{DB,DBS}/**/*.webp
   → runs/corpus-<sha>/lot-NNN/{manifest.json,images/*.jpg}
   → run-manga-ocr.ts → detections.jsonl (PP-OCRv5)
                      → reviews/*.json (gpt-5.6-luna/low + image jointe)
-                     → results.jsonl hybride → aphrody ocr audit
+                     → coverage-audits/*.json (2e Luna/low indépendante)
+                     → results.jsonl doublement arbitré → aphrody ocr audit
   → deposit-manga-transcriptions.ts (simulation, puis --appliquer)
   → PostgreSQL bot.db_manga_pages + public.wiki_revisions
   → materialize-manga-transcripts.ts → Markdown par tome → RAG
@@ -89,21 +91,26 @@ Le runner appelle d'abord le moteur déterministe `aphrody ocr ppocr` avec
 `ppocr-v5-mobile`. Ses textes, confiances et polygones sont conservés dans
 `detections.jsonl` comme **indices**, à partir de 0,20 afin de ne pas masquer une
 zone difficile. Il lance ensuite une revue `gpt-5.6-luna`/`low` avec l'image
-jointe par `-i` et un schéma JSON strict. Le modèle doit faire deux lectures
-caractère par caractère, préserver les accents et ne jamais compléter un texte.
+jointe par `-i` et un schéma JSON strict. Une seconde session Luna `low`, elle
+aussi alimentée par l'image originale, repart de l'image et cherche les régions
+omises, erreurs de caractère, mauvais types et ordres. Elle ne voit la première
+sortie que comme une proposition à contredire. Le dépôt exige son verdict
+`confirm` sans aucune anomalie.
 
 `results.jsonl` ne contient que les arbitrages hybrides. Les filigranes et
 numéros restent traçables dans la revue mais sont exclus du Markdown. Une région
-éditoriale `low` impose `needs_human`; le runner termine alors avec un état
+éditoriale `low` ou une seule anomalie du second arbitre impose `needs_human` et
+neutralise le texte dans le résultat ; le runner termine alors avec un état
 partiel et un code non nul. Le smoke réel a notamment corrigé les confusions
-PP-OCR `SUIS → SLIS`, `UN → LN` et l'interprétation erronée du mot imprimé
-« ILLISIBLE » comme une consigne.
+PP-OCR `SUIS → SLIS`, `UN → LN`, `voeu → vœu` et l'interprétation erronée du mot
+imprimé « ILLISIBLE » comme une consigne.
 
 Le runner est relançable : le JSONL est dédupliqué atomiquement après sauvegarde.
 Chaque résultat porte aussi la version du prompt de revue ; le runner et le
 dépôt écartent automatiquement une sortie produite par une version antérieure.
-Un verrou local empêche deux consommateurs manga simultanés. Chaque image et
-chaque manifeste sont revérifiés par SHA-256 avant inférence, puis
+Un verrou local empêche deux consommateurs manga simultanés. Un verrou orphelin
+n'est récupéré que si `owner.json` est son unique fichier et si son PID est
+confirmé mort. Chaque image et chaque manifeste sont revérifiés par SHA-256 avant inférence, puis
 `aphrody ocr audit` bloque les jetons de contrôle, générations coincées et
 balisages survivants.
 
@@ -114,10 +121,15 @@ modèle.
 
 La QA visuelle d'un premier passage sur `DB:vol12:100` a détecté une acceptation
 incorrecte : une petite adaptation latine avait été inventée et les grands
-glyphes stylisés avaient été omis. Le prompt impose désormais un balayage des
-quatre bords et de chaque case, traite tout groupe de glyphes géant, incliné ou
-coupé comme un SFX, compte aussi la ponctuation isolée (`!!`, `?!`, `…`), et
-force `needs_human` dès qu'une région n'est pas lisible en entier.
+glyphes stylisés avaient été omis. Une passe durcie a encore accepté
+`DB:vol14:37` avec le seul `CRAAK` en oubliant quatre énormes glyphes japonais.
+Le second arbitre a correctement bloqué ce cas, ainsi que `DB:vol2:97` pour la
+ligature manquée dans `vœu`, tout en confirmant `DB:vol3:215` comme réellement
+sans texte malgré six faux positifs PP-OCR sur les points du front de Krilin.
+Les prompts imposent un balayage des quatre bords et de chaque case, traitent
+tout groupe de glyphes géant, incliné ou coupé comme un SFX, comptent aussi la
+ponctuation isolée (`!!`, `?!`, `…`) et forcent `needs_human` dès qu'une région
+n'est pas lisible en entier ou n'a pas été recensée.
 Après tout changement de prompt, relancer avec `--force-review` au minimum toutes
 les décisions `accept` obtenues par la version précédente.
 

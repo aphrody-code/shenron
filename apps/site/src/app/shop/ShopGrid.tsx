@@ -6,7 +6,7 @@
  * permet d'ACHETER et d'ÉQUIPER directement sur le site — plus besoin de Discord.
  * Chaque article montre un aperçu de ce qu'on obtient (fond de carte, couleur…).
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Cadenas, Chargement, Coche, Piece, Sac } from "@/components/icones";
 
 interface ShopItem {
@@ -40,6 +40,9 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 	const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
 	const [busy, setBusy] = useState<string | null>(null);
 	const [flash, setFlash] = useState<{ key: string; ok: boolean; msg: string } | null>(null);
+	const [selectedKey, setSelectedKey] = useState<string | null>(items[0]?.key ?? null);
+	const [filter, setFilter] = useState<ShopItem["type"] | "all">("all");
+	const [query, setQuery] = useState("");
 
 	const refresh = useCallback(async () => {
 		try {
@@ -110,7 +113,18 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 		}
 	}
 
-	const grouped = items.reduce<Record<string, ShopItem[]>>((acc, it) => {
+	const visibleItems = useMemo(
+		() =>
+			items.filter(
+				(it) =>
+					(filter === "all" || it.type === filter) &&
+					(!query.trim() || `${it.name} ${it.description ?? ""}`.toLowerCase().includes(query.toLowerCase())),
+			),
+		[filter, items, query],
+	);
+	const selected = visibleItems.find((it) => it.key === selectedKey) ?? visibleItems[0] ?? items[0];
+	const selectedColor = selected?.roleColor ?? (selected?.type === "color" ? "#7c3aed" : "#f59e0b");
+	const grouped = visibleItems.reduce<Record<string, ShopItem[]>>((acc, it) => {
 		(acc[it.type] ??= []).push(it);
 		return acc;
 	}, {});
@@ -118,6 +132,15 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 
 	return (
 		<div className="space-y-8">
+			<header className="relative overflow-hidden rounded-[2rem] border border-dbz-orange/25 bg-[radial-gradient(circle_at_75%_20%,rgba(243,132,24,.25),transparent_35%),#17130e] p-6 md:p-9">
+				<div className="relative z-10 max-w-2xl">
+					<p className="font-scouter text-[11px] uppercase tracking-[.28em] text-dbz-orange">Le comptoir de Shenron</p>
+					<h2 className="mt-2 font-saiyan text-4xl leading-none text-white md:text-6xl">Équipe ton identité.</h2>
+					<p className="mt-4 max-w-xl text-sm leading-6 text-white/60">Choisis une couleur, un titre ou une bannière et vois immédiatement son rendu dans ton profil et dans le chat.</p>
+				</div>
+				<div className="pointer-events-none absolute -right-8 -top-12 text-[12rem] leading-none opacity-[.08]">龍</div>
+			</header>
+
 			{/* Bandeau solde / connexion */}
 			<div className="dbz-panel flex flex-wrap items-center justify-between gap-3 p-4">
 				{loggedIn === false ? (
@@ -145,6 +168,41 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 				)}
 			</div>
 
+			{selected && (
+				<section className="grid gap-5 lg:grid-cols-[1.1fr_.9fr]" aria-labelledby="shop-preview-title">
+					<div className="rounded-3xl border border-white/10 bg-[#151412] p-5 md:p-7">
+						<div className="flex items-start justify-between gap-4">
+							<div><p className="text-[10px] uppercase tracking-[.2em] text-dbz-orange">Aperçu en direct</p><h2 id="shop-preview-title" className="mt-1 font-saiyan text-2xl text-white">Ton rendu dans le serveur</h2></div>
+							<span className="rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-wider text-white/45">{TYPE_LABELS[selected.type]}</span>
+						</div>
+						<div className="mt-6 rounded-2xl border border-white/10 bg-[#0d0c0b] p-4" style={{ borderColor: `${selectedColor}55` }}>
+							<div className="flex items-center gap-3"><div className="h-10 w-10 rounded-full border-2 border-white/20 bg-gradient-to-br from-dbz-orange to-purple-500" /><div><p className="font-semibold" style={{ color: selectedColor }}>Son Goku <span className="text-white/40">· Niv. 42</span></p><p className="text-[10px] uppercase tracking-wider text-white/35">Dragon Ball France · maintenant</p></div></div>
+							<p className="mt-4 rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-white/80">Voici exactement le style de ton message avec <strong style={{ color: selectedColor }}>{selected.name}</strong>.</p>
+						</div>
+						<p className="mt-3 text-xs text-white/40">La couleur est contrôlée pour rester lisible sur le thème du chat. L’équipement est synchronisé avec Discord.</p>
+					</div>
+					<div className="rounded-3xl border border-white/10 bg-[#151412] p-5 md:p-7">
+						<p className="text-[10px] uppercase tracking-[.2em] text-dbz-orange">Sélection</p><h2 className="mt-1 font-saiyan text-2xl text-white">{selected.name}</h2>
+						<p className="mt-3 text-sm leading-6 text-white/55">{selected.description || "Objet cosmétique de la communauté DBFR."}</p>
+						<div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4"><span className="text-xs uppercase tracking-wider text-white/40">Valeur</span><strong className="font-saiyan text-3xl text-dbz-yellow">{selected.price.toLocaleString("fr-FR")} <span className="text-xs text-dbz-orange">Z</span></strong></div>
+					</div>
+				</section>
+			)}
+
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="flex flex-wrap gap-2" role="tablist" aria-label="Filtrer la boutique">
+					{(["all", ...TYPE_ORDER] as const).map((type) => <button key={type} type="button" role="tab" aria-selected={filter === type} onClick={() => setFilter(type)} className={`rounded-full border px-3 py-2 text-xs font-semibold transition ${filter === type ? "border-dbz-orange bg-dbz-orange text-black" : "border-white/10 text-white/55 hover:border-dbz-orange/60 hover:text-white"}`}>{type === "all" ? "Tout" : TYPE_LABELS[type]}</button>)}
+				</div>
+				<label className="sr-only" htmlFor="shop-search">Rechercher un article</label><input id="shop-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher un article…" className="h-10 rounded-full border border-white/10 bg-[#151412] px-4 text-sm text-white outline-none placeholder:text-white/30 focus:border-dbz-orange sm:w-64" />
+			</div>
+			{visibleItems.length === 0 && (
+				<div className="rounded-2xl border border-dashed border-white/15 bg-[#151412] p-10 text-center">
+					<p className="font-saiyan text-2xl text-dbz-orange">Aucun objet trouvé</p>
+					<p className="mt-2 text-sm text-white/45">Essaie une autre recherche ou réinitialise le filtre.</p>
+					<button type="button" onClick={() => { setFilter("all"); setQuery(""); }} className="mt-5 rounded-full border border-dbz-orange/50 px-4 py-2 text-xs font-semibold text-dbz-orange hover:bg-dbz-orange hover:text-black">Réinitialiser</button>
+				</div>
+			)}
+
 			{TYPE_ORDER.filter((t) => grouped[t]?.length).map((type) => (
 				<section key={type}>
 					<h2 className="mb-5 border-b-4 border-dbz-orange/30 pb-2 font-saiyan text-2xl uppercase text-dbz-orange">
@@ -160,7 +218,8 @@ export function ShopGrid({ items }: { items: ShopItem[] }) {
 							return (
 								<article
 									key={it.key}
-									className="dbz-panel group flex flex-col overflow-hidden transition-colors hover:border-dbz-orange"
+									className={`dbz-panel group flex cursor-pointer flex-col overflow-hidden transition-colors hover:border-dbz-orange ${selected?.key === it.key ? "border-dbz-orange/80 shadow-[0_0_0_1px_rgba(243,132,24,.35)]" : ""}`}
+									onClick={() => setSelectedKey(it.key)}
 								>
 									<ItemPreview item={it} />
 									<div className="flex flex-1 flex-col p-4">

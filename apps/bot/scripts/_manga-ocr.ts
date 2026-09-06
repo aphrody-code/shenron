@@ -2,7 +2,7 @@ import { rename } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 
 export const MANGA_MANIFEST_SCHEMA_VERSION = 1 as const;
-export const MANGA_REVIEW_PROMPT_VERSION = 3 as const;
+export const MANGA_REVIEW_PROMPT_VERSION = 4 as const;
 export const MANGA_SERIES = ["DB", "DBS"] as const;
 
 export type MangaSeries = (typeof MANGA_SERIES)[number];
@@ -54,6 +54,10 @@ export interface MangaOcrResultLine {
 	promptVersion?: number;
 	quality?: { meanConfidence: number; blocks: number; retainedBlocks: number };
 	review?: MangaOcrVisualReview;
+	coverageAudit?: MangaOcrCoverageAudit;
+	coverageModel?: string;
+	coverageReasoning?: "low";
+	coverageElapsedMs?: number;
 }
 
 export const MANGA_REGION_KINDS = [
@@ -78,6 +82,29 @@ export interface MangaOcrVisualReview {
 	pageId: string;
 	decision: "accept" | "none" | "needs_human";
 	regions: MangaOcrReviewRegion[];
+	notes: string;
+}
+
+export const MANGA_COVERAGE_ISSUE_KINDS = [
+	"omitted_region",
+	"misread_text",
+	"wrong_kind",
+	"wrong_order",
+] as const;
+export type MangaCoverageIssueKind =
+	(typeof MANGA_COVERAGE_ISSUE_KINDS)[number];
+
+export interface MangaOcrCoverageIssue {
+	kind: MangaCoverageIssueKind;
+	detail: string;
+	confidence: MangaReviewConfidence;
+}
+
+export interface MangaOcrCoverageAudit {
+	schemaVersion: 1;
+	pageId: string;
+	verdict: "confirm" | "needs_human";
+	issues: MangaOcrCoverageIssue[];
 	notes: string;
 }
 
@@ -371,6 +398,91 @@ export function reviewedMangaResult(
 	};
 }
 
+/**
+ * Scelle une première revue par une seconde lecture visuelle indépendante.
+ * Une seule anomalie suffit à neutraliser le texte : le résultat reste tracé,
+ * mais ne peut plus atteindre le dépôt éditorial.
+ */
+export function coverageAuditedMangaResult(
+	result: MangaOcrResultLine,
+	pageId: string,
+	audit: MangaOcrCoverageAudit,
+	elapsedMs?: number,
+): MangaOcrResultLine {
+	if (
+		audit.schemaVersion !== 1 ||
+		audit.pageId !== pageId ||
+		!Array.isArray(audit.issues) ||
+		audit.issues.length > 100
+	) {
+		throw new Error(`audit de couverture incohérent pour ${pageId}`);
+	}
+	if (result.review?.decision === "needs_human" || !result.review) {
+		throw new Error(`première revue non arbitrable pour ${pageId}`);
+	}
+	for (const issue of audit.issues) {
+		if (!MANGA_COVERAGE_ISSUE_KINDS.includes(issue.kind)) {
+			throw new Error(`type d'anomalie de couverture invalide pour ${pageId}`);
+		}
+		if (
+			typeof issue.detail !== "string" ||
+			issue.detail.trim().length === 0 ||
+			issue.detail.length > 1_000 ||
+			!["high", "medium", "low"].includes(issue.confidence)
+		) {
+			throw new Error(`anomalie de couverture invalide pour ${pageId}`);
+		}
+	}
+	if (audit.verdict === "confirm" && audit.issues.length > 0) {
+		throw new Error(`audit confirmé avec anomalies pour ${pageId}`);
+	}
+	if (audit.verdict === "needs_human" && audit.issues.length === 0) {
+		throw new Error(`audit bloquant sans anomalie pour ${pageId}`);
+	}
+	return {
+		...result,
+		text:
+			audit.verdict === "confirm" ? result.text : { kind: "none" as const },
+		coverageAudit: audit,
+		coverageModel: "gpt-5.6-luna",
+		coverageReasoning: "low",
+		coverageElapsedMs: elapsedMs,
+	};
+}
+
+export function mangaResultDecision(
+	result: MangaOcrResultLine,
+): "accept" | "none" | "needs_human" | "invalid" {
+	const primary = result.review?.decision;
+	if (primary === "needs_human") return "needs_human";
+	if (primary !== "accept" && primary !== "none") return "invalid";
+	const audit = result.coverageAudit;
+	if (
+		!audit ||
+		audit.schemaVersion !== 1 ||
+		audit.pageId !== result.review?.pageId ||
+		result.coverageModel !== "gpt-5.6-luna" ||
+		result.coverageReasoning !== "low" ||
+		!Array.isArray(audit.issues) ||
+		audit.issues.length > 100 ||
+		audit.issues.some(
+			(issue) =>
+				!MANGA_COVERAGE_ISSUE_KINDS.includes(issue.kind) ||
+				typeof issue.detail !== "string" ||
+				issue.detail.trim().length === 0 ||
+				issue.detail.length > 1_000 ||
+				!["high", "medium", "low"].includes(issue.confidence),
+		) ||
+		typeof audit.notes !== "string" ||
+		audit.notes.length > 1_000 ||
+		(audit.verdict === "confirm" && audit.issues.length !== 0) ||
+		(audit.verdict === "needs_human" && audit.issues.length === 0)
+	) {
+		return "invalid";
+	}
+	return audit.verdict === "confirm" ? primary : "needs_human";
+}
+
 export function parseMangaResults(
 	content: string,
 	manifest: MangaOcrManifest,
@@ -411,9 +523,12 @@ export function parseMangaResults(
 			result.model !== "gpt-5.6-luna" ||
 			result.promptVersion !== MANGA_REVIEW_PROMPT_VERSION ||
 			!result.review ||
-			(result.review.decision !== "accept" && result.review.decision !== "none")
+			result.review.decision === "needs_human" ||
+			mangaResultDecision(result) !== result.review.decision
 		) {
-			invalid.push(`${entry.id}: résultat non arbitré par Luna low`);
+			invalid.push(
+				`${entry.id}: résultat non arbitré ou non confirmé par deux lectures Luna low`,
+			);
 			continue;
 		}
 		try {
