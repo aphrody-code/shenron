@@ -74,6 +74,9 @@ export function NavAuth({ variant = "full" }: { variant?: "full" | "compact" }) 
 							{me.username ?? "Mon profil"}
 						</span>
 					</Link>
+					<Link href="/parametres" aria-label="Paramètres du compte" className="hidden xl:grid h-9 w-9 place-items-center rounded-full text-white/55 hover:text-dbz-orange hover:bg-white/[0.06] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60">
+						<span aria-hidden>⚙</span>
+					</Link>
 					<SignOut
 						className="grid place-items-center w-9 h-9 rounded-full text-white/55 hover:text-dbz-orange hover:bg-white/[0.06] transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
 						aria-label="Se déconnecter"

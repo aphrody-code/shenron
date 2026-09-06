@@ -33,8 +33,9 @@ export async function resolve(...paths: string[]): Promise<string[]> {
 			const files = await scan(ps.split(path.sep).join("/"));
 
 			files.forEach((file) => {
-				if (!imports.includes(file)) {
-					imports.push(`file://${file}`);
+				const fileUrl = `file://${file.replaceAll("\\", "/")}`;
+				if (!imports.includes(fileUrl)) {
+					imports.push(fileUrl);
 				}
 			});
 		})

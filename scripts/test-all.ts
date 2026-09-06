@@ -19,12 +19,14 @@
 //   bun scripts/test-all.ts --junit         # per-scope JUnit xml into test-results/<scope>.xml
 //   bun scripts/test-all.ts --filter bot    # only scopes whose name/path contains "bot"
 //   bun scripts/test-all.ts --bail          # stop a scope's suite after first failure
+//   bun scripts/test-all.ts --jobs 4        # run up to 4 independent scopes in parallel
 //   bun scripts/test-all.ts --json          # machine-readable summary on stdout
 //
 // Exit code: 0 iff every selected runnable scope passed and (in --strict) no gap.
 
 import { Glob } from "bun";
 import { existsSync } from "node:fs";
+import { cpus } from "node:os";
 import { join, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "..");
@@ -48,6 +50,11 @@ const JUNIT = flag("--junit");
 const BAIL = flag("--bail");
 const JSON_OUT = flag("--json");
 const FILTER = opt("--filter");
+const jobsOpt = opt("--jobs") ?? "1";
+const autoJobs = Math.min(8, Math.max(1, (cpus().length || 1) - 1));
+const JOBS = jobsOpt.toLowerCase() === "auto"
+	? autoJobs
+	: Math.max(1, Math.floor(Number(jobsOpt)) || 1);
 
 // Flags forwarded verbatim to every per-scope `bun test` invocation. These make
 // the runner a real flake/order-dependence harness, not just a launcher:
@@ -292,6 +299,7 @@ console.log(
 	`tiers: unit=on  live=${RUN_LIVE ? "on" : "off"}  vendored=${RUN_VENDORED ? "on" : "off"}  strict=${STRICT ? "on" : "off"}  coverage=${COVERAGE ? "on" : "off"}\n`
 );
 
+const runnable: Array<{ member: Member; files: string[]; resultIndex: number }> = [];
 const results: Result[] = [];
 for (const m of selected) {
 	const mode = m.policy.mode ?? "unit";
@@ -337,10 +345,27 @@ for (const m of selected) {
 		});
 		continue;
 	}
-	console.log(`\x1b[36m▶ ${m.name}\x1b[0m (${m.rel}) — ${files.length} file(s)`);
-	results.push(await runScope(m, files));
-	console.log("");
+	const resultIndex = results.length;
+	// Reserve the slot now; workers complete out of order.
+	results.push(undefined as unknown as Result);
+	runnable.push({ member: m, files, resultIndex });
 }
+
+// Scope processes are isolated by cwd and Bun process, so independent scopes
+// can use the machine's spare CPU/RAM. Keep the default at one job because
+// some external/integration fixtures intentionally assume serial execution.
+if (JOBS > 1) console.log(`parallel scopes: up to ${JOBS} jobs`);
+let next = 0;
+const worker = async () => {
+	while (next < runnable.length) {
+		const index = next++;
+		const { member, files, resultIndex } = runnable[index];
+		console.log(`\x1b[36m▶ ${member.name}\x1b[0m (${member.rel}) — ${files.length} file(s)`);
+		results[resultIndex] = await runScope(member, files);
+		console.log("");
+	}
+};
+await Promise.all(Array.from({ length: Math.min(JOBS, runnable.length) }, worker));
 
 // ── Report ────────────────────────────────────────────────────────────────────
 const colour: Record<Status, string> = {

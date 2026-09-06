@@ -38,8 +38,8 @@ import { join } from "node:path";
 const BASE = (process.env.SITE_URL ?? "https://dragonballfr.com").replace(/\/+$/, "");
 
 const APP_DIR = join(import.meta.dir, "..", "src", "app");
-const CONCURRENCY = 8;
-const FETCH_TIMEOUT_MS = 25_000;
+const CONCURRENCY = Math.max(1, Math.min(24, Number(process.env.NO_404_CONCURRENCY ?? 8) || 8));
+const FETCH_TIMEOUT_MS = Math.max(2_000, Number(process.env.NO_404_TIMEOUT_MS ?? 25_000) || 25_000);
 
 // Valeurs réelles pour les segments dynamiques énumérés depuis les fichiers.
 // id 1 existe pour character/planet/episode/manga (chapter)/volume ; les slugs
@@ -100,7 +100,7 @@ function walk(dir: string, name: string): string[] {
 
 /** Chemin fichier `app/.../page.tsx` → route URL (groupes retirés). */
 function fileToRoute(file: string): string {
-	const rel = file.slice(APP_DIR.length).replace(/\/page\.tsx$/, "");
+	const rel = file.slice(APP_DIR.length).replaceAll("\\", "/").replace(/\/page\.tsx$/, "");
 	const segs = rel
 		.split("/")
 		.filter(Boolean)
@@ -254,7 +254,7 @@ describe(`no-404 — site (${BASE})`, () => {
 	const CATCHALL_404_ON_UNKNOWN = new Set(["/api/auth"]);
 	const apiRouteFiles = walk(APP_DIR, "route.ts");
 	const apiPaths = apiRouteFiles
-		.map((f) => fileToRoute(f.replace(/\/route\.ts$/, "/page.tsx")))
+		.map((f) => fileToRoute(f.replaceAll("\\", "/").replace(/\/route\.ts$/, "/page.tsx")))
 		.filter((route) => {
 			// Routes catch-all dont le parent 404 sur segment inconnu : exclues du
 			// sondage synthétique (couvertes par sonde réelle ci-dessous).

@@ -17,16 +17,17 @@
  * Lecture seule sur data/bot.db (aucune mutation). Si l'index est vide, le
  * harnais s'exécute quand même et rapporte « index empty » proprement.
  *
- * Usage  : bun scripts/rag-eval.ts [--ci]
+ * Usage  : bun scripts/rag-eval.ts [--ci] [--details]
  *   --ci : exit 1 si Recall@5 (lexical) < seuil documenté (régression). Sinon
  *          exit 0 toujours (outil de mesure, pas un gate dur par défaut).
  */
 import { Database } from "bun:sqlite";
 import { redis } from "bun";
+import { fileURLToPath } from "node:url";
 import { hybridSearch, type RagHit, type RagMode } from "../src/lib/rag";
 
-const DB = process.env.RAG_DB ?? new URL("../data/bot.db", import.meta.url).pathname;
-const GOLD = new URL("../tests/rag-gold.jsonl", import.meta.url).pathname;
+const DB = process.env.RAG_DB ?? fileURLToPath(new URL("../data/bot.db", import.meta.url));
+const GOLD = fileURLToPath(new URL("../tests/rag-gold.jsonl", import.meta.url));
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 
 // Seuil CI calé SOUS la baseline lexicale observée (Recall@5 = 80.0 % sur le
@@ -186,9 +187,14 @@ function printTable(rows: { mode: string; m: ModeMetrics }[]): void {
 
 async function main(): Promise<void> {
 	const ci = process.argv.includes("--ci");
+	const details = process.argv.includes("--details");
 
 	const gold = await loadGold();
 	console.log(`→ gold-set : ${gold.length} cas (${GOLD})`);
+	if (!(await Bun.file(DB).exists())) {
+		console.log(`⚠ base SQLite absente (${DB}) — fournir RAG_DB vers une copie de bot.db pour mesurer.`);
+		return;
+	}
 
 	const db = new Database(DB, { readonly: true });
 
@@ -227,9 +233,25 @@ async function main(): Promise<void> {
 		hybrid: newAcc(),
 		"hybrid+rerank": newAcc(),
 	};
+	const ranks: Record<RagMode, { q: string; expect: string[]; rank: number }[]> = {
+		lexical: [],
+		hybrid: [],
+		"hybrid+rerank": [],
+	};
 	for (const g of gold) {
-		const { results, mode } = await hybridSearch(db, g.q, LIMIT);
-		accAdd(accs[mode], results, g.expect);
+		// Toujours mesurer la baseline BM25, même lorsque le sidecar est actif.
+		const lexical = await hybridSearch(db, g.q, LIMIT, { lexicalOnly: true });
+		accAdd(accs.lexical, lexical.results, g.expect);
+		ranks.lexical.push({ q: g.q, expect: g.expect, rank: firstHitRank(lexical.results, g.expect) });
+		if (hybridAvailable) {
+			const hybrid = await hybridSearch(db, g.q, LIMIT);
+			accAdd(accs[hybrid.mode], hybrid.results, g.expect);
+			ranks[hybrid.mode].push({
+				q: g.q,
+				expect: g.expect,
+				rank: firstHitRank(hybrid.results, g.expect),
+			});
+		}
 	}
 
 	const order: RagMode[] = ["lexical", "hybrid", "hybrid+rerank"];
@@ -238,6 +260,16 @@ async function main(): Promise<void> {
 		.map((mode) => ({ mode, m: finalize(accs[mode]) }));
 
 	printTable(rows);
+	if (details) {
+		for (const mode of order) {
+			const misses = ranks[mode].filter((r) => r.rank === 0 || r.rank > 5);
+			if (misses.length === 0) continue;
+			console.log(`\nDétails ${mode} — ${misses.length} cas hors top-5:`);
+			for (const miss of misses) {
+				console.log(`  ${miss.rank ? `#${miss.rank}` : "MISS"} · ${miss.q} · attendu: ${miss.expect.join(" | ")}`);
+			}
+		}
+	}
 	console.log("");
 
 	const lexical = finalize(accs.lexical);

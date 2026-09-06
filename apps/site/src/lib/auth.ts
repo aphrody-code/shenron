@@ -36,6 +36,14 @@ export const auth = betterAuth({
 
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
+	// L'utilisateur peut demander la suppression de son compte depuis les
+	// paramètres. En production, l'envoi du lien de confirmation doit être
+	// branché sur le fournisseur d'e-mail avant d'activer ce flux.
+	user: {
+		deleteUser: {
+			enabled: true,
+		},
+	},
 	// Cache de session signé en cookie : getSession lit le cookie au lieu de
 	// taper ba_session sur Neon (us-east-1) à CHAQUE requête. Avec les fonctions
 	// pinnées en cdg1 (Paris, loin de Neon US), c'est ce qui évite un aller-retour

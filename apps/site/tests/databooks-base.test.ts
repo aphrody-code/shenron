@@ -11,15 +11,15 @@ describe("chemin de disque d'une planche", () => {
 	// contrôle mené depuis apps/bot déclarait 1 236 images manquantes alors
 	// qu'aucune ne l'était.
 	it("résout la forme stockée en base", () => {
-		expect(cheminPlanche("./assets/wiki/databooks/abc.jpg")).toMatch(
+		expect(cheminPlanche("./assets/wiki/databooks/abc.jpg")?.replaceAll("\\", "/")).toMatch(
 			/apps\/site\/public\/wiki\/databooks\/abc\.jpg$/,
 		);
 	});
 
 	it("accepte les variantes d'écriture du chemin", () => {
-		expect(cheminPlanche("assets/wiki/databooks/x.png")).toMatch(/public\/wiki\/databooks\/x\.png$/);
-		expect(cheminPlanche("/assets/wiki/databooks/y.webp")).toMatch(/public\/wiki\/databooks\/y\.webp$/);
-		expect(cheminPlanche("assets\\wiki\\databooks\\z.jpg")).toMatch(/public\/wiki\/databooks\/z\.jpg$/);
+		expect(cheminPlanche("assets/wiki/databooks/x.png")?.replaceAll("\\", "/")).toMatch(/public\/wiki\/databooks\/x\.png$/);
+		expect(cheminPlanche("/assets/wiki/databooks/y.webp")?.replaceAll("\\", "/")).toMatch(/public\/wiki\/databooks\/y\.webp$/);
+		expect(cheminPlanche("assets\\wiki\\databooks\\z.jpg")?.replaceAll("\\", "/")).toMatch(/public\/wiki\/databooks\/z\.jpg$/);
 	});
 
 	it("refuse ce qui n'est pas un chemin d'asset plutôt que d'inventer", () => {

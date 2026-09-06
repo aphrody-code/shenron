@@ -13,11 +13,12 @@
  */
 import { describe, expect, test } from "bun:test";
 import { Glob } from "bun";
+import { fileURLToPath } from "node:url";
 
 /** Primitives génériques : c'est l'appelant qui fournit le nom, par les props. */
 const PRIMITIVES = new Set(["src/components/ui/input.tsx", "src/components/ui/textarea.tsx"]);
 
-const racine = new URL("..", import.meta.url).pathname;
+const racine = fileURLToPath(new URL("..", import.meta.url));
 
 /**
  * Composants du dépôt qui rendent eux-mêmes un `<label>` autour de ce qu'on
@@ -32,7 +33,7 @@ async function champsSansNom(): Promise<string[]> {
 	const sans: string[] = [];
 	for (const dossier of ["src/components", "src/app"]) {
 		for await (const rel of new Glob("**/*.tsx").scan({ cwd: `${racine}${dossier}` })) {
-			const chemin = `${dossier}/${rel}`;
+			const chemin = `${dossier}/${rel}`.replaceAll("\\", "/");
 			// L'admin est hors périmètre public : traité séparément.
 			if (chemin.includes("/admin/") || PRIMITIVES.has(chemin)) continue;
 			const lignes = (await Bun.file(`${racine}${chemin}`).text()).split("\n");

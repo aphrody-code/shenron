@@ -16,6 +16,7 @@
  *   bun apps/site/scripts/bxc-asset-harvest.ts
  *   bun apps/site/scripts/bxc-asset-harvest.ts --profile max --delay 800
  *   bun apps/site/scripts/bxc-asset-harvest.ts --mirror-only
+ *   bun apps/site/scripts/bxc-asset-harvest.ts --max-sources 1 --no-mirror
  *   BXC_DIR=/home/ubuntu/bxc BXC_PROFILE=max bun apps/site/scripts/bxc-asset-harvest.ts
  *
  * Voir aussi : `bun apps/bot/scripts/rag-harvest.ts run-seeds`
@@ -61,6 +62,7 @@ const proxy = opt("proxy", process.env.BXC_PROXY ?? process.env.PROXY);
 const delayMs = parseInt(opt("delay", "800")!, 10);
 const maxPages = parseInt(opt("max-pages", "25")!, 10);
 const maxDepth = parseInt(opt("max-depth", "3")!, 10);
+const maxSources = Math.max(1, parseInt(opt("max-sources", String(Number.MAX_SAFE_INTEGER))!, 10));
 const MIRROR_ONLY = argv.includes("--mirror-only");
 const SKIP_MIRROR = argv.includes("--no-mirror");
 
@@ -955,7 +957,7 @@ async function main() {
 		process.exit(1);
 	}
 
-	const sources = loadAllSources();
+	const sources = loadAllSources().slice(0, maxSources);
 	log(`[*] ${sources.length} sources uniques (catalogue + db_sources)`);
 
 	const allHits: AssetHit[] = [];

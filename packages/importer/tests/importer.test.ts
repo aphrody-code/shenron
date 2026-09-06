@@ -55,16 +55,12 @@ describe("@rpbey/importer", () => {
 		});
 
 		test(
-			"DOCUMENTED SOURCE BEHAVIOUR: cross-pattern dedup is NOT performed " +
-				"(the includes() guard compares a raw path against file://-prefixed " +
-				"entries, so it never matches) — passing the same glob twice yields " +
-				"duplicate file:// entries",
+			"deduplicates files matched by multiple patterns",
 			async () => {
 				const pattern = path.join(import.meta.dir, "..", "src", "*.ts");
 				const files = await resolve(pattern, pattern);
 				const unique = new Set(files);
-				// Asserting the real (buggy) behaviour: duplicates survive.
-				expect(files.length).toBeGreaterThan(unique.size);
+				expect(files.length).toBe(unique.size);
 			}
 		);
 

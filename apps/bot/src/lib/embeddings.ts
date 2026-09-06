@@ -23,6 +23,7 @@ import {
 	type PreTrainedTokenizer,
 	pipeline,
 } from "@huggingface/transformers";
+import { fileURLToPath } from "node:url";
 
 export const EMBED_MODEL = "Xenova/multilingual-e5-small";
 export const EMBED_DIM = 384;
@@ -33,7 +34,7 @@ export const RERANK_MODEL = "Xenova/bge-reranker-base";
 // ReadWritePaths du service systemd `shenron-embed` (ProtectSystem=strict).
 // Surchageable par HF_HOME/TRANSFORMERS_CACHE le cas échéant.
 hfEnv.cacheDir =
-	process.env.TRANSFORMERS_CACHE ?? new URL("../../.models/", import.meta.url).pathname;
+	process.env.TRANSFORMERS_CACHE ?? fileURLToPath(new URL("../../.models/", import.meta.url));
 
 export type EmbedKind = "query" | "passage";
 

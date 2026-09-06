@@ -18,9 +18,10 @@
  */
 import { describe, expect, test } from "bun:test";
 import { Glob } from "bun";
+import { fileURLToPath } from "node:url";
 
 const BASE = process.env.SITE_URL ?? "https://dragonballfr.com";
-const racine = new URL("..", import.meta.url).pathname;
+const racine = fileURLToPath(new URL("..", import.meta.url));
 
 /** Valeurs réelles pour les segments dynamiques — une page 404 ne prouverait rien. */
 const ECHANTILLONS: Record<string, string> = {
@@ -31,6 +32,7 @@ const ECHANTILLONS: Record<string, string> = {
 
 /** `src/app/admin/**\/page.tsx` → chemin URL, groupes `(x)` transparents. */
 function cheminUrl(fichier: string): string | null {
+	fichier = fichier.replaceAll("\\", "/");
 	const rel = fichier.replace(/^src\/app/, "").replace(/\/page\.tsx$/, "");
 	const segments: string[] = [];
 	for (const seg of rel.split("/").filter(Boolean)) {

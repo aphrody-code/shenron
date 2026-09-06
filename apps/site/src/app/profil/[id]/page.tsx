@@ -1,291 +1,34 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { getProfileCardUrl } from "@/lib/assets";
 import { getShenronUserResult } from "@/lib/shenron";
-import { notFound } from "next/navigation";
-import Link from "next/link";
-import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+const fmt = (n: number | null | undefined) => typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("fr-FR") : "0";
 
-// Le profil d'un membre porte son pseudo : sans ces métadonnées, chaque profil
-// se partageait sous le titre générique du site. Hors index (donnée personnelle),
-// mais l'aperçu de partage reste correct sur Discord.
-export async function generateMetadata({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-	const { id } = await params;
-	const res = await getShenronUserResult(id);
-	const pseudo = res.status === "ok" ? (res.user.username ?? null) : null;
-	return {
-		title: pseudo ? `Profil de ${pseudo}` : "Profil de membre",
-		description: pseudo
-			? `Niveau, statistiques et carte de ${pseudo} sur Dragon Ball France.`
-			: "Niveau, statistiques et carte d'un membre de Dragon Ball France.",
-		robots: { index: false, follow: true },
-	};
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+	const { id } = await params; const res = await getShenronUserResult(id); const username = res.status === "ok" ? res.user.username : null;
+	return { title: username ? `Profil de ${username}` : "Profil de membre", description: username ? `Niveau, statistiques et carte de ${username} sur Dragon Ball France.` : "Profil d'un membre Dragon Ball France.", robots: { index: false, follow: true } };
 }
-
-const fmt = (n: number | null | undefined) =>
-	typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("fr-FR") : "0";
 
 export default async function ProfilePage({ params }: { params: Promise<{ id: string }> }) {
-	const { id } = await params;
-	const result = await getShenronUserResult(id);
-
-	// API du bot injoignable ≠ membre inexistant : on ne renvoie 404 que pour le
-	// second cas, sinon un redémarrage du bot ferait croire au visiteur que son
-	// profil a disparu.
-	if (result.status === "unavailable") {
-		return (
-			<SectionUnavailable
-				title="Profil temporairement indisponible"
-				message="Le service qui héberge les profils ne répond pas. Réessaie dans un instant — rien n'est perdu."
-				links={[
-					{ href: "/leaderboard", label: "Le classement" },
-					{ href: "/", label: "Accueil" },
-				]}
-			/>
-		);
-	}
+	const { id } = await params; const result = await getShenronUserResult(id);
+	if (result.status === "unavailable") return <SectionUnavailable title="Profil temporairement indisponible" message="Le service des profils ne répond pas. Réessaie dans un instant — rien n'est perdu." links={[{ href: "/leaderboard", label: "Le classement" }, { href: "/", label: "Accueil" }]} />;
 	if (result.status === "absent") notFound();
-	const user = result.user;
-
-	const equipped = user.equipped || {};
-	const username = user.username || "Guerrier Inconnu";
-	const avatar =
-		user.avatarUrl ||
-		`https://cdn.discordapp.com/embed/avatars/${(Number.parseInt(id, 10) || 0) % 5}.png`;
-	// Carte de guerrier rendue par le canvas du bot (la vraie feature).
-	const cardUrl = getProfileCardUrl(id);
-
-	const progressPct = user.xpProgress
-		? Math.min(
-				100,
-				Math.max(0, (user.xpProgress.current / Math.max(1, user.xpProgress.nextLevelXp)) * 100)
-			)
-		: 0;
-
-	return (
-		<div className="container mx-auto px-4 py-8 md:py-16 max-w-5xl space-y-8">
-			{/* ── Carte de guerrier officielle (canvas bot) ───────────────── */}
-			<section className="dbz-panel p-4 md:p-6">
-				<div className="flex items-center justify-between mb-3">
-					<h2 className="font-saiyan text-xl md:text-2xl text-dbz-orange uppercase tracking-wide">
-						Carte de guerrier
-					</h2>
-					<a
-						href={cardUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="font-scouter text-[10px] tracking-widest text-dbz-blue-light hover:text-dbz-orange transition-colors"
-					>
-						TÉLÉCHARGER PNG →
-					</a>
-				</div>
-				{}
-				<img
-					src={cardUrl}
-					alt={`Carte de ${username}`}
-					className="w-full max-w-2xl mx-auto rounded-lg border border-dbz-border"
-					loading="lazy"
-				/>
-				<p className="text-center text-[10px] uppercase tracking-widest text-white/50 mt-3">
-					Rendue en direct par le bot · identique à <code>/profil</code> sur Discord
-				</p>
-			</section>
-
-			<div className="dbz-panel overflow-hidden border-4">
-				{/* Banner */}
-				<div className="h-48 md:h-64 w-full relative border-b-4 border-dbz-blue-light">
-					{user.banner ? (
-						<img src={user.banner} alt="Banner" className="w-full h-full object-cover" />
-					) : (
-						<div className="w-full h-full bg-dbz-bg flex items-center justify-center">
-							<span className="font-saiyan text-6xl text-dbz-border opacity-50 uppercase tracking-widest">
-								DBFR
-							</span>
-						</div>
-					)}
-					<div className="absolute inset-0 bg-gradient-to-t from-dbz-card to-transparent" />
-				</div>
-
-				{/* Profile Info Header */}
-				<div className="px-6 md:px-12 pb-12 relative">
-					<div className="relative -mt-20 md:-mt-24 mb-10 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
-						<div className="relative">
-							<div className="w-32 h-32 md:w-44 md:h-44 border-4 md:border-8 border-dbz-blue-light bg-dbz-bg relative z-10 p-1">
-								{}
-								<img
-									src={avatar}
-									alt={username}
-									className="w-full h-full object-cover border-2 border-dbz-card"
-								/>
-							</div>
-							<div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-dbz-orange text-white px-4 py-1 border-2 border-dbz-orange-dark z-20 shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">
-								<span className="font-saiyan text-2xl uppercase">LVL {user.level ?? 0}</span>
-							</div>
-						</div>
-
-						<div className="flex-1 text-center md:text-left space-y-2 md:space-y-4 mt-4 md:mt-0">
-							<div className="space-y-1">
-								<h1
-									className="text-4xl md:text-6xl font-saiyan text-white"
-									style={{ textShadow: "3px 3px 0px rgba(0,0,0,0.8)" }}
-								>
-									{username}
-								</h1>
-								{equipped.title && (
-									<div className="inline-block px-3 py-1 bg-dbz-bg border-2 border-dbz-yellow text-dbz-yellow font-bold text-xs uppercase tracking-widest">
-										{equipped.title}
-									</div>
-								)}
-							</div>
-
-							{/* XP Progress Bar */}
-							{user.xpProgress && (
-								<div className="max-w-md mx-auto md:mx-0">
-									<div className="flex justify-between items-end mb-1">
-										<span className="text-[10px] font-bold text-dbz-blue-light uppercase tracking-widest">
-											Progression Niveau {user.xpProgress.nextLevel}
-										</span>
-										<span className="text-[10px] font-bold text-gray-400">
-											{fmt(user.xpProgress.current)} / {fmt(user.xpProgress.nextLevelXp)} XP
-										</span>
-									</div>
-									<div className="h-4 bg-dbz-bg border-2 border-dbz-border p-0.5 relative overflow-hidden">
-										<div
-											className="h-full halo-ember-bar"
-											style={{
-												width: `${progressPct}%`,
-												background: "linear-gradient(90deg,#6366f1,#a855f7,#38bdf8)",
-											}}
-										/>
-									</div>
-								</div>
-							)}
-
-							{/* Fusion Status */}
-							{user.fusion && (
-								<div className="flex justify-center md:justify-start">
-									<Link
-										href={`/profil/${user.fusion.partnerId}`}
-										className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 border border-pink-500/30 text-pink-400 text-xs font-bold uppercase tracking-widest hover:bg-pink-500/20 transition-colors"
-									>
-										<div className="w-2 h-2 bg-pink-500 animate-pulse rounded-full" />
-										Fusion avec {user.fusion.partnerName}
-									</Link>
-								</div>
-							)}
-						</div>
-					</div>
-
-					{/* Stats Scouter style */}
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
-						<StatBox label="XP Total" value={fmt(user.xp)} tint="text-dbz-orange" />
-						<StatBox label="Zénis" value={fmt(user.zeni)} tint="text-dbz-yellow" />
-						<StatBox label="Succès" value={fmt(user.achievements?.length)} tint="text-white" />
-						<StatBox label="Objets" value={fmt(user.inventory?.length)} tint="text-white" />
-					</div>
-
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-12">
-						{/* Left Column: Equipped */}
-						<div className="lg:col-span-1 space-y-6">
-							<h3 className="font-saiyan text-3xl text-dbz-orange border-b-2 border-dbz-orange pb-2">
-								ÉQUIPEMENTS
-							</h3>
-							<div className="space-y-4">
-								<EquippedItem label="CARTE" value={equipped.card} />
-								<EquippedItem label="BADGE" value={equipped.badge} />
-								<EquippedItem label="COULEUR" value={equipped.color} />
-								<EquippedItem label="TITRE" value={equipped.title} />
-							</div>
-						</div>
-
-						{/* Right Column: Inventory & Achievements */}
-						<div className="lg:col-span-2 space-y-8 md:space-y-12">
-							<section>
-								<h3 className="font-saiyan text-3xl text-dbz-orange border-b-2 border-dbz-orange pb-2 mb-6">
-									INVENTAIRE ({user.inventory?.length || 0})
-								</h3>
-								<div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-									{user.inventory && user.inventory.length > 0 ? (
-										user.inventory.map((item, i) => (
-											<div
-												key={`${item.type}-${item.key}-${i}`}
-												className="aspect-square bg-dbz-bg border-2 border-dbz-border p-2 flex flex-col items-center justify-center text-center hover:border-dbz-blue-light transition-colors group"
-												title={`${item.type} · ${item.key}`}
-											>
-												<span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-tighter break-all group-hover:text-dbz-blue-light transition-colors">
-													{item.key}
-												</span>
-											</div>
-										))
-									) : (
-										<p className="text-sm text-gray-500 font-bold uppercase">Inventaire vide.</p>
-									)}
-								</div>
-							</section>
-
-							<section>
-								<h3 className="font-saiyan text-3xl text-dbz-orange border-b-2 border-dbz-orange pb-2 mb-6">
-									DERNIERS SUCCÈS
-								</h3>
-								<div className="flex flex-wrap gap-3">
-									{user.achievements && user.achievements.length > 0 ? (
-										user.achievements.slice(0, 12).map((ach, i) => (
-											<div
-												key={`${ach.code}-${i}`}
-												className="px-3 py-2 bg-dbz-bg border-2 border-dbz-yellow flex items-center gap-2 hover:bg-dbz-yellow/10 transition-colors"
-											>
-												<div className="w-2 h-2 bg-dbz-yellow animate-pulse" />
-												<span className="text-xs md:text-sm font-bold text-white uppercase tracking-wider">
-													{ach.code}
-												</span>
-											</div>
-										))
-									) : (
-										<p className="text-sm text-gray-500 font-bold uppercase">
-											Aucun succès débloqué.
-										</p>
-									)}
-								</div>
-							</section>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-}
-
-function StatBox({ label, value, tint }: { label: string; value: string; tint: string }) {
-	return (
-		<div className="bg-dbz-bg border-2 border-dbz-border p-4 text-center">
-			<p className="text-[10px] md:text-xs font-bold text-dbz-blue-light uppercase tracking-widest mb-1">
-				{label}
-			</p>
-			<p className={`scouter-text text-xl md:text-3xl ${tint}`}>{value}</p>
-		</div>
-	);
-}
-
-function EquippedItem({ label, value }: { label: string; value: string | null | undefined }) {
-	return (
-		<div className="flex items-center justify-between p-3 bg-dbz-bg border-2 border-dbz-border hover:border-dbz-blue-light transition-colors">
-			<span className="text-xs font-bold text-dbz-blue-light uppercase tracking-widest">
-				{label}
-			</span>
-			<span
-				className={
-					value
-						? "text-sm font-bold text-white uppercase tracking-wider"
-						: "text-[10px] font-bold text-gray-600 uppercase"
-				}
-			>
-				{value || "VIDE"}
-			</span>
-		</div>
-	);
+	const user = result.user; const username = user.username || "Guerrier inconnu"; const avatar = user.avatarUrl || `https://cdn.discordapp.com/embed/avatars/${(Number.parseInt(id, 10) || 0) % 5}.png`; const cardUrl = getProfileCardUrl(id); const equipped = user.equipped || {};
+	const progress = user.xpProgress ? Math.min(100, Math.max(0, user.xpProgress.current / Math.max(1, user.xpProgress.nextLevelXp) * 100)) : 0;
+	const stats = [["XP total", fmt(user.xp)], ["Zénis", fmt(user.zeni)], ["Succès", fmt(user.achievements?.length)], ["Objets", fmt(user.inventory?.length)]];
+	const gear = [["Carte", equipped.card], ["Badge", equipped.badge], ["Couleur", equipped.color], ["Titre", equipped.title]];
+	return <main className="min-h-screen bg-[radial-gradient(circle_at_75%_0%,rgba(243,132,24,.14),transparent_35%),#0e0d0b] text-white"><div className="mx-auto max-w-6xl px-4 py-8 pb-24 md:px-8 md:py-14">
+		<div className="mb-7 flex items-center justify-between gap-4"><div><p className="font-scouter text-[11px] uppercase tracking-[.24em] text-dbz-orange">Fiche de guerrier</p><h1 className="mt-2 font-saiyan text-4xl leading-none md:text-6xl">{username}</h1></div><Link href="/leaderboard" className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/65 transition hover:border-dbz-orange hover:text-white">Classement</Link></div>
+		<section className="relative overflow-hidden rounded-[2rem] border border-dbz-orange/30 bg-[#191611] shadow-[0_24px_80px_rgba(0,0,0,.4)]"><div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_20%,rgba(246,177,45,.08),transparent_70%)]" aria-hidden /><div className="relative grid gap-8 p-5 md:grid-cols-[1.05fr_.95fr] md:p-10">
+			<div className="flex flex-col justify-between gap-8"><div className="flex items-center gap-5 md:gap-7"><div className="relative shrink-0"><img src={avatar} alt="" width="128" height="128" fetchPriority="high" className="h-24 w-24 rounded-2xl border-2 border-dbz-orange object-cover shadow-[0_0_0_5px_rgba(243,132,24,.12)] md:h-32 md:w-32" /><span className="absolute -bottom-3 -right-3 rounded-full border-4 border-[#191611] bg-dbz-orange px-3 py-1 font-bold text-black">Niv. {user.level ?? 0}</span></div><div><p className="text-sm text-white/50">Dragon Ball France</p><p className="mt-2 text-sm text-white/70">Progression vers le niveau {user.xpProgress?.nextLevel ?? (user.level ?? 0) + 1}</p><div className="mt-3 h-3 w-48 overflow-hidden rounded-full bg-black/60"><div className="h-full rounded-full bg-gradient-to-r from-dbz-orange to-yellow-300" style={{ width: `${progress}%` }} /></div><p className="mt-2 text-xs text-white/45">{fmt(user.xpProgress?.current)} / {fmt(user.xpProgress?.nextLevelXp)} XP</p></div></div>{user.fusion && <Link href={`/profil/${user.fusion.partnerId}`} className="inline-flex w-fit items-center gap-2 rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-4 py-2 text-sm text-fuchsia-200 hover:bg-fuchsia-400/20">✦ Fusion avec {user.fusion.partnerName}</Link>}<div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{stats.map(([label,value]) => <div key={label} className="rounded-xl border border-white/10 bg-black/20 p-3"><p className="text-[10px] uppercase tracking-wider text-white/45">{label}</p><p className="mt-1 text-xl font-semibold text-dbz-orange">{value}</p></div>)}</div></div>
+			<figure className="rounded-2xl border border-white/10 bg-black/25 p-3 md:p-4"><div className="mb-3 flex items-center justify-between"><figcaption className="font-scouter text-[11px] uppercase tracking-[.18em] text-white/55">Carte officielle</figcaption><a href={cardUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-dbz-orange hover:text-yellow-200">PNG ↗</a></div><img src={cardUrl} alt={`Carte de ${username}`} width="1200" height="630" fetchPriority="high" className="w-full rounded-xl border border-dbz-orange/20" /><p className="mt-3 text-center text-xs text-white/40">Rendue en direct par le bot · synchronisée avec Discord</p></figure>
+		</div></section>
+		<div className="mt-6 grid gap-6 lg:grid-cols-[.8fr_1.2fr]"><section className="rounded-2xl border border-white/10 bg-[#141311] p-5 md:p-7"><h2 className="font-saiyan text-2xl text-dbz-orange">Équipement</h2><dl className="mt-5 divide-y divide-white/10">{gear.map(([label,value]) => <div key={label} className="flex items-center justify-between gap-4 py-4"><dt className="text-xs uppercase tracking-widest text-white/45">{label}</dt><dd className={value ? "text-right font-semibold text-white" : "text-right text-sm text-white/25"}>{value || "Non équipé"}</dd></div>)}</dl></section>
+		<div className="space-y-6"><section className="rounded-2xl border border-white/10 bg-[#141311] p-5 md:p-7"><div className="flex items-end justify-between gap-4"><div><h2 className="font-saiyan text-2xl text-dbz-orange">Inventaire</h2><p className="mt-1 text-sm text-white/45">{user.inventory?.length || 0} objet(s) collecté(s)</p></div><Link href="/shop" className="text-sm text-dbz-blue-light hover:text-dbz-orange">Boutique ↗</Link></div>{user.inventory?.length ? <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">{user.inventory.map((item,i) => <li key={`${item.type}-${item.key}-${i}`} className="rounded-xl border border-white/10 bg-black/20 p-4"><span className="block truncate text-sm font-semibold text-white">{item.key}</span><span className="mt-1 block text-[10px] uppercase tracking-wider text-white/40">{item.type}</span></li>)}</ul> : <p className="mt-5 rounded-xl border border-dashed border-white/15 p-5 text-sm text-white/40">L’inventaire attend sa première collecte.</p>}</section>
+		<section className="rounded-2xl border border-white/10 bg-[#141311] p-5 md:p-7"><h2 className="font-saiyan text-2xl text-dbz-orange">Derniers succès</h2>{user.achievements?.length ? <ul className="mt-5 flex flex-wrap gap-2">{user.achievements.slice(0,12).map((ach,i) => <li key={`${ach.code}-${i}`} className="rounded-full border border-yellow-300/25 bg-yellow-300/10 px-3 py-2 text-xs text-yellow-100">✦ {ach.code}</li>)}</ul> : <p className="mt-5 text-sm text-white/40">Aucun succès débloqué pour le moment.</p>}</section></div></div>
+	</div></main>;
 }

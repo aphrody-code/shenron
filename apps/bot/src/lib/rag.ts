@@ -134,6 +134,8 @@ export interface SearchOptions {
 	lang?: string;
 	entity?: string;
 	sourceId?: string;
+	/** Force le chemin BM25 pour les baselines et audits reproductibles. */
+	lexicalOnly?: boolean;
 }
 
 // Mots vides FR (+ quelques EN fréquents) : retirés de la clause OR FTS5 pour
@@ -232,6 +234,7 @@ const FR_STOPWORDS = new Set([
 	"a",
 	"an",
 ]);
+
 
 /** Fold accents (NFD) + minuscule — aligné sur le tokenizer FTS5 `remove_diacritics 2`. */
 function fold(s: string): string {
@@ -387,7 +390,7 @@ export async function hybridSearch(
 	for (const h of bm) bmById.set(h.rowid, h);
 
 	// Étage 1 — signal sémantique (best-effort).
-	const qv = await embedRemote(query);
+	const qv = options?.lexicalOnly ? null : await embedRemote(query);
 	const dense = qv ? nativeVectorSearch(db, qv, POOL, allowedRowids) : [];
 
 	if (dense.length === 0) {

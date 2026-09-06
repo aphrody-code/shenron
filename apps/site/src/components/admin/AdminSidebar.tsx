@@ -318,7 +318,14 @@ const ADMIN_LINKS: AdminLink[] = [
 		label: "Articles / Actualités",
 		description: "Publications et annonces du serveur",
 		icon: <FileText className="h-4 w-4" />,
-		section: "encyclopedie",
+		section: "contenu",
+	},
+	{
+		href: "/admin/banners",
+		label: "Bannières",
+		description: "Visuels éditoriaux et annonces mises en avant",
+		icon: <ImageIcon className="h-4 w-4" />,
+		section: "contenu",
 	},
 
 	// COMMUNAUTÉ & SOCIAL

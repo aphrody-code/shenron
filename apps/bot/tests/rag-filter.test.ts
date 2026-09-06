@@ -147,6 +147,14 @@ describe("RAG Metadata Filtering", () => {
 		expect(titles).toContain("Goku (EN)");
 	});
 
+	it("devrait permettre une baseline lexicale déterministe", async () => {
+		const { results, mode } = await hybridSearch(dbs.sqlite, "Goku Saiyan", 10, {
+			lexicalOnly: true,
+		});
+		expect(mode).toBe("lexical");
+		expect(results.map((r) => r.title)).toContain("Goku");
+	});
+
 	it("devrait filtrer les résultats par langue (fr)", async () => {
 		const { results } = await hybridSearch(dbs.sqlite, "Goku Saiyan", 10, { lang: "fr" });
 		const titles = results.map((r) => r.title);

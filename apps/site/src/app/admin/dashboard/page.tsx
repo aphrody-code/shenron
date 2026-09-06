@@ -13,6 +13,9 @@ import {
 	MessageSquare,
 	TrendingUp,
 	Settings,
+	ArrowUpRight,
+	RefreshCw,
+	Command,
 } from "lucide-react";
 import { api } from "@/lib/admin-api";
 import { formatBytes, formatDuration, fmtNum } from "@/lib/admin-format";
@@ -101,18 +104,20 @@ export default function DashboardPage() {
 			: null;
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-8 pb-8">
 			{/* En-tête accueillant */}
-			<div className="dbz-panel px-6 py-5">
+			<div className="relative overflow-hidden rounded-2xl border border-dbz-orange/30 bg-[radial-gradient(circle_at_80%_0%,rgba(243,132,24,.18),transparent_38%),#171511] px-6 py-6 shadow-[0_20px_60px_rgba(0,0,0,.25)] md:px-8 md:py-7">
+				<div className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full border border-dbz-orange/20" aria-hidden />
 				<div className="flex items-start gap-4">
 					<div className="flex-1">
-						<h1 className="font-saiyan text-3xl text-dbz-yellow leading-tight">
-							Bienvenue dans votre espace admin
+						<div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.2em] text-dbz-orange"><span className="h-2 w-2 rounded-full bg-namek shadow-[0_0_12px_rgba(80,200,120,.8)]" />Centre de contrôle DBFR</div>
+						<h1 className="font-saiyan text-3xl leading-tight text-white md:text-4xl">
+							Bonjour, administrateur
 						</h1>
 						<p className="mt-2 text-white/60 text-sm leading-relaxed max-w-xl">
-							Depuis ici, gérez le bot Dragon Ball France : membres, économie, encyclopédie,
-							modération et bien plus. Utilisez le menu à gauche ou les raccourcis ci-dessous.
+							Pilotez le bot, le wiki et la communauté depuis un seul espace. Les indicateurs ci-dessous sont actualisés automatiquement.
 						</p>
+						<div className="mt-5 flex flex-wrap gap-2"><Link href="/admin/live" className="inline-flex items-center gap-2 rounded-full bg-dbz-orange px-4 py-2 text-xs font-bold text-black transition hover:bg-yellow-300">Voir l’activité en direct <ArrowUpRight className="h-3.5 w-3.5" /></Link><Link href="/admin/console" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white/75 transition hover:border-dbz-orange hover:text-white"><Command className="h-3.5 w-3.5" /> Ouvrir la console</Link></div>
 					</div>
 					<div className="hidden sm:flex items-center gap-2 shrink-0">
 						<span
@@ -126,12 +131,10 @@ export default function DashboardPage() {
 					</div>
 				</div>
 			</div>
+			<div className="flex items-center justify-between border-b border-white/10 pb-3"><div><h2 className="text-base font-semibold text-white">Accès rapides</h2><p className="mt-1 text-xs text-white/45">Les opérations les plus fréquentes</p></div><span className="hidden text-xs text-white/40 sm:inline-flex sm:items-center sm:gap-1">{QUICK_ACTIONS.length} raccourcis <ArrowUpRight className="h-3 w-3" /></span></div>
 
 			{/* Accès rapides — que voulez-vous faire ? */}
 			<div>
-				<h2 className="mb-4 text-base font-semibold text-white/70 uppercase tracking-widest text-[11px]">
-					Que voulez-vous faire ?
-				</h2>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{QUICK_ACTIONS.map((a) => (
 						<Link
@@ -151,9 +154,7 @@ export default function DashboardPage() {
 
 			{/* KPIs — vue d'ensemble du système */}
 			<div>
-				<h2 className="mb-4 text-base font-semibold text-white/70 uppercase tracking-widest text-[11px]">
-					État du système
-				</h2>
+				<div className="mb-4 flex items-end justify-between"><div><h2 className="text-base font-semibold text-white">Santé du système</h2><p className="mt-1 text-xs text-white/45">Bot, données et ressources de la machine</p></div><span className="inline-flex items-center gap-1.5 text-[11px] text-white/40"><RefreshCw className="h-3 w-3" /> auto · 30 s</span></div>
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<KPICard label="Bots en ligne" icon={<Server className="h-4 w-4" />}>
 						<p className="text-3xl font-bold text-brand-400">

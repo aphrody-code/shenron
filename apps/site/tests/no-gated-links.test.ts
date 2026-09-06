@@ -38,6 +38,10 @@ function walk(dir: string): string[] {
 	return out;
 }
 
+function portablePath(file: string): string {
+	return file.replaceAll("\\", "/");
+}
+
 /** Préfixes des rubriques refermables depuis /admin/lancement. */
 const GATEABLE_PREFIXES = GATEABLE_CATEGORIES.flatMap((c) => c.prefixes);
 
@@ -85,8 +89,9 @@ describe("liens vers les rubriques gatables", () => {
 			const src = readFileSync(file, "utf8");
 			// Rubrique à laquelle appartient le fichier : une page de la rubrique X a
 			// évidemment le droit de lier X (navigation interne, précédent/suivant).
+			const portableFile = portablePath(file);
 			const own = GATEABLE_CATEGORIES.filter((c) =>
-				c.prefixes.some((p) => file.includes(join(...p.split("/").filter(Boolean))))
+				c.prefixes.some((p) => portableFile.includes(p.slice(1).replaceAll("/", "\\")) || portableFile.includes(p))
 			).map((c) => c.key);
 
 			for (const cat of GATEABLE_CATEGORIES) {
@@ -135,7 +140,7 @@ describe("liens vers les rubriques gatables", () => {
 		const REGISTRES = ["ENCYCLOPEDIA_CATEGORIES", "LAUNCH_CATEGORIES", "GATEABLE_CATEGORIES"];
 		const offenders: string[] = [];
 		for (const file of [...walk(APP), ...walk(COMPOSANTS)]) {
-			if (ALLOWED.some((a) => file.includes(a))) continue;
+		if (ALLOWED.some((a) => portablePath(file).includes(a))) continue;
 			const src = readFileSync(file, "utf8");
 			if (!REGISTRES.some((r) => src.includes(r))) continue;
 			if (!/<Link\b|<(?:Gated(?:Link|Wrap)|ClientGatedWrap)\b/.test(src)) continue;

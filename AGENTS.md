@@ -77,6 +77,12 @@ lecture du wiki et le runtime local du bot.
 
 ## Vérifications et déploiement
 
+Livraison reproductible après validation : `bash scripts/ship-shenron.sh` (ou
+`powershell -File scripts/ship-shenron.ps1`). Ces scripts exigent `main`, lancent
+le type-check et la suite de tests, committent les changements, poussent
+`origin/main`, puis synchronisent et sondent le bot et le site. Utiliser
+`--no-deploy` pour arrêter après le push.
+
 Contrôles usuels depuis la racine :
 
 ```bash

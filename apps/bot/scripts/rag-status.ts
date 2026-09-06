@@ -17,10 +17,11 @@
 import { Database } from "bun:sqlite";
 import { existsSync, statSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import * as sqliteVec from "sqlite-vec";
 
-const ROOT = new URL("../../../", import.meta.url).pathname;
-const DB_PROD = join(ROOT, "apps/bot/data/bot.db");
+const ROOT = fileURLToPath(new URL("../../../", import.meta.url));
+const DB_PROD = process.env.RAG_DB ?? join(ROOT, "apps/bot/data/bot.db");
 const DB_TMP = "/tmp/rag.db";
 const EMBED_URL = process.env.EMBED_URL ?? "http://127.0.0.1:5007";
 

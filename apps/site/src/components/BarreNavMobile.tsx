@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useMe } from "@/lib/use-me";
 import { SignOut } from "@/components/SignOut";
+import { ClientGatedWrap } from "@/components/GatedClientLink";
 import {
 	Maison,
 	MaisonPleine,
@@ -222,16 +223,17 @@ export function BarreNavMobile() {
 				</div>
 				<nav aria-label="Autres rubriques" className="flex flex-col px-3 pb-4">
 					{AUTRES.map((l) => (
-						<Link
+						<ClientGatedWrap
 							key={l.href}
 							href={l.href}
+							access={null}
 							// 56 px de haut : au-dessus des 48 dp de cible tactile M3,
 							// et le sous-titre a besoin de la place.
 							className="flex min-h-14 flex-col justify-center rounded-xl px-4 py-2 transition-colors hover:bg-white/[0.07] focus-visible:bg-white/[0.07] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--color-logo-jaune)]"
 						>
 							<span className="font-display text-[15px] font-bold text-white">{l.label}</span>
 							<span className="text-[12px] text-white/45">{l.note}</span>
-						</Link>
+						</ClientGatedWrap>
 					))}
 				</nav>
 				{/* Compte — ce que portait le menu hamburger avant sa suppression.
@@ -251,6 +253,9 @@ export function BarreNavMobile() {
 								Tableau de bord
 							</Link>
 						)}
+						<Link href="/parametres" className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white">
+							Paramètres du compte
+						</Link>
 						<SignOut className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white disabled:opacity-50">
 							Déconnexion
 						</SignOut>
