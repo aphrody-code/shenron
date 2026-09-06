@@ -1,6 +1,6 @@
 /** Outils MCP d'administration, enregistrés uniquement après Bearer valide. */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { ApiError, botAdminGet, botAdminPost, siteAdminPost } from "./api.ts";
 
 type ToolResult = {
@@ -25,7 +25,10 @@ const ADMIN_WRITE = { readOnlyHint: false, destructiveHint: true, openWorldHint:
  * par un proxy `method/path/body` générique, qui contournerait les gardes de
  * l'API bot et rendrait impossible l'audit des actions effectuées par un agent.
  */
-export function registerAdminTools(server: McpServer): void {
+export function registerAdminTools(rawServer: McpServer): void {
+	const server = rawServer as unknown as {
+		registerTool(name: string, config: any, handler: (args: any, extra: any) => unknown): unknown;
+	};
 	server.registerTool(
 		"admin_databooks_deposit",
 		{

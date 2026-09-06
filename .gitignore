@@ -92,6 +92,9 @@ reference/
 apps/bot/public/db/
 scratch/
 
+# Corpus OCR local et sorties de suivi (volumineux, régénérables, hors dépôt)
+data/sj-ocr/
+
 
 # transformers.js model cache (RAG embeddings)
 apps/bot/.models/

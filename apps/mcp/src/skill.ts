@@ -11,7 +11,7 @@
  * relatifs au module — robuste quel que soit le cwd).
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 interface SkillDoc {
 	key: string;
@@ -68,13 +68,18 @@ const DOCS: SkillDoc[] = [
 export const SKILL_RESOURCE_COUNT = DOCS.length;
 
 /** Enregistre les resources + le prompt de la skill Dragon Ball sur un serveur. */
-export function registerSkill(server: McpServer): void {
+export function registerSkill(rawServer: McpServer): void {
+	const server = rawServer as unknown as {
+		registerTool(name: string, config: any, handler: (args: any, extra: any) => unknown): unknown;
+		registerResource(...args: any[]): unknown;
+		registerPrompt(name: string, config: any, handler: (args: any) => unknown): unknown;
+	};
 	for (const d of DOCS) {
 		server.registerResource(
 			d.key,
 			d.uri,
 			{ title: d.title, description: d.description, mimeType: "text/markdown" },
-			(uri) => ({
+			(uri: URL) => ({
 				contents: [{ uri: uri.href, mimeType: "text/markdown", text: d.text }],
 			})
 		);

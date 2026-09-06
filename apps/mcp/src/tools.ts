@@ -13,7 +13,7 @@
  *     tronqué à ~90 000 caractères avec mention explicite.
  */
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
+import { z } from "zod/v3";
 import { absolutize, apiGet, ApiError, apiPost, siteGet } from "./api.ts";
 
 const MAX_RESULT_CHARS = 90_000;
@@ -92,7 +92,13 @@ function extraitAutour(texte: string, terme: string): string {
 	return `${debut > 0 ? "…" : ""}${texte.slice(debut, fin)}${fin < texte.length ? "…" : ""}`;
 }
 
-export function registerAllTools(server: McpServer): void {
+export function registerAllTools(rawServer: McpServer): void {
+	// The SDK's deeply recursive Zod compatibility generic exceeds TypeScript's
+	// instantiation depth with this large catalogue. Runtime validation remains
+	// provided by the SDK; keep the catalogue's handler boundary explicit here.
+	const server = rawServer as unknown as {
+		registerTool(name: string, config: any, handler: (args: any, extra: any) => unknown): unknown;
+	};
 	// ── RAG ────────────────────────────────────────────────────────────────
 	server.registerTool(
 		"rag_search",
