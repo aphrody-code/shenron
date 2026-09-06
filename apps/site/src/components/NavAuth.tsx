@@ -31,8 +31,8 @@ export function NavAuth({ variant = "full" }: { variant?: "full" | "compact" }) 
 		// cette barre, et l'uniformité prime ici sur les 4 px manquants.
 		return me.authenticated ? (
 			<Link
-				href="/profil/me"
-				aria-label={me.username ? `Profil de ${me.username}` : "Mon profil"}
+				href="/dashboard"
+				aria-label={me.username ? `Espace de ${me.username}` : "Mon espace"}
 				className="grid h-11 w-11 place-items-center rounded-full transition-colors hover:bg-white/[0.08] focus-visible:outline-2 focus-visible:outline-[var(--color-logo-jaune)]"
 			>
 				<Avatar src={me.avatar} size={28} className="ring-1 ring-white/15" />
@@ -62,7 +62,7 @@ export function NavAuth({ variant = "full" }: { variant?: "full" | "compact" }) 
 			{me.authenticated ? (
 				<>
 					<Link
-						href="/profil/me"
+						href="/dashboard"
 						className="flex items-center gap-2.5 pl-1 pr-3.5 py-1 rounded-full hover:bg-white/[0.06] transition-colors group"
 					>
 						<Avatar
@@ -74,7 +74,11 @@ export function NavAuth({ variant = "full" }: { variant?: "full" | "compact" }) 
 							{me.username ?? "Mon profil"}
 						</span>
 					</Link>
-					<Link href="/parametres" aria-label="Paramètres du compte" className="hidden xl:grid h-9 w-9 place-items-center rounded-full text-white/55 hover:text-dbz-orange hover:bg-white/[0.06] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60">
+					<Link
+						href="/parametres"
+						aria-label="Paramètres du compte"
+						className="hidden xl:grid h-9 w-9 place-items-center rounded-full text-white/55 hover:text-dbz-orange hover:bg-white/[0.06] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dbz-orange/60"
+					>
 						<span aria-hidden>⚙</span>
 					</Link>
 					<SignOut

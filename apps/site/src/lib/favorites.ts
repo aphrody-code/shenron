@@ -19,7 +19,14 @@
 const KEY = "dbfr_favorites_v1";
 export const FAVORITES_EVENT = "dbfr:favorites";
 
-export type FavoriteKind = "episode" | "movie" | "chapter" | "character" | "saga" | "game";
+export type FavoriteKind =
+	| "episode"
+	| "movie"
+	| "chapter"
+	| "databook"
+	| "character"
+	| "saga"
+	| "game";
 
 export interface Favorite {
 	kind: FavoriteKind;

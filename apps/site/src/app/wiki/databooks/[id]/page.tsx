@@ -12,6 +12,8 @@ import { ogMeta } from "@/lib/og";
 import { JsonLd } from "@/components/JsonLd";
 import { isDatabookIndexable, parseDatabookId } from "@/lib/databooks-rules";
 import { toMillis, yearOf } from "@/lib/epoch";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { TrackHistory } from "@/components/history/TrackHistory";
 
 export const revalidate = 3600;
 
@@ -173,6 +175,14 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 	return (
 		<div className="w-full mx-auto min-w-0 max-w-[1200px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
 			<JsonLd data={jsonLd as never} />
+			<TrackHistory
+				kind="databook"
+				id={book.id}
+				title={book.title}
+				href={`/wiki/databooks/${book.id}`}
+				image={book.cover}
+				caption={`${category}${filledPages.length ? ` · ${filledPages.length} pages` : ""}`}
+			/>
 			<Breadcrumbs
 				className="mb-4"
 				items={[{ label: "Databooks", href: "/wiki/databooks" }, { label: book.title }]}
@@ -267,6 +277,16 @@ export default async function DatabookDetailPage({ params }: { params: Promise<{
 								{book.title_ja}
 							</p>
 						)}
+						<div className="mt-5">
+							<FavoriteButton
+								kind="databook"
+								id={book.id}
+								title={book.title}
+								href={`/wiki/databooks/${book.id}`}
+								image={book.cover}
+								caption={category}
+							/>
+						</div>
 					</div>
 
 					{book.description?.trim() ? (

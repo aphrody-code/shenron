@@ -5,6 +5,7 @@ import { PageHero } from "@/components/PageHero";
 import { SERIES_BANNERS } from "@/lib/db-banners";
 import { DatabookGrid } from "@/components/databooks/DatabookGrid";
 import { getLaunchConfig } from "@/lib/wiki-launch-config";
+import { ContinueRail } from "@/components/history/ContinueRail";
 
 export const revalidate = 3600;
 
@@ -51,6 +52,7 @@ export default async function DatabooksIndexPage() {
 			/>
 			<div className="w-full mx-auto max-w-[1400px] px-4 py-10 sm:px-6 sm:py-16 lg:px-10 lg:py-24">
 				<Breadcrumbs className="mb-6 sm:mb-8" items={[{ label: "Databooks" }]} />
+				<ContinueRail kinds={["databook"]} title="Reprendre un ouvrage" />
 				<DatabookGrid items={items} access={access} />
 			</div>
 		</div>

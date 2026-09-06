@@ -22,6 +22,7 @@ import { env } from "@/lib/env";
 import { siteEvents, type SiteEventInsert } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
 import { SITE_URL } from "@/lib/config";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,27 +132,7 @@ function newAnonId(): string {
 
 // --- Rate-limit en mémoire (best-effort, par visitorHash) -------------------
 
-const RL_WINDOW = 60_000; // 1 min
-const RL_MAX = 120; // events / min / visiteur
-const rl = new Map<string, { count: number; reset: number }>();
-
-function rateLimited(key: string, incr: number): boolean {
-	const now = Date.now();
-	const entry = rl.get(key);
-	if (!entry || now > entry.reset) {
-		rl.set(key, { count: incr, reset: now + RL_WINDOW });
-		return false;
-	}
-	entry.count += incr;
-	return entry.count > RL_MAX;
-}
-
-// Purge opportuniste pour borner la map.
-function gcRateLimit(): void {
-	if (rl.size < 5000) return;
-	const now = Date.now();
-	for (const [k, v] of rl) if (now > v.reset) rl.delete(k);
-}
+const telemetryRateLimit = createMemoryRateLimiter({ windowMs: 60_000, limit: 120 });
 
 // --- Handler -----------------------------------------------------------------
 
@@ -167,8 +148,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 	const ip = clientIp(req);
 	const visitorHash = dailyVisitorHash(ip, ua);
 
-	gcRateLimit();
-	if (rateLimited(visitorHash, parsed.events.length)) {
+	if (telemetryRateLimit.isLimited(visitorHash, parsed.events.length)) {
 		return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
 	}
 

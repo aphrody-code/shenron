@@ -12,7 +12,7 @@
  * Le défilement clavier/tactile natif marche déjà (overflow-x-auto) ; les flèches
  * ne sont qu'un confort souris. `scrollBy` d'environ 85 % de la largeur visible.
  */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Children, useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDroite, ChevronGauche } from "@/components/icones";
 
 export function StreamRail({
@@ -24,7 +24,7 @@ export function StreamRail({
 	ariaLabel?: string;
 	className?: string;
 }) {
-	const ref = useRef<HTMLDivElement>(null);
+	const ref = useRef<HTMLUListElement>(null);
 	const [atStart, setAtStart] = useState(true);
 	const [atEnd, setAtEnd] = useState(false);
 
@@ -98,15 +98,16 @@ export function StreamRail({
 				<ChevronDroite className="h-6 w-6" />
 			</button>
 
-			<div
+			<ul
 				ref={ref}
 				onScroll={update}
-				role="group"
 				aria-label={ariaLabel}
 				className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 			>
-				{children}
-			</div>
+				{Children.map(children, (child) => (
+					<li className="shrink-0 snap-start">{child}</li>
+				))}
+			</ul>
 		</div>
 	);
 }

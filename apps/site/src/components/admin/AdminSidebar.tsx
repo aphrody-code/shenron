@@ -585,8 +585,16 @@ export function AdminSidebar() {
 		[filtered]
 	);
 
-	const isActive = (href: string) =>
-		pathname === href || (href !== "/admin/dashboard" && pathname?.startsWith(href));
+	// Une seule entrée active, même pour les routes imbriquées. Sans le match le
+	// plus long, `/admin/canvas/themes` activait aussi `/admin/canvas` et les
+	// sous-pages du studio allumaient plusieurs repères à la fois.
+	const activeHref = useMemo(
+		() =>
+			ADMIN_LINKS.filter(
+				(link) => pathname === link.href || pathname?.startsWith(`${link.href}/`)
+			).toSorted((a, b) => b.href.length - a.href.length)[0]?.href,
+		[pathname]
+	);
 
 	return (
 		<>
@@ -706,7 +714,7 @@ export function AdminSidebar() {
 									{/* Liste des liens de la section */}
 									<ul className="space-y-0.5">
 										{group.items.map((l) => {
-											const active = isActive(l.href);
+											const active = activeHref === l.href;
 											return (
 												<li key={l.href}>
 													<Link

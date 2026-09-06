@@ -1,14 +1,40 @@
 import { betterAuth } from "better-auth";
+import { APIError } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db";
 import * as schema from "../db/schema";
 import { env } from "./env";
+import { and, eq } from "drizzle-orm";
+import { purgeAccountData } from "./account-data";
+import { invalidateCurrentUser } from "./current-user-cache";
 
 // URL canonique du site. `.trim()` + strip trailing slash = défense contre une
 // valeur d'env polluée (ex. BETTER_AUTH_URL posée via `echo` qui ajoute un \n
 // final → redirectURI "https://dbfr.vercel.app\n/api/auth/..." malformé →
 // Discord rejette le callback). Ne jamais concaténer une env URL brute.
 const SITE_URL = (env.BETTER_AUTH_URL ?? "https://dragonballfr.com").trim().replace(/\/+$/, "");
+
+// Le hook `afterDelete` ne peut plus lire ba_account (supprimé en cascade par
+// Better Auth). Le hook précédent mémorise donc uniquement l'identifiant
+// métier non sensible, pour la durée de la même requête.
+const pendingDeletion = new Map<
+	string,
+	{ appUserId: string; discordId: string; expiresAt: number }
+>();
+const PENDING_DELETION_TTL = 10 * 60_000;
+
+function validateAvatarUrl(value: string | null | undefined): void {
+	if (!value) return;
+	let parsed: URL;
+	try {
+		parsed = new URL(value);
+	} catch {
+		throw new APIError("BAD_REQUEST", { message: "L’URL de l’avatar est invalide." });
+	}
+	if (parsed.protocol !== "https:") {
+		throw new APIError("BAD_REQUEST", { message: "L’avatar doit utiliser une URL HTTPS." });
+	}
+}
 
 export const auth = betterAuth({
 	appName: "DBFR",
@@ -36,12 +62,67 @@ export const auth = betterAuth({
 
 	basePath: "/api/auth",
 	secret: env.BETTER_AUTH_SECRET,
-	// L'utilisateur peut demander la suppression de son compte depuis les
-	// paramètres. En production, l'envoi du lien de confirmation doit être
-	// branché sur le fournisseur d'e-mail avant d'activer ce flux.
+	// La suppression est immédiate pour une session fraîche. Les contenus qui
+	// doivent rester publiés conservent leur auteur anonymisé ; les préférences
+	// personnelles sont supprimées.
 	user: {
 		deleteUser: {
 			enabled: true,
+			beforeDelete: async (authUser) => {
+				const now = Date.now();
+				for (const [userId, entry] of pendingDeletion) {
+					if (entry.expiresAt <= now) pendingDeletion.delete(userId);
+				}
+				const [linked] = await db
+					.select({ appUserId: schema.users.id, discordId: schema.users.discordId })
+					.from(schema.baAccount)
+					.innerJoin(schema.users, eq(schema.users.discordId, schema.baAccount.accountId))
+					.where(
+						and(
+							eq(schema.baAccount.userId, authUser.id),
+							eq(schema.baAccount.providerId, "discord")
+						)
+					)
+					.limit(1);
+				if (linked) {
+					pendingDeletion.set(authUser.id, {
+						...linked,
+						expiresAt: now + PENDING_DELETION_TTL,
+					});
+				}
+			},
+			afterDelete: async (authUser) => {
+				const linked = pendingDeletion.get(authUser.id);
+				pendingDeletion.delete(authUser.id);
+				if (!linked || linked.expiresAt <= Date.now()) return;
+				await purgeAccountData({
+					authUserId: authUser.id,
+					appUserId: linked.appUserId,
+					discordId: linked.discordId,
+				});
+			},
+		},
+	},
+	databaseHooks: {
+		user: {
+			update: {
+				before: async (user) => {
+					const name = typeof user.name === "string" ? user.name.trim() : user.name;
+					if (typeof name === "string" && (name.length < 2 || name.length > 48)) {
+						throw new APIError("BAD_REQUEST", {
+							message: "Le pseudo doit contenir entre 2 et 48 caractères.",
+						});
+					}
+					validateAvatarUrl(user.image);
+					return { data: { ...user, name } };
+				},
+				after: async (user) => {
+					// Le profil métier est résynchronisé au prochain rendu. Sans cette
+					// invalidation, le dashboard pouvait garder l'ancien pseudo/avatar
+					// pendant le TTL de 60 secondes après un enregistrement réussi.
+					invalidateCurrentUser(user.id);
+				},
+			},
 		},
 	},
 	// Cache de session signé en cookie : getSession lit le cookie au lieu de

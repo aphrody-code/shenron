@@ -18,6 +18,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { userPreferences } from "@/db/schema";
 import { getCurrentUser } from "@/lib/session";
+import { sanitizeInternalPath } from "@/lib/internal-path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +36,7 @@ type Favorite = {
 	at: number;
 };
 
-const KINDS = new Set(["episode", "movie", "chapter", "character", "saga", "game"]);
+const KINDS = new Set(["episode", "movie", "chapter", "databook", "character", "saga", "game"]);
 
 /** Validation stricte : la charge vient du client, elle est rejouée telle quelle. */
 function sanitize(input: unknown): Favorite[] {
@@ -51,11 +52,8 @@ function sanitize(input: unknown): Favorite[] {
 		const kind = str(f.kind, 20);
 		const id = str(f.id, 64);
 		const title = str(f.title, 200);
-		const href = str(f.href, 300);
+		const href = sanitizeInternalPath(f.href, 300);
 		if (!kind || !KINDS.has(kind) || !id || !title || !href) continue;
-		// `href` sert de cible de lien : on n'accepte que du chemin interne, jamais
-		// une URL absolue (qui ferait de la liste un vecteur de redirection).
-		if (!href.startsWith("/") || href.startsWith("//")) continue;
 		const key = `${kind}:${id}`;
 		if (seen.has(key)) continue;
 		seen.add(key);

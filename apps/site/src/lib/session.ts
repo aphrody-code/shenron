@@ -6,14 +6,14 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { env } from "@/lib/env";
 import { ADMIN_COOKIE, adminTokenEnabled, verifyAdminCookie } from "@/lib/admin-token";
+import {
+	cacheCurrentUser,
+	readCachedCurrentUser,
+	type CurrentUser,
+	type SiteUser,
+} from "@/lib/current-user-cache";
 
-export type SiteUser = typeof users.$inferSelect;
-
-export type CurrentUser = {
-	sessionUserId: string;
-	discordId: string;
-	user: SiteUser | null;
-};
+export type { CurrentUser, SiteUser } from "@/lib/current-user-cache";
 
 /**
  * Pipeline auth admin — source unique de vérité.
@@ -35,9 +35,6 @@ function resolveRoleAdmin(discordId: string): boolean {
 // Évite un aller-retour Neon (us-east-1) sur chaque requête depuis cdg1 : sur une
 // instance chaude (Fluid Compute), la 2e+ résolution est servie depuis la RAM.
 // TTL court → un changement de roleAdmin/username se propage en ≤ 60 s.
-const userResolveCache = new Map<string, { at: number; value: CurrentUser }>();
-const USER_RESOLVE_TTL = 60_000;
-
 // Cache de la résolution token-admin (la valeur ne change jamais) → évite un
 // aller-retour Neon à chaque requête, vu que la console admin poll toutes les 5 s.
 let tokenAdminCache: { at: number; value: CurrentUser } | null = null;
@@ -109,8 +106,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 	const session = await auth.api.getSession({ headers: await headers() });
 	if (!session?.user) return null;
 
-	const cached = userResolveCache.get(session.user.id);
-	if (cached && Date.now() - cached.at < USER_RESOLVE_TTL) return cached.value;
+	const cached = readCachedCurrentUser(session.user.id);
+	if (cached) return cached;
 
 	// Compte Discord lié → fournit le Discord ID (= clé du user métier).
 	const [row] = await db
@@ -172,7 +169,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 		discordId,
 		user: appUser,
 	};
-	userResolveCache.set(session.user.id, { at: Date.now(), value: result });
+	cacheCurrentUser(session.user.id, result);
 	return result;
 }
 

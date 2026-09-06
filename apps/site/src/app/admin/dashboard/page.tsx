@@ -21,6 +21,27 @@ import { api } from "@/lib/admin-api";
 import { formatBytes, formatDuration, fmtNum } from "@/lib/admin-format";
 import { useBots, type BotSummary } from "@/components/admin/BotSelector";
 
+type MonitoringResponse = {
+	botStatus: { online: boolean; uptime: number | null };
+	pid: { cpu: number; memory: number; uptime: number; rss: number };
+	host: {
+		cpu: { count: number; usage: number };
+		memory: { total: number; free: number; used: number; usage: number };
+		platform: string;
+		uptime: number;
+	};
+	latency: { ws: number; db: number };
+};
+
+type TotalsResponse = {
+	stats: {
+		totalUsers: number;
+		totalGuilds: number;
+		totalActiveUsers: number;
+		totalCommands: number;
+	};
+};
+
 // ---------------------------------------------------------------------------
 // Cartes "Que voulez-vous faire ?" — accès rapide pour l'admin
 // ---------------------------------------------------------------------------
@@ -84,12 +105,12 @@ export default function DashboardPage() {
 	const bots = useBots();
 	const health = useQuery({
 		queryKey: ["health", "monitoring"],
-		queryFn: () => api.get<any>("/health/monitoring"),
+		queryFn: () => api.get<MonitoringResponse>("/health/monitoring"),
 		refetchInterval: 30_000,
 	});
 	const stats = useQuery({
 		queryKey: ["stats", "totals"],
-		queryFn: () => api.get<any>("/stats/totals"),
+		queryFn: () => api.get<TotalsResponse>("/stats/totals"),
 		refetchInterval: 60_000,
 	});
 
@@ -102,36 +123,92 @@ export default function DashboardPage() {
 						Math.max(1, onlineCount)
 				)
 			: null;
+	const hasError = bots.isError || health.isError || stats.isError;
+	const refresh = () => {
+		void bots.refetch();
+		void health.refetch();
+		void stats.refetch();
+	};
 
 	return (
 		<div className="space-y-8 pb-8">
 			{/* En-tête accueillant */}
 			<div className="relative overflow-hidden rounded-2xl border border-dbz-orange/30 bg-[radial-gradient(circle_at_80%_0%,rgba(243,132,24,.18),transparent_38%),#171511] px-6 py-6 shadow-[0_20px_60px_rgba(0,0,0,.25)] md:px-8 md:py-7">
-				<div className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full border border-dbz-orange/20" aria-hidden />
+				<div
+					className="pointer-events-none absolute -right-12 -top-20 h-56 w-56 rounded-full border border-dbz-orange/20"
+					aria-hidden
+				/>
 				<div className="flex items-start gap-4">
 					<div className="flex-1">
-						<div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.2em] text-dbz-orange"><span className="h-2 w-2 rounded-full bg-namek shadow-[0_0_12px_rgba(80,200,120,.8)]" />Centre de contrôle DBFR</div>
+						<div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[.2em] text-dbz-orange">
+							<span className="h-2 w-2 rounded-full bg-namek shadow-[0_0_12px_rgba(80,200,120,.8)]" />
+							Centre de contrôle DBFR
+						</div>
 						<h1 className="font-saiyan text-3xl leading-tight text-white md:text-4xl">
 							Bonjour, administrateur
 						</h1>
 						<p className="mt-2 text-white/60 text-sm leading-relaxed max-w-xl">
-							Pilotez le bot, le wiki et la communauté depuis un seul espace. Les indicateurs ci-dessous sont actualisés automatiquement.
+							Pilotez le bot, le wiki et la communauté depuis un seul espace. Les indicateurs
+							ci-dessous sont actualisés automatiquement.
 						</p>
-						<div className="mt-5 flex flex-wrap gap-2"><Link href="/admin/live" className="inline-flex items-center gap-2 rounded-full bg-dbz-orange px-4 py-2 text-xs font-bold text-black transition hover:bg-yellow-300">Voir l’activité en direct <ArrowUpRight className="h-3.5 w-3.5" /></Link><Link href="/admin/console" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white/75 transition hover:border-dbz-orange hover:text-white"><Command className="h-3.5 w-3.5" /> Ouvrir la console</Link></div>
+						<div className="mt-5 flex flex-wrap gap-2">
+							<Link
+								href="/admin/live"
+								className="inline-flex items-center gap-2 rounded-full bg-dbz-orange px-4 py-2 text-xs font-bold text-black transition hover:bg-yellow-300"
+							>
+								Voir l’activité en direct <ArrowUpRight className="h-3.5 w-3.5" />
+							</Link>
+							<Link
+								href="/admin/console"
+								className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-xs font-semibold text-white/75 transition hover:border-dbz-orange hover:text-white"
+							>
+								<Command className="h-3.5 w-3.5" /> Ouvrir la console
+							</Link>
+						</div>
 					</div>
 					<div className="hidden sm:flex items-center gap-2 shrink-0">
 						<span
-							className={`h-2.5 w-2.5 rounded-full ${onlineCount > 0 ? "bg-namek animate-pulse" : "bg-dbz-red"}`}
+							className={`h-2.5 w-2.5 rounded-full ${bots.isPending || bots.isError ? "bg-white/30" : onlineCount > 0 ? "bg-namek animate-pulse" : "bg-dbz-red"}`}
 						/>
 						<span className="text-xs text-white/50">
-							{onlineCount > 0
-								? `${onlineCount} bot${onlineCount > 1 ? "s" : ""} en ligne`
-								: "Bot hors ligne"}
+							{bots.isPending
+								? "Connexion au bot…"
+								: bots.isError
+									? "État indisponible"
+									: onlineCount > 0
+										? `${onlineCount} bot${onlineCount > 1 ? "s" : ""} en ligne`
+										: "Bot hors ligne"}
 						</span>
 					</div>
 				</div>
 			</div>
-			<div className="flex items-center justify-between border-b border-white/10 pb-3"><div><h2 className="text-base font-semibold text-white">Accès rapides</h2><p className="mt-1 text-xs text-white/45">Les opérations les plus fréquentes</p></div><span className="hidden text-xs text-white/40 sm:inline-flex sm:items-center sm:gap-1">{QUICK_ACTIONS.length} raccourcis <ArrowUpRight className="h-3 w-3" /></span></div>
+			{hasError && (
+				<div
+					role="alert"
+					className="flex flex-col gap-3 rounded-xl border border-yellow-300/25 bg-yellow-300/5 p-4 text-sm text-yellow-100/75 sm:flex-row sm:items-center sm:justify-between"
+				>
+					<p>
+						Certains indicateurs ne répondent pas. Les valeurs manquantes ne sont pas interprétées
+						comme des zéros.
+					</p>
+					<button
+						type="button"
+						onClick={refresh}
+						className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-yellow-200/30 px-4 font-semibold hover:bg-yellow-200/10"
+					>
+						<RefreshCw className="h-4 w-4" /> Réessayer
+					</button>
+				</div>
+			)}
+			<div className="flex items-center justify-between border-b border-white/10 pb-3">
+				<div>
+					<h2 className="text-base font-semibold text-white">Accès rapides</h2>
+					<p className="mt-1 text-xs text-white/45">Les opérations les plus fréquentes</p>
+				</div>
+				<span className="hidden text-xs text-white/40 sm:inline-flex sm:items-center sm:gap-1">
+					{QUICK_ACTIONS.length} raccourcis <ArrowUpRight className="h-3 w-3" />
+				</span>
+			</div>
 
 			{/* Accès rapides — que voulez-vous faire ? */}
 			<div>
@@ -154,7 +231,15 @@ export default function DashboardPage() {
 
 			{/* KPIs — vue d'ensemble du système */}
 			<div>
-				<div className="mb-4 flex items-end justify-between"><div><h2 className="text-base font-semibold text-white">Santé du système</h2><p className="mt-1 text-xs text-white/45">Bot, données et ressources de la machine</p></div><span className="inline-flex items-center gap-1.5 text-[11px] text-white/40"><RefreshCw className="h-3 w-3" /> auto · 30 s</span></div>
+				<div className="mb-4 flex items-end justify-between">
+					<div>
+						<h2 className="text-base font-semibold text-white">Santé du système</h2>
+						<p className="mt-1 text-xs text-white/45">Bot, données et ressources de la machine</p>
+					</div>
+					<span className="inline-flex items-center gap-1.5 text-[11px] text-white/40">
+						<RefreshCw className="h-3 w-3" /> auto · 30 s
+					</span>
+				</div>
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 					<KPICard label="Bots en ligne" icon={<Server className="h-4 w-4" />}>
 						<p className="text-3xl font-bold text-brand-400">
@@ -213,8 +298,16 @@ export default function DashboardPage() {
 					Bot Discord unifié
 				</h2>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-					{bots.data?.bots.map((b) => <BotCard key={b.id} bot={b} />) ?? (
-						<div className="text-zinc-500 text-sm">Chargement…</div>
+					{bots.isPending ? (
+						Array.from({ length: 3 }, (_, index) => (
+							<div key={index} className="h-24 animate-pulse rounded-xl bg-white/[.04]" />
+						))
+					) : bots.isError ? (
+						<div className="text-zinc-500 text-sm">Inventaire des bots indisponible.</div>
+					) : bots.data.bots.length ? (
+						bots.data.bots.map((b) => <BotCard key={b.id} bot={b} />)
+					) : (
+						<div className="text-zinc-500 text-sm">Aucun client Gateway déclaré.</div>
 					)}
 				</div>
 			</div>

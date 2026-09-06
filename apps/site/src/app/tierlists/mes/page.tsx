@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { MyTierlistManager } from "@/components/tierlist/MyTierlistManager";
 import { listTierlistsByAuthor } from "@/lib/tierlists";
 import { requireUser } from "@/lib/session";
+import { UserNav } from "@/components/user/UserNav";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,8 @@ export default async function MesTierlistsPage() {
 	const lists = me.user ? await listTierlistsByAuthor(me.user.id, 50).catch(() => []) : [];
 
 	return (
-		<div className="container w-full mx-auto max-w-5xl px-4 py-12">
+		<div className="container w-full mx-auto max-w-5xl px-4 py-8 pb-28 md:py-12">
+			<UserNav />
 			<PageHeader title="MES TIERLISTS" subtitle="Gère et supprime tes classements" />
 			<div className="mb-8 flex justify-center gap-4">
 				<Link

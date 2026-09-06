@@ -17,6 +17,7 @@ const KIND_LABEL: Record<Favorite["kind"], string> = {
 	episode: "Épisode",
 	movie: "Film",
 	chapter: "Chapitre",
+	databook: "Databook",
 	character: "Personnage",
 	saga: "Saga",
 	game: "Jeu",

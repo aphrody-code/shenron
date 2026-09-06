@@ -62,12 +62,24 @@ configuration éditable `/admin/home`. Elle doit rester cacheable :
 ne pas introduire cookies/headers dans le layout racine ou les données publiques.
 Le contenu live se met à jour côté client via `useLiveBotState`.
 
+Les rails publics (`MediaCatalogRails`) lisent uniquement les métadonnées
+publiques épisode/film/manga/databook. Le registre `lib/site-menu.ts` est la
+source de vérité du menu complet, présenté aussi par `HomeMenuJourney`. Dans
+`/admin/home`, `catalogue` et `journey` contrôlent la présentation et la
+visibilité ; les destinations restent fixes.
+
 Le dashboard admin est sous `apps/site/src/app/admin/`. Il est protégé par
 `requireAdmin()`, dynamique et non indexable. Les appels bot passent par les
 proxys server-only `/api/bot-admin` ou `/api/bot-user`; aucun secret ne doit
 arriver au navigateur. Le dashboard doit présenter le bot unifié, pas six
 clients fictifs. Les aliases historiques ne sont affichés que pour compatibilité
 technique.
+
+L'espace membre (`/dashboard`, `/profil/me`, `/parametres`) garde favoris,
+historique et sessions privés. L'export `/api/account/export` utilise
+`private, no-store`; la suppression Better Auth purge les données personnelles
+et anonymise les contributions conservées. Ne jamais exporter de jeton, compte
+OAuth, session, IP ou note interne.
 
 ## Synchronisation
 

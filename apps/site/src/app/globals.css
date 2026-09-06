@@ -109,7 +109,10 @@ main:focus {
 	   contre 10,96:1 pour l'ancien : on perd de la marge, on reste au-dessus de
 	   AA partout. */
 	--color-dbz-orange: var(--dbz-orange, #e78220); /* orange du gi, mesuré */
-	--color-dbz-orange-dark: var(--dbz-orange-dark, #c46f1b); /* press state : −15 % de valeur, le rapport de l'ancien couple */
+	--color-dbz-orange-dark: var(
+		--dbz-orange-dark,
+		#c46f1b
+	); /* press state : −15 % de valeur, le rapport de l'ancien couple */
 	--color-dbz-blue: var(--dbz-blue, #1e244d); /* deep navy lisible */
 	--color-dbz-blue-light: var(--dbz-blue-light, #cdcdcd); /* gris clair DB officiel */
 	--color-dbz-yellow: var(--dbz-yellow, #fefd03); /* jaune du titre de couverture, comme `gold` */
@@ -382,17 +385,13 @@ main:focus {
 	   Tailwind (`text-sm`, `text-xs`) ont une spécificité égale et gagneraient à
 	   l'ordre de cascade. */
 	@media (max-width: 767px) {
-		input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
-				[type="color"]
-			),
+		input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
 		textarea,
 		select {
 			font-size: 16px !important;
 		}
 	}
 }
-
-
 
 /* ── .cible-44 — élargir la ZONE tactile sans grossir le dessin ────────────
    Certains contrôles doivent rester petits à l'œil : la croix qui ferme une
@@ -973,9 +972,28 @@ main:focus {
 	.bulle--cri {
 		border-radius: 0;
 		clip-path: polygon(
-			0% 18%, 8% 6%, 22% 14%, 34% 0%, 48% 12%, 62% 2%, 74% 14%, 90% 6%, 100% 20%,
-			94% 40%, 100% 58%, 92% 76%, 100% 92%, 84% 88%, 70% 100%, 56% 88%, 42% 98%,
-			28% 86%, 14% 96%, 4% 78%, 10% 58%, 0% 38%
+			0% 18%,
+			8% 6%,
+			22% 14%,
+			34% 0%,
+			48% 12%,
+			62% 2%,
+			74% 14%,
+			90% 6%,
+			100% 20%,
+			94% 40%,
+			100% 58%,
+			92% 76%,
+			100% 92%,
+			84% 88%,
+			70% 100%,
+			56% 88%,
+			42% 98%,
+			28% 86%,
+			14% 96%,
+			4% 78%,
+			10% 58%,
+			0% 38%
 		);
 		border: none;
 		padding: 1.1rem 1.6rem;
@@ -1010,7 +1028,13 @@ main:focus {
 		height: 3px;
 		border: 0;
 		background:
-			linear-gradient(90deg, transparent 0%, var(--color-os) 6%, var(--color-os) 94%, transparent 100%),
+			linear-gradient(
+				90deg,
+				transparent 0%,
+				var(--color-os) 6%,
+				var(--color-os) 94%,
+				transparent 100%
+			),
 			linear-gradient(90deg, transparent 12%, rgba(255, 255, 255, 0.35) 30%, transparent 46%);
 		opacity: 0.75;
 	}
@@ -2357,6 +2381,232 @@ main:focus {
 .home-live-pill.is-on {
 	border-color: color-mix(in oklab, var(--accent) 50%, transparent);
 }
+
+/* ── Atlas du menu complet ────────────────────────────────────────────────
+ * Panneaux à l'encre : cases asymétriques, trames et traits de vitesse. La
+ * composition reprend le rythme d'une double-page sans imiter une planche
+ * existante. Les images sont celles du catalogue DBFR, jamais décoratives au
+ * point de masquer la destination ou son libellé.
+ */
+.home-menu-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.home-menu-card {
+	--panel-accent: var(--color-dbz-orange, #e78220);
+	position: relative;
+	isolation: isolate;
+	min-height: clamp(25rem, 72vw, 33rem);
+	overflow: hidden;
+	border: 1px solid color-mix(in oklab, var(--panel-accent) 30%, rgba(255, 255, 255, 0.1));
+	border-radius: clamp(1.25rem, 2vw, 2rem);
+	background: #111;
+	box-shadow:
+		0 1px 0 rgba(255, 255, 255, 0.05) inset,
+		0 28px 80px rgba(0, 0, 0, 0.32);
+}
+
+.home-menu-card::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	pointer-events: none;
+	background: repeating-linear-gradient(
+		112deg,
+		transparent 0 13px,
+		rgba(255, 255, 255, 0.055) 14px,
+		transparent 15px 28px
+	);
+	mask-image: linear-gradient(130deg, transparent 28%, #000 78%);
+	mix-blend-mode: overlay;
+	opacity: 0.65;
+}
+
+.home-menu-card::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	pointer-events: none;
+	border: 7px solid transparent;
+	border-bottom-color: color-mix(in oklab, var(--panel-accent) 72%, #fff 5%);
+	clip-path: polygon(0 0, 100% 0, 100% 100%, 16% 100%, 0 86%);
+	opacity: 0.82;
+}
+
+.home-menu-card__media {
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+}
+
+.home-menu-card__media img {
+	filter: saturate(0.92) contrast(1.08);
+	transform: scale(1.015);
+	transition:
+		transform 700ms cubic-bezier(0.2, 0.75, 0.2, 1),
+		filter 500ms ease;
+}
+
+.home-menu-card:hover .home-menu-card__media img,
+.home-menu-card:focus-within .home-menu-card__media img {
+	filter: saturate(1.08) contrast(1.06);
+	transform: scale(1.07);
+}
+
+.home-menu-card__wash {
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(180deg, rgba(5, 5, 5, 0.08) 15%, rgba(5, 5, 5, 0.93) 90%),
+		linear-gradient(
+			110deg,
+			color-mix(in oklab, var(--panel-accent) 21%, transparent),
+			transparent 58%
+		);
+}
+
+.home-menu-card__kanji {
+	position: absolute;
+	top: clamp(1rem, 3vw, 2rem);
+	right: clamp(1rem, 3vw, 2rem);
+	z-index: 2;
+	font-family: var(--font-noto-jp), sans-serif;
+	font-size: clamp(4.5rem, 14vw, 8rem);
+	font-weight: 900;
+	line-height: 0.8;
+	color: transparent;
+	-webkit-text-stroke: 1px color-mix(in oklab, var(--panel-accent) 72%, white 12%);
+	opacity: 0.32;
+	transform: rotate(3deg);
+}
+
+.home-menu-card__copy {
+	position: absolute;
+	inset: auto clamp(1.25rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.75rem);
+	z-index: 4;
+	max-width: 38rem;
+}
+
+.home-menu-card__kicker {
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	font-family: var(--font-display), sans-serif;
+	font-size: 0.7rem;
+	font-weight: 800;
+	letter-spacing: 0.17em;
+	text-transform: uppercase;
+	color: color-mix(in oklab, var(--panel-accent) 82%, white 18%);
+}
+
+.home-menu-card__kicker span {
+	display: grid;
+	height: 1.65rem;
+	min-width: 1.65rem;
+	place-items: center;
+	border-radius: 999px;
+	background: var(--panel-accent);
+	color: #080808;
+	font-family: ui-monospace, monospace;
+	letter-spacing: 0;
+}
+
+.home-menu-card__title {
+	margin-top: 0.75rem;
+	font-family: var(--font-saiyan), var(--font-display), sans-serif;
+	font-size: clamp(2.8rem, 10vw, 5.75rem);
+	line-height: 0.84;
+	text-wrap: balance;
+	text-shadow: 0 3px 24px rgba(0, 0, 0, 0.68);
+}
+
+.home-menu-card__note {
+	margin-top: 0.9rem;
+	max-width: 32rem;
+	font-size: clamp(0.82rem, 1.4vw, 1rem);
+	line-height: 1.55;
+	color: rgba(255, 255, 255, 0.64);
+}
+
+.home-menu-card__cta {
+	display: inline-flex;
+	min-height: 2.75rem;
+	align-items: center;
+	justify-content: center;
+	gap: 0.45rem;
+	margin-top: 1.35rem;
+	border: 1px solid color-mix(in oklab, var(--panel-accent) 52%, white 8%);
+	border-radius: 999px;
+	padding: 0.65rem 1rem;
+	background: rgba(6, 6, 6, 0.56);
+	font-family: var(--font-display), sans-serif;
+	font-size: 0.78rem;
+	font-weight: 750;
+	color: white;
+	backdrop-filter: blur(10px);
+	transition:
+		background-color 180ms ease,
+		color 180ms ease,
+		transform 180ms ease;
+}
+
+.home-menu-card__cta:hover,
+.home-menu-card__cta:focus-visible {
+	background: var(--panel-accent);
+	color: #080808;
+	transform: translateY(-2px);
+	outline: none;
+}
+
+@media (min-width: 760px) {
+	.home-menu-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.home-menu-card {
+		min-height: clamp(28rem, 44vw, 36rem);
+	}
+	.home-menu-card--wide {
+		grid-column: 1 / -1;
+		min-height: clamp(31rem, 48vw, 42rem);
+	}
+	.home-menu-card--wide .home-menu-card__title {
+		font-size: clamp(4rem, 8vw, 7rem);
+	}
+}
+
+/* View-driven reveal : aucune observation JS, aucun travail hors écran. */
+@supports (animation-timeline: view()) {
+	.home-menu-card {
+		animation: home-menu-reveal linear both;
+		animation-timeline: view();
+		animation-range: entry 5% cover 34%;
+	}
+}
+
+@keyframes home-menu-reveal {
+	from {
+		opacity: 0.35;
+		transform: translateY(2.5rem) scale(0.975);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.home-menu-card,
+	.home-menu-card__media img,
+	.home-menu-card__cta {
+		animation: none !important;
+		transition: none !important;
+		transform: none !important;
+	}
+}
 .home-live-dot {
 	width: 7px;
 	height: 7px;
@@ -2489,8 +2739,8 @@ main:focus {
 	/* L'échelle est le troisième terme de la trajectoire : le nuage entre par la
 	   gauche loin derrière la scène et passe au premier plan en la traversant.
 	   Sans elle, il glisse à plat sur la vidéo comme un autocollant. */
-	transform: translate3d(var(--kt-x, -12vw), var(--kt-y, 0), 0)
-		rotate(var(--kt-inclinaison, 0deg)) scale(var(--kt-echelle, 1));
+	transform: translate3d(var(--kt-x, -12vw), var(--kt-y, 0), 0) rotate(var(--kt-inclinaison, 0deg))
+		scale(var(--kt-echelle, 1));
 	will-change: transform, opacity;
 	transition: opacity 180ms ease-out;
 }

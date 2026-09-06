@@ -18,6 +18,7 @@ const KIND_LABEL: Record<HistoryEntry["kind"], string> = {
 	episode: "Épisode",
 	movie: "Film",
 	chapter: "Chapitre",
+	databook: "Databook",
 };
 
 export function ContinueRail({

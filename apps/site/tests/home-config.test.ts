@@ -18,6 +18,40 @@ describe("resolveHomeConfig", () => {
 		const cfg = resolveHomeConfig({ version: 1 });
 		expect(cfg.hero.scenes.length).toBeGreaterThan(0);
 		expect(cfg.sections.length).toBe(DEFAULT_HOME_CONFIG.sections.length);
+		expect(cfg.catalogue.destinations).toHaveLength(4);
+		expect(cfg.journey.destinations).toHaveLength(7);
+	});
+
+	test("les destinations fixes sont éditables mais une route injectée est rejetée", () => {
+		const cfg = resolveHomeConfig({
+			catalogue: {
+				title: "À regarder",
+				destinations: [
+					{ href: "/wiki/episodes", enabled: false },
+					{ href: "https://example.com", enabled: true },
+				],
+			},
+			journey: {
+				destinations: [
+					{ href: "/dashboard", label: "Mon repaire", accent: "#123456" },
+					{ href: "javascript:alert(1)", label: "Piège" },
+				],
+			},
+		});
+
+		expect(cfg.catalogue.title).toBe("À regarder");
+		expect(
+			cfg.catalogue.destinations.find((entry) => entry.href === "/wiki/episodes")?.enabled
+		).toBe(false);
+		expect(
+			cfg.catalogue.destinations.some((entry) => (entry.href as string) === "https://example.com")
+		).toBe(false);
+		expect(cfg.journey.destinations[0]?.href).toBe("/dashboard");
+		expect(cfg.journey.destinations[0]?.label).toBe("Mon repaire");
+		expect(cfg.journey.destinations[0]?.accent).toBe("#123456");
+		expect(cfg.journey.destinations.some((entry) => entry.href.startsWith("javascript:"))).toBe(
+			false
+		);
 	});
 
 	test("un patch partiel ne perd pas le reste", () => {

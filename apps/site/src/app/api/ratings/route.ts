@@ -16,6 +16,7 @@ import {
 	isRatingTargetType,
 	upsertRating,
 } from "@/lib/ratings";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
 /** Home + page classements + badges podium (cache tag). */
 function revalidateTops() {
@@ -36,19 +37,7 @@ const postSchema = z.object({
 });
 
 // Rate-limit mémoire : 20 notes / 10 min / user (anti-spam).
-const RL_WINDOW = 10 * 60_000;
-const RL_MAX = 20;
-const rl = new Map<string, { count: number; reset: number }>();
-function rateLimited(key: string): boolean {
-	const now = Date.now();
-	const e = rl.get(key);
-	if (!e || now > e.reset) {
-		rl.set(key, { count: 1, reset: now + RL_WINDOW });
-		return false;
-	}
-	e.count += 1;
-	return e.count > RL_MAX;
-}
+const ratingRateLimit = createMemoryRateLimiter({ windowMs: 10 * 60_000, limit: 20 });
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
 	const type = req.nextUrl.searchParams.get("type");
@@ -89,7 +78,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 		return NextResponse.json({ ok: false, error: "auth_required" }, { status: 401 });
 	}
 
-	if (rateLimited(me.user.id)) {
+	if (ratingRateLimit.isLimited(me.user.id)) {
 		return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
 	}
 

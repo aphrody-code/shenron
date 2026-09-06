@@ -37,8 +37,12 @@ import {
 	ERAS,
 	type Era,
 	type HomeConfig,
+	type HomeBlockHeading,
+	type HomeCatalogueConfig,
 	type HomeScene,
 	type HomeClip,
+	type HomeJourneyConfig,
+	type HomeJourneyDestination,
 	type HomeSectionConfig,
 	type PlayCard,
 } from "@/lib/home-scenes";
@@ -432,6 +436,272 @@ function SectionCard({
 	);
 }
 
+function BlockHeadingEditor({
+	value,
+	onChange,
+}: {
+	value: HomeBlockHeading;
+	onChange: (patch: Partial<HomeBlockHeading>) => void;
+}) {
+	return (
+		<div className="grid gap-3 sm:grid-cols-2">
+			<label className="text-xs text-zinc-400">
+				Exergue
+				<input
+					className="input mt-1"
+					value={value.eyebrow}
+					onChange={(event) => onChange({ eyebrow: event.target.value })}
+				/>
+			</label>
+			<label className="text-xs text-zinc-400">
+				Titre
+				<input
+					className="input mt-1"
+					value={value.title}
+					onChange={(event) => onChange({ title: event.target.value })}
+				/>
+			</label>
+			<label className="text-xs text-zinc-400 sm:col-span-2">
+				Sous-titre
+				<PlainField
+					value={value.subtitle}
+					onChange={(subtitle) => onChange({ subtitle })}
+					minRows={2}
+					maxRows={6}
+				/>
+			</label>
+		</div>
+	);
+}
+
+const CATALOGUE_LABELS: Record<HomeCatalogueConfig["destinations"][number]["href"], string> = {
+	"/wiki/episodes": "Épisodes",
+	"/wiki/films": "Films",
+	"/wiki/manga": "Manga",
+	"/wiki/databooks": "Databooks",
+};
+
+function CatalogueEditor({
+	value,
+	onChange,
+}: {
+	value: HomeCatalogueConfig;
+	onChange: (value: HomeCatalogueConfig) => void;
+}) {
+	return (
+		<div className={`card p-4 ${value.enabled ? "" : "opacity-60"}`}>
+			<div className="mb-4 flex items-start gap-3">
+				<div className="flex-1">
+					<h3 className="font-semibold text-dbz-yellow">Catalogue média</h3>
+					<p className="text-xs text-zinc-500">Rails alimentés par les données réelles du wiki.</p>
+				</div>
+				<button
+					type="button"
+					onClick={() => onChange({ ...value, enabled: !value.enabled })}
+					className={`btn btn-ghost px-2 ${value.enabled ? "text-emerald-400" : "text-zinc-500"}`}
+					title={value.enabled ? "Bloc visible" : "Bloc masqué"}
+				>
+					{value.enabled ? <Oeil className="h-4 w-4" /> : <OeilBarre className="h-4 w-4" />}
+				</button>
+			</div>
+			<BlockHeadingEditor value={value} onChange={(patch) => onChange({ ...value, ...patch })} />
+			<div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+				{value.destinations.map((destination, index) => (
+					<label
+						key={destination.href}
+						className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-black/30 p-3 text-sm"
+					>
+						<input
+							type="checkbox"
+							checked={destination.enabled}
+							onChange={(event) =>
+								onChange({
+									...value,
+									destinations: value.destinations.map((entry, destinationIndex) =>
+										destinationIndex === index ? { ...entry, enabled: event.target.checked } : entry
+									),
+								})
+							}
+						/>
+						<span>{CATALOGUE_LABELS[destination.href]}</span>
+						<code className="ml-auto text-[10px] text-zinc-600">{destination.href}</code>
+					</label>
+				))}
+			</div>
+		</div>
+	);
+}
+
+function JourneyDestinationEditor({
+	destination,
+	index,
+	total,
+	onChange,
+	onMove,
+}: {
+	destination: HomeJourneyDestination;
+	index: number;
+	total: number;
+	onChange: (patch: Partial<HomeJourneyDestination>) => void;
+	onMove: (direction: -1 | 1) => void;
+}) {
+	return (
+		<div
+			className={`rounded-xl border border-zinc-800 bg-black/30 p-3 ${destination.enabled ? "" : "opacity-60"}`}
+		>
+			<div className="mb-3 flex items-center gap-2">
+				<div className="flex flex-col">
+					<button
+						type="button"
+						onClick={() => onMove(-1)}
+						disabled={index === 0}
+						className="text-zinc-500 hover:text-dbz-orange disabled:opacity-30"
+						title="Monter"
+					>
+						<ChevronHaut className="h-4 w-4" />
+					</button>
+					<button
+						type="button"
+						onClick={() => onMove(1)}
+						disabled={index === total - 1}
+						className="text-zinc-500 hover:text-dbz-orange disabled:opacity-30"
+						title="Descendre"
+					>
+						<ChevronBas className="h-4 w-4" />
+					</button>
+				</div>
+				<strong className="flex-1 text-sm">{destination.label}</strong>
+				<code className="text-[10px] text-zinc-500">{destination.href}</code>
+				<button
+					type="button"
+					onClick={() => onChange({ enabled: !destination.enabled })}
+					className={`btn btn-ghost px-2 ${destination.enabled ? "text-emerald-400" : "text-zinc-500"}`}
+					title={destination.enabled ? "Panneau visible" : "Panneau masqué"}
+				>
+					{destination.enabled ? <Oeil className="h-4 w-4" /> : <OeilBarre className="h-4 w-4" />}
+				</button>
+			</div>
+			<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+				<label className="text-xs text-zinc-400">
+					Titre
+					<input
+						className="input mt-1"
+						value={destination.label}
+						onChange={(event) => onChange({ label: event.target.value })}
+					/>
+				</label>
+				<label className="text-xs text-zinc-400">
+					Exergue
+					<input
+						className="input mt-1"
+						value={destination.kicker}
+						onChange={(event) => onChange({ kicker: event.target.value })}
+					/>
+				</label>
+				<label className="text-xs text-zinc-400">
+					Kanji
+					<input
+						className="input mt-1"
+						value={destination.kanji}
+						onChange={(event) => onChange({ kanji: event.target.value })}
+					/>
+				</label>
+				<label className="text-xs text-zinc-400">
+					Bouton
+					<input
+						className="input mt-1"
+						value={destination.cta}
+						onChange={(event) => onChange({ cta: event.target.value })}
+					/>
+				</label>
+				<label className="text-xs text-zinc-400 sm:col-span-2">
+					Description
+					<input
+						className="input mt-1"
+						value={destination.note}
+						onChange={(event) => onChange({ note: event.target.value })}
+					/>
+				</label>
+				<label className="text-xs text-zinc-400 sm:col-span-2">
+					Image
+					<input
+						className="input mt-1 font-mono text-xs"
+						value={destination.image}
+						onChange={(event) => onChange({ image: event.target.value })}
+					/>
+				</label>
+				<label className="flex items-center gap-2 text-xs text-zinc-400">
+					<input
+						type="color"
+						value={destination.accent}
+						onChange={(event) => onChange({ accent: event.target.value })}
+					/>{" "}
+					Accent
+				</label>
+				<label className="flex items-center gap-2 text-xs text-zinc-400">
+					<input
+						type="checkbox"
+						checked={destination.wide}
+						onChange={(event) => onChange({ wide: event.target.checked })}
+					/>{" "}
+					Panneau large
+				</label>
+			</div>
+		</div>
+	);
+}
+
+function JourneyEditor({
+	value,
+	onChange,
+}: {
+	value: HomeJourneyConfig;
+	onChange: (value: HomeJourneyConfig) => void;
+}) {
+	return (
+		<div className={`card p-4 ${value.enabled ? "" : "opacity-60"}`}>
+			<div className="mb-4 flex items-start gap-3">
+				<div className="flex-1">
+					<h3 className="font-semibold text-dbz-yellow">Menu complet</h3>
+					<p className="text-xs text-zinc-500">
+						Un panneau éditable pour chaque destination hors catalogue.
+					</p>
+				</div>
+				<button
+					type="button"
+					onClick={() => onChange({ ...value, enabled: !value.enabled })}
+					className={`btn btn-ghost px-2 ${value.enabled ? "text-emerald-400" : "text-zinc-500"}`}
+					title={value.enabled ? "Bloc visible" : "Bloc masqué"}
+				>
+					{value.enabled ? <Oeil className="h-4 w-4" /> : <OeilBarre className="h-4 w-4" />}
+				</button>
+			</div>
+			<BlockHeadingEditor value={value} onChange={(patch) => onChange({ ...value, ...patch })} />
+			<div className="mt-4 space-y-2">
+				{value.destinations.map((destination, index) => (
+					<JourneyDestinationEditor
+						key={destination.href}
+						destination={destination}
+						index={index}
+						total={value.destinations.length}
+						onChange={(patch) =>
+							onChange({
+								...value,
+								destinations: value.destinations.map((entry, destinationIndex) =>
+									destinationIndex === index ? { ...entry, ...patch } : entry
+								),
+							})
+						}
+						onMove={(direction) =>
+							onChange({ ...value, destinations: move(value.destinations, index, direction) })
+						}
+					/>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export default function HomeEditor() {
 	const query = useQuery({ queryKey: ["home-config"], queryFn: loadConfig });
 	const [config, setConfig] = useState<HomeConfig | null>(null);
@@ -753,6 +1023,29 @@ export default function HomeEditor() {
 						desktop.
 					</p>
 				</div>
+			</div>
+
+			{/* ── Catalogue et destinations du menu ── */}
+			<div className="space-y-2">
+				<div>
+					<h3 className="font-semibold text-dbz-yellow">Après le deck cinématique</h3>
+					<p className="text-xs text-zinc-500">
+						Ces blocs prolongent l'accueil avec les rails du catalogue puis une porte d'entrée pour
+						chaque page du menu complet. Les routes restent fixes pour éviter les liens cassés.
+					</p>
+				</div>
+				<CatalogueEditor
+					value={config.catalogue}
+					onChange={(catalogue) =>
+						setConfig((current) => (current ? { ...current, catalogue } : current))
+					}
+				/>
+				<JourneyEditor
+					value={config.journey}
+					onChange={(journey) =>
+						setConfig((current) => (current ? { ...current, journey } : current))
+					}
+				/>
 			</div>
 
 			{/* ── Sections ── */}

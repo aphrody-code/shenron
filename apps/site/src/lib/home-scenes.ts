@@ -546,7 +546,50 @@ export interface HomeConfig {
 	/** Nombre de clips flottants dans le héro par largeur (téléphone = toujours 0). */
 	clips: { desktop: number; tablet: number };
 	sections: HomeSectionConfig[];
+	/** Rails issus du catalogue réel, affichés après le deck cinématique. */
+	catalogue: HomeCatalogueConfig;
+	/** Panneaux menant aux autres destinations du menu complet. */
+	journey: HomeJourneyConfig;
 	/** VFX/SFX home — volume, mapping fichiers, toggles effets. */
+}
+
+export interface HomeBlockHeading {
+	enabled: boolean;
+	eyebrow: string;
+	title: string;
+	subtitle: string;
+}
+
+export type HomeCatalogueHref =
+	| "/wiki/episodes"
+	| "/wiki/films"
+	| "/wiki/manga"
+	| "/wiki/databooks";
+
+export interface HomeCatalogueDestination {
+	href: HomeCatalogueHref;
+	enabled: boolean;
+}
+
+export interface HomeCatalogueConfig extends HomeBlockHeading {
+	destinations: HomeCatalogueDestination[];
+}
+
+export interface HomeJourneyDestination {
+	href: string;
+	enabled: boolean;
+	label: string;
+	note: string;
+	kicker: string;
+	kanji: string;
+	cta: string;
+	accent: string;
+	image: string;
+	wide: boolean;
+}
+
+export interface HomeJourneyConfig extends HomeBlockHeading {
+	destinations: HomeJourneyDestination[];
 }
 
 /** Clip vidéo disponible pour le sélecteur de fond (exposé par /api/home-config). */
@@ -611,6 +654,112 @@ export const DEFAULT_HOME_CONFIG: HomeConfig = {
 		subtitle: SECTION_META[id].subtitle,
 		scene: cloneScene(SECTION_SCENE[id] ?? HERO_SCENES[0]),
 	})),
+	catalogue: {
+		enabled: true,
+		eyebrow: "Tout l'univers Dragon Ball",
+		title: "Explorer le catalogue",
+		subtitle:
+			"Regarder un épisode ou un film, reprendre le manga et ouvrir les guides officiels, depuis un même point de départ.",
+		destinations: [
+			{ href: "/wiki/episodes", enabled: true },
+			{ href: "/wiki/films", enabled: true },
+			{ href: "/wiki/manga", enabled: true },
+			{ href: "/wiki/databooks", enabled: true },
+		],
+	},
+	journey: {
+		enabled: true,
+		eyebrow: "Le menu complet",
+		title: "Chaque chemin mène à une aventure",
+		subtitle:
+			"Du récit canon à votre progression communautaire, toutes les destinations du menu ont leur porte d'entrée.",
+		destinations: [
+			{
+				href: "/wiki",
+				enabled: true,
+				label: "Univers",
+				note: "Tout Dragon Ball en un lieu",
+				kicker: "L'encyclopédie",
+				kanji: "宇宙",
+				cta: "Entrer dans l'univers",
+				accent: "#f3a13a",
+				image: SECTION_SCENE.universe.image,
+				wide: true,
+			},
+			{
+				href: "/wiki/chronologie",
+				enabled: true,
+				label: "Chronologie",
+				note: "La frise de l'univers",
+				kicker: "Le récit",
+				kanji: "時",
+				cta: "Parcourir la frise",
+				accent: "#71d69a",
+				image: "./assets/dbz/characters/Freezer.webp",
+				wide: false,
+			},
+			{
+				href: "/wiki/jeux",
+				enabled: true,
+				label: "Jeux",
+				note: "Trente ans d'adaptations",
+				kicker: "Les adaptations",
+				kanji: "遊",
+				cta: "Explorer les jeux",
+				accent: "#f3a13a",
+				image: SECTION_SCENE.play.image,
+				wide: false,
+			},
+			{
+				href: "/actualites",
+				enabled: true,
+				label: "News",
+				note: "L'actualité de la licence",
+				kicker: "En ce moment",
+				kanji: "報",
+				cta: "Lire les actualités",
+				accent: "#79a7ff",
+				image: "./assets/dbz/characters/Beerus_DBS_Broly_Artwork.webp",
+				wide: false,
+			},
+			{
+				href: "/classements",
+				enabled: true,
+				label: "Classements",
+				note: "Les tops de la communauté",
+				kicker: "La communauté décide",
+				kanji: "頂",
+				cta: "Voir les classements",
+				accent: "#ef795e",
+				image: SECTION_SCENE.tops.image,
+				wide: false,
+			},
+			{
+				href: "/tierlists",
+				enabled: true,
+				label: "Tier lists",
+				note: "Classer et voter",
+				kicker: "Votre sélection",
+				kanji: "段",
+				cta: "Créer une tier list",
+				accent: "#9b8cff",
+				image: SECTION_SCENE.bestof.image,
+				wide: false,
+			},
+			{
+				href: "/dashboard",
+				enabled: true,
+				label: "Mon espace",
+				note: "Profil, favoris, progression",
+				kicker: "Votre espace DBFR",
+				kanji: "仲間",
+				cta: "Ouvrir mon espace",
+				accent: "#62c8ff",
+				image: SECTION_SCENE.community.image,
+				wide: true,
+			},
+		],
+	},
 };
 
 /**
@@ -628,6 +777,73 @@ const cloneSection = (s: HomeSectionConfig): HomeSectionConfig => ({
 
 const defaultSection = (id: HomeSectionId): HomeSectionConfig =>
 	cloneSection(DEFAULT_HOME_CONFIG.sections.find((s) => s.id === id)!);
+
+const sanitizeHeading = <T extends HomeBlockHeading>(input: unknown, fallback: T) => {
+	const o = (input ?? {}) as Record<string, unknown>;
+	return {
+		enabled: typeof o.enabled === "boolean" ? o.enabled : fallback.enabled,
+		eyebrow: str(o.eyebrow, fallback.eyebrow),
+		title: str(o.title, fallback.title),
+		subtitle: str(o.subtitle, fallback.subtitle),
+	};
+};
+
+const sanitizeCatalogue = (input: unknown): HomeCatalogueConfig => {
+	const fallback = DEFAULT_HOME_CONFIG.catalogue;
+	const o = (input ?? {}) as Record<string, unknown>;
+	const raw = Array.isArray(o.destinations) ? o.destinations : [];
+	const byHref = new Map(
+		raw
+			.map((entry) => (entry ?? {}) as Record<string, unknown>)
+			.filter((entry) => typeof entry.href === "string")
+			.map((entry) => [entry.href as string, entry])
+	);
+	return {
+		...sanitizeHeading(input, fallback),
+		destinations: fallback.destinations.map((destination) => {
+			const patch = byHref.get(destination.href);
+			return {
+				...destination,
+				enabled: typeof patch?.enabled === "boolean" ? patch.enabled : destination.enabled,
+			};
+		}),
+	};
+};
+
+const sanitizeAccent = (value: unknown, fallback: string): string =>
+	typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value) ? value : fallback;
+
+const sanitizeJourney = (input: unknown): HomeJourneyConfig => {
+	const fallback = DEFAULT_HOME_CONFIG.journey;
+	const o = (input ?? {}) as Record<string, unknown>;
+	const raw = Array.isArray(o.destinations) ? o.destinations : [];
+	const fallbackByHref = new Map(fallback.destinations.map((entry) => [entry.href, entry]));
+	const seen = new Set<string>();
+	const destinations: HomeJourneyDestination[] = [];
+	for (const value of raw) {
+		const entry = (value ?? {}) as Record<string, unknown>;
+		const href = typeof entry.href === "string" ? entry.href : "";
+		const dflt = fallbackByHref.get(href);
+		if (!dflt || seen.has(href)) continue;
+		seen.add(href);
+		destinations.push({
+			href,
+			enabled: typeof entry.enabled === "boolean" ? entry.enabled : dflt.enabled,
+			label: str(entry.label, dflt.label),
+			note: str(entry.note, dflt.note),
+			kicker: str(entry.kicker, dflt.kicker),
+			kanji: str(entry.kanji, dflt.kanji),
+			cta: str(entry.cta, dflt.cta),
+			accent: sanitizeAccent(entry.accent, dflt.accent),
+			image: str(entry.image, dflt.image),
+			wide: typeof entry.wide === "boolean" ? entry.wide : dflt.wide,
+		});
+	}
+	for (const dflt of fallback.destinations) {
+		if (!seen.has(dflt.href)) destinations.push({ ...dflt });
+	}
+	return { ...sanitizeHeading(input, fallback), destinations };
+};
 
 /**
  * Fusionne un patch partiel (JSON stocké en DB) au-dessus des défauts. Défensif :
@@ -714,5 +930,12 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 	// Un document enregistré avant le 2026-08-21 porte encore une clé `fx`
 	// (volume, mapping SFX, bascules d'effets) : elle est simplement ignorée —
 	// l'accueil n'a plus ni son ni effet, cf. `components/home/HomeExperience.tsx`.
-	return { version: 1, hero, clips, sections };
+	return {
+		version: 1,
+		hero,
+		clips,
+		sections,
+		catalogue: sanitizeCatalogue(p.catalogue),
+		journey: sanitizeJourney(p.journey),
+	};
 }

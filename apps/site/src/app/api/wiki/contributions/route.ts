@@ -25,6 +25,8 @@ import {
 	withdrawContribution,
 } from "@/lib/wiki-contributions";
 import { canContribute, scopeOf } from "@/lib/contribution-rights";
+import { sanitizeInternalPath } from "@/lib/internal-path";
+import { createMemoryRateLimiter } from "@/lib/memory-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,19 +42,7 @@ const bodySchema = z.object({
 });
 
 // 10 propositions / heure / membre.
-const RL_WINDOW = 60 * 60_000;
-const RL_MAX = 10;
-const rl = new Map<string, { count: number; reset: number }>();
-function rateLimited(key: string): boolean {
-	const now = Date.now();
-	const e = rl.get(key);
-	if (!e || now > e.reset) {
-		rl.set(key, { count: 1, reset: now + RL_WINDOW });
-		return false;
-	}
-	e.count += 1;
-	return e.count > RL_MAX;
-}
+const contributionRateLimit = createMemoryRateLimiter({ windowMs: 60 * 60_000, limit: 10 });
 
 async function me() {
 	try {
@@ -67,7 +57,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 	if (!session?.user?.id) {
 		return NextResponse.json({ ok: false, error: "auth_required" }, { status: 401 });
 	}
-	if (rateLimited(session.user.id)) {
+	if (contributionRateLimit.isLimited(session.user.id)) {
 		return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
 	}
 
@@ -76,6 +66,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 		parsed = bodySchema.parse(await req.json());
 	} catch {
 		return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });
+	}
+	const entityPath = parsed.path
+		? sanitizeInternalPath(parsed.path.split("?")[0]!.split("#")[0], 512)
+		: null;
+	if (parsed.path && !entityPath) {
+		return NextResponse.json({ ok: false, error: "bad_path" }, { status: 400 });
 	}
 
 	// Droit de contribution du périmètre visé (wiki / databooks), réglé depuis
@@ -98,7 +94,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 			valueAfter: parsed.valueAfter,
 			comment: parsed.comment ?? null,
 			sources: parsed.sources ?? null,
-			entityPath: parsed.path?.split("?")[0]?.split("#")[0] ?? null,
+			entityPath,
 			author: {
 				id: session.user.id,
 				name: session.user.username ?? null,

@@ -20,7 +20,7 @@ const KEY = "dbfr_history_v1";
 /** Au-delà, on oublie les plus anciennes : c'est un raccourci, pas une archive. */
 const MAX = 40;
 
-export type HistoryKind = "episode" | "movie" | "chapter";
+export type HistoryKind = "episode" | "movie" | "chapter" | "databook";
 
 export interface HistoryEntry {
 	kind: HistoryKind;
@@ -43,7 +43,7 @@ const isEntry = (v: unknown): v is HistoryEntry => {
 		typeof e.title === "string" &&
 		typeof e.href === "string" &&
 		typeof e.at === "number" &&
-		(e.kind === "episode" || e.kind === "movie" || e.kind === "chapter")
+		(e.kind === "episode" || e.kind === "movie" || e.kind === "chapter" || e.kind === "databook")
 	);
 };
 

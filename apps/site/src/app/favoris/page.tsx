@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { FavoritesList } from "./FavoritesList";
+import { UserNav } from "@/components/user/UserNav";
 
 /**
  * `/favoris` — la liste personnelle, rendue **entièrement côté client**.
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
 export default function FavorisPage() {
 	return (
 		<div className="mx-auto w-full max-w-[1180px] px-6 py-12 lg:px-10 lg:py-16">
+			<UserNav />
 			<Breadcrumbs className="mb-8" items={[{ label: "Mes favoris" }]} />
 			<header className="mb-10">
 				<h1 className="font-display text-3xl font-bold text-white lg:text-4xl">Mes favoris</h1>

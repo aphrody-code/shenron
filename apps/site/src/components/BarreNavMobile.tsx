@@ -16,6 +16,7 @@ import {
 	Croix,
 	type ProprietesIcone,
 } from "@/components/icones";
+import { MOBILE_MORE_DESTINATIONS, MOBILE_PRIMARY_DESTINATIONS } from "@/lib/site-menu";
 
 /**
  * BarreNavMobile — la barre de navigation basse, façon Android natif.
@@ -87,24 +88,24 @@ type Destination = {
 	readonly IconeActive?: (p: ProprietesIcone) => React.ReactElement;
 };
 
-const DESTINATIONS: readonly Destination[] = [
-	{ href: "/", label: "Accueil", Icone: Maison, IconeActive: MaisonPleine },
-	{ href: "/wiki/episodes", label: "Épisodes", Icone: Tv },
-	{ href: "/wiki/films", label: "Films", Icone: Film },
-	{ href: "/wiki", label: "Univers", Icone: Livre },
-];
+const ICONES_PRINCIPALES: Record<
+	(typeof MOBILE_PRIMARY_DESTINATIONS)[number]["href"],
+	Pick<Destination, "Icone" | "IconeActive">
+> = {
+	"/": { Icone: Maison, IconeActive: MaisonPleine },
+	"/wiki/episodes": { Icone: Tv },
+	"/wiki/films": { Icone: Film },
+	"/wiki": { Icone: Livre },
+};
+
+const DESTINATIONS: readonly Destination[] = MOBILE_PRIMARY_DESTINATIONS.map((destination) => ({
+	...destination,
+	...ICONES_PRINCIPALES[destination.href],
+}));
 
 /** Le reste des rubriques, dans la feuille « Plus ». Ordre : visiteurs décroissants. */
-const AUTRES: ReadonlyArray<{ href: string; label: string; note: string }> = [
-	{ href: "/wiki/chronologie", label: "Chronologie", note: "La frise de l'univers" },
-	{ href: "/wiki/manga", label: "Manga", note: "Tomes et chapitres" },
-	{ href: "/wiki/databooks", label: "Databooks", note: "Daizenshuu et guides" },
-	{ href: "/wiki/jeux", label: "Jeux", note: "Trente ans d'adaptations" },
-	{ href: "/actualites", label: "News", note: "L'actualité de la licence" },
-	{ href: "/classements", label: "Classements", note: "Les tops de la communauté" },
-	{ href: "/tierlists", label: "Tier lists", note: "Classer et voter" },
-	{ href: "/profil/me", label: "Mon profil", note: "Niveau, favoris, zénis" },
-];
+const AUTRES: ReadonlyArray<{ href: string; label: string; note: string }> =
+	MOBILE_MORE_DESTINATIONS;
 
 /**
  * Destination active par CORRESPONDANCE LA PLUS LONGUE, comme une table de
@@ -253,7 +254,10 @@ export function BarreNavMobile() {
 								Tableau de bord
 							</Link>
 						)}
-						<Link href="/parametres" className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white">
+						<Link
+							href="/parametres"
+							className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white"
+						>
 							Paramètres du compte
 						</Link>
 						<SignOut className="flex min-h-12 items-center justify-center rounded-full border border-white/15 font-display text-[13px] font-semibold tracking-[0.1em] text-white/70 transition-colors hover:border-white/35 hover:text-white disabled:opacity-50">
@@ -299,12 +303,12 @@ export function BarreNavMobile() {
 									>
 										<Glyphe
 											size={24}
-									className={on ? "text-[var(--color-logo-jaune)]" : "text-white/80"}
+											className={on ? "text-[var(--color-logo-jaune)]" : "text-white/80"}
 										/>
 									</span>
 									<span
 										className={`text-[12px] leading-none tracking-[0.01em] ${
-										on ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/80"
+											on ? "font-bold text-[var(--color-logo-jaune)]" : "font-medium text-white/80"
 										}`}
 									>
 										{d.label}
