@@ -2,6 +2,7 @@ import { rename } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 
 export const MANGA_MANIFEST_SCHEMA_VERSION = 1 as const;
+export const MANGA_REVIEW_PROMPT_VERSION = 3 as const;
 export const MANGA_SERIES = ["DB", "DBS"] as const;
 
 export type MangaSeries = (typeof MANGA_SERIES)[number];
@@ -50,6 +51,7 @@ export interface MangaOcrResultLine {
 	elapsed_ms?: number;
 	engine?: "ppocr-v5" | "hybrid-luna-ppocr";
 	model?: string;
+	promptVersion?: number;
 	quality?: { meanConfidence: number; blocks: number; retainedBlocks: number };
 	review?: MangaOcrVisualReview;
 }
@@ -364,6 +366,7 @@ export function reviewedMangaResult(
 		elapsed_ms: elapsedMs,
 		engine: "hybrid-luna-ppocr",
 		model: "gpt-5.6-luna",
+		promptVersion: MANGA_REVIEW_PROMPT_VERSION,
 		review,
 	};
 }
@@ -406,6 +409,7 @@ export function parseMangaResults(
 		if (
 			result.engine !== "hybrid-luna-ppocr" ||
 			result.model !== "gpt-5.6-luna" ||
+			result.promptVersion !== MANGA_REVIEW_PROMPT_VERSION ||
 			!result.review ||
 			(result.review.decision !== "accept" && result.review.decision !== "none")
 		) {

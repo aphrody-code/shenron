@@ -4,6 +4,7 @@ import {
 	identifyMangaAsset,
 	type MangaOcrManifest,
 	type MangaOcrVisualReview,
+	MANGA_REVIEW_PROMPT_VERSION,
 	mangaPageId,
 	mangaTomeMarkdown,
 	normalizeMangaMarkdown,
@@ -119,6 +120,7 @@ describe("manifestes et sorties OCR", () => {
 			text: { kind: "text", markdown: "- Bonjour !\n- Bulma ?" },
 			engine: "hybrid-luna-ppocr",
 			model: "gpt-5.6-luna",
+			promptVersion: MANGA_REVIEW_PROMPT_VERSION,
 			review: {
 				schemaVersion: 1,
 				pageId: "DB:vol1:3",
@@ -167,6 +169,7 @@ describe("manifestes et sorties OCR", () => {
 		const result = reviewedMangaResult("image.jpg", "DB:vol1:3", review);
 		expect(result.text).toEqual({ kind: "text", markdown: "- ÇA ALORS !" });
 		expect(result.engine).toBe("hybrid-luna-ppocr");
+		expect(result.promptVersion).toBe(MANGA_REVIEW_PROMPT_VERSION);
 	});
 
 	test("refuse accept si une région éditoriale reste incertaine", () => {
@@ -190,6 +193,23 @@ describe("manifestes et sorties OCR", () => {
 			model: "ppocr-v5-mobile",
 		});
 		const parsed = parseMangaResults(`${line}\n`, manifest());
+		expect(parsed.pages).toEqual([]);
+		expect(parsed.invalid[0]).toContain("non arbitré");
+	});
+
+	test("refuse une revue produite par un ancien prompt", () => {
+		const review: MangaOcrVisualReview = {
+			schemaVersion: 1,
+			pageId: "DB:vol1:3",
+			decision: "accept",
+			regions: [
+				{ order: 1, kind: "dialogue", text: "Bonjour", confidence: "high" },
+			],
+			notes: "",
+		};
+		const result = reviewedMangaResult("DB-vol1-0003.jpg", "DB:vol1:3", review);
+		result.promptVersion = MANGA_REVIEW_PROMPT_VERSION - 1;
+		const parsed = parseMangaResults(`${JSON.stringify(result)}\n`, manifest());
 		expect(parsed.pages).toEqual([]);
 		expect(parsed.invalid[0]).toContain("non arbitré");
 	});

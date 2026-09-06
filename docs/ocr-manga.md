@@ -100,6 +100,8 @@ PP-OCR `SUIS → SLIS`, `UN → LN` et l'interprétation erronée du mot imprim�
 « ILLISIBLE » comme une consigne.
 
 Le runner est relançable : le JSONL est dédupliqué atomiquement après sauvegarde.
+Chaque résultat porte aussi la version du prompt de revue ; le runner et le
+dépôt écartent automatiquement une sortie produite par une version antérieure.
 Un verrou local empêche deux consommateurs manga simultanés. Chaque image et
 chaque manifeste sont revérifiés par SHA-256 avant inférence, puis
 `aphrody ocr audit` bloque les jetons de contrôle, générations coincées et
@@ -114,7 +116,8 @@ La QA visuelle d'un premier passage sur `DB:vol12:100` a détecté une acceptati
 incorrecte : une petite adaptation latine avait été inventée et les grands
 glyphes stylisés avaient été omis. Le prompt impose désormais un balayage des
 quatre bords et de chaque case, traite tout groupe de glyphes géant, incliné ou
-coupé comme un SFX, et force `needs_human` dès qu'il n'est pas lisible en entier.
+coupé comme un SFX, compte aussi la ponctuation isolée (`!!`, `?!`, `…`), et
+force `needs_human` dès qu'une région n'est pas lisible en entier.
 Après tout changement de prompt, relancer avec `--force-review` au minimum toutes
 les décisions `accept` obtenues par la version précédente.
 

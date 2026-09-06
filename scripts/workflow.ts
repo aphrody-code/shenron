@@ -297,6 +297,9 @@ function positiveInteger(
 
 const timestamp = () => new Date().toISOString().replace(/[:.]/g, "-");
 const runId = option("run-id") ?? timestamp();
+if (!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,79}$/.test(runId)) {
+	throw new Error("--run-id invalide (1 à 80 caractères sûrs, sans chemin)");
+}
 const runDir = join(RUNTIME_ROOT, runId);
 const schemaPath = join(runDir, "result.schema.json");
 const concurrency = positiveInteger(option("concurrency"), DEFAULT_CONCURRENCY, MAX_CONCURRENCY);
@@ -304,6 +307,14 @@ const taskLimit = option("limit") ? positiveInteger(option("limit"), 1) : Number
 const only = option("only") as StageId | undefined;
 const from = option("from") as StageId | undefined;
 const until = option("until") as StageId | undefined;
+const stageIds = new Set<StageId>(STAGES.map((stage) => stage.id));
+for (const [name, value] of [
+	["only", only],
+	["from", from],
+	["until", until],
+] as const) {
+	if (value && !stageIds.has(value)) throw new Error(`--${name} inconnu: ${value}`);
+}
 const dryRun = flag("dry-run");
 const resume = flag("resume");
 const noA2a = flag("no-a2a");

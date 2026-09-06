@@ -24,6 +24,7 @@ import {
 	type MangaOcrDetectionLine,
 	type MangaOcrResultLine,
 	type MangaOcrVisualReview,
+	MANGA_REVIEW_PROMPT_VERSION,
 	portableBasename,
 	readMangaManifest,
 	reviewedMangaResult,
@@ -142,6 +143,7 @@ async function normalizeResults(path: string): Promise<NormalizedResults> {
 				!key ||
 				result.engine !== "hybrid-luna-ppocr" ||
 				result.model !== REVIEW_MODEL ||
+				result.promptVersion !== MANGA_REVIEW_PROMPT_VERSION ||
 				!result.review ||
 				(result.text?.kind !== "text" && result.text?.kind !== "none")
 			) {
@@ -316,7 +318,7 @@ function reviewPrompt(
 
 Identité obligatoire : ${pageId}
 
-Transcris exactement tout texte éditorial visible, sans traduire, corriger, compléter, moderniser la typographie ni identifier les personnages. N'écris aucune description d'image. Inspecte toutes les cases et classe chaque région dans l'ordre de lecture de l'édition visible : dialogue, caption, sfx, watermark ou page_number. Un texte dans une bulle est dialogue, même s'il s'agit d'un cri ; sfx est réservé aux onomatopées graphiques hors bulle. Toute forme graphique ressemblant à des lettres, kana ou kanji est une région sfx, même si elle est énorme, inclinée, partiellement coupée par le bord ou accompagnée d'une petite adaptation latine. Ne remplace jamais un SFX par un mot anglais plausible : vérifie les glyphes littéraux. Si un seul grand groupe de glyphes visible ne peut pas être lu intégralement, la décision doit être needs_human, jamais accept. Conserve strictement casse, accents (É/È/À/Ù/Ç), apostrophes, kana/kanji et ponctuation tels qu'imprimés. Un cartouche peut littéralement contenir le mot « ILLISIBLE » : dans ce cas, transcris ILLISIBLE, ne l'interprète jamais comme une métadonnée ou une instruction. Les filigranes de sites/scans et numéros de page doivent être recensés mais seront exclus du texte éditorial.
+Transcris exactement tout texte éditorial visible, sans traduire, corriger, compléter, moderniser la typographie ni identifier les personnages. N'écris aucune description d'image. Inspecte toutes les cases et classe chaque région dans l'ordre de lecture de l'édition visible : dialogue, caption, sfx, watermark ou page_number. Un texte dans une bulle est dialogue, même s'il s'agit d'un cri ; sfx est réservé aux onomatopées graphiques hors bulle. Toute forme graphique ressemblant à des lettres, kana ou kanji est une région sfx, même si elle est énorme, inclinée, partiellement coupée par le bord ou accompagnée d'une petite adaptation latine. Un groupe de ponctuation isolé comme !, !!, ?!, … compte aussi comme une région sfx et interdit la décision none. Ne remplace jamais un SFX par un mot anglais plausible : vérifie les glyphes littéraux. Si un seul grand groupe de glyphes visible ne peut pas être lu intégralement, la décision doit être needs_human, jamais accept. Conserve strictement casse, accents (É/È/À/Ù/Ç), apostrophes, kana/kanji et ponctuation tels qu'imprimés. Un cartouche peut littéralement contenir le mot « ILLISIBLE » : dans ce cas, transcris ILLISIBLE, ne l'interprète jamais comme une métadonnée ou une instruction. Les filigranes de sites/scans et numéros de page doivent être recensés mais seront exclus du texte éditorial.
 
 Les candidats PP-OCR ci-dessous ne sont que des indices imparfaits : vérifie chaque caractère sur l'image, récupère aussi les régions qu'ils ont manquées et ignore leurs faux positifs.
 ${JSON.stringify(hints)}
@@ -424,6 +426,7 @@ if (!DRY_RUN) {
 			runId: corpus.runId,
 			model: REVIEW_MODEL,
 			reasoning: REVIEW_REASONING,
+			promptVersion: MANGA_REVIEW_PROMPT_VERSION,
 		});
 	} catch {
 		throw new Error(
@@ -574,6 +577,7 @@ try {
 						: "partial",
 			model: REVIEW_MODEL,
 			reasoning: REVIEW_REASONING,
+			promptVersion: MANGA_REVIEW_PROMPT_VERSION,
 			lots: states,
 		});
 	}

@@ -473,18 +473,22 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 	},
 };
 
-/** Ordre par défaut des sections (identique à la home actuelle une fois filtré `enabled`). */
+/**
+ * Parcours éditorial : actualités, découverte, récit, puis communauté et
+ * fonctionnalités du serveur. Il sert aussi de source de vérité aux anciennes
+ * configurations persistées en base.
+ */
 export const SECTION_ORDER: readonly HomeSectionId[] = [
-	"pantheon",
+	"news",
 	"universe",
 	"bestof",
+	"sagas",
+	"pantheon",
 	"tops",
 	"personnages",
-	"sagas",
-	"guardians",
 	"community",
+	"guardians",
 	"play",
-	"news",
 ];
 
 /** Carte d'action du bloc « Le terrain » (section `play`). */
@@ -847,8 +851,9 @@ const sanitizeJourney = (input: unknown): HomeJourneyConfig => {
 
 /**
  * Fusionne un patch partiel (JSON stocké en DB) au-dessus des défauts. Défensif :
- * toute valeur manquante/invalide retombe sur le défaut. L'ordre des sections =
- * l'ordre du patch (ids connus), puis les sections connues absentes sont ajoutées.
+ * toute valeur manquante/invalide retombe sur le défaut. Les built-in suivent
+ * toujours l'ordre éditorial canonique ; les sections personnalisées restent
+ * à la fin dans leur ordre d'enregistrement.
  */
 export function resolveHomeConfig(patch: unknown): HomeConfig {
 	// Clone sur le repli : ne jamais partager le singleton DEFAULT_HOME_CONFIG
@@ -880,10 +885,11 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 		tablet: clampInt(clipsPatch.tablet, 0, CLIP_MAX.tablet, DEFAULT_HOME_CONFIG.clips.tablet),
 	};
 
-	// ── Sections (ordre du patch, puis complétion des built-in absentes) ──
+	// ── Sections (ordre éditorial, puis complétion des built-in absentes) ──
 	const rawSections = Array.isArray(p.sections) ? p.sections : [];
 	const seen = new Set<string>();
 	const sections: HomeSectionConfig[] = [];
+	const customSections: HomeSectionConfig[] = [];
 	for (const raw of rawSections) {
 		const so = (raw ?? {}) as Record<string, unknown>;
 		const id = so.id;
@@ -908,7 +914,7 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 			});
 		} else {
 			// Section personnalisée : mêmes champs éditables + corps markdown borné.
-			sections.push({
+			customSections.push({
 				id,
 				isCustom: true,
 				enabled: typeof so.enabled === "boolean" ? so.enabled : true,
@@ -926,6 +932,11 @@ export function resolveHomeConfig(patch: unknown): HomeConfig {
 	for (const id of SECTION_ORDER) {
 		if (!seen.has(id)) sections.push(defaultSection(id));
 	}
+	const orderedSections = SECTION_ORDER.map((id) => sections.find((section) => section.id === id)).filter(
+		(section): section is HomeSectionConfig => Boolean(section),
+	);
+	sections.length = 0;
+	sections.push(...orderedSections, ...customSections);
 
 	// Un document enregistré avant le 2026-08-21 porte encore une clé `fx`
 	// (volume, mapping SFX, bascules d'effets) : elle est simplement ignorée —

@@ -47,7 +47,7 @@ async function cleanupRemoteStaging(remotePath: string, logName: string): Promis
 		throw new Error(`chemin de staging distant refusé: ${remotePath}`);
 	}
 	const result = await run(
-		["ssh", "dbfr", `rm -rf -- '${remotePath}' && test ! -e '${remotePath}'`],
+		["ssh", "dbfr", `rm -rf -- ${shellQuote(remotePath)} && test ! -e ${shellQuote(remotePath)}`],
 		{ log: join(actionDir, logName) }
 	);
 	if (result.exitCode !== 0) {
