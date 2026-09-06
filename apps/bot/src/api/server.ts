@@ -68,6 +68,7 @@ import { ZENI_GAME_WIN, ZENI_GAME_LOSS_PENALTY } from "~/lib/constants";
 import { eq, and, sql, desc, asc, inArray, isNull } from "drizzle-orm";
 import {
 	users,
+	actionLogs,
 	levelRewards,
 	raceLevelRoles,
 	shopItems,
@@ -1748,21 +1749,54 @@ export class ApiServer {
 				"/api/public/leaderboard": (req) =>
 					publicCachedJson(req, 15_000, async () => {
 						const url = new URL(req.url);
+						const metric = url.searchParams.get("metric") === "zeni" ? "zeni" : "xp";
+						const period = url.searchParams.get("period") === "month" ? "month" : "general";
 						const limit = Math.min(
 							Math.max(parseInt(url.searchParams.get("limit") ?? "100", 10) || 100, 1),
 							500
 						);
 						const enrich = url.searchParams.get("enrich") === "1";
 						const dbs = container.resolve(DatabaseService);
-						// Filtre xp > 0 — cohérent avec LevelService.top() slash /top.
-						// Sans filter le classement renvoyait des users à 0 XP en fin
-						// de liste (~5800 lignes ensureUser créées mais inactives).
-						const rows = await dbs.db
-							.select({ id: users.id, xp: users.xp, zeni: users.zeni })
-							.from(users)
-							.where(sql`${users.xp} > 0`)
-							.orderBy(desc(users.xp))
-							.limit(limit);
+						const rows: Array<{ id: string; xp: number; zeni: number; level: number }> = [];
+						if (period === "month") {
+							const now = new Date();
+							const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+							const amount = sql<number>`coalesce(sum(cast(json_extract(${actionLogs.meta}, '$.amount') as integer)), 0)`;
+							const action = metric === "xp"
+								? eq(actionLogs.action, "XP_GAIN")
+								: inArray(actionLogs.action, ["ZENI_GAIN", "ZENI_DROP", "ZENI_REGEN", "ZENI_DAILY"]);
+							const monthly = await dbs.db
+								.select({ id: actionLogs.userId, score: amount })
+								.from(actionLogs)
+								.where(and(action, sql`${actionLogs.createdAt} >= ${since}`, sql`${actionLogs.userId} is not null`))
+								.groupBy(actionLogs.userId)
+								.orderBy(desc(amount))
+								.limit(limit);
+							const ids = monthly.map((r) => r.id).filter((id): id is string => Boolean(id));
+							const current = ids.length
+								? await dbs.db.select({ id: users.id, xp: users.xp, zeni: users.zeni }).from(users).where(inArray(users.id, ids))
+								: [];
+							const byId = new Map(current.map((r) => [r.id, r]));
+							for (const r of monthly) {
+								if (!r.id) continue;
+								const currentUser = byId.get(r.id);
+								rows.push({
+									id: r.id,
+									xp: metric === "xp" ? Number(r.score) : (currentUser?.xp ?? 0),
+									zeni: metric === "zeni" ? Number(r.score) : (currentUser?.zeni ?? 0),
+									level: levelForXP(currentUser?.xp ?? 0),
+								});
+							}
+						} else {
+							const col = metric === "zeni" ? users.zeni : users.xp;
+							const current = await dbs.db
+								.select({ id: users.id, xp: users.xp, zeni: users.zeni })
+								.from(users)
+								.where(sql`${col} > 0`)
+								.orderBy(desc(col))
+								.limit(limit);
+							for (const r of current) rows.push({ ...r, level: levelForXP(r.xp) });
+						}
 
 						if (!enrich) {
 							return {
@@ -1773,7 +1807,7 @@ export class ApiServer {
 									avatarUrl: null as string | null,
 									xp: r.xp,
 									zeni: r.zeni,
-									level: levelForXP(r.xp),
+									level: r.level,
 								})),
 							};
 						}
@@ -1795,7 +1829,7 @@ export class ApiServer {
 									avatarUrl: discordAvatarUrl(r.id, u.avatarHash, 128),
 									xp: r.xp,
 									zeni: r.zeni,
-									level: levelForXP(r.xp),
+									level: r.level,
 								};
 							},
 							(r, i) => ({
@@ -1805,7 +1839,7 @@ export class ApiServer {
 								avatarUrl: discordAvatarUrl(r.id, null, 128),
 								xp: r.xp,
 								zeni: r.zeni,
-								level: levelForXP(r.xp),
+								level: r.level,
 							})
 						);
 						return { leaderboard: enriched };

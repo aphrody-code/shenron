@@ -42,6 +42,13 @@ export class EconomyService {
 			.update(users)
 			.set({ zeni: sql`${users.zeni} + ${amount}`, updatedAt: new Date() })
 			.where(eq(users.id, userId));
+		if (amount > 0) {
+			await this.db.insert(actionLogs).values({
+				userId,
+				action: "ZENI_GAIN",
+				meta: JSON.stringify({ amount, kind: options.kind ?? "other" }),
+			});
+		}
 
 		if (options.propagateFusion && amount > 0) {
 			const partner = await this.partnerOf(userId);

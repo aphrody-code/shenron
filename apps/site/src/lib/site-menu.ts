@@ -10,7 +10,6 @@ export const MOBILE_PRIMARY_DESTINATIONS = [
 ] as const;
 
 export const MOBILE_MORE_DESTINATIONS = [
-	{ href: "/wiki/chronologie", label: "Chronologie", note: "La frise de l'univers" },
 	{ href: "/wiki/manga", label: "Manga", note: "Tomes et chapitres" },
 	{ href: "/wiki/databooks", label: "Databooks", note: "Daizenshuu et guides" },
 	{ href: "/wiki/jeux", label: "Jeux", note: "Trente ans d'adaptations" },

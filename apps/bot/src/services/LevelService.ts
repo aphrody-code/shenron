@@ -86,6 +86,11 @@ export class LevelService {
 				updatedAt: new Date(),
 			})
 			.where(eq(users.id, userId));
+		await this.db.insert(actionLogs).values({
+			userId,
+			action: "XP_GAIN",
+			meta: JSON.stringify({ amount, before, after }),
+		});
 
 		if (levelUp) {
 			const zeniBonus = applyZeniRace(

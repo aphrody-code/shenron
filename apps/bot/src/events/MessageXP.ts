@@ -5,7 +5,7 @@ import { LevelService } from "~/services/LevelService";
 import { EconomyService } from "~/services/EconomyService";
 import { AchievementService } from "~/services/AchievementService";
 import { DatabaseService } from "~/db/index";
-import { users } from "~/db/schema";
+import { actionLogs, users } from "~/db/schema";
 import {
 	DISCORD_INVITE_REGEX,
 	XP_MESSAGE_COOLDOWN_MS,
@@ -124,6 +124,11 @@ export class MessageXPEvent {
 				.update(users)
 				.set({ lastDailyQuestAt: new Date(now), dailyStreak: streak, zeni: user.zeni + dailyZeni })
 				.where(eq(users.id, userId));
+			await this.dbs.db.insert(actionLogs).values({
+				userId,
+				action: "ZENI_DAILY",
+				meta: JSON.stringify({ amount: dailyZeni }),
+			});
 			await this.msg.publish(
 				"daily_quest",
 				{ user: `<@${userId}>`, zeni: dailyZeni, streak },
@@ -175,6 +180,11 @@ export class MessageXPEvent {
 				.update(users)
 				.set({ zeni: sql`${users.zeni} + ${REGEN_ZENI}`, lastRaceRegenAt: new Date(now) })
 				.where(eq(users.id, userId));
+			await this.dbs.db.insert(actionLogs).values({
+				userId,
+				action: "ZENI_REGEN",
+				meta: JSON.stringify({ amount: REGEN_ZENI }),
+			});
 			gain += REGEN_XP;
 		}
 
@@ -189,6 +199,11 @@ export class MessageXPEvent {
 					.update(users)
 					.set({ zeni: user.zeni + drop })
 					.where(eq(users.id, userId));
+				await this.dbs.db.insert(actionLogs).values({
+					userId,
+					action: "ZENI_DROP",
+					meta: JSON.stringify({ amount: drop }),
+				});
 				await this.msg.publish("zeni_drop", { user: `<@${userId}>`, zeni: drop }, message.client);
 			}
 		}

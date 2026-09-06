@@ -459,11 +459,13 @@ export async function getShenronShop(): Promise<ShenronShopItem[]> {
 export async function getShenronLeaderboard(
 	limit = 100,
 	enrich = true,
-	revalidateSec = 60
+	revalidateSec = 60,
+	metric: "xp" | "zeni" = "xp",
+	period: "general" | "month" = "general"
 ): Promise<LeaderboardEntry[]> {
 	try {
 		const res = await fetch(
-			`${SHENRON_API_URL}/api/public/leaderboard?limit=${limit}${enrich ? "&enrich=1" : ""}`,
+			`${SHENRON_API_URL}/api/public/leaderboard?limit=${limit}&metric=${metric}&period=${period}${enrich ? "&enrich=1" : ""}`,
 			{
 				next: { revalidate: revalidateSec },
 			}

@@ -29,13 +29,13 @@ export interface AccessRule {
 /**
  * Place d'une rubrique dans la navigation :
  *
- *  - `univers`   → **l'encyclopédie**, dans l'unique menu déroulant de la barre
- *                  (personnages, races, transformations, techniques,
- *                  cosmologie, sagas, arcs). Ce sont les notions de la fiction.
- *  - `oeuvres`   → **les supports**, en lien direct dans la barre (films,
- *                  épisodes, chronologie, manga, databooks, jeux). On y accède
- *                  d'un clic : ce sont les portes d'entrée du site.
- *  - `communaute`→ hors barre principale (contribuer, modifications) → « Plus ».
+	 *  - `univers`   → **l'encyclopédie**, dans l'unique menu déroulant de la barre
+	 *                  (personnages, races, transformations, techniques,
+	 *                  cosmologie, sagas, arcs). Ce sont les notions de la fiction.
+	 *  - `oeuvres`   → **les supports**, en lien direct dans la barre (films,
+	 *                  épisodes, manga, jeux). On y accède
+	 *                  d'un clic : ce sont les portes d'entrée du site.
+	 *  - `communaute`→ hors barre principale (contribuer, modifications) → « Plus ».
  *
  * Un premier découpage en quatre familles (Récit / Personnages / Univers /
  * Œuvres) se recoupait : une saga est à la fois du récit et une œuvre, un
@@ -153,7 +153,7 @@ export const LAUNCH_CATEGORIES: LaunchCategory[] = [
 		group: "oeuvres",
 		blurb: "Adaptations vidéoludiques",
 	},
-	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"], group: "oeuvres", blurb: "Daizenshuu, guides et artbooks" },
+	{ key: "databooks", label: "Databooks", href: "/wiki/databooks", prefixes: ["/wiki/databooks"], group: "univers", blurb: "Daizenshuu, guides et artbooks" },
 	// Outils communautaires (43 dépôts GitHub : modding, shaders, API). La page
 	// existait depuis longtemps et n'était visible de PERSONNE : sans entrée ici,
 	// le proxy applique le mode `admin` à tout ce qui vit sous /wiki, et

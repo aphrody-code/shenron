@@ -516,13 +516,19 @@ export const openapiSpec = {
 		"/api/public/leaderboard": {
 			get: {
 				tags: ["Insights"],
-				summary: "Classement (xp | zeni | voice | messages | streak)",
+				summary: "Classement XP ou zéni, général ou mensuel",
 				parameters: [
 					{
 						name: "metric",
 						in: "query",
 						required: false,
-						schema: { type: "string", enum: ["xp", "zeni", "voice", "messages", "streak"] },
+						schema: { type: "string", enum: ["xp", "zeni"] },
+					},
+					{
+						name: "period",
+						in: "query",
+						required: false,
+						schema: { type: "string", enum: ["general", "month"], default: "general" },
 					},
 					limitParam(10, 100),
 				],

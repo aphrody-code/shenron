@@ -20,7 +20,10 @@ import { getLaunchConfig } from "@/lib/wiki-launch-config";
  * Contrôle public : /admin/lancement (« Catégories du site »).
  */
 
-const STATIC_PUBLIC_TAIL = [{ href: "/actualites", label: "News" }];
+const STATIC_PUBLIC_TAIL = [
+	{ href: "/actualites", label: "News" },
+	{ href: "/classements", label: "Classements" },
+];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 
 /**
@@ -29,7 +32,7 @@ const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
  * ajoutait un clic pour rien. L'ordre suit la lecture d'une série — ce qu'on
  * regarde, puis ce qu'on lit, puis ce qui documente.
  */
-const ORDRE_OEUVRES = ["films", "episodes", "chronologie", "manga", "databooks", "jeux"] as const;
+const ORDRE_OEUVRES = ["films", "episodes", "manga", "jeux"] as const;
 
 /**
  * Lien de la barre. Le survol pose un TRAIT D'ENCRE sous le libellé plutôt que
