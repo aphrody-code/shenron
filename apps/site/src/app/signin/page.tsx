@@ -64,15 +64,32 @@ export default function SignInPage() {
 				errorCallbackURL: "/signin?error=oauth_failed",
 			});
 
-			// En v1.6+ signIn.social retourne {data:{url, redirect}, error}
-			// et fait le redirect navigateur. Si on revient ici sans redirect,
-			// c'est probablement une erreur silencieuse.
 			if (result?.error) {
 				window.clearTimeout(failsafe);
 				setLoading(false);
 				const code = result.error.code ?? "server_error";
 				setError(ERROR_LABELS[code] ?? result.error.message ?? "Connexion impossible. Réessaie.");
+				return;
 			}
+
+			// Better Auth peut répondre en JSON (notamment derrière un proxy qui
+			// absorbe le 302). Dans ce cas le redirect plugin n'est pas toujours
+			// exécuté par le router Next : naviguer explicitement garantit le départ
+			// vers Discord et évite le bouton bloqué jusqu'au failsafe.
+			const oauthURL = result?.data?.url;
+			if (result?.data?.redirect && typeof oauthURL === "string") {
+				const parsed = new URL(oauthURL);
+				if (parsed.origin !== "https://discord.com") {
+					throw new Error("URL de connexion Discord inattendue.");
+				}
+				window.clearTimeout(failsafe);
+				window.location.assign(parsed.toString());
+				return;
+			}
+
+			window.clearTimeout(failsafe);
+			setLoading(false);
+			setError("Discord n’a pas fourni d’URL de connexion. Réessaie.");
 		} catch (e) {
 			window.clearTimeout(failsafe);
 			setLoading(false);
