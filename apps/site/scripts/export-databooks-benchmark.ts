@@ -80,7 +80,10 @@ try {
 			text: { kind: "text", markdown: item.texte },
 		});
 	}
-	await Bun.write(join(sortie, "benchmark.jsonl"), `${references.map(JSON.stringify).join("\n")}\n`);
+	await Bun.write(
+		join(sortie, "benchmark.jsonl"),
+		`${references.map((reference) => JSON.stringify(reference)).join("\n")}\n`,
+	);
 	await Bun.write(
 		join(sortie, "README.txt"),
 		`Benchmark databooks : ${references.length} planches relues, saines et hachées SHA-256.\n` +

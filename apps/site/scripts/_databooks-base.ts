@@ -112,6 +112,7 @@ export type PlancheBrute = {
 	image?: string;
 	number?: number | string;
 	text?: unknown;
+	verifiee?: boolean;
 	text_fr?: unknown;
 	text_fr_by?: string;
 	text_fr_at?: string;
