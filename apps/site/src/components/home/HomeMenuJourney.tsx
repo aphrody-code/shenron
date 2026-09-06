@@ -25,9 +25,9 @@ export function HomeMenuJourney({
 	return (
 		<section
 			aria-labelledby="menu-complet-title"
-			className="home-menu-journey border-t border-white/10 bg-[#080808] px-4 py-16 text-white sm:px-6 md:py-24"
+			className="home-menu-journey w-full border-t border-white/10 bg-[#080808] px-4 py-16 text-white sm:px-6 md:py-24"
 		>
-			<div className="mx-auto max-w-[1400px]">
+			<div className="mx-auto w-full max-w-[1400px]">
 				<header className="mb-9 max-w-3xl lg:mb-12">
 					<p className="text-xs font-bold uppercase tracking-[0.22em] text-dbz-orange">
 						{config.eyebrow}

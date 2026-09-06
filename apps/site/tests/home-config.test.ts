@@ -19,7 +19,7 @@ describe("resolveHomeConfig", () => {
 		expect(cfg.hero.scenes.length).toBeGreaterThan(0);
 		expect(cfg.sections.length).toBe(DEFAULT_HOME_CONFIG.sections.length);
 		expect(cfg.catalogue.destinations).toHaveLength(4);
-		expect(cfg.journey.destinations).toHaveLength(7);
+		expect(cfg.journey.destinations).toHaveLength(9);
 	});
 
 	test("les destinations fixes sont éditables mais une route injectée est rejetée", () => {

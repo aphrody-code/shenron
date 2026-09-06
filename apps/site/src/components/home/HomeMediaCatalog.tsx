@@ -34,9 +34,9 @@ export function HomeMediaCatalog({
 	return (
 		<section
 			aria-labelledby="catalogue-title"
-			className="border-t border-white/10 bg-[radial-gradient(circle_at_15%_0%,rgba(231,130,32,.12),transparent_30%),#0a0908] px-4 py-16 text-white sm:px-6 md:py-24"
+			className="home-discovery-section w-full border-t border-white/10 bg-[radial-gradient(circle_at_15%_0%,rgba(231,130,32,.12),transparent_30%),#0a0908] px-4 py-16 text-white sm:px-6 md:py-24"
 		>
-			<div className="mx-auto max-w-[1400px]">
+			<div className="mx-auto w-full max-w-[1400px]">
 				<header className="mb-9 max-w-3xl lg:mb-12">
 					<p className="text-xs font-bold uppercase tracking-[0.22em] text-dbz-orange">
 						{config.eyebrow}
