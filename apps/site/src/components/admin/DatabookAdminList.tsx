@@ -6,9 +6,16 @@ import { useEffect, useMemo, useState } from "react";
 import { LienExterne } from "@/components/icones";
 import { DbRowActions } from "@/components/admin/DbCrud";
 import { assetCdnUrl } from "@/app/admin/db-universe/_lib";
+import { toMillis } from "@/lib/epoch";
 
 const TABLE = "db_databooks";
 const PAGE_SIZE = 40;
+
+function fmtDate(v: number | null): string {
+	if (!v) return "—";
+	const d = new Date(toMillis(v));
+	return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("fr-FR");
+}
 
 export type AdminDatabook = {
 	id: number;
@@ -85,7 +92,7 @@ function Row({ d, fmtDate }: { d: AdminDatabook; fmtDate: (v: number | null) => 
 	);
 }
 
-function Table({ group, fmtDate }: { group: Group; fmtDate: (v: number | null) => string }) {
+function Table({ group }: { group: Group }) {
 	return (
 		<section className="mb-10" aria-labelledby={`databook-group-${group.key}`}>
 			<h2 id={`databook-group-${group.key}`} className="mb-3 border-b-2 border-dbz-yellow/30 pb-2 font-saiyan text-2xl uppercase text-dbz-yellow">{group.label} <span className="font-sans text-sm font-normal normal-case text-white/50">{group.items.length}</span></h2>
@@ -94,7 +101,7 @@ function Table({ group, fmtDate }: { group: Group; fmtDate: (v: number | null) =
 	);
 }
 
-export function DatabookAdminList({ items, groups, fmtDate }: { items: AdminDatabook[]; groups: { key: string; label: string }[]; fmtDate: (v: number | null) => string }) {
+export function DatabookAdminList({ items, groups }: { items: AdminDatabook[]; groups: { key: string; label: string }[] }) {
 	const [query, setQuery] = useState("");
 	const [scope, setScope] = useState("all");
 	const [state, setState] = useState<"all" | "visible" | "hidden" | "missing-pages" | "missing-description">("all");
@@ -124,7 +131,7 @@ export function DatabookAdminList({ items, groups, fmtDate }: { items: AdminData
 			<label className="flex items-center gap-2 text-xs text-white/60"><span className="sr-only">Filtrer par état</span><select value={state} onChange={(e) => setState(e.target.value as typeof state)} className="input h-10"><option value="all">Tous les états</option><option value="visible">Visibles</option><option value="hidden">Masqués</option><option value="missing-pages">Sans planches</option><option value="missing-description">Sans description</option></select></label>
 			<p className="text-xs tabular-nums text-dbz-orange sm:col-span-3" aria-live="polite">{filtered.length} résultat{filtered.length > 1 ? "s" : ""} · page {current}/{pages}</p>
 		</div>
-		{grouped.length ? grouped.map((g) => <Table key={g.key} group={g} fmtDate={fmtDate} />) : <div className="dbz-panel p-12 text-center text-sm text-white/50">Aucune entrée ne correspond aux filtres.</div>}
+		{grouped.length ? grouped.map((g) => <Table key={g.key} group={g} />) : <div className="dbz-panel p-12 text-center text-sm text-white/50">Aucune entrée ne correspond aux filtres.</div>}
 		{pages > 1 && <nav className="mb-10 flex items-center justify-center gap-2" aria-label="Pagination des databooks"><button type="button" className="btn btn-ghost h-9 px-3 text-xs" disabled={current === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Précédente</button><span className="text-xs tabular-nums text-white/60">{current} / {pages}</span><button type="button" className="btn btn-ghost h-9 px-3 text-xs" disabled={current === pages} onClick={() => setPage((p) => Math.min(pages, p + 1))}>Suivante</button></nav>}
 	</>;
 }

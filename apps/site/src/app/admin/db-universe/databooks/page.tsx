@@ -29,13 +29,6 @@ function pagesCount(pages: unknown): number {
 	return Array.isArray(pages) ? pages.length : 0;
 }
 
-function fmtDate(v: number | null): string {
-	if (!v) return "—";
-	const ms = toMillis(v);
-	const d = new Date(ms);
-	return Number.isNaN(d.getTime()) ? "—" : d.toLocaleDateString("fr-FR");
-}
-
 function publishedMs(v: number | null): number {
 	if (!v) return 0;
 	return toMillis(v);
@@ -130,7 +123,7 @@ export default async function AdminDatabooksPage() {
 						Ajoutez un databook ou une interview pour commencer.
 					</p>
 				</div>
-			) : <DatabookAdminList items={normalizedItems} groups={GROUPS} fmtDate={fmtDate} />}
+			) : <DatabookAdminList items={normalizedItems} groups={GROUPS} />}
 		</div>
 	);
 }
