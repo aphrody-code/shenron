@@ -1,5 +1,8 @@
 import "server-only";
 
+import { readFile, readdir, stat } from "node:fs/promises";
+import { dirname, join } from "node:path";
+
 /**
  * Transcriptions de databooks — suivi de progression et recherche des planches.
  *
@@ -14,8 +17,9 @@ import "server-only";
  *     `bot.databook_pages_text()` + l'index trigramme `db_databooks_pages_text_trgm`
  *     (cf. `src/db/bot-indexes.sql`) y répondent ; ce module est leur seul appelant.
  *
- * Tout est agrégé côté Postgres. Charger 11 775 planches en mémoire pour les
- * compter en JavaScript coûterait les ~9,5 Mo du jsonb à chaque rendu.
+ * Les compteurs éditoriaux sont agrégés côté Postgres. Charger toutes les
+ * planches en mémoire pour les compter en JavaScript serait inutilement coûteux
+ * à chaque mesure live.
  */
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
@@ -42,6 +46,9 @@ export interface ProgressionFiche {
 	 *
 	 * Les planches acquittées à la main (`verifiee`) en sont exclues : le juge
 	 * est mécanique, le relecteur qui a comparé le texte au scan tranche.
+	 * Ce total couvre les signaux durs calculables en SQL ; le lecteur de
+	 * relecture ajoute les textes trop courts et les répétitions, qui restent
+	 * volontairement hors de cette agrégation globale coûteuse.
 	 */
 	fautives: number;
 	/** Signes de texte transcrit, tous slots confondus. */
@@ -62,6 +69,300 @@ export interface ProgressionGlobale {
 	};
 	/** Nombre de planches transcrites par jour, du plus ancien au plus récent. */
 	rythme: { jour: string; revisions: number }[];
+}
+
+export interface MangaUploadSerie {
+	serie: string;
+	chapitres: number;
+	chapitresAvecPages: number;
+	planches: number;
+}
+
+/** État réellement publié dans `bot.db_manga_chapters` / `db_manga_pages`. */
+export interface MangaUploadStatus {
+	series: MangaUploadSerie[];
+	chapitres: number;
+	chapitresAvecPages: number;
+	planches: number;
+	ocrPlanches: number;
+	ocrPlanchesAvecTexte: number;
+}
+
+export type EtatPipelineLocal = "actif" | "arrêté" | "absent";
+
+export interface OcrDatabooksLocal {
+	etat: Exclude<EtatPipelineLocal, "absent">;
+	genereLe: Date | null;
+	derniereActivite: Date | null;
+	expected: number;
+	images: number;
+	resultats: number;
+	textes: number;
+	restant: number;
+	lotActif: string | null;
+	runnerPid: number | null;
+	gpu: { nom: string; memoireUtilisee: string; memoireTotale: string; utilisation: string } | null;
+}
+
+export interface OcrMangaLocal {
+	etat: Exclude<EtatPipelineLocal, "absent">;
+	runId: string;
+	genereLe: Date | null;
+	pages: number;
+	resultats: number;
+	textes: number;
+	restant: number;
+	aRelire: number;
+	lots: number;
+}
+
+export interface EtatPipelinesLocaux {
+	databooks: OcrDatabooksLocal | null;
+	manga: OcrMangaLocal | null;
+}
+
+type JsonMap = Record<string, any>;
+
+async function jsonLocal<T extends JsonMap>(chemin: string): Promise<T | null> {
+	try {
+		return JSON.parse(await readFile(chemin, "utf8")) as T;
+	} catch {
+		return null;
+	}
+}
+
+async function dossierLocal(...parties: string[]): Promise<string | null> {
+	const cwd = process.cwd();
+	const candidats = [
+		join(cwd, ...parties),
+		join(cwd, "..", ...parties),
+		join(cwd, "..", "..", ...parties),
+	];
+	for (const chemin of candidats) {
+		try {
+			if ((await stat(chemin)).isDirectory()) return chemin;
+		} catch {
+			// Le site déployé ne possède pas nécessairement les artefacts du poste local.
+		}
+	}
+	return null;
+}
+
+function pidVivant(pid: number | null): boolean {
+	if (!pid || !Number.isInteger(pid) || pid <= 0) return false;
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch (error) {
+		return (error as NodeJS.ErrnoException).code === "EPERM";
+	}
+}
+
+function dateJson(valeur: unknown): Date | null {
+	if (typeof valeur !== "string" || !valeur) return null;
+	const date = new Date(valeur);
+	return Number.isNaN(date.valueOf()) ? null : date;
+}
+
+function nombre(valeur: unknown): number {
+	return typeof valeur === "number" && Number.isFinite(valeur) ? valeur : Number(valeur ?? 0) || 0;
+}
+
+function nomFichier(chemin: string): string {
+	return chemin.split(/[\\/]/).pop()?.toLowerCase() ?? chemin.toLowerCase();
+}
+
+async function statistiquesJsonl(chemins: string[]): Promise<{
+	resultats: number;
+	textes: number;
+	aRelire: number;
+}> {
+	const vus = new Set<string>();
+	let resultats = 0;
+	let textes = 0;
+	let aRelire = 0;
+	for (const chemin of chemins) {
+		let contenu: string;
+		try {
+			contenu = await readFile(chemin, "utf8");
+		} catch {
+			continue;
+		}
+		for (const ligne of contenu.split(/\r?\n/)) {
+			if (!ligne.trim()) continue;
+			try {
+				const resultat = JSON.parse(ligne) as JsonMap;
+				const image = typeof resultat.image === "string" ? nomFichier(resultat.image) : null;
+				if (!image || vus.has(image)) continue;
+				vus.add(image);
+				resultats++;
+				const texte = resultat.text as JsonMap | undefined;
+				if (
+					texte?.kind === "text" ||
+					(typeof texte?.markdown === "string" && texte.markdown.trim())
+				)
+					textes++;
+				const audit = resultat.coverageAudit as JsonMap | undefined;
+				if (audit?.verdict === "needs_human") aRelire++;
+			} catch {
+				// Une ligne invalide ne devient jamais un résultat publié.
+			}
+		}
+	}
+	return { resultats, textes, aRelire };
+}
+
+async function fichiersResultats(racineRun: string, nom: string): Promise<string[]> {
+	try {
+		const entrees = await readdir(racineRun, { withFileTypes: true });
+		return entrees
+			.filter((entree) => entree.isDirectory() && /^lot-\d+$/.test(entree.name))
+			.map((entree) => join(racineRun, entree.name, nom));
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Lit les campagnes locales sans les confondre avec la vérité PostgreSQL.
+ * Les dossiers sont gitignored : en production, `null` est un état explicite,
+ * pas un zéro inventé.
+ */
+export async function etatPipelinesLocaux(): Promise<EtatPipelinesLocaux> {
+	const databooksRoot = await dossierLocal("data", "sj-ocr");
+	let databooks: OcrDatabooksLocal | null = null;
+	if (databooksRoot) {
+		const status = await jsonLocal<JsonMap>(join(databooksRoot, "ocr-status.json"));
+		const lots = await readdir(databooksRoot, { withFileTypes: true }).catch(() => []);
+		let expected = 0;
+		let images = 0;
+		const resultatsPaths: string[] = [];
+		for (const lot of lots) {
+			if (!lot.isDirectory() || !/^lot-\d+$/.test(lot.name)) continue;
+			const manifeste = await jsonLocal<JsonMap>(
+				join(databooksRoot, lot.name, "manifeste.ocr.json")
+			);
+			expected += nombre(manifeste?.counts?.expected);
+			images += nombre(manifeste?.counts?.imagesOnDisk);
+			resultatsPaths.push(join(databooksRoot, lot.name, "resultats.jsonl"));
+		}
+		const stats = await statistiquesJsonl(resultatsPaths);
+		const logPath = join(databooksRoot, "ocr-monitor.log");
+		let derniereActivite: Date | null = null;
+		try {
+			derniereActivite = (await stat(logPath)).mtime;
+		} catch {
+			// Pas de journal local.
+		}
+		const runnerPid = nombre(status?.runner?.process?.[0]) || null;
+		databooks = {
+			etat: pidVivant(runnerPid) ? "actif" : "arrêté",
+			genereLe: dateJson(status?.generatedAt),
+			derniereActivite,
+			expected: expected || nombre(status?.progress?.expected),
+			images: images || nombre(status?.progress?.images),
+			resultats: stats.resultats || nombre(status?.progress?.results),
+			textes: stats.textes || nombre(status?.progress?.text),
+			restant: Math.max(
+				0,
+				(expected || nombre(status?.progress?.expected)) -
+					(stats.resultats || nombre(status?.progress?.results))
+			),
+			lotActif: pidVivant(runnerPid)
+				? typeof status?.runner?.activeLot === "string"
+					? status.runner.activeLot
+					: null
+				: null,
+			runnerPid,
+			gpu: status?.gpu
+				? {
+						nom: String(status.gpu.name ?? "GPU local"),
+						memoireUtilisee: String(status.gpu.memoryUsed ?? "—"),
+						memoireTotale: String(status.gpu.memoryTotal ?? "—"),
+						utilisation: String(status.gpu.utilization ?? "—"),
+					}
+				: null,
+		};
+	}
+
+	const mangaRoot = await dossierLocal("data", "manga-ocr");
+	let manga: OcrMangaLocal | null = null;
+	if (mangaRoot) {
+		const current = await jsonLocal<JsonMap>(join(mangaRoot, "current.json"));
+		const manifesteRelatif = typeof current?.manifest === "string" ? current.manifest : null;
+		if (manifesteRelatif) {
+			const manifestePath = join(mangaRoot, manifesteRelatif);
+			const manifeste = await jsonLocal<JsonMap>(manifestePath);
+			const runRoot = dirname(manifestePath);
+			const stats = await statistiquesJsonl(await fichiersResultats(runRoot, "results.jsonl"));
+			const pages = nombre(manifeste?.pages) || nombre(current?.pages);
+			let genereLe = dateJson(manifeste?.generatedAt) ?? dateJson(current?.generatedAt);
+			try {
+				const courant = await stat(runRoot);
+				genereLe ??= courant.mtime;
+			} catch {
+				// Manifest absent ou supprimé entre deux lectures.
+			}
+			const owner = await jsonLocal<JsonMap>(join(mangaRoot, ".manga-ocr.lock", "owner.json"));
+			const ownerPid = nombre(owner?.pid) || null;
+			manga = {
+				etat: pidVivant(ownerPid) ? "actif" : "arrêté",
+				runId: String(current?.runId ?? manifeste?.runId ?? "local"),
+				genereLe,
+				pages,
+				resultats: stats.resultats,
+				textes: stats.textes,
+				restant: Math.max(0, pages - stats.resultats),
+				aRelire: stats.aRelire,
+				lots: nombre(manifeste?.lots) || nombre(current?.lots),
+			};
+		}
+	}
+	return { databooks, manga };
+}
+
+/** Compteurs d'uploads manga issus de PostgreSQL, pas du disque local. */
+export async function mangaUploadStatus(): Promise<MangaUploadStatus> {
+	const [series, ocr] = await Promise.all([
+		db.execute<{
+			serie: string;
+			chapitres: number;
+			chapitres_avec_pages: number;
+			planches: number;
+		}>(sql`
+			SELECT coalesce(c.series, '?') AS serie,
+			       count(*)::int AS chapitres,
+			       count(*) FILTER (
+				       WHERE jsonb_typeof(c.pages) = 'array' AND jsonb_array_length(c.pages) > 0
+			       )::int AS chapitres_avec_pages,
+			       coalesce(sum(
+				       CASE WHEN jsonb_typeof(c.pages) = 'array' THEN jsonb_array_length(c.pages) ELSE 0 END
+			       ), 0)::int AS planches
+			FROM bot.db_manga_chapters c
+			GROUP BY c.series
+			ORDER BY c.series
+		`),
+		db.execute<{ planches: number; planches_avec_texte: number }>(sql`
+			SELECT count(*)::int AS planches,
+			       count(*) FILTER (WHERE nullif(btrim(text), '') IS NOT NULL)::int AS planches_avec_texte
+			FROM bot.db_manga_pages
+		`),
+	]);
+
+	const lignes = series.map((ligne) => ({
+		serie: ligne.serie,
+		chapitres: Number(ligne.chapitres),
+		chapitresAvecPages: Number(ligne.chapitres_avec_pages),
+		planches: Number(ligne.planches),
+	}));
+	return {
+		series: lignes,
+		chapitres: lignes.reduce((n, ligne) => n + ligne.chapitres, 0),
+		chapitresAvecPages: lignes.reduce((n, ligne) => n + ligne.chapitresAvecPages, 0),
+		planches: lignes.reduce((n, ligne) => n + ligne.planches, 0),
+		ocrPlanches: Number(ocr[0]?.planches ?? 0),
+		ocrPlanchesAvecTexte: Number(ocr[0]?.planches_avec_texte ?? 0),
+	};
 }
 
 /**
@@ -219,9 +520,7 @@ export async function chercherDansPlanches(
 	const limit = Math.min(200, Math.max(1, opts.limit ?? 50));
 	const motif = `%${echapperLike(cible)}%`;
 	const visibles = opts.includeHidden ? sql`true` : sql`coalesce(d.visible, true)`;
-	const uneFiche = opts.databookId
-		? sql`AND d.id = ${opts.databookId}`
-		: sql``;
+	const uneFiche = opts.databookId ? sql`AND d.id = ${opts.databookId}` : sql``;
 
 	const lignes = await db.execute<{
 		id: string;

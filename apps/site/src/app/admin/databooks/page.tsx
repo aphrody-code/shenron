@@ -1,21 +1,29 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Alerte, CocheCercle, FlecheCoin, LienExterne, Livre } from "@/components/icones";
 import { AdminHeader } from "../db-universe/_Header";
 import { assetCdnUrl } from "../db-universe/_lib";
 import { TranscriptionSearch } from "@/components/admin/TranscriptionSearch";
 import { RythmeSparkline } from "@/components/admin/RythmeSparkline";
-import { progressionTranscription, type ProgressionFiche } from "@/lib/databooks-transcription";
+import { DatabooksLiveRefresh } from "@/components/admin/DatabooksLiveRefresh";
+import {
+	etatPipelinesLocaux,
+	mangaUploadStatus,
+	progressionTranscription,
+	type EtatPipelinesLocaux,
+	type MangaUploadStatus,
+	type ProgressionFiche,
+} from "@/lib/databooks-transcription";
 
 /**
  * Suivi des transcriptions de databooks.
  *
- * La rubrique produit du texte à partir de scans japonais — 11 775 planches au
- * 2026-08-22 — et rien ne permettait d'en suivre l'avancement : le tableau
- * `/admin/db-universe/databooks` compte les planches, pas ce qui est transcrit,
- * ne dit pas où il reste du travail et n'ouvre sur aucun outil de relecture.
- * Cette page répond aux trois questions : **où on en est**, **ce qui cloche**,
- * **où aller corriger**.
+ * La rubrique produit du texte à partir de scans japonais. Les chiffres de
+ * PostgreSQL et les manifests fournis par Aphrody sont relus à chaque rendu ;
+ * le client admin redemande une mesure toutes les cinq secondes quand la page
+ * reste ouverte. Cette page répond aux trois questions : **où on en est**,
+ * **ce qui cloche**, **où aller corriger**.
  */
 export const dynamic = "force-dynamic";
 
@@ -33,6 +41,180 @@ function signes(n: number): string {
 function dateCourte(d: Date | null): string {
 	if (!d) return "—";
 	return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+}
+
+function dateHeure(d: Date | null): string {
+	if (!d) return "inconnue";
+	return d.toLocaleString("fr-FR", {
+		day: "2-digit",
+		month: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
+function EtatBadge({ etat }: { etat: "actif" | "arrêté" }) {
+	const actif = etat === "actif";
+	return (
+		<span
+			className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+				actif
+					? "border-green-400/30 bg-green-400/10 text-green-300"
+					: "border-white/15 bg-white/5 text-white/55"
+			}`}
+		>
+			<span className={`h-1.5 w-1.5 rounded-full ${actif ? "bg-green-400" : "bg-white/35"}`} />
+			{actif ? "actif" : "arrêté"}
+		</span>
+	);
+}
+
+function CartePipeline({
+	children,
+	titre,
+	etat,
+}: {
+	children: ReactNode;
+	titre: string;
+	etat: "actif" | "arrêté";
+}) {
+	return (
+		<div className="dbz-panel p-4">
+			<div className="mb-3 flex items-center justify-between gap-3">
+				<h3 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">{titre}</h3>
+				<EtatBadge etat={etat} />
+			</div>
+			{children}
+		</div>
+	);
+}
+
+function PipelinesLocaux({
+	local,
+	uploads,
+}: {
+	local: EtatPipelinesLocaux;
+	uploads: MangaUploadStatus;
+}) {
+	const databooks = local.databooks;
+	const manga = local.manga;
+	return (
+		<section className="mb-8">
+			<div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 border-b-2 border-dbz-orange/30 pb-2">
+				<h2 className="font-saiyan text-xl uppercase text-dbz-orange">Pipelines &amp; uploads</h2>
+				<div className="flex items-center gap-3 text-[11px] text-white/45">
+					<span>local = manifests du poste · publié = PostgreSQL</span>
+					<DatabooksLiveRefresh />
+				</div>
+			</div>
+			<div className="grid gap-3 lg:grid-cols-3">
+				{databooks ? (
+					<CartePipeline titre="AphrodyGPU · databooks" etat={databooks.etat}>
+						<div className="flex items-baseline justify-between gap-2 text-sm">
+							<strong className="tabular-nums text-white">
+								{databooks.resultats.toLocaleString("fr-FR")} /{" "}
+								{databooks.expected.toLocaleString("fr-FR")}
+							</strong>
+							<span className="text-dbz-orange">résultats</span>
+						</div>
+						<div className="mt-2 text-[11px] text-white/55">
+							{databooks.restant.toLocaleString("fr-FR")} restant ·{" "}
+							{databooks.textes.toLocaleString("fr-FR")} avec texte
+						</div>
+						<div className="mt-3 space-y-1 text-[10px] text-white/40">
+							<div>Dernière activité : {dateHeure(databooks.derniereActivite)}</div>
+							<div>
+								État mesuré : {dateHeure(databooks.genereLe)} ·{" "}
+								{databooks.lotActif ?? "aucun lot actif"}
+							</div>
+							{databooks.gpu && (
+								<div>
+									{databooks.gpu.nom} · {databooks.gpu.memoireUtilisee} /{" "}
+									{databooks.gpu.memoireTotale} · {databooks.gpu.utilisation} au dernier relevé
+								</div>
+							)}
+						</div>
+					</CartePipeline>
+				) : (
+					<div className="dbz-panel p-4 lg:col-span-1">
+						<h3 className="font-saiyan text-sm uppercase tracking-wider text-white/60">
+							AphrodyGPU · databooks
+						</h3>
+						<p className="mt-3 text-xs leading-relaxed text-white/45">
+							Aucun manifeste OCR databooks local n&apos;est monté dans ce runtime.
+						</p>
+					</div>
+				)}
+
+				{manga ? (
+					<CartePipeline titre="OCR manga · run local" etat={manga.etat}>
+						<div className="flex items-baseline justify-between gap-2 text-sm">
+							<strong className="tabular-nums text-white">
+								{manga.resultats.toLocaleString("fr-FR")} / {manga.pages.toLocaleString("fr-FR")}
+							</strong>
+							<span className="text-dbz-orange">résultats</span>
+						</div>
+						<div className="mt-2 text-[11px] text-white/55">
+							{manga.restant.toLocaleString("fr-FR")} restant ·{" "}
+							{manga.aRelire.toLocaleString("fr-FR")} audit{manga.aRelire > 1 ? "s" : ""} à relire
+						</div>
+						<div className="mt-3 space-y-1 text-[10px] text-white/40">
+							<div>
+								Run {manga.runId} · {manga.lots} lot{manga.lots > 1 ? "s" : ""}
+							</div>
+							<div>Manifest généré : {dateHeure(manga.genereLe)} · non déposé automatiquement</div>
+						</div>
+					</CartePipeline>
+				) : (
+					<div className="dbz-panel p-4">
+						<h3 className="font-saiyan text-sm uppercase tracking-wider text-white/60">
+							OCR manga · run local
+						</h3>
+						<p className="mt-3 text-xs leading-relaxed text-white/45">
+							Aucun run manga local détecté.
+						</p>
+					</div>
+				)}
+
+				<div className="dbz-panel p-4">
+					<div className="mb-3 flex items-center justify-between gap-3">
+						<h3 className="font-saiyan text-sm uppercase tracking-wider text-dbz-orange">
+							Manga upload · base publiée
+						</h3>
+						<span className="rounded-full border border-green-400/30 bg-green-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-green-300">
+							PostgreSQL
+						</span>
+					</div>
+					<div className="flex items-baseline justify-between gap-2 text-sm">
+						<strong className="tabular-nums text-white">
+							{uploads.planches.toLocaleString("fr-FR")}
+						</strong>
+						<span className="text-dbz-orange">planches référencées</span>
+					</div>
+					<div className="mt-2 text-[11px] text-white/55">
+						{uploads.chapitresAvecPages.toLocaleString("fr-FR")} /{" "}
+						{uploads.chapitres.toLocaleString("fr-FR")} chapitres avec pages
+					</div>
+					<div className="mt-3 space-y-1 text-[10px] text-white/40">
+						<div>
+							OCR miroir : {uploads.ocrPlanches.toLocaleString("fr-FR")} planches ·{" "}
+							{uploads.ocrPlanchesAvecTexte.toLocaleString("fr-FR")} avec texte
+						</div>
+						<div>
+							{uploads.series
+								.map((serie) => `${serie.serie} : ${serie.planches.toLocaleString("fr-FR")}`)
+								.join(" · ") || "Aucune série"}
+						</div>
+					</div>
+				</div>
+			</div>
+			<p className="mt-3 text-[11px] leading-relaxed text-white/40">
+				Les deux premiers blocs décrivent le poste local et peuvent être absents sur le serveur
+				public. Le bloc upload est la mesure de publication ; un résultat OCR local ne devient pas
+				public avant audit et dépôt explicite.
+			</p>
+		</section>
+	);
 }
 
 /**
@@ -96,7 +278,11 @@ function Tuile({
 }
 
 export default async function AdminTranscriptionsPage() {
-	const { fiches, total, rythme } = await progressionTranscription();
+	const [{ fiches, total, rythme }, local, uploads] = await Promise.all([
+		progressionTranscription(),
+		etatPipelinesLocaux(),
+		mangaUploadStatus(),
+	]);
 
 	const parEtat = {
 		"en-cours": [] as ProgressionFiche[],
@@ -162,8 +348,8 @@ export default async function AdminTranscriptionsPage() {
 				/>
 				<Tuile
 					valeur={total.fautives.toLocaleString("fr-FR")}
-					libelle="Planches à vérifier"
-					detail="Signes illisibles, alphabets hallucinés, faux chinois"
+					libelle="Signaux OCR durs"
+					detail="Caractères illisibles, alphabets hallucinés, faux chinois"
 					accent={total.fautives > 0 ? "ambre" : "vert"}
 				/>
 			</div>
@@ -182,6 +368,8 @@ export default async function AdminTranscriptionsPage() {
 				<RythmeSparkline points={rythme} />
 			</div>
 
+			<PipelinesLocaux local={local} uploads={uploads} />
+
 			{/* ── Recherche dans les planches ──────────────────────────────────── */}
 			<TranscriptionSearch />
 
@@ -190,12 +378,16 @@ export default async function AdminTranscriptionsPage() {
 				<section className="mb-10">
 					<h2 className="mb-3 flex items-center gap-2 border-b-2 border-amber-500/30 pb-2 font-saiyan text-xl uppercase text-amber-300">
 						<Alerte className="h-4 w-4" />
-						À vérifier
+						Signaux OCR durs
 						<span className="font-sans text-xs font-normal normal-case text-white/50">
 							{total.fautives} planche{total.fautives > 1 ? "s" : ""} sur {fautives.length} ouvrage
 							{fautives.length > 1 ? "s" : ""}
 						</span>
 					</h2>
+					<p className="mb-3 text-xs text-white/50">
+						Ce compteur couvre les défauts OCR certains. La file « À vérifier » de chaque ouvrage
+						ajoute aussi les textes trop courts et les répétitions, contrôlés dans le lecteur.
+					</p>
 					<div className="flex flex-wrap gap-2">
 						{fautives.map((f) => (
 							<Link
@@ -253,7 +445,7 @@ export default async function AdminTranscriptionsPage() {
 											Signes
 										</th>
 										<th className="w-20 p-2 text-center text-xs uppercase tracking-widest text-dbz-blue-light">
-											À voir
+											Signaux
 										</th>
 										<th className="w-24 p-2 text-left text-xs uppercase tracking-widest text-dbz-blue-light">
 											Dernier dépôt

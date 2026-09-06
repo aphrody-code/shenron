@@ -502,6 +502,15 @@ function cmdVerifie(): void {
 	const verdicts = positionnels.map((c) => verifieFichier(jsonlDe(c)));
 	if (JSON_SORTIE) {
 		console.log(JSON.stringify(verdicts, null, 2));
+		const fautives = verdicts.reduce(
+			(total, v) =>
+				total +
+				Object.entries(v.defauts)
+					.filter(([classe]) => classe !== "ok")
+					.reduce((sousTotal, [, compte]) => sousTotal + compte, 0),
+			0,
+		);
+		if (fautives > 0) process.exitCode = 1;
 		return;
 	}
 	let fautives = 0;

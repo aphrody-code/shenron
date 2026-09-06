@@ -62,6 +62,7 @@ foreach ($lot in $lots) {
 		Add-Content -LiteralPath $logPath -Value ("[{0}] {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $_)
 	}
 	if ($LASTEXITCODE -ne 0) { Write-Log "FAIL $($lot.Name): exit=$LASTEXITCODE"; continue }
-	Write-Log "DONE $($lot.Name): resultats=$(if(Test-Path $out){(Get-Content $out).Count}else{0})"
+	$normalized = Normalize-Results $out
+	Write-Log "DONE $($lot.Name): resultats=$normalized"
 }
 Write-Log "Fin OCR databooks"

@@ -26,12 +26,15 @@ function Build-State {
 	$pendingLots = 0
 	foreach ($lot in $lots) {
 		$manifestPath = Join-Path $lot.FullName "manifeste.ocr.json"
+		$lotImages = 0
 		if (Test-Path $manifestPath) {
 			$m = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
 			$expected += [int]$m.counts.expected
-			$images += [int]$m.counts.imagesOnDisk
+			$lotImages = [int]$m.counts.imagesOnDisk
+			$images += $lotImages
 		}
 		$resultPath = Join-Path $lot.FullName "resultats.jsonl"
+		$lotResults = 0
 		if (Test-Path $resultPath) {
 			$seenImages = @{}
 			foreach ($line in Get-Content -LiteralPath $resultPath) {
@@ -41,13 +44,14 @@ function Build-State {
 					$imageKey = [IO.Path]::GetFileName([string]$r.image).ToLowerInvariant()
 					if (-not $imageKey -or $seenImages.ContainsKey($imageKey)) { continue }
 					$seenImages[$imageKey] = $true
+					$lotResults++
 					$results++
 					$md = [string]$r.text.markdown
 					if ($md.Trim()) { $text++ }
 				} catch { $invalid++ }
 			}
 		}
-		if ((Test-Path $manifestPath) -and $m.counts.pending -gt 0) { $pendingLots++ }
+		if ($lotImages -gt $lotResults) { $pendingLots++ }
 	}
 	$log = if (Test-Path $logPath) { @(Get-Content -LiteralPath $logPath) } else { @() }
 	$started = $null
@@ -68,6 +72,10 @@ function Build-State {
 	$elapsed = if ($started) { ((Get-Date) - $started).TotalSeconds } else { 0 }
 	$rate = if ($readSeconds -gt 0) { $readPages / $readSeconds } elseif ($elapsed -gt 0 -and $readPages -gt 0) { $readPages / $elapsed } else { 0 }
 	$remaining = [math]::Max(0, $expected - $results)
+	$runnerProcesses = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+		Where-Object { $_.CommandLine -match 'run-databooks-ocr\.ps1' } |
+		Select-Object -ExpandProperty ProcessId)
+	if ($runnerProcesses.Count -eq 0) { $activeLot = $null }
 	$gpu = $null
 	try {
 		$gpuLine = & nvidia-smi --query-gpu=name,memory.used,memory.total,utilization.gpu --format=csv,noheader 2>$null | Select-Object -First 1
@@ -88,7 +96,7 @@ function Build-State {
 		schemaVersion = 1
 		generatedAt = (Get-Date).ToUniversalTime().ToString("o")
 		root = $rootPath
-		 runner = [ordered]@{ process = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $_.CommandLine -match 'run-databooks-ocr\.ps1' } | Select-Object -ExpandProperty ProcessId); activeLot=$activeLot }
+		runner = [ordered]@{ process = $runnerProcesses; activeLot=$activeLot }
 		progress = [ordered]@{ expected=$expected; images=$images; results=$results; text=$text; invalid=$invalid; remaining=$remaining; lotsPending=$pendingLots; percent=if($expected){[math]::Round($results*100/$expected,2)}else{0} }
 		performance = [ordered]@{ ratePagesPerSecond=[math]::Round($rate,5); ratePagesPerHour=[math]::Round($rate*3600,2); elapsedSeconds=[math]::Round($elapsed,1); etaSeconds=if($rate -gt 0){[math]::Round($remaining/$rate,1)}else{$null} }
 		gpu = $gpu
@@ -103,6 +111,7 @@ do {
 	# et PowerShell 7 (les noms d'encodage des cmdlets diffèrent entre les deux).
 	$json = ($state | ConvertTo-Json -Depth 8) + [Environment]::NewLine
 	[IO.File]::WriteAllText($statePath, $json, [Text.UTF8Encoding]::new($false))
-	Write-Output ("{0} {1}/{2} ({3}%) · {4} p/h · ETA {5}s · lot {6}" -f $state.generatedAt,$state.progress.results,$state.progress.expected,$state.progress.percent,$state.performance.ratePagesPerHour,$state.performance.etaSeconds,$state.runner.activeLot)
+	$eta = if ($null -eq $state.performance.etaSeconds) { "—" } else { "{0}s" -f $state.performance.etaSeconds }
+	Write-Output ("{0} {1}/{2} ({3}%) · {4} p/h · ETA {5} · lot {6}" -f $state.generatedAt,$state.progress.results,$state.progress.expected,$state.progress.percent,$state.performance.ratePagesPerHour,$eta,$state.runner.activeLot)
 	if (-not $Once) { Start-Sleep -Seconds $IntervalSeconds }
 } while (-not $Once)
