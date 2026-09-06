@@ -1,4 +1,4 @@
-import { env } from "~/lib/env";
+import { env, isBotOwner } from "~/lib/env";
 
 /**
  * Discord OAuth2 authorization-code flow pour le dashboard.
@@ -146,6 +146,5 @@ export async function fetchUser(accessToken: string): Promise<DiscordUser> {
 }
 
 export function isUserAllowed(userId: string): boolean {
-	if (env.OWNER_ID === userId) return true;
-	return env.OAUTH_ALLOWED_USERS.includes(userId);
+	return isBotOwner(userId) || env.OAUTH_ALLOWED_USERS.includes(userId);
 }

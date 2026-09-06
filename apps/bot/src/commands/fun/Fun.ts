@@ -9,7 +9,7 @@ import {
 } from "discord.js";
 import { GuildOnly } from "~/guards/GuildOnly";
 import { CommandsChannelOnly } from "~/guards/CommandsChannelOnly";
-import { env } from "~/lib/env";
+import { isBotOwner } from "~/lib/env";
 import { GaugeService } from "~/services/GaugeService";
 
 /**
@@ -48,7 +48,7 @@ export class FunCommands {
 		interaction: CommandInteraction
 	) {
 		await interaction.deferReply();
-		const pct = target.id === env.OWNER_ID ? 0 : stablePercent(target.id, "gay");
+		const pct = isBotOwner(target.id) ? 0 : stablePercent(target.id, "gay");
 		const buf = await this.gauge.render({
 			user: target,
 			title: "GAYDAR DE BULMA",
@@ -79,7 +79,7 @@ export class FunCommands {
 	) {
 		await interaction.deferReply();
 		// Spec : si utilisée sur l'owner → 101 % (overflow rouge)
-		const pct = target.id === env.OWNER_ID ? 101 : stablePercent(target.id, "raciste");
+		const pct = isBotOwner(target.id) ? 101 : stablePercent(target.id, "raciste");
 		const buf = await this.gauge.render({
 			user: target,
 			title: "RACISM-O-MÈTRE",

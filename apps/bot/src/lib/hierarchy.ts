@@ -20,7 +20,7 @@
  */
 import type { GuildMember } from "discord.js";
 import { container } from "tsyringe";
-import { env } from "./env";
+import { isBotOwner } from "./env";
 import { SettingsService } from "~/services/SettingsService";
 import { logger } from "./logger";
 
@@ -83,9 +83,9 @@ export async function canModerate(
 	mod: GuildMember,
 	target: GuildMember
 ): Promise<{ ok: boolean; reason?: string }> {
-	const isOwner = mod.id === env.OWNER_ID || mod.id === env.BOT_DEV_ID;
+	const isOwner = isBotOwner(mod.id);
 	if (isOwner) return { ok: true };
-	if (target.id === env.OWNER_ID || target.id === env.BOT_DEV_ID) {
+	if (isBotOwner(target.id)) {
 		return { ok: false, reason: "Cible protégée (propriétaire / bot-dev)." };
 	}
 	if (target.id === mod.id) {

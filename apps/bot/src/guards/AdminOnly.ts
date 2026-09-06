@@ -1,10 +1,10 @@
 import type { GuardFunction } from "@rpbey/discordy";
 import { type CommandInteraction, MessageFlags, PermissionFlagsBits } from "discord.js";
-import { env } from "~/lib/env";
+import { isBotOwner } from "~/lib/env";
 
 export const AdminOnly: GuardFunction<CommandInteraction> = async (interaction, _client, next) => {
 	if (!interaction.inCachedGuild()) return;
-	const isOwner = interaction.user.id === env.OWNER_ID || interaction.user.id === env.BOT_DEV_ID;
+	const isOwner = isBotOwner(interaction.user.id);
 	const hasPerm = interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 	if (!isOwner && !hasPerm) {
 		await interaction.reply({

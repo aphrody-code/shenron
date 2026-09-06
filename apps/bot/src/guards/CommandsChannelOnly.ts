@@ -2,7 +2,7 @@ import type { GuardFunction } from "@rpbey/discordy";
 import type { CommandInteraction, ButtonInteraction, ModalSubmitInteraction } from "discord.js";
 import { MessageFlags, PermissionFlagsBits } from "discord.js";
 import { container } from "tsyringe";
-import { env } from "~/lib/env";
+import { env, isBotOwner } from "~/lib/env";
 import { SettingsService } from "~/services/SettingsService";
 
 /**
@@ -22,7 +22,7 @@ export const CommandsChannelOnly: GuardFunction<
 	const target = override ?? env.COMMANDS_CHANNEL_ID;
 	if (target && interaction.channelId !== target) {
 		const userId = interaction.user.id;
-		const isOwner = userId === env.OWNER_ID || userId === env.BOT_DEV_ID;
+		const isOwner = isBotOwner(userId);
 		const isStaff =
 			interaction.inCachedGuild() &&
 			interaction.member.permissions.has(PermissionFlagsBits.ModerateMembers);

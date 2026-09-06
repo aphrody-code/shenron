@@ -6,7 +6,7 @@ import {
 	PermissionFlagsBits,
 } from "discord.js";
 import { container } from "tsyringe";
-import { env } from "~/lib/env";
+import { isBotOwner } from "~/lib/env";
 import { CommandPermissionsService } from "~/services/CommandPermissionsService";
 
 /**
@@ -36,7 +36,7 @@ export const CommandPermissions: GuardFunction<CommandInteraction> = async (arg,
 	}
 
 	const userId = interaction.user.id;
-	if (userId === env.OWNER_ID || userId === env.BOT_DEV_ID) {
+	if (isBotOwner(userId)) {
 		await next();
 		return;
 	}

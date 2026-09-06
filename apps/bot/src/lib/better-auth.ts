@@ -21,7 +21,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { container } from "tsyringe";
 import { DatabaseService } from "~/db/index";
 import { baAccount, baSession, baUser, baVerification } from "~/db/schema";
-import { env } from "./env";
+import { env, isBotOwner } from "./env";
 import { logger } from "./logger";
 
 // any-typed pour éviter les inférences inter-versions Better Auth qui se
@@ -100,7 +100,7 @@ export function getAuth() {
 						if (account.providerId !== "discord") return;
 						const discordId = account.accountId;
 						const allowed =
-							discordId === env.OWNER_ID || env.OAUTH_ALLOWED_USERS.includes(discordId);
+							isBotOwner(discordId) || env.OAUTH_ALLOWED_USERS.includes(discordId);
 						if (!allowed) {
 							logger.warn(
 								{ discordId, providerId: account.providerId },

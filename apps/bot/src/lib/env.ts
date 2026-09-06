@@ -18,6 +18,20 @@ const schema = z.object({
 
 	GUILD_ID: z.string().regex(/^\d{17,20}$/, "GUILD_ID must be a Discord snowflake"),
 	OWNER_ID: z.string().regex(/^\d{17,20}$/, "OWNER_ID must be a Discord snowflake"),
+	// Owners additionnels : OWNER_ID reste la clé historique, cette liste permet
+	// d'accorder le même bypass sans remplacer le propriétaire existant.
+	OWNER_IDS: z
+		.string()
+		.optional()
+		.transform((v) =>
+			v
+				? v
+						.split(",")
+						.map((s) => s.trim())
+						.filter(Boolean)
+				: []
+		)
+		.refine((ids) => ids.every((id) => /^\d{17,20}$/.test(id)), "OWNER_IDS must contain Discord snowflakes"),
 	BOT_DEV_ID: z
 		.string()
 		.regex(/^\d{17,20}$/, "BOT_DEV_ID must be a Discord snowflake")
@@ -160,3 +174,8 @@ export const env = {
 	APPLICATION_ID_SHENRON: shenronAppId,
 };
 export type Env = typeof env;
+
+/** OWNER_ID/BOT_DEV_ID historiques + owners additionnels configurés par CSV. */
+export function isBotOwner(discordId: string): boolean {
+	return discordId === env.OWNER_ID || discordId === env.BOT_DEV_ID || env.OWNER_IDS.includes(discordId);
+}

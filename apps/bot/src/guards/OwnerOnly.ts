@@ -1,9 +1,9 @@
 import type { GuardFunction } from "@rpbey/discordy";
 import { type CommandInteraction, MessageFlags } from "discord.js";
-import { env } from "~/lib/env";
+import { isBotOwner } from "~/lib/env";
 
 export const OwnerOnly: GuardFunction<CommandInteraction> = async (interaction, _client, next) => {
-	const allowed = interaction.user.id === env.OWNER_ID || interaction.user.id === env.BOT_DEV_ID;
+	const allowed = isBotOwner(interaction.user.id);
 	if (!allowed) {
 		if (interaction.isRepliable()) {
 			await interaction.reply({
