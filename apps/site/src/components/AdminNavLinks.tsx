@@ -14,7 +14,7 @@ import { useMe } from "@/lib/use-me";
 
 export type NavLink = { href: string; label: string };
 
-export function AdminNavLinks({ links }: { links: NavLink[] }) {
+export function AdminNavLinks({ links, className = "" }: { links: NavLink[]; className?: string }) {
 	const me = useMe();
 	const [open, setOpen] = useState(false);
 	const ref = useRef<HTMLDivElement | null>(null);
@@ -38,7 +38,7 @@ export function AdminNavLinks({ links }: { links: NavLink[] }) {
 	if (!me?.isAdmin || links.length === 0) return null;
 
 	return (
-		<div ref={ref} className="relative">
+		<div ref={ref} className={`relative ${className}`}>
 			<button
 				type="button"
 				onClick={() => setOpen((v) => !v)}

@@ -189,7 +189,7 @@ export async function SiteNav() {
 						</Link>
 					))}
 					{/* Sections encore fermées au public — admins only */}
-					<AdminNavLinks links={adminOnly} />
+					<AdminNavLinks links={adminOnly} className="hidden 2xl:block" />
 				</nav>
 
 				{/* Zone identité desktop — îlot client (auth via /api/me) */}
