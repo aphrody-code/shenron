@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 		absolute: "DBFR — Le voyage dans l'univers Dragon Ball",
 	},
 	description:
-		"Explore l'univers Dragon Ball en français : personnages, sagas, planètes, films, jeux, manga et actualités anime. Une communauté et six bots Discord pour vivre Dragon Ball.",
+		"Explore l'univers Dragon Ball en français : personnages, sagas, planètes, films, jeux, manga et actualités anime. Une communauté et un bot Discord unifié pour vivre Dragon Ball.",
 	...ogMeta({
 		title: "DBFR — Le voyage dans l'univers Dragon Ball",
 		description:

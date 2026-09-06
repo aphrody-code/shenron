@@ -64,7 +64,7 @@ interface BotSelectorProps {
 }
 
 /**
- * Tabs horizontales pour sélectionner un persona parmi les 6.
+ * Sélecteur du client Gateway unifié (les anciens aliases restent acceptés).
  */
 export function BotSelector({ value, onChange, className }: BotSelectorProps) {
 	const { data, isLoading } = useBots();

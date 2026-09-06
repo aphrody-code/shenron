@@ -81,12 +81,12 @@ export default function BotPage() {
 			<div className="dbz-panel p-4">
 				<div className="flex items-center gap-2 mb-2">
 					<BotIcon className="h-5 w-5 text-dbz-orange" />
-					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Personas Discord</h2>
+					<h2 className="text-lg font-saiyan text-dbz-orange uppercase">Bot Discord unifié</h2>
 				</div>
 				<p className="text-sm text-zinc-300">
-					Le bot fonctionne avec 6 personnages Discord distincts (Shenron, Beerus, Whis…). Chacun a
-					son propre jeton de connexion, ses commandes et ses guildes. Sélectionnez un persona pour
-					voir son état, son nombre de commandes et les serveurs qu'il surveille.
+					Le bot fonctionne avec un seul client Gateway Shenron qui rassemble les services,
+					commandes et événements. Les anciens IDs de persona restent disponibles comme aliases
+					pour les intégrations existantes.
 				</p>
 			</div>
 			<BotSelector value={botId} onChange={setBotId} />

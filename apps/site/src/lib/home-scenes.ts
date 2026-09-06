@@ -443,7 +443,7 @@ export const SECTION_META: Record<HomeSectionId, HomeSectionMeta> = {
 		kanji: "神",
 		eyebrow: "Le bot",
 		title: "Six gardiens, un seul process",
-		subtitle: "Six personas Discord, six personnalités, une seule machine",
+		subtitle: "Un bot Discord unifié, tous les services Dragon Ball",
 		defaultEnabled: true,
 	},
 	community: {

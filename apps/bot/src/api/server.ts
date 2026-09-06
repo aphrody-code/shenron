@@ -1456,22 +1456,23 @@ export class ApiServer {
 					return Response.json(serializeCommand(found));
 				}),
 
-				// ── Multi-bot — liste/détail des 6 personas ──────────────────
-				// GET /api/bots         : carte synthétique des 6 (status, ping, uptime, count cmds)
-				// GET /api/bots/:id     : détail d'un persona (guilds + commands)
+				// ── Bot unifié — aliases conservés pour les routes de détail ───
+				// GET /api/bots         : une carte synthétique du client Gateway
+				// GET /api/bots/:id     : détail de Shenron ou d'un alias historique
 				// GET /api/bots/:id/commands  : full schema slash commands d'un persona
 				// GET /api/bots/:id/expanded  : leaves expandées (groupes flatten) pour Commands.tsx
 				"/api/bots": admin(() => {
 					const map = container.resolve<Map<string, Client>>("ClientMap");
+					const unique = [...new Set(map.values())];
 					// MetadataStorage discordx est singleton — `client.applicationCommands`
 					// retourne TOUTES les classes @Slash sans filtrage par botId.
-					// On filtre via `isBotAllowed(id)` pour avoir le count réel par persona.
+					// On filtre via `isBotAllowed("shenron")` pour le client unifié.
 					const allCmds = (Client.applicationCommands ?? []) as unknown as Array<{
 						isBotAllowed: (id: string) => boolean;
 					}>;
-					const bots = [...map.entries()].map(([id, c]) => ({
-						id,
-						name: c.user?.username ?? id,
+					const bots = unique.map((c) => ({
+						id: "shenron",
+						name: c.user?.username ?? "shenron",
 						username: c.user?.tag ?? null,
 						avatar: c.user?.displayAvatarURL({ size: 128 }) ?? null,
 						online: c.isReady(),
@@ -1482,7 +1483,7 @@ export class ApiServer {
 								? c.options.intents
 								: (c.options.intents?.bitfield ?? 0),
 						guildCount: c.guilds.cache.size,
-						commandCount: allCmds.filter((cmd) => cmd.isBotAllowed(id)).length,
+						commandCount: allCmds.filter((cmd) => cmd.isBotAllowed("shenron")).length,
 					}));
 					return Response.json({ bots });
 				}),

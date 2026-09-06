@@ -120,7 +120,7 @@ export default function DashboardPage() {
 						/>
 						<span className="text-xs text-white/50">
 							{onlineCount > 0
-								? `${onlineCount} persona${onlineCount > 1 ? "s" : ""} en ligne`
+								? `${onlineCount} bot${onlineCount > 1 ? "s" : ""} en ligne`
 								: "Bot hors ligne"}
 						</span>
 					</div>
@@ -209,7 +209,7 @@ export default function DashboardPage() {
 			{/* Personas — état de chacun */}
 			<div>
 				<h2 className="mb-4 text-base font-semibold text-white/70 uppercase tracking-widest text-[11px]">
-					Personas Discord
+					Bot Discord unifié
 				</h2>
 				<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{bots.data?.bots.map((b) => <BotCard key={b.id} bot={b} />) ?? (
