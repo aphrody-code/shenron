@@ -219,6 +219,8 @@ export const baAccount = pgTable("ba_account", {
 	id: text("id").primaryKey(),
 	accountId: text("accountId").notNull(),
 	providerId: text("providerId").notNull(),
+	// Better Auth 1.6 uses issuer to bind OAuth accounts safely.
+	issuer: text("issuer"),
 	userId: text("userId")
 		.notNull()
 		.references(() => baUser.id),

@@ -50,6 +50,13 @@
 			"when": 1783388447135,
 			"tag": "0006_wiki_revisions",
 			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1788780000000,
+			"tag": "0012_better_auth_account_issuer",
+			"breakpoints": true
 		}
 	]
 }
