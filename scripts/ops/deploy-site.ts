@@ -8,7 +8,7 @@
  * temps que Next reparte.
  *
  * Principe (repris de rose-griffon/rg, adapté à nos contraintes) :
- *   1. build dans le dépôt (Node — cf. scripts/deploy-site.sh pour le pourquoi) ;
+ *   1. build dans le dépôt (Bun, borné en CPU/I/O pour ne pas affamer la prod) ;
  *   2. publication d'une VERSION FIGÉE sous ~/shenron-releases/site/releases/<v> ;
  *   3. démarrage du slot INACTIF sur son port, sondes HTTP ;
  *   4. bascule nginx (fichier d'amont généré) + attente du drainage des workers ;
@@ -104,6 +104,9 @@ const MEMORY_NEED_MIB = 26_624;
 const MEMORY_RAM_FLOOR_MIB = 2_048;
 /** Au-delà, le contenu des tmpfs pèse assez pour mériter d'être détaillé. */
 const TMPFS_WARN_MIB = 256;
+const DEFAULT_BUILD_CPUSET = "0,1";
+const DEFAULT_BUILD_CPUS = "2";
+const DEFAULT_BUILD_STATIC_CONCURRENCY = "4";
 
 interface DeployState {
 	live: SlotId | null;
@@ -363,8 +366,11 @@ async function buildSite(sha: string): Promise<string> {
 	await rm(BUILD_DIR, { recursive: true, force: true });
 	const startedAt = Date.now();
 
-	// Le build est PRIORITÉ BASSE (`nice`) et rendu quasi invisible au disque
-	// (`ionice` best-effort au niveau le plus bas).
+	// Le build est borné à deux cœurs : `nice` seul ne suffit pas. Le 2026-09-06,
+	// un build à priorité 15 a encore consommé presque toute la machine (CPU,
+	// swap et I/O), au point de ralentir les services en production. L'affinité
+	// est héritée par tous les workers Turbopack et constitue donc une limite
+	// réelle, même quand la machine est sous pression.
 	//
 	// Mesuré le 2026-08-27 pendant un déploiement : `next build` occupait 199 %
 	// de CPU et ses quatre workers de génération statique ~90 % chacun, soit
@@ -372,17 +378,28 @@ async function buildSite(sha: string): Promise<string> {
 	// pour le cœur restant, et le site paraissait « bugué » pendant les sept
 	// minutes du build — alors qu'il répondait, simplement en retard.
 	//
-	// `nice` ne ralentit pas le build tant que la machine a du mou : le noyau ne
-	// déclasse un processus que lorsqu'il y a concurrence. C'est exactement le
-	// cas voulu — le build prend tout ce qui est libre, et rend la main dès
-	// qu'une requête arrive.
-	const prefixePriorite = existsSync("/usr/bin/nice")
-		? ["/usr/bin/nice", "-n", "15", ...(existsSync("/usr/bin/ionice") ? ["/usr/bin/ionice", "-c", "2", "-n", "7"] : [])]
-		: [];
+	const tasksetBin = ["/usr/bin/taskset", "/bin/taskset"].find((path) => existsSync(path));
+	const niceBin = ["/usr/bin/nice", "/bin/nice"].find((path) => existsSync(path));
+	const ioniceBin = ["/usr/bin/ionice", "/bin/ionice"].find((path) => existsSync(path));
+	if (process.platform === "linux" && !tasksetBin) {
+		fail("taskset introuvable : refus de lancer une build non bornée sur le VPS.");
+	}
+	const buildCpuset = (process.env.BUILD_CPUSET ?? DEFAULT_BUILD_CPUSET).trim();
+	if (!/^(?:\d+(?:-\d+)?)(?:,\d+(?:-\d+)?)*$/.test(buildCpuset)) {
+		fail(`BUILD_CPUSET invalide (${buildCpuset}) — attendu, par exemple, 0,1 ou 0-1.`);
+	}
+	const prefixePriorite = [
+		...(tasksetBin ? [tasksetBin, "-c", buildCpuset] : []),
+		...(niceBin ? [niceBin, "-n", "15"] : []),
+		// Classe idle : le build n'entre en concurrence disque avec ni nginx ni
+		// PostgreSQL quand la file d'I/O est déjà chargée.
+		...(ioniceBin ? [ioniceBin, "-c", "3"] : []),
+	];
 	log(
 		`build (Bun, à froid → ${BUILD_DIR_NAME}) · deploymentId=${sha}${
-			prefixePriorite.length ? " · priorité basse" : ""
-		}`
+			prefixePriorite.length ? ` · CPU ${buildCpuset} · priorité/I/O basse` : ""
+		} · BUILD_CPUS=${process.env.BUILD_CPUS ?? DEFAULT_BUILD_CPUS} · ` +
+			`BUILD_STATIC_CONCURRENCY=${process.env.BUILD_STATIC_CONCURRENCY ?? DEFAULT_BUILD_STATIC_CONCURRENCY}`
 	);
 	const res = await run([...prefixePriorite, bunBin, nextBin, "build"], {
 		cwd: SITE_DIR,
@@ -408,10 +425,9 @@ async function buildSite(sha: string): Promise<string> {
 			// `env` remplace l'environnement, les omettre les rendrait inopérantes
 			// depuis la ligne de commande — le réglage existerait sans jamais
 			// s'appliquer, ce qui est pire que de ne pas l'avoir.
-			...(process.env.BUILD_CPUS ? { BUILD_CPUS: process.env.BUILD_CPUS } : {}),
-			...(process.env.BUILD_STATIC_CONCURRENCY
-				? { BUILD_STATIC_CONCURRENCY: process.env.BUILD_STATIC_CONCURRENCY }
-				: {}),
+			BUILD_CPUS: process.env.BUILD_CPUS ?? DEFAULT_BUILD_CPUS,
+			BUILD_STATIC_CONCURRENCY:
+				process.env.BUILD_STATIC_CONCURRENCY ?? DEFAULT_BUILD_STATIC_CONCURRENCY,
 		},
 	});
 
