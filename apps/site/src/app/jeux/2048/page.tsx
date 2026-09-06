@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 	title: "DBZ 2048 : Ki Merge — Jeux",
 	description:
 		"Joue au jeu 2048 version Dragon Ball Z ! Fusionne tes personnages préférés (Saibaiman, Yamcha, Krillin, Vegeta...) pour augmenter ton Ki et atteindre Whis !",
+	alternates: { canonical: "/jeux/2048" },
 };
 
 export default function Page2048() {

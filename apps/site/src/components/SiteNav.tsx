@@ -23,6 +23,8 @@ import { getLaunchConfig } from "@/lib/wiki-launch-config";
 const STATIC_PUBLIC_TAIL = [
 	{ href: "/actualites", label: "News" },
 	{ href: "/classements", label: "Classements" },
+	{ href: "/shop", label: "Boutique" },
+	{ href: "/jeux", label: "Mini-jeux" },
 ];
 const STATIC_ADMIN = [{ href: "/tierlists", label: "Tierlists" }];
 

@@ -13,6 +13,8 @@ export const MOBILE_MORE_DESTINATIONS = [
 	{ href: "/wiki/manga", label: "Manga", note: "Tomes et chapitres" },
 	{ href: "/wiki/databooks", label: "Databooks", note: "Daizenshuu et guides" },
 	{ href: "/wiki/jeux", label: "Jeux", note: "Trente ans d'adaptations" },
+	{ href: "/jeux", label: "Mini-jeux", note: "Arène, bingo et duels" },
+	{ href: "/shop", label: "Boutique", note: "Cosmétiques contre des zénis" },
 	{ href: "/actualites", label: "News", note: "L'actualité de la licence" },
 	{ href: "/classements", label: "Classements", note: "Les tops de la communauté" },
 	{ href: "/tierlists", label: "Tier lists", note: "Classer et voter" },
