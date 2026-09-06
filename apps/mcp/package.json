@@ -2,7 +2,7 @@
 	"name": "@shenron/mcp",
 	"version": "0.1.0",
 	"private": true,
-	"description": "Serveur MCP public (Streamable HTTP, read-only) exposant le RAG et l'API publique Dragon Ball de dragonballfr.com",
+	"description": "Serveur MCP Dragon Ball public avec élévation admin authentifiée pour les outils d'exploitation autorisés",
 	"type": "module",
 	"scripts": {
 		"dev": "bun --watch src/index.ts",

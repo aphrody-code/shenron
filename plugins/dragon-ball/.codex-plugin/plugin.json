@@ -1,0 +1,42 @@
+{
+  "name": "dragon-ball",
+  "version": "0.1.0+codex.20260906085302",
+  "description": "Base Dragon Ball sourc\u00e9e, avec skills lore, japonais et OCR visuel pour sous-agents, plus MCP public en lecture seule. Shenron valide tout d\u00e9p\u00f4t.",
+  "author": {
+    "name": "Yohan Pierre",
+    "email": "contact@aphrody-code.dev",
+    "url": "https://github.com/aphrody-code"
+  },
+  "homepage": "https://dragonballfr.com",
+  "repository": "https://github.com/aphrody-code/shenron",
+  "license": "Apache-2.0",
+  "keywords": [
+    "dragon-ball",
+    "dbz",
+    "dbs",
+    "rag",
+    "wiki",
+    "manga",
+    "mcp",
+    "dragonballfr"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Dragon Ball \u2014 dragonballfr.com",
+    "shortDescription": "Lore, japonais et OCR visuel sourc\u00e9s",
+    "longDescription": "Skills Dragon Ball, japonais, OCR visuel et dessin vectoriel, reli\u00e9s au MCP public lecture seule de dragonballfr.com.",
+    "developerName": "Yohan Pierre",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive"
+    ],
+    "websiteURL": "https://dragonballfr.com",
+    "defaultPrompt": [
+      "Recherche une information Dragon Ball avec ses sources.",
+      "Transcris ce lot de databooks avec la capacit\u00e9 visuelle et le contr\u00f4le Shenron.",
+      "Cherche un personnage dans le wiki Dragon Ball."
+    ],
+    "brandColor": "#2E7D32"
+  }
+}

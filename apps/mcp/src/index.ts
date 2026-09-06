@@ -12,12 +12,15 @@
  * natif Bun.serve — pas de node:http, pas de Hono. Stateless : un serveur + un transport
  * neufs par requête (`sessionIdGenerator: undefined`), rien n'est stocké côté serveur.
  *
- * Sécurité : aucune auth (API déjà publique, lecture seule), CORS ouvert (`*`), aucun
- * secret manipulé. Le proxy nginx (mcp.dragonballfr.com) termine TLS + rate-limit.
+ * Sécurité : les outils publics restent sans auth ; un Bearer `MCP_ADMIN_TOKEN`
+ * active une surface admin explicite. Les jetons upstream restent dans systemd.
+ * Le proxy nginx (mcp.dragonballfr.com) termine TLS + rate-limit.
  */
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
+import { timingSafeEqual } from "node:crypto";
 import { API_BASE } from "./api.ts";
+import { registerAdminTools } from "./admin-tools.ts";
 import { registerSkill, SKILL_RESOURCE_COUNT } from "./skill.ts";
 import { registerAllTools } from "./tools.ts";
 
@@ -47,7 +50,7 @@ const TOOL_NAMES = [
 ];
 
 /** Construit une instance MCP fraîche (stateless : une par requête). */
-function buildServer(): McpServer {
+function buildServer(isAdmin: boolean): McpServer {
 	const server = new McpServer(
 		{ name: SERVER_NAME, version: VERSION },
 		{
@@ -58,6 +61,7 @@ function buildServer(): McpServer {
 		}
 	);
 	registerAllTools(server);
+	if (isAdmin) registerAdminTools(server);
 	// Publie aussi la skill Dragon Ball (prompt `dragon_ball` + resources docs).
 	registerSkill(server);
 	return server;
@@ -88,8 +92,17 @@ function json(data: unknown, status = 200): Response {
 }
 
 /** Traite une requête MCP de façon stateless (serveur + transport neufs, fermés à la fin). */
+function hasAdminToken(req: Request): boolean {
+	const expected = process.env.MCP_ADMIN_TOKEN?.trim();
+	const received = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
+	if (!expected || !received) return false;
+	const a = Buffer.from(expected);
+	const b = Buffer.from(received);
+	return a.length === b.length && timingSafeEqual(a, b);
+}
+
 async function handleMcp(req: Request): Promise<Response> {
-	const server = buildServer();
+	const server = buildServer(hasAdminToken(req));
 	const transport = new WebStandardStreamableHTTPServerTransport({
 		sessionIdGenerator: undefined, // sans session : n'importe quel nœud, pas de Mcp-Session-Id
 		enableJsonResponse: true, // réponse JSON bufferisée (pas de flux SSE) → simple et robuste

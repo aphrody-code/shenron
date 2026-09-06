@@ -15,6 +15,7 @@ Environment=NODE_ENV=production
 Environment=MCP_PORT=5010
 Environment=MCP_HOST=127.0.0.1
 Environment=MCP_PUBLIC_URL=https://mcp.dragonballfr.com
+EnvironmentFile=-/etc/shenron/mcp-admin.env
 # Proxy lecture seule vers l'API publique du bot (loopback).
 Environment=SHENRON_API_URL=http://127.0.0.1:5006
 Environment=SHENRON_SITE_URL=https://dragonballfr.com

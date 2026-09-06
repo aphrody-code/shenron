@@ -3,8 +3,8 @@
  *
  * Le serveur MCP ne touche JAMAIS la base directement : il proxifie l'API REST
  * publique déjà servie par le bot sur `http://127.0.0.1:5006/api/public/*`
- * (cf. apps/bot/src/api/server.ts). Aucun secret, aucune écriture : tout est
- * lecture seule et déjà exposé publiquement sur `bot.dragonballfr.com`.
+ * (cf. apps/bot/src/api/server.ts). Les appels publics sont lecture seule ; les
+ * appels admin reçoivent un jeton upstream exclusivement depuis systemd.
  */
 
 /** Base de l'API bot (loopback en prod, surchargée par SHENRON_API_URL). */
@@ -57,16 +57,24 @@ function buildUrl(path: string, query?: Query, base: string = API_BASE): string 
 async function call(
 	method: "GET" | "POST",
 	path: string,
-	opts: { query?: Query; body?: unknown; timeoutMs?: number; base?: string } = {}
+	opts: {
+		query?: Query;
+		body?: unknown;
+		timeoutMs?: number;
+		base?: string;
+		bearerToken?: string;
+	} = {}
 ): Promise<unknown> {
 	const url = buildUrl(path, opts.query, opts.base);
+	const headers: Record<string, string> = { accept: "application/json" };
+	if (opts.bearerToken) headers.authorization = `Bearer ${opts.bearerToken}`;
 	const init: RequestInit = {
 		method,
-		headers: { accept: "application/json" },
+		headers,
 		signal: AbortSignal.timeout(opts.timeoutMs ?? 20_000),
 	};
 	if (method === "POST" && opts.body !== undefined) {
-		init.headers = { ...init.headers, "content-type": "application/json" };
+		init.headers = { ...headers, "content-type": "application/json" };
 		init.body = JSON.stringify(opts.body);
 	}
 	let res: Response;
@@ -99,6 +107,26 @@ export function apiGet(path: string, query?: Query, timeoutMs?: number): Promise
 
 export function apiPost(path: string, body: unknown, timeoutMs?: number): Promise<unknown> {
 	return call("POST", path, { body, timeoutMs });
+}
+
+/** Appel admin vers le bot : le jeton reste exclusivement dans le service MCP. */
+export function botAdminGet(path: string, query?: Query, timeoutMs?: number): Promise<unknown> {
+	const bearerToken = process.env.SHENRON_API_ADMIN_TOKEN?.trim();
+	if (!bearerToken) throw new ApiError("Jeton admin upstream non configuré", 503);
+	return call("GET", path, { query, timeoutMs, bearerToken });
+}
+
+export function botAdminPost(path: string, body: unknown, timeoutMs?: number): Promise<unknown> {
+	const bearerToken = process.env.SHENRON_API_ADMIN_TOKEN?.trim();
+	if (!bearerToken) throw new ApiError("Jeton admin upstream non configuré", 503);
+	return call("POST", path, { body, timeoutMs, bearerToken });
+}
+
+/** Dépôt éditorial databooks, tracé côté site dans wiki_revisions. */
+export function siteAdminPost(path: string, body: unknown, timeoutMs?: number): Promise<unknown> {
+	const bearerToken = process.env.SHENRON_DATABOOKS_API_TOKEN?.trim();
+	if (!bearerToken) throw new ApiError("Jeton databooks upstream non configuré", 503);
+	return call("POST", path, { body, timeoutMs, base: SITE_API_BASE, bearerToken });
 }
 
 /** GET sur l'API du SITE (databooks). Lecture seule, comme le reste du serveur. */

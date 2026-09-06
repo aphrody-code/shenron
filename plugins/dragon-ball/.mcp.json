@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dragonball": {
+      "type": "http",
+      "url": "https://mcp.dragonballfr.com/mcp"
+    }
+  }
+}

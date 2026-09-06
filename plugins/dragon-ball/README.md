@@ -1,6 +1,6 @@
 # Dragon Ball — plugin Claude Code
 
-Plugin Claude Code qui réunit, en une seule installation, l'accès à la base de
+Plugin Claude Code et Codex qui réunit, en une seule installation, l'accès à la base de
 connaissance **Dragon Ball vivante et sourcée** de [dragonballfr.com](https://dragonballfr.com) :
 
 1. **Skill `dragon-ball`** — guide d'utilisation + références embarquées (catalogue
@@ -20,11 +20,13 @@ connaissance **Dragon Ball vivante et sourcée** de [dragonballfr.com](https://d
    vérifiées avec leur fréquence dans le corpus, jeux de mots de Toriyama,
    pièges de translittération, chaîne de traitement du dépôt.
 
-3. **Trois subagents** (`agents/`), chacun ancré sur les sources plutôt que sur
+3. **OCR visuel et trois subagents** (`agents/`), chacun ancré sur les sources plutôt que sur
    sa mémoire :
-   - **`dbfr-ocr`** — transcrit les planches japonaises en markdown fidèle et
-     contrôle la qualité de l'existant. Ne traduit pas, n'invente pas un glyphe
-     illisible, vérifie les graphies douteuses dans le corpus.
+   - **Skill `databooks-ocr` + `dbfr-ocr`** — permettent à un parent de confier
+     de petits lots à des sous-agents Claude ou Codex avec le scan dans leur
+     contexte visuel. Ils produisent un JSONL compatible ; Shenron seul le
+     valide et le dépose. Sans scan ouvert, l'agent signale l'entrée au lieu de
+     l'inventer.
    - **`dbfr-traducteur`** — traduit le japonais Dragon Ball en protégeant le
      vocabulaire de la série par le lexique officiel, ce qui évite les deux
      dérives mesurées : noms propres translittérés au son (« Végitta ») et
@@ -34,7 +36,7 @@ connaissance **Dragon Ball vivante et sourcée** de [dragonballfr.com](https://d
      laisse un champ vide plutôt que de l'inventer.
 
 4. **Serveur MCP public** `https://mcp.dragonballfr.com/mcp` — Streamable HTTP,
-   **stateless, lecture seule, sans authentification**. 14 outils qui proxifient le
+   **stateless, lecture seule, sans authentification**. Des outils qui proxifient le
    **RAG hybride** (BM25 + embeddings + reranking, passages dédupliqués et scorés) et
    l'API publique : `rag_search`, `rag_ask`, `sources`, `wiki_search`, `wiki_list`,
    `wiki_get`, `manga_search`, `manga_tomes`, `manga_page`, `bot_stats`,
@@ -69,11 +71,14 @@ claude plugin validate .
 
 ```
 plugins/dragon-ball/
-├── .claude-plugin/plugin.json     # manifeste + serveur MCP (streamable-http)
+├── .claude-plugin/plugin.json     # manifeste Claude + serveur MCP
+├── .codex-plugin/plugin.json      # manifeste Codex + skills auto-découvertes
+├── agents/dbfr-ocr.md             # sous-agent Claude OCR visuel
 └── skills/dragon-ball/
     ├── SKILL.md                   # guide + déclencheurs
     ├── references/{api,lore,mcp-graphql}.md
     └── scripts/db.sh              # helper terminal (curl + jq)
+└── skills/databooks-ocr/SKILL.md  # contrat des sous-agents OCR visuels
 ```
 
 Lecture seule, contenu francophone, sources citées. Licence Apache-2.0.

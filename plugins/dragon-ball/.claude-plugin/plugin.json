@@ -3,7 +3,7 @@
 	"name": "dragon-ball",
 	"displayName": "Dragon Ball — dragonballfr.com",
 	"version": "0.1.0",
-	"description": "Base de connaissance Dragon Ball vivante et sourcée de dragonballfr.com : skill (RAG hybride, wiki, manga, lore, helper terminal) + serveur MCP public en lecture seule (14 outils proxifiant le RAG et l'API publique). Aucun secret, aucune écriture.",
+	"description": "Base de connaissance Dragon Ball vivante et sourcée de dragonballfr.com : skills lore, japonais et OCR visuel, sous-agent OCR et MCP public en lecture seule. Les sous-agents rendent du JSONL validé puis déposé par Shenron ; aucun secret ni écriture directe.",
 	"author": {
 		"name": "Yohan Pierre",
 		"email": "contact@aphrody-code.dev"

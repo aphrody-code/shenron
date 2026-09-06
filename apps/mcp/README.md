@@ -1,12 +1,25 @@
 # @shenron/mcp — Serveur MCP public Dragon Ball
 
-Serveur **MCP** (Model Context Protocol) **public, sans authentification, en lecture seule**
+Serveur **MCP** (Model Context Protocol) public en lecture seule, avec une
+surface d'administration disponible uniquement par Bearer token.
 qui expose le **RAG** et l'**API publique** Dragon Ball de [dragonballfr.com](https://dragonballfr.com)
 en tant qu'outils, pour tout client compatible MCP.
 
 - **Endpoint** : `https://mcp.dragonballfr.com/mcp` (transport **Streamable HTTP**, sans état)
 - **Sonde** : `https://mcp.dragonballfr.com/health`
 - **Doc** : `https://mcp.dragonballfr.com/`
+
+## Administration authentifiée
+
+Un client qui envoie `Authorization: Bearer <MCP_ADMIN_TOKEN>` à ce même
+endpoint voit les outils `admin_*`. Le jeton ne vit que dans
+`/etc/shenron/mcp-admin.env` (permissions 0600), chargé par systemd ; il ne doit
+être ni commité ni mis dans le manifeste public du plugin.
+
+Les outils admin sont nommés et tracés par les APIs existantes : dépôt de
+transcriptions databooks (révisions `wiki_revisions`), catalogue/exécution de
+commandes bot et actions de service autorisées. Ils ne donnent pas de shell,
+ni d'accès SQL, ni de proxy HTTP arbitraire.
 
 ## Architecture
 
