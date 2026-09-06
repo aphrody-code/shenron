@@ -3,6 +3,7 @@ import { PosterCard } from "@/components/stream/PosterCard";
 import { StreamRow } from "@/components/stream/StreamRow";
 import { yearOf } from "@/lib/epoch";
 import type { readMediaCatalog } from "@/lib/media-catalog";
+import { isPathPublic, type AccessSnapshot } from "@/lib/wiki-launch";
 
 export type MediaCatalog = Awaited<ReturnType<typeof readMediaCatalog>>;
 
@@ -33,16 +34,18 @@ export function seriesLabel(series: string): string {
 /** Rails média partagés par l'accueil public et l'espace membre. */
 export function MediaCatalogRails({
 	catalog,
+	access,
 	eagerEpisodes = false,
 	visible = { episodes: true, movies: true, manga: true, databooks: true },
 }: {
 	catalog: MediaCatalog;
+	access: AccessSnapshot | null;
 	eagerEpisodes?: boolean;
 	visible?: Partial<Record<keyof MediaCatalog, boolean>>;
 }) {
 	return (
 		<>
-			{visible.episodes !== false && catalog.episodes.length > 0 && (
+			{visible.episodes !== false && (!access || isPathPublic("/wiki/episodes", access)) && catalog.episodes.length > 0 && (
 				<StreamRow title="Épisodes à découvrir" seeAllHref="/wiki/episodes">
 					{catalog.episodes.map((episode, index) => {
 						const languages = languageBadges(episode.players);
@@ -63,7 +66,7 @@ export function MediaCatalogRails({
 					})}
 				</StreamRow>
 			)}
-			{visible.movies !== false && catalog.movies.length > 0 && (
+			{visible.movies !== false && (!access || isPathPublic("/wiki/films", access)) && catalog.movies.length > 0 && (
 				<StreamRow title="Films à voir" seeAllHref="/wiki/films">
 					{catalog.movies.map((movie) => {
 						const languages = languageBadges(movie.players);
@@ -84,7 +87,7 @@ export function MediaCatalogRails({
 					})}
 				</StreamRow>
 			)}
-			{visible.manga !== false && catalog.manga.length > 0 && (
+			{visible.manga !== false && (!access || isPathPublic("/wiki/manga", access)) && catalog.manga.length > 0 && (
 				<StreamRow title="Manga" seeAllHref="/wiki/manga">
 					{catalog.manga.map((volume) => (
 						<PosterCard
@@ -101,7 +104,7 @@ export function MediaCatalogRails({
 					))}
 				</StreamRow>
 			)}
-			{visible.databooks !== false && catalog.databooks.length > 0 && (
+			{visible.databooks !== false && (!access || isPathPublic("/wiki/databooks", access)) && catalog.databooks.length > 0 && (
 				<StreamRow title="Guides et databooks" seeAllHref="/wiki/databooks">
 					{catalog.databooks.map((book) => (
 						<PosterCard

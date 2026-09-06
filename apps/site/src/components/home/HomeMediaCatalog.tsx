@@ -48,7 +48,7 @@ export function HomeMediaCatalog({
 						{config.subtitle}
 					</p>
 				</header>
-				<MediaCatalogRails catalog={catalog} visible={visible} />
+				<MediaCatalogRails catalog={catalog} access={access} visible={visible} />
 			</div>
 		</section>
 	);

@@ -35,7 +35,8 @@ function Normalize-Results([string]$Path) {
 	[IO.File]::WriteAllText($tmp, "", [Text.UTF8Encoding]::new($false))
 	$records.Values | ForEach-Object {
 		$_.image = [IO.Path]::GetFileName([string]$_.image)
-		($_ | ConvertTo-Json -Depth 20 -Compress) | Add-Content -LiteralPath $tmp -Encoding utf8NoBOM
+		$record = ($_ | ConvertTo-Json -Depth 20 -Compress) + [Environment]::NewLine
+		[IO.File]::AppendAllText($tmp, $record, [Text.UTF8Encoding]::new($false))
 	}
 	Move-Item -LiteralPath $tmp -Destination $Path -Force
 	[void](Write-Log "NORMALIZE $([IO.Path]::GetFileName((Split-Path $Path -Parent))): $($records.Count) entrées uniques; brut=$([IO.Path]::GetFileName($backup))")

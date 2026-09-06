@@ -30,6 +30,8 @@ git push origin main
 
 if [[ "$DEPLOY" -eq 1 ]]; then
   bash scripts/deploy-shenron.sh --pull
+  bun apps/site/scripts/apply-bot-indexes.ts
+  bash scripts/deploy-mcp.sh
   bash scripts/deploy-site.sh --pull
   bash scripts/healthcheck.sh
 fi

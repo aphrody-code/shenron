@@ -15,32 +15,150 @@ quel. Il faut une étape de **détection des bulles + ordre de lecture** en amon
 
 | Approche                                                       | Layout / ordre  | Langue         | CPU          | Note                                                                                        |
 | -------------------------------------------------------------- | --------------- | -------------- | ------------ | ------------------------------------------------------------------------------------------- |
-| **comic-text-detector** → crop → **PaddleOCR/Tesseract `fra`** | oui (détecteur) | FR ✅          | oui          | Pipeline 2 étages, agnostique de la langue pour la détection. **Meilleur compromis local.** |
-| **VLM vision** (dots.ocr OSS ; ou modèle vision cloud)         | oui (1 passe)   | multilingue ✅ | lent sur CPU | Meilleure qualité « layout+texte+markdown » en un coup. dots.ocr = OSS le plus proche.      |
+| **PP-OCRv5 → revue VLM jointe**                                | oui             | multilingue ✅ | hybride      | Détection géométrique locale, puis arbitrage visuel conservateur. **Pipeline retenu.**       |
+| **VLM vision seul** (dots.ocr OSS ; ou modèle vision cloud)    | oui (1 passe)   | multilingue ✅ | lent sur CPU | Les petits VLM locaux testés ont déclaré à tort des pages textuelles « sans texte ».         |
 | manga-ocr (kha-white)                                          | bulles          | **JP only ❌** | oui          | Inadapté au VF.                                                                             |
 | PaddleOCR seul / docTR                                         | partiel         | FR ✅          | oui          | Recognition correcte, layout faible.                                                        |
 
 ## Recommandation
 
-- **Qualité maximale** : un **VLM vision** lit la page holistiquement (ordre des cases,
-  ignore les dessins, sort du markdown propre). Coûteux/lent à 12 700 planches.
-- **Meilleur local gratuit** : pipeline **comic-text-detector** (boîtes bulles +
-  ordre) → **PaddleOCR `fr`** (reconnaissance FR). Tourne sur le VPS CPU (lent mais
-  faisable par lots).
+- **Production** : PP-OCRv5 propose les régions et leur géométrie, puis
+  `gpt-5.6-luna` en raisonnement `low` relit l'image réellement jointe. La revue
+  sépare dialogue, cartouche, SFX, filigrane et numéro de page.
+- **Politique de refus** : si un seul caractère éditorial reste incertain, la
+  planche devient `needs_human`. Un JSONL PP-OCR seul n'est jamais déposable.
 
 Démarrer par la **VF Dragon Ball original (42 tomes)** ; un tome = un fichier
 markdown `# Tome N` avec un bloc par case/bulle dans l'ordre de lecture.
 
-## Pipeline cible
+## Pipeline de production
 
-1. Pour chaque planche WebP : détection des zones de texte (comic-text-detector) →
-   tri en ordre de lecture (haut→bas, droite→gauche par défaut manga, à confirmer
-   sur la VF qui est souvent re-paginée gauche→droite).
-2. Crop de chaque zone → reconnaissance FR (PaddleOCR `fr` / Tesseract `fra`).
-3. Assemblage markdown par tome (`assets/manga/.../transcripts/tome-N.md`),
-   réinjectable dans le corpus RAG (`docs[].markdown`).
+La chaîne opérationnelle couvre **Dragon Ball** (`DB`, 42 tomes réguliers + 2
+Full Color) et **Dragon Ball Super** (`DBS`, 103 chapitres). Elle n'infère jamais
+l'identité d'une planche depuis la sortie du modèle : le `manifest.json` signé
+par SHA-256 fait autorité.
 
-## Statut
+```text
+assets/manga/{DB,DBS}/**/*.webp
+  → export-manga-ocr.ts
+  → runs/corpus-<sha>/lot-NNN/{manifest.json,images/*.jpg}
+  → run-manga-ocr.ts → detections.jsonl (PP-OCRv5)
+                     → reviews/*.json (gpt-5.6-luna/low + image jointe)
+                     → results.jsonl hybride → aphrody ocr audit
+  → deposit-manga-transcriptions.ts (simulation, puis --appliquer)
+  → PostgreSQL bot.db_manga_pages + public.wiki_revisions
+  → materialize-manga-transcripts.ts → Markdown par tome → RAG
+```
 
-Plan validé, options recherchées. Implémentation à faire (script
-`apps/bot/scripts/transcribe-manga.ts`) après installation du détecteur + PaddleOCR.
+### 1. Générer les manifestes
+
+Depuis la racine :
+
+```bash
+bun run manga:ocr:export -- --sortie data/manga-ocr
+```
+
+Le mode par défaut ne sélectionne que les planches sans texte dans le réplica
+SQLite. `--tout` prépare une retranscription complète ; `--series DB` ou
+`--series DBS` borne le corpus ; `--id DB:vol1:3` peut être répété pour un lot QA
+exact ; `--plan` n'écrit rien. Avant un export sur le
+VPS, laisser le reverse-sync PostgreSQL → SQLite terminer afin que le filtre des
+planches manquantes parte d'un réplica frais.
+
+Un run est immuable et adressé par le SHA-256 des sources et des paramètres de
+réduction. `data/manga-ocr/current.json` pointe vers le run courant. Chaque
+entrée de lot porte :
+
+- l'identité stable `DB:vol12:7` ou `DBS:ch1315:29` ;
+- le chemin source, sa taille et son SHA-256 ;
+- l'image OCR réduite, sa taille et son SHA-256 ;
+- la collection (`regular`, `fullcolor/...`, `principal`) et l'état déjà
+  transcrit.
+
+Le schéma versionné est
+`apps/bot/scripts/manga-ocr-manifest.schema.json`. Une couverture non numérotée,
+une autre série ou un doublon `(series,tome,planche)` est refusé.
+
+### 2. Transcrire et auditer
+
+```bash
+bun run manga:ocr:run -- --root data/manga-ocr
+```
+
+Le runner appelle d'abord le moteur déterministe `aphrody ocr ppocr` avec
+`ppocr-v5-mobile`. Ses textes, confiances et polygones sont conservés dans
+`detections.jsonl` comme **indices**, à partir de 0,20 afin de ne pas masquer une
+zone difficile. Il lance ensuite une revue `gpt-5.6-luna`/`low` avec l'image
+jointe par `-i` et un schéma JSON strict. Le modèle doit faire deux lectures
+caractère par caractère, préserver les accents et ne jamais compléter un texte.
+
+`results.jsonl` ne contient que les arbitrages hybrides. Les filigranes et
+numéros restent traçables dans la revue mais sont exclus du Markdown. Une région
+éditoriale `low` impose `needs_human`; le runner termine alors avec un état
+partiel et un code non nul. Le smoke réel a notamment corrigé les confusions
+PP-OCR `SUIS → SLIS`, `UN → LN` et l'interprétation erronée du mot imprimé
+« ILLISIBLE » comme une consigne.
+
+Le runner est relançable : le JSONL est dédupliqué atomiquement après sauvegarde.
+Un verrou local empêche deux consommateurs manga simultanés. Chaque image et
+chaque manifeste sont revérifiés par SHA-256 avant inférence, puis
+`aphrody ocr audit` bloque les jetons de contrôle, générations coincées et
+balisages survivants.
+
+Options utiles : `--lot 2`, `--limit 1` ou plusieurs `--id` pour un smoke test,
+`--retry-needs-human`, `--force-review`, `--min-confidence 0.20`, et `--dry-run`
+pour vérifier tous les manifestes et fichiers sans les modifier ni charger le
+modèle.
+
+La QA visuelle d'un premier passage sur `DB:vol12:100` a détecté une acceptation
+incorrecte : une petite adaptation latine avait été inventée et les grands
+glyphes stylisés avaient été omis. Le prompt impose désormais un balayage des
+quatre bords et de chaque case, traite tout groupe de glyphes géant, incliné ou
+coupé comme un SFX, et force `needs_human` dès qu'il n'est pas lisible en entier.
+Après tout changement de prompt, relancer avec `--force-review` au minimum toutes
+les décisions `accept` obtenues par la version précédente.
+
+### 3. Simuler puis déposer
+
+```bash
+bun run manga:ocr:deposit -- --root data/manga-ocr
+bun run manga:ocr:deposit -- --root data/manga-ocr --appliquer
+```
+
+Le dépôt est **une simulation par défaut**. Il réexécute l'audit, exige un lot
+complet et ne remplit que les lignes vides. Le parseur refuse explicitement les
+résultats PP-OCR non arbitrés et les décisions `needs_human`, même avec
+`--partiel`. Un texte existant différent devient
+un conflit protégé ; seul `--remplacer --appliquer` autorise sa correction.
+`--partiel` doit être explicite pour déposer un lot interrompu.
+
+L'écriture cible PostgreSQL, source éditoriale de vérité. Elle prend un verrou
+de table borné, conserve les identifiants existants, alloue les nouveaux IDs
+sans collision et écrit une `public.wiki_revisions` **par planche modifiée**.
+Chaque création ou correction est donc annulable depuis l'historique admin.
+L'index unique `(series,tome,planche)` de `src/db/bot-indexes.sql` doit être
+appliqué avant le premier dépôt.
+
+### 4. Matérialiser et indexer
+
+```bash
+bun run manga:ocr:materialize
+bun run --filter @shenron/bot manga:ocr:map
+bun apps/bot/scripts/ingest-manga-rag.ts
+```
+
+La matérialisation relit PostgreSQL et réécrit atomiquement un Markdown par
+tome/chapitre sous `assets/manga/transcripts/`. Le build RAG reste une opération
+séparée : conformément aux règles d'exploitation, ne jamais lancer `rag:build`
+au premier plan sur le service de production.
+
+## État mesuré au 2026-09-06
+
+- 12 716 planches numériques DB + DBS sur disque (les 147 couvertures sont
+  volontairement hors OCR) ;
+- 12 577 transcriptions présentes dans le réplica ;
+- 139 planches manquantes exportées en 2 lots vérifiés, run
+  `corpus-3945f79955b1f7c9`.
+- lot QA inter-séries de 4 planches (DB + DBS), run
+  `corpus-c3ae02a7029bd19f` : 3 textes acceptés et 1 refus conservateur au premier
+  passage, puis 4/4 après durcissement et seconde relecture visuelle.

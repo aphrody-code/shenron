@@ -28,7 +28,7 @@ function statements(sqlText: string): string[] {
 	for (const line of sqlText.split("\n")) {
 		const bare = line.trim();
 		if (bare.startsWith("--") && !inDollar) continue;
-		buf += line + "\n";
+		buf += `${line}\n`;
 		const dollars = (line.match(/\$\$/g) ?? []).length;
 		if (dollars % 2 === 1) inDollar = !inDollar;
 		if (!inDollar && bare.endsWith(";")) {
@@ -44,16 +44,19 @@ function statements(sqlText: string): string[] {
 const labelOf = (stmt: string): string =>
 	stmt.match(/CREATE INDEX IF NOT EXISTS (\S+)/i)?.[1] ??
 	stmt.match(/ADD CONSTRAINT (\S+)/i)?.[1] ??
-	stmt.split("\n")[0]!.slice(0, 60);
+	stmt.split("\n")[0]?.slice(0, 60) ??
+	"ordre SQL";
 
 async function main() {
-	const url = process.env.DATABASE_URL;
+	const url = await databaseUrl();
 	if (!url) throw new Error("DATABASE_URL requis (Postgres du site).");
 	const dryRun = process.argv.includes("--dry-run");
 
 	const file = join(import.meta.dir, "..", "src", "db", "bot-indexes.sql");
 	const stmts = statements(await readFile(file, "utf8"));
-	console.log(`${stmts.length} ordres à appliquer${dryRun ? " (simulation)" : ""}.\n`);
+	console.log(
+		`${stmts.length} ordres à appliquer${dryRun ? " (simulation)" : ""}.\n`,
+	);
 
 	const sql = postgres(url, { max: 1 });
 	try {
@@ -88,6 +91,18 @@ async function main() {
 	} finally {
 		await sql.end({ timeout: 5 });
 	}
+}
+
+async function databaseUrl(): Promise<string | undefined> {
+	if (process.env.DATABASE_URL?.trim()) return process.env.DATABASE_URL.trim();
+	const envPath = join(import.meta.dir, "..", ".env");
+	const content = await readFile(envPath, "utf8").catch(() => "");
+	return content
+		.split(/\r?\n/)
+		.findLast((line) => line.startsWith("DATABASE_URL="))
+		?.slice("DATABASE_URL=".length)
+		.trim()
+		.replace(/^['"]|['"]$/g, "");
 }
 
 async function indexCount(sql: postgres.Sql): Promise<number> {

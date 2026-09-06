@@ -104,8 +104,10 @@ CREATE INDEX IF NOT EXISTS db_assets_entity_idx
 CREATE INDEX IF NOT EXISTS db_transformations_character_idx
 	ON bot.db_transformations (character_id);
 
--- Lecteur de manga : une planche est adressée par (série, tome, planche).
-CREATE INDEX IF NOT EXISTS db_manga_pages_locator_idx
+-- Lecteur + dépôt OCR : une planche est adressée sans ambiguïté par
+-- (série, tome, planche). L'unicité rend les reprises idempotentes et bloque
+-- toute duplication silencieuse lors de deux dépôts concurrents.
+CREATE UNIQUE INDEX IF NOT EXISTS db_manga_pages_locator_uidx
 	ON bot.db_manga_pages (series, tome, planche);
 
 -- ── Recherche floue (pg_trgm) ───────────────────────────────────────────────

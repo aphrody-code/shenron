@@ -27,7 +27,7 @@
  *   - SOFT : `status < 500`     (5xx = bug serveur, rapporté aussi)
  * Un 3xx (redirect vers /signin pour les pages auth) est OK (pas un 404).
  *
- * BASE configurable : `SITE_URL` (défaut prod). Concurrence bornée à 8.
+ * BASE configurable : `SITE_URL` (défaut prod). Concurrence bornée à 16.
  *
  *   bun test apps/site/tests/no-404.test.ts
  */
@@ -38,8 +38,8 @@ import { join } from "node:path";
 const BASE = (process.env.SITE_URL ?? "https://dragonballfr.com").replace(/\/+$/, "");
 
 const APP_DIR = join(import.meta.dir, "..", "src", "app");
-const CONCURRENCY = Math.max(1, Math.min(24, Number(process.env.NO_404_CONCURRENCY ?? 8) || 8));
-const FETCH_TIMEOUT_MS = Math.max(2_000, Number(process.env.NO_404_TIMEOUT_MS ?? 25_000) || 25_000);
+const CONCURRENCY = Math.max(1, Math.min(24, Number(process.env.NO_404_CONCURRENCY ?? 16) || 16));
+const FETCH_TIMEOUT_MS = Math.max(2_000, Number(process.env.NO_404_TIMEOUT_MS ?? 10_000) || 10_000);
 
 // Valeurs réelles pour les segments dynamiques énumérés depuis les fichiers.
 // id 1 existe pour character/planet/episode/manga (chapter)/volume ; les slugs

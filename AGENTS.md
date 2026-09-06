@@ -80,8 +80,10 @@ lecture du wiki et le runtime local du bot.
 Livraison reproductible après validation : `bash scripts/ship-shenron.sh` (ou
 `powershell -File scripts/ship-shenron.ps1`). Ces scripts exigent `main`, lancent
 le type-check et la suite de tests, committent les changements, poussent
-`origin/main`, puis synchronisent et sondent le bot et le site. Utiliser
-`--no-deploy` pour arrêter après le push.
+`origin/main`, puis synchronisent et sondent le bot, les index éditoriaux, le MCP
+et le site. Sous Windows, le script PowerShell déploie via le profil SSH `dbfr`
+(`-SshHost` permet un autre profil explicite). Utiliser `--no-deploy` ou
+`-NoDeploy` pour arrêter après le push.
 
 Contrôles usuels depuis la racine :
 
@@ -97,8 +99,8 @@ Bot :
 bash scripts/deploy-shenron.sh
 ```
 
-MCP : vérifier puis redémarrer `shenron-mcp.service`; sonder `/health` et
-vérifier que l’upstream bot répond.
+MCP : utiliser `bash scripts/deploy-mcp.sh`; il vérifie le code, redémarre
+`shenron-mcp.service`, sonde `/health` et exige `upstream = ok`.
 
 Site : utiliser `bash scripts/deploy-site.sh`, qui construit en bleu/vert,
 sonde le slot inactif, bascule nginx puis draine l’ancien slot. Ne pas lancer

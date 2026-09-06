@@ -26,6 +26,7 @@ import { yearOf } from "@/lib/epoch";
 import { readMediaCatalog } from "@/lib/media-catalog";
 import { getShenronUserResult } from "@/lib/shenron";
 import { requireUser } from "@/lib/session";
+import { getLaunchConfig } from "@/lib/wiki-launch-config";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mon espace", robots: { index: false, follow: false } };
@@ -33,10 +34,11 @@ const fmt = (value: number | null | undefined) => (value ?? 0).toLocaleString("f
 
 export default async function DashboardPage() {
 	const me = await requireUser("/dashboard");
-	const [profileResult, accountSummary, catalog] = await Promise.all([
+	const [profileResult, accountSummary, catalog, access] = await Promise.all([
 		getShenronUserResult(me.discordId),
 		me.user ? readAccountSummary(me.user.id) : Promise.resolve(null),
 		readMediaCatalog().catch(() => null),
+		getLaunchConfig().catch(() => null),
 	]);
 	const profile = profileResult.status === "ok" ? profileResult.user : null;
 	const favorites = accountSummary?.favorites ?? 0;
@@ -58,7 +60,7 @@ export default async function DashboardPage() {
 				<ContinueRail title={`Reprendre avec ${username}`} className="mt-9 lg:mt-12" />
 				{catalog && (
 					<div className="mt-9 lg:mt-12">
-						<MediaCatalogRails catalog={catalog} eagerEpisodes />
+						<MediaCatalogRails catalog={catalog} access={access} eagerEpisodes />
 					</div>
 				)}
 				<section

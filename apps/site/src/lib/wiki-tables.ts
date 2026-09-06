@@ -51,7 +51,15 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_planets: {
 		name: "db_planets",
 		pk: "id",
-		mutableColumns: ["name", "nameJa", "nameRomaji", "image", "isDestroyed", "description", "article"],
+		mutableColumns: [
+			"name",
+			"nameJa",
+			"nameRomaji",
+			"image",
+			"isDestroyed",
+			"description",
+			"article",
+		],
 	},
 	db_transformations: {
 		name: "db_transformations",
@@ -61,7 +69,14 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_races: {
 		name: "db_races",
 		pk: "id",
-		mutableColumns: ["slug", "name", "nameJa", "homePlanetId", "description", "article"],
+		mutableColumns: [
+			"slug",
+			"name",
+			"nameJa",
+			"homePlanetId",
+			"description",
+			"article",
+		],
 	},
 	db_techniques: {
 		name: "db_techniques",
@@ -92,12 +107,29 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_sagas: {
 		name: "db_sagas",
 		pk: "id",
-		mutableColumns: ["slug", "name", "nameJa", "series", "orderIdx", "description", "image", "article"],
+		mutableColumns: [
+			"slug",
+			"name",
+			"nameJa",
+			"series",
+			"orderIdx",
+			"description",
+			"image",
+			"article",
+		],
 	},
 	db_arcs: {
 		name: "db_arcs",
 		pk: "id",
-		mutableColumns: ["sagaId", "slug", "name", "nameJa", "orderIdx", "description", "article"],
+		mutableColumns: [
+			"sagaId",
+			"slug",
+			"name",
+			"nameJa",
+			"orderIdx",
+			"description",
+			"article",
+		],
 	},
 	db_episodes: {
 		name: "db_episodes",
@@ -120,7 +152,15 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_manga_volumes: {
 		name: "db_manga_volumes",
 		pk: "id",
-		mutableColumns: ["series", "volumeNumber", "title", "titleJa", "publishedAt", "cover", "isbn"],
+		mutableColumns: [
+			"series",
+			"volumeNumber",
+			"title",
+			"titleJa",
+			"publishedAt",
+			"cover",
+			"isbn",
+		],
 	},
 	db_databooks: {
 		name: "db_databooks",
@@ -143,7 +183,14 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 	db_manga_chapters: {
 		name: "db_manga_chapters",
 		pk: "id",
-		mutableColumns: ["series", "chapterNumber", "title", "titleJa", "volumeId", "publishedAt"],
+		mutableColumns: [
+			"series",
+			"chapterNumber",
+			"title",
+			"titleJa",
+			"volumeId",
+			"publishedAt",
+		],
 	},
 	db_manga_pages: {
 		name: "db_manga_pages",
@@ -153,6 +200,7 @@ export const WIKI_TABLE_SPECS: Record<string, WikiTableSpec> = {
 			"series",
 			"tome",
 			"planche",
+			"lines",
 			"text",
 			"lang",
 			"hasJa",

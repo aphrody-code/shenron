@@ -99,7 +99,10 @@ function Build-State {
 
 do {
 	$state = Build-State
-	$state | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $statePath -Encoding utf8NoBOM
+	# API .NET explicite : UTF-8 sans BOM, identique sous Windows PowerShell 5.1
+	# et PowerShell 7 (les noms d'encodage des cmdlets diffèrent entre les deux).
+	$json = ($state | ConvertTo-Json -Depth 8) + [Environment]::NewLine
+	[IO.File]::WriteAllText($statePath, $json, [Text.UTF8Encoding]::new($false))
 	Write-Output ("{0} {1}/{2} ({3}%) · {4} p/h · ETA {5}s · lot {6}" -f $state.generatedAt,$state.progress.results,$state.progress.expected,$state.progress.percent,$state.performance.ratePagesPerHour,$state.performance.etaSeconds,$state.runner.activeLot)
 	if (-not $Once) { Start-Sleep -Seconds $IntervalSeconds }
 } while (-not $Once)

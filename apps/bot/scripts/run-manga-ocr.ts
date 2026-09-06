@@ -1,0 +1,601 @@
+#!/usr/bin/env bun
+/**
+ * Exécute les lots manga avec un pipeline hybride traçable :
+ *   1. PP-OCRv5 détecte les zones et fournit des candidats géométriques ;
+ *   2. gpt-5.6-luna en raisonnement low relit l'image réellement jointe ;
+ *   3. seules les revues complètes accept/none deviennent déposables.
+ *
+ * Un verrou interdit deux consommateurs simultanés. Les détections et revues
+ * sont deux JSONL distincts, normalisés avec sauvegarde avant reprise. Aphrody
+ * audite le JSONL final ; le dépôt réapplique ensuite les gardes de revue.
+ *
+ * Usage :
+ *   bun scripts/run-manga-ocr.ts --root ../../data/manga-ocr
+ *   bun scripts/run-manga-ocr.ts --id DB:t902:89 --id DBS:ch1315:1
+ *   bun scripts/run-manga-ocr.ts --lot 2 --limit 1
+ *   bun scripts/run-manga-ocr.ts --dry-run
+ */
+import { existsSync } from "node:fs";
+import { appendFile, mkdir, rm } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
+import {
+	atomicWriteJson,
+	atomicWriteText,
+	type MangaOcrDetectionLine,
+	type MangaOcrResultLine,
+	type MangaOcrVisualReview,
+	portableBasename,
+	readMangaManifest,
+	reviewedMangaResult,
+	sha256File,
+} from "./_manga-ocr";
+
+const args = Bun.argv.slice(2);
+const option = (name: string, fallback?: string): string | undefined => {
+	const index = args.indexOf(`--${name}`);
+	return index >= 0 && args[index + 1] ? args[index + 1] : fallback;
+};
+const options = (name: string): string[] =>
+	args.flatMap((value, index) => {
+		const next = args[index + 1];
+		return value === `--${name}` && next ? [next] : [];
+	});
+const flag = (name: string): boolean => args.includes(`--${name}`);
+const integer = (
+	name: string,
+	fallback: number,
+	min: number,
+	max: number,
+): number => {
+	const value = Number(option(name, String(fallback)));
+	if (!Number.isInteger(value) || value < min || value > max) {
+		throw new Error(`--${name} doit être un entier entre ${min} et ${max}`);
+	}
+	return value;
+};
+
+const BOT_ROOT = join(import.meta.dir, "..");
+const ROOT = resolve(
+	option("root") ?? join(BOT_ROOT, "..", "..", "data", "manga-ocr"),
+);
+const APHRODY = option("aphrody") ?? "aphrody";
+const PP_MODEL = option("pp-model") ?? "ppocr-v5-mobile";
+const CODEX = option("codex") ?? "codex";
+const REVIEW_MODEL = "gpt-5.6-luna";
+const REVIEW_REASONING = "low";
+const REVIEW_SCHEMA = join(import.meta.dir, "manga-ocr-review.schema.json");
+const LIMIT = option("limit") ? integer("limit", 1, 1, 100_000) : null;
+const TARGET_LOT = option("lot") ? integer("lot", 1, 1, 100_000) : null;
+const TARGET_IDS = new Set(options("id"));
+const DRY_RUN = flag("dry-run");
+const SKIP_CHECKSUMS = flag("skip-checksums");
+const RETRY_NEEDS_HUMAN = flag("retry-needs-human");
+const FORCE_REVIEW = flag("force-review");
+const MIN_CONFIDENCE = Number(option("min-confidence", "0.20"));
+if (
+	!Number.isFinite(MIN_CONFIDENCE) ||
+	MIN_CONFIDENCE < 0 ||
+	MIN_CONFIDENCE > 1
+) {
+	throw new Error("--min-confidence doit être compris entre 0 et 1");
+}
+if (!existsSync(REVIEW_SCHEMA))
+	throw new Error(`schéma de revue absent: ${REVIEW_SCHEMA}`);
+
+interface LotState {
+	lot: number;
+	status: "pending" | "running" | "ready" | "failed";
+	pages: number;
+	results: number;
+	text: number;
+	none: number;
+	needsHuman: number;
+	invalid: number;
+	auditExitCode: number | null;
+	error?: string;
+}
+
+interface NormalizedResults {
+	records: number;
+	text: number;
+	none: number;
+	needsHuman: number;
+	done: Set<string>;
+	retryable: Set<string>;
+}
+
+async function resolveRunRoot(): Promise<string> {
+	const explicit = option("run");
+	if (explicit) return resolve(explicit);
+	const currentPath = join(ROOT, "current.json");
+	if (!existsSync(currentPath))
+		throw new Error(`pointeur absent: ${currentPath}`);
+	const current = (await Bun.file(currentPath).json()) as {
+		manifest?: string;
+		runId?: string;
+	};
+	if (!current.manifest || !current.runId)
+		throw new Error("current.json incomplet");
+	return join(ROOT, "runs", current.runId);
+}
+
+async function normalizeResults(path: string): Promise<NormalizedResults> {
+	if (!existsSync(path)) {
+		return {
+			records: 0,
+			text: 0,
+			none: 0,
+			needsHuman: 0,
+			done: new Set(),
+			retryable: new Set(),
+		};
+	}
+	const content = await Bun.file(path).text();
+	const records = new Map<string, MangaOcrResultLine>();
+	let invalid = 0;
+	for (const line of content.split("\n")) {
+		if (!line.trim()) continue;
+		try {
+			const result = JSON.parse(line) as MangaOcrResultLine;
+			const key = portableBasename(result.image ?? "").toLowerCase();
+			if (
+				!key ||
+				result.engine !== "hybrid-luna-ppocr" ||
+				result.model !== REVIEW_MODEL ||
+				!result.review ||
+				(result.text?.kind !== "text" && result.text?.kind !== "none")
+			) {
+				invalid++;
+			} else records.set(key, result);
+		} catch {
+			invalid++;
+		}
+	}
+	const normalized = [...records.values()]
+		.map((record) => JSON.stringify(record))
+		.join("\n");
+	const expected = normalized.length > 0 ? `${normalized}\n` : "";
+	if (invalid > 0 || expected !== content.replaceAll("\r\n", "\n")) {
+		if (DRY_RUN) {
+			console.log(
+				`  ! ${invalid} résultat(s) non arbitré(s)/invalide(s) seraient écartés`,
+			);
+		} else {
+			const backup = `${path}.raw-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`;
+			await Bun.write(backup, content);
+			await atomicWriteText(path, expected);
+			console.log(
+				`  ↺ résultats normalisés (${records.size} revues uniques, ${invalid} non arbitrées/invalides, sauvegarde ${basename(backup)})`,
+			);
+		}
+	}
+	const retryable = new Set(
+		[...records.entries()]
+			.filter(([, result]) => result.review?.decision === "needs_human")
+			.map(([key]) => key),
+	);
+	return {
+		records: records.size,
+		text: [...records.values()].filter(
+			(result) => result.review?.decision === "accept",
+		).length,
+		none: [...records.values()].filter(
+			(result) => result.review?.decision === "none",
+		).length,
+		needsHuman: retryable.size,
+		done: new Set(records.keys()),
+		retryable,
+	};
+}
+
+async function normalizeDetections(
+	path: string,
+): Promise<Map<string, MangaOcrDetectionLine>> {
+	if (!existsSync(path)) return new Map();
+	const content = await Bun.file(path).text();
+	const records = new Map<string, MangaOcrDetectionLine>();
+	let invalid = 0;
+	for (const line of content.split("\n")) {
+		if (!line.trim()) continue;
+		try {
+			const detection = JSON.parse(line) as MangaOcrDetectionLine;
+			const key = portableBasename(detection.image ?? "").toLowerCase();
+			if (
+				!key ||
+				detection.engine !== "ppocr-v5" ||
+				!Array.isArray(detection.blocks)
+			)
+				invalid++;
+			else records.set(key, detection);
+		} catch {
+			invalid++;
+		}
+	}
+	const normalized = [...records.values()]
+		.map((record) => JSON.stringify(record))
+		.join("\n");
+	const expected = normalized.length > 0 ? `${normalized}\n` : "";
+	if (invalid > 0 || expected !== content.replaceAll("\r\n", "\n")) {
+		if (DRY_RUN) {
+			console.log(`  ! ${invalid} détection(s) invalide(s) seraient écartées`);
+		} else {
+			const backup = `${path}.raw-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`;
+			await Bun.write(backup, content);
+			await atomicWriteText(path, expected);
+			console.log(
+				`  ↺ détections normalisées (${records.size} uniques, ${invalid} invalides, sauvegarde ${basename(backup)})`,
+			);
+		}
+	}
+	return records;
+}
+
+async function runCommand(command: string[], cwd: string): Promise<number> {
+	const process = Bun.spawn({
+		cmd: command,
+		cwd,
+		stdout: "inherit",
+		stderr: "inherit",
+		stdin: "ignore",
+	});
+	return await process.exited;
+}
+
+interface PpOcrReport {
+	blocks?: Array<{ text?: string; confidence?: number; polygon?: number[][] }>;
+	quality?: { mean_confidence?: number };
+}
+
+async function detectWithPpOcr(
+	imagePath: string,
+	cwd: string,
+): Promise<MangaOcrDetectionLine> {
+	const started = performance.now();
+	const child = Bun.spawn({
+		cmd: [APHRODY, "ocr", "ppocr", imagePath, "--model", PP_MODEL, "--json"],
+		cwd,
+		stdout: "pipe",
+		stderr: "pipe",
+		stdin: "ignore",
+	});
+	const [stdout, stderr, code] = await Promise.all([
+		new Response(child.stdout).text(),
+		new Response(child.stderr).text(),
+		child.exited,
+	]);
+	if (code !== 0)
+		throw new Error(
+			`aphrody ocr ppocr: code ${code} ${stderr.trim().slice(0, 300)}`,
+		);
+	const report = JSON.parse(stdout) as PpOcrReport;
+	const blocks = (report.blocks ?? [])
+		.filter(
+			(block) =>
+				typeof block.text === "string" &&
+				block.text.trim().length > 0 &&
+				Number(block.confidence ?? 0) >= MIN_CONFIDENCE,
+		)
+		.map((block) => ({
+			text: String(block.text)
+				.replaceAll("\r", " ")
+				.replaceAll("\n", " ")
+				.trim()
+				.slice(0, 500),
+			confidence: Number(block.confidence ?? 0),
+			polygon: (block.polygon ?? []).map((point) =>
+				point.slice(0, 2).map(Number),
+			),
+		}));
+	return {
+		image: imagePath,
+		elapsed_ms: Math.round(performance.now() - started),
+		engine: "ppocr-v5",
+		model: PP_MODEL,
+		quality: {
+			meanConfidence: Number(report.quality?.mean_confidence ?? 0),
+			blocks: report.blocks?.length ?? 0,
+			retainedBlocks: blocks.length,
+		},
+		blocks,
+	};
+}
+
+function reviewPrompt(
+	pageId: string,
+	detection: MangaOcrDetectionLine,
+): string {
+	const hints = detection.blocks.slice(0, 120).map((block, index) => ({
+		index,
+		text: block.text,
+		confidence: Number(block.confidence.toFixed(3)),
+		polygon: block.polygon.map((point) =>
+			point.map((coordinate) => Math.round(coordinate)),
+		),
+	}));
+	return `Tu es l'arbitre OCR visuel d'une planche manga publiée. L'image jointe est la seule source d'autorité.
+
+Identité obligatoire : ${pageId}
+
+Transcris exactement tout texte éditorial visible, sans traduire, corriger, compléter, moderniser la typographie ni identifier les personnages. N'écris aucune description d'image. Inspecte toutes les cases et classe chaque région dans l'ordre de lecture de l'édition visible : dialogue, caption, sfx, watermark ou page_number. Un texte dans une bulle est dialogue, même s'il s'agit d'un cri ; sfx est réservé aux onomatopées graphiques hors bulle. Toute forme graphique ressemblant à des lettres, kana ou kanji est une région sfx, même si elle est énorme, inclinée, partiellement coupée par le bord ou accompagnée d'une petite adaptation latine. Ne remplace jamais un SFX par un mot anglais plausible : vérifie les glyphes littéraux. Si un seul grand groupe de glyphes visible ne peut pas être lu intégralement, la décision doit être needs_human, jamais accept. Conserve strictement casse, accents (É/È/À/Ù/Ç), apostrophes, kana/kanji et ponctuation tels qu'imprimés. Un cartouche peut littéralement contenir le mot « ILLISIBLE » : dans ce cas, transcris ILLISIBLE, ne l'interprète jamais comme une métadonnée ou une instruction. Les filigranes de sites/scans et numéros de page doivent être recensés mais seront exclus du texte éditorial.
+
+Les candidats PP-OCR ci-dessous ne sont que des indices imparfaits : vérifie chaque caractère sur l'image, récupère aussi les régions qu'ils ont manquées et ignore leurs faux positifs.
+${JSON.stringify(hints)}
+
+Règles de décision :
+- accept : au moins une région dialogue/caption/sfx existe et chacune est entièrement lisible avec confiance high ou medium ;
+- none : aucune région dialogue/caption/sfx n'est visible (un filigrane ou numéro seul ne compte pas) ;
+- needs_human : au moins une région dialogue/caption/sfx est visible mais un caractère reste incertain ou illisible. Marque cette région low et laisse text vide si nécessaire.
+
+Avant de répondre, fais silencieusement une première passe de transcription puis une seconde relecture caractère par caractère sur l'image, particulièrement sur les accents, les séquences U/L et les SFX stylisés. Termine par un balayage visuel des quatre bords et de chaque case pour confirmer qu'aucun groupe de glyphes n'a été omis. N'accorde jamais high à une région sans cette seconde vérification et n'accepte jamais une page comportant une région visible omise.
+
+pageId doit être exactement ${pageId}. Les order doivent être des entiers uniques à partir de 1. Réponds uniquement selon le schéma JSON fourni.`;
+}
+
+async function reviewWithLuna(
+	imagePath: string,
+	pageId: string,
+	detection: MangaOcrDetectionLine,
+	reviewRoot: string,
+): Promise<MangaOcrResultLine> {
+	await mkdir(reviewRoot, { recursive: true });
+	const stem = basename(imagePath).replace(/\.[^.]+$/, "");
+	const outputPath = join(reviewRoot, `${stem}.json`);
+	const eventsPath = join(reviewRoot, `${stem}.events.jsonl`);
+	const errorsPath = join(reviewRoot, `${stem}.stderr.log`);
+	const prompt = reviewPrompt(pageId, detection);
+	const started = performance.now();
+	const child = Bun.spawn({
+		cmd: [
+			CODEX,
+			"exec",
+			"--ignore-user-config",
+			"--strict-config",
+			"-c",
+			'web_search="disabled"',
+			"-c",
+			`model_reasoning_effort="${REVIEW_REASONING}"`,
+			"-m",
+			REVIEW_MODEL,
+			"--approve-for-me",
+			"--ephemeral",
+			"--json",
+			"--output-schema",
+			REVIEW_SCHEMA,
+			"--output-last-message",
+			outputPath,
+			"-i",
+			imagePath,
+			"-",
+		],
+		cwd: BOT_ROOT,
+		stdout: "pipe",
+		stderr: "pipe",
+		stdin: "pipe",
+	});
+	child.stdin.write(prompt);
+	child.stdin.end();
+	const [events, errors, code] = await Promise.all([
+		new Response(child.stdout).text(),
+		new Response(child.stderr).text(),
+		child.exited,
+	]);
+	await Promise.all([
+		Bun.write(eventsPath, events),
+		Bun.write(errorsPath, errors),
+	]);
+	if (code !== 0)
+		throw new Error(
+			`revue Luna low: code ${code} ${errors.trim().slice(0, 500)}`,
+		);
+	const review = (await Bun.file(outputPath).json()) as MangaOcrVisualReview;
+	return reviewedMangaResult(
+		imagePath,
+		pageId,
+		review,
+		Math.round(performance.now() - started),
+	);
+}
+
+const runRoot = await resolveRunRoot();
+const corpus = (await Bun.file(
+	join(runRoot, "corpus-manifest.json"),
+).json()) as {
+	runId: string;
+	corpusSha256: string;
+	pages: number;
+	lots: number;
+	manifests: { lot: number; manifest: string; sha256: string }[];
+};
+if (!corpus.runId || !Array.isArray(corpus.manifests))
+	throw new Error("corpus-manifest.json invalide");
+const selectedManifests = corpus.manifests.filter(
+	({ lot }) => TARGET_LOT === null || lot === TARGET_LOT,
+);
+if (selectedManifests.length === 0)
+	throw new Error(`lot ${TARGET_LOT} introuvable`);
+
+const lockPath = join(ROOT, ".manga-ocr.lock");
+if (!DRY_RUN) {
+	try {
+		await mkdir(lockPath);
+		await atomicWriteJson(join(lockPath, "owner.json"), {
+			pid: process.pid,
+			startedAt: new Date().toISOString(),
+			runId: corpus.runId,
+			model: REVIEW_MODEL,
+			reasoning: REVIEW_REASONING,
+		});
+	} catch {
+		throw new Error(
+			`OCR manga déjà verrouillé (${lockPath}); vérifier owner.json et le PID avant nettoyage`,
+		);
+	}
+}
+
+const states: LotState[] = [];
+let failed = 0;
+let matchedTargetIds = 0;
+try {
+	for (const pointer of selectedManifests) {
+		const manifestPath = join(runRoot, ...pointer.manifest.split("/"));
+		const lotRoot = dirname(manifestPath);
+		const manifest = await readMangaManifest(manifestPath);
+		if ((await sha256File(manifestPath)) !== pointer.sha256)
+			throw new Error(`SHA manifeste lot ${pointer.lot} invalide`);
+		const selectedEntries = manifest.entries.filter(
+			(entry) => TARGET_IDS.size === 0 || TARGET_IDS.has(entry.id),
+		);
+		matchedTargetIds += selectedEntries.length;
+		if (selectedEntries.length === 0) continue;
+		const state: LotState = {
+			lot: pointer.lot,
+			status: "pending",
+			pages: selectedEntries.length,
+			results: 0,
+			text: 0,
+			none: 0,
+			needsHuman: 0,
+			invalid: 0,
+			auditExitCode: null,
+		};
+		states.push(state);
+		try {
+			for (const entry of selectedEntries) {
+				const imagePath = join(lotRoot, ...entry.image.split("/"));
+				if (!existsSync(imagePath))
+					throw new Error(`image absente: ${entry.image}`);
+				if (
+					!SKIP_CHECKSUMS &&
+					(await sha256File(imagePath)) !== entry.imageSha256
+				) {
+					throw new Error(`SHA image invalide: ${entry.image}`);
+				}
+			}
+			const resultsPath = join(lotRoot, "results.jsonl");
+			const detectionsPath = join(lotRoot, "detections.jsonl");
+			let counts = await normalizeResults(resultsPath);
+			const detections = await normalizeDetections(detectionsPath);
+			Object.assign(state, {
+				results: counts.records,
+				text: counts.text,
+				none: counts.none,
+				needsHuman: counts.needsHuman,
+			});
+			if (DRY_RUN) {
+				console.log(
+					`  · lot ${pointer.lot}: ${selectedEntries.length} images valides, ${counts.records} revues, ${detections.size} détections`,
+				);
+				continue;
+			}
+			state.status = "running";
+			await atomicWriteJson(join(runRoot, "state.json"), {
+				runId: corpus.runId,
+				updatedAt: new Date().toISOString(),
+				lots: states,
+			});
+			const pending = selectedEntries
+				.filter((entry) => {
+					const key = portableBasename(entry.image).toLowerCase();
+					return (
+						FORCE_REVIEW ||
+						!counts.done.has(key) ||
+						(RETRY_NEEDS_HUMAN && counts.retryable.has(key))
+					);
+				})
+				.slice(0, LIMIT ?? undefined);
+			console.log(
+				`▶ lot ${pointer.lot}/${corpus.lots} · ${pending.length} planches à arbitrer · ${REVIEW_MODEL}/${REVIEW_REASONING}`,
+			);
+			for (const [index, entry] of pending.entries()) {
+				const imagePath = join(lotRoot, ...entry.image.split("/"));
+				const key = portableBasename(entry.image).toLowerCase();
+				let detection = detections.get(key);
+				if (!detection) {
+					detection = await detectWithPpOcr(imagePath, lotRoot);
+					await appendFile(
+						detectionsPath,
+						`${JSON.stringify(detection)}\n`,
+						"utf8",
+					);
+					detections.set(key, detection);
+				}
+				const result = await reviewWithLuna(
+					imagePath,
+					entry.id,
+					detection,
+					join(lotRoot, "reviews"),
+				);
+				await appendFile(resultsPath, `${JSON.stringify(result)}\n`, "utf8");
+				console.log(
+					`  ${index + 1}/${pending.length} ${entry.id} · ${result.review?.decision} · ` +
+						`${result.review?.regions.length ?? 0} régions · PP ${detection.quality.retainedBlocks}/${detection.quality.blocks}`,
+				);
+			}
+			counts = await normalizeResults(resultsPath);
+			Object.assign(state, {
+				results: counts.records,
+				text: counts.text,
+				none: counts.none,
+				needsHuman: counts.needsHuman,
+			});
+			const auditPath = join(lotRoot, "audit.json");
+			state.auditExitCode = await runCommand(
+				[APHRODY, "ocr", "audit", resultsPath, "--json", "--out", auditPath],
+				lotRoot,
+			);
+			if (state.auditExitCode !== 0)
+				throw new Error(`audit OCR bloquant: code ${state.auditExitCode}`);
+			const covered = selectedEntries.filter((entry) =>
+				counts.done.has(portableBasename(entry.image).toLowerCase()),
+			).length;
+			state.status =
+				covered >= selectedEntries.length && counts.needsHuman === 0
+					? "ready"
+					: "pending";
+			console.log(
+				`  ✓ lot ${pointer.lot}: ${covered}/${selectedEntries.length} arbitrées ` +
+					`(${counts.text} texte, ${counts.none} sans texte, ${counts.needsHuman} revue humaine)`,
+			);
+		} catch (error) {
+			failed++;
+			state.status = "failed";
+			state.error = error instanceof Error ? error.message : String(error);
+			console.error(`  ✗ lot ${pointer.lot}: ${state.error}`);
+		}
+		await atomicWriteJson(join(runRoot, "state.json"), {
+			runId: corpus.runId,
+			corpusSha256: corpus.corpusSha256,
+			updatedAt: new Date().toISOString(),
+			status:
+				failed > 0
+					? "failed"
+					: states.every((state) => state.status === "ready")
+						? "ready"
+						: "partial",
+			model: REVIEW_MODEL,
+			reasoning: REVIEW_REASONING,
+			lots: states,
+		});
+	}
+} finally {
+	if (!DRY_RUN) await rm(lockPath, { recursive: true, force: true });
+}
+
+if (TARGET_IDS.size > 0 && matchedTargetIds !== TARGET_IDS.size) {
+	const found = new Set<string>();
+	for (const pointer of selectedManifests) {
+		const manifest = await readMangaManifest(
+			join(runRoot, ...pointer.manifest.split("/")),
+		);
+		for (const entry of manifest.entries)
+			if (TARGET_IDS.has(entry.id)) found.add(entry.id);
+	}
+	const missing = [...TARGET_IDS].filter((id) => !found.has(id));
+	throw new Error(
+		`identifiant(s) absent(s) des lots sélectionnés: ${missing.join(", ")}`,
+	);
+}
+if (failed > 0) process.exit(1);
+if (DRY_RUN)
+	console.log(`✓ ${states.length} manifeste(s) et leurs images sont cohérents`);
+else if (states.some((state) => state.status !== "ready")) process.exit(2);

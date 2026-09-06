@@ -1,0 +1,96 @@
+{
+	"version": "1.0.0",
+	"spec": "a2a/v1.0",
+	"id": "shenron@aphrody-code/shenron",
+	"schema_version": "1.0.0",
+	"kind": "agent",
+	"name": "shenron",
+	"description": "Orchestrateur factuel Dragon Ball : manga local, databooks transcrits, audit de la base et propositions wiki validées par Shenron.",
+	"a2a_protocol_version": "1.0",
+	"documentation_url": "https://github.com/aphrody-code/shenron/blob/main/scripts/workflow.ts",
+	"collaboration_manifest": "./ai-collaboration.json",
+	"provider": {
+		"organization": "aphrody-code",
+		"url": "https://github.com/aphrody-code/shenron"
+	},
+	"supported_interfaces": [
+		{
+			"url": "http://127.0.0.1:8788",
+			"protocol_binding": "JSONRPC",
+			"protocol_version": "1.0"
+		}
+	],
+	"capabilities": {
+		"streaming": true,
+		"pushNotifications": false,
+		"extendedAgentCard": false
+	},
+	"default_input_modes": ["text/plain", "application/json"],
+	"default_output_modes": ["application/json"],
+	"peers": [
+		{
+			"id": "aphrody@aphrody-code/aphrody",
+			"role": "coordination-peer",
+			"transport": "file+jsonl",
+			"binary": "aphrody",
+			"invocation": "aphrody a2a tick --iteration <n> --side shenron --peer aphrody",
+			"description": "Aphrody A2A 1.0 : enveloppes de progression, erreurs et résultats de campagne."
+		},
+		{
+			"id": "gpt-5.6-luna@openai/codex",
+			"role": "read-only-subagent",
+			"transport": "codex-cli",
+			"binary": "codex",
+			"model": "gpt-5.6-luna",
+			"reasoning_effort": "low",
+			"invocation": "codex exec --ignore-user-config --strict-config -c web_search=disabled -c model_reasoning_effort=low -m gpt-5.6-luna --approve-for-me --ephemeral",
+			"description": "Sous-agents éphémères avec commandes locales autorisées, mais contractuellement sans web ni écriture, cadrés par le plugin Dragon Ball local."
+		}
+	],
+	"skills": [
+		{
+			"id": "dragon-ball.local-sources",
+			"name": "Sources locales Dragon Ball",
+			"description": "Manga auto-hébergé et databooks transcrits uniquement; le web, Fandom et la mémoire du modèle sont interdits.",
+			"tags": ["dragon-ball", "manga", "databooks", "sources", "offline"]
+		},
+		{
+			"id": "shenron.workflow",
+			"name": "Campagne factuelle Shenron",
+			"description": "Inventaire, databooks, manga, audit DB, contre-vérification, propositions wiki et validation finale.",
+			"tags": ["workflow", "subagents", "wiki", "audit"]
+		},
+		{
+			"id": "a2a.coord",
+			"name": "Coordination Aphrody A2A",
+			"description": "Enveloppes JSONL append-only et heartbeat local compatibles Aphrody A2A 1.0.",
+			"tags": ["a2a", "coord", "jsonl"]
+		}
+	],
+	"coord": {
+		"mailbox_dir": ".coord",
+		"inbox_pattern": "inbox-from-<peer-short-id>.jsonl",
+		"http_bind": "127.0.0.1:8788",
+		"envelope": {
+			"v": 1,
+			"kinds": ["ping", "ask", "fact", "ack", "error"]
+		}
+	},
+	"workflow": {
+		"entrypoint": "bun scripts/workflow.ts",
+		"model": "gpt-5.6-luna",
+		"reasoning_effort": "low",
+		"default_concurrency": 4,
+		"ordered_stages": [
+			"inventory",
+			"databooks",
+			"databook-review",
+			"manga",
+			"database",
+			"crosscheck",
+			"wiki",
+			"shenron-review"
+		],
+		"writes": "simulation by default; --apply requires deterministic guards, PostgreSQL backup, and 3-of-4 reviewer consensus"
+	}
+}

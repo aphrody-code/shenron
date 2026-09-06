@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { UserNav } from "@/components/user/UserNav";
 import { ContinueRail } from "@/components/history/ContinueRail";
+import { GatedWrap } from "@/components/GatedLink";
 import { SectionUnavailable } from "@/components/wiki/SectionUnavailable";
 import { readPublicProfileActivity } from "@/lib/account-data";
 import { getProfileCardUrl } from "@/lib/assets";
@@ -312,7 +313,7 @@ function MemberLibrary() {
 			<ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				{LIBRARY_LINKS.map((item) => (
 					<li key={item.href}>
-						<Link
+						<GatedWrap
 							href={item.href}
 							className="group flex h-full min-h-32 flex-col justify-end rounded-2xl border border-white/10 bg-[linear-gradient(145deg,rgba(243,132,24,.11),rgba(255,255,255,.025))] p-5 hover:border-dbz-orange/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dbz-orange"
 						>
@@ -320,7 +321,7 @@ function MemberLibrary() {
 								{item.title}
 							</h3>
 							<p className="mt-1 text-sm leading-snug text-white/45">{item.text}</p>
-						</Link>
+						</GatedWrap>
 					</li>
 				))}
 			</ul>

@@ -13,13 +13,15 @@
 import { Glob } from "bun";
 import { Database } from "bun:sqlite";
 import { writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
-const ROOT = new URL("..", import.meta.url).pathname; // apps/bot/
-const MANGA = `${ROOT}assets/manga`;
-const OUT = `${ROOT}data/manga-visual-map.json`;
+const ROOT = fileURLToPath(new URL("..", import.meta.url)); // apps/bot/
+const MANGA = join(ROOT, "assets", "manga");
+const OUT = join(ROOT, "data", "manga-visual-map.json");
 const ASSET_BASE = process.env.ASSET_BASE ?? "https://bot.dragonballfr.com";
 
-const db = new Database(`${ROOT}data/bot.db`, { readonly: true });
+const db = new Database(join(ROOT, "data", "bot.db"), { readonly: true });
 const ocr = new Map<string, { text: string; has_ja: number; line_count: number }>();
 for (const r of db
 	.query("SELECT series, tome, planche, text, has_ja, line_count FROM db_manga_pages")
@@ -45,8 +47,9 @@ interface Page {
 const byTome = new Map<string, { series: string; tome: string; pages: Page[] }>();
 
 for await (const rel of new Glob("**/*.webp").scan(MANGA)) {
-	if (rel.startsWith("transcripts/")) continue;
-	const parts = rel.split("/"); // ex: DBS/ch1348/029.webp | DB/regular/vol1/060.webp
+	const parts = rel.split(/[\\/]/); // ex: DBS/ch1348/029.webp | DB/regular/vol1/060.webp
+	if (parts[0] === "transcripts") continue;
+	const relativeImage = parts.join("/");
 	const series = parts[0];
 	const tome = parts[parts.length - 2];
 	const planche = Number.parseInt(parts[parts.length - 1], 10);
@@ -56,8 +59,8 @@ for await (const rel of new Glob("**/*.webp").scan(MANGA)) {
 	const o = ocr.get(`${series}|${tome}|${planche}`);
 	byTome.get(key)!.pages.push({
 		planche,
-		image: `assets/manga/${rel}`,
-		url: `${ASSET_BASE}/assets/manga/${rel}`,
+		image: `assets/manga/${relativeImage}`,
+		url: `${ASSET_BASE}/assets/manga/${relativeImage}`,
 		text: o?.text ?? "",
 		hasJa: !!o?.has_ja,
 		lineCount: o?.line_count ?? 0,
