@@ -18,43 +18,42 @@ et si la source manque, laisse le champ vide.
 Une fiche mince et juste vaut mieux qu'une fiche fournie et fausse : elle se
 complète, tandis qu'une erreur plausible se recopie.
 
-## Hiérarchie des sources
+## Sources admissibles pour l'écriture
 
 1. **Le manga** — canon. Le dépôt l'héberge en propre.
 2. **Les databooks officiels** (Daizenshuu, Chōzenshū, guides) — canon
    complémentaire : chiffres, dates, intentions de l'auteur, interviews.
-3. **L'anime** — à distinguer explicitement (« dans l'anime… »), il ajoute et
-   parfois contredit.
-4. **Les jeux** — jamais présentés comme canon. Xenoverse et consorts inventent
-   personnages, transformations et techniques.
+
+Le web, Fandom, Wikipédia, AniList, Jikan et la mémoire du modèle ne sont pas
+des sources éditoriales. L'anime et les jeux ne peuvent être mentionnés que si
+une planche du manga ou d'un databook autorisé les documente explicitement.
 
 Quand deux sources divergent, dis-le au lieu de choisir en silence.
 
 ## Chercher
 
-**RAG hybride** — la recherche à privilégier : elle croise manga, Fandom et
-databooks, et rend des passages sourcés et scorés.
+**Robinet local obligatoire** — il ne lit que le manga et les databooks :
 
 ```bash
-curl -s "https://bot.dragonballfr.com/api/public/rag/search?q=comment+Vegeta+devient+super+saiyan&limit=5" \
-  | jq '.results[] | {score, kind, title, url, snippet}'
+bun apps/site/scripts/sources-wiki.ts manga "Vegeta" --limite 20 --json
+bun apps/site/scripts/sources-wiki.ts databook "ベジータ" --limite 20 --json
 ```
 
-Chaque résultat porte `title`, `url` (la source à citer), `snippet`, `kind`
-(`source` pour le Fandom, `manga` pour les planches) et `score`. Le score n'est
-comparable qu'à l'intérieur d'une même réponse — ce n'est pas un seuil absolu.
+Ce que ce script ne rend pas ne s'écrit pas. Pour une preuve complète, rouvrir
+la planche par `sources-wiki.ts page …` ou `sources-wiki.ts planche …` et citer
+son identifiant stable.
 
 **Databooks japonais** — le texte des planches, quand il faut la donnée d'origine :
 
 ```bash
-curl -s "https://dragonballfr.com/api/databooks/search?q=$(printf '%s' '戦闘力' | jq -sRr @uri)&limit=5" \
-  | jq '.items[] | {titre, planche: .numero, extrait: .texte[0:150]}'
+bun apps/site/scripts/sources-wiki.ts databook "戦闘力" --limite 20 --json
 ```
 
 **Wiki existant** — pour ne pas dupliquer et rester cohérent :
 
 ```bash
-curl -s "https://bot.dragonballfr.com/api/public/wiki/search?q=Vegeta&limit=5" | jq
+bun apps/site/scripts/sources-wiki.ts cherche db_characters "Vegeta" --json
+bun apps/site/scripts/sources-wiki.ts fiche db_characters 1 --json
 ```
 
 Le contenu des databooks est **en japonais**. Fais-le traduire par

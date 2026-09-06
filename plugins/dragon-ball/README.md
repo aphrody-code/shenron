@@ -43,8 +43,9 @@ connaissance **Dragon Ball vivante et sourcée** de [dragonballfr.com](https://d
    `bot_personas`, `bot_leaderboard`, `bot_commands`, `news`. Aucun accès DB ni secret.
 
 Le skill fonctionne seul (API REST + `db.sh`) ; le serveur MCP ajoute l'accès natif
-pour les clients MCP. Les deux pointent la même base — manga auto-hébergé, Fandom et
-databooks Toriyama.
+pour les clients MCP. Le RAG peut encore contenir un corpus Fandom de découverte,
+mais le plugin n'en fait jamais une preuve éditoriale : seuls le manga auto-hébergé
+et les databooks officiels peuvent justifier un fait ou une écriture wiki.
 
 ## Installation
 
