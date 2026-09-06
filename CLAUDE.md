@@ -88,3 +88,21 @@ bun apps/site/scripts/genere-icones.ts             # favicons site + bot + logo 
 - Skills : `dragon-ball` (API/RAG/wiki), `dragon-ball-japonais` (lexique et graphies), `toriyama-svg` (dessin vectoriel mesuré, favicons, animation), `persona-*`, `bot-smoke-test`.
 - Plugin `dragon-ball` (`plugins/dragon-ball/`) + marketplace `shenron` à la racine.
 - Hooks : `gen:entries` auto, avertissement sur `personas.ts`, édition de `.env` bloquée.
+
+## Mémoire opérationnelle — exploration Codex (2026-09-06)
+
+- Le bot utilise désormais un seul client Gateway Shenron ; les anciens IDs
+  `beerus`, `whis`, `grandPretre`, `enma` et `kaio` restent des aliases API.
+- Commit déployé : `60534039` (`refactor(bot): unifier le runtime et durcir l API`).
+- Bot : `shenron.service` actif sur 5006 ; MCP : `shenron-mcp.service` actif sur
+  5010 ; site actif en bleu/vert sur `shenron-site-b.service` (:3010), le slot
+  `shenron-site.service` inactif est normal.
+- Déploiement vérifié : bot `/auth/me` 200, MCP `/health` OK avec upstream bot,
+  site public 200 ; build Next terminé en 521 s sans coupure.
+- Ressources : RAM libre ~4 Gio, swap utilisée ~5,3 Gio après arrêt de VS Code
+  Server fantôme et Chrome headless de test. Ne jamais tuer `shenron-embed` :
+  son `embed-server.ts` est le service RAG actif.
+- Validations : monorepo type-check réussi ; bot 125 tests passés ; lint avec
+  warnings préexistants seulement. MCP expose actuellement 16 outils.
+- Les fichiers locaux non suivis `plugins/dragon-ball/.codex-plugin/` et
+  `plugins/dragon-ball/.mcp.json` sont à préserver et ne pas commit par défaut.
