@@ -39,7 +39,7 @@ const TYPE_LABELS = {
 type ShopType = keyof typeof TYPE_LABELS;
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly)
 @injectable()
 export class ShopPanelCommands {

@@ -67,7 +67,7 @@ export function lecteursParLangue(
 }
 
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class ForumEpisodesComponents {
 	constructor(@inject(EpisodesService) private episodes: EpisodesService) {}

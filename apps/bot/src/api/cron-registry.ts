@@ -29,6 +29,7 @@ interface JobState extends CronJob {
 	runCount: number;
 	lastError: string | null;
 	timer: ReturnType<typeof setInterval> | null;
+	running: boolean;
 }
 
 @singleton()
@@ -47,6 +48,7 @@ export class CronRegistry {
 			runCount: 0,
 			lastError: null,
 			timer: null,
+			running: false,
 		};
 		this.jobs.set(job.name, state);
 
@@ -102,6 +104,11 @@ export class CronRegistry {
 	async run(name: string): Promise<{ ok: boolean; durationMs: number; error: string | null }> {
 		const job = this.jobs.get(name);
 		if (!job) return { ok: false, durationMs: 0, error: "job inconnu" };
+		if (job.running) {
+			logger.debug({ name }, "cron déjà en cours, exécution ignorée");
+			return { ok: false, durationMs: 0, error: "job déjà en cours" };
+		}
+		job.running = true;
 		const t0 = Bun.nanoseconds() / 1e6;
 		try {
 			await job.fn();
@@ -123,6 +130,8 @@ export class CronRegistry {
 				.resolve(EventBusService)
 				.emit("cron:run", { name, ok: false, durationMs: job.lastDurationMs });
 			return { ok: false, durationMs: job.lastDurationMs, error: msg };
+		} finally {
+			job.running = false;
 		}
 	}
 
@@ -135,6 +144,7 @@ export class CronRegistry {
 			lastDurationMs: j.lastDurationMs,
 			runCount: j.runCount,
 			lastError: j.lastError,
+			running: j.running,
 			nextRunAt: j.lastRunAt ? j.lastRunAt + j.intervalMs : null,
 		}));
 	}

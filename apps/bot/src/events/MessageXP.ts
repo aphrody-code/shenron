@@ -32,7 +32,7 @@ import { logger } from "~/lib/logger";
 import dayjs from "dayjs";
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @injectable()
 export class MessageXPEvent {
 	constructor(

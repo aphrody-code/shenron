@@ -30,7 +30,7 @@ import { parseDuration, formatDuration, notifyMember } from "~/lib/sanction-help
 import { env } from "~/lib/env";
 
 @Discord()
-@Bot("enma")
+@Bot("shenron")
 @Guard(GuildOnly)
 @injectable()
 export class JailCommands {

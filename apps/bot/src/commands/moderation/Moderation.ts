@@ -36,7 +36,7 @@ import type { GuildBasedChannel, Collection, Snowflake } from "discord.js";
 import dayjs from "dayjs";
 
 @Discord()
-@Bot("beerus")
+@Bot("shenron")
 @Guard(GuildOnly)
 @injectable()
 export class ModerationCommands {

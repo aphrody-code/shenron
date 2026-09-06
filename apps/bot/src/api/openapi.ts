@@ -488,7 +488,7 @@ export const openapiSpec = {
 		"/api/public/personas": {
 			get: {
 				tags: ["Insights"],
-				summary: "État des 6 personas",
+				summary: "État du bot Shenron unifié (anciens aliases conservés)",
 				responses: {
 					"200": {
 						description: "OK",

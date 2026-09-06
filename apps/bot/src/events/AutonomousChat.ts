@@ -184,7 +184,7 @@ class BaseAutonomousChat {
 }
 
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class GrandPretreAutonomousChat extends BaseAutonomousChat {
 	constructor(
@@ -201,7 +201,7 @@ export class GrandPretreAutonomousChat extends BaseAutonomousChat {
 }
 
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @injectable()
 export class WhisAutonomousChat extends BaseAutonomousChat {
 	constructor(
@@ -218,7 +218,7 @@ export class WhisAutonomousChat extends BaseAutonomousChat {
 }
 
 @Discord()
-@Bot("beerus")
+@Bot("shenron")
 @injectable()
 export class BeerusAutonomousChat extends BaseAutonomousChat {
 	constructor(

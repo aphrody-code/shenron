@@ -21,7 +21,7 @@ import { ModerationService } from "~/services/ModerationService";
 import { env } from "~/lib/env";
 
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class AuditLogEventHandler {
 	constructor(

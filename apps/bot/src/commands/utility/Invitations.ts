@@ -25,7 +25,7 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
  * par `JoinLeave.onJoin` via `InviteTracker.detectInviter`.
  */
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class InvitationsCommand {

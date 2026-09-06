@@ -30,7 +30,7 @@ function parseDuration(input: string): number | undefined {
 }
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, FeatureEnabled("features.giveaway", "Le système de giveaway"))
 @injectable()
 export class GiveawayCommands {
@@ -160,7 +160,7 @@ import { Once } from "@rpbey/discordy";
 import type { Client } from "discord.js";
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @injectable()
 export class GiveawayTicker {
 	constructor(

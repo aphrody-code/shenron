@@ -17,7 +17,7 @@ import { logger } from "~/lib/logger";
  * commande.
  */
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class InteractionLogEvent {
 	constructor(@inject(DatabaseService) private dbs: DatabaseService) {}

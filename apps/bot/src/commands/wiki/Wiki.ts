@@ -50,7 +50,7 @@ function asEmbedImage(imagePath: string): { url: string; attachment: AttachmentB
 }
 
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly, FeatureEnabled("features.wiki", "Le wiki"))
 @injectable()
 export class WikiCommands {

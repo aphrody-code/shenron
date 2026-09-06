@@ -46,7 +46,7 @@ function siteUrl(path: string): string {
  * Persona Whis (savoir / pédagogie). Cf. lib/rag.ts.
  */
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly, FeatureEnabled("features.wiki", "Le wiki"))
 @injectable()
 export class AskCommands {

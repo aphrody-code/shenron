@@ -43,7 +43,7 @@ const KIND_LABELS = {
 } as const;
 
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly, FeatureEnabled("features.tickets", "Le système de tickets"))
 @injectable()
 export class TicketCommands {

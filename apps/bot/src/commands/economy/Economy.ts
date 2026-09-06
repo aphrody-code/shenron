@@ -40,7 +40,7 @@ import { formatXP } from "~/lib/xp";
 import { fusionName } from "~/lib/fusion-names";
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class EconomyCommands {

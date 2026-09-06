@@ -27,7 +27,7 @@ function stablePercent(userId: string, salt: string): number {
 }
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class FunCommands {

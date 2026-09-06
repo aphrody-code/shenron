@@ -10,7 +10,7 @@ import { env } from "~/lib/env";
 import { CronRegistry } from "~/api/cron-registry";
 
 @Discord()
-@Bot("enma")
+@Bot("shenron")
 @injectable()
 export class JailExpiryEvent {
 	constructor(

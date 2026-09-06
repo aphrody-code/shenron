@@ -16,7 +16,7 @@ import { levelOfRoleId, memberRaceId } from "~/lib/race-levels";
 import { env } from "~/lib/env";
 
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class JoinLeaveEvent {
 	constructor(

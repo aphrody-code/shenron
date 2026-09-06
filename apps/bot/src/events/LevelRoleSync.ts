@@ -14,7 +14,7 @@ const DEFAULT_INTERVAL_MS = 6 * 3_600_000;
  * correspondant à sa race et à son niveau (XP en base).
  */
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @injectable()
 export class LevelRoleSyncEvent {
 	constructor(

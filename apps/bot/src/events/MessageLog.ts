@@ -8,7 +8,7 @@ import { logger } from "~/lib/logger";
 const REUPLOAD_MAX_BYTES = 8 * 1024 * 1024;
 
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class MessageLogEvent {
 	constructor(@inject(LogService) private logs: LogService) {}

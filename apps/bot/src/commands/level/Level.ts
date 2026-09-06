@@ -12,7 +12,7 @@ import { CardService } from "~/services/CardService";
 import { LeaderboardService, type LeaderboardEntry } from "~/services/LeaderboardService";
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class LevelCommands {

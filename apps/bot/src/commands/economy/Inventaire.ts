@@ -26,7 +26,7 @@ const TYPE_LABELS: Record<ItemType, string> = {
 };
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly)
 @SlashGroup({ name: "inventaire", description: "Gérer ton inventaire (carte/badge/couleur/titre)" })
 @SlashGroup("inventaire")

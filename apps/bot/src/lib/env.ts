@@ -10,11 +10,11 @@ const schema = z.object({
 	// ────────────────────────────────────────────────────────
 	DISCORD_TOKEN: z.string().min(1).optional(),
 	DISCORD_TOKEN_SHENRON: z.string().min(1).optional(),
-	DISCORD_TOKEN_BEERUS: z.string().min(1, "DISCORD_TOKEN_BEERUS is required"),
-	DISCORD_TOKEN_WHIS: z.string().min(1, "DISCORD_TOKEN_WHIS is required"),
-	DISCORD_TOKEN_GRAND_PRETRE: z.string().min(1, "DISCORD_TOKEN_GRAND_PRETRE is required"),
-	DISCORD_TOKEN_ENMA: z.string().min(1, "DISCORD_TOKEN_ENMA is required"),
-	DISCORD_TOKEN_KAIO: z.string().min(1, "DISCORD_TOKEN_KAIO is required"),
+	DISCORD_TOKEN_BEERUS: z.string().min(1).optional(),
+	DISCORD_TOKEN_WHIS: z.string().min(1).optional(),
+	DISCORD_TOKEN_GRAND_PRETRE: z.string().min(1).optional(),
+	DISCORD_TOKEN_ENMA: z.string().min(1).optional(),
+	DISCORD_TOKEN_KAIO: z.string().min(1).optional(),
 
 	GUILD_ID: z.string().regex(/^\d{17,20}$/, "GUILD_ID must be a Discord snowflake"),
 	OWNER_ID: z.string().regex(/^\d{17,20}$/, "OWNER_ID must be a Discord snowflake"),
@@ -151,6 +151,11 @@ export const env = {
 	...raw,
 	DISCORD_TOKEN: shenronToken,
 	DISCORD_TOKEN_SHENRON: shenronToken,
+	DISCORD_TOKEN_BEERUS: shenronToken,
+	DISCORD_TOKEN_WHIS: shenronToken,
+	DISCORD_TOKEN_GRAND_PRETRE: shenronToken,
+	DISCORD_TOKEN_ENMA: shenronToken,
+	DISCORD_TOKEN_KAIO: shenronToken,
 	APPLICATION_ID: shenronAppId,
 	APPLICATION_ID_SHENRON: shenronAppId,
 };

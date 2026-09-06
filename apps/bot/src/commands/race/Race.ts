@@ -23,7 +23,7 @@ import { logger } from "~/lib/logger";
  * La race module la progression (XP, vocal, zéni, jeux) via lib/races.ts.
  */
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class RaceCommands {

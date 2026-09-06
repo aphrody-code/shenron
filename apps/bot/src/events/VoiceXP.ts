@@ -21,7 +21,7 @@ interface VoiceSession {
 }
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @injectable()
 export class VoiceXPEvent {
 	private sessions = new Map<string, VoiceSession>(); // userId -> session

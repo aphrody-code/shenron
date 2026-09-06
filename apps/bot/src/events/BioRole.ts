@@ -13,7 +13,7 @@ import { SettingsService } from "~/services/SettingsService";
  * l'URL dans le custom status / activity.state uniquement.
  */
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class BioRoleEvent {
 	constructor(

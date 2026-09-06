@@ -89,7 +89,7 @@ async function renderScouter(user: User, xp: number, accent: string): Promise<Bu
 // Fonts : enregistrées par canvas-kit au chargement du module ci-dessus.
 
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class ScanCommand {

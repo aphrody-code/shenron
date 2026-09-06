@@ -77,7 +77,7 @@ const GROUPS: Array<{ title: string; cmds: Set<string>; groups?: Set<string>; mo
 	];
 
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly)
 export class HelpCommand {
 	@Slash({ name: "help", description: "Liste des commandes du bot" })

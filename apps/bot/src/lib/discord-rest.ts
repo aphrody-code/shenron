@@ -73,11 +73,12 @@ export async function discordFetch<T = unknown>(
 	}
 	if (opts.body !== undefined) headers["Content-Type"] = "application/json";
 
-	let res = await fetch(url, {
-		method: opts.method ?? "GET",
-		headers,
-		body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-	});
+	const body = opts.body !== undefined ? JSON.stringify(opts.body) : undefined;
+	const request = () => {
+		const signal = AbortSignal.timeout(10_000);
+		return fetch(url, { method: opts.method ?? "GET", headers, body, signal });
+	};
+	let res = await request();
 
 	// 429 → un retry après `retry_after` (cap 5s pour ne pas bloquer la requête du dashboard)
 	if (res.status === 429) {
@@ -87,12 +88,8 @@ export async function discordFetch<T = unknown>(
 			{ path, retryAfter: body.retry_after, global: body.global },
 			"Discord 429 — retry après"
 		);
-		await new Promise((r) => setTimeout(r, wait * 1000));
-		res = await fetch(url, {
-			method: opts.method ?? "GET",
-			headers,
-			body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
-		});
+		await Bun.sleep(wait * 1000);
+		res = await request();
 	}
 
 	const rl = parseRateLimit(res);

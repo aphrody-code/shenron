@@ -12,7 +12,7 @@ import { GuildOnly } from "~/guards/GuildOnly";
 import { VocalTempoService } from "~/services/VocalTempoService";
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly)
 @injectable()
 export class VocalCommands {

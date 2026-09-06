@@ -69,7 +69,7 @@ interface PendingChallenge {
 const challenges = new Map<string, PendingChallenge>();
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class PenduCommand {

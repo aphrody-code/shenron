@@ -1910,12 +1910,13 @@ export class ApiServer {
 					publicCachedJson(req, 5 * 60_000, async () => {
 						const clientMap = container.resolve<Map<string, Client>>("ClientMap");
 						const list = [];
-						for (const id of PERSONA_IDS) {
+						for (const id of ["shenron"] as const) {
 							const c = clientMap.get(id);
 							const cfg = PERSONAS[id];
 							list.push({
 								id,
 								name: cfg.name,
+								aliases: PERSONA_IDS.filter((alias) => alias !== "shenron"),
 								username: c?.user?.username ?? null,
 								avatar: c?.user
 									? `https://cdn.discordapp.com/avatars/${c.user.id}/${c.user.avatar}.webp?size=256`

@@ -80,7 +80,7 @@ function tronquer(texte: string, max: number): string {
 }
 
 @Discord()
-@Bot("whis")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly, FeatureEnabled("features.wiki", "Le wiki"))
 @SlashGroup({
 	name: "databooks",

@@ -19,7 +19,7 @@ import { logger } from "~/lib/logger";
  * Hébergé sur grandPretre (seul persona avec MessageContent + GuildMessages).
  */
 @Discord()
-@Bot("grandPretre")
+@Bot("shenron")
 @injectable()
 export class NewsScanEvent {
 	constructor(

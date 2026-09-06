@@ -38,7 +38,7 @@ const pending = new Map<
 const botStakes = new Map<string, number>();
 
 @Discord()
-@Bot("kaio")
+@Bot("shenron")
 @Guard(GuildOnly, CommandsChannelOnly)
 @injectable()
 export class PfcCommand {
