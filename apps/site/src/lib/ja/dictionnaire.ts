@@ -69,7 +69,7 @@ export function dossierDonnees(): string {
 	}
 	// Rien trouvé : on renvoie le candidat le plus probable, pour que le message
 	// d'erreur nomme un chemin utile plutôt que « undefined ».
-	racineResolue = join(base, CANDIDATS[0]);
+	 racineResolue = join(base, ".ja-data");
 	return racineResolue;
 }
 
