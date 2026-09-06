@@ -344,6 +344,8 @@ var Pagination = class {
     this.setPages(pageData);
     this.validateConfiguration();
   }
+  sendTo;
+  config;
   //#region Properties & Constructor
   _pages = [];
   _maxLength = 0;
@@ -815,6 +817,8 @@ var PaginationResolver = class {
     this.resolver = resolver;
     this.maxLength = maxLength;
   }
+  resolver;
+  maxLength;
 };
 
 // src/pagination/types.ts

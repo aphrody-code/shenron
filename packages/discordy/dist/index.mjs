@@ -94,7 +94,7 @@ var require_Reflect = __commonJS({
         var _Map = typeof Map === "function" && typeof Map.prototype.entries === "function" ? Map : CreateMapPolyfill();
         var _Set = typeof Set === "function" && typeof Set.prototype.entries === "function" ? Set : CreateSetPolyfill();
         var _WeakMap = typeof WeakMap === "function" ? WeakMap : CreateWeakMapPolyfill();
-        var registrySymbol = supportsSymbol ? Symbol.for("@reflect-metadata:registry") : void 0;
+        var registrySymbol = supportsSymbol ? /* @__PURE__ */ Symbol.for("@reflect-metadata:registry") : void 0;
         var metadataRegistry = GetOrCreateMetadataRegistry();
         var metadataProvider = CreateMetadataProvider(metadataRegistry);
         function decorate(decorators, target, propertyKey, attributes) {
@@ -1374,6 +1374,8 @@ var ApplicationCommandMixin = class {
     this.command = command;
     this.instance = instance;
   }
+  command;
+  instance;
   get name() {
     return this.command.name;
   }
@@ -1393,6 +1395,11 @@ var SimpleCommandMessage = class {
     this.info = info;
     this.splitter = splitter;
   }
+  prefix;
+  argString;
+  message;
+  info;
+  splitter;
   options = [];
   get name() {
     return this.info.name;
@@ -3038,6 +3045,7 @@ var ApplicationCommandManager = class {
   constructor(client) {
     this.client = client;
   }
+  client;
   async initApplicationCommands(retainDeleted = false) {
     const guildCommandStore = await this.getCommandsByGuild();
     const guildPromises = Array.from(guildCommandStore.entries()).map(([guildId, commands]) => {
@@ -3256,6 +3264,7 @@ var DebugManager = class {
   constructor(client) {
     this.client = client;
   }
+  client;
   printDebug() {
     if (!this.client.instance.isBuilt) {
       this.client.logger.error("Build the app before running this method with client.build()");
@@ -3482,6 +3491,7 @@ var InteractionHandler = class {
   constructor(client) {
     this.client = client;
   }
+  client;
   executeInteraction(interaction) {
     if (interaction.isPrimaryEntryPointCommand()) {
       return null;
@@ -3600,6 +3610,7 @@ var ReactionManager = class {
   constructor(client) {
     this.client = client;
   }
+  client;
   async executeReaction(reaction, user) {
     const action = this.parseReaction(reaction);
     if (!action) {
@@ -3679,6 +3690,7 @@ var SimpleCommandManager = class {
   constructor(client) {
     this.client = client;
   }
+  client;
   async executeCommand(message, caseSensitive) {
     const command = await this.parseCommand(message, caseSensitive ?? false);
     if (command === 0 /* notCommand */) {

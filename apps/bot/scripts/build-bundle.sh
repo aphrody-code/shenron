@@ -24,4 +24,8 @@ cp "$HTML" "$BACKUP"
 # Restaure toujours la source, même si le bundle échoue (trap EXIT).
 trap 'cp "$BACKUP" "$HTML"; rm -f "$BACKUP"' EXIT
 
-bun build src/index.ts --target=bun --outdir=dist
+BUN_BIN="${BUN_BIN:-bun}"
+if ! command -v "$BUN_BIN" >/dev/null 2>&1 && [ -x /mnt/c/Users/aphro/AppData/Local/Microsoft/WinGet/Links/bun.exe ]; then
+	BUN_BIN=/mnt/c/Users/aphro/AppData/Local/Microsoft/WinGet/Links/bun.exe
+fi
+"$BUN_BIN" build src/index.ts --target=bun --outdir=dist

@@ -12,12 +12,16 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 IN=src/dashboard/styles.css
 OUT=src/dashboard/styles.compiled.css
+BUN_BIN="${BUN_BIN:-bun}"
+if ! command -v "$BUN_BIN" >/dev/null 2>&1 && [ -x /mnt/c/Users/aphro/AppData/Local/Microsoft/WinGet/Links/bun.exe ]; then
+	BUN_BIN=/mnt/c/Users/aphro/AppData/Local/Microsoft/WinGet/Links/bun.exe
+fi
 
-if bunx @tailwindcss/cli --input "$IN" --output "$OUT" --minify; then
+if "$BUN_BIN" x @tailwindcss/cli --input "$IN" --output "$OUT" --minify; then
 	exit 0
 fi
 
-echo "⚠ bunx @tailwindcss/cli a échoué (probable SIGSEGV oxide sous Bun) → fallback node" >&2
+echo "⚠ Bun Tailwind a échoué (probable SIGSEGV oxide sous Bun) → fallback node" >&2
 
 # `npx` seul résout souvent vers le shim Bun (~/.bun/bin/npx) → re-crash.
 # On force le vrai npx node : /usr/local/bin/npx (symlink fnm stable) en
